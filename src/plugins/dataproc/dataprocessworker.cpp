@@ -61,6 +61,9 @@
 #include <adwidgets/mslockdialog.hpp>
 #include <coreplugin/icore.h>
 #include <QCoreApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -147,6 +150,50 @@ DataprocessWorker::createChromatogramByAxisRange3( Dataprocessor * processor
         }
     }
 }
+
+void
+DataprocessWorker::genChromatograms( Dataprocessor * processor
+                                     , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                     , const QByteArray& json )
+{
+    std::vector< std::shared_ptr< adwidgets::Progress > > progresses;
+
+    if ( auto rawfile = processor->rawdata() ) {
+
+        if ( rawfile->dataformat_version() < 3 )
+            return;
+
+        ADDEBUG() << "genChromatogram: " << json.toStdString();
+
+        adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
+        if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+            dlg.setMassWidth( tm->width( tm->widthMethod() ) );
+            dlg.setTimeWidth( 4e-9 ); // 4ns
+        }
+
+        if ( dlg.exec() == QDialog::Accepted ) {
+            auto reader_params = dlg.toJson();
+            for ( auto& sel: dlg.selection() ) {
+                auto progress( adwidgets::ProgressWnd::instance()->addbar() );
+                progresses.emplace_back( progress );
+
+                auto rdpara = QJsonDocument::fromJson( reader_params.at( sel.first ) ).object();
+                auto enableTime = rdpara[ "enableTime" ].toBool();
+                double massWidth = rdpara[ "massWidth" ].toDouble();
+                double timeWidth = rdpara[ "timeWidth" ].toDouble();
+
+                if ( auto reader = rawfile->dataReaders().at( sel.first ) ) {
+                    //ADDEBUG() << "genChromatogram: " << sel << ", " << reader->display_name();
+                    //ADDEBUG() << "reader param:    " << reader_params.at( sel.first ) << ", enableTime: " << enableTime << ", width: " << massWidth << ", " << timeWidth;
+                    double width = enableTime ? timeWidth : massWidth;
+                    threads_.emplace_back( adportable::asio::thread( [=] { handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress ); } ) );
+                }
+            }
+        }
+
+    }
+}
+
 
 // [0]
 void
@@ -462,6 +509,34 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
+
+void
+DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
+                                          , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                          , std::shared_ptr< const adcontrols::DataReader > reader
+                                          , const std::string& peaks_json
+                                          , double width
+                                          , bool enableTime
+                                          , std::shared_ptr<adwidgets::Progress> progress )
+{
+    std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
+
+    if ( auto dset = processor->rawdata() ) {
+        adprocessor::v3::MSChromatogramExtractor ex( dset );
+
+        auto axis = enableTime ? adcontrols::hor_axis_time : adcontrols::hor_axis_mass;
+        ex.extract_by_json( vec, *pm, reader, peaks_json, width, axis, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+    }
+
+    portfolio::Folium folium;
+    for ( auto c: vec )
+        folium = processor->addChromatogram( *c, *pm );
+
+	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
+
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
+}
+
 
 void
 DataprocessWorker::handleMSLock( Dataprocessor * processor

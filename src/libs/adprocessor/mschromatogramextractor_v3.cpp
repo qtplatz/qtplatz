@@ -444,6 +444,75 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
     return false;
 }
 
+// [3] Chromatograms from targeting result json
+bool
+MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
+                                          , const adcontrols::ProcessMethod& pm
+                                          , std::shared_ptr< const adcontrols::DataReader > reader
+                                          , const std::string& json
+                                          , double width
+                                          , adcontrols::hor_axis axis
+                                          , std::function<bool( size_t, size_t )> progress )
+{
+    boost::property_tree::ptree pt;
+
+    {
+        std::istringstream in( json );
+        boost::property_tree::read_json( in, pt );
+    }
+    const char * const wkey = (axis == adcontrols::hor_axis_mass) ? "mass" : "time";
+
+    std::vector< std::pair< std::pair< double, double >, int > > list;
+
+    if ( auto formulae = pt.get_child_optional( "formulae" ) ) {
+        for ( auto& formula: formulae.get() ) {
+            if ( auto selected = formula.second.get_optional< bool >( "selected" ) ) {
+                if ( selected.get() ) {
+                    int proto = 0;
+                    if ( auto pno = formula.second.get_optional< int >( "protocol" ) )
+                        proto = pno.get();
+                    if ( auto centre = formula.second.get_optional< double >( wkey ) )
+                        list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
+                }
+            }
+            if ( auto children = formula.second.get_child_optional("children") ) {
+                for ( auto child: children.get() ) {
+                    if ( auto selected = child.second.get_optional< bool >( "selected" ) ) {
+                        int proto = 0;
+                        if ( auto pno = child.second.get_optional< int > ( "protocol" ) )
+                            proto = pno.get();
+                        if ( auto centre = child.second.get_optional< double >( wkey ) )
+                            list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
+                    }
+                }
+            }
+        }
+    }
+
+    if ( loadSpectra( &pm, reader, -1, progress ) ) {
+
+        for ( auto& ms : impl_->spectra_ ) {
+            for ( const auto& item: list ) {
+                if ( item.second == ms.second->protocolId() )
+                    impl_->append_to_chromatogram( ms.first, *ms.second, axis, item.first, reader->display_name() );
+            }
+        }
+
+        std::pair< double, double > time_range =
+            std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
+                            , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
+
+        for ( auto& r : impl_->results_ ) {
+            r->pChr_->minimumTime( time_range.first );
+            r->pChr_->maximumTime( time_range.second );
+            vec.push_back( r->pChr_ );
+        }
+        return true;
+    }
+
+    return false;
+}
+
 // static
 bool
 MSChromatogramExtractor::computeIntensity( double& y, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis axis, const std::pair< double, double >& range )

@@ -1881,6 +1881,14 @@ MSProcessingWnd::autoYZoom( adplot::plot * plot, double xmin, double xmax )
 void
 MSProcessingWnd::onInitialUpdate()
 {
-    if ( auto tree = findChild< adwidgets::MSPeakTree *>() )
+    if ( auto tree = findChild< adwidgets::MSPeakTree *>() ) {
         tree->OnInitialUpdate();
+        connect( tree, &adwidgets::MSPeakTree::generateChromatogram, this
+                 , []( const QByteArray& json ){
+                       auto pm = std::make_shared< adcontrols::ProcessMethod >();
+                       MainWindow::instance()->getProcessMethod( *pm );
+                       if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
+                           DataprocessWorker::instance()->genChromatograms( dp, pm, json );
+                   });
+    }
 }

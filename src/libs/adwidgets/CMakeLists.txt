@@ -44,6 +44,7 @@ set( ${PROJECT_NAME}_SOURCES
   adwidgets.cpp
   centroidform.cpp
   cherrypicker.cpp
+  cgenform.cpp
   controlmethodtable.cpp
   controlmethodwidget.cpp
   consolewidget.cpp
@@ -118,6 +119,7 @@ set( ${PROJECT_NAME}_HEADERS
   adwidgets_global.hpp
   centroidform.hpp
   cherrypicker.hpp
+  cgenform.hpp
   consolewidget.hpp
   controlmethodtable.hpp
   controlmethodwidget.hpp

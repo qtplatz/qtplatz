@@ -29,11 +29,14 @@
 #include "lifecycle.hpp"
 #include <QTreeView>
 #include <QItemDelegate>
-#include <memory>
 #include <functional>
+#include <tuple>
+#include <memory>
 
 class QStandardItemModel;
 class QPrinter;
+class QJsonDocument;
+class QByteArray;
 
 namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;
     class MSPeaks; class MSPeak; }
@@ -76,6 +79,7 @@ namespace adwidgets {
         bool getMSPeak( adcontrols::MSPeak&, int row ) const;
 
         // Targeting Result
+        void setContents( std::tuple< std::shared_ptr< adcontrols::MSPeakInfo >, std::shared_ptr< adcontrols::MassSpectrum >, std::shared_ptr< const adcontrols::Targeting > >&& );
         void setContents( std::pair< std::shared_ptr< adcontrols::MassSpectrum >, std::shared_ptr< const adcontrols::Targeting > >&& );
 
         virtual int findColumn( const QString& name ) const;
@@ -94,6 +98,7 @@ namespace adwidgets {
         void triggerLockMass( const QVector< QPair<int, int> >& );
         void estimateScanLaw( const QVector< QPair<int, int> >& );
         void rescaleY( int protocol );
+        void generateChromatogram( const QByteArray& ) const;
 
     public slots:
         void handleCopyToClipboard();
@@ -104,6 +109,7 @@ namespace adwidgets {
     private slots:
         void handleValueChanged( const QModelIndex& );
         void showContextMenu( const QPoint& );
+        void handleGenChromatogram() const;
 
     private:
         class impl;

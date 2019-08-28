@@ -776,7 +776,10 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         }
 
         if ( auto tree = findChild< adwidgets::MSPeakTree * >( "TargetingTree" ) ) {
-            tree->setContents( {  centroid, targeting } );
+            if ( pkinfo )
+                tree->setContents( { pkinfo, centroid, targeting } );
+            else
+                tree->setContents( { centroid, targeting } );
         }
     }
 }

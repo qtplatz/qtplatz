@@ -28,7 +28,8 @@
 #include <QDialog>
 #include <memory>
 
-namespace boost { namespace uuids { struct uuid; } }
+class QJsonDocument;
+
 namespace adcontrols { class DataReader; }
 
 namespace adwidgets {
@@ -41,9 +42,22 @@ namespace adwidgets {
         void setProtocolHidden( bool );
         int currentSelection() const;
         int fcn() const;
+
+        // extended interface
+        // allow multiple selection
+        std::vector< std::pair< int, int > > selection() const;
+        void setMassWidth( double );
+        double massWidth() const;
+        void setTimeWidth( double );
+        double timeWidth() const;
+        void setEnableTime( bool );
+        bool enableTime() const;
+
+        void fromJson( const QJsonDocument& );
+        std::vector< QByteArray > toJson() const;
+
     private:
-        class delegate;
+
     };
 
 }
-

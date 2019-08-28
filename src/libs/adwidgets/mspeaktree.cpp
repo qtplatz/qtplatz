@@ -48,6 +48,9 @@
 #include <QDebug>
 #include <QHeaderView>
 #include <QItemDelegate>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QList>
 #include <QStandardItemModel>
@@ -58,6 +61,7 @@
 #include <boost/format.hpp>
 #include <boost/signals2.hpp>
 #include <boost/variant.hpp>
+#include <algorithm>
 #include <sstream>
 #include <set>
 #include <ratio>
@@ -245,6 +249,17 @@ namespace adwidgets {
             }
         };
 
+        // compare QModelIndex for tree structure
+        struct compare {
+            bool operator()( const QModelIndex& a, const QModelIndex& b ) const {
+                auto r1 = a.parent() == QModelIndex() ? std::make_pair( a.row(), -1 ) : std::make_pair( a.parent().row(), a.row() );
+                auto r2 = b.parent() == QModelIndex() ? std::make_pair( b.row(), -1 ) : std::make_pair( b.parent().row(), b.row() );
+                if ( r1 == r2 )
+                    return a.column() < b.column();
+                return r1 < r2;
+            }
+        };
+
     }
 }
 
@@ -259,10 +274,9 @@ namespace adwidgets {
                , delegate_( std::make_unique< delegate >() ) {
         }
 
-        boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
-                        , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
-
+        std::weak_ptr< adcontrols::MassSpectrum > data_source_;
         std::weak_ptr< adcontrols::MSPeakInfo > pkinfo_;  // it is a pair of data_source_
+        std::weak_ptr< const adcontrols::Targeting > targeting_;
 
         boost::signals2::signal< callback_t > callback_;
         bool inProgress_;
@@ -286,6 +300,8 @@ MSPeakTree::MSPeakTree(QWidget *parent) : QTreeView( parent )
     this->setSortingEnabled( true );
     //this->verticalHeader()->setDefaultSectionSize( 18 );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
+
+    this->setSelectionMode( QAbstractItemView::ExtendedSelection );
 
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
     connect( impl_->delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
@@ -365,8 +381,21 @@ MSPeakTree::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::fu
 
 ///////////// hire is the main entry for set up target result
 void
+MSPeakTree::setContents( std::tuple< std::shared_ptr< adcontrols::MSPeakInfo >
+                         , std::shared_ptr< adcontrols::MassSpectrum >
+                         , std::shared_ptr< const adcontrols::Targeting > >&& tuple )
+{
+    impl_->pkinfo_ = std::move( std::get< 0 >( tuple ) );
+    auto ms = std::move( std::get< 1 >( tuple ) );
+    impl_->data_source_ = ms;
+    auto target = std::move( std::get< 2 >( tuple ) );
+    setPeakInfo( *target, ms );
+}
+
+void
 MSPeakTree::setContents( std::pair< std::shared_ptr< adcontrols::MassSpectrum >, std::shared_ptr< const adcontrols::Targeting > >&& pair )
 {
+    impl_->pkinfo_.reset();
     auto ms = std::move( pair.first );
     auto target = std::move( pair.second );
     if ( ms && target ) {
@@ -558,37 +587,34 @@ MSPeakTree::handleZoomedOnSpectrum( const QRectF& rc, int axis )
 
     bool isTimeAxis = axis == adcontrols::hor_axis_time;
 
-    if ( impl_->data_source_.which() == 1 ) {
-        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
-        if ( auto ptr = wptr.lock() ) {
-            std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right(), isTimeAxis ); // index,fcn
+    if ( auto ptr = impl_->data_source_.lock() ) {
+        std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right(), isTimeAxis ); // index,fcn
 
-            if ( bp.first >= 0 && bp.second >= 0 ) {
-                do {
-                    // ---> change rel. intensity
-                    setUpdatesEnabled( false );
-                    double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
-                    for ( int row = 0; row < model.rowCount(); ++row ) {
-                        model.setData( model.index( row, c_relative_intensity )
-                                       , model.index( row, c_intensity ).data().toDouble() * 100 / base_height );
+        if ( bp.first >= 0 && bp.second >= 0 ) {
+            do {
+                // ---> change rel. intensity
+                setUpdatesEnabled( false );
+                double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
+                for ( int row = 0; row < model.rowCount(); ++row ) {
+                    model.setData( model.index( row, c_relative_intensity )
+                                   , model.index( row, c_intensity ).data().toDouble() * 100 / base_height );
+                }
+                setUpdatesEnabled( true );
+                // <--- end rel. intensity
+            } while ( 0 );
+
+            do {
+                for ( int row = 0; row < model.rowCount(); ++row ) {
+                    if ( model.index( row, c_index ).data( Qt::EditRole ).toInt() == bp.first
+                         && model.index( row, c_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
+
+                        QModelIndex index = model.index( row, isTimeAxis ? c_time : c_mass );
+                        setCurrentIndex( index );
+                        scrollTo( index, QAbstractItemView::EnsureVisible );
+                        break;
                     }
-                    setUpdatesEnabled( true );
-                    // <--- end rel. intensity
-                } while ( 0 );
-
-                do {
-                    for ( int row = 0; row < model.rowCount(); ++row ) {
-                        if ( model.index( row, c_index ).data( Qt::EditRole ).toInt() == bp.first
-                             && model.index( row, c_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
-
-                            QModelIndex index = model.index( row, isTimeAxis ? c_time : c_mass );
-                            setCurrentIndex( index );
-                            scrollTo( index, QAbstractItemView::EnsureVisible );
-                            break;
-                        }
-                    }
-                } while ( 0 );
-            }
+                }
+            } while ( 0 );
         }
     }
 }
@@ -630,11 +656,12 @@ void
 MSPeakTree::handleCopyToClipboard()
 {
     QStandardItemModel& model = *impl_->model_;
-    QModelIndexList list = selectionModel()->selectedIndexes();
+    QModelIndexList list = selectionModel()->selectedRows();
 
-    qSort( list );
     if ( list.size() < 1 )
         return;
+
+    std::sort( list.begin(), list.end(), []( const auto& a, const auto& b ){ return compare()( a, b ); } );
 
     QString copy_table;
     QModelIndex prev = list.first();
@@ -667,12 +694,15 @@ MSPeakTree::showContextMenu( const QPoint& pt )
         if ( list.size() < 1 )
             return;
 
+        //--------------------
+        menu.addAction( tr("Gen. Chromatogram(s) ..."), [=]{ handleGenChromatogram(); } );
+
         std::set< int > rows;
         for ( auto index: list )
             rows.insert( index.row() ); // make unique row list
 
         //----------- gather references ----------
-        QString formulae = "Lock mass with ";
+        QString formulae;
         QVector< QPair<int, int> > refs;
 
         for ( int row: rows ) {
@@ -690,23 +720,19 @@ MSPeakTree::showContextMenu( const QPoint& pt )
 
         //------------ lock mass
         if ( impl_->callback_.empty() )
-            menu.addAction( formulae, [=](){ emit triggerLockMass( refs ); } );
+            menu.addAction( tr("Lock mass with %1").arg( formulae ), [=](){ emit triggerLockMass( refs ); } );
         else
-            menu.addAction( formulae, [=](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
+            menu.addAction( tr("Lock mass with %1").arg( formulae ), [=](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
 
         //------------ Copy assigned
         menu.addAction( tr("Copy All"), this, SLOT( handleCopyAllToClipboard() ) );
         menu.addAction( tr("Copy Selected"), this, SLOT( handleCopyToClipboard() ) );
 
         //-- add dataprocessor dependent menu --
-        if ( impl_->data_source_.which() == 1 ) {
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
-            addContextMenu( menu, pt, wptr.lock() );
+        if ( auto ptr = impl_->data_source_.lock() ) {
+            addContextMenu( menu, pt, ptr );
             menu.addSeparator();
         }
-
-        //-- add base TableView's menu --
-        //addActionsToContextMenu( menu, pt );
 
         menu.exec( this->mapToGlobal( pt ) );
     }
@@ -904,8 +930,75 @@ MSPeakTree::handlePrint( QPrinter& printer, QPainter& painter )
 }
 
 void
+MSPeakTree::handleGenChromatogram() const
+{
+    QModelIndexList list = selectionModel()->selectedRows();
+    if ( list.size() < 1 )
+        return;
+
+    std::sort( list.begin(), list.end(), []( const auto& a, const auto& b ){ return compare()( a, b ); } );
+
+    // size_t n = 0;
+    // for ( auto a: list ) {
+    //     ADDEBUG() << n++ << "\trow: " << a.row() << " --> " << a.parent().row();
+    // }
+    // ADDEBUG() << "---------------------------------------";
+
+    const auto& model = *impl_->model_;
+    QJsonArray a;
+
+    auto it = list.begin();
+    while ( it != list.end() ) {
+        QJsonObject obj;
+        QModelIndex topIndex = ( it->parent() == QModelIndex() ) ? (*it) : it->parent();
+
+        obj = QJsonObject{
+            { "formula", model.index( topIndex.row(), c_formula ).data( Qt::EditRole ).toString() }
+            , { "exact_mass", model.index( topIndex.row(), c_exact_mass ).data( Qt::EditRole ).toDouble() }
+            , { "exact_abundance", model.index( topIndex.row(), c_exact_abundance ).data( Qt::EditRole ).toDouble() }
+            , { "mass", model.index( topIndex.row(), c_mass ).data( Qt::EditRole ).toDouble() }
+            , { "time", model.index( topIndex.row(), c_time ).data( Qt::EditRole ).toDouble() }
+            , { "index", model.index( topIndex.row(), c_index ).data( Qt::EditRole ).toInt() }
+            , { "proto", model.index( topIndex.row(), c_fcn ).data( Qt::EditRole ).toInt() }
+            , { "selected", ( it->parent() == QModelIndex() ? true : false ) }
+        };
+
+        if ( it->parent() == QModelIndex() )
+            std::advance( it, 1 );
+
+        QJsonArray sub;
+        while ( it != list.end() && ( it->parent() == topIndex ) ) {
+
+            QJsonObject sobj {
+                { "exact_mass", model.index( it->row(), c_exact_mass, it->parent() ).data( Qt::EditRole ).toDouble() }
+                , { "exact_abundance", model.index( it->row(), c_exact_abundance, it->parent() ).data( Qt::EditRole ).toDouble() }
+                , { "mass", model.index( it->row(), c_mass, it->parent() ).data( Qt::EditRole ).toDouble() }
+                , { "time", model.index( it->row(), c_time, it->parent() ).data( Qt::EditRole ).toDouble() }
+                , { "index", model.index( it->row(), c_index, it->parent() ).data( Qt::EditRole ).toInt() }
+                , { "proto", model.index( it->row(), c_fcn, it->parent() ).data( Qt::EditRole ).toInt() }
+                , { "selected", true }
+            };
+            sub.push_back( sobj );
+
+            std::advance( it, 1 );
+        }
+
+        obj[ "children" ] = sub;
+        a.push_back( obj );
+    }
+
+    QJsonObject top{ { "formulae", a } };
+
+#if !defined NDEBUG && 0
+    ADDEBUG() << QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
+#endif
+    emit generateChromatogram( QJsonDocument( top ).toJson() );
+}
+
+void
 MSPeakTree::addContextMenu(QMenu &, const QPoint &, std::shared_ptr<const adcontrols::MassSpectrum>) const
 {
 }
+
 
 #include "mspeaktree.moc"

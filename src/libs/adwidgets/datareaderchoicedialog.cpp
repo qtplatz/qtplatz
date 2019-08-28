@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,70 +23,79 @@
 **************************************************************************/
 
 #include "datareaderchoicedialog.hpp"
+#include "cgenform.hpp"
 #include "tableview.hpp"
-#include <adcontrols/datareader.hpp>
 #include <QBoxLayout>
+#include <QByteArray>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QHeaderView>
+#include <QItemSelectionModel>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLabel>
 #include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-#include <QLabel>
+#include <adcontrols/datareader.hpp>
+#include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <stdexcept>
 #include <sstream>
 
 namespace adwidgets {
-    
-    enum {
-        c_display_name
-        , c_fcn
-        , c_objtext
-    };
 
+    namespace {
 
-    class DataReaderChoiceDialog::delegate : public QStyledItemDelegate {
-    public:
-        delegate( QWidget * parent ) : QStyledItemDelegate( parent ) {
-        }
-        
-        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            if ( index.column() == c_fcn ) {
-                size_t nProto = index.data( Qt::UserRole + 1 ).toInt();
-                auto combo = new QComboBox( parent );
-                combo->addItem( "*" ); // -1
-                for ( int fcn = 0; fcn < nProto; ++fcn )
-                    combo->addItem( QString::number( fcn ) );
-                return combo;
+        enum {
+            c_display_name
+            , c_fcn
+            , c_objtext
+        };
+
+        class delegate : public QStyledItemDelegate {
+        public:
+            delegate( QWidget * parent ) : QStyledItemDelegate( parent ) {
             }
-            return createEditor( parent, option, index );
-        }
 
-        void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
-            if ( index.column() == c_fcn ) {
-                if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
-                    int idx = int( combo->currentIndex() ) - 1;
-                    if ( idx < 0 )
-                        model->setData( index, -1 ); // protocol select all (*) = -1
-                    else if ( idx < index.data( Qt::UserRole + 1 ).toInt() )
-                        model->setData( index, idx ); // protocol specified
+            QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.column() == c_fcn ) {
+                    size_t nProto = index.data( Qt::UserRole + 1 ).toInt();
+                    auto combo = new QComboBox( parent );
+                    combo->addItem( "*" ); // -1
+                    for ( int fcn = 0; fcn < nProto; ++fcn )
+                        combo->addItem( QString::number( fcn ) );
+                    return combo;
+                }
+                return createEditor( parent, option, index );
+            }
+
+            void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+                if ( index.column() == c_fcn ) {
+                    if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
+                        int idx = int( combo->currentIndex() ) - 1;
+                        if ( idx < 0 )
+                            model->setData( index, -1 ); // protocol select all (*) = -1
+                        else if ( idx < index.data( Qt::UserRole + 1 ).toInt() )
+                            model->setData( index, idx ); // protocol specified
+                    }
                 }
             }
-        }
 
-        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            if ( index.column() == c_fcn ) {
-                QStyleOptionViewItem opt(option);
-                initStyleOption( &opt, index );
-                opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-                painter->drawText( option.rect, option.displayAlignment, index.data().toInt() < 0 ? "*" : index.data().toString() );
-            } else {
-                QStyledItemDelegate::paint( painter, option, index );
+            void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+                if ( index.column() == c_fcn ) {
+                    QStyleOptionViewItem opt(option);
+                    initStyleOption( &opt, index );
+                    opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+                    painter->drawText( option.rect, option.displayAlignment, index.data().toInt() < 0 ? "*" : index.data().toString() );
+                } else {
+                    QStyledItemDelegate::paint( painter, option, index );
+                }
             }
-        }
-    };
+        };
 
+    } // namespace
 }
 
 using namespace adwidgets;
@@ -94,18 +103,22 @@ using namespace adwidgets;
 DataReaderChoiceDialog::DataReaderChoiceDialog( QWidget *parent ) : QDialog( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
-        auto widget = new TableView( this );
-        
-        layout->addWidget( widget );
+        layout->addWidget( new TableView( this ) );
+        layout->addWidget( new CGenForm( this ) );
         layout->addWidget( new QDialogButtonBox( QDialogButtonBox::Ok | QDialogButtonBox::Cancel ) );
     }
-    
 }
 
 DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< const adcontrols::DataReader > >&& readers
                                                 , QWidget * parent ) : QDialog( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
+
+        // Chromatogram width method
+        auto form = new CGenForm( this );
+        layout->addWidget( form );
+
+        // Data Reader Chooser
         auto table = new TableView( this );
         auto model = new QStandardItemModel();
 
@@ -133,7 +146,37 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< co
 
         table->setCurrentIndex( model->index( 0, 0 ) );
 
+        table->resizeColumnsToContents(); // performance ???
+
         layout->addWidget( table );
+
+        form->setLabel( model->index( 0, c_display_name ).data().toString() );
+
+        connect( table->selectionModel()
+                 , &QItemSelectionModel::currentRowChanged
+                 , [form,table]( const auto& curr, auto& prev ){
+                     // set label
+                     form->setLabel( curr.model()->index( curr.row(), c_display_name ).data().toString() );
+
+                     // store form value into table
+                     table->model()->setData( table->model()->index( prev.row(), c_display_name ), form->massWidth(), Qt::UserRole + 1 );
+                     table->model()->setData( table->model()->index( prev.row(), c_display_name ), form->timeWidth(), Qt::UserRole + 2 );
+                     table->model()->setData( table->model()->index( prev.row(), c_display_name ), form->enableTime(), Qt::UserRole + 3 );
+
+                     // restore table value into form
+                     QSignalBlocker block( form );
+                     form->setMassWidth( curr.model()->index( curr.row(), c_display_name ).data( Qt::UserRole + 1 ).toDouble() );
+                     form->setTimeWidth( curr.model()->index( curr.row(), c_display_name ).data( Qt::UserRole + 2 ).toDouble() );
+                     form->setEnableTime( curr.model()->index( curr.row(), c_display_name ).data( Qt::UserRole + 3 ).toBool() );
+                 });
+
+        connect( form, &CGenForm::valueChanged, [table]( int id, double value ){
+                                                    table->model()->setData( table->model()->index( table->currentIndex().row(), c_display_name ), value, Qt::UserRole + 1 + id );
+                                                });
+
+        connect( form, &CGenForm::enableTimeChanged, [table]( bool enable ){
+                                                         table->model()->setData( table->model()->index( table->currentIndex().row(), c_display_name ), enable, Qt::UserRole + 3 );
+                                                     });
 
         auto label = new QLabel;
         label->setText( "Select trace and protocol# from the above table." );
@@ -145,7 +188,13 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< co
         layout->addWidget( buttons );
 
     }
+
+#if ! defined Q_OS_DARWIN
+    setStyleSheet( "* {font-size: 9pt; }" );
+#endif
+
     adjustSize();
+    this->resize( this->size() + QSize( 200, 0 ) );
 }
 
 int
@@ -159,7 +208,7 @@ DataReaderChoiceDialog::currentSelection() const
 void
 DataReaderChoiceDialog::setProtocolHidden( bool hide )
 {
-    if ( auto table = findChild< QTableView * >() ) {    
+    if ( auto table = findChild< QTableView * >() ) {
         table->setColumnHidden( c_fcn, hide );
     }
 }
@@ -174,3 +223,100 @@ DataReaderChoiceDialog::fcn() const
     return 0;
 }
 
+//////// new interface
+
+std::vector< std::pair< int, int > >
+DataReaderChoiceDialog::selection() const
+{
+    std::vector< std::pair< int, int > > res;
+
+    if ( auto table = findChild< TableView * >() ) {
+        QModelIndexList indices = table->selectionModel()->selectedRows();
+        if ( ! indices.isEmpty() ) {
+            std::sort( indices.begin(), indices.end() );
+            for ( int i = 0; i < indices.size(); ++i )
+                res.emplace_back( indices.at( i ).row(), table->model()->index( indices.at( i ).row(), c_fcn ).data( Qt::EditRole ).toInt() );
+        } else { // select all
+            for ( int i = 0; i < table->model()->rowCount(); ++i )
+                res.emplace_back( i, table->model()->index( i, c_fcn ).data( Qt::EditRole ).toInt() );
+        }
+    }
+    return res;
+}
+
+void
+DataReaderChoiceDialog::setMassWidth( double width )
+{
+    if ( auto w = findChild< CGenForm * >() )
+        w->setMassWidth( width );
+    if ( auto table = findChild< TableView * >() ) {
+        for ( int row = 0; row < table->model()->rowCount(); ++row )
+            table->model()->setData( table->model()->index( row, c_display_name ), width, Qt::UserRole + 1 );
+    }
+}
+
+double
+DataReaderChoiceDialog::massWidth() const
+{
+    if ( auto w = findChild< CGenForm * >() )
+        return massWidth();
+    return 0;
+}
+
+void
+DataReaderChoiceDialog::setTimeWidth( double t )
+{
+    if ( auto w = findChild< CGenForm * >() )
+        w->setTimeWidth( t );
+    if ( auto table = findChild< TableView * >() ) {
+        for ( int row = 0; row < table->model()->rowCount(); ++row )
+            table->model()->setData( table->model()->index( row, c_display_name ), t, Qt::UserRole + 2 );
+    }
+}
+
+double
+DataReaderChoiceDialog::timeWidth() const
+{
+    if ( auto w = findChild< CGenForm * >() )
+        return w->timeWidth();
+    return 0;
+}
+
+void
+DataReaderChoiceDialog::setEnableTime( bool enable )
+{
+    if ( auto w = findChild< CGenForm * >() )
+        w->setEnableTime( enable );
+
+    if ( auto table = findChild< TableView * >() ) {
+        for ( int row = 0; row < table->model()->rowCount(); ++row )
+            table->model()->setData( table->model()->index( row, c_display_name ), enable, Qt::UserRole + 3 );
+    }
+}
+
+bool
+DataReaderChoiceDialog::enableTime() const
+{
+    if ( auto w = findChild< CGenForm * >() )
+        w->enableTime();
+    return false;
+}
+
+std::vector< QByteArray >
+DataReaderChoiceDialog::toJson() const
+{
+    std::vector< QByteArray > a;
+
+    if ( auto table = findChild< TableView * >() ) {
+        for ( int row = 0; row < table->model()->rowCount(); ++row ) {
+            QJsonObject obj{
+                { "massWidth", table->model()->index( row, c_display_name ).data( Qt::UserRole + 1 ).toDouble() }
+                , { "timeWidth", table->model()->index( row, c_display_name ).data( Qt::UserRole + 2 ).toDouble() }
+                , { "enableTime", table->model()->index( row, c_display_name ).data( Qt::UserRole + 3 ).toBool() }
+            };
+            a.emplace_back( QJsonDocument{ obj }.toJson() );
+        }
+    }
+
+    return a;
+}
