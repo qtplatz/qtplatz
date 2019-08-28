@@ -756,30 +756,30 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 			auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
 			if ( it != docks.end() )
 				(*it)->raise();
-        }
 
-        for ( auto widget: dockWidgets() ) {
-            if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
-                if ( centroid && pkinfo ) {
-                    pLifeCycle->setContents( boost::any( std::make_pair( centroid, pkinfo ) ) );
-                } else {
-                    if ( centroid )
-                        pLifeCycle->setContents( boost::any( centroid ) );
-                    if ( pkinfo )
-                        pLifeCycle->setContents( boost::any( pkinfo ) );
+            for ( auto widget: dockWidgets() ) {
+                if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
+                    if ( centroid && pkinfo ) {
+                        pLifeCycle->setContents( boost::any( std::make_pair( centroid, pkinfo ) ) );
+                    } else {
+                        if ( centroid )
+                            pLifeCycle->setContents( boost::any( centroid ) );
+                        if ( pkinfo )
+                            pLifeCycle->setContents( boost::any( pkinfo ) );
+                    }
+                    if ( targeting )
+                        pLifeCycle->setContents( boost::any( targeting ) );
+
+                    pLifeCycle->setContents( boost::any( folium ) );
                 }
-                if ( targeting )
-                    pLifeCycle->setContents( boost::any( targeting ) );
-
-                pLifeCycle->setContents( boost::any( folium ) );
             }
-        }
 
-        if ( auto tree = findChild< adwidgets::MSPeakTree * >( "TargetingTree" ) ) {
-            if ( pkinfo )
-                tree->setContents( { pkinfo, centroid, targeting } );
-            else
-                tree->setContents( { centroid, targeting } );
+            if ( auto tree = findChild< adwidgets::MSPeakTree * >( "TargetingTree" ) ) {
+                if ( pkinfo )
+                    tree->setContents( { pkinfo, centroid, targeting } );
+                else
+                    tree->setContents( { centroid, targeting } );
+            }
         }
     }
 }

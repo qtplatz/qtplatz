@@ -398,9 +398,12 @@ MSPeakTree::setContents( std::pair< std::shared_ptr< adcontrols::MassSpectrum >,
     impl_->pkinfo_.reset();
     auto ms = std::move( pair.first );
     auto target = std::move( pair.second );
+
     if ( ms && target ) {
         impl_->data_source_ = ms;
         setPeakInfo( *target, ms );
+    } else {
+        impl_->model_->setRowCount( 0 );
     }
 }
 

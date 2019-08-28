@@ -612,10 +612,10 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
 
-                    if ( ptr->isCentroid() && folium.name() != adcontrols::constants::F_CENTROID_SPECTRUM )
-                        draw_histogram( folium, ptr ); // draw counting histogram
-                    else
+                    if ( !ptr->isCentroid() )
                         draw_profile( folium.id(), ptr );
+                    else if ( ptr->isHistogram() )
+                        draw_histogram( folium, ptr ); // draw counting histogram
 
                     if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -653,6 +653,8 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         }
 
                     } else {
+                        auto null = std::make_shared< adcontrols::MassSpectrum >();
+                        draw2( null ); // clear existing spectrum
                         pImpl_->processedSpectrum_->clear();
                     }
 
@@ -1882,7 +1884,9 @@ void
 MSProcessingWnd::onInitialUpdate()
 {
     if ( auto tree = findChild< adwidgets::MSPeakTree *>() ) {
+
         tree->OnInitialUpdate();
+
         connect( tree, &adwidgets::MSPeakTree::generateChromatogram, this
                  , []( const QByteArray& json ){
                        auto pm = std::make_shared< adcontrols::ProcessMethod >();
