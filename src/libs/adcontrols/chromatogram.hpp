@@ -196,6 +196,9 @@ namespace adcontrols {
         void setBaselines( const Baselines& );
         void setPeaks( const Peaks& );
 
+        void setIsCounting( bool );
+        bool isCounting() const;
+
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);

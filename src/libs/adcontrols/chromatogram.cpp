@@ -102,6 +102,7 @@ namespace adcontrols {
             friend class Chromatogram;
             static std::wstring empty_string_;  // for error return as reference
             bool isConstantSampling_;
+            bool isCounting_;
 
             descriptions descriptions_;
             Peaks peaks_;
@@ -150,12 +151,15 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( tofArray_ );
                     ar & BOOST_SERIALIZATION_NVP( massArray_ );
                 }
+                if ( version >= 6 ) {
+                    ar & BOOST_SERIALIZATION_NVP( isCounting_ );
+                }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 5 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 6 )
 
 ///////////////////////////////////////////
 
@@ -204,6 +208,18 @@ Chromatogram::toMinutes( const std::pair<seconds_t, seconds_t>& pair )
 }
 
 /////////////////
+
+void
+Chromatogram::setIsCounting( bool counting )
+{
+    pImpl_->isCounting = counting;
+}
+
+bool
+Chromatogram::isCounting() const
+{
+    return pImpl_->isCounting;
+}
 
 void
 Chromatogram::setProtocol( int fcn )
@@ -659,6 +675,7 @@ ChromatogramImpl::~ChromatogramImpl()
 }
 
 ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
+                                     , isCounting_( false )
                                      , dataDelayPoints_(0)
                                      , samplingInterval_(0)
                                      , proto_(0)

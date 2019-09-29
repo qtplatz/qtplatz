@@ -977,8 +977,12 @@ peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrol
     for ( int pos = pk.startPos(); pos <= pk.endPos(); ++pos ) {
         double h = c.getIntensity(pos) - bs.height(pos);
         double w = c.getTime( pos + 1 ) - c.getTime( pos );
-        if ( h >= 0.0 )
-            area += h * w;
+        if ( h >= 0.0 ) {
+            if ( c.isCounting() )
+                area += h;
+            else
+                area += h * w;
+        }
     }
     pk.setPeakArea( area );
     pk.setPeakHeight( height );
