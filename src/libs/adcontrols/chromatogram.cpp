@@ -212,13 +212,13 @@ Chromatogram::toMinutes( const std::pair<seconds_t, seconds_t>& pair )
 void
 Chromatogram::setIsCounting( bool counting )
 {
-    pImpl_->isCounting = counting;
+    pImpl_->isCounting_ = counting;
 }
 
 bool
 Chromatogram::isCounting() const
 {
-    return pImpl_->isCounting;
+    return pImpl_->isCounting_;
 }
 
 void
