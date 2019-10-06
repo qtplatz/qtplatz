@@ -43,11 +43,14 @@ namespace adprocessor {
                            , double width
                            , uint32_t fcn
                            , uint32_t cid
-                           , const std::string& reader ) : fcn_( fcn )
-                                                         , cid_( cid )
-                                                         , count_( 0 )
-                                                         , target_( target )
-                                                         , pChr_( std::make_shared< adcontrols::Chromatogram >() )  {
+                           , const std::string& reader
+                           , bool isCounting ) : fcn_( fcn )
+                                               , cid_( cid )
+                                               , count_( 0 )
+                                               , isCounting_( isCounting )
+                                               , target_( target )
+                                               , pChr_( std::make_shared< adcontrols::Chromatogram >() ) {
+
                 pChr_->addDescription(
                     adcontrols::description( L"Create"
                                              , ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
@@ -57,10 +60,10 @@ namespace adprocessor {
                                                  % adportable::utf::to_wstring( reader )
                                                  % fcn_
                                                  ).str() ) );
-                
+
             }
-            
-            xChromatogram( int fcn, int cid ) : fcn_( fcn ), cid_( cid ), count_( 0 ), pos_(0)
+
+            xChromatogram( int fcn, int cid, bool isCounting ) : fcn_( fcn ), cid_( cid ), pos_( 0 ), count_( 0 ), isCounting_( isCounting )
                                               , pChr_( std::make_shared< adcontrols::Chromatogram >() )  {
 
             }
@@ -79,9 +82,9 @@ namespace adprocessor {
             uint32_t cid_;
             uint32_t pos_;   // last pos
             uint32_t count_; // data count
+            bool isCounting_;
             adcontrols::moltable::value_type target_;
             std::shared_ptr< adcontrols::Chromatogram > pChr_;
         };
     }
 }
-

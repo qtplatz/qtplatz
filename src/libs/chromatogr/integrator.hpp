@@ -43,13 +43,13 @@ namespace chromatogr {
         Integrator( const Integrator& ) = delete;
         Integrator& operator = ( const Integrator& ) = delete;
     public:
-        Integrator(void);
+        Integrator( bool isCounting );
         virtual ~Integrator(void);
 
     private:
         class impl;
         impl * impl_;
-        
+
     public:
         /**
            \brief Set sampling interval for input data if data has contenious constant time interval, otherwise set zero.
@@ -58,19 +58,19 @@ namespace chromatogr {
 
         /**
            \brief Set peak width (seconds) for first elute compounds in your interst.
-        */        
+        */
         void minimum_width(double /* seconds */);
 
         /**
            \brief Set baseline start recognition threshold.
-        */        
+        */
         void slope_sensitivity(double /* uV / second */);
 
         /**
            \brief drift give a hint to software for determine baseline either v-to-v or perpendicular dropping.
          */
         void drift(double /* uV / second */);
-        
+
         double currentTime() const;
 
         void timeOffset( double peaktime );
@@ -79,7 +79,7 @@ namespace chromatogr {
            \brief add a new data intensity (ADC value).  Sampling interval must be set in advance.
         */
         void operator << ( double v );  // analogue input
-        
+
         /**
            \brief add data point as pair of (time(seconds), intensity) for non time constant acquisition
         */
@@ -89,15 +89,15 @@ namespace chromatogr {
            \brief close out data stream, and fix all detected peaks and baselines
         */
 		void close( const class adcontrols::PeakMethod&, adcontrols::Peaks&, adcontrols::Baselines& );
-        
+
         /**
-           \brief Stop integration during data input when this flag set true.  
+           \brief Stop integration during data input when this flag set true.
            Set this flags will ignore from peak detection process for all incoming data by '<<' operator.
          */
         void offIntegration( bool f );
 
         /**
-           \brief 
+           \brief
          */
         bool offIntegration() const;
     };

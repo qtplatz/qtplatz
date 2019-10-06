@@ -38,13 +38,13 @@ namespace chromatogr {
     public:
         impl() : tp_( method_.end() ) {
         }
-        
+
         bool setup( const adcontrols::PeakMethod& );
         bool findPeaks( const adcontrols::Chromatogram& );
         void clear();
 
         void progress( double seconds, Integrator& );
-        
+
         inline const adcontrols::Peaks & getPeaks() const { return peaks_; }
         inline const adcontrols::Baselines & getBaselines() const { return baselines_; }
     private:
@@ -87,13 +87,13 @@ Chromatography::operator()( const adcontrols::Chromatogram& c )
 }
 
 const adcontrols::Peaks&
-Chromatography::getPeaks() const 
+Chromatography::getPeaks() const
 {
     return pImpl_->getPeaks();
 }
 
 const adcontrols::Baselines&
-Chromatography::getBaselines() const 
+Chromatography::getBaselines() const
 {
     return pImpl_->getBaselines();
 }
@@ -123,8 +123,8 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
 	using adcontrols::Baselines;
 
     tp_ = method_.begin();
-    
-	Integrator integrator;
+
+	Integrator integrator( c.isCounting() );
 
     if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
         integrator.minimum_width( method_.minimumWidth() ); // sec
@@ -158,7 +158,7 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
     }
 
 	integrator.close( method_, peaks_, baselines_ );
-    
+
     //size_t N = 0;
     //double sd = 0;
 

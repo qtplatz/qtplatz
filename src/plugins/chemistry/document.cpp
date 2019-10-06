@@ -103,6 +103,10 @@ namespace chemistry {
         , { "O=C(N)c1ccc[n+](c1)[C@H]2[C@H](O)[C@H](O)[C@H](O2)COP([O-])(=O)OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c4ncnc5N)[C@@H]([C@@H]3O)OP(=O)(O)O", "NADP" }
         , { "c1ccc2c(c1)ccc(=O)o2"                                                                        "Coumarin" }
         , { "CCCCCCCCCCCCCC(=O)O[C@H](CCCCCCCCCCC)CC(=O)O[C@@H]1[C@H]([C@@H](O[C@@H]([C@H]1OP(=O)(O)O)CO)OC[C@@H]2[C@H]([C@@H]([C@H]([C@H](O2)OP(=O)(O)O)NC(=O)C[C@@H](CCCCCCCCCCC)O)OC(=O)C[C@@H](CCCCCCCCCCC)O)O)NC(=O)C[C@@H](CCCCCCCCCCC)OC(=O)CCCCCCCCCCC", "Lipid A" }
+        , { "c1cc(ccc1N)S(=O)(=O)Nc2ccc(nn2)Cl",     "sulfachlorpyridazine" } // 285
+        , { "COc1cc(nc(n1)OC)NS(=O)(=O)c2ccc(cc2)N", "sulfadimethoxine" }     // 310
+        , { "Cc1cc(nc(n1)NS(=O)(=O)c2ccc(cc2)N)C",   "sulfadimidine" }        // 278
+        , { "Cc1nnc(s1)NS(=O)(=O)c2ccc(cc2)N",       "sulfamethizole" }       // 270
     };
 
 }

@@ -73,12 +73,13 @@ namespace chromatogr {
 
         class chromatogram {
         public:
+            const bool isCounting_;
             double sampInterval_;
             double minTime_;
             std::vector<double> v_;
             std::vector<double> t_;
             std::vector<double> d1_;
-            
+
             inline const double * get() const {
                 return v_.data();
             };
@@ -98,9 +99,9 @@ namespace chromatogr {
                     return t_.empty() ? minTime_ + pos * sampInterval_ : t_[ pos ];
                 return 0;
             }
-            chromatogram() : sampInterval_( 0 ), minTime_( 0 ) {}
+            chromatogram( bool isCounting ) : isCounting_( isCounting ), sampInterval_( 0 ), minTime_( 0 ) {}
         };
-        
+
     }
 
     enum PEAKSTATE {
@@ -110,7 +111,7 @@ namespace chromatogr {
         PKSTA =  3,
         PKBAS =  4,
     };
-    
+
     class PEAKSTACK {
         PEAKSTATE stat_;
         long pos_;
@@ -127,34 +128,36 @@ namespace chromatogr {
     };
 
     enum PEAK_START_STATE { PEAK_STATE_NEGATIVE = ( -1 ), PEAK_STATE_BASELINE = 0, PEAK_STATE_POSITIVE = 1 };
-    
+
     class Integrator::impl {
     public:
-        impl() : posg_( 0 )
-               , posc_( 0 )
-               , ndata_( 0 )
-               , dc_(0) /* down count */
-               , uc_(0) /* up count */
-               , zc_(0) /* zero count */
-               , lu_(0) /* up start position */
-               , ld_(0) /* down start position */
-               , lz_(0) /* zero start position */
-               , lud_(0.0)
-               , ldd_(0.0)
-               , stf_( PEAK_STATE_BASELINE )
-               , lockc_(0)
-               , mw_(3)
-               , ss_(0)
-               , ndiff_(5)
-               , dirty_(true)
-               , numAverage_(3)
-               , minw_( 0.5 /* second */)
-               , slope_( 0.1 /* uV/s */ )
-               , drift_( 0.0 /* uV/min */ )
-               , detectSholder_(false)
-               , detectNegative_(false)
-               , offIntegration_(false)
-               , timeOffset_(0) {
+        impl( bool isCounting ) : rdata_( isCounting )
+                                , posg_( 0 )
+                                , posc_( 0 )
+                                , ndata_( 0 )
+                                , dc_(0) /* down count */
+                                , uc_(0) /* up count */
+                                , zc_(0) /* zero count */
+                                , lu_(0) /* up start position */
+                                , ld_(0) /* down start position */
+                                , lz_(0) /* zero start position */
+                                , lud_(0.0)
+                                , ldd_(0.0)
+                                , stf_( PEAK_STATE_BASELINE )
+                                , lockc_(0)
+                                , mw_(3)
+                                , ss_(0)
+                                , ndiff_(5)
+                                , dirty_(true)
+                                , numAverage_(3)
+                                , minw_( 0.5 /* second */)
+                                , slope_( 0.1 /* uV/s */ )
+                                , drift_( 0.0 /* uV/min */ )
+                                , detectSholder_(false)
+                                , detectNegative_(false)
+                                , offIntegration_(false)
+                                , timeOffset_(0)
+                                , isCounting_( isCounting ) {
 #if defined _DEBUG
             std::string file = adportable::profile::user_data_dir<char>() + "/data/integrator.txt";
             outf_.open( file );
@@ -163,9 +166,9 @@ namespace chromatogr {
         ~impl() {
         }
         std::shared_ptr< adportable::SGFilter > sgd1_;
-        
+
         integrator::chromatogram rdata_;
-        
+
         stack< PEAKSTACK > stack_;
 
         adcontrols::Peaks peaks_;
@@ -199,6 +202,7 @@ namespace chromatogr {
         bool detectNegative_;
         bool offIntegration_;
         double timeOffset_;
+        bool isCounting_;
 #if defined _DEBUG
         std::ofstream outf_;
 #endif
@@ -252,7 +256,7 @@ Integrator::~Integrator(void)
     delete impl_;
 }
 
-Integrator::Integrator(void) : impl_( new Integrator::impl() )
+Integrator::Integrator( bool isCounting ) : impl_( new Integrator::impl( isCounting ) )
 {
 }
 
@@ -389,7 +393,7 @@ Integrator::impl::updatePeakAreaHeight( const adcontrols::PeakMethod& )
 
     for ( adcontrols::Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
 		long baseId = it->baseId();
-		if ( baseId >= 0 ) { 
+		if ( baseId >= 0 ) {
             Baselines::vector_type::iterator pbs = std::find_if(baselines_.begin(), baselines_.end(), boost::bind( &Baseline::baseId, _1 ) == baseId );
             if ( pbs != baselines_.end() )
                 peakHelper::updateAreaHeight(rdata_, *pbs, *it);
@@ -428,7 +432,7 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
         peakHelper::peak_width( method, rdata_, pk );
 
         // NTP
-        peakHelper::theoreticalplate( method, rdata_, pk );        
+        peakHelper::theoreticalplate( method, rdata_, pk );
 
 		// TailingFactor
         peakHelper::asymmetry( method, rdata_, pk );
@@ -479,7 +483,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
         dc_ = 0;
 
     }
-    
+
     if ( mwup <= uc_ ) {	/* upslope found */
         stf_ = PEAK_STATE_POSITIVE;
         zc_ = 0;
@@ -496,7 +500,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
 #if defined _DEBUG
     outf_ << pos << ",\t" << uc_ << ",\t" << dc_ << ",\t" << zc_ << ",\t" << rdata_.getIntensity( pos ) << ",\t" << df1 << std::endl;
 #endif
-    
+
     if ( stf_ != prev_stf ) {
         if ( prev_stf == PEAK_STATE_NEGATIVE && stf_ == PEAK_STATE_POSITIVE ) {
             assign_vallay( pos, ld_ );
@@ -558,8 +562,8 @@ void
 Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
- 
-#if defined _DEBUG 
+
+#if defined _DEBUG
     std::string s;
     for (int i = 0; i < int(stack_.size()); ++i) {
         if (stack_[i] == PKVAL)
@@ -625,19 +629,19 @@ Integrator::impl::pkreduce()
 			if (!stack_.empty()) {
 				PEAKSTACK sp3 = stack_.top();
 				if (sp3 == PKSTA)  { /* SVxB */
-                    baselines_.add( baselineHelper::baseline( rdata_, sp3.pos(), sp0.pos() ) ); 
+                    baselines_.add( baselineHelper::baseline( rdata_, sp3.pos(), sp0.pos() ) );
 				}
 				stack_.pop();  // remove sp3, PKSTA
 			} else {
-				// pkerror(sra, "REDUCE : Base did not correspond to Start"); 
+				// pkerror(sra, "REDUCE : Base did not correspond to Start");
 			}
-		} else if (sp2 == PKSTA && sp0 == PKVAL) { /* SxV */ 
+		} else if (sp2 == PKSTA && sp0 == PKVAL) { /* SxV */
 			stack_.push(sp0);   // restore sp0
-		} else if (sp2 == PKVAL && sp0 == PKVAL) { /* VxV */ 
+		} else if (sp2 == PKVAL && sp0 == PKVAL) { /* VxV */
 			stack_.pop();		  //  remove sp2,  PKVAL
 			stack_.push(sp0);  //  restore sp0, PKVAL
 		}
-	} 
+	}
 }
 
 bool
@@ -659,7 +663,7 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
     using adcontrols::Baselines;
     using adcontrols::Baseline;
     using adcontrols::Peaks;
-    
+
     Baselines fixed( bss );
 
 	for ( Baselines::vector_type::iterator it = bss.begin(); it != bss.end(); ++it ) {
@@ -698,7 +702,7 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
     std::vector< peak_iterator > peaks;
 
     for ( peak_iterator ipk = peaks_.begin(); ipk != peaks_.end(); ++ipk ) {
-		if ( ipk->baseId() == bs.baseId() ) 
+		if ( ipk->baseId() == bs.baseId() )
             peaks.push_back( ipk );
     }
 
@@ -727,7 +731,7 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 
 			}
 
-		} else { 
+		} else {
 			// if slope is positive then check from front
             std::vector<peak_iterator>::iterator fixup = peaks.begin();
 
@@ -778,7 +782,7 @@ Integrator::impl::assignBaseline()
 	}
 }
 
-void 
+void
 Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
 {
     using adcontrols::Peaks;
@@ -790,7 +794,7 @@ Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
         long mpos = rpk->topPos() + ( rpk->endPos() - rpk->topPos() + 1 ) / 2;  // middle of right down slope
         long xpos = rpk->endPos();
         double dHmax = 0.0;
-        
+
         for ( long n = rpk->endPos(); n >= mpos; --n ) {
             double dataH = rdata_.getIntensity( n );
             double baseH = bs.height( n );
@@ -804,20 +808,20 @@ Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
             // move peak end point
             rpk->setEndPos( xpos, rdata_.getIntensity( xpos ) );
             rpk->setEndTime( rdata_.getTime( xpos ) );
-            
+
             // move baseline stop point
             bs.setStopPos( rpk->endPos() );
             bs.setStopTime( rpk->endTime() );
             bs.setStopHeight( rpk->endHeight() );
         }
-        
+
     } else { // up slope, check front side
         adcontrols::Peaks::vector_type::iterator ipk = std::find_if( peaks_.begin(), peaks_.end(), boost::bind( &Peak::baseId, _1 ) == bs.baseId() );
-        
+
         long mpos = ipk->startPos() + ( ipk->topPos() - ipk->startPos() + 1 ) / 2;  // middle of left up slope
         long xpos = ipk->startPos();
         double dHmax = 0;
-        
+
         for (long n = ipk->startPos(); n <= mpos; ++n) {
             double dataH = rdata_.getIntensity(n);
             double baseH = bs.height(n);
@@ -827,11 +831,11 @@ Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
                 xpos = n;
             }
         }
-        
+
         if ( xpos != ipk->startPos() ) {
             ipk->setStartPos( xpos, rdata_.getIntensity( xpos ) );
             ipk->setStartTime( rdata_.getTime( xpos ) );
-            
+
             // move baseline stop point
             bs.setStartPos( ipk->endPos() );
             bs.setStartTime( ipk->endTime() );
@@ -904,7 +908,7 @@ peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak
         tr.setBoundary( X[ 0 ], X[ X.size() - 1 ] );
         tr.setEq( a, b, c );
         pk.setRetentionTime( tr );
-        
+
         return true;
     }
 	return false;
@@ -978,7 +982,7 @@ peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrol
         double h = c.getIntensity(pos) - bs.height(pos);
         double w = c.getTime( pos + 1 ) - c.getTime( pos );
         if ( h >= 0.0 ) {
-            if ( c.isCounting() )
+            if ( c.isCounting_ )
                 area += h;
             else
                 area += h * w;
@@ -1013,9 +1017,9 @@ peakHelper::peak_width( const adcontrols::PeakMethod&, const integrator::chromat
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
-    
+
     pk.setPeakWidth( width );
-    
+
     return true;
 }
 
@@ -1091,7 +1095,7 @@ Integrator::impl::adddata( double time, double intensity )
     rdata_.t_.push_back( time );
     rdata_.v_.push_back( intensity );
     rdata_.d1_.push_back( 0 );
-    
+
     if ( rdata_.t_.size() >= 2 ) {
         // estimate sampling interval (average)
         size_t advance = rdata_.t_.size() < 5 ? rdata_.t_.size() : 5;

@@ -56,6 +56,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <numeric>
 #include <ratio>
+#include <regex>
 #include <set>
 
 namespace adprocessor {
@@ -182,10 +183,10 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                                       , std::function<bool( size_t, size_t )> progress )
 {
     const size_t nSpectra = reader->size( fcn );
-    const bool isProfile = reader->objtext().find( "waveform" ) != std::string::npos;
+    const bool isProfile = ( reader->objtext().find( "waveform" ) != std::string::npos ) ||
+        std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
 
-    if ( isProfile )
-        lkms_.clear();
+    lkms_.clear();
 
     if ( nSpectra == 0 )
         return false;
@@ -210,7 +211,6 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
         if ( doLock ) {
             if ( isProfile ) {
                 if ( impl_->apply_mslock( ms, *pm, mslock ) ) {
-                    //lkms_.emplace_back( it->time_since_inject(), mslock.coeffs() );
                     std::array< double, 2 > coeffs;
                     if ( mslock.coeffs().size() == 1 )
                         coeffs = {{ 0.0, mslock.coeffs()[ 0 ] }};
@@ -491,9 +491,11 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
     if ( loadSpectra( &pm, reader, -1, progress ) ) {
 
-        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::wformat( L"%s m/z %.3f(W:%.1fmDa)_%d" ) : boost::wformat( L"%s %.4lfus(W:%.1ns)_%d" );
+        const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
+
+        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::wformat( L"%s m/z %.3f(W:%.1fmDa)p%d" ) : boost::wformat( L"%s %.4lfus(W:%.1ns)p%d" );
         for ( size_t idx = 0; idx < list.size(); ++idx ) {
-            auto res = std::make_shared< mschromatogramextractor::xChromatogram >( list[ idx ].second, idx );
+            auto res = std::make_shared< mschromatogramextractor::xChromatogram >( list[ idx ].second, idx, isCounting );
             int protocol = list[ idx ].second;
             double width = list[ idx ].first.second - list[ idx ].first.first;
             double centre = list[ idx ].first.first + width / 2.0;
@@ -504,11 +506,13 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                 width *= std::nano::den;   // --> ns
             }
             res->pChr_->addDescription( { L"Create", ( fmt % adportable::utf::to_wstring( reader->display_name() ) % centre % width % protocol ).str() });
+            res->pChr_->setIsCounting( res->isCounting_ );
 
             impl_->results_.emplace_back( res );
         }
 
         // compute each point on the chromatogram
+
         for ( auto& ms : impl_->spectra_ ) {
             size_t cid(0);
             for ( const auto& item: list ) {
@@ -530,7 +534,11 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
         for ( auto& r : impl_->results_ ) {
             r->pChr_->minimumTime( time_range.first );
             r->pChr_->maximumTime( time_range.second );
-            vec.push_back( r->pChr_ );
+            //r->pChr_->setIsCounting( isCounting );
+#ifndef NDEBUG
+            ADDEBUG() << "Is generaged chromatogram counting? : " << r->pChr_->isCounting();
+#endif
+            vec.emplace_back( r->pChr_ );
         }
         return true;
     }
@@ -636,7 +644,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
             if ( it == results_.end() ) {
-                results_.emplace_back( std::make_shared< xChromatogram >( m, width, protocol, cid, display_name ) );
+                results_.emplace_back( std::make_shared< xChromatogram >( m, width, protocol, cid, display_name, ms.isHistogram() ) );
                 it = results_.end() - 1;
             }
             ( *it )->append( uint32_t( pos ), time, y );
@@ -674,7 +682,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
             if ( it == results_.end() ) {
-                results_.emplace_back( std::make_shared< xChromatogram >( protocol, cid ) );
+                results_.emplace_back( std::make_shared< xChromatogram >( protocol, cid, ms.isHistogram() ) );
                 it = results_.end() - 1;
                 ( *it )->pChr_->addDescription(
                     adcontrols::description(
@@ -709,7 +717,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
         auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
         if ( it == results_.end() ) {
-            results_.emplace_back( std::make_shared< xChromatogram >( protocol, cid ) );
+            results_.emplace_back( std::make_shared< xChromatogram >( protocol, cid, ms.isHistogram() ) );
             it = results_.end() - 1;
             double value_width = range.second - range.first;
             double value = range.first + value_width;
