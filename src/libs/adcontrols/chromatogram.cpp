@@ -685,6 +685,7 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
 }
 
 ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSampling_( t.isConstantSampling_ )
+                                                                , isCounting_( t.isCounting_ )
                                                                 , peaks_( t.peaks_ )
                                                                 , baselines_( t.baselines_ )
                                                                 , dataArray_( t.dataArray_ )

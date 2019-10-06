@@ -32,7 +32,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/serialization/base_object.hpp>
-#include <boost/serialization/string.hpp> 
+#include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
@@ -44,7 +44,7 @@ namespace adcontrols {
     public:
         template< class Archive >
         void serialize( Archive& ar, T& _, const unsigned int version ) {
-            using namespace boost::serialization;            
+            using namespace boost::serialization;
             if ( version < 1 ) {
                 boost::scoped_ptr< Baselines > baselines;
                 boost::scoped_ptr< Peaks > peaks;
@@ -53,11 +53,14 @@ namespace adcontrols {
                 if ( ! Archive::is_saving::value ) {
                     _.baselines_ = std::make_shared< Baselines >( *baselines );
                     _.peaks_ = std::make_shared< Peaks >( *peaks );
+                    _.isCounting_ = false;
                 }
-                
+
             } else {
                 ar & BOOST_SERIALIZATION_NVP(_.baselines_);
                 ar & BOOST_SERIALIZATION_NVP(_.peaks_);
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP(_.isCounting_);
             }
         }
     };
@@ -96,19 +99,35 @@ PeakResult::~PeakResult()
 }
 
 PeakResult::PeakResult() : baselines_( std::make_shared< Baselines >() )
-                         , peaks_( std::make_shared< Peaks >() ) 
+                         , peaks_( std::make_shared< Peaks >() )
+                         , isCounting_( false )
 {
 }
 
 PeakResult::PeakResult( const PeakResult& t ) : baselines_( std::make_shared< Baselines >( *t.baselines_ ) )
-                                              , peaks_( std::make_shared< Peaks >( *t.peaks_ ) ) 
+                                              , peaks_( std::make_shared< Peaks >( *t.peaks_ ) )
+                                              , isCounting_( t.isCounting_ )
 {
 }
 
 PeakResult::PeakResult( const Baselines& bs
-                        , const Peaks& pks ) : baselines_( std::make_shared< Baselines >( bs ) )
-                                             , peaks_( std::make_shared< Peaks >( pks ) ) 
+                        , const Peaks& pks
+                        , bool isCounting ) : baselines_( std::make_shared< Baselines >( bs ) )
+                                            , peaks_( std::make_shared< Peaks >( pks ) )
+                                            , isCounting_( isCounting )
 {
+}
+
+void
+PeakResult::setIsCounting( bool isCounting )
+{
+    isCounting_ = isCounting;
+}
+
+bool
+PeakResult::isCounting() const
+{
+    return isCounting_;
 }
 
 void
@@ -118,7 +137,7 @@ PeakResult::clear()
     peaks_ = std::make_shared< Peaks >();
 }
 
-const Baselines& 
+const Baselines&
 PeakResult::baselines() const
 {
 	return * baselines_;
@@ -170,5 +189,3 @@ PeakResult::restore( std::istream& is, PeakResult& t )
     ar >> t;
     return true;
 }
-
-

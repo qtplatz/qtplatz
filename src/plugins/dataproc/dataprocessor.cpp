@@ -1384,16 +1384,20 @@ DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium
                                 , const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
 {
+    ADDEBUG() << __FUNCTION__ << "\tisCounting: " << c.isCounting();
+
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
-    adcontrols::PeakResultPtr pResult( std::make_shared< adcontrols::PeakResult >() );
 
-    if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
-        att.assign( pResult, pResult->dataClass() );
+    if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {
 
-        auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
-        att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
+        if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
+            att.assign( pResult, pResult->dataClass() );
 
-        return true;
+            auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
+            att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
+
+            return true;
+        }
     }
     return false;
 }

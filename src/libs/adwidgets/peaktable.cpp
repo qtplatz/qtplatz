@@ -184,21 +184,23 @@ PeakTable::setContents( boost::any&& )
 }
 
 void
-PeakTable::setData( const adcontrols::Peaks& peaks )
+PeakTable::setData( const adcontrols::Peaks& peaks, bool isCounting )
 {
     QStandardItemModel& model = *model_;
     model.removeRows( 0, model.rowCount() );
 
+    ADDEBUG() << __FUNCTION__ << "\tisCounting: " << isCounting;
+    model.setHeaderData( c_area, Qt::Horizontal, isCounting ? QObject::tr("Area(Counts)") : QObject::tr("Area") );
+
     using namespace adcontrols;
     for ( Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
         add( *it );
-    // resizeColumnsToContents();
 }
 
 void
 PeakTable::setData( const adcontrols::PeakResult& result )
 {
-    setData( result.peaks() );
+    setData( result.peaks(), result.isCounting() );
 }
 
 void
@@ -208,7 +210,7 @@ PeakTable::add( const adcontrols::Peak& peak )
 
     int row = model.rowCount();
     model.setRowCount( row + 1 );
-    
+
     model.setData( model.index( row, c_id ), static_cast< int >( peak.peakId() ) );
     model.setData( model.index( row, c_name ), QString::fromStdString( peak.name() ) );
     model.setData( model.index( row, c_tr ), static_cast<double>( peak.peakTime() ), Qt::EditRole );

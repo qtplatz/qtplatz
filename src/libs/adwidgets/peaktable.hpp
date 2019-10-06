@@ -63,8 +63,10 @@ namespace adwidgets {
         void currentChanged( int idx );
 
     public slots:
-        void setData( const adcontrols::Peaks& );
 		void setData( const adcontrols::PeakResult& );
+
+    private slots:
+        void setData( const adcontrols::Peaks&, bool isCounting );
 
     private:
         void add( const adcontrols::Peak& );

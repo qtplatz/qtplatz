@@ -36,13 +36,14 @@ namespace adcontrols {
 	class Baselines;
 
     template< typename T > class PeakResult_archive;
+    class ADCONTROLSSHARED_EXPORT PeakResult;
 
-    class ADCONTROLSSHARED_EXPORT PeakResult {
+    class PeakResult {
 	public:
 		~PeakResult();
 		PeakResult();
 		PeakResult( const PeakResult& );
-		PeakResult( const Baselines&, const Peaks& );
+        PeakResult( const Baselines&, const Peaks&, bool isCounting );
 		static const wchar_t * dataClass() { return L"PeakResult"; }
 
 		const Baselines& baselines() const;
@@ -54,12 +55,13 @@ namespace adcontrols {
         void setPeaks( const Peaks& );
 
         void clear();
+        bool isCounting() const;
+        void setIsCounting( bool );
 
 	private:
         std::shared_ptr< Baselines > baselines_;
         std::shared_ptr< Peaks > peaks_;
-        //boost::scoped_ptr< Baselines > baselines_;
-		//boost::scoped_ptr< Peaks > peaks_;
+         bool isCounting_;  // V2
 
         friend class boost::serialization::access;
 		template<class Archive>
@@ -74,6 +76,6 @@ namespace adcontrols {
 	typedef std::shared_ptr<PeakResult> PeakResultPtr;
 }
 
-BOOST_CLASS_VERSION( adcontrols::PeakResult, 1 )
+BOOST_CLASS_VERSION( adcontrols::PeakResult, 2 )
 
 #endif // PEAKRESULT_HPP

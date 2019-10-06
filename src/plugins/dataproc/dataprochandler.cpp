@@ -27,6 +27,7 @@
 #include "assign_masses.hpp"
 #include "mass_calibrator.hpp"
 #include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/isotopemethod.hpp>
@@ -313,6 +314,7 @@ DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chrom
     if ( peakfinder( c ) ) {
         r.baselines() = peakfinder.getBaselines();
         r.peaks() = peakfinder.getPeaks();
+        r.setIsCounting( c.isCounting() );
         return true;
     }
     return false;

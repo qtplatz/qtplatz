@@ -119,13 +119,15 @@ namespace dataproc {
             plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
             peakResult_.reset();
             if ( ptr->peaks().size() )
-                peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks() );
+                peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
+            ADDEBUG() << __FUNCTION__ << "\tisCounting: " << peakResult_->isCounting();
         }
 
         void setData( adcontrols::PeakResultPtr& ptr ) {
             peakResult_ = ptr;
             plots_[ 0 ]->setData( *ptr );
             peakTable_->setData( *ptr );
+            ADDEBUG() << __FUNCTION__ << "\tisCounting: " << ptr->isCounting();
         }
 
         void handleCurrentChanged( int peakId ) {
@@ -231,12 +233,14 @@ ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
+    ADDEBUG() << "draw( Chromatogram ) -- isCounting : " << ptr->isCounting();
     impl_->setData( ptr );
 }
 
 void
 ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 {
+    ADDEBUG() << "draw( PeakResult) -- isCounting : " << ptr->isCounting();
     impl_->setData( ptr );
 }
 
@@ -272,6 +276,8 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         return;
 
     if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
+
+        ADDEBUG() << __FUNCTION__ << "\tisCounting: " << chr->isCounting();
 
         impl_->idActiveFolium_ = folium.id();
         impl_->plots_[ 0 ]->setData( chr, 0 ); // draw current selection with attached data at id=0
