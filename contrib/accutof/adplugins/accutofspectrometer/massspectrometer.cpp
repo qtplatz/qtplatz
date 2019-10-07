@@ -155,8 +155,8 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
         adcontrols::MSCalibrateResult calibResult;
         if ( adportable::binary::deserialize<>()( calibResult, reinterpret_cast< const char *>( blob.data() ), blob.size() ) ) {
             calibration_ = std::make_unique< adcontrols::MSCalibration >( calibResult.calibration() );
-            ADINFO() << calibration_->calibrationUuid();
 #if !defined NDEBUG && 0
+            ADINFO() << calibration_->calibrationUuid();
             std::wostringstream o;
             if ( adportable::xml::serialize<>()( *calibration_, o ) )  {
                 ADDEBUG() << "MSCalibration loaded: " << o.str();

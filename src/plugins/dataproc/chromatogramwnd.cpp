@@ -103,7 +103,8 @@ namespace dataproc {
             auto shortcut = new QShortcut( QKeySequence::Copy, p );
             connect( shortcut, &QShortcut::activatedAmbiguously, this, &impl::copy );
             connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
-            connect( plots_[0].get(), static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram );
+            connect( plots_[0].get(), static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram0 );
+            connect( plots_[1].get(), static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram1 );
 
             marker_->attach( plots_[ 0 ].get() );
             marker_->visible( true );
@@ -120,14 +121,12 @@ namespace dataproc {
             peakResult_.reset();
             if ( ptr->peaks().size() )
                 peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
-            ADDEBUG() << __FUNCTION__ << "\tisCounting: " << peakResult_->isCounting();
         }
 
         void setData( adcontrols::PeakResultPtr& ptr ) {
             peakResult_ = ptr;
             plots_[ 0 ]->setData( *ptr );
             peakTable_->setData( *ptr );
-            ADDEBUG() << __FUNCTION__ << "\tisCounting: " << ptr->isCounting();
         }
 
         void handleCurrentChanged( int peakId ) {
@@ -154,7 +153,9 @@ namespace dataproc {
             }
         }
 
-        void selectedOnChromatogram( const QRectF& );
+        void selectedOnChromatogram( const QRectF&, int );
+        void selectedOnChromatogram0( const QRectF& );
+        void selectedOnChromatogram1( const QRectF& );
 
         ChromatogramWnd * this_;
         std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > plots_;
@@ -233,14 +234,12 @@ ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
-    ADDEBUG() << "draw( Chromatogram ) -- isCounting : " << ptr->isCounting();
     impl_->setData( ptr );
 }
 
 void
 ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 {
-    ADDEBUG() << "draw( PeakResult) -- isCounting : " << ptr->isCounting();
     impl_->setData( ptr );
 }
 
@@ -276,8 +275,6 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         return;
 
     if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
-
-        ADDEBUG() << __FUNCTION__ << "\tisCounting: " << chr->isCounting();
 
         impl_->idActiveFolium_ = folium.id();
         impl_->plots_[ 0 ]->setData( chr, 0 ); // draw current selection with attached data at id=0
@@ -398,10 +395,10 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 ///////////////////////////
 
 void
-ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
+ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
 {
-    double x0 = plots_[ 0 ]->transform( QwtPlot::xBottom, rect.left() );
-	double x1 = plots_[ 0 ]->transform( QwtPlot::xBottom, rect.right() );
+    double x0 = plots_[ index ]->transform( QwtPlot::xBottom, rect.left() );
+	double x1 = plots_[ index ]->transform( QwtPlot::xBottom, rect.right() );
 
     typedef std::pair < QAction *, std::function<void()> > action_type;
 
@@ -416,7 +413,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
     }
 
     actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [&] () {
-                adplot::plot::copyToClipboard( this->plots_[ 0 ].get() );
+                adplot::plot::copyToClipboard( this->plots_[ index ].get() );
             } ) );
 
     actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
@@ -425,7 +422,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
                                                              , MainWindow::makePrintFilename( idActiveFolium_, L"_" )
                                                              , tr( "SVG (*.svg)" ) );
                 if ( ! name.isEmpty() )
-                    adplot::plot::copyImageToFile( plots_[ 0 ].get(), name, "svg" );
+                    adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
             }) );
 
 
@@ -435,6 +432,18 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
             (it->second)();
     }
 
+}
+
+void
+ChromatogramWnd::impl::selectedOnChromatogram0( const QRectF& rect )
+{
+    selectedOnChromatogram(rect, 0);
+}
+
+void
+ChromatogramWnd::impl::selectedOnChromatogram1( const QRectF& rect )
+{
+    selectedOnChromatogram(rect, 1);
 }
 
 /////////
