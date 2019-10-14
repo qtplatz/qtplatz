@@ -161,8 +161,7 @@ namespace adwidgets {
                     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
                     if ( exactMass > 0.7 ) {  // Any 'chemical formula' mass should be > 1.0 (Hydrogen := 1.007825)
                         double mass = index.data( Qt::EditRole ).toDouble();
-                        if ( !( adportable::compare<double>::approximatelyEqual( mass, 0 ) ||
-                                adportable::compare<double>::approximatelyEqual( exactMass, mass ) ) )
+                        if ( ! adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
                             painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
                     }
                     paint_f_precision()( state, painter, option, index );
@@ -193,6 +192,13 @@ namespace adwidgets {
             }
         };
 
+        struct paint_f_time {
+
+            void operator()( const ColumnState& state, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                paint_f_precision()( state, painter, option, index );
+            }
+        };
+        
         ///////////////////////
         struct paint_f_svg {
 
@@ -240,6 +246,10 @@ namespace adwidgets {
             } else if ( field == ColumnState::f_abundance ) {
 
                 paint_f_abundance()( state, painter, option, index );
+
+            } else if ( field == ColumnState::f_time ) {
+
+                paint_f_time()( state, painter, opt, index );                
 
             } else if ( field == ColumnState::f_mass ) {
 

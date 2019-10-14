@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>282</width>
-    <height>318</height>
+    <height>269</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,12 +29,19 @@
    <property name="spacing">
     <number>0</number>
    </property>
+   <item row="2" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply</set>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>MS Chromatogram Generation</string>
+        <string>Chromatogram generation</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <property name="leftMargin">
@@ -57,47 +64,6 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QRadioButton" name="radioButton_2">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>R. P.</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="checkBox_lower">
-            <property name="text">
-             <string>Lower limit</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
-            <property name="maximum">
-             <double>99999.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Data source</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Mass window</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox">
             <property name="decimals">
@@ -114,12 +80,15 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Mass range</string>
+             <string>Data source</string>
             </property>
            </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox"/>
           </item>
           <item row="2" column="0">
            <widget class="QRadioButton" name="radioButton">
@@ -131,23 +100,13 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="0">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
+            <property name="suffix">
+             <string comment="mDa"/>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="6" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
             <property name="maximum">
-             <double>99999.000000000000000</double>
+             <double>1000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -167,44 +126,31 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Mass window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
            <widget class="QCheckBox" name="checkBox">
             <property name="text">
              <string>Lockmass (mDa)</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="0">
-           <widget class="QCheckBox" name="checkBox_upper">
+          <item row="3" column="0">
+           <widget class="QRadioButton" name="radioButton_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
-             <string>Upper limit</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
-            <property name="suffix">
-             <string comment="mDa"/>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
+             <string>R. P.</string>
             </property>
            </widget>
           </item>
          </layout>
-        </item>
-        <item row="0" column="1">
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>
@@ -212,10 +158,73 @@
     </layout>
    </item>
    <item row="1" column="0">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Apply</set>
+    <widget class="QGroupBox" name="groupBoxAutoTargeting">
+     <property name="title">
+      <string>Auto m/z lookup from chromatogr. peak</string>
      </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <item row="0" column="0">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Peak width (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>0.001000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="value">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

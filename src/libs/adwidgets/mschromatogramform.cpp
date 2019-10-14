@@ -99,18 +99,20 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
     ui->doubleSpinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInDa ) );
     ui->spinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInRP ) );
 
-    ui->checkBox_lower->setChecked( m.lower_limit() < 0 ? false : true );
-    ui->checkBox_upper->setChecked( m.upper_limit() < 0 ? false : true );
+    // ui->checkBox_lower->setChecked( m.lower_limit() < 0 ? false : true );
+    // ui->checkBox_upper->setChecked( m.upper_limit() < 0 ? false : true );
 
-    ui->doubleSpinBox_2->setEnabled( ui->checkBox_lower->isChecked() );
-    ui->doubleSpinBox_3->setEnabled( ui->checkBox_upper->isChecked() );
+    // ui->doubleSpinBox_2->setEnabled( ui->checkBox_lower->isChecked() );
+    // ui->doubleSpinBox_3->setEnabled( ui->checkBox_upper->isChecked() );
     
-    ui->doubleSpinBox_2->setValue( m.lower_limit() );
-    ui->doubleSpinBox_3->setValue( m.upper_limit() );
+    // ui->doubleSpinBox_2->setValue( m.lower_limit() );
+    // ui->doubleSpinBox_3->setValue( m.upper_limit() );
 
     ui->checkBox->setChecked( m.lockmass() );
 
     ui->doubleSpinBox_4->setValue( m.tolerance() * 1000.0 );
+
+    ui->groupBoxAutoTargeting->setChecked( m.enableAutoTargeting() );
 }
 
 void
@@ -125,12 +127,14 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
     m.width( ui->doubleSpinBox->value(), adcontrols::MSChromatogramMethod::widthInDa );
     m.width( ui->spinBox->value(), adcontrols::MSChromatogramMethod::widthInRP );
 
-    m.lower_limit( ui->doubleSpinBox_2->value() );
-    m.upper_limit( ui->doubleSpinBox_3->value() );
+    //m.lower_limit( ui->doubleSpinBox_2->value() );
+    //m.upper_limit( ui->doubleSpinBox_3->value() );
 
     m.setLockmass( ui->checkBox->isChecked() );
 
     m.setTolerance( ui->doubleSpinBox_4->value() / 1000.0 );
+
+    m.setEnableAutoTargeting( ui->groupBoxAutoTargeting->isChecked() );
 }
 
 

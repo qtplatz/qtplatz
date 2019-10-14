@@ -24,7 +24,6 @@
 
 #include "targetingwidget.hpp"
 #include "targetingform.hpp"
-//#include "targetingtable.hpp"
 #include "moltable.hpp"
 #include "targetingadducts.hpp"
 #include <adportable/is_type.hpp>
@@ -88,6 +87,7 @@ TargetingWidget::OnInitialUpdate()
     if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
         table->setContents( m.molecules() );
+        table->setColumnHidden( MolTable::c_abundance, true );
     }
 
     form_->setContents( m );

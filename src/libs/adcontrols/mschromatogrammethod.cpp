@@ -39,14 +39,14 @@ namespace adcontrols {
     namespace depricated {
         // for loading old file
         struct value_type {
-             bool enable;
-             bool msref;
-             double mass;
-             std::string formula;
-             std::wstring memo;
-             value_type() : enable( true ), msref( false ), mass( 0 ) {}
-             value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
-             }
+            bool enable;
+            bool msref;
+            double mass;
+            std::string formula;
+            std::wstring memo;
+            value_type() : enable( true ), msref( false ), mass( 0 ) {}
+            value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
+            }
         };
         
     }
@@ -81,6 +81,7 @@ namespace adcontrols {
         moltable molecules_;
         bool enable_lockmass_;
         double tolerance_;
+        bool enableAutoTargeting_;
         
         friend class boost::serialization::access;
         template<class Archive>
@@ -117,6 +118,9 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( enable_lockmass_ );
                 ar & BOOST_SERIALIZATION_NVP( tolerance_ );
             }
+            if ( version >= 6 ) {
+                ar & BOOST_SERIALIZATION_NVP( enableAutoTargeting_ );
+            }
         }
         
         impl() : dataSource_( Profile )
@@ -124,7 +128,8 @@ namespace adcontrols {
                , width_( 2 )
                , mass_limits_( -1, -1 )
                , enable_lockmass_( false )
-               , tolerance_( 0.020 ) {
+               , tolerance_( 0.020 )
+               , enableAutoTargeting_( false ) {
             
             width_[ widthInDa ] = 0.002;
             width_[ widthInRP ] = 100000;
@@ -137,12 +142,13 @@ namespace adcontrols {
                               , mass_limits_( t.mass_limits_ )
                               , molecules_( t.molecules_ )
                               , enable_lockmass_( t.enable_lockmass_ )
-                              , tolerance_( t.tolerance_ ) {
+                              , tolerance_( t.tolerance_ )
+                              , enableAutoTargeting_( t.enableAutoTargeting_ ) {
         }
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 5 )
+BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod::impl, 6 )
 
 namespace adcontrols {
 
@@ -344,6 +350,18 @@ void
 MSChromatogramMethod::setTolerance( double value )
 {
     impl_->tolerance_ = value;
+}
+
+bool
+MSChromatogramMethod::enableAutoTargeting() const
+{
+    return impl_->enableAutoTargeting_;
+}
+
+void
+MSChromatogramMethod::setEnableAutoTargeting( bool f )
+{
+    impl_->enableAutoTargeting_ = f;
 }
 
 const moltable&

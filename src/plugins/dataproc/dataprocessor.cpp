@@ -100,9 +100,9 @@
 #include <boost/exception/all.hpp>
 #include <stack>
 #include <fstream>
-#include <QMessageBox>
-#include <QFontMetrics>
 #include <QApplication>
+#include <QFontMetrics>
+#include <QMessageBox>
 
 using namespace dataproc;
 
@@ -151,8 +151,6 @@ Dataprocessor::~Dataprocessor()
 }
 
 Dataprocessor::Dataprocessor() : modified_( false )
-                                 //, portfolio_( new portfolio::Portfolio() )
-                                 //, rawDataset_( 0 )
 {
     connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
@@ -404,7 +402,6 @@ namespace dataproc {
         }
 
         bool operator () ( const adcontrols::CentroidMethod& m ) const {
-            ADDEBUG() << "doSpectraolProcess -- Centroid";
             if ( ptr_ && ptr_->isCentroid() )
                 ADDEBUG() << "Apply centroid to histogram; converting to profile";
             return DataprocessorImpl::applyMethod( dataprocessor_, folium, m, *ptr_ );
@@ -550,23 +547,11 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 
         // post processing -- update annotation etc.
         if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( folium.data() ) ) {
-            ADDEBUG() << "this is MassSpectrum";
             if ( auto ms = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() ) ) {
                 if ( ms->isHistogram() || !ms->isCentroid() ) {
-                    ADDEBUG() << "isCentroid: " << ms->isCentroid() << ", isHistogram: " << ms->isHistogram();
                     auto atts = folium.attachments();
                     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
                     if ( itCentroid != atts.end() ) {
-                        /*
-                        auto atts2 = itCentroid->attachments();
-                        auto itTargeting = std::find_if( atts2.begin(), atts2.end(), []( auto& f ){ return f.name() == Constants::F_TARGETING; });
-                        if ( itTargeting != atts.end() ) {
-                            if ( adportable::a_type< std::shared_ptr< adcontrols::Targeting > >::is_a( itTargeting->data() ) ) {
-                                if ( auto targeting = boost::any_cast< std::shared_ptr< adcontrols::Targeting > >( itTargeting->data() ) )
-                                    ADDEBUG() << "Has Targeting";
-                            }
-                        }
-                        */
                         if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( itCentroid->data() ) ) {
                             if ( auto processed = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( itCentroid->data() ) ) {
                                 // if has targeting...
@@ -1384,8 +1369,6 @@ DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium
                                 , const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
 {
-    ADDEBUG() << __FUNCTION__ << "\tisCounting: " << c.isCounting();
-
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
 
     if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {

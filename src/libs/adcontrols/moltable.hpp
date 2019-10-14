@@ -37,13 +37,16 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT moltable {
+    class ADCONTROLSSHARED_EXPORT moltable;    
+
+    class moltable {
     public:
         enum molflags { isMSRef = 0x80000000 };
-
+    
         typedef boost::variant< bool, uint32_t, double, std::string, boost::uuids::uuid > custom_type;
+        class ADCONTROLSSHARED_EXPORT value_type;
         
-        class ADCONTROLSSHARED_EXPORT value_type {
+        class value_type {
         public:
             bool enable_;
             uint32_t flags_;
@@ -55,6 +58,7 @@ namespace adcontrols {
             std::string smiles_;
             std::wstring description_;
             boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
+            boost::optional< double > tR_; // data source for mass chromatogram generation
             std::vector < std::pair< std::string, custom_type > > properties_;
         public:
             bool& enable() { return enable_; }
@@ -80,8 +84,11 @@ namespace adcontrols {
             void setIsMSRef( bool on );
 
             boost::optional< int32_t > protocol() const;
-            void setProtocol( const boost::optional< int32_t >& proto );
+            void setProtocol( boost::optional< int32_t >&& proto );
 
+            boost::optional< double > tR() const;
+            void set_tR( boost::optional< double >&& );
+            
             template< typename T > void setProperty( const std::string& key, const T& value ) {
                 auto it = std::find_if( properties_.begin(),  properties_.end(), [&]( auto& t ){ return t.first == key; } );
                 if ( it != properties_.end() )
@@ -102,20 +109,21 @@ namespace adcontrols {
             
             const std::vector< std::pair< std::string, custom_type > >& properties() const  { return properties_; }
             
-            value_type() : enable_( true ), flags_( 0 ), protocol_( boost::none ), mass_( 0 ), abundance_( 1.0 ) {
+            value_type() : enable_( true ), flags_( 0 ), protocol_( boost::none ), mass_( 0 ), abundance_( 1.0 ), tR_( boost::none ) {
             }
             
             value_type( const value_type& t ) : enable_( t.enable_ )
-                , flags_( t.flags_ )
-                , mass_( t.mass_ )
-                , abundance_( t.abundance_ )
-                , formula_( t.formula_ )
-                , adducts_( t.adducts_ )
-                , synonym_( t.synonym_ )
-                , smiles_( t.smiles_ )
-                , description_( t.description_ )
-                , protocol_( t.protocol_ )
-                , properties_( t.properties_ ) {
+                                              , flags_( t.flags_ )
+                                              , mass_( t.mass_ )
+                                              , abundance_( t.abundance_ )
+                                              , formula_( t.formula_ )
+                                              , adducts_( t.adducts_ )
+                                              , synonym_( t.synonym_ )
+                                              , smiles_( t.smiles_ )
+                                              , description_( t.description_ )
+                                              , protocol_( t.protocol_ )
+                                              , tR_( t.tR_ )
+                                              , properties_( t.properties_ ) {
             }
         };
 
@@ -150,4 +158,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 2 )
+BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 3 )

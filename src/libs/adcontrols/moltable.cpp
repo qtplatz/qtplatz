@@ -59,6 +59,10 @@ namespace boost {
                 ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
                 ar & BOOST_SERIALIZATION_NVP( p.properties_ );
             }
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( p.tR_ );
+            }
+            
         }
     }
 }
@@ -137,9 +141,21 @@ moltable::value_type::protocol() const
 }
 
 void
-moltable::value_type::setProtocol( const boost::optional< int32_t >& proto )
+moltable::value_type::setProtocol( boost::optional< int32_t >&& proto )
 {
     protocol_ = proto;
+}
+
+boost::optional< double >
+moltable::value_type::tR() const
+{
+    return tR_;
+}
+
+void
+moltable::value_type::set_tR( boost::optional< double >&& tR )
+{
+    tR_ = tR;
 }
 
 moltable::~moltable()

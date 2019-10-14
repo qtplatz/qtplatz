@@ -38,8 +38,9 @@ namespace boost { namespace serialization { class access; } }
 namespace adcontrols {
 
     class moltable;
-
-    class ADCONTROLSSHARED_EXPORT MSChromatogramMethod {
+    class ADCONTROLSSHARED_EXPORT MSChromatogramMethod;
+    
+    class MSChromatogramMethod {
     public:
         ~MSChromatogramMethod();
         MSChromatogramMethod();
@@ -60,16 +61,24 @@ namespace adcontrols {
         double width( WidthMethod method = widthInDa ) const;
         void width( double value, WidthMethod );
 
+        // deprecated
         double lower_limit() const;
         double upper_limit() const;
         void lower_limit( double );
         void upper_limit( double );
+        // end deprecated
+        
         double width_at_mass( double mass ) const;
 
         bool lockmass() const;
         void setLockmass( bool );
+
         double tolerance() const;
         void setTolerance( double );
+
+        // auto m/z find from spectrum by tR
+        bool enableAutoTargeting() const;
+        void setEnableAutoTargeting( bool );
         
         bool operator == ( const MSChromatogramMethod& ) const;
 

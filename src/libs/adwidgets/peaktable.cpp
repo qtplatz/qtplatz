@@ -189,7 +189,7 @@ PeakTable::setData( const adcontrols::Peaks& peaks, bool isCounting )
     QStandardItemModel& model = *model_;
     model.removeRows( 0, model.rowCount() );
 
-    ADDEBUG() << __FUNCTION__ << "\tisCounting: " << isCounting;
+    // ADDEBUG() << __FUNCTION__ << "\tisCounting: " << isCounting;
     model.setHeaderData( c_area, Qt::Horizontal, isCounting ? QObject::tr("Area(Counts)") : QObject::tr("Area") );
 
     using namespace adcontrols;

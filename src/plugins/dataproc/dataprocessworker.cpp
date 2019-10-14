@@ -46,6 +46,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
@@ -74,6 +75,8 @@
 #include <iomanip>
 #include <thread>
 
+Q_DECLARE_METATYPE( portfolio::Folium )
+
 using namespace dataproc;
 
 DataprocessWorker::DataprocessWorker() : work_( io_service_ )
@@ -97,19 +100,6 @@ DataprocessWorker::instance()
     static DataprocessWorker __instance;
     return &__instance;
 }
-
-// void
-// DataprocessWorker::createChromatograms( Dataprocessor* processor
-//                                         , adcontrols::hor_axis axis
-//                                         , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
-//                                         , const boost::uuids::uuid& dataReaderUuid )
-// {
-//     if ( auto rawfile = processor->rawdata() ) {
-//         if ( rawfile->dataformat_version() <= 2 ) {
-//             createChromatogramsV2( processor, axis, ranges );
-//         }
-//     }
-// }
 
 
 void
@@ -424,7 +414,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
-// data format v3 (read chrmatograms from an fcn)
+// data format v3 (read chrmatograms from a protocol)
 void
 DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                                                  , const adcontrols::MSChromatogramMethod& cm
@@ -435,8 +425,38 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name();
+    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+    if ( cm.enableAutoTargeting() ) {
+        ADDEBUG() << __FUNCTION__ << " auto targeting is on";
+        adcontrols::ProcessMethod tmp;
+        if ( auto cm = pm->find< adcontrols::CentroidMethod >() )
+            tmp.appendMethod( *cm );
+        if ( auto tm = pm->find< adcontrols::TargetingMethod >() )
+            tmp.appendMethod( *tm );
+        
+        for ( auto mol: cm.molecules().data() ) {
+            if ( mol.tR() ) {
+                double tR = mol.tR().get();
+                if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - 1.0 ), reader->findPos( tR + 1.0 ) ) ) {
+                    auto desc = ( boost::format( "%s %.2f(%.3fs)%s" ) % mol.formula() % mol.mass() % tR % reader->display_name() ).str();
+                    ms->addDescription( adcontrols::description( { "create", desc } ) );
+                    portfolio::Folium folium = processor->addSpectrum( ms, adcontrols::ProcessMethod() );
+                    processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
+                    if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
+                        if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& f ) { return f.name() == Constants::F_TARGETING; } ) ) {
+                            if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
+                                for ( const auto& c : targeting->candidates() )
+                                    ADDEBUG() << "found candidate: " << c.formula << ", " << c.mass << ", " << (c.mass - c.exact_mass);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if ( auto dset = processor->rawdata() ) {
+        
         adprocessor::v3::MSChromatogramExtractor extract( dset );
 
         extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );

@@ -48,6 +48,7 @@ namespace adwidgets {
         c_formula
         , c_adducts
         , c_mass
+        , c_tR
         , c_lockmass
         , c_protocol
         , c_synonym
@@ -218,6 +219,7 @@ MSChromatogramWidget::setup( MolTableView * table )
     model_->setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "Formula" ) );
     model_->setHeaderData( c_adducts,  Qt::Horizontal, QObject::tr( "adduct/lose" ) );
     model_->setHeaderData( c_mass,     Qt::Horizontal, QObject::tr( "<i>m/z<i>" ) );
+    model_->setHeaderData( c_tR,       Qt::Horizontal, QObject::tr( "<i>t<sub>R</sub><i>" ) );
     model_->setHeaderData( c_lockmass, Qt::Horizontal, QObject::tr( "lock mass" ) );
     model_->setHeaderData( c_protocol, Qt::Horizontal, QObject::tr( "protocol#" ) );
     model_->setHeaderData( c_synonym,  Qt::Horizontal, QObject::tr( "synonym" ) );
@@ -230,13 +232,16 @@ MSChromatogramWidget::setup( MolTableView * table )
     //                                                          editable, checkable
     table->setColumnField( c_formula, ColumnState::f_formula,     true,  true );
     table->setColumnField( c_adducts, ColumnState::f_adducts,     true,  false );
-    table->setColumnField( c_mass,    ColumnState::f_mass,        false, false ); 
+    table->setColumnField( c_mass,    ColumnState::f_mass,        false, false );
+    table->setColumnField( c_tR,      ColumnState::f_time,        true,  false );
     table->setColumnField( c_synonym, ColumnState::f_synonym,     false, false );
     table->setColumnField( c_memo,    ColumnState::f_description, false, false );
     table->setColumnField( c_protocol, ColumnState::f_protocol,   true,  false );
     table->setColumnField( c_svg,     ColumnState::f_svg );
     table->setColumnField( c_smiles,  ColumnState::f_smiles );
 
+    table->setPrecision( c_tR, 3 );
+    
     table->setContextMenuHandler( [&]( const QPoint& pt ){
             QMenu menu;
             menu.addAction( tr( "Add row" ), this, SLOT( addRow() ) );
@@ -314,6 +319,10 @@ MSChromatogramWidget::helper::readRow( int row, adcontrols::moltable::value_type
     mol.smiles()  = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
     int protocol = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
     mol.setProtocol( protocol >= 0 ? boost::optional< int32_t >( protocol ) : boost::none );
+    
+    double tR = model.index( row, c_tR ).data( Qt::EditRole ).toDouble();
+    mol.set_tR( tR > 0 ? boost::optional< double >( tR ) : boost::none );
+
 	return true;
 }
 
@@ -345,6 +354,8 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
         }
 
         model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
+
+        model.setData( model.index( row, c_tR ), mol.tR() ? mol.tR().get() : 0.0 );
 
         model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );
         model.setData( model.index( row, c_memo ), QString::fromStdWString( mol.description() ) );
