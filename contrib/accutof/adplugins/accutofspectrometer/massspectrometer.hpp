@@ -88,6 +88,7 @@ namespace accutof { namespace spectrometer {
             std::unique_ptr< ScanLaw > scanLaw_;
             std::unique_ptr< adcontrols::ControlMethod::Method > method_;
             std::unique_ptr< adcontrols::MSCalibration > calibration_;
+            std::unique_ptr< adcontrols::MSCalibration > prev_calibration_;
         };
     }
 }
