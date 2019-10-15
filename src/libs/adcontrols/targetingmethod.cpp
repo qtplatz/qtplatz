@@ -379,6 +379,14 @@ TargetingMethod::setMolecules( const moltable& t )
     impl_->molecules_ = t;
 }
 
+void
+TargetingMethod::setMolecules( const moltable& t, const std::string& adduct, bool positive )
+{
+    impl_->molecules_ = t;
+    adducts( positive ).clear();
+    adducts( positive ).emplace_back( true, adduct );
+}
+
 //static
 std::string
 TargetingMethod::default_adducts( bool positive )

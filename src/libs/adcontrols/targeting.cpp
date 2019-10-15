@@ -211,8 +211,8 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positi
 
     for ( auto& formula : active_formula_ ) {
         double exact_mass = formula.second; // search 'M'
-
         size_t pos = finder( ms, exact_mass );
+        // ADDEBUG() << "===== " << __FUNCTION__ << " ===== " << formula << ", pos=" << pos;
         if ( pos != MassSpectrum::npos ) {
             double mass = ms.getMass( pos );
             auto neutral = adcontrols::ChemicalFormula::neutralize( formula.first );

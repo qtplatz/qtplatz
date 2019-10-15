@@ -425,18 +425,27 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name();
+
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+
     if ( cm.enableAutoTargeting() ) {
         ADDEBUG() << __FUNCTION__ << " auto targeting is on";
         adcontrols::ProcessMethod tmp;
+        adcontrols::TargetingMethod tgtm;
         if ( auto cm = pm->find< adcontrols::CentroidMethod >() )
             tmp.appendMethod( *cm );
         if ( auto tm = pm->find< adcontrols::TargetingMethod >() )
-            tmp.appendMethod( *tm );
+            tgtm = *tm;
         
         for ( auto mol: cm.molecules().data() ) {
-            if ( mol.tR() ) {
+            if ( mol.tR() && mol.enable() ) {
+                // ADDEBUG() << "-----------> " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
                 double tR = mol.tR().get();
+                adcontrols::moltable mtab;
+                mtab << mol;
+                tgtm.setMolecules( mtab, mol.adducts() );
+                tmp *= tgtm; // add/replace target method.
+                
                 if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - 1.0 ), reader->findPos( tR + 1.0 ) ) ) {
                     auto desc = ( boost::format( "%s %.2f(%.3fs)%s" ) % mol.formula() % mol.mass() % tR % reader->display_name() ).str();
                     ms->addDescription( adcontrols::description( { "create", desc } ) );
@@ -446,7 +455,9 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                         if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& f ) { return f.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
                                 for ( const auto& c : targeting->candidates() )
-                                    ADDEBUG() << "found candidate: " << c.formula << ", " << c.mass << ", " << (c.mass - c.exact_mass);
+                                    ADDEBUG() << "====> found candidate: " << c.formula << ", " << c.mass << ", " << (c.mass - c.exact_mass);
+                            } else {
+                                ADDEBUG() << "###### no candidate found " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
                             }
                         }
                     }

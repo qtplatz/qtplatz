@@ -38,8 +38,9 @@ namespace boost { namespace serialization {  class access;  } }
 namespace adcontrols {
 
     class moltable;
+    class ADCONTROLSSHARED_EXPORT TargetingMethod;
 
-    class ADCONTROLSSHARED_EXPORT TargetingMethod {
+    class TargetingMethod {
     public:
         enum idTarget { idTargetFormula, idTargetPeptide };
 
@@ -78,6 +79,7 @@ namespace adcontrols {
         const moltable& molecules() const;
         moltable& molecules();
         void setMolecules( const moltable& );
+        void setMolecules( const moltable&, const std::string& adduct, bool positive = true ); // for single mol target (using chromatogram generation)
 
         static std::string default_adducts( bool positive = true );
 

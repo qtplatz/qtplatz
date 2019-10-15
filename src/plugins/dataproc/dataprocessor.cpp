@@ -402,13 +402,14 @@ namespace dataproc {
         }
 
         bool operator () ( const adcontrols::CentroidMethod& m ) const {
+#ifndef NDEBUG
             if ( ptr_ && ptr_->isCentroid() )
                 ADDEBUG() << "Apply centroid to histogram; converting to profile";
+#endif
             return DataprocessorImpl::applyMethod( dataprocessor_, folium, m, *ptr_ );
         }
 
         bool operator () ( const adcontrols::TargetingMethod& m ) const {
-            ADDEBUG() << "doSpectraolProcess -- Targeting";
             return DataprocessorImpl::applyMethod( dataprocessor_, folium, m );
         }
 
@@ -1144,6 +1145,8 @@ DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium
                                 , const adcontrols::TargetingMethod& m )
 {
+    ADDEBUG() << "doSpectraolProcess -- Targeting";
+    
     if ( auto fCentroid = portfolio::find_first_of(
              folium.attachments()
              , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
