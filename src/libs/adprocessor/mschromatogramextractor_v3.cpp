@@ -463,6 +463,7 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
     const char * const wkey = (axis == adcontrols::hor_axis_mass) ? "mass" : "time";
 
     std::vector< std::pair< std::pair< double, double >, int > > list;  // pair< range >, fcn
+    std::vector< std::string > mols;
 
     if ( auto formulae = pt.get_child_optional( "formulae" ) ) {
         for ( auto& formula: formulae.get() ) {
@@ -471,8 +472,11 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                     int proto = 0;
                     if ( auto pno = formula.second.get_optional< int >( "protocol" ) )
                         proto = pno.get();
-                    if ( auto centre = formula.second.get_optional< double >( wkey ) )
+                    if ( auto centre = formula.second.get_optional< double >( wkey ) ) {
                         list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
+                        auto mol = formula.second.get_optional< std::string >( "formula" );
+                        mols.emplace_back( mol ? mol.get() : "no-formula" );
+                    }
                 }
             }
             if ( auto children = formula.second.get_child_optional("children") ) {
@@ -481,8 +485,11 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                         int proto = 0;
                         if ( auto pno = child.second.get_optional< int > ( "protocol" ) )
                             proto = pno.get();
-                        if ( auto centre = child.second.get_optional< double >( wkey ) )
+                        if ( auto centre = child.second.get_optional< double >( wkey ) ) {
                             list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
+                            auto mol = formula.second.get_optional< std::string >( "formula" );
+                            mols.emplace_back( mol ? mol.get() : "no-formula" );                            
+                        }
                     }
                 }
             }
@@ -493,19 +500,22 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
         const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
 
-        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::wformat( L"%s m/z %.3f(W:%.1fmDa)p%d" ) : boost::wformat( L"%s %.4lfus(W:%.1ns)p%d" );
+        auto wfmt = ( axis == adcontrols::hor_axis_mass ) ? boost::wformat( L"%s %.1f(W:%.1fmDa) %s %d" ) : boost::wformat( L"%s %.4lfus(W:%.1ns) %s %d" );
+        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s %d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s %d" );
+
         for ( size_t idx = 0; idx < list.size(); ++idx ) {
             auto res = std::make_shared< mschromatogramextractor::xChromatogram >( list[ idx ].second, idx, isCounting );
             int protocol = list[ idx ].second;
             double width = list[ idx ].first.second - list[ idx ].first.first;
             double centre = list[ idx ].first.first + width / 2.0;
+            const std::string& formula = mols[ idx ];
             if ( axis == adcontrols::hor_axis_mass ) {
                 width *= 1000;             // --> mDa
             } else {
                 centre *= std::micro::den; // --> us
                 width *= std::nano::den;   // --> ns
             }
-            res->pChr_->addDescription( { L"Create", ( fmt % adportable::utf::to_wstring( reader->display_name() ) % centre % width % protocol ).str() });
+            res->pChr_->addDescription( adcontrols::description( { "Create", ( fmt % formula % centre % width % reader->display_name() % protocol ).str() } ) );
             res->pChr_->setIsCounting( res->isCounting_ );
 
             impl_->results_.emplace_back( res );

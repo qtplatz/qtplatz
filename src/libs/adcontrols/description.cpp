@@ -102,11 +102,11 @@ description::description()
     posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 }
 
-description::description( const wchar_t * key, const wchar_t * text )
-{
-    posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
-    keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) );
-}
+// description::description( const wchar_t * key, const wchar_t * text )
+// {
+//     posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+//     keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) );
+// }
 
 description::description( const std::wstring& key, const std::wstring& text )
 {
@@ -116,6 +116,7 @@ description::description( const std::wstring& key, const std::wstring& text )
 
 description::description( std::pair< std::string, std::string >&& keyValue ) : keyValue_( keyValue )
 {
+    posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();    
 }
 
 description::description( const description& t ) : posix_time_( t.posix_time_ )

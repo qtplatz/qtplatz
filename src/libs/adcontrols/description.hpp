@@ -42,7 +42,7 @@ namespace adcontrols {
         ~description();
         description();
         description( const description& );
-        [[deprecated]] description( const wchar_t * key, const wchar_t * text );
+        //[[deprecated]] description( const wchar_t * key, const wchar_t * text );
         [[deprecated]] description( const std::wstring& key, const std::wstring& text );
         description( std::pair< std::string, std::string >&& keyValue );
 

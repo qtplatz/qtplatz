@@ -162,6 +162,7 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
 
         if ( dlg.exec() == QDialog::Accepted ) {
             auto reader_params = dlg.toJson();
+            ADDEBUG() << "################ " << json.toStdString();
             for ( auto& sel: dlg.selection() ) {
                 auto progress( adwidgets::ProgressWnd::instance()->addbar() );
                 progresses.emplace_back( progress );
@@ -436,7 +437,8 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
             tmp.appendMethod( *cm );
         if ( auto tm = pm->find< adcontrols::TargetingMethod >() )
             tgtm = *tm;
-        
+
+        QJsonArray a;
         for ( auto mol: cm.molecules().data() ) {
             if ( mol.tR() && mol.enable() ) {
                 // ADDEBUG() << "-----------> " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
@@ -451,27 +453,46 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                     ms->addDescription( adcontrols::description( { "create", desc } ) );
                     portfolio::Folium folium = processor->addSpectrum( ms, adcontrols::ProcessMethod() );
                     processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
+                    bool found( false );
                     if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
                         if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& f ) { return f.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
-                                for ( const auto& c : targeting->candidates() )
+                                found = true;
+                                for ( const auto& c : targeting->candidates() ) {
+                                    QJsonObject obj{ { "formula", QString::fromStdString( c.formula ) }
+                                                     , { "exact_mass", c.exact_mass }
+                                                     , { "exact_abundance", 100 }
+                                                     , { "mass", c.mass }
+                                                     , { "time", -1 }
+                                                     , { "index", static_cast< int >(c.idx) }
+                                                     , { "proto", static_cast< int >(c.fcn) }
+                                                     , { "selected", true } };
+                                    a.push_back( obj );
                                     ADDEBUG() << "====> found candidate: " << c.formula << ", " << c.mass << ", " << (c.mass - c.exact_mass);
-                            } else {
-                                ADDEBUG() << "###### no candidate found " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
+                                }
                             }
                         }
+                    }
+                    if ( !found ) {
+                        ADDEBUG() << "###### no candidate found " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
                     }
                 }
             }
         }
-    }
+        QJsonObject top{ { "formulae", a } };
+        auto json = QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
+        ADDEBUG() << json;
+        double width = cm.width( cm.widthMethod() );
 
-    if ( auto dset = processor->rawdata() ) {
-        
-        adprocessor::v3::MSChromatogramExtractor extract( dset );
-
-        extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
-
+        if ( auto dset = processor->rawdata() ) {
+            adprocessor::v3::MSChromatogramExtractor extract( dset );
+            extract.extract_by_json( vec, *pm, reader, json, width, adcontrols::hor_axis_mass, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+        }
+    } else {
+        if ( auto dset = processor->rawdata() ) {
+            adprocessor::v3::MSChromatogramExtractor extract( dset );
+            extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+        }
     }
 
     portfolio::Folium folium;
