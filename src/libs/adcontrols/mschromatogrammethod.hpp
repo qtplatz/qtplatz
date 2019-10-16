@@ -39,7 +39,7 @@ namespace adcontrols {
 
     class moltable;
     class ADCONTROLSSHARED_EXPORT MSChromatogramMethod;
-    
+
     class MSChromatogramMethod {
     public:
         ~MSChromatogramMethod();
@@ -49,11 +49,12 @@ namespace adcontrols {
 
         static const wchar_t * dataClass() { return L"adcontrols::MSChromatogramMethod"; }
 
-        enum DataSource { Profile, Centroid };
         enum WidthMethod { widthInDa, widthInRP, widthPeakFWHM, widthTime };
 
-        DataSource dataSource() const;
-        void dataSource( enum DataSource );
+        //DataSource dataSource() const;
+        //void dataSource( enum DataSource );
+        const std::string& dataReader() const;
+        void setDataReader( const std::string& );
 
         WidthMethod widthMethod() const;
         void widthMethod( WidthMethod );
@@ -67,7 +68,7 @@ namespace adcontrols {
         void lower_limit( double );
         void upper_limit( double );
         // end deprecated
-        
+
         double width_at_mass( double mass ) const;
 
         bool lockmass() const;
@@ -79,7 +80,10 @@ namespace adcontrols {
         // auto m/z find from spectrum by tR
         bool enableAutoTargeting() const;
         void setEnableAutoTargeting( bool );
-        
+
+        double peakWidthForChromatogram() const;
+        void setPeakWidthForChromatogram( double );
+
         bool operator == ( const MSChromatogramMethod& ) const;
 
         const moltable& molecules() const;
@@ -94,9 +98,9 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
-    
+
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 3 )
+BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 4 )
 
 #endif // MSCHROMATOGRAMMETHOD_HPP

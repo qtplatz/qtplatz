@@ -52,7 +52,7 @@ namespace adportable {
                                                                                        , pCounts_( pCounts )
                                                                                        , xInterval_( i ) {
             }
-                                                                                         
+
             inline int operator()( size_t idx1, size_t idx2 ) const {
                 return int( ( ( pTimes_[ idx2 ] - pTimes_[ idx1 ] ) / xInterval_ ) + 0.5 );
             }
@@ -148,12 +148,12 @@ histogram_peakfinder::histogram_peakfinder( double xInterval, uint32_t width ) :
                                                                                , width_( width < 3 ? 3 : width | 01 )
 {
 }
-    
+
 size_t
 histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, const double * pCounts )
 {
     // input data series must be acquired from 'equal time distance' digitizer
-    
+
     if ( pTimes == 0 || pCounts == 0 )
         return 0;
 
@@ -161,7 +161,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
     static const double slope = 0.1;
 
     slope_state< counter > state( width_ / 2 );
-            
+
     for ( auto it = pCounts + 1; it < pCounts + nbrSamples - 1; ++it ) {
 
         bool reduce = false;
@@ -193,7 +193,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
             state.stack_.top()++; // extend
         }
 
-#if !defined NDEBUG
+#if !defined NDEBUG && 0
         { // debug
             double pt = pTimes[ x - 1 ];
             double t = pTimes[ x ];
@@ -211,7 +211,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
         }
 
     }
-    
+
     return results_.size();
 }
 
@@ -235,7 +235,7 @@ histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
     results.emplace_back( *pkinfo.begin() );
 
     for ( auto it = pkinfo.begin() + 1; it != pkinfo.end(); ++it ) {
-        
+
         size_t x1 = (it - 1)->second;  // peak end of 1st peak
         size_t x2 = it->first;         // peak start of 2nd peak
 
@@ -247,7 +247,7 @@ histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
             results.emplace_back( *it );
         }
     }
-    
+
     results.erase( std::remove_if( results.begin(), results.end(), [&]( const peakinfo& a ){
                 return ( a.second - a.first <= 3 ) ||
                     std::accumulate( pCounts + a.first, pCounts + a.second + 1, 0.0 ) < 5.0;

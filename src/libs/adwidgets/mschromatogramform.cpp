@@ -34,7 +34,8 @@ MSChromatogramForm::MSChromatogramForm( QWidget *parent ) : QWidget( parent )
                                                           , ui( new Ui::MSChromatogramForm )
 {
     ui->setupUi(this);
-    ui->comboBox->addItems( QStringList() << tr( "Profile" ) << tr( "Centroid" ) );
+
+    // ui->comboBox->addItems( QStringList() << tr( "pkd.1.u5303a" ) << tr( "1.u5303a" ) );
     connect( ui->checkBox, &QCheckBox::stateChanged, this, [this] ( int state ) { emit onEnableLockMass( state == Qt::Checked ); } );
     connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
 }
@@ -90,21 +91,24 @@ MSChromatogramForm::setContents( boost::any&& any )
 void
 MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
 {
-    ui->comboBox->setCurrentIndex( m.dataSource() );
+    // ui->comboBox->setCurrentIndex( QString::fromStdString( m.dataReader() ) );
+    ui->lineEdit->setText( QString::fromStdString( m.dataReader() ) );
+
     if ( m.widthMethod() == adcontrols::MSChromatogramMethod::widthInDa )
         ui->radioButton->setChecked( true );
     else
         ui->radioButton_2->setChecked( true );
-    
+
     ui->doubleSpinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInDa ) );
     ui->spinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInRP ) );
 
+    ui->doubleSpinBox_2->setValue( m.peakWidthForChromatogram() );
     // ui->checkBox_lower->setChecked( m.lower_limit() < 0 ? false : true );
     // ui->checkBox_upper->setChecked( m.upper_limit() < 0 ? false : true );
 
     // ui->doubleSpinBox_2->setEnabled( ui->checkBox_lower->isChecked() );
     // ui->doubleSpinBox_3->setEnabled( ui->checkBox_upper->isChecked() );
-    
+
     // ui->doubleSpinBox_2->setValue( m.lower_limit() );
     // ui->doubleSpinBox_3->setValue( m.upper_limit() );
 
@@ -118,7 +122,8 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
 void
 MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
 {
-    m.dataSource( static_cast<adcontrols::MSChromatogramMethod::DataSource>(ui->comboBox->currentIndex()) );
+    //m.dataSource( static_cast<adcontrols::MSChromatogramMethod::DataSource>(ui->comboBox->currentIndex()) );
+    m.setDataReader( ui->lineEdit->text().toStdString() );
     if ( ui->radioButton->isChecked() )
         m.widthMethod( adcontrols::MSChromatogramMethod::widthInDa );
     else
@@ -135,6 +140,6 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
     m.setTolerance( ui->doubleSpinBox_4->value() / 1000.0 );
 
     m.setEnableAutoTargeting( ui->groupBoxAutoTargeting->isChecked() );
+
+    m.setPeakWidthForChromatogram( ui->doubleSpinBox_2->value() );
 }
-
-

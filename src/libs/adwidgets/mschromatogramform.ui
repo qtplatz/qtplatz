@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>282</width>
-    <height>269</height>
+    <width>318</width>
+    <height>274</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -83,12 +83,9 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Data source</string>
+             <string>Data reader</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox"/>
           </item>
           <item row="2" column="0">
            <widget class="QRadioButton" name="radioButton">
@@ -150,6 +147,16 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit">
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+            <property name="clearButtonEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -160,7 +167,7 @@
    <item row="1" column="0">
     <widget class="QGroupBox" name="groupBoxAutoTargeting">
      <property name="title">
-      <string>Auto m/z lookup from chromatogr. peak</string>
+      <string>Auto targeting from chromatogram</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
@@ -205,7 +212,7 @@
            <double>0.100000000000000</double>
           </property>
           <property name="value">
-           <double>1.000000000000000</double>
+           <double>2.000000000000000</double>
           </property>
          </widget>
         </item>

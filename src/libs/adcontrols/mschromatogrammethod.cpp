@@ -48,7 +48,7 @@ namespace adcontrols {
             value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
             }
         };
-        
+
     }
 }
 
@@ -60,7 +60,7 @@ namespace boost {
         template <class Archive >
         void serialize( Archive& ar, adcontrols::depricated::value_type& p, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( p.enable );
-            ar & BOOST_SERIALIZATION_NVP( p.msref );            
+            ar & BOOST_SERIALIZATION_NVP( p.msref );
             ar & BOOST_SERIALIZATION_NVP( p.mass );
             ar & BOOST_SERIALIZATION_NVP( p.formula );
             ar & BOOST_SERIALIZATION_NVP( p.memo );
@@ -71,9 +71,13 @@ namespace boost {
 
 namespace adcontrols {
 
+    namespace {
+        enum DataSource { Profile, Centroid }; // deprecated
+    }
+
     class MSChromatogramMethod::impl {
     public:
-        DataSource dataSource_;
+        DataSource deprecated_dataSource_;
         WidthMethod widthMethod_;
         std::vector< double > width_;
         std::pair< double, double > mass_limits_; // lower, upper
@@ -82,14 +86,16 @@ namespace adcontrols {
         bool enable_lockmass_;
         double tolerance_;
         bool enableAutoTargeting_;
-        
+        std::string dataReaderId_;
+        double peakWidthForChromatogram_;
+
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
             if ( version <= 4 ) {
-                ar & BOOST_SERIALIZATION_NVP( dataSource_ );
+                ar & BOOST_SERIALIZATION_NVP( deprecated_dataSource_ );
                 ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
                 ar & boost::serialization::make_nvp( "width0", width_[ 0 ] );
                 ar & boost::serialization::make_nvp( "width1", width_[ 1 ] );
@@ -107,10 +113,10 @@ namespace adcontrols {
                         mol.description() = f.memo;
                         molecules_ << mol;
                     }
-                        
+
                 }
             } else if ( version >= 5 ) {
-                ar & BOOST_SERIALIZATION_NVP( dataSource_ );
+                ar & BOOST_SERIALIZATION_NVP( deprecated_dataSource_ );
                 ar & BOOST_SERIALIZATION_NVP( widthMethod_ );
                 ar & BOOST_SERIALIZATION_NVP( width_ );
                 ar & BOOST_SERIALIZATION_NVP( mass_limits_ );
@@ -120,30 +126,34 @@ namespace adcontrols {
             }
             if ( version >= 6 ) {
                 ar & BOOST_SERIALIZATION_NVP( enableAutoTargeting_ );
+                ar & BOOST_SERIALIZATION_NVP( peakWidthForChromatogram_ );
+                ar & BOOST_SERIALIZATION_NVP( dataReaderId_ );
             }
         }
-        
-        impl() : dataSource_( Profile )
-               , widthMethod_( widthInDa )
+
+        impl() : widthMethod_( widthInDa )
                , width_( 2 )
                , mass_limits_( -1, -1 )
                , enable_lockmass_( false )
                , tolerance_( 0.020 )
-               , enableAutoTargeting_( false ) {
-            
+               , enableAutoTargeting_( false )
+               , dataReaderId_( "" )
+               , peakWidthForChromatogram_( 1.0 ) {
+
             width_[ widthInDa ] = 0.002;
             width_[ widthInRP ] = 100000;
 
         }
 
-        impl( const impl& t ) : dataSource_( t.dataSource_ )
-                              , widthMethod_( t.widthMethod_ )
+        impl( const impl& t ) : widthMethod_( t.widthMethod_ )
                               , width_( t.width_)
                               , mass_limits_( t.mass_limits_ )
                               , molecules_( t.molecules_ )
                               , enable_lockmass_( t.enable_lockmass_ )
                               , tolerance_( t.tolerance_ )
-                              , enableAutoTargeting_( t.enableAutoTargeting_ ) {
+                              , enableAutoTargeting_( t.enableAutoTargeting_ )
+                              , dataReaderId_( t.dataReaderId_ )
+                              , peakWidthForChromatogram_( t.peakWidthForChromatogram_ ) {
         }
     };
 }
@@ -229,7 +239,7 @@ MSChromatogramMethod::operator = ( const MSChromatogramMethod& t )
 bool
 MSChromatogramMethod::operator == ( const MSChromatogramMethod& t ) const
 {
-    if ( impl_->dataSource_ == t.impl_->dataSource_ &&
+    if ( impl_->dataReaderId_ == t.impl_->dataReaderId_ &&
          impl_->widthMethod_ == t.impl_->widthMethod_ ) {
         for ( int i = 0; i < int(impl_->width_.size()); ++i )
             if ( !adportable::compare<double>::essentiallyEqual( impl_->width_[ i ], t.impl_->width_[ i ] ) )
@@ -241,16 +251,16 @@ MSChromatogramMethod::operator == ( const MSChromatogramMethod& t ) const
     return false;
 }
 
-MSChromatogramMethod::DataSource
-MSChromatogramMethod::dataSource() const
+const std::string&
+MSChromatogramMethod::dataReader() const
 {
-	return impl_->dataSource_;
+    return impl_->dataReaderId_;
 }
 
 void
-MSChromatogramMethod::dataSource( MSChromatogramMethod::DataSource v )
+MSChromatogramMethod::setDataReader( const std::string& name )
 {
-	impl_->dataSource_ = v;
+    impl_->dataReaderId_ = name;
 }
 
 
@@ -310,7 +320,7 @@ MSChromatogramMethod::width_at_mass( double mass ) const
 {
     if ( impl_->widthMethod_ == widthInRP )
         return mass / impl_->width_[ impl_->widthMethod_ ];
-    else 
+    else
         return impl_->width_[ impl_->widthMethod_ ];
 }
 
@@ -380,4 +390,16 @@ void
 MSChromatogramMethod::setMolecules( const moltable& t )
 {
     impl_->molecules_ = t;
+}
+
+double
+MSChromatogramMethod::peakWidthForChromatogram() const
+{
+    return impl_->peakWidthForChromatogram_;
+}
+
+void
+MSChromatogramMethod::setPeakWidthForChromatogram( double value )
+{
+    impl_->peakWidthForChromatogram_ = value;
 }

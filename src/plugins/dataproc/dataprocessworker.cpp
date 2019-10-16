@@ -27,6 +27,7 @@
 #include "dataprochandler.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
+#include "document.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -194,12 +195,32 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
             if ( rawfile->dataformat_version() >= 3 ) {
                 // v3
                 // auto datasource = tm->dataSource(); // MSChromatogramMethod::Profile | Centroid
+                auto readers = rawfile->dataReaders();
+                auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
+                if ( tm->dataReader().empty() || it == readers.end() ) {
+                    adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
+                    dlg.setProtocolHidden( true );
+                    dlg.setMassWidth( tm->width( adcontrols::MSChromatogramMethod::widthInDa ) );
+                    dlg.setTimeWidth( tm->width( adcontrols::MSChromatogramMethod::widthTime ) );
 
-                adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
-                dlg.setProtocolHidden( true );
-                if ( dlg.exec() == QDialog::Accepted ) {
-                    if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                        threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                    if ( dlg.exec() == QDialog::Accepted ) {
+                        it = readers.begin() + dlg.currentSelection();
+
+                        adcontrols::ProcessMethod tmp( *pm );
+                        adcontrols::MSChromatogramMethod m( *tm );
+                        m.setDataReader( (*it)->objtext() );
+                        tmp *= m;
+                        document::instance()->setProcessMethod( tmp );
+
+                        if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
+                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                    }
+                } else {
+                    for ( auto reader: rawfile->dataReaders() ) {
+                        ADDEBUG() << "existing data reader: " << tm->dataReader();
+                        if ( reader->objtext() == tm->dataReader() )
+                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, *it, p ); } ) );
+                    }
                 }
 
             } else {
@@ -427,7 +448,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
 
     ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name();
 
-    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
     if ( cm.enableAutoTargeting() ) {
         ADDEBUG() << __FUNCTION__ << " auto targeting is on";
@@ -447,8 +468,9 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                 mtab << mol;
                 tgtm.setMolecules( mtab, mol.adducts() );
                 tmp *= tgtm; // add/replace target method.
-                
-                if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - 1.0 ), reader->findPos( tR + 1.0 ) ) ) {
+                double pkw = cm.peakWidthForChromatogram();
+
+                if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
                     auto desc = ( boost::format( "%s %.2f(%.3fs)%s" ) % mol.formula() % mol.mass() % tR % reader->display_name() ).str();
                     ms->addDescription( adcontrols::description( { "create", desc } ) );
                     portfolio::Folium folium = processor->addSpectrum( ms, adcontrols::ProcessMethod() );
