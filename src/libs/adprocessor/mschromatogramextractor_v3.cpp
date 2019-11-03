@@ -500,7 +500,6 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
         const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
 
-        auto wfmt = ( axis == adcontrols::hor_axis_mass ) ? boost::wformat( L"%s %.1f(W:%.1fmDa) %s %d" ) : boost::wformat( L"%s %.4lfus(W:%.1ns) %s %d" );
         auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s %d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s %d" );
 
         for ( size_t idx = 0; idx < list.size(); ++idx ) {

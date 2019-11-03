@@ -146,7 +146,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
     if ( profile.size() == 0 )
         return false;
 
-    if ( profile.isCentroid() ) {
+    if ( profile.isCentroid() || profile.isHistogram() ) {
         // assume this is a histogram by counting (discreate time,mass,count array)
         pImpl_->findCluster( profile );
 
@@ -514,6 +514,41 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
                     counts += pCounts[ i ];
             }
             item.area_ = counts;
+
+            // front interporation
+            {
+                auto it = std::lower_bound( pTimes, pTimes + histogram.size(), item.centroid_left_time_ );
+                size_t idx = std::distance( pTimes, it );
+                if ( idx != 0 && ( pTimes[ idx ] - pTimes[ idx-1 ] ) <= histogram.getMSProperty().samplingInfo().fSampInterval() * 2 ) {
+
+                    double y = pCounts[ idx - 1 ] +
+                        ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_left_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
+
+                    if ( pTimes[ idx ] > 30.058e-6 && pTimes[ idx ] < 30.067e-6 )
+                        ADDEBUG() << "F: idx=" << idx << "\tCounts: " << std::make_pair( pCounts[ idx - 1 ], pCounts[idx] )
+                                  << "\tm/z: " << std::make_pair( pMasses[ idx - 1 ], pMasses[ idx ] )
+                                  << ", y=" << y;
+                    item.area_ += y;
+                }
+            }
+
+            // rear interporation
+            {
+                auto it = std::lower_bound( pTimes, pTimes + histogram.size(), item.centroid_right_time_ );
+                size_t idx = std::distance( pTimes, it );
+                if ( (idx != histogram.size() - 2) && ( pTimes[idx+1] - pTimes[idx] ) <= histogram.getMSProperty().samplingInfo().fSampInterval() * 2 ) {
+
+                    double y = pCounts[ idx - 1 ] +
+                        ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_right_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
+
+                    if ( pTimes[ idx ] > 30.058e-6 && pTimes[ idx ] < 30.067e-6 )
+                        ADDEBUG() << "R: idx=" << idx << "\tCounts: " << std::make_pair( pCounts[ idx - 1 ], pCounts[idx] )
+                                  << "\tm/z: " << std::make_pair( pMasses[ idx - 1 ], pMasses[ idx ] )
+                                  << ", y=" << y;
+
+                    item.area_ += y;
+                }
+            }
 
             item.set_peak_start_index( uint32_t(pk.first) );
             item.set_peak_end_index( uint32_t(pk.second) );

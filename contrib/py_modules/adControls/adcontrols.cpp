@@ -52,14 +52,14 @@ BOOST_PYTHON_MODULE( adControls )
         ;
 
     class_< adcontrols::MassSpectrum >( "MassSpectrum" )
-        .def( "__len__", &adcontrols::MassSpectrum::size )
-        .def( "size",    &adcontrols::MassSpectrum::size )
-        .def( "resize",  &adcontrols::MassSpectrum::resize )
-        .def( "getMass", &adcontrols::MassSpectrum::getMass )
-        .def( "getTime", &adcontrols::MassSpectrum::getTime )
-        .def( "getIntensity", &adcontrols::MassSpectrum::getIntensity )
-        .def( "numProtocols", &adcontrols::MassSpectrum::numSegments )
-        .def( "getProtocol", &adcontrols::MassSpectrum::getProtocol )
+        .def( "__len__",       &adcontrols::MassSpectrum::size )
+        .def( "size",          &adcontrols::MassSpectrum::size )
+        .def( "resize",        &adcontrols::MassSpectrum::resize )
+        .def( "getMass",       &adcontrols::MassSpectrum::mass )
+        .def( "getTime",       &adcontrols::MassSpectrum::time )
+        .def( "getIntensity",  &adcontrols::MassSpectrum::intensity )
+        .def( "numProtocols",  &adcontrols::MassSpectrum::numSegments )
+        .def( "getProtocol",   &adcontrols::MassSpectrum::getProtocol )
         ;
 
     class_< adcontrols::Chromatogram >( "Chromatogram" )
