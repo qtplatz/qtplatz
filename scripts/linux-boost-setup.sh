@@ -7,23 +7,6 @@ source ${cwd}/nproc.sh
 
 arch=`uname`-`arch`
 
-function bzip2_download {
-    BZIP2_SOURCE=$1
-    DOWNLOADS=$2
-    if [ ! -d $BZIP2_SOURCE ]; then
-		if [ ! -f ${DOWNLOADS}/bzip2-1.0.6.tar.gz ]; then
-			if [ ! -d ${DOWNLOADS} ]; then
-				mkdir ${DOWNLOADS}
-			fi
-			curl -L -o ${DOWNLOADS}/bzip2-1.0.6.tar.gz http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
-		fi
-		if [ ! -f $(dirname $BZIP2_SOURCE) ]; then
-			mkdir -p $(dirname $BZIP2_SOURCE)
-			tar xvf ${DOWNLOADS}/bzip2-1.0.6.tar.gz -C $(dirname $BZIP2_SOURCE)
-		fi
-    fi
-}
-
 function boost_download {
     BOOST_VERSION=$1
     BUILD_ROOT=$2
@@ -49,7 +32,6 @@ function boost_build {
     echo "=============================="
 
     BOOST_BUILD_DIR=$1
-    BZIP2_SOURCE=$2
 
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
@@ -66,7 +48,6 @@ function boost_build {
 			  echo ./b2 -j $nproc address-model=64 toolset=gcc threading=multi cflags=-fPIC cxxflags="-fPIC -std=c++17" \
 				   include=${PYTHON_INCLUDE} \
 				   install
-#				   -sBZIP2_SOURCE=${BZIP2_SOURCE} \
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
 			  	  ./b2 -j $nproc address-model=64 toolset=gcc cflags=-fPIC cxxflags="-fPIC -std=c++17" \
@@ -74,7 +55,6 @@ function boost_build {
 					   link=shared \
 					   include=${PYTHON_INCLUDE} \
 					   install
-#					   -sBZIP2_SOURCE=${BZIP2_SOURCE} \
 			  ;;
 		  Darwin*)
 			  echo "***********************************************************************************************************"
@@ -110,7 +90,6 @@ function boost_cross_build {
     echo "=============================="
 
     BOOST_BUILD_DIR=$1
-    BZIP2_SOURCE=$2
     if [ ! -d $(dirname $BOOST_PREFIX) ]; then
 		if ! mkdir -p $(dirname $BOOST_PREFIX) ; then
 			echo "mkdir -p $(dirname BOOST_PREFIX) -- command faild. Check for your access permission"
@@ -125,11 +104,11 @@ function boost_cross_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $nproc install
+      echo ./b2 toolset=gcc-arm -s -j $nproc install
       prompt
 
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $nproc install
+	  ./b2 toolset=gcc-arm -s -j $nproc install
     )
 }
 
@@ -149,7 +128,6 @@ else
     CROSS_ROOT=/usr/local/arm-linux-gnueabihf
 fi
 
-BZIP2_SOURCE=$SRC/bzip2-1.0.6
 BOOST_BUILD_DIR=$BUILD_ROOT/boost_${BOOST_VERSION}
 BOOST_PREFIX=${CROSS_ROOT}$PREFIX/boost-${BOOST_VERSION/%_0//}
 
@@ -158,16 +136,6 @@ echo "	BOOST DOWNLOAD    : ${DOWNLOADS}"
 echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
 echo "	BOOST_PREFIX      : ${BOOST_PREFIX}"
 echo "	CROSS_ROOT        : ${CROSS_ROOT}"
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-	echo "	BZIP2_SOURCE      : Using OSX native"
-else
-	if [ ! -d ${BZIP2_SOURCE} ]; then
-		echo "	BZIP2_SOURCE      : download to ${BZIP2_SOURCE}"
-	else
-		echo "	BZIP2_SOURCE      : ${BZIP2_SOURCE}"
-	fi
-fi
 
 if [ ! -d $BOOST_BUILD_DIR ]; then
     echo "	BOOST_BUILD_DIR   : download to ${BOOST_BUILD_DIR}"
@@ -185,11 +153,6 @@ echo "CWD=" $cwd
 
 prompt
 
-if [[ "$OSTYPE" != "darwin"* ]] && [ ! -d ${BZIP2_SOURCE} ]; then
-    bzip2_download $BZIP2_SOURCE $DOWNLOADS
-    if [ ! $? -eq 0 ]; then exit 1; fi
-fi
-
 if [ ! -d ${BUILD_ROOT} ]; then
     mkdir -p ${BUILD_ROOT}
 fi
@@ -201,7 +164,7 @@ if [ -z $cross_target ]; then
 	#	if [ -f ~/user-config.jam ]; then
 	#		mv ~/user-config.jam ~/user-config.jam.orig
 	#	fi
-    boost_build $BOOST_BUILD_DIR ${BZIP2_SOURCE}
+    boost_build $BOOST_BUILD_DIR 
 
 else
     if [ ! -w $CROSS_ROOT ]; then
@@ -230,7 +193,7 @@ using gcc :		arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
 using python : 2.7 ;
 EOF
     fi
-	    boost_cross_build ${BOOST_BUILD_DIR} ${BZIP2_SOURCE}
+	    boost_cross_build ${BOOST_BUILD_DIR} 
 fi
 
 echo "=============================="

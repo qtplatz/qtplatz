@@ -8,12 +8,13 @@ list_dependency+=('mesa-common-dev'
 		  'freeglut3-dev'
 		  'libxml2-dev'
 		  'libxslt1-dev'
-		  'libgstreamer-plugins-base0.10'
-		  'python2.7'
-		  'python2.7-dev')
+		  'libgstreamer-plugins-base0.10' )
 
 #boost
 list_dependency+=('libbz2-dev')
+
+#python3
+list_dependency+=('python3.5-dev' 'python3-pip')
 
 #rtags
 list_dependency+=('clang-3.9'
