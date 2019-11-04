@@ -9,6 +9,10 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( agilent )
 endif()
 
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM AND AqMD3_FOUND )
+  add_subdirectory( acqiris )
+endif()
+
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   # message( STATUS "------------ contrib/multum ----------------" )
   add_subdirectory( multum )
