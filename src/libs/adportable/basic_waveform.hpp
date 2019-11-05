@@ -114,6 +114,7 @@ namespace adportable {
 
         virtual void set_xmeta( const M& xmeta ) { xmeta_         = xmeta; }
         virtual const M& xmeta() const           { return xmeta_;          }    // meta-data
+        virtual M& xmeta()                       { return xmeta_;          }    // meta-data
 
         virtual size_t serialize_xmeta( std::string& o ) const           { throw std::runtime_error( "not implemented" ); }
         virtual bool deserialize_xmeta( const char * data, size_t size ) { throw std::runtime_error( "not implemented" ); }

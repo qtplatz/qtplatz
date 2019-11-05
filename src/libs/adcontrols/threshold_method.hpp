@@ -36,7 +36,7 @@ namespace boost {
 namespace adcontrols {
 
     // Method for 'Slope Time Converter'
-    
+
     class ADCONTROLSSHARED_EXPORT threshold_method {
     public:
         enum FilterAlgo { SG_Filter, DFT_Filter };
@@ -67,7 +67,7 @@ namespace adcontrols {
         static bool archive( std::ostream&, const threshold_method& );
         static bool restore( std::istream&, threshold_method& );
         static bool xml_archive( std::wostream&, const threshold_method& );
-        static bool xml_restore( std::wistream&, threshold_method& );        
+        static bool xml_restore( std::wistream&, threshold_method& );
 
     private:
         friend class boost::serialization::access;

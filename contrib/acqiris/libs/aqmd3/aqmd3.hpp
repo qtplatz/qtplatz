@@ -33,7 +33,10 @@
 #include <string>
 #include <vector>
 
-namespace acqrscontrols { namespace u5303a { class identify; class waveform; } }
+namespace aqmd3controls {
+    class identify;
+    class waveform;
+}
 
 namespace aqmd3 {
 
@@ -62,9 +65,9 @@ namespace aqmd3 {
 
         uint32_t dataSerialNumber();
 
-        bool Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& );
+        bool Identify( std::shared_ptr< aqmd3controls::identify >& );
 
-        std::shared_ptr< acqrscontrols::u5303a::identify > Identify();
+        std::shared_ptr< aqmd3controls::identify > Identify();
 
         bool GetAttributeViString ( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
         bool GetAttributeViInt32( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result );

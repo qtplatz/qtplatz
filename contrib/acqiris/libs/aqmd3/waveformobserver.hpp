@@ -24,13 +24,12 @@
 
 #pragma once
 
+#include "constants.hpp"
 #include <adacquire/signalobserver.hpp>
-#include <acqrscontrols/u5303a/waveform.hpp>
-#include <acqrscontrols/u5303a/method.hpp>
+#include <aqmd3controls/waveform.hpp>
+#include <aqmd3controls/method.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <deque>
-
-namespace acqrscontrols { namespace aqmd3 { class waveform; } }
 
 namespace aqmd3 {
 
@@ -42,6 +41,10 @@ namespace aqmd3 {
         WaveformObserver();
         virtual ~WaveformObserver();
 
+        constexpr static const boost::uuids::uuid __objid__ = waveform_observer;        // 99075cc1-16fb-4afc-9f93-01280dd19fe9
+        constexpr static const char * __objtext__           = waveform_observer_name;   // "1.aqmd3.ms-cheminfo.com"
+        constexpr static const char * __data_interpreter__  = waveform_datainterpreter; // "86a34e56-66ec-4bf2-89fe-1339bb9a0ba9"
+
         const boost::uuids::uuid& objid() const override;
         const char * objtext() const override;
 
@@ -50,14 +53,14 @@ namespace aqmd3 {
 
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
 
-        const char * dataInterpreterClsid() const override { return "u5303a.digi"; }
+        const char * dataInterpreterClsid() const override { return "aqmd3.deprecated"; }
         int32_t posFromTime( uint64_t usec ) const override;
         bool prepareStorage( adacquire::SampleProcessor& ) const override { return false; }
         bool closingStorage( adacquire::SampleProcessor& ) const override { return false; }
 
         // WaveformObserver
-        typedef std::pair< std::shared_ptr< acqrscontrols::u5303a::waveform >, std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_pair_t;
-        typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >, std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
+        typedef std::pair< std::shared_ptr< aqmd3controls::waveform >, std::shared_ptr< aqmd3controls::waveform > > waveform_pair_t;
+        typedef std::pair< std::shared_ptr< const aqmd3controls::waveform >, std::shared_ptr< const aqmd3controls::waveform > > const_waveform_pair_t;
 
         uint32_t operator << ( const_waveform_pair_t& );
 

@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,8 +22,8 @@
 **************************************************************************/
 
 #include "session.hpp"
+#include "singleton.hpp"
 #include "waveformobserver.hpp"
-#include "digitizer.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/receiver.hpp>
@@ -35,162 +34,156 @@
 #include <adportable/semaphore.hpp>
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <atomic>
 #include <future>
 #include <memory>
 #include <sstream>
+#include <string>
 
-namespace adi = adacquire;
+namespace aqmd3 {
 
-namespace aqmd3 { namespace Instrument {
+    struct session::impl {
 
-        struct Session::impl {
+        impl() : work_( io_service_ )
+                 //, masterObserver_( std::make_shared< adacquire::MasterObserver >( "aqmd3.master.observer.ms-cheminfo.com" ) )
+                 //, waveformObserver_( std::make_shared< WaveformObserver >() ) {
+            {
+                // masterObserver_->addSibling( waveformObserver_.get() );
+        }
 
-            impl() : work_( io_service_ )
-                   , masterObserver_( std::make_shared< adacquire::MasterObserver >( "u5303a.master.observer.ms-cheminfo.com" ) )
-                   , waveformObserver_( std::make_shared< WaveformObserver >() ) {
+        static std::shared_ptr< session > instance_;
 
-                masterObserver_->addSibling( waveformObserver_.get() );
+        std::mutex mutex_;
 
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        std::vector< std::thread > threads_;
+
+        typedef std::pair< std::shared_ptr< adacquire::Receiver >, std::string > client_pair_t;
+        std::vector< client_pair_t > clients_;
+
+        //std::shared_ptr< adacquire::MasterObserver > masterObserver_;
+        //std::shared_ptr< WaveformObserver > waveformObserver_;
+        std::pair< std::string, std::string > server_address_;
+
+        void reply_message( adacquire::Receiver::eINSTEVENT msg, uint32_t value ) {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            for ( auto& r: clients_ )
+                r.first->message( msg, value );
+        }
+
+        void reply_handler( const std::string& method, const std::string& reply) {
+            if ( method == "InitialSetup" ) {
+                reply_message( adacquire::Receiver::STATE_CHANGED
+                               , ( reply == "success" ) ? adacquire::Instrument::eStandBy : adacquire::Instrument::eNotConnected | adacquire::Instrument::eErrorFlag );
+            } else if ( method == "StateChanged" ) {
+                if ( reply == "Stopped" )
+                    reply_message( adacquire::Receiver::STATE_CHANGED, adacquire::Instrument::eStop ); // 9
+                else if ( reply == "Running" )
+                    reply_message( adacquire::Receiver::STATE_CHANGED, adacquire::Instrument::eRunning ); // 8
+            } else if ( method == "DarkStarted" ) {
+                reply_message( adacquire::Receiver::DARK_STARTED, 1 );
+            } else if ( method == "DarkCanceled" ) {
+                reply_message( adacquire::Receiver::DARK_CANCELED, 0 );
+            } else if ( method == "DarkAcquired" ) {
+                reply_message( adacquire::Receiver::DARK_ACQUIRED, 0 );
+            } else {
+                ADINFO() << "AQMD3: " << method << " = " << reply;
             }
+        }
 
-            static std::once_flag flag_, flag2_, flag3_;
-            static std::shared_ptr< Session > instance_;
-            static std::mutex mutex_;
+        // bool waveform_handler( const waveform * ch1, acqrscontrols::aqmd3::method& next ) {
+        //     if ( masterObserver_ && waveformObserver_ ) {
+        //         if ( ch1 ) {
+        //             //auto pos = (*waveformObserver_) << ch1;
+        //             //masterObserver_->dataChanged( waveformObserver_.get(), pos );
+        //             return false; // no next method changed.
+        //         }
+        //     }
+        //     return false;
+        // }
+    };
 
-            boost::asio::io_service io_service_;
-            boost::asio::io_service::work work_;
-            std::vector< std::thread > threads_;
-
-            typedef std::pair< std::shared_ptr< adi::Receiver >, std::string > client_pair_t;
-            std::vector< client_pair_t > clients_;
-            inline std::mutex& mutex() { return mutex_; }
-
-            std::shared_ptr< digitizer > digitizer_;
-            std::shared_ptr< adacquire::MasterObserver > masterObserver_;
-            std::shared_ptr< WaveformObserver > waveformObserver_;
-
-            void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
-                std::lock_guard< std::mutex > lock( mutex_ );
-                for ( auto& r: clients_ )
-                    r.first->message( msg, value );
-            }
-
-            void reply_handler( const std::string& method, const std::string& reply) {
-                if ( method == "InitialSetup" ) {
-                    reply_message( adi::Receiver::STATE_CHANGED
-                                   , ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eNotConnected | adi::Instrument::eErrorFlag );
-                } else if ( method == "StateChanged" ) {
-                    if ( reply == "Stopped" )
-                        reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eStop ); // 9
-                    else if ( reply == "Running" )
-                        reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
-                } else if ( method == "DarkStarted" ) {
-                    reply_message( adi::Receiver::DARK_STARTED, 1 );
-                } else if ( method == "DarkCanceled" ) {
-                    reply_message( adi::Receiver::DARK_CANCELED, 0 );
-                } else if ( method == "DarkAcquired" ) {
-                    reply_message( adi::Receiver::DARK_ACQUIRED, 0 );
-                } else {
-                    ADINFO() << "U5303A: " << method << " = " << reply;
-                }
-            }
-
-            bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1
-                                   , const acqrscontrols::u5303a::waveform * ch2
-                                   , acqrscontrols::u5303a::method& next ) {
-                if ( masterObserver_ && waveformObserver_ ) {
-                    if ( ch1 || ch2 ) {
-                        auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
-                        auto pos = (*waveformObserver_) << pair;
-                        masterObserver_->dataChanged( waveformObserver_.get(), pos );
-                        return false; // no next method changed.
-                    }
-                }
-                return false;
-            }
-        };
-
-        std::once_flag Session::impl::flag_;
-        std::once_flag Session::impl::flag2_;
-        std::once_flag Session::impl::flag3_;
-        std::mutex Session::impl::mutex_;
-        std::shared_ptr< Session > Session::impl::instance_;
-
-    }
+    std::shared_ptr< session > session::impl::instance_ = 0;
 }
 
-using namespace aqmd3::Instrument;
+using namespace aqmd3;
 
-Session *
-Session::instance()
+session *
+session::instance()
 {
-    std::call_once( impl::flag_, [&] () { impl::instance_ = std::make_shared< Session >(); } );
+    static std::once_flag flag;
+    std::call_once( flag, [&]{ impl::instance_ = std::make_shared< session >(); } );
     return impl::instance_.get();
 }
 
-Session::Session() : impl_( new impl() )
+session::session() : impl_( new impl() )
 {
 }
 
-Session::~Session()
+session::~session()
 {
     delete impl_;
 }
 
 std::string
-Session::software_revision() const
+session::software_revision() const
 {
     return "3.2";
 }
 
 bool
-Session::setConfiguration( const std::string& xml )
+session::setConfiguration( const std::string& json )
+{
+    boost::property_tree::ptree pt;
+    std::istringstream in( json );
+    boost::property_tree::read_json( in, pt );
+
+    // if ( auto ip_addr = pt.get_optional< std::string >( "ip_address" ) ) {
+    //     if ( auto port = pt.get_optional< std::string >( "port" ) ) {
+    //         impl_->server_address_ = std::make_pair( ip_addr.get(), port.get() );
+    //         ADDEBUG() << impl_->server_address_;
+    //         singleton::instance()->open( impl_->server_address_.first.c_str(), impl_->server_address_.second.c_str() );
+    //     }
+    // }
+
+    return true;
+}
+
+const char *
+session::configuration() const
+{
+    return nullptr;
+}
+
+bool
+session::configComplete()
 {
     return true;
 }
 
 bool
-Session::configComplete()
-{
-    return true;
-}
-
-bool
-Session::connect( adi::Receiver * receiver, const std::string& token )
+session::connect( adacquire::Receiver * receiver, const std::string& token )
 {
     auto ptr( receiver->shared_from_this() );
 
     if ( ptr ) {
-        std::call_once( impl::flag2_, [&] () {
-                impl_->threads_.push_back( adportable::asio::thread( [=]() {
-                    try {
-                        impl_->io_service_.run();
-                    } catch ( std::exception& ex ) {
-                        ADDEBUG() << boost::current_exception_diagnostic_information();
-                        BOOST_THROW_EXCEPTION( ex );
-                    }
-                    } ) );
-            });
-
-        do {
-            std::lock_guard< std::mutex > lock( impl_->mutex() );
-            impl_->clients_.emplace_back( ptr, token );
-        } while ( 0 );
-
-        impl_->io_service_.post( [this] () { impl_->reply_message( adi::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
-
+        impl_->clients_.emplace_back( ptr, token );
+        // singleton::instance()->connect( ptr );
         return true;
     }
     return false;
 }
 
 bool
-Session::disconnect( adacquire::Receiver * receiver )
+session::disconnect( adacquire::Receiver * receiver )
 {
     auto self( receiver->shared_from_this() );
+    // singleton::instance()->connect( self );
 
-    std::lock_guard< std::mutex > lock( impl_->mutex() );
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
     auto it = std::find_if( impl_->clients_.begin(), impl_->clients_.end(), [self]( const impl::client_pair_t& a ){
             return a.first == self; });
 
@@ -203,108 +196,96 @@ Session::disconnect( adacquire::Receiver * receiver )
 }
 
 uint32_t
-Session::get_status()
+session::get_status()
 {
     return 0;
 }
 
 adacquire::SignalObserver::Observer *
-Session::getObserver()
+session::getObserver()
 {
-    return impl_->masterObserver_.get();
+    return singleton::instance()->getObserver();
 }
 
 bool
-Session::initialize()
+session::initialize()
 {
-    std::call_once( impl::flag3_, [&] () {
-            std::lock_guard< std::mutex > lock( impl::mutex_ );
-            impl_->digitizer_ = std::make_shared< digitizer >();
-            using namespace std::placeholders;
-            impl_->digitizer_->connect_reply( std::bind( &impl::reply_handler, impl_, _1, _2 ) );
-            impl_->digitizer_->connect_waveform( std::bind( &impl::waveform_handler, impl_, _1, _2, _3 ) );
-        } );
-    return impl_->digitizer_->peripheral_initialize();
-}
-
-bool
-Session::shutdown()
-{
-    impl_->digitizer_ && impl_->digitizer_->peripheral_terminate();
-
-    impl_->io_service_.stop();
-
-    for ( auto& t : impl_->threads_ )
-        t.join();
-
     return true;
 }
 
 bool
-Session::echo( const std::string& msg )
+session::shutdown()
+{
+    singleton::instance()->close();
+    return true;
+}
+
+bool
+session::echo( const std::string& msg )
 {
     return false;
 }
 
 bool
-Session::shell( const std::string& cmdline )
+session::shell( const std::string& cmdline )
 {
     return false;
 }
 
 std::shared_ptr< const adcontrols::ControlMethod::Method >
-Session::getControlMethod()
+session::getControlMethod()
 {
-    return 0; // adacquire::ControlMethod::Method();
+    return nullptr; // adacquire::ControlMethod::Method();
 }
 
 bool
-Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
+session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > )
 {
-    if ( m ) {
-        auto it = m->find( m->begin(), m->end(), acqrscontrols::u5303a::method::clsid() );
-        if ( it != m->end() ) {
-            acqrscontrols::u5303a::method method;
-            if ( it->get<>( *it, method ) )
-                return impl_->digitizer_->peripheral_prepare_for_run( method );
-        }
-    }
     return false;
 }
 
 bool
-Session::event_out( uint32_t event )
+session::prepare_for_run( const std::string& json, arg_type atype )
 {
-    ADDEBUG() << "##### Session::event_out( " << event << " )";
-    return impl_->digitizer_->peripheral_trigger_inject();
+    if ( atype != arg_json )
+        return false;
+    return true;
 }
 
 bool
-Session::start_run()
+session::event_out( uint32_t event )
 {
-    return impl_->digitizer_->peripheral_run();
+    ADDEBUG() << "##### session::event_out( " << event << " )";
+    //return impl_->digitizer_->peripheral_trigger_inject();
+    return true;
 }
 
 bool
-Session::suspend_run()
+session::start_run()
+{
+    return true; // impl_->digitizer_->peripheral_run();
+}
+
+bool
+session::suspend_run()
 {
     return true;
 }
 
 bool
-Session::resume_run()
+session::resume_run()
 {
     return true;
 }
 
 bool
-Session::stop_run()
+session::stop_run()
 {
-    return impl_->digitizer_->peripheral_stop();
+    return true; // impl_->digitizer_->peripheral_stop();
 }
 
 bool
-Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
                              , adcontrols::ControlMethod::const_time_event_iterator begin
                              , adcontrols::ControlMethod::const_time_event_iterator end )
 {
@@ -316,7 +297,7 @@ Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::T
 
 
 bool
-Session::dark_run( size_t waitCount )
+session::dark_run( size_t waitCount )
 {
-    return impl_->digitizer_->peripheral_dark( waitCount );
+    return true; // impl_->digitizer_->peripheral_dark( waitCount );
 }

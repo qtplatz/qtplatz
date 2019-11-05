@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "aqmd3.hpp"
-#include <acqrscontrols/u5303a/identify.hpp>
-#include <acqrscontrols/u5303a/waveform.hpp>
+#include <aqmd3controls/identify.hpp>
+#include <aqmd3controls/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
 #include <boost/format.hpp>
@@ -37,7 +37,7 @@ namespace aqmd3 {
 
         std::atomic< uint32_t > dataSerialNumber_;
     public:
-        std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
+        std::shared_ptr< aqmd3controls::identify > ident_;
 
     public:
         impl() : dataSerialNumber_( 0 ) {
@@ -121,10 +121,10 @@ AqMD3::GetAttributeViInt32 ( ViStatus& rcode, ViConstString RepCapIdentifier, Vi
 }
 
 bool
-AqMD3::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
+AqMD3::Identify( std::shared_ptr< aqmd3controls::identify >& ident )
 {
     if ( !ident )
-        ident = std::make_shared< acqrscontrols::u5303a::identify >();
+        ident = std::make_shared< aqmd3controls::identify >();
 
     ViStatus rcode(0);
     std::string str;
@@ -165,7 +165,7 @@ AqMD3::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
     return true;
 }
 
-std::shared_ptr< acqrscontrols::u5303a::identify >
+std::shared_ptr< aqmd3controls::identify >
 AqMD3::Identify()
 {
     return impl_->ident_;

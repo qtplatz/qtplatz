@@ -114,7 +114,7 @@ simulator::simulator() : hasWaveform_( false )
                        , nbrSamples_( 10000 & ~0x0f )
                        , nbrWaveforms_( 496 )
                        , exitDelay_( 0.0 )
-                       , method_( std::make_shared< acqrscontrols::u5303a::method >() )
+                       , method_( std::make_shared< aqmd3controls::method >() )
                        , protocolIndex_( 0 )
                        , protocolReplicates_( 1 )
 {
@@ -192,7 +192,7 @@ simulator::waitForEndOfAcquisition()
 }
 
 bool
-simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303a::waveform& avg )
+simulator::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg )
 {
     std::shared_ptr< adacquire::waveform_simulator > ptr;
 
@@ -204,32 +204,32 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         }
     } while(0);
 
-    bool invert = method_->_device_method().invert_signal;
-    int32_t offset = method_->_device_method().front_end_offset;
-    (void)invert;
-    (void)offset;
+    // bool invert = method_->_device_method().invert_signal;
+    // int32_t offset = method_->_device_method().front_end_offset;
+    // (void)invert;
+    // (void)offset;
 
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
 
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
-        avg.method_ = *method_;
-        avg.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
-        avg.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
-        avg.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        //avg.method_ = *method_;
+        //avg.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
+        //avg.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        //avg.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
 
-        avg.meta_.dataType = 4;
-        avg.meta_.initialXTimeSeconds = ptr->timestamp();
-        avg.wellKnownEvents_ |= avg.wellKnownEvents_;
+        //avg.xmeta().dataType = 4;
+        //avg.xmeta().initialXTimeSeconds = ptr->timestamp();
+        //avg.set_well_known_events( avg.well_known_events() | avg.wellKnownEvents_;
         // ADDEBUG() << "avg.wellKnwonEvents: " << avg.wellKnownEvents_;
-        avg.meta_.actualPoints = ptr->nbrSamples();
-        avg.meta_.xIncrement = sampInterval_;
-        avg.meta_.initialXOffset = startDelay_;
-        avg.meta_.actualAverages = int32_t( nbrWaveforms_ );
-        avg.meta_.scaleFactor = 1; // method_->_device_method().front_end_range / 4096 / method_->_device_method().nbr_of_averages;
-        avg.meta_.scaleOffset = 0;
-        pkd.meta_.channelMode = acqrscontrols::u5303a::AVG;
+        // avg.meta_.actualPoints = ptr->nbrSamples();
+        // avg.meta_.xIncrement = sampInterval_;
+        // avg.meta_.initialXOffset = startDelay_;
+        // avg.meta_.actualAverages = int32_t( nbrWaveforms_ );
+        // avg.meta_.scaleFactor = 1; // method_->_device_method().front_end_range / 4096 / method_->_device_method().nbr_of_averages;
+        // avg.meta_.scaleOffset = 0;
+        //pkd.xmeta().channelMode = aqmd3controls::AVG;
         avg.setData( mblk, 0 );
     }
 
@@ -246,21 +246,22 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         }
         __counter__ ++;
 
-        pkd.method_ = *method_;
-        pkd.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
-        pkd.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
-        pkd.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        auto method = *method_;
+        method.device_method().digitizer_delay_to_first_sample = startDelay_;
+        method.device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        method.device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        pkd.set_method( method );
 
-        pkd.meta_.dataType = 4;
-        pkd.meta_.initialXTimeSeconds = ptr->timestamp();
-        pkd.wellKnownEvents_ |= pkd.wellKnownEvents_;
-        pkd.meta_.actualPoints = ptr->nbrSamples();
-        pkd.meta_.xIncrement = sampInterval_;
-        pkd.meta_.initialXOffset = startDelay_;
-        pkd.meta_.actualAverages = int32_t( nbrWaveforms_ );
-        pkd.meta_.scaleFactor = 1.0;
-        pkd.meta_.scaleOffset = 0.0;
-        pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
+        pkd.xmeta().dataType = 4;
+        pkd.xmeta().initialXTimeSeconds = ptr->timestamp();
+        pkd.set_well_known_events( pkd.well_known_events() | 0 ); // ptr->well_known_events() );
+        pkd.xmeta().actualPoints = ptr->nbrSamples();
+        pkd.xmeta().xIncrement = sampInterval_;
+        pkd.xmeta().initialXOffset = startDelay_;
+        pkd.xmeta().actualAverages = int32_t( nbrWaveforms_ );
+        pkd.xmeta().scaleFactor = 1.0;
+        pkd.xmeta().scaleOffset = 0.0;
+        pkd.xmeta().channelMode = aqmd3controls::PKD;
         pkd.setData( mblk, 0 );
         return true;
     }
@@ -268,7 +269,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 }
 
 bool
-simulator::readData( acqrscontrols::u5303a::waveform& data )
+simulator::readData( aqmd3controls::waveform& data )
 {
     // readData simulation for average mode (md2 driver is capable for digitizer mode)
 
@@ -287,20 +288,22 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
 
         auto dp = mblk->data();
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
-        data.method_ = *method_;
-        data.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
-        data.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
-        data.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        auto method = *method_;
 
-        data.meta_.initialXTimeSeconds = ptr->timestamp();
+        method.device_method().digitizer_delay_to_first_sample = startDelay_;
+        method.device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        method.device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        data.set_method( method );
+
+        data.xmeta().initialXTimeSeconds = ptr->timestamp();
         // data.wellKnownEvents_ = 0;
-        data.meta_.actualPoints = ptr->nbrSamples();
-        data.meta_.xIncrement = sampInterval_;
-        data.meta_.initialXOffset = startDelay_;
-        data.meta_.actualAverages = int32_t( nbrWaveforms_ );
-        data.meta_.scaleFactor = 1.0;
-        data.meta_.scaleOffset = 0.0;
-        data.meta_.dataType = 4; // int32_t
+        data.xmeta().actualPoints = ptr->nbrSamples();
+        data.xmeta().xIncrement = sampInterval_;
+        data.xmeta().initialXOffset = startDelay_;
+        data.xmeta().actualAverages = int32_t( nbrWaveforms_ );
+        data.xmeta().scaleFactor = 1.0;
+        data.xmeta().scaleOffset = 0.0;
+        data.xmeta().dataType = 4; // int32_t
         data.setData( mblk, 0 );
 
         return true;
@@ -316,14 +319,14 @@ simulator::post( std::shared_ptr< adacquire::waveform_simulator >& generator )
 }
 
 void
-simulator::setup( const acqrscontrols::u5303a::method& m )
+simulator::setup( const aqmd3controls::method& m )
 {
-    method_ = std::make_shared< acqrscontrols::u5303a::method>( m );
+    method_ = std::make_shared< aqmd3controls::method>( m );
 
-    sampInterval_  = 1.0 / method_->_device_method().samp_rate;
-    startDelay_    = method_->_device_method().digitizer_delay_to_first_sample;
-    nbrSamples_    = method_->_device_method().digitizer_nbr_of_s_to_acquire;
-    nbrWaveforms_  = method_->_device_method().nbr_of_averages;
+    sampInterval_  = 1.0 / method_->device_method().samp_rate;
+    startDelay_    = method_->device_method().digitizer_delay_to_first_sample;
+    nbrSamples_    = method_->device_method().digitizer_nbr_of_s_to_acquire;
+    nbrWaveforms_  = method_->device_method().nbr_of_averages;
 
     protocolIndex_ = 0;
     protocolReplicates_ = method_->protocols()[ protocolIndex_ ].number_of_triggers();
@@ -354,7 +357,7 @@ simulator::next_protocol()
 }
 
 void
-simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec, const acqrscontrols::u5303a::method& m )
+simulator::touchup( std::vector< std::shared_ptr< aqmd3controls::waveform > >& vec, const aqmd3controls::method& m )
 {
     static size_t counter;
 
@@ -364,20 +367,20 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
         auto& w = *vec[ 0 ];
 
-        if ( w.meta_.dataType == 2 ) {
+        if ( w.xmeta().dataType == 2 ) {
             // int16_t
 
             std::shared_ptr< adportable::mblock< int16_t > > mblock;
 
             // emulate 'mblock'
-            adportable::waveform_simulator( w.meta_.initialXOffset
-                                            , w.meta_.actualPoints
-                                            , w.meta_.xIncrement )( mblock, int( vec.size() ), protocolIndex_ );
-            w.firstValidPoint_ = 0;
+            adportable::waveform_simulator( w.xmeta().initialXOffset
+                                            , w.xmeta().actualPoints
+                                            , w.xmeta().xIncrement )( mblock, int( vec.size() ), protocolIndex_ );
+            w.xmeta().firstValidPoint = 0;
 
             for ( auto& w: vec ) {
-                w->setData( mblock, w->firstValidPoint_ );
-                w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms
+                w->setData( mblock, w->xmeta().firstValidPoint );
+                w->xmeta().initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms
             }
 
         } else { // int32_t
@@ -385,7 +388,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             std::shared_ptr< adportable::mblock< int32_t > > mblock;
             adportable::waveform_simulator()( mblock, int( vec.size() ) );
             for ( auto& w: vec )
-                w->setData( mblock, w->firstValidPoint_ );
+                w->setData( mblock, w->xmeta().firstValidPoint );
 
         }
     }

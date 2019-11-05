@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,35 +22,13 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "histogram.hpp"
+#include "waveform.hpp"
 
-#if defined WIN32
+namespace aqmd3controls {
 
-#include <atlbase.h>
-#include <cstdint>
-
-template<typename T> class safearray_t {
-    SAFEARRAY *& psa_;
-    T * pdata_;
-    ULONG size_;
-    VARTYPE vt_;
-public:
-    safearray_t( SAFEARRAY *& p ) : psa_( p ), pdata_(0), size_(0), vt_(0) {
-        SafeArrayAccessData( psa_, reinterpret_cast<void **>(&pdata_) );
-		LONG lBound, uBound;
-		SafeArrayGetLBound( psa_, 1, &lBound );
-		SafeArrayGetUBound( psa_, 1, &uBound );
-        SafeArrayGetVartype( psa_, &vt_ );
-		size_ = uBound - lBound + 1;
+    histogram::histogram()
+    {
     }
-    ~safearray_t() {
-        SafeArrayUnaccessData( psa_ );
-		SafeArrayDestroy( psa_ );
-		psa_ = 0;
-    }
-    inline const VARTYPE& vt() const { return vt_; }
-    inline const T* data() const { return pdata_; }
-    inline size_t size() const { return static_cast<size_t>( size_ ); }
-};
 
-#endif
+}

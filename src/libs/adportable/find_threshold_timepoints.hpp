@@ -59,7 +59,7 @@ namespace adportable {
 
             counting::threshold_finder finder( findUp, nfilter );
 
-            if ( algo == adcontrols::threshold_method::AverageRelative ) {
+            if ( algo == counting::AverageRelative ) { // adcontrols::threshold_method::AverageRelative ) {
                 auto sd = adportable::stddev()( data.begin(), data.size() );
                 finder( data.begin(), data.end(), v, level + sd.second );
             } else {

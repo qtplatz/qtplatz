@@ -4,4 +4,4 @@ if ( AqMD3_FOUND )
 endif()
 
 #add_subdirectory( acqrsinterpreter )
-#add_subdirectory( acqrscontrols )
+add_subdirectory( aqmd3controls )

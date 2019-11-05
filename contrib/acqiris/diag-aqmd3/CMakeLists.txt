@@ -12,7 +12,6 @@ endif()
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${QTPLATZ_SOURCE_DIR}/contrib/acqiris/libs
-  ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/linux
   ${QTPLATZ_SOURCE_DIR}/src/libs
   ${AqMD3_INCLUDE_DIR}
@@ -26,7 +25,7 @@ link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplat
 
 target_link_libraries( ${PROJECT_NAME}
   aqmd3
-  acqrscontrols
+  aqmd3controls
   adcontrols
   adportable
   dgpio

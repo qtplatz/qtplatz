@@ -77,6 +77,7 @@
 #include <qtwrapper/settings.hpp>
 #include <socfpga/constants.hpp>
 #include <socfpga/session.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>

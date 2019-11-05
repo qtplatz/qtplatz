@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,13 +22,13 @@
 **
 **************************************************************************/
 
-#ifndef DIGITIZER_HPP
-#define DIGITIZER_HPP
+#pragma once
 
 #include "aqmd3_global.hpp"
-#include <acqrscontrols/u5303a/identify.hpp>
-#include <acqrscontrols/u5303a/method.hpp>
-#include <acqrscontrols/u5303a/waveform.hpp>
+#include <aqmd3controls/identify.hpp>
+#include <aqmd3controls/meta_data.hpp>
+#include <aqmd3controls/method.hpp>
+#include <aqmd3controls/waveform.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/any.hpp>
@@ -41,10 +41,6 @@ namespace adcontrols { namespace ControlMethod { class Method; } }
 namespace adportable { class TimeSquaredScanLaw; }
 namespace acqrscontrols { namespace u5303a { class method; class device_method; } }
 
-#if defined _MSC_VER
-# pragma warning(disable:4251)
-#endif
-
 namespace aqmd3 {
 
     class AqMD3;
@@ -53,8 +49,8 @@ namespace aqmd3 {
 
 	class AQMD3SHARED_EXPORT device_data {
     public:
-        acqrscontrols::u5303a::identify ident;
-        acqrscontrols::u5303a::metadata meta;
+        aqmd3controls::identify ident;
+        aqmd3controls::meta_data meta;
     private:
         friend class boost::serialization::access;
         template<class Archive>
@@ -73,7 +69,7 @@ namespace aqmd3 {
 
         bool peripheral_initialize();
         bool peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& );
-        bool peripheral_prepare_for_run( const acqrscontrols::u5303a::method& );
+        bool peripheral_prepare_for_run( const aqmd3controls::method& );
         bool peripheral_run();
         bool peripheral_stop();
         bool peripheral_trigger_inject();
@@ -86,9 +82,9 @@ namespace aqmd3 {
 
         typedef std::function< command_handler_type > command_reply_type;
 
-        typedef bool (waveform_handler_type)( const acqrscontrols::u5303a::waveform *
-                                              , const acqrscontrols::u5303a::waveform *
-                                              , acqrscontrols::u5303a::method& );
+        typedef bool (waveform_handler_type)( const aqmd3controls::waveform *
+                                              , const aqmd3controls::waveform *
+                                              , aqmd3controls::method& );
 
         typedef std::function< waveform_handler_type > waveform_reply_type;
 
@@ -98,13 +94,11 @@ namespace aqmd3 {
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
 
-        static bool readData( AqMD3&, const acqrscontrols::u5303a::method&
-                              , std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
-        static bool readData16( AqMD3&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );
-        static bool readData32( AqMD3&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform&, const char * channel = "Channel1" );
+        static bool readData( AqMD3&, const aqmd3controls::method&
+                              , std::vector< std::shared_ptr< aqmd3controls::waveform > >& );
+        static bool readData16( AqMD3&, const aqmd3controls::method&, aqmd3controls::waveform& );
+        static bool readData32( AqMD3&, const aqmd3controls::method&, aqmd3controls::waveform&, const char * channel = "Channel1" );
     };
 
 
 }
-
-#endif

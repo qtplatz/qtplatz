@@ -30,6 +30,22 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
   set( LIBRT rt )
 endif()
 
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/contrib/acqiris/libs
+  ${CMAKE_SOURCE_DIR}/contrib/linux
+  ${AqMD3_INCLUDE_DIR}
+  )
+
+if ( WIN32 )
+  include_directories(
+    ${IVIROOTDIR}/Bin
+    ${VXIPNPPATH}/WinNT/include
+    ${VXIPNPPATH}/WinNT/agvisa/include
+    ${VXIPNPPATH}/VisaCom64
+    )
+endif()
+
 add_library( ${PROJECT_NAME} SHARED
   aqmd3_global.hpp
   ${aqmd3_sources}
@@ -39,22 +55,13 @@ add_library( ${PROJECT_NAME} SHARED
   ppio.hpp
   session.cpp
   session.hpp
+  singleton.cpp
+  singleton.hpp
   simulator.cpp
   simulator.hpp
   waveformobserver.cpp
   waveformobserver.hpp
 )
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
-  ${CMAKE_SOURCE_DIR}/contrib/linux
-  ${AqMD3_INCLUDE_DIR}
-  ${IVIROOTDIR}/Bin
-  ${VXIPNPPATH}/WinNT/include
-  ${VXIPNPPATH}/WinNT/agvisa/include
-  ${VXIPNPPATH}/VisaCom64
-  )
 
 target_link_libraries( ${PROJECT_NAME} PUBLIC
   adlog
@@ -64,6 +71,7 @@ target_link_libraries( ${PROJECT_NAME} PUBLIC
   adcontrols
   acqrscontrols
   dgpio
+  aqmd3controls
   ${AqMD3_LIBRARIES}
   ${Boost_LIBRARIES}
   ${LIBRT}

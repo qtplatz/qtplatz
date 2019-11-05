@@ -29,6 +29,7 @@
 #include "oncreate.hpp"
 #include <adprocessor/processmediator.hpp>
 #include "../infitofspectrometer/massspectrometer.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace infitofprocessor;

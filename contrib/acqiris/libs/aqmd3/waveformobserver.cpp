@@ -23,12 +23,11 @@
 **************************************************************************/
 
 #include "waveformobserver.hpp"
-#include <u5303a/digitizer.hpp>
+#include "digitizer.hpp"
 #include <compiler/boost/workaround.hpp>
 #include <boost/version.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-#include <acqrscontrols/u5303a/waveform.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -40,13 +39,12 @@
 namespace aqmd3 {
 
     struct waveform_pair {
-
         static inline uint32_t pos( const WaveformObserver::const_waveform_pair_t& pair ) {
-            return pair.first ? pair.first->serialnumber_ : pair.second->serialnumber_;
+            return pair.first ? pair.first->serialnumber() : pair.second->serialnumber();
         }
 
         static inline uint64_t timepoint( const WaveformObserver::const_waveform_pair_t& pair ) {
-            return pair.first ? pair.first->timeSinceEpoch_ : pair.second->timeSinceEpoch_;
+            return pair.first ? pair.first->epoch_time() : pair.second->epoch_time();
         }
     };
 }

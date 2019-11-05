@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,62 +26,58 @@
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
 
-//namespace mpxcontrols { class ControlMethod; }
 namespace aqmd3 { class digitizer; }
-namespace acqrscontrols { namespace u5303a { class method; } }
+namespace acqrscontrols { namespace aqmd3 { class method; } }
 
 namespace aqmd3 {
 
-    namespace Instrument {
+    // Session class define here is psude singletion by a manager class
+    // which is only the class make Session instance.
 
-        // Session class define here is psude singletion by a manager class
-        // which is only the class make Session instance.
+    class session : public adacquire::Instrument::Session { // inherit from enable_shared_from_this<Session>
+        session( const Session& ) = delete;
+        session& operator = ( const Session& ) = delete;
+        struct impl;
+        impl * impl_;
+    public:
+        // exception
+        struct CannotAdd { std::string reason_; };
 
-        class Session : public adacquire::Instrument::Session {
-            Session( const Session& ) = delete;
-            Session& operator = ( const Session& ) = delete;
-            struct impl;
-            impl * impl_;
-        public:
-            // exception
-            struct CannotAdd { std::string reason_; };
+        static session * instance();
+        session();
+        ~session();
 
-            static Session * instance();
+        std::string software_revision() const override;  // ex. L"1.216"
 
-            Session();
-            ~Session();
+        bool setConfiguration( const std::string& xml ) override;
+        bool configComplete() override;
 
-            std::string software_revision() const override;  // ex. L"1.216"
+        bool connect( adacquire::Receiver * receiver, const std::string& token ) override;
+        bool disconnect( adacquire::Receiver * receiver ) override;
 
-            bool setConfiguration( const std::string& xml ) override;
-            bool configComplete() override;
+        uint32_t get_status() override;
+        adacquire::SignalObserver::Observer * getObserver() override;
 
-            bool connect( adacquire::Receiver * receiver, const std::string& token ) override;
-            bool disconnect( adacquire::Receiver * receiver ) override;
+        bool initialize() override;
 
-            uint32_t get_status() override;
-            adacquire::SignalObserver::Observer * getObserver() override;
+        bool shutdown() override;  // shutdown server
+        bool echo( const std::string& msg ) override;
+        bool shell( const std::string& cmdline ) override;
+        std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() override;
+        bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > ) override;
+        bool prepare_for_run( const std::string& json, arg_type ) override; // new (Nov. 2018) interface for independence from adcontrols
 
-            bool initialize() override;
+        bool time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                                 , adcontrols::ControlMethod::const_time_event_iterator begin
+                                 , adcontrols::ControlMethod::const_time_event_iterator end ) override;
 
-            bool shutdown() override;  // shutdown server
-            bool echo( const std::string& msg ) override;
-            bool shell( const std::string& cmdline ) override;
-            std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() override;
-            bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) override;
-
-            bool time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
-                                     , adcontrols::ControlMethod::const_time_event_iterator begin
-                                     , adcontrols::ControlMethod::const_time_event_iterator end ) override;
-
-            bool event_out( uint32_t event ) override;
-            bool start_run() override;
-            bool suspend_run() override;
-            bool resume_run() override;
-            bool stop_run() override;
-            bool dark_run( size_t ) override;
-        };
-
+        bool event_out( uint32_t event ) override;
+        bool start_run() override;
+        bool suspend_run() override;
+        bool resume_run() override;
+        bool stop_run() override;
+        bool dark_run( size_t ) override;
+        const char * configuration() const override;
     };
 
 } // namespace adicontroler

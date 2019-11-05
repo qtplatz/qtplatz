@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef SIMULATOR_HPP
-#define SIMULATOR_HPP
+#pragma once
 
 #include <condition_variable>
 #include <atomic>
@@ -31,13 +30,10 @@
 #include <vector>
 
 namespace adacquire { class waveform_simulator;  }
-namespace acqrscontrols { namespace u5303a { class waveform; class method; } }
+namespace aqmd3controls {class waveform; class method; }
 namespace dgpio { class pio; }
 
 namespace aqmd3 {
-
-    //class waveform;
-    //class method;
 
     class simulator  {
         simulator();
@@ -49,11 +45,11 @@ namespace aqmd3 {
 
         bool acquire();
         bool waitForEndOfAcquisition();
-        bool readData( acqrscontrols::u5303a::waveform& );
-        bool readDataPkdAvg( acqrscontrols::u5303a::waveform&, acqrscontrols::u5303a::waveform& );
-        void setup( const acqrscontrols::u5303a::method& );
-        void touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >&
-                      , const acqrscontrols::u5303a::method& );
+        bool readData( aqmd3controls::waveform& );
+        bool readDataPkdAvg( aqmd3controls::waveform&, aqmd3controls::waveform& );
+        void setup( const aqmd3controls::method& );
+        void touchup( std::vector< std::shared_ptr< aqmd3controls::waveform > >&
+                      , const aqmd3controls::method& );
 
         void protocol_handler( double, double );
         int protocol_number() const;
@@ -73,7 +69,7 @@ namespace aqmd3 {
         uint32_t nbrSamples_;
         uint32_t nbrWaveforms_;
         double exitDelay_;
-        std::shared_ptr< acqrscontrols::u5303a::method > method_;
+        std::shared_ptr< aqmd3controls::method > method_;
 
         int32_t protocolIndex_;
         int32_t protocolReplicates_;
@@ -83,5 +79,3 @@ namespace aqmd3 {
     };
 
 }
-
-#endif // SIMULATOR_HPP

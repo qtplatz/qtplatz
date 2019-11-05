@@ -26,7 +26,7 @@
 #include "simulator.hpp"
 #include "aqmd3.hpp"
 #include "automaton.hpp"
-#include <acqrscontrols/u5303a/method.hpp>
+#include <aqmd3controls/method.hpp>
 #include <adlog/logger.hpp>
 #include <adacquire/constants.hpp>
 #include <adportable/debug.hpp>
@@ -73,7 +73,7 @@ namespace aqmd3 {
             void terminate();
             bool initialize();
             bool prepare_for_run( const adcontrols::ControlMethod::Method& );
-            bool prepare_for_run( const acqrscontrols::u5303a::method& );
+            bool prepare_for_run( const aqmd3controls::method& );
             bool run();
             bool stop();
             bool trigger_inject_out();
@@ -89,11 +89,11 @@ namespace aqmd3 {
 
             inline AqMD3 * spDriver() { return spDriver_.get(); }
 
-            inline const acqrscontrols::u5303a::method& method() const { return method_; }
+            inline const aqmd3controls::method& method() const { return method_; }
 
-            inline const acqrscontrols::u5303a::identify& ident() const { return *ident_; }
+            inline const aqmd3controls::identify& ident() const { return *ident_; }
 
-            inline std::shared_ptr< acqrscontrols::u5303a::identify > ident_ptr() { return ident_; }
+            inline std::shared_ptr< aqmd3controls::identify > ident_ptr() { return ident_; }
 
             inline bool isSimulated() const { return simulated_; }
 
@@ -129,7 +129,7 @@ namespace aqmd3 {
             boost::asio::steady_timer timer_;
             bool simulated_;
             std::unique_ptr< dgpio::pio > pio_;
-            acqrscontrols::u5303a::method method_;
+            aqmd3controls::method method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
 
             bool c_injection_requested_;
@@ -140,34 +140,34 @@ namespace aqmd3 {
             std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
-            std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
+            std::shared_ptr< aqmd3controls::identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
             std::chrono::system_clock::time_point tp_acquire_;
             double temperature_;
             std::array< double, 2 > channel_temperature_;
-            std::shared_ptr< const acqrscontrols::u5303a::waveform > darkWaveform_;
+            std::shared_ptr< const aqmd3controls::waveform > darkWaveform_;
 
             bool handle_initial_setup();
             bool handle_terminating();
             bool handle_temperature();
             bool handle_acquire();
             bool handle_TSR_acquire();
-            bool handle_prepare_for_run( const acqrscontrols::u5303a::method );
-            bool handle_protocol( const acqrscontrols::u5303a::method );
+            bool handle_prepare_for_run( const aqmd3controls::method );
+            bool handle_protocol( const aqmd3controls::method );
             bool handle_timer( const boost::system::error_code& );
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
-            bool readData( acqrscontrols::u5303a::waveform& );
+            bool readData( aqmd3controls::waveform& );
 
             // PKD+AVG read Channel1+Channel2
-            bool readDataPkdAvg( acqrscontrols::u5303a::waveform&, acqrscontrols::u5303a::waveform& );
+            bool readDataPkdAvg( aqmd3controls::waveform&, aqmd3controls::waveform& );
 
-            void set_time_since_inject( acqrscontrols::u5303a::waveform& );
+            void set_time_since_inject( aqmd3controls::waveform& );
         };
 
         struct device {
-            static bool initial_setup( task&, const acqrscontrols::u5303a::method&, const std::string& options );
-            static bool setup( task&, const acqrscontrols::u5303a::method& );
+            static bool initial_setup( task&, const aqmd3controls::method&, const std::string& options );
+            static bool setup( task&, const aqmd3controls::method& );
             static bool acquire( task& );
             static bool waitForEndOfAcquisition( task&, int timeout );
         };
@@ -212,7 +212,7 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
     cm.sort();
     auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
     if ( it != cm.end() ) {
-        acqrscontrols::u5303a::method m;
+        aqmd3controls::method m;
 
         if ( it->get( *it, m ) ) {
             return task::instance()->prepare_for_run( m );
@@ -223,7 +223,7 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 }
 
 bool
-digitizer::peripheral_prepare_for_run( const acqrscontrols::u5303a::method& m )
+digitizer::peripheral_prepare_for_run( const aqmd3controls::method& m )
 {
     return task::instance()->prepare_for_run( m );
 }
@@ -364,10 +364,10 @@ task::initialize()
 }
 
 bool
-task::prepare_for_run( const acqrscontrols::u5303a::method& method )
+task::prepare_for_run( const aqmd3controls::method& method )
 {
 #if !defined NDEBUG
-    auto& m = method._device_method();
+    auto& m = method.device_method();
 
     ADDEBUG() << "u5303a::task::prepare_for_run";
     ADDEBUG() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
@@ -412,7 +412,7 @@ task::trigger_inject_out()
 bool
 task::dark( size_t waitCount )
 {
-    if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer )
+    if ( method_.mode() == aqmd3controls::method::DigiMode::Digitizer )
         return false;
     darkWaveform_.reset();
     darkCount_ = waitCount;
@@ -510,20 +510,20 @@ task::fsm_action_TSR_continue()
 }
 
 void
-task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
+task::set_time_since_inject( aqmd3controls::waveform& waveform )
 {
     if ( c_injection_requested_ ) {
         c_injection_requested_ = false;
         c_acquisition_status_ = true;
-        u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
-        waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
+        u5303_inject_timepoint_ = waveform.xmeta().initialXTimeSeconds;
+        waveform.set_well_known_events( waveform.well_known_events() | adacquire::SignalObserver::wkEvent_INJECT );
 
-        ADDEBUG() << "## INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
+        ADDEBUG() << "## INJECTION on aqmd3/SA220 ## waveform.wellKnownEvents: " << waveform.well_known_events();
     }
 
-    waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;
+    waveform.set_elapsed_time( waveform.xmeta().initialXTimeSeconds - u5303_inject_timepoint_ );
     if ( c_acquisition_status_ )
-        waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_AcqInProgress;
+        waveform.set_well_known_events( waveform.well_known_events() | adacquire::SignalObserver::wkEvent_AcqInProgress );
 }
 
 bool
@@ -557,7 +557,7 @@ task::handle_initial_setup()
     if ( success ) {
         simulated_ = simulated;
 
-        ident_ = std::make_shared< acqrscontrols::u5303a::identify >();
+        ident_ = std::make_shared< aqmd3controls::identify >();
         spDriver_->Identify( ident_ );
         // SR0 = 0.5GS/s 2ch; SR0+INT = 1.0GS/s 1ch;
         // SR1 = 1.0GS/s 2ch; SR1+INT = 2.0GS/s 1ch;
@@ -640,7 +640,7 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
+task::handle_prepare_for_run( const aqmd3controls::method m )
 {
     if ( fsm_.process_event( fsm::Prepare() ) == boost::msm::back::HANDLED_FALSE )
         return false;
@@ -652,14 +652,14 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     device::initial_setup( *this, m, ident().Options() );
 
     if ( /* m.mode_ && */ simulated_ ) {
-        acqrscontrols::u5303a::method a( m );
-        a._device_method().samp_rate = spDriver()->SampleRate();
+        aqmd3controls::method a( m );
+        a.device_method().samp_rate = spDriver()->SampleRate();
         simulator::instance()->setup( a );
     }
 
     method_ = m;
 
-    if ( m._device_method().TSR_enabled ) {
+    if ( m.device_method().TSR_enabled ) {
         return fsm_.process_event( fsm::TSRInitiate() ) == boost::msm::back::HANDLED_TRUE;
     } else {
         return fsm_.process_event( fsm::Initiate() ) == boost::msm::back::HANDLED_TRUE;
@@ -668,7 +668,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 }
 
 bool
-task::handle_protocol( const acqrscontrols::u5303a::method m )
+task::handle_protocol( const aqmd3controls::method m )
 {
     device::setup( *this, m );
 
@@ -699,7 +699,7 @@ task::handle_TSR_acquire()
     if ( !complete )
         return false;
 
-    std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
+    std::vector< std::shared_ptr< aqmd3controls::waveform > > vec;
 
     digitizer::readData( *spDriver(), method_, vec );
     spDriver_->TSRContinue();
@@ -708,7 +708,7 @@ task::handle_TSR_acquire()
         // ==> set elapsed time for debugging
         set_time_since_inject( *waveform );
         // <==
-        acqrscontrols::u5303a::method m;
+        aqmd3controls::method m;
         for ( auto& reply: waveform_handlers_ ) {
             if ( reply( waveform.get(), nullptr, m ) )
                 handle_protocol( m );
@@ -726,7 +726,7 @@ task::handle_acquire()
 
     if ( acquire() ) {
 
-        using acqrscontrols::u5303a::method;
+        using aqmd3controls::method;
         if ( waitForEndOfAcquisition( 3000 ) ) {
             if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
 
@@ -738,7 +738,7 @@ task::handle_acquire()
                 if ( protocolIndex >= 0 )
                     method_.setProtocolIndex( protocolIndex & 03, false ); // 2bits
 
-                std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
+                std::vector< std::shared_ptr< aqmd3controls::waveform > > vec;
 
                 // read multiple waveform using mblock
                 digitizer::readData( *spDriver(), method_, vec );
@@ -748,7 +748,7 @@ task::handle_acquire()
 
                 for ( auto& waveform: vec ) {
                     set_time_since_inject( *waveform );         // <---------- INJECTION event set ------------
-                    acqrscontrols::u5303a::method m;
+                    aqmd3controls::method m;
                     for ( auto& reply: waveform_handlers_ ) {
                         if ( reply( waveform.get(), nullptr, m ) )
                             handle_protocol( m );
@@ -758,14 +758,14 @@ task::handle_acquire()
             } else { // average
                 uint32_t events = darkCount_ ? adacquire::SignalObserver::wkEvent_DarkInProgress : 0;
 
-                if ( method_._device_method().pkd_enabled ) {
+                if ( method_.device_method().pkd_enabled ) {
                     // PKD+AVG
-                    auto pkd = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
-                    auto avg = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+                    auto pkd = std::make_shared< aqmd3controls::waveform >( ident_, events );
+                    auto avg = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     if ( readDataPkdAvg( *pkd, *avg ) ) {
                         set_time_since_inject( *pkd );          // <---------- INJECTION event set ------------
                         set_time_since_inject( *avg );          // <---------- INJECTION event set ------------
-                        acqrscontrols::u5303a::method m;
+                        aqmd3controls::method m;
                         for ( auto& reply : waveform_handlers_ ) {
                             if ( reply( avg.get(), pkd.get(), m ) )
                                 handle_protocol( m );
@@ -775,16 +775,18 @@ task::handle_acquire()
                             darkWaveform_ = avg;
                             for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
                         }
-                        if ( dark )
-                            avg->darkSubtraction( *dark );
+                        if ( dark ) {
+                            assert(0);
+                            // avg->darkSubtraction( *dark );
+                        }
                     }
 
                 } else {
                     // AVERAGE
-                    auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+                    auto waveform = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     if ( readData( *waveform ) ) {
                         set_time_since_inject( *waveform );     // <---------- INJECTION event set ------------
-                        acqrscontrols::u5303a::method m;
+                        aqmd3controls::method m;
                         for ( auto& reply : waveform_handlers_ ) {
                             if ( reply( waveform.get(), nullptr, m ) )
                                 handle_protocol( m );
@@ -794,8 +796,10 @@ task::handle_acquire()
                             darkWaveform_ = waveform;
                             for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
                         }
-                        if ( dark )
-                            waveform->darkSubtraction( *dark );
+                        if ( dark ) {
+                            assert(0);
+                            //waveform->darkSubtraction( *dark );
+                        }
                     }
                 }
             }
@@ -814,7 +818,7 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    if ( (method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager) && simulated_ )
+    if ( (method_.mode() == aqmd3controls::method::DigiMode::Averager) && simulated_ )
         return simulator::instance()->acquire();
 
     tp_acquire_ = std::chrono::system_clock::now();
@@ -831,7 +835,7 @@ task::waitForEndOfAcquisition( int timeout )
 #else
         std::this_thread::sleep_for( 10ms );
 #endif
-        if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager )
+        if ( method_.mode() == aqmd3controls::method::DigiMode::Averager )
             return simulator::instance()->waitForEndOfAcquisition();
     }
 
@@ -839,39 +843,40 @@ task::waitForEndOfAcquisition( int timeout )
 }
 
 bool
-task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303a::waveform& avg )
+task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg )
 {
-    pkd.serialnumber_ = spDriver()->dataSerialNumber();
-    avg.serialnumber_ = spDriver()->dataSerialNumber();
+    pkd.set_serialnumber( spDriver()->dataSerialNumber() );
+    avg.set_serialnumber( spDriver()->dataSerialNumber() );
     set_time_since_inject( pkd );
     set_time_since_inject( avg );
 
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
-        pkd.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
-        avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
-        pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
-        avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
+        pkd.set_epoch_time( std::chrono::system_clock::now().time_since_epoch().count() ); //pkd.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
+        avg.set_epoch_time( pkd.epoch_time() ); // timeSinceEpoch_ = pkd.timeSinceEpoch_;
+
+        pkd.xmeta().channelMode = aqmd3controls::PKD;
+        avg.xmeta().channelMode = aqmd3controls::AVG;
         return true;
     }
 
     digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
-    pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
+    pkd.xmeta().channelMode = aqmd3controls::PKD;
 
     digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
-    avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
+    avg.xmeta().channelMode = aqmd3controls::AVG;
 
     return true;
 }
 
 bool
-task::readData( acqrscontrols::u5303a::waveform& data )
+task::readData( aqmd3controls::waveform& data )
 {
-    data.serialnumber_ = spDriver()->dataSerialNumber();
+    data.set_serialnumber( spDriver()->dataSerialNumber() );
 
     if ( simulated_ ) {
         if ( simulator::instance()->readData( data ) ) {
-            data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
+            data.set_epoch_time( std::chrono::system_clock::now().time_since_epoch().count() ); // data.timeSinceEpoch_
             set_time_since_inject( data ); // ==> set elapsed time for debugging
             return true;
         }
@@ -879,11 +884,11 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     //-------------------
 
     bool result( false );
-    if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) {
+    if ( method_.mode() == aqmd3controls::method::DigiMode::Digitizer ) {
         result = digitizer::readData16( *spDriver(), method_, data );
     } else {
         result = digitizer::readData32( *spDriver(), method_, data, "Channel1" );
-        data.meta_.channelMode = acqrscontrols::u5303a::AVG;
+        data.xmeta().channelMode = aqmd3controls::AVG;
     }
     set_time_since_inject( data ); // ==> set elapsed time for debugging
     return result;
@@ -929,7 +934,7 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 }
 
 bool
-device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
+device::initial_setup( task& task, const aqmd3controls::method& m, const std::string& options )
 {
     constexpr std::array< std::pair< const char *, double >, 4 >
         input_specs = { {{"SR0", 0.5e9}, {"SR1", 1.0e9}, {"SR2", 1.6e9}, {"SR3", 2.0e9 }} };
@@ -940,8 +945,8 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
     const double input_rate = it->second;
 
-    bool interleave = ( options.find("INT") != options.npos ) && ( m._device_method().samp_rate > input_rate );
-    const bool pkd_enabled = m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
+    bool interleave = ( options.find("INT") != options.npos ) && ( m.device_method().samp_rate > input_rate );
+    const bool pkd_enabled = m.device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
 
     if ( pkd_enabled )
         interleave = false;  // force disable interleaving
@@ -951,7 +956,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     double max_rate = interleave ? input_rate * 2 : input_rate;
 
     ADINFO() << "##### Supported max. sample rate: " << max_rate << "\tChannel rate: " << input_rate;
-    ADINFO() << "##### User specified sample rate: " << m._device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
+    ADINFO() << "##### User specified sample rate: " << m.device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
 
     if ( interleave ) {
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
@@ -960,30 +965,30 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
 
     AqMD3::log( AqMD3_ConfigureChannel( task.spDriver()->session(), "Channel1"
-                                        , m._device_method().front_end_range
-                                        , m._device_method().front_end_offset, AQMD3_VAL_VERTICAL_COUPLING_DC, VI_TRUE ), __FILE__, __LINE__ );
+                                        , m.device_method().front_end_range
+                                        , m.device_method().front_end_offset, AQMD3_VAL_VERTICAL_COUPLING_DC, VI_TRUE ), __FILE__, __LINE__ );
 
     attribute< active_trigger_source >::set( *task.spDriver(), std::string( "External1" ) );
-    attribute< trigger_level >::set( *task.spDriver(), "External1", m._device_method().ext_trigger_level );
+    attribute< trigger_level >::set( *task.spDriver(), "External1", m.device_method().ext_trigger_level );
     attribute< trigger_slope >::set( *task.spDriver(), "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE );
     attribute< trigger_coupling >::set( *task.spDriver(), "External1", AQMD3_VAL_TRIGGER_COUPLING_DC );
-    attribute< trigger_delay >::set( *task.spDriver(), m._device_method().delay_to_first_sample_ );
+    attribute< trigger_delay >::set( *task.spDriver(), m.device_method().delay_to_first_sample_ );
 
     //bool success = false;
 
-    const double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
+    const double samp_rate = m.device_method().samp_rate > max_rate ? max_rate : m.device_method().samp_rate;
 
     if ( ! AqMD3::log( attribute< aqmd3::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
         AqMD3::log( attribute< aqmd3::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );
     }
 
-    if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer
+    if ( m.mode() == aqmd3controls::method::DigiMode::Digitizer ) { // Digitizer
 
         ADINFO() << "##### --> digitizer mode";
-        task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
+        task.spDriver()->setTSREnabled( m.device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL );
-        task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-        task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
+        task.spDriver()->setAcquisitionRecordSize( m.device_method().nbr_of_s_to_acquire_ );
+        task.spDriver()->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
 
     } else { // Averager
 
@@ -991,9 +996,9 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         task.spDriver()->setTSREnabled( false );
 
         // PKD - POC
-        if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
-            ADINFO() << "##### PKD ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" )
-                     << "; Amplitude accum. " << (m._device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
+        if ( m.device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
+            ADINFO() << "##### PKD ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" )
+                     << "; Amplitude accum. " << (m.device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
 
             AqMD3::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
             AqMD3::log( attribute< acquisition_mode >::set( *task.spDriver(), AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
@@ -1001,27 +1006,27 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             // Configure the data inversion mode - VI_FALSE (no data inversion) by default
             AqMD3::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
                                                                           , "Channel1"
-                                                                          , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
+                                                                          , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
 
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
             AqMD3::log( attribute< peak_detection_amplitude_accumulation_enabled >::set(
-                            *task.spDriver(), "Channel1", m._device_method().pkd_amplitude_accumulation_enabled )
+                            *task.spDriver(), "Channel1", m.device_method().pkd_amplitude_accumulation_enabled )
                         , __FILE__,__LINE__ );
 
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
 
-            AqMD3::log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_raising_delta ), __FILE__,__LINE__ );
-            AqMD3::log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_falling_delta ), __FILE__,__LINE__ );
+            AqMD3::log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_raising_delta ), __FILE__,__LINE__ );
+            AqMD3::log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_falling_delta ), __FILE__,__LINE__ );
 
-            AqMD3::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+            AqMD3::log( attribute< record_size >::set( *task.spDriver(), m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
 
             AqMD3::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 
-            AqMD3::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
+            AqMD3::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
 
         } else {
-            ADINFO() << "##### AVG ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" );
+            ADINFO() << "##### AVG ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" );
 
             //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
             AqMD3::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
@@ -1032,14 +1037,14 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             // task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
             AqMD3::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
                                                                           , "Channel1"
-                                                                          , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
+                                                                          , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
 
             //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            AqMD3::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+            AqMD3::log( attribute< record_size >::set( *task.spDriver(), m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
 
             //It looks like this command should be issued at last
             //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
-            AqMD3::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
+            AqMD3::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
         }
     }
 
@@ -1051,13 +1056,13 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 }
 
 bool
-device::setup( task& task, const acqrscontrols::u5303a::method& m )
+device::setup( task& task, const aqmd3controls::method& m )
 {
     // Don't forget environment variable: 'AQMD3_SKIP_CAL_REQUIRED_CHECKS=1'
 
-    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
-    task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-    task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
+    task.spDriver()->setTriggerDelay( m.device_method().delay_to_first_sample_ );
+    task.spDriver()->setAcquisitionRecordSize( m.device_method().nbr_of_s_to_acquire_ );
+    task.spDriver()->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
 
     return true;
 }
@@ -1082,11 +1087,11 @@ device::waitForEndOfAcquisition( task& task, int timeout )
 
 /////////////
 bool
-digitizer::readData( AqMD3& md2, const acqrscontrols::u5303a::method& m, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
+digitizer::readData( AqMD3& md2, const aqmd3controls::method& m, std::vector< std::shared_ptr< aqmd3controls::waveform > >& vec )
 {
     ViInt64 arraySize = 0;
-    const int64_t recordSize = m._device_method().digitizer_nbr_of_s_to_acquire;
-    const int64_t numRecords = m._device_method().nbr_records;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
+    const int64_t numRecords = m.device_method().nbr_records;
 
     if ( AqMD3::log(
              AqMD3_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
@@ -1124,22 +1129,22 @@ digitizer::readData( AqMD3& md2, const acqrscontrols::u5303a::method& m, std::ve
 
             for ( int64_t iRecord = 0; iRecord < actualRecords; ++iRecord ) {
 
-                if ( auto data = std::make_shared< acqrscontrols::u5303a::waveform >( md2.Identify(), md2.dataSerialNumber() ) ) {
+                if ( auto data = std::make_shared< aqmd3controls::waveform >( md2.Identify(), md2.dataSerialNumber() ) ) {
 
                     auto& d = *data;
 
-                    d.method_ = m;
-                    d.meta_.actualAverages = 0; // digitizer
-                    d.meta_.actualPoints = actualPoints[ iRecord ];
-                    d.meta_.initialXTimeSeconds = initialXTimeSeconds[ iRecord ] + initialXTimeFraction[ iRecord ];
-                    d.meta_.xIncrement  = xIncrement;
-                    d.meta_.initialXOffset = initialXOffset[ iRecord ];
-                    d.meta_.scaleFactor = scaleFactor;
-                    d.meta_.scaleOffset = scaleOffset;
-                    d.meta_.protocolIndex = m.protocolIndex();
-                    d.meta_.dataType = mblk->dataType();
+                    //d.device_method_ = m;
+                    d.xmeta().actualAverages = 0; // digitizer
+                    d.xmeta().actualPoints = actualPoints[ iRecord ];
+                    d.xmeta().initialXTimeSeconds = initialXTimeSeconds[ iRecord ] + initialXTimeFraction[ iRecord ];
+                    d.xmeta().xIncrement  = xIncrement;
+                    d.xmeta().initialXOffset = initialXOffset[ iRecord ];
+                    d.xmeta().scaleFactor = scaleFactor;
+                    d.xmeta().scaleOffset = scaleOffset;
+                    d.xmeta().protocolIndex = m.protocolIndex();
+                    d.xmeta().dataType = mblk->dataType();
 
-                    d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
+                    d.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
                     d.setData( mblk, firstValidPoints[ iRecord ] );
 
                     // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size()
@@ -1157,9 +1162,9 @@ digitizer::readData( AqMD3& md2, const acqrscontrols::u5303a::method& m, std::ve
 }
 
 bool
-digitizer::readData16( AqMD3& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data )
+digitizer::readData16( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls::waveform& data )
 {
-    const int64_t recordSize = m._device_method().digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
     ViInt64 const numRecords = 1;
     ViInt64 arraySize(0);
 
@@ -1191,18 +1196,17 @@ digitizer::readData16( AqMD3& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                    , &scaleOffset ), __FILE__, __LINE__ ) ) {
 
 
-            data.method_ = m;
-            data.meta_.actualAverages = actualAverages;
-            data.meta_.actualPoints = actualPoints[ 0 ];
-            data.meta_.initialXTimeSeconds = initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
-            data.meta_.xIncrement = xIncrement;
-            data.meta_.initialXOffset  = initialXOffset;
-            data.meta_.scaleFactor = scaleFactor;
-            data.meta_.scaleOffset = scaleOffset;
-            data.meta_.protocolIndex = m.protocolIndex();
-            data.meta_.dataType = 2;
-            data.firstValidPoint_ = firstValidPoint[0];
-            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
+            data.set_method( m );
+            data.xmeta().actualAverages = actualAverages;
+            data.xmeta().actualPoints = actualPoints[ 0 ];
+            data.xmeta().initialXTimeSeconds = initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
+            data.xmeta().xIncrement = xIncrement;
+            data.xmeta().initialXOffset  = initialXOffset;
+            data.xmeta().scaleFactor = scaleFactor;
+            data.xmeta().scaleOffset = scaleOffset;
+            data.xmeta().protocolIndex = m.protocolIndex();
+            data.xmeta().dataType = 2;
+            data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             data.setData( mblk, firstValidPoint[0] );
 
             return true;
@@ -1212,11 +1216,11 @@ digitizer::readData16( AqMD3& md2, const acqrscontrols::u5303a::method& m, acqrs
 }
 
 bool
-digitizer::readData32( AqMD3& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data
+digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls::waveform& data
                        , const char * channel )
 {
     ViInt64 constexpr numRecords = 1;
-    const int64_t recordSize = m._device_method().digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
     ViInt64 arraySize(0);
 
     if ( AqMD3::log(
@@ -1260,18 +1264,18 @@ digitizer::readData32( AqMD3& md2, const acqrscontrols::u5303a::method& m, acqrs
                 ADDEBUG() << pdata[i];
 #endif
 
-            data.method_ = m;
-            data.meta_.actualAverages = actualAverages;
-            data.meta_.actualPoints = actualPoints[ 0 ];
-            data.meta_.initialXTimeSeconds = initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
-            data.meta_.xIncrement = xIncrement;
-            data.meta_.initialXOffset = initialXOffset;
-            data.meta_.scaleFactor = scaleFactor;
-            data.meta_.scaleOffset = scaleOffset;
-            data.meta_.protocolIndex = m.protocolIndex();
-            data.meta_.dataType = 4;
-            data.firstValidPoint_ = firstValidPoint[0];
-            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
+            data.set_method( m );
+            data.xmeta().actualAverages = actualAverages;
+            data.xmeta().actualPoints = actualPoints[ 0 ];
+            data.xmeta().initialXTimeSeconds = initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
+            data.xmeta().xIncrement = xIncrement;
+            data.xmeta().initialXOffset = initialXOffset;
+            data.xmeta().scaleFactor = scaleFactor;
+            data.xmeta().scaleOffset = scaleOffset;
+            data.xmeta().protocolIndex = m.protocolIndex();
+            data.xmeta().dataType = 4;
+            data.xmeta().firstValidPoint = firstValidPoint[0];
+            data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             data.setData( mblk, firstValidPoint[0] );
 
             return true;
