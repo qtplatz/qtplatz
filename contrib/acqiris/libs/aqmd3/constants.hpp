@@ -54,6 +54,7 @@ namespace aqmd3 {
     constexpr const char * const softavgr_observer_name    = "avgr.waveform.1.aqmd3.ms-cheminfo.com";
     // f589ea65-1c99-4abc-b961-9d6ed2cf10e7
     constexpr boost::uuids::uuid softavgr_observer         = {{ 0xf5, 0x89, 0xea, 0x65, 0x1c, 0x99, 0x4a, 0xbc, 0xb9, 0x61, 0x9d, 0x6e, 0xd2, 0xcf, 0x10, 0xe7 }};
+    constexpr const char * const softavgr_datainterpreter  = "d252d006-556b-4827-afcd-72bee874860f";
 
     enum { nchannels = 2 }; // channel #2 reserved for peak detection in fpga
     enum SpectrumType { Profile, ProfileAvgd, ProfileLongTerm, Histogram, HistogramLongTerm, PkdWaveformLongTerm };
