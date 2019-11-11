@@ -218,7 +218,8 @@ main( int argc, char * argv [] )
 
     if ( auto md2 = std::make_shared< aqmd3::AqMD3 >() ) {
 
-        const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
+        //const char * strInitOptions = "Simulate=false, DriverSetup= Model=SA220P";
+        const char * strInitOptions = "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false";
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
             if ( p && std::strcmp( p, "simulate" ) == 0 ) {
@@ -230,17 +231,22 @@ main( int argc, char * argv [] )
 
         if ( !simulated ) {
             for ( auto& res : {
-                    "PXI6::0::0::INSTR"
-                        , "PXI5::0::0::INSTR"
-                        , "PXI4::0::0::INSTR"
-                        , "PXI3::0::0::INSTR"
-                        , "PXI2::0::0::INSTR"
-                        , "PXI1::0::0::INSTR"
-                        } ) {
+                    "PXI59::0::0::INSTR"
+                    , "PXI6::0::0::INSTR"
+                    , "PXI5::0::0::INSTR"
+                    , "PXI4::0::0::INSTR"
+                    , "PXI3::0::0::INSTR"
+                    , "PXI2::0::0::INSTR"
+                    , "PXI1::0::0::INSTR"
+                } ) {
 
                 std::cerr << "Attempting resource: " << res << std::endl;
-                if ( ( success = ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) )
+                auto rcode = md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions );
+                md2->log( rcode, __FILE__, __LINE__ );
+                if ( rcode == VI_SUCCESS ) {
+                    success = true;
                     break;
+                }
             }
         }
 
@@ -292,9 +298,6 @@ main( int argc, char * argv [] )
             attribute< aqmd3::trigger_level >::set( *md2, "External1", method.device_method().ext_trigger_level );
             // md2->setTriggerLevel( "External1", method.device_method().ext_trigger_level ); // 1V
 
-            attribute< aqmd3::trigger_level >::set( *md2, "External1", method.device_method().ext_trigger_level );
-            // std::cout << "TriggerLevel: " << md2->TriggerLevel( "External1" ) << std::endl;
-
             attribute< aqmd3::trigger_slope >::set( *md2, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE );
             // md2->setTriggerSlope( "External1", AQMD3_VAL_POSITIVE );
             // std::cout << "TriggerSlope: " << md2->TriggerSlope( "External1" ) << std::endl;
@@ -302,14 +305,23 @@ main( int argc, char * argv [] )
             if ( vm.count( "pkd" ) && ident->Options().find( "PKD" ) != std::string::npos )
                 return pkd_main( md2, method, replicates );
 
-            if ( ident->Options().find( "INT" ) != std::string::npos ) // Interleave ON
+            std::cout << "\t---------- DIGITIZER MODE ----------------" << std::endl;
+
+            if ( ident->Options().find( "INT" ) != std::string::npos ) { // Interleave ON
+                std::cout << "\t-------------- INTERLEAVE ON ----------------------" << std::endl;
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
+            }
 
             double max_rate(0);
-            if ( ident->Options().find( "SR1" ) != std::string::npos ) {
-                max_rate = ( ident->Options().find( "INT" ) != std::string::npos ) ? 2.0e9 : 1.0e9;
-            } else if ( ident->Options().find( "SR2" ) != std::string::npos ) {
-                max_rate = ( ident->Options().find( "INT" ) != std::string::npos ) ? 3.2e9 : 1.6e9;
+            if ( ident->InstrumentModel() == "SA220P" ) {
+                max_rate = 2.0e9;
+            } else {
+                // U5303A
+                if ( ident->Options().find( "SR1" ) != std::string::npos ) {
+                    max_rate = ( ident->Options().find( "INT" ) != std::string::npos ) ? 2.0e9 : 1.0e9;
+                } else if ( ident->Options().find( "SR2" ) != std::string::npos ) {
+                    max_rate = ( ident->Options().find( "INT" ) != std::string::npos ) ? 3.2e9 : 1.6e9;
+                }
             }
 
             using aqmd3::attribute;
@@ -342,10 +354,11 @@ main( int argc, char * argv [] )
 
             std::cout << "Replicates: " << replicates << std::endl;
 
-            std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
+            execStatistics::instance().tp_ = std::chrono::system_clock::now();
 
             bool tsrEnabled;
             if ( AqMD3::log( attribute< aqmd3::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
+                std::cout << "\t------------------ TSR enabled ------------------" << std::endl;
                 // if ( md2->TSREnabled() ) {
 
                 md2->AcquisitionInitiate();
@@ -354,21 +367,16 @@ main( int argc, char * argv [] )
 
                     do {
                         boost::optional< aqmd3::tsr_memory_overflow_occurred::value_type > p;
-                        if ( p = attribute< aqmd3::tsr_memory_overflow_occurred >::value( *md2 ) && p.get() ) {
+                        if ((p = attribute< aqmd3::tsr_memory_overflow_occurred >::value( *md2 ) && p.get() )) {
                             std::cout << "***** Memory Overflow" << std::endl;
+                            (void)p;
                             break;
                         }
                     } while ( 0 );
-                    // if ( md2->TSRMemoryOverflowOccured() ) {
-                    //     std::cout << "***** Memory Overflow" << std::endl;
-                    //     break;
-                    // }
                     do {
                         boost::optional< aqmd3::tsr_is_acquisition_complete::value_type > p;
-                        while ( p = attribute< aqmd3::tsr_is_acquisition_complete >::value( *md2 ) && !p.get() )
+                        while (( p = attribute< aqmd3::tsr_is_acquisition_complete >::value( *md2 ) && !p.get() ))
                             std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
-                        //while ( !md2->isTSRAcquisitionComplete() )
-                        //    std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
                     } while ( 0 );
 
                     aqmd3::digitizer::readData( *md2, method, vec );
@@ -391,20 +399,12 @@ main( int argc, char * argv [] )
 
                     execStatistics::instance().dataCount_ += vec.size();
 
-#if defined _MSC_VER
-                    const size_t deadsize = 100;
-#else
-                    constexpr size_t deadsize = 100;
-#endif
-                    //for ( auto& waveform: vec ) {
-                    //    size_t count(0);
-                        // if ( waveform->isDEAD() )
-                        //     execStatistics::instance().deadCount_++;
-                    //}
                     vec.clear();  // throw waveforms away.
                 }
 
             } else {
+
+                double prev_ts(0);
 
                 for ( int i = 0; i < replicates; ++i ) {
 
@@ -416,15 +416,20 @@ main( int argc, char * argv [] )
                     pp << uint8_t( 0x02 );
 
                     aqmd3::digitizer::readData( *md2, method, vec );
+                    auto ts = vec.at(0)->xmeta().initialXTimeSeconds;
 
                     int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
                     execStatistics::instance().dataCount_ += vec.size();
 
                     if ( __verbose__ >= 5 ) {
+
                         std::cout << "aqmd3::digitizer::readData read " << vec.size() << " waveform(s), proto#"
-                                  << dgpio.protocol_number()
-                                  << "\t(" << i << "/" << replicates << ")" << execStatistics::instance().dataCount_ << std::endl;
+                                  << protocolIndex
+                                  << "\t(" << i << "/" << replicates << ")"
+                                  << "\t" << (ts - prev_ts)*1e6
+                                  << "\t" << execStatistics::instance().dataCount_ << std::endl;
                     }
+                    prev_ts = ts;
 
                     vec.clear();
                 }
@@ -506,7 +511,6 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
     md2->CalibrationSelfCalibrate();
 
     // Perform the acquisition.
-    ViInt32 const timeoutInMs = 2000;
     std::cout << "Performing acquisition\n";
 
     md2->AcquisitionInitiate();
