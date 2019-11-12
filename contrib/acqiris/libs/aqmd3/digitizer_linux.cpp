@@ -85,8 +85,6 @@ namespace aqmd3 {
             void disconnect( digitizer::waveform_reply_type f );
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
-            bool findResource();
-
             inline AqMD3 * spDriver() { return spDriver_.get(); }
 
             inline const aqmd3controls::method& method() const { return method_; }
@@ -137,7 +135,7 @@ namespace aqmd3 {
             size_t darkCount_;
 
             std::atomic<double> u5303_inject_timepoint_;
-            std::vector< std::string > foundResources_;
+            std::vector< std::string > listResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< aqmd3controls::identify > ident_;
@@ -208,17 +206,28 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 {
     using adcontrols::ControlMethod::MethodItem;
 
+    ADDEBUG() << __FUNCTION__;
+
     adcontrols::ControlMethod::Method cm( m );
     cm.sort();
+
+#ifndef NDEBUG
+    for ( auto mi: cm ) {
+        ADDEBUG() << __FUNCTION__ << "------------- modelname: " << mi.modelname();
+    }
+#endif
+
     auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
     if ( it != cm.end() ) {
+        ADDEBUG() << __FUNCTION__ << " -- u5303a method found.";
         aqmd3controls::method m;
 
-        if ( it->get( *it, m ) ) {
+        if ( it->get( *it, m ) )
             return task::instance()->prepare_for_run( m );
-        }
-
+    } else {
+        ADDEBUG() << __FUNCTION__ << " -- no u5303a method found.";
     }
+
     return false;
 }
 
@@ -307,41 +316,36 @@ task::task() : exptr_( nullptr )
              , temperature_( 0 )
              , channel_temperature_{{ 0 }}
 {
-    acquire_posted_.clear();
+    listResources_ = {
+        "PXI59::0::0::INSTR"
+        , "PXI7::0::0::INSTR"
+        , "PXI6::0::0::INSTR"
+        , "PXI5::0::0::INSTR"
+        , "PXI4::0::0::INSTR"
+        , "PXI3::0::0::INSTR"
+        , "PXI2::0::0::INSTR"
+        , "PXI1::0::0::INSTR"
+        , "PXI0::0::0::INSTR"
+    };
 
+    acquire_posted_.clear();
     pio_->open();
 
     fsm_.start(); // Stopped state
 
-    threads_.push_back( adportable::asio::thread( [this]() {
-                try {
-                    io_service_.run();
-                } catch ( ... ) {
-                    ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
-                    exptr_ = std::current_exception();
-                }
-            } ) );
+    threads_.emplace_back( adportable::asio::thread( [this]() {
+        try {
+            io_service_.run();
+        } catch ( ... ) {
+            ADERROR() << "Exception: " << boost::current_exception_diagnostic_information();
+            exptr_ = std::current_exception();
+        }
+    } ) );
 
 }
 
 task::~task()
 {
-}
-
-bool
-task::findResource()
-{
-    // workaround
-    foundResources_ = { "PXI7::0::0::INSTR"
-                        , "PXI6::0::0::INSTR"
-                        , "PXI5::0::0::INSTR"
-                        , "PXI4::0::0::INSTR"
-                        , "PXI3::0::0::INSTR"
-                        , "PXI2::0::0::INSTR"
-                        , "PXI1::0::0::INSTR"
-                        , "PXI0::0::0::INSTR" };
-
-    return true;
 }
 
 task *
@@ -354,10 +358,10 @@ task::instance()
 bool
 task::initialize()
 {
-    ADDEBUG() << "####################### task::initialize #########################";
-
-	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
-
+#if !defined NDEBUG
+    ADDEBUG() << "=================== task::initialize =================";
+#endif
+	//io_service_.post( strand_.wrap( [this] { findResource(); } ) );
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
 
     return true;
@@ -369,17 +373,17 @@ task::prepare_for_run( const aqmd3controls::method& method )
 #if !defined NDEBUG
     auto& m = method.device_method();
 
-    ADDEBUG() << "u5303a::task::prepare_for_run";
-    ADDEBUG() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-              << "\text_trigger_level: " << m.ext_trigger_level
-              << "\tsamp_rate: " << m.samp_rate
-              << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
-              << "\tnbr_of_average: " << m.nbr_of_averages
-              << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
-              << "\tinvert_signal: " << m.invert_signal;
+    ADDEBUG() << "aqmd3::digitizer_linux::task::prepare_for_run"
+              << "\n\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+              << "\n\text_trigger_level: " << m.ext_trigger_level
+              << "\n\tsamp_rate: " << m.samp_rate
+              << "\n\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
+              << "\n\tnbr_of_average: " << m.nbr_of_averages
+              << "\n\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
+              << "\n\tinvert_signal: " << m.invert_signal;
         // << "\tnsa: " << m.nsa;
 
-    ADDEBUG() << "##### u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
+    ADDEBUG() << "##### aqmd3::digitizer_linux::task::prepare_for_run - protocol size: " << method.protocols().size();
 #endif
 
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
@@ -534,19 +538,23 @@ task::handle_initial_setup()
     bool simulated = false;
     bool success = false;
 
-    const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
+    const char * strInitOptions =
+        "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false";
+    // const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
 
     if ( auto p = getenv( "AcqirisOption" ) ) {
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
             strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
             simulated = true;
             success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
-            ADDEBUG() << "################# U5303A SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
+            ADDEBUG() << "################# AQMD3 SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
         }
     }
 
     if ( !simulated ) {
-        for ( auto& res : foundResources_ ) {
+
+        for ( auto& res : listResources_ ) {
+            ADDEBUG() << "\t\ttry resource: " << res;
             if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
                 ADTRACE() << "Initialize resource: " << res;
                 break;
@@ -642,6 +650,9 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const aqmd3controls::method m )
 {
+#ifndef NDEBUG
+    ADDEBUG() << "=============== " << __FUNCTION__ << " ====================";
+#endif
     if ( fsm_.process_event( fsm::Prepare() ) == boost::msm::back::HANDLED_FALSE )
         return false;
 
@@ -936,33 +947,36 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 bool
 device::initial_setup( task& task, const aqmd3controls::method& m, const std::string& options )
 {
-    constexpr std::array< std::pair< const char *, double >, 4 >
-        input_specs = { {{"SR0", 0.5e9}, {"SR1", 1.0e9}, {"SR2", 1.6e9}, {"SR3", 2.0e9 }} };
+    ADDEBUG() << "###########################################################################";
+    ADDEBUG() << "##### initial_setup #####";
 
-    auto it = std::find_if( input_specs.begin(), input_specs.end(), [&]( auto& a ) { return options.find( a.first ) != options.npos; } );
-    if ( it == input_specs.end() ) // no input specification found
-        return false;
+    // constexpr std::array< std::pair< const char *, double >, 4 >
+    //     input_specs = { {{"SR0", 0.5e9}, {"SR1", 1.0e9}, {"SR2", 1.6e9}, {"SR3", 2.0e9 }} };
 
-    const double input_rate = it->second;
+    // auto it = std::find_if( input_specs.begin(), input_specs.end(), [&]( auto& a ) { return options.find( a.first ) != options.npos; } );
+    // if ( it == input_specs.end() ) // no input specification found
+    //     return false;
 
-    bool interleave = ( options.find("INT") != options.npos ) && ( m.device_method().samp_rate > input_rate );
-    const bool pkd_enabled = m.device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
+    // const double input_rate = it->second;
 
-    if ( pkd_enabled )
-        interleave = false;  // force disable interleaving
-    else
-        adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
+    // bool interleave = ( options.find("INT") != options.npos ) && ( m.device_method().samp_rate > input_rate );
+    // const bool pkd_enabled = m.device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
 
-    double max_rate = interleave ? input_rate * 2 : input_rate;
+    // if ( pkd_enabled )
+    //     interleave = false;  // force disable interleaving
+    // else
+    //     adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
 
-    ADINFO() << "##### Supported max. sample rate: " << max_rate << "\tChannel rate: " << input_rate;
-    ADINFO() << "##### User specified sample rate: " << m.device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
+    // double max_rate = interleave ? input_rate * 2 : input_rate;
 
-    if ( interleave ) {
-        task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
-    } else {
-        task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
-    }
+    // ADINFO() << "##### Supported max. sample rate: " << max_rate << "\tChannel rate: " << input_rate;
+    // ADINFO() << "##### User specified sample rate: " << m.device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
+
+    // if ( interleave ) {
+    //     task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
+    // } else {
+    //     task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
+    // }
 
     AqMD3::log( AqMD3_ConfigureChannel( task.spDriver()->session(), "Channel1"
                                         , m.device_method().front_end_range
@@ -976,11 +990,11 @@ device::initial_setup( task& task, const aqmd3controls::method& m, const std::st
 
     //bool success = false;
 
-    const double samp_rate = m.device_method().samp_rate > max_rate ? max_rate : m.device_method().samp_rate;
+    // const double samp_rate = m.device_method().samp_rate > max_rate ? max_rate : m.device_method().samp_rate;
 
-    if ( ! AqMD3::log( attribute< aqmd3::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
-        AqMD3::log( attribute< aqmd3::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );
-    }
+    // if ( ! AqMD3::log( attribute< aqmd3::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
+    //     AqMD3::log( attribute< aqmd3::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );
+    // }
 
     if ( m.mode() == aqmd3controls::method::DigiMode::Digitizer ) { // Digitizer
 
@@ -1145,7 +1159,7 @@ digitizer::readData( AqMD3& md2, const aqmd3controls::method& m, std::vector< st
                     d.xmeta().dataType = mblk->dataType();
 
                     d.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
-                    d.setData( mblk, firstValidPoints[ iRecord ] );
+                    d.setData( mblk, firstValidPoints[ iRecord ], d.xmeta().actualPoints );
 
                     // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size()
                     //           << " SF=" << scaleFactor << " SO=" << scaleOffset << " t=" << d.meta_.dataType
@@ -1207,7 +1221,7 @@ digitizer::readData16( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
             data.xmeta().protocolIndex = m.protocolIndex();
             data.xmeta().dataType = 2;
             data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
-            data.setData( mblk, firstValidPoint[0] );
+            data.setData( mblk, firstValidPoint[0], data.xmeta().actualPoints );
 
             return true;
         }
@@ -1276,7 +1290,7 @@ digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
             data.xmeta().dataType = 4;
             data.xmeta().firstValidPoint = firstValidPoint[0];
             data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
-            data.setData( mblk, firstValidPoint[0] );
+            data.setData( mblk, firstValidPoint[0], data.xmeta().actualPoints );
 
             return true;
         }

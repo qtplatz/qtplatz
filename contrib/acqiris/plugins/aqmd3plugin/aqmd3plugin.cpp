@@ -51,8 +51,8 @@
 
 using namespace aqmd3;
 
-aqmd3Plugin::aqmd3Plugin() : mainWindow_( new MainWindow() )
-                           , mode_( std::make_shared< aqmd3Mode >(this) )
+aqmd3Plugin::aqmd3Plugin() : mode_( std::make_shared< aqmd3Mode >(this) )
+                           , mainWindow_( new MainWindow() )
 {
 }
 

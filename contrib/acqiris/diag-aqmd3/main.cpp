@@ -422,12 +422,14 @@ main( int argc, char * argv [] )
                     execStatistics::instance().dataCount_ += vec.size();
 
                     if ( __verbose__ >= 5 ) {
-
+                        auto wform = vec.at(0);
                         std::cout << "aqmd3::digitizer::readData read " << vec.size() << " waveform(s), proto#"
                                   << protocolIndex
                                   << "\t(" << i << "/" << replicates << ")"
                                   << "\t" << (ts - prev_ts)*1e6
-                                  << "\t" << execStatistics::instance().dataCount_ << std::endl;
+                                  << "\t" << execStatistics::instance().dataCount_
+                                  << "\tsize=" << wform->size()
+                                  << std::endl;
                     }
                     prev_ts = ts;
 

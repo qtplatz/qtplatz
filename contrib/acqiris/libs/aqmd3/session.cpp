@@ -23,7 +23,9 @@
 
 #include "session.hpp"
 #include "singleton.hpp"
+#include "digitizer.hpp"
 #include "waveformobserver.hpp"
+#include <aqmd3controls/method.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/receiver.hpp>
@@ -43,70 +45,7 @@
 #include <string>
 
 namespace aqmd3 {
-
-    struct session::impl {
-
-        impl() : work_( io_service_ )
-                 //, masterObserver_( std::make_shared< adacquire::MasterObserver >( "aqmd3.master.observer.ms-cheminfo.com" ) )
-                 //, waveformObserver_( std::make_shared< WaveformObserver >() ) {
-            {
-                // masterObserver_->addSibling( waveformObserver_.get() );
-        }
-
-        static std::shared_ptr< session > instance_;
-
-        std::mutex mutex_;
-
-        boost::asio::io_service io_service_;
-        boost::asio::io_service::work work_;
-        std::vector< std::thread > threads_;
-
-        typedef std::pair< std::shared_ptr< adacquire::Receiver >, std::string > client_pair_t;
-        std::vector< client_pair_t > clients_;
-
-        //std::shared_ptr< adacquire::MasterObserver > masterObserver_;
-        //std::shared_ptr< WaveformObserver > waveformObserver_;
-        std::pair< std::string, std::string > server_address_;
-
-        void reply_message( adacquire::Receiver::eINSTEVENT msg, uint32_t value ) {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            for ( auto& r: clients_ )
-                r.first->message( msg, value );
-        }
-
-        void reply_handler( const std::string& method, const std::string& reply) {
-            if ( method == "InitialSetup" ) {
-                reply_message( adacquire::Receiver::STATE_CHANGED
-                               , ( reply == "success" ) ? adacquire::Instrument::eStandBy : adacquire::Instrument::eNotConnected | adacquire::Instrument::eErrorFlag );
-            } else if ( method == "StateChanged" ) {
-                if ( reply == "Stopped" )
-                    reply_message( adacquire::Receiver::STATE_CHANGED, adacquire::Instrument::eStop ); // 9
-                else if ( reply == "Running" )
-                    reply_message( adacquire::Receiver::STATE_CHANGED, adacquire::Instrument::eRunning ); // 8
-            } else if ( method == "DarkStarted" ) {
-                reply_message( adacquire::Receiver::DARK_STARTED, 1 );
-            } else if ( method == "DarkCanceled" ) {
-                reply_message( adacquire::Receiver::DARK_CANCELED, 0 );
-            } else if ( method == "DarkAcquired" ) {
-                reply_message( adacquire::Receiver::DARK_ACQUIRED, 0 );
-            } else {
-                ADINFO() << "AQMD3: " << method << " = " << reply;
-            }
-        }
-
-        // bool waveform_handler( const waveform * ch1, acqrscontrols::aqmd3::method& next ) {
-        //     if ( masterObserver_ && waveformObserver_ ) {
-        //         if ( ch1 ) {
-        //             //auto pos = (*waveformObserver_) << ch1;
-        //             //masterObserver_->dataChanged( waveformObserver_.get(), pos );
-        //             return false; // no next method changed.
-        //         }
-        //     }
-        //     return false;
-        // }
-    };
-
-    std::shared_ptr< session > session::impl::instance_ = 0;
+    std::shared_ptr< session > session::instance_ = 0;
 }
 
 using namespace aqmd3;
@@ -115,17 +54,17 @@ session *
 session::instance()
 {
     static std::once_flag flag;
-    std::call_once( flag, [&]{ impl::instance_ = std::make_shared< session >(); } );
-    return impl::instance_.get();
+    std::call_once( flag, [&]{ instance_ = std::make_shared< session >(); } );
+    return instance_.get();
 }
 
-session::session() : impl_( new impl() )
+session::session()
 {
 }
 
 session::~session()
 {
-    delete impl_;
+    instance_.reset();
 }
 
 std::string
@@ -141,13 +80,7 @@ session::setConfiguration( const std::string& json )
     std::istringstream in( json );
     boost::property_tree::read_json( in, pt );
 
-    // if ( auto ip_addr = pt.get_optional< std::string >( "ip_address" ) ) {
-    //     if ( auto port = pt.get_optional< std::string >( "port" ) ) {
-    //         impl_->server_address_ = std::make_pair( ip_addr.get(), port.get() );
-    //         ADDEBUG() << impl_->server_address_;
-    //         singleton::instance()->open( impl_->server_address_.first.c_str(), impl_->server_address_.second.c_str() );
-    //     }
-    // }
+    ADDEBUG() << "\t### setConfiguration(" << json << ")";
 
     return true;
 }
@@ -167,11 +100,14 @@ session::configComplete()
 bool
 session::connect( adacquire::Receiver * receiver, const std::string& token )
 {
-    auto ptr( receiver->shared_from_this() );
+    auto cli( receiver->shared_from_this() );
 
-    if ( ptr ) {
-        impl_->clients_.emplace_back( ptr, token );
-        // singleton::instance()->connect( ptr );
+    ADDEBUG() << "\n\n\n\t------------- " << __FUNCTION__ << " ---------------- " << token;
+
+    singleton::instance()->initialize();
+
+    if ( cli ) {
+        singleton::instance()->connect( cli, token );
         return true;
     }
     return false;
@@ -181,18 +117,7 @@ bool
 session::disconnect( adacquire::Receiver * receiver )
 {
     auto self( receiver->shared_from_this() );
-    // singleton::instance()->connect( self );
-
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    auto it = std::find_if( impl_->clients_.begin(), impl_->clients_.end(), [self]( const impl::client_pair_t& a ){
-            return a.first == self; });
-
-    if ( it != impl_->clients_.end() ) {
-        impl_->clients_.erase( it );
-        return true;
-    }
-
-    return false;
+    return singleton::instance()->disconnect( self );
 }
 
 uint32_t
@@ -204,19 +129,23 @@ session::get_status()
 adacquire::SignalObserver::Observer *
 session::getObserver()
 {
+    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
     return singleton::instance()->getObserver();
 }
 
 bool
 session::initialize()
 {
-    return true;
+    ADDEBUG() << "\n\n\t------------- sesson::initialize -> peripheral_initialize() ----------------";
+    return singleton::instance()->digitizer().peripheral_initialize();
 }
 
 bool
 session::shutdown()
 {
-    singleton::instance()->close();
+    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
+    singleton::instance()->digitizer().peripheral_terminate();
+    singleton::instance()->finalize();
     return true;
 }
 
@@ -239,14 +168,28 @@ session::getControlMethod()
 }
 
 bool
-session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > )
+session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
+    ADDEBUG() << "\t=====================================================";
+    ADDEBUG() << "\t=============== " << __FUNCTION__ << " ===============";
+    if ( m ) {
+        auto it = m->find( m->begin(), m->end(), aqmd3controls::method::clsid() );
+        if ( it != m->end() ) {
+            aqmd3controls::method method;
+            if ( it->get<>( *it, method ) )
+                return singleton::instance()->digitizer().peripheral_prepare_for_run( method );
+        } else {
+            ADDEBUG() << "### " << __FUNCTION__ << " no aqmd3controls::method found.";
+        }
+    }
     return false;
 }
 
 bool
 session::prepare_for_run( const std::string& json, arg_type atype )
 {
+    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ---------------- ==> TODO";
+    assert(0);
     if ( atype != arg_json )
         return false;
     return true;
@@ -255,14 +198,15 @@ session::prepare_for_run( const std::string& json, arg_type atype )
 bool
 session::event_out( uint32_t event )
 {
-    ADDEBUG() << "##### session::event_out( " << event << " )";
-    //return impl_->digitizer_->peripheral_trigger_inject();
+    ADDEBUG() << "\t##### session::event_out( " << event << " )";
+    return singleton::instance()->digitizer().peripheral_trigger_inject();
     return true;
 }
 
 bool
 session::start_run()
 {
+    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
     return true; // impl_->digitizer_->peripheral_run();
 }
 
@@ -281,7 +225,8 @@ session::resume_run()
 bool
 session::stop_run()
 {
-    return true; // impl_->digitizer_->peripheral_stop();
+    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
+    return singleton::instance()->digitizer().peripheral_stop();
 }
 
 bool

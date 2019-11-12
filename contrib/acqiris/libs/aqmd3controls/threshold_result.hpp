@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -35,49 +35,84 @@
 #include <ostream>
 #include <compiler/pragma_warning.hpp>
 
+// this class was derived from both ap240::threshold_result and u5303a::threshold_result
+// for AP240 support on infitof2
+// 2017-SEP-18
+namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace aqmd3controls {
 
-    class waveform;
-
     class AQMD3CONTROLSSHARED_EXPORT threshold_result : public adportable::counting::counting_result {
     public:
-        threshold_result();
-        threshold_result( std::shared_ptr< const waveform > d );
-        threshold_result( const threshold_result& t );
 
-        std::shared_ptr< const waveform >& data();
-
-        [[deprecated]] std::vector< uint32_t >& indices();
-        [[deprecated]] const std::vector< uint32_t >& indices() const;
-
-        std::vector< double >& processed();
-        const std::vector< double >& processed() const;
-
-        std::shared_ptr< const waveform > data() const;
-
-        const std::pair<uint32_t, uint32_t >& findRange() const;
-        uint32_t foundIndex() const;
-        void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
-
-# if defined _MSC_VER && _MSC_VER <= 1800
+# if defined _MSC_VER && _MSC_VER <= 1916
         static const uint32_t npos = (-1);
 # else
         static constexpr uint32_t npos = ( -1 );
 # endif
-        bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
-        void setFindUp( bool );
+
+        threshold_result();
+        threshold_result( const threshold_result& t );
+
+        std::vector< double >& processed();
+        const std::vector< double >& processed() const;
+        const std::pair<uint32_t, uint32_t >& findRange() const;
+        uint32_t foundIndex() const;
+        void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
+        void setFindUp( bool value );
         bool findUp() const;
+
+        bool deserialize( const int8_t * data, size_t dsize );
 
         static void write3( std::ostream&, const threshold_result& );
 
-    private:
-        std::shared_ptr< const waveform > data_;
+        std::vector< uint32_t >& indices();
+        const std::vector< uint32_t >& indices() const;
+
+    protected:
         std::vector< uint32_t > indices_;
+    private:
         std::vector< double > processed_;
         std::pair< uint32_t, uint32_t > findRange_;
         uint32_t foundIndex_;
         bool findUp_;
     };
 
+    ////////////////////////////////////////////////////////////////////////////////////////
+
+    template< typename waveform_type >
+    class AQMD3CONTROLSSHARED_EXPORT threshold_result_ : public threshold_result {
+    public:
+        threshold_result_() {}
+
+        threshold_result_( std::shared_ptr< const waveform_type > d )
+            : data_( d ) {
+        }
+
+        threshold_result_( const threshold_result_& t )
+            : threshold_result( t )
+            , data_( t.data_ ) {
+        }
+
+        std::shared_ptr< const waveform_type >& data()      { return data_;  }
+        std::shared_ptr< const waveform_type > data() const { return data_; }
+
+        bool deserialize( const int8_t * xdata, size_t dsize, const int8_t * xmeta, size_t msize ) {
+            //
+            // see threshold_result_accessor.cpp in infitof/plugins/infitof2
+            //
+            auto data = std::make_shared< waveform_type >();
+            data->deserialize_xmeta( reinterpret_cast<const char *>( xmeta ), msize );
+            data_ = std::move( data );
+            return threshold_result::deserialize( xdata, dsize );
+        }
+
+        bool operator >> ( adcontrols::TimeDigitalHistogram& x ) const;
+
+    private:
+        std::shared_ptr< const waveform_type > data_;
+    };
+
+    // typedef aqmd3controls::threshold_result_< aqmd3controls::ap240::waveform > ap240_threshold_result;
+    // typedef aqmd3controls::threshold_result_< aqmd3controls::u5303a::waveform > u5303a_threshold_result;
 }

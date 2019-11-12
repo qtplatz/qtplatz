@@ -37,8 +37,6 @@ namespace aqmd3 {
     class session : public adacquire::Instrument::Session { // inherit from enable_shared_from_this<Session>
         session( const Session& ) = delete;
         session& operator = ( const Session& ) = delete;
-        struct impl;
-        impl * impl_;
     public:
         // exception
         struct CannotAdd { std::string reason_; };
@@ -78,6 +76,8 @@ namespace aqmd3 {
         bool stop_run() override;
         bool dark_run( size_t ) override;
         const char * configuration() const override;
+    private:
+        static std::shared_ptr< session > instance_;
     };
 
 } // namespace adicontroler

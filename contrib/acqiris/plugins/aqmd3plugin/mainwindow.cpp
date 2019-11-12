@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -30,8 +30,8 @@
 #include "iaqmd3impl.hpp"
 #include <aqmd3/digitizer.hpp>
 #include <aqmd3controls/method.hpp>
-#include <acqrswidgets/thresholdwidget.hpp>
-#include <acqrswidgets/u5303awidget.hpp>
+#include <aqmd3widgets/thresholdwidget.hpp>
+#include <aqmd3widgets/aqmd3widget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -113,14 +113,14 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto widget = new acqrswidgets::ThresholdWidget( "", 1 ) ) {
+    if ( auto widget = new aqmd3widgets::ThresholdWidget( "", 1 ) ) {
 
         widget->setObjectName( "ThresholdWidget" );
-        createDockWidget( widget, "U5303A", "ThresholdMethod" );
+        createDockWidget( widget, "SA220E", "ThresholdMethod" );
 
-        connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
-                if ( auto form = findChild< acqrswidgets::ThresholdWidget * >() ) {
-                    if ( cat == acqrswidgets::idSlopeTimeConverter ) {
+        connect( widget, &aqmd3widgets::ThresholdWidget::valueChanged, [this] ( aqmd3widgets::idCategory cat, int ch ) {
+                if ( auto form = findChild< aqmd3widgets::ThresholdWidget * >() ) {
+                    if ( cat == aqmd3widgets::idSlopeTimeConverter ) {
                         adcontrols::threshold_method tm;
                         form->get( ch, tm );
                         document::instance()->set_threshold_method( ch, tm );
@@ -143,10 +143,10 @@ MainWindow::createDockWidgets()
             });
     }
 #endif
-    if ( auto widget = new acqrswidgets::u5303AWidget ) {
+    if ( auto widget = new aqmd3widgets::AQMD3Widget ) {
 
-        widget->setObjectName( "U5303A" );
-        createDockWidget( widget, "U5303A", "ControlMethod" );
+        widget->setObjectName( "SA220E" );
+        createDockWidget( widget, "SA220E", "ControlMethod" );
 #if 0
         connect( widget, &acqrswidgets::u5303AWidget::valueChanged, [this,widget]( acqrswidgets::idCategory cat, int ch ) {
             aqmd3controls::method m;
@@ -227,12 +227,13 @@ MainWindow::OnInitialUpdate()
             action->setEnabled( false );
     }
 
-    if ( auto u5303a = document::instance()->iController() )
-        document::instance()->addInstController( u5303a );
-
-    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
-        document::instance()->addInstController( iController );
+    for ( auto inst: document::instance()->iControllers() ) {
+        ADDEBUG() << inst->module_name().toStdString();
+        document::instance()->addInstController( inst );
     }
+
+    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() )
+        document::instance()->addInstController( iController );
 
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
@@ -813,13 +814,13 @@ void
 MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
 {
     if ( std::shared_ptr< const adextension::iEditorFactory > p
-         = std::make_shared< adextension::iEditorFactoryT< acqrswidgets::ThresholdWidget, QString, int > >(
+         = std::make_shared< adextension::iEditorFactoryT< aqmd3widgets::ThresholdWidget, QString, int > >(
          QString( "U5303A Threshold" ), adextension::iEditorFactory::CONTROL_METHOD, QString("u5303a"), 1 ) ) {
         impl << p;
     }
 
     if ( std::shared_ptr< const adextension::iEditorFactory > p
-         = std::make_shared< adextension::iEditorFactoryT< acqrswidgets::u5303AWidget > >("U5303A", adextension::iEditorFactory::CONTROL_METHOD ) ) {
+         = std::make_shared< adextension::iEditorFactoryT< aqmd3widgets::AQMD3Widget > >("SA220E", adextension::iEditorFactory::CONTROL_METHOD ) ) {
         impl << p;
     }
 }

@@ -5,3 +5,4 @@ endif()
 
 #add_subdirectory( acqrsinterpreter )
 add_subdirectory( aqmd3controls )
+add_subdirectory( aqmd3widgets )

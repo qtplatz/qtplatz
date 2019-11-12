@@ -41,7 +41,7 @@ aqmd3Mode::aqmd3Mode(QObject *parent) :  Core::IMode(parent)
 {
     setDisplayName( tr( "AQMD320" ) );
     setIcon(QIcon(":/aqmd3/images/image001_512.png"));
-    setPriority( 50 );
+    setPriority( 90 );
 }
 
 

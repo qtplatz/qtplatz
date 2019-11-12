@@ -35,6 +35,7 @@
 #include <adportable/polfit.hpp>
 #include <adportable/debug.hpp>
 #include <adwidgets/progresswnd.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>

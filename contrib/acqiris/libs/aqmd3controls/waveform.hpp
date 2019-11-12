@@ -87,8 +87,6 @@ namespace aqmd3controls {
             );
 
         waveform( uint32_t pos, const meta_data& );
-
-        // see u5303a/waveform
         waveform( std::shared_ptr< const aqmd3controls::identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
 
         void set_is_pkd( bool );
@@ -126,60 +124,51 @@ namespace aqmd3controls {
         static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
 
         ////////////////////////////
-        template< typename value_type > const value_type* begin() const;
-        template< typename value_type > const value_type* end() const;
-        template< typename value_type > value_type* begin();
-        template< typename value_type > value_type* end();
-
-        template< typename value_type > const value_type* data() const;
-        template< typename value_type > value_type* data();
-
         // 32bit interface
-        void setData( const std::shared_ptr< adportable::mblock<int32_t> >&, size_t firstValidPoint );
+        void setData( const std::shared_ptr< adportable::mblock<int32_t> >, size_t firstValidPoint, size_t actualPoints );
 
         // 16bit interface
-        void setData( const std::shared_ptr< adportable::mblock<int16_t> >&, size_t firstValidPoint );
+        void setData( const std::shared_ptr< adportable::mblock<int16_t> >, size_t firstValidPoint, size_t actualPoints );
 
         void set_method( const aqmd3controls::method& );
         const aqmd3controls::method& method() const;
 
     private:
-        boost::variant < std::shared_ptr< adportable::mblock<int16_t> >
-                         , std::shared_ptr< adportable::mblock<int32_t> >
-                         , std::shared_ptr< adportable::mblock<int64_t> >
-                         > mblock_;
+        // boost::variant < std::shared_ptr< adportable::mblock<int16_t> >
+        //                  , std::shared_ptr< adportable::mblock<int32_t> >
+        //                  , std::shared_ptr< adportable::mblock<int64_t> >
+        //                  > mblock_;
 
         double trigger_delay_;
         bool is_pkd_;
         std::unique_ptr< aqmd3controls::method > method_;
 
-        template< typename lvalue_type
-                  , typename rvalue_type > void add( const waveform& t, double dbase ) {
-            std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-                            , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );
-        }
+        // template< typename lvalue_type
+        //           , typename rvalue_type > void add( const waveform& t, double dbase ) {
+        //     std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
+        //                     , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );
+        // }
 
-        template< typename lvalue_type
-                  , typename rvalue_type > void sub( const waveform& t ) {
-            std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-                            , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( b - a ); } );
-        }
+        // template< typename lvalue_type
+        //           , typename rvalue_type > void sub( const waveform& t ) {
+        //     std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
+        //                     , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( b - a ); } );
+        // }
     };
 
-    template<> AQMD3CONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::begin() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::end() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::begin() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::end() const;
 
-    template<> AQMD3CONTROLSSHARED_EXPORT int16_t * waveform::data();
-    template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::data() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT int32_t * waveform::data();
-    template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::data() const;
-    template<> AQMD3CONTROLSSHARED_EXPORT int64_t * waveform::data();
-    template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::data() const;
-
+    // template<> AQMD3CONTROLSSHARED_EXPORT int16_t * waveform::data();
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::data() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT int32_t * waveform::data();
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::data() const;
+    // template<> AQMD3CONTROLSSHARED_EXPORT int64_t * waveform::data();
+    // template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::data() const;
 }

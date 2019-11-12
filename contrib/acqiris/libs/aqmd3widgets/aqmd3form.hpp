@@ -1,5 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2014-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -21,29 +22,42 @@
 **
 **************************************************************************/
 
-#include "iaqmd3impl.hpp"
-#include <aqmd3/session.hpp>
-#include <adplugin/plugin.hpp>
-#include <adplugin_manager/loader.hpp>
-#include <adportable/debug.hpp>
-#include <adacquire/manager.hpp>
+#pragma once
 
-using namespace aqmd3;
+#include "constants.hpp"
+#include <QWidget>
 
-iAQMD3Impl::iAQMD3Impl() : adextension::iControllerImpl("aqmd3")
-{
-}
+namespace aqmd3controls { class method; }
 
-iAQMD3Impl::~iAQMD3Impl()
-{
-}
+namespace aqmd3widgets {
 
-bool
-iAQMD3Impl::connect()
-{
-    if ( auto aqmd3 = std::make_shared< aqmd3::session >() ) {
-        adextension::iControllerImpl::connect( aqmd3.get(), "iAQMD3Impl" );
-        return true;
+    namespace Ui {
+        class aqmd3Form;
     }
-    return false;
+
+    class aqmd3Form : public QWidget {
+        Q_OBJECT
+
+    public:
+        explicit aqmd3Form( QWidget *parent = 0 );
+        ~aqmd3Form();
+
+        void onInitialUpdate();
+
+        void setContents( const aqmd3controls::method& );
+
+        void getContents( aqmd3controls::method& );
+
+        void onHandleValue( idCategory, int, const QVariant& );
+
+        void setEnabled( const QString&, bool );
+
+    signals:
+        void valueChanged( idCategory, int channel, const QVariant& );
+
+    private:
+        Ui::aqmd3Form *ui;
+        double sampRate_;  // Hz
+    };
+
 }

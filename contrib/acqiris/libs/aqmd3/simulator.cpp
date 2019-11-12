@@ -230,7 +230,7 @@ simulator::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform
         // avg.meta_.scaleFactor = 1; // method_->_device_method().front_end_range / 4096 / method_->_device_method().nbr_of_averages;
         // avg.meta_.scaleOffset = 0;
         //pkd.xmeta().channelMode = aqmd3controls::AVG;
-        avg.setData( mblk, 0 );
+        avg.setData( mblk, 0, ptr->nbrSamples() );
     }
 
     if ( ptr ) {
@@ -262,7 +262,7 @@ simulator::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform
         pkd.xmeta().scaleFactor = 1.0;
         pkd.xmeta().scaleOffset = 0.0;
         pkd.xmeta().channelMode = aqmd3controls::PKD;
-        pkd.setData( mblk, 0 );
+        pkd.setData( mblk, 0, pkd.xmeta().actualPoints );
         return true;
     }
     return false;
@@ -304,7 +304,7 @@ simulator::readData( aqmd3controls::waveform& data )
         data.xmeta().scaleFactor = 1.0;
         data.xmeta().scaleOffset = 0.0;
         data.xmeta().dataType = 4; // int32_t
-        data.setData( mblk, 0 );
+        data.setData( mblk, 0, data.xmeta().actualPoints );
 
         return true;
     }
@@ -379,7 +379,7 @@ simulator::touchup( std::vector< std::shared_ptr< aqmd3controls::waveform > >& v
             w.xmeta().firstValidPoint = 0;
 
             for ( auto& w: vec ) {
-                w->setData( mblock, w->xmeta().firstValidPoint );
+                w->setData( mblock, w->xmeta().firstValidPoint, w->xmeta().actualPoints );
                 w->xmeta().initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms
             }
 
@@ -388,7 +388,7 @@ simulator::touchup( std::vector< std::shared_ptr< aqmd3controls::waveform > >& v
             std::shared_ptr< adportable::mblock< int32_t > > mblock;
             adportable::waveform_simulator()( mblock, int( vec.size() ) );
             for ( auto& w: vec )
-                w->setData( mblock, w->xmeta().firstValidPoint );
+                w->setData( mblock, w->xmeta().firstValidPoint, w->xmeta().actualPoints );
 
         }
     }

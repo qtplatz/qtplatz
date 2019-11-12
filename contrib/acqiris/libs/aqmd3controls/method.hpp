@@ -51,8 +51,8 @@ namespace aqmd3controls {
     public:
         method();
         method( const method& t );
-        static const char * modelClass() { return "u5303a"; }
-        static const char * itemLabel() { return "u5303a"; }
+        static const char * modelClass() { return "aqmd3"; }
+        static const char * itemLabel() { return "aqmd3"; }
         static const boost::uuids::uuid& clsid();
 
         enum class DigiMode : uint32_t { Digitizer = 0, Averager = 2 };

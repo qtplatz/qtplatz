@@ -24,6 +24,7 @@
 
 #include "meta_data.hpp"
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
@@ -53,6 +54,7 @@ namespace aqmd3controls {
             ar & BOOST_SERIALIZATION_NVP( _.channelMode );
 
             ar & BOOST_SERIALIZATION_NVP( _.firstValidPoint );
+            ar & BOOST_SERIALIZATION_NVP( _.identify );
         }
     };
 
@@ -92,5 +94,22 @@ meta_data::meta_data() : initialXTimeSeconds( 0 )
                        , protocolIndex( 0 )
                        , channelMode( None )
                        , firstValidPoint( 0 )
+{
+}
+
+meta_data::meta_data( const meta_data& t ) : initialXTimeSeconds( t.initialXTimeSeconds )
+                                           , actualPoints( t.actualPoints )
+                                           , flags( t.flags )
+                                           , actualAverages( t.actualAverages )
+                                           , actualRecords( t.actualRecords )
+                                           , initialXOffset( t.initialXOffset )
+                                           , xIncrement( t.xIncrement )
+                                           , scaleFactor( t.scaleFactor )
+                                           , scaleOffset( t.scaleOffset )
+                                           , dataType( t.dataType )     // 2(int16_t)|4(int32_t)|8(int64_t)|-8(double)
+                                           , protocolIndex( t.protocolIndex )
+                                           , channelMode( t.channelMode )
+                                           , firstValidPoint( t.firstValidPoint )
+                                           , identify( t.identify )
 {
 }

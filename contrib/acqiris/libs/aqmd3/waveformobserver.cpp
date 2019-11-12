@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -53,10 +53,10 @@ using namespace aqmd3;
 
 static const char * objtext__ = "1.aqmd3.ms-cheminfo.com";
 
-WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )
+WaveformObserver::WaveformObserver() : objid_( waveform_observer )
 {
     so::Description desc;
-    desc.set_trace_method( so::eTRACE_IMAGE_TDC );
+    desc.set_trace_method( so::eTRACE_IMAGE_SPECTRA );
     desc.set_spectrometer( so::eMassSpectrometer );
     desc.set_trace_id( objtext__ );  // unique name for the trace, can be used as 'data storage name'
     desc.set_trace_display_name( L"SA220E Waveforms" );

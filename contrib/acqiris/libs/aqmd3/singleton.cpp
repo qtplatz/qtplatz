@@ -23,6 +23,7 @@
 
 #include "condition_wait.hpp"
 #include "constants.hpp"
+#include "digitizer.hpp"
 #include "singleton.hpp"
 #include "waveformobserver.hpp"
 #include <aqmd3controls/meta_data.hpp>
@@ -52,8 +53,12 @@ singleton::singleton() : sema_( std::make_unique< semaphore >() )
                        , inject_trigger_latch_( false )
                        , inject_trigger_latch_count_( 0 )
                        , hvdg_json_( "{}" )
+                       , digitizer_( std::make_unique< aqmd3::digitizer >() )
 {
     masterObserver_->addSibling( waveformObserver_.get() );
+    using namespace std::placeholders;
+    digitizer_->connect_reply( std::bind( &singleton::reply_handler, this, _1, _2 ) );
+    digitizer_->connect_waveform( std::bind( &singleton::waveform_handler, this, _1, _2, _3 ) );
 }
 
 singleton::~singleton()
@@ -68,34 +73,29 @@ singleton::instance()
     return &__instance;
 }
 
-void
-singleton::close()
+bool
+singleton::finalize()
 {
-    // std::lock_guard< std::mutex > lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
-    // if ( client_ && !threads_.empty() ) {
-    //     io_service_.stop();
-    //     client_->close();
-    //     for ( auto& t: threads_ )
-    //         t.join();
-    //     client_.reset();
-    //     //ADDEBUG() << "##### singleton closed gracefully #####";
-    // }
+    // for ( auto c: connections_ )
+    //     c->shutdown();
+    io_service_.stop();
+    for ( auto& t: threads_ )
+        t.join();
+
+    connections_.clear();
+
+    ADDEBUG() << "##### singleton finalize gracefully #####";
 }
 
 bool
-singleton::open( const char * address, const char * port )
+singleton::initialize()
 {
-    // std::lock_guard< std::mutex > lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
-    // if ( !client_ ) {
-    //     if ( (client_ = std::make_unique< udp_client >( io_service_, address, port )) ) {
-    //         threads_.emplace_back( std::thread( [&]{ io_service_.run(); } ) );
-    //         threads_.emplace_back( std::thread( [&]{ io_service_.run(); } ) );
-    //         threads_.emplace_back( std::thread( [&]{ io_service_.run(); } ) );
-    //         return true;
-    //     }
-    // }
+    static std::once_flag flag;
+    std::call_once( flag, [&]{ threads_.emplace_back( std::thread( [&]{ io_service_.run(); } ) ); } );
     return true;
 }
 
@@ -144,17 +144,23 @@ singleton::get_sequence_number()
 }
 
 bool
-singleton::connect( std::shared_ptr< adacquire::Receiver > ptr )
+singleton::connect( std::shared_ptr< adacquire::Receiver > ptr, const std::string& token )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
     auto it = std::find( connections_.begin(), connections_.end(), ptr );
-    if ( it == connections_.end() )
+    if ( it == connections_.end() ) {
         connections_.emplace_back( ptr );
+        reply_message( adacquire::Receiver::CLIENT_ATTACHED, connections_.size() );
+    }
     return true;
 }
 
 bool
 singleton::disconnect( std::shared_ptr< adacquire::Receiver > ptr )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
     auto it = std::remove( connections_.begin(), connections_.end(), ptr );
     if ( it != connections_.end() )
         connections_.erase( it );
@@ -198,4 +204,35 @@ singleton::set_hvdg_status( std::string&& json )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     hvdg_json_ = std::move( json );
+}
+
+void
+singleton::reply_message( int msg, int value )
+{
+    io_service_.post( [=](){
+        std::lock_guard< std::mutex > lock( mutex_ );
+            for ( auto& receiver: connections_ )
+                receiver->message( adacquire::Receiver::eINSTEVENT( msg ), value );
+        });
+}
+
+///////
+void
+singleton::reply_handler( const std::string& method, const std::string& reply )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << "(" << method << ", " << reply << ")";
+}
+
+bool
+singleton::waveform_handler( const aqmd3controls::waveform * ch1, const aqmd3controls::waveform * ch2, aqmd3controls::method& )
+{
+    if ( masterObserver_ && waveformObserver_ ) {
+        if ( ch1 || ch2 ) {
+            auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : nullptr ), ( ch2 ? ch2->shared_from_this() : nullptr ) );
+            auto pos = (*waveformObserver_) << pair;
+            masterObserver_->dataChanged( waveformObserver_.get(), pos );
+            return false; // no next method changed.
+        }
+    }
+    return false; // no next method changed.
 }

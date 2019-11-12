@@ -37,8 +37,8 @@ add_library( ${PROJECT_NAME} SHARED
 #  tdcbase.hpp
 #  tdcdoc.cpp
 #  tdcdoc.hpp
-  threshold_result.cpp
-  threshold_result.hpp
+#  threshold_result.cpp
+#  threshold_result.hpp
 #  threshold_result_accessor.cpp
 #  threshold_result_accessor.hpp
 

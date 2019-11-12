@@ -27,62 +27,63 @@
 #include "aqmd3controls_global.hpp"
 #include <boost/serialization/version.hpp>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 namespace boost { namespace serialization { class access; } }
 
 namespace aqmd3controls {
 
-template<typename T> class identify_archive;
+    template<typename T> class identify_archive;
 
-class AQMD3CONTROLSSHARED_EXPORT identify;
+    class AQMD3CONTROLSSHARED_EXPORT identify;
 
-class identify {
-public:
-    identify();
-    identify( const identify& );
+    class identify {
+    public:
+        identify();
+        identify( const identify& );
 
-    std::string& Identifier();
-    std::string& Revision();
-    std::string& Vendor();
-    std::string& Description();
-    std::string& InstrumentModel();
-    std::string& FirmwareRevision();
-    std::string& SerialNumber();
-    std::string& Options();
-    std::string& IOVersion();
-    uint32_t& NbrADCBits();
+        std::string& Identifier();
+        std::string& Revision();
+        std::string& Vendor();
+        std::string& Description();
+        std::string& InstrumentModel();
+        std::string& FirmwareRevision();
+        std::string& SerialNumber();
+        std::string& Options();
+        std::string& IOVersion();
+        uint32_t& NbrADCBits();
 
-    const std::string& Identifier() const;
-    const std::string& Revision() const;
-    const std::string& Vendor() const;
-    const std::string& Description() const;
-    const std::string& InstrumentModel() const;
-    const std::string& FirmwareRevision() const;
-    const std::string& SerialNumber() const;
-    const std::string& Options() const;
-    const std::string& IOVersion() const;
-    uint32_t NbrADCBits() const;
+        const std::string& Identifier() const;
+        const std::string& Revision() const;
+        const std::string& Vendor() const;
+        const std::string& Description() const;
+        const std::string& InstrumentModel() const;
+        const std::string& FirmwareRevision() const;
+        const std::string& SerialNumber() const;
+        const std::string& Options() const;
+        const std::string& IOVersion() const;
+        uint32_t NbrADCBits() const;
 
-private:
-    std::string Identifier_;
-    std::string Revision_;
-    std::string Vendor_;
-    std::string Description_;
-    std::string InstrumentModel_;
-    std::string FirmwareRevision_;
-    std::string SerialNumber_;
-    std::string Options_;
-    std::string IOVersion_;
+    private:
+        std::string Identifier_;
+        std::string Revision_;
+        std::string Vendor_;
+        std::string Description_;
+        std::string InstrumentModel_;
+        std::string FirmwareRevision_;
+        std::string SerialNumber_;
+        std::string Options_;
+        std::string IOVersion_;
 
-    uint32_t    NbrADCBits_;
+        uint32_t    NbrADCBits_;
 
-    friend class identify_archive < identify > ;
-    friend class identify_archive < const identify > ;
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize( Archive& ar, const unsigned int version );
-};
+        friend class identify_archive < identify > ;
+        friend class identify_archive < const identify > ;
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize( Archive& ar, const unsigned int version );
+    };
 
 }
 

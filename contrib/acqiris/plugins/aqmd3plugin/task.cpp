@@ -1,5 +1,5 @@
 /**************************************************************************
- ** Copyright (C) 2014-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2014-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -42,6 +42,7 @@
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
+#include <adcontrols/waveform_translator.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
@@ -60,6 +61,7 @@
 #include <boost/numeric/ublas/fwd.hpp> // matrix forward decl
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
 #include <QRect>
 #include <QJsonDocument>
@@ -152,18 +154,18 @@ namespace aqmd3 {
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
 
-        std::array< std::shared_ptr< aqmd3controls::threshold_result >, 2 > que_;
+        // std::array< std::shared_ptr< aqmd3controls::threshold_result >, 2 > que_;
         aqmd3controls::meta_data metadata_;
         uint32_t device_delay_count_;
+
+        std::pair< std::shared_ptr< const aqmd3controls::waveform >, std::shared_ptr< const aqmd3controls::waveform > > que_;
 
         void worker_thread();
         bool finalize();
         void readData( adacquire::SignalObserver::Observer *, uint32_t pos );
 
-        void handle_u5303a_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
-        void handle_u5303a_average( const data_status, std::array< threshold_result_ptr, 2 > );
-        void handle_ap240_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
-        void handle_ap240_average( const data_status, std::array< threshold_result_ptr, 2 > );
+        void handle_aqmd3_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
+        void handle_aqmd3_average( const data_status, std::array< threshold_result_ptr, 2 > );
         void handle_histograms();
 
         void resetDeviceData() {
@@ -210,7 +212,7 @@ task::initialize()
             impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
 
             unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
-            ADTRACE() << nCores << " threads created for u5303a task";
+            ADTRACE() << nCores << " threads created for aqmd3 task";
             while( nCores-- )
                 impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
 
@@ -252,13 +254,9 @@ void
 task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
-
     if ( impl_->isRecording_ ) {
-
         impl_->data_status_[ so->objid() ].posted_data_count_++;
-
         impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
-
     }
 }
 
@@ -295,7 +293,7 @@ task::post( std::vector< std::future<bool> >& futures )
 void
 task::impl::worker_thread()
 {
-    //using aqmd3controls::u5303a::tdcdoc;
+    //using aqmd3controls::aqmd3::tdcdoc;
 
     do {
         sema_.wait();
@@ -303,31 +301,33 @@ task::impl::worker_thread()
         if ( worker_stopping_ )
             return;
 
-        // per trigger waveform
+        // waveform
         if ( data_status_[ waveform_observer ].plot_ready_ ) {
 
             auto& status = data_status_[ waveform_observer ];
-
             status.plot_ready_ = false;
             status.tp_plot_handled_ = std::chrono::system_clock::now();
+            auto avgms = std::make_shared< adcontrols::MassSpectrum >();
+            auto pkdms = std::make_shared< adcontrols::MassSpectrum >();
+            auto q(que_); // lock;
+            auto avg = q.first;
+            auto pkd = q.second;
 
-            int channel = 0;
-            // std::array< std::shared_ptr< aqmd3controls::u5303a::threshold_result >, 2 > threshold_results;
-            auto threshold_results = que_;
+            std::string device_data;
+            avg->serialize_xmeta( device_data );
+            using aqmd3controls::waveform;
 
-            for ( auto result: threshold_results ) {
-                if ( result ) {
-                    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+            adcontrols::waveform_translator::translate< waveform >( *avgms
+                                                                    , *avg
+                                                                    , avg->xmeta().xIncrement
+                                                                    , avg->xmeta().initialXOffset
+                                                                    , avg->xmeta().actualAverages
+                                                                    , 0 // mode
+                                                                    , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
+                                                                    , device_data
+                                                                    , [&]( const int32_t& d ){ return 1000 * waveform::toVolts( d, avg->xmeta().actualAverages ); } );
 
-                    if ( aqmd3controls::waveform::translate( *ms, *result ) ) {
-
-                        ms->getMSProperty().setTrigNumber( result->data()->serialnumber(), status.pos_origin_ );
-                        document::instance()->setData( waveform_observer, ms, channel );
-
-                    }
-                }
-                ++channel;
-            }
+            document::instance()->setData( waveform_observer, avgms, 0 );
         }
 
         if ( data_status_[ waveform_observer ].data_ready_ ) {
@@ -380,35 +380,56 @@ task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
         if ( so->objid() == waveform_observer ) {
 
             if ( auto rb = so->readData( pos ) )
-                handle_u5303a_data( status, rb );
+                handle_aqmd3_data( status, rb );
 
         } else {
-            std::string name = so->objtext();
-            //auto uuid = so->objid();
-            ADTRACE() << "Unhandled data : " << name;
+            ADTRACE() << "Unhandled data : " << so->objtext() << ", " << so->objid();
         }
     }
 }
 
 void
-task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
+task::impl::handle_aqmd3_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
 {
     typedef std::pair< std::shared_ptr< const aqmd3controls::waveform >
                        , std::shared_ptr< const aqmd3controls::waveform > > const_waveform_pair_t;
 
-    std::array< std::shared_ptr< const aqmd3controls::waveform >, 2 > waveforms( {{0, 0}} );
+    std::shared_ptr< const aqmd3controls::waveform > avg, pkd;
+    // std::array< std::shared_ptr< const aqmd3controls::waveform >, 2 > waveforms( {{0, 0}} );
 
     if ( adportable::a_type< const_waveform_pair_t >::is_a( rb->data() ) ) {
         try {
-            const_waveform_pair_t pair = boost::any_cast< const_waveform_pair_t >( rb->data() );
-            waveforms = {{ pair.first, pair.second }};
+            std::tie( avg, pkd ) = boost::any_cast< const_waveform_pair_t >( rb->data() );
         } catch ( boost::bad_any_cast& ) {
             assert( 0 );
             ADERROR() << "bad any cast";
+            return;
         }
+    } else if ( adportable::a_type< std::shared_ptr< const aqmd3controls::waveform > >::is_a( rb->data() ) ) {
+        avg = boost::any_cast< std::shared_ptr< const aqmd3controls::waveform > >( rb->data() );
+        pkd = nullptr;
     }
 
     using namespace std::chrono_literals;
+    const auto tp = std::chrono::system_clock::now();
+
+    // data commit on file every second
+    if ( ( tp - status.tp_data_handled_ ) >= 1000ms ) {
+        status.data_ready_ = true;
+        sema_.signal();
+    }
+
+    if ( avg ) {
+        ADDEBUG() << "### " << __FUNCTION__ << " " << avg->pos() << ", " << avg->size() << "\tavg #" << avg->xmeta().actualAverages;
+
+        // waveform_observer == waveform from digitizer (raw)
+        if ( ( tp - data_status_[ waveform_observer ].tp_plot_handled_ ) >= 250ms ) {
+            que_ = std::make_pair( avg, pkd );
+            status.plot_ready_ = true; // ads54j single trigger waveform
+            sema_.signal();
+        }
+    }
+
 
 #if 0
     if ( waveforms[0] || waveforms[1] ) {
@@ -431,9 +452,9 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
                 }
 
                 // single trigger waveform
-                if ( ( tp - data_status_[ u5303a_observer ].tp_plot_handled_ ) >= 250ms ) {
+                if ( ( tp - data_status_[ aqmd3_observer ].tp_plot_handled_ ) >= 250ms ) {
                     que_ = threshold_results;
-                    status.plot_ready_ = true; // u5303a
+                    status.plot_ready_ = true; // aqmd3
                     sema_.signal();
 
                 }
@@ -441,7 +462,7 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
                 // data
                 if ( ( tp - status.tp_data_handled_ ) >= 1000ms ) {
 
-                    status.data_ready_ = true;  // u5303a
+                    status.data_ready_ = true;  // aqmd3
                     sema_.signal();
 
                 }
@@ -494,16 +515,6 @@ void
 task::setHistogramClearCycle( uint32_t value )
 {
     impl_->histogram_clear_cycle_ = value;
-}
-
-void
-task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
-{
-}
-
-void
-task::impl::handle_ap240_average( const data_status status, std::array< threshold_result_ptr, 2 > results )
-{
 }
 
 void

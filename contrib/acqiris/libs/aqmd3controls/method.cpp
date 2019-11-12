@@ -43,25 +43,13 @@ namespace aqmd3controls {
             template<class Archive>
             void serialize( Archive& ar, T& _, const unsigned int version ) {
 
-                if ( version < 4 )
-                    throw boost::archive::archive_exception( boost::archive::archive_exception::unsupported_version );
-
                 using namespace boost::serialization;
 
                 ar & BOOST_SERIALIZATION_NVP( _.channels_ );
                 ar & BOOST_SERIALIZATION_NVP( _.mode_ );
                 ar & BOOST_SERIALIZATION_NVP( _.device_method_ );
-                if ( version < 6 ) {
-                    // follwing items has been removed since v6
-                    adcontrols::threshold_method threshold;
-                    adcontrols::threshold_action action;
-                    ar & BOOST_SERIALIZATION_NVP( threshold );
-                    ar & BOOST_SERIALIZATION_NVP( action );
-                }
-                if ( version >= 7 ) {
-                    ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
-                    ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
-                }
+                ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
+                ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
             }
 
         };

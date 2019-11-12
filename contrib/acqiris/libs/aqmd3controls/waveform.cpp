@@ -32,6 +32,7 @@
 #include <boost/serialization/vector.hpp>
 #include <stdexcept>
 #include <numeric>
+#include <tuple>
 
 namespace aqmd3controls {
 
@@ -40,10 +41,10 @@ namespace aqmd3controls {
         void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale ) const {
             int idx = 0;
             if ( w.method().mode() == method::DigiMode::Digitizer ) {
-                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it )
+                for ( auto it = w.begin(); it != w.end(); ++it )
                     sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), *it ) * scale ) : *it );
             } else {
-                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it )
+                for ( auto it = w.begin(); it != w.end(); ++it )
                     sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), *it ) * scale ) : *it );
             }
         }
@@ -52,13 +53,13 @@ namespace aqmd3controls {
             int idx = 0;
             if ( w.method().mode() == method::DigiMode::Digitizer ) {
                 double vb = toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), dbase );
-                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
+                for ( auto it = w.begin(); it != w.end(); ++it ) {
                     double d = scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), *it ) - vb ) * scale : *it - dbase;
                     sp.setIntensity( idx++, d );
                 }
             } else {
                 double vb = toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), dbase );
-                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
+                for ( auto it = w.begin(); it != w.end(); ++it ) {
                     double d = scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), *it ) - vb ) * scale : *it - dbase;
                     sp.setIntensity( idx++, d );
                 }
@@ -71,14 +72,14 @@ namespace aqmd3controls {
     struct pkd_waveform_copy {
         bool operator()( adcontrols::MassSpectrum& sp, const waveform& w ) const {
             if ( w.xmeta().channelMode == PKD ) {
-                size_t sz = std::accumulate( w.begin< value_type >(), w.end< value_type >(), size_t(0)
+                size_t sz = std::accumulate( w.begin(), w.end(), size_t(0)
                                              , []( size_t a, const value_type& b ) { return a + ( b > 0 ? 1 : 0 ); });
                 sp.resize( sz );
                 size_t idx(0);
-                for ( auto it = w.begin< value_type >(); it != w.end< value_type >(); ++it ) {
+                for ( auto it = w.begin(); it != w.end(); ++it ) {
                     if ( *it > 0 ) {
                         sp.setIntensity( idx, *it );
-                        sp.setTime( idx, w.time( std::distance( w.begin< value_type >(), it ) ) );
+                        sp.setTime( idx, w.time( std::distance( w.begin(), it ) ) );
                         ++idx;
                     }
                 }
@@ -131,32 +132,24 @@ waveform::waveform( uint32_t pos, const meta_data& meta )
 }
 
 waveform::waveform( std::shared_ptr< const identify > id
-                    , uint32_t pos, uint32_t events, uint64_t tp )// : serialnumber_( pos )
-                                                                   // , wellKnownEvents_( events )
+                    , uint32_t pos, uint32_t events, uint64_t tp ) // , wellKnownEvents_( events )
                                                                    // , timeSinceEpoch_( tp )
                                                                    // , firstValidPoint_( 0 )
                                                                    // , timeSinceInject_( 0.0 )
                                                                    // , ident_( id )
                                                                    // , hasTic_( false )
                                                                    // , tic_( 0 )
-                                                                   // , dbase_( 0 )
-// , rms_( 0 )
 {
+    set_pos( pos ); // sequential number
+    set_serialnumber( pos ); // trigger number
+    set_well_known_events( events );
+    set_epoch_time( tp );
 }
 
 void
 waveform::set_xmeta( const meta_data& meta )
 {
     xmeta_ = meta; // set to basic_waveform
-
-    // pn_ = meta.flags_ & 03; // LSB 2bits
-    // serialnumber_ = meta.trig_number_;
-    // wellKnownEvents_ = meta.flags_ & ~03;
-    // timepoint_    = meta.clock_counts_;
-    // elapsed_time_ = std::nano::den * double( meta.clock_counts_ ) / meta.clock_hz_; // s
-    // epoch_time_   = meta.epoch_time_;
-
-    // trigger_delay_ = meta.trigger_delay();
 }
 
 void
@@ -344,18 +337,20 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
             }
         } else {
             double dbase(0), rms(0);
-            switch( waveform.xmeta().dataType ) {
-            case 4:
-                adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-                waveform_copy<int32_t>()( sp, waveform, scale, dbase );
-                break;
-            case 8:
-                adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
-                waveform_copy<int64_t>()( sp, waveform, scale, dbase );
-                break;
-            default:
-                ADDEBUG() << "ERROR: Unexpected data type in waveform";
-            }
+            std::tie( std::ignore, dbase, rms ) = adportable::spectrum_processor::tic< waveform::value_type >( waveform.size(), waveform.data() );
+            waveform_copy< waveform::value_type >()( sp, waveform, scale, dbase );
+            // switch( waveform.xmeta().dataType ) {
+            // case 4:
+            //     adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+            //
+            //     break;
+            // case 8:
+            //     adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
+            //     waveform_copy<int64_t>()( sp, waveform, scale, dbase );
+            //     break;
+            // default:
+            //     ADDEBUG() << "ERROR: Unexpected data type in waveform";
+            // }
         }
     }
 	return true;
@@ -365,6 +360,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 bool
 waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, int scale )
 {
+#if 0
     if ( result.data() == nullptr )
     	return false;
 
@@ -382,7 +378,8 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
             for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
                 sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
     }
-
+#endif
+    ADDEBUG() << "TODO";
 	return true;
 }
 
@@ -437,17 +434,24 @@ waveform::deserialize_xdata( const char * data, size_t size )
 
 ///////////////////////
 void
-waveform::setData( const std::shared_ptr< adportable::mblock<int32_t> >& mblk, size_t firstValidPoint )
+waveform::setData( const std::shared_ptr< adportable::mblock<int32_t> > mblk, size_t firstValidPoint, size_t actualPoints )
 {
-    mblock_ = mblk;
-    xmeta().firstValidPoint = firstValidPoint;
+    //ADDEBUG() << "setData int32_t " << xmeta_.actualPoints;
+    // mblock_ = mblk;
+    xmeta().firstValidPoint = 0; // firstValidPoint;
+    // mblk->data() + firstValidPoint;
+    d_.resize( xmeta_.actualPoints );
+    std::copy( mblk->data() + firstValidPoint, mblk->data() + firstValidPoint + actualPoints, d_.begin() );
 }
 
 void
-waveform::setData( const std::shared_ptr< adportable::mblock<int16_t> >& mblk, size_t firstValidPoint )
+waveform::setData( const std::shared_ptr< adportable::mblock<int16_t> > mblk, size_t firstValidPoint, size_t actualPoints )
 {
-    mblock_ = mblk;
-    xmeta().firstValidPoint = firstValidPoint;
+    //ADDEBUG() << "setData int16_t " << xmeta_.actualPoints;
+    //mblock_ = mblk;
+    xmeta().firstValidPoint = 0; // firstValidPoint;
+    d_.resize( xmeta_.actualPoints );
+    std::copy( mblk->data() + firstValidPoint, mblk->data() + firstValidPoint + actualPoints, d_.begin() );
 }
 
 void
@@ -460,142 +464,4 @@ const aqmd3controls::method&
 waveform::method() const
 {
     return *method_;
-}
-
-
-//////////////// int8_t -- does not exist -- ////////////////
-template<> const int8_t *
-waveform::begin() const
-{
-    throw std::bad_cast();
-}
-
-template<> const int8_t *
-waveform::end() const
-{
-    throw std::bad_cast();
-}
-
-//////////////// int16_t ////////////////
-template<> const int16_t *
-waveform::begin() const
-{
-    if ( mblock_.which() == 0 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-template<> const int16_t *
-waveform::end() const
-{
-    if ( mblock_.which() == 0 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint + xmeta_.actualPoints;
-    }
-    throw std::bad_cast();
-}
-
-template<> const int16_t *
-waveform::data() const
-{
-    if ( mblock_.which() == 0 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-template<> int16_t *
-waveform::data()
-{
-    if ( mblock_.which() == 0 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-//////////////// int32_t ////////////////
-template<> const int32_t *
-waveform::begin() const
-{
-    if ( mblock_.which() == 1 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-template<> const int32_t *
-waveform::end() const
-{
-    if ( mblock_.which() == 1 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint + xmeta_.actualPoints;
-    }
-    throw std::bad_cast();
-}
-
-
-template<> const int32_t *
-waveform::data() const
-{
-    if ( mblock_.which() == 1 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-template<> int32_t *
-waveform::data()
-{
-    if ( mblock_.which() == 1 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-//////////////// int64_t ////////////////
-template<> const int64_t *
-waveform::begin() const
-{
-    if ( mblock_.which() == 2 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock< int64_t > > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-template<> const int64_t *
-waveform::end() const
-{
-    if ( mblock_.which() == 2 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock< int64_t > > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint + xmeta_.actualPoints;
-    }
-    throw std::bad_cast();
-}
-
-template<> const int64_t *
-waveform::data() const
-{
-    if ( mblock_.which() == 2 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock< int64_t > > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
-}
-
-template<> int64_t *
-waveform::data()
-{
-    if ( mblock_.which() == 2 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock< int64_t > > >( mblock_ );
-        return mblk->data() + xmeta_.firstValidPoint;
-    }
-    throw std::bad_cast();
 }

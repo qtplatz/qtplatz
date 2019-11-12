@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2018-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -46,6 +46,11 @@ namespace adportable {
     class semaphore;
 }
 
+namespace aqmd3controls {
+    class waveform;
+    class method;
+}
+
 namespace aqmd3 {
 
     //class udp_client;
@@ -56,6 +61,7 @@ namespace aqmd3 {
     class WaveformObserver;
     class meta_data;
     class pkdObserver;
+    class digitizer;
 
     class singleton {
         singleton();
@@ -67,8 +73,8 @@ namespace aqmd3 {
 
         inline boost::asio::io_service& io_service() { return io_service_; }
 
-        void close();
-        bool open( const char * address, const char * port );
+        bool initialize();
+        bool finalize();
 
         bool is_open() const;
 
@@ -79,10 +85,9 @@ namespace aqmd3 {
         void enqueue( std::string&& );
         bool dequeue( std::string& );
         bool dequeue( std::string&, const std::chrono::milliseconds& duration );
+        void reply_message( int msg, int value );
 
-        std::pair< std::shared_ptr< waveform >, std::shared_ptr< waveform > > mrd_avgd( uint32_t start_addr, uint32_t length, meta_data&, uint32_t tn = 0 );
-
-        bool connect( std::shared_ptr< adacquire::Receiver > ptr );
+        bool connect( std::shared_ptr< adacquire::Receiver > ptr, const std::string& token );
         bool disconnect( std::shared_ptr< adacquire::Receiver > ptr );
 
         adacquire::SignalObserver::Observer * getObserver();
@@ -95,6 +100,8 @@ namespace aqmd3 {
         void set_refresh_histogram( bool );
         void set_refresh_period( int );
         void set_hvdg_status( std::string&& );
+
+        inline aqmd3::digitizer& digitizer() { return *digitizer_; }
 
     private:
         // bool handle_waveform( std::shared_ptr< const waveform >&& );
@@ -117,6 +124,10 @@ namespace aqmd3 {
         bool inject_trigger_latch_;
         uint32_t inject_trigger_latch_count_;
         std::string hvdg_json_;
+        std::unique_ptr< aqmd3::digitizer > digitizer_;
+
+        void reply_handler( const std::string& method, const std::string& reply );
+        bool waveform_handler( const aqmd3controls::waveform * ch1, const aqmd3controls::waveform * ch2, aqmd3controls::method& );
     };
 
 }

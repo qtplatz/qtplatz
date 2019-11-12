@@ -5,9 +5,9 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this 
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this
 ** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms 
+** provided with the Software or, alternatively, in accordance with the terms
 ** contained in a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
@@ -56,9 +56,9 @@ bool
 task::initialize()
 {
     using namespace std::chrono_literals;
-    
+
     static std::once_flag flag;
-    
+
     std::call_once( flag, [&]() {
             unsigned nCores = 2; //std::thread::hardware_concurrency();
             while( nCores-- )
@@ -73,9 +73,9 @@ task::finalize()
 {
     if ( client_ )
         client_->stop();
-    
+
     io_service_.stop();
-    
+
     for ( auto& t: threads_ )
         t.join();
 
@@ -86,58 +86,58 @@ void
 task::connect( const std::string& server, const std::string& port )
 {
     using namespace acqrscontrols;
-    
+
     static std::once_flag flag;
 
     std::call_once( flag, [&](){
 
             client_ = std::make_unique< aqdrv4::acqiris_client >( server, port );
-            
+
             client_->connect( [&]( const aqdrv4::preamble * preamble, const char * data, size_t length ){
 
                     if ( preamble->clsid == aqdrv4::waveform::clsid() ) {
-                
+
                         if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::waveform >( *preamble, data ) )
                             push( p );
-                
+
                     } else if ( preamble->clsid == aqdrv4::acqiris_method::clsid() ) {
-                
+
                         if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
                             push( p );
-                
+
                     } else if ( preamble->clsid == aqdrv4::clsid_temperature ) {
-                
+
                         aqdrv4::pod_reader reader( data, preamble->length );
                         // document::instance()->replyTemperature( reader.get< int32_t >() );
-                
+
                     }
                 });
 
             threads_.emplace_back( std::thread( std::bind( &aqdrv4::acqiris_client::run, client_.get() ) ) );
         });
-    
+
     initialize();
 
     reply_message( adacquire::Receiver::STATE_CHANGED, adacquire::Instrument::eStandBy );
-}    
-    
+}
+
 void
 task::prepare_for_run( std::shared_ptr< const acqrscontrols::ap240::method > m )
 {
     if ( client_ ) {
         acqrscontrols::aqdrv4::acqiris_method aqrs4m;
-        
+
         *aqrs4m.mutable_trig() = m->trig_;
         *aqrs4m.mutable_hor() = m->hor_;
         *aqrs4m.mutable_ext() = m->ext_;
-        
+
         if ( m->channels_ & 0x01 )
             *aqrs4m.mutable_ch1() = m->ch1_;
-        
+
         if ( m->channels_ & 0x02 )
             *aqrs4m.mutable_ch2() = m->ch2_;
 
-        if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( aqrs4m ) ) 
+        if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( aqrs4m ) )
             client_->write( data );
 
         waveformObserver_->prepare_for_run( aqrs4m.methodNumber_, m );
@@ -161,7 +161,7 @@ task::event_out( uint32_t events )
 {
     if ( client_ ) {
         auto data = std::make_shared< acqrscontrols::aqdrv4::acqiris_protocol >();
-        
+
         data->preamble().clsid = acqrscontrols::aqdrv4::clsid_event_out;
         *data << events;
 
@@ -173,7 +173,7 @@ void
 task::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 {
     using namespace std::chrono_literals;
-    
+
     if ( masterObserver_ && waveformObserver_ ) {
         auto pos = waveformObserver_->push_back( d );  // this is not right though...
         masterObserver_->dataChanged( waveformObserver_.get(), pos );
@@ -184,7 +184,7 @@ void
 task::push( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m )
 {
     ADDEBUG() << "##### TODO Got method (adapted) from device --> reply data to client";
-    reply_message( adacquire::Receiver::METHOD_RECEIVED, receivers_.size() );    
+    reply_message( adacquire::Receiver::METHOD_RECEIVED, receivers_.size() );
 }
 
 void
@@ -214,4 +214,3 @@ task::reply_message( int msg, int value )
                 receiver.first->message( adacquire::Receiver::eINSTEVENT( msg ), value );
         });
 }
-

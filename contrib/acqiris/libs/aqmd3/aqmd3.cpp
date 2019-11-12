@@ -43,7 +43,7 @@ namespace aqmd3 {
         impl() : dataSerialNumber_( 0 ) {
         }
 
-        uint32_t dataSerialNumber() {
+        inline uint32_t dataSerialNumber() {
             return dataSerialNumber_++;
         }
     };

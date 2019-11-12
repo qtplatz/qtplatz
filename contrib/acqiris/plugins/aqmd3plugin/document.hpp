@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -109,7 +109,8 @@ namespace aqmd3 {
         void set_method( const aqmd3controls::method& );
 
         adextension::iSequenceImpl * iSequence();
-        aqmd3::iAQMD3Impl * iController();
+        // [[deprecated]] aqmd3::iAQMD3Impl * iController();
+        std::vector< adextension::iController * > iControllers() const;
 
         std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
         std::shared_ptr< adcontrols::SampleRun > sampleRun();

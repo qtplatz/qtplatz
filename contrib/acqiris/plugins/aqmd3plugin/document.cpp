@@ -96,7 +96,7 @@ namespace aqmd3 {
     struct user_preference {
         static boost::filesystem::path path( QSettings * settings ) {
             boost::filesystem::path dir( settings->fileName().toStdWString() );
-            return dir.remove_filename() / "u5303a";
+            return dir.remove_filename() / "aqmd3";
         }
     };
 
@@ -207,9 +207,9 @@ namespace aqmd3 {
         static const std::chrono::system_clock::time_point uptime_;
         static const uint64_t tp0_;
 
-        //std::shared_ptr< aqmd3controls::u5303a::tdcdoc > tdcdoc_;
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
-        std::shared_ptr< aqmd3::iAQMD3Impl > iControllerImpl_;
+        std::shared_ptr< aqmd3::iAQMD3Impl > iAQMD3Impl_;
+
         std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
@@ -238,8 +238,9 @@ namespace aqmd3 {
                   , std::array< std::shared_ptr< adcontrols::MassSpectrum >
                                 , aqmd3::nchannels > > spectra_;
 
-        impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() ) //tdcdoc_( std::make_shared< aqmd3controls::u5303a::tdcdoc >() )
-               , iControllerImpl_( std::make_shared< iAQMD3Impl >() )
+        impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
+                 // , tdcdoc_( std::make_shared< aqmd3controls::tdcdoc >() )
+               , iAQMD3Impl_( std::make_shared< iAQMD3Impl >() )
                , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "SA220E" ) )
                , isMethodDirty_( true )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
@@ -333,6 +334,8 @@ document::actionConnect()
 {
     using namespace std::literals::chrono_literals;
 
+    // ADDEBUG() << "### " << __FUNCTION__ << " ### " << (impl_->iControllers_.empty() ? "no iController installed" : "");
+
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
@@ -343,13 +346,26 @@ document::actionConnect()
 
             if ( isControllerEnabled( iController->module_name() ) ) {
 
-                ADDEBUG() << "u5303a actionConnect connecting to " << iController->module_name().toStdString();
+                // ADDEBUG() << "aqmd3 actionConnect connecting to " << iController->module_name().toStdString();
 
                 activeControllers.emplace_back( iController );
 
                 futures.emplace_back( std::async( [iController] () { return iController->wait_for_connection_ready( 3s ); } ) );
 
-                iController->connect();
+                if ( iController->connect() ){
+
+                    if ( iController->module_name() == iAQMD3Impl::__module_name__ ) {
+                        if ( auto inst = iController->getInstrumentSession() )
+                            inst->setConfiguration( "{}" );
+                        ADDEBUG() << "\tconnecting to " << iController->module_name().toStdString() << ", config: {}";
+                    }
+                    // if ( iController->module_name() == iDGMODImpl::__module_name__ ) {
+                    //     QJsonDocument doc{ QJsonObject{ {"ip_address", impl_->dg_http_host_}, { "port", impl_->dg_http_port_} } };
+                    //     if ( auto inst = impl_->iDGMODImpl_->getInstrumentSession() )
+                    //         inst->setConfiguration( doc.toJson( QJsonDocument::Compact ).toStdString() );
+                    //     ADDEBUG() << "\tconnecting to " << iController->module_name().toStdString() << ", config: " << doc.toJson().toStdString();
+                    // }
+                }
             }
         }
 
@@ -458,7 +474,7 @@ document::addInstController( adextension::iController * p )
 
     } catch ( std::bad_weak_ptr& ) {
 
-        QMessageBox::warning( MainWindow::instance(), "U5303A plugin"
+        QMessageBox::warning( MainWindow::instance(), "AQMD3 plugin"
                               , QString( tr( "Instrument controller %1 has no shared_ptr; ignored." ) ).arg( p->module_name() ) );
 
     }
@@ -471,7 +487,9 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
     using adextension::iController;
     using adacquire::SignalObserver::Observer;
 
-    if ( p->module_name() == "u5303a" ) { // handle only this device
+    ADDEBUG() << "### " << __FUNCTION__ << "### module_name: " << p->module_name().toStdString();
+
+    if ( document::instance()->isControllerEnabled( p->module_name() ) ) {
 
         for ( auto it = iControllers_.begin(); it != iControllers_.end(); ++it )
             if ( ( *it )->module_name() == "u5303a" )
@@ -488,6 +506,7 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
         connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
 
         p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+        //
     }
 
 }
@@ -525,13 +544,10 @@ document::prepare_for_run()
 
     prepare_next_sample( impl_->nextSampleRun_, *impl_->cm_ );
 
-    ADDEBUG() << "### prepare_for_run ###";
-
     std::vector< std::future< bool > > futures;
     for ( auto& iController : impl_->iControllers_ ) {
-        if ( auto session = iController->getInstrumentSession() ) {
+        if ( auto session = iController->getInstrumentSession() )
             futures.push_back( std::async( [=] () { return session->prepare_for_run( cm ); } ) );
-        }
     }
     if ( !futures.empty() )
         task::instance()->post( futures );
@@ -1110,8 +1126,6 @@ document::impl::takeSnapshot()
     if ( ! boost::filesystem::exists( path ) )
         path = dir / ( std::wstring( nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
 
-    unsigned idx = 0;
-
     // get histogram
     double resolution = 0.0;
     // if ( auto tm = tdcdoc_->threshold_method( idx ) )
@@ -1156,11 +1170,13 @@ document::impl::takeSnapshot()
 
 }
 
-iAQMD3Impl *
-document::iController()
+
+std::vector< adextension::iController * >
+document::iControllers() const
 {
-    return impl_->iControllerImpl_.get();
+    return { impl_->iAQMD3Impl_.get() };
 }
+
 
 adextension::iSequenceImpl *
 document::iSequence()
@@ -1178,14 +1194,17 @@ document::result_to_file( std::shared_ptr< aqmd3controls::threshold_result > ch1
 bool
 document::isControllerEnabled( const QString& module ) const
 {
-    if ( impl_->iControllerImpl_->module_name() == module )
-        return true;
+    for ( auto inst: iControllers() ) {
+        if ( inst->module_name() == module )
+            return true;
+    }
     return false;
 }
 
 bool
 document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
+    ADDEBUG() << "###### " << __FUNCTION__ << " ##### - TODO";
 #if 0
     // todo
     std::string objtext;

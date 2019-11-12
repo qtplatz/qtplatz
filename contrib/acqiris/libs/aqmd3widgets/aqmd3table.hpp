@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,27 +24,40 @@
 
 #pragma once
 
-#include "aqmd3controls_global.hpp"
-#include "waveform.hpp"
-#include <adportable/counting/threshold_index.hpp>
-#include <adportable/basic_waveform.hpp>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/access.hpp>
-#include <memory>
-#include <vector>
-#include <cstdint>
-#include <ostream>
-#include <compiler/pragma_warning.hpp>
+#include "constants.hpp"
+#include <adwidgets/tableview.hpp>
 
+class QStandardItemModel;
 
 namespace aqmd3controls {
+    class device_method;
+}
 
-    class waveform;
+namespace aqmd3widgets {
 
-    class AQMD3CONTROLSSHARED_EXPORT histogram : public adportable::basic_waveform< std::pair< uint32_t, int32_t >, aqmd3controls::meta_data > {
-        histogram( const histogram& t ) = delete;
+    class aqmd3Table : public adwidgets::TableView  {
+        Q_OBJECT
     public:
-        histogram();
+        explicit aqmd3Table(QWidget *parent = 0);
+        ~aqmd3Table();
+
+        void onInitialUpdate();
+
+        bool setContents( const aqmd3controls::device_method& );
+
+        bool getContents( aqmd3controls::device_method& );
+
+        void onHandleValue( idCategory, int, const QVariant& );
+
+        void setEnabled( const QString&, bool );
+
+    private:
+        class MyDelegate;
+        QStandardItemModel * model_;
+        bool pkd_enabled_;
+    signals:
+        void valueChanged( idCategory, int channel, const QVariant& );
+
     };
 
 }

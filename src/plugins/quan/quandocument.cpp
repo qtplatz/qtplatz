@@ -125,8 +125,8 @@ QuanDocument::QuanDocument() : settings_( std::make_shared< QSettings >(QSetting
                                                                         , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                         , QLatin1String( "Quan" ) ) )
                              , procm_( std::make_unique< adcontrols::ProcessMethod >())
-                             , postCount_( 0 )
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
+                             , postCount_( 0 )
                              , semaphore_( 16 )
 {
     method_list::create( *procm_ );
@@ -224,10 +224,10 @@ QuanDocument::load_default_methods()
         if ( dirty_flags_[ idMethodComplex ] ) {
             boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
             boost::filesystem::path backup = dir / L"QuanMethod.xml";
-            ADDEBUG() << "=========== default method load from: " << backup.string();
+            // ADDEBUG() << "=========== default method load from: " << backup.string();
             if ( boost::filesystem::exists( backup ) && load( backup, *procm_, false ) )
                 dirty_flags_[ idMethodComplex ] = false; // don't update filename
-            ADDEBUG() << "=========== default method load status: " << ( ( dirty_flags_[ idMethodComplex ] == false ) ? "success" : "fail" );
+            // ADDEBUG() << "=========== default method load status: " << ( ( dirty_flags_[ idMethodComplex ] == false ) ? "success" : "fail" );
         }
 
     } while ( 0 );

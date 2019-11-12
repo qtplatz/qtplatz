@@ -1,5 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2014-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -21,29 +22,41 @@
 **
 **************************************************************************/
 
-#include "iaqmd3impl.hpp"
-#include <aqmd3/session.hpp>
-#include <adplugin/plugin.hpp>
-#include <adplugin_manager/loader.hpp>
-#include <adportable/debug.hpp>
-#include <adacquire/manager.hpp>
+#pragma once
 
-using namespace aqmd3;
+namespace aqmd3widgets {
 
-iAQMD3Impl::iAQMD3Impl() : adextension::iControllerImpl("aqmd3")
-{
-}
+    enum idCategory {
+        //------------------- global ---------------
+        idGlobalAny = 0
+        , idSlopeTimeConverter
+        , idThresholdAction
+        //------------------- ap240 & global ---------------
+        , idAP240Any = 1000
+        , idHorizontal
+        , idVertical
+        , idTrigger
+        , idChannels
+        , idAP240StartDelay
+        , idAP240Width
+        , idAP240NbrAverages
+        , idAP240Mode
+        , idAP240SampRate
+        , idAP240NbrSamples
+        , idAP240ExtDelay
 
-iAQMD3Impl::~iAQMD3Impl()
-{
-}
+        //------------------- aqmd3 ---------------
+        , idAQMD3Any = 2200
+        , idAQMD3StartDelay
+        , idAQMD3Width
+        , idNbrAverages
+        , idAQMD3Mode
+        , idAQMD3SampRate
+        , idAQMD3NbrSamples
+        , idNbrRecords
+        , idTSREnable
+        , idAQMD3ExtDelay
+        , idPKDEnable
+    };
 
-bool
-iAQMD3Impl::connect()
-{
-    if ( auto aqmd3 = std::make_shared< aqmd3::session >() ) {
-        adextension::iControllerImpl::connect( aqmd3.get(), "iAQMD3Impl" );
-        return true;
-    }
-    return false;
 }

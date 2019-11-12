@@ -24,6 +24,7 @@
 #pragma once
 
 #include "aqmd3controls_global.hpp"
+#include "identify.hpp"
 #include <cstdint>
 #include <ostream>
 #include <boost/serialization/version.hpp>
@@ -41,6 +42,7 @@ namespace aqmd3controls {
     class meta_data {
     public:
         meta_data();
+        meta_data( const meta_data& );
 
         double initialXTimeSeconds;
         int64_t actualPoints;
@@ -57,9 +59,7 @@ namespace aqmd3controls {
         ChannelMode channelMode;
         //
         int32_t firstValidPoint;
-
-        void setJson( const std::string& );
-        const std::string& json() const;
+        std::shared_ptr< const aqmd3controls::identify > identify;
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
