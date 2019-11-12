@@ -325,7 +325,7 @@ task::impl::worker_thread()
                                                                     , 0 // mode
                                                                     , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
                                                                     , device_data
-                                                                    , [&]( const int32_t& d ){ return 1000 * waveform::toVolts( d, avg->xmeta().actualAverages ); } );
+                                                                    , [&]( const int32_t& d ){ return 1000 * avg->toVolts( d ); } );
 
             document::instance()->setData( waveform_observer, avgms, 0 );
         }

@@ -191,18 +191,19 @@ waveform::time( size_t idx ) const
     return idx * xmeta().xIncrement + xmeta().initialXOffset + ext_trig_delay;
 }
 
-// static
 double
-waveform::toVolts( int32_t d, size_t actual_averages )
+waveform::toVolts( int32_t d ) const
 {
-    size_t n = actual_averages == 0 ? 1 : actual_averages;
-    return ( double(d) * (1.9/2) / 0x7ff ) / n;
+    if ( method_->mode() == method::DigiMode::Digitizer )
+        return toVolts_<int32_t,method::DigiMode::Digitizer>()( xmeta_, d );
+    else
+        return toVolts_<int32_t,method::DigiMode::Averager>()( xmeta_, d );
 }
 
 std::pair< double, uint64_t >
 waveform::xy( uint32_t idx ) const
 {
-    return std::make_pair( time( idx ), toVolts( d_[ idx ] ) );
+    return std::make_pair( time( idx ), d_[ idx ] );
 }
 
 //static

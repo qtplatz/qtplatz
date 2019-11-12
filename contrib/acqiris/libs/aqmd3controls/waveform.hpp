@@ -105,15 +105,13 @@ namespace aqmd3controls {
         void set_trigger_delay( double );
 
         void set_elapsed_time( uint64_t value );
-        //double trigger_delay() const;
-        //double xIncrement() const;
-        static double toVolts( int32_t, size_t actual_averages = 0 );
-        //static int32_t adCounts( double );
 
         double time( size_t ) const;
         std::pair< double, uint64_t > xy( uint32_t ) const;
 
         bool operator += ( const waveform& );
+
+        double toVolts( int32_t ) const;
 
         static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
@@ -122,6 +120,22 @@ namespace aqmd3controls {
 
         static bool translate( adcontrols::MassSpectrum&, const waveform&, mass_assignor_t, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
         static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
+
+        //  Digitizer or soft averaged data to volts
+        template< typename T, method::DigiMode = method::DigiMode::Digitizer > struct toVolts_ {
+            inline double operator()( const meta_data& meta, T d ) const {
+                int actualAverages = meta.actualAverages == 0 ? 1 : meta.actualAverages;
+                return double( meta.scaleFactor * d ) / actualAverages + meta.scaleOffset;
+            }
+        };
+
+        //  Averaged data to volts
+        template< typename T > struct toVolts_<T, method::DigiMode::Averager > {
+            inline double operator()( const meta_data& meta, T d ) const {
+                return d * meta.scaleFactor + meta.scaleOffset;
+            }
+        };
+
 
         ////////////////////////////
         // 32bit interface
@@ -134,41 +148,8 @@ namespace aqmd3controls {
         const aqmd3controls::method& method() const;
 
     private:
-        // boost::variant < std::shared_ptr< adportable::mblock<int16_t> >
-        //                  , std::shared_ptr< adportable::mblock<int32_t> >
-        //                  , std::shared_ptr< adportable::mblock<int64_t> >
-        //                  > mblock_;
-
         double trigger_delay_;
         bool is_pkd_;
         std::unique_ptr< aqmd3controls::method > method_;
-
-        // template< typename lvalue_type
-        //           , typename rvalue_type > void add( const waveform& t, double dbase ) {
-        //     std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-        //                     , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );
-        // }
-
-        // template< typename lvalue_type
-        //           , typename rvalue_type > void sub( const waveform& t ) {
-        //     std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-        //                     , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( b - a ); } );
-        // }
     };
-
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::begin() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::end() const;
-
-    // template<> AQMD3CONTROLSSHARED_EXPORT int16_t * waveform::data();
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int16_t * waveform::data() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT int32_t * waveform::data();
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int32_t * waveform::data() const;
-    // template<> AQMD3CONTROLSSHARED_EXPORT int64_t * waveform::data();
-    // template<> AQMD3CONTROLSSHARED_EXPORT const int64_t * waveform::data() const;
 }

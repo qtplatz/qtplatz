@@ -958,14 +958,16 @@ document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 }
 
 void
-document::set_method( const aqmd3controls::method& )
+document::set_method( const aqmd3controls::method& m )
 {
+    ADDEBUG() << "set_method(" << m.modelClass();
+
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         setControlMethod( cm );
 
         auto it = std::find_if( impl_->iControllers_.begin(), impl_->iControllers_.end(), [] ( std::shared_ptr<adextension::iController> ic ) {
-                return ic->module_name() == "u5303a";
-            } );
+                return ic->module_name() == "aqmd3";
+            });
         if ( it != impl_->iControllers_.end() ) {
             if ( auto session = ( *it )->getInstrumentSession() )
                 session->prepare_for_run( cm );

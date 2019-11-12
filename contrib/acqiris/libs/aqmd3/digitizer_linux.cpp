@@ -1148,6 +1148,7 @@ digitizer::readData( AqMD3& md2, const aqmd3controls::method& m, std::vector< st
                     auto& d = *data;
 
                     //d.device_method_ = m;
+                    d.set_method( m );
                     d.xmeta().actualAverages = 0; // digitizer
                     d.xmeta().actualPoints = actualPoints[ iRecord ];
                     d.xmeta().initialXTimeSeconds = initialXTimeSeconds[ iRecord ] + initialXTimeFraction[ iRecord ];
@@ -1157,7 +1158,6 @@ digitizer::readData( AqMD3& md2, const aqmd3controls::method& m, std::vector< st
                     d.xmeta().scaleOffset = scaleOffset;
                     d.xmeta().protocolIndex = m.protocolIndex();
                     d.xmeta().dataType = mblk->dataType();
-
                     d.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
                     d.setData( mblk, firstValidPoints[ iRecord ], d.xmeta().actualPoints );
 
@@ -1209,7 +1209,7 @@ digitizer::readData16( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
                                                    , &scaleFactor
                                                    , &scaleOffset ), __FILE__, __LINE__ ) ) {
 
-
+            ADDEBUG() << __FUNCTION__;
             data.set_method( m );
             data.xmeta().actualAverages = actualAverages;
             data.xmeta().actualPoints = actualPoints[ 0 ];

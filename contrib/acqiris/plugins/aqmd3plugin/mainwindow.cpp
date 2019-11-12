@@ -119,15 +119,15 @@ MainWindow::createDockWidgets()
         createDockWidget( widget, "SA220E", "ThresholdMethod" );
 
         connect( widget, &aqmd3widgets::ThresholdWidget::valueChanged, [this] ( aqmd3widgets::idCategory cat, int ch ) {
-                if ( auto form = findChild< aqmd3widgets::ThresholdWidget * >() ) {
-                    if ( cat == aqmd3widgets::idSlopeTimeConverter ) {
-                        adcontrols::threshold_method tm;
-                        form->get( ch, tm );
-                        document::instance()->set_threshold_method( ch, tm );
-                    }
+            ADDEBUG() << "valueChanged";
+            if ( auto form = findChild< aqmd3widgets::ThresholdWidget * >() ) {
+                if ( cat == aqmd3widgets::idSlopeTimeConverter ) {
+                    adcontrols::threshold_method tm;
+                    form->get( ch, tm );
+                    document::instance()->set_threshold_method( ch, tm );
                 }
-
-            });
+            }
+        });
 
     }
 #if 0
@@ -143,17 +143,16 @@ MainWindow::createDockWidgets()
             });
     }
 #endif
-    if ( auto widget = new aqmd3widgets::AQMD3Widget ) {
 
-        widget->setObjectName( "SA220E" );
-        createDockWidget( widget, "SA220E", "ControlMethod" );
-#if 0
-        connect( widget, &acqrswidgets::u5303AWidget::valueChanged, [this,widget]( acqrswidgets::idCategory cat, int ch ) {
+    if ( auto widget = new aqmd3widgets::AQMD3Widget ) {
+        widget->setObjectName( "SA220P/E" );
+        createDockWidget( widget, "SA220P/E", "ControlMethod" );
+        connect( widget, &aqmd3widgets::AQMD3Widget::valueChanged, [this,widget]( aqmd3widgets::idCategory cat, int ch ) {
             aqmd3controls::method m;
-                if ( widget->get( m ) )
-                    document::instance()->set_method( m );
-            });
-#endif
+            if ( widget->get( m ) ) {
+                document::instance()->set_method( m );
+            }
+        });
     }
 
     if ( auto widget = new adwidgets::SampleRunWidget ) {
