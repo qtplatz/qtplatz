@@ -53,6 +53,7 @@
 #include <adportable/date_string.hpp>
 #include <adfs/sqlite.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
@@ -195,7 +196,7 @@ DataSequenceWidget::dataSelectionBar()
         auto edit = new QLineEdit;
         edit->setObjectName( Constants::editOutfile );
         toolBarLayout->addWidget( edit );
-        
+
         edit->setClearButtonEnabled( true );
         auto icon = QIcon( ":/quan/images/filesave.png" );
         QAction * tgtFileAction = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition );
@@ -207,7 +208,7 @@ DataSequenceWidget::dataSelectionBar()
                 execButton->setToolTip( tr( "Run sequence in batch process" ) );
                 toolBarLayout->addWidget( execButton );
             }
-            
+
             if ( auto stopButton = new QToolButton ) {
                 stopButton->setDefaultAction( am->command( Constants::QUAN_SEQUENCE_STOP )->action() );
                 stopButton->setToolTip( tr( "Stop sequence executeion" ) );
@@ -215,14 +216,14 @@ DataSequenceWidget::dataSelectionBar()
             }
         }
 
-        // open datafile(s) 
+        // open datafile(s)
         connect( button, &QToolButton::clicked, this, [this] ( bool ){
 
                 QFileDialog dlg( 0, tr( "Open data file(s)" ), QuanDocument::instance()->lastDataDir() );
 
                 dlg.setNameFilter( tr("Data Files(*.adfs *.csv *.txt *.spc)") );
                 dlg.setFileMode( QFileDialog::ExistingFiles );
-                
+
                 if ( dlg.exec() == QDialog::Accepted ) {
                     auto result = dlg.selectedFiles();
                     datasequence_type().setData( stack_->currentWidget(), result );
@@ -323,7 +324,7 @@ DataSequenceWidget::handleSampleInletChanged( int inlet )
     } else if ( adcontrols::QuanSample::Counting == inlet ) {
         stack_->setCurrentIndex( 0 );
         if ( auto table = stack_->currentWidget()->findChild< DataSequenceTable * >() )
-            table->setSampleInlet( inlet );        
+            table->setSampleInlet( inlet );
     } else {
         stack_->setCurrentIndex( 1 ); // Infusion; currently disabled due to a show stopper bug
     }
@@ -337,11 +338,11 @@ DataSequenceWidget::handlePlot( const QString& file )
     boost::filesystem::path path( file.toStdString() );
 
     std::wstring errmsg;
-    
+
     if ( boost::filesystem::exists( path ) ) {
 
         qtwrapper::waitCursor wait;
-        
+
         auto dp = std::make_shared< adprocessor::dataprocessor >();
 
         if ( dp->open( path.wstring(), errmsg ) ) {
@@ -351,7 +352,7 @@ DataSequenceWidget::handlePlot( const QString& file )
                 if ( auto ms = dp->readCoAddedSpectrum( false ) ) {
                     spw->setData( ms, 0, false );
                 }
-                
+
                 // averaged histogram
                 if ( auto hist = dp->readSpectrumFromTimeCount() ) {
                     // normalize to 1000 trigger
@@ -362,7 +363,7 @@ DataSequenceWidget::handlePlot( const QString& file )
                     }
                     spw->setData( hist, 1, true );
                 }
-#if 0                
+#if 0
                 // realtime histogram has a resolution problem
                 if ( auto ms = dp->readCoAddedSpectrum( true ) ) {
                     // normalize to counts / 1000 trig

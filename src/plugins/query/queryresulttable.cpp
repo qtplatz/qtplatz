@@ -42,6 +42,7 @@
 #include <QVariant>
 #include <QPainter>
 #include <QDebug>
+#include <compiler/boost/workaround.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -88,9 +89,9 @@ namespace query {
         int computed_mass_column_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
     };
-    
+
     namespace queryresulttable {
-        
+
         class ItemDelegate : public QStyledItemDelegate {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
@@ -112,7 +113,7 @@ namespace query {
                                     painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( it->second ) );
                             }
                         } else if ( column_name == "meta" && index.data().type() == QVariant::ByteArray ) {
-                            
+
                         } else {
                             QStyledItemDelegate::paint( painter, op, index );
                         }
@@ -130,7 +131,7 @@ namespace query {
             void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
                 QStyledItemDelegate::setModelData( editor, model, index );
             }
-            
+
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
                 if ( index.data().isNull() ) {
@@ -249,4 +250,3 @@ QueryResultTable::handlePlot()
 {
     emit plot();
 }
-

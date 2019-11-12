@@ -54,6 +54,7 @@
 #include <socfpga/advalue.hpp>
 #include <socfpga/traceobserver.hpp>
 #include <socfpga/data_accessor.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/basic_waitable_timer.hpp>
 #include <boost/format.hpp>

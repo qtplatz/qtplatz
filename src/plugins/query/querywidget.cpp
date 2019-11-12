@@ -60,6 +60,7 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QStandardItemModel>
+#include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>

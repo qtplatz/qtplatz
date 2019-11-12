@@ -32,7 +32,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/polfit.hpp>
-
+#include <compiler/boost/workaround.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>

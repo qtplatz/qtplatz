@@ -30,6 +30,7 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adprocessor/dataprocessor.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/any.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -43,7 +44,7 @@ namespace adprocessor { class dataprocessor; }
 
 
 namespace counting2d {
-    // See malpix/malpix/mpxcontrols/constants.hpp    
+    // See malpix/malpix/mpxcontrols/constants.hpp
     // malpix_observer = name_generator( "{6AE63365-1A4D-4504-B0CD-38AE86309F83}" )( "1.image.malpix.ms-cheminfo.com" )
 
     static const boost::uuids::uuid malpix_observer = boost::uuids::string_generator()( "{62ede8f7-dfa3-54c3-a034-e012173e2d10}" );
@@ -68,7 +69,7 @@ bool
 document::setDataprocessor( std::shared_ptr< adprocessor::dataprocessor > dp )
 {
     if ( auto rawfile = dp->rawdata() ) {
-        
+
         if ( rawfile->dataformat_version() >= 3 ) {
 
             // is this contains MALPIX image data?
@@ -92,7 +93,7 @@ document::fetch()
 {
     if ( auto dp = processor_ ) {
         if ( auto reader = dp->rawdata()->dataReader( malpix_observer ) ) {
-	  
+
             for ( auto it = reader->begin(); it != reader->end(); ++it ) {
                 boost::any a = reader->getData( it->rowid() );
                 if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MappedDataFrame > >( a ) ) {
@@ -185,26 +186,26 @@ void
 document::kmean( std::shared_ptr< const adcontrols::MappedDataFrame > dframe )
 {
     cv::Mat features( dframe->size1(), dframe->size2(), CV_32FC1 );
-    
+
     for ( size_t i = 0; i < dframe->matrix().size1(); ++i ) {
        for ( size_t j = 0; j < dframe->matrix().size2(); ++j ) {
            features.at< float >( i, j ) = dframe->matrix()( i, j );
        }
     }
-    
-    emit dataChanged();    
+
+    emit dataChanged();
 }
 
 void
 document::contours( std::shared_ptr< const adcontrols::MappedDataFrame > dframe )
 {
-    emit dataChanged();    
+    emit dataChanged();
 }
 
 // todo:
 // http://stackoverflow.com/questions/30278473/how-to-efficiently-detect-the-center-of-clusters-in-an-image-with-opencv
 
-// see 12, blur filter 
+// see 12, blur filter
 // http://stackoverflow.com/questions/356035/algorithm-for-detecting-clusters-of-dots
 
 const cv::Mat&
