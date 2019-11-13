@@ -73,6 +73,8 @@ add_library(
   mainwindow.hpp
   task.cpp
   task.hpp
+  tdc.cpp
+  tdc.hpp
   waveformwnd.cpp
   waveformwnd.hpp
   isequenceimpl.cpp

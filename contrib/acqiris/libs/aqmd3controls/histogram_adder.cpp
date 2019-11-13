@@ -31,7 +31,7 @@
 #include <numeric>
 #include <cassert>
 
-using namespace ads54j;
+using namespace aqmd3controls;
 
 histogram_adder::histogram_adder() : serialnumber_( 0 )
                                    , timeSinceEpoch_( 0 )
@@ -55,17 +55,18 @@ histogram_adder::reset()
 size_t
 histogram_adder::append( const pkd_result& result )
 {
-    assert( result.xmeta().actual_points_ );
+    assert( result.xmeta().actualPoints );
 
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    reset_requested_ = meta_.trig_delay_counts_ != result.xmeta().trig_delay_counts_;
+    reset_requested_ = meta_.actualPoints != result.xmeta().actualPoints ||
+        int64_t( meta_.initialXOffset * 1.0e9 ) != int64_t( result.xmeta().initialXOffset * 1.0e9 );
 
     if ( reset_requested_ ) {
         meta_ = result.xmeta();
-        meta_.actual_averages_++;
+        meta_.actualAverages++;
 
-        data_.resize( meta_.actual_points_ );
+        data_.resize( meta_.actualPoints );
 
         reset_requested_ = false;
 
@@ -76,7 +77,7 @@ histogram_adder::append( const pkd_result& result )
         wellKnownEvents_ = result.data()->well_known_events();
     }
 
-    meta_.actual_averages_ += result.xmeta().actual_averages_ + 1;
+    meta_.actualAverages += result.xmeta().actualAverages + 1;
 
     if ( result.size() )
         std::for_each( result.begin(), result.end(), [&] ( const adportable::counting::threshold_index& idx ) {  data_[ idx.apex ] ++; });
@@ -85,7 +86,7 @@ histogram_adder::append( const pkd_result& result )
     timeSinceEpoch_ = result.data()->epoch_time();
     wellKnownEvents_ |= result.data()->well_known_events();
 
-    return meta_.actual_averages_;
+    return meta_.actualAverages;
 }
 
 size_t
@@ -95,10 +96,10 @@ histogram_adder::append( const waveform& pkd )
 
     if ( reset_requested_ ) {
         meta_ = pkd.xmeta();
-        if ( meta_.actual_averages_ == 0 )
-            meta_.actual_averages_++;
+        if ( meta_.actualAverages == 0 )
+            meta_.actualAverages++;
 
-        data_.resize( meta_.actual_points_ );
+        data_.resize( meta_.actualPoints );
 
         reset_requested_ = false;
 
@@ -109,7 +110,7 @@ histogram_adder::append( const waveform& pkd )
         wellKnownEvents_ = pkd.well_known_events();
     }
 
-    meta_.actual_averages_ += ( pkd.xmeta().actual_averages_ == 0 ) ? 1 : pkd.xmeta().actual_averages_;
+    meta_.actualAverages += ( pkd.xmeta().actualAverages == 0 ) ? 1 : pkd.xmeta().actualAverages;
 
     std::transform( pkd.begin(), pkd.end(), data_.begin(), data_.begin(), []( auto a, auto b ){ return a + b; } );
 
@@ -117,20 +118,20 @@ histogram_adder::append( const waveform& pkd )
     timeSinceEpoch_ = pkd.epoch_time();
     wellKnownEvents_ |= pkd.well_known_events();
 
-    return meta_.actual_averages_;
+    return meta_.actualAverages;
 }
 
 
 size_t
 histogram_adder::actualAverage() const
 {
-    return meta_.actual_averages_;
+    return meta_.actualAverages;
 }
 
 double
 histogram_adder::triggers_per_sec() const
 {
-    return meta_.actual_averages_ / double( timeSinceEpoch_ - timeSinceEpoch_0_ ) * 1.0e-9;
+    return meta_.actualAverages / double( timeSinceEpoch_ - timeSinceEpoch_0_ ) * 1.0e-9;
 }
 
 std::shared_ptr< adcontrols::TimeDigitalHistogram >
@@ -141,11 +142,11 @@ histogram_adder::fetch( bool reset )
     std::lock_guard< std::mutex > lock( mutex_ );
 
     x->histogram().clear();
-    x->setInitialXTimeSeconds( double( meta_.clock_counts_ ) / double(meta_.clock_hz_ / 4) ); // seconds
-    x->setInitialXOffset( meta_.time( 0 ) );
-    x->setXIncrement( 1.0 / meta_.clock_hz_ );
-    x->setActualPoints( data_.size() );
-    x->setTrigger_count( meta_.actual_averages_ );
+    x->setInitialXTimeSeconds( meta_.initialXTimeSeconds );
+    x->setInitialXOffset( meta_.initialXOffset );
+    x->setXIncrement( meta_.xIncrement );
+    x->setActualPoints( meta_.actualPoints );
+    x->setTrigger_count( meta_.actualAverages );
     x->setSerialnumber( std::make_pair( serialnumber_, serialnumber_0_ ) );
     x->setTimeSinceEpoch( std::make_pair( timeSinceEpoch_, timeSinceEpoch_0_ ) );
     x->setWellKnownEvents( wellKnownEvents_ );
@@ -156,7 +157,7 @@ histogram_adder::fetch( bool reset )
 
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
-            double t = meta_.time( std::distance( data_.begin(), it ) );
+            double t = std::distance( data_.begin(), it ) * meta_.xIncrement + meta_.initialXOffset;
             x->histogram().emplace_back( t, *it );
         }
     }
@@ -171,12 +172,13 @@ histogram_adder::translate( adcontrols::TimeDigitalHistogram& hist, const wavefo
 {
     const auto& meta = pkd.xmeta();
     hist.histogram().clear();
-    hist.setInitialXTimeSeconds( double( meta.clock_counts_ ) / double(meta.clock_hz_ / 4) ); // seconds
-    // x.setInitialXOffset( meta_.initialXOffset );
-    hist.setXIncrement( 1.0 / meta.clock_hz_ );
+
+    hist.setInitialXTimeSeconds( meta.initialXTimeSeconds );
+    hist.setInitialXOffset( meta.initialXOffset );
+    hist.setXIncrement( meta.xIncrement );
     hist.setActualPoints( pkd.size() );
 
-    hist.setTrigger_count( meta.actual_averages_ );
+    hist.setTrigger_count( meta.actualAverages );
     hist.setSerialnumber( std::make_pair( pkd.serialnumber(), pkd.serialnumber() ) );
     hist.setTimeSinceEpoch( std::make_pair( pkd.epoch_time(), pkd.epoch_time() ) );
     hist.setWellKnownEvents( pkd.well_known_events() );
@@ -185,9 +187,8 @@ histogram_adder::translate( adcontrols::TimeDigitalHistogram& hist, const wavefo
 
     uint32_t index(0);
     for ( auto y: pkd ) {
-        double t = ( index + meta.trig_delay_counts_ ) * (1.0/meta.clock_hz_);
         if ( y > 0 )
-            hist.histogram().emplace_back( t, y );
+            hist.histogram().emplace_back( pkd.time( index ), y );
         ++index;
     }
 }

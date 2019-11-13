@@ -32,7 +32,9 @@
 #include <mutex>
 #include <compiler/pragma_warning.hpp>
 
-namespace aqmd3 {
+namespace aqmd3controls {
+
+    typedef aqmd3controls::waveform waveform_t;
 
     class waveform_adder {
         waveform_adder( const waveform_adder & ) = delete;
@@ -42,12 +44,12 @@ namespace aqmd3 {
         waveform_adder();
 
         void reset();
-        size_t add( const waveform& );
+        size_t add( const waveform_t& );
 
         uint32_t trigNumber( bool first = false ) const { return first ? serialnumber_0_ : serialnumber_; }
         uint64_t timeSinceEpoch( bool first = false ) const { return first ? timeSinceEpoch_0_ : timeSinceEpoch_; }
 
-        std::shared_ptr< waveform > fetch( bool reset = true );
+        std::shared_ptr< waveform_t > fetch( bool reset = true );
         size_t actualAverage() const;
 
     private:
@@ -59,7 +61,7 @@ namespace aqmd3 {
         uint32_t wellKnownEvents_;
 
         std::mutex mutex_;
-        std::shared_ptr< waveform > waveform_;
+        std::shared_ptr< waveform_t > waveform_;
         std::atomic< bool > reset_requested_;
     };
 

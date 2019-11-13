@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,12 +29,12 @@
 #include <numeric>
 #include <cassert>
 
-using namespace ads54j;
+using namespace aqmd3controls;
 
 waveform_adder::waveform_adder() : serialnumber_( 0 )
-                                   , timeSinceEpoch_( 0 )
-                                   , reset_requested_( true )
-                                   , wellKnownEvents_(0)
+                                 , timeSinceEpoch_( 0 )
+                                 , wellKnownEvents_(0)
+                                 , reset_requested_( true )
 {
 }
 
@@ -50,7 +50,7 @@ waveform_adder::add( const waveform& rhs )
     std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( waveform_ )
-        reset_requested_ = waveform_->xmeta().trig_delay_counts_ != rhs.xmeta().trig_delay_counts_;
+        reset_requested_ = adportable::compare< double >::approximatelyEqual( waveform_->xmeta().initialXOffset, rhs.xmeta().initialXOffset );
 
     if ( reset_requested_ || waveform_ == nullptr || ( rhs.size() != waveform_->size()) ) {
 
@@ -70,13 +70,13 @@ waveform_adder::add( const waveform& rhs )
     timeSinceEpoch_ = rhs.epoch_time();
     wellKnownEvents_ |= rhs.well_known_events();
 
-    return waveform_->xmeta().actual_averages_;
+    return waveform_->xmeta().actualAverages;
 }
 
 size_t
 waveform_adder::actualAverage() const
 {
-    return waveform_->xmeta().actual_averages_;
+    return waveform_->xmeta().actualAverages;
 }
 
 std::shared_ptr< waveform >

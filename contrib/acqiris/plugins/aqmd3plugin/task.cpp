@@ -22,14 +22,17 @@
 **************************************************************************/
 
 #include "task.hpp"
+#include "tdc.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-//#include <aqmd3controls/tdcdoc.hpp>
 #include <aqmd3/constants.hpp>
 #include <aqmd3controls/histogram.hpp>
-#include <aqmd3controls/waveform.hpp>
-#include <aqmd3controls/threshold_result.hpp>
+#include <aqmd3controls/histogram_adder.hpp>
 #include <aqmd3controls/method.hpp>
+#include <aqmd3controls/pkd_result.hpp>
+#include <aqmd3controls/threshold_result.hpp>
+#include <aqmd3controls/waveform.hpp>
+#include <aqmd3controls/waveform_adder.hpp>
 #include <aqmd3/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
@@ -44,6 +47,7 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/waveform_translator.hpp>
 #include <adportable/asio/thread.hpp>
+#include <adportable/counting/process_threshold.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/semaphore.hpp>
@@ -166,7 +170,6 @@ namespace aqmd3 {
 
         void handle_aqmd3_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
         void handle_aqmd3_average( const data_status, std::array< threshold_result_ptr, 2 > );
-        void handle_histograms();
 
         void resetDeviceData() {
             traceAccessor_->clear();
@@ -180,6 +183,9 @@ namespace aqmd3 {
             tp_inject_ = std::chrono::system_clock::now();
         }
 
+        void handle_waveforms();
+        void handle_histograms();
+
         template<typename Rep, typename Period> Rep uptime() const {
             return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_uptime_ ).count();
         }
@@ -187,6 +193,7 @@ namespace aqmd3 {
         template<typename Rep, typename Period> Rep timeSinceInject() const {
             return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_inject_ ).count();
         }
+
     };
 
     std::atomic< task * > task::impl::instance_( 0 );
@@ -426,6 +433,51 @@ task::impl::handle_aqmd3_data( data_status& status, std::shared_ptr<adacquire::S
             status.plot_ready_ = true; // ads54j single trigger waveform
             sema_.signal();
         }
+
+        if ( avg->xmeta().actualAverages > 0 ) { // hard averaged waveform
+            // TODO
+            // document::instance()->enqueue( avg, pkd );                                        // <========== to data file
+            // if ( ( tp - data_status_[ avrg_waveform_observer ].tp_plot_handled_ ) >= 250ms )
+            //     io_service_.post( [this](){ handle_waveforms(); } );
+
+            // if ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) >= 250ms )
+            //     io_service_.post( [this](){ handle_histograms(); } );
+        } else { // soft average
+            // make an averaged waveform
+            const int protocol(0);
+            if ( auto adder = tdc::instance()->waveform_adder( protocol ) ) {
+                if ( adder->add( *avg ) == 100 ) {
+                    auto avgd = adder->fetch();
+                    tdc::instance()->set_periodic_avgd_waveforms( protocol, avgd );
+                    tdc::instance()->add_longterm_avgd_waveforms( protocol, avgd );
+                    tdc::instance()->enqueue( avgd );
+                    if ( !tdc::instance()->waveform_empty() && ( tp - data_status_[ avrg_waveform_observer ].tp_plot_handled_ ) >= 250ms ) {
+                        io_service_.post( [this](){ this->handle_waveforms(); } );
+                    }
+                }
+            }
+            adportable::counting::process_threshold< waveform_t, aqmd3controls::pkd_result > threshold_finder;
+            threshold_finder.set_slope( adportable::counting::CrossDown );
+            threshold_finder.set_threshold_level( 0.010, avg->toBinary( 0.010 ) );
+            if ( auto result = threshold_finder( avg ) ) {
+
+            }
+
+            // if ( document::instance()->accumulate_waveform( avg ) && ( tp - data_status_[ avrg_waveform_observer ].tp_plot_handled_ ) >= 250ms ) {
+            //     io_service_.post( [this](){ handle_waveforms(); } );
+            // }
+
+            // if ( auto result = document::instance()->processThreshold3( avg ) ) {
+            //     io_service_.post( [=] () { document::instance()->result_to_file( result ); } );  // save trigger,peaks in the data
+            //     // make histogram (long-term & periodical)
+            //     if ( document::instance()->accumulate_histogram( result ) && ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) > 250ms ) ) {
+            //         io_service_.post( [this](){ handle_histograms(); } );
+            //     }
+            // } else {
+            //     // ADDEBUG() << "##### got nullptr from processThreshold3 #####";
+            // }
+        }
+
     }
 
 
@@ -531,6 +583,11 @@ void
 task::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     impl_->refreshHistogram_ = m.refreshHistogram();
+}
+
+void
+task::impl::handle_waveforms()
+{
 }
 
 void

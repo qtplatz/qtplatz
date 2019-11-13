@@ -79,5 +79,6 @@ namespace aqmd3 {
     private:
         class impl;
         impl * impl_;
+
     };
 }

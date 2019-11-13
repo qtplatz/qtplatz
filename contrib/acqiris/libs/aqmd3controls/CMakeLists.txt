@@ -58,8 +58,12 @@ add_library( ${PROJECT_NAME} SHARED
 #  tdcdoc.hpp
 #  threshold_result.cpp
 #  threshold_result.hpp
+  histogram_adder.cpp
+  histogram_adder.hpp
   waveform.cpp
   waveform.hpp
+  waveform_adder.cpp
+  waveform_adder.hpp
 #  waveform_accessor.cpp
 #  waveform_accessor.hpp
 #  waveform_horizontal.hpp

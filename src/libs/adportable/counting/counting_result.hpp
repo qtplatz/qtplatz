@@ -25,13 +25,13 @@
 #pragma once
 
 #include "threshold_index.hpp"
+#include "constants.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <vector>
 
 namespace adportable {
     namespace counting {
-        enum algo { Absolute, AverageRelative, Differential };
 
         class counting_result {
         public:

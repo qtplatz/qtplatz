@@ -112,6 +112,7 @@ namespace aqmd3controls {
         bool operator += ( const waveform& );
 
         double toVolts( int32_t ) const;
+        int32_t toBinary( double ) const;
 
         static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 

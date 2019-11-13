@@ -206,6 +206,17 @@ waveform::xy( uint32_t idx ) const
     return std::make_pair( time( idx ), d_[ idx ] );
 }
 
+int32_t
+waveform::toBinary( double d ) const
+{
+    if ( method_->mode() == method::DigiMode::Digitizer ) {
+        int actualAverages = xmeta_.actualAverages == 0 ? 1 : xmeta_.actualAverages;
+        return actualAverages * ( d - xmeta_.scaleOffset ) / xmeta_.scaleFactor;
+    } else {
+        return ( d - xmeta_.scaleOffset ) / xmeta_.scaleFactor;
+    }
+}
+
 //static
 bool
 waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mass_assignor_t assign, int scale )
@@ -384,24 +395,19 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 	return true;
 }
 
-/***
 bool
 waveform::operator += ( const waveform& rhs )
 {
     if ( size() != rhs.size() ) {
-        basic_waveform< waveform::value_type, waveform::meta_type >{ rhs };
-        //trigger_delay_ = rhs.trigger_delay_;
-        // throw std::invalid_argument( "size error" );
+        throw std::invalid_argument( "size error" );
         return true;
     }
 
-    xmeta_.actual_averages_ += rhs.xmeta_.actual_averages_ + 1;
-
+    xmeta_.actualAverages += rhs.xmeta().actualAverages + 1;
     std::transform( rhs.begin(), rhs.end(), begin(), begin(), std::plus<int>() );
 
     return true;
 }
-***/
 
 size_t
 waveform::serialize_xmeta( std::string& ar ) const
