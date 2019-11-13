@@ -7,6 +7,7 @@ CGenForm::CGenForm(QWidget *parent) : QWidget(parent)
                                     , ui(new Ui::CGenForm)
 {
     ui->setupUi(this);
+    ui->doubleSpinBox->setMaximum( 1000.0 );
 }
 
 CGenForm::~CGenForm()
