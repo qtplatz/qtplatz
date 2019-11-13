@@ -48,6 +48,9 @@
 #include <boost/logic/tribool.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
+#ifndef NDEBUG
+#include <boost/format.hpp>
+#endif
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -173,6 +176,26 @@ namespace aqmd3 {
         const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
         const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
 
+        /////
+        struct waveform_print {
+            std::chrono::steady_clock::time_point tp_;
+            template< typename T >
+            void operator()( const aqmd3controls::waveform& data, const T * mblk ) {
+                using namespace std::chrono_literals;
+                using namespace aqmd3controls;
+                auto tp = std::chrono::steady_clock::now();
+                if ( ( tp - tp_ ) > 1s ) {
+                    tp_ = tp;
+                    ADDEBUG() << std::make_pair( data.xmeta().scaleFactor, data.xmeta().scaleOffset );
+                    for ( int i = 0; i < 8; ++i )
+                        ADDEBUG() << mblk[i] << ", " << data.data()[i]
+                                  << boost::format( ",\tA: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Averager >()( data.xmeta(), data.data()[i] )
+                                  << boost::format( ",\tD: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Digitizer >()( data.xmeta(), data.data()[i] )\
+                            ;
+                }
+            }
+        };
+
     }
 }
 
@@ -212,6 +235,7 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
     cm.sort();
 
 #ifndef NDEBUG
+    ADDEBUG() << "###################################################################";
     for ( auto mi: cm ) {
         ADDEBUG() << __FUNCTION__ << "------------- modelname: " << mi.modelname();
     }
@@ -225,7 +249,7 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
         if ( it->get( *it, m ) )
             return task::instance()->prepare_for_run( m );
     } else {
-        ADDEBUG() << __FUNCTION__ << " -- no u5303a method found.";
+        ADDEBUG() << __FUNCTION__ << " -- no u5303a method found. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
     }
 
     return false;
@@ -947,7 +971,6 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 bool
 device::initial_setup( task& task, const aqmd3controls::method& m, const std::string& options )
 {
-    ADDEBUG() << "###########################################################################";
     ADDEBUG() << "##### initial_setup #####";
 
     // constexpr std::array< std::pair< const char *, double >, 4 >
@@ -1164,7 +1187,10 @@ digitizer::readData( AqMD3& md2, const aqmd3controls::method& m, std::vector< st
                     // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size()
                     //           << " SF=" << scaleFactor << " SO=" << scaleOffset << " t=" << d.meta_.dataType
                     //           << " data[10]=" << boost::format( "%x" ) % mblk->data()[ 10 ];
-
+#if !defined NDEBUG
+                    static waveform_print printer;
+                    printer( d, mblk->data() + firstValidPoints[ iRecord ] );
+#endif
                     vec.emplace_back( data );
                 }
             }
@@ -1223,6 +1249,10 @@ digitizer::readData16( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
             data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             data.setData( mblk, firstValidPoint[0], data.xmeta().actualPoints );
 
+#if !defined NDEBUG
+            static waveform_print printer;
+            printer( data, mblk->data() + firstValidPoint[ 0 ] );
+#endif
             return true;
         }
     }
@@ -1271,12 +1301,6 @@ digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
                                                               , &scaleFactor
                                                               , &scaleOffset, flags )
                          , __FILE__, __LINE__, [](){ return "FetchAccumulatedWaveformInt32()"; } ) ) {
-#if 0
-            ADDEBUG() << channel;
-            int32_t * pdata = reinterpret_cast<ViInt32*>( mblk->data() );
-            for ( int i = 0; i < 4; ++i )
-                ADDEBUG() << pdata[i];
-#endif
 
             data.set_method( m );
             data.xmeta().actualAverages = actualAverages;
@@ -1292,6 +1316,10 @@ digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
             data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             data.setData( mblk, firstValidPoint[0], data.xmeta().actualPoints );
 
+#if !defined NDEBUG
+            static waveform_print printer;
+            printer( data, mblk->data() + firstValidPoint[0] );
+#endif
             return true;
         }
     }

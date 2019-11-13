@@ -231,6 +231,7 @@ QueryWidget::executeQuery()
                     double acclVoltage = rec.value( 0 ).toDouble();
                     double tDelay = rec.value( 1 ).toDouble();
                     double fLength = rec.value( 2 ).toDouble();
+                    (void)acclVoltage; (void)tDelay; (void)fLength;
                     auto uuid = boost::uuids::string_generator()( rec.value( 3 ).toString().toStdString() );
                     if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( uuid ) ) {
                         // spectrometer->setScanLaw( acclVoltage, tDelay, fLength );

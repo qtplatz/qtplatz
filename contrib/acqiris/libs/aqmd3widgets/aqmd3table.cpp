@@ -82,18 +82,24 @@ namespace aqmd3widgets {
                 if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
                     int idx = combo->currentIndex();
                     double value = 3.2e9;
-                    switch( idx ) {
-                    case 0: value = 3.2e9; break; // inter leaving
-                    case 1: value = 1.6e9; break; // no inter leaving
-                    case 2: value = 1.0e9; break;
-                    }
+                    // switch( idx ) {
+                    // case 0: value = 3.2e9; break; // inter leaving
+                    // case 1: value = 1.6e9; break; // no inter leaving
+                    // case 2: value = 1.0e9; break;
+                    // }
+                     switch( idx ) {
+                     case 0: value = 2.0e9; break; // inter leaving
+                     case 1: value = 2.0e9; break; // no inter leaving
+                     case 2: value = 2.0e9; break;
+                     }
                     model->setData( index, value, Qt::EditRole );
                     emit pThis_->valueChanged( idAQMD3SampRate, 0, value );
                 }
             } else if ( index.row() == r_front_end_range ) {
                 if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
                     int idx = combo->currentIndex();
-                    double value = ( idx == 0 ) ? 1.0 : 2.0;
+                    //double value = ( idx == 0 ) ? 1.0 : 2.0;
+                    double value = ( idx == 0 ) ? 2.5 : 0.5;
                     model->setData( index, value, Qt::EditRole );
                     setDescription( model, model->index( pkd_raising_delta, 1 ) );
                     setDescription( model, model->index( pkd_falling_delta, 1 ) );
@@ -123,15 +129,14 @@ namespace aqmd3widgets {
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             if ( index.row() == r_sampling_rate ) {
                 auto combo = new QComboBox( parent );
-                combo->addItems( QStringList() << "3.2GS/s" << "1.6GS.s" << "1.0GS/s" );
-                if ( index.data().toDouble() <= ( 1.0e9 + std::numeric_limits< double >::epsilon() ) )
-                    combo->setCurrentIndex( 1 );
+                //combo->addItems( QStringList() << "3.2GS/s" << "1.6GS.s" << "1.0GS/s" );
+                combo->addItems( QStringList() << "2.0GS/s" );
+                combo->setCurrentIndex( 0 );
                 return combo;
             } else if ( index.row() == r_front_end_range ) {
                 auto combo = new QComboBox( parent );
-                combo->addItems( QStringList() << "1V" << "2V" );
-                if ( index.data().toDouble() >= ( 2.0 - std::numeric_limits< double >::epsilon() ) )
-                    combo->setCurrentIndex( 1 );
+                combo->addItems( QStringList() << "2.5V" << "0.5V" );
+                combo->setCurrentIndex( 0 );
                 return combo;
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );

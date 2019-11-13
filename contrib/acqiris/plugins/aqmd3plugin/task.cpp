@@ -420,8 +420,6 @@ task::impl::handle_aqmd3_data( data_status& status, std::shared_ptr<adacquire::S
     }
 
     if ( avg ) {
-        ADDEBUG() << "### " << __FUNCTION__ << " " << avg->pos() << ", " << avg->size() << "\tavg #" << avg->xmeta().actualAverages;
-
         // waveform_observer == waveform from digitizer (raw)
         if ( ( tp - data_status_[ waveform_observer ].tp_plot_handled_ ) >= 250ms ) {
             que_ = std::make_pair( avg, pkd );

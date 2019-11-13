@@ -30,6 +30,8 @@
 #include <adcontrols/threshold_action.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <boost/serialization/version.hpp>
+#include <compiler/boost/workaround.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <cstdint>
 #include <memory>
 #include <iostream>
@@ -49,11 +51,14 @@ namespace aqmd3controls {
 
     class method {
     public:
+        // 82400772-b4e4-4756-8c38-b1d9dd1092cb
+        static constexpr const boost::uuids::uuid __clsid__ = {{ 0x82, 0x40, 0x07, 0x72, 0xb4, 0xe4, 0x47, 0x56, 0x8c, 0x38, 0xb1, 0xd9, 0xdd, 0x10, 0x92, 0xcb }};
+        static const boost::uuids::uuid& clsid() { return __clsid__; };
+
         method();
         method( const method& t );
         static const char * modelClass() { return "aqmd3"; }
         static const char * itemLabel() { return "aqmd3"; }
-        static const boost::uuids::uuid& clsid();
 
         enum class DigiMode : uint32_t { Digitizer = 0, Averager = 2 };
 

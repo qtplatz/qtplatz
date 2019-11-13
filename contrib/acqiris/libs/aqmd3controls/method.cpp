@@ -37,91 +37,93 @@
 
 namespace aqmd3controls {
 
-        template<typename T>
-        class method_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
+    constexpr const boost::uuids::uuid method::__clsid__;
 
-                using namespace boost::serialization;
+    template<typename T>
+    class method_archive {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
 
-                ar & BOOST_SERIALIZATION_NVP( _.channels_ );
-                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
-                ar & BOOST_SERIALIZATION_NVP( _.device_method_ );
-                ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
-                ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
-            }
+            using namespace boost::serialization;
 
-        };
-
-        template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        {
-            method_archive<>().serialize( ar, *this, version );
+            ar & BOOST_SERIALIZATION_NVP( _.channels_ );
+            ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+            ar & BOOST_SERIALIZATION_NVP( _.device_method_ );
+            ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
+            ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
         }
 
-        template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        {
-            method_archive<>().serialize( ar, *this, version );
-        }
+    };
 
-        template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        {
-            method_archive<>().serialize( ar, *this, version );
-        }
+    template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        method_archive<>().serialize( ar, *this, version );
+    }
 
-        template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        {
-            method_archive<>().serialize( ar, *this, version );
-        }
+    template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        method_archive<>().serialize( ar, *this, version );
+    }
 
-        bool method::archive( std::ostream& os, const method& t )
-        {
-            try {
-                portable_binary_oarchive ar( os );
-                ar & boost::serialization::make_nvp( "m", t );
-                return true;
-            } catch ( std::exception& ex ) {
-                BOOST_THROW_EXCEPTION( ex );
-            }
-            return false;
-        }
+    template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        method_archive<>().serialize( ar, *this, version );
+    }
 
-        bool method::restore( std::istream& is, method& t )
-        {
-            try {
-                portable_binary_iarchive ar( is );
-                ar & boost::serialization::make_nvp( "m", t );
-                return true;
-            } catch ( std::exception& ex ) {
-                BOOST_THROW_EXCEPTION( ex );
-            }
-            return false;
-        }
+    template<> AQMD3CONTROLSSHARED_EXPORT void method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        method_archive<>().serialize( ar, *this, version );
+    }
 
-        bool method::xml_archive( std::wostream& os, const method& t )
-        {
-            try {
-                boost::archive::xml_woarchive ar( os );
-                ar & boost::serialization::make_nvp( "m", t );
-                return true;
-            } catch ( std::exception& ex ) {
-                BOOST_THROW_EXCEPTION( ex );
-            }
-            return false;
+    bool method::archive( std::ostream& os, const method& t )
+    {
+        try {
+            portable_binary_oarchive ar( os );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
         }
+        return false;
+    }
 
-        bool method::xml_restore( std::wistream& is, method& t )
-        {
-            try {
-                boost::archive::xml_wiarchive ar( is );
-                ar & boost::serialization::make_nvp( "m", t );
-                return true;
-            } catch ( std::exception& ex ) {
-                BOOST_THROW_EXCEPTION( ex );
-            }
-            return false;
-
+    bool method::restore( std::istream& is, method& t )
+    {
+        try {
+            portable_binary_iarchive ar( is );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
         }
+        return false;
+    }
+
+    bool method::xml_archive( std::wostream& os, const method& t )
+    {
+        try {
+            boost::archive::xml_woarchive ar( os );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+        return false;
+    }
+
+    bool method::xml_restore( std::wistream& is, method& t )
+    {
+        try {
+            boost::archive::xml_wiarchive ar( is );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+        return false;
+
+    }
 }
 
 using namespace aqmd3controls;
@@ -139,14 +141,6 @@ method:: method( const method& t ) : channels_( t.channels_ )
                                    , protocolIndex_( t.protocolIndex_ )
                                    , protocols_( t.protocols_ )
 {
-}
-
-const boost::uuids::uuid&
-method::clsid()
-{
-    // 82400772-b4e4-4756-8c38-b1d9dd1092cb
-    static const boost::uuids::uuid myclsid = {{ 0x82, 0x40, 0x07, 0x72, 0xb4, 0xe4, 0x47, 0x56, 0x8c, 0x38, 0xb1, 0xd9, 0xdd, 0x10, 0x92, 0xcb }};
-    return myclsid;
 }
 
 std::vector< adcontrols::TofProtocol >&
