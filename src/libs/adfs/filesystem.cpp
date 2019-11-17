@@ -146,6 +146,20 @@ filesystem::mount( const boost::filesystem::path& filepath )
 }
 
 folder
+filesystem::root() const
+{
+    stmt sql( *db_ );
+    if ( sql.prepare( "SELECT rowid,name FROM directory WHERE type=1 AND parent_id=0" ) ) {
+        if ( sql.step() == sqlite_row ) {
+            return adfs::folder( *db_
+                                 , sql.get_column_value< int64_t >( 0 )          // rowid (fileid)
+                                 , sql.get_column_value< std::wstring >( 1 ) );  // name
+        }
+    }
+    return adfs::folder();
+}
+
+folder
 filesystem::addFolder( const std::wstring& name, bool recursive )
 {
     std::lock_guard< std::mutex > lock( mutex_ );

@@ -48,13 +48,9 @@ namespace adfs {
         operator bool () const;
         bool format_version() const;
 
-        // std::wstring name() const;
-                
-        // std::wstring name() const;
         template< typename T = wchar_t > std::basic_string< T > name() const;
         void name( const std::wstring& name );
 
-        // std::wstring id() const;
         template< typename T = wchar_t > std::basic_string< T > id() const;
         void id( const std::wstring& );
 
@@ -62,6 +58,7 @@ namespace adfs {
         void dataClass( const std::wstring& );
 
         std::wstring attribute( const std::wstring& ) const;
+        std::string attribute( const std::string& ) const;    
         void setAttribute( const std::wstring& key, const std::wstring& value );
         bool fetch();
         bool commit();

@@ -26,8 +26,9 @@
 #include "folder.hpp"
 #include "file.hpp"
 #include "fs.hpp"
-#include <adportable/utf.hpp>
 #include "adfs.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 
 using namespace adfs;
 
@@ -57,6 +58,7 @@ folder::folder( adfs::sqlite& db
 std::vector< folder >
 folder::folders()
 {
+    ADDEBUG() << "folder::folders rowid=" << rowid_;
     std::vector< folder > folders;
     if ( db_ && rowid_ )
         internal::fs::select_folders( *db_, rowid_, folders );

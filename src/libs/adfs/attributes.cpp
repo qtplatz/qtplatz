@@ -112,6 +112,12 @@ attributes::attribute( const std::wstring& key ) const
     return std::wstring();
 }
 
+std::string
+attributes::attribute( const std::string& key ) const
+{
+    return adportable::utf::to_utf8( attribute( adportable::utf::to_wstring( key ) ) );
+}
+
 void
 attributes::setAttribute( const std::wstring& key, const std::wstring& value )
 {
