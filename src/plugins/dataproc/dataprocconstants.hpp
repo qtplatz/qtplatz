@@ -25,6 +25,7 @@ namespace Constants {
     const char * const PROCESS_ALL_CHECKED  = "dataproc.ProcessAllCheckedSpectra";
     const char * const IMPORT_ALL_CHECKED   = "dataproc.ImportAllCheckedSpectra";
     const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
+    const char * const EXPORT_ALL_CHECKED   = "dataproc.ExportAllChecked";
     const char * const HIDE_DOCK            = "dataproc.HideDock";
 
     const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
@@ -74,10 +75,9 @@ namespace Constants {
         CentroidProcess
         , TargetingProcess
         , CalibrationProcess
-        , PeakFindProcess 
+        , PeakFindProcess
     };
 
 } // namespace dataproc
 
 #endif // DATAPROCCONSTANTS_HPP
-

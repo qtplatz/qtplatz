@@ -36,7 +36,7 @@ class QAction;
 namespace Core { class IContext; class Context; }
 
 namespace dataproc {
-    
+
     class Dataprocessor;
     class NavigationWidget;
 
@@ -67,6 +67,7 @@ namespace dataproc {
             , idActImportAllChecked  // a.k.a. merge into a file
             , idActCreateSpectrogram
             , idActClusterSpectrogram
+            , idActExportAllChecked
             , numOfActions
         };
 
@@ -100,9 +101,7 @@ namespace dataproc {
     private:
         void handleCheckAllSpectra();   // handled by NavigationWidget
         void handleUncheckAllSpectra(); // handled by NavigationWidget
-        
+
         static QAction * create( const QString& icon_name, const QString& baloon, QObject * parent );
     };
 }
-
-
