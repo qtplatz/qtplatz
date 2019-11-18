@@ -43,7 +43,7 @@ namespace portfolio {
         return std::string( a.type().name() ) == typeid( T ).name();
 #else
         return a.type() == typeid( T );
-#endif            
+#endif
     }
 
     template<class T> inline bool is_type( const boost::any& a ) {
@@ -52,7 +52,7 @@ namespace portfolio {
         return std::string( a.type().name() ) == typeid( T ).name();
 #else
         return a.type() == typeid( T );
-#endif            
+#endif
     }
 
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
@@ -84,8 +84,8 @@ namespace portfolio {
         typedef std::vector< Folium > vector_type;
 
         template<class T> static vector_type::iterator find( vector_type::iterator it, vector_type::iterator ite ) {
-			return std::find_if( it, ite, [=]( vector_type::value_type& f ){ 
-                    return is_type<T>( static_cast< boost::any& >( f ) );
+			return std::find_if( it, ite, [=]( vector_type::value_type& f ){
+                                              return is_type<T>( static_cast< boost::any& >( f ) );
 				} );
         }
 
@@ -129,5 +129,3 @@ namespace portfolio {
     }
 
 }
-
-

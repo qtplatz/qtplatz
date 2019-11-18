@@ -49,6 +49,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
 #include <adutils/acquiredconf_v3.hpp>
 
 #include <boost/exception/all.hpp>
@@ -493,4 +494,12 @@ dataprocessor::estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum 
                                                              , refs );
 
     return false;
+}
+
+bool
+dataprocessor::export_text( const portfolio::Folium& folium, std::ostream& outf ) const
+{
+    auto any = folium.data();
+
+    return true;
 }

@@ -1071,24 +1071,40 @@ MainWindow::handleExportPeakList()
 void
 MainWindow::handleExportAllChecked()
 {
-    QString filename = QFileDialog::getSaveFileName( 0
-                                                     , tr( "Save all checked data")
-                                                     , currentDir()
-                                                     , tr( "Text files(*.txt)" ) );
-    if ( filename.isEmpty() )
-        return;
+    QString dataPath;
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
+        dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
 
-    std::ofstream outf( filename.toStdString() );
+    QFileDialog dlg( this, tr("Select directory for export" ) );
+    dlg.setDirectory( dataPath );
+    dlg.setAcceptMode( QFileDialog::AcceptSave );
+    dlg.setFileMode( QFileDialog::DirectoryOnly );
+    if ( dlg.exec() ) {
+        auto files = dlg.selectedFiles();
+        if ( files.empty() )
+            return;
+    }
+    boost::filesystem::path dir( dlg.selectedFiles().at(0).toStdString() );
+
+
+    ADDEBUG() << dir.string();
+    if ( !boost::filesystem::exists( dir ) )
+        boost::filesystem::create_directory( dir );
 
     for ( auto& session : *SessionManager::instance() ) {
         if ( auto processor = session.processor() ) {
             auto spectra = processor->getPortfolio().findFolder( L"Spectra" );
-
+            uint32_t ident(1);
+            auto basename = dir / boost::filesystem::path( processor->filename() ).stem();
             for ( auto& folium: spectra.folio() ) {
                 if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                    auto outname = basename.string() + ( boost::format( "_spectrum_%d.txt" ) % ident++ ).str();
+                    auto outf = std::ofstream( outname );
+
                     if ( folium.empty() )
                         processor->fetch( folium );
-
+                    processor->export_text( folium, outf );
+#if 0
                     // output filename
                     outf << adportable::utf::to_utf8( processor->filename() ) << std::endl;
 
@@ -1125,6 +1141,7 @@ MainWindow::handleExportAllChecked()
                             }
                         }
                     }
+#endif
                 }
             }
         }

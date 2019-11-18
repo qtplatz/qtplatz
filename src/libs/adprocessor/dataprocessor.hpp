@@ -106,6 +106,8 @@ namespace adprocessor {
         virtual void addContextMenu( ContextID, QMenu&, const portfolio::Folium& );
         virtual bool estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum >, const std::vector< std::pair<int, int> >& );
 
+        virtual bool export_text( const portfolio::Folium&, std::ostream& ) const;
+
     private:
         std::unique_ptr< adfs::filesystem > fs_;
         std::unique_ptr< adcontrols::datafile > file_;
