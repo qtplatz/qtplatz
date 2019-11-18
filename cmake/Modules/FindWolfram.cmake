@@ -20,7 +20,7 @@ find_path( WSTP_INCLUDE_DIRS
 
 find_library( _lib NAMES "WSTP64i4" PATHS "${WSTP_DeveloperKitDir}/CompilerAdditions" )
 set ( WSTP_LIBRARY_DIRS    "${WOLFRAM_SYSTEM_DIR}/Libraries/Linux-x86-64" )
-set ( WSTP_LIBRARIES ${_lib} uuid Threads::Threads ${CMAKE_DL_LIBS} rt )
+set ( WSTP_LIBRARIES ${_lib} m Threads::Threads rt stdc++ ${CMAKE_DL_LIBS} uuid )
 
 ## --------------
 find_path( MathLink_INCLUDE_DIRS
@@ -57,9 +57,9 @@ macro ( WSTP_ADD_TM infile )
   get_filename_component( abs_infile ${infile} ABSOLUTE )
   get_filename_component( infile_ext ${infile} EXT )
   if( ${ARGC} EQUAL 1 )
-    set(outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}${infile_ext}.c)
+    set( outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}${infile_ext}.cxx )
   else()
-    set(outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}${infile_ext}${ARGV1})
+    set( outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}${infile_ext}${ARGV1} )
   endif()
   add_custom_command(
     OUTPUT   ${outfile}
