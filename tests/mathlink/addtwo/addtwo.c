@@ -10,39 +10,18 @@
  *   In[1]:= link = Install["portname", LinkMode->Connect]
  */
 
-#include "mathlink.h"
-extern int addtwo( int i, int j);
+#include "wstp.h"
 
-int addtwo( int i, int j)
+extern int addtwo( int i, int j );
+
+int
+addtwo( int i, int j )
 {
 	return i+j;
 }
 
-#if WINDOWS_MATHLINK
-
-#if __BORLANDC__
-#pragma argsused
-#endif
-
-int PASCAL WinMain( HINSTANCE hinstCurrent, HINSTANCE hinstPrevious, LPSTR lpszCmdLine, int nCmdShow)
+int
+main(int argc, char* argv[])
 {
-	char  buff[512];
-	char FAR * buff_start = buff;
-	char FAR * argv[32];
-	char FAR * FAR * argv_end = argv + 32;
-
-	hinstPrevious = hinstPrevious; /* suppress warning */
-
-	if( !MLInitializeIcon( hinstCurrent, nCmdShow)) return 1;
-	MLScanString( argv, &argv_end, &lpszCmdLine, &buff_start);
-	return MLMain( (int)(argv_end - argv), argv);
+	return WSMain(argc, argv);
 }
-
-#else
-
-int main(int argc, char* argv[])
-{
-	return MLMain(argc, argv);
-}
-
-#endif

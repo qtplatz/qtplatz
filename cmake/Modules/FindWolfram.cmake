@@ -10,24 +10,30 @@ set ( WOLFRAM_VERSION "12.0" )
 
 set ( WOLFRAM_SYSTEM_DIR "${WOLFRAM_DIR}/WolframEngine/${WOLFRAM_VERSION}/SystemFiles" )
 
-find_program( WSCC  "wscc" PATHS "${WOLFRAM_SYSTEM_DIR}/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions" )
-
-find_program( MPREP "mprep" PATHS "${WOLFRAM_SYSTEM_DIR}/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions" )
+find_package( Threads )
+## WSTP Env.
+set( WSTP_DeveloperKitDir "${WOLFRAM_SYSTEM_DIR}/Links/WSTP/DeveloperKit/Linux-x86-64" )
+find_program( WSPREP "wsprep" PATHS "${WSTP_DeveloperKitDir}/CompilerAdditions" )
 
 find_path( WSTP_INCLUDE_DIRS
   "wstp.h" PATHS "${WOLFRAM_SYSTEM_DIR}/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions" )
 
+find_library( _lib NAMES "WSTP64i4" PATHS "${WSTP_DeveloperKitDir}/CompilerAdditions" )
+set ( WSTP_LIBRARY_DIRS    "${WOLFRAM_SYSTEM_DIR}/Libraries/Linux-x86-64" )
+set ( WSTP_LIBRARIES ${_lib} uuid Threads::Threads ${CMAKE_DL_LIBS} rt )
+
+## --------------
 find_path( MathLink_INCLUDE_DIRS
   "mathlink.h" PATHS "${WOLFRAM_SYSTEM_DIR}/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions" )
 
+find_program( MPREP "mprep" PATHS "${WOLFRAM_SYSTEM_DIR}/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions" )
 set( MathLink_DeveloperKitDir "${WOLFRAM_SYSTEM_DIR}/Links/MathLink/DeveloperKit/Linux-x86-64" )
 set( MathLink_LIBRARY_DIRS    "${WOLFRAM_SYSTEM_DIR}/Libraries/Linux-x86-64" )
 
-set( WSTP_DeveloperKitDir     "${WOLFRAM_SYSTEM_DIR}/Links/WSTP/DeveloperKit/Linux-x86-64" )
-set( WSTP_LIBRARY_DIRS        "${WOLFRAM_SYSTEM_DIR}/Libraries/Linux-x86-64" )
 
 ## ------------------------------------------------------------------------
-
+## --- MathLink is deprecated -- Use WSTP instead
+## ------------------------------------------------------------------------
 macro (MathLink_ADD_TM infile)
   get_filename_component(outfile ${infile} NAME_WE)
   get_filename_component(abs_infile ${infile} ABSOLUTE)
@@ -57,12 +63,12 @@ macro ( WSTP_ADD_TM infile )
   endif()
   add_custom_command(
     OUTPUT   ${outfile}
-    COMMAND  ${WSCC}
+    COMMAND  ${WSPREP}
     ARGS     -o ${outfile} ${abs_infile}
     MAIN_DEPENDENCY ${infile})
 endmacro (WSTP_ADD_TM)
 
-if ( WSCC )
+if ( WSPREP )
   set( Wolfram_FOUND TRUE )
   set( WSTP_FOUND TRUE )
 endif()

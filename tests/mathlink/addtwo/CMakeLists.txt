@@ -1,10 +1,16 @@
 
-MathLink_ADD_TM(addtwo.tm .c)
+project( addtwo )
 
-include_directories( ${MathLink_INCLUDE_DIRS} )
+#MathLink_ADD_TM(addtwo.tm .c)
+WSTP_ADD_TM(addtwo.tm .c)
 
-link_directories( ${MathLink_LIBRARY_DIRS} ) # /usr/local/Wolfram/Mathematica/10.4/SystemFiles/Libraries/Linux-x86-64 )
+include_directories( ${WSTP_INCLUDE_DIRS} )
 
-add_executable (addtwo addtwo.tm.c addtwo.c)
+link_directories( ${WSTP_LIBRARY_DIRS} )   # /usr/local/Wolfram/Mathematica/10.4/SystemFiles/Libraries/Linux-x86-64
 
-target_link_libraries( addtwo ${MathLink_LIBRARIES} ${MathLink_SYSTEM_LIBRARIES} )
+message( STATUS "LIBRARY_DIRS: " "${WSTP_LIBRARY_DIRS}" )
+message( STATUS "LIBRARIES: "    "${WSTP_LIBRARIES}" )
+
+add_executable ( ${PROJECT_NAME} addtwo.tm.c addtwo.c)
+
+target_link_libraries( ${PROJECT_NAME} ${WSTP_LIBRARIES} ${WSTP_SYSTEM_LIBRARIES} )
