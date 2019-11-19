@@ -30,8 +30,8 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( socfpga )
 endif()
 
-if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  message( STATUS "------------ Wolfram ----------------" )  
+if ( WITH_Wolfram AND NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+  message( STATUS "------------ Wolfram ----------------" )
   add_subdirectory( wolfram )
 endif()
 

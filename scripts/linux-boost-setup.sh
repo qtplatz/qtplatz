@@ -104,11 +104,11 @@ function boost_cross_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 toolset=gcc-arm -s -j $nproc install
+      echo ./b2 toolset=gcc-arm -j$nproc install
       prompt
 
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 toolset=gcc-arm -s -j $nproc install
+	  ./b2 toolset=gcc-arm -j$nproc install
     )
 }
 
@@ -164,7 +164,7 @@ if [ -z $cross_target ]; then
 	#	if [ -f ~/user-config.jam ]; then
 	#		mv ~/user-config.jam ~/user-config.jam.orig
 	#	fi
-    boost_build $BOOST_BUILD_DIR 
+    boost_build $BOOST_BUILD_DIR
 
 else
     if [ ! -w $CROSS_ROOT ]; then
@@ -193,7 +193,7 @@ using gcc :		arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
 using python : 2.7 ;
 EOF
     fi
-	    boost_cross_build ${BOOST_BUILD_DIR} 
+	    boost_cross_build ${BOOST_BUILD_DIR}
 fi
 
 echo "=============================="
