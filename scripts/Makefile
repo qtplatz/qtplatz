@@ -5,10 +5,12 @@ default:
 	@echo "make dependency"
 	@echo "make rtags"
 	@echo "make fonts"
+	@echo "make mozc"
 	@echo "make bower"
 	@echo "make cross-tools"
 	@echo "make boost"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
+	@echo "make qemu"
 	@echo "make boost-armhf"
 	@echo "make cmake"
 	@echo "make rdkit"
@@ -23,6 +25,12 @@ default:
 dependency:
 	./linux-initial-setup.sh
 	./linux-dependency-install.sh
+
+qemu:
+	./linux-qemu-setup.sh
+
+mozc:
+	./linux-mozc-setup.sh
 
 fonts:
 	./linux-fonts-setup.sh
