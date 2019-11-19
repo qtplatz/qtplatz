@@ -30,6 +30,11 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( socfpga )
 endif()
 
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+  message( STATUS "------------ Wolfram ----------------" )  
+  add_subdirectory( wolfram )
+endif()
+
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   # message( STATUS "------------ contrib/linux ----------------" )
   add_subdirectory( linux )
