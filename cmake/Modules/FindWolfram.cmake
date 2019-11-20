@@ -36,7 +36,8 @@ endif()
 find_package( Threads )
 
 find_program( WSPREP "wsprep" PATHS "${WSTP_DeveloperKitDir}/CompilerAdditions" )
-find_path( WSTP_INCLUDE_DIRS "wstp.h" PATHS "${WSTP_DeveloperKitDir}/CompilerAdditions" )
+find_path ( WSTP_INCLUDE_DIRS "wstp.h" PATHS "${WSTP_DeveloperKitDir}/CompilerAdditions" )
+find_path ( LIBRARYLINK_INCLUDE_DIRS "WolframLibrary.h" PATHS "${WOLFRAM_SYSTEM_DIR}/IncludeFiles/C" )
 
 ## ------------------------------------------------------------------------
 macro ( WSTP_ADD_TM infile )

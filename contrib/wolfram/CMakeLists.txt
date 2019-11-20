@@ -26,6 +26,6 @@ if ( Wolfram_FOUND )
 
   set( WSTP_DIST_PACKAGES "${CMAKE_INSTALL_PREFIX}/Library/Wolfram/WSTP" )
 
-  #subdirs( addtwo formula )
-  subdirs( addtwo )
+  add_subdirectory( ws_adprocessor )
+  
 endif()
