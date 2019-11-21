@@ -25,7 +25,7 @@
 #pragma once
 
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/datasubscriber.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -37,20 +37,25 @@ namespace adcontrols {
 
 class DataReader;
 
-class dataProcessor : public adcontrols::dataSubscriber {
-    const adcontrols::LCMSDataset * raw_;
-    adcontrols::datafile * file_;
-public:
-    dataProcessor();
-    ~dataProcessor();
+namespace ws_adprocessor {
+    // public adcontrols::dataSubscriber {
+    class dataProcessor : public adprocessor::dataprocessor {
+                                    
+        //const adcontrols::LCMSDataset * raw_;
+        //adcontrols::datafile * file_;
+    public:
+        dataProcessor();
+        ~dataProcessor();
+        
+        bool subscribe( const adcontrols::LCMSDataset& raw ) override;
+        bool subscribe( const adcontrols::ProcessedDataset& ) override;
+        void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
+        //
+        // const adcontrols::LCMSDataset * raw() const { return raw_; }
+        
+        bool open( const std::wstring& filename );
+        std::vector< std::shared_ptr< DataReader > > dataReaders();
+        std::shared_ptr< DataReader > dataReader( const std::string& uuid );
+    };
 
-    bool subscribe( const adcontrols::LCMSDataset& raw ) override;
-    bool subscribe( const adcontrols::ProcessedDataset& ) override;
-    void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
-    //
-    const adcontrols::LCMSDataset * raw() const { return raw_; }
-
-    bool open( const std::wstring& filename );
-    std::vector< std::shared_ptr< DataReader > > dataReaders() const;
-    std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
-};
+}

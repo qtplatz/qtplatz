@@ -2,8 +2,13 @@ cmake_minimum_required ( VERSION 3.14 )
 
 project ( ws_adprocessor )
 
-#include_directories( ${LIBRARYLINK_INCLUDE_DIRS} ${WSTP_INCLUDE_DIRS} )
-include_directories( ${WSTP_INCLUDE_DIRS} )
+find_package( Qt5 CONFIG REQUIRED Core )  
+
+include_directories(
+  ${WSTP_INCLUDE_DIRS} 
+  ${Qt5Core_INCLUDE_DIRS}
+  )
+
 link_directories( ${WSTP_LIBRARY_DIRS} )
 
 link_directories(
@@ -20,6 +25,8 @@ add_executable( ${PROJECT_NAME}
   dataprocessor.hpp
   datareader.cpp
   datareader.hpp
+  singleton.cpp
+  singleton.cpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
@@ -29,6 +36,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adprocessor
   acqrscontrols
   adportable
+  Qt5::Core
   ${Boost_LIBRARIES}
   ${WSTP_LIBRARIES}
   )

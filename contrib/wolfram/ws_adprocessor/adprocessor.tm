@@ -76,15 +76,52 @@ double monoIsotopicMass P(( const char * ));
 /**************************************
 */
 
-int adFileOpen P(( const char * ));
 :Begin:
 :Function:       adFileOpen
 :Pattern:        adFileOpen[i_String]
 :Arguments:      { i }
 :ArgumentTypes:  { String }
+:ReturnType:     Manual
+:End:
+
+:Evaluate: adFileOpen::usage = "adFileOpen[name] open .adfs datafile and assign uuid."
+
+/**************************************
+*/
+
+:Begin:
+:Function:       adFileClose
+:Pattern:        adFileClose[i_String]
+:Arguments:      { i }
+:ArgumentTypes:  { String }
 :ReturnType:     Integer
 :End:
 
-:Evaluate: adfsOpen::usage = "adFileOpen[x] open .adfs datafile."
+:Evaluate: adFileClose::usage = "adFileClose[uuid] close .adfs datafile."
+
+/**************************************
+*/
+:Begin:
+:Function:       adDataReaders
+:Pattern:        adDataReaders[i_String]
+:Arguments:      { i }
+:ArgumentTypes:  { String }
+:ReturnType:     Manual
+:End:
+
+:Evaluate: adDataReaders::usage = "adDataReaders[uuid] gives data reader class ids."
+
+
+/**************************************
+*/
+:Begin:
+:Function:       adProcessed
+:Pattern:        adProcessed[i_String]
+:Arguments:      { i }
+:ArgumentTypes:  { String }
+:ReturnType:     Manual
+:End:
+
+:Evaluate: adProcessed::usage = "adProcessed[uuid] gives data reader class ids."
 
 

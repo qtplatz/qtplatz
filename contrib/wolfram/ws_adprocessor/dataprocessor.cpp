@@ -31,6 +31,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/processeddataset.hpp>
 #include <adfs/filesystem.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
@@ -46,13 +47,14 @@
 #include <memory>
 #include <mutex>
 
+using namespace ws_adprocessor;
+
 dataProcessor::~dataProcessor()
 {
-    delete file_;
+    //delete file_;
 }
 
-dataProcessor::dataProcessor() : raw_( 0 )
-                               , file_( 0 )
+dataProcessor::dataProcessor()
 {
     static std::once_flag flag;
     std::call_once( flag, []{ adplugin::manager::standalone_initialize(); } );
@@ -61,14 +63,13 @@ dataProcessor::dataProcessor() : raw_( 0 )
 bool
 dataProcessor::subscribe( const adcontrols::LCMSDataset& raw )
 {
-    raw_ = &raw;
-    return true;
+    return adprocessor::dataprocessor::subscribe( raw );
 }
 
 bool
-dataProcessor::subscribe( const adcontrols::ProcessedDataset& )
+dataProcessor::subscribe( const adcontrols::ProcessedDataset& processed )
 {
-    return true;
+    return adprocessor::dataprocessor::subscribe( processed );
 }
 
 void
@@ -80,39 +81,27 @@ dataProcessor::notify( adcontrols::dataSubscriber::idError, const std::string& j
 bool
 dataProcessor::open( const std::wstring& filename )
 {
-    if ( file_ )
-        delete file_;
-    raw_ = nullptr;
-
-    if ( ( file_ = adcontrols::datafile::open( filename ) ) ) {
-        file_->accept( *this );
-    }
-
-    if ( raw_ ) {
-        for ( auto reader: raw_->dataReaders() )
-            ADDEBUG() << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid();
-    }
-
-    return file_ != nullptr;
+    std::wstring emsg;
+    return adprocessor::dataprocessor::open( filename, emsg );
 }
 
 std::vector< std::shared_ptr< DataReader > >
-dataProcessor::dataReaders() const
+dataProcessor::dataReaders()
 {
     std::vector< std::shared_ptr< DataReader > > a;
-    if ( raw_ ) {
-        for ( auto& reader: raw_->dataReaders() )
+    if ( auto raw = rawdata() ) {
+        for ( auto& reader: raw->dataReaders() )
             a.emplace_back( std::make_shared< DataReader >( reader ) );
     }
     return a;
 }
 
 std::shared_ptr< DataReader >
-dataProcessor::dataReader( const std::string& str ) const
+dataProcessor::dataReader( const std::string& str )
 {
     auto uuid = boost::uuids::string_generator()( str );
-    if ( raw_ ) {
-        for ( auto& reader: raw_->dataReaders() ) {
+    if ( auto raw = rawdata() ) {
+        for ( auto& reader: raw->dataReaders() ) {
             if ( reader->objuuid() == uuid )
                 return std::make_shared< DataReader >( reader );
         }
