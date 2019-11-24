@@ -7,10 +7,11 @@ BUILD PROCEDURE
  Prerequisite
 ===============
 
-1. Qt 5.9
+1. Qt 5.12
 2. QWT
 3. Boost
 4. RDKit
+5. OpenCV
 
 Linux platform also require following modules:
 libxml2-dev, libxslt1-dev, mesa-common-dev, bc, libncurses5-dev libgstreamer-plugins-base0.10
