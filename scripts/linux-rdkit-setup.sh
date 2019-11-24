@@ -11,6 +11,7 @@ PYTHON=$(python3 -c "import sys; print(sys.executable)")
 
 cwd=$(pwd)
 arch=`uname`-`arch`
+
 __nproc nproc
 
 if [ -z $cross_target ]; then
@@ -42,15 +43,15 @@ if [ `uname` == "Darwin" ]; then
 			 )
     cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
 else
-    cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
-			 "-DRDK_BUILD_INCHI_SUPPORT=ON"
-			 "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
-			 "-DPYTHON_EXECUTABLE=/usr/bin/python3"
-			 "-DPYTHON_INCLUDE_DIR=/usr/include/python3.5m"
-			 "-DRDK_INSTALL_INTREE=OFF"
-			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
-			 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
-		   )
+	cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
+				 "-DRDK_BUILD_INCHI_SUPPORT=ON"
+				 "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
+				 "-DPYTHON_EXECUTABLE=${PYTHON}"
+				 "-DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE}"
+				 "-DRDK_INSTALL_INTREE=OFF"
+				 "-DRDK_INSTALL_STATIC_LIBS=OFF"
+				 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
+			   )
 fi
 
 if [ ! -z $cross_target ]; then

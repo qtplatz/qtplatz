@@ -27,6 +27,7 @@
 
 #include "adacquire_global.hpp"
 #include "signalobserver.hpp"
+#include <functional>
 
 namespace boost { namespace uuids { struct uuid; } }
 

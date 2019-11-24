@@ -1,26 +1,29 @@
 #!make
+OS=$(shell lsb_release -si)
+VER=$(shell lsb_release -sr)
 
 default:
 	@echo "====================================="
+	@echo "You are on the ==== " ${OS} ${VER} "===="
+	@echo "Check user-config.jam for python version"
+	@echo "Check access permission for /usr/local -- You shoud have write permission"
+	@echo "====================================="
 	@echo "make dependency"
-	@echo "make rtags"
 	@echo "make fonts"
 	@echo "make mozc"
 	@echo "make bower"
-	@echo "make cross-tools"
 	@echo "make boost"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
 	@echo "make qemu"
+	@echo "make cross-tools"
 	@echo "make boost-armhf"
-	@echo "make cmake"
+	@echo "make cmake -- if Debian 9"
 	@echo "make rdkit"
 	@echo "make qwt"
 	@echo "make gnuplot"
-#	@echo "make ffmpeg"
-#	@echo "make jpeg"
+	@echo "make rtags -- use apt install rtags on debian 10"
 	@echo "make opencv" || "make opencv.debug"
-#	@echo "make arrayfire"
-	@echo " -- or make world"
+
 
 dependency:
 	./linux-initial-setup.sh
