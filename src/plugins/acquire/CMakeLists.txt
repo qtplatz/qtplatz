@@ -9,7 +9,6 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Threads REQUIRED )
 
-#QT += core svg printsupport widgets
 find_package( Qt5 REQUIRED Core Gui PrintSupport Sql Svg Widgets )
 
 find_package( qwt )
@@ -68,10 +67,6 @@ add_library( ${PROJECT_NAME} MODULE
   waveformwnd.hpp
   idgmodimpl.cpp
   idgmodimpl.hpp
-#  isequenceimpl.cpp
-#  isequenceimpl.hpp
-#  resultwriter.cpp
-#  resultwriter.hpp
   ${Resources}
   )
 

@@ -10,9 +10,11 @@ set( Boost_NO_SYSTEM_PATHS ON )
 set( Boost_ADDITIONAL_VERSIONS "1.70.0" )
 
 if( WIN32 )
+  # See 'libs/serialization/src/basic_archive.cpp library_version_type
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_67"   # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
-    "C:/Boost/include/boost-1_62"   # V14 <-- prefereed version (but it may not be able to comple due to std::auto_ptr)
+    "C:/Boost/include/boost-1_69"   # V17 
+    "C:/Boost/include/boost-1_67"   # V16
+    "C:/Boost/include/boost-1_62"   # V14
     )
 
   set( BOOST_ROOT ${_boost} )
