@@ -10,7 +10,7 @@ pushd "${RDKIT_BINARY_DIR}"
 
 cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
    	 -DBOOST_ROOT=%BOOST_ROOT% ^
-      	 -DBoost_USE_STATIC_LIBS=ON ^
+      	 -DBoost_USE_STATIC_LIBS=OFF ^
       	 -DRDK_BUILD_INCHI_SUPPORT=ON ^
       	 -DRDK_BUILD_PYTHON_WRAPPERS=OFF ^
       	 -DRDK_BUILD_SWIG_JAVA_WRAPPER=OFF ^
@@ -23,5 +23,5 @@ cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build-debug.bat
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj > build-release.bat
 echo "*******************************"
-echo "run build-release.bat manually."
+echo "run build-[release|debug].bat manually."
 echo "*******************************"

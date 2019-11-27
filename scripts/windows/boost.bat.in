@@ -10,3 +10,7 @@ pushd "${BOOST_SOURCE_DIR}"
 
 .\bootstrap.bat
 
+@echo off
+echo "----------------------------------------------------------"
+echo "run boost-build.bat in the directory " %BOOST_SOURCE_DIR%
+echo "----------------------------------------------------------"

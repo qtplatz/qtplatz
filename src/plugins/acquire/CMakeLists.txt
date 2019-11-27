@@ -33,7 +33,10 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   )
 
 if (WIN32)
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+  add_definitions(
+    -D_SCL_SECURE_NO_WARNINGS
+    -DACQUIRE_LIBRARY
+    )
 endif()
 
 include_directories(
