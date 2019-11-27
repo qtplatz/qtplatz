@@ -1,6 +1,34 @@
 #!make
 OS=$(shell lsb_release -si)
 VER=$(shell lsb_release -sr)
+DETECTED_OS = ${OS}_${VER}
+
+
+ifeq (${DETECTED_OS}, Debian_10)
+all: default_10
+else
+all: default
+endif
+
+default_10:
+	@echo "====================================="
+	@echo "We detect debian 10 (Buster)"
+	@echo "Check user-config.jam for python version"
+	@echo "Check access permission for /usr/local -- You shoud have write permission"
+	@echo "====================================="
+	@echo "make dependency"
+	@echo "make fonts"
+	@echo "make mozc"
+	@echo "make bower"
+	@echo "make boost, check python version in your user-config.jam"
+	@echo "make qwt"
+	@echo "make rdkit"
+	@echo "make opencv" || "make opencv.debug"
+	@echo "make qemu"
+	@echo "make cross-tools"
+	@echo "make boost-armhf"
+	@echo "make gnuplot"
+	@echo "make rtags -- run 'apt install rtags' after install llvm; see https://apt.llvm.org/"
 
 default:
 	@echo "====================================="
@@ -9,21 +37,20 @@ default:
 	@echo "Check access permission for /usr/local -- You shoud have write permission"
 	@echo "====================================="
 	@echo "make dependency"
+	@echo "make cmake -- require 3.13"
 	@echo "make fonts"
 	@echo "make mozc"
 	@echo "make bower"
 	@echo "make boost"
-	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
+	@echo "make qwt"
+	@echo "make rdkit"
+	@echo "make opencv" || "make opencv.debug"
 	@echo "make qemu"
 	@echo "make cross-tools"
 	@echo "make boost-armhf"
-	@echo "make cmake -- if Debian 9"
-	@echo "make rdkit"
-	@echo "make qwt"
 	@echo "make gnuplot"
-	@echo "make rtags -- use apt install rtags on debian 10"
-	@echo "make opencv" || "make opencv.debug"
-
+	@echo "make rtags"
+	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
 
 dependency:
 	./linux-initial-setup.sh
