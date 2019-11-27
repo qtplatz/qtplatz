@@ -25,6 +25,7 @@
 
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
+#include <array>
 
 namespace socfpga {
 

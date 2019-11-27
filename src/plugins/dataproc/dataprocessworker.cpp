@@ -477,7 +477,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                     processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
                     bool found( false );
                     if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
-                        if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& f ) { return f.name() == Constants::F_TARGETING; } ) ) {
+                        if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& a ) { return a.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
                                 found = true;
                                 for ( const auto& c : targeting->candidates() ) {

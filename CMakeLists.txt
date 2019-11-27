@@ -35,7 +35,11 @@ if ( CMAKE_CROSSCOMPILING )
   option( WITH_PYTHON3     "Python3 modules"          OFF )
 else()
   option( WITH_CUDA        "CUDA"                     ON )
-  option( WITH_PYTHON3     "Python3 modules"          ON )
+  if ( WIN32 )
+    option( WITH_PYTHON3     "Python3 modules"        OFF )
+  else()
+    option( WITH_PYTHON3     "Python3 modules"        ON )
+  endif()
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
@@ -122,20 +126,26 @@ else() # Linux
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
 endif()
 
+if ( WITH_PYTHON3 )
+  find_package( Python3 COMPONENTS Interpreter Development )
+endif()
+
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
+  set( boost_libs "bzip2" )
+  if ( Python3_FOUND )
+    list( APPEND boost_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
+  endif()
 endif()
 if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
-  set( boost_bzip2 "" )
 else()
-  set( boost_bzip2 "bzip2" )
 endif()
 
 # adplugin now uses boost_dll, which require 1.61
-find_package( Boost 1.62 REQUIRED COMPONENTS
+find_package( Boost 1.67 REQUIRED COMPONENTS
   atomic
-#  ${boost_bzip2}
+  ${boost_libs} # windows
   chrono
   date_time
   filesystem
@@ -269,7 +279,10 @@ add_subdirectory ( contrib )
 if ( Qt5_FOUND )
   add_subdirectory ( share )
 endif()
-add_subdirectory( tests )
+
+if ( NOT WIN32 )
+  add_subdirectory( tests )
+endif()
 
 ########### CPack ########
 #message( STATUS "------------ cpack ----------------" )

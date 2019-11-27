@@ -11,7 +11,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( BZip2 REQUIRED )
+#  find_package( BZip2 REQUIRED )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs

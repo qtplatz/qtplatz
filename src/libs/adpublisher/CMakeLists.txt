@@ -91,14 +91,16 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   )
 
-add_executable( adedit
-  main.cpp
-  )
+if ( NOT WIN32 )
+  add_executable( adedit
+    main.cpp
+    )
 
 target_link_libraries(
   adedit LINK_PUBLIC
   ${PROJECT_NAME}
   )
+endif()
 
 
 install( TARGETS ${PROJECT_NAME}
