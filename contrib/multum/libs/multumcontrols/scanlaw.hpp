@@ -31,32 +31,9 @@
 
 namespace multumcontrols {
 
-    namespace infitof {
-        //const double FLIGHT_LENGTH_L1      = 0.06626 + 0.08806; // ion pulse point to injection sector exit (1 -- 2)
-        //const double FLIGHT_LENGTH_L1      = 0.06626 + 0.109907284; // according to 132Xe at laps of 30 and 40 acquired 21st APR 2017
-#if 0
-        const double FLIGHT_LENGTH_L2      = 0.30512; // injection sector exit to ejection sector entry (2 -- 3)
-        const double FLIGHT_LENGTH_L3      = 0.32766; // injection sector exit to 4 (2--4)
-        const double FLIGHT_LENGTH_LG      = 0.61973; // injection sector exit to ion gate (2--5)
-        const double FLIGHT_LENGTH_L4      = 0.64023; // injection sector exit to ion gate (2--6)
-        const double FLIGHT_LENGTH_LT      = 0.66273; // length of figure-eight orbit
-        const double FLIGHT_LENGTH_EXIT    = 0.06626;
-        const double FLIGHT_LENGTH_L1      = 0.505939 - ( FLIGHT_LENGTH_L2 + FLIGHT_LENGTH_EXIT );
-#endif
-#if 0
-        // infiTOF-UHV
-        // see infitof/src/libs/infitofdefns/constants
-        const double FLIGHT_LENGTH_L1      = 0.06626 + 0.087863113; // 0.08806; // ion pulse point to injection sector exit (1 -- 2)
-        const double FLIGHT_LENGTH_L2      = 0.30512; // injection sector exit to ejection sector entry (2 -- 3)
-        const double FLIGHT_LENGTH_L3      = 0.32766; // injection sector exit to 4 (2--4)
-        const double FLIGHT_LENGTH_LG      = 0.61973; // injection sector exit to ion gate (2--5)
-        const double FLIGHT_LENGTH_L4      = 0.64023; // injection sector exit to ion gate (2--6)
-        const double FLIGHT_LENGTH_LT      = 0.66273; // length of figure-eight orbit
-        const double FLIGHT_LENGTH_EXIT    = 0.06626;
-#endif
-    }
+    namespace infitof { }
 
-    //////////////    
+    //////////////
     class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public adcontrols::ScanLaw, protected adportable::TimeSquaredScanLaw {
         double gateOffset_;
         std::array< double, 7 > dimension_;
@@ -68,7 +45,7 @@ namespace multumcontrols {
 
         ScanLaw( const ScanLaw& t );
         ScanLaw& operator = ( const ScanLaw& );
-        
+
         // TimeSquaredScanLaw
         double tDelay() const override;
         double kAcceleratorVoltage() const override;
@@ -99,7 +76,7 @@ namespace multumcontrols {
         double entry_through_threshold_length() const;
         double exit_through_threshold_length( int nTurns ) const;
 
-        double number_of_turns( double exit_delay, double exact_mass ) const; 
+        double number_of_turns( double exit_delay, double exact_mass ) const;
 
         void setGateOffsetLength( double );
         double gateOffsetLength() const;
@@ -109,14 +86,13 @@ namespace multumcontrols {
     };
 
     namespace infitof {
-        
+
         class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public multumcontrols::ScanLaw {
         public:
             ~ScanLaw();
             ScanLaw();
             ScanLaw( double kAcceleratorVoltage, double tDelay );
         };
-        
+
     };
 }
-
