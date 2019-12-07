@@ -301,13 +301,14 @@ Targeting::operator()( MassSpectrum& ms )
                     }
                 }
 
-                if ( nCarbons && ( isotopes.at(0).idx < 0 ) ) {
-                    candidate.score = -9999;
-                } else  {
-                    std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_mass < b.exact_mass; });
-                    auto tail = std::find_if( isotopes.rbegin(), isotopes.rend(), [](const auto& a){ return a.idx >= 0; } );
-                    isotopes.erase( tail.base(), isotopes.end() );
-                }
+                (void)nCarbons; // ignore isotope detection check
+                //if ( nCarbons && ( isotopes.at(0).idx < 0 ) ) {
+                //    candidate.score = -9999;
+                //} else  {
+                std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_mass < b.exact_mass; });
+                auto tail = std::find_if( isotopes.rbegin(), isotopes.rend(), [](const auto& a){ return a.idx >= 0; } );
+                isotopes.erase( tail.base(), isotopes.end() );
+                //}
 
                 candidate.isotopes = std::move( isotopes );
 

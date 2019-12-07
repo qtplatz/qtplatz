@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <ratio>
 #include <sstream>
 #include <vector>
 
@@ -309,7 +310,6 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                     ADDEBUG() << "area(HH) = " << a << ", " << area;
                 }
 #endif
-
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
                 size_t index = std::distance( masses.begin(), --pos );
 
@@ -323,22 +323,25 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 timeFunctor functor( profile );
                 adportable::Moment time_moment( functor );
                 double time = time_moment.centreX( profile.getIntensityArray(), threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
+                //--------
                 item.time_from_time_ = time;
                 item.centroid_left_time_ = time_moment.xLeft();
                 item.centroid_right_time_ = time_moment.xRight();
+                //
 				time_moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second );
 				item.HH_left_time_ = time_moment.xLeft();
 				item.HH_right_time_ = time_moment.xRight();
+                //--------
 
-                // double width = moment.xRight() - moment.xLeft(); // m/z
-                if ( method_.areaMethod() == CentroidMethod::eAreaDa )
-                    item.area_ = area * ( moment.xRight() - moment.xLeft() ) * 1000; // Intens. x mDa
-                else if ( method_.areaMethod() == CentroidMethod::eAreaTime )
-                    item.area_ = area * adcontrols::metric::scale_to_nano( time_moment.xRight() - time_moment.xLeft() ); // Intens. x ns
-                else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized )
-                    item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac); // width of unit of sample interval
-                else if ( method_.areaMethod() == CentroidMethod::eAreaPoint )
+                if ( method_.areaMethod() == CentroidMethod::eAreaDa ) {
+                    item.area_ = ( item.centroid_right_mass_ - item.centroid_left_mass_ ) * std::milli::den;       // I x mDa
+                } else if ( method_.areaMethod() == CentroidMethod::eAreaTime ) {
+                    item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den; // I x ns
+                } else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized ) {
+                    item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac);   // width of unit of sample interval
+                } else if ( method_.areaMethod() == CentroidMethod::eAreaPoint ) {
                     item.area_ = area; // Intens x ns that assumes data is always 1ns interval
+                }
 
                 double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
 
@@ -394,7 +397,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
 
         double h = *it - pk.base;
-        //double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
+        //double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
 
         size_t idx = std::distance( intens.begin(), it );
 
@@ -523,11 +526,6 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
                     double y = pCounts[ idx - 1 ] +
                         ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_left_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
-
-                    if ( pTimes[ idx ] > 30.058e-6 && pTimes[ idx ] < 30.067e-6 )
-                        ADDEBUG() << "F: idx=" << idx << "\tCounts: " << std::make_pair( pCounts[ idx - 1 ], pCounts[idx] )
-                                  << "\tm/z: " << std::make_pair( pMasses[ idx - 1 ], pMasses[ idx ] )
-                                  << ", y=" << y;
                     item.area_ += y;
                 }
             }
@@ -540,12 +538,6 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
                     double y = pCounts[ idx - 1 ] +
                         ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_right_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
-
-                    if ( pTimes[ idx ] > 30.058e-6 && pTimes[ idx ] < 30.067e-6 )
-                        ADDEBUG() << "R: idx=" << idx << "\tCounts: " << std::make_pair( pCounts[ idx - 1 ], pCounts[idx] )
-                                  << "\tm/z: " << std::make_pair( pMasses[ idx - 1 ], pMasses[ idx ] )
-                                  << ", y=" << y;
-
                     item.area_ += y;
                 }
             }
