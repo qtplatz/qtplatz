@@ -74,8 +74,9 @@ namespace Constants {
     enum ProcessType {
         CentroidProcess
         , TargetingProcess
-        , CalibrationProcess
+        , MSChromatogrProcess
         , PeakFindProcess
+        , CalibrationProcess
     };
 
 } // namespace dataproc

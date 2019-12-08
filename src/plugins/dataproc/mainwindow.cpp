@@ -362,8 +362,9 @@ MainWindow::createStyledBarMiddle()
             QComboBox * features = new QComboBox;
             features->addItem( tr("Centroid") );
             features->addItem( tr("Targeting") ); // Centroid + find targets
-            features->addItem( tr("MS Calibration") );
+            features->addItem( tr("MS Chromatogr") );
             features->addItem( tr("Find peaks") );
+            features->addItem( tr("MS Calibration") );
             toolBarLayout->addWidget( features );
 
             connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected );
@@ -1196,6 +1197,8 @@ MainWindow::actionApply()
 
         if ( currentFeature_ == CalibrationProcess )
             processor->applyCalibration( pm );
+        else if ( currentFeature_ == MSChromatogrProcess )
+            handleProcess( "MSChromatogramWidget" );
         else
             processor->applyProcess( pm, currentFeature_ );
     }
@@ -1256,6 +1259,8 @@ MainWindow::handleFeatureSelected( int value )
 
     if ( currentFeature_ == TargetingProcess )
         object_name = "TargetingMethod";
+    else if ( currentFeature_ == MSChromatogrProcess )
+        object_name = "MSChromatogrMethod";
     else if ( currentFeature_ == CalibrationProcess )
         object_name = "MSCalibrationMethod";
     else if ( currentFeature_ == PeakFindProcess )
