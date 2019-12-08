@@ -55,7 +55,7 @@ namespace adcontrols {
     namespace chem {
 
         static const char * braces [] = { "(", ")" };
-        static const char * separators [] = { "+", "-" };
+        // static const char * separators [] = { "+", "-" };
         using adportable::chem::atom_type;
 
         typedef std::vector< std::pair< atom_type, size_t > > format_type;

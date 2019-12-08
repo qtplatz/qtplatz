@@ -262,6 +262,9 @@ Targeting::operator()( MassSpectrum& ms )
                 ////////////// isotope cluster match ///////////////
                 // generate cluster pattern
                 auto neutral = adcontrols::ChemicalFormula::neutralize( candidate.formula );
+#if !defined NDEBUG && 0
+                ADDEBUG() << "candidate.formula: " << candidate.formula << ", neutral: " << neutral;
+#endif
                 auto v_peak = isotopeCluster( 1.0e-6, 7000 )( ChemicalFormula::split( neutral.first ), neutral.second );
                 auto bp = std::max_element( v_peak.begin(), v_peak.end(), [](const auto& a, const auto& b){ return a.abundance < b.abundance; }); // base peak
 
@@ -302,13 +305,9 @@ Targeting::operator()( MassSpectrum& ms )
                 }
 
                 (void)nCarbons; // ignore isotope detection check
-                //if ( nCarbons && ( isotopes.at(0).idx < 0 ) ) {
-                //    candidate.score = -9999;
-                //} else  {
                 std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_mass < b.exact_mass; });
                 auto tail = std::find_if( isotopes.rbegin(), isotopes.rend(), [](const auto& a){ return a.idx >= 0; } );
                 isotopes.erase( tail.base(), isotopes.end() );
-                //}
 
                 candidate.isotopes = std::move( isotopes );
 
@@ -394,7 +393,8 @@ Targeting::setup( const TargetingMethod& m )
         if ( a.first ) {
             for ( const auto& adduct: ChemicalFormula::split( a.second ) ) {
                 auto sign = (adduct.second == '-' ? "-" : "+");
-                adducts_global[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { adduct.first, sign[0] };
+                auto pair = ChemicalFormula::neutralize( adduct.first ); // neutral formula, charge
+                adducts_global[ sign + ChemicalFormula::standardFormula( pair.first, true ) ] = { pair.first, sign[0] };
             }
         }
     }
@@ -408,7 +408,10 @@ Targeting::setup( const TargetingMethod& m )
                 for ( const auto& a: ChemicalFormula::split( x.adducts() ) ) {
                     auto sign = (a.second == '-' ? "-" : "+");
                     auto pair = ChemicalFormula::neutralize( a.first ); // neutral formula, charge
-                    adducts_local[ sign + ChemicalFormula::standardFormula( a.first, true ) ] = { pair.first, sign[0] };
+                    auto key = sign + ChemicalFormula::standardFormula( pair.first, true );
+                    if ( adducts_global.find( key ) == adducts_global.end() ) {
+                        adducts_local[ sign + ChemicalFormula::standardFormula( a.first, true ) ] = { pair.first, sign[0] };
+                    }
                 }
                 auto formula = std::string( x.formula() ) + x.adducts();
             }

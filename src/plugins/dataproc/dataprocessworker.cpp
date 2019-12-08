@@ -218,8 +218,10 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
                 } else {
                     for ( auto reader: rawfile->dataReaders() ) {
                         ADDEBUG() << "existing data reader: " << tm->dataReader();
-                        if ( reader->objtext() == tm->dataReader() )
-                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, *it, p ); } ) );
+                        if ( reader->objtext() == tm->dataReader() ) {
+                            ADDEBUG() << "reader name: " << reader->display_name();
+                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                        }
                     }
                 }
 
@@ -503,7 +505,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
         }
         QJsonObject top{ { "formulae", a } };
         auto json = QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
-        ADDEBUG() << json;
+        // ADDEBUG() << json;
         double width = cm.width( cm.widthMethod() );
 
         if ( auto dset = processor->rawdata() ) {
