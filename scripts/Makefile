@@ -29,6 +29,7 @@ default_10:
 	@echo "make boost-armhf"
 	@echo "make gnuplot"
 	@echo "make rtags -- run 'apt install rtags' after install llvm; see https://apt.llvm.org/"
+	@echo "make code"
 
 default:
 	@echo "====================================="
@@ -50,6 +51,7 @@ default:
 	@echo "make boost-armhf"
 	@echo "make gnuplot"
 	@echo "make rtags"
+	@echo "make code"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
 
 dependency:
@@ -106,5 +108,8 @@ rtags:
 
 cmake:
 	./linux-cmake-setup.sh
+
+code:
+	./linux-vscode-setup.sh
 
 world: dependency cross-tools boost boost-armhf cmake rdkit qwt gnuplot opencv rtags
