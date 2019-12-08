@@ -52,6 +52,7 @@
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/semaphore.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
@@ -219,9 +220,14 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
                     auto readers = rawfile->dataReaders();
                     auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
                     if ( it != readers.end() ) {
+                        adportable::semaphore sem;
                         auto reader = (*it);
-                        ADDEBUG() << "reader name: " << reader->display_name();
-                        threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                        threads_.emplace_back( std::thread(
+                                                   [=,&sem] {
+                                                       handleChromatogramsByMethod3( processor, *tm, pm, reader, p );
+                                                       sem.signal();
+                                                   } ) );
+                        sem.wait();
                     }
                 }
 
