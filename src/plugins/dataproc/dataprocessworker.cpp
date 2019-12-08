@@ -216,12 +216,12 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
                             threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 } else {
-                    for ( auto reader: rawfile->dataReaders() ) {
-                        ADDEBUG() << "existing data reader: " << tm->dataReader();
-                        if ( reader->objtext() == tm->dataReader() ) {
-                            ADDEBUG() << "reader name: " << reader->display_name();
-                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
-                        }
+                    auto readers = rawfile->dataReaders();
+                    auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
+                    if ( it != readers.end() ) {
+                        auto reader = (*it);
+                        ADDEBUG() << "reader name: " << reader->display_name();
+                        threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 }
 
