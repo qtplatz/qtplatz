@@ -24,7 +24,7 @@ if [ ! -d $SRC ]; then
 fi
 
 if [ ! -d $SRC/rtags ]; then
-    ( cd $SRC; 
+    ( cd $SRC;
       git clone --recursive https://github.com/Andersbakken/rtags.git )
 fi
 
@@ -34,7 +34,8 @@ build_dir=$SRC/build-$arch/$target.$config
 mkdir -p $build_dir
 cd $build_dir
 
-cmake $source_dir
+#emacs-27 may fail for bitcompile due to no cl package
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DRTAGS_NO_ELISP_BYTECOMPILE=1 $source_dir
 
 if make -j4; then
     echo "==================================================="
