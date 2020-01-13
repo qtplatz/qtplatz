@@ -66,6 +66,7 @@
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <extensionsystem/pluginmanager.h>
+#include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>

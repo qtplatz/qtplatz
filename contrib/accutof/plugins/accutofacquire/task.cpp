@@ -53,6 +53,7 @@
 #include <adportable/is_type.hpp>
 #include <adportable/semaphore.hpp>
 #include <u5303a/digitizer.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/numeric/ublas/fwd.hpp> // matrix forward decl
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>

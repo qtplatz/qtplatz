@@ -561,6 +561,7 @@ task::handle_initial_setup()
             strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
             auto code = spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions );
             simulated = code == VI_SUCCESS;
+            success = code == VI_SUCCESS;
             AgMD2::log( code, __FILE__,__LINE__ );
             ADDEBUG() << "##### U5303A SIMULATION MODE #####: " << strInitOptions << " code: " << code;
         }
