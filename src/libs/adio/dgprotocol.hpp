@@ -34,14 +34,14 @@ namespace adio {
         size_t constexpr delay_pulse_count = 6;
 
         // CH0 (push), CH1(INJ), CH2(EXIT), CH3(GATE 0), CH4(GATE 1), CH5(ADC delay)
-        
+
         template< size_t _size = delay_pulse_count >
         class protocol {
         public:
             static size_t constexpr size = _size;
 
             protocol() : replicates_( -1 ) {}
-            
+
             protocol( const protocol& t ) : replicates_( t.replicates_ )
                                           , pulses_( t.pulses_ ) {
             }
@@ -49,15 +49,15 @@ namespace adio {
             size_t replicates() const {
                 return replicates_;
             }
-            
+
             void setReplicates( size_t v ) {
                 replicates_ = v;
             }
-            
+
             std::pair< double, double >& operator []( int index ) {
                 return pulses_ [ index ];
             }
-            
+
             const std::pair< double, double >& operator []( int index ) const {
                 return pulses_ [ index ];
             }
@@ -65,7 +65,11 @@ namespace adio {
             const std::array< std::pair< double, double >, size >& pulses() const {
                 return pulses_;
             }
-            
+
+            std::array< std::pair< double, double >, size >& pulses() {
+                return pulses_;
+            }
+
         private:
             size_t replicates_;
             std::array< std::pair< double, double >, _size > pulses_;

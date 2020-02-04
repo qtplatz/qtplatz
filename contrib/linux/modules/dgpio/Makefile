@@ -20,7 +20,8 @@ all:
 	$(MAKE) -C $(KDIR) M=`pwd` CONFIG_DGPIO=m VERSION=\"${VERSION}\" modules
 
 install:
-	cp -p dgpio.ko /lib/modules/${REVISION}/extra
+	-mkdir /lib/modules/${REVISION}/extra
+	cp -p dgpio.ko /lib/modules/${REVISION}/extra/
 	/sbin/depmod -a
 
 install-init.d:
