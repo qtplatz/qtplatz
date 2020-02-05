@@ -48,7 +48,7 @@ namespace acqrscontrols { namespace u5303a { class method; class device_method; 
 namespace u5303a {
 
     class AgMD2;
-    
+
     namespace detail { class task; }
 
 	class U5303ASHARED_EXPORT device_data {
@@ -61,7 +61,7 @@ namespace u5303a {
             void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( ident );
-            ar & BOOST_SERIALIZATION_NVP( meta );           
+            ar & BOOST_SERIALIZATION_NVP( meta );
         }
     };
 
@@ -70,7 +70,7 @@ namespace u5303a {
     public:
         digitizer();
         ~digitizer();
-        
+
         bool peripheral_initialize();
         bool peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& );
         bool peripheral_prepare_for_run( const acqrscontrols::u5303a::method& );
@@ -79,9 +79,9 @@ namespace u5303a {
         bool peripheral_trigger_inject();
         bool peripheral_terminate();
         bool peripheral_dark( size_t waitCount );
-    
+
     // [[deprecated("replace with dgmod,hardwired")]] bool peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols );
-    
+
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef void (command_handler_type)( const std::string, const std::string );
@@ -99,14 +99,16 @@ namespace u5303a {
 
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
-    
 
         static bool readData( AgMD2&, const acqrscontrols::u5303a::method&
                               , std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
         static bool readData16( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );
         static bool readData32( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform&, const char * channel = "Channel1" );
-    };    
-    
+    };
+
+    struct findResource {
+        std::pair< bool, std::string > operator()( std::shared_ptr< AgMD2 > ) const;
+    };
 
 }
 

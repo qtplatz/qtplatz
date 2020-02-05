@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -85,8 +85,6 @@ namespace u5303a {
             void disconnect( digitizer::waveform_reply_type f );
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
-            bool findResource();
-
             inline AgMD2 * spDriver() { return spDriver_.get(); }
 
             inline const acqrscontrols::u5303a::method& method() const { return method_; }
@@ -139,7 +137,6 @@ namespace u5303a {
             size_t darkCount_;
 
             std::atomic<double> u5303_inject_timepoint_;
-            std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
@@ -177,6 +174,7 @@ namespace u5303a {
         const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
         const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
 
+        /////
     }
 }
 
@@ -328,22 +326,6 @@ task::task() : exptr_( nullptr )
 
 task::~task()
 {
-}
-
-bool
-task::findResource()
-{
-    // workaround
-    foundResources_ = { "PXI7::0::0::INSTR"
-                        , "PXI6::0::0::INSTR"
-                        , "PXI5::0::0::INSTR"
-                        , "PXI4::0::0::INSTR"
-                        , "PXI3::0::0::INSTR"
-                        , "PXI2::0::0::INSTR"
-                        , "PXI1::0::0::INSTR"
-                        , "PXI0::0::0::INSTR" };
-
-    return true;
 }
 
 task *
@@ -568,12 +550,10 @@ task::handle_initial_setup()
     }
 
     if ( !simulated ) {
-        for ( auto& res : foundResources_ ) {
-            if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
-                ADTRACE() << "Initialize resource: " << res;
-                break;
-            }
-        }
+        std::string res;
+        std::tie( success, res ) = u5303a::findResource()( spDriver_ );
+        if ( success )
+            ADTRACE() << "Initialize resource: " << res;
     }
 
     if ( success ) {
@@ -1299,4 +1279,30 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         }
     }
     return false;
+}
+
+std::pair< bool, std::string >
+findResource::operator()( std::shared_ptr< AgMD2 > md2 ) const
+{
+    const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
+
+    for ( auto& res : {
+            "PXI101::0::0::INSTR"
+            , "PXI7::0::0::INSTR"
+            , "PXI5::0::0::INSTR"
+            , "PXI4::0::0::INSTR"
+            , "PXI3::0::0::INSTR"
+            , "PXI2::0::0::INSTR"
+            , "PXI1::0::0::INSTR"
+        } ) {
+        if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
+            return std::make_pair( true, res );
+    }
+
+    for ( int num = 8; num < 199; num++ ) {
+        std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
+        if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
+            return std::make_pair( true, res );
+    }
+    return std::make_pair( false, "" );
 }
