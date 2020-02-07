@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "dg.hpp"
+#include "ajax.hpp"
 #include "client.hpp"
 #include "request.hpp"
 #include <adportable/debug.hpp>
@@ -46,7 +47,7 @@ dg::start_triggers()
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
 
-    request_stream << "POST /dg/ctl?fsm=start HTTP/1.0\r\n";
+    request_stream << "POST /dg/ctl$fsm=start HTTP/1.0\r\n";
     request_stream << "Host: " << server_ << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n";
@@ -72,7 +73,7 @@ dg::stop_triggers()
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
 
-    request_stream << "POST /dg/ctl?fsm=stop HTTP/1.0\r\n";
+    request_stream << "POST /dg/ctl$fsm=stop HTTP/1.0\r\n";
     request_stream << "Host: " << server_ << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n";
@@ -103,7 +104,7 @@ dg::fetch( adio::dg::protocols<adio::dg::protocol<> >& p )
 {
     boost::asio::io_service io_service;
 
-    adurl::client c( io_service, "/dg/ctl?status.json", server_, "http" );
+    adurl::client c( io_service, "/dg/ctl$status.json", server_, "http" );
 
     io_service.run();
 
@@ -122,7 +123,7 @@ dg::fetch( std::string& json )
 {
     boost::asio::io_service io_service;
 
-    adurl::client c( io_service, "/dg/ctl?status.json", server_, "http" );
+    adurl::client c( io_service, "/dg/ctl$status.json", server_, "http" );
 
     io_service.run();
 
@@ -144,62 +145,73 @@ dg::fetch( std::string& json )
 bool
 dg::commit( const adio::dg::protocols<adio::dg::protocol<> > & p )
 {
-    auto request = std::make_unique< boost::asio::streambuf >();
-    std::ostream request_stream ( request.get() );
+    //auto request = std::make_unique< boost::asio::streambuf >();
+    //std::ostream request_stream ( request.get() );
 
     std::ostringstream json;
     adio::dg::protocols<>::write_json( json, p );
 
-    request_stream << "POST " << "/dg/ctl?commit.json=" << request::url_encode( json.str() ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server_ << "\r\n";
-    request_stream << "Accept: */*\r\n";
-    request_stream << "Connection: close\r\n";
-    request_stream << "Content-Type: application/json\r\n";
-    request_stream << "\r\n";
+    return adurl::ajax()( "POST"
+                          , "/dg/ctl?commit.json"
+                          , server_
+                          , json.str()
+        );
+    // request_stream << "POST " << "/dg/ctl?commit.json=" << request::url_encode( json.str() ) << " HTTP/1.0\r\n";
+    // request_stream << "Host: " << server_ << "\r\n";
+    // request_stream << "Accept: */*\r\n";
+    // request_stream << "Connection: close\r\n";
+    // request_stream << "Content-Type: application/json\r\n";
+    // request_stream << "\r\n";
 
-    boost::asio::io_service io_service;
+    // boost::asio::io_service io_service;
 
-    adurl::client c( io_service, std::move( request ), server_ );
+    // adurl::client c( io_service, std::move( request ), server_ );
 
-    io_service.run();
+    // io_service.run();
 
-    //if ( adurl::client::debug_mode && c.status_code() != 200 ) {
-    if ( adurl::client::debug_mode() ) {
-        std::cerr << "-----------------------------------" << std::endl;
-        std::cerr << &c.response_header();
-        std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
-        std::cerr << "-----------------------------------" << std::endl;
-    }
+    // //if ( adurl::client::debug_mode && c.status_code() != 200 ) {
+    // if ( adurl::client::debug_mode() ) {
+    //     std::cerr << "-----------------------------------" << std::endl;
+    //     std::cerr << &c.response_header();
+    //     std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
+    //     std::cerr << "-----------------------------------" << std::endl;
+    // }
 
-    return c.error() == adurl::client::NoError && c.status_code() == 200;
+    // return c.error() == adurl::client::NoError && c.status_code() == 200;
 }
 
 bool
 dg::commit( const std::string& json )
 {
-    auto request = std::make_unique< boost::asio::streambuf >();
-    std::ostream request_stream ( request.get() );
+    return adurl::ajax()( "POST"
+                          , "/dg/ctl?commit.json"
+                          , server_
+                          , json
+        );
 
-    request_stream << "POST " << "/dg/ctl?commit.json=" << request::url_encode( json ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server_ << "\r\n";
-    request_stream << "Accept: */*\r\n";
-    request_stream << "Connection: close\r\n";
-    request_stream << "Content-Type: application/json\r\n";
-    request_stream << "\r\n";
+    // auto request = std::make_unique< boost::asio::streambuf >();
+    // std::ostream request_stream ( request.get() );
 
-    boost::asio::io_service io_service;
+    // request_stream << "POST " << "/dg/ctl?commit.json=" << request::url_encode( json ) << " HTTP/1.0\r\n";
+    // request_stream << "Host: " << server_ << "\r\n";
+    // request_stream << "Accept: */*\r\n";
+    // request_stream << "Connection: close\r\n";
+    // request_stream << "Content-Type: application/json\r\n";
+    // request_stream << "\r\n";
 
-    adurl::client c( io_service, std::move( request ), server_ );
+    // boost::asio::io_service io_service;
 
-    io_service.run();
+    // adurl::client c( io_service, std::move( request ), server_ );
 
-    //if ( adurl::client::debug_mode && c.status_code() != 200 ) {
-    if ( adurl::client::debug_mode() ) {
-        std::cerr << "-----------------------------------" << std::endl;
-        std::cerr << &c.response_header();
-        std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
-        std::cerr << "-----------------------------------" << std::endl;
-    }
+    // io_service.run();
 
-    return c.error() == adurl::client::NoError && c.status_code() == 200;
+    // //if ( adurl::client::debug_mode && c.status_code() != 200 ) {
+    // if ( adurl::client::debug_mode() ) {
+    //     std::cerr << "-----------------------------------" << std::endl;
+    //     std::cerr << &c.response_header();
+    //     std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
+    //     std::cerr << "-----------------------------------" << std::endl;
+    // }
+
+    // return c.error() == adurl::client::NoError && c.status_code() == 200;
 }

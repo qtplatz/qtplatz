@@ -4,7 +4,7 @@ function find_qmake() {
     local __arch=`uname`
     local __result=$1
 
-    local hints=( "/Qt/5.12.6" "/Qt/5.12.5" "/Qt/5.12.4" "/Qt/5.12.3" "/Qt/5.12.2" "/Qt/5.12.1" "/Qt/5.12.0" \
+    local hints=( "/Qt/5.12.7" "/Qt/5.12.6" "/Qt/5.12.5" "/Qt/5.12.4" "/Qt/5.12.3" "/Qt/5.12.2" "/Qt/5.12.1" "/Qt/5.12.0" \
 					  "/Qt/5.11.2" "/Qt/5.11.1" "/Qt/5.11.0" \
 					  "/Qt/5.10.1" \
 					  "/Qt/5.9.3" "/Qt/5.9.2" "/Qt/5.9.1" "/Qt/5.9" \
@@ -23,7 +23,7 @@ function find_qmake() {
 	    local __dirs=()
 	    for hint in "${hints[@]}"; do
 		__dirs+=("$home$hint/clang_64")
-	    done	    
+	    done
 	    ;;
 	*)
 	    echo "######## unknown arch: " $__arch
@@ -40,4 +40,3 @@ function find_qmake() {
     done
     return 1; #false
 }
-

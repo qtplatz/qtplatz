@@ -968,7 +968,7 @@ document::handleInfo( adextension::iController *, const QByteArray& json )
         emit onTick( json );
         if ( std::chrono::duration_cast< std::chrono::seconds >( std::chrono::steady_clock::now() - __tp ).count() > 6 ) {
             adurl::ajax ajax( impl_->http_host_.toStdString(), impl_->http_port_.toStdString() );
-            if ( ajax( "GET", "/dg/ctl?status.json" ) ) {
+            if ( ajax( "GET", "/dg/ctl$status.json" ) ) {
                 size_t sz;
                 if ( auto resp = ajax.get_response( sz ) ) {
                     QByteArray data( resp, sz );

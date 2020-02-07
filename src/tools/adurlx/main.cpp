@@ -57,7 +57,7 @@ print( const boost::property_tree::ptree& pt )
     for (ptree::const_iterator it = pt.begin(); it != end; ++it) {
         std::cout << it->first << ": " << it->second.get_value<std::string>() << std::endl;
         print(it->second);
-    }    
+    }
 }
 
 int
@@ -74,10 +74,10 @@ main( int argc, char* argv[] )
         ( "dg.start",  "fsm-start" )
         ( "dg.stop",   "fsm-stop" )
         ( "blob",       po::value< std::string >(), "blob /dataStorage" )
-        ( "sse",        po::value< std::string >()->default_value("/dg/ctl?events"), "sse dg|evbox|hv|(any url string)" )
+        ( "sse",        po::value< std::string >()->default_value("/dg/ctl$events"), "sse dg|evbox|hv|(any url string)" )
         ( "args",       po::value< std::vector< std::string > >(),  "host" )
         ;
-    
+
     po::positional_options_description p;
     p.add( "args",  -1 );
     po::store( po::command_line_parser( argc, argv ).options( description ).positional(p).run(), vm );
@@ -86,7 +86,7 @@ main( int argc, char* argv[] )
     adurl::client::setDebug_mode( true );
 
     if ( vm.count( "help" ) || ( vm.count( "args" ) == 0 ) ) {
-        std::cout << "Usage: " << argv[ 0 ] << "\n\thost[:port] [options]" << std::endl;        
+        std::cout << "Usage: " << argv[ 0 ] << "\n\thost[:port] [options]" << std::endl;
         std::cout << description;
         return 0;
     }
@@ -106,7 +106,7 @@ main( int argc, char* argv[] )
                 adio::dg::protocols< adio::dg::protocol<> > proto;
                 if ( dg.fetch( proto ) ) {
                     std::cout << boost::format( "interval: %.3le (s)" ) % proto.interval() << std::endl;
-                    
+
                     for ( auto& p: proto ) {
                         std::cout << boost::format( "replicates: %1%" ) % p.replicates() << std::endl;
                         for ( auto& pulse: p.pulses() ) {
@@ -143,12 +143,12 @@ main( int argc, char* argv[] )
         if ( vm.count( "blob" ) ) {
             std::string url = vm[ "blob" ].as< std::string >();
             std::cout << url << std::endl;
-#if 0            
+#if 0
             adurl::blob blob( host.c_str(), url.c_str() );
             blob.exec( [] ( const char * event, const char * data ) {
                     std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
                 });
-            
+
             std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
             blob.stop();
 #else
@@ -161,7 +161,7 @@ main( int argc, char* argv[] )
                         ADDEBUG() << header;
                     ADDEBUG() << "blob size=" << blob.size() << " \tblob: " << blob;
                 });
-            
+
             auto pos = host.find_first_of( ':' );
             if ( pos != std::string::npos )
                 blob.connect( url, host.substr( 0, pos ), host.substr( pos + 1 ) );
@@ -175,14 +175,14 @@ main( int argc, char* argv[] )
         if ( vm.count( "sse" ) ) {
             std::string url = vm[ "sse" ].as< std::string >();
             if ( url == "dg" )
-                url = "/dg/ctl?events";
+                url = "/dg/ctl$events";
             if ( url == "hv" )
                 url = "/hv/api$events";
             if ( url == "evbox" )
                 url = "/evbox/api$events";
 
             std::cout << url << std::endl;
-            
+
             adurl::old::sse sse( host.c_str(), url.c_str() );
 
             sse.exec( [] ( const char * event, const char * data ) {

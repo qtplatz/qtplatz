@@ -12,7 +12,7 @@ set( Boost_ADDITIONAL_VERSIONS "1.70.0" )
 if( WIN32 )
   # See 'libs/serialization/src/basic_archive.cpp library_version_type
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_69"   # V17 
+    "C:/Boost/include/boost-1_69"   # V17
     "C:/Boost/include/boost-1_67"   # V16
     "C:/Boost/include/boost-1_62"   # V14
     )
@@ -53,7 +53,7 @@ endif()
 
 if ( WITH_QT5 )
 
-  set ( __qt5_versions "5.12.6" "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" "5.11.1" "5.11.0" "5.10.1" "5.9.2" )
+  set ( __qt5_versions "5.12.7" "5.12.6" "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" )
 
   if ( WIN32 )
     foreach( v ${__qt5_versions} )
