@@ -140,6 +140,8 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
     materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
     materials->addItem( "TFANa", "\tCF3COONa\t[Na]+\t" ); //
     materials->addItem( "Acetonitrile", "(CH3CN)2\t\t[H]+\t" ); //
+    materials->addItem( "YOKUDELUNA(+)", "YOKUDELUNA(+)" );
+    materials->addItem( "YOKUDELUNA(-)", "YOKUDELUNA(-)" );
 
     connect( materials, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MSReferenceDialog::handleIndexChanged );
 
@@ -268,6 +270,10 @@ MSReferenceDialog::handleAddReference()
                 reference_receiver_( adcontrols::MSReference( L"C42H18F72N3O6P3", true, L"H", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C48H18F84N3O6P3", true, L"H", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false ) );
+            } else if ( endGroup == L"YOKUDELUNA(+)" ) {
+                //                                            formula             pos,  adduct, enable, exactmass, charge, desc
+                reference_receiver_( adcontrols::MSReference( L"C2F3O2Na",        true, L"Na", false, 0.0, 1, L"" ) );
+            } else if ( endGroup == L"YOKUDELUNA(-)" ) {
             } else {
                 // check if an element
                 if ( adcontrols::mol::element element = adcontrols::TableOfElement::instance()->findElement( adportable::utf::to_utf8( endGroup ) ) ) {
