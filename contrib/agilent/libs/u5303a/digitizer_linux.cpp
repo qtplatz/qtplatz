@@ -1302,20 +1302,6 @@ findResource::operator()( std::shared_ptr< AgMD2 > md2 ) const
         if ( md2->initWithOptions( res.get(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
             return std::make_pair( true, res.get() );
     }
-    // for ( auto& res : {
-    //         "PXI101::0::0::INSTR"
-    //             , "PXI7::0::0::INSTR"
-    //             //, "PXI6::0::0::INSTR"
-    //             , "PXI5::0::0::INSTR"
-    //             , "PXI4::0::0::INSTR"
-    //             , "PXI3::0::0::INSTR"
-    //             , "PXI2::0::0::INSTR"
-    //             , "PXI1::0::0::INSTR"
-    //             } ) {
-    //     if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
-    //         return std::make_pair( true, res );
-    //     ADDEBUG() << "Resource: " << res << "\tfaild";
-    // }
     for ( int num = 0; num < 199; num++ ) {
         std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
         if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) {

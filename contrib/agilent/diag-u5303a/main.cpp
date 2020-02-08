@@ -30,6 +30,7 @@
 #include <acqrscontrols/u5303a/method.hpp>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <bitset>
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
@@ -217,7 +218,7 @@ main( int argc, char * argv [] )
         std::cerr << "dgpio open failed -- ignored." << std::endl;
 
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
-        
+
         const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
@@ -401,12 +402,13 @@ main( int argc, char * argv [] )
                     u5303a::digitizer::readData( *md2, method, vec );
 
                     int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
-                    (void)protocolIndex;
+                    std::bitset< 2 > proto = protocolIndex;
                     execStatistics::instance().dataCount_ += vec.size();
 
                     if ( __verbose__ >= 5 ) {
                         std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveform(s), proto#"
-                                  << dgpio.protocol_number()
+                                  << protocolIndex
+                                  << "[" << proto.to_string() << "]"
                                   << "\t(" << i << "/" << replicates << ")" << execStatistics::instance().dataCount_ << std::endl;
                     }
 
