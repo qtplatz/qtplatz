@@ -957,10 +957,11 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     bool interleave = ( options.find("INT") != options.npos ) && ( m._device_method().samp_rate > input_rate );
     const bool pkd_enabled = m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
 
+    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) )
+        adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
+    
     if ( pkd_enabled )
         interleave = false;  // force disable interleaving
-    else
-        adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
 
     double max_rate = interleave ? input_rate * 2 : input_rate;
 
