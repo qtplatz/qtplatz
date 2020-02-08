@@ -32,6 +32,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/string.hpp>
 #include <adportable/asio/thread.hpp>
@@ -44,8 +45,11 @@
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/logic/tribool.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <algorithm>
@@ -173,9 +177,17 @@ namespace u5303a {
 
         const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
         const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
-
+        /////
+        struct configFile {
+            static void saveResource( const std::string& res );
+            static boost::optional< std::string > loadResource();
+        };
         /////
     }
+}
+
+namespace {
+
 }
 
 using namespace u5303a;
@@ -1286,23 +1298,71 @@ findResource::operator()( std::shared_ptr< AgMD2 > md2 ) const
 {
     const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
 
-    for ( auto& res : {
-            "PXI101::0::0::INSTR"
-            , "PXI7::0::0::INSTR"
-            , "PXI5::0::0::INSTR"
-            , "PXI4::0::0::INSTR"
-            , "PXI3::0::0::INSTR"
-            , "PXI2::0::0::INSTR"
-            , "PXI1::0::0::INSTR"
-        } ) {
-        if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
-            return std::make_pair( true, res );
+    if ( auto res = configFile::loadResource() ) {
+        if ( md2->initWithOptions( res.get(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
+            return std::make_pair( true, res.get() );
     }
-
-    for ( int num = 8; num < 199; num++ ) {
+    // for ( auto& res : {
+    //         "PXI101::0::0::INSTR"
+    //             , "PXI7::0::0::INSTR"
+    //             //, "PXI6::0::0::INSTR"
+    //             , "PXI5::0::0::INSTR"
+    //             , "PXI4::0::0::INSTR"
+    //             , "PXI3::0::0::INSTR"
+    //             , "PXI2::0::0::INSTR"
+    //             , "PXI1::0::0::INSTR"
+    //             } ) {
+    //     if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
+    //         return std::make_pair( true, res );
+    //     ADDEBUG() << "Resource: " << res << "\tfaild";
+    // }
+    for ( int num = 0; num < 199; num++ ) {
         std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
-        if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
+        if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) {
+            configFile::saveResource( res );
             return std::make_pair( true, res );
+        }
+        ADDEBUG() << "Resource: " << res << "\tfaild";
     }
     return std::make_pair( false, "" );
+}
+
+//static
+void
+configFile::saveResource( const std::string& res )
+{
+    const boost::filesystem::path path = boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
+    const boost::filesystem::path file = path / "digitizer.ini";
+
+    if ( ! boost::filesystem::exists( path ) ) {
+        boost::system::error_code ec;
+        boost::filesystem::create_directories( path, ec );
+        if ( ec ) {
+            ADDEBUG() << ec;
+            return; // error
+        }
+    }
+    boost::property_tree::ptree pt;
+    pt.put( "U5303A.resource", res );
+    boost::property_tree::write_ini( file.string(), pt );
+}
+
+//static
+boost::optional< std::string >
+configFile::loadResource()
+{
+    const boost::filesystem::path path = boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
+    const boost::filesystem::path file = path / "digitizer.ini";
+
+    if ( boost::filesystem::exists( file ) ) {
+
+        boost::property_tree::ptree pt;
+        try {
+            boost::property_tree::read_ini( file.string(), pt );
+        } catch ( std::exception& ex ) {
+            ADDEBUG() << ex.what();
+        }
+        return pt.get_optional<std::string>( "U5303A.resource" );
+    }
+    return boost::none;
 }

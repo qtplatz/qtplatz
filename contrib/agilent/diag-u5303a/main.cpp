@@ -116,7 +116,7 @@ main( int argc, char * argv [] )
     bool TSR_enabled( false );
 
     po::variables_map vm;
-    po::options_description description( "test_u5303a" );
+    po::options_description description( argv[0] );
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
@@ -217,7 +217,7 @@ main( int argc, char * argv [] )
         std::cerr << "dgpio open failed -- ignored." << std::endl;
 
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
-
+        
         const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
