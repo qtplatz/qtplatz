@@ -311,31 +311,42 @@ void
 task::impl::initialize()
 {
     static std::once_flag flag;
-    std::call_once( flag
-                    , [&](){
-                          // Injection event listener via UDP port 7125 start
-                          udpReceiver_ = std::make_unique< acewrapper::udpEventReceiver >( io_service_, 7125 );
-                          udpReceiver_->connect( std::bind( &task::impl::handle_event_out
-                                                            , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+    std::call_once(
+        flag
+        , [&](){
+            // Injection event listener via UDP port 7125 start
+            udpReceiver_ = std::make_unique< acewrapper::udpEventReceiver >( io_service_, 7125 );
+            udpReceiver_->connect( std::bind( &task::impl::handle_event_out
+                                              , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
 
-                          timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
-                          timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
+            timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
+            timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
 
-                          threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
-                      });
-
+            threads_.emplace_back( std::thread( [&](){ io_service_.run(); } ) );
+        });
     fsm_.stop();
 }
 
 void
 task::impl::finalize()
 {
+    boost::system::error_code ec;
+
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
+
     fsm_.stop();
     sequence_->clear();
     udpReceiver_.reset();
+    timer_.cancel( ec );
+    if ( ec )
+        ADDEBUG() << ec;
+
     io_service_.stop();
+
     for ( auto& t: threads_ )
         t.join();
+
+    threads_.clear(); // prevent thread::join call more than once
 }
 
 void

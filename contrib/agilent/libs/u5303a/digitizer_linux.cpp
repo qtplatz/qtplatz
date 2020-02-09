@@ -959,7 +959,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
     if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) )
         adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
-    
+
     if ( pkd_enabled )
         interleave = false;  // force disable interleaving
 
@@ -1007,6 +1007,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
         // PKD - POC
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
+
             ADINFO() << "##### PKD ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" )
                      << "; Amplitude accum. " << (m._device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
 
@@ -1038,22 +1039,17 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         } else {
             ADINFO() << "##### AVG ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" );
 
-            //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
             AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 
-            //task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
             AgMD2::log( attribute< acquisition_mode >::set( *task.spDriver(), AGMD2_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
 
-            // task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
             AgMD2::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
                                                                           , "Channel1"
                                                                           , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
 
-            //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
             AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
 
             //It looks like this command should be issued at last
-            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
             AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
         }
     }
