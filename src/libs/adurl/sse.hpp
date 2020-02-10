@@ -27,6 +27,10 @@
 
 #include "adurl_global.h"
 #include <boost/asio/io_service.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/system/error_code.hpp>
+//#include <boost/signals2.hpp>
 #include <functional>
 #include <vector>
 #include <string>
@@ -37,6 +41,25 @@ namespace adurl {
 
     class client;
 
+    class sse_handler {
+    public:
+        ~sse_handler();
+        sse_handler( boost::asio::io_context& ioc );
+
+        typedef std::function< void( const boost::system::error_code&
+                                     , boost::beast::http::response< boost::beast::http::string_body >&& ) > sse_event_t;
+
+        bool connect( const std::string& url, const std::string& host, const std::string& port, sse_event_t );
+        void exec();
+
+    private:
+        boost::asio::io_context& ioc_;
+        std::unique_ptr< client > client_;
+        sse_event_t handler_;
+    };
+
+
+
     class ADURLSHARED_EXPORT sse {
     public:
 
@@ -44,14 +67,14 @@ namespace adurl {
         class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
         typedef std::function< void( const std::vector< std::pair< std::string, std::string > >&, const std::string ) > callback_type;
-        
+
         ~sse();
         sse( boost::asio::io_service& );
-        
+
         void register_sse_handler( callback_type );
-    
+
         bool connect( const std::string& url, const std::string& server, const std::string& port = "http" );
-    
+
     private:
         boost::asio::io_service& io_context_;  // still using boost-1.62 on armhf based linux
         std::string server_;
@@ -63,7 +86,7 @@ namespace adurl {
         bool header_complete_; // when empty line detects
         size_t content_length_;
     };
-    
+
 
     namespace old {
         class ADURLSHARED_EXPORT sse {
@@ -74,7 +97,7 @@ namespace adurl {
 
             ~sse();
             sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
-        
+
             void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
             void stop();
 
@@ -83,6 +106,5 @@ namespace adurl {
             impl * impl_;
         };
     }
-    
-}
 
+}

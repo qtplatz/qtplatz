@@ -780,10 +780,10 @@ hvTuneWidget::handleSwitchClicked( QObject * obj, bool checked )
 
         ADDEBUG() << json;
 
-        if ( ! ajax( "POST", "/hv/api$checkbox", json, "application/json" ) ) {
-            ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
+        if ( auto res = ajax( "POST", "/hv/api$checkbox", std::move( json ), "application/json" ) ) {
+            ADDEBUG() << "POST success: " << res.get(); // ajax.status_code() << ", " << ajax.status_message();
         } else {
-            ADDEBUG() << "POST success: " << ajax.status_code() << ", " << ajax.status_message();
+            ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
         }
     }
     emit dataChanged();
@@ -808,13 +808,12 @@ hvTuneWidget::handleValueChanged( QObject * obj, double value )
     boost::property_tree::write_json( o, pt, false );
     std::string json = o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
 
-    if ( ! ajax( "POST", "/hv/api$setvoltage", json, "application/json" ) ) {
-        ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
-    } else {
+    if ( auto res = ajax( "POST", "/hv/api$setvoltage", std::move( json ), "application/json" ) ) {
 #if !defined NDEBUG
-        ADDEBUG() << json;
-        ADDEBUG() << "POST success: " << ajax.status_code() << ", " << ajax.status_message();
+        ADDEBUG() << "POST success: " << res.get(); // ajax.status_code() << ", " << ajax.status_message();
 #endif
+    } else {
+        ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
     }
     emit dataChanged();
 }
@@ -871,12 +870,12 @@ hvTuneWidget::handleSectorValueChanged( QObject * obj, double value )
 #endif
     adurl::ajax ajax( impl_->server_, impl_->port_ );
 
-    if ( ! ajax( "POST", "/hv/api$setvoltage", json, "application/json" ) ) {
-        ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
-    } else {
+    if ( auto res = ajax( "POST", "/hv/api$setvoltage", std::move( json ), "application/json" ) ) {
 #ifndef NDEBUG
-        ADDEBUG() << "POST success: " << ajax.status_code() << ", " << ajax.status_message();
+        ADDEBUG() << "POST success: " << res.get(); // ajax.status_code() << ", " << ajax.status_message();
 #endif
+    } else {
+        ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
     }
 
     if ( auto sbx = qobject_cast< QDoubleSpinBox * >( obj ) ) {
@@ -981,7 +980,11 @@ hvTuneWidget::setSetpts( const boost::property_tree::ptree& pt )
         boost::property_tree::write_json( o, top, false );
         std::string json = o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
 
-        if ( ! ajax( "POST", "/hv/api$setvoltage", json, "application/json" ) ) {
+        if ( auto res = ajax( "POST", "/hv/api$setvoltage", std::move( json ), "application/json" ) ) {
+#ifndef NDEBUG
+            ADDEBUG() << "POST reply: " << res.get();
+#endif
+        } else {
             ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
         }
     }
@@ -993,7 +996,11 @@ hvTuneWidget::setSetpts( const boost::property_tree::ptree& pt )
         boost::property_tree::write_json( o, top, false );
         std::string json = o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
 
-        if ( ! ajax( "POST", "/hv/api$checkbox", json, "application/json" ) ) {
+        if ( auto res = ajax( "POST", "/hv/api$checkbox", std::move( json ), "application/json" ) ) {
+#ifndef NDEBUG
+            ADDEBUG() << "POST reply: " << res.get();
+#endif
+        } else {
             ADDEBUG() << "POST failed: " << ajax.status_code() << ", " << ajax.status_message();
         }
     }

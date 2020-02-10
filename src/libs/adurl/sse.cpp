@@ -27,6 +27,7 @@
 #include "client.hpp"
 #include "request.hpp"
 #include <adportable/debug.hpp>
+#include <boost/beast/version.hpp>
 #include <algorithm>
 #include <cctype>
 #include <limits>
@@ -35,7 +36,75 @@
 #include <string>
 #include <thread>
 
-namespace adurl { namespace old {
+using namespace adurl;
+
+namespace {
+    template< typename request_type = boost::beast::http::request< boost::beast::http::empty_body > >
+    struct sse_functor {
+        sse_functor( const sse_functor& t ) = delete;
+        const sse_functor& operator = ( const sse_functor& t ) = delete;
+
+        sse_functor( request_type&& req ) : req_( req ) {
+        }
+
+        void operator()( tcp::socket& socket
+                         , boost::system::error_code& errc ) {
+            ADDEBUG() << "---------- request_functor write ------------";
+            boost::beast::http::async_write(
+                socket
+                , req_
+                , [&]( const boost::system::error_code& ec, size_t ) {
+                    errc = ec;
+                    if ( !ec ) {
+                        ADDEBUG() << "---------- request_functor read ------------";
+                        // boost::beast::http::async_read(
+                        //     socket, buffer_, res_
+                        //     , [&]( const boost::system::error_code& ec, size_t ){
+                        //         ADDEBUG() << "---------- request_functor read: " << ec;
+                        //         errc = ec;
+                        //     });
+                    }
+                });
+        } // operator
+
+        request_type req_;
+    };
+}
+
+sse_handler::~sse_handler()
+{
+}
+
+sse_handler::sse_handler( boost::asio::io_context& ioc ) : ioc_( ioc )
+                                                         , client_( std::make_unique< client >( ioc ) )
+{
+}
+
+bool
+sse_handler::connect( const std::string& target
+                      , const std::string& host
+                      , const std::string& port
+                      , sse_event_t handler )
+{
+    namespace http = boost::beast::http;
+
+    ADDEBUG() << "connect: " << target << ", " << host << ":" << port;
+
+    handler_ = handler;
+
+    http::request< http::empty_body > req{ http::verb::post, target, 11 };
+    req.set( http::field::host, host );
+    req.set( http::field::user_agent, BOOST_BEAST_VERSION_STRING );
+    req.set( http::field::content_type, "application/text" );
+    req.prepare_payload();
+    sse_functor<> fn( std::move( req ) );
+    (*client_)( host, port, fn );
+    ioc_.run();
+}
+
+
+namespace adurl {
+    namespace old {
 
         class sse::impl {
 
@@ -60,7 +129,7 @@ namespace adurl { namespace old {
             void handle_event( const boost::system::error_code& ec, boost::asio::streambuf& response ) {
 
                 std::pair< std::string, std::string > event_data;
-            
+
                 std::istream response_stream( &response );
                 std::string data;
 
@@ -75,7 +144,7 @@ namespace adurl { namespace old {
                 callback_( event_data.first.c_str(), event_data.second.c_str() );
             }
 
-        public:    
+        public:
             std::string server_;
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
@@ -83,7 +152,7 @@ namespace adurl { namespace old {
             std::function< void( const char *, const char * ) > callback_;
             std::vector< std::thread > threads_;
         };
-    
+
         sse::~sse()
         {
             if ( !impl_->threads_.empty() )
@@ -93,7 +162,7 @@ namespace adurl { namespace old {
         }
 
 
-        sse::sse( const char * server, const char * path, const char * port ) // : impl_( new impl( server, path ) )
+        sse::sse( const char * server, const char * path, const char * port )
         {
             auto request = std::make_unique< boost::asio::streambuf >();
             std::ostream request_stream ( request.get() );
@@ -102,9 +171,9 @@ namespace adurl { namespace old {
             request_stream << "Host: " << server << "\r\n";
             request_stream << "Accept: */*\r\n";
             // request_stream << "Connection: close\r\n";
-            request_stream << "Content-Type: application/text\r\n";    
+            request_stream << "Content-Type: application/text\r\n";
             request_stream << "\r\n";
-    
+
             impl_ = new impl( std::move( request ), server, port );
         }
 
@@ -125,6 +194,5 @@ namespace adurl { namespace old {
 
             impl_->threads_.clear();
         }
-
     } // namespace old
 } // namespace adurl

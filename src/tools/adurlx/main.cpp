@@ -31,6 +31,7 @@
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -67,15 +68,17 @@ main( int argc, char* argv[] )
     po::options_description description( argv[0] );
 
     description.add_options()
-        ( "commit",    po::value< std::string >(), "commit json file to server" )
         ( "help,h",    "Display this help message" )
+        ( "dg.commit",    po::value< std::string >(), "commit json file to server" )
         ( "dg.status", "read delay/pulse generagor status" )
         ( "dg.json",   "use json format for status" )
         ( "dg.start",  "fsm-start" )
         ( "dg.stop",   "fsm-stop" )
         ( "blob",       po::value< std::string >(), "blob /dataStorage" )
-        ( "sse",        po::value< std::string >()->default_value("/dg/ctl$events"), "sse dg|evbox|hv|(any url string)" )
-        ( "args",       po::value< std::vector< std::string > >(),  "host" )
+        ( "sse",        po::value< std::string >(), "sse dg|evbox|hv|(any url string)" )
+        ( "host",       po::value< std::string >(), "httpd-dg" )
+        ( "port",       po::value< std::string >()->default_value( "http" ) )
+        ( "args",       po::value< std::vector< std::string > >(),  "url" )
         ;
 
     po::positional_options_description p;
@@ -85,113 +88,79 @@ main( int argc, char* argv[] )
 
     adurl::client::setDebug_mode( true );
 
-    if ( vm.count( "help" ) || ( vm.count( "args" ) == 0 ) ) {
-        std::cout << "Usage: " << argv[ 0 ] << "\n\thost[:port] [options]" << std::endl;
+    if ( vm.count( "help" ) ) { // || ( vm.count( "args" ) == 0 ) ) {
+        std::cout << "Usage: " << argv[ 0 ] << " --host=host --port=http [options]" << std::endl;
         std::cout << description;
         return 0;
     }
 
-    for ( auto& host: vm[ "args" ].as< std::vector< std::string > >() ) {
+    auto host = vm[ "host" ].as< std::string >();
+    auto port = vm[ "port" ].as< std::string >();
 
-        adurl::dg dg( host.c_str() );
+    adurl::dg dg( host, port );
 
-        if ( vm.count( "dg.status" ) ) {
+    if ( vm.count( "dg.status" ) ) {
+        std::string json;
+        if ( dg.fetch( json ) )
+            std::cout << json << std::endl;
+        return 0;
+    }
 
-            if ( vm.count( "json" ) ) {
-                std::string json;
-                if ( dg.fetch( json ) )
-                    std::cout << json << std::endl;
-
-            } else {
-                adio::dg::protocols< adio::dg::protocol<> > proto;
-                if ( dg.fetch( proto ) ) {
-                    std::cout << boost::format( "interval: %.3le (s)" ) % proto.interval() << std::endl;
-
-                    for ( auto& p: proto ) {
-                        std::cout << boost::format( "replicates: %1%" ) % p.replicates() << std::endl;
-                        for ( auto& pulse: p.pulses() ) {
-                            std::cout << boost::format( "{%.2lf, %.2lf}, " )
-                                % ( pulse.first * 1.0e6 ) % ( pulse.second * 1.0e6 );
-                        }
-                        std::cout << ("in microseconds") << std::endl;
-                    }
-                }
-            }
+    if ( vm.count( "dg.commit" ) ) {
+        boost::filesystem::path path( vm[ "dg.commit" ].as< std::string >() );
+        if ( boost::filesystem::exists( path ) ) {
+            std::ifstream is( path.string() );
+            std::string json(std::istreambuf_iterator<char>(is), {});
+            dg.commit( std::move( json ) );
+        } else {
+            ADDEBUG() << path << " not found";
         }
+    }
 
-        if ( vm.count( "dg.commit" ) ) {
+    if ( vm.count( "blob" ) ) {
+        std::string url = vm[ "blob" ].as< std::string >();
+        std::cout << url << std::endl;
+        boost::asio::io_service io_context;
+        adurl::blob blob( io_context );
 
-            std::ifstream json( vm[ "dg.commit" ].as< std::string >() );
-            adio::dg::protocols< adio::dg::protocol<> > protocols;
-            try {
-                if ( protocols.read_json( json, protocols ) ) {
-                    dg.commit( protocols );
-                }
-            } catch ( std::exception& e ) {
-                std::cerr << boost::diagnostic_information( e );
-            }
-        }
+        blob.register_blob_handler( []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob ){
+            ADDEBUG() << "handle blob";
+            for ( const auto& header: headers )
+                ADDEBUG() << header;
+            ADDEBUG() << "blob size=" << blob.size() << " \tblob: " << blob;
+        });
 
-        if ( vm.count( "dg.start" ) ) {
-            dg.start_triggers();
-        }
+        blob.connect( url, host, port );
+        io_context.run();
+        return 0;
+    }
 
-        if ( vm.count( "dg.stop" ) ) {
-            dg.stop_triggers();
-        }
+    if ( vm.count( "sse" ) ) {
+        std::string url = vm[ "sse" ].as< std::string >();
+        if ( url == "dg" )
+            url = "/dg/ctl$events";
+        if ( url == "hv" )
+            url = "/hv/api$events";
+        if ( url == "evbox" )
+            url = "/evbox/api$events";
 
-        if ( vm.count( "blob" ) ) {
-            std::string url = vm[ "blob" ].as< std::string >();
-            std::cout << url << std::endl;
-#if 0
-            adurl::blob blob( host.c_str(), url.c_str() );
-            blob.exec( [] ( const char * event, const char * data ) {
-                    std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
-                });
+        std::cout << url << std::endl;
+#if 1
+        boost::asio::io_context ioc;
+        adurl::sse_handler sse( ioc );
 
-            std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
-            blob.stop();
+        sse.connect( url, host, port
+                     , []( const boost::system::error_code& ec
+                           , boost::beast::http::response< boost::beast::http::string_body >&& res ){
+                         ADDEBUG() << res;
+                     });
 #else
-            boost::asio::io_service io_context;
-            adurl::blob blob( io_context );
-
-            blob.register_blob_handler( []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob ){
-                    ADDEBUG() << "handle blob";
-                    for ( const auto& header: headers )
-                        ADDEBUG() << header;
-                    ADDEBUG() << "blob size=" << blob.size() << " \tblob: " << blob;
-                });
-
-            auto pos = host.find_first_of( ':' );
-            if ( pos != std::string::npos )
-                blob.connect( url, host.substr( 0, pos ), host.substr( pos + 1 ) );
-            else
-                blob.connect( url, host );
-            io_context.run();
+        adurl::old::sse sse( host.c_str(), url.c_str() );
+        sse.exec( [] ( const char * event, const char * data ) {
+             std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
+        });
 #endif
-            return 0;
-        }
-
-        if ( vm.count( "sse" ) ) {
-            std::string url = vm[ "sse" ].as< std::string >();
-            if ( url == "dg" )
-                url = "/dg/ctl$events";
-            if ( url == "hv" )
-                url = "/hv/api$events";
-            if ( url == "evbox" )
-                url = "/evbox/api$events";
-
-            std::cout << url << std::endl;
-
-            adurl::old::sse sse( host.c_str(), url.c_str() );
-
-            sse.exec( [] ( const char * event, const char * data ) {
-                    std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
-                });
-
-            std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
-            sse.stop();
-        }
+        std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
     }
 
     return 0;

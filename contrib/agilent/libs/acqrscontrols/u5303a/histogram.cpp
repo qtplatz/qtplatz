@@ -130,7 +130,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     const size_t hard_index = method_.protocolIndex();
     const size_t safe_index = method_.protocolIndex() % method_.protocols().size();
     if ( hard_index != safe_index ) {
-        ADDEBUG() << "Error: wrong protocol index of " << method_.protocolIndex() << "\tnum protocols are: " << method_.protocols().size();
+        ADDEBUG() << "Error: wrong protocol index of " << method_.protocolIndex() << " while num protocols are: " << method_.protocols().size();
         BOOST_THROW_EXCEPTION( std::range_error( "wrong protocol number" ) );
     }
 

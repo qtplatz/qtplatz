@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,25 +47,17 @@ namespace adurl {
         /** \brief constructor, which take server address
          */
         dg( const char * server );
+        dg( const std::string& host, const std::string& port );
 
         /** \brief commit (set) delay pulse to delay generator-box
          */
         bool commit( const adio::dg::protocols<adio::dg::protocol<> >& );
-        bool commit( const std::string& );
+        bool commit( std::string&& );
 
         /** \brief update (read) actual delay pulse data from delay-generator box
          *
          * updated results can be read using interval() and delayPuse() methods
          */
-        [[deprecated]] bool update_actuals();
-
-        /** \brief start (activate) triggers
-         */
-        bool start_triggers();
-
-        /** \brief stop (deactivate) triggers
-         */
-        bool stop_triggers();
 
         /** \brief reset error state
         */
@@ -77,9 +68,8 @@ namespace adurl {
 
     private:
         std::string server_;
-        bool dirty_;
+        std::string port_;
         bool errorState_;
-        const int timeout_ = 3000;
     };
 
 }

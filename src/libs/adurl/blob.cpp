@@ -63,13 +63,15 @@ blob::connect( const std::string& url
     port_ = port;
     url_ = url;
 
+#if ENABLE_BEAST
+#else
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
 
     request_stream << "POST " << request::url_encode( url_ ) << " HTTP/1.0\r\n";
     request_stream << "Host: " << server_ << "\r\n";
     request_stream << "Accept: */*\r\n";
-    request_stream << "Content-Type: application/text\r\n";    
+    request_stream << "Content-Type: application/text\r\n";
     request_stream << "\r\n";
 
     if ((client_ = std::make_unique< client >( io_context_, std::move( request ), server, port )) ) {
@@ -97,14 +99,14 @@ blob::connect( const std::string& url
                         }
                     }
                 }
-                
+
                 if ( content_length_ && ( response.size() >= content_length_ ) ) {
 
                     auto first = boost::asio::buffer_cast< const char * >( response.data() );
                     std::string body( first, first + content_length_ );
 
                     response.consume( content_length_ );
-                    
+
                     if ( callback_ )
                         callback_( headers_, body );
 
@@ -114,6 +116,6 @@ blob::connect( const std::string& url
                 }
             });
 	}
+#endif
 	return true;
 }
-

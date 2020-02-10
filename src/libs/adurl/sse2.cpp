@@ -25,8 +25,11 @@
 #include "sse.hpp"
 #include "client.hpp"
 #include "request.hpp"
-#include <boost/algorithm/string.hpp>
 #include <adportable/debug.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <algorithm>
 #include <cctype>
 #include <limits>
@@ -63,7 +66,20 @@ sse::connect( const std::string& url
     server_ = server;
     port_ = port;
     url_ = url;
+#if ENABLE_BEAST
+    namespace http = boost::beast::http;
+    http::request< http::empty_body > req{ http::verb::post, url, 11 };
+    req.set( http::field::host, server_ );
+    req.set( http::field::user_agent, BOOST_BEAST_VERSION_STRING );
+    req.set( http::field::content_type, "application/text" );
+    req.prepare_payload();
+    if ( (client_ = std::make_unique< client >( io_context_ ) ) ) {
+        if ( auto res = (*client_)( server, port, std::move( req ) ) ) {
+            ADDEBUG() << res.get();
+        }
+    }
 
+#else
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
 
@@ -114,5 +130,6 @@ sse::connect( const std::string& url
                 }
             });
     }
+#endif
     return true;
 }
