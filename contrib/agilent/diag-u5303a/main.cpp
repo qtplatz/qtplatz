@@ -407,7 +407,7 @@ main( int argc, char * argv [] )
 
                     if ( __verbose__ >= 5 ) {
                         std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveform(s), proto#"
-                                  << protocolIndex
+                                  << boost::format("0x%02x") % protocolIndex
                                   << "[" << proto.to_string() << "]"
                                   << "\t(" << i << "/" << replicates << ")" << execStatistics::instance().dataCount_ << std::endl;
                     }
