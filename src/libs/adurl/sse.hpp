@@ -65,51 +65,51 @@ namespace adurl {
 
 
 
-    class ADURLSHARED_EXPORT sse {
-    public:
+    // class ADURLSHARED_EXPORT sse {
+    // public:
 
-        class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
-        class ADURLSHARED_EXPORT error_reply : public std::exception {};
+    //     class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
+    //     class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
-        typedef std::function< void( const std::vector< std::pair< std::string, std::string > >&, const std::string ) > callback_type;
+    //     typedef std::function< void( const std::vector< std::pair< std::string, std::string > >&, const std::string ) > callback_type;
 
-        ~sse();
-        sse( boost::asio::io_service& );
+    //     ~sse();
+    //     sse( boost::asio::io_service& );
 
-        void register_sse_handler( callback_type );
+    //     void register_sse_handler( callback_type );
 
-        bool connect( const std::string& url, const std::string& server, const std::string& port = "http" );
+    //     bool connect( const std::string& url, const std::string& server, const std::string& port = "http" );
 
-    private:
-        boost::asio::io_service& io_context_;  // still using boost-1.62 on armhf based linux
-        std::string server_;
-        std::string port_;
-        std::string url_;
-        std::unique_ptr< client > client_;
-        callback_type callback_;
-        std::vector< std::pair< std::string, std::string > > headers_;
-        bool header_complete_; // when empty line detects
-        size_t content_length_;
-    };
+    // private:
+    //     boost::asio::io_service& io_context_;  // still using boost-1.62 on armhf based linux
+    //     std::string server_;
+    //     std::string port_;
+    //     std::string url_;
+    //     std::unique_ptr< client > client_;
+    //     callback_type callback_;
+    //     std::vector< std::pair< std::string, std::string > > headers_;
+    //     bool header_complete_; // when empty line detects
+    //     size_t content_length_;
+    // };
 
 
-    namespace old {
-        class ADURLSHARED_EXPORT sse {
-        public:
+    // namespace old {
+    //     class ADURLSHARED_EXPORT sse {
+    //     public:
 
-            class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
-            class ADURLSHARED_EXPORT error_reply : public std::exception {};
+    //         class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
+    //         class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
-            ~sse();
-            sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
+    //         ~sse();
+    //         sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
 
-            void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
-            void stop();
+    //         void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
+    //         void stop();
 
-        private:
-            class impl;
-            impl * impl_;
-        };
-    }
+    //     private:
+    //         class impl;
+    //         impl * impl_;
+    //     };
+    // }
 
 }

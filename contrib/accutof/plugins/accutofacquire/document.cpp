@@ -304,7 +304,7 @@ namespace accutof { namespace acquire {
 
             boost::asio::io_service io_context_;
             boost::asio::steady_timer timer_;
-            std::unique_ptr< adurl::sse > sse_;
+            std::unique_ptr< adurl::sse_handler > sse_;
             std::unique_ptr< adurl::blob > blob_;
             std::vector< std::thread > threads_;
             bool hasDark_;
@@ -323,7 +323,7 @@ namespace accutof { namespace acquire {
                                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                , QLatin1String( "accutof" ) ) )
                    , timer_( io_context_ )
-                   , sse_( std::make_unique< adurl::sse >( io_context_ ) )
+                   , sse_( std::make_unique< adurl::sse_handler >( io_context_ ) )
                    , blob_( std::make_unique< adurl::blob >( io_context_ ) )
                    , hasDark_( false ) {
 
