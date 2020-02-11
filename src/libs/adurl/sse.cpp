@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,6 +28,10 @@
 #include "request.hpp"
 #include <adportable/debug.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/algorithm/string/trim.hpp>
+//#include <boost/utility/string_view.hpp>
 #include <algorithm>
 #include <cctype>
 #include <limits>
@@ -39,35 +43,124 @@
 using namespace adurl;
 
 namespace {
+
+    class sse_stream {
+    public:
+        sse_stream() : inserter_( result_ )
+                     , device_( inserter_ ) {
+        }
+
+        sse_stream& operator << ( std::string&& s ) {
+            device_ << std::move( s );
+            device_.flush();
+            auto pos = result_.find( "\r\n\r\n" );
+            if ( pos != std::string::npos ) {
+                auto ev = split( boost::string_view( result_ ).substr( 0, pos ) );
+                device_.close();
+                result_.erase( 0, pos + 4 );
+                device_.open( inserter_ );
+                ADDEBUG() << "event: " << std::get<0>( ev )
+                          << "\tid[" << std::get<1>( ev ) << "]"
+                          << "\tdata=" << std::get<2>( ev ).substr( 0, 40 );
+            }
+            return *this;
+        }
+
+        std::tuple< std::string     // event
+                    , int32_t       // id
+                    , std::string > // data
+        split( boost::string_view&& lines ) {
+            std::string::size_type pos = 0;
+            std::string event, data;
+            int32_t id(0);
+            do {
+                auto crlf = lines.find( "\r\n", pos, 2 );
+                auto colon = lines.find( ':', pos );
+                auto ident = lines.substr( pos, (colon - pos) );
+                auto value = lines.substr( colon + 1, (crlf - colon - 1) );
+                if ( ident == "id" ) {
+                    id = std::stold( value.to_string(), nullptr );
+                } else if ( ident == "event" ) {
+                    event = value.to_string();
+                    boost::trim( event );
+                } else if ( ident == "data" ) {
+                    data = value.to_string();
+                }
+                pos = ( crlf == std::string::npos ) ? std::string::npos : crlf + 2;
+            } while ( pos != std::string::npos );
+
+            return std::make_tuple( event, id, data );
+        }
+
+        boost::iostreams::back_insert_device< std::string > inserter_;
+        boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device_;
+        std::string result_;
+        std::string frame_;
+    };
+
+
+    namespace http = boost::beast::http;
+
     template< typename request_type = boost::beast::http::request< boost::beast::http::empty_body > >
     struct sse_functor {
         sse_functor( const sse_functor& t ) = delete;
         const sse_functor& operator = ( const sse_functor& t ) = delete;
 
-        sse_functor( request_type&& req ) : req_( req ) {
+        sse_functor( request_type&& req ) : req_( req )
+                                          , parser_( res_ ) { // http::response< http::buffer_body >() ) {
+            parser_.eager( true );
         }
+
 
         void operator()( tcp::socket& socket
                          , boost::system::error_code& errc ) {
-            ADDEBUG() << "---------- request_functor write ------------";
             boost::beast::http::async_write(
                 socket
                 , req_
                 , [&]( const boost::system::error_code& ec, size_t ) {
-                    errc = ec;
-                    if ( !ec ) {
-                        ADDEBUG() << "---------- request_functor read ------------";
-                        // boost::beast::http::async_read(
-                        //     socket, buffer_, res_
-                        //     , [&]( const boost::system::error_code& ec, size_t ){
-                        //         ADDEBUG() << "---------- request_functor read: " << ec;
-                        //         errc = ec;
-                        //     });
-                    }
+                    do_read_header( socket, ec );
                 });
         } // operator
 
+        void do_read_header( tcp::socket& socket, const boost::system::error_code& ec ) {
+            if ( !ec ) {
+                boost::beast::http::async_read_header(
+                    socket
+                    , buffer_
+                    , parser_
+                    , [&]( const boost::system::error_code& ec, size_t ) {
+                        if ( !ec )
+                            ADDEBUG() << "parser is_done: " << parser_.is_done() << " " << ec;
+                        do_read( socket, ec );
+                    });
+            }
+        }
+
+        void do_read( tcp::socket& socket, const boost::system::error_code& ec ) {
+            if ( !ec ) {
+                parser_.get().body().size = sizeof( sbuf_ );
+                parser_.get().body().data = sbuf_;
+
+                boost::beast::http::async_read_some(
+                    socket
+                    , buffer_
+                    , parser_
+                    , [&]( const boost::system::error_code& ec, size_t bytes_transfered ) {
+                        boost::system::error_code _ec( ec );
+                        if ( _ec == boost::beast::http::error::need_buffer )
+                            _ec.assign( 0, _ec.category() );
+                        sse_stream_ << std::string( sbuf_, sizeof(sbuf_) - parser_.get().body().size );
+                        do_read( socket, _ec );
+                    });
+            }
+        }
+
         request_type req_;
+        boost::beast::flat_buffer buffer_{8192}; // (Must persist between reads)
+        boost::beast::http::response< boost::beast::http::buffer_body > res_;
+        boost::beast::http::response_parser< boost::beast::http::buffer_body > parser_;
+        char sbuf_[ 2048 ];
+        sse_stream sse_stream_;
     };
 }
 
@@ -95,7 +188,7 @@ sse_handler::connect( const std::string& target
     http::request< http::empty_body > req{ http::verb::post, target, 11 };
     req.set( http::field::host, host );
     req.set( http::field::user_agent, BOOST_BEAST_VERSION_STRING );
-    req.set( http::field::content_type, "application/text" );
+    req.set( http::field::accept, "text/event-stream" );
     req.prepare_payload();
     sse_functor<> fn( std::move( req ) );
     (*client_)( host, port, fn );
