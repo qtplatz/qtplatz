@@ -41,21 +41,22 @@ namespace adurl {
 
     class client;
 
+    typedef std::tuple< std::string, int32_t, std::string > sse_event_data_t; // event,id,data
+
     class sse_handler {
     public:
         ~sse_handler();
         sse_handler( boost::asio::io_context& ioc );
 
-        typedef std::function< void( const boost::system::error_code&
-                                     , boost::beast::http::response< boost::beast::http::string_body >&& ) > sse_event_t;
+        typedef std::function< void( sse_event_data_t&& ) > sse_event_handler_t;
 
-        bool connect( const std::string& url, const std::string& host, const std::string& port, sse_event_t );
+        bool connect( const std::string& url, const std::string& host, const std::string& port, sse_event_handler_t );
         void exec();
 
     private:
         boost::asio::io_context& ioc_;
         std::unique_ptr< client > client_;
-        sse_event_t handler_;
+        sse_event_handler_t handler_;
     };
 
 

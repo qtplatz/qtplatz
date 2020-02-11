@@ -44,13 +44,15 @@ using namespace adurl;
 
 namespace {
 
+    // typedef std::tuple< std::string, int32_t, std::string > sse_event_type;
+
     class sse_stream {
     public:
         sse_stream() : inserter_( result_ )
                      , device_( inserter_ ) {
         }
 
-        sse_stream& operator << ( std::string&& s ) {
+        boost::optional< sse_event_data_t > operator << ( std::string&& s ) {
             device_ << std::move( s );
             device_.flush();
             auto pos = result_.find( "\r\n\r\n" );
@@ -59,11 +61,9 @@ namespace {
                 device_.close();
                 result_.erase( 0, pos + 4 );
                 device_.open( inserter_ );
-                ADDEBUG() << "event: " << std::get<0>( ev )
-                          << "\tid[" << std::get<1>( ev ) << "]"
-                          << "\tdata=" << std::get<2>( ev ).substr( 0, 40 );
+                return std::move( ev );
             }
-            return *this;
+            return boost::none;
         }
 
         std::tuple< std::string     // event
@@ -106,11 +106,12 @@ namespace {
         sse_functor( const sse_functor& t ) = delete;
         const sse_functor& operator = ( const sse_functor& t ) = delete;
 
-        sse_functor( request_type&& req ) : req_( req )
-                                          , parser_( res_ ) { // http::response< http::buffer_body >() ) {
+        sse_functor( request_type&& req
+                     , std::function< void( sse_event_data_t&& ) > handler ) : req_( req )
+                                                                           , parser_( res_ )
+                                                                           , handler_( handler ) {
             parser_.eager( true );
         }
-
 
         void operator()( tcp::socket& socket
                          , boost::system::error_code& errc ) {
@@ -149,18 +150,23 @@ namespace {
                         boost::system::error_code _ec( ec );
                         if ( _ec == boost::beast::http::error::need_buffer )
                             _ec.assign( 0, _ec.category() );
-                        sse_stream_ << std::string( sbuf_, sizeof(sbuf_) - parser_.get().body().size );
+                        if ( auto ev = sse_stream_
+                             << std::string( sbuf_, sizeof(sbuf_) - parser_.get().body().size ) ) {
+                            handler_( std::move( ev.get() ) );
+                        }
                         do_read( socket, _ec );
                     });
+            } else {
+                ADDEBUG() <<ec;
             }
         }
-
         request_type req_;
         boost::beast::flat_buffer buffer_{8192}; // (Must persist between reads)
         boost::beast::http::response< boost::beast::http::buffer_body > res_;
         boost::beast::http::response_parser< boost::beast::http::buffer_body > parser_;
         char sbuf_[ 2048 ];
         sse_stream sse_stream_;
+        std::function< void( sse_event_data_t&& ) > handler_;
     };
 }
 
@@ -177,11 +183,9 @@ bool
 sse_handler::connect( const std::string& target
                       , const std::string& host
                       , const std::string& port
-                      , sse_event_t handler )
+                      , sse_event_handler_t handler )
 {
     namespace http = boost::beast::http;
-
-    ADDEBUG() << "connect: " << target << ", " << host << ":" << port;
 
     handler_ = handler;
 
@@ -190,9 +194,17 @@ sse_handler::connect( const std::string& target
     req.set( http::field::user_agent, BOOST_BEAST_VERSION_STRING );
     req.set( http::field::accept, "text/event-stream" );
     req.prepare_payload();
-    sse_functor<> fn( std::move( req ) );
+
+    sse_functor<> fn( std::move( req )
+                      , [&]( sse_event_data_t&& ev ){
+                          handler_( std::move( ev ) );
+                      });
+
     (*client_)( host, port, fn );
+
     ioc_.run();
+
+    return true;
 }
 
 

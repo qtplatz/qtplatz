@@ -149,10 +149,14 @@ main( int argc, char* argv[] )
         boost::asio::io_context ioc;
         adurl::sse_handler sse( ioc );
 
-        sse.connect( url, host, port
-                     , []( const boost::system::error_code& ec
-                           , boost::beast::http::response< boost::beast::http::string_body >&& res ){
-                         ADDEBUG() << res;
+        sse.connect( url
+                     , host
+                     , port
+                     , []( adurl::sse_event_data_t&& ev ) {
+                         std::string event, data;
+                         int32_t id;
+                         std::tie( event, id, data ) = std::move( ev );
+                         ADDEBUG() << "event: " << event << "\tid: " << id << "\tdata: " << data.substr( 0, 60 );
                      });
 #else
         adurl::old::sse sse( host.c_str(), url.c_str() );
