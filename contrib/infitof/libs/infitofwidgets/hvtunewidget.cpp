@@ -143,7 +143,10 @@ namespace infitofwidgets {
     public:
         std::string server_;
         std::string port_;
-        std::unique_ptr< adurl::old::sse > sse_;
+        //std::unique_ptr< adurl::old::sse > sse_;
+        std::unique_ptr< adurl::sse_handler > sse_;
+        boost::asio::io_context io_context_;
+        std::vector< std::thread > threads_;
         std::bitset< 16 > aux1_;
         std::bitset< 12 > alarm1_;
         std::bitset< 16 > aux2_;
@@ -165,22 +168,38 @@ namespace infitofwidgets {
                                           , isRelative_( false )
                                           , isLoading_( false ) {
 
-            sse_ = std::make_unique< adurl::old::sse >( server_.c_str(), "/hv/api$events", port_.c_str() );
+            // sse_ = std::make_unique< adurl::old::sse >( server_.c_str(), "/hv/api$events", port_.c_str() );
 
-            sse_->exec( [this]( const char * event, const char * data ) {
-                    if ( ( std::strcmp( event, "event: hv.tick" ) == 0 ) && ( std::strncmp( data, "data:", 5 ) == 0 ) ) {
-                        data += 5;
-                        while ( *data == ' ' || *data == '\t' )
-                            ++data;
-                        QByteArray a( data, std::strlen( data ) );
-                        emit onReply( event, data );
-                    }
-                });
+            // sse_->exec( [this]( const char * event, const char * data ) {
+            //         if ( ( std::strcmp( event, "event: hv.tick" ) == 0 ) && ( std::strncmp( data, "data:", 5 ) == 0 ) ) {
+            //             data += 5;
+            //             while ( *data == ' ' || *data == '\t' )
+            //                 ++data;
+            //             QByteArray a( data, std::strlen( data ) );
+            //             emit onReply( event, data );
+            //         }
+            // });
+
+            if ( ( sse_ = std::make_unique< adurl::sse_handler >( io_context_ ) ) ) {
+                sse_->connect( "/hv/api$events"
+                               , server, port
+                               , [&]( adurl::sse_event_data_t&& ev ) {
+                                   std::string event, data;
+                                   std::tie( event, std::ignore, data ) = std::move( ev );
+                                   if ( event == "hv.tick" )
+                                       emit onReply( QString::fromStdString( event ), QByteArray( data.c_str() ) );
+                                   // ADDEBUG() << "event: " << event << "\tdata: " << data.substr( 0, 120 );
+                               }, false );
+                threads_.emplace_back( [&](){ io_context_.run(); } );
+            }
         }
 
         ~impl() {
-            if ( sse_ )
-                sse_->stop();
+            io_context_.stop();
+            for ( auto& t: threads_ )
+                t.join();
+            // if ( sse_ )
+            //     sse_->stop();
         }
 
         void setSectorVoltage( idSector id, bool isInner, std::pair< double , double >&& pair ) {

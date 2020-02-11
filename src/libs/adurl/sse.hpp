@@ -50,7 +50,11 @@ namespace adurl {
 
         typedef std::function< void( sse_event_data_t&& ) > sse_event_handler_t;
 
-        bool connect( const std::string& url, const std::string& host, const std::string& port, sse_event_handler_t );
+        bool connect( const std::string& url
+                      , const std::string& host
+                      , const std::string& port
+                      , sse_event_handler_t
+                      , bool blocking = true );
         void exec();
 
     private:

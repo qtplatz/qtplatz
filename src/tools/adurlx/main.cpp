@@ -153,15 +153,17 @@ main( int argc, char* argv[] )
                      , host
                      , port
                      , []( adurl::sse_event_data_t&& ev ) {
+                         static size_t counts = 0;
                          std::string event, data;
                          int32_t id;
                          std::tie( event, id, data ) = std::move( ev );
-                         ADDEBUG() << "event: " << event << "\tid: " << id << "\tdata: " << data.substr( 0, 60 );
+                         std::cout << "[" << counts++ << "]" <<
+                             "event: " << event << "\tid: " << id << "\tdata: " << data.substr( 0, 120 ) << std::endl;
                      });
 #else
         adurl::old::sse sse( host.c_str(), url.c_str() );
         sse.exec( [] ( const char * event, const char * data ) {
-             std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
+            std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
         });
 #endif
         std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
