@@ -33,6 +33,12 @@ namespace infitofcontrols {
 }
 
 namespace infitof {
+
+    namespace Constants {
+        constexpr const char * const httpd_dg = "httpd-dg";
+        constexpr const char * const httpd_hv = "httpd-hv";
+    };
+
     namespace names {
         constexpr const char * const objtext_massspectrometer = "InfiTOF"; // historical name (don't change)
         constexpr const char * const objtext_datainterpreter = "InfiTOF"; // historical name (don't change)

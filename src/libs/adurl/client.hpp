@@ -59,20 +59,21 @@ namespace adurl {
 
         void operator()( tcp::socket& socket
                          , boost::system::error_code& errc ) {
-            ADDEBUG() << "---------- request_functor write ------------";
             boost::beast::http::async_write(
                 socket
                 , req_
                 , [&]( const boost::system::error_code& ec, size_t ) {
                     errc = ec;
                     if ( !ec ) {
-                        ADDEBUG() << "---------- request_functor read ------------";
                         boost::beast::http::async_read(
                             socket, buffer_, res_
                             , [&]( const boost::system::error_code& ec, size_t ){
-                                ADDEBUG() << "---------- request_functor read: " << ec;
+                                if ( ec )
+                                    ADDEBUG() << "http::async_read: " << ec;
                                 errc = ec;
                             });
+                    } else {
+                        ADDEBUG() << "http::async_write: " << ec;
                     }
                 });
         } // operator

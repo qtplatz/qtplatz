@@ -80,13 +80,13 @@ dg::fetch( std::string& json )
     return false;
 }
 
-bool
-dg::commit( const adio::dg::protocols<adio::dg::protocol<> > & p )
-{
-    std::ostringstream json;
-    adio::dg::protocols<>::write_json( json, p );
-    return false;
-}
+// bool
+// dg::commit( const adio::dg::protocols<adio::dg::protocol<> > & p )
+// {
+//     std::ostringstream json;
+//     adio::dg::protocols<>::write_json( json, p );
+//     return false;
+// }
 
 bool
 dg::commit( std::string&& json )

@@ -1,6 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2016-2018 MS-Cheminformatics LLC
+** Copyright (C) 2016-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -76,7 +76,7 @@ main( int argc, char* argv[] )
         ( "dg.stop",   "fsm-stop" )
         ( "blob",       po::value< std::string >(), "blob /dataStorage" )
         ( "sse",        po::value< std::string >(), "sse dg|evbox|hv|(any url string)" )
-        ( "host",       po::value< std::string >(), "httpd-dg" )
+        ( "host",       po::value< std::string >()->default_value( "httpd-dg" ) )
         ( "port",       po::value< std::string >()->default_value( "http" ) )
         ( "args",       po::value< std::vector< std::string > >(),  "url" )
         ;

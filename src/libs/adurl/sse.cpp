@@ -254,12 +254,22 @@ namespace {
 }
 /////////////
 
+namespace adurl {
+
+    class sse_handler::impl {
+    public:
+        std::unique_ptr< sse_functor_a<> > sse_functor_;
+    };
+}
+
+
 sse_handler::~sse_handler()
 {
 }
 
 sse_handler::sse_handler( boost::asio::io_context& ioc ) : ioc_( ioc )
                                                          , client_( std::make_unique< client >( ioc ) )
+                                                         , impl_( std::make_unique< impl >() )
 {
 }
 
@@ -280,12 +290,18 @@ sse_handler::connect( const std::string& target
     req.set( http::field::accept, "text/event-stream" );
     req.prepare_payload();
 
-    sse_functor_a<> fn( std::move( req )
-                      , [&]( sse_event_data_t&& ev ){
-                          handler_( std::move( ev ) );
-                      });
+    impl_->sse_functor_ = std::make_unique< sse_functor_a<> >(
+        std::move( req )
+        , [&]( sse_event_data_t&& ev ){
+            handler_( std::move( ev ) );
+        });
 
-    (*client_)( host, port, fn );
+    // sse_functor_a<> fn( std::move( req )
+    //                   , [&]( sse_event_data_t&& ev ){
+    //                       handler_( std::move( ev ) );
+    //                   });
+
+    (*client_)( host, port, *(impl_->sse_functor_) );
 
     if ( blocking )
         ioc_.run();

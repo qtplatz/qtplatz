@@ -1,6 +1,11 @@
 
 project( adio )
 
+if ( Qt5_FOUND )
+  add_definitions( -DHAVE_Qt5=1 )  # this may inprove json read/write performance
+  include_directories( ${Qt5Core_INCLUDES} )
+endif()
+
 add_library(
   ${PROJECT_NAME}
   dgprotocols.cpp

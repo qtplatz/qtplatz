@@ -31,9 +31,9 @@ namespace adio {
 
     namespace dg {
 
-        size_t constexpr delay_pulse_count = 6;
+        size_t constexpr delay_pulse_count = 7;
 
-        // CH0 (push), CH1(INJ), CH2(EXIT), CH3(GATE 0), CH4(GATE 1), CH5(ADC delay)
+        // CH0 (push), CH1(INJ), CH2(EXIT), CH3(GATE 0), CH4(GATE 1), CH5(ADC delay), EXIT2
 
         template< size_t _size = delay_pulse_count >
         class protocol {

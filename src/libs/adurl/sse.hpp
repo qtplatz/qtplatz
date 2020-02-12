@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -61,55 +60,9 @@ namespace adurl {
         boost::asio::io_context& ioc_;
         std::unique_ptr< client > client_;
         sse_event_handler_t handler_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
-
-
-    // class ADURLSHARED_EXPORT sse {
-    // public:
-
-    //     class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
-    //     class ADURLSHARED_EXPORT error_reply : public std::exception {};
-
-    //     typedef std::function< void( const std::vector< std::pair< std::string, std::string > >&, const std::string ) > callback_type;
-
-    //     ~sse();
-    //     sse( boost::asio::io_service& );
-
-    //     void register_sse_handler( callback_type );
-
-    //     bool connect( const std::string& url, const std::string& server, const std::string& port = "http" );
-
-    // private:
-    //     boost::asio::io_service& io_context_;  // still using boost-1.62 on armhf based linux
-    //     std::string server_;
-    //     std::string port_;
-    //     std::string url_;
-    //     std::unique_ptr< client > client_;
-    //     callback_type callback_;
-    //     std::vector< std::pair< std::string, std::string > > headers_;
-    //     bool header_complete_; // when empty line detects
-    //     size_t content_length_;
-    // };
-
-
-    // namespace old {
-    //     class ADURLSHARED_EXPORT sse {
-    //     public:
-
-    //         class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
-    //         class ADURLSHARED_EXPORT error_reply : public std::exception {};
-
-    //         ~sse();
-    //         sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
-
-    //         void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
-    //         void stop();
-
-    //     private:
-    //         class impl;
-    //         impl * impl_;
-    //     };
-    // }
 
 }

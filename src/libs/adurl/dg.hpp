@@ -51,7 +51,7 @@ namespace adurl {
 
         /** \brief commit (set) delay pulse to delay generator-box
          */
-        bool commit( const adio::dg::protocols<adio::dg::protocol<> >& );
+        // bool commit( const adio::dg::protocols<adio::dg::protocol<> >& );
         bool commit( std::string&& );
 
         /** \brief update (read) actual delay pulse data from delay-generator box

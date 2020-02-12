@@ -153,7 +153,7 @@ simulator::protocol_handler( double delay, double width )
 int
 simulator::protocol_number() const
 {
-    return protocolIndex_ | 0x02; // simulate fault condition
+    return protocolIndex_ ;// 0x02; <-- simulate fault condition
 }
 
 bool

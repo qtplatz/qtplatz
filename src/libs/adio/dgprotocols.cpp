@@ -31,29 +31,6 @@
 #include <boost/format.hpp>
 #include <iostream>
 
-// delay pulse generator protocols
-
-// namespace adportable {
-//     namespace dg {
-//         typedef protocol< delay_pulse_count > protocol_t;
-//         typedef protocols< protocol_t > protocols_t;
-//     }
-// }
-
-// static void
-// print( const boost::property_tree::ptree& pt )
-// {
-//     using boost::property_tree::ptree;
-
-//     ptree::const_iterator end = pt.end();
-//     for (ptree::const_iterator it = pt.begin(); it != end; ++it) {
-//         std::cout << it->first << ": " << it->second.get_value<std::string>() << std::endl;
-//         print(it->second);
-//     }
-// }
-
-// using namespace adportable::dg;
-
 namespace adio {
     namespace dg {
 
