@@ -76,7 +76,7 @@ function boost_build {
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
 			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
 			  prompt
-			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
+			  sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
 			  ;;
 		  *)
 			  echo "Unknown arch: " $arch

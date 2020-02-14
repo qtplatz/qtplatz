@@ -23,6 +23,7 @@ function find_qmake() {
 	    local __dirs=()
 	    for hint in "${hints[@]}"; do
 		__dirs+=("$home$hint/clang_64")
+		__dirs+=("/opt$hint/clang_64")
 	    done
 	    ;;
 	*)
@@ -31,6 +32,7 @@ function find_qmake() {
     esac
 
     for dir in "${__dirs[@]}"; do
+	echo "-----------" $dir
 	if [ -f $dir/bin/qmake ]; then
 	    if $dir/bin/qmake --version &> /dev/null ; then
 		eval $__result="'$dir/bin/qmake'"

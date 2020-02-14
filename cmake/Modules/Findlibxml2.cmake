@@ -5,9 +5,13 @@ if ( WIN32 )
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES Darwin )
-  
-  find_path( libxml2_INCLUDE_DIR NAMES libxml/xpath.h PATHS /usr/include/libxml2 /opt/local/include/libxml2 )
-  find_library( libxml2_LIBRARY NAMES xml2 libxml2 PATHS /usr/lib /opt/local )
+
+#  239  brew install libxml2 libxslt libiconv
+#  240  brew link --force libxml2
+#  241  brew link --force libxslt
+
+  find_path( libxml2_INCLUDE_DIR NAMES libxml/xpath.h PATHS /usr/include/libxml2 /opt/local/include/libxml2 /usr/local/opt/libxml2/include/libxml2 )
+  find_library( libxml2_LIBRARY NAMES xml2 libxml2 PATHS /usr/lib /opt/local /usr/local/opt/libxml2/lib )
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES Linux )
 
