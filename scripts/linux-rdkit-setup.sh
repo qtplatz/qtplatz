@@ -8,6 +8,10 @@ source ${cwd}/nproc.sh
 PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 PYTHON=$(python3 -c "import sys; print(sys.executable)")
+# workaround
+if [ `uname` == "Darwin" ]; then
+	PYTHON_INCLUDE="/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/"
+fi
 
 cwd=$(pwd)
 arch=`uname`-`arch`
@@ -40,7 +44,13 @@ if [ `uname` == "Darwin" ]; then
 			 "-DRDK_INSTALL_INTREE=OFF"
 			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
 			 "-DBoost_NO_BOOST_CMAKE=ON"
-			 )
+			   )
+    cmake_args+=(
+		"-DRDK_BUILD_CPP_TESTS=OFF"
+		"-DRDK_TEST_MULTITHREADED=OFF"
+		"-DRDK_TEST_MMFF_COMPLIANCE=OFF"
+		"-DRDK_BUILD_TEST_GZIP=OFF"
+	)
     cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
 else
 	cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
@@ -74,20 +84,22 @@ cd $BUILD_DIR;
 echo "RDBASE    : " $RDBASE
 echo "BUILD_DIR : " `pwd`
 echo cmake "${cmake_args[@]}" $RDBASE
-prompt
+
 cmake "${cmake_args[@]}" $RDBASE
 echo "make -j${nproc}"
 prompt
 make -k -j${nproc}
 
 if [ $? -eq 0 ]; then
-#	make test
+	#make test
+	echo sudo make install
+	prompt
 	sudo make install
 fi
 
-echo "Edit /usr/local/lib/cmake/rdkit/rdkit-config.cmake as:"
-echo '    include ("\${_prefix}/rdkit/rdkit-targets.cmake")'
-echo "--- change lib to rdkit in the middle of path name ---"
+#echo "Edit /usr/local/lib/cmake/rdkit/rdkit-config.cmake as:"
+#echo '    include ("\${_prefix}/rdkit/rdkit-targets.cmake")'
+#echo "--- change lib to rdkit in the middle of path name ---"
 
 ##CMake Error at /usr/local/lib/cmake/rdkit/rdkit-config.cmake:6 (include):
 ##  include could not find load file:
