@@ -44,11 +44,12 @@ function make_user_config_darwin {
 #from sysconfig import get_paths
 #from pprint import pprint
 #pprint( get_paths() )
+#workaround: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/
 
 using python
 	  : 3.7
 	  : $PYTHON
-	  : $PYTHON_INCLUDE /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/
+	  : $PYTHON_INCLUDE 
 	  ;
 END
 	fi
