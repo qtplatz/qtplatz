@@ -68,11 +68,6 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src      # version number
   )
 
-link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plubins/QtProject
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
-  )
-
 set( RESOURCES video.qrc )
 
 add_library( ${PROJECT_NAME} MODULE

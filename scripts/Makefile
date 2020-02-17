@@ -27,22 +27,14 @@ default_darwin:
 	@echo "====================================="
 	@echo "We detect mac osx " ${arch} ${VER} 
 	@echo "Check user-config.jam for python version"
-	@echo "Check access permission for /usr/local -- You shoud have write permission"
 	@echo "====================================="
 	@echo "make dependency"
-	@echo "make fonts"
-	@echo "make mozc"
-	@echo "make bower"
-	@echo "make boost, check python version in your user-config.jam"
+	@echo "make boost, -- ~/user-config.jam will be created if it does not exists."
 	@echo "make qwt"
 	@echo "make rdkit"
-	@echo "make opencv" || "make opencv.debug"
-	@echo "make qemu"
-	@echo "make cross-tools"
-	@echo "make boost-armhf"
-	@echo "make gnuplot"
-	@echo "make rtags -- run 'apt install rtags' after install llvm; see https://apt.llvm.org/"
-	@echo "make code"
+	@echo "make opencv"
+	@echo "make bower"
+	@echo "make mozc"
 
 default_debian_10:
 	@echo "====================================="
@@ -89,8 +81,12 @@ default:
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
 
 dependency:
+ifeq (${OS},Darwin)
+	./darwin-dependency.sh
+else
 	./linux-initial-setup.sh
 	./linux-dependency-install.sh
+endif
 
 qemu:
 	./linux-qemu-setup.sh

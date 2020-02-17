@@ -66,7 +66,7 @@ DataReader::~DataReader()
 boost::uuids::uuid
 DataReader::objuuid() const
 {
-    reader_ ? reader_->objuuid() : boost::uuids::uuid{{0}};
+    return reader_ ? reader_->objuuid() : boost::uuids::uuid{{0}};
 }
 
 std::string

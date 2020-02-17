@@ -145,5 +145,5 @@ Export::out( const adfs::file& file, std::ostream& o, const std::string& header 
             }
         }
     }
-    
+    return true;
 }
