@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -37,6 +37,7 @@
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
+#include <QDebug>
 #include <QDoubleSpinBox>
 #include <QDragEnterEvent>
 #include <QFileInfo>
@@ -68,12 +69,56 @@
 #include <RDGeneral/RDLog.h>
 #endif
 
+#include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <functional>
 
 using namespace adwidgets;
+
+namespace {
+    struct SmilesToRow {
+        boost::optional< std::tuple< std::string, std::string > > // formula, svg
+        operator()( const std::string& smiles ) const {
+#if HAVE_RDKit
+            if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles, 0, false ) ) ) {
+                mol->updatePropertyCache( false );
+                auto svg = adchem::drawing::toSVG( *mol );
+                return std::make_tuple( RDKit::Descriptors::calcMolFormula( *mol, true, false ), svg );
+            }
+#endif
+            return boost::none;
+        }
+    };
+
+    struct SDMolSupplier {
+        typedef std::tuple< std::string, std::string, std::string > value_type; // formula,smiles,svg
+        SDMolSupplier() {}
+#if HAVE_RDKit
+        SDMolSupplier( const std::string& filename ) : supplier_( filename, false, false, false ) {}
+        value_type operator []( uint32_t idx ) {
+            auto mol = std::unique_ptr< RDKit::ROMol >( supplier_[ idx ] );
+            mol->updatePropertyCache( false );
+            auto formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+            auto smiles = RDKit::MolToSmiles( *mol );
+            auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
+            return std::make_tuple( formula, smiles, svg );
+        }
+        void setData( std::string&& pasted ) { supplier_.setData( pasted ); }
+        size_t length() { return supplier_.length(); }
+        
+        RDKit::SDMolSupplier supplier_;
+#else
+        SDMolSupplier( const std::string& filename ) {}
+        value_type operator []( uint32_t ) const { return std::make_pair( "", "", "" ); }
+        void setData( std::string&& pasted ) {}
+        size_t length() const { return 0; }
+#endif
+    };
+
+}
+
 
 namespace adwidgets {
 
@@ -90,8 +135,6 @@ namespace adwidgets {
         stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
                 return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
             });
-        ///////////////////////
-        // ADDEBUG() << "computeMass(" << v[0] << " <- " << stdformula << ")=" << adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] );
         ///////////////////////
         return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
     }
@@ -240,13 +283,11 @@ namespace adwidgets {
             model.setData( model.index( row, c_svg ), svg );
 
             if ( svg.isEmpty() && !smiles.isEmpty() ) {
-#if HAVE_RDKit
-                if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles.toStdString(), 0, false ) ) ) {
-                    mol->updatePropertyCache( false );
-                    auto xsvg = adchem::drawing::toSVG( *mol );
-                    model.setData( model.index( row, c_svg ), QByteArray( xsvg.data(), int( xsvg.size() ) ) );
+                if ( auto d = SmilesToRow()( smiles.toStdString() ) ) {
+                    std::string ssvg;
+                    std::tie( std::ignore, ssvg ) = d.get();
+                    model.setData( model.index( row, c_svg ), QByteArray( ssvg.data(), int( ssvg.size() ) ) );
                 }
-#endif                
             }
 
             QString stdFormula;
@@ -284,6 +325,7 @@ namespace adwidgets {
         }
     };
 }
+
 
 MolTable::MolTable(QWidget *parent) : TableView(parent)
                                     , impl_( new impl() )
@@ -430,18 +472,15 @@ MolTable::handleValueChanged( const QModelIndex& index )
         if ( smiles.isEmpty() ) {
             model_->setData( model_->index( index.row(), c_svg ), QByteArray() );
         } else {
-#if HAVE_RDKit
-            if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles.toStdString(), 0, false ) ) ) {
-                mol->updatePropertyCache( false );
-                auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-                //auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                auto svg = adchem::drawing::toSVG( *mol ); //RDKit::Drawing::DrawingToSVG( drawing );
+            if ( auto d = SmilesToRow()( smiles.toStdString() ) ) {
+                std::string formula, svg;
+                std::tie( formula, svg ) = d.get();
                 auto adducts = model_->index( index.row(), c_adducts ).data( Qt::EditRole ).toString();
                 auto synonym = model_->index( index.row(), c_synonym ).data( Qt::EditRole ).toString();
                 auto description = model_->index( index.row(), c_description ).data( Qt::EditRole ).toString();
-                impl_->setData( *this, index.row(), formula, adducts, smiles, QByteArray( svg.data(), int( svg.size() ) ), synonym, description );
+                impl_->setData( *this, index.row(), QString::fromStdString( formula ), adducts, smiles
+                                , QByteArray( svg.data(), int( svg.size() ) ), synonym, description );                
             }
-#endif            
         }
 
     }
@@ -551,28 +590,41 @@ MolTable::dropEvent( QDropEvent * event )
         
         QList<QUrl> urlList = mimeData->urls();
         for ( auto& url : urlList ) {
-
-#if HAVE_RDKit
             std::string filename = url.toLocalFile().toStdString();
-            std::cout << "dropEvent: " << filename << std::endl;
-            
-            if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
-                
-                model_->insertRows( row, supplier->length() );
-                
-                for ( size_t i = 0; i < supplier->length(); ++i ) {
-                    if ( auto mol = std::unique_ptr< RDKit::ROMol >( ( *supplier )[ i ] ) ) {
-                        mol->updatePropertyCache( false );
-                        auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-                        auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-                        // auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                        auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
-                        impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
-                    }
-                    ++row;
-                }
+            ADDEBUG() << "dropEvent: " << filename;
+
+            SDMolSupplier supplier( filename );
+            model_->insertRows( row, supplier.length() );
+            for ( size_t i = 0; i < supplier.length(); ++i ) {
+                std::string formula, smiles, svg;
+                std::tie( formula, smiles, svg ) = supplier[ i ];
+                impl_->setData( *this
+                                , row
+                                , QString::fromStdString( formula )
+                                , QString()
+                                , QString::fromStdString( smiles )
+                                , QByteArray( svg.data(), int( svg.size() ) ) );
+                ++row;
             }
-            resizeRowsToContents();
+            
+#if HAVE_RDKit
+            // if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
+                
+            //     model_->insertRows( row, supplier->length() );
+                
+            //     for ( size_t i = 0; i < supplier->length(); ++i ) {
+            //         if ( auto mol = std::unique_ptr< RDKit::ROMol >( ( *supplier )[ i ] ) ) {
+            //             mol->updatePropertyCache( false );
+            //             auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
+            //             auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
+            //             // auto drawing = RDKit::Drawing::MolToDrawing( *mol );
+            //             auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
+            //             impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
+            //         }
+            //         ++row;
+            //     }
+            // }
+            // resizeRowsToContents();
 #endif            
         }
         event->accept();
@@ -657,6 +709,7 @@ MolTable::handlePaste()
     int row = model_->rowCount() - 1;
 
     auto md = QApplication::clipboard()->mimeData();
+
     auto data = md->data( "application/moltable-xml" );
     if ( !data.isEmpty() ) {
         QString utf8( QString::fromUtf8( data ) );
@@ -685,13 +738,27 @@ MolTable::handlePaste()
             resizeColumnsToContents();
         }
     } else {
+        // drop plain/text from chemical draw software
         QString pasted = QApplication::clipboard()->text();
-        QStringList lines = pasted.split( "\n" );
-        for ( auto line : lines ) {
-            QStringList texts = line.split( "\t" );
-            for ( auto& test : texts ) {
-                (void)test;
-                // TODO...
+        ADDEBUG() << "---- pasted: " << pasted.toStdString();
+
+        if ( ! pasted.isEmpty() ) {
+            int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
+
+            SDMolSupplier supplier;
+            supplier.setData( pasted.toStdString() );
+            model_->insertRows( row, supplier.length() );
+            
+            for ( size_t i = 0; i < supplier.length(); ++i ) {
+                std::string formula, smiles, svg;
+                std::tie( formula, smiles, svg ) = supplier[ i ];
+                impl_->setData( *this
+                                , row
+                                , QString::fromStdString( formula )
+                                , QString()
+                                , QString::fromStdString( smiles )
+                                , QByteArray( svg.data(), int( svg.size() ) ) );
+                ++row;
             }
         }
     }
