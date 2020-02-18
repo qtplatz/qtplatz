@@ -38,6 +38,10 @@
 
 using namespace adchem;
 
+SDMolSupplier::~SDMolSupplier()
+{
+}
+
 SDMolSupplier::SDMolSupplier()
 #if HAVE_RDKit    
     : supplier_( std::make_unique< RDKit::SDMolSupplier >() )

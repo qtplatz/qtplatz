@@ -54,10 +54,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
-link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
-  )
-
 add_library( Query MODULE
   document.cpp
   document.hpp

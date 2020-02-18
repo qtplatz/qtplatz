@@ -91,6 +91,7 @@ set( ${PROJECT_NAME}_SOURCES
   peptidewidget.cpp
   peptidetable.cpp
   progresswnd.cpp
+  moltablehelper.cpp
   moltableview.cpp
   samplerunwidget.cpp
   scanlawdialog.cpp
@@ -156,6 +157,7 @@ set( ${PROJECT_NAME}_HEADERS
   peakmethodform.hpp
   progresswnd.hpp
   pressuregauge.hpp
+  moltablehelper.hpp
   moltableview.hpp
   scanlawdialog.hpp
   scanlawdialog2.hpp

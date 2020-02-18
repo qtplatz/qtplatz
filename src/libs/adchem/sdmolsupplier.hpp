@@ -35,7 +35,8 @@ namespace adchem {
     class SDMolSupplier {
     public:
         typedef std::tuple< std::string, std::string, std::string > value_type; // formula,smiles,svg
-        
+
+        ~SDMolSupplier();
         SDMolSupplier();
         SDMolSupplier( const std::string& filename );
         void setData( std::string&& pasted );
@@ -67,9 +68,9 @@ namespace adchem {
     
         iterator begin();
         iterator end();
-#endif
     private:
         std::unique_ptr< RDKit::SDMolSupplier > supplier_;
+#endif
     };
 
 }

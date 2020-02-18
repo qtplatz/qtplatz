@@ -41,10 +41,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
-link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
-  )
-
 set( quan_SOURCES
   quan_global.hpp
   quanconstants.hpp
@@ -171,7 +167,7 @@ target_link_libraries(
   adplot
   ${Boost_LIBRARIES}
   )
-  
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32

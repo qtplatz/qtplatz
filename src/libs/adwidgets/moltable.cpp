@@ -24,6 +24,7 @@
 
 #include "moltable.hpp"
 #include "delegatehelper.hpp"
+#include "moltablehelper.hpp"
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
@@ -590,42 +591,13 @@ MolTable::dropEvent( QDropEvent * event )
         
         QList<QUrl> urlList = mimeData->urls();
         for ( auto& url : urlList ) {
-            std::string filename = url.toLocalFile().toStdString();
-            ADDEBUG() << "dropEvent: " << filename;
-
-            SDMolSupplier supplier( filename );
-            model_->insertRows( row, supplier.length() );
-            for ( size_t i = 0; i < supplier.length(); ++i ) {
-                std::string formula, smiles, svg;
-                std::tie( formula, smiles, svg ) = supplier[ i ];
-                impl_->setData( *this
-                                , row
-                                , QString::fromStdString( formula )
-                                , QString()
-                                , QString::fromStdString( smiles )
-                                , QByteArray( svg.data(), int( svg.size() ) ) );
+            auto vec = MolTableHelper::SDMolSupplier()( url );
+            model_->insertRows( row, vec.size() );
+            for ( const auto& d: vec ) {
+                auto [ formula, smiles, svg ] = d;
+                impl_->setData( *this, row, formula, QString(), smiles, svg );
                 ++row;
             }
-            
-#if HAVE_RDKit
-            // if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
-                
-            //     model_->insertRows( row, supplier->length() );
-                
-            //     for ( size_t i = 0; i < supplier->length(); ++i ) {
-            //         if ( auto mol = std::unique_ptr< RDKit::ROMol >( ( *supplier )[ i ] ) ) {
-            //             mol->updatePropertyCache( false );
-            //             auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-            //             auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-            //             // auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-            //             auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
-            //             impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
-            //         }
-            //         ++row;
-            //     }
-            // }
-            // resizeRowsToContents();
-#endif            
         }
         event->accept();
 	}
@@ -739,25 +711,13 @@ MolTable::handlePaste()
         }
     } else {
         // drop plain/text from chemical draw software
-        QString pasted = QApplication::clipboard()->text();
-        ADDEBUG() << "---- pasted: " << pasted.toStdString();
-
-        if ( ! pasted.isEmpty() ) {
+        auto vec = MolTableHelper::SDMolSupplier()( QApplication::clipboard() );
+        if ( ! vec.empty() ) {
             int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
 
-            SDMolSupplier supplier;
-            supplier.setData( pasted.toStdString() );
-            model_->insertRows( row, supplier.length() );
-            
-            for ( size_t i = 0; i < supplier.length(); ++i ) {
-                std::string formula, smiles, svg;
-                std::tie( formula, smiles, svg ) = supplier[ i ];
-                impl_->setData( *this
-                                , row
-                                , QString::fromStdString( formula )
-                                , QString()
-                                , QString::fromStdString( smiles )
-                                , QByteArray( svg.data(), int( svg.size() ) ) );
+            model_->insertRows( row, vec.size() );
+            for ( auto [ formula, smiles, svg ]: vec ) {
+                impl_->setData( *this, row, formula, QString(), smiles, svg );
                 ++row;
             }
         }
