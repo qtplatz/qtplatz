@@ -55,8 +55,7 @@ namespace adwidgets {
         void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
         void setPrecision( int column, int prec );
 
-        static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
-        static QByteArray smilesToSvg( const QString& smiles );
+        // static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
 
     private:
         class delegate;

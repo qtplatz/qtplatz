@@ -25,10 +25,10 @@
 
 #include <adportable/optional.hpp>
 #include <vector>
+#include <QString>
 
 class QUrl;
 class QClipboard;
-class QString;
 class QByteArray;
 
 namespace adwidgets {
@@ -46,6 +46,8 @@ namespace adwidgets {
             std::vector< value_type > operator()( const QUrl& ) const;           // drag&drop
             std::vector< value_type > operator()( const QClipboard* ) const;     // paste
         };
+
+        static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );        
     };
 
 }

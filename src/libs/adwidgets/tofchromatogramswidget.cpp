@@ -25,6 +25,7 @@
 #include "tofchromatogramswidget.hpp"
 #include "tofchromatogramsform.hpp"
 #include "moltableview.hpp"
+#include "moltablehelper.hpp"
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
@@ -76,7 +77,7 @@ namespace adwidgets {
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
             if ( _1.column() == c_formula ) {
                 int row = _1.row();
-                double exactMass = MolTableView::getMonoIsotopicMass( _1.data( Qt::EditRole ).toString() );
+                double exactMass = MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
                 if ( exactMass > 0.7 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );
                     if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.001 ) // < 1ns

@@ -22,8 +22,9 @@
 **************************************************************************/
 
 #include "moltablehelper.hpp"
-#include <adchem/smilestosvg.hpp>
 #include <adchem/sdmolsupplier.hpp>
+#include <adchem/smilestosvg.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adportable/optional.hpp>
 #include <QByteArray>
 #include <QClipboard>
@@ -90,4 +91,19 @@ MolTableHelper::SDMolSupplier::operator()( const QClipboard* clipboard ) const
         results.emplace_back( QString::fromStdString( formula ), QString::fromStdString( smiles ), QByteArray( svg.data(), svg.size() ) );
     }
     return results;
+}
+
+
+// static
+double
+MolTableHelper::monoIsotopicMass( const QString& formula, const QString& adducts )
+{
+    using adcontrols::ChemicalFormula;
+
+    auto expr = formula;
+
+    if ( ! adducts.isEmpty() )
+        expr += " " + adducts;
+    double exactMass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( expr.toStdString() ) );
+    return exactMass;
 }

@@ -26,6 +26,7 @@
 #include "scanlawform.hpp"
 #include <multumcontrols/scanlaw.hpp>
 #include <multumcontrols/infitof.hpp>
+#include <adwidgets/moltablehelper.hpp>
 #include <adwidgets/moltableview.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adcontrols/mspeak.hpp>
@@ -154,7 +155,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
                  if ( _1.column() == impl::c_formula ) {
                      QSignalBlocker block( impl_->model_.get() );
                      double matchedMass = impl_->model_->index( _1.row(), impl::c_matched_mass ).data( Qt::EditRole ).toDouble();
-                     double exactMass = adwidgets::MolTableView::getMonoIsotopicMass( _1.data( Qt::EditRole ).toString() );
+                     double exactMass = adwidgets::MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
                      double error = ( exactMass - matchedMass ) * std::milli::den;
                      impl_->model_->setData( impl_->model_->index( _1.row(), impl::c_error ), error, Qt::EditRole );
                  }
@@ -168,7 +169,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
                  if ( ( _1.column() == impl::c_formula ) || ( _1.column() == impl::c_mode ) ) {
                      QSignalBlocker block( &model );
                      auto formula = model.index( _1.row(), impl::c_formula ).data( Qt::EditRole ).toString();
-                     double exactMass = adwidgets::MolTableView::getMonoIsotopicMass( formula );
+                     double exactMass = adwidgets::MolTableHelper::monoIsotopicMass( formula );
                      int mode = model.index( _1.row(), impl::c_mode ).data().toInt();
                      double tof = impl_->scanlaw_->getTime( exactMass, mode );
                      double mass = impl_->scanlaw_->getTime( exactMass, mode );
@@ -337,7 +338,7 @@ nLapDialog::addPeak( uint32_t id, const QString& formula, double time, double ma
     model.setRowCount( row + 1 );
     model.setData( model.index( row, impl::c_id ), id, Qt::EditRole );
     model.setData( model.index( row, impl::c_formula ), formula, Qt::EditRole );
-    double exact_mass = adwidgets::MolTableView::getMonoIsotopicMass( formula, "" );
+    double exact_mass = adwidgets::MolTableHelper::monoIsotopicMass( formula, "" );
     model.setData( model.index( row, impl::c_matched_mass), matchedMass, Qt::EditRole );
     model.setData( model.index( row, impl::c_time), time * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, impl::c_mode), mode );
@@ -367,8 +368,8 @@ nLapDialog::updateMasses()
     ADDEBUG() << "scanlaw: " << scanlaw->kAcceleratorVoltage() << ", " << scanlaw->tDelay() << "s";
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        using adwidgets::MolTableView;
-        double exactMass = MolTableView::getMonoIsotopicMass( model.index( row, impl::c_formula ).data( Qt::EditRole ).toString() );
+        using adwidgets::MolTableHelper;
+        double exactMass = MolTableHelper::monoIsotopicMass( model.index( row, impl::c_formula ).data( Qt::EditRole ).toString() );
         double time = model.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
         int mode = model.index( row, impl::c_mode ).data( Qt::EditRole ).toInt();
         double mass = scanlaw->getMass( time, mode );
@@ -404,7 +405,7 @@ nLapDialog::read( int row, adcontrols::MSPeaks& peaks ) const
     if ( 0 <= row && row < m.rowCount() ) {
 
         auto formula = m.index( row, impl::c_formula ).data( Qt::EditRole ).toString();
-        double exactMass = adwidgets::MolTableView::getMonoIsotopicMass( formula );
+        double exactMass = adwidgets::MolTableHelper::monoIsotopicMass( formula );
     
         if ( exactMass > 0.7 ) {
             peaks << adcontrols::MSPeak( formula.toStdString()

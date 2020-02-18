@@ -25,6 +25,7 @@
 #include "mschromatogramwidget.hpp"
 #include "mschromatogramform.hpp"
 #include "moltableview.hpp"
+#include "moltablehelper.hpp"
 #include "targetingadducts.hpp"
 #if HAVE_RDKit
 # include <adchem/drawing.hpp>
@@ -262,7 +263,7 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
 
         for ( auto row = topLeft.row(); row <= bottomRight.row(); ++row ) {
 
-            double mass = MolTableView::getMonoIsotopicMass( model_->index( row, c_formula ).data( Qt::EditRole ).toString()
+            double mass = MolTableHelper::monoIsotopicMass( model_->index( row, c_formula ).data( Qt::EditRole ).toString()
                                                              , model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
 
             model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
@@ -282,7 +283,7 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
             } else {
                 std::string svg = adchem::drawing::toSVG( *static_cast< RDKit::ROMol *>(mol) );
                 QString formula = QString::fromStdString( mol.formula() );
-                double mass = MolTableView::getMonoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );            
+                double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );            
                 
                 model_->setData( model_->index( row, c_svg ), QByteArray( svg.data(), svg.size() ));
                 model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
