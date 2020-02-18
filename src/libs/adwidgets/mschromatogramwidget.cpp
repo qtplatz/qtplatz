@@ -270,31 +270,44 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
         }
     }
     
-#if HAVE_RDKit
     if ( topLeft.column() <= c_smiles && c_smiles <= bottomRight.column() ) {
 
         for ( auto row = topLeft.row(); row <= bottomRight.row(); ++row ) {
-            auto smiles = model_->index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
-            adchem::mol mol( smiles, adchem::mol::SMILES );
-            if ( smiles.empty() ) {
-                if ( auto item = model_->item( row, c_formula ) )
-                    item->setEditable( true );
-                model_->setData( model_->index( row, c_svg ), QByteArray() );
-            } else {
-                std::string svg = adchem::drawing::toSVG( *static_cast< RDKit::ROMol *>(mol) );
-                QString formula = QString::fromStdString( mol.formula() );
-                double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );            
-                
-                model_->setData( model_->index( row, c_svg ), QByteArray( svg.data(), svg.size() ));
+            auto smiles = model_->index( row, c_smiles ).data( Qt::EditRole ).toString();
+            if ( auto fsvg = MolTableHelper::SmilesToSVG()( smiles ) ) {
+#if __cplusplus >= 201703L
+                auto [ formula, svg ] = *fsvg;
+#else
+                QString formula;
+                QByteArray svg;
+                std::tie( formula, svg ) = *favg;
+#endif
+                double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
+                model_->setData( model_->index( row, c_svg ), svg );
                 model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
                 model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
                 if ( auto item = model_->item( row, c_formula ) )
-                    item->setEditable( false );
+                    item->setEditable( false );                
             }
+            // adchem::mol mol( smiles, adchem::mol::SMILES );
+            // if ( smiles.empty() ) {
+            //     if ( auto item = model_->item( row, c_formula ) )
+            //         item->setEditable( true );
+            //     model_->setData( model_->index( row, c_svg ), QByteArray() );
+            // } else {
+            //     std::string svg = adchem::drawing::toSVG( *static_cast< RDKit::ROMol *>(mol) );
+            //     QString formula = QString::fromStdString( mol.formula() );
+            //     double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );            
+                
+            //     model_->setData( model_->index( row, c_svg ), QByteArray( svg.data(), svg.size() ));
+            //     model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
+            //     model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
+            //     if ( auto item = model_->item( row, c_formula ) )
+            //         item->setEditable( false );
+            // }
         }
         
     }
-#endif
 }
 
 void
