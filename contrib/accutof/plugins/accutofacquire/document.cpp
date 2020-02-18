@@ -1549,7 +1549,7 @@ document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
         // counting peaks
         if ( uuid == boost::uuids::uuid{{ 0 }} ) {
             acqrscontrols::pkd_counting_data_writer::prepare_storage( sp.filesystem() );
-        };
+        }
 
         return true;
     }
