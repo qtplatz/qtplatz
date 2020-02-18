@@ -52,24 +52,6 @@
 #include <QSvgRenderer>
 #include <QUrl>
 #include <sstream>
-
-#if defined HAVE_RDKit && HAVE_RDKit
-#if defined _MSC_VER
-# pragma warning( disable: 4267 4018 )
-#endif
-#include <adchem/drawing.hpp>
-#include <RDGeneral/Invariant.h>
-#include <GraphMol/Depictor/RDDepictor.h>
-#include <GraphMol/Descriptors/MolDescriptors.h>
-#include <GraphMol/RDKitBase.h>
-#include <GraphMol/SmilesParse/SmilesParse.h>
-#include <GraphMol/SmilesParse/SmilesWrite.h>
-#include <GraphMol/Substruct/SubstructMatch.h>
-#include <GraphMol/FileParsers/FileParsers.h>
-#include <GraphMol/FileParsers/MolSupplier.h>
-#include <RDGeneral/RDLog.h>
-#endif
-
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -77,49 +59,6 @@
 #include <functional>
 
 using namespace adwidgets;
-
-namespace {
-    struct SmilesToRow {
-        boost::optional< std::tuple< std::string, std::string > > // formula, svg
-        operator()( const std::string& smiles ) const {
-#if HAVE_RDKit
-            if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles, 0, false ) ) ) {
-                mol->updatePropertyCache( false );
-                auto svg = adchem::drawing::toSVG( *mol );
-                return std::make_tuple( RDKit::Descriptors::calcMolFormula( *mol, true, false ), svg );
-            }
-#endif
-            return boost::none;
-        }
-    };
-
-    struct SDMolSupplier {
-        typedef std::tuple< std::string, std::string, std::string > value_type; // formula,smiles,svg
-        SDMolSupplier() {}
-#if HAVE_RDKit
-        SDMolSupplier( const std::string& filename ) : supplier_( filename, false, false, false ) {}
-        value_type operator []( uint32_t idx ) {
-            auto mol = std::unique_ptr< RDKit::ROMol >( supplier_[ idx ] );
-            mol->updatePropertyCache( false );
-            auto formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
-            auto smiles = RDKit::MolToSmiles( *mol );
-            auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
-            return std::make_tuple( formula, smiles, svg );
-        }
-        void setData( std::string&& pasted ) { supplier_.setData( pasted ); }
-        size_t length() { return supplier_.length(); }
-        
-        RDKit::SDMolSupplier supplier_;
-#else
-        SDMolSupplier( const std::string& filename ) {}
-        value_type operator []( uint32_t ) const { return std::make_pair( "", "", "" ); }
-        void setData( std::string&& pasted ) {}
-        size_t length() const { return 0; }
-#endif
-    };
-
-}
-
 
 namespace adwidgets {
 
@@ -284,10 +223,9 @@ namespace adwidgets {
             model.setData( model.index( row, c_svg ), svg );
 
             if ( svg.isEmpty() && !smiles.isEmpty() ) {
-                if ( auto d = SmilesToRow()( smiles.toStdString() ) ) {
-                    std::string ssvg;
-                    std::tie( std::ignore, ssvg ) = d.get();
-                    model.setData( model.index( row, c_svg ), QByteArray( ssvg.data(), int( ssvg.size() ) ) );
+                if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
+                    auto [ formula, svg ] = *d;
+                    model.setData( model.index( row, c_svg ), svg );
                 }
             }
 
@@ -473,14 +411,13 @@ MolTable::handleValueChanged( const QModelIndex& index )
         if ( smiles.isEmpty() ) {
             model_->setData( model_->index( index.row(), c_svg ), QByteArray() );
         } else {
-            if ( auto d = SmilesToRow()( smiles.toStdString() ) ) {
-                std::string formula, svg;
-                std::tie( formula, svg ) = d.get();
+            if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
+                auto [ formula, svg ] = *d;
+                // std::tie( formula, svg ) = d.get();
                 auto adducts = model_->index( index.row(), c_adducts ).data( Qt::EditRole ).toString();
                 auto synonym = model_->index( index.row(), c_synonym ).data( Qt::EditRole ).toString();
                 auto description = model_->index( index.row(), c_description ).data( Qt::EditRole ).toString();
-                impl_->setData( *this, index.row(), QString::fromStdString( formula ), adducts, smiles
-                                , QByteArray( svg.data(), int( svg.size() ) ), synonym, description );                
+                impl_->setData( *this, index.row(), formula, adducts, smiles, svg, synonym, description );
             }
         }
 
