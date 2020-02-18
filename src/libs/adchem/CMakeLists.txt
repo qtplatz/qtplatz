@@ -21,8 +21,10 @@ endif()
 
 add_library( adchem SHARED
   sdfile_parser.hpp
-  sdmolsupplier.hpp
   sdmolsupplier.cpp
+  sdmolsupplier.hpp
+  smilestosvg.cpp
+  smilestosvg.hpp
   adchem.cpp
   adchem.hpp
   ${rdkit_SOURCES}

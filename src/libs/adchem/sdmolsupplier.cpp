@@ -38,37 +38,53 @@
 
 using namespace adchem;
 
-SDMolSupplier::SDMolSupplier() : supplier_( std::make_unique< RDKit::SDMolSupplier >() )
+SDMolSupplier::SDMolSupplier()
+#if HAVE_RDKit    
+    : supplier_( std::make_unique< RDKit::SDMolSupplier >() )
+#endif
 {
 }
 
 SDMolSupplier::SDMolSupplier( const std::string& filename )
+#if HAVE_RDKit        
     : supplier_( std::make_unique< RDKit::SDMolSupplier >( filename, false, false, false ) )
+#endif
 {
+    // this maybe implemented by using sdfile_parser w/o RDKit.  See sdfile.cpp
 }
 
 
 SDMolSupplier::value_type
 SDMolSupplier::operator []( uint32_t idx ) const
 {
+#if HAVE_RDKit
     auto mol = std::unique_ptr< RDKit::ROMol >( (*supplier_)[ idx ] );
     mol->updatePropertyCache( false );
     auto formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
     auto smiles = RDKit::MolToSmiles( *mol );
     auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
     return std::make_tuple( formula, smiles, svg );
+#else
+    return std::make_tuple( "", "", "" );
+#endif
 }
 
 void
 SDMolSupplier::setData( std::string&& pasted )
 {
+#if HAVE_RDKit    
     supplier_->setData( pasted );
+#endif
 }
 
 size_t
 SDMolSupplier::size() const
 {
+#if HAVE_RDKit        
     return supplier_->length();
+#else
+    return 0;
+#endif
 }
 
 #if HAVE_RDKit
