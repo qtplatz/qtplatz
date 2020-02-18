@@ -24,6 +24,7 @@
 #pragma once
 
 #include <adportable/optional.hpp>
+#include <vector>
 
 class QUrl;
 class QClipboard;
@@ -40,7 +41,7 @@ namespace adwidgets {
         };
 
         struct SDMolSupplier {
-            typedef std::tuple< QString, QString, QByteArray > value_type; // formula,smiles,svg            
+            typedef std::tuple< QString, QString, QByteArray > value_type; // formula,smiles,svg
 
             std::vector< value_type > operator()( const QUrl& ) const;           // drag&drop
             std::vector< value_type > operator()( const QClipboard* ) const;     // paste
@@ -48,4 +49,3 @@ namespace adwidgets {
     };
 
 }
-

@@ -37,13 +37,18 @@ adportable::optional< std::tuple< QString, QByteArray > > // formula, svg
 MolTableHelper::SmilesToSVG::operator()( const QString& smiles ) const
 {
     if ( auto d = adchem::SmilesToSVG()( smiles.toStdString() ) ) {
+#if __cplusplus >= 201703L
         auto [ formula, svg ] = *d;
+#else
+        std::string formula, svg;
+        std::tie( formula, svg ) = *d;
+#endif
         return std::make_tuple( QString::fromStdString( formula ), QByteArray( svg.data(), svg.size() ) );
     }
     return {};
 }
 
-//typedef std::tuple< QString, QString, QByteArray > value_type; // formula,smiles,svg                
+//typedef std::tuple< QString, QString, QByteArray > value_type; // formula,smiles,svg
 
 std::vector< MolTableHelper::SDMolSupplier::value_type >
 MolTableHelper::SDMolSupplier::operator()( const QUrl& url ) const
@@ -53,7 +58,12 @@ MolTableHelper::SDMolSupplier::operator()( const QUrl& url ) const
     adchem::SDMolSupplier supplier( url.toLocalFile().toStdString() );
 
     for ( size_t i = 0; i < supplier.size(); ++i ) {
+#if __cplusplus >= 201703L
         auto [ formula, smiles, svg ] = supplier[ i ];
+#else
+        std::string formula, smiles, svg;
+        std::tie( formula, smiles, svg ) = supplier[ i ];
+#endif
         results.emplace_back( QString::fromStdString( formula ), QString::fromStdString( smiles ), QByteArray( svg.data(), svg.size() ) );
     }
     return results;
@@ -65,15 +75,19 @@ MolTableHelper::SDMolSupplier::operator()( const QClipboard* clipboard ) const
 {
     if ( clipboard == nullptr )
         return {};
-        
+
     std::vector< MolTableHelper::SDMolSupplier::value_type > results;
     adchem::SDMolSupplier supplier;
     supplier.setData( clipboard->text().toStdString() );
 
     for ( size_t i = 0; i < supplier.size(); ++i ) {
+#if __cplusplus >= 201703L
         auto [ formula, smiles, svg ] = supplier[ i ];
+#else
+        std::string formula, smiles, svg;
+        std::tie( formula, smiles, svg ) = supplier[ i ];
+#endif
         results.emplace_back( QString::fromStdString( formula ), QString::fromStdString( smiles ), QByteArray( svg.data(), svg.size() ) );
     }
     return results;
 }
-
