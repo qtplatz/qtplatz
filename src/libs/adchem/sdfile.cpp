@@ -30,6 +30,7 @@
 #endif
 
 #include "sdfile.hpp"
+#include "sdfile_parser.hpp"
 #include <adportable/debug.hpp>
 
 #include <RDGeneral/Invariant.h>
@@ -50,73 +51,6 @@
 #include <fstream>
 
 using namespace adchem;
-
-namespace adchem {  namespace client {
-
-        namespace qi = boost::spirit::qi;
-        using boost::phoenix::bind;
-        using boost::spirit::qi::_val;
-        using boost::spirit::qi::_1;
-        using boost::spirit::ascii::space;
-        using boost::spirit::ascii::space_type;
-        using boost::spirit::ascii::char_;
-        using qi::lexeme;
-        using boost::phoenix::at_c;
-        using boost::phoenix::push_back;
-        using namespace qi::labels;
-
-        typedef std::pair< std::string, std::string > node_type;
-        typedef std::vector< node_type > nodes_type;
-
-        template<typename Iterator>
-        struct sdfile_parser : boost::spirit::qi::grammar< Iterator, nodes_type() > {
-
-            sdfile_parser() : sdfile_parser::base_type( nodes ) {
-
-                text = lexeme[+(char_ - '>' - '<' - '$')   [_val += qi::_1] ]
-                    ;
-
-                start_tag =
-                    '>'
-                    >> *(space)
-                    >> qi::lit('<')  
-                    >> lexeme[+(char_ - '>') [_val += qi::_1] ]
-                    >> '>' 
-                    ;
-            
-                node = 
-                    start_tag  [ at_c<0>(_val) = qi::_1 ]
-                    >> *(text  [ at_c<1>(_val) = qi::_1 ])
-                    ;
-
-                nodes =
-                    + ( node )
-                    >> *( qi::lit("$$$$") )
-                    ;
-            
-                nodes.name( "nodes" );
-                node.name( "node" );
-                start_tag.name( "start_tag" );
-                text.name( "text" );
-            
-                qi::on_error<qi::fail> (
-                    nodes
-                    , std::cout << boost::phoenix::val( "Error! Expecting " )
-                    << _4
-                    << boost::phoenix::val(" here: \"")
-                    << boost::phoenix::construct< std::string >(_3, _2)
-                    << boost::phoenix::val("\"")
-                    << std::endl
-                    );
-            }
-
-            qi::rule<Iterator, std::string()> text;
-            qi::rule<Iterator, std::string()> start_tag;
-            qi::rule<Iterator, std::pair< std::string, std::string>()> node;
-            qi::rule<Iterator, nodes_type()> nodes;
-        };
-    }
-}
 
 SDFile::SDFile( const std::string& filename, bool sanitize, bool removeHs, bool strictParsing )
     : molSupplier_( std::make_shared< RDKit::SDMolSupplier >( filename, sanitize, removeHs, strictParsing ) )
@@ -166,14 +100,14 @@ SDFile::parseItemText( const std::string& text, std::map< std::string, std::stri
 
         for ( std::string::const_iterator it = text.begin() + pos; it < text.end(); ++it ) {
             // if ( std::isprint( unsigned(*it) ) ) // formula contains 128> char that cause an assersion error on VS2012
-                xstr += *it;
+            xstr += *it;
         }
         
         // std::ofstream of( "text.txt" );
         // of << xstr;
 
-        client::sdfile_parser< std::string::const_iterator > parser;
-        client::nodes_type nodes;
+        sdfile_parser< std::string::const_iterator > parser;
+        nodes_type nodes;
         
         std::string::const_iterator it = xstr.begin();
         std::string::const_iterator end = xstr.end();
