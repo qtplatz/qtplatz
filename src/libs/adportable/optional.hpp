@@ -29,6 +29,8 @@
 #include <boost/optional.hpp>
 #endif
 
+// check __cplusplus value with: g++ -x c++ -std=c++14 -dM -E - </dev/null
+
 namespace adportable {
 
 #if __cplusplus >= 201703L
@@ -36,6 +38,5 @@ namespace adportable {
 #else
     template< typename T > using optional = boost::optional< T >;
 #endif
-    
-}
 
+}
