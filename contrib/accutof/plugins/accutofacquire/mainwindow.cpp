@@ -152,7 +152,7 @@ MainWindow::createDockWidgets()
 
         createDockWidget( widget, tr( "U5303A" ), "ControlMethod" );
 
-        connect( widget, &acqrswidgets::u5303AWidget::applyTriggered, [this,widget]() {
+        connect( widget, &acqrswidgets::u5303AWidget::applyTriggered, []() {
                 document::instance()->applyTriggered();
             });
 
@@ -202,9 +202,10 @@ MainWindow::createDockWidgets()
 
         createDockWidget( widget, "Modules", "CherryPicker" );
 
-        connect( widget, &adwidgets::CherryPicker::stateChanged, [this]( const QString& key, bool enable ){
-                document::instance()->setControllerSettings( key, enable );
-            });
+        connect( widget, &adwidgets::CherryPicker::stateChanged
+                 , []( const QString& key, bool enable ){
+                       document::instance()->setControllerSettings( key, enable );
+                   });
     }
 }
 
@@ -271,7 +272,7 @@ MainWindow::OnInitialUpdate()
             picker->addItem( iController->module_name(), iController->module_name(), checked, enabled );
         }
 
-        connect( document::instance(), &document::moduleConfigChanged, this, [this,picker](){
+        connect( document::instance(), &document::moduleConfigChanged, this, [picker](){
                 for ( auto& module: document::instance()->controllerSettings() ) {
                     picker->setChecked( module.first, module.second );
                 }
@@ -676,7 +677,7 @@ MainWindow::createActions()
             action->setEnabled( false );
             auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
             menu->addAction( cmd );
-            connect( action, &QAction::triggered, [this](bool rec){
+            connect( action, &QAction::triggered, [](bool rec){
                     document::instance()->actionRec(rec);
                     if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
                         if ( !action->isEnabled() )

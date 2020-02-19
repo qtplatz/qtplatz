@@ -25,7 +25,7 @@ debug:
 
 default_darwin:
 	@echo "====================================="
-	@echo "We detect mac osx " ${arch} ${VER} 
+	@echo "We detect mac osx " ${arch} ${VER}
 	@echo "Check user-config.jam for python version"
 	@echo "====================================="
 	@echo "make dependency"
@@ -34,7 +34,6 @@ default_darwin:
 	@echo "make rdkit"
 	@echo "make opencv"
 	@echo "make bower"
-	@echo "make mozc"
 
 default_debian_10:
 	@echo "====================================="

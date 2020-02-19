@@ -71,4 +71,3 @@ cmake -DBOOST_ROOT=/usr/local/boost-1_62 -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUIL
 make -j8
 make test
 make install
-
