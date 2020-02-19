@@ -1,10 +1,11 @@
 (require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")) )
 (when (< emacs-major-version 24)
   ;; For important compatibility libraries like cl-lib
   (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
+(require 'use-package)
 
 (add-hook 'c-mode-common-hook
           '(lambda ()
@@ -35,14 +36,17 @@
 (add-to-list 'exec-path (expand-file-name "/usr/local/bin")) ;; path to rdm/rc
 (add-to-list 'load-path (expand-file-name "/usr/local/share/emacs/site-lisp/rtags")) ;; path to rtags.el
 
-(require 'rtags)
-(require 'company)
-(setq rtags-autostart-diagnostics t)
-(rtags-diagnostics)
-(setq rtags-completions-enabled t)
+(use-package rtags
+  :config
+  (setq rtags-autostart-diagnostics t)
+  (rtags-diagnostics)
+  (setq rtags-completions-enabled t)
+  (rtags-enable-standard-keybindings))
+
+(use-package company)
+(use-package company-rtags)
 (push 'company-rtags company-backends)
 (global-company-mode)
-(rtags-enable-standard-keybindings)
 (define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
 
 ;(require 'company-rtags)
@@ -56,16 +60,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'langtool)
-(setq langtool-language-tool-jar "/opt/LanguageTool-3.8/languagetool-commandline.jar")
-(setq langtool-default-language "en-US")
+(use-package langtool
+  :config
+  (setq langtool-language-tool-jar "/opt/LanguageTool-3.8/languagetool-commandline.jar")
+  (setq langtool-default-language "en-US"))
 
 ;;;;;;;;;;;;;;
-(require 'mozc)
-(set-language-environment "Japanese")
-(setq default-input-method "japanese-mozc")
-(prefer-coding-system 'utf-8)
+(use-package mozc
+  :config
+  (set-language-environment "Japanese")
+  (setq default-input-method "japanese-mozc")
+  (prefer-coding-system 'utf-8))
 
+(use-package org
+  :config
+  (define-key global-map "\C-cl" 'org-store-link)
+  (define-key global-map "\C-ca" 'org-agenda)
+  (setq org-log-done t))
+;;(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(setq org-agenda-files (list "~/org/todo.org"))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 '(default ((t (:height 140 :family "Consolas"))))
