@@ -107,8 +107,13 @@ namespace adwidgets {
         adportable::optional< std::pair< int, ColumnState > > findColumnState( ColumnState::fields field ) const {
             auto it = std::find_if( columnStates_.begin(), columnStates_.end()
                                     , [field]( const std::pair< int, ColumnState >& c ){ return c.second.field == field; });
-            if ( it != columnStates_.end() )
+            if ( it != columnStates_.end() ) {
+#if __cplusplus >= 201703L
                 return *it;
+#else
+                return std::pair< int, ColumnState >(*it);
+#endif
+            }
             return {};
         }
 
@@ -118,7 +123,7 @@ namespace adwidgets {
             emit this_->valueChanged( index, value );
         }
 
-        
+
     };
 
     //-------------------------- delegate ---------------
@@ -193,7 +198,7 @@ namespace adwidgets {
                 paint_f_precision()( state, painter, option, index );
             }
         };
-        
+
         ///////////////////////
         struct paint_f_svg {
 
@@ -244,7 +249,7 @@ namespace adwidgets {
 
             } else if ( field == ColumnState::f_time ) {
 
-                paint_f_time()( state, painter, opt, index );                
+                paint_f_time()( state, painter, opt, index );
 
             } else if ( field == ColumnState::f_mass ) {
 
@@ -374,7 +379,7 @@ namespace {
         findColumn_t findColumn_;
 
         SetData( findColumn_t functor ) : findColumn_( functor ) {}
-        
+
         void operator()( QAbstractItemModel& model, int row, ColumnState::fields field, QVariant&& v, bool checked = false ) {
             if ( auto res = findColumn_( field ) ) {
 #if __cplusplus >= 201703L
@@ -384,7 +389,7 @@ namespace {
                 std::tie( col, state ) = *res;
 #endif
                 model.setData( model.index( row, col ), v, Qt::EditRole );
-                
+
                 if ( state.isCheckable ) {
                     if ( auto pmodel = qobject_cast< QStandardItemModel * >(&model) ) {
                         if ( auto item = pmodel->item( row, col )) {
@@ -630,11 +635,11 @@ MolTableView::handlePaste()
     auto md = QApplication::clipboard()->mimeData();
     auto data = md->data( "application/moltable-xml" );
     if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
-    
+
         if ( !data.isEmpty() ) {
             QString utf8( QString::fromUtf8( data ) );
             std::wistringstream is( utf8.toStdWString() );
-            
+
             adcontrols::moltable molecules;
             if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
                 model->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
@@ -655,7 +660,7 @@ MolTableView::handlePaste()
             // drop plain/text from chemical draw software
             auto vec = MolTableHelper::SDMolSupplier()( QApplication::clipboard() );
             if ( ! vec.empty() ) {
-                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );                
+                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
                 int row = model->rowCount() == 0 ? 0 : model->rowCount() - 1;
                 model->insertRows( row, vec.size() );
                 for ( auto d: vec ) {
@@ -696,4 +701,3 @@ MolTableView::setColumnField( int column, ColumnState::fields f, bool editable, 
 
 //     return exactMass;
 // }
-

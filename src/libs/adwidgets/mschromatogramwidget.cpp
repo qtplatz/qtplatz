@@ -73,7 +73,7 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
 
         layout->setMargin(0);
         layout->setSpacing(2);
-        
+
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( new MSChromatogramForm ) );
             auto table = new MolTableView();
@@ -114,7 +114,7 @@ MSChromatogramWidget::OnCreate( const adportable::Configuration& )
 void
 MSChromatogramWidget::OnInitialUpdate()
 {
-    if ( auto form = findChild< MSChromatogramForm * >() ) 
+    if ( auto form = findChild< MSChromatogramForm * >() )
         form->OnInitialUpdate();
 
     if ( auto table = findChild< MolTableView *>() )
@@ -147,9 +147,9 @@ bool
 MSChromatogramWidget::setContents( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
-        
+
         const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( a );
-        
+
         if ( auto m = pm.find< adcontrols::MSChromatogramMethod >() ) {
             setContents( *m );
             return true;
@@ -173,7 +173,7 @@ MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
         model_->setRowCount( m.molecules().data().size() );
     else
         model_->removeRows( size - 1, model_->rowCount() - size );
-    
+
     int row( 0 );
     for ( auto& mol: m.molecules().data() )
         helper::setRow( row++, mol, *model_ );
@@ -242,7 +242,7 @@ MSChromatogramWidget::setup( MolTableView * table )
     table->setColumnField( c_smiles,  ColumnState::f_smiles );
 
     table->setPrecision( c_tR, 3 );
-    
+
     table->setContextMenuHandler( [&]( const QPoint& pt ){
             QMenu menu;
             menu.addAction( tr( "Add row" ), this, SLOT( addRow() ) );
@@ -257,7 +257,7 @@ void
 MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight )
 {
     QSignalBlocker block( model_.get() );
-    
+
     if ( ( topLeft.column() <= c_formula && c_formula <= bottomRight.column() ) ||
          ( topLeft.column() <= c_adducts && c_adducts <= bottomRight.column() ) ) {
 
@@ -269,7 +269,7 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
             model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
         }
     }
-    
+
     if ( topLeft.column() <= c_smiles && c_smiles <= bottomRight.column() ) {
 
         for ( auto row = topLeft.row(); row <= bottomRight.row(); ++row ) {
@@ -280,14 +280,14 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
 #else
                 QString formula;
                 QByteArray svg;
-                std::tie( formula, svg ) = *favg;
+                std::tie( formula, svg ) = *fsvg;
 #endif
                 double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
                 model_->setData( model_->index( row, c_svg ), svg );
                 model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
                 model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
                 if ( auto item = model_->item( row, c_formula ) )
-                    item->setEditable( false );                
+                    item->setEditable( false );
             }
             // adchem::mol mol( smiles, adchem::mol::SMILES );
             // if ( smiles.empty() ) {
@@ -297,8 +297,8 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
             // } else {
             //     std::string svg = adchem::drawing::toSVG( *static_cast< RDKit::ROMol *>(mol) );
             //     QString formula = QString::fromStdString( mol.formula() );
-            //     double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );            
-                
+            //     double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
+
             //     model_->setData( model_->index( row, c_svg ), QByteArray( svg.data(), svg.size() ));
             //     model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
             //     model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
@@ -306,7 +306,7 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
             //         item->setEditable( false );
             // }
         }
-        
+
     }
 }
 
@@ -333,7 +333,7 @@ MSChromatogramWidget::helper::readRow( int row, adcontrols::moltable::value_type
     mol.smiles()  = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
     int protocol = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
     mol.setProtocol( protocol >= 0 ? boost::optional< int32_t >( protocol ) : boost::none );
-    
+
     double tR = model.index( row, c_tR ).data( Qt::EditRole ).toDouble();
     mol.set_tR( tR > 0 ? boost::optional< double >( tR ) : boost::none );
 
@@ -345,21 +345,21 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
 {
     {
         QSignalBlocker block( &model );
-        
+
         if ( row <= model.rowCount() )
             model.setRowCount( row + 1 );
-        
+
         model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
         if ( auto item = model.item( row, c_formula ) ) {
             item->setEditable( true );
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             model.setData( model.index( row, c_formula ), mol.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        
+
         model.setData( model.index( row, c_adducts ), QString::fromStdString( mol.adducts() ) );
-        
+
         model.setData( model.index( row, c_mass ), mol.mass() );
-        
+
         model.setData( model.index( row, c_lockmass ), mol.isMSRef() );
         if ( auto item = model.item( row, c_lockmass ) ) {
             item->setEditable( false );
@@ -376,6 +376,6 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
     }
 
     model.setData( model.index( row, c_smiles ), QString::fromStdString( mol.smiles() ) );
-    
+
     return true;
 }
