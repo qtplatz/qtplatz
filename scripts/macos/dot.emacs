@@ -49,13 +49,6 @@
 (global-company-mode)
 (define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
 
-;(require 'company-rtags)
-;(global-company-mode)
-;(eval-after-load 'company
-;  '(add-to-list
-;    'company-backends 'company-rtags))
-;(setq rtags-autostart-diagnostics t)
-;(rtags-enable-standard-keybindings)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -72,13 +65,19 @@
   (setq default-input-method "japanese-mozc")
   (prefer-coding-system 'utf-8))
 
+;;;;; org-mode ;;;;;
 (use-package org
   :config
   (define-key global-map "\C-cl" 'org-store-link)
   (define-key global-map "\C-ca" 'org-agenda)
   (setq org-log-done t))
-;;(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
+(add-hook 'org-mode-hook
+          '(lambda ()
+             (local-set-key "\M-\C-g" 'org-plot/gnuplot)))
+
 (setq org-agenda-files (list "~/org/todo.org"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 '(default ((t (:height 140 :family "Consolas"))))
