@@ -1,10 +1,17 @@
+* TODO jupyter notebook setup
+** TODO installer add rdkit python package
+** TODO installer add rdkit python dependent package
+   pillow
+   see: ttps://nbviewer.jupyter.org/gist/greglandrum/4316430
+** TODO add /etc/ld.so.conf.d/qtplatz.conf for rdkit/boost python import
+
 Calibration date:	2020-02-19T20:15:15.428879+0900	id	fca9afc0-d6a1-4516-99d6-3435b252b31e
 
 \[
 \sqrt{ m/z } = 	a + b\cdot X^1
 , where a = -0.07818211844942, b = 589251.56835260125808
 \]
-	
+
 without Na2F
 
 | time(us) | formula          |         m/z(exact) |                m/z |         error(mDa) |    m/z(calibrated) | error(mDa) calibrated | enable | delta m/z |          Intensity | #turns | fcn | index |

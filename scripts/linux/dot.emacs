@@ -15,7 +15,7 @@
  '(custom-enabled-themes (quote (tsdh-dark)))
  '(package-selected-packages
    (quote
-    (use-package cmake-font-lock cmake-ide cmake-mode company vhdl-tools company-irony-c-headers company-irony egg git gnuplot-mode dts-mode cuda-mode mozc-im langtool flycheck-rtags company-rtags ac-mozc))))
+    (org-journal gnuplot use-package cmake-font-lock cmake-ide cmake-mode company vhdl-tools company-irony-c-headers company-irony egg git gnuplot-mode dts-mode cuda-mode mozc-im langtool flycheck-rtags company-rtags ac-mozc))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -108,6 +108,9 @@
   (setq langtool-default-language "en-US"))
 
 ;;;;;;;;;;;;;;;;;;;;;
+(use-package gnuplot :ensure t)
+
+;;;;;;;;;;;;;;;;;;;;;
 ;;;;; Org mode ;;;;;;
 (use-package org
   :ensure t
@@ -121,3 +124,17 @@
              (local-set-key "\M-\C-g" 'org-plot/gnuplot)))
 
 (setq org-agenda-files (list "~/org/todo.org"))
+
+(define-key global-map "\C-cc" 'org-capture)
+(define-key global-map "\C-cj" 'org-journal-new-entry)
+(setq org-capture-templates
+      '(("n" "Note" entry (file+headline "~/org/notes.org" "Notes")
+         "* %?\nEntered on %U\n %i\n %a")
+        ))
+
+(use-package org-journal
+  :ensure t
+  :defer t
+  :custom
+  (org-journal-dir "~/org/journal/")
+  (org-journal-file-format "%m.%d.%Y.org")  )
