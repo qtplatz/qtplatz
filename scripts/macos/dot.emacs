@@ -37,6 +37,7 @@
 (add-to-list 'load-path (expand-file-name "/usr/local/share/emacs/site-lisp/rtags")) ;; path to rtags.el
 
 (use-package rtags
+  :ensure t
   :config
   (setq rtags-autostart-diagnostics t)
   (rtags-diagnostics)
@@ -54,19 +55,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package langtool
+  :ensure t
   :config
   (setq langtool-language-tool-jar "/opt/LanguageTool-3.8/languagetool-commandline.jar")
   (setq langtool-default-language "en-US"))
 
 ;;;;;;;;;;;;;;
-(use-package mozc
+(use-package mozc   :ensure t
   :config
   (set-language-environment "Japanese")
   (setq default-input-method "japanese-mozc")
   (prefer-coding-system 'utf-8))
 
 ;;;;; org-mode ;;;;;
-(use-package org
+(use-package org   :ensure t
   :config
   (define-key global-map "\C-cl" 'org-store-link)
   (define-key global-map "\C-ca" 'org-agenda)
