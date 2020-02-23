@@ -14,8 +14,18 @@ function find_qmake() {
 
     case "${__arch}" in
 	Linux*)
+	    local __dirs=()
+	    for hint in "${hints[@]}"; do
+			__dirs+=("/opt$hint/gcc_64")
+	    done
 	    ;;
 	Darwin*)
+	    local home=~
+	    local __dirs=()
+	    for hint in "${hints[@]}"; do
+			__dirs+=("$home$hint/clang_64")
+			__dirs+=("/opt$hint/clang_64")
+	    done
 	    ;;
 	*)
 	    echo "######## unknown arch: " $__arch
