@@ -57,7 +57,7 @@
 (use-package langtool
   :ensure t
   :config
-  (setq langtool-language-tool-jar "/opt/LanguageTool-3.8/languagetool-commandline.jar")
+  (setq langtool-language-tool-jar "/opt/LanguageTool-4.8/languagetool-commandline.jar")
   (setq langtool-default-language "en-US"))
 
 ;;;;;;;;;;;;;;
@@ -78,17 +78,35 @@
           '(lambda ()
              (local-set-key "\M-\C-g" 'org-plot/gnuplot)))
 
-(setq org-agenda-files (list "~/org/todo.org"))
+(setq org-agenda-files (list "~/org/task.org"
+			     "~/org/notes.org"))
+
+(define-key global-map "\C-cc" 'org-capture)
+(define-key global-map "\C-cj" 'org-journal-new-entry)
+(setq org-log-done t)
+
+(setq org-capture-templates
+      '(("n" "Note" entry (file+headline "~/org/notes.org" "Notes")
+	 "* %?\nEntered on %U\n %i\n %a")
+	("t" "Task" entry (file+headline "~/org/task.org" "Task")
+	 "** TODO %? \n   SCHEDULED: %^t \n")
+        ))
+
+(setq org-refile-targets
+      (quote (("~/archives.org" :level . 1)
+	      ("~/notes.org" :level . 1)
+	      ("~/task.org" :level . 1))))
+
+(use-package org-journal
+  :ensure t
+  :defer t
+  :custom
+  (org-journal-dir "~/org/journal/")
+  (org-journal-file-format "%m.%d.%Y.org"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 '(default ((t (:height 140 :family "Consolas"))))
-
-;;
-(setq browse-url-browser-function 'browse-url-generic)
-(setq browse-url-generic-program 
-      (if (file-exists-p "/usr/bin/chromium")
-          "/usr/bin/chromium" "/usr/bin/google-chrome"))
 
 (add-to-list 'auto-mode-alist '("\\.plt\\'" . gnuplot-mode))
 (custom-set-variables
@@ -97,9 +115,14 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (deeper-blue)))
+ '(org-agenda-files
+   (quote
+    ("~/org/todo.org" "~/org/task.org" "~/org/notes.org")))
+ '(org-journal-dir "~/org/journal/" t)
+ '(org-journal-file-format "%m.%d.%Y.org" t)
  '(package-selected-packages
    (quote
-    (mozc-im company-rtags rtags cuda-mode langtool flycheck wc-mode vhdl-tools magit irony-eldoc gnuplot-mode gnuplot flycheck-irony company-irony cmake-font-lock auto-complete-c-headers))))
+    (org-journal mozc-im company-rtags rtags cuda-mode langtool flycheck wc-mode vhdl-tools magit irony-eldoc gnuplot-mode gnuplot flycheck-irony company-irony cmake-font-lock auto-complete-c-headers))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
