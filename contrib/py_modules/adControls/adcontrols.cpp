@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2019 MS-Cheminformatics LLC
+** Copyright (C) 2019-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,19 +22,12 @@
 **
 **************************************************************************/
 
-#include <boost/python.hpp>
-#include <adcontrols/chemicalformula.hpp>
+#include "chemicalformula.hpp"
+#include "isotopecluster.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
-#include <memory>
-
-double getitem_ms_intensity( const adcontrols::MassSpectrum& ms, size_t index ) {
-    return ms.getMass( index );
-}
-
-class pyMassSpectrum : public adcontrols::MassSpectrum {
-public:
-};
+#include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 using namespace boost::python;
 
@@ -45,10 +37,31 @@ BOOST_PYTHON_MODULE( adControls )
     register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
 
-    double (adcontrols::ChemicalFormula::*d1)( const std::string& ) const = &adcontrols::ChemicalFormula::getMonoIsotopicMass;
+    class_< std::vector< boost::python::tuple > >("std_vector_tuple")
+        .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
+        ;
 
-    class_< adcontrols::ChemicalFormula >( "ChemicalFormula" )
-        .def( "getMonoIsotopicMass", d1 )
+    class_< std::vector< boost::python::dict > >("std_vector_dict")
+        .def( vector_indexing_suite< std::vector< boost::python::dict >,true >() )
+        ;
+
+    class_< py_module::ChemicalFormula >( "ChemicalFormula", boost::python::init< const std::string >() )
+        .def( "formula",          &py_module::ChemicalFormula::formula )
+        .def( "monoIsotopicMass", &py_module::ChemicalFormula::monoIsotopicMass )
+        .def( "standardFormula",  &py_module::ChemicalFormula::standardFormula )
+        .def( "formatFormula",    &py_module::ChemicalFormula::formatFormula )
+        .def( "composition",      &py_module::ChemicalFormula::composition )
+        .def( "composition_dict", &py_module::ChemicalFormula::composition_dict )
+        .def( "charge",           &py_module::ChemicalFormula::charge )
+        ;
+
+    class_< py_module::IsotopeCluster >( "IsotopeCluster", boost::python::init< const std::string >() )
+        .def( "formula",           &py_module::IsotopeCluster::formula )
+        .def( "setCharge",         &py_module::IsotopeCluster::setCharge )
+        .def( "charge",            &py_module::IsotopeCluster::charge )
+        .def( "setResolvingPower", &py_module::IsotopeCluster::setResolvingPower )
+        .def( "resolvingPower",    &py_module::IsotopeCluster::resolvingPower )
+        .def( "compute",           &py_module::IsotopeCluster::compute )
         ;
 
     class_< adcontrols::MassSpectrum >( "MassSpectrum" )

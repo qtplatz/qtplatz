@@ -77,7 +77,7 @@ BOOST_PYTHON_MODULE( adProcessor )
 {
     exportUUID();
 
-    register_ptr_to_python< std::shared_ptr< DataReader > >();
+    register_ptr_to_python< std::shared_ptr< py_module::DataReader > >();
 
     def( "gen_uuid", gen_uuid );
     def( "set_uuid", set_uuid );
@@ -93,29 +93,30 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
         ;
 
-    class_< std::vector< std::shared_ptr< DataReader > > >("std_vector_std_shared_ptr_DataReader")
-        .def( vector_indexing_suite< std::vector< std::shared_ptr< DataReader > >, true >() )
+    class_< std::vector< std::shared_ptr< py_module::DataReader > > >("std_vector_std_shared_ptr_DataReader")
+        .def( vector_indexing_suite< std::vector< std::shared_ptr< py_module::DataReader > >, true >() )
         ;
 
-    class_< dataProcessor >( "processor" )
-        .def( "open", &dataProcessor::open )
-        .def( "dataReaderTuples", &dataProcessor::dataReaderTuples )
-        .def( "dataReaders", &dataProcessor::dataReaders )
-        .def( "dataReader", &dataProcessor::dataReader )
+    class_< py_module::dataProcessor >( "processor" )
+        .def( "open",               &py_module::dataProcessor::open )
+        .def( "dataReaderTuples",   &py_module::dataProcessor::dataReaderTuples )
+        .def( "dataReaders",        &py_module::dataProcessor::dataReaders )
+        .def( "dataReader",         &py_module::dataProcessor::dataReader )
+        .def( "filename",           &py_module::dataProcessor::filename )
         ;
 
-    class_< DataReader >( "dataReader", no_init )
-        .def( "objuuid", &DataReader::objuuid )
-        .def( "objtext", &DataReader::objtext )
-        .def( "display_name", &DataReader::display_name )
-        .def( "size", &DataReader::size, DataReader_overloads() )
-        .def( "readSpectrum", &DataReader::readSpectrum )
-        .def( "rewind", &DataReader::rewind )
-        .def( "next",   &DataReader::next )
-        .def( "rowid", &DataReader::rowid )
-        .def( "epoch_time",        &DataReader::epoch_time )
-        .def( "elapsed_time",      &DataReader::elapsed_time )
-        .def( "time_since_inject", &DataReader::time_since_inject )
-        .def( "protocol",          &DataReader::protocol )
+    class_< py_module::DataReader >( "dataReader", no_init )
+        .def( "objuuid",            &py_module::DataReader::objuuid )
+        .def( "objtext",            &py_module::DataReader::objtext )
+        .def( "display_name",       &py_module::DataReader::display_name )
+        .def( "size",               &py_module::DataReader::size, py_module::DataReader_overloads() )
+        .def( "readSpectrum",       &py_module::DataReader::readSpectrum )
+        .def( "rewind",             &py_module::DataReader::rewind )
+        .def( "next",               &py_module::DataReader::next )
+        .def( "rowid",              &py_module::DataReader::rowid )
+        .def( "epoch_time",         &py_module::DataReader::epoch_time )
+        .def( "elapsed_time",       &py_module::DataReader::elapsed_time )
+        .def( "time_since_inject",  &py_module::DataReader::time_since_inject )
+        .def( "protocol",           &py_module::DataReader::protocol )
         ;
 }

@@ -30,29 +30,38 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/python.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
     class DataReader;
 }
 
-class DataReader;
+namespace adprocessor {
+    class dataprocessor;
+}
 
-class dataProcessor : public adcontrols::dataSubscriber {
-    const adcontrols::LCMSDataset * raw_;
-    adcontrols::datafile * file_;
-public:
-    dataProcessor();
-    ~dataProcessor();
+namespace py_module {
 
-    bool subscribe( const adcontrols::LCMSDataset& raw ) override;
-    bool subscribe( const adcontrols::ProcessedDataset& ) override;
-    void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
-    //
-    const adcontrols::LCMSDataset * raw() const { return raw_; }
+    class DataReader;
 
-    bool open( const std::wstring& filename );
-    std::vector< boost::python::tuple > dataReaderTuples() const;
-    std::vector< std::shared_ptr< DataReader > > dataReaders() const;
-    std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
-};
+    class dataProcessor {
+        std::shared_ptr< adprocessor::dataprocessor > processor_;
+    public:
+        dataProcessor();
+        ~dataProcessor();
+
+        // bool subscribe( const adcontrols::LCMSDataset& raw ) override;
+        // bool subscribe( const adcontrols::ProcessedDataset& ) override;
+        // void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
+        //
+        //const adcontrols::LCMSDataset * raw() const { return raw_; }
+
+        bool open( const std::wstring& filename );
+        std::vector< boost::python::tuple > dataReaderTuples() const;
+        std::vector< std::shared_ptr< DataReader > > dataReaders() const;
+        std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
+        std::wstring filename() const;
+        std::string xml() const;
+    };
+}

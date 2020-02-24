@@ -36,29 +36,33 @@ namespace adcontrols {
     class MassSpectrum;
 }
 
-class DataReader {
-public:
-    DataReader( std::shared_ptr< const adcontrols::DataReader > );
-    DataReader();
-    DataReader( const DataReader& );
-    ~DataReader();
-    boost::uuids::uuid objuuid() const;
-    std::string objtext() const;
-    std::string display_name() const;
+namespace py_module {
 
-    size_t size( int fcn = (-1) ) const;
-    bool rewind();
-    bool next();
-    int64_t rowid() const;
-    int64_t epoch_time() const;
-    int64_t elapsed_time() const;
-    double time_since_inject() const;
-    int protocol() const;
+    class DataReader {
+    public:
+        DataReader( std::shared_ptr< const adcontrols::DataReader > );
+        DataReader();
+        DataReader( const DataReader& );
+        ~DataReader();
+        boost::uuids::uuid objuuid() const;
+        std::string objtext() const;
+        std::string display_name() const;
 
-    std::shared_ptr< adcontrols::MassSpectrum > readSpectrum() const;
-private:
-    std::shared_ptr< const adcontrols::DataReader > reader_;
-    adcontrols::DataReader::const_iterator it_;
-};
+        size_t size( int fcn = (-1) ) const;
+        bool rewind();
+        bool next();
+        int64_t rowid() const;
+        int64_t epoch_time() const;
+        int64_t elapsed_time() const;
+        double time_since_inject() const;
+        int protocol() const;
 
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS( DataReader_overloads, size, 0, 1 );
+        std::shared_ptr< adcontrols::MassSpectrum > readSpectrum() const;
+    private:
+        std::shared_ptr< const adcontrols::DataReader > reader_;
+        adcontrols::DataReader::const_iterator it_;
+    };
+
+    BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS( DataReader_overloads, size, 0, 1 );
+
+}

@@ -31,6 +31,8 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <adfs/filesystem.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
@@ -47,40 +49,43 @@
 #include <memory>
 #include <mutex>
 
+using namespace py_module;
+
 dataProcessor::~dataProcessor()
 {
-    delete file_;
 }
 
-dataProcessor::dataProcessor() : raw_( 0 )
-                               , file_( 0 )
+dataProcessor::dataProcessor() : processor_( std::make_shared< adprocessor::dataprocessor >() )
 {
     static std::once_flag flag;
     std::call_once( flag, []{ adplugin::manager::standalone_initialize(); } );
 }
 
-bool
-dataProcessor::subscribe( const adcontrols::LCMSDataset& raw )
-{
-    raw_ = &raw;
-    return true;
-}
+// bool
+// dataProcessor::subscribe( const adcontrols::LCMSDataset& raw )
+// {
+//     raw_ = &raw;
+//     return true;
+// }
 
-bool
-dataProcessor::subscribe( const adcontrols::ProcessedDataset& )
-{
-    return true;
-}
+// bool
+// dataProcessor::subscribe( const adcontrols::ProcessedDataset& )
+// {
+//     return true;
+// }
 
-void
-dataProcessor::notify( adcontrols::dataSubscriber::idError, const std::string& json )
-{
-    ADDEBUG() << __FUNCTION__ << " " << json;
-}
+// void
+// dataProcessor::notify( adcontrols::dataSubscriber::idError, const std::string& json )
+// {
+//     ADDEBUG() << __FUNCTION__ << " " << json;
+// }
 
 bool
 dataProcessor::open( const std::wstring& filename )
 {
+    std::wstring emsg;
+    return processor_->open( filename, emsg );
+#if 0
     if ( file_ )
         delete file_;
     raw_ = nullptr;
@@ -95,43 +100,65 @@ dataProcessor::open( const std::wstring& filename )
     }
 
     return file_ != nullptr;
+#endif
 }
 
 std::vector< boost::python::tuple >
 dataProcessor::dataReaderTuples() const
 {
     std::vector< boost::python::tuple > a;
-    if ( raw_ ) {
-        for ( auto reader: raw_->dataReaders() ) {
-            a.emplace_back( boost::python::make_tuple( reader->objtext()
-                                                       , reader->display_name()
-                                                       , reader->objuuid() )
-                );
+    if ( processor_ ) {
+        if ( auto raw = processor_->rawdata() ) {
+            for ( auto reader: raw->dataReaders() ) {
+                a.emplace_back( boost::python::make_tuple( reader->objtext()
+                                                           , reader->display_name()
+                                                           , reader->objuuid() )   );
+            }
         }
     }
     return a;
 }
 
-std::vector< std::shared_ptr< DataReader > >
+std::vector< std::shared_ptr< py_module::DataReader > >
 dataProcessor::dataReaders() const
 {
     std::vector< std::shared_ptr< DataReader > > a;
-    if ( raw_ ) {
-        for ( auto& reader: raw_->dataReaders() )
-            a.emplace_back( std::make_shared< DataReader >( reader ) );
+    if ( processor_ ) {
+        if ( auto raw = processor_->rawdata() ) {
+            for ( auto& reader: raw->dataReaders() )
+                a.emplace_back( std::make_shared< DataReader >( reader ) );
+        }
     }
     return a;
 }
 
-std::shared_ptr< DataReader >
+std::shared_ptr< py_module::DataReader >
 dataProcessor::dataReader( const std::string& str ) const
 {
     auto uuid = boost::uuids::string_generator()( str );
-    if ( raw_ ) {
-        for ( auto& reader: raw_->dataReaders() ) {
-            if ( reader->objuuid() == uuid )
-                return std::make_shared< DataReader >( reader );
+    if ( processor_ ) {
+        if ( auto raw = processor_->rawdata() ) {
+            for ( auto& reader: raw->dataReaders() ) {
+                if ( reader->objuuid() == uuid )
+                    return std::make_shared< py_module::DataReader >( reader );
+            }
         }
     }
     return nullptr;
+}
+
+std::wstring
+dataProcessor::filename() const
+{
+    if ( processor_ )
+        return processor_->filename();
+    return {};
+}
+
+std::string
+dataProcessor::xml() const
+{
+    if ( processor_ )
+        return processor_->portfolio().xml();
+    return {};
 }

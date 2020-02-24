@@ -1,6 +1,8 @@
 #!/bin/bash
 
 __arch=`uname`
+config=
+cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 PYTHON_VERSION_MAJOR=$(python3 -c "import sys; print( sys.version_info[0] )")
@@ -10,15 +12,33 @@ QTPLATZ_DIR=
 RDKIT_DIR=
 __PATH=
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+	debug)
+	    config=debug
+	    shift
+	    ;;
+	*)
+	    echo "unknown option $1"
+	    exit 1
+	    ;;
+    esac
+done
+
 #jupyter notebook --generate-config
 #jupyter notebook password
 
 echo "PYTHON_VERSION=" ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}
+echo "config: " $config
 
 case "${__arch}" in
 	Linux*)
 		# for QtPlatz
-		__qtpath=("/usr/local/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages")
+	    if [ "$config" = "debug" ]; then
+			__qtpath=("${HOME}/src/build-Linux-x86_64/qtplatz.release/python3.7")
+		else
+			__qtpath=("/usr/local/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages")
+		fi
 		for dir in "${__qtpath[@]}"; do
 			if [ -d $dir/qtplatz ]; then
 				__PATH=$dir
@@ -34,7 +54,11 @@ case "${__arch}" in
 		;;
 	Darwin*)
 	    local home=~
-		__qtpath+=("$home/Desktop/qtplatz.app/Library/Python/${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+	    if [ "$config" = "debug" ]; then
+			__qtpath=("~/src/build-Darwin-i386/qtplatz.release")
+		else
+			__qtpath+=("$home/Desktop/qtplatz.app/Library/Python/${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+		fi
 		for dir in "${__qtpath[@]}"; do
 			if [ -d $dir/qtplatz ]; then
 				__PATH=$dir
@@ -47,6 +71,7 @@ case "${__arch}" in
 esac
 
 export PYTHONPATH=$__PATH:$PYTHONPATH
-jupyter notebook
 
-#jupyter notebook --no-browser
+echo "PYTHONPATH=" $PYTHONPATH
+#jupyter notebook
+jupyter notebook --no-browser

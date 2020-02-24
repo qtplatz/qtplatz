@@ -44,6 +44,8 @@
 #include <memory>
 #include <mutex>
 
+using namespace py_module;
+
 DataReader::DataReader()
 {
 }

@@ -15,6 +15,10 @@ endif()
 
 add_library( ${PROJECT_NAME} MODULE
   adcontrols.cpp
+  chemicalformula.cpp
+  chemicalformula.hpp
+  isotopecluster.cpp
+  isotopecluster.hpp
   )
 
 link_directories(
