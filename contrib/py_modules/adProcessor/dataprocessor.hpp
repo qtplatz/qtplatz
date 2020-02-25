@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "folder.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <compiler/boost/workaround.hpp>
@@ -63,5 +64,6 @@ namespace py_module {
         std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
         std::wstring filename() const;
         std::string xml() const;
+        folder root() const;
     };
 }

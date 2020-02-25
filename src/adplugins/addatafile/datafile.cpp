@@ -514,7 +514,7 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
         detail::folder::load( xmlfolder, folder );
     }
 
-    processedDataset_.reset( new adcontrols::ProcessedDataset );
+    processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
     std::string xml = portfolio.xml();
     processedDataset_->xml( xml );
 

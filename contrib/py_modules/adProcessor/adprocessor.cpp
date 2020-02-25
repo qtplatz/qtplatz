@@ -25,6 +25,8 @@
 
 #include "dataprocessor.hpp"
 #include "datareader.hpp"
+#include "file.hpp"
+#include "folder.hpp"
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -103,6 +105,23 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( "dataReaders",        &py_module::dataProcessor::dataReaders )
         .def( "dataReader",         &py_module::dataProcessor::dataReader )
         .def( "filename",           &py_module::dataProcessor::filename )
+        .def( "root",               &py_module::dataProcessor::root )
+        ;
+
+    class_< py_module::folder >( "folder" )
+        .def( "rowid",              &py_module::folder::rowid )
+        .def( "name",               &py_module::folder::name )
+        .def( "id",                 &py_module::folder::id )
+        .def( "attributes",         &py_module::folder::attributes )
+        .def( "folders",            &py_module::folder::folders )
+        .def( "files",              &py_module::folder::files )
+        ;
+
+    class_< py_module::file >( "file" )
+        .def( "rowid",              &py_module::file::rowid )
+        .def( "name",               &py_module::file::name )
+        .def( "id",                 &py_module::file::id )
+        .def( "attributes",         &py_module::file::attributes )
         ;
 
     class_< py_module::DataReader >( "dataReader", no_init )

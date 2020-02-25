@@ -58,7 +58,6 @@ folder::folder( adfs::sqlite& db
 std::vector< folder >
 folder::folders()
 {
-    ADDEBUG() << "folder::folders rowid=" << rowid_;
     std::vector< folder > folders;
     if ( db_ && rowid_ )
         internal::fs::select_folders( *db_, rowid_, folders );
@@ -108,7 +107,7 @@ namespace adfs {
     {
         return adportable::utf::to_utf8( name_ );
     }
-    
+
     template<> ADFSSHARED_EXPORT const std::basic_string< wchar_t >
     folder::name() const
     {

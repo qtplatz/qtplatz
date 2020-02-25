@@ -19,6 +19,10 @@ add_library( ${PROJECT_NAME} MODULE
   dataprocessor.hpp
   datareader.cpp
   datareader.hpp
+  file.cpp
+  file.hpp
+  folder.cpp
+  folder.hpp
   uuid.cc
   )
 

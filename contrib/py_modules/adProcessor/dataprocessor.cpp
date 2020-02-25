@@ -61,30 +61,12 @@ dataProcessor::dataProcessor() : processor_( std::make_shared< adprocessor::data
     std::call_once( flag, []{ adplugin::manager::standalone_initialize(); } );
 }
 
-// bool
-// dataProcessor::subscribe( const adcontrols::LCMSDataset& raw )
-// {
-//     raw_ = &raw;
-//     return true;
-// }
-
-// bool
-// dataProcessor::subscribe( const adcontrols::ProcessedDataset& )
-// {
-//     return true;
-// }
-
-// void
-// dataProcessor::notify( adcontrols::dataSubscriber::idError, const std::string& json )
-// {
-//     ADDEBUG() << __FUNCTION__ << " " << json;
-// }
-
 bool
 dataProcessor::open( const std::wstring& filename )
 {
     std::wstring emsg;
     return processor_->open( filename, emsg );
+
 #if 0
     if ( file_ )
         delete file_;
@@ -160,5 +142,14 @@ dataProcessor::xml() const
 {
     if ( processor_ )
         return processor_->portfolio().xml();
+    return {};
+}
+
+folder
+dataProcessor::root() const
+{
+    // return folder( processor_->fs()->root() );
+    if ( processor_ && processor_->fs() )
+        return processor_->fs()->findFolder( L"/Processed" );
     return {};
 }

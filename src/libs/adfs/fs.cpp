@@ -369,6 +369,8 @@ fs::select_folders( sqlite& db, int64_t parent_id, std::vector<folder>& vec )
             }
             vec.push_back( folder(db, rowid, name) );
         }
+    } else {
+        ADDEBUG() << "\tsql.prepare false";
     }
     return true;
 }
