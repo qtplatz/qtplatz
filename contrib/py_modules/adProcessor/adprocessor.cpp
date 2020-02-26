@@ -91,9 +91,9 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( vector_indexing_suite< std::vector< std::string > >() )
         ;
 
-    class_< std::vector< boost::python::tuple > >("std_vector_tuple")
-        .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
-        ;
+    // class_< std::vector< boost::python::tuple > >("std_vector_tuple")
+    //     .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
+    //     ;
 
     class_< std::vector< std::shared_ptr< py_module::DataReader > > >("std_vector_std_shared_ptr_DataReader")
         .def( vector_indexing_suite< std::vector< std::shared_ptr< py_module::DataReader > >, true >() )
@@ -122,6 +122,8 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( "name",               &py_module::file::name )
         .def( "id",                 &py_module::file::id )
         .def( "attributes",         &py_module::file::attributes )
+        .def( "attachments",        &py_module::file::attachments )
+        .def( "body",               &py_module::file::body )
         ;
 
     class_< py_module::DataReader >( "dataReader", no_init )

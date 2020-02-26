@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -54,16 +54,13 @@ PortfolioImpl::PortfolioImpl( const std::string& xml ) : isXMLLoaded_(false)
         if ( node ) {
             node_ = node.node();
             isXMLLoaded_ = true;
-#if defined _DEBUG && 0
-            doc_.save_file( "portfolio-pugi.xml" );
-#endif
         }
     }
 }
 
-PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : Node( t ) 
+PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : Node( t )
                                                        , isXMLLoaded_( t.isXMLLoaded_ )
-                                                       , db_( t.db_ ) 
+                                                       , db_( t.db_ )
 {
 }
 
@@ -122,7 +119,7 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
     // inst.set_value( "version='1.0' encoding='UTF-8'" );
 
     pugi::xml_node comm = doc_.append_child( pugi::node_comment );
-    comm.set_value( "Copyright(C) 2010-2014, MS-Cheminformatics LLC, All rights reserved." );
+    comm.set_value( "Copyright(C) 2010-2020, MS-Cheminformatics LLC, All rights reserved." );
 
     // create "/xtree/dataset" entry
     pugi::xml_node top = doc_.append_child();
@@ -198,7 +195,7 @@ PortfolioImpl::collect_garbage()
 				candidates.push_back( a.first );
         } catch ( pugi::xpath_exception& ex ) {
             adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-            assert(0);            
+            assert(0);
         }
     }
 	return true;

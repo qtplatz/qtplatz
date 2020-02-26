@@ -234,6 +234,7 @@ add_library( adcontrols SHARED
   traceaccessor.hpp
   targeting.cpp
   targeting.hpp
+  typelist.hpp
   visitor.cpp
   msfinder.cpp
   quanresponses.cpp

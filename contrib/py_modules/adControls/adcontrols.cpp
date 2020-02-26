@@ -24,18 +24,69 @@
 
 #include "chemicalformula.hpp"
 #include "isotopecluster.hpp"
+#include "peakresult.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/baselines.hpp>
+#include <adcontrols/peak.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/typelist.hpp>
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <adportable/xml_serializer.hpp>
+#include <adportable/debug.hpp>
 
 using namespace boost::python;
 
+namespace py_module {
+
+    template< typename T >
+    std::wstring to_xml( const T& self )
+    {
+        std::wostringstream xml;
+        if ( adportable::xml::serialize<>()( self, xml ) )
+            return xml.str();
+        return {};
+    }
+
+    const adcontrols::MassSpectrum& MassSpectra_getitem( const adcontrols::MassSpectra& self, int index )
+    {
+        if ( index >= 0 && index < self.size() )
+            return self[ index ];
+        PyErr_SetString(PyExc_IndexError, "index out of range");
+        throw boost::python::error_already_set();;
+    }
+
+}
+
+
 BOOST_PYTHON_MODULE( adControls )
 {
-    // register_ptr_to_python<std::shared_ptr< adcontrols::ChemicalFormula > >();
     register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::Chromatogram > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::Chromatogram > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::PeakResult > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::PeakResult > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::ProcessMethod > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::ProcessMethod > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::MSCalibrateResult > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::MSCalibrateResult > >();
+    register_ptr_to_python< std::shared_ptr< adcontrols::MSPeakInfo > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::MSPeakInfo > >();
+    register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectra > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectra > >();
+    register_ptr_to_python< std::shared_ptr< adcontrols::Targeting > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::Targeting > >();
+    register_ptr_to_python< std::shared_ptr< adcontrols::QuanSample > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::QuanSample > >();
+    register_ptr_to_python< std::shared_ptr< adcontrols::QuanSequence > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::QuanSequence > >();
 
     class_< std::vector< boost::python::tuple > >("std_vector_tuple")
         .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
@@ -73,6 +124,7 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "getIntensity",  &adcontrols::MassSpectrum::intensity )
         .def( "numProtocols",  &adcontrols::MassSpectrum::numSegments )
         .def( "getProtocol",   &adcontrols::MassSpectrum::getProtocol )
+        .def( "xml",           &py_module::to_xml< adcontrols::MassSpectrum > )
         ;
 
     class_< adcontrols::Chromatogram >( "Chromatogram" )
@@ -81,5 +133,51 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "getTime",       &adcontrols::Chromatogram::time )
         .def( "getIntensity",  &adcontrols::Chromatogram::intensity )
         .def( "protocol",      &adcontrols::Chromatogram::protocol )
+        .def( "xml",           &py_module::to_xml< adcontrols::Chromatogram > )
+        ;
+
+    class_< adcontrols::Baselines >( "Baselines" )
+        .def( "__len__",       &adcontrols::Baselines::size )
+        .def( "__getitem__",   &py_module::baselines_getitem )
+        ;
+
+    class_< adcontrols::Peaks >( "Peaks" )
+        .def( "__len__",       &adcontrols::Peaks::size )
+        .def( "__getitem__",   &py_module::peaks_getitem )
+        ;
+
+    class_< adcontrols::PeakResult >( "PeakResult" )
+        .def( "xml",            &py_module::to_xml< adcontrols::PeakResult > )
+        .def< const adcontrols::Baselines& (adcontrols::PeakResult::*)() const>( "baselines", &adcontrols::PeakResult::baselines, return_internal_reference<>() )
+        .def< const adcontrols::Peaks& (adcontrols::PeakResult::*)() const>( "peaks", &adcontrols::PeakResult::peaks, return_internal_reference<>() )
+        ;
+
+    class_< adcontrols::ProcessMethod >( "ProcessMethod" )
+        .def( "xml",            &py_module::to_xml< adcontrols::ProcessMethod > )
+        ;
+
+    class_< adcontrols::MSCalibrateResult >( "MSCalibrateResult" )
+        .def( "xml",            &py_module::to_xml< adcontrols::MSCalibrateResult > )
+        ;
+
+    class_< adcontrols::MSPeakInfo >( "MSPeakInfo" )
+        .def( "xml",            &py_module::to_xml< adcontrols::MSPeakInfo > )
+        ;
+
+    class_< adcontrols::MassSpectra >("MassSpectra" )
+        .def( "__len__",       &adcontrols::MassSpectra::size )
+        .def( "__getitem__",   &py_module::MassSpectra_getitem, return_internal_reference<>() )
+        ;
+
+    class_< adcontrols::Targeting >( "Targeting" )
+        .def( "xml",            &py_module::to_xml< adcontrols::Targeting > )
+        ;
+
+    class_< adcontrols::QuanSample >( "QuanSample" )
+        .def( "xml",            &py_module::to_xml< adcontrols::QuanSample > )
+        ;
+
+    class_< adcontrols::QuanSequence >( "QuanSequence" )
+        .def( "xml",            &py_module::to_xml< adcontrols::QuanSequence > )
         ;
 }

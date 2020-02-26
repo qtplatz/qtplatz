@@ -19,6 +19,8 @@ add_library( ${PROJECT_NAME} MODULE
   chemicalformula.hpp
   isotopecluster.cpp
   isotopecluster.hpp
+  peakresult.cpp
+  peakresult.hpp
   )
 
 link_directories(

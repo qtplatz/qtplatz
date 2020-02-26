@@ -5,10 +5,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this
-** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms
-** contained in a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,26 +23,15 @@
 
 #pragma once
 
-#include <adfs/file.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/baselines.hpp>
 #include <boost/python.hpp>
-#include <boost/any.hpp>
 
 namespace py_module {
 
-    class file {
-        adfs::file file_;
-    public:
-        ~file();
-        file();
-        file( const file& );
-        file( const adfs::file& );
+    boost::python::dict baselines_getitem( const adcontrols::Baselines& self, int index );
+    boost::python::dict peaks_getitem( const adcontrols::Peaks& self, int index );
 
-        uint64_t rowid() const;
-        std::wstring name() const;
-        std::wstring id() const;
-        boost::python::dict attributes() const;
-        boost::python::list attachments() const;
-        boost::python::object body() const;
-    };
-
+    std::vector< boost::python::dict > baselines_baseline( const adcontrols::Baselines& self );
 }

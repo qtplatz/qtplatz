@@ -90,9 +90,7 @@ folder::files() const
 {
     boost::python::list list;
     for ( auto sub: folder_.files() ) {
-        ADDEBUG() << "sub file -- rowid=" << sub.rowid() << ", name=" << sub.name() << ", id=" << sub.id();
         list.append( file( sub ) );
     }
-
     return list;
 }

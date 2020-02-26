@@ -22,9 +22,58 @@
 **************************************************************************/
 
 #include "file.hpp"
+#include "../adControls/peakresult.hpp"
+#include <adcontrols/typelist.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
+#include <adportable/binary_serializer.hpp>
+#include <adportable/serializer.hpp>
 #include <adportable/debug.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace py_module;
+
+namespace py_module {
+
+    struct data_class_visitor : public boost::static_visitor< adcontrols::data_class_t > {
+
+        std::pair< const char *, size_t > data_;
+        data_class_visitor( const char * data, size_t size ) : data_{ data, size } {};
+
+        template< typename T >
+        adcontrols::data_class_t operator()( std::shared_ptr<T> t ) const {
+            try {
+                if ( adfs::cpio::deserialize(*t, data_.first, data_.second ) ) {
+                    return t;
+                    // return boost::python::object( t );
+                }
+            } catch ( ... ) {
+                ADDEBUG() << boost::current_exception_diagnostic_information();
+            }
+            return {};
+        }
+    };
+
+    struct data_class_py_wrapper : public boost::static_visitor< boost::python::object > {
+
+        template< typename T >
+        boost::python::object operator()( std::shared_ptr<T> t ) const {
+            return boost::python::object( t );
+        }
+
+        // boost::python::object operator()( std::shared_ptr< adcontrols::PeakResult> t ) const {
+        //     return boost::python::object( py_module::PeakResult( t ) );
+        // }
+
+    };
+#if 0
+    template<>
+    boost::python::object data_class_py_wrapper::operator()( std::shared_ptr< adcontrols::PeakResult> t ) const {
+        return boost::python::object( py_module::PeakResult( t ) );
+    }
+#endif
+}
 
 file::file()
 {
@@ -71,17 +120,38 @@ file::attributes() const
 }
 
 boost::python::list
-file::files() const
+file::attachments() const
 {
-    // auto v = file_.files();
-
-    // ADDEBUG() << "file::files rowid=" << rowid() << "\tdb=" << (void*)(&file_.db()) << "\t" << file_.name() << ", " << v.size() << " subfiles found";
-    // for ( const auto& sub: v )
-    //     ADDEBUG() << "sub file -- rowid=" << sub.rowid() << ", name=" << sub.name() << ", id=" << sub.id();
+    auto v = file_.attachments();
 
     boost::python::list list;
-    // for ( auto sub: v )
-    //     list.append( file( sub ) );
+    for ( auto sub: v )
+        list.append( file( sub ) );
 
     return list;
+}
+
+// ref
+// https://stackoverflow.com/questions/29119086/how-to-convert-c-objects-to-boostpythonobject
+
+boost::python::object
+file::body() const
+{
+    const auto dataClass = file_.attribute( L"dataType" );
+    adfs::stmt sql( file_.db() );
+
+    sql.prepare( "SELECT data FROM file WHERE fileid = (SELECT rowid FROM directory WHERE name = ?)" );
+    sql.bind( 1 ) = file_.attribute( L"dataId" );
+
+    if ( sql.step() == adfs::sqlite_row ) {
+        auto blob = sql.get_column_value< adfs::blob >( 0 );
+        if ( blob.size() ) {
+            auto body = adcontrols::data_class_tlist()( dataClass );
+            auto obj = boost::apply_visitor( data_class_visitor( reinterpret_cast< const char * >( blob.data() ), blob.size() ), body );
+            if ( obj != adcontrols::data_class_t{} ) {
+                return boost::apply_visitor( data_class_py_wrapper(), obj );
+            }
+        }
+    }
+    return {};
 }

@@ -37,7 +37,6 @@ if ( NOT CMAKE_CROSSCOMPILING AND Qt5_FOUND )
   add_subdirectory (utils)
   find_package( Qt5 COMPONENTS XmlPatterns QUIET )
   find_package( Qt5 COMPONENTS WebEngineWidgets QUIET )
-  message( STATUS "************** XmlPatterns *****************" )
   add_subdirectory (adpublisher)
 
 endif()
