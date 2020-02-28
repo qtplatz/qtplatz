@@ -18,6 +18,14 @@ while [ $# -gt 0 ]; do
 	    config=debug
 	    shift
 	    ;;
+	run)
+		run=true
+		shift
+		;;
+	python3)
+		python3=true
+		shift
+		;;	
 	*)
 	    echo "unknown option $1"
 	    exit 1
@@ -53,15 +61,21 @@ case "${__arch}" in
 		done
 		;;
 	Darwin*)
-	    local home=~
-	    if [ "$config" = "debug" ]; then
-			__qtpath=("~/src/build-Darwin-i386/qtplatz.release")
-		else
-			__qtpath+=("$home/Desktop/qtplatz.app/Library/Python/${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+		if [ "$config" = "debug" ]; then
+			__search_path=("${HOME}/src/build-Darwin-i386/qtplatz.release/bin/qtplatz.app/Library/Python/3.7/site-packages")
 		fi
-		for dir in "${__qtpath[@]}"; do
+		__search_path+=("${HOME}/Desktop/qtplatz.app/Library/Python/3.7/site-packages"
+						"/usr/local/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+		for dir in "${__search_path[@]}"; do
 			if [ -d $dir/qtplatz ]; then
-				__PATH=$dir
+				QTPLATZ_DIR=$dir
+				break
+			fi
+		done
+		for dir in "${__search_path[@]}"; do
+			if [ -d $dir/rdkit ]; then
+				RDKIT_DIR=$dir
+				break
 			fi
 		done
 	    ;;
@@ -70,8 +84,13 @@ case "${__arch}" in
 	    ;;
 esac
 
-export PYTHONPATH=$__PATH:$PYTHONPATH
-
+export PYTHONPATH=${QTPLATZ_DIR}:${RDKIT_DIR}
 echo "PYTHONPATH=" $PYTHONPATH
+
 #jupyter notebook
-jupyter notebook --no-browser
+if [ ${run} == true ]; then
+	jupyter notebook --no-browser
+fi
+if [ ${python3} == true ]; then
+	python3
+fi
