@@ -31,6 +31,7 @@ world:
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c qtplatz.app | tar xvf -
 	find @Boost_LIBRARY_DIRS@ -name "libboost_python*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
+	tar -C /usr/local/lib/python3.7/site-packages -c rdkit | tar xvf - -C ./qtplatz.app/Library/Python/3.7/site-packages
 
 deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
