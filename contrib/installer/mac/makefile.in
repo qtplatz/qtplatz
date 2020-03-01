@@ -59,13 +59,23 @@ test:
 list_plugin:
 	for i in ${PLUGIN}; do echo $$i; done
 
-liat_rpath:
+list_rpath:
 	for i in qtplatz.app/Contents/MacOS/*; do \
 		echo $$i; \
 		otool -l $$i | grep RPATH -A2; \
 	done
+	echo "installed rpath for qtplatz ----->"
+	find ./qtplatz.app/Library/Python/3.7/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
+	echo "installed rpath for rdkit ---->"
+	find ./qtplatz.app/Library/Python/3.7/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
 
-rpath:
+rpath.sh:
+	(cd ./qtplatz.app/Library; find Python/3.7/site-packages/rdkit -name "*.so" |\
+		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh	
+
+#	(cd ./qtplatz.app/Library; find Python/3.7/site-packages/rdkit -name "*.so" | sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/\2 \1/')
+
+rpath: rpath.sh
 	for i in qtplatz.app/Library/Python/3.7/site-packages/qtplatz/*.so; do \
 		echo $$i; \
 		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ $$i; \
@@ -75,5 +85,5 @@ rpath:
 	for i in ${PLUGIN}; do \
 		install_name_tool -add_rpath @loader_path/../../Frameworks qtplatz.app/Contents/PlugIns/MS-Cheminformatics/lib$$i.dylib; \
 	done
-
+	@sh ./rpath.sh
 

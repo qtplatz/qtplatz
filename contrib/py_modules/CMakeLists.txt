@@ -22,10 +22,16 @@ if ( Python3_FOUND )
     "${PYTHON_MODULE_DIR}/__init__.py"
     )
 
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/jupyter-run.sh"
+    "${CMAKE_BUILD_DIR}/jupyter-run.sh"
+    )
+
   add_subdirectory( world )
   add_subdirectory( adControls )
   add_subdirectory( adProcessor )
 
   install( FILES  __init__.py DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules )
+  install( FILES jupyter-run.sh DESTINATION "/usr/local/bin" COMPONENT modules )
 
 endif()
