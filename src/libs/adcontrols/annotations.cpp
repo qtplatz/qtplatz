@@ -26,6 +26,7 @@
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <algorithm>
+#include <stdexcept>
 
 using namespace adcontrols;
 
@@ -80,12 +81,16 @@ annotations::operator << ( annotation&& t )
 const annotation&
 annotations::operator [] ( size_t idx ) const
 {
+    if ( idx >= vec_.size() )
+        throw std::out_of_range("annotations");
     return vec_[ idx ];
 }
 
 annotation&
 annotations::operator [] ( size_t idx )
 {
+    if ( idx >= vec_.size() )
+        throw std::out_of_range("annotations");    
     return vec_[ idx ];
 }
 

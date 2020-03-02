@@ -27,8 +27,12 @@
 
 #if BOOST_VERSION == 106900
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmacro-redefined"
+
 # define BOOST_PENDING_INTEGER_LOG2_HPP
 # include <boost/integer/integer_log2.hpp> // workaround for boost 1.69
 
+#pragma GCC diagnostic pop
 #endif
 

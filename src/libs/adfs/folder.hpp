@@ -26,7 +26,7 @@
 #pragma once
 #include "adfs_global.h"
 #include <vector>
-#include <boost/cstdint.hpp>
+//#include <boost/cstdint.hpp>
 #include "attributes.hpp"
 
 namespace boost { namespace uuids { struct uuid; } }
@@ -54,7 +54,7 @@ namespace adfs {
         [[deprecated]] file addFile( const std::wstring& id, const std::wstring& title = L"" );
         file addFile( const boost::uuids::uuid& id, const std::wstring& title = L"" );
 
-        inline boost::int64_t rowid() const { return rowid_; }
+        inline int64_t rowid() const { return rowid_; }
         // inline const std::wstring& name() const { return name_; }
         template< typename T = wchar_t > const std::basic_string< T > name() const;
 
@@ -64,7 +64,7 @@ namespace adfs {
         pragma_msvc_warning_push_disable_4251
         std::wstring name_;
         pragma_msvc_warning_pop
-        boost::int64_t rowid_;
+        int64_t rowid_;
     };
 
     typedef std::vector< adfs::folder > folders;

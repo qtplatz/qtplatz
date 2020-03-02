@@ -25,14 +25,17 @@
 #include "chemicalformula.hpp"
 #include "isotopecluster.hpp"
 #include "peakresult.hpp"
-#include <adcontrols/chromatogram.hpp>
-#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/baselines.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/typelist.hpp>
-#include <adcontrols/msproperty.hpp>
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <adportable/xml_serializer.hpp>
@@ -56,23 +59,32 @@ namespace py_module {
         return to_xml< adcontrols::MSProperty >( self.getMSProperty() );
     }
 
-    std::vector< boost::python::tuple > MassSpectrum_values( const adcontrols::MassSpectrum& self )
+    boost::python::tuple MassSpectrum_getitem( const adcontrols::MassSpectrum& self, int index )
     {
-        std::vector< boost::python::tuple > a;
-        if ( self.isCentroid() && self.getColorArray() ) {
-            for ( size_t i = 0; i < self.size(); ++i )
-                a.emplace_back( boost::python::make_tuple( self.time( i ), self.mass( i ), self.intensity( i ), self.getColor( i ) ) );
-        } else {
-            for ( size_t i = 0; i < self.size(); ++i )
-                a.emplace_back( boost::python::make_tuple( self.time( i ), self.mass( i ), self.intensity( i ) ) );
+        if ( index >= 0 && index < self.size() ) {
+            if ( self.getColorArray() ) {
+                return boost::python::make_tuple( self.time( index ), self.mass( index ), self.intensity( index ), self.getColor( index ) );
+            } else {
+                return boost::python::make_tuple( self.time( index ), self.mass( index ), self.intensity( index ) );
+            }
         }
-        return a;
+        PyErr_SetString(PyExc_IndexError, "index out of range");
+        throw boost::python::error_already_set();;        
     }
-
+    
     const adcontrols::MassSpectrum& MassSpectra_getitem( const adcontrols::MassSpectra& self, int index )
     {
         if ( index >= 0 && index < self.size() )
             return self[ index ];
+        PyErr_SetString(PyExc_IndexError, "index out of range");
+        throw boost::python::error_already_set();;
+    }
+
+    boost::python::tuple Chromatogram_getitem( const adcontrols::Chromatogram& self, int index )
+    {
+        if ( index >= 0 && index < self.size() ) {
+            return boost::python::make_tuple( self.time( index ), self.intensity( index ) );
+        }
         PyErr_SetString(PyExc_IndexError, "index out of range");
         throw boost::python::error_already_set();;
     }
@@ -139,25 +151,55 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "compute",           &py_module::IsotopeCluster::compute )
         ;
 
+    class_< adcontrols::annotation >( "Annotation" )
+        .def< const std::string& (adcontrols::annotation::*)() const >( "text"
+                                                                        , &adcontrols::annotation::text, return_value_policy<copy_const_reference>() )
+        .def< int (adcontrols::annotation::*)() const >    (  "index",    &adcontrols::annotation::index )
+        .def< adcontrols::annotation::DataFormat (adcontrols::annotation::*)() const >( "dataFormat", &adcontrols::annotation::dataFormat )
+        .def< int (adcontrols::annotation::*)() const >    (  "priority", &adcontrols::annotation::priority )
+        .def< uint32_t (adcontrols::annotation::*)() const>( "flags",     &adcontrols::annotation::flags )
+        .def< double (adcontrols::annotation::*)() const > (  "x",        &adcontrols::annotation::x )
+        .def< double (adcontrols::annotation::*)() const > (  "y",        &adcontrols::annotation::y )
+        .def< double (adcontrols::annotation::*)() const > (  "width",    &adcontrols::annotation::width )
+        .def< double (adcontrols::annotation::*)() const > (  "height",   &adcontrols::annotation::height )
+        ;
+    
+    class_< adcontrols::annotations >( "Annotations" )
+        .def( "__len__",            &adcontrols::annotations::size )
+        .def< const adcontrols::annotation& (adcontrols::annotations::*)(size_t) const>( "__getitem__"
+                                                                                         , &adcontrols::annotations::operator[], return_internal_reference<>() )
+        ;
+
+    class_< adcontrols::MSProperty >( "MSProperty" )
+        .def( "timeSinceInjection", &adcontrols::MSProperty::timeSinceInjection )
+        .def( "xml",                &py_module::to_xml< adcontrols::MSProperty > )
+        ;
+
     class_< adcontrols::MassSpectrum >( "MassSpectrum" )
         .def( "__len__",            &adcontrols::MassSpectrum::size )
-        .def( "size",               &adcontrols::MassSpectrum::size )
+        .def( "__getitem__",        &py_module::MassSpectrum_getitem )        
         .def( "resize",             &adcontrols::MassSpectrum::resize )
-        .def( "getMass",            &adcontrols::MassSpectrum::mass )
-        .def( "getTime",            &adcontrols::MassSpectrum::time )
-        .def( "getIntensity",       &adcontrols::MassSpectrum::intensity )
+        .def( "mass",               &adcontrols::MassSpectrum::mass )
+        .def( "time",               &adcontrols::MassSpectrum::time )
+        .def( "intensity",          &adcontrols::MassSpectrum::intensity )
         .def( "numProtocols",       &adcontrols::MassSpectrum::numSegments )
-        .def( "getProtocol",        &adcontrols::MassSpectrum::getProtocol )
-        .def( "values",             &py_module::MassSpectrum_values )
-        .def( "propertyXml",        &py_module::MassSpectrum_property )
+        .def( "protocol",           &adcontrols::MassSpectrum::getProtocol )
+        .def< const adcontrols::annotations& (adcontrols::MassSpectrum::*)() const >( "annotations"
+                                                                                      , &adcontrols::MassSpectrum::get_annotations, return_internal_reference<>() )
+        .def( "isCentroid",         &adcontrols::MassSpectrum::isCentroid )
+        .def( "isHistogram",        &adcontrols::MassSpectrum::isHistogram )
+        .def( "polarity",           &adcontrols::MassSpectrum::polarity )
+        .def( "mode",               &adcontrols::MassSpectrum::mode )
+        .def< const adcontrols::MSProperty& (adcontrols::MassSpectrum::*)() const >( "property"
+                                                                                     , &adcontrols::MassSpectrum::getMSProperty, return_internal_reference<>() )
         .def( "xml",                &py_module::to_xml< adcontrols::MassSpectrum > )
         ;
 
     class_< adcontrols::Chromatogram >( "Chromatogram" )
         .def( "__len__",            &adcontrols::Chromatogram::size )
-        .def( "size",               &adcontrols::Chromatogram::size )
-        .def( "getTime",            &adcontrols::Chromatogram::time )
-        .def( "getIntensity",       &adcontrols::Chromatogram::intensity )
+        .def( "__getitem__",        &py_module::Chromatogram_getitem )        
+        .def( "time",               &adcontrols::Chromatogram::time )
+        .def( "intensity",          &adcontrols::Chromatogram::intensity )
         .def( "protocol",           &adcontrols::Chromatogram::protocol )
         .def( "xml",                &py_module::to_xml< adcontrols::Chromatogram > )
         ;

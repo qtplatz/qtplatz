@@ -17,24 +17,24 @@ __search_path=()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-	"debug" | "release" | "source" | "package" )
-	    config="$1"
-	    shift
-	    ;;
-	install)
-		python3 -m pip install --upgrade pip
-		python3 -m pip install notebook
-		python3 -m pip install pillow
-		shift
-		;;
-	python*)
-		command="python3"
-		shift
-		;;	
-	*)
-	    echo "unknown option $1"
-	    exit 1
-	    ;;
+		"build" | "package" )
+			config="$1"
+			shift
+			;;
+		install)
+			python3 -m pip install --upgrade pip
+			python3 -m pip install notebook
+			python3 -m pip install pillow
+			shift
+			;;
+		python*)
+			command="python3"
+			shift
+			;;	
+		*)
+			echo "unknown option $1"
+			exit 1
+			;;
     esac
 done
 
@@ -57,8 +57,8 @@ case "${arch}" in
 		echo "--------- found macOS ------------- config: " ${config}
 		if [ "$config" == "package" ]; then
 			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/package/qtplatz.app/Library/Python/3.7/site-packages/" )
-		elif [ "$config" == "source" ]; then			
-			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/qtplatz.app/Library/Python/3.7/site-packages/"
+		elif [ "$config" == "build" ]; then			
+			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/bin/qtplatz.app/Library/Python/3.7/site-packages/"
 							"/usr/local/lib/python${PYTHON_VERSION}/site-packages"
 						  )
 		else
