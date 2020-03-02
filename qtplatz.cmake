@@ -170,8 +170,8 @@ endif()
 
 if ( CMAKE_COMPILER_IS_GNUCC )
   add_definitions( "-Wno-deprecated-declarations" )
-  remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 endif()
+remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 
 add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )

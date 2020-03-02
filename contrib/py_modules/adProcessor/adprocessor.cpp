@@ -41,7 +41,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace boost::python;
-void exportUUID();
+// void exportUUID();
 
 boost::uuids::uuid
 gen_uuid() {
@@ -77,7 +77,7 @@ my_tuples()
 
 BOOST_PYTHON_MODULE( adProcessor )
 {
-    exportUUID();
+    // exportUUID();
 
     register_ptr_to_python< std::shared_ptr< py_module::DataReader > >();
 

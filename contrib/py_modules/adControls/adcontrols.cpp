@@ -31,7 +31,7 @@
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
@@ -43,6 +43,8 @@
 
 using namespace boost::python;
 
+void exportUUID();
+
 namespace py_module {
 
     template< typename T >
@@ -52,11 +54,6 @@ namespace py_module {
         if ( adportable::xml::serialize<>()( self, xml ) )
             return xml.str();
         return {};
-    }
-
-    std::wstring MassSpectrum_property( const adcontrols::MassSpectrum& self )
-    {
-        return to_xml< adcontrols::MSProperty >( self.getMSProperty() );
     }
 
     boost::python::tuple MassSpectrum_getitem( const adcontrols::MassSpectrum& self, int index )
@@ -89,11 +86,31 @@ namespace py_module {
         throw boost::python::error_already_set();;
     }
 
+    boost::python::tuple MSProperty_massRange( const adcontrols::MSProperty& self )
+    {
+        auto range = self.instMassRange();
+        return boost::python::make_tuple( range.first, range.second );
+    }
+
+    boost::python::dict MSProperty_sampInfo( const adcontrols::MSProperty& self )
+    {
+        boost::python::dict d;
+        const auto& info = self.samplingInfo();
+        d[ "sampInterval" ] = info.fSampInterval();
+        d[ "sampDelay" ]    = info.fSampDelay();
+        d[ "delayTime" ]    = info.delayTime();
+        d[ "horPos" ]       = info.horPos();
+        d[ "numTriggers" ]  = info.numberOfTriggers();
+        return d;
+    }
+
 }
 
 
 BOOST_PYTHON_MODULE( adControls )
 {
+    exportUUID();
+    
     register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
 
@@ -172,8 +189,17 @@ BOOST_PYTHON_MODULE( adControls )
 
     class_< adcontrols::MSProperty >( "MSProperty" )
         .def( "timeSinceInjection", &adcontrols::MSProperty::timeSinceInjection )
+        .def( "timeSinceEpoch",     &adcontrols::MSProperty::timeSinceEpoch )
+        .def( "trigNumber",         &adcontrols::MSProperty::trigNumber )
+        .def( "massRange",          &py_module::MSProperty_massRange )
+        .def( "numAverage",         &adcontrols::MSProperty::numAverage )
+        .def( "samplingInfo",       &py_module::MSProperty_sampInfo )
+        .def( "massSpectrometerClsid", &adcontrols::MSProperty::massSpectrometerClsid, return_value_policy<copy_const_reference>() )
         .def( "xml",                &py_module::to_xml< adcontrols::MSProperty > )
         ;
+
+    //class_< adcontrols::MassSpectrometer >( "MassSpectrometer" )
+    //    ;
 
     class_< adcontrols::MassSpectrum >( "MassSpectrum" )
         .def( "__len__",            &adcontrols::MassSpectrum::size )

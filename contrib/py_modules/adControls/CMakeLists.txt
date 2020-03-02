@@ -12,6 +12,7 @@ endif()
 if ( Python3_FOUND )
   include_directories( ${Python3_INCLUDE_DIRS} )
 endif()
+remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 
 add_library( ${PROJECT_NAME} MODULE
   adcontrols.cpp
@@ -21,6 +22,7 @@ add_library( ${PROJECT_NAME} MODULE
   isotopecluster.hpp
   peakresult.cpp
   peakresult.hpp
+  uuid.cc
   )
 
 link_directories(

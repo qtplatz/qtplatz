@@ -23,7 +23,6 @@ add_library( ${PROJECT_NAME} MODULE
   file.hpp
   folder.cpp
   folder.hpp
-  uuid.cc
   )
 
 link_directories(
