@@ -59,6 +59,7 @@ endif()
 
 include (qtplatz.cmake)
 include (version)
+#remove_definitions( -DBOOST_NO_AUTO_PTR )
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )

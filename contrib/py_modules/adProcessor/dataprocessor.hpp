@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2019-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -35,6 +34,7 @@
 
 namespace adcontrols {
     class MassSpectrum;
+    class MassSpectrometer;
     class DataReader;
 }
 
@@ -52,12 +52,6 @@ namespace py_module {
         dataProcessor();
         ~dataProcessor();
 
-        // bool subscribe( const adcontrols::LCMSDataset& raw ) override;
-        // bool subscribe( const adcontrols::ProcessedDataset& ) override;
-        // void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
-        //
-        //const adcontrols::LCMSDataset * raw() const { return raw_; }
-
         bool open( const std::wstring& filename );
         std::vector< boost::python::tuple > dataReaderTuples() const;
         std::vector< std::shared_ptr< DataReader > > dataReaders() const;
@@ -65,5 +59,7 @@ namespace py_module {
         std::wstring filename() const;
         std::string xml() const;
         folder root() const;
+        folder findFolder( const std::wstring& ) const;
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const;
     };
 }

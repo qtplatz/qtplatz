@@ -136,3 +136,19 @@ dataProcessor::root() const
         return processor_->fs()->findFolder( L"/Processed" );
     return {};
 }
+
+folder
+dataProcessor::findFolder( const std::wstring& name ) const
+{
+    if ( processor_ && processor_->fs() )
+        return processor_->fs()->findFolder( name );
+    return {};    
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+dataProcessor::massSpectrometer() const
+{
+    if ( processor_ )
+        return processor_->massSpectrometer();
+    return {};
+}

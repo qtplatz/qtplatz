@@ -2,8 +2,6 @@ cmake_minimum_required ( VERSION 3.13 )
 
 project (world)
 
-add_definitions( -DBOOST_NO_AUTO_PTR )
-
 find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )

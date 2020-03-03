@@ -2,8 +2,6 @@ cmake_minimum_required ( VERSION 3.13 )
 
 project ( adControls )
 
-add_definitions( -DBOOST_NO_AUTO_PTR )
-
 find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
@@ -12,7 +10,6 @@ endif()
 if ( Python3_FOUND )
   include_directories( ${Python3_INCLUDE_DIRS} )
 endif()
-remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 
 add_library( ${PROJECT_NAME} MODULE
   adcontrols.cpp
