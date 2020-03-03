@@ -30,7 +30,7 @@ while [ $# -gt 0 ]; do
 		python*)
 			command="python3"
 			shift
-			;;	
+			;;
 		*)
 			echo "unknown option $1"
 			exit 1
@@ -43,21 +43,27 @@ done
 
 echo "PYTHON_VERSION=" ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}
 echo "config: " "$config"
-ECHO "arch:   " "${arch}"
+echo "arch:   " "${arch}"
 
 case "${arch}" in
 	"Linux"*)
 		echo "--------- found Linux ------------- config: " ${config}
-		__search_path+=("/usr/local/lib/python${PYTHON_VERSION_MAJOR}/dist-packages" # RDKit
-						"/usr/local/lib/python${PYTHON_VERSION}/dist-packages"       # QtPlatz installed
-						"${HOME}/src/build-${arch}/qtplatz.${config}/python${PYTHON_VERSION}"
-					   )
+		export LD_LIBRARY_PATH="/opt/qtplatz/lib/qtplatz":${LD_LIBRARY_PATH}
+		if [ "$config" == "build" ]; then
+			__search_path+=("/usr/local/lib/python${PYTHON_VERSION_MAJOR}/dist-packages" # RDKit
+							"${HOME}/src/build-${arch}/qtplatz.release/python${PYTHON_VERSION}"
+						   )
+		else
+			__search_path+=("/usr/local/lib/python${PYTHON_VERSION_MAJOR}/dist-packages" # RDKit
+							"/usr/local/lib/python${PYTHON_VERSION}/dist-packages"       # QtPlatz installed
+						   )
+		fi
 		;;
 	"Darwin"*)
 		echo "--------- found macOS ------------- config: " ${config}
 		if [ "$config" == "package" ]; then
 			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/package/qtplatz.app/Library/Python/3.7/site-packages/" )
-		elif [ "$config" == "build" ]; then			
+		elif [ "$config" == "build" ]; then
 			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/bin/qtplatz.app/Library/Python/3.7/site-packages/"
 							"/usr/local/lib/python${PYTHON_VERSION}/site-packages"
 						  )
