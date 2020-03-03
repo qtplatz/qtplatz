@@ -66,23 +66,6 @@ dataProcessor::open( const std::wstring& filename )
 {
     std::wstring emsg;
     return processor_->open( filename, emsg );
-
-#if 0
-    if ( file_ )
-        delete file_;
-    raw_ = nullptr;
-
-    if ( ( file_ = adcontrols::datafile::open( filename ) ) ) {
-        file_->accept( *this );
-    }
-
-    if ( raw_ ) {
-        for ( auto reader: raw_->dataReaders() )
-            ADDEBUG() << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid();
-    }
-
-    return file_ != nullptr;
-#endif
 }
 
 std::vector< boost::python::tuple >

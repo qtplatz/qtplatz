@@ -30,6 +30,8 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -66,9 +68,9 @@ namespace py_module {
             }
         }
         PyErr_SetString(PyExc_IndexError, "index out of range");
-        throw boost::python::error_already_set();;        
+        throw boost::python::error_already_set();;
     }
-    
+
     const adcontrols::MassSpectrum& MassSpectra_getitem( const adcontrols::MassSpectra& self, int index )
     {
         if ( index >= 0 && index < self.size() )
@@ -110,12 +112,18 @@ namespace py_module {
 BOOST_PYTHON_MODULE( adControls )
 {
     exportUUID();
-    
-    register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
-    register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
 
     register_ptr_to_python< std::shared_ptr< adcontrols::Chromatogram > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::Chromatogram > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::DataInterpreter > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::DataInterpreter > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrometer > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrometer > >();
+
+    register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
 
     register_ptr_to_python< std::shared_ptr< adcontrols::PeakResult > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::PeakResult > >();
@@ -149,6 +157,26 @@ BOOST_PYTHON_MODULE( adControls )
         .def( vector_indexing_suite< std::vector< boost::python::dict >,true >() )
         ;
 
+    class_< adcontrols::annotation >( "Annotation" )
+        .def< const std::string& (adcontrols::annotation::*)() const >(
+            "text"  , &adcontrols::annotation::text, return_value_policy<copy_const_reference>() )
+        .def< int (adcontrols::annotation::*)() const >    ( "index",    &adcontrols::annotation::index )
+        .def< adcontrols::annotation::DataFormat (adcontrols::annotation::*)() const >( "dataFormat", &adcontrols::annotation::dataFormat )
+        .def< int (adcontrols::annotation::*)() const >    ( "priority", &adcontrols::annotation::priority )
+        .def< uint32_t (adcontrols::annotation::*)() const>( "flags",     &adcontrols::annotation::flags )
+        .def< double (adcontrols::annotation::*)() const > ( "x",        &adcontrols::annotation::x )
+        .def< double (adcontrols::annotation::*)() const > ( "y",        &adcontrols::annotation::y )
+        .def< double (adcontrols::annotation::*)() const > ( "width",    &adcontrols::annotation::width )
+        .def< double (adcontrols::annotation::*)() const > ( "height",   &adcontrols::annotation::height )
+        ;
+
+    class_< adcontrols::annotations >( "Annotations" )
+        .def( "__len__",            &adcontrols::annotations::size )
+        .def< const adcontrols::annotation& (adcontrols::annotations::*)(size_t) const>(
+            "__getitem__"
+            , &adcontrols::annotations::operator[], return_internal_reference<>() )
+        ;
+
     class_< py_module::ChemicalFormula >( "ChemicalFormula", boost::python::init< const std::string >() )
         .def( "formula",            &py_module::ChemicalFormula::formula )
         .def( "monoIsotopicMass",   &py_module::ChemicalFormula::monoIsotopicMass )
@@ -168,25 +196,6 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "compute",           &py_module::IsotopeCluster::compute )
         ;
 
-    class_< adcontrols::annotation >( "Annotation" )
-        .def< const std::string& (adcontrols::annotation::*)() const >( "text"
-                                                                        , &adcontrols::annotation::text, return_value_policy<copy_const_reference>() )
-        .def< int (adcontrols::annotation::*)() const >    (  "index",    &adcontrols::annotation::index )
-        .def< adcontrols::annotation::DataFormat (adcontrols::annotation::*)() const >( "dataFormat", &adcontrols::annotation::dataFormat )
-        .def< int (adcontrols::annotation::*)() const >    (  "priority", &adcontrols::annotation::priority )
-        .def< uint32_t (adcontrols::annotation::*)() const>( "flags",     &adcontrols::annotation::flags )
-        .def< double (adcontrols::annotation::*)() const > (  "x",        &adcontrols::annotation::x )
-        .def< double (adcontrols::annotation::*)() const > (  "y",        &adcontrols::annotation::y )
-        .def< double (adcontrols::annotation::*)() const > (  "width",    &adcontrols::annotation::width )
-        .def< double (adcontrols::annotation::*)() const > (  "height",   &adcontrols::annotation::height )
-        ;
-    
-    class_< adcontrols::annotations >( "Annotations" )
-        .def( "__len__",            &adcontrols::annotations::size )
-        .def< const adcontrols::annotation& (adcontrols::annotations::*)(size_t) const>( "__getitem__"
-                                                                                         , &adcontrols::annotations::operator[], return_internal_reference<>() )
-        ;
-
     class_< adcontrols::MSProperty >( "MSProperty" )
         .def( "timeSinceInjection", &adcontrols::MSProperty::timeSinceInjection )
         .def( "timeSinceEpoch",     &adcontrols::MSProperty::timeSinceEpoch )
@@ -198,12 +207,12 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "xml",                &py_module::to_xml< adcontrols::MSProperty > )
         ;
 
-    //class_< adcontrols::MassSpectrometer >( "MassSpectrometer" )
-    //    ;
+    class_< adcontrols::MassSpectrometer, boost::noncopyable >( "MassSpectrometer", no_init )
+        ;
 
     class_< adcontrols::MassSpectrum >( "MassSpectrum" )
         .def( "__len__",            &adcontrols::MassSpectrum::size )
-        .def( "__getitem__",        &py_module::MassSpectrum_getitem )        
+        .def( "__getitem__",        &py_module::MassSpectrum_getitem )
         .def( "resize",             &adcontrols::MassSpectrum::resize )
         .def( "mass",               &adcontrols::MassSpectrum::mass )
         .def( "time",               &adcontrols::MassSpectrum::time )
@@ -223,7 +232,7 @@ BOOST_PYTHON_MODULE( adControls )
 
     class_< adcontrols::Chromatogram >( "Chromatogram" )
         .def( "__len__",            &adcontrols::Chromatogram::size )
-        .def( "__getitem__",        &py_module::Chromatogram_getitem )        
+        .def( "__getitem__",        &py_module::Chromatogram_getitem )
         .def( "time",               &adcontrols::Chromatogram::time )
         .def( "intensity",          &adcontrols::Chromatogram::intensity )
         .def( "protocol",           &adcontrols::Chromatogram::protocol )
