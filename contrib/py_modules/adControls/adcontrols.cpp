@@ -30,18 +30,21 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/chromatogram.hpp>
-#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/datainterpreter.hpp>
-#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/typelist.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/xml_serializer.hpp>
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <adportable/xml_serializer.hpp>
-#include <adportable/debug.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 using namespace boost::python;
 
@@ -106,6 +109,43 @@ namespace py_module {
         return d;
     }
 
+    boost::python::dict MSProperty_device_data( const adcontrols::MSProperty& self, const adcontrols::MassSpectrometer& sp ) {
+        if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( sp.dataInterpreterUuid() ) ) {
+            std::vector < std::pair< std::string, std::string > > textv;
+            interpreter->make_device_text( textv, self );
+            dict d;
+            for ( const auto& value: textv )
+                d[ value.first ] = value.second;
+            return d;
+        }
+        return {};
+    }
+
+    boost::uuids::uuid uuid() {
+        return {};
+    }
+    boost::uuids::uuid string_to_uuid( const std::string& str ) {
+        return boost::uuids::string_generator()( str );
+    }
+
+    std::string MassSpectrometer_massSpectrometerName( const adcontrols::MassSpectrometer& self ) {
+        return std::string( self.massSpectrometerName() );
+    }
+
+    std::shared_ptr< adcontrols::MassSpectrometer > MassSpectrometer_create( const std::string& str ) {
+        auto clsid = boost::uuids::string_generator()( str );
+        if ( clsid != boost::uuids::uuid{} )
+            return adcontrols::MassSpectrometer::create( clsid );
+        return {}; // adcontrols::MassSpectrometer::create( str );
+    }
+    
+    std::vector< boost::python::tuple > MassSpectrometer_installed_models() {
+        std::vector< boost::python::tuple > a;
+        for ( const auto& t: adcontrols::MassSpectrometer::installed_models() )
+            a.emplace_back( make_tuple( t.first, t.second ) );
+        return a;
+    }    
+
 }
 
 
@@ -149,6 +189,11 @@ BOOST_PYTHON_MODULE( adControls )
     register_ptr_to_python< std::shared_ptr< adcontrols::QuanSequence > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::QuanSequence > >();
 
+    def( "uuid",                            py_module::uuid );
+    def( "str_to_uuid",                     py_module::string_to_uuid );
+    def( "MassSpectrometer_create",         py_module::MassSpectrometer_create );
+    def( "MassSpectrometer_list",           py_module::MassSpectrometer_installed_models );
+    
     class_< std::vector< boost::python::tuple > >("std_vector_tuple")
         .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
         ;
@@ -203,11 +248,19 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "massRange",          &py_module::MSProperty_massRange )
         .def( "numAverage",         &adcontrols::MSProperty::numAverage )
         .def( "samplingInfo",       &py_module::MSProperty_sampInfo )
-        .def( "massSpectrometerClsid", &adcontrols::MSProperty::massSpectrometerClsid, return_value_policy<copy_const_reference>() )
+        .def( "massSpectrometerClsid"
+              , &adcontrols::MSProperty::massSpectrometerClsid, return_value_policy<copy_const_reference>() )
+        .def( "device_data",        &py_module::MSProperty_device_data )
         .def( "xml",                &py_module::to_xml< adcontrols::MSProperty > )
         ;
 
     class_< adcontrols::MassSpectrometer, boost::noncopyable >( "MassSpectrometer", no_init )
+        .def( "massSpectrometerClsid"
+              , &adcontrols::MassSpectrometer::massSpectrometerClsid, return_value_policy<copy_const_reference>() )
+        .def( "dataInterpreterUuid"
+              , &adcontrols::MassSpectrometer::dataInterpreterUuid, return_value_policy<copy_const_reference>() )
+        .def( "massSpectrometerName"      , &py_module::MassSpectrometer_massSpectrometerName )
+        .def( "dataInterpreterText"       , &adcontrols::MassSpectrometer::dataInterpreterText )
         ;
 
     class_< adcontrols::MassSpectrum >( "MassSpectrum" )
@@ -219,14 +272,14 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "intensity",          &adcontrols::MassSpectrum::intensity )
         .def( "numProtocols",       &adcontrols::MassSpectrum::numSegments )
         .def( "protocol",           &adcontrols::MassSpectrum::getProtocol )
-        .def< const adcontrols::annotations& (adcontrols::MassSpectrum::*)() const >( "annotations"
-                                                                                      , &adcontrols::MassSpectrum::get_annotations, return_internal_reference<>() )
+        .def< const adcontrols::annotations& (adcontrols::MassSpectrum::*)() const >(
+            "annotations",          &adcontrols::MassSpectrum::get_annotations, return_internal_reference<>() )
         .def( "isCentroid",         &adcontrols::MassSpectrum::isCentroid )
         .def( "isHistogram",        &adcontrols::MassSpectrum::isHistogram )
         .def( "polarity",           &adcontrols::MassSpectrum::polarity )
         .def( "mode",               &adcontrols::MassSpectrum::mode )
-        .def< const adcontrols::MSProperty& (adcontrols::MassSpectrum::*)() const >( "property"
-                                                                                     , &adcontrols::MassSpectrum::getMSProperty, return_internal_reference<>() )
+        .def< const adcontrols::MSProperty& (adcontrols::MassSpectrum::*)() const >(
+            "property",             &adcontrols::MassSpectrum::getMSProperty, return_internal_reference<>() )
         .def( "xml",                &py_module::to_xml< adcontrols::MassSpectrum > )
         ;
 
@@ -251,8 +304,10 @@ BOOST_PYTHON_MODULE( adControls )
 
     class_< adcontrols::PeakResult >( "PeakResult" )
         .def( "xml",                &py_module::to_xml< adcontrols::PeakResult > )
-        .def< const adcontrols::Baselines& (adcontrols::PeakResult::*)() const>( "baselines", &adcontrols::PeakResult::baselines, return_internal_reference<>() )
-        .def< const adcontrols::Peaks& (adcontrols::PeakResult::*)() const>( "peaks", &adcontrols::PeakResult::peaks, return_internal_reference<>() )
+        .def< const adcontrols::Baselines& (adcontrols::PeakResult::*)() const>(
+            "baselines", &adcontrols::PeakResult::baselines, return_internal_reference<>() )
+        .def< const adcontrols::Peaks& (adcontrols::PeakResult::*)() const>(
+            "peaks", &adcontrols::PeakResult::peaks, return_internal_reference<>() )
         ;
 
     class_< adcontrols::ProcessMethod >( "ProcessMethod" )

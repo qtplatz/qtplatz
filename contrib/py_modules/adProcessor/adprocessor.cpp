@@ -35,6 +35,7 @@
 #include <adportable/debug.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <memory>
 
 #include <boost/uuid/uuid_io.hpp>
@@ -91,10 +92,6 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( vector_indexing_suite< std::vector< std::string > >() )
         ;
 
-    // class_< std::vector< boost::python::tuple > >("std_vector_tuple")
-    //     .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
-    //     ;
-
     class_< std::vector< std::shared_ptr< py_module::DataReader > > >("std_vector_std_shared_ptr_DataReader")
         .def( vector_indexing_suite< std::vector< std::shared_ptr< py_module::DataReader > >, true >() )
         ;
@@ -105,7 +102,9 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( "dataReaders",        &py_module::dataProcessor::dataReaders )
         .def( "dataReader",         &py_module::dataProcessor::dataReader )
         .def( "filename",           &py_module::dataProcessor::filename )
-        .def( "root",               &py_module::dataProcessor::root )
+        //.def( "root",               &py_module::dataProcessor::root )
+        .def( "findFolder",         &py_module::dataProcessor::findFolder )
+        .def( "massSpectrometer",   &py_module::dataProcessor::massSpectrometer )
         ;
 
     class_< py_module::folder >( "folder" )

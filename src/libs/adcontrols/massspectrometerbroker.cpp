@@ -60,7 +60,9 @@ namespace adcontrols {
 
         void clear() {
             for ( auto& a: factories_ ) {
+#ifndef NDEBUG
                 ADDEBUG() << "deleting : " << a.second.first;
+#endif
                 a.second.second = nullptr;
             }
             factories_.clear();

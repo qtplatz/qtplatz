@@ -30,10 +30,14 @@ while [ $# -gt 0 ]; do
 		python*)
 			command="python3"
 			shift
+			break;
+			;;
+		source|env)
+			command="exit"
+			shift
 			;;
 		*)
 			echo "unknown option $1"
-			exit 1
 			;;
     esac
 done
@@ -61,9 +65,9 @@ case "${arch}" in
 		;;
 	"Darwin"*)
 		echo "--------- found macOS ------------- config: " ${config}
-		if [ "$config" == "package" ]; then
+		if [ "$config" = "package" ]; then
 			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/package/qtplatz.app/Library/Python/3.7/site-packages/" )
-		elif [ "$config" == "build" ]; then
+		elif [ "$config" = "build" ]; then
 			__search_path=( "${HOME}/src/build-Darwin-i386/qtplatz.release/bin/qtplatz.app/Library/Python/3.7/site-packages/"
 							"/usr/local/lib/python${PYTHON_VERSION}/site-packages"
 						  )
@@ -101,8 +105,8 @@ export PYTHONPATH=${QTPLATZ_DIR}:${RDKIT_DIR}
 echo 'PYTHONPATH:  ' ${PYTHONPATH}
 
 #jupyter notebook
-if [ "${command}" == "notebook" ]; then
+if [ "${command}" = "notebook" ]; then
 	python3 -m notebook --no-browser --notebook-dir ${HOME}/src/qtplatz/contrib/jupyter-notebook
-else
-	python3
+elif [ "${command}" = "python3" ]; then
+	python3 $[@]
 fi
