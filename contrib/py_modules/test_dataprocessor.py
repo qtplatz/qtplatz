@@ -29,7 +29,9 @@ def print_file( f, sp, indent ):
         print_spectrum( f.body(), sp, indent + 4 );
 
 processor = adProcessor.processor()
-filename = '/Users/toshi/data/z440/2020-02-27/HCOONa_0002.adfs'
+#filename = '/Users/toshi/data/z440/2020-02-27/HCOONa_0002.adfs'
+filename = '/data/data/z440/2020-02-07/TFANa_0001.adfs'
+
 if ( processor.open( filename )):
     print ( '{} Open success'.format( processor.filename() ))
 else:
