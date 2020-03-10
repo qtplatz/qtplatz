@@ -247,6 +247,8 @@ add_library( adcontrols SHARED
   samplinginfo.hpp
   serializer.cpp
   serializer.hpp
+  surface.cpp
+  surface.hpp
   waveform_filter.cpp
   waveform_filter.hpp
   )
