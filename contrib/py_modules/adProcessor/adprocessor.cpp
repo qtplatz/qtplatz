@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2019 MS-Cheminformatics LLC
+** Copyright (C) 2019-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **

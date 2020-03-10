@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -93,8 +92,7 @@ std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::readSpectrum() const
 {
     if ( reader_ ) {
-        auto it = reader_->begin();
-        return reader_->readSpectrum( it );
+        return reader_->readSpectrum( it_ );
     }
     return nullptr;
 }
