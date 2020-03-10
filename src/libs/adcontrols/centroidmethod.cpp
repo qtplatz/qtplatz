@@ -43,7 +43,7 @@ CentroidMethod::CentroidMethod() : baselineWidth_(500.0)
                                  , peakWidthMethod_(ePeakWidthTOF)
                                  , noiseFilterMethod_( eNoFilter )
                                  , cutoffFreqHz_( 100 * 1.0e6 ) // 100MHz
-                                 , areaMethod_( eAreaDa )
+                                 , areaMethod_( eAreaTime )
                                  , processOnTimeAxis_( false )
                                  , rsInSeconds_( 10.0e-9 ) // 10ns
 {
@@ -70,7 +70,7 @@ CentroidMethod::operator = ( const CentroidMethod& rhs )
     noiseFilterMethod_ = rhs.noiseFilterMethod_;
     cutoffFreqHz_ = rhs.cutoffFreqHz_;
     areaMethod_ = rhs.areaMethod_;
-    
+
     processOnTimeAxis_ = rhs.processOnTimeAxis_;
     rsInSeconds_ = rhs.rsInSeconds_;
 
@@ -101,31 +101,31 @@ CentroidMethod::operator != ( const CentroidMethod & rhs ) const
 	return ! operator == ( rhs );
 }
 
-double 
+double
 CentroidMethod::baselineWidth() const
 {
 	return baselineWidth_;
 }
 
-double 
+double
 CentroidMethod::rsConstInDa() const
 {
   return rsConstInDa_;
 }
 
-double 
+double
 CentroidMethod::rsPropoInPpm() const
 {
 	return rsPropoInPpm_;
 }
 
-double 
+double
 CentroidMethod::rsTofInDa() const
 {
 	return rsTofInDa_;
 }
 
-double 
+double
 CentroidMethod::rsTofAtMz() const
 {
 	return rsTofAtMz_;
@@ -149,37 +149,37 @@ CentroidMethod::peakCentroidFraction() const
   return peakCentroidFraction_;
 }
 
-void  
+void
 CentroidMethod::baselineWidth(double v)
 {
 	baselineWidth_ = v;
 }
 
-void  
+void
 CentroidMethod::rsConstInDa(double v)
 {
 	rsConstInDa_ = v;
 }
 
-void  
+void
 CentroidMethod::rsPropoInPpm(double v)
 {
 	rsPropoInPpm_ = v;
 }
 
-void  
+void
 CentroidMethod::rsTofInDa(double v)
 {
 	rsTofInDa_ = v;
 }
 
-void  
+void
 CentroidMethod::rsTofAtMz(double v)
 {
 	rsTofAtMz_ = v;
 }
 
-void  
+void
 CentroidMethod::attenuation(double v)
 {
 	attenuation_ = v;
@@ -191,7 +191,7 @@ CentroidMethod::peakWidthMethod(ePeakWidthMethod e)
 	peakWidthMethod_ = e;
 }
 
-void 
+void
 CentroidMethod::centroidAreaIntensity(bool f)
 {
 	bCentroidAreaIntensity_ = f;
@@ -262,4 +262,3 @@ CentroidMethod::setRsInSeconds( double value )
 {
     rsInSeconds_ = value;
 }
-
