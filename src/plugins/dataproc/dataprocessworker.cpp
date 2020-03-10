@@ -795,37 +795,15 @@ DataprocessWorker::handleCreateSpectrogram3( Dataprocessor* processor
                                              , int fcn
                                              , std::shared_ptr<adwidgets::Progress> progress )
 {
-    const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
-
-    auto spectra = std::make_shared< adcontrols::MassSpectra >();
-
-    // todo: handle fcn
-    if ( auto tic = reader->TIC( fcn ) ) {
-
-        spectra->setChromatogram( *tic );
-
-        progress->setRange( 0, static_cast<int>( tic->size() ) );
-
-        int pos( 0 );
-
-        for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
-
-            auto ms = reader->getSpectrum( it->rowid() );
-            (*progress)( pos++ );
-
-            if ( !ms->isCentroid() ) {
-                adcontrols::MSPeakInfo result;
-                auto ptr = std::make_shared< adcontrols::MassSpectrum >();
-                DataprocHandler::doCentroid( result, *ptr, *ms, *centroidMethod );
-                ( *spectra ) << std::move( ptr );
-
-            } else {
-                ( *spectra ) << std::move( ms );
-            }
-
-        }
-        using adportable::utf;
-        spectra->addDescription( adcontrols::description( L"Create", ( boost::wformat( L"%s,fcn(%d)" ) % utf::to_wstring( reader->display_name() ) % fcn ).str() ) );
+    if ( auto spectra = processor->createSpectrogram( pm
+                                                      , reader
+                                                      , fcn
+                                                      , [progress](size_t curr, size_t total){
+                                                            if ( curr == 0 )
+                                                                progress->setRange( 0, int(total) );
+                                                            (*progress)( curr );
+                                                            return false;
+                                                        } ) ) {
         portfolio::Folium folium = processor->addContour( spectra );
         SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }
