@@ -1,0 +1,23 @@
+#@Makefile
+SCRIPT  = ./counting.sh
+HOST=$(shell hostname)
+DATAROOT = /disk2/data/mouse/2020-03-05_Ar-counting
+DATAFILE = RUN_0[0-9][0-9][0-9].adfs
+OUTFILE  = 'counting.db'
+
+# Time-of-flight (s) for argon isotopes
+Ar40 = 43.6215e-6
+WIDTH = 8e-9
+
+all:
+	outfile=${OUTFILE} TOF=${Ar40} WIDTH=${WIDTH} IDENT='Ar40' protocol=0 ${SCRIPT} ${DATAROOT}/${DATAFILE}
+
+clean:
+	rm -f *.eps *~
+
+veryclean:
+	rm -f *.db *.eps *~
+
+.PHONY: clean
+.PHONY: veryclean
+.PHONY: all
