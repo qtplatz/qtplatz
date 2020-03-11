@@ -8,6 +8,7 @@ endif()
 
 find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
   "$ENV{HOME}/src/build-Darwin-i386/qtplatz.release"
+  "$ENV{HOME}/src/build-Linux-x86_64/qtplatz.release"
   "${QTPLATZ_BUILD_DIR}" )
 
 if ( qtplatz_config )
@@ -25,5 +26,3 @@ if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
 endif()
 set( CMAKE_CXX_STANDARD 17 )
-
-

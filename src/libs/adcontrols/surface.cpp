@@ -36,7 +36,7 @@ void
 Surface::operator << ( std::shared_ptr< adcontrols::MassSpectrum >&& ms )
 {
     if ( yValues_.empty() ) {
-        yValues_.resize( ms->size() );
+       yValues_.resize( ms->size() );
         std::copy( ms->getMassArray(), ms->getMassArray() + ms->size(), yValues_.begin() );
     }
     xValues_.emplace_back( ms->getMSProperty().timeSinceInjection() );

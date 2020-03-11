@@ -76,6 +76,7 @@
 #include <QtGui/QScreen>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <mutex>
 #include <memory>
 
 class document : public QObject {
@@ -100,7 +101,7 @@ public:
     void setSurfaceGraph( SurfaceGraph * modifier ) {
         modifier_ = modifier;
     }
-    
+
     bool fileopen( const QString& name ) {
         readerClsid_ = {};
         surface_.reset();
@@ -131,7 +132,7 @@ public:
                     modifier_->enableSurface( *surface_ );
             }
         }
-        
+
     }
 };
 
@@ -153,7 +154,7 @@ main(int argc, char **argv)
 
     static std::once_flag flag;
     std::call_once( flag, []{ adplugin::manager::standalone_initialize(); } );
-    
+
 
     QSize screenSize = graph->screen()->size();
     container->setMinimumSize(QSize(screenSize.width() / 2, screenSize.height() / 1.6));
@@ -187,13 +188,19 @@ main(int argc, char **argv)
     modelVBox->addWidget(sqrtSinModelRB);
     modelVBox->addWidget(heightMapModelRB);
 
+#if defined (__linux__ )
+# define default_folder "/data/data/z440"
+#else
+# define default_folder "/Users/toshi/data"
+#endif
+
     if ( auto btn = new QPushButton( "Browse" ) ) {
         modelVBox->addWidget( btn );
         QObject::connect( btn, &QPushButton::clicked
                           , [&](){
                                 auto name = QFileDialog::getOpenFileName( 0
                                                                           , "Open file"
-                                                                          , "/Users/toshi/data"
+                                                                          , default_folder
                                                                           , "Data file (*.adfs)" );
                                 if ( ! name.isEmpty() ) {
                                     document::instance()->fileopen( name );
@@ -302,30 +309,18 @@ main(int argc, char **argv)
 
     SurfaceGraph *modifier = new SurfaceGraph(graph);
 
-    QObject::connect(sqrtSinModelRB, &QRadioButton::toggled,
-                     modifier, &SurfaceGraph::enableSqrtSinModel);
-    QObject::connect(modeNoneRB, &QRadioButton::toggled,
-                     modifier, &SurfaceGraph::toggleModeNone);
-    QObject::connect(modeItemRB,  &QRadioButton::toggled,
-                     modifier, &SurfaceGraph::toggleModeItem);
-    QObject::connect(modeSliceRowRB,  &QRadioButton::toggled,
-                     modifier, &SurfaceGraph::toggleModeSliceRow);
-    QObject::connect(modeSliceColumnRB,  &QRadioButton::toggled,
-                     modifier, &SurfaceGraph::toggleModeSliceColumn);
-    QObject::connect(axisMinSliderX, &QSlider::valueChanged,
-                     modifier, &SurfaceGraph::adjustXMin);
-    QObject::connect(axisMaxSliderX, &QSlider::valueChanged,
-                     modifier, &SurfaceGraph::adjustXMax);
-    QObject::connect(axisMinSliderZ, &QSlider::valueChanged,
-                     modifier, &SurfaceGraph::adjustZMin);
-    QObject::connect(axisMaxSliderZ, &QSlider::valueChanged,
-                     modifier, &SurfaceGraph::adjustZMax);
-    QObject::connect(themeList, SIGNAL(currentIndexChanged(int)),
-                     modifier, SLOT(changeTheme(int)));
-    QObject::connect(gradientBtoYPB, &QPushButton::pressed,
-                     modifier, &SurfaceGraph::setBlackToYellowGradient);
-    QObject::connect(gradientGtoRPB, &QPushButton::pressed,
-                     modifier, &SurfaceGraph::setGreenToRedGradient);
+    QObject::connect(sqrtSinModelRB, &QRadioButton::toggled,       modifier, &SurfaceGraph::enableSqrtSinModel);
+    QObject::connect(modeNoneRB, &QRadioButton::toggled,           modifier, &SurfaceGraph::toggleModeNone);
+    QObject::connect(modeItemRB,  &QRadioButton::toggled,          modifier, &SurfaceGraph::toggleModeItem);
+    QObject::connect(modeSliceRowRB,  &QRadioButton::toggled,      modifier, &SurfaceGraph::toggleModeSliceRow);
+    QObject::connect(modeSliceColumnRB,  &QRadioButton::toggled,   modifier, &SurfaceGraph::toggleModeSliceColumn);
+    QObject::connect(axisMinSliderX, &QSlider::valueChanged,       modifier, &SurfaceGraph::adjustXMin);
+    QObject::connect(axisMaxSliderX, &QSlider::valueChanged,       modifier, &SurfaceGraph::adjustXMax);
+    QObject::connect(axisMinSliderZ, &QSlider::valueChanged,       modifier, &SurfaceGraph::adjustZMin);
+    QObject::connect(axisMaxSliderZ, &QSlider::valueChanged,       modifier, &SurfaceGraph::adjustZMax);
+    QObject::connect(themeList, SIGNAL(currentIndexChanged(int)),  modifier, SLOT(changeTheme(int)));
+    QObject::connect(gradientBtoYPB, &QPushButton::pressed,        modifier, &SurfaceGraph::setBlackToYellowGradient);
+    QObject::connect(gradientGtoRPB, &QPushButton::pressed,        modifier, &SurfaceGraph::setGreenToRedGradient);
 
     modifier->setAxisMinSliderX(axisMinSliderX);
     modifier->setAxisMaxSliderX(axisMaxSliderX);

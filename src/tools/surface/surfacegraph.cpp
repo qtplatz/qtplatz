@@ -37,10 +37,8 @@
 
 using namespace QtDataVisualization;
 
-const int sampleCountX = 50;
-const int sampleCountZ = 50;
-const int heightMapGridStepX = 6;
-const int heightMapGridStepZ = 6;
+const int sampleCountX = 200;
+const int sampleCountZ = 200;
 const float sampleMin = -8.0f;
 const float sampleMax = 8.0f;
 
@@ -60,16 +58,6 @@ SurfaceGraph::SurfaceGraph(Q3DSurface *surface) : m_graph(surface)
     sfProxy_ = new QSurfaceDataProxy();
     sfSeries_ = new QSurface3DSeries( sfProxy_ );
     //////////////////////////
-
-    // //! [2]
-    // QImage heightMapImage(":/maps/mountain");
-    // m_heightMapProxy = new QHeightMapSurfaceDataProxy(heightMapImage);
-    // m_heightMapSeries = new QSurface3DSeries(m_heightMapProxy);
-    // m_heightMapSeries->setItemLabelFormat(QStringLiteral("(@xLabel, @zLabel): @yLabel"));
-    // m_heightMapProxy->setValueRanges(34.0f, 40.0f, 18.0f, 24.0f);
-    // //! [2]
-    // m_heightMapWidth = heightMapImage.width();
-    // m_heightMapHeight = heightMapImage.height();
 }
 
 SurfaceGraph::~SurfaceGraph()
@@ -107,47 +95,58 @@ void
 SurfaceGraph::enableSurface( const adcontrols::Surface& surface )
 {
     auto matrix = surface.getSurface();
-
-    // float stepX = (sampleMax - sampleMin) / float(sampleCountX - 1);
-    // float stepZ = (sampleMax - sampleMin) / float(sampleCountZ - 1);
+    auto yAxis = surface.yValues();
+    auto xAxis = surface.xValues();
 
     QSurfaceDataArray * dataArray = new QSurfaceDataArray;
     // dataArray->reserve(sampleCountZ);
 
     std::pair< float, float > minmax{ matrix(0,0), matrix(0,0) };
 
-    size_t size1 = matrix.size1();
-    size_t size2 = matrix.size2() < 100 ? matrix.size2() : 100;
+    size_t size1 = matrix.size1(); // elapsed time
+    //size_t size2 = matrix.size2() < 400 ? matrix.size2() : 400; // m/z
+    size_t size2 = matrix.size2();
 
     for ( size_t i = 0; i < size1; ++i ) {      // elapsed time; a.k.a. retention time
-        QSurfaceDataRow * row = new QSurfaceDataRow( matrix.size2() );
-
+        QSurfaceDataRow * row = new QSurfaceDataRow( size2 );
         for ( size_t j = 0; j < size2; ++j ) {  // spectrum
-            float x = float( j );
+            float x = yAxis[ j ];
             float y = float( matrix(i,j) );
-            (*row) << QVector3D( x, y, float( i ) );
+            (*row) << QVector3D( x, y, xAxis[ i ] );
+
             minmax.first = std::min( minmax.first, y );
             minmax.second = std::max( minmax.second, y );
         }
-        ADDEBUG() << i << ", z=" << matrix( i, 10 );
         *dataArray << row;
+        // if ( ( i % 10 ) == 0 )
+        //     ADDEBUG() << i << ", z=" << matrix( i, 10 );
     }
-
-    sfProxy_->resetArray(dataArray);
 
     sfSeries_->setDrawMode(QSurface3DSeries::DrawSurfaceAndWireframe);
     sfSeries_->setFlatShadingEnabled(true);
-    
+    sfSeries_->setItemLabelFormat( QStringLiteral("(@xLabel,@zLabel): @yLabel") );
+
+    sfProxy_->resetArray(dataArray);
+
     m_graph->axisX()->setLabelFormat("%.2f");
-    m_graph->axisZ()->setLabelFormat("%.2f");
-    
-    m_graph->axisX()->setRange( 0, float( size1 ) );
-    m_graph->axisY()->setRange( -0.1, 0.5 ); // minmax.first, minmax.second ); // 0.0f, 2.0f);
-    m_graph->axisZ()->setRange( 0, float( size2 ) ); 
+    m_graph->axisZ()->setLabelFormat("%.1f");
+
+    m_graph->axisX()->setRange( float( yAxis[0] ), float( yAxis[ size2 - 1 ] ) );
+
+    //m_graph->axisX()->setRange( 0, float( size2 ) );
+    // if ( std::abs( minmax.second - minmax.first ) > 10 )
+    //     m_graph->axisY()->setRange( minmax.first, minmax.second ); // mV, minmax.first, minmax.second ); // 0.0f, 2.0f);
+    // else
+    m_graph->axisY()->setRange( -0.2, 100.0 ); // mV, minmax.first, minmax.second ); // 0.0f, 2.0f);
+    m_graph->axisZ()->setRange( 0, xAxis[ size1 - 1 ] );
 
     m_graph->axisX()->setLabelAutoRotation(30);
     m_graph->axisY()->setLabelAutoRotation(90);
-    m_graph->axisZ()->setLabelAutoRotation(60);
+    m_graph->axisZ()->setLabelAutoRotation(30);
+
+    m_graph->axisX()->setTitle(QStringLiteral("m/z"));
+    m_graph->axisY()->setTitle(QStringLiteral("mV"));
+    m_graph->axisZ()->setTitle(QStringLiteral("seconds"));
 
     for ( auto series: m_graph->seriesList() )
         m_graph->removeSeries( series );
@@ -155,23 +154,25 @@ SurfaceGraph::enableSurface( const adcontrols::Surface& surface )
     m_graph->addSeries( sfSeries_ );
 
     // Reset range sliders for Sqrt&Sin
-    // m_rangeMinX = 0; //sampleMin;
-    // m_rangeMinZ = minmax.first;
-    
-    // m_stepX = 1; // (sampleMax - sampleMin) / float(sampleCountX - 1);
-    // m_stepZ = 1; // (sampleMax - sampleMin) / float(sampleCountZ - 1);
+    m_rangeMinX = yAxis[0]; //sampleMin;
+    m_rangeMinZ = xAxis[0];
 
-    // m_axisMinSliderX->setMaximum( size1 - 2);
-    // m_axisMinSliderX->setValue(0);
-    
-    // m_axisMaxSliderX->setMaximum( size1 - 1);
-    // m_axisMaxSliderX->setValue( size1 - 1 );
-    
-    // m_axisMinSliderZ->setMaximum( minmax.second );
-    // m_axisMinSliderZ->setValue(0);
-    
-    // m_axisMaxSliderZ->setMaximum( minmax.second );
-    // m_axisMaxSliderZ->setValue( minmax.second );
+    m_stepX = (yAxis.back() - yAxis[0]) / float( yAxis.size() - 1 );
+    m_stepZ = (xAxis.back() - xAxis[0]) / float( xAxis.size() - 1 );
+
+    // horizontal
+    m_axisMinSliderX->setMaximum( size2 - 2 );
+    m_axisMinSliderX->setValue(0);
+
+    m_axisMaxSliderX->setMaximum( size2 - 1 );
+    m_axisMaxSliderX->setValue( size2 - 1 );
+
+    // depth
+    m_axisMinSliderZ->setMaximum( size1 - 2 );
+    m_axisMinSliderZ->setValue(0);
+
+    m_axisMaxSliderZ->setMaximum( size1 - 1 );
+    m_axisMaxSliderZ->setValue( size1 - 1 );
 }
 
 void SurfaceGraph::enableSqrtSinModel(bool enable)
@@ -192,9 +193,7 @@ void SurfaceGraph::enableSqrtSinModel(bool enable)
 
         //m_graph->removeSeries(m_heightMapSeries);
         m_graph->addSeries(m_sqrtSinSeries);
-        //! [3]
 
-        //! [8]
         // Reset range sliders for Sqrt&Sin
         m_rangeMinX = sampleMin;
         m_rangeMinZ = sampleMin;
@@ -204,6 +203,7 @@ void SurfaceGraph::enableSqrtSinModel(bool enable)
         m_axisMinSliderX->setValue(0);
         m_axisMaxSliderX->setMaximum(sampleCountX - 1);
         m_axisMaxSliderX->setValue(sampleCountX - 1);
+
         m_axisMinSliderZ->setMaximum(sampleCountZ - 2);
         m_axisMinSliderZ->setValue(0);
         m_axisMaxSliderZ->setMaximum(sampleCountZ - 1);
@@ -251,6 +251,9 @@ void SurfaceGraph::adjustZMin(int min)
     }
     float maxZ = m_stepZ * max + m_rangeMinZ;
 
+    ADDEBUG() << "adjustZMin(" << min << ") range=" << std::make_pair( minZ, maxZ ) << ", step=" << m_stepZ;
+    return;
+
     setAxisZRange(minZ, maxZ);
 }
 
@@ -265,6 +268,7 @@ void SurfaceGraph::adjustZMax(int max)
     }
     float minX = m_stepZ * min + m_rangeMinZ;
 
+    ADDEBUG() << "adjustZMin(" << max << ") range=" << std::make_pair( minX, maxX ); return;
     setAxisZRange(minX, maxX);
 }
 
@@ -312,4 +316,3 @@ void SurfaceGraph::setGreenToRedGradient()
     m_graph->seriesList().at(0)->setBaseGradient(gr);
     m_graph->seriesList().at(0)->setColorStyle(Q3DTheme::ColorStyleRangeGradient);
 }
-
