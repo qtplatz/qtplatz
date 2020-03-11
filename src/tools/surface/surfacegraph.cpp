@@ -104,22 +104,24 @@ SurfaceGraph::enableSurface( const adcontrols::Surface& surface )
     std::pair< float, float > minmax{ matrix(0,0), matrix(0,0) };
 
     size_t size1 = matrix.size1(); // elapsed time
-    //size_t size2 = matrix.size2() < 400 ? matrix.size2() : 400; // m/z
     size_t size2 = matrix.size2();
 
+    float zMin = xAxis[0];
+    float zMax = xAxis.back();
+    float stepZ = ( zMax - zMin ) / ( xAxis.size() - 1 );
+
     for ( size_t i = 0; i < size1; ++i ) {      // elapsed time; a.k.a. retention time
+        float z = qMin( zMax, (i * stepZ) + zMin );
         QSurfaceDataRow * row = new QSurfaceDataRow( size2 );
         for ( size_t j = 0; j < size2; ++j ) {  // spectrum
             float x = yAxis[ j ];
             float y = float( matrix(i,j) );
-            (*row) << QVector3D( x, y, xAxis[ i ] );
+            (*row)[j].setPosition( QVector3D( x, y, z ) ); // xAxis[ i ] ) );
 
             minmax.first = std::min( minmax.first, y );
             minmax.second = std::max( minmax.second, y );
         }
         *dataArray << row;
-        // if ( ( i % 10 ) == 0 )
-        //     ADDEBUG() << i << ", z=" << matrix( i, 10 );
     }
 
     sfSeries_->setDrawMode(QSurface3DSeries::DrawSurfaceAndWireframe);
@@ -251,9 +253,6 @@ void SurfaceGraph::adjustZMin(int min)
     }
     float maxZ = m_stepZ * max + m_rangeMinZ;
 
-    ADDEBUG() << "adjustZMin(" << min << ") range=" << std::make_pair( minZ, maxZ ) << ", step=" << m_stepZ;
-    return;
-
     setAxisZRange(minZ, maxZ);
 }
 
@@ -268,7 +267,7 @@ void SurfaceGraph::adjustZMax(int max)
     }
     float minX = m_stepZ * min + m_rangeMinZ;
 
-    ADDEBUG() << "adjustZMin(" << max << ") range=" << std::make_pair( minX, maxX ); return;
+    // ADDEBUG() << "adjustZMin(" << max << ") range=" << std::make_pair( minX, maxX ); return;
     setAxisZRange(minX, maxX);
 }
 

@@ -125,14 +125,16 @@ public:
                 size_t size = reader->size();
                 size_t pos = 0;
                 for ( auto it = reader->begin( 0 ); it != reader->end(); ++it ) {
-                    ADDEBUG() << pos++ << "/" << size;
                     (*surface_) << std::move( reader->getSpectrum( it->rowid() ) );
+                    if ( ( ++pos % 10 ) == 0 )
+                        ADDEBUG() << pos << "/" << size;
                 }
                 if ( modifier_ )
                     modifier_->enableSurface( *surface_ );
             }
+            return true;
         }
-
+        return false;
     }
 };
 
