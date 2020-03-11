@@ -8,7 +8,7 @@ find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql )
 find_package( Qt5 COMPONENTS DataVisualization )
 
 #### temporary disable
-set ( Qt5DataVisualization_FOUND FALSE )
+#set ( Qt5DataVisualization_FOUND FALSE )
 #Qt5Core_INCLUDE_DIRS
 #message( STATUS "********************** DATA VISUALIZATION: " ${Qt5DataVisualization_FOUND} )
 
