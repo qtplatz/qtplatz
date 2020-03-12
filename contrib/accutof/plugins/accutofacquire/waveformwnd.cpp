@@ -603,3 +603,13 @@ WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
     //if ( auto m = document::instance()->countingMethod() )
     //     setMethod( *m );
 }
+
+void
+WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom )
+{
+    ADDEBUG() << "handleScaleY which=" << which << ", autoScale=" << autoScale << ", top:bottom=" << top << ", " << bottom;
+    if ( autoScale )
+        spw_->setYScale( 0, 0, false );
+    else
+        spw_->setYScale( top, bottom, false );
+}

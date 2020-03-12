@@ -81,6 +81,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDockWidget>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QLineEdit>
 #include <QMenu>
@@ -296,6 +297,29 @@ MainWindow::OnInitialUpdate()
                                                                                       QSignalBlocker block( cbx );
                                                                                       cbx->setChecked( flag );
                                                                                   } );
+            }
+        }
+        for ( int i = 0; i < 1; ++i ) {
+            if ( auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) ) ) {
+                connect( cb, &QCheckBox::toggled, this, [wnd,i,this](bool checked){
+                    auto top = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) );
+                    auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+                    wnd->handleScaleY( i, checked, top->value(), bottom->value() );
+                } );
+            }
+            if ( auto sp = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) ) ) {
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [wnd,i,this](double value){
+                    auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+                    auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+                    wnd->handleScaleY( i, cb->isChecked(), value, bottom->value() );
+                } );
+            }
+            if ( auto sp = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) ) ) {
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [wnd,i,this](double value){
+                    auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+                    auto top = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) );
+                    wnd->handleScaleY( i, cb->isChecked(), top->value(), value );
+                } );
             }
         }
     }
@@ -538,6 +562,23 @@ MainWindow::createTopStyledToolbar()
             toolBarLayout->addWidget( choice );
             choice->setProperty( "id", QVariant( id ) ); // <------------ combo id
             connect( choice, qOverload<int>( &QComboBox::currentIndexChanged ), [=] ( int index ) { axisChanged( choice, index ); } );
+            const int i = 0;
+            if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {
+                cb->setCheckState( Qt::Checked ); // defalut start with auto
+                toolBarLayout->addWidget( cb );
+            }
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spB%1%" ) % i ).str().c_str() ) ) {
+                sp->setRange( -2000.0, 2000.0 );
+                sp->setDecimals( 0 );
+                sp->setSingleStep( 1 );
+                toolBarLayout->addWidget( sp );
+            }
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spT%1%" ) % i ).str().c_str() ) ) {
+                sp->setRange( -2000.0, 2000.0 );
+                sp->setDecimals( 0 );
+                sp->setSingleStep( 1 );
+                toolBarLayout->addWidget( sp );
+            }
         }
         //----
         // check boxes
