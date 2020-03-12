@@ -33,6 +33,7 @@ if ( Python3_FOUND )
   add_subdirectory( adProcessor )
 
   install( FILES  __init__.py DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules )
-  install( FILES jupyter-run.sh DESTINATION "${PYTHON_DIST_PACKAGES}" COMPONENT modules )
+  install( FILES jupyter-run.sh DESTINATION bin COMPONENT modules )
+  install( DIRECTORY "../jupyter-notebook" DESTINATION share COMPONENT modules )
 
 endif()

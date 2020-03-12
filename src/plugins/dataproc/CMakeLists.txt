@@ -7,11 +7,6 @@ set( PROVIDER MS-Cheminformatics )
 find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql )
 find_package( Qt5 COMPONENTS DataVisualization )
 
-#### temporary disable
-#set ( Qt5DataVisualization_FOUND FALSE )
-#Qt5Core_INCLUDE_DIRS
-#message( STATUS "********************** DATA VISUALIZATION: " ${Qt5DataVisualization_FOUND} )
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -44,7 +39,6 @@ find_package( qwt )
 add_definitions(
   -DDATAPROC_LIBRARY
   -D_SCL_SECURE_NO_WARNINGS
-  -DDATAVISUALIZATION=${Qt5DataVisualization_FOUND}
 )
 
 set ( _SOURCE surface.cpp surface.hpp )
@@ -56,13 +50,6 @@ include_directories(
   ${CMAKE_BINARY_DIR}        # version.h
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
-
-if ( ${Qt5DataVisualization_FOUND} )
-  set ( _source
-    surfacewnd.cpp
-    surfacewnd.hpp
-    )
-endif()
 
 add_library( ${PROJECT_NAME} MODULE
   aboutdlg.cpp
@@ -171,7 +158,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   xmlparser
   Core
   Qt5::Core
-  ${Qt5DataVisualization_LIBRARIES}
   ${Boost_LIBRARIES}
   ${BCRYPT}
 )
