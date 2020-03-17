@@ -37,7 +37,7 @@ struct sqlite3_blob;
 namespace adfs {
 
     enum flags { readonly, readwrite, opencreate };
-    enum sqlite_state { sqlite_done, sqlite_row, sqlite_error, sqlite_constraint, sqlite_locked };
+    enum sqlite_state { sqlite_ok, sqlite_done, sqlite_row, sqlite_error, sqlite_constraint, sqlite_locked };
     enum uuid_format { uuid_text, uuid_binary };
 
     class blob;
@@ -48,7 +48,6 @@ namespace adfs {
         sqlite& operator = ( const sqlite& ) = delete;
 
         sqlite3 * db_;
-        std::function< void( const char *) > error_handler_;
         static uuid_format uuid_format_;
         uint32_t fs_format_version_;
     public:
@@ -60,10 +59,8 @@ namespace adfs {
         bool open( const char * path );
         bool open( const char * path, adfs::flags );
         bool close();
-        void error_message( const char * msg );
-        void register_error_handler( std::function<void( const char * )> );
         void set_fs_format_version( uint32_t );
-        uint32_t fs_format_version() const;        
+        uint32_t fs_format_version() const;
         static void uuid_storage_format( uuid_format );
         static uuid_format uuid_storage_format();
     };
@@ -143,7 +140,7 @@ namespace adfs {
         sqlite3_stmt * stmt_;
         bool transaction_active_;
         static int callback( void *, int argc, char ** argv, char ** azColName );
+        std::tuple< int, int, std::string, std::string, std::string > error_details( int ) const;
     };
 
 }
-
