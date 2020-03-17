@@ -26,6 +26,7 @@
 #define QUANMETHOD_HPP
 
 #include "adcontrols_global.h"
+#include "constants.hpp"
 #include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -69,7 +70,7 @@ namespace adcontrols {
 
         CalibEq equation() const;
         void equation( CalibEq );
-        
+
         uint32_t polynomialOrder() const;
         void polynomialOrder( uint32_t );
 
@@ -87,7 +88,7 @@ namespace adcontrols {
 
         Bracketing bracketing() const;
         void setBracketing( Bracketing );
-        
+
         CalibWeighting weighting() const;
         void setWeighting( CalibWeighting );
 
@@ -107,9 +108,9 @@ namespace adcontrols {
         void set_debug_level( uint32_t );
 
         bool save_on_datasource() const;
-        void set_save_on_datasource( bool );        
+        void set_save_on_datasource( bool );
         // <--
-        
+
         const wchar_t * quanMethodFilename() const { return quanMethodFilename_.c_str(); }
         void quanMethodFilename( const wchar_t * d ) { quanMethodFilename_ = d; }
 
@@ -117,7 +118,10 @@ namespace adcontrols {
         void quanCompoundsFilename( const wchar_t * d ) { quanCompoundsFilename_ = d; }
 
         const wchar_t * quanSequenceFilename() const { return quanSequenceFilename_.c_str(); }
-         void quanSequenceFilename( const wchar_t * d ) { quanSequenceFilename_ = d; }
+        void quanSequenceFilename( const wchar_t * d ) { quanSequenceFilename_ = d; }
+
+        void setInlet( Quan::QuanInlet );
+        Quan::QuanInlet inlet() const;
 
     private:
         idAudit ident_;
@@ -134,10 +138,11 @@ namespace adcontrols {
         uint32_t polynomialOrder_;
         uint32_t debug_level_; // determine which intermediate results to be stored on database
         bool save_on_datasource_;
-        
+
         std::wstring quanMethodFilename_;
         std::wstring quanCompoundsFilename_;
         std::wstring quanSequenceFilename_;
+        Quan::QuanInlet inlet_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -166,12 +171,15 @@ namespace adcontrols {
             if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( isCounting_ );
             }
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( inlet_ );
+            }
         };
 
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanMethod, 3 )
+BOOST_CLASS_VERSION( adcontrols::QuanMethod, 4 )
 
 #endif // QUANMETHOD_HPP

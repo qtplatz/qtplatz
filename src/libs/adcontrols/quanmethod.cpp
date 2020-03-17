@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -41,8 +41,9 @@ QuanMethod::QuanMethod() : isCounting_( true )
                          , levels_( 1 )
                          , replicates_( 1 )
                          , polynomialOrder_( 1 )
-                         , debug_level_( 0 )                           
+                         , debug_level_( 0 )
                          , save_on_datasource_( false )
+                         , inlet_( Quan::Chromatography )
 {
 }
 
@@ -50,7 +51,7 @@ QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
                                               , isCounting_( t.isCounting_ )
                                               , isChromatogram_( t.isChromatogram_ )
                                               , isISTD_( t.isISTD_ )
-                                              , use_weighting_( t.use_weighting_) 
+                                              , use_weighting_( t.use_weighting_)
                                               , use_bracketing_( t.use_bracketing_)
                                               , eq_(t.eq_)
                                               , weighting_( t.weighting_ )
@@ -63,6 +64,7 @@ QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
                                               , quanMethodFilename_( t.quanMethodFilename_ )
                                               , quanCompoundsFilename_( t.quanCompoundsFilename_ )
                                               , quanSequenceFilename_( t.quanSequenceFilename_ )
+                                              , inlet_( t.inlet_ )
 {
 }
 
@@ -127,7 +129,7 @@ QuanMethod::setIsWeighting( bool v )
 {
     use_weighting_ = v;
 }
-        
+
 QuanMethod::CalibWeighting
 QuanMethod::weighting() const
 {
@@ -222,4 +224,24 @@ void
 QuanMethod::set_save_on_datasource( bool v )
 {
     save_on_datasource_ = v;
+}
+
+// for ExportData supporting purpose
+void
+QuanMethod::setInlet( Quan::QuanInlet inlet )
+{
+    inlet_ = inlet;
+
+    if ( inlet == Quan::Chromatography )
+        std::tie( isCounting_, isChromatogram_ ) = std::make_pair( false, true );
+    else if ( inlet == Quan::Counting )
+        std::tie( isCounting_, isChromatogram_ ) = std::make_pair( true, false );
+    else // assume ExportData
+        std::tie( isCounting_, isChromatogram_ ) = std::make_pair( false, false );
+}
+
+Quan::QuanInlet
+QuanMethod::inlet() const
+{
+    return inlet_;
 }

@@ -51,4 +51,13 @@ namespace adcontrols {
     enum hor_axis: unsigned int { hor_axis_mass, hor_axis_time };
 
     extern const boost::uuids::uuid adcontrols_uuid;
+
+    namespace Quan {
+        enum QuanInlet {
+            Chromatography
+            , Infusion
+            , Counting
+            , ExportData // 2020-03-14, for mapping data export
+        };
+    }
 }

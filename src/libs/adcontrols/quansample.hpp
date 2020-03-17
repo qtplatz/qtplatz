@@ -26,6 +26,7 @@
 #define QUANSAMPLE_HPP
 
 #include "adcontrols_global.h"
+#include "constants.hpp"
 #include "quanresponses.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -55,6 +56,7 @@ namespace adcontrols {
         ~QuanSample();
         QuanSample();
         QuanSample( const QuanSample& );
+        QuanSample& operator = ( const QuanSample& );
         static const wchar_t * dataClass() { return L"adcontrols::QuanSample"; }
 
         enum QuanSampleType {
@@ -64,17 +66,20 @@ namespace adcontrols {
             , SAMPLE_TYPE_BLANK
         };
 
-        enum QuanInlet {
-            Chromatography
-            , Infusion
-            , Counting
-        };
+        // move to adcontrols/constants.hpp
+        // enum QuanInlet {
+        //     Chromatography
+        //     , Infusion
+        //     , Counting
+        //     , ExportData // 2020-03-14, for mapping data export
+        // };
 
         enum QuanDataGeneration {
             ASIS
             , GenerateSpectrum
             , GenerateChromatogram
             , ProcessRawSpectra     // Process each raw spectrum and stored identified ions on db
+            , Spectrogram           // Export all centoird spectra in adfs file
         };
 
         const boost::uuids::uuid& sequence_uuid() const;
@@ -124,8 +129,8 @@ namespace adcontrols {
         double addedAmounts() const;
         void addedAmounts( double );
 
-        QuanInlet inletType() const;
-        void inletType( QuanInlet v );
+        Quan::QuanInlet inletType() const;
+        void inletType( Quan::QuanInlet v );
 
         const std::vector< quan::ISTD >& istd() const;
         void istd( const std::vector< quan::ISTD >& );
