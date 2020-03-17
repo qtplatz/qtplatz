@@ -171,6 +171,8 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
 
     QWidget * w = 0;
 
+    handleInletChanged( m.inlet() );
+
     if ( auto combo = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         uint32_t order = m.polynomialOrder() - 2;
         switch( m.equation() ) {
@@ -202,6 +204,8 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
         else
             gbx->setChecked( false );
     }
+
+
 
     // if ( auto gbox = accessor( idGroupBox2 ) )
     //     gbox->setEnabled( !m.isCounting() );
