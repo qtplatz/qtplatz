@@ -140,7 +140,7 @@ namespace adfs {
         sqlite3_stmt * stmt_;
         bool transaction_active_;
         static int callback( void *, int argc, char ** argv, char ** azColName );
-        std::tuple< int, int, std::string, std::string, std::string > error_details( int ) const;
+        std::tuple< int, std::string, std::string, std::string > error_details( int ) const;
     };
 
 }

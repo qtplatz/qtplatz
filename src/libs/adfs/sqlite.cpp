@@ -61,12 +61,12 @@ namespace adfs {
                     adportable::debug( file, line ) << sql << "\terror : " << ( msg ? msg : "nullstr" );
             }
 
-            std::string operator()( std::tuple< int, int, std::string, std::string, std::string > t, const char * __file, int __line ) {
+            std::string operator()( std::tuple< int, std::string, std::string, std::string > t, const char * __file, int __line ) {
                 std::ostringstream o;
-                int rcode, ecode;
+                int rcode;
                 std::string emsg, file, sql;
-                std::tie( rcode, ecode, emsg, file, sql ) = t;
-                o << "sqlite rcode:\t" << rcode << "," << ecode << "\t" << emsg;
+                std::tie( rcode, emsg, file, sql ) = t;
+                o << "sqlite rcode:\t" << rcode << "\t" << emsg;
                 if ( ! file.empty() )
                     o << "\n\t--\tfile:\t" << file;
                 if ( ! sql.empty() )
@@ -263,6 +263,9 @@ stmt::prepare( const std::string& sql )
     if ( (rcode = sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail )) == SQLITE_OK )
         return true;
 
+    if ( rcode == SQLITE_ERROR ) // no such table
+        return false;
+
     error_log()( error_details( rcode ), __FILE__, __LINE__ );
     return false;
 }
@@ -381,12 +384,13 @@ stmt::expanded_sql() const
     return sql;
 }
 
-std::tuple< int, int, std::string, std::string, std::string >
+std::tuple< int, std::string, std::string, std::string >
 stmt::error_details( int rcode ) const
 {
     std::string emsg, query, file;
 
     int errc = sqlite3_errcode( sqlite_ );
+    assert( rcode == errc );
 
     if ( auto p = sqlite3_sql( stmt_ ) )
         query = std::string( p );
@@ -394,17 +398,15 @@ stmt::error_details( int rcode ) const
     if ( auto p = sqlite3_errmsg( sqlite_ ) )
         emsg = std::string( p );
 
-    if ( errc == 11 ) {
-        sqlite3_stmt * stmt(0);
-        const char * tail(0);
-        if ( sqlite3_prepare_v2( sqlite_, "SELECT file FROM pragma_database_list WHERE name='main'", -1, &stmt, &tail ) == SQLITE_OK ) {
-            if ( sqlite3_step( stmt ) == SQLITE_ROW )
-                file = reinterpret_cast< const char * >( sqlite3_column_text( stmt, 0 ) );
-        }
-        sqlite3_finalize( stmt );
+    sqlite3_stmt * stmt(0);
+    const char * tail(0);
+    if ( sqlite3_prepare_v2( sqlite_, "SELECT file FROM pragma_database_list WHERE name='main'", -1, &stmt, &tail ) == SQLITE_OK ) {
+        if ( sqlite3_step( stmt ) == SQLITE_ROW )
+            file = reinterpret_cast< const char * >( sqlite3_column_text( stmt, 0 ) );
     }
+    sqlite3_finalize( stmt );
 
-    return std::make_tuple( rcode, errc, emsg, file, query );
+    return std::make_tuple( rcode, emsg, file, query );
 }
 
 namespace adfs {

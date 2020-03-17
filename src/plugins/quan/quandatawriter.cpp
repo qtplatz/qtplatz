@@ -949,7 +949,6 @@ QuanDataWriter::insert_spectrogram( const boost::uuids::uuid& fileGuid
                                     , int idx ) // 0 = AVG, 1 = PKD
 {
     ADDEBUG() << dp.filename();
-    ADDEBUG() << fileGuid << ", idx=" << idx;
 
     uint64_t id(0);
     adfs::stmt sql( fs_.db() );

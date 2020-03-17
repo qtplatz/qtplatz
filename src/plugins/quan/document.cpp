@@ -419,7 +419,7 @@ document::execute_counting()
 void
 document::execute_spectrogram_export()
 {
-    unsigned int concurrency = std::min( std::thread::hardware_concurrency(), 4u );
+    unsigned int concurrency = std::min( std::thread::hardware_concurrency(), 8u );
 
     qtwrapper::waitCursor wait;
 
