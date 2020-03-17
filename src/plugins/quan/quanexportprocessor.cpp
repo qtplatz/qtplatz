@@ -141,7 +141,6 @@ QuanExportProcessor::~QuanExportProcessor()
 QuanExportProcessor::QuanExportProcessor( QuanProcessor * processor
                                           , std::vector< adcontrols::QuanSample >& samples
                                           , std::shared_ptr< adwidgets::ProgressInterface > p )
-    //: samples_( samples )
     : procm_( std::make_shared< adcontrols::ProcessMethod >( *processor->procmethod() ) ) // deep copy
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
@@ -164,23 +163,17 @@ QuanExportProcessor::QuanExportProcessor( QuanProcessor * processor
                 std::wstring errmsg;
                 if ( dp->open( sample.dataSource(), errmsg ) ) {
                     adfs::stmt sql( *(dp->db()) );
-                    try {
-                        sql.prepare( "SELECT COUNT(*) as C FROM AcquiredData GROUP BY fcn ORDER BY C DESC" );
+                    if ( sql.prepare( "SELECT COUNT(*) as C FROM AcquiredData GROUP BY fcn ORDER BY C DESC" ) ) {
                         if ( sql.step() == adfs::sqlite_row ) {
                             n_spectra += sql.get_column_value< uint64_t >( 0 );
-                            samples_.emplace_back( sample );
+                            samples_.emplace_back( sample ); // add to process list
                         }
-                    } catch ( boost::exception& ) {
-                        ADDEBUG() << "-- exception: " << boost::current_exception_diagnostic_information();
                     }
                 } else {
                     ADDEBUG() << "-- db open error: " << sample.dataSource() << "\n\terror: " << errmsg;
                 }
             }
         }
-
-        for ( const auto& sample: samples_ )
-            ADDEBUG() << "======= sample: " << sample.dataSource() << " ==============";
 
         progress_current_ = 0;
         progress_total_ = samples_.size();
