@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "processmethodwidget.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adwidgets/centroidform.hpp>
@@ -67,7 +67,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
         if ( auto form = new adwidgets::MSLockForm ) {
             tLayout->addWidget( form );
             // MSLock GroupBox check state --> reflect to MS Lock row in Compounds table
-            connect( form, &adwidgets::MSLockForm::toggled, this, [] ( bool checked ) { QuanDocument::instance()->mslock_enabled( checked ); } );
+            connect( form, &adwidgets::MSLockForm::toggled, this, [] ( bool checked ) { document::instance()->mslock_enabled( checked ); } );
         }
 
         // row = 1, column 1
@@ -89,7 +89,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     connect( centroidform, &adwidgets::CentroidForm::valueChanged, this, &ProcessMethodWidget::commit );
     connect( peakmethodform, &adwidgets::PeakMethodForm::valueChanged, this, &ProcessMethodWidget::commit );
 
-    QuanDocument::instance()->connectDataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
+    document::instance()->connectDataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
 
 }
 
@@ -99,7 +99,7 @@ ProcessMethodWidget::handleDataChanged( int id, bool load )
 {
     if ( id == idProcMethod && load ) {
 
-        if ( auto pm = QuanDocument::instance()->getm< adcontrols::ProcessMethod >() ) {
+        if ( auto pm = document::instance()->getm< adcontrols::ProcessMethod >() ) {
 
             if ( auto centroidform = findChild< adwidgets::CentroidForm * >() ) {
                 centroidform->setContents( boost::any(*pm) );
@@ -152,5 +152,5 @@ ProcessMethodWidget::commit()
         }
     }
 
-    QuanDocument::instance()->setm( pm );
+    document::instance()->setm( pm );
 }

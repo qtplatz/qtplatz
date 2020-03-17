@@ -27,7 +27,7 @@
 #include "quanchromatogram.hpp"
 #include "quanchromatograms.hpp"
 #include "quandatawriter.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanprocessor.hpp"
 #include "quansampleprocessor.hpp"
 #include "quantarget.hpp"

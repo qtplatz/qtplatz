@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "quanplotwidget.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanplotdata.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -68,8 +68,8 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
         dplot_.reset( new adplot::ChromatogramWidget );
     else
         dplot_.reset( new adplot::SpectrumWidget );
-    
-    QuanDocument::instance()->connectDataChanged( [this]( int id, bool f ){ handleDataChanged( id, f ); } );
+
+    document::instance()->connectDataChanged( [this]( int id, bool f ){ handleDataChanged( id, f ); } );
 
     layout->addWidget( dplot_.get() );
 
@@ -98,7 +98,7 @@ QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std:
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
         setSpectrum( d, idx, fcn, dataSource );
     } else if ( d->chromatogram ) {
-        setChromatogram( d, idx, fcn, dataSource );        
+        setChromatogram( d, idx, fcn, dataSource );
     }
 }
 
@@ -123,9 +123,9 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
     } else {
         range_->setVisible( false );
     }
-    
+
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
-        
+
         spw->enableAxis( QwtPlot::yRight );
         spw->clear();
 
@@ -135,7 +135,7 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
             spw->setData( 0, 1, false );
             spw->setData( 0, 2, false );
         }
-        
+
         if ( d->filterd ) {
             spw->setData( d->filterd.get(), 1, true );
             if ( d->profile ) {
@@ -164,22 +164,22 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
 
             if ( pkinfo && pkinfo->size() > idx ) {
                 auto item = pkinfo->begin() + idx;
-                
+
                 double mass = item->mass();
                 QRectF rc = spw->zoomer()->zoomRect();
-                
+
                 double width = pkinfo->size() > idx ? item->widthHH() * 5 : 0.1;
                 int magnitude = std::round( std::log10( width ) );
                 width = std::max( std::pow( 10, magnitude ) / 2, 0.050 );
-                
+
                 rc.setLeft( mass - width );
                 rc.setRight( mass + width );
                 spw->zoomer()->zoom( rc );
-                
+
                 marker_->setYAxis( QwtPlot::yRight );
                 marker_->setPeak( *item );
                 marker_->visible( true );
-                
+
                 spw->setFooter( ( boost::format( "W=%.2fmDa (%.2fns)" )
                                   % ( item->widthHH( false ) * 1000 )
                                   % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
@@ -199,7 +199,7 @@ QuanPlotWidget::setChromatogram( const QuanPlotData * d, size_t idx, int fcn, co
 
             if ( d->pkResult ) {
                 pw->setData( *d->pkResult.get() );
-            
+
                 if ( idx < d->pkResult.get()->peaks().size() ) {
                     auto item = d->pkResult.get()->peaks().begin() + idx;
                     marker_->setPeak( *item );
@@ -208,7 +208,7 @@ QuanPlotWidget::setChromatogram( const QuanPlotData * d, size_t idx, int fcn, co
                 }
             }
         }
-        
+
     }
 
 }

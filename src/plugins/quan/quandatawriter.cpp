@@ -28,7 +28,9 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
@@ -117,6 +119,20 @@ QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& t
         if ( adfs::file file = folder.addFile( adfs::create_uuid(), tittle ) ) {
             file.dataClass( ms.dataClass() );
             if ( file.save( ms ) )
+                file.commit();
+            return file;
+        }
+    }
+    return adfs::file();
+}
+
+adfs::file
+QuanDataWriter::write( const adcontrols::MassSpectra& a, const std::wstring& tittle )
+{
+    if ( adfs::folder folder = fs_.addFolder( L"/Processed/Spectrograms" ) ) {
+        if ( adfs::file file = folder.addFile( adfs::create_uuid(), tittle ) ) {
+            file.dataClass( a.dataClass() );
+            if ( file.save( a ) )
                 file.commit();
             return file;
         }
@@ -577,7 +593,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
             sql.bind( row++ ) = int64_t( sample.sampleType() );
             sql.bind( row++ ) = sample.level();
             sql.bind( row++ ) = sample.istdId();
-            if ( sample.inletType() == adcontrols::QuanSample::Chromatography )
+            if ( sample.inletType() == adcontrols::Quan::Chromatography )
                 sql.bind( row++ ) = sample.injVol();
             else
                 sql.bind( row++ ) = adfs::null();
@@ -891,6 +907,88 @@ QuanDataWriter::addMSLock( std::shared_ptr< adprocessor::dataprocessor> dp
             }
         }
         sql.commit();
+    }
+    return true;
+}
+
+bool
+QuanDataWriter::create_spectrogram_tables()
+{
+    adfs::sqlite & db = fs_.db();
+
+    adfs::stmt sql( db );
+    bool result( true );
+
+    result &= sql.exec(
+        "CREATE TABLE SGSpectrum ("
+        "idSample       INTEGAR"
+        ",pkd           INTEGAR"
+        ",epochTime     INTEGAR"
+        ",injTime       REAL"
+        ",trigNumber    INTEGER"
+        ",stem          TEXT"
+        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+
+    result &= sql.exec(
+        "CREATE TABLE SGPeak ("
+        "idSample       INTEGAR"
+        ",pkd           INTEGER"
+        ",fcn           INTEGER"
+        ",mass          REAL"
+        ",time          REAL"
+        ",intensity     REAL"
+        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+
+    return result;
+}
+
+bool
+QuanDataWriter::insert_spectrogram( const boost::uuids::uuid& fileGuid
+                                    , adcontrols::MassSpectra& a
+                                    , const adprocessor::dataprocessor& dp
+                                    , int idx ) // 0 = AVG, 1 = PKD
+{
+    ADDEBUG() << dp.filename();
+    ADDEBUG() << fileGuid << ", idx=" << idx;
+
+    uint64_t id(0);
+    adfs::stmt sql( fs_.db() );
+    sql.prepare( "SELECT id FROM QuanSample WHERE dataSource like ?" );
+    sql.bind(1) = dp.filename();
+    if ( sql.step() == adfs::sqlite_row )
+        id = sql.get_column_value< uint64_t >(0);
+    else
+        return false;
+
+    for ( const auto& ms: a ) {
+        const auto& prop = ms->getMSProperty();
+        uint64_t epoch_time = prop.timeSinceEpoch();
+        double inj_time = prop.timeSinceInjection();
+        uint32_t trigNumber = prop.trigNumber( false );
+
+        sql.prepare( "INSERT INTO SGSpectrum ( idSample, pkd, epochTime, injTime, trigNumber ) VALUES (?,?,?,?,?)" );
+        sql.bind( 1 ) = id;
+        sql.bind( 2 ) = idx; // AVG == 0, PKD == 1
+        sql.bind( 3 ) = epoch_time;
+        sql.bind( 4 ) = inj_time;
+        sql.bind( 4 ) = trigNumber;
+
+        if ( sql.step() == adfs::sqlite_done ) {
+
+            //sql.begin();
+            sql.prepare( "INSERT INTO SGPeak ( idSample, pkd, mass, time, intensity ) VALUES (?,?,?,?,?)" );
+            for ( size_t i = 0; i < ms->size(); ++i ) {
+                sql.bind( 1 ) = id;
+                sql.bind( 2 ) = idx;
+                sql.bind( 3 ) = ms->mass( i );
+                sql.bind( 4 ) = ms->time( i );
+                sql.bind( 5 ) = ms->intensity( i );
+                if ( sql.step() != adfs::sqlite_done )
+                    ADTRACE() << "sql error " << sql.errmsg();
+                sql.reset();
+            }
+            //sql.commit();
+        }
     }
     return true;
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,7 +31,7 @@
 #include "processmethodwidget.hpp"
 #include "quanconstants.hpp"
 #include "quanconnection.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanconfigwidget.hpp"
 #include "quanresultwnd.hpp"
 #include "quanreportwidget.hpp"
@@ -115,11 +115,10 @@ MainWindow::createContents( Core::IMode * )
 
     viewLayout->addWidget( stack_ );
 
-    auto doc = QuanDocument::instance();
-    connect( doc, &QuanDocument::onSequenceCompleted, this, &MainWindow::handleSequenceCompleted );
+    auto doc = document::instance();
+    connect( doc, &document::onSequenceCompleted, this, &MainWindow::handleSequenceCompleted );
 
     // [Select Data] double tab
-
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
         if ( auto configwidget = new QuanConfigWidget ) {
 
@@ -223,12 +222,12 @@ MainWindow::createTopStyledBar()
 void
 MainWindow::onInitialUpdate()
 {
-    QuanDocument::instance()->onInitialUpdate();
+    document::instance()->onInitialUpdate();
 
     if ( auto rw = findChild< QuanReportWidget * >() )
-        rw->onInitialUpdate( QuanDocument::instance() );
+        rw->onInitialUpdate( document::instance() );
 
-    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+    if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
         boost::filesystem::path path = qm->quanMethodFilename();
         if ( !path.empty() ) {
             auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
@@ -237,6 +236,9 @@ MainWindow::onInitialUpdate()
                 edit->setEnabled( false );
             }
         }
+
+        if ( auto widget = findChild< DataSequenceWidget * >() )
+            widget->handleSampleInletChanged( qm->inlet() );
     }
 
 #if defined Q_OS_LINUX
@@ -267,7 +269,7 @@ void
 MainWindow::onFinalClose()
 {
     commit();
-    QuanDocument::instance()->onFinalClose();
+    document::instance()->onFinalClose();
 }
 
 // static
@@ -374,23 +376,30 @@ MainWindow::commit()
 void
 MainWindow::run()
 {
-    commit();
+    using  adcontrols::Quan::QuanInlet;
+
     bool isCounting(false);
+    QuanInlet inlet = adcontrols::Quan::Chromatography;
 
-    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+    commit();
 
-        if ( qm->levels() == 1 && qm->replicates() == 1 ) {
-            if ( qm->equation() != adcontrols::QuanMethod::idCalibOnePoint ) {
-                QMessageBox::critical( this, "Quan Method Error"
-                                       , "Calibration Eq. does not match with selected levels/replicates." );
-                return;
+    if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
+        inlet = qm->inlet();
+        isCounting = qm->isCounting();
+        if ( inlet != adcontrols::Quan::ExportData ) {
+
+            if ( qm->levels() == 1 && qm->replicates() == 1 ) {
+                if ( qm->equation() != adcontrols::QuanMethod::idCalibOnePoint ) {
+                    QMessageBox::critical( this
+                                           , "Quan Method Error"
+                                           , "Calibration Eq. does not match with selected levels/replicates." );
+                    return;
+                }
             }
         }
-
-        isCounting = qm->isCounting();
     }
 
-    if ( auto sequence = QuanDocument::instance()->quanSequence() ) {
+    if ( auto sequence = document::instance()->quanSequence() ) {
 
         if ( sequence->size() == 0 ) {
             QMessageBox::critical( this, "Quan Execution Error", "Empty sample sequence." );
@@ -432,19 +441,21 @@ MainWindow::run()
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( false );
 
-    boost::filesystem::path path = QuanDocument::instance()->quanSequence()->outfile();
+    boost::filesystem::path path = document::instance()->quanSequence()->outfile();
     Core::DocumentManager::setProjectsDirectory( QString::fromStdWString( path.parent_path().wstring() ) );
 
-    if ( isCounting )
-        QuanDocument::instance()->execute_counting();
+    if ( inlet == adcontrols::Quan::ExportData )
+        document::instance()->execute_spectrogram_export();
+    else if ( inlet == adcontrols::Quan::Counting )
+        document::instance()->execute_counting();
     else
-        QuanDocument::instance()->run();
+        document::instance()->run(); // Chromatography
 }
 
 void
 MainWindow::stop()
 {
-    QuanDocument::instance()->stop();
+    document::instance()->stop();
 }
 
 void
@@ -466,7 +477,7 @@ MainWindow::handleOpenQuanResult()
     try {
         QString name = QFileDialog::getOpenFileName( this
                                                      , tr( "Open Quantitative Analysis Result file" )
-                                                     , QuanDocument::instance()->lastDataDir()
+                                                     , document::instance()->lastDataDir()
                                                      , tr( "File(*.adfs)" ) );
         if ( !name.isEmpty() ) {
 
@@ -476,7 +487,7 @@ MainWindow::handleOpenQuanResult()
 
                 if ( connection->connect( name.toStdWString() ) ) {
                     // kick QuanReportWidget (calibartion & result view) updae
-                    QuanDocument::instance()->setConnection( connection.get() );
+                    document::instance()->setConnection( connection.get() );
                 }
             }
 
@@ -495,19 +506,19 @@ MainWindow::handleOpenQuanMethod()
 {
     auto name = QFileDialog::getOpenFileName( this
                                               , tr( "Open Quantitation Method File" )
-                                              , QuanDocument::instance()->lastMethodDir()
+                                              , document::instance()->lastMethodDir()
                                               , tr( "Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)" ) );
     if ( ! name.isEmpty() ) {
         boost::filesystem::path path( name.toStdWString() );
         adcontrols::ProcessMethod temp;
-        if ( QuanDocument::instance()->load( path, temp, true ) ) {
+        if ( document::instance()->load( path, temp, true ) ) {
             auto qm = temp.find< adcontrols::QuanMethod >();
             if ( !qm ) {
                 temp << adcontrols::QuanMethod();
                 qm = temp.find< adcontrols::QuanMethod >();
             }
             qm->quanMethodFilename( path.generic_wstring().c_str() );
-            QuanDocument::instance()->replace_method( temp );
+            document::instance()->replace_method( temp );
 
             auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
             for ( auto& edit : list )
@@ -521,7 +532,7 @@ MainWindow::handleSaveQuanMethod()
 {
     auto name = QFileDialog::getSaveFileName( this
                                               , tr( "Save Quan Method File" )
-                                              , QuanDocument::instance()->lastMethodDir()
+                                              , document::instance()->lastMethodDir()
                                               , tr( "Quan Method Files(*.qmth)(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
 
@@ -531,14 +542,14 @@ MainWindow::handleSaveQuanMethod()
         if ( path.extension() == "" )
             path.replace_extension( "qmth" );
 
-        if ( auto pm = QuanDocument::instance()->getm< adcontrols::ProcessMethod >() )
-            QuanDocument::instance()->save( path, *pm, true );
+        if ( auto pm = document::instance()->getm< adcontrols::ProcessMethod >() )
+            document::instance()->save( path, *pm, true );
 
-        if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+        if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
             if ( qm->quanMethodFilename() != path ) {
                 auto t( *qm );
                 t.quanMethodFilename( path.wstring().c_str() );
-                QuanDocument::instance()->setm( t );
+                document::instance()->setm( t );
 
                 // update filename on UI
                 auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
@@ -555,7 +566,7 @@ MainWindow::handleOpenQuanSequence()
 {
     QString name = QFileDialog::getOpenFileName( this
                                                  , tr( "Open Quantitation Method File" )
-                                                 , QuanDocument::instance()->lastSequenceDir()
+                                                 , document::instance()->lastSequenceDir()
                                                  , tr( "Quan Sequence Files(*.qseq)" ) );
 
     if ( ! name.isEmpty() ) {
@@ -563,9 +574,9 @@ MainWindow::handleOpenQuanSequence()
         boost::filesystem::path path( name.toStdWString() );
         auto seq = std::make_shared< adcontrols::QuanSequence >();
 
-        if ( QuanDocument::instance()->load( path, *seq ) ) {
+        if ( document::instance()->load( path, *seq ) ) {
             seq->filename( path.generic_wstring().c_str() );
-            QuanDocument::instance()->quanSequence( seq );
+            document::instance()->quanSequence( seq );
         }
 
     }
@@ -576,14 +587,14 @@ MainWindow::handleSaveQuanSequence()
 {
     QString name = QFileDialog::getSaveFileName( this
                                                  , tr( "Save Quan Sequence File" )
-                                                 , QuanDocument::instance()->lastSequenceDir()
+                                                 , document::instance()->lastSequenceDir()
                                                  , tr( "Quan Sequence Files(*.qseq)" ) );
     if ( ! name.isEmpty() ) {
 
         commit(); // commit all tabs
 
         boost::filesystem::path path( name.toStdWString() );
-        QuanDocument::instance()->save( path, *QuanDocument::instance()->quanSequence(), true );
+        document::instance()->save( path, *document::instance()->quanSequence(), true );
     }
 }
 

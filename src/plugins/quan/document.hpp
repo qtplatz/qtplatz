@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef QUANDOCUMENT_HPP
-#define QUANDOCUMENT_HPP
+#pragma once
 
 #include <adportable/semaphore.hpp>
 #include <boost/signals2/signal.hpp>
@@ -51,32 +50,33 @@ namespace boost { namespace filesystem { class path; } }
 class QSettings;
 
 namespace quan {
-    
+
     namespace detail { class dataWriter; }
 
     class PanelData;
     class QuanSampleProcessor;
     class QuanCountingProcessor;
+    class QuanExportProcessor;
     class QuanProcessor;
     class QuanConnection;
     class QuanPublisher;
 
     enum idMethod { idMethodComplex, idQuanMethod, idQuanCompounds, idProcMethod, idQuanSequence, idSize };
 
-    class QuanDocument : public QObject {
+    class document : public QObject {
         Q_OBJECT
     private:
-        ~QuanDocument();
-        QuanDocument();
+        ~document();
+        document();
         static std::mutex mutex_;
     public:
-        static QuanDocument * instance();
+        static document * instance();
 
         PanelData * addPanel( int idx, int subIdx, std::shared_ptr< PanelData >& );
         PanelData * findPanel( int idx, int subIdx, int pos );
 
         void setMethodFilename( int idx, const std::wstring& filename );
-        
+
         template< typename T >  const T* getm() const;
         template< typename T >  void setm( const T& t );
 
@@ -92,7 +92,7 @@ namespace quan {
         typedef boost::signals2::signal< void( int, bool ) > notify_update_t;
 
         boost::signals2::connection connectDataChanged( const notify_update_t::slot_type& );
-        
+
         void setResultFile( const std::wstring& );
         void mslock_enabled( bool );
 
@@ -104,6 +104,7 @@ namespace quan {
         void replace_method( const adpublisher::document& );
         void replace_method( const adcontrols::ProcessMethod& );
 
+        void execute_spectrogram_export();
         void execute_counting();
         void run();
         void stop();
@@ -114,6 +115,7 @@ namespace quan {
         void handle_processed( QuanProcessor * );  // UI thread
         void sample_processed( QuanSampleProcessor * ); // within a sample process thread
         void sample_processed( QuanCountingProcessor * ); // within a sample process thread
+        void sample_processed( QuanExportProcessor * );
 
         QSettings * settings() { return settings_.get(); }
         std::shared_ptr< QSettings > settings_ptr() { return settings_; }
@@ -151,13 +153,11 @@ namespace quan {
 
         std::vector< std::shared_ptr< QuanProcessor > > exec_;
         adportable::semaphore semaphore_;
-        
+
         bool processed( adcontrols::QuanSample& );
 
         bool save_default_methods();
         bool load_default_methods();
-        //bool save_default_doctemplate();
-        //bool load_default_doctemplate();
 
         void addRecentFiles( const QString& group, const QString& key, const QString& value );
         void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;
@@ -170,5 +170,3 @@ namespace quan {
         void onConnectionChanged();
     };
 }
-
-#endif // QUANDOCUMENT_HPP

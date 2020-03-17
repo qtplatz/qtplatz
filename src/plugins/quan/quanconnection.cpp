@@ -61,11 +61,10 @@ QuanConnection::QuanConnection() : sqldb_( std::make_unique< QSqlDatabase >( QSq
 bool
 QuanConnection::connect( const std::wstring& database )
 {
-    if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
+    if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { //
 
         if ( fs_->mount( database.c_str() ) ) {
 
-            fs_->db().register_error_handler( [=](const char * msg){ QMessageBox::warning(0, "SQLite SQL Error", msg); });
             filename_ = database;
 
             sqldb_->setDatabaseName( QString::fromStdString( fs_->filename() ) );
@@ -125,7 +124,7 @@ QuanConnection::fetch( const std::wstring& dataGuid )
             auto profile = std::make_shared< adcontrols::MassSpectrum >();
             try {
                 if ( file.fetch( *profile ) )
-                    d->setProfile( profile );                    
+                    d->setProfile( profile );
                 else
                     return 0;
             } catch ( std::exception& ex ) {
@@ -225,7 +224,7 @@ QuanConnection::readMethods()
     procmethod_ = std::make_shared< adcontrols::ProcessMethod >();
 
     if ( auto folder = fs_->findFolder( L"/Processed/Quan" ) ) {
- 
+
         auto files = folder.files();
         // larger rowid first (decend order)
         std::sort( files.begin(), files.end(), [] ( const adfs::file& a, const adfs::file& b ){ return a.rowid() > b.rowid(); } );

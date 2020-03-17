@@ -22,14 +22,16 @@
 **
 **************************************************************************/
 
-#include "quanconfigwidget.hpp"
-#include "quanconfigform.hpp"
-#include "quandocument.hpp"
-#include "quanconstants.hpp"
 #include "paneldata.hpp"
-#include <utils/styledbar.h>
+#include "quanconfigform.hpp"
+#include "quanconfigwidget.hpp"
+#include "quanconstants.hpp"
+#include "document.hpp"
+#include "samplemethodform.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
+#include <qtwrapper/make_widget.hpp>
+#include <utils/styledbar.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -51,27 +53,17 @@ QuanConfigWidget::~QuanConfigWidget()
 
 QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QGridLayout )
-                                                    , form_( new QuanConfigForm )
 {
-    form_->setObjectName( "quanConfigForm" );
-    form_->setStyleSheet( "#quanConfigForm * { font-size: 10pt }" );
-    
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
-
-    connect( form_->spinLevels(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged)
-             , this, [this] ( int value ){ emit onLevelChanged( value ); } );
-    connect( form_->spinReplicates(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged)
-             , this, [this] ( int value ){ emit onReplicatesChanged( value ); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
         auto label = new QLabel;
-        // label->setStyleSheet( "QLabel { color : blue; }" );
         label->setText( "Configuration" );
         toolBarLayout->addWidget( label );
 
@@ -87,38 +79,73 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
             btnSave->setToolTip( tr( "Save Quan Method..." ) );
             toolBarLayout->addWidget( btnSave );
         }
-        
+
         auto edit = new QLineEdit;
         edit->setObjectName( Constants::editQuanMethodName );
         toolBarLayout->addWidget( edit );
-        layout_->addWidget( toolBar );            
+        layout_->addWidget( toolBar );
     }
 
-    QuanDocument::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
     const int row = layout_->rowCount();
-    layout_->addWidget( form_.get(), row, 0 );
 
-    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
-        form_->setContents( *qm );
-    else
-        commit();
-    
-    connect( form_.get(), &QuanConfigForm::onSampleInletChanged, [this] ( int t ) { emit onSampleInletChanged( t ); } );
+    if ( auto form = qtwrapper::make_widget< QuanConfigForm >( "quanConfigForm" ) ) {
+        layout_->addWidget( form, row + 1, 0 );
+    }
+
+    if ( auto sform = qtwrapper::make_widget< quan::SampleMethodForm >( "sampleMethod" ) ) {
+        layout_->addWidget( sform, row, 0 );
+    }
+
+    if ( auto sform = findChild< SampleMethodForm * >() ) {
+        if ( auto qform = findChild< QuanConfigForm * >() ) {
+
+            if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
+                sform->setSelection( qm->inlet() );
+                qform->setContents( *qm );
+            } else {
+                commit();
+            }
+
+            connect( qform->spinLevels(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged)
+                     , this, [this] ( int value ){ emit onLevelChanged( value ); } );
+
+            connect( qform->spinReplicates(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged)
+                     , this, [this] ( int value ){ emit onReplicatesChanged( value ); } );
+
+            connect( sform, &SampleMethodForm::onSampleMethodChanged, qform, &QuanConfigForm::handleInletChanged);
+            connect( sform, &SampleMethodForm::onSampleMethodChanged, [this] ( auto t ) { emit onSampleInletChanged( t ); } );
+        }
+    }
+
+    document::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
+    // setStyleSheet( "QuanConfigForm { font-size: 10pt }" );
 }
 
 void
 QuanConfigWidget::commit()
 {
-    adcontrols::QuanMethod m;
-    form_->getContents( m );
-    QuanDocument::instance()->setm( m );
+    if ( auto form = findChild< QuanConfigForm * >() ) {
+        adcontrols::QuanMethod m;
+        form->getContents( m );
+        adcontrols::Quan::QuanInlet inlet{ adcontrols::Quan::Chromatography };
+        if ( auto sform = findChild< SampleMethodForm * >() )
+            inlet = sform->currSelection();
+        m.setInlet( inlet );
+        document::instance()->setm( m );
+    }
 }
 
 void
 QuanConfigWidget::handleDataChanged( int id, bool )
 {
-    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
-        form_->setContents( *qm );
+    if ( auto form = findChild< QuanConfigForm * >() ) {
+        if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
+            form->setContents( *qm );
+            if ( auto sform = findChild< SampleMethodForm * >() ) {
+                sform->setSelection( qm->inlet() );
+            }
+        }
+    }
 }
 
 void
@@ -126,11 +153,11 @@ QuanConfigWidget::importQuanMethod()
 {
     QString name = QFileDialog::getOpenFileName( this
                                                  , tr( "Open Quan Method..." )
-                                                 , QuanDocument::instance()->lastMethodDir()
+                                                 , document::instance()->lastMethodDir()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
         adcontrols::ProcessMethod m;
-        QuanDocument::instance()->load( name.toStdWString(), m, false );
-        QuanDocument::instance()->replace_method( m );
+        document::instance()->load( name.toStdWString(), m, false );
+        document::instance()->replace_method( m );
     }
 }

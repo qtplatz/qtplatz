@@ -25,7 +25,7 @@
 #include "quanresultwidget.hpp"
 #include "quanresulttable.hpp"
 #include "quanconnection.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanmethod.hpp"
 #include "quanquery.hpp"
 #include <adportable/debug.hpp>
@@ -71,8 +71,8 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) : QWidget(parent)
         if ( auto pCombo = new QComboBox ) {
             pCombo->addItems( QStringList() << tr("All") << tr("Unknown") << tr("Standards") << tr("QC") << tr("Blank") );
             toolBarLayout->addWidget( pCombo );
-            
-            toolBarLayout->addWidget( new Utils::StyledSeparator );            
+
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
 
             connect( pCombo, static_cast< void(QComboBox::*)(int) >(&QComboBox::currentIndexChanged), this, &QuanResultWidget::handleIndexChanged );
@@ -82,7 +82,7 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) : QWidget(parent)
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         toolBarLayout->addWidget( new QLabel( tr("File:") ) );
         toolBarLayout->addWidget( new QLineEdit );
-        
+
         topLayout->addWidget( toolBar ); // <-------- add to toolbar
     }
     if ( ( table_ = new QuanResultTable ) )
@@ -111,7 +111,7 @@ QuanResultWidget::execQuery( const std::string& sqlString )
     if ( auto conn = connection_.lock() ) {
 
         QSqlQuery sqlQuery( QString::fromStdString( sqlString ), conn->sqlDatabase() );
-        
+
         table_->setQuery( sqlQuery, { "uuid" } );
     }
 }
@@ -125,13 +125,13 @@ QuanResultWidget::handleIndexChanged( int idx )
         std::string sql;
         conn->query()->buildQuery( sql, idx, conn->isCounting(), conn->isISTD(), {} );
         execQuery( sql );
-        
+
         // CountingIndexChanged( idx );
         return;
     }
 #if 0
     if ( idx == 0 ) { // All
-        
+
         execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
                   ", sampleType, QuanSample.level, QuanCompound.formula"
                   ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
@@ -143,7 +143,7 @@ QuanResultWidget::handleIndexChanged( int idx )
                   " ORDER BY QuanCompound.id, QuanSample.level");
 
     } else if ( idx == 1 ) { // Unknown
-        
+
         execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
                   ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
                   ", QuanResponse.mass"
@@ -180,7 +180,7 @@ QuanResultWidget::handleIndexChanged( int idx )
                   " AND sampleType = 2"
                   " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
                   " ORDER BY QuanCompound.id, QuanSample.level");
-        
+
     } else if ( idx == 4 ) { // Blank
 
         execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
@@ -203,7 +203,7 @@ QuanResultWidget::handleCurrentChanged( const QModelIndex& index )
     if ( auto model = qobject_cast< const QSqlQueryModel * >( index.model() ) ) {
         int respId = model->record( index.row() ).value( "id" ).toInt();
         emit onResponseSelected( respId );
-    }    
+    }
 }
 
 void
@@ -215,9 +215,9 @@ QuanResultWidget::setCompoundSelected( const std::set< boost::uuids::uuid >& uui
             int count(0);
             for ( auto& uuid: uuids )
                 additionals << boost::format( "%1% QuanCompound.uuid='%2%'" ) % ( count++ ? "OR" : "AND" ) % uuid;
-            
+
             if ( auto conn = connection_.lock() ) {
-                std::string sql;                
+                std::string sql;
                 if ( conn->query()->buildQuery( sql, currentIndex_, conn->isCounting(), conn->isISTD(), additionals.str() ) ) {
                     QSqlQuery sqlQuery( QString::fromStdString( sql ), conn->sqlDatabase() );
                     // ADDEBUG() << sql;

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -36,7 +36,7 @@
 
 namespace boost { namespace uuids { struct uuid; } }
 namespace adcontrols {
-    class Chromatogram; class MassSpectrum; class PeakResult;
+    class Chromatogram; class MassSpectrum; class MassSpectra; class PeakResult;
     class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds;
     class QuanMethod; class idAudit;
 }
@@ -58,6 +58,7 @@ namespace quan {
         bool open();
         void remove( const std::wstring& title, const wchar_t * directory );
         adfs::file write( const adcontrols::MassSpectrum& ms, const std::wstring& tittle );
+        adfs::file write( const adcontrols::MassSpectra&, const std::wstring& tittle );
         adfs::file write( const adcontrols::ProcessMethod& );
         adfs::file write( const adcontrols::QuanSequence& );
         adfs::file write( const adcontrols::QuanSample& );
@@ -69,6 +70,7 @@ namespace quan {
         bool drop_table();
         bool create_table();
         bool create_counting_tables();
+        bool create_spectrogram_tables();
 
         bool insert_table( const adcontrols::QuanMethod& );
         bool insert_table( const adcontrols::QuanSequence& );
@@ -76,6 +78,7 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSample& );
         [[deprecated]] bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t> >& dataGuids );
         bool insert_reference( const boost::uuids::uuid& dataGuid, const boost::uuids::uuid& refGuid, int32_t idx, int32_t proto );
+        bool insert_spectrogram( const boost::uuids::uuid& fileGuid, adcontrols::MassSpectra&, const adprocessor::dataprocessor&, int idx );
 
         bool addCountingResponse( const boost::uuids::uuid& dataGuid // chromatogram file id
                                   , const adcontrols::QuanSample& sample

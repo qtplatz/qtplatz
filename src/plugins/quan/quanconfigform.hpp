@@ -25,11 +25,15 @@
 #ifndef QUANCONFIGFORM_HPP
 #define QUANCONFIGFORM_HPP
 
+#include <adcontrols/quansample.hpp>
 #include <QWidget>
 #include <memory>
 
 class QSpinBox;
-namespace adcontrols { class QuanMethod; }
+
+namespace adcontrols {
+    class QuanMethod;
+}
 
 namespace quan {
 
@@ -49,8 +53,10 @@ namespace quan {
         QSpinBox * spinLevels();
         QSpinBox * spinReplicates();
 
+        void handleInletChanged( adcontrols::Quan::QuanInlet );
+
     signals:
-        void onSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
+        void onSampleInletChanged( adcontrols::Quan::QuanInlet );
 
     private slots:
         void on_pushButton_clicked();

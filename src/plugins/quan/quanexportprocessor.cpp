@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,7 +21,7 @@
 **
 **************************************************************************/
 
-#include "quancountingprocessor.hpp"
+#include "quanexportprocessor.hpp"
 #include "findcompounds.hpp"
 #include "quanprocessor.hpp"
 #include "quanchromatograms.hpp"
@@ -64,6 +63,7 @@
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/file.hpp>
@@ -134,16 +134,15 @@ namespace quan {
 
 using namespace quan;
 
-QuanCountingProcessor::~QuanCountingProcessor()
+QuanExportProcessor::~QuanExportProcessor()
 {
 }
 
-QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
-                                              , std::vector< adcontrols::QuanSample >& samples
-                                              , std::shared_ptr< adwidgets::ProgressInterface > p )
-    : raw_( 0 )
-    , samples_( samples )
-    , procm_( std::make_shared< adcontrols::ProcessMethod >( *processor->procmethod() ) ) // deep copy
+QuanExportProcessor::QuanExportProcessor( QuanProcessor * processor
+                                          , std::vector< adcontrols::QuanSample >& samples
+                                          , std::shared_ptr< adwidgets::ProgressInterface > p )
+    //: samples_( samples )
+    : procm_( std::make_shared< adcontrols::ProcessMethod >( *processor->procmethod() ) ) // deep copy
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
     , progress_( p )
@@ -160,93 +159,60 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
     // dry run
     {
         size_t n_spectra( 0 );
-        for ( const auto& sample: samples_ ) {
-            std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( sample.dataSource(), /* read-only */ true ) );
-            if ( file ) {
-                struct subscriber : adcontrols::dataSubscriber {
-                    const adcontrols::LCMSDataset * raw;
-                    subscriber() : raw( 0 ) {}
-                    bool subscribe( const adcontrols::LCMSDataset& d ) { raw = &d; return true; }
-                } subscribe;
-                file->accept( subscribe );
-                size_t n = 0;
-                if ( subscribe.raw && subscribe.raw->db() ) {
-                    adfs::stmt sql( *subscribe.raw->db() );
-                    sql.prepare( "SELECT COUNT(*) FROM AcquiredData GROUP BY fcn" );
-                    while ( sql.step() == adfs::sqlite_row )
-                        n = std::max( uint64_t( n ), sql.get_column_value< uint64_t >( 0 ) );
-                    n_spectra += n;
+        for ( const auto& sample: samples ) {
+            if ( auto dp = std::make_shared< adprocessor::dataprocessor >() ) {
+                std::wstring errmsg;
+                if ( dp->open( sample.dataSource(), errmsg ) ) {
+                    adfs::stmt sql( *(dp->db()) );
+                    try {
+                        sql.prepare( "SELECT COUNT(*) as C FROM AcquiredData GROUP BY fcn ORDER BY C DESC" );
+                        if ( sql.step() == adfs::sqlite_row ) {
+                            n_spectra += sql.get_column_value< uint64_t >( 0 );
+                            samples_.emplace_back( sample );
+                        }
+                    } catch ( boost::exception& ) {
+                        ADDEBUG() << "-- exception: " << boost::current_exception_diagnostic_information();
+                    }
+                } else {
+                    ADDEBUG() << "-- db open error: " << sample.dataSource() << "\n\terror: " << errmsg;
                 }
             }
         }
+
+        for ( const auto& sample: samples_ )
+            ADDEBUG() << "======= sample: " << sample.dataSource() << " ==============";
+
         progress_current_ = 0;
-        progress_total_ = ( n_spectra > std::numeric_limits< decltype( progress_total_ ) >::max() ) ? std::numeric_limits< decltype( progress_total_ ) >::max() : n_spectra;
+        progress_total_ = samples_.size();
+        n_spectra *= 2; // PKD, AVG
+        progress_total_ =
+            ( n_spectra > std::numeric_limits< decltype( progress_total_ ) >::max() ) ? std::numeric_limits< decltype( progress_total_ ) >::max() : n_spectra;
     }
     // <-- end dry run
-
-    if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
-
-        // mass chromatograms extraction method
-        // split molecule list into either counting or profile
-        pCompounds->convert_if( cXmethods_[ 0 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return !comp.isCounting();} );
-        pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
-
-        if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
-#ifndef NDEBUG
-            ADDEBUG() << lkm->toJson();
-#endif
-            for ( auto& cm: cXmethods_ )
-                cm->setLockmass( lkm->enabled() );
-        }
-
-        if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
-            for ( auto& cm: cXmethods_ )
-                cm->width( targeting_method->tolerance( targeting_method->toleranceMethod() ), adcontrols::MSChromatogramMethod::widthInDa );
-
-            auto tm = std::make_shared< adcontrols::TargetingMethod >( *targeting_method );
-            pCompounds->convert( tm->molecules() );
-            *procm_ *= *tm;
-        }
-    }
-
     (*progress_)( int( progress_current_ ), int( progress_total_) );
 }
 
 QuanProcessor *
-QuanCountingProcessor::processor()
+QuanExportProcessor::processor()
 {
     return processor_.get();
 }
 
 
 bool
-QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
+QuanExportProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
     auto cm = procm_->find< adcontrols::CentroidMethod >();
     auto qm = procm_->find< adcontrols::QuanMethod >();
-    // auto rm = procm_->find< adcontrols::QuanResponseMethod >();
 
     if ( !cm || !qm )
         return false;
 
-    adcontrols::QuanCompounds compounds;
-    if ( auto qc = procm_->find< adcontrols::QuanCompounds >() )
-        compounds = *qc;
+    // adcontrols::QuanCompounds compounds;
+    // if ( auto qc = procm_->find< adcontrols::QuanCompounds >() )
+    //     compounds = *qc;
 
-    std::set< int32_t > protocols;
-    for ( const auto& cmpd: compounds )
-        protocols.insert( cmpd.protocol() );
-    int32_t proto = ( protocols.size() == 1 ) ? *protocols.begin() : (-1);
-
-    int channels( 0 ); // 1 := counting channel use, 2 := profile channel use, 3 := both
-    for ( const auto& c: compounds )
-        channels |= c.isCounting() ? 1 : 2;
-
-    double tolerance = 0.001;
-    if ( auto tm = procm_->find< adcontrols::TargetingMethod >() )
-        tolerance = tm->tolerance( adcontrols::idToleranceDaltons );
-
-    auto lkMethod = procm_->find< adcontrols::MSLockMethod >();
+    int32_t proto = 0; // ( protocols.size() == 1 ) ? *protocols.begin() : (-1);
 
     for ( auto& sample : samples_ ) {
 
@@ -258,79 +224,41 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             if ( auto raw = dp->rawdata() ) {
                 if ( raw->dataformat_version() < 3 )
                     return false;
+
                 std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers {{nullptr, nullptr}};
                 for ( auto reader: raw->dataReaders() ) {
-                    if ( reader->objtext().find( "waveform" ) != std::string::npos && cXmethods_[0]->molecules().size() ) // profile
+                    if ( reader->objtext() == "1.u5303a.ms-cheminfo.com" )     // u5303a AVG
                         readers[ 0 ] = reader;
-                    if ( reader->objtext().find( "histogram" ) != std::string::npos && cXmethods_[1]->molecules().size() ) // counting
+                    if ( reader->objtext() == "pkd.1.u5303a.ms-cheminfo.com" ) // u5303a PKD
                         readers[ 1 ] = reader;
                 }
-                auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw );
-                auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
-                if ( !pCompounds )
-                    return false;
+
                 size_t idx = 0;
                 for ( auto reader: readers ) {
                     adcontrols::ProcessMethod pm( *procm_ );
-                    pm *= (*cXmethods_[ idx ]);
                     if ( reader ) {
-                        std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
-                        extractor->extract_by_mols( clist, pm, reader, [&]( size_t, size_t )->bool{ return (*progress_)(); } );
-                        for ( auto chro: clist ) {
-                            auto dataGuid = save_chromatogram::save( writer, sample.dataSource(), chro, pm, idx );
-                            writer->addCountingResponse( dataGuid, sample, *chro );
+                        auto spectra = dp->createSpectrogram( procm_
+                                                              , reader.get()
+                                                              , proto
+                                                              , [&]( size_t n, size_t total ){
+                                                                    (*progress_)();
+                                                                    return false;
+                                                                });
+                        using adportable::utf;
+                        auto title = ( boost::wformat( L"%s-%s-p%d" ) % stem.wstring() % (idx == 0 ? L"AVG" : L"PKD") % 0 ).str();
+                        if ( auto file = writer->write( *spectra, title ) ) {
+                            auto fid = boost::uuids::string_generator()( file.name() );
+                            writer->insert_spectrogram( fid, *spectra, *dp, idx );
                         }
-                        ADDEBUG() << "################# MSLock size: " << extractor->lkms().size();
-                        writer->addMSLock( sample, extractor->lkms() );
-                        writer->addMSLock( dp, extractor->lkms() );
                     }
+                    ++idx;
                 }
             }
-
-            FindCompounds findCompounds( compounds, *cm, tolerance );
-
-            if ( channels & 0x01 ) { // counting
-                if ( auto hist = dp->readSpectrumFromTimeCount() )
-                    findCompounds.doCentroid( dp, hist, true );
-            }
-
-            if ( channels & 0x02 ) { // profile
-                if ( auto profile = dp->readCoAddedSpectrum( false, proto ) )
-                    findCompounds.doCentroid( dp, profile, false );
-            }
-
-            if ( lkMethod && lkMethod->enabled() )
-                findCompounds.doMSLock( *lkMethod, !( channels & 0x02 ) );
-
-            if ( channels & 0x01 ) { // counting
-                findCompounds( dp, true );
-                findCompounds.write( writer, stem.wstring(), procm_, sample, true, dp );
-            }
-
-            if ( channels & 0x02 ) { // profile
-                findCompounds( dp, false );
-                findCompounds.write( writer, stem.wstring(), procm_, sample, false, dp );
-            }
         }
-
         writer->insert_table( sample );
         (*progress_)();
         processor_->complete( &sample );
     }
     document::instance()->sample_processed( this );
-    return true;
-}
-
-bool
-QuanCountingProcessor::subscribe( const adcontrols::LCMSDataset& d )
-{
-    raw_ = &d;
-    return true;
-}
-
-bool
-QuanCountingProcessor::subscribe( const adcontrols::ProcessedDataset& d )
-{
-    portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
     return true;
 }
