@@ -69,10 +69,6 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     masses.reserve( info.nSamples() );
     times.reserve( info.nSamples() );
 
-    auto scanlaw = spectrometer.scanLaw();
-    if ( !scanlaw )
-        return;
-
     const double td = info.fSampInterval();
     double tp = info.delayTime();
 
@@ -90,9 +86,9 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
             times.emplace_back( tc - info.fSampInterval() );
             masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
         }
-        counts.emplace_back( ms.getIntensity( i ) );
+        counts.emplace_back( ms.intensity( i ) );
         times.emplace_back( tc );
-        masses.emplace_back( ms.getMass( i ) );
+        masses.emplace_back( ms.mass( i ) );
         tp = tc;
     }
 
@@ -100,7 +96,7 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     if ( ! counts.empty() ) {
         counts.emplace_back( 0 );
         times.emplace_back( times.back() + info.fSampInterval() );
-        masses.emplace_back( scanlaw->getMass( times.back() + info.fSampInterval(), int( info.mode() ) ) );
+        masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
     }
 
     ms.setCentroid( CentroidNone );
@@ -131,9 +127,9 @@ histogram::histogram_to_profile( MassSpectrum& ms )
     for ( size_t i = 0; i < ms.size(); ++i ) {
 
         if ( i < ( ms.size() - 1 ) )
-            deltaMass = ( ms.getMass( i + 1 ) - ms.getMass( i ) ) / ( ( ms.getTime( i + 1 ) - ms.getTime( i ) ) / info.fSampInterval() );
+            deltaMass = ( ms.mass( i + 1 ) - ms.mass( i ) ) / ( ( ms.time( i + 1 ) - ms.time( i ) ) / info.fSampInterval() );
 
-        double tc = ms.getTime( i );
+        double tc = ms.time( i );
 
         if ( ( tc - tp ) >= td ) {
             // end previous peak
