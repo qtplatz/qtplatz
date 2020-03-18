@@ -113,7 +113,12 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
                      , this, [this] ( int value ){ emit onReplicatesChanged( value ); } );
 
             connect( sform, &SampleMethodForm::onSampleMethodChanged, qform, &QuanConfigForm::handleInletChanged);
+#if __cplusplus >= 201703L
             connect( sform, &SampleMethodForm::onSampleMethodChanged, [this] ( auto t ) { emit onSampleInletChanged( t ); } );
+#else
+            // support for c++14
+            connect( sform, &SampleMethodForm::onSampleMethodChanged, [this] ( adcontrols::Quan::QuanInlet t ) { emit onSampleInletChanged( t ); } );
+#endif
         }
     }
 
