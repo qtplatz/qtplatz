@@ -136,17 +136,17 @@ histogram::histogram_to_profile( MassSpectrum& ms )
             if ( ! counts.empty() ) {
                 counts.emplace_back( 0 );
                 times.emplace_back( tp + info.fSampInterval() );   // insert at the end of previous data
-                masses.emplace_back( ms.getMass( i == 0 ? 0 : i - 1 ) + deltaMass );
+                masses.emplace_back( ms.mass( i == 0 ? 0 : i - 1 ) + deltaMass );
             }
 
             // start this peak
             counts.emplace_back( 0 );
             times.emplace_back( tc - info.fSampInterval() );    // insert before next peak start
-            masses.emplace_back( ms.getMass( i ) - deltaMass );
+            masses.emplace_back( ms.mass( i ) - deltaMass );
         }
-        counts.emplace_back( ms.getIntensity( i ) );
+        counts.emplace_back( ms.intensity( i ) );
         times.emplace_back( tc );
-        masses.emplace_back( ms.getMass( i ) );
+        masses.emplace_back( ms.mass( i ) );
         tp = tc;
     }
 

@@ -113,6 +113,27 @@ namespace adcontrols {
         };
 
     }
+
+    namespace {
+        struct scanlaw_solver {
+            double a_;
+            double b_;
+            scanlaw_solver( std::pair< double, double > m
+                            , std::pair< double, double > t ) {
+                b_ = (std::sqrt(m.second) - std::sqrt(m.first))/(t.second - t.first);
+                a_ = std::sqrt(m.first) - ( b_ * 10e-6 );
+            }
+            inline double mass( double t ) const {
+                return ( a_ + ( b_ * t ) ) * ( a_ + ( b_ * t ) );
+            }
+            inline double time( double m ) const {
+                return (-a_ + std::sqrt(m)) / b_;
+            }
+            inline double delta_t( double dm, double m ) const {
+                return time( m + dm ) - time( m );
+            }
+        };
+    }
 }
 
 CentroidProcess::~CentroidProcess(void)
@@ -453,7 +474,34 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 void
 CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 {
-    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval(), 3 );
+    if ( histogram.size() < 2 )
+        return;
+    size_t width_i(3);
+    {
+        scanlaw_solver solver( std::make_pair( histogram.mass(0), histogram.mass( histogram.size() - 1 ) )
+                               , std::make_pair( histogram.time(0), histogram.time( histogram.size() - 1 ) ) );
+        double width_m(0), width_t(0);
+        switch ( method_.peakWidthMethod() ) {
+        case CentroidMethod::ePeakWidthTOF:
+            width_m = method_.rsTofInDa();
+            width_t = solver.delta_t( width_m, method_.rsTofAtMz() );
+            break;
+        case CentroidMethod::ePeakWidthProportional:
+            width_m = histogram.mass( 0 ) * method_.rsPropoInPpm() / 1000000;
+            width_t = solver.delta_t( width_m, histogram.mass(0) ); // wordaround (due to instMassRange is empty)
+            break;
+        case CentroidMethod::ePeakWidthConstant:
+            width_m = method_.rsConstInDa();
+            width_t = solver.delta_t( width_m, histogram.mass(0) ); // wordaround (due to instMassRange is empty)
+            break;
+        }
+        size_t width_i = size_t( width_t / histogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
+
+        ADDEBUG() << "width_m: " << (width_m *1000) << "mDa\twidth_t: "
+                  << (width_t *1e9) << "ns \twidth_i: " << width_i << "\t@" << method_.rsTofAtMz();
+    }
+
+    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval(), width_i );
     adportable::histogram_merger merge( histogram.getMSProperty().samplingInfo().fSampInterval(), method_.peakCentroidFraction() );
 
     const double * pCounts = histogram.getIntensityArray();
