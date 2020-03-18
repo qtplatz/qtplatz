@@ -153,7 +153,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 
     } else {
 
-        if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.getMass( 0 ) - profile.getMass( profile.size() - 1 ) ) < 0.001 ) {
+        if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.mass( 0 ) - profile.mass( profile.size() - 1 ) ) < 0.001 ) {
             pImpl_->findpeaks_by_time( profile );
         } else {
             pImpl_->findpeaks( profile );
@@ -236,15 +236,11 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
     adportable::spectrum_peakfinder finder;
     if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
-        finder.width_method_ = adportable::spectrum_peakfinder::Constant;
-        finder.peakwidth_ = method_.rsConstInDa();
+        finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, method_.rsConstInDa() );
     } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
-        finder.width_method_ = adportable::spectrum_peakfinder::Proportional;
-        finder.peakwidth_ = method_.rsConstInDa();
+        finder.setPeakWidth( adportable::spectrum_peakfinder::Proportional, method_.rsPropoInPpm() );
     } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
-        finder.width_method_ = adportable::spectrum_peakfinder::TOF;
-        finder.peakwidth_ = method_.rsTofInDa();
-        finder.atmz_ = method_.rsTofAtMz();
+        finder.setPeakWidth( adportable::spectrum_peakfinder::TOF, method_.rsTofInDa(), method_.rsTofAtMz() );
     }
 
     finder( profile.size(), profile.getMassArray(), profile.getIntensityArray() );
@@ -259,7 +255,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     info_.setProtocol( profile.protocolId(), profile.nProtocols() );
     info_.setIsAreaIntensity( method_.centroidAreaIntensity() );
 
-    for ( adportable::peakinfo& pk: finder.results_ ) {
+    for ( const adportable::peakinfo& pk: finder.results() ) {
 
         adportable::array_wrapper<const double>::iterator it =
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
@@ -353,8 +349,8 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.set_peak_start_index( uint32_t(pk.first) );
                 item.set_peak_end_index( uint32_t(pk.second) );
 
-				if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth_ )
-					info_ << item;
+				// if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth() )
+                info_ << item;
             }
         } while(0);
     }
@@ -371,8 +367,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     using adportable::array_wrapper;
 
     adportable::spectrum_peakfinder finder;
-    finder.width_method_ = adportable::spectrum_peakfinder::Constant;
-    finder.peakwidth_ = method_.rsInSeconds();
+    finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, method_.rsInSeconds() );
 
     std::vector< double > times( profile.size() );
     timeFunctor functor( profile );
@@ -391,7 +386,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     info_.setProtocol( profile.protocolId(), profile.nProtocols() );
     info_.setIsAreaIntensity( method_.centroidAreaIntensity() );
 
-    for ( adportable::peakinfo& pk: finder.results_ ) {
+    for ( const adportable::peakinfo& pk: finder.results() ) {
 
         adportable::array_wrapper<const double>::iterator it =
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );

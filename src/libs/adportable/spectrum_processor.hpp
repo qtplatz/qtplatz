@@ -44,9 +44,9 @@ namespace adportable {
         };
         // tuple< tic, dbase, rms >
         template<typename T> static std::tuple< double, double, double > tic( size_t nbrSamples, const T * praw, size_t N = 5 );
-        
+
         static double tic( size_t nbrSamples, const int8_t * praw, double& dbase, double& sd, size_t N = 5 );
-        static double tic( size_t nbrSamples, const int16_t * praw, double& dbase, double& sd, size_t N = 5 );        
+        static double tic( size_t nbrSamples, const int16_t * praw, double& dbase, double& sd, size_t N = 5 );
         static double tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& sd, size_t N = 5 );
         static double tic( size_t nbrSamples, const int64_t * praw, double& dbase, double& sd, size_t N = 5 );
         static double tic( size_t nbrSamples, const double * praw, double& dbase, double& sd, size_t N = 5 );
@@ -79,6 +79,10 @@ namespace adportable {
         enum WidthMethod { Constant, Proportional, TOF };
         spectrum_peakfinder( double pw = 0.1, double bw = 0, WidthMethod wm = Constant );
         size_t operator()( size_t nbrSamples, const double *pX, const double * pY );
+        const std::vector< peakinfo >& results() const { return results_; }
+        void setPeakWidth( WidthMethod, double values, double mass = 0 );
+        void setAtMz( double );
+    private:
         double peakwidth_;
         double atmz_;
         WidthMethod width_method_;
@@ -87,4 +91,3 @@ namespace adportable {
 
    // Move 'waveform_peakfinder' to waveform_peakfinder.hpp
 }
-

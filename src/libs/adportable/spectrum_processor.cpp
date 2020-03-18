@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,9 +25,10 @@
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
 #include "polfit.hpp"
-#include <boost/variant.hpp>
 #include "moment.hpp"
 #include "sgfilter.hpp"
+#include "debug.hpp"
+#include <boost/variant.hpp>
 
 #include <cmath>
 #include <cstring> // for memset()
@@ -52,7 +53,7 @@ namespace adportable {
         fxi += __1st_derivative5__[1] * ( -py[-1] + py[1] );
         fxi += __1st_derivative5__[2] * ( -py[-2] + py[2] );
         fxi = fxi / __norm5__;
-        return fxi;  
+        return fxi;
     }
     template<typename _fy> static inline double convolute( const _fy fy, size_t idx ) {
         double fxi;
@@ -60,7 +61,7 @@ namespace adportable {
         fxi += __1st_derivative5__[1] * ( -fy( idx - 1 ) + fy( idx + 1 ) );
         fxi += __1st_derivative5__[2] * ( -fy( idx - 2 ) + fy( idx + 2 ) );
         fxi = fxi / __norm5__;
-        return fxi;  
+        return fxi;
     }
 
     struct slope_counter {
@@ -90,7 +91,7 @@ namespace adportable {
             return bc;
         }
     };
-		
+
     struct averager {
         int n;
         double ax;
@@ -149,7 +150,7 @@ namespace adportable {
 
         template<typename T>
         std::tuple<double, double, double> operator () ( size_t nbrSamples, const T * praw, size_t N ) {
-            
+
             if ( nbrSamples < N )
                 return std::make_tuple(0.0, 0.0, 0.0);
 
@@ -186,7 +187,7 @@ namespace adportable {
                         cnt++;
                 }
             } while (0);
-            
+
             dbase = base.average();
             rms = base.rms();
             double ax = 0;
@@ -250,7 +251,7 @@ spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, double& dbase,
 {
     double ax;
     std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
-    return ax;    
+    return ax;
 }
 
 double
@@ -258,7 +259,7 @@ spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase,
 {
     double ax;
     std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
-    return ax;        
+    return ax;
 }
 
 double
@@ -266,7 +267,7 @@ spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, double& dbase,
 {
     double ax;
     std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
-    return ax;    
+    return ax;
 }
 
 double
@@ -274,7 +275,7 @@ spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, 
 {
     double ax;
     std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
-    return ax;    
+    return ax;
 }
 
 void
@@ -297,7 +298,7 @@ void
 spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double * praw, size_t m )
 {
     m |= 0x01; // make odd
-    
+
     double ax = 0;
     for ( size_t i = 0; i < nbrSamples; ++i ) {
         ax += praw[i];
@@ -312,7 +313,7 @@ spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double
 		pY[i] = ax;
 }
 
-/** \brief simple peak area calculation.  
+/** \brief simple peak area calculation.
  *
  *  make sum for data between beg to end - 1.
  */
@@ -320,7 +321,7 @@ double
 spectrum_processor::area( const double * beg, const double * end, double base )
 {
     double a = 0;
-	for ( const double * p = beg; p != end; ++p ) {  
+	for ( const double * p = beg; p != end; ++p ) {
 		if ( *p > base )
 			a += *p - base;
 	}
@@ -331,7 +332,7 @@ spectrum_peakfinder::spectrum_peakfinder(double pw
                                          , double /* bw */
                                          , WidthMethod wm ) : peakwidth_( pw )
                                                             , atmz_( 0 )
-                                                            , width_method_( wm ) 
+                                                            , width_method_( wm )
 {
 }
 
@@ -429,40 +430,89 @@ namespace adportable { namespace peakfind {
     }
 }
 
+void
+spectrum_peakfinder::setPeakWidth( WidthMethod method, double value, double mass )
+{
+    width_method_ = method;
+    peakwidth_ = value;
+    atmz_ = mass;
+}
+
+namespace adportable {
+    namespace {
+
+        struct sample_width_calculator {
+            const size_t nbrSamples_;
+            const double * pX_;
+            const adportable::spectrum_peakfinder::WidthMethod __method_;
+            const double __width_;
+            const double __mass_;
+            double rp_; // resolving power for debug
+
+            sample_width_calculator( const size_t nbrSamples
+                                     , const double * x
+                                     , spectrum_peakfinder::WidthMethod method
+                                     , double width
+                                     , double at = 0 ) : nbrSamples_( nbrSamples )
+                                                       , pX_( x )
+                                                       , __method_( method )
+                                                       , __width_( width )
+                                                       , __mass_( at ) {
+                rp_ = __mass_ / __width_;
+            }
+
+            std::pair< uint32_t, double > operator()( size_t index ) const {
+
+                if ( index >= nbrSamples_ )
+                    index = nbrSamples_ - 2;
+
+                const double delta_x = pX_[ index + 1 ] - pX_[ index ];
+                double w = 0;
+                switch( __method_ ) {
+                case spectrum_peakfinder::Constant:
+                    w = __width_;
+                    break;
+                case spectrum_peakfinder::Proportional: // ppm
+                    w = pX_[ index ] * __width_ / 1000000;
+                    break;
+                case spectrum_peakfinder::TOF:
+                    w = pX_[ index ] * __width_ / __mass_;
+                    break;
+                }
+                return std::make_pair( size_t( ( w / delta_x ) + 0.5 ), w );
+            }
+        };
+    }
+}
+
 size_t
 spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const double * pY )
 {
     if ( pX == 0 || pY == 0 )
         return 0;
+
+    sample_width_calculator width_calculator( nbrSamples, pX, width_method_, peakwidth_, atmz_ );
+
     array_wrapper<const double> px( pX, nbrSamples );
     array_wrapper<const double> py( pY, nbrSamples );
-    
-    size_t w = 7; // std::distance( xIt, it );  // make odd
-    size_t atmz = 0;
-    if ( width_method_ == TOF ) {
-		if ( ( pX[0] < atmz_ ) && ( atmz_ + peakwidth_ < pX[ nbrSamples - 1 ] ) ) {
-			array_wrapper<const double>::iterator xIt1 = std::upper_bound( px.begin(), px.end(), atmz_ );
-			array_wrapper<const double>::iterator xIt2 = std::upper_bound( xIt1, px.end(), atmz_ + peakwidth_ );
-			w = std::distance( xIt1, xIt2 );
-            atmz = size_t( atmz_ * 4 );
-		} else {
-			array_wrapper<const double>::iterator xIt1 = std::upper_bound( px.begin(), px.end(), pX[ nbrSamples / 4 ] );
-			array_wrapper<const double>::iterator xIt2 = std::upper_bound( xIt1, px.end(), *xIt1 + peakwidth_ );
-			w = std::distance( xIt1, xIt2 );
-		}
-    }
-    double dbase(0), rms(0);
-    spectrum_processor::tic( nbrSamples, pY, dbase, rms );
 
-    // int noise = int(rms); //5; // assume LSB noise
-    int m = ( w < 5 ) ? 5 : int(w) | 0x01; // ( w > 25 ) ? 25 : w | 0x01;
+    constexpr const size_t NSGF = 5;
+
+    double dbase, rms;
+    std::tie( std::ignore, dbase, rms ) = spectrum_processor::tic( nbrSamples, pY, NSGF );
+
+    uint32_t iw;
+    std::tie( iw, std::ignore ) = width_calculator( nbrSamples / 20 ); // width at 5% from low mass limit
+
+    double slope = double( rms ) / double( iw * 9 );
+
+    int m = ( iw < 3 ) ? 3 : int(iw) | 0x01; // ( w > 25 ) ? 25 : w | 0x01;
     int NH = m / 2;
 
-    double slope = double( rms ) / double( w * 8 );
     SGFilter diff( m, SGFilter::Derivative1, SGFilter::Cubic );
 
-    peakfind::slope_state<peakfind::counter> state( w / 2 );
-    
+    peakfind::slope_state<peakfind::counter> state( iw / 2 );
+
     double base_avg = dbase;
     size_t base_pos = 0, base_c = 0;
 
@@ -473,10 +523,10 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
 
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
-        
+
         bool reduce = false;
         if ( d1 >= slope ) {
-            if ( ( base_c = std::min( base_c, w * 2 ) ) )
+            if ( ( base_c = std::min( base_c, size_t( iw * 2 ) ) ) )
                 base_avg = std::accumulate( py.begin() + base_pos - base_c, py.begin() + base_pos, 0.0 ) / double(base_c);
             base_c = 0;
             reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
@@ -490,16 +540,6 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
             }
         }
 
-#if defined _DEBUG || defined DEBUG
-        if ( 12 < pX[x] && pX[x] < 34 ) {
-            o << std::fixed << std::setprecision(14) << x << "\t" << pX[x] << "\t" << pY[x] << "\t" << d1 << "\t" << smoother( &pY[x] )
-              << "\t" << ( reduce ? "true" : "false");
-            for ( int i = 0; i < int( state.stack_.size() ); ++i )
-                o << "\tstack:" << state.stack_[i].type() << ", " << state.stack_[i].distance();
-            o << std::endl;
-        }
-#endif
-    
         if ( reduce ) {
             double baselevel = base_avg;
             std::pair< peakfind::counter, peakfind::counter > peak;
@@ -507,18 +547,22 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
 				if ( pX[ peak.second.tpos_ ] - pX[ peak.first.bpos_ ] >= peakwidth_ ) {
                     if ( !results_.empty() ) {
                         const peakinfo& prev = results_.back();
-                        if ( peak.first.bpos_ - prev.first >= w )
+                        if ( peak.first.bpos_ - prev.first >= iw )
                             baselevel = std::min( pY[peak.first.bpos_], pY[peak.second.tpos_] );
                     }
                     results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, baselevel ) );
                 }
             }
-        } 
-        if ( atmz && atmz < pX[ x ] ) {
-            atmz *= 4;
-            diff = SGFilter( int( diff.coefficients().size() / 2 ) | 0x01, SGFilter::Derivative1, SGFilter::Cubic );
-#if defined _DEBUG || defined DEBUG
-			smoother = SGFilter( int( diff.coefficients().size() / 2 | 0x01 ) );
+        }
+
+        auto next_w = width_calculator( x );
+        if ( iw < next_w.first ) {
+            iw = next_w.first;
+            slope = double( rms ) / double( iw * 9 );
+            diff = SGFilter( iw, SGFilter::Derivative1, SGFilter::Cubic );
+#if !defined NDEBUG
+            ADDEBUG() << "diff coefficients.size: " << diff.coefficients().size() << "\twidth: " << width_calculator( x ) << "\t@" << pX[ x ]
+                      << "\tslope=" << slope;
 #endif
         }
     }
@@ -535,7 +579,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
             if ( pX[ peak.second.tpos_ ] - pX[ peak.first.bpos_ ] >= peakwidth_ ) {
                 if ( !results_.empty() ) {
                     const peakinfo& prev = results_.back();
-                    if ( peak.first.bpos_ - prev.first >= w )
+                    if ( peak.first.bpos_ - prev.first >= iw )
                         baselevel = std::min( pY[peak.first.bpos_], pY[peak.second.tpos_] );
                 }
 				results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, baselevel ) );
@@ -604,5 +648,3 @@ spectrum_processor::area( const areaFraction& frac, double base, const int8_t* p
 {
     return areaCalculator<int8_t>::area( frac, base, pData, nData );
 }
-
-
