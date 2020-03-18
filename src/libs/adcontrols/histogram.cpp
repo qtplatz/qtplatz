@@ -73,20 +73,22 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     if ( !scanlaw )
         return;
 
-    const double td = info.fSampInterval() * 2;
+    const double td = info.fSampInterval();
     double tp = info.delayTime();
 
     for ( size_t i = 0; i < ms.size(); ++i ) {
-        
+
         double tc = ms.getTime( i );
-        if ( ( tc - tp ) >= td ) {
+        if ( ( tc - tp ) >= td * 1.05 ) {
+            // insert a sample next to previous data
             counts.emplace_back( 0 );
-            times.emplace_back( tp + info.fSampInterval() ); // insert a sample next to previous data
-            masses.emplace_back( scanlaw->getMass( tp + info.fSampInterval(), int( info.mode() ) ) );
-            
+            times.emplace_back( tp + info.fSampInterval() );
+            masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
+
+            // insert 1-sample point advance data with 0 count
             counts.emplace_back( 0 );
-            times.emplace_back( tc - info.fSampInterval() ); // insert previous sample as 0 count
-            masses.emplace_back( scanlaw->getMass( tc - info.fSampInterval(), int( info.mode() ) ) );
+            times.emplace_back( tc - info.fSampInterval() );
+            masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
         }
         counts.emplace_back( ms.getIntensity( i ) );
         times.emplace_back( tc );
@@ -100,7 +102,7 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
         times.emplace_back( times.back() + info.fSampInterval() );
         masses.emplace_back( scanlaw->getMass( times.back() + info.fSampInterval(), int( info.mode() ) ) );
     }
-    
+
     ms.setCentroid( CentroidNone );
     ms.setMassArray( std::move( masses ) );
     ms.setTimeArray( std::move( times ) );
@@ -112,7 +114,7 @@ histogram::histogram_to_profile( MassSpectrum& ms )
 {
     if ( ms.size() == 0 )
         return;
-    
+
     auto& prop = ms.getMSProperty();
     auto& info = prop.samplingInfo();
 
@@ -125,7 +127,7 @@ histogram::histogram_to_profile( MassSpectrum& ms )
     double tp = info.delayTime();
 
     double deltaMass = 0.0001;
-    
+
     for ( size_t i = 0; i < ms.size(); ++i ) {
 
         if ( i < ( ms.size() - 1 ) )
@@ -152,7 +154,7 @@ histogram::histogram_to_profile( MassSpectrum& ms )
         tp = tc;
     }
 
-    // terminate    
+    // terminate
     if ( ! counts.empty() ) {
         counts.emplace_back( 0 );
         times.emplace_back( times.back() + info.fSampInterval() );
@@ -164,6 +166,3 @@ histogram::histogram_to_profile( MassSpectrum& ms )
     ms.setTimeArray( std::move( times ) );
     ms.setIntensityArray( std::move( counts ) );
 }
-
-
-
