@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <functional>
 #include <memory>
 
 namespace adcontrols {
@@ -40,9 +41,7 @@ namespace adcontrols {
     private:
         static void histogram_to_profile( MassSpectrum&, const MassSpectrometer& );
         static void histogram_to_profile( MassSpectrum& );
+        static void histogram_to_profile( MassSpectrum&, std::function< double( double, int, double, double ) > assigner );
     };
 
 }
-
-
-

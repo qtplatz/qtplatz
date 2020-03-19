@@ -26,6 +26,7 @@
 #include "centroidprocess.hpp"
 #include "centroidmethod.hpp"
 #include "description.hpp"
+#include "histogram.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
 #include "mspeakinfoitem.hpp"
@@ -34,6 +35,7 @@
 #include "waveform_filter.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/scanlaw_solver.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/histogram_processor.hpp>
 #include <adportable/moment.hpp>
@@ -114,26 +116,6 @@ namespace adcontrols {
 
     }
 
-    namespace {
-        struct scanlaw_solver {
-            double a_;
-            double b_;
-            scanlaw_solver( std::pair< double, double > m
-                            , std::pair< double, double > t ) {
-                b_ = (std::sqrt(m.second) - std::sqrt(m.first))/(t.second - t.first);
-                a_ = std::sqrt(m.first) - ( b_ * 10e-6 );
-            }
-            inline double mass( double t ) const {
-                return ( a_ + ( b_ * t ) ) * ( a_ + ( b_ * t ) );
-            }
-            inline double time( double m ) const {
-                return (-a_ + std::sqrt(m)) / b_;
-            }
-            inline double delta_t( double dm, double m ) const {
-                return time( m + dm ) - time( m );
-            }
-        };
-    }
 }
 
 CentroidProcess::~CentroidProcess(void)
@@ -472,14 +454,15 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 }
 
 void
-CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
+CentroidProcessImpl::findCluster( const MassSpectrum& xhistogram )
 {
-    if ( histogram.size() < 2 )
+    if ( xhistogram.size() < 2 )
         return;
     size_t width_i(3);
     {
-        scanlaw_solver solver( std::make_pair( histogram.mass(0), histogram.mass( histogram.size() - 1 ) )
-                               , std::make_pair( histogram.time(0), histogram.time( histogram.size() - 1 ) ) );
+        adportable::scanlaw_solver solver( { xhistogram.mass(0), xhistogram.mass(xhistogram.size() - 1)}
+                                           ,{ xhistogram.time(0), xhistogram.time(xhistogram.size() - 1)} );
+
         double width_m(0), width_t(0);
         switch ( method_.peakWidthMethod() ) {
         case CentroidMethod::ePeakWidthTOF:
@@ -487,33 +470,34 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
             width_t = solver.delta_t( width_m, method_.rsTofAtMz() );
             break;
         case CentroidMethod::ePeakWidthProportional:
-            width_m = histogram.mass( 0 ) * method_.rsPropoInPpm() / 1000000;
-            width_t = solver.delta_t( width_m, histogram.mass(0) ); // wordaround (due to instMassRange is empty)
+            width_m = xhistogram.mass( 0 ) * method_.rsPropoInPpm() / 1000000;
+            width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
             break;
         case CentroidMethod::ePeakWidthConstant:
             width_m = method_.rsConstInDa();
-            width_t = solver.delta_t( width_m, histogram.mass(0) ); // wordaround (due to instMassRange is empty)
+            width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
             break;
         }
-        size_t width_i = size_t( width_t / histogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
+        size_t width_i = size_t( width_t / xhistogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
 
         ADDEBUG() << "width_m: " << (width_m *1000) << "mDa\twidth_t: "
                   << (width_t *1e9) << "ns \twidth_i: " << width_i << "\t@" << method_.rsTofAtMz();
     }
 
-    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval(), width_i );
-    adportable::histogram_merger merge( histogram.getMSProperty().samplingInfo().fSampInterval(), method_.peakCentroidFraction() );
+    const double timeInterval = xhistogram.getMSProperty().samplingInfo().fSampInterval();
 
-    const double * pCounts = histogram.getIntensityArray();
-    const double * pTimes = histogram.getTimeArray();
-    const double * pMasses = histogram.getMassArray();
+    adportable::histogram_peakfinder finder( timeInterval, width_i );
 
-    if ( finder( histogram.size(), pTimes, pCounts ) ) {
+    auto profiled = histogram::make_profile( xhistogram );
 
-        // merge( finder.results_, histogram.size(), pTimes, pCounts );
+    const double * pCounts = profiled->getIntensityArray();
+    const double * pTimes = profiled->getTimeArray();
+    const double * pMasses = profiled->getMassArray();
 
-        info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
-        info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );
+    if ( finder( profiled->size(), pTimes, pCounts ) ) {
+
+        info_.setMode( xhistogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+        info_.setProtocol( xhistogram.protocolId(), xhistogram.nProtocols() );
 
         for ( adportable::peakinfo& pk: finder.results_ ) {
 
@@ -563,10 +547,9 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
             // front interporation
             {
-                auto it = std::lower_bound( pTimes, pTimes + histogram.size(), item.centroid_left_time_ );
+                auto it = std::lower_bound( pTimes, pTimes + profiled->size(), item.centroid_left_time_ );
                 size_t idx = std::distance( pTimes, it );
-                if ( idx != 0 && ( pTimes[ idx ] - pTimes[ idx-1 ] ) <= histogram.getMSProperty().samplingInfo().fSampInterval() * 2 ) {
-
+                if ( idx != 0 && ( pTimes[ idx ] - pTimes[ idx-1 ] ) <= timeInterval * 2 ) {
                     double y = pCounts[ idx - 1 ] +
                         ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_left_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
                     item.area_ += y;
@@ -575,10 +558,9 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
             // rear interporation
             {
-                auto it = std::lower_bound( pTimes, pTimes + histogram.size(), item.centroid_right_time_ );
+                auto it = std::lower_bound( pTimes, pTimes + profiled->size(), item.centroid_right_time_ );
                 size_t idx = std::distance( pTimes, it );
-                if ( (idx != histogram.size() - 2) && ( pTimes[idx+1] - pTimes[idx] ) <= histogram.getMSProperty().samplingInfo().fSampInterval() * 2 ) {
-
+                if ( (idx != profiled->size() - 2) && ( pTimes[idx+1] - pTimes[idx] ) <= timeInterval * 2 ) {
                     double y = pCounts[ idx - 1 ] +
                         ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_right_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
                     item.area_ += y;

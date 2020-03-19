@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,11 +28,37 @@
 #include "msproperty.hpp"
 #include "samplinginfo.hpp"
 #include "scanlaw.hpp"
-#if !defined NDEBUG
 #include <adportable/debug.hpp>
-#endif
+#include <adportable/scanlaw_solver.hpp>
 #include <boost/format.hpp>
 #include <cmath>
+
+namespace {
+
+    template< typename T >
+    struct mass_assigner {
+        const T& t_;
+        mass_assigner( const T& t ) : t_( t ) {}
+        inline double operator()( double time, int mode, double t, double m ) const;
+    };
+
+    template<> double mass_assigner< adcontrols::MassSpectrometer >::operator()( double time, int mode, double, double ) const {
+        return t_.assignMass( time, mode );
+    }
+
+    template<> double mass_assigner< adportable::scanlaw_solver >::operator()( double time, int, double t, double m ) const {
+        auto delta = std::abs( t_.mass( time ) - t_.mass( t ) );
+        // if ( time < 15e-6 )
+        //     ADDEBUG() << "time: " << (time*1e6) << ", " << (t*1e6) << ", dt: " << ( time - t )*1e9 << "ns\tdelta m: " << delta * 1000;
+        if ( time < t ) { // adding in front of the peak
+            return m - delta;
+        } else {          // adding to back of the peak
+            return m + delta;
+        }
+    }
+    ///////
+
+}
 
 using namespace adcontrols;
 
@@ -61,6 +87,28 @@ histogram::make_profile( const MassSpectrum& ms )
 void
 histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spectrometer )
 {
+#if 0
+    adportable::scanlaw_solver solver( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
+    mass_assigner assigner( solver );
+#else
+    mass_assigner assigner( spectrometer );
+#endif
+    histogram_to_profile( ms, assigner );
+}
+
+void
+histogram::histogram_to_profile( MassSpectrum& ms )
+{
+    if ( ms.size() < 2 )
+        return;
+    adportable::scanlaw_solver solver( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
+    mass_assigner assigner( solver );
+    histogram_to_profile( ms, assigner );
+}
+
+void
+histogram::histogram_to_profile( MassSpectrum& ms, std::function< double(double, int, double, double) > assigner )
+{
     auto& prop = ms.getMSProperty();
     auto& info = prop.samplingInfo();
 
@@ -70,21 +118,32 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     times.reserve( info.nSamples() );
 
     const double td = info.fSampInterval();
-    double tp = info.delayTime();
+    //double tp = info.delayTime();
+    double tp = ms.time(0) - td;
 
-    for ( size_t i = 0; i < ms.size(); ++i ) {
+    // initial 0
+    counts.emplace_back( 0 );
+    times.emplace_back( tp );
+    masses.emplace_back( assigner( tp, int( info.mode() ), ms.time(0), ms.mass(0) ) );
+
+    // first data
+    counts.emplace_back( ms.intensity( 0 ) );
+    times.emplace_back( ms.time( 0 ) );
+    masses.emplace_back( ms.mass( 0 ) );
+
+    for ( size_t i = 1; i < ms.size(); ++i ) {
 
         double tc = ms.getTime( i );
         if ( ( tc - tp ) >= td * 1.05 ) {
-            // insert a sample next to previous data
+            // insert zero after the peak cluster
             counts.emplace_back( 0 );
             times.emplace_back( tp + info.fSampInterval() );
-            masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
+            masses.emplace_back( assigner( times.back(), int( info.mode() ), tp, masses.back() ) );
 
             // insert 1-sample point advance data with 0 count
             counts.emplace_back( 0 );
             times.emplace_back( tc - info.fSampInterval() );
-            masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
+            masses.emplace_back( assigner( times.back(), int( info.mode() ), tc, ms.mass( i ) ) );
         }
         counts.emplace_back( ms.intensity( i ) );
         times.emplace_back( tc );
@@ -96,65 +155,7 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     if ( ! counts.empty() ) {
         counts.emplace_back( 0 );
         times.emplace_back( times.back() + info.fSampInterval() );
-        masses.emplace_back( spectrometer.assignMass( times.back(), int( info.mode() ) ) );
-    }
-
-    ms.setCentroid( CentroidNone );
-    ms.setMassArray( std::move( masses ) );
-    ms.setTimeArray( std::move( times ) );
-    ms.setIntensityArray( std::move( counts ) );
-}
-
-void
-histogram::histogram_to_profile( MassSpectrum& ms )
-{
-    if ( ms.size() == 0 )
-        return;
-
-    auto& prop = ms.getMSProperty();
-    auto& info = prop.samplingInfo();
-
-    std::vector< double > counts, masses, times; // ( info.nSamples() ); // counts intensity array
-    counts.reserve( info.nSamples() );
-    masses.reserve( info.nSamples() );
-    times.reserve( info.nSamples() );
-
-    const double td = info.fSampInterval() * 2;
-    double tp = info.delayTime();
-
-    double deltaMass = 0.0001;
-
-    for ( size_t i = 0; i < ms.size(); ++i ) {
-
-        if ( i < ( ms.size() - 1 ) )
-            deltaMass = ( ms.mass( i + 1 ) - ms.mass( i ) ) / ( ( ms.time( i + 1 ) - ms.time( i ) ) / info.fSampInterval() );
-
-        double tc = ms.time( i );
-
-        if ( ( tc - tp ) >= td ) {
-            // end previous peak
-            if ( ! counts.empty() ) {
-                counts.emplace_back( 0 );
-                times.emplace_back( tp + info.fSampInterval() );   // insert at the end of previous data
-                masses.emplace_back( ms.mass( i == 0 ? 0 : i - 1 ) + deltaMass );
-            }
-
-            // start this peak
-            counts.emplace_back( 0 );
-            times.emplace_back( tc - info.fSampInterval() );    // insert before next peak start
-            masses.emplace_back( ms.mass( i ) - deltaMass );
-        }
-        counts.emplace_back( ms.intensity( i ) );
-        times.emplace_back( tc );
-        masses.emplace_back( ms.mass( i ) );
-        tp = tc;
-    }
-
-    // terminate
-    if ( ! counts.empty() ) {
-        counts.emplace_back( 0 );
-        times.emplace_back( times.back() + info.fSampInterval() );
-        masses.emplace_back( masses.back() + deltaMass );
+        masses.emplace_back( assigner( times.back(), int( info.mode() ), tp, masses.back() ) );
     }
 
     ms.setCentroid( CentroidNone );
