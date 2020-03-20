@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     15733,        365]
-NotebookOptionsPosition[     14242,        337]
-NotebookOutlinePosition[     14617,        353]
-CellTagsIndexPosition[     14574,        350]
+NotebookDataLength[     18094,        410]
+NotebookOptionsPosition[     16103,        369]
+NotebookOutlinePosition[     16532,        387]
+CellTagsIndexPosition[     16489,        384]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -21,12 +21,13 @@ Notebook[{
 
 Cell[CellGroupData[{
 Cell[TextData[{
- "QtPlatz Advanced Filesystem Access\n",
- StyleBox["-- Raw spectral data access demo --", "Subtitle"]
+ "QtPlatz Advanced Filesystem\n",
+ StyleBox["Raw spectral data access", "Subtitle"]
 }], "Title",
  CellChangeTimes->{{3.7936617259885073`*^9, 3.793661727554058*^9}, {
   3.7936617765694637`*^9, 3.7936618402785263`*^9}, {3.793662762805703*^9, 
-  3.793662775058014*^9}},ExpressionUUID->"80496342-67c5-48a1-99cb-\
+  3.793662775058014*^9}, {3.793726497210135*^9, 
+  3.793726516854422*^9}},ExpressionUUID->"80496342-67c5-48a1-99cb-\
 f3242b6e0308"],
 
 Cell[BoxData[{
@@ -66,6 +67,68 @@ Cell[BoxData[{
    3.793601618340765*^9, 3.7936016471224823`*^9}, 3.793601696083284*^9, {
    3.793601788780629*^9, 3.793601820996324*^9}},
  CellLabel->"In[27]:=",ExpressionUUID->"61f617fc-8912-4998-baff-60a236fe6cc0"],
+
+Cell[TextData[{
+ StyleBox["Behind the design of the raw data streams.", "Subtitle"],
+ "\nThe \[OpenCurlyDoubleQuote]data file\[CloseCurlyDoubleQuote] created by \
+QtPlatz is an advance file system in the file, which based on the SQLite \
+database engine.  The data acquisition core of the QtPlatz handles all \
+incoming data streams such as UV/Visible detector, multiple series of \
+waveforms from digitizer such as PKD, and AVG waveform from the mass \
+spectrometer, and ambient parameter monitor and so forth.   All those data \
+should be recorded as a function of time, where time should be treatable to \
+UTC international clock.  Except for time series data, all other bitstreams \
+are tied to each data source (a.k.a. instrument).   It does not represent \
+just a data generator device such as ADC and digitizers, but a specific model \
+of the instrument.  For example, infiTOF and AccuTOF plugins are both using \
+the same model of the digitizer.  However, the meta-data attached to each \
+waveform is different.  The infiTOF control is entirely tied up with HV and \
+timing control, so that timing information should be attached to each \
+waveform data; however, QtPlatz has no way to access analyzer parameters.  \
+The new instrument to be supported in the future may have a different \
+meta-data need to be added.\nAs already described, a data stream has its own \
+data bit frame format depend on the analytical instrument model.  Every data \
+stream generates by a software module called virtual instrument peripheral \
+(VIP), where each of VIP represents an instrument, and translate a frame of \
+data frame instrument into a bitstream on the time domain.  The data \
+acquisition core of the QtPlatz keeps monitoring all data streams paying \
+attention to time-stamps and time event data so-called \
+\[OpenCurlyQuote]well-known-event.\[CloseCurlyQuote]  The well-known-event is \
+a 32-bit timing data that represents START, STOP, INJECT, WARNING, ERROR, and \
+additional instrument-specific states (e.g., DARK measurement in progress).  \
+The data acquisition core will store data after the INJECT event stream into \
+the SQL table AcquiredData, and the bitstream is storing into a BLOB.  The \
+bzip algorithm may compress it.  The term INJECT is derived from a sample \
+injection on the liquid chromatography.\nEach VIP should also provide a data \
+translator called \[OpenCurlyQuote]DataReader\[CloseCurlyQuote] in a separate \
+loadable module, which provides a function to deserialize data in BLOB and \
+construct a known data representation of QtPlatz such as MassSpectrum, \
+Chromatogram, and so forth.  The concrete DataReader has a unique id (UUID), \
+which records into the AcquirdConf table.  The concrete DataReader to be \
+instantiated by using the \[OpenCurlyQuote]factory design pattern\
+\[CloseCurlyQuote] when the data to be accessed."
+}], "Text",
+ CellChangeTimes->{{3.793669101623417*^9, 3.793669433069991*^9}, {
+   3.7936694823673143`*^9, 3.793669630945306*^9}, 3.793669936244073*^9, {
+   3.793669983571548*^9, 3.79367070056425*^9}, {3.793670756052751*^9, 
+   3.793670894718007*^9}, {3.793670946168911*^9, 3.793671074398286*^9}, {
+   3.7936862461648083`*^9, 3.793686306540979*^9}, {3.793726319963872*^9, 
+   3.7937263473873873`*^9}, {3.7937265520126534`*^9, 3.79372692642784*^9}, {
+   3.793726976053884*^9, 3.793726989825472*^9}, {3.793727899001123*^9, 
+   3.793727954417225*^9}, {3.793728138890456*^9, 3.793728140407755*^9}, {
+   3.793728211212574*^9, 3.793728409955309*^9}, {3.793728484783169*^9, 
+   3.793728817178253*^9}, {3.793728872100307*^9, 3.7937291464447947`*^9}, {
+   3.793729298059688*^9, 3.79372948711096*^9}, {3.793729517455079*^9, 
+   3.793729883695154*^9}, {3.793730333238858*^9, 
+   3.793730334638256*^9}},ExpressionUUID->"eeb7f5cc-b293-4495-81b6-\
+a15af5760dac"],
+
+Cell[CellGroupData[{
+
+Cell["Obtaining the DataReader UUID", "Subsubsection",
+ CellChangeTimes->{
+  3.7937314274527407`*^9},ExpressionUUID->"227fb69f-2104-4391-8b6a-\
+2b7c663ee166"],
 
 Cell[BoxData[{
  RowBox[{
@@ -118,7 +181,15 @@ Cell[BoxData[{
    3.7936449685708017`*^9}, {3.7936453384769773`*^9, 3.793645340134543*^9}, {
    3.793649031695404*^9, 3.793649033618765*^9}, {3.79365066751621*^9, 
    3.793650743312705*^9}, {3.793653767418515*^9, 3.793653857196509*^9}},
- CellLabel->"In[29]:=",ExpressionUUID->"73f6eeae-c51c-4c4a-946a-c9bd3c4caecc"],
+ CellLabel->"In[29]:=",ExpressionUUID->"73f6eeae-c51c-4c4a-946a-c9bd3c4caecc"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Get record set for a data stream to each DataReader", "Subsubsection",
+ CellChangeTimes->{{3.793731520306118*^9, 
+  3.7937315916172533`*^9}},ExpressionUUID->"e7a866ab-77f5-4d01-8b17-\
+57ceef01bfa3"],
 
 Cell[BoxData[
  RowBox[{
@@ -146,70 +217,19 @@ from AcquiredData) FROM AcquiredData WHERE objuuid like 'da16704b%'\>\""}],
   3.79361714809274*^9, 3.793617152670768*^9}, {3.7936533024707527`*^9, 
   3.7936533058270807`*^9}, {3.793653362871608*^9, 3.793653487081106*^9}, {
   3.7936535182461443`*^9, 3.7936535210143747`*^9}},
- CellLabel->"In[35]:=",ExpressionUUID->"6a8803d1-2cb8-4908-92bc-3b0b09cfd89d"],
+ CellLabel->"In[35]:=",ExpressionUUID->"6a8803d1-2cb8-4908-92bc-3b0b09cfd89d"]
+}, Open  ]],
 
-Cell[BoxData[
- RowBox[{"Do", " ", "[", "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{"Print", "[", 
-    RowBox[{
-     RowBox[{"i", "[", 
-      RowBox[{"[", "1", "]"}], "]"}], ",", "\"\<\\t\>\"", 
-     "\[IndentingNewLine]", ",", " ", 
-     RowBox[{"DateObject", "[", 
-      RowBox[{
-       RowBox[{"N", "[", 
-        RowBox[{
-         RowBox[{"i", "[", 
-          RowBox[{"[", "2", "]"}], "]"}], "/", "1000000000"}], "]"}], "+", 
-       RowBox[{
-        RowBox[{"(", 
-         RowBox[{
-          RowBox[{"70", "*", "365"}], "+", "17"}], ")"}], "*", "24", "*", 
-        "3600"}]}], "]"}], "\[IndentingNewLine]", ",", " ", "\"\<\\t+\>\"", 
-     ",", " ", 
-     RowBox[{"Mod", "[", 
-      RowBox[{
-       RowBox[{"i", "[", 
-        RowBox[{"[", "2", "]"}], "]"}], ",", "1000000000"}], "]"}], ",", " ", 
-     "\"\< ns\>\"", ",", " ", "\"\<\\t\>\"", ",", " ", 
-     RowBox[{"N", "[", 
-      RowBox[{
-       RowBox[{"i", "[", 
-        RowBox[{"[", "3", "]"}], "]"}], "/", "1000000"}], "]"}], ",", " ", 
-     "\"\< ms\>\""}], "]"}], "         ", "\[IndentingNewLine]", ",", " ", 
-   RowBox[{"{", 
-    RowBox[{"i", ",", " ", "rows"}], "}"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.793603444369637*^9, 3.7936034452328663`*^9}, {
-   3.793603793723843*^9, 3.79360383465681*^9}, {3.7936039086513767`*^9, 
-   3.793603943100202*^9}, {3.793603975873006*^9, 3.793604032598186*^9}, {
-   3.7936040637374363`*^9, 3.793604073670649*^9}, 3.793604110836423*^9, {
-   3.793606337413546*^9, 3.79360636601692*^9}, {3.793606493699294*^9, 
-   3.793606496222898*^9}, {3.793606712161186*^9, 3.793606791728215*^9}, {
-   3.793607022657824*^9, 3.793607106079357*^9}, {3.793607184880106*^9, 
-   3.7936072295909777`*^9}, {3.793607375063888*^9, 3.793607383886581*^9}, {
-   3.793617164487256*^9, 3.7936171804862127`*^9}, {3.793650946493952*^9, 
-   3.793650948114623*^9}, {3.7936509824245977`*^9, 3.7936510760472317`*^9}, {
-   3.793651362878318*^9, 3.7936514309423933`*^9}, {3.79365147386666*^9, 
-   3.793651485336355*^9}, {3.793651528368116*^9, 3.793651644715807*^9}, {
-   3.793651769589781*^9, 3.793651851687193*^9}, {3.7936518977884912`*^9, 
-   3.793651898202641*^9}, {3.793652137743073*^9, 3.7936521444981613`*^9}, {
-   3.793652193270894*^9, 3.793652235174878*^9}, {3.793652447287477*^9, 
-   3.793652574140541*^9}, {3.793652648562451*^9, 3.7936527174572487`*^9}, {
-   3.793652800644999*^9, 3.793652814067058*^9}, {3.793652856071669*^9, 
-   3.793652862422035*^9}, {3.793653093733849*^9, 3.793653106718678*^9}, {
-   3.793653239647376*^9, 3.793653263886471*^9}, {3.7936533106913643`*^9, 
-   3.793653320359478*^9}, {3.793653548373784*^9, 3.7936536246217203`*^9}, {
-   3.7936592620537*^9, 
-   3.793659264746912*^9}},ExpressionUUID->"e585e03f-105b-4580-9477-\
-06a79fa405eb"],
+Cell[CellGroupData[{
 
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.79360682597075*^9, 3.7936068361188107`*^9}, {
-   3.793607001841969*^9, 3.7936070155463333`*^9}, {3.793617194851766*^9, 
-   3.7936171988104477`*^9}, {3.793617256628931*^9, 3.793617276469267*^9}, 
-   3.793654015733202*^9},
- CellLabel->"In[37]:=",ExpressionUUID->"e33ce0ae-5fcb-45a9-856b-da814e4a1323"],
+Cell["\<\
+Obtain a concrete AccuTOF AVG DataReader, and read through to the end of data\
+\
+\>", "Subsubsection",
+ CellChangeTimes->{{3.7937316311798477`*^9, 3.793731684195114*^9}, {
+  3.793731745810424*^9, 
+  3.793731818057044*^9}},ExpressionUUID->"f3397724-81c2-428b-8749-\
+4bc1e2a94ff1"],
 
 Cell[BoxData[
  RowBox[{"avgReader", " ", "=", " ", 
@@ -269,7 +289,19 @@ Cell[BoxData[
   3.793656428952054*^9}, {3.793656518456736*^9, 3.793656623766286*^9}, {
   3.793656825996759*^9, 3.793656830831799*^9}, {3.793659112152649*^9, 
   3.7936591512268887`*^9}, {3.7936593089311934`*^9, 3.79365938104252*^9}},
- CellLabel->"In[45]:=",ExpressionUUID->"38b4d7fa-f272-408a-ab34-1946ed766eb8"],
+ CellLabel->"In[45]:=",ExpressionUUID->"38b4d7fa-f272-408a-ab34-1946ed766eb8"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Obtain a concrete AccuTOF PKD DataReader, and read through to the end of data\
+\
+\>", "Subsubsection",
+ CellChangeTimes->{{3.793731712397977*^9, 3.7937317428912573`*^9}, {
+  3.793731792210298*^9, 
+  3.793731807850067*^9}},ExpressionUUID->"9222381e-0bcf-477e-b0d8-\
+7f17eb653560"],
 
 Cell[BoxData[
  RowBox[{"pkdReader", " ", "=", " ", 
@@ -330,13 +362,15 @@ Cell[BoxData[
   3.793657143776231*^9}, {3.793657204149349*^9, 3.793657221328925*^9}, {
   3.7936591370075693`*^9, 3.7936591533122187`*^9}, {3.793661212652853*^9, 
   3.793661230032797*^9}, {3.7936612622032557`*^9, 3.793661284860634*^9}, {
-  3.793662522568943*^9, 
-  3.793662524061164*^9}},ExpressionUUID->"4d74b3f4-1b19-49bd-bdb6-\
-8819fa8dfeb0"]
+  3.793662522568943*^9, 3.793662524061164*^9}},
+ CellLabel->"In[49]:=",ExpressionUUID->"4d74b3f4-1b19-49bd-bdb6-8819fa8dfeb0"]
+}, Open  ]]
 }, Open  ]]
 },
 WindowSize->{812, 659},
 WindowMargins->{{33, Automatic}, {Automatic, 29}},
+PrintingCopies->1,
+PrintingPageRange->{1, Automatic},
 TaggingRules->{"TryRealOnly" -> False},
 FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (May 3, 2019)",
 StyleDefinitions->"Default.nb"
@@ -353,19 +387,30 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[580, 22, 357, 7, 133, "Title",ExpressionUUID->"80496342-67c5-48a1-99cb-f3242b6e0308"],
-Cell[940, 31, 887, 20, 115, "Input",ExpressionUUID->"8047be15-27c5-4339-9b5d-8a721755f01f"],
-Cell[1830, 53, 693, 14, 52, "Input",ExpressionUUID->"61f617fc-8912-4998-baff-60a236fe6cc0"],
-Cell[2526, 69, 2091, 51, 115, "Input",ExpressionUUID->"73f6eeae-c51c-4c4a-946a-c9bd3c4caecc"],
-Cell[4620, 122, 281, 7, 30, "Input",ExpressionUUID->"a4ef020b-0c0d-455f-84e2-08e169b4c5db"],
-Cell[4904, 131, 945, 17, 94, "Input",ExpressionUUID->"6a8803d1-2cb8-4908-92bc-3b0b09cfd89d"],
-Cell[5852, 150, 2736, 54, 115, "Input",ExpressionUUID->"e585e03f-105b-4580-9477-06a79fa405eb"],
-Cell[8591, 206, 348, 5, 30, "Input",ExpressionUUID->"e33ce0ae-5fcb-45a9-856b-da814e4a1323"],
-Cell[8942, 213, 437, 7, 30, "Input",ExpressionUUID->"fb2d7310-e90e-41fd-bb25-8adede8a467c"],
-Cell[9382, 222, 2273, 49, 178, "Input",ExpressionUUID->"38b4d7fa-f272-408a-ab34-1946ed766eb8"],
-Cell[11658, 273, 284, 5, 30, "Input",ExpressionUUID->"68743c72-608e-4fd0-8a45-6c8e0f7b91b5"],
-Cell[11945, 280, 484, 11, 94, "Input",ExpressionUUID->"41ae5d4a-9db8-438b-ad9f-6c7224087e2f"],
-Cell[12432, 293, 1794, 41, 199, "Input",ExpressionUUID->"4d74b3f4-1b19-49bd-bdb6-8819fa8dfeb0"]
+Cell[580, 22, 388, 8, 133, "Title",ExpressionUUID->"80496342-67c5-48a1-99cb-f3242b6e0308"],
+Cell[971, 32, 887, 20, 115, "Input",ExpressionUUID->"8047be15-27c5-4339-9b5d-8a721755f01f"],
+Cell[1861, 54, 693, 14, 52, "Input",ExpressionUUID->"61f617fc-8912-4998-baff-60a236fe6cc0"],
+Cell[2557, 70, 3810, 53, 621, "Text",ExpressionUUID->"eeb7f5cc-b293-4495-81b6-a15af5760dac"],
+Cell[CellGroupData[{
+Cell[6392, 127, 158, 3, 45, "Subsubsection",ExpressionUUID->"227fb69f-2104-4391-8b6a-2b7c663ee166"],
+Cell[6553, 132, 2091, 51, 115, "Input",ExpressionUUID->"73f6eeae-c51c-4c4a-946a-c9bd3c4caecc"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8681, 188, 204, 3, 45, "Subsubsection",ExpressionUUID->"e7a866ab-77f5-4d01-8b17-57ceef01bfa3"],
+Cell[8888, 193, 281, 7, 30, "Input",ExpressionUUID->"a4ef020b-0c0d-455f-84e2-08e169b4c5db"],
+Cell[9172, 202, 945, 17, 94, "Input",ExpressionUUID->"6a8803d1-2cb8-4908-92bc-3b0b09cfd89d"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10154, 224, 289, 7, 45, "Subsubsection",ExpressionUUID->"f3397724-81c2-428b-8749-4bc1e2a94ff1"],
+Cell[10446, 233, 437, 7, 30, "Input",ExpressionUUID->"fb2d7310-e90e-41fd-bb25-8adede8a467c"],
+Cell[10886, 242, 2273, 49, 178, "Input",ExpressionUUID->"38b4d7fa-f272-408a-ab34-1946ed766eb8"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[13196, 296, 289, 7, 45, "Subsubsection",ExpressionUUID->"9222381e-0bcf-477e-b0d8-7f17eb653560"],
+Cell[13488, 305, 284, 5, 30, "Input",ExpressionUUID->"68743c72-608e-4fd0-8a45-6c8e0f7b91b5"],
+Cell[13775, 312, 484, 11, 94, "Input",ExpressionUUID->"41ae5d4a-9db8-438b-ad9f-6c7224087e2f"],
+Cell[14262, 325, 1813, 40, 199, "Input",ExpressionUUID->"4d74b3f4-1b19-49bd-bdb6-8819fa8dfeb0"]
+}, Open  ]]
 }, Open  ]]
 }
 ]
