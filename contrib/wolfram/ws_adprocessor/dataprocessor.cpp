@@ -122,9 +122,21 @@ dataProcessor::readMassSpectrum( int j )
         adcontrols::DataReader::iterator iter;
         std::tie( reader, iter ) = it->second;
         if ( iter != reader->end() )
-            return reader->readSpectrum( iter++ );
-        else
-            activeReaders_.erase( it );
+            return reader->readSpectrum( iter );
     }
     return nullptr;
+}
+
+int
+dataProcessor::next( int readerId )
+{
+    auto it = activeReaders_.find( readerId );
+    if ( it != activeReaders_.end() ) {
+        auto& iter = std::get<1>(it->second);
+        ++iter;
+        auto rowid = (*iter).rowid();
+        // ADDEBUG() << "next: " << rowid;
+        return int( rowid );
+    }
+    return (-1);
 }

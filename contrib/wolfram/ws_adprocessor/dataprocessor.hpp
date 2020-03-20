@@ -58,7 +58,8 @@ namespace ws_adprocessor {
         bool open( const std::wstring& filename );
         std::vector< std::shared_ptr< DataReader > > dataReaders();
         int dataReader( const std::string& uuid );
-        std::shared_ptr< adcontrols::MassSpectrum > readMassSpectrum( int j );
+        std::shared_ptr< adcontrols::MassSpectrum > readMassSpectrum( int readerId );
+        int next( int readerId );
     };
 
 }

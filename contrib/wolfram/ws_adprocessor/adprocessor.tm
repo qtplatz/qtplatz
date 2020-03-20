@@ -146,5 +146,17 @@ double monoIsotopicMass P(( const char * ));
 :ReturnType:     Manual
 :End:
 
-:Evaluate: readSpectrum::usage = "adReadSpectrum[fileid,rowid] gives spectral data array."
+:Evaluate: readSpectrum::usage = "adReadSpectrum[fileid,reader] gives spectral data array."
+
+/**************************************
+*/
+:Begin:
+:Function:       next
+:Pattern:        adNext[i_Integer, j_Integer]
+:Arguments:      { i, j }
+:ArgumentTypes:  { Integer, Integer }
+:ReturnType:     Integer
+:End:
+
+:Evaluate: adNext::usage = "adNext[fileid,reader] gives spectral data array."
 

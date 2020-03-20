@@ -171,10 +171,10 @@ adProcessed( int id )
 }
 
 void
-readSpectrum( int id, int j )
+readSpectrum( int id, int readerId )
 {
     if ( auto dp = singleton::instance()->dataProcessor( id ) ) {
-        if ( auto ms = dp->readMassSpectrum( j ) ) {
+        if ( auto ms = dp->readMassSpectrum( readerId ) ) {
             std::vector< double > a;
             for ( auto pms: adcontrols::segment_wrapper<>( *ms ) ) {
                 for ( size_t i = 0; i < pms.size(); ++i ) {
@@ -190,4 +190,14 @@ readSpectrum( int id, int j )
         }
     }
     WSPutSymbol(stdlink, "$Failed");
+}
+
+int
+next( int id, int readerId )
+{
+    if ( auto dp = singleton::instance()->dataProcessor( id ) ) {
+        return dp->next( readerId );
+
+    }
+    return (-1);
 }
