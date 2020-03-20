@@ -51,7 +51,7 @@ int counter P((int));
 
 :Begin:
 :Function:       isotopeCluster
-:Pattern:        IsotopeCluster[i_String, j_Real]
+:Pattern:        adIsotopeCluster[i_String, j_Real]
 :Arguments:      { i, j }
 :ArgumentTypes:  { String, Real64 }
 :ReturnType:     Manual
@@ -65,7 +65,7 @@ double monoIsotopicMass P(( const char * ));
 
 :Begin:
 :Function:       monoIsotopicMass
-:Pattern:        MonoIsotopicMass[i_String]
+:Pattern:        adMonoIsotopicMass[i_String]
 :Arguments:      { i }
 :ArgumentTypes:  { String }
 :ReturnType:     Real64
@@ -81,7 +81,7 @@ double monoIsotopicMass P(( const char * ));
 :Pattern:        adFileOpen[i_String]
 :Arguments:      { i }
 :ArgumentTypes:  { String }
-:ReturnType:     Manual
+:ReturnType:     Integer
 :End:
 
 :Evaluate: adFileOpen::usage = "adFileOpen[name] open .adfs datafile and assign uuid."
@@ -90,10 +90,10 @@ double monoIsotopicMass P(( const char * ));
 */
 
 :Begin:
-:Function:       adFileClose
-:Pattern:        adFileClose[i_String]
+:Function:       fileClose
+:Pattern:        adFileClose[i_Integer]
 :Arguments:      { i }
-:ArgumentTypes:  { String }
+:ArgumentTypes:  { Integer }
 :ReturnType:     Integer
 :End:
 
@@ -102,10 +102,10 @@ double monoIsotopicMass P(( const char * ));
 /**************************************
 */
 :Begin:
-:Function:       adDataReaders
-:Pattern:        adDataReaders[i_String]
+:Function:       dataReaders
+:Pattern:        adDataReaders[i_Integer]
 :Arguments:      { i }
-:ArgumentTypes:  { String }
+:ArgumentTypes:  { Integer }
 :ReturnType:     Manual
 :End:
 
@@ -116,12 +116,35 @@ double monoIsotopicMass P(( const char * ));
 */
 :Begin:
 :Function:       adProcessed
-:Pattern:        adProcessed[i_String]
+:Pattern:        adProcessed[i_Integer]
 :Arguments:      { i }
-:ArgumentTypes:  { String }
+:ArgumentTypes:  { Integer }
 :ReturnType:     Manual
 :End:
 
 :Evaluate: adProcessed::usage = "adProcessed[uuid] gives data reader class ids."
 
+/**************************************
+*/
+:Begin:
+:Function:       dataReader
+:Pattern:        adDataReader[i_Integer, j_String]
+:Arguments:      { i, j }
+:ArgumentTypes:  { Integer, String }
+:ReturnType:     Integer
+:End:
+
+:Evaluate: dataReader::usage = "adDataReader[fileid,objuuid]."
+
+/**************************************
+*/
+:Begin:
+:Function:       readSpectrum
+:Pattern:        adReadSpectrum[i_Integer, j_Integer]
+:Arguments:      { i, j }
+:ArgumentTypes:  { Integer, Integer }
+:ReturnType:     Manual
+:End:
+
+:Evaluate: readSpectrum::usage = "adReadSpectrum[fileid,rowid] gives spectral data array."
 

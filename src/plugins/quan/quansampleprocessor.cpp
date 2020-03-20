@@ -210,6 +210,9 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 }
             } while ( 0 );
             break;
+        case adcontrols::QuanSample::Spectrogram:
+            // do nothing
+            break;
         }
         processor_->complete( &sample );
     }

@@ -36,7 +36,7 @@
 
 using namespace ws_adprocessor;
 
-singleton::singleton()
+singleton::singleton() : idCounter_(1)
 {
 }
 
@@ -51,22 +51,31 @@ singleton::instance()
     return &__instance;
 }
 
-void
-singleton::set_dataProcessor( const boost::uuids::uuid& uuid, std::shared_ptr< ws_adprocessor::dataProcessor > dp )
+uint32_t
+singleton::generateId()
 {
-    dataList_[ uuid ] = std::make_tuple( dp, std::chrono::system_clock::now() );
+    auto id = idCounter_++;
+    return id;
+}
+
+int
+singleton::set_dataProcessor( std::shared_ptr< ws_adprocessor::dataProcessor > dp )
+{
+    auto id = generateId();
+    dataList_[ id ] = std::make_tuple( dp, std::chrono::system_clock::now() );
+    return id;
 }
 
 void
-singleton::remove_dataProcessor( const boost::uuids::uuid& uuid )
+singleton::remove_dataProcessor( int id )
 {
-    dataList_.erase( uuid );
+    dataList_.erase( id );
 }
 
 std::shared_ptr< dataProcessor >
-singleton::dataProcessor( const boost::uuids::uuid& uuid )
+singleton::dataProcessor( int id )
 {
-    auto it = dataList_.find( uuid );
+    auto it = dataList_.find( id );
     if ( it != dataList_.end() ) {
         std::get<1>( it->second ) = std::chrono::system_clock::now(); // update access time
         return std::get<0>( it->second );

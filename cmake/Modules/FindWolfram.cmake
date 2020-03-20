@@ -7,14 +7,21 @@ set ( WSTP_FOUND FALSE )
 set ( WOLFRAM_VERSION "12.0" )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  
-  find_path ( WOLFRAM_DIR "Contents/Resources/Wolfram Player.app" PATHS "/Applications/Wolfram Engine.app" )
+
+  find_path ( WOLFRAM_DIR "Contents/SystemFiles" PATHS "/Applications/Mathematica.app" )
   if ( WOLFRAM_DIR )
-    find_path( WOLFRAM_SYSTEM_DIR "Links" PATHS "${WOLFRAM_DIR}/Contents/Resources/Wolfram Player.app/Contents/SystemFiles" )
+    find_path( WOLFRAM_SYSTEM_DIR "Links" PATHS "${WOLFRAM_DIR}/Contents/SystemFiles/" )
+  else()
+    find_path ( WOLFRAM_DIR "Contents/Resources/Wolfram Player.app" PATHS "/Applications/Wolfram Engine.app" )
+    if ( WOLFRAM_DIR )
+      find_path( WOLFRAM_SYSTEM_DIR "Links" PATHS "${WOLFRAM_DIR}/Contents/Resources/Wolfram Player.app/Contents/SystemFiles" )
+    endif()
   endif()
+
   if ( WOLFRAM_SYSTEM_DIR )
     find_path( WSTP_DeveloperKitDir "CompilerAdditions" PATHS "${WOLFRAM_SYSTEM_DIR}/Links/WSTP/DeveloperKit/MacOSX-x86-64" )
-  endif()
+  endif()    
+
   find_library( COREFOUNDATION_LIBRARY CoreFoundation )
   set ( WSTP_LIBRARY_DIRS    "${WSTP_DeveloperKitDir}/CompilerAdditions" )
   set ( WSTP_LIBRARIES WSTPi4 ${COREFOUNDATION_LIBRARY} )

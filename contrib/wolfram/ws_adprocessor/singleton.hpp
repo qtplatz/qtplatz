@@ -49,12 +49,14 @@ namespace ws_adprocessor {
         ~singleton();
         static singleton * instance();
 
-        void set_dataProcessor( const boost::uuids::uuid&, std::shared_ptr< dataProcessor > dp );
-        void remove_dataProcessor( const boost::uuids::uuid& );
-        std::shared_ptr< dataProcessor > dataProcessor( const boost::uuids::uuid& );
+        int set_dataProcessor( std::shared_ptr< dataProcessor > dp );
+        void remove_dataProcessor( int );
+        std::shared_ptr< dataProcessor > dataProcessor( int );
+        uint32_t generateId();
 
     private:
-        std::map< boost::uuids::uuid, dataListType > dataList_;
+        std::map< int, dataListType > dataList_;
+        std::atomic< uint32_t > idCounter_;
     };
 
 }

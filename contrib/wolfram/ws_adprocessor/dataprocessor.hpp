@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/filesystem/path.hpp>
@@ -32,7 +33,6 @@
 
 namespace adcontrols {
     class MassSpectrum;
-    class DataReader;
 }
 
 class DataReader;
@@ -40,9 +40,11 @@ class DataReader;
 namespace ws_adprocessor {
     // public adcontrols::dataSubscriber {
     class dataProcessor : public adprocessor::dataprocessor {
-                                    
-        //const adcontrols::LCMSDataset * raw_;
-        //adcontrols::datafile * file_;
+
+        std::map< uint32_t, std::tuple< std::shared_ptr< const adcontrols::DataReader >
+                                        , adcontrols::DataReader::iterator >
+                  > activeReaders_;
+
     public:
         dataProcessor();
         ~dataProcessor();
@@ -55,7 +57,8 @@ namespace ws_adprocessor {
         
         bool open( const std::wstring& filename );
         std::vector< std::shared_ptr< DataReader > > dataReaders();
-        std::shared_ptr< DataReader > dataReader( const std::string& uuid );
+        int dataReader( const std::string& uuid );
+        std::shared_ptr< adcontrols::MassSpectrum > readMassSpectrum( int j );
     };
 
 }

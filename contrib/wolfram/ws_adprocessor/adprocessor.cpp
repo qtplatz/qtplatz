@@ -51,8 +51,7 @@ using namespace ws_adprocessor;
 int
 main( int argc, char * argv[] )
 {
-    ADDEBUG() << "main argc=" << argc << "\n" << argv[0];
-
+    ADDEBUG() << "main(" << argc << ", " << argv[0] << ")";
     return WSMain( argc, argv );
 }
 
@@ -74,7 +73,6 @@ counter( int i )
 double
 monoIsotopicMass( const char * formula )
 {
-    ADDEBUG() << __FUNCTION__ << "(" << formula << ")";
     double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) );
     return exactMass;
 }
@@ -95,96 +93,101 @@ isotopeCluster( const char * formula, double resolving_power )
     for ( size_t i = 0; i < ms.size(); ++i ) {
         a[ i * 2 + 0 ] = ms.mass( i );
         a[ i * 2 + 1 ] = ms.intensity( i );
-        ADDEBUG() << a[ i * 2 + 0 ] << ", " << a[ i * 2 + 1 ];
     }
-
     WSPutDoubleArray( stdlink, a.get(), dimensions, heads, 2 );
 }
 
-void
+int
 adFileOpen( const char * name )
 {
-    boost::uuids::uuid uuid{{0}};
+    int id(-1);
 
-    ADDEBUG() << __FUNCTION__ << "(" << name << ")";
+     ADDEBUG() << __FUNCTION__ << "(" << name << ")";
 
-    boost::filesystem::path path( name );
-    if ( boost::filesystem::exists( path ) ) {
-        ADDEBUG() << "file exists: " << path.string();
-        if ( auto dp = std::make_shared< dataProcessor >() ) {
-            if ( dp->open( path.wstring() ) ) {
-                uuid = boost::uuids::random_generator()();
-                singleton::instance()->set_dataProcessor( uuid, dp );
-            }
-        }
-    }
-    auto ustr = boost::uuids::to_string( uuid );
-    WSPutString( stdlink, ustr.c_str() );
+     boost::filesystem::path path( name );
+     if ( boost::filesystem::exists( path ) ) {
+         if ( auto dp = std::make_shared< dataProcessor >() ) {
+             if ( dp->open( path.wstring() ) ) {
+                 id = singleton::instance()->set_dataProcessor( dp );
+             }
+         }
+     }
+     return id;
 }
 
 int
-adFileClose( const char * name )
+fileClose( int file )
 {
-    ADDEBUG() << __FUNCTION__ << "(" << name << ")";
-    auto uuid = boost::uuids::string_generator()( name );
-    singleton::instance()->remove_dataProcessor( uuid );
+    singleton::instance()->remove_dataProcessor( file );
     return 0;
 }
 
 void
-adDataReaders( const char * uuid )
+dataReaders( int file )
 {
-    auto guid = boost::uuids::string_generator()( uuid );
-
-    if ( auto dp = singleton::instance()->dataProcessor( guid ) ) {
-
+    if ( auto dp = singleton::instance()->dataProcessor( file ) ) {
+        auto size = dp->dataReaders().size();
+        
         boost::property_tree::ptree pt;
         boost::property_tree::ptree child;
-
+        
         for ( auto reader : dp->dataReaders() ) {
             boost::property_tree::ptree a;
             a.put( "display_name", reader->display_name() );
             a.put( "objtext", reader->objtext() );
             a.put( "objuuid", reader->objuuid() );
-            
+     
             child.push_back( std::make_pair( "", a ) );
         }
 
-        pt.add_child( "DataReader", child );
+        pt.add_child( "dataReader", child );
 
         std::ostringstream o;
         write_json( o, pt );
-        
         WSPutString( stdlink, o.str().c_str() );
+    } else {
+        WSPutSymbol(stdlink, "$Failed");
+    }
+}
+
+int
+dataReader( int file, const char * objuuid )
+{
+    if ( auto dp = singleton::instance()->dataProcessor( file ) ) {
+        return dp->dataReader( objuuid );
+    }
+    return (-1);
+}
+
+void
+adProcessed( int id )
+{
+    if ( auto dp = singleton::instance()->dataProcessor( id ) ) {
+        auto portfolio = dp->portfolio();
+        WSPutString( stdlink, portfolio.xml().c_str() );
+    } else {
+        WSPutSymbol(stdlink, "$Failed");
     }
 }
 
 void
-adProcessed( const char * uuid )
+readSpectrum( int id, int j )
 {
-    auto guid = boost::uuids::string_generator()( uuid );
-
-    if ( auto dp = singleton::instance()->dataProcessor( guid ) ) {
-
-        auto portfolio = dp->portfolio();
-#if 0
-        boost::property_tree::ptree pt;
-        boost::property_tree::ptree child;
-
-        for ( auto reader : dp->dataReaders() ) {
-            boost::property_tree::ptree a;
-            a.put( "display_name", reader->display_name() );
-            a.put( "objtext", reader->objtext() );
-            a.put( "objuuid", reader->objuuid() );
-            
-            child.push_back( std::make_pair( "", a ) );
+    if ( auto dp = singleton::instance()->dataProcessor( id ) ) {
+        if ( auto ms = dp->readMassSpectrum( j ) ) {
+            std::vector< double > a;
+            for ( auto pms: adcontrols::segment_wrapper<>( *ms ) ) {
+                for ( size_t i = 0; i < pms.size(); ++i ) {
+                    a.emplace_back( pms.mass( i ) );
+                    a.emplace_back( pms.time( i ) );
+                    a.emplace_back( pms.intensity( i ) );
+                }
+            }
+            long dimensions[ 2 ] = { long(a.size() / 3), 3 };
+            const char * heads[ 3 ] = { "List", "List", "List" };            
+            WSPutDoubleArray( stdlink, a.data(), dimensions, heads, 2 );
+            return;
         }
-
-        pt.add_child( "DataReader", child );
-
-        std::ostringstream o;
-        write_json( o, pt );
-#endif   
-        WSPutString( stdlink, portfolio.xml().c_str() );
     }
+    WSPutSymbol(stdlink, "$Failed");
 }

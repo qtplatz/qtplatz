@@ -5,7 +5,8 @@ project ( ws_adprocessor )
 find_package( Qt5 CONFIG REQUIRED Core )  
 
 include_directories(
-  ${WSTP_INCLUDE_DIRS} 
+  ${WSTP_INCLUDE_DIRS}
+  ${LIBRARYLINK_INCLUDE_DIRS} 
   ${Qt5Core_INCLUDE_DIRS}
   )
 
@@ -41,6 +42,28 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${WSTP_LIBRARIES}
   )
 
+add_library( wsadprocessor SHARED
+  wsadprocessor.cpp
+  dataprocessor.cpp
+  dataprocessor.hpp
+  datareader.cpp
+  datareader.hpp
+  singleton.cpp
+  singleton.cpp
+  )
+
+target_link_libraries( wsadprocessor LINK_PUBLIC
+  adcontrols
+  adfs
+  adplugin_manager
+  adprocessor
+  acqrscontrols
+  adportable
+  Qt5::Core
+  ${Boost_LIBRARIES}
+  ${WSTP_LIBRARIES}
+  )
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   SUFFIX ".bin"
@@ -52,7 +75,19 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${WSTP_MODULE_DIR}
   )
 
-install( TARGETS ${PROJECT_NAME}
+set_target_properties( wsadprocessor
+  PROPERTIES
+  PREFIX ""
+  RUNTIME_OUTPUT_DIRECTORY ${WSTP_MODULE_DIR}
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${WSTP_MODULE_DIR}
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${WSTP_MODULE_DIR}  
+  LIBRARY_OUTPUT_DIRECTORY ${WSTP_MODULE_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${WSTP_MODULE_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${WSTP_MODULE_DIR}
+  )
+
+install( TARGETS ${PROJECT_NAME} wsadprocessor
   RUNTIME DESTINATION "${WSTP_DIST_PACKAGES}" COMPONENT modules
   LIBRARY DESTINATION "${WSTP_DIST_PACKAGES}" COMPONENT modules
   )
+

@@ -24,6 +24,7 @@
 
 #include "dataprocessor.hpp"
 #include "datareader.hpp"
+#include "singleton.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -96,15 +97,34 @@ dataProcessor::dataReaders()
     return a;
 }
 
-std::shared_ptr< DataReader >
+int
 dataProcessor::dataReader( const std::string& str )
 {
     auto uuid = boost::uuids::string_generator()( str );
     if ( auto raw = rawdata() ) {
         for ( auto& reader: raw->dataReaders() ) {
-            if ( reader->objuuid() == uuid )
-                return std::make_shared< DataReader >( reader );
+            if ( reader->objuuid() == uuid ) {
+                auto id = singleton::instance()->generateId();
+                activeReaders_[ id ] = std::make_tuple( reader->shared_from_this(), reader->begin() );
+                return int(id);
+            }
         }
+    }
+    return (-1);
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+dataProcessor::readMassSpectrum( int j )
+{
+    auto it = activeReaders_.find( j );
+    if ( it != activeReaders_.end() ) {
+        std::shared_ptr< const adcontrols::DataReader > reader;
+        adcontrols::DataReader::iterator iter;
+        std::tie( reader, iter ) = it->second;
+        if ( iter != reader->end() )
+            return reader->readSpectrum( iter++ );
+        else
+            activeReaders_.erase( it );
     }
     return nullptr;
 }
