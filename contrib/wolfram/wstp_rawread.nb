@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     18094,        410]
-NotebookOptionsPosition[     16103,        369]
-NotebookOutlinePosition[     16532,        387]
-CellTagsIndexPosition[     16489,        384]
+NotebookDataLength[     18255,        413]
+NotebookOptionsPosition[     16264,        372]
+NotebookOutlinePosition[     16693,        390]
+CellTagsIndexPosition[     16650,        387]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -84,29 +84,28 @@ of the instrument.  For example, infiTOF and AccuTOF plugins are both using \
 the same model of the digitizer.  However, the meta-data attached to each \
 waveform is different.  The infiTOF control is entirely tied up with HV and \
 timing control, so that timing information should be attached to each \
-waveform data; however, QtPlatz has no way to access analyzer parameters.  \
-The new instrument to be supported in the future may have a different \
-meta-data need to be added.\nAs already described, a data stream has its own \
-data bit frame format depend on the analytical instrument model.  Every data \
-stream generates by a software module called virtual instrument peripheral \
-(VIP), where each of VIP represents an instrument, and translate a frame of \
-data frame instrument into a bitstream on the time domain.  The data \
-acquisition core of the QtPlatz keeps monitoring all data streams paying \
-attention to time-stamps and time event data so-called \
+waveform data; however, QtPlatz no such data for AccuTOF.  The new instrument \
+to be supported in the future may have a different meta-data.\n\nAs already \
+described, a data stream has its own data frame format depend on the \
+analytical instrument model.  Every data stream generates by a software \
+module called virtual instrument peripheral (VIP), where each of VIP \
+represents an instrument, and translate a data frame into a bitstream on the \
+time domain.  The data acquisition core of the QtPlatz keeps monitoring all \
+data streams paying attention to time-stamps and time event data so-called \
 \[OpenCurlyQuote]well-known-event.\[CloseCurlyQuote]  The well-known-event is \
 a 32-bit timing data that represents START, STOP, INJECT, WARNING, ERROR, and \
 additional instrument-specific states (e.g., DARK measurement in progress).  \
-The data acquisition core will store data after the INJECT event stream into \
-the SQL table AcquiredData, and the bitstream is storing into a BLOB.  The \
-bzip algorithm may compress it.  The term INJECT is derived from a sample \
-injection on the liquid chromatography.\nEach VIP should also provide a data \
-translator called \[OpenCurlyQuote]DataReader\[CloseCurlyQuote] in a separate \
-loadable module, which provides a function to deserialize data in BLOB and \
-construct a known data representation of QtPlatz such as MassSpectrum, \
-Chromatogram, and so forth.  The concrete DataReader has a unique id (UUID), \
-which records into the AcquirdConf table.  The concrete DataReader to be \
-instantiated by using the \[OpenCurlyQuote]factory design pattern\
-\[CloseCurlyQuote] when the data to be accessed."
+The data acquisition core will store data after the INJECT event into the SQL \
+table AcquiredData, and the bitstream is storing into a BLOB column.  The \
+bzip algorithm may compress it before write to BLOB.\n\nEach VIP should also \
+provide a data translator called \
+\[OpenCurlyQuote]DataReader\[CloseCurlyQuote] in a separate loadable module, \
+which provides a function to deserialize data in BLOB and construct a known \
+data representation of QtPlatz such as MassSpectrum, Chromatogram, and so \
+forth.  The concrete DataReader has a unique id (UUID), which records into \
+the AcquirdConf table.  The concrete DataReader to be instantiated by using \
+the \[OpenCurlyQuote]factory design pattern\[CloseCurlyQuote] when the data \
+to be accessed."
 }], "Text",
  CellChangeTimes->{{3.793669101623417*^9, 3.793669433069991*^9}, {
    3.7936694823673143`*^9, 3.793669630945306*^9}, 3.793669936244073*^9, {
@@ -119,8 +118,12 @@ instantiated by using the \[OpenCurlyQuote]factory design pattern\
    3.793728211212574*^9, 3.793728409955309*^9}, {3.793728484783169*^9, 
    3.793728817178253*^9}, {3.793728872100307*^9, 3.7937291464447947`*^9}, {
    3.793729298059688*^9, 3.79372948711096*^9}, {3.793729517455079*^9, 
-   3.793729883695154*^9}, {3.793730333238858*^9, 
-   3.793730334638256*^9}},ExpressionUUID->"eeb7f5cc-b293-4495-81b6-\
+   3.793729883695154*^9}, {3.793730333238858*^9, 3.793730334638256*^9}, {
+   3.7937364185212517`*^9, 3.793736454916587*^9}, 3.793736519486635*^9, {
+   3.793736571839633*^9, 3.793736577158078*^9}, {3.7937366347367573`*^9, 
+   3.7937366448654346`*^9}, {3.793736733859967*^9, 3.7937367884618883`*^9}, {
+   3.7937368549473343`*^9, 
+   3.79373698676014*^9}},ExpressionUUID->"eeb7f5cc-b293-4495-81b6-\
 a15af5760dac"],
 
 Cell[CellGroupData[{
@@ -390,26 +393,26 @@ Cell[CellGroupData[{
 Cell[580, 22, 388, 8, 133, "Title",ExpressionUUID->"80496342-67c5-48a1-99cb-f3242b6e0308"],
 Cell[971, 32, 887, 20, 115, "Input",ExpressionUUID->"8047be15-27c5-4339-9b5d-8a721755f01f"],
 Cell[1861, 54, 693, 14, 52, "Input",ExpressionUUID->"61f617fc-8912-4998-baff-60a236fe6cc0"],
-Cell[2557, 70, 3810, 53, 621, "Text",ExpressionUUID->"eeb7f5cc-b293-4495-81b6-a15af5760dac"],
+Cell[2557, 70, 3971, 56, 644, "Text",ExpressionUUID->"eeb7f5cc-b293-4495-81b6-a15af5760dac"],
 Cell[CellGroupData[{
-Cell[6392, 127, 158, 3, 45, "Subsubsection",ExpressionUUID->"227fb69f-2104-4391-8b6a-2b7c663ee166"],
-Cell[6553, 132, 2091, 51, 115, "Input",ExpressionUUID->"73f6eeae-c51c-4c4a-946a-c9bd3c4caecc"]
+Cell[6553, 130, 158, 3, 45, "Subsubsection",ExpressionUUID->"227fb69f-2104-4391-8b6a-2b7c663ee166"],
+Cell[6714, 135, 2091, 51, 115, "Input",ExpressionUUID->"73f6eeae-c51c-4c4a-946a-c9bd3c4caecc"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[8681, 188, 204, 3, 45, "Subsubsection",ExpressionUUID->"e7a866ab-77f5-4d01-8b17-57ceef01bfa3"],
-Cell[8888, 193, 281, 7, 30, "Input",ExpressionUUID->"a4ef020b-0c0d-455f-84e2-08e169b4c5db"],
-Cell[9172, 202, 945, 17, 94, "Input",ExpressionUUID->"6a8803d1-2cb8-4908-92bc-3b0b09cfd89d"]
+Cell[8842, 191, 204, 3, 45, "Subsubsection",ExpressionUUID->"e7a866ab-77f5-4d01-8b17-57ceef01bfa3"],
+Cell[9049, 196, 281, 7, 30, "Input",ExpressionUUID->"a4ef020b-0c0d-455f-84e2-08e169b4c5db"],
+Cell[9333, 205, 945, 17, 94, "Input",ExpressionUUID->"6a8803d1-2cb8-4908-92bc-3b0b09cfd89d"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[10154, 224, 289, 7, 45, "Subsubsection",ExpressionUUID->"f3397724-81c2-428b-8749-4bc1e2a94ff1"],
-Cell[10446, 233, 437, 7, 30, "Input",ExpressionUUID->"fb2d7310-e90e-41fd-bb25-8adede8a467c"],
-Cell[10886, 242, 2273, 49, 178, "Input",ExpressionUUID->"38b4d7fa-f272-408a-ab34-1946ed766eb8"]
+Cell[10315, 227, 289, 7, 45, "Subsubsection",ExpressionUUID->"f3397724-81c2-428b-8749-4bc1e2a94ff1"],
+Cell[10607, 236, 437, 7, 30, "Input",ExpressionUUID->"fb2d7310-e90e-41fd-bb25-8adede8a467c"],
+Cell[11047, 245, 2273, 49, 178, "Input",ExpressionUUID->"38b4d7fa-f272-408a-ab34-1946ed766eb8"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[13196, 296, 289, 7, 45, "Subsubsection",ExpressionUUID->"9222381e-0bcf-477e-b0d8-7f17eb653560"],
-Cell[13488, 305, 284, 5, 30, "Input",ExpressionUUID->"68743c72-608e-4fd0-8a45-6c8e0f7b91b5"],
-Cell[13775, 312, 484, 11, 94, "Input",ExpressionUUID->"41ae5d4a-9db8-438b-ad9f-6c7224087e2f"],
-Cell[14262, 325, 1813, 40, 199, "Input",ExpressionUUID->"4d74b3f4-1b19-49bd-bdb6-8819fa8dfeb0"]
+Cell[13357, 299, 289, 7, 45, "Subsubsection",ExpressionUUID->"9222381e-0bcf-477e-b0d8-7f17eb653560"],
+Cell[13649, 308, 284, 5, 30, "Input",ExpressionUUID->"68743c72-608e-4fd0-8a45-6c8e0f7b91b5"],
+Cell[13936, 315, 484, 11, 94, "Input",ExpressionUUID->"41ae5d4a-9db8-438b-ad9f-6c7224087e2f"],
+Cell[14423, 328, 1813, 40, 199, "Input",ExpressionUUID->"4d74b3f4-1b19-49bd-bdb6-8819fa8dfeb0"]
 }, Open  ]]
 }, Open  ]]
 }
