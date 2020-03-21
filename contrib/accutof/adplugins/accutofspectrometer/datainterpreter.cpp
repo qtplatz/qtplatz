@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "datainterpreter.hpp"
-//#include "importdata.hpp"
 #include "massspectrometer.hpp"
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -71,8 +70,6 @@ DataInterpreter::make_device_text( std::vector< std::pair< std::string, std::str
             textv.emplace_back( "Options",         d.ident_.Options() );
             textv.emplace_back( "IOVersion",       d.ident_.IOVersion() );
             textv.emplace_back( "NbrADCBits",      ( boost::format("%1%") % d.ident_.NbrADCBits() ).str() );
-
-            textv.emplace_back( "accutofspectrometer", "dataInterpreter endoded" );
             return true;
         }
     } catch ( ... ) {

@@ -23,9 +23,20 @@
 **************************************************************************/
 
 #include "export.hpp"
+#include <adcontrols/datainterpreterbroker.hpp>
+#include <adcontrols/datareader.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adplugin_manager/loader.hpp>
+#include <adplugin_manager/manager.hpp>
 #include <adportable/debug.hpp>
+#include <adprocessor/dataprocessor.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -43,11 +54,11 @@ main(int argc, char *argv[])
     po::options_description description( argv[ 0 ] );
     {
         description.add_options()
-            ( "help,h",      "Display this help message" )
-            ( "args",         po::value< std::vector< std::string > >(),  "input files" )
-            ( "output,o",        po::value< std::string >()->default_value( "output.adfs" ), "import from text file to adfs" )
-            ( "counting_output", po::value< std::string >()->default_value( "output.adfs" ), "output file for counting results" )
-            ( "polarity",     po::value< std::string >()->default_value( "POS" ), "threshold polarity{POS|NEG}" )
+            ( "help,h",        "Display this help message" )
+            ( "args",          po::value< std::vector< std::string > >(),  "input files" )
+            ( "output,o",      po::value< std::string >(),                 "output file name (.xml)" )
+            ( "list-readers",  "list data readers" )
+            ( "device-data",   "list device meta data" )
             ;
         po::positional_options_description p;
         p.add( "args",  -1 );
@@ -55,29 +66,53 @@ main(int argc, char *argv[])
         po::notify(vm);
     }
 
-    if ( vm.count( "help" ) ) {
+    if ( vm.count( "help" ) || argc == 1 ) {
         std::cout << description;
         return 0;
     }
 
-    // adplugin::manager::standalone_initialize();
+    adplugin::manager::standalone_initialize();
 
     auto filelist = vm[ "args" ].as< std::vector< std::string > >();
     if ( filelist.empty() )
         return 0;
 
-    for ( auto& fname: filelist ) {
-        
-        adexport::Export exporter;
+    for ( auto& fname: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-        if ( exporter.open( boost::filesystem::path( fname ) ) ) {
-            if ( exporter.loadFolders() ) {
-                for ( const auto& file: exporter.folders() )
-                    exporter.out( file, std::cout );
+        boost::filesystem::path path( fname );
+        boost::system::error_code ec;
+        if ( ( path.extension() == ".adfs" ) && boost::filesystem::exists( path, ec ) ) {
+
+            if ( auto dp = std::make_shared< adprocessor::dataprocessor >() ) {
+                std::wstring msg;
+                if ( dp->open( path.wstring(), msg ) ) {
+                    if ( vm.count( "list-readers" ) ) {
+                        if ( auto raw = dp->rawdata() ) {
+                            for ( auto reader: raw->dataReaders() )
+                                std::cout << reader->objtext() << "\t'" << reader->display_name() << "'\t" << reader->objuuid() << std::endl;
+                        }
+                    }
+                    if ( vm.count( "device-data" ) ) {
+                        if ( auto raw = dp->rawdata() ) {
+                            for ( auto reader: raw->dataReaders() ) {
+                                if ( auto ms = reader->readSpectrum( reader->begin() ) ) {
+                                    if ( auto sp = reader->massSpectrometer() ) {
+                                        if ( auto interpreter
+                                             = adcontrols::DataInterpreterBroker::make_datainterpreter( sp->dataInterpreterUuid() ) ) {
+                                            std::vector < std::pair< std::string, std::string > > textv;
+                                            interpreter->make_device_text( textv, ms->getMSProperty() );
+                                            std::cout << reader->objtext() << "\t'" << reader->display_name() << "'\t" << reader->objuuid() << std::endl;
+                                            for ( const auto& value: textv )
+                                                std::cout << value.first << "\t'" << value.second << std::endl;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //
+                }
             }
-        } else {
-            ADDEBUG() << fname << " cannot be opened.";
         }
-
     }
 }
