@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,41 +24,20 @@
 
 #pragma once
 
-#include <adcontrols/datareader.hpp>
-#include <QWidget>
-#include <memory>
+#include <coreplugin/imode.h>
 
-class QGridLayout;
-class QEvent;
-class QLabel;
+namespace cluster {
 
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adcv { class ImageWidget; }
-
-namespace video {
-
-    class VideoCaptureWnd : public QWidget {
+    class Mode : public Core::IMode {
         Q_OBJECT
     public:
-        ~VideoCaptureWnd();
-        explicit VideoCaptureWnd( QWidget *parent = 0 );
-
-    private:
-
-    private:
-        //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< adcv::ImageWidget > view_;
-
-
-    public slots :
-
-    private slots:
-        void handlePlayer( QImage );
-        void handlePlayerChanged( const QString& );
-        void handleCameraChanged();
+        explicit Mode( QObject *parent = 0 );
+        ~Mode();
 
     signals:
+
+    public slots :
+        void grabEditorManager( Core::IMode *mode );
 
     };
 

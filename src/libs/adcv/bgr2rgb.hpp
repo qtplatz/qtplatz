@@ -1,16 +1,15 @@
-// -*- C++ -*-
 /**************************************************************************
- *
-** Copyright (C) 2010-2020 MS-Cheminformatics LLC
-**
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+*
 ** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this
-** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms
-** contained in a written agreement between you and MS-Cheminfomatics.
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+** the Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,3 +21,21 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#pragma once
+
+#include "adcv_global.hpp"
+
+namespace af { class array; }
+namespace cv { class Mat; }
+
+namespace adcv {
+
+    template< typename T >
+    struct ADCVSHARED_EXPORT bgr2rgb_ {
+
+        template< typename R > T operator()( const R& ) const;
+
+    };
+
+}

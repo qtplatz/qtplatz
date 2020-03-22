@@ -24,52 +24,33 @@
 
 #pragma once
 
-#include <QWidget>
+#include <opencv2/core/core.hpp>
+#include <QColor>
 #include <memory>
-#include <array>
 
-class QGridLayout;
-class QEvent;
-class QPainter;
-class QPrinter;
+namespace adcontrols { class MappedImage; }
 
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adplot { class ChromatogramWidget; }
-namespace cv { class Mat; }
-namespace adcv { class ImageWidget; }
+namespace cluster {
 
-namespace video {
-
-    namespace cv_extension {
-        template<typename T, uint> class mat_t;
+    class cvmat {
+    public:
+        cv::Mat operator()( const adcontrols::MappedImage& ) const;
+        std::shared_ptr< adcontrols::MappedImage > operator()( const cv::Mat&, size_t ) const;
+        void mesh( cv::Mat&, size_t split, size_t width ) const;
+        static cv::Mat scaleLog( const cv::Mat& );
     };
 
-    class VideoProcWnd : public QWidget {
-        Q_OBJECT
+    class cvColor {
+        struct Color {
+            double r; double g; double b; double value;
+            Color(double _r, double _g, double _b, double _v) : r(_r), g(_g), b(_b), value(_v) {}
+        };
+        std::vector< Color > colors_;
     public:
-        ~VideoProcWnd();
-        explicit VideoProcWnd( QWidget *parent = 0 );
-
-        void setHistogramWindow( double tof, double width );
-        void setEnabled( int id, bool enable ); // check/uncheck map rect (0) or tof range(1)
-
-        void print( QPainter&, QPrinter& );
-
-    signals:
-
-    public slots :
-
-    private slots:
-        void handleData();
-        void handlePlayer( QImage );
-        void handleFileChanged( const QString& );
-
-    private:
-        std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
-        std::unique_ptr< adplot::ChromatogramWidget > tplot_;
-        std::unique_ptr< cv::Mat > average_;
-        size_t numAverage_;
+        cvColor( bool gray = false );
+        QColor color( double ) const;
+        cv::Mat operator()( const adcontrols::MappedImage&, int z ) const;
+        cv::Mat operator()( const cv::Mat& /* CV_32F */, double scale = 1.0 ) const;
     };
 
 }

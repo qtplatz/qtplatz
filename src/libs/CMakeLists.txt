@@ -21,7 +21,7 @@ add_subdirectory ( chromatogr )
 add_subdirectory ( xmlparser )
 
 if ( OpenCV_FOUND OR ArrayFire_FOUND )
-  add_subdirectory ( advision )
+  add_subdirectory ( adcv )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND Qt5_FOUND )

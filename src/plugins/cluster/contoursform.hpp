@@ -21,45 +21,42 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#ifndef CONTOURSFORM_HPP
+#define CONTOURSFORM_HPP
 
-#pragma once
-
-#include <adcontrols/datareader.hpp>
 #include <QWidget>
-#include <memory>
 
-class QGridLayout;
-class QEvent;
-class QLabel;
-
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adcv { class ImageWidget; }
-
-namespace video {
-
-    class VideoCaptureWnd : public QWidget {
-        Q_OBJECT
-    public:
-        ~VideoCaptureWnd();
-        explicit VideoCaptureWnd( QWidget *parent = 0 );
-
-    private:
-
-    private:
-        //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< adcv::ImageWidget > view_;
-
-
-    public slots :
-
-    private slots:
-        void handlePlayer( QImage );
-        void handlePlayerChanged( const QString& );
-        void handleCameraChanged();
-
-    signals:
-
-    };
-
+namespace Ui {
+class ContoursForm;
 }
+
+class ContoursForm : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit ContoursForm(QWidget *parent = 0);
+    ~ContoursForm();
+
+    void setResize( int );
+    void setBlurSize( int );
+    void setCannyThreshold( int );
+    void setMinSizeThreshold( unsigned );
+    void setMaxSizeThreshold( unsigned );
+    
+    int resize() const;
+    int blurSize() const;
+    int cannyThreshold() const;
+    unsigned minSizeThreshold() const;
+    unsigned maxSizeThreshold() const;
+
+    enum valueId { idResize, idBlurSize, idCannyThreshold, idMinSizeThreshold, idMaxSizeThreshold };
+
+signals:
+    void valueChanged( valueId, int value );
+
+private:
+    Ui::ContoursForm *ui;
+};
+
+#endif // CONTOURSFORM_HPP

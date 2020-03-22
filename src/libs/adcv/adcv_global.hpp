@@ -22,44 +22,17 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef ADCV_GLOBAL_HPP
+#define ADCV_GLOBAL_HPP
 
-#include <adcontrols/datareader.hpp>
-#include <QWidget>
-#include <memory>
+#include <QtCore/qglobal.h>
 
-class QGridLayout;
-class QEvent;
-class QLabel;
+#if defined(ADCV_LIBRARY)
+#  define ADCVSHARED_EXPORT Q_DECL_EXPORT
+#  define ADCVSHARED_TEMPLATE_EXPORT
+#else
+#  define ADCVSHARED_EXPORT Q_DECL_IMPORT
+#  define ADCVSHARED_TEMPLATE_EXPORT extern
+#endif
 
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adcv { class ImageWidget; }
-
-namespace video {
-
-    class VideoCaptureWnd : public QWidget {
-        Q_OBJECT
-    public:
-        ~VideoCaptureWnd();
-        explicit VideoCaptureWnd( QWidget *parent = 0 );
-
-    private:
-
-    private:
-        //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< adcv::ImageWidget > view_;
-
-
-    public slots :
-
-    private slots:
-        void handlePlayer( QImage );
-        void handlePlayerChanged( const QString& );
-        void handleCameraChanged();
-
-    signals:
-
-    };
-
-}
+#endif // ADCV_GLOBAL_HPP

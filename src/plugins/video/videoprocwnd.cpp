@@ -39,11 +39,11 @@
 #include <adportfolio/folium.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #if HAVE_ARRAYFIRE
-# include <advision/aftypes.hpp>
+# include <adcv/aftypes.hpp>
 #endif
-#include <advision/applycolormap.hpp>
-#include <advision/cvtypes.hpp>
-#include <advision/imagewidget.hpp>
+#include <adcv/applycolormap.hpp>
+#include <adcv/cvtypes.hpp>
+#include <adcv/imagewidget.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/progresshandler.hpp>
@@ -79,13 +79,13 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                                               , tplot_( std::make_unique< adplot::ChromatogramWidget >() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
-    
+
     if ( auto splitter = new Core::MiniSplitter ) {
 
         if ( auto splitter2 = new Core::MiniSplitter ) {
 
             for ( auto& widget: imgWidgets_ ) {
-                widget = std::make_unique< advision::ImageWidget >( this );
+                widget = std::make_unique< adcv::ImageWidget >( this );
                 splitter2->addWidget( widget.get() );
             }
             splitter2->setOrientation( Qt::Horizontal );
@@ -109,13 +109,13 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                         document::instance()->player()->Stop();
                         widget->setState( QMediaPlayer::PausedState );
                     });
-                
+
                 connect( widget, &PlayerControls::stop, this, [=](){
                         document::instance()->player()->Stop();
                         average_.reset();
                         widget->setState( QMediaPlayer::StoppedState );
                     });
-                
+
                 tbLayout->addWidget( widget );
             }
             splitter->addWidget( toolBar );
@@ -144,7 +144,7 @@ VideoProcWnd::print( QPainter& painter, QPrinter& printer )
 
     imgWidgets_.at( 0 )->graphicsView()->render( &painter, rc0 ); //, drawRect1 );
     imgWidgets_.at( 1 )->graphicsView()->render( &painter, rc1 ); // , drawRect2 );
-    
+
 }
 
 void
@@ -158,7 +158,7 @@ VideoProcWnd::handleFileChanged( const QString& name )
         boost::filesystem::path path( name.toStdString() );
         controls->setName( QString::fromStdString( path.filename().string() ) );
     }
-    
+
 }
 
 void
@@ -182,13 +182,13 @@ VideoProcWnd::handleData()
 {
     cv::Mat mat;
     cv::Mat avg;
-    
+
     auto player = document::instance()->player();
-    
+
     if ( player->fetch( mat ) ) {
         cv::Mat_< uchar > gray8u;
         cv::cvtColor( mat, gray8u, cv::COLOR_BGR2GRAY );
-        
+
         cv::Mat_< float > gray32f( mat.rows, mat.cols );
 
         gray8u.convertTo( gray32f, CV_32FC(1), 1.0/255 ); // 0..1.0 float gray scale
@@ -202,18 +202,15 @@ VideoProcWnd::handleData()
         }
 
         if ( average_ ) {
-            avg = advision::ApplyColorMap_< cv::Mat >()( *average_, 8.0 / numAverage_ );
+            avg = adcv::ApplyColorMap_< cv::Mat >()( *average_, 8.0 / numAverage_ );
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {
             controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
             controls->setTime( double( player->currentTime() ) );
         }
-        
+
         imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
         imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
     }
 }
-
-
-

@@ -24,6 +24,10 @@ if ( QTPLATZ_CONFIG_Chemistry AND rdkit_FOUND )
   add_subdirectory( chemistry )
 endif()
 
+if ( NOT CMAKE_CROSSCOMPILING AND QTPLATZ_CONFIG_Cluster AND OpenCV_FOUND )
+  add_subdirectory( cluster )
+endif()
+
 if ( NOT CMAKE_CROSSCOMPILING AND QTPLATZ_CONFIG_Peptide )
   message( STATUS "------------ src/plugins/peptide --------------------" )
   add_subdirectory( peptide )

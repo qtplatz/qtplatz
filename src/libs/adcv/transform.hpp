@@ -24,52 +24,35 @@
 
 #pragma once
 
-#include <QWidget>
-#include <memory>
-#include <array>
+#include "adcv_global.hpp"
 
-class QGridLayout;
-class QEvent;
-class QPainter;
-class QPrinter;
-
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adplot { class ChromatogramWidget; }
+namespace af { class array; }
 namespace cv { class Mat; }
-namespace adcv { class ImageWidget; }
+class QImage;
 
-namespace video {
+namespace adcv {
 
-    namespace cv_extension {
-        template<typename T, uint> class mat_t;
-    };
+    // cv::Mat uses BGR format, which does not handle in this transform class
+    // use bgr2rgb_ template instead
 
-    class VideoProcWnd : public QWidget {
-        Q_OBJECT
+    class ADCVSHARED_EXPORT transform {
     public:
-        ~VideoProcWnd();
-        explicit VideoProcWnd( QWidget *parent = 0 );
-
-        void setHistogramWindow( double tof, double width );
-        void setEnabled( int id, bool enable ); // check/uncheck map rect (0) or tof range(1)
-
-        void print( QPainter&, QPrinter& );
-
-    signals:
-
-    public slots :
-
-    private slots:
-        void handleData();
-        void handlePlayer( QImage );
-        void handleFileChanged( const QString& );
-
-    private:
-        std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
-        std::unique_ptr< adplot::ChromatogramWidget > tplot_;
-        std::unique_ptr< cv::Mat > average_;
-        size_t numAverage_;
+        static cv::Mat mat( const af::array& );
+        static af::array array( const cv::Mat& );
     };
+
+    template< typename T >
+    struct ADCVSHARED_EXPORT transform_ {
+        template< typename R > T operator()( const R& ) const;
+    };
+
+    template<>
+    template< typename R > af::array ADCVSHARED_EXPORT transform_< af::array >::operator()( const R& ) const;
+
+    template<>
+    template< typename R > cv::Mat ADCVSHARED_EXPORT transform_< cv::Mat >::operator()( const R& ) const;
+
+    template<>
+    template< typename R > QImage ADCVSHARED_EXPORT transform_< QImage >::operator()( const R& ) const;
 
 }

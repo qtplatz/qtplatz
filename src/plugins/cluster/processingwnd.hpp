@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,52 +24,59 @@
 
 #pragma once
 
+#include <adcontrols/datareader.hpp>
 #include <QWidget>
 #include <memory>
-#include <array>
 
 class QGridLayout;
 class QEvent;
-class QPainter;
-class QPrinter;
 
 namespace portfolio { class Folium; }
 namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adplot { class ChromatogramWidget; }
-namespace cv { class Mat; }
-namespace adcv { class ImageWidget; }
 
-namespace video {
+namespace cluster {
 
-    namespace cv_extension {
-        template<typename T, uint> class mat_t;
-    };
-
-    class VideoProcWnd : public QWidget {
+    class ProcessingWnd : public QWidget {
         Q_OBJECT
     public:
-        ~VideoProcWnd();
-        explicit VideoProcWnd( QWidget *parent = 0 );
+        ~ProcessingWnd();
+        explicit ProcessingWnd( QWidget *parent = 0 );
 
         void setHistogramWindow( double tof, double width );
         void setEnabled( int id, bool enable ); // check/uncheck map rect (0) or tof range(1)
 
-        void print( QPainter&, QPrinter& );
+    private:
+        class impl;
+        impl * impl_;
 
     signals:
+        void nextMappedSpectra( bool );
+        void tofMoved( int );
+        void cellMoved( int hor, int vert );
 
     public slots :
+        void handleProcessorChanged();
+        void handleDataChanged( const portfolio::Folium& );
+        void handleCheckStateChanged( const portfolio::Folium& );
 
-    private slots:
-        void handleData();
-        void handlePlayer( QImage );
-        void handleFileChanged( const QString& );
+        void handleAxisChanged();
+        //
+        void handleSelectedOnSpectrum( const QRectF& );
+        void handleSelectedOnChromatogram( const QRectF& );
+        void handleNextMappedSpectra( bool );
+        void handleTofMoved( int );
+
+        //
+        void handleCellSelected( const QRect& );
+        void handleCellMoved( int hor, int vert );
 
     private:
-        std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
-        std::unique_ptr< adplot::ChromatogramWidget > tplot_;
-        std::unique_ptr< cv::Mat > average_;
-        size_t numAverage_;
+        bool eventFilter( QObject *, QEvent * );
+
+        void setData( std::shared_ptr< const adcontrols::MappedSpectra >&&
+                      , const std::pair< double, double >& trig
+                      , const std::pair< double, double >& tof );
+
     };
 
 }

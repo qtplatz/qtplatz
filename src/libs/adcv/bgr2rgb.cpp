@@ -22,44 +22,40 @@
 **
 **************************************************************************/
 
-#pragma once
-
-#include <adcontrols/datareader.hpp>
-#include <QWidget>
-#include <memory>
-
-class QGridLayout;
-class QEvent;
-class QLabel;
-
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adcv { class ImageWidget; }
-
-namespace video {
-
-    class VideoCaptureWnd : public QWidget {
-        Q_OBJECT
-    public:
-        ~VideoCaptureWnd();
-        explicit VideoCaptureWnd( QWidget *parent = 0 );
-
-    private:
-
-    private:
-        //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< adcv::ImageWidget > view_;
+#include "bgr2rgb.hpp"
+#include "transform.hpp"
+#if HAVE_ARRAYFIRE
+# include <arrayfire.h>
+#endif
+#include <opencv2/opencv.hpp>
 
 
-    public slots :
+namespace adcv {
 
-    private slots:
-        void handlePlayer( QImage );
-        void handlePlayerChanged( const QString& );
-        void handleCameraChanged();
+#if HAVE_ARRAYFIRE
+    template<>
+    template<>
+    af::array bgr2rgb_< af::array >::operator()< af::array >( const af::array& a ) const {
+        af::array b( a );
+        b( af::span, af::span, 2 ) = a( af::span, af::span, 0 );
+        b( af::span, af::span, 0 ) = a( af::span, af::span, 2 );
+        return b;
+    }
 
-    signals:
+    template<>
+    template<>
+    cv::Mat bgr2rgb_< cv::Mat >::operator()< af::array >( const af::array& a ) const {
+        auto t = bgr2rgb_< af::array >()( a );
+        return transform_< cv::Mat >()( t );
+    }
+#endif
 
-    };
+    template<>
+    template<>
+    cv::Mat bgr2rgb_< cv::Mat >::operator()< cv::Mat >( const cv::Mat& a ) const {
+        cv::Mat b;
+        cv::cvtColor( a, b, cv::COLOR_RGB2BGR );
+        return b;
+    }
 
 }

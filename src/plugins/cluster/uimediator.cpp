@@ -20,46 +20,27 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
+** Referencies;
+** http://codingexodus.blogspot.jp/2012/12/working-with-video-using-opencv-and-qt.html
+** http://codingexodus.blogspot.co.uk/2013/05/working-with-video-using-opencv-and-qt.html
 **************************************************************************/
 
-#pragma once
+#include "uimediator.hpp"
+#include <QObject>
 
-#include <adcontrols/datareader.hpp>
-#include <QWidget>
-#include <memory>
+using namespace cluster;
 
-class QGridLayout;
-class QEvent;
-class QLabel;
+uiMediator *
+uiMediator::instance()
+{
+    static uiMediator __instance;
+    return &__instance;
+}
 
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace adcv { class ImageWidget; }
+uiMediator::uiMediator( QObject *parent ) : QObject( parent )
+{
+}
 
-namespace video {
-
-    class VideoCaptureWnd : public QWidget {
-        Q_OBJECT
-    public:
-        ~VideoCaptureWnd();
-        explicit VideoCaptureWnd( QWidget *parent = 0 );
-
-    private:
-
-    private:
-        //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< adcv::ImageWidget > view_;
-
-
-    public slots :
-
-    private slots:
-        void handlePlayer( QImage );
-        void handlePlayerChanged( const QString& );
-        void handleCameraChanged();
-
-    signals:
-
-    };
-
+uiMediator::~uiMediator()
+{
 }

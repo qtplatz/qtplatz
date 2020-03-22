@@ -25,7 +25,7 @@
 #include "videocapturewnd.hpp"
 #include "document.hpp"
 #include "constants.hpp"
-#include <advision/imagewidget.hpp>
+#include <adcv/imagewidget.hpp>
 #include "player.hpp"
 #include "recordercontrols.hpp"
 #include "mainwindow.hpp"
@@ -81,14 +81,14 @@ VideoCaptureWnd::~VideoCaptureWnd()
 }
 
 VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
-                                                    , view_( std::make_unique< advision::ImageWidget >() )
+                                                    , view_( std::make_unique< adcv::ImageWidget >() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
 
     if ( auto splitter = new Core::MiniSplitter ) {
 
         splitter->addWidget( view_.get() );
-        
+
         auto layout = new QVBoxLayout( this );
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
@@ -108,23 +108,23 @@ VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
                         document::instance()->camera()->Stop();
                         widget->setState( QMediaPlayer::PausedState );
                     });
-                
+
                 connect( widget, &RecorderControls::stop, this, [=](){
                         document::instance()->camera()->Stop();
                         widget->setState( QMediaPlayer::StoppedState );
                     });
-                
+
                 tbLayout->addWidget( widget );
             }
-            
+
             layout->addWidget( toolBar );
         }
     }
 
     connect( document::instance(), &document::cameraChanged, this, &VideoCaptureWnd::handleCameraChanged );
-    
+
     connect( document::instance()->camera(), &Player::processedImage, this, &VideoCaptureWnd::handlePlayer );
-    
+
 }
 
 void
@@ -151,5 +151,3 @@ VideoCaptureWnd::handlePlayer( QImage img )
         }
     }
 }
-
-
