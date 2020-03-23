@@ -36,8 +36,9 @@ using namespace cluster;
 Mode::Mode(QObject *parent) : Core::IMode(parent)
 {
     setDisplayName( tr( "Cluster" ) );
-    setIcon(QIcon(":/cluster/images/iconfinder_493_Architecture_cluster_grid_model_preparation_Data_Science_Fabrication_Lab_4158690.png"));
-    setPriority( 70 );
+    setIcon(QIcon( ":/cluster/images/iconfinder_493_Architecture_"
+                   "cluster_grid_model_preparation_Data_Science_Fabrication_Lab_4158690.png"));
+    setPriority( 75 );
 
     connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance())
              , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
