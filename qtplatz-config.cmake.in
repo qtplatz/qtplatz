@@ -82,9 +82,9 @@ add_library( adplot SHARED IMPORTED )
 add_library( adprot SHARED IMPORTED )
 add_library( adurl  SHARED IMPORTED )
 #if ( WIN32 )
-#  add_library( advision STATIC IMPORTED )
+#  add_library( adcv STATIC IMPORTED )
 #else()
-  add_library( advision SHARED IMPORTED )
+  add_library( adcv SHARED IMPORTED )
 #endif()
 add_library( adwidgets SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
@@ -182,11 +182,11 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adurl.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adurld.lib )
 
-  set_target_properties( advision PROPERTIES
-#    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
-#    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )
+  set_target_properties( adcv PROPERTIES
+#    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcv.lib
+#    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcvd.lib )
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcv.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcvd.lib )
 
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
@@ -315,9 +315,9 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl_debug.dylib )
 
-  set_target_properties( advision PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision_debug.dylib )
+  set_target_properties( adcv PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcv.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcv_debug.dylib )
 
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.dylib
@@ -420,8 +420,8 @@ else()  #Linux
   set_target_properties( adurl PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl.so )
 
-  set_target_properties( advision PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision.so )
+  set_target_properties( adcv PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcv.so )
 
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.so )
