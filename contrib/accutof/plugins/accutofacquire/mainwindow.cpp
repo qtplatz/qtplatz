@@ -123,7 +123,7 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    QFile file( ":/pkdavg/stylesheet/tabbar.qss" );
+    QFile file( ":/accutof/stylesheet/tabbar.qss" );
     file.open( QFile::ReadOnly );
     QString tabStyle( file.readAll() );
 
