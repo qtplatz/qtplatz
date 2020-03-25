@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -59,6 +58,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QSettings>
+#include <QString>
 #include <QFuture>
 #include <QMetaType>
 #include <algorithm>
@@ -76,19 +76,24 @@ namespace cluster {
         }
     };
 
+    struct processor {
+        std::weak_ptr< adprocessor::dataprocessor > dp_;
+    };
+
     class document::impl {
     public:
         ~impl() {}
-        impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+        impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat
+                                                           , QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "cluster.proc" ) ) )
-               , documentIt_( documents_.end() )
+                 //, dpIt_( dataprocessors_.end() )
                , axis_{ { document::spectrum, document::axis_time }, { document::timetrace, document::axis_time } }
                  //, histMethod_( std::make_unique< mpxcontrols::HistogramMethod >() )
-               , player_( std::make_unique< Player >() )
                , zAutoScaleEnabled_{ true, true }
                , zAutoScale_{ 0, 0 }
                , zScale_{ 0, 0 }
+               , player_( std::make_unique< Player >() )
                , momentsEnabled_( false )
             {}
 
@@ -96,15 +101,15 @@ namespace cluster {
 
         std::shared_ptr< QSettings > settings_;
 
-        std::map< QString, std::shared_ptr< adprocessor::dataprocessor > > documents_;
-        std::map< QString, std::shared_ptr< adprocessor::dataprocessor > >::iterator documentIt_;
+        std::map< QString, processor > dataprocessors_;
+        QString currFile_;
         std::map< document::plotType, document::axisType > axis_;
 
         std::shared_ptr< const adcontrols::MappedSpectra > mappedSpectra_;
         std::shared_ptr< const adcontrols::MappedImage > mappedImage_;
 
         // QRect imageRect_;
-        //std::unique_ptr< mpxcontrols::HistogramMethod > histMethod_;
+        // std::unique_ptr< mpxcontrols::HistogramMethod > histMethod_;
 
         std::array< bool, 2 > zAutoScaleEnabled_;
         std::array< uint32_t, 2 > zAutoScale_;
@@ -165,21 +170,16 @@ document::settings()
 void
 document::setCurrentFile( const QString& filename )
 {
-    if ( ! impl_->documents_.empty() ) {
+    if ( ! impl_->dataprocessors_.empty() ) {
 
-        auto it = impl_->documents_.find( filename );
-
-        if ( ( it != impl_->documents_.end() ) && ( it != impl_->documentIt_ ) ) {
-
-            impl_->documentIt_ = it;
-
-            auto p = it->second;
-
+        auto it = impl_->dataprocessors_.find( filename );
+        if ( it != impl_->dataprocessors_.end() ) {
+            if ( auto dp = it->second.dp_.lock() )
+                impl_->currFile_ = filename;
+            // auto p = it->second;
             // double trigInterval = p->duration() / p->trigCounts();
             // player()->setTrigInterval( trigInterval );
-
             emit currentProcessorChanged();
-
         }
     }
 }
@@ -187,10 +187,10 @@ document::setCurrentFile( const QString& filename )
 std::shared_ptr< adprocessor::dataprocessor >
 document::currentProcessor()
 {
-    if ( ! impl_->documents_.empty() && ( impl_->documentIt_ != impl_->documents_.end() ) ) {
-        return impl_->documentIt_->second;
-    }
-    return nullptr;
+    auto it = impl_->dataprocessors_.find( impl_->currFile_ );
+    if ( it != impl_->dataprocessors_.end() )
+        return it->second.dp_.lock();
+    return {};
 }
 
 void
@@ -245,13 +245,14 @@ document::handleProcessed( adextension::iSessionManager * mgr, const QString& fi
 {
     std::shared_ptr< adprocessor::dataprocessor > dp;
     if ( mgr && ( dp = mgr->getDataprocessor( file ) ) ) {
-        ADDEBUG() << "handleDataChanged: " << dp->filename() << ", " << folium.name();
+        ADDEBUG() << __FUNCTION__ << ":\t" << dp->filename() << ", " << folium.name();
     }
 }
 
 void
 document::handleCheckStateChanged( adextension::iSessionManager * mgr, const QString& file, const portfolio::Folium& folium, bool isChecked )
 {
+    ADDEBUG() << __FUNCTION__ << "\t##### " << file.toStdString() << ", folium: " << folium.fullpath() << ", isChecked: " << isChecked;
     std::shared_ptr< adprocessor::dataprocessor > dp;
     if ( mgr && ( dp = mgr->getDataprocessor( file ) ) ) {
         emit checkStateChanged( folium );
@@ -261,6 +262,7 @@ document::handleCheckStateChanged( adextension::iSessionManager * mgr, const QSt
 void
 document::handleSelectionChanged( adextension::iSessionManager * mgr, const QString& file, const portfolio::Folium& folium )
 {
+    ADDEBUG() << __FUNCTION__ << "\t##### " << file.toStdString() << ", folium: " << folium.fullpath();
     setCurrentFile( file );
     emit dataChanged( folium );
 }
@@ -268,23 +270,23 @@ document::handleSelectionChanged( adextension::iSessionManager * mgr, const QStr
 void
 document::handleAddProcessor( adextension::iSessionManager * mgr, const QString& file )
 {
-    { // garbage correction
-        // for ( auto it = impl_->documents_.begin(); it != impl_->documents_.end(); ) {
-        //     if ( ! *(it->second) )
-        //         it = impl_->documents_.erase( it );
-        //     else
-        //         ++it;
-        // }
+    ADDEBUG() << __FUNCTION__ << "\t" << file.toStdString();
+
+    // garbage correction
+    if ( ! impl_->dataprocessors_.empty() ) {
+        for ( auto it = impl_->dataprocessors_.begin(); it != impl_->dataprocessors_.end(); ) {
+            if ( ! it->second.dp_.lock() )
+                it = impl_->dataprocessors_.erase( it );
+            else
+                ++it;
+        }
     }
 
     if ( mgr ) {
-        // if ( auto dp = mgr->getDataprocessor( file ) ) {
-        //     auto doc = std::make_shared< mpxprocessor::processor >();
-        //     if ( doc->setDataprocessor( dp ) ) {
-        //         impl_->documents_[ file ] = doc;
-        //         setCurrentFile( file );
-        //     }
-        // }
+        if ( auto dp = mgr->getDataprocessor( file ) ) {
+            impl_->dataprocessors_[ file ].dp_ = dp;
+            setCurrentFile( file );
+        }
     }
 }
 
@@ -319,6 +321,7 @@ document::histogramWindowEnabled() const
 {
     // ADDEBUG() << __FUNCTION__ << " (enable=" << impl_->histMethod_->isTimeWindowEnable() << ")";
 //    return impl_->histMethod_->isTimeWindowEnable();
+    return false;
 }
 
 void
@@ -335,6 +338,7 @@ std::pair< double, double >
 document::histogramWindow() const
 {
     //return std::make_pair( impl_->histMethod_->timeDelay(), impl_->histMethod_->timeWindow() );
+    return {};
 }
 
 // const mpxcontrols::HistogramMethod&

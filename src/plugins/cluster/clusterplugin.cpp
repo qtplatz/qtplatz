@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **

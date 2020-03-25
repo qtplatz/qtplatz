@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 ** Author: Toshinobu Hondo, Ph.D.
 *
 ** Contact: toshi.hondo@qtplatz.com

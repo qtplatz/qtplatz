@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,6 +28,7 @@
 #include "portfolio_global.h"
 #include "node.hpp"
 #include <boost/any.hpp>
+#include <boost/optional.hpp>
 
 namespace portfolio {
 
@@ -96,6 +97,18 @@ namespace portfolio {
                 return true;
             }
             return false;
+        }
+
+        template< typename T > boost::optional<T> get() {
+            if ( is_type<T>( this->data() ) )
+                return boost::any_cast<T>( this->data() );
+            return boost::none;
+        }
+
+        template< typename T > boost::optional<T> get() const {
+            if ( is_type<T>( this->data() ) )
+                return boost::any_cast<T>( this->data() );
+            return boost::none;
         }
 
         // --- create/modify

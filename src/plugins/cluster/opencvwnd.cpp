@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,15 +27,11 @@
 #include "cvmat.hpp"
 #include "dft2d.hpp"
 #include "imageview.hpp"
-// #include <mpxwidgets/spectrogramplot.hpp>
-// #include <mpxcontrols/dataframe.hpp>
-// #include <mpxcontrols/population_protocol.hpp>
-// #include <mpxprocessor/processor.hpp>
 #include <adcontrols/contoursmethod.hpp>
 #include <adcontrols/mappedspectrum.hpp>
 #include <adcontrols/mappedspectra.hpp>
 #include <adcontrols/mappedimage.hpp>
-#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -102,9 +97,9 @@ namespace cluster {
     };
 
     class OpenCVWnd::impl {
-        OpenCVWnd * parent_;
+        //OpenCVWnd * parent_;
     public:
-        impl( OpenCVWnd * p ) : parent_( p )
+        impl( OpenCVWnd * ) // : parent_( p )
             {}
 
         std::array< std::unique_ptr< ImageView >, 2 > map_;
@@ -126,8 +121,8 @@ OpenCVWnd::OpenCVWnd( QWidget *parent ) : QWidget( parent )
 
     if ( auto splitter = new Core::MiniSplitter ) {
 
-        impl_->map_[ 0 ] = std::make_unique< ImageView >( 0, this );
-        impl_->map_[ 1 ] = std::make_unique< ImageView >( 1, this );
+        for ( size_t i = 0; i < impl_->map_.size(); ++i )
+            impl_->map_[ i ] = std::make_unique< ImageView >( i, this );
 
         for ( auto& map: impl_->map_ ) {
 
@@ -175,11 +170,27 @@ OpenCVWnd::handleProcessorChanged()
 void
 OpenCVWnd::handleCheckStateChanged( const portfolio::Folium& folium )
 {
+    ADDEBUG() << __FUNCTION__ << ":\t" << folium.fullpath();
 }
 
 void
 OpenCVWnd::handleDataChanged( const portfolio::Folium& folium )
 {
+    ADDEBUG() << __FUNCTION__ << ":\t" << folium.fullpath();
+
+    portfolio::Folder folder = folium.parentFolder();
+    if ( folder && ( ( folder.name() == L"Spectrograms" ) || ( folder.name() == L"Contours" ) ) ) {
+        if ( auto data = folium.get< std::shared_ptr< const adcontrols::MassSpectra > >() ) {
+            auto vsp = data.get();
+            ADDEBUG() << "Got data: " << vsp->size();
+            // if ( portfolio::Folium::get< std::shared_ptr< adcontrols::MassSpectra > >( ptr, folium ) ) {
+
+            //foliumId_ = folium.id();
+            //fullpath_ = folium.fullpath();
+            //data_ = ptr;
+            //plot_->setData( new detail::SpectrogramData( ptr ) );
+        }
+    }
 }
 
 void
