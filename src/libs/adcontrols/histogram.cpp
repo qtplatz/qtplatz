@@ -91,7 +91,7 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     adportable::scanlaw_solver solver( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
     mass_assigner assigner( solver );
 #else
-    mass_assigner assigner( spectrometer );
+    mass_assigner<MassSpectrometer> assigner( spectrometer );
 #endif
     histogram_to_profile( ms, assigner );
 }
@@ -102,7 +102,7 @@ histogram::histogram_to_profile( MassSpectrum& ms )
     if ( ms.size() < 2 )
         return;
     adportable::scanlaw_solver solver( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
-    mass_assigner assigner( solver );
+    mass_assigner<adportable::scanlaw_solver> assigner( solver );
     histogram_to_profile( ms, assigner );
 }
 
