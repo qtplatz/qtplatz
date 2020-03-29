@@ -64,6 +64,7 @@ QuanDataWriter::~QuanDataWriter()
 }
 
 QuanDataWriter::QuanDataWriter( const std::wstring& path ) : path_( path )
+                                                           , seqId_( 1 )
 {
 }
 
@@ -77,7 +78,6 @@ QuanDataWriter::open()
         if ( !fs_.mount( path_.c_str() ) )
             return false;
     }
-
     return true;
 }
 
@@ -164,7 +164,7 @@ QuanDataWriter::write( const adcontrols::Chromatogram& c, const wchar_t * dataSo
     if ( auto top = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
 
         boost::filesystem::path path = boost::filesystem::path( L"/Processed/Chromatograms" ) / boost::filesystem::path( dataSource ).stem();
-        ADDEBUG() << path.string();
+        // ADDEBUG() << path.string();
 
         if ( adfs::folder folder = fs_.addFolder( path.wstring() ) ) {
             if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
@@ -921,23 +921,22 @@ QuanDataWriter::create_spectrogram_tables()
 
     result &= sql.exec(
         "CREATE TABLE SGSpectrum ("
-        "idSample       INTEGAR"
+        "id INTEGER PRIMARY KEY"
+        ",idSample      INTEGAR"
+        ",fcn           INTEGER"
         ",pkd           INTEGAR"
         ",epochTime     INTEGAR"
         ",injTime       REAL"
-        ",trigNumber    INTEGER"
         ",stem          TEXT"
         ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
 
     result &= sql.exec(
         "CREATE TABLE SGPeak ("
-        "idSample       INTEGAR"
-        ",pkd           INTEGER"
-        ",fcn           INTEGER"
+        "idSpectrum     INTEGER"
         ",mass          REAL"
         ",time          REAL"
         ",intensity     REAL"
-        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+        ",FOREIGN KEY( idSpectrum ) REFERENCES SGSpectrum ( id ) )" );
 
     return result;
 }
@@ -950,12 +949,12 @@ QuanDataWriter::insert_spectrogram( const boost::uuids::uuid& fileGuid
 {
     ADDEBUG() << dp.filename();
 
-    uint64_t id(0);
+    uint64_t idSample(0);
     adfs::stmt sql( fs_.db() );
     sql.prepare( "SELECT id FROM QuanSample WHERE dataSource like ?" );
     sql.bind(1) = dp.filename();
     if ( sql.step() == adfs::sqlite_row )
-        id = sql.get_column_value< uint64_t >(0);
+        idSample = sql.get_column_value< uint64_t >(0);
     else
         return false;
 
@@ -963,25 +962,24 @@ QuanDataWriter::insert_spectrogram( const boost::uuids::uuid& fileGuid
         const auto& prop = ms->getMSProperty();
         uint64_t epoch_time = prop.timeSinceEpoch();
         double inj_time = prop.timeSinceInjection();
-        uint32_t trigNumber = prop.trigNumber( false );
+        const uint64_t id = seqId_++;
 
-        sql.prepare( "INSERT INTO SGSpectrum ( idSample, pkd, epochTime, injTime, trigNumber ) VALUES (?,?,?,?,?)" );
+        sql.prepare( "INSERT INTO SGSpectrum (id,idSample,fcn,pkd,epochTime,injTime) VALUES (?,?,?,?,?,?)" );
         sql.bind( 1 ) = id;
-        sql.bind( 2 ) = idx; // AVG == 0, PKD == 1
-        sql.bind( 3 ) = epoch_time;
-        sql.bind( 4 ) = inj_time;
-        sql.bind( 4 ) = trigNumber;
+        sql.bind( 2 ) = idSample;
+        sql.bind( 3 ) = 0;          // fcn
+        sql.bind( 4 ) = idx;        // AVG == 0, PKD == 1
+        sql.bind( 5 ) = epoch_time;
+        sql.bind( 6 ) = inj_time;
 
         if ( sql.step() == adfs::sqlite_done ) {
 
-            //sql.begin();
-            sql.prepare( "INSERT INTO SGPeak ( idSample, pkd, mass, time, intensity ) VALUES (?,?,?,?,?)" );
+            sql.prepare( "INSERT INTO SGPeak (idSpectrum,mass,time,intensity) VALUES (?,?,?,?)" );
             for ( size_t i = 0; i < ms->size(); ++i ) {
                 sql.bind( 1 ) = id;
-                sql.bind( 2 ) = idx;
-                sql.bind( 3 ) = ms->mass( i );
-                sql.bind( 4 ) = ms->time( i );
-                sql.bind( 5 ) = ms->intensity( i );
+                sql.bind( 2 ) = ms->mass( i );
+                sql.bind( 3 ) = ms->time( i );
+                sql.bind( 4 ) = ms->intensity( i );
                 if ( sql.step() != adfs::sqlite_done )
                     ADTRACE() << "sql error " << sql.errmsg();
                 sql.reset();

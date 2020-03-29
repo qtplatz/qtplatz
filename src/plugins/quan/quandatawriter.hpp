@@ -106,6 +106,7 @@ namespace quan {
         std::wstring path_;
         adfs::filesystem fs_;
         std::string uuidQuanCompound_;
+        std::atomic< uint64_t > seqId_;
     };
 
 }
