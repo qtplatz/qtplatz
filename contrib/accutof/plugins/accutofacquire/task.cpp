@@ -111,11 +111,13 @@ namespace accutof { namespace acquire {
         typedef std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveform_array_type;
         typedef boost::variant< threshold_array_type, waveform_array_type > que_variant_type;
 
+        using work_guard_type = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
+
         class task::impl {
         public:
             impl() : tp_uptime_( std::chrono::system_clock::now() )
                    , tp_inject_( tp_uptime_ )
-                   , work_( io_service_ )
+                   , work_guard_( io_service_.get_executor() )
                    , strand_( io_service_ )
                    , worker_stopping_( false )
                    , traceAccessor_( std::make_shared< adcontrols::TraceAccessor >() )
@@ -134,9 +136,9 @@ namespace accutof { namespace acquire {
 
             std::chrono::system_clock::time_point tp_inject_;
 
-            boost::asio::io_service io_service_;
-            boost::asio::io_service::work work_;
-            boost::asio::io_service::strand strand_;
+            boost::asio::io_context io_service_;
+            work_guard_type work_guard_;
+            boost::asio::io_context::strand strand_;
 
             std::vector< std::thread > threads_;
             adportable::semaphore sema_;
@@ -216,8 +218,9 @@ task::initialize()
 
             unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
             ADTRACE() << nCores << " threads created for u5303a task";
-            while( nCores-- )
-                impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
+            while( nCores-- ) {
+                impl_->threads_.emplace_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
+            }
 
             adacquire::task::instance()->connect_inst_events( [&]( adacquire::Instrument::eInstEvent ev ){
                     // handle UDP port 7125 event
@@ -259,7 +262,8 @@ task::instInitialize( adacquire::Instrument::Session * session )
 {
     auto self( session->shared_from_this() );
     if ( self ) {
-        impl_->io_service_.post( [self] () { self->initialize(); } );
+        boost::asio::post( impl_->io_service_, [self] () { self->initialize(); } );
+        // impl_->io_service_.post( [self] () { self->initialize(); } );
     }
 }
 
@@ -272,7 +276,8 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 
         impl_->data_status_[ so->objid() ].posted_data_count_++;
 
-        impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
+        boost::asio::post( impl_->io_service_, [=]{ impl_->readData( so, pos ); } );
+        //impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
 
     }
 }
@@ -291,11 +296,12 @@ task::post( std::vector< std::future<bool> >& futures )
     static std::mutex m;
     static std::condition_variable cv;
 
-    impl_->io_service_.post( [&] () {
+    boost::asio::post( impl_->io_service_, [&]() {
+    // impl_->io_service_.post( [&] () {
 
             std::vector< std::future<bool> > xfutures;
             for ( auto& future : futures )
-                xfutures.push_back( std::move( future ) );
+                xfutures.emplace_back( std::move( future ) );
 
             { std::lock_guard< std::mutex > lk( m ); processed = true; }  cv.notify_one();
 
@@ -380,7 +386,8 @@ task::impl::worker_thread()
         if ( data_status_[ acqrscontrols::u5303a::waveform_observer ].data_ready_ ) {
             data_status_[ acqrscontrols::u5303a::waveform_observer ].data_ready_ = false;
             data_status_[ acqrscontrols::u5303a::waveform_observer ].tp_data_handled_ = std::chrono::system_clock::now();
-            io_service_.post( strand_.wrap( [&]() { document::instance()->commitData(); } ) );
+
+            boost::asio::post( strand_, [&]() { document::instance()->commitData(); } );
         }
 
         // Histogram
@@ -450,8 +457,11 @@ task::impl::handle_softaveraged_waveforms()
     if ( ndata ) {
         // ================== write averaged waveform to datafile ======================
         do {
-            auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
-            io_service_.post( strand_.wrap ( [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer, tmp ); } ) );
+            if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) )
+                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer, std::move( tmp ) );
+            // boost::asio::post( strand_
+            //                    , [tmp](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer
+            // io_service_.post( strand_.wrap ( [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer, tmp ); } ) );
         } while (0 );
         // <============================================================================
     }
@@ -489,7 +499,10 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
         // ADDEBUG() << "wellKnownEvents: " << waveforms[0]->wellKnownEvents_ << " events: " << rb->events();
         /////////////////////////////////////
 
-        io_service_.post( [=]() { document::instance()->waveforms_to_file( waveforms ); } );
+        // -----> on trial 28-MAR-2020
+        //io_service_.post( [=]() { document::instance()->waveforms_to_file( waveforms ); } ); // append to pkdavgwriter
+        document::instance()->waveforms_to_file( waveforms ); // on trial 28-MAR-2020; append to pkdavgwriter
+        // <----
 
         // PKD+AVG (PKD)
         if ( waveforms[ 1 ] && waveforms[ 1 ]->meta_.channelMode == acqrscontrols::u5303a::PKD ) { // isPKD ?
@@ -505,7 +518,10 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
             que_ = dup;
             status.plot_ready_ = true; // u5303a
             sema_.signal();
-            io_service_.post( [this]{ handle_averaged_waveforms(); } );
+            // -----> on trial 28-MAR-2020
+            //io_service_.post( [this]{ handle_averaged_waveforms(); } ); // <- chromatogram points calculation
+            handle_averaged_waveforms();  // on trial 28-MAR-2020
+            // <-----
         }
 
     } else if ( waveforms[0] || waveforms[1] ) {  // Threshold counting
@@ -520,14 +536,19 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
         if ( auto result = threshold_results.at( 0 ) ) {
 
             // write all thresholds to file (puth into que)
-            io_service_.post( [=] () { document::instance()->result_to_file( result ); } );
+
+            // -----> on trial 28-MAR-2020
+            //io_service_.post( [=] () { document::instance()->result_to_file( result ); } );
+            document::instance()->result_to_file( result );
+            // <-----
 
             // make histogram (long-term & periodical)
             if ( document::tdc()->accumulate_histogram( result ) &&
                  ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) > 250ms ) ) {
 
                 data_status_[ histogram_observer ].tp_plot_handled_ = tp;
-                io_service_.post( [this](){ handle_histograms(); } );
+                boost::asio::post( io_service_, [this](){ handle_histograms(); } );
+                //io_service_.post( [this](){ handle_histograms(); } );
             }
 
             // (original code) single trigger waveform
@@ -542,23 +563,10 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
                  ( ( tp - data_status_[ softavgr_observer ].tp_plot_handled_ ) > 250ms ) ) {
 
                 data_status_[ softavgr_observer ].tp_plot_handled_ = tp;
-                io_service_.post( [this](){ handle_softaveraged_waveforms(); } );
+                boost::asio::post( io_service_,  [this](){ handle_softaveraged_waveforms(); } );
+                //io_service_.post( [this](){ handle_softaveraged_waveforms(); } );
             }
 
-#if 0       // this plugin has no view pane for raw digitizer waveform (single trigger)
-            // draw digititizer (raw) waveform
-            if ( ( tp - data_status_[ acqrscontrols::u5303a::waveform_observer ].tp_plot_handled_ ) >= std::chrono::milliseconds( 250 ) ) {
-                std::lock_guard< std::mutex > lock( mutex_ );
-                que_ = threshold_results; //.at( 0 );
-                data_status_[ acqrscontrols::u5303a::waveform_observer ].plot_ready_ = true;
-                sema_.signal();
-            }
-            // commit data
-            if ( ( tp - data_status_[ acqrscontrols::u5303a::waveform_observer ].tp_data_handled_ ) >= std::chrono::milliseconds( 1000 ) ) {
-                data_status_[ acqrscontrols::u5303a::waveform_observer ].data_ready_ = true;
-                sema_.signal();
-            }
-#endif
         }
     }
 }
@@ -651,8 +659,11 @@ task::impl::handle_histograms()
         if ( ndata ) {
             // ================== write Time digital countgram to datafile ======================
             do {
-                auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
-                io_service_.post( [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, tmp ); } );
+                if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) )
+                    adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, std::move( tmp ) );
+                // boost::asio::post( io_service_
+                //                    , [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, std::move( tmp ) ); } );
+                //io_service_.post( [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, tmp ); } );
             } while (0 );
             // <============================================================================
 

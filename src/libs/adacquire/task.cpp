@@ -196,6 +196,9 @@ task::post( std::shared_ptr< SampleProcessor > sp )
 std::shared_ptr< SampleProcessor >
 task::deque()
 {
+    // application document's prepare_next_sampley may call this method
+
+    ADDEBUG() << "########### deque sample processor ##############";
     std::lock_guard< std::mutex > lock( impl::mutex_ );
     return impl_->sequence_->deque();
 }
@@ -263,7 +266,7 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 }
 
 void
-task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter > dw )
+task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& dw )
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
 
@@ -276,7 +279,7 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
 
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
 
-        sampleprocessor->write( uuid, *dw );
+        sampleprocessor->write( uuid, dw );
         impl_->sequence_warning_count_ = 0;
 
     }

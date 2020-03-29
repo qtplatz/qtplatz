@@ -42,16 +42,16 @@ namespace adurl {
         class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
         typedef std::function< void( const std::vector< std::pair< std::string, std::string > >&, const std::string ) > callback_type;
-        
+
         ~blob();
-        blob( boost::asio::io_service& );
-        
+        blob( boost::asio::io_context& );
+
         void register_blob_handler( callback_type );
-    
+
         bool connect( const std::string& url, const std::string& server, const std::string& port = "http" );
-    
+
     private:
-        boost::asio::io_service& io_context_;  // still using boost-1.62 on armhf based linux
+        boost::asio::io_context& io_context_;
         std::string server_;
         std::string port_;
         std::string url_;
@@ -61,6 +61,5 @@ namespace adurl {
         bool header_complete_; // when empty line detects
         size_t content_length_;
     };
-    
-}
 
+}

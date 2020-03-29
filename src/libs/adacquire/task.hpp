@@ -110,7 +110,7 @@ namespace adacquire {
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
 
-        void handle_write( const boost::uuids::uuid&, std::shared_ptr< adacquire::SignalObserver::DataWriter > );
+        void handle_write( const boost::uuids::uuid&, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& );
 
         //
         void handle_so_event( SignalObserver::wkEvent );

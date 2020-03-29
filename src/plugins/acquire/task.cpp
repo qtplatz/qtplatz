@@ -447,8 +447,9 @@ task::impl::handle_trace_data( data_status& status, std::shared_ptr<adacquire::S
     // ================== write trace data to datafile ======================
     do {
         auto accessor = std::make_shared< socfpga::dgmod::data_accessor >( data );
-        auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
-        io_service_.post( [=](){ adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__, tmp ); } );
+        if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) )
+            adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__, std::move( tmp ) );
+        //io_service_.post( [=](){ adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__, std::move( tmp ) ); } );
      } while (0 );
     // ============================================================================
 }

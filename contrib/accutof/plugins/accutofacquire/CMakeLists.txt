@@ -33,6 +33,7 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
 add_definitions(
   -DACCUTOFACQUIRE_LIBRARY
   -D_SCL_SECURE_NO_WARNINGS
+  -DBOOST_ASIO_NO_DEPRECATED
   )
 
 include_directories(

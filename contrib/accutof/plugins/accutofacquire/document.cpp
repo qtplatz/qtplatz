@@ -302,7 +302,7 @@ namespace accutof { namespace acquire {
             bool pkdSpectrumEnabled_;
             bool longTermHistogramEnabled_;
 
-            boost::asio::io_service io_context_;
+            boost::asio::io_context io_context_;
             boost::asio::steady_timer timer_;
             std::unique_ptr< adurl::sse_handler > sse_;
             std::unique_ptr< adurl::blob > blob_;
@@ -591,7 +591,7 @@ document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, con
 {
     // make empty que
     while( auto sample = adacquire::task::instance()->deque() )
-        ;
+        sample->close();
 
     // push new sample
     adacquire::task::instance()->prepare_next_sample( run, cm );

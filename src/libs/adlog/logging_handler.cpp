@@ -100,15 +100,14 @@ logging_handler::appendLog( int pri
     // forward (for graphical logging display on qtplatz)
     logger_( pri, msg, file, line, tp );
 
+#ifdef __linux__
+    syslog( pri, "%s", msg.c_str() );
+#else
     if ( !logfile_.empty() ) {
         std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
         of << adportable::date_string::logformat( tp ) << ":[" << __pid << "]\t" << msg << std::endl;
     }
-
     adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
-
-#ifdef __linux__
-    syslog( pri, "%s", msg.c_str() );
 #endif
 }
 
