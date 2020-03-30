@@ -126,9 +126,11 @@ SampleProcessor::__close()
         }
 
         if ( close_future_ ) {
-            ADDEBUG() << "-------- close_future_->get() -------";
             boost::asio::post( task::instance()->io_service(), [=]{ close_future_->get(); } );
         }
+        auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
+        ADDEBUG() << boost::format( "SampleProcessor: %s\tclosed. Took %.1f seconds to complete." ) % storage_name_.stem().string() % duration;
+        ADINFO() << boost::format( "SampleProcessor: %s\tclosed. Took %.1f seconds to complete." ) % storage_name_.stem().string() % duration;
 
     } catch ( std::exception& e ) {
         ADDEBUG() << boost::diagnostic_information( e );
@@ -155,7 +157,7 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
     sampleRun_->setFilePrefix( filename.stem().wstring() );
 
 	///////////// creating filesystem ///////////////////
-    if ( !fs_->create( storage_name_.wstring().c_str(), 0, 8192 ) )
+    if ( !fs_->create( storage_name_.wstring().c_str(), 8192*8, 8192 ) )
         return;
 
     adutils::v3::AcquiredConf::create_table_v3( fs_->db() );
@@ -212,7 +214,6 @@ SampleProcessor::writer_thread()
     size_t total_octets(0);
     do {
         sema_.wait();
-        // ADDEBUG() << "====== worker_thread: " << std::this_thread::get_id() << que_.size() << ", sema: " << sema_.count();
 
         boost::uuids::uuid objId;
         std::shared_ptr< SignalObserver::DataWriter > writer;
@@ -231,9 +232,9 @@ SampleProcessor::writer_thread()
         uint32_t wc; size_t octets;
 
         std::tie( wc, octets ) = __write( objId, writer );
-        total_octets += octets;
 
         if ( c_acquisition_active_ && closed_flag_ ) {
+            total_octets += octets;
             auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
             ADDEBUG() << "SampleProcessor: " << boost::filesystem::path( fs_->filename() ).stem().string()
                       << "\tremains: "

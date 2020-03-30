@@ -246,8 +246,8 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         }
 
         for ( size_t i = 0; i < ptr->nbrSamples(); ++i ) {
-            int d = __noise__();
-            if ( d > 12 )
+            double d = __noise__();
+            if ( d > 13.5 )
                 dp[ i ] += d;
         }
 
