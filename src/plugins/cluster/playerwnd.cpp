@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,14 +27,8 @@
 #include "constants.hpp"
 #include "player.hpp"
 #include "uimediator.hpp"
-// #include <mpxwidgets/spectrogramplot.hpp>
-// #include <mpxcontrols/dataframe.hpp>
-// #include <mpxcontrols/population_protocol.hpp>
-// #include <mpxprocessor/processor.hpp>
 #include <adcontrols/contoursmethod.hpp>
-#include <adcontrols/mappedspectrum.hpp>
-#include <adcontrols/mappedspectra.hpp>
-#include <adcontrols/mappedimage.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -44,6 +38,8 @@
 #include <adplot/picker.hpp>
 #include <adplot/plotcurve.hpp>
 #include <adplot/spanmarker.hpp>
+#include <adplot/spectrogramdata.hpp>
+#include <adplot/spectrogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/zoomer.hpp>
 #include <adportable/bzip2.hpp>
@@ -75,6 +71,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <condition_variable>
 #include <iostream>
 #include <numeric>
@@ -89,6 +86,8 @@ namespace adcv {
 
 namespace cluster {
 
+    class SpectrogramData;
+
     class PlayerWnd::impl {
         PlayerWnd * parent_;
     public:
@@ -101,10 +100,11 @@ namespace cluster {
         std::unique_ptr< adplot::ChromatogramWidget > timed_plot_;
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > splots_;
         std::unique_ptr< adcv::ImageWidget > img_;
-		//std::unique_ptr< mpxwidgets::SpectrogramPlot > map_;
+		std::unique_ptr< adplot::SpectrogramWidget > map_;
 
-        std::weak_ptr< const adcontrols::MappedImage > image_;      // if Moments was checked
-        std::weak_ptr< const adcontrols::MappedSpectra > spectra_;  // --> origin is the mpxprocessor::processor class
+        std::unique_ptr< SpectrogramData > sgData_;
+        //std::weak_ptr< const adcontrols::MappedImage > image_;      // if Moments was checked
+        //std::weak_ptr< const adcontrols::MappedSpectra > spectra_;  // --> origin is the mpxprocessor::processor class
         std::weak_ptr< const adcontrols::MassSpectrum > ms_;        // --> origin is the mpxprocessor::processor class
         std::weak_ptr< const adcontrols::Chromatogram > chro_;      // --> origin is the mpxprocessor::processor class
         std::weak_ptr< const adcontrols::MassSpectrum > msOverlay_; // --> origin is in folum
@@ -127,6 +127,85 @@ namespace cluster {
         static QwtText make_spectrum_title( const std::pair< double, double >& trig );
         void setImage( const boost::numeric::ublas::matrix< double >&, double maxScale );
         void replotImage();
+    };
+
+    class SpectrogramData : public adplot::SpectrogramData {
+        SpectrogramData( const SpectrogramData& ) = delete;
+    public:
+        SpectrogramData( std::shared_ptr< const adcontrols::MassSpectra >&& spectra )
+            : spectra_( spectra )
+            , m_( 1024, spectra->size() )
+            , xlimits_( spectra_->x_left(), spectra_->x_right() )
+            , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )  {
+            updateData();
+        }
+
+        double value( double x, double y ) const override {
+			size_t ix = dx( x );
+			size_t iy = dy( y );
+            return m_( iy, ix );
+        }
+        QRectF boundingRect() const override {
+            return QRectF( xlimits_.first, ylimits_.first, xlimits_.second - xlimits_.first, ylimits_.second - ylimits_.first );            
+        }
+        bool zoomed( const QRectF& rc ) override {
+            xlimits_ = std::make_pair( rc.left(), rc.right() );
+            ylimits_ = std::make_pair( rc.top(), rc.bottom() );
+            updateData();
+            return true;
+        }
+        const boost::numeric::ublas::matrix< double >& matrix() const { return  m_; }
+    private:
+        std::shared_ptr< const adcontrols::MassSpectra > spectra_;
+        boost::numeric::ublas::matrix< double > m_;
+        std::pair< double, double > xlimits_, ylimits_;
+        size_t size1_;
+        size_t size2_;
+        
+        size_t dx( double x ) const {
+            size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( size1_ - 1 );
+			if ( d > m_.size1() - 1 )
+				return m_.size1() - 1;
+			return d;
+        }
+        size_t dy( double y ) const {
+            size_t d = ((y - ylimits_.first) / ( ylimits_.second - ylimits_.first )) * ( m_.size2() - 1 );
+			if ( d > m_.size2() - 1 )
+				return m_.size2() - 1;
+            return d;
+        }
+        void updateData() {
+            m_.clear();
+
+            size_t id1 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.first ) );
+            size_t id2 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.second ) );
+            size1_ = std::min( m_.size1(), id2 - id1 + 1 );
+
+            double z_max = std::numeric_limits<double>::lowest();
+            size_t id = 0;
+            for ( auto& ms: *spectra_ ) {
+                double x = spectra_->x()[ id++ ];
+
+                if ( xlimits_.first <= x && x <= xlimits_.second ) {
+                    size_t ix = dx(x);
+
+                    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
+                    for ( auto& seg: segs ) {
+                        for ( size_t i = 0; i < seg.size(); ++i ) {
+                            double m = seg.mass( i );
+                            if ( ylimits_.first < m && m < ylimits_.second ) {
+                                size_t iy = dy(m);
+                                m_( iy, ix ) += seg.intensity( i );
+                                z_max = std::max( z_max, m_( iy, ix ) );
+                            }
+                        }
+                    }
+                }
+            }
+            setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
+            setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
+            setInterval( Qt::ZAxis, QwtInterval( 0.0, z_max ) );
+        }
     };
 }
 
@@ -157,7 +236,7 @@ PlayerWnd::PlayerWnd( QWidget *parent ) : QWidget( parent )
             }
 
             for ( auto& plot: impl_->splots_ ) {
-                if ( plot = std::make_unique< adplot::SpectrumWidget >( this ) ) {
+                if (( plot = std::make_unique< adplot::SpectrumWidget >( this ) )) {
 
                     plot->setMinimumHeight( 80 );
                     plot->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
@@ -179,8 +258,11 @@ PlayerWnd::PlayerWnd( QWidget *parent ) : QWidget( parent )
                  , this, [&]( const QRectF& rc ){ emit timeRangeSelectedOnSpectrum( 0, rc ); });
 
         impl_->img_ = std::make_unique< adcv::ImageWidget >( this );
-        //impl_->map_ = std::make_unique< mpxwidgets::SpectrogramPlot >( this );
+        impl_->map_ = std::make_unique< adplot::SpectrogramWidget >( this );
         //impl_->map_->installEventFilter( this );
+        //connect( impl_->map_.get(), SIGNAL( onSelected( const QPointF& ) ), this, SLOT( handleSelected( const QPointF& ) ) );
+        //connect( impl_->map_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelected( const QRectF& ) ) );
+        
 
         impl_->timed_plot_->installEventFilter( this );
 
@@ -193,7 +275,7 @@ PlayerWnd::PlayerWnd( QWidget *parent ) : QWidget( parent )
             if ( auto widget = new QWidget ) {
                 if ( auto layout = new QHBoxLayout( widget ) ) {
                     layout->addWidget( impl_->img_.get() );
-                    //layout->addWidget( impl_->map_.get() );
+                    layout->addWidget( impl_->map_.get() );
                     splitter3->addWidget( widget );
                 }
             }
@@ -324,6 +406,24 @@ PlayerWnd::handleDataChanged( const portfolio::Folium& folium )
             }
         }
         // impl_->splots_[ 1 ]->setAlpha( 2, 0x20 );
+    } else if ( ( folium.parentFolder().name() == L"Contours" ) || ( folium.parentFolder().name() == L"Spectrograms" ) ) {
+        impl_->sgData_.reset();
+        double zmax = 1.0;
+        if ( portfolio::is_type< std::shared_ptr< const adcontrols::MassSpectra > >( folium ) ) {
+            if ( auto map = portfolio::get< std::shared_ptr< const adcontrols::MassSpectra > >( folium ) ) {
+                zmax = map->z_max();
+                impl_->sgData_ = std::make_unique< SpectrogramData >( std::move( map ) );
+            }
+        } else if ( portfolio::is_type< std::shared_ptr< adcontrols::MassSpectra > >( folium ) ) {
+            if ( auto map = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) ) {
+                zmax = map->z_max();
+                impl_->sgData_ = std::make_unique< SpectrogramData >( std::move( map ) );
+            }
+        }
+        if ( impl_->sgData_ ) {
+            impl_->map_->setData( impl_->sgData_.get() );
+            impl_->setImage( impl_->sgData_->matrix(), zmax );
+        }
     }
 }
 
@@ -374,20 +474,22 @@ PlayerWnd::impl::make_spectrum_title( const std::pair< double, double >& trig )
 void
 PlayerWnd::impl::replotImage()
 {
-    if ( document::instance()->momentsEnabled() ) {
+    ADDEBUG() << "-----> replot";
 
+    if ( document::instance()->momentsEnabled() ) {
+        
         // Contours requested
-        if ( auto image = image_.lock() )
-            setImage( image->matrix(), zAutoScale_ ? image->max_z() : zScale_ );
+        // if ( auto image = image_.lock() )
+        //     setImage( image->matrix(), zAutoScale_ ? image->max_z() : zScale_ );
 
     } else {
 
-        if ( auto spectra = spectra_.lock() ) { // lock 'mappedSpectra'
-            if ( auto image = std::make_shared< adcontrols::MappedImage >() ) {
-                if ( image->merge( *spectra ) ) // convert mappedSpectra to 2-D contour map
-                    setImage( image->matrix(), zAutoScale_ ? image->max_z() : zScale_ );
-            }
-        }
+        // if ( auto spectra = spectra_.lock() ) { // lock 'mappedSpectra'
+        //     if ( auto image = std::make_shared< adcontrols::MappedImage >() ) {
+        //         if ( image->merge( *spectra ) ) // convert mappedSpectra to 2-D contour map
+        //             setImage( image->matrix(), zAutoScale_ ? image->max_z() : zScale_ );
+        //     }
+        // }
     }
 }
 
@@ -403,38 +505,38 @@ PlayerWnd::impl::setImage( const boost::numeric::ublas::matrix< double >& m, dou
     if ( filters_ & 0x08 ) { // contours search
         auto& method = document::instance()->contoursMethod();
         qImage = adcv::imfilter< QImage
-                                     , adcv::imContours>( adcv::imContours( method ))( m, scaleFactor );
-
+                                 , adcv::imContours>( adcv::imContours( method ))( m, scaleFactor );
+        
     } else if ( filters_ == 0 )
         qImage = adcv::imfilter< QImage
-                                     , adcv::imColorMap >()( m, scaleFactor );
-
+                                 , adcv::imColorMap >()( m, scaleFactor );
+    
     else if ( filters_ == 1 )
         qImage = adcv::imfilter< QImage
-                                     , adcv::imGrayScale >()( m, scaleFactor );
+                                 , adcv::imGrayScale >()( m, scaleFactor );
     else if ( filters_ == 2 )
         qImage = adcv::imfilter< QImage
-                                     , adcv::imColorMap
-                                     , adcv::imDFT >()( m, scaleFactor );
+                                 , adcv::imColorMap
+                                 , adcv::imDFT >()( m, scaleFactor );
     else if ( filters_ == 4 )
         qImage = adcv::imfilter< QImage
-                                     , adcv::imColorMap
-                                     , adcv::imBlur >( adcv::imColorMap(), mBlur )( m, scaleFactor );
+                                 , adcv::imColorMap
+                                 , adcv::imBlur >( adcv::imColorMap(), mBlur )( m, scaleFactor );
     else if ( filters_ == ( 0x01 | 0x02 ) ) // Gray+DFT
         qImage = adcv::imfilter< QImage
-                                     , adcv::imGrayScale, adcv::imDFT >()( m, scaleFactor );
+                                 , adcv::imGrayScale, adcv::imDFT >()( m, scaleFactor );
     else if ( filters_ == ( 0x01 | 0x04 ) ) // Gray+Blur
         qImage = adcv::imfilter< QImage
-                                     , adcv::imGrayScale, adcv::imBlur >(
-                                         adcv::imGrayScale(), mBlur )( m, scaleFactor );
+                                 , adcv::imGrayScale, adcv::imBlur >(
+                                     adcv::imGrayScale(), mBlur )( m, scaleFactor );
     else if ( filters_ == ( 0x02 | 0x04 ) ) // ColorMap+DFT+Blur
         qImage = adcv::imfilter< QImage
-                                     , adcv::imColorMap, adcv::imDFT, adcv::imBlur >(
-                                         adcv::imColorMap(), adcv::imDFT(), mBlur )( m, scaleFactor );
+                                 , adcv::imColorMap, adcv::imDFT, adcv::imBlur >(
+                                     adcv::imColorMap(), adcv::imDFT(), mBlur )( m, scaleFactor );
     else if ( filters_ == ( 0x01 | 0x02 | 0x04 ) ) // Gray+DFT+Blur
         qImage = adcv::imfilter< QImage
-                                     , adcv::imGrayScale, adcv::imDFT, adcv::imBlur >(
-                                         adcv::imGrayScale(), adcv::imDFT(), mBlur )( m, scaleFactor );
+                                 , adcv::imGrayScale, adcv::imDFT, adcv::imBlur >(
+                                     adcv::imGrayScale(), adcv::imDFT(), mBlur )( m, scaleFactor );
     try {
         img_->setImage( qImage );
     } catch ( std::exception& ex ) {
@@ -445,6 +547,7 @@ PlayerWnd::impl::setImage( const boost::numeric::ublas::matrix< double >& m, dou
 void
 PlayerWnd::__setData( std::shared_ptr< const adcontrols::MappedSpectra >&& spectra, const std::pair< double, double >& trig )
 {
+#if 0
     QwtText title;
 
     impl_->spectra_ = spectra;
@@ -499,23 +602,22 @@ PlayerWnd::__setData( std::shared_ptr< const adcontrols::MappedSpectra >&& spect
 
     impl_->timedPlotMarker_->setXValue( trig.first, trig.second );
     impl_->timed_plot_->replot();
+#endif
 }
 
 void
 PlayerWnd::__setData( std::shared_ptr< const adcontrols::MappedImage >&& image, const std::pair< double, double >& trig )
 {
-    QwtText title;
-
+    //QwtText title;
     ADDEBUG() << __FUNCTION__;
-
-    impl_->image_ = image;
-    document::instance()->setMappedImage( image, nullptr, trig, impl_->tofRange_ );
-    impl_->setImage( image->matrix(), zMapScale( *image ) );
+    // impl_->image_ = image;
+    // document::instance()->setMappedImage( image, nullptr, trig, impl_->tofRange_ );
+    // impl_->setImage( image->matrix(), zMapScale( *image ) );
     //impl_->map_->setData( std::move( image ) );
     //impl_->map_->setTitle( impl::make_map_title( trig, impl_->tofRange_ ) );
 
-    impl_->timedPlotMarker_->setXValue( trig.first, trig.second );
-    impl_->timed_plot_->replot();
+    // impl_->timedPlotMarker_->setXValue( trig.first, trig.second );
+    // impl_->timed_plot_->replot();
 }
 
 // from adplot::ChromatogramWidget
@@ -602,102 +704,79 @@ PlayerWnd::handleNextMappedSpectra( bool forward )
 void
 PlayerWnd::handleTofMoved( int step )
 {
-    using namespace adcontrols::metric;
+    //using namespace adcontrols::metric;
+    // if ( auto matrix = impl_->spectra_.lock() ) {
 
-    if ( auto matrix = impl_->spectra_.lock() ) {
+    //     const auto& sp = (*matrix)( 0, 0 );
+    //     double distance = sp.samplingInterval() * step;
+    //     auto acqRaneg = sp.acqTimeRange();
 
-        const auto& sp = (*matrix)( 0, 0 );
-        double distance = sp.samplingInterval() * step;
-        auto acqRaneg = sp.acqTimeRange();
+    //     std::pair< double, double > tof = { impl_->tofRange_.first + distance, impl_->tofRange_.second + distance };
 
-        std::pair< double, double > tof = { impl_->tofRange_.first + distance, impl_->tofRange_.second + distance };
+    //     if ( ( step > 0 ) && ( tof.second > acqRaneg.second ) ) // over range
+    //         return;
+    //     else if ( tof.first < acqRaneg.first ) // under range
+    //         return;
 
-        if ( ( step > 0 ) && ( tof.second > acqRaneg.second ) ) // over range
-            return;
-        else if ( tof.first < acqRaneg.first ) // under range
-            return;
+    //     impl_->tofRange_ = tof;
 
-        impl_->tofRange_ = tof;
+    //     double ctof  = tof.first + ( tof.second - tof.first ) / 2;
+    //     double width = tof.second - tof.first;
 
-        double ctof  = tof.first + ( tof.second - tof.first ) / 2;
-        double width = tof.second - tof.first;
+    //     if ( auto image = std::make_shared< adcontrols::MappedImage >() ) {
 
-        if ( auto image = std::make_shared< adcontrols::MappedImage >() ) {
+    //         if ( image->merge( *matrix, ctof, width ) ) {
 
-            if ( image->merge( *matrix, ctof, width ) ) {
+    //             //////////////////////
+    //             impl_->setImage( image->matrix(), zMapScale( *image ) );
+    //             //impl_->map_->setData( std::move( image ) );
+    //             //impl_->map_->setTitle( impl::make_map_title( impl_->trigRange_, tof ) );
 
-                //////////////////////
-                impl_->setImage( image->matrix(), zMapScale( *image ) );
-                //impl_->map_->setData( std::move( image ) );
-                //impl_->map_->setTitle( impl::make_map_title( impl_->trigRange_, tof ) );
+    //             QRectF rc = impl_->splots_[ 0 ]->zoomRect();
+    //             QRectF tofRect( scale_to_micro( tof.first ), rc.y(), scale_to_micro( tof.second - tof.first ), rc.height() );
 
-                QRectF rc = impl_->splots_[ 0 ]->zoomRect();
-                QRectF tofRect( scale_to_micro( tof.first ), rc.y(), scale_to_micro( tof.second - tof.first ), rc.height() );
+    //             if ( rc.right() < tofRect.right() ) {
+    //                 impl_->splots_[ 0 ]->zoomer()->moveBy( tofRect.right() - rc.right(), 0 );
+    //             } else if ( rc.left() > tofRect.left() ) {
+    //                 impl_->splots_[ 0 ]->zoomer()->moveBy( tofRect.left() - rc.left(), 0 );
+    //             }
 
-                if ( rc.right() < tofRect.right() ) {
-                    impl_->splots_[ 0 ]->zoomer()->moveBy( tofRect.right() - rc.right(), 0 );
-                } else if ( rc.left() > tofRect.left() ) {
-                    impl_->splots_[ 0 ]->zoomer()->moveBy( tofRect.left() - rc.left(), 0 );
-                }
-
-                impl_->tofRangeMarker_->setXValue( scale_to_micro( tof.first ), scale_to_micro( tof.second ) );
-                impl_->splots_[ 0 ]->replot();
-            }
-            document::instance()->setHistogramWindow( tof.first, tof.second - tof.first ); // delay, window
-        }
-    }
+    //             impl_->tofRangeMarker_->setXValue( scale_to_micro( tof.first ), scale_to_micro( tof.second ) );
+    //             impl_->splots_[ 0 ]->replot();
+    //         }
+    //         document::instance()->setHistogramWindow( tof.first, tof.second - tof.first ); // delay, window
+    //     }
+    // }
 }
 
 std::shared_ptr< adcontrols::MappedImage >
 PlayerWnd::applyTofWindow( const std::pair< double, double >& range, std::pair< double, double >& tofRange ) const
 {
-    auto image = std::make_shared< adcontrols::MappedImage >();
+    // auto image = std::make_shared< adcontrols::MappedImage >();
 
-    if ( auto matrix = impl_->spectra_.lock() ) {
+    // if ( auto matrix = impl_->spectra_.lock() ) {
 
-        const auto& sp = (*matrix)( 0, 0 );
+    //     const auto& sp = (*matrix)( 0, 0 );
 
-        // if ( document::instance()->histogramWindowEnabled() ) {
+    //     // if ( document::instance()->histogramWindowEnabled() ) {
 
-        double lower = std::max( range.first, sp.acqTimeRange().first );
-        double upper = std::min( range.first + range.second, sp.acqTimeRange().second );
+    //     double lower = std::max( range.first, sp.acqTimeRange().first );
+    //     double upper = std::min( range.first + range.second, sp.acqTimeRange().second );
 
-        tofRange = { lower, upper };
+    //     tofRange = { lower, upper };
 
-        double tof = lower + ( upper - lower ) / 2.0;
-        double width = ( upper - lower );
+    //     double tof = lower + ( upper - lower ) / 2.0;
+    //     double width = ( upper - lower );
 
-        if ( image->merge( *matrix, tof, width ) )
-            return image;
-    }
+    //     if ( image->merge( *matrix, tof, width ) )
+    //         return image;
+    // }
     return nullptr;
 }
 
 void
 PlayerWnd::handleSelectedOnSpectrum( const QRectF& rc )
 {
-    // tof range seleected --> update image map with given tof range
-    if ( auto matrix = impl_->spectra_.lock() ) {
-
-        auto range = std::make_pair( rc.left() / std::micro::den, rc.width() / std::micro::den );
-
-        std::pair< double, double > tofRange;
-
-        std::shared_ptr< adcontrols::MappedImage > image;
-
-        if ( auto image = applyTofWindow( range, impl_->tofRange_ ) ) {
-
-            document::instance()->setMappedImage( image, nullptr, impl_->trigRange_, impl_->tofRange_ );
-            emit document::instance()->selRangeOnSpectrum( rc );
-
-            impl_->setImage( image->matrix(), zMapScale( *image ) );
-            //impl_->map_->setData( std::move( image ) );
-            //impl_->map_->setTitle( impl::make_map_title( impl_->trigRange_, impl_->tofRange_ ) );
-
-            impl_->tofRangeMarker_->setXValue( rc.left(), rc.right() );
-            impl_->splots_[ 0 ]->replot();
-        }
-    }
 }
 
 void
@@ -709,34 +788,6 @@ void
 PlayerWnd::handleCellSelected( const QRect& rc )
 {
     impl_->cellSelected_ = rc;
-
-    if ( auto matrix = impl_->spectra_.lock() ) {
-
-        if ( auto sp = std::make_unique< adcontrols::MappedSpectrum >() ) {
-
-            matrix->sum_in_range( *sp, rc.left(), rc.top(), rc.width(), rc.height() );
-
-            if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {
-
-                if ( sp->transform( *ms ) ) {
-
-                    impl_->ms2_ = ms;
-                    impl_->splots_[ 0 ]->clear(); // clear all (if overlay waveform exists)
-
-                    impl_->splots_[ 0 ]->setData( impl_->ms1_, 0, false ); // full spectrum
-                    impl_->splots_[ 0 ]->setAlpha( 0, 0x40 );
-
-                    impl_->splots_[ 0 ]->setData( impl_->ms2_, 1, true );   // cell selected spectrum
-
-                    ADDEBUG() << "handleCellSelected(" << std::make_pair( rc.top(), rc.left() )
-                              << ", " << std::make_pair( rc.height(), rc.width() ) << ")\t ms size: " << impl_->ms2_->size();
-
-                }
-            }
-
-        }
-
-    }
 }
 
 void
@@ -853,7 +904,8 @@ PlayerWnd::setZScale( ZMapId id, int scale )
 double
 PlayerWnd::zMapScale( const adcontrols::MappedImage& img ) const
 {
-    return document::instance()->zAutoScaleEnable( zMapManip ) ? img.max_z() : impl_->zScale_;
+    //return document::instance()->zAutoScaleEnable( zMapManip ) ? img.max_z() : impl_->zScale_;
+    return impl_->zScale_;
 }
 
 void

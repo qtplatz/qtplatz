@@ -281,7 +281,7 @@ document::handleAddProcessor( adextension::iSessionManager * mgr, const QString&
                 ++it;
         }
     }
-
+    
     if ( mgr ) {
         if ( auto dp = mgr->getDataprocessor( file ) ) {
             impl_->dataprocessors_[ file ].dp_ = dp;

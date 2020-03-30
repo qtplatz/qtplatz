@@ -138,7 +138,7 @@ namespace adcv {
             unsigned char * p = x.bits();
             for ( size_t i = 0; i < m.size1(); ++i ) {
                 for ( size_t j = 0; j < m.size2(); ++j ) {
-                    double v = m( i, j ) * scaleFactor;
+                    double v = m( m.size1() - i - 1, j ) * scaleFactor;
                     auto c = std::move( color_( v ) );
                     *p++ = c.red * 255;
                     *p++ = c.green * 255;
