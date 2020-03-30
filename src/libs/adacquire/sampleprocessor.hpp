@@ -28,12 +28,14 @@
 #include <adportable/semaphore.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
+#include <boost/optional.hpp>
 #include <string>
 #include <thread>
 #include <memory>
 #include <atomic>
 #include <chrono>
 #include <deque>
+#include <future>
 
 namespace adfs { class filesystem; class file; class sqlite; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
@@ -42,11 +44,13 @@ namespace boost { namespace uuids { struct uuid; } }
 
 namespace adacquire {
 
-    class ADACQUIRESHARED_EXPORT SampleProcessor {
+    class ADACQUIRESHARED_EXPORT SampleProcessor : public std::enable_shared_from_this< SampleProcessor > {
+        SampleProcessor( const SampleProcessor& ) = delete;
+        const SampleProcessor& operator = ( const SampleProcessor& ) = delete;
 	public:
         ~SampleProcessor();
-        SampleProcessor( std::shared_ptr< adcontrols::SampleRun >
-                         , std::shared_ptr< adcontrols::ControlMethod::Method> );
+        explicit SampleProcessor( std::shared_ptr< adcontrols::SampleRun >
+                                  , std::shared_ptr< adcontrols::ControlMethod::Method > );
 
         void prepare_storage( SignalObserver::Observer * );
 
@@ -72,7 +76,7 @@ namespace adacquire {
 
         bool prepare_snapshot_storage( adfs::sqlite& db ) const;
 
-        void close();
+        void close( bool detach = true );
 
     private:
 		void create_acquireddata_table();
@@ -83,6 +87,7 @@ namespace adacquire {
 
         std::pair<uint32_t, size_t>
         __write( const boost::uuids::uuid& objId, std::shared_ptr< adacquire::SignalObserver::DataWriter > );
+        void __close();
 
         static void populate_descriptions( SignalObserver::Observer *, adfs::sqlite& );
         static void populate_calibration( SignalObserver::Observer *, adfs::sqlite& );
@@ -97,6 +102,7 @@ namespace adacquire {
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
         std::chrono::system_clock::time_point tp_inject_trigger_;
+        std::chrono::steady_clock::time_point tp_close_trigger_;
         std::weak_ptr< adacquire::SignalObserver::Observer > masterObserver_;
 
         uint64_t ts_inject_trigger_;
@@ -106,6 +112,7 @@ namespace adacquire {
         std::deque< std::pair<boost::uuids::uuid, std::shared_ptr<adacquire::SignalObserver::DataWriter>> > que_;
         std::thread thread_;
         std::atomic_bool closed_flag_;
+        boost::optional< std::future< void > > close_future_;
     };
 
 }

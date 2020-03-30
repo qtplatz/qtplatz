@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,6 +25,7 @@
 #include "sampleprocessor.hpp"
 #include "datawriter.hpp"
 #include "signalobserver.hpp"
+#include "task.hpp"
 #include "mscalibio_v3.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
@@ -56,8 +57,10 @@ static size_t __nid__;
 
 SampleProcessor::~SampleProcessor()
 {
-    if ( ! closed_flag_ )
-        close();
+    if ( ! closed_flag_ ) {
+        ADDEBUG() << "############ SampleProcessor::DTOR without close ###############";
+        __close();
+    }
 }
 
 SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
@@ -77,10 +80,23 @@ SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
 }
 
 void
-SampleProcessor::close()
+SampleProcessor::close( bool detach )
 {
-    ADDEBUG() << "##################### close sample processor #######################";
     closed_flag_ = true;
+    tp_close_trigger_ = std::chrono::steady_clock::now();
+    if ( detach ) {
+        auto self = this->shared_from_this();
+        close_future_ = std::async(std::launch::async, [self,this]{
+            __close();
+        });
+    } else {
+        __close();
+    }
+}
+
+void
+SampleProcessor::__close()
+{
     try {
         if ( auto observer = masterObserver_.lock() ) {
             observer->closingStorage( *this );
@@ -88,12 +104,9 @@ SampleProcessor::close()
         }
 
         if ( thread_.joinable() ) {
-            ADDEBUG() << "##################### closing thread #######################";
-            //que_.emplace_back( boost::uuids::uuid{{0}}, std::shared_ptr<adacquire::SignalObserver::DataWriter>{0} );
             que_.emplace_back();
             sema_.signal();
             thread_.join();
-            ADDEBUG() << "##################### thread terminated #######################";
         }
 
         fs_->close();
@@ -110,6 +123,11 @@ SampleProcessor::close()
             boost::filesystem::remove( storage_name_, ec );
             if ( ec )
                 ADDEBUG() << boost::format( "Sample %1% remove failed: %2%" ) % storage_name_.stem().string() % ec.message();
+        }
+
+        if ( close_future_ ) {
+            ADDEBUG() << "-------- close_future_->get() -------";
+            boost::asio::post( task::instance()->io_service(), [=]{ close_future_->get(); } );
         }
 
     } catch ( std::exception& e ) {
@@ -162,7 +180,6 @@ SampleProcessor::prepare_sample_run( adcontrols::SampleRun& run, bool createDire
             return boost::filesystem::path();
         boost::filesystem::create_directories( path );
     }
-
     return run.filename( L".adfs~" );
 }
 
@@ -192,41 +209,36 @@ SampleProcessor::storage_name() const
 void
 SampleProcessor::writer_thread()
 {
+    size_t total_octets(0);
     do {
         sema_.wait();
-
-        ADDEBUG() << "====== worker_thread: " << std::this_thread::get_id() << que_.size() << ", sema: " << sema_.count();
+        // ADDEBUG() << "====== worker_thread: " << std::this_thread::get_id() << que_.size() << ", sema: " << sema_.count();
 
         boost::uuids::uuid objId;
         std::shared_ptr< SignalObserver::DataWriter > writer;
         do {
             std::lock_guard< std::mutex > lock( mutex_ );
-            if ( que_.empty() ) {
-                ADDEBUG() << "============== worker_thread terminating =================";
+            if ( que_.empty() )
                 return; // end of thread
-            }
 
             std::tie( objId, writer ) = que_.front();
             que_.pop_front();
 
-            if ( objId == boost::uuids::uuid{{0}} || writer == nullptr ) {
-                ADDEBUG() << "============== worker_thread terminating =================";
+            if ( objId == boost::uuids::uuid{{0}} || writer == nullptr )
                 return; // end of thread
-            }
         } while (0);
 
-        std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
         uint32_t wc; size_t octets;
 
         std::tie( wc, octets ) = __write( objId, writer );
+        total_octets += octets;
 
-        if ( c_acquisition_active_ ) {
-            auto duration = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::steady_clock::now() - tp).count();
-            ADDEBUG() << "SampleProcessor::write(" << objId << ") wrote " << wc << " wforms, "
-                      << ( octets / 1024 ) << "ko, took: "  << ( duration / 1000.0 ) << "s";
+        if ( c_acquisition_active_ && closed_flag_ ) {
+            auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
+            ADDEBUG() << "SampleProcessor: " << boost::filesystem::path( fs_->filename() ).stem().string()
+                      << "\tremains: "
+                      << boost::format("%2d\t%.1f Mo;\ttook %.1f s") % sema_.count() % (double(total_octets)/(1024*1024)) % duration;
         }
-
-
     } while ( true );
 }
 
@@ -234,7 +246,9 @@ void
 SampleProcessor::write( const boost::uuids::uuid& objId
                         , std::shared_ptr< SignalObserver::DataWriter > writer )
 {
-    ADDEBUG() << "----- add new writer --- closed_flag: " << closed_flag_;
+    if ( closed_flag_ )
+        ADDEBUG() << "----- add new writer while already be closed. flag: " << closed_flag_;
+
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         que_.emplace_back( objId, writer );
@@ -247,9 +261,7 @@ SampleProcessor::__write( const boost::uuids::uuid& objId
                         , std::shared_ptr< SignalObserver::DataWriter > writer )
 {
     uint32_t wcount(0);
-    size_t octets;
-
-    // ADDEBUG() << "__write( " << objId << "; active=" << c_acquisition_active_;
+    size_t octets(0);
 
     writer->rewind();
     do {
@@ -273,7 +285,7 @@ SampleProcessor::__write( const boost::uuids::uuid& objId
                 std::string xdata, xmeta;
                 writer->xdata ( xdata );
                 writer->xmeta ( xmeta );
-                octets += xdata.size() + xmeta.size();
+                octets += ( xdata.size() + xmeta.size() );
                 if ( ! adutils::v3::AcquiredData::insert ( fs_->db(), objId
                                                            , writer->elapsed_time()
                                                            , writer->epoch_time()

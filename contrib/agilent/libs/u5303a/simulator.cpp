@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -42,7 +42,7 @@
 namespace u5303a {
 
     static std::mt19937 __gen__;
-    static std::uniform_real_distribution<> __dist__( -35.0, 5.0 );
+    static std::uniform_real_distribution<> __dist__( -15.0, 15.0 );
     static auto __noise__ = []{ return __dist__( __gen__ ); };
 
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
@@ -247,7 +247,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 
         for ( size_t i = 0; i < ptr->nbrSamples(); ++i ) {
             int d = __noise__();
-            if ( d > 0 )
+            if ( d > 12 )
                 dp[ i ] += d;
         }
 

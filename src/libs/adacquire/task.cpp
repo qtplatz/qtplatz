@@ -197,10 +197,16 @@ std::shared_ptr< SampleProcessor >
 task::deque()
 {
     // application document's prepare_next_sampley may call this method
-
     ADDEBUG() << "########### deque sample processor ##############";
     std::lock_guard< std::mutex > lock( impl::mutex_ );
     return impl_->sequence_->deque();
+}
+
+void
+task::close( std::shared_ptr< SampleProcessor > sp )
+{
+    sp->close();
+    sp.reset();
 }
 
 const SampleSequence *

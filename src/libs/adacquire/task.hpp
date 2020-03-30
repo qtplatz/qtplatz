@@ -89,6 +89,7 @@ namespace adacquire {
         void post( std::shared_ptr< SampleProcessor > );
 
         std::shared_ptr< SampleProcessor > deque();
+        void close( std::shared_ptr< SampleProcessor > );
 
         const SampleSequence * sampleSequence() const;
 
