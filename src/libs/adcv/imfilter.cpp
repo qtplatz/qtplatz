@@ -143,7 +143,7 @@ namespace adcv {
         cv::Mat mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
 
         imBlur blur = ( size_ == 2 ) ? std::get<1>( algos_ ) : imBlur();
-
+        
         if ( blur.resizeFactor > 1 )
             cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
