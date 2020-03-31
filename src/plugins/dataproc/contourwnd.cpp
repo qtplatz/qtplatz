@@ -478,7 +478,7 @@ namespace dataproc {
             }
 
             for ( size_t i = 0; i < m_.size1(); ++i ) {
-                for ( size_t j = 0; i < m_.size2(); ++j ) {
+                for ( size_t j = 0; j < m_.size2(); ++j ) {
                     z_max = std::max( z_max, m_( i, j ) );
                 }
             }
