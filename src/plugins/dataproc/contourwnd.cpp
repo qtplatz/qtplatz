@@ -64,7 +64,7 @@ namespace dataproc {
 
         class SpectrogramData : public adplot::SpectrogramData {
         public:
-            SpectrogramData( std::shared_ptr< adcontrols::MassSpectra >& spectra );
+            SpectrogramData( std::shared_ptr< adcontrols::MassSpectra >&& spectra );
             SpectrogramData( const SpectrogramData& );
             double value( double x, double y ) const override;
             QRectF boundingRect() const override;
@@ -190,12 +190,12 @@ ContourWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& folium )
     portfolio::Folder folder = folium.parentFolder();
 
     if ( folder && ( ( folder.name() == L"Spectrograms" ) || ( folder.name() == L"Contours" ) ) ) {
-        adcontrols::MassSpectraPtr ptr;
-        if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
+        if ( auto ptr = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) ) {
+            // if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
             foliumId_ = folium.id();
             fullpath_ = folium.fullpath();
             data_ = ptr;
-            plot_->setData( new detail::SpectrogramData( ptr ) );
+            plot_->setData( new detail::SpectrogramData( std::move( ptr ) ) );
         }
         portfolio::Folio atts = folium.attachments();
         portfolio::Folio::iterator it
@@ -234,7 +234,7 @@ ContourWnd::handleSelected( const QRectF& rect )
     // int w = int( std::abs( plot_->transform( QwtPlot::xBottom, rect.left() ) - plot_->transform( QwtPlot::xBottom, rect.right() ) ) + 0.5 );
     // int h = int( std::abs( plot_->transform( QwtPlot::yLeft, rect.top() ) - plot_->transform( QwtPlot::yLeft, rect.bottom() ) ) + 0.5 );
 
-    if ( adcontrols::MassSpectraPtr ptr = data_.lock() ) {
+    if ( auto ptr = data_.lock() ) {
 
         qtwrapper::waitCursor wait;
 
@@ -384,10 +384,11 @@ namespace dataproc {
         {
         }
 
-        SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr& spectra ) : spectra_( spectra )
-                                                                                , m_( 1280, 720 ) // 720p
-                                                                                , xlimits_( spectra_->x_left(), spectra_->x_right() )
-                                                                                , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+        SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr&& spectra )
+            : spectra_( spectra )
+            , m_( 1024, spectra->size() )
+            , xlimits_( spectra_->x_left(), spectra_->x_right() )
+            , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
         {
             size1_ = m_.size1();
             size2_ = m_.size2();
@@ -417,7 +418,7 @@ namespace dataproc {
         {
 			size_t ix = dx( x );
 			size_t iy = dy( y );
-            return m_( ix, iy );
+            return m_( iy, ix );
         }
 
         QRectF
@@ -458,8 +459,8 @@ namespace dataproc {
                             double m = seg.getMass( i );
                             if ( ylimits_.first < m && m < ylimits_.second ) {
                                 size_t iy = dy(m);
-                                m_( ix, iy ) += seg.getIntensity( i );
-                                z_max = std::max( z_max, m_( ix, iy ) );
+                                m_( iy, ix ) += seg.getIntensity( i );
+                                z_max = std::max( z_max, m_( iy, ix ) );
                             }
                         }
                     }
