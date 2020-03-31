@@ -371,6 +371,8 @@ ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVect
     return true;
 }
 
+// #define MASS_MAJOR // x-axis on masses
+
 //
 namespace dataproc {
     namespace detail {
@@ -386,9 +388,15 @@ namespace dataproc {
 
         SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr&& spectra )
             : spectra_( spectra )
+#ifdef MASS_MAJOR
+            , m_( spectra->size(), 1024 )
+            , xlimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+            , ylimits_( spectra_->x_left(), spectra_->x_right() )
+#else
             , m_( 1024, spectra->size() )
             , xlimits_( spectra_->x_left(), spectra_->x_right() )
             , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+#endif
         {
             size1_ = m_.size1();
             size2_ = m_.size2();
@@ -448,27 +456,39 @@ namespace dataproc {
             double z_max = std::numeric_limits<double>::lowest();
             size_t id = 0;
             for ( auto& ms: *spectra_ ) {
-                double x = spectra_->x()[ id++ ];
+                double t = spectra_->x()[ id++ ];
 
-                if ( xlimits_.first <= x && x <= xlimits_.second ) {
-                    size_t ix = dx(x);
-
+                if ( xlimits_.first <= t && t <= xlimits_.second ) {
+                    size_t ix = dx(t);
                     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
                     for ( auto& seg: segs ) {
                         for ( size_t i = 0; i < seg.size(); ++i ) {
-                            double m = seg.getMass( i );
+                            double m = seg.mass( i );
                             if ( ylimits_.first < m && m < ylimits_.second ) {
                                 size_t iy = dy(m);
-                                m_( iy, ix ) += seg.getIntensity( i );
-                                z_max = std::max( z_max, m_( iy, ix ) );
+#ifdef MASS_MAJOR
+                                m_( ix, iy ) += seg.intensity( i );
+#else
+                                m_( iy, ix ) += seg.intensity( i );
+#endif
                             }
                         }
                     }
                 }
             }
+
+            for ( size_t i = 0; i < m_.size1(); ++i ) {
+                for ( size_t j = 0; i < m_.size2(); ++j ) {
+                    z_max = std::max( z_max, m_( i, j ) );
+                }
+            }
+#ifdef MASS_MAJOR
+            setInterval( Qt::XAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
+            setInterval( Qt::YAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
+#else
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
-
+#endif
             setInterval( Qt::ZAxis, QwtInterval( 0.0, z_max ) );
         }
     }
