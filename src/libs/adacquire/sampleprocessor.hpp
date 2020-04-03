@@ -29,6 +29,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/optional.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <string>
 #include <thread>
 #include <memory>
@@ -40,7 +41,7 @@
 namespace adfs { class filesystem; class file; class sqlite; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
 namespace adacquire { namespace SignalObserver { class DataReadBuffer; class Observer; class DataWriter; } }
-namespace boost { namespace uuids { struct uuid; } }
+// namespace boost { namespace uuids { struct uuid; } }
 
 namespace adacquire {
 
