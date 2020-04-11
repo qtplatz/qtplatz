@@ -34,25 +34,37 @@
 using namespace acewrapper;
 using boost::asio::ip::udp;
 
-udpEventSender::udpEventSender( boost::asio::io_service& io, const char * host, const char * port ) : sock_( io, udp::endpoint( udp::v4(), 0 ) )
+udpEventSender::udpEventSender( boost::asio::io_service& io
+                                , const char * host
+                                , const char * port
+                                , bool bcast ) : sock_( io, udp::endpoint( udp::v4(), 0 ) )
 {
+    if ( bcast ) {
+        sock_.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+        sock_.set_option(boost::asio::socket_base::broadcast(true));
+    }
+
     udp::resolver resolver( io );
     endpoint_ = *resolver.resolve( { udp::v4(), host, port } );
 
     std::ostringstream o;
     o << endpoint_;
-    ADDEBUG() << "udpEventSender endpoint: " << o.str();
 
+    ADDEBUG() << "udpEventSender endpoint: " << o.str() << "\tbroadcast: " << bcast;
 }
 
 bool
 udpEventSender::send_to( const std::string& data, std::function< void( result_code, double, const char *) > callback )
 {
-    auto tp = std::chrono::system_clock::now();
 
     ADDEBUG() << "send_to: " << data;
-
-    sock_.send_to( boost::asio::buffer( data.c_str(), data.size() ), endpoint_ );
+    auto tp = std::chrono::system_clock::now();
+    try {
+        sock_.send_to( boost::asio::buffer( data.c_str(), data.size() ), endpoint_ );
+    } catch ( const boost::system::system_error &ex ) {
+        ADDEBUG() << ex.what();
+        return false;
+    }
 
     // block ack wait
     std::size_t transferred = 0;
@@ -88,7 +100,7 @@ udpEventSender::send_to( const std::string& data, std::function< void( result_co
     cv_.wait( lock );
 
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - tp).count();
-    double elapsed_time = duration * 1.0e-6; // to seconds
+    double elapsed_time = double(duration) / std::micro::den; // to seconds
 
     if ( transferred == 0 ) { // timed out
         callback( transaction_timeout, elapsed_time, ec.message().c_str() );

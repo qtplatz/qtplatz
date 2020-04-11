@@ -85,7 +85,7 @@ document::bind( const char * host, const char * port )
 {
     try {
         std::lock_guard< std::mutex > lock( mutex_ );
-        udpSender_ = std::make_unique< acewrapper::udpEventSender>( io_service_, host, port );
+        udpSender_ = std::make_unique< acewrapper::udpEventSender>( io_service_, host, port, true );
         return true;
     } catch ( boost::exception& ex ) {
         ADDEBUG() << boost::diagnostic_information( ex );

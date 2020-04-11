@@ -34,9 +34,9 @@ namespace acewrapper {
 
     class udpEventSender {
     public:
-        udpEventSender( boost::asio::io_service&, const char * host, const char * port );
+        udpEventSender( boost::asio::io_service&, const char * host, const char * port, bool bcast = false );
         enum result_code { transaction_completed, transaction_timeout };
-        
+
         bool send_to( const std::string&
                       , std::function< void( result_code, double, const char * ) > callback  = [](result_code, double, const char *){});
 
