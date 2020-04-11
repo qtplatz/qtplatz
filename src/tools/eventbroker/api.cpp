@@ -38,9 +38,9 @@ eventbroker_unregiser_handler( event_handler h )
 }
 
 bool
-eventbroker_bind( const char * host, const char * port )
+eventbroker_bind( const char * host, const char * port, bool bcast )
 {
-    return eventbroker::document::instance()->bind( host, port );
+    return eventbroker::document::instance()->bind( host, port, bcast );
 }
 
 bool

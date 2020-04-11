@@ -56,13 +56,13 @@ udpEventSender::udpEventSender( boost::asio::io_service& io
 bool
 udpEventSender::send_to( const std::string& data, std::function< void( result_code, double, const char *) > callback )
 {
+    ADDEBUG() << "send_to: \"" << data << "\"";
 
-    ADDEBUG() << "send_to: " << data;
     auto tp = std::chrono::system_clock::now();
     try {
         sock_.send_to( boost::asio::buffer( data.c_str(), data.size() ), endpoint_ );
     } catch ( const boost::system::system_error &ex ) {
-        ADDEBUG() << ex.what();
+        ADDEBUG() << "system_error: " << ex.what();
         return false;
     }
 
