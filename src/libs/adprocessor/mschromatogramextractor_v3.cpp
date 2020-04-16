@@ -346,9 +346,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                 xc.append( ms.first, time, y, it->time(), it->mass() );
                             }
                         } else {
-                            double y(0);
-                            computeIntensity( y, t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
-                            xc.append( ms.first, time, y );
+                            auto y = computeIntensity( t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
+                            xc.append( ms.first, time, y ? y.get() : 0 );
                         }
                     } catch ( std::out_of_range& ex ) {
                         ADDEBUG() << ex.what() << "\t-- skip this data point"; // ignore and continue (no chromatogram data added)
@@ -470,8 +469,11 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
             if ( auto selected = formula.second.get_optional< bool >( "selected" ) ) {
                 if ( selected.get() ) {
                     int proto = 0;
-                    if ( auto pno = formula.second.get_optional< int >( "protocol" ) )
+                    if ( auto pno = formula.second.get_optional< int >( "protocol" ) ) {
                         proto = pno.get();
+                    } else if ( auto pno = formula.second.get_optional< int >( "proto" ) ) {
+                        proto = pno.get();
+                    }
                     if ( auto centre = formula.second.get_optional< double >( wkey ) ) {
                         list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
                         auto mol = formula.second.get_optional< std::string >( "formula" );
@@ -479,16 +481,20 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                     }
                 }
             }
+
             if ( auto children = formula.second.get_child_optional("children") ) {
                 for ( auto child: children.get() ) {
                     if ( auto selected = child.second.get_optional< bool >( "selected" ) ) {
                         int proto = 0;
-                        if ( auto pno = child.second.get_optional< int > ( "protocol" ) )
+                        if ( auto pno = child.second.get_optional< int > ( "protocol" ) ) {
                             proto = pno.get();
+                        } else if ( auto pno = formula.second.get_optional< int >( "proto" ) ) {
+                            proto = pno.get();
+                        }
                         if ( auto centre = child.second.get_optional< double >( wkey ) ) {
                             list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
                             auto mol = formula.second.get_optional< std::string >( "formula" );
-                            mols.emplace_back( mol ? mol.get() : "no-formula" );                            
+                            mols.emplace_back( mol ? mol.get() : "no-formula" );
                         }
                     }
                 }
@@ -500,7 +506,9 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
         const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
 
-        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s %d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s %d" );
+        ADDEBUG() << "########## isCounting: " << isCounting;
+
+        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s p%d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s p%d" );
 
         for ( size_t idx = 0; idx < list.size(); ++idx ) {
             auto res = std::make_shared< mschromatogramextractor::xChromatogram >( list[ idx ].second, idx, isCounting );
@@ -514,23 +522,26 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                 centre *= std::micro::den; // --> us
                 width *= std::nano::den;   // --> ns
             }
-            res->pChr_->addDescription( adcontrols::description( { "Create", ( fmt % formula % centre % width % reader->display_name() % protocol ).str() } ) );
+            res->pChr_->addDescription(
+                adcontrols::description( { "Create", ( fmt % formula % centre % width % reader->display_name() % protocol ).str() } ) );
             res->pChr_->setIsCounting( res->isCounting_ );
 
             impl_->results_.emplace_back( res );
         }
 
         // compute each point on the chromatogram
-
         for ( auto& ms : impl_->spectra_ ) {
             size_t cid(0);
             for ( const auto& item: list ) {
-                if ( item.second == ms.second->protocolId() ) {
-                    uint32_t pos = ms.first;
+                const int proto = item.second;
+                const uint32_t pos = ms.first;
+                if ( const auto pms = ms.second->findProtocol( proto ) ) {
+                    double time = pms->getMSProperty().timeSinceInjection();
+                    auto y = computeIntensity( *pms, axis, item.first );
+                    impl_->results_[ cid ]->append( pos, time, y ? y.get() : 0 );
+                } else {
                     double time = ms.second->getMSProperty().timeSinceInjection();
-                    double y(0);
-                    if ( computeIntensity( y, *ms.second, axis, item.first ) )
-                        impl_->results_[ cid ]->append( pos, time, y );
+                    impl_->results_[ cid ]->append( pos, time, 0 ); // assin zero if no data found.
                 }
                 ++cid;
             }
@@ -555,10 +566,10 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
     return false;
 }
 
-// static
-bool
-MSChromatogramExtractor::computeIntensity( double& y, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis axis, const std::pair< double, double >& range )
+boost::optional< double >
+MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, adcontrols::hor_axis axis, const std::pair< double, double >& range )
 {
+    double y(0);
     if ( axis == adcontrols::hor_axis_mass ) {
         auto acqMrange = ms.getAcquisitionMassRange();
         const double lMass = range.first;
@@ -579,7 +590,7 @@ MSChromatogramExtractor::computeIntensity( double& y, const adcontrols::MassSpec
                     y = adportable::spectrum_processor::area( fraction, base, ms.getIntensityArray(), ms.size() );
                 }
             }
-            return true;
+            return y;
         }
     } else {
         const double lTime = range.first;
@@ -610,11 +621,10 @@ MSChromatogramExtractor::computeIntensity( double& y, const adcontrols::MassSpec
                 adportable::spectrum_processor::tic( ms.size(), ms.getIntensityArray(), base, rms );
                 y = adportable::spectrum_processor::area( fraction, base, ms.getIntensityArray(), ms.size() );
             }
-            return true;
+            return y;
         }
     }
-
-    return false;
+    return boost::none;
 }
 
 // append chromatographic data point from a list of molecule [0]
@@ -647,8 +657,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
         double lMass = m.mass() - width / 2;
         double uMass = m.mass() + width / 2;
 
-        double y(0);
-        if ( computeIntensity( y, ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
+        if ( auto y = computeIntensity( ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
 
             auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
@@ -656,7 +665,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 results_.emplace_back( std::make_shared< xChromatogram >( m, width, protocol, cid, display_name, ms.isHistogram() ) );
                 it = results_.end() - 1;
             }
-            ( *it )->append( uint32_t( pos ), time, y );
+            ( *it )->append( uint32_t( pos ), time, y.get() );
         }
         ++cid;
     }
@@ -685,8 +694,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
         double lMass = pk.mass() - pk.widthHH() / 2;
         double uMass = pk.mass() + pk.widthHH() / 2;
 
-        double y(0);
-        if ( computeIntensity( y, ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
+        if ( auto y = computeIntensity( ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
 
             auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
@@ -699,7 +707,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                         , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
                             % utf::to_wstring( display_name ) % pk.mass() % pk.widthHH() % protocol ).str() ) );
             }
-            ( *it )->append( uint32_t( pos ), time, y );
+            ( *it )->append( uint32_t( pos ), time, y.get() );
         }
         ++cid;
     }
@@ -720,8 +728,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
     double time = ms.getMSProperty().timeSinceInjection();
 
     int cid(0); // chromatogram identifier in the given protocol
-    double y(0);
-    if ( computeIntensity( y, ms, axis, range ) ) {
+    if ( auto y = computeIntensity( ms, axis, range ) ) {
 
         auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
@@ -742,7 +749,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                                                         % utf::to_wstring( display_name ) % (value*std::micro::den) % (value_width*std::nano::den) % protocol ).str() ) );
             }
         }
-        ( *it )->append( uint32_t( pos ), time, y );
+        ( *it )->append( uint32_t( pos ), time, y.get() );
     }
 }
 
