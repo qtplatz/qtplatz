@@ -170,13 +170,13 @@ OpenCVWnd::handleProcessorChanged()
 void
 OpenCVWnd::handleCheckStateChanged( const portfolio::Folium& folium )
 {
-    ADDEBUG() << __FUNCTION__ << ":\t" << folium.fullpath();
+    // ADDEBUG() << __FUNCTION__ << ":\t" << folium.fullpath();
 }
 
 void
 OpenCVWnd::handleDataChanged( const portfolio::Folium& folium )
 {
-    ADDEBUG() << __FUNCTION__ << ":\t" << folium.fullpath();
+    // ADDEBUG() << __FUNCTION__ << ":\t" << folium.fullpath();
 
     portfolio::Folder folder = folium.parentFolder();
     if ( folder && ( ( folder.name() == L"Spectrograms" ) || ( folder.name() == L"Contours" ) ) ) {

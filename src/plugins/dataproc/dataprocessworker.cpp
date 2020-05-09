@@ -155,6 +155,8 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
         if ( rawfile->dataformat_version() < 3 )
             return;
 
+        ADDEBUG() << "################ " << json.toStdString();
+
         adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
         dlg.setProtocolHidden( true );
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
@@ -164,7 +166,6 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
 
         if ( dlg.exec() == QDialog::Accepted ) {
             auto reader_params = dlg.toJson();
-            ADDEBUG() << "################ " << json.toStdString();
             for ( auto& sel: dlg.selection() ) {
                 auto progress( adwidgets::ProgressWnd::instance()->addbar() );
                 progresses.emplace_back( progress );
@@ -176,7 +177,12 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
 
                 if ( auto reader = rawfile->dataReaders().at( sel.first ) ) {
                     double width = enableTime ? timeWidth : massWidth;
-                    threads_.emplace_back( adportable::asio::thread( [=] { handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress ); } ) );
+                    threads_.emplace_back(
+                        adportable::asio::thread(
+                            [=]{
+                                handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress );
+                            })
+                        );
                 }
             }
         }
