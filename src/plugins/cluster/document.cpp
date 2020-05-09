@@ -245,14 +245,16 @@ document::handleProcessed( adextension::iSessionManager * mgr, const QString& fi
 {
     std::shared_ptr< adprocessor::dataprocessor > dp;
     if ( mgr && ( dp = mgr->getDataprocessor( file ) ) ) {
+#ifndef NDEBUG
         ADDEBUG() << __FUNCTION__ << ":\t" << dp->filename() << ", " << folium.name();
+#endif
     }
 }
 
 void
 document::handleCheckStateChanged( adextension::iSessionManager * mgr, const QString& file, const portfolio::Folium& folium, bool isChecked )
 {
-    ADDEBUG() << __FUNCTION__ << "\t##### " << file.toStdString() << ", folium: " << folium.fullpath() << ", isChecked: " << isChecked;
+    // ADDEBUG() << __FUNCTION__ << "\t##### " << file.toStdString() << ", folium: " << folium.fullpath() << ", isChecked: " << isChecked;
     std::shared_ptr< adprocessor::dataprocessor > dp;
     if ( mgr && ( dp = mgr->getDataprocessor( file ) ) ) {
         emit checkStateChanged( folium );
@@ -262,7 +264,7 @@ document::handleCheckStateChanged( adextension::iSessionManager * mgr, const QSt
 void
 document::handleSelectionChanged( adextension::iSessionManager * mgr, const QString& file, const portfolio::Folium& folium )
 {
-    ADDEBUG() << __FUNCTION__ << "\t##### " << file.toStdString() << ", folium: " << folium.fullpath();
+    // ADDEBUG() << __FUNCTION__ << "\t##### " << file.toStdString() << ", folium: " << folium.fullpath();
     setCurrentFile( file );
     emit dataChanged( folium );
 }
@@ -281,7 +283,7 @@ document::handleAddProcessor( adextension::iSessionManager * mgr, const QString&
                 ++it;
         }
     }
-    
+
     if ( mgr ) {
         if ( auto dp = mgr->getDataprocessor( file ) ) {
             impl_->dataprocessors_[ file ].dp_ = dp;

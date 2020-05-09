@@ -331,11 +331,16 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 				item.HH_left_time_ = time_moment.xLeft();
 				item.HH_right_time_ = time_moment.xRight();
                 //--------
-
+                const double dw = fraction.uPos - fraction.lPos + fraction.lFrac + fraction.uFrac;
                 if ( method_.areaMethod() == CentroidMethod::eAreaDa ) {
-                    item.area_ = area * ( item.centroid_right_mass_ - item.centroid_left_mass_ ) * std::milli::den;       // I x mDa
+                    item.area_ = area * ( item.centroid_right_mass_ - item.centroid_left_mass_ ) * std::milli::den / dw; // I x mDa
                 } else if ( method_.areaMethod() == CentroidMethod::eAreaTime ) {
-                    item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den; // I x ns
+                    item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den / dw;  // I x ns
+                    ADDEBUG() << "mass: " << item.mass();
+                    ADDEBUG() << "area: " << area
+                              << ", area(ns): " << item.area_
+                              << ", time(ns): " << ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den
+                              << ", width: " << dw;
                 } else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized ) {
                     item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac);   // width of unit of sample interval
                 } else if ( method_.areaMethod() == CentroidMethod::eAreaPoint ) {
