@@ -336,11 +336,11 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                     item.area_ = area * ( item.centroid_right_mass_ - item.centroid_left_mass_ ) * std::milli::den / dw; // I x mDa
                 } else if ( method_.areaMethod() == CentroidMethod::eAreaTime ) {
                     item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den / dw;  // I x ns
-                    ADDEBUG() << "mass: " << item.mass();
-                    ADDEBUG() << "area: " << area
-                              << ", area(ns): " << item.area_
-                              << ", time(ns): " << ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den
-                              << ", width: " << dw;
+                    // ADDEBUG() << "mass: " << item.mass();
+                    // ADDEBUG() << "area: " << area
+                    //           << ", area(ns): " << item.area_
+                    //           << ", time(ns): " << ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den
+                    //           << ", width: " << dw;
                 } else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized ) {
                     item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac);   // width of unit of sample interval
                 } else if ( method_.areaMethod() == CentroidMethod::eAreaPoint ) {
