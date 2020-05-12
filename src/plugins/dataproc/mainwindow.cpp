@@ -39,6 +39,7 @@
 #include "mspeakswnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
+#include "peaklist_export.hpp"
 #include "sessionmanager.hpp"
 #include "contourwnd.hpp"
 
@@ -1010,62 +1011,34 @@ MainWindow::handleProcessChecked()
 void
 MainWindow::handleExportPeakList()
 {
-    QString filename = QFileDialog::getSaveFileName( 0
-                                                     , tr( "Save peak list for all checked spectra")
-                                                     , currentDir()
-                                                     , tr( "Text files(*.txt)" ) );
-    if ( filename.isEmpty() )
+    QFileDialog dlg( this, tr( "Save peak list for all checked spectra") );
+    dlg.setDirectory( currentDir() );
+    dlg.setAcceptMode( QFileDialog::AcceptSave );
+    dlg.setFileMode( QFileDialog::AnyFile );
+    QStringList filter;
+    filter << "Text files(*.txt)" << "SQLite(*.db)" << "All files(*)";
+    dlg.setNameFilters( filter );
+
+    if ( !dlg.exec() )
         return;
-    std::ofstream outf( filename.toStdString() );
 
-    for ( auto& session : *SessionManager::instance() ) {
-        if ( auto processor = session.processor() ) {
-            auto spectra = processor->getPortfolio().findFolder( L"Spectra" );
+    auto files = dlg.selectedFiles();
+    if ( files.isEmpty() )
+        return;
 
-            for ( auto& folium: spectra.folio() ) {
-                if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                    if ( folium.empty() )
-                        processor->fetch( folium );
+    boost::filesystem::path path( files.at(0).toStdString() );
 
-                    // output filename
-                    outf << adportable::utf::to_utf8( processor->filename() ) << std::endl;
+    if ( path.extension().empty() ) {
+        if ( dlg.selectedNameFilter().contains( "SQLite" ) )
+            path.replace_extension( ".db" );
+        else
+            path.replace_extension( ".txt" );
+    }
 
-                    portfolio::Folio atts = folium.attachments();
-                    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
-                            return f.name() == Constants::F_CENTROID_SPECTRUM;
-                        });
-
-                    if ( itCentroid != atts.end() ) {
-
-                        // output spectrum(centroid) name
-                        outf << adportable::utf::to_utf8( folium.name() + L",\t" + itCentroid->name() ) << std::endl;
-
-                        if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid ) ) {
-                            adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *centroid );
-                            int fcn = 0;
-                            for ( auto& ms: segments ) {
-                                const adcontrols::annotations& annots = ms.get_annotations();
-                                for ( size_t n = 0; n < ms.size(); ++n ) {
-                                    outf << fcn << ",\t" << n << ",\t"
-                                         << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
-                                         << std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
-                                         << std::scientific << std::setprecision(7) << ms.getIntensity( n );
-
-                                    auto it = std::find_if( annots.begin(), annots.end()
-                                                            , [=]( const adcontrols::annotation& a ){ return a.index() == int(n); } );
-                                    while ( it != annots.end() ) {
-                                        outf << ",\t" << it->text();
-                                        it = std::find_if( ++it, annots.end()
-                                                           , [=]( const adcontrols::annotation& a ){ return a.index() == int(n); } );
-                                    }
-                                    outf << std::endl;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    if ( path.extension() == ".db" ) {
+        peaklist_export::sqlite_export( path );
+    } else {
+        peaklist_export::text_export( path );
     }
 }
 

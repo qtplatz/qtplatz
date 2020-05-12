@@ -123,6 +123,8 @@ add_library( ${PROJECT_NAME} MODULE
   navigationwidgetfactory.cpp
   navigationwidgetfactory.hpp
   navigationwidgetfactory.hpp
+  peaklist_export.cpp
+  peaklist_export.hpp
   qtwidgets_name.hpp
   selchanged.hpp
   sessionmanager.cpp
