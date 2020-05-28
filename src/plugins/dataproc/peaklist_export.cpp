@@ -40,7 +40,7 @@ using namespace dataproc;
 void
 peaklist_export::text_export( const boost::filesystem::path& path )
 {
-    std::ofstream outf( path );
+    std::ofstream outf( path.string() );
 
     for ( auto& session : *SessionManager::instance() ) {
         if ( auto processor = session.processor() ) {
