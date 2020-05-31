@@ -1011,12 +1011,12 @@ MainWindow::handleProcessChecked()
 void
 MainWindow::handleExportPeakList()
 {
-    QFileDialog dlg( this, tr( "Save peak list for all checked spectra") );
+    QFileDialog dlg( this, tr( "Save peak list for all checked spectra/chromatograms") );
     dlg.setDirectory( currentDir() );
     dlg.setAcceptMode( QFileDialog::AcceptSave );
     dlg.setFileMode( QFileDialog::AnyFile );
     QStringList filter;
-    filter << "Text files(*.txt)" << "SQLite(*.db)" << "All files(*)";
+    filter << "SQLite(*.db)" << "Text files(*.txt)" << "All files(*)";
     dlg.setNameFilters( filter );
 
     if ( !dlg.exec() )
@@ -1033,6 +1033,14 @@ MainWindow::handleExportPeakList()
             path.replace_extension( ".db" );
         else
             path.replace_extension( ".txt" );
+    }
+
+    if ( boost::filesystem::exists( path ) ) {
+        boost::system::error_code ec;
+        if ( !boost::filesystem::remove( path,ec ) ) {
+            QMessageBox::critical( this, "QtPlatz::dataproc::mainwindow", QString("Cannot delete existing file: %1").arg( path.string().c_str() ) );
+            return;
+        }
     }
 
     if ( path.extension() == ".db" ) {

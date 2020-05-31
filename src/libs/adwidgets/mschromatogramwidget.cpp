@@ -349,17 +349,19 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
         if ( row <= model.rowCount() )
             model.setRowCount( row + 1 );
 
-        model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
+        ADDEBUG() << "setRow: " << row;
+
+        if ( !QString::fromStdString( mol.formula() ).isEmpty() && QString::fromStdString( mol.smiles() ).isEmpty() )
+            model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
+
         if ( auto item = model.item( row, c_formula ) ) {
-            item->setEditable( true );
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             model.setData( model.index( row, c_formula ), mol.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            item->setEditable( true );
         }
 
         model.setData( model.index( row, c_adducts ), QString::fromStdString( mol.adducts() ) );
-
         model.setData( model.index( row, c_mass ), mol.mass() );
-
         model.setData( model.index( row, c_lockmass ), mol.isMSRef() );
         if ( auto item = model.item( row, c_lockmass ) ) {
             item->setEditable( false );
@@ -368,14 +370,13 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
         }
 
         model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
-
         model.setData( model.index( row, c_tR ), mol.tR() ? mol.tR().get() : 0.0 );
-
         model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );
         model.setData( model.index( row, c_memo ), QString::fromStdWString( mol.description() ) );
     }
 
-    model.setData( model.index( row, c_smiles ), QString::fromStdString( mol.smiles() ) );
+    if ( !QString::fromStdString( mol.smiles() ).isEmpty() )
+        model.setData( model.index( row, c_smiles ), QString::fromStdString( mol.smiles() ) );
 
     return true;
 }

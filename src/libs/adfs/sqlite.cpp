@@ -182,6 +182,12 @@ sqlite::close()
 	return false;
 }
 
+int64_t
+sqlite::last_insert_rowid() const
+{
+    return sqlite3_last_insert_rowid( db_ );
+}
+
 //////////////////////
 
 stmt::~stmt()

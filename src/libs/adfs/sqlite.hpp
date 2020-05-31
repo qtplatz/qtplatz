@@ -61,6 +61,7 @@ namespace adfs {
         bool close();
         void set_fs_format_version( uint32_t );
         uint32_t fs_format_version() const;
+        int64_t last_insert_rowid() const;
         static void uuid_storage_format( uuid_format );
         static uuid_format uuid_storage_format();
     };

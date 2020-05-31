@@ -307,7 +307,7 @@ namespace adwidgets {
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
 
             auto& state = impl_->state( index.column() );
-
+            ADDEBUG() << "createEditor col,row=" << index.column() << ", " << index.row();
             if ( state.isChoice() ) {
                 auto combo = new QComboBox( parent );
                 for ( auto& x : state.choice )

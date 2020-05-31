@@ -78,7 +78,7 @@ namespace adwidgets {
         ///////////////////////
         return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
     }
-
+#if 0
     static QVector<double> computeMasses( const QString& formula, const QString& adducts, QString& stdFormula )
     {
         QVector<double> masses;
@@ -94,7 +94,7 @@ namespace adwidgets {
 
         return masses;
     }
-
+#endif
     /////////////////
 
     class MolTable::delegate : public QStyledItemDelegate {
