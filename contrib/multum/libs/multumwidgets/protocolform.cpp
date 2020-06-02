@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "protocolform.hpp"
-#include <multumcontrols/scanlaw.hpp>
-#include <multumcontrols/orbitprotocol.hpp>
+#include <admtcontrols/scanlaw.hpp>
+#include <admtcontrols/orbitprotocol.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>

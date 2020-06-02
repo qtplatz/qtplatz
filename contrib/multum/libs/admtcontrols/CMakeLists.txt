@@ -2,10 +2,10 @@ cmake_policy( SET CMP0028 NEW )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0022 NEW )
 
-project( multumcontrols )
+project( admtcontrols )
 set( PROVIDER MS-Cheminformatics )
 
-add_definitions( -DMULTUMCONTROLS_LIBRARY )
+add_definitions( -DADMTCONTROLS_LIBRARY )
 
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/libs
@@ -33,5 +33,5 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

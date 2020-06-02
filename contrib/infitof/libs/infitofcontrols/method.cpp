@@ -24,8 +24,8 @@
 
 #include "method.hpp"
 #include "infitofcontrols_global.hpp"
-#include <multumcontrols/scanlaw.hpp>
-#include <multumcontrols/orbitprotocol.hpp>
+#include <admtcontrols/scanlaw.hpp>
+#include <admtcontrols/orbitprotocol.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <boost/serialization/serialization.hpp>
@@ -197,7 +197,7 @@ method::setup_default( method& m )
 {
     using namespace adcontrols::metric;
 
-    multumcontrols::infitof::ScanLaw scanLaw;
+    admtcontrols::infitof::ScanLaw scanLaw;
 
 #if 0
     // infitofcontrols::IonSource_EI_Method ei = { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -206,7 +206,7 @@ method::setup_default( method& m )
     // m.tof().gain = 1;
     // m.tof().trigInterval = 1000; // (us)
 #endif
-    multumcontrols::OrbitProtocol p;
+    admtcontrols::OrbitProtocol p;
     p.lower_mass = 10;
     p.upper_mass = 200;
     p.formulae() = "Fix me";

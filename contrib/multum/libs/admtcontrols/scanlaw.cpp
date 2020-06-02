@@ -29,7 +29,7 @@
 #include <cmath>
 #include <cassert>
 
-namespace multumcontrols {
+namespace admtcontrols {
 
     enum dim { LENGTH_L1
                , LENGTH_L2
@@ -41,11 +41,11 @@ namespace multumcontrols {
 
     /////
     namespace infitof {
-        
+
         ScanLaw::~ScanLaw()  {
         }
-        
-        ScanLaw::ScanLaw() : multumcontrols::ScanLaw( 3800.0, 0.0
+
+        ScanLaw::ScanLaw() : admtcontrols::ScanLaw( 3800.0, 0.0
                                                       , ::infitof::Constants::FLIGHT_LENGTH_L1
                                                       , ::infitof::Constants::FLIGHT_LENGTH_L2
                                                       , ::infitof::Constants::FLIGHT_LENGTH_L3
@@ -54,9 +54,9 @@ namespace multumcontrols {
                                                       , ::infitof::Constants::FLIGHT_LENGTH_LT
                                                       , ::infitof::Constants::FLIGHT_LENGTH_EXIT ) {
         }
-        
+
         ScanLaw::ScanLaw( double kAcceleratorVoltage, double tDelay )
-            : multumcontrols::ScanLaw( kAcceleratorVoltage, tDelay
+            : admtcontrols::ScanLaw( kAcceleratorVoltage, tDelay
                                        , ::infitof::Constants::FLIGHT_LENGTH_L1
                                        , ::infitof::Constants::FLIGHT_LENGTH_L2
                                        , ::infitof::Constants::FLIGHT_LENGTH_L3
@@ -64,14 +64,14 @@ namespace multumcontrols {
                                        , ::infitof::Constants::FLIGHT_LENGTH_L4
                                        , ::infitof::Constants::FLIGHT_LENGTH_LT
                                        , ::infitof::Constants::FLIGHT_LENGTH_EXIT )
-        {                                       
+        {
         }
     };
 
 }
 
 
-using namespace multumcontrols;
+using namespace admtcontrols;
 
 ScanLaw::~ScanLaw()
 {
@@ -98,7 +98,7 @@ ScanLaw&
 ScanLaw::operator = ( const ScanLaw& t )
 {
     static_cast< adportable::TimeSquaredScanLaw& >(*this) = static_cast< const adportable::TimeSquaredScanLaw >( t );
-    
+
     gateOffset_ = t.gateOffset_;
     dimension_ = t.dimension_;
     return *this;
@@ -122,13 +122,13 @@ ScanLaw::setAcceleratorVoltage( double v )
 {
     adportable::TimeSquaredScanLaw::setAcceleratorVoltage( v );
 }
-                                
+
 void
 ScanLaw::setTDelay( double t )
 {
     adportable::TimeSquaredScanLaw::setTDelay( t );
 }
-    
+
 double
 ScanLaw::acceleratorVoltage( double mass, double time, int mode, double tDelay )
 {
@@ -144,13 +144,13 @@ ScanLaw::getMass( double t, int mode ) const
 double
 ScanLaw::getTime( double m, int mode ) const
 {
-    return adportable::TimeSquaredScanLaw::getTime( m, fLength( mode ) );    
+    return adportable::TimeSquaredScanLaw::getTime( m, fLength( mode ) );
 }
 
 double
 ScanLaw::getMass( double t, double fLength ) const
 {
-    return adportable::TimeSquaredScanLaw::getMass( t, fLength );        
+    return adportable::TimeSquaredScanLaw::getMass( t, fLength );
 }
 
 double
@@ -162,7 +162,7 @@ ScanLaw::getTime( double m, double fLength ) const
 double
 ScanLaw::fLength( int mode ) const
 {
-    return dimension_[ LENGTH_L1 ] + dimension_[ LENGTH_L2 ] + (dimension_[ LENGTH_LT ] * mode ) + dimension_[ LENGTH_EXIT ];    
+    return dimension_[ LENGTH_L1 ] + dimension_[ LENGTH_L2 ] + (dimension_[ LENGTH_LT ] * mode ) + dimension_[ LENGTH_EXIT ];
 }
 
 double
@@ -244,7 +244,7 @@ ScanLaw::number_of_turns( double exit_delay, double exact_mass ) const
 }
 
 void
-ScanLaw::setGateOffsetLength( double offset ) 
+ScanLaw::setGateOffsetLength( double offset )
 {
     gateOffset_ = offset;
 }

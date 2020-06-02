@@ -27,7 +27,7 @@
 
 #include "constants.hpp"
 #include <adcontrols/massspectrometer.hpp>
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adplugin/plugin.hpp>
 #include <memory>
@@ -36,7 +36,7 @@
 namespace adcontrols { class datafile; class MSProperty; namespace ControlMethod { class Method; } }
 namespace adfs { class filesystem; }
 namespace boost { namespace uuids { struct uuid; } }
-namespace multumcontrols { class ScanLaw; class OrbitProtocol; }
+namespace admtcontrols { class ScanLaw; class OrbitProtocol; }
 
 namespace infitofspectrometer {
 
@@ -84,10 +84,10 @@ namespace infitofspectrometer {
         //--------- local -----------
         const adcontrols::ScanLaw * scanLaw( int64_t ) const;
     private:
-        std::unique_ptr< multumcontrols::ScanLaw > scanLaw_;
+        std::unique_ptr< admtcontrols::ScanLaw > scanLaw_;
         std::unique_ptr< adcontrols::ControlMethod::Method > method_;
-        std::vector< multumcontrols::OrbitProtocol > protocols_;
-        std::vector< std::pair< int64_t, std::unique_ptr< multumcontrols::ScanLaw > > > scanLaws_;
+        std::vector< admtcontrols::OrbitProtocol > protocols_;
+        std::vector< std::pair< int64_t, std::unique_ptr< admtcontrols::ScanLaw > > > scanLaws_;
     };
 
 }

@@ -24,12 +24,12 @@
 
 #include "protocolwidget.hpp"
 #include "protocolform.hpp"
-#include <multumcontrols/orbitprotocol.hpp>
+#include <admtcontrols/orbitprotocol.hpp>
 // #include "scanlawlookupwidget.hpp"
 // #include "acqprotocoldetailsform.hpp"
 // #include <infitofcontrols/method.hpp>
 // #include <acqrscontrols/u5303a/tdcdoc.hpp>
-#include <multumcontrols/constants.hpp>
+#include <admtcontrols/constants.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -70,7 +70,7 @@
 #include <functional>
 #include <algorithm>
 
-Q_DECLARE_METATYPE( multumcontrols::OrbitProtocol )
+Q_DECLARE_METATYPE( admtcontrols::OrbitProtocol )
 
 using namespace multumwidgets;
 

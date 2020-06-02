@@ -24,17 +24,17 @@
 
 #pragma once
 
-#include "multumcontrols_global.hpp"
+#include "admtcontrols_global.hpp"
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <array>
 
-namespace multumcontrols {
+namespace admtcontrols {
 
     namespace infitof { }
 
     //////////////
-    class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public adcontrols::ScanLaw, protected adportable::TimeSquaredScanLaw {
+    class ADMTCONTROLSSHARED_EXPORT ScanLaw : public adcontrols::ScanLaw, protected adportable::TimeSquaredScanLaw {
         double gateOffset_;
         std::array< double, 7 > dimension_;
     public:
@@ -62,7 +62,7 @@ namespace multumcontrols {
         double getTime( double m, double fLength ) const override;
         double fLength( int type ) const override;
 
-        // multumcontrols::ScanLaw
+        // admtcontrols::ScanLaw
         double orbital_period( double mass ) const;
         double go_around_threshold_time( double mass ) const;
         double gate_through_threshold_time( double mass ) const;
@@ -87,7 +87,7 @@ namespace multumcontrols {
 
     namespace infitof {
 
-        class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public multumcontrols::ScanLaw {
+        class ADMTCONTROLSSHARED_EXPORT ScanLaw : public admtcontrols::ScanLaw {
         public:
             ~ScanLaw();
             ScanLaw();

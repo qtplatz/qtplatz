@@ -25,7 +25,7 @@
 #include "ap240translator.hpp"
 #include "infitofdatainterpreter.hpp"
 #include "constants.hpp"
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <infitofdefns/avgrdata.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/binary_serializer.hpp>
@@ -69,7 +69,7 @@ ap240translator::translate( adcontrols::MassSpectrum& ms
         adportable::debug( __FILE__, __LINE__ ) << "Exception: " << ex.what();
         return adcontrols::translate_error;
     }
-    multumcontrols::infitof::ScanLaw scanLaw( avgr.kAcceleratorVoltage, avgr.tDelay );
+    admtcontrols::infitof::ScanLaw scanLaw( avgr.kAcceleratorVoltage, avgr.tDelay );
 
     unsigned long wellKnownEvents = avgr.wellKnownEvents;
     (void)wellKnownEvents;

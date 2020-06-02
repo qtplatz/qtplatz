@@ -25,7 +25,7 @@
 #pragma once
 
 #include "infitofcontrols_global.hpp"
-#include <multumcontrols/orbitprotocol.hpp>
+#include <admtcontrols/orbitprotocol.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <iostream>
@@ -36,7 +36,7 @@ namespace boost {
     namespace uuids { struct uuid; }
 }
 
-namespace multumcontrols { class OrbitProtocol; }
+namespace admtcontrols { class OrbitProtocol; }
 
 namespace infitofcontrols {
 
@@ -58,7 +58,7 @@ namespace infitofcontrols {
         uint32_t nReplicates; // deprecated -- use protocols.replicates()
     public:
         uint32_t nTurn;       // deprecated -- use protocols nturns
-        std::vector< multumcontrols::OrbitProtocol > protocols;
+        std::vector< admtcontrols::OrbitProtocol > protocols;
         uint32_t autoBackground;
         bool enableGateWindow;  // for acqprotocoldetail UI behavior change
         double gateWindow;      // ibid.

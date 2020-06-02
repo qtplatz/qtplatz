@@ -34,7 +34,7 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
-namespace multumcontrols {
+namespace admtcontrols {
 
     class OrbitProtocol;
 
@@ -83,7 +83,7 @@ namespace multumcontrols {
                     ar & BOOST_SERIALIZATION_NVP( mcp );
                     ar & BOOST_SERIALIZATION_NVP( ionization );
                     ar & BOOST_SERIALIZATION_NVP( _.description_ );
-                    _.additionals_.push_back( std::make_pair( multumcontrols::OrbitProtocol::MCP_V, mcp ) );
+                    _.additionals_.push_back( std::make_pair( admtcontrols::OrbitProtocol::MCP_V, mcp ) );
                     _.additionals_.push_back( std::make_pair( OrbitProtocol::IONIZATION_V, ionization ) );
                 } else if ( version >= 4 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.additionals_ );
@@ -98,22 +98,22 @@ namespace multumcontrols {
         }
     };
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
@@ -133,22 +133,22 @@ namespace multumcontrols {
         }
     };
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void DelayMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void DelayMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void DelayMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
 
-    template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    template<> ADMTCONTROLSSHARED_EXPORT void DelayMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
@@ -156,7 +156,7 @@ namespace multumcontrols {
 } // namespace
 
 
-using namespace multumcontrols;
+using namespace admtcontrols;
 
 //////////////////////
 

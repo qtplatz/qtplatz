@@ -25,7 +25,7 @@
 #pragma once
 
 #include "multumwidgets_global.hpp"
-#include <multumcontrols/fwd.hpp>
+#include <admtcontrols/fwd.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <QFrame>
 #include <memory>
@@ -34,7 +34,7 @@ class QStandardItemModel;
 class QModelIndex;
 
 namespace adcontrols { namespace ControlMethod { class MethodItem; } }
-namespace multumcontrols { class ScanLaw;  class OrbitProtocol; }
+namespace admtcontrols { class ScanLaw;  class OrbitProtocol; }
 
 namespace multumwidgets {
 

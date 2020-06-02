@@ -34,7 +34,7 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
-namespace multumcontrols {
+namespace admtcontrols {
 
     ///////////////////////////////////////////
     template<typename T = ElectricSectorMethod >
@@ -48,23 +48,23 @@ namespace multumcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.enable );
         }
     };
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+
+    template<> ADMTCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         ElectricSectorMethod_archive<>().serialize( ar, *this, version );
     }
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+
+    template<> ADMTCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         ElectricSectorMethod_archive<>().serialize( ar, *this, version );
     }
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+
+    template<> ADMTCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         ElectricSectorMethod_archive<>().serialize( ar, *this, version );
     }
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+
+    template<> ADMTCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         ElectricSectorMethod_archive<>().serialize( ar, *this, version );
     }
@@ -72,11 +72,10 @@ namespace multumcontrols {
 } // namespace
 
 
-using namespace multumcontrols;
+using namespace admtcontrols;
 
 //////////////////////
 
 ElectricSectorMethod::ElectricSectorMethod() : outer_voltage( 0 ), inner_voltage( 0 ), enable( true )
 {
 }
-

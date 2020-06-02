@@ -54,7 +54,7 @@ target_link_libraries( infitofprocessor LINK_PUBLIC
   adportable
   adprocessor
   portfolio
-  multumcontrols
+  admtcontrols
   infitofwidgets
   ${Boost_LIBRARIES}
   Threads::Threads
@@ -72,5 +72,5 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"  
+  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )

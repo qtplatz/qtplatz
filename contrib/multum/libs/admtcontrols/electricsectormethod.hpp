@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "multumcontrols_global.hpp"
+#include "admtcontrols_global.hpp"
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <vector>
@@ -32,9 +32,9 @@
 
 namespace boost { namespace serialization { class access; } }
 
-namespace multumcontrols {
-    
-    class MULTUMCONTROLSSHARED_EXPORT ElectricSectorMethod {
+namespace admtcontrols {
+
+    class ADMTCONTROLSSHARED_EXPORT ElectricSectorMethod {
     public:
         double outer_voltage;
         double inner_voltage;
@@ -42,14 +42,14 @@ namespace multumcontrols {
         ElectricSectorMethod();
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
             void serialize( Archive& ar, const unsigned int );
     };
 
 #if defined _MSC_VER
-//    MULTUMCONTROLSSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< ElectricSectorMethod >;
+//    ADMTCONTROLSSHARED_TEMPLATE_EXPORT template class ADMTCONTROLSSHARED_EXPORT std::vector< ElectricSectorMethod >;
 #endif
 
 }
 
-BOOST_CLASS_VERSION( multumcontrols::ElectricSectorMethod, 0 )
+BOOST_CLASS_VERSION( admtcontrols::ElectricSectorMethod, 0 )

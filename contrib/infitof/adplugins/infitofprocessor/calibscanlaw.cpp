@@ -41,7 +41,7 @@
 #include <adprocessor/scanlawextractor.hpp>
 #include <adwidgets/mslockdialog.hpp>
 #include <adwidgets/progresswnd.hpp>
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <infitofwidgets/scanlawdialog.hpp>
 #include <QCoreApplication>
 #include <QMenu>
@@ -53,7 +53,7 @@
 #include <thread>
 
 using namespace infitofprocessor;
-    
+
 CalibScanLaw::CalibScanLaw()
 {
 }
@@ -66,15 +66,15 @@ void
 CalibScanLaw::initialSetup( std::shared_ptr< adprocessor::dataprocessor > dp, infitofwidgets::ScanLawDialog& dlg )
 {
     double acclVoltage( 4000 ), tDelay( 0 );
-    std::shared_ptr< multumcontrols::ScanLaw > scanlaw = std::make_shared< multumcontrols::infitof::ScanLaw >();
-    
+    std::shared_ptr< admtcontrols::ScanLaw > scanlaw = std::make_shared< admtcontrols::infitof::ScanLaw >();
+
     if ( auto db = dp->db() ) {
         {
             adfs::stmt sql( *db );
-            
+
             sql.prepare( "SELECT acclVoltage,tDelay FROM ScanLaw WHERE objuuid=?" );
             sql.bind( 1 ) = boost::uuids::uuid( { 0 } ); // find master scanlaw
-        
+
             if ( sql.step() == adfs::sqlite_row ) {
                 acclVoltage = sql.get_column_value< double >( 0 );
                 tDelay      = sql.get_column_value< double >( 1 );
@@ -89,7 +89,7 @@ CalibScanLaw::initialSetup( std::shared_ptr< adprocessor::dataprocessor > dp, in
                 ", FLIGHT_LENGTH_LT"
                 ", FLIGHT_LENGTH_EXIT"
                 " FROM MULTUM_ANALYZER_CONFIG LIMIT 1");
-            
+
             if ( sql.step() == adfs::sqlite_row ) {
                 int row(0);
                 double L1 = sql.get_column_value<double>(row++);
@@ -99,14 +99,14 @@ CalibScanLaw::initialSetup( std::shared_ptr< adprocessor::dataprocessor > dp, in
                 double L4 = sql.get_column_value<double>(row++);
                 double LT = sql.get_column_value<double>(row++);
                 double LE = sql.get_column_value<double>(row++);
-            
-                scanlaw = std::make_shared< multumcontrols::ScanLaw >( acclVoltage
+
+                scanlaw = std::make_shared< admtcontrols::ScanLaw >( acclVoltage
                                                                        , tDelay
                                                                        , L1, L2, L3, LG, L4, LT, LE );
                 dlg.setAcceleratorVoltage( acclVoltage, true );
                 dlg.setTDelay( tDelay * std::micro::den, true );
                 dlg.setL1( L1, true );
-                                
+
                 dlg.setOrbitalLength( scanlaw->orbital_length() );
                 dlg.setLinearLength( scanlaw->linear_length() );
                 dlg.setScanLaw( scanlaw );
@@ -152,7 +152,7 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
         return;
 
     infitofwidgets::ScanLawDialog dlg;
-    
+
     for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
         int mode = fms.getMSProperty().mode();
         for ( const auto& a: fms.get_annotations() ) {
@@ -169,8 +169,8 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
     initialSetup( dp, dlg );
 
     double acclVoltage( 4000 ), tDelay( 0 );
-    std::shared_ptr< multumcontrols::ScanLaw > scanlaw = std::make_shared< multumcontrols::infitof::ScanLaw >();
-    
+    std::shared_ptr< admtcontrols::ScanLaw > scanlaw = std::make_shared< admtcontrols::infitof::ScanLaw >();
+
     if ( auto db = dp->db() ) {
 
         if ( dlg.exec() != QDialog::Accepted )
@@ -223,10 +223,10 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, cons
             lockm.setToleranceMethod( adcontrols::idToleranceDaltons );
             lockm.setTolerance( adcontrols::idToleranceDaltons, cm->tolerance() );
         }
-    
+
         adwidgets::MSLockDialog dlg;
         dlg.setContents( lockm );
-    
+
         dlg.setStyleSheet( "* { font-size: 9pt; }" );
 
         if ( dlg.exec() != QDialog::Accepted )
@@ -239,7 +239,7 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, cons
         auto progress( adwidgets::ProgressWnd::instance()->addbar() );
 
         using adprocessor::v3::ScanLawExtractor;
-        
+
         auto future = std::async( std::launch::async, [this,dp,pm,&count,progress](){
                 ScanLawExtractor()( dp, *pm, "tdcdoc.waveform.1.u5303a.ms-cheminfo.com", -1, [&](size_t a, size_t b){
                         return (*progress)( a, b );
@@ -249,17 +249,17 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, cons
         while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
             QCoreApplication::instance()->processEvents();
         (*progress)( count ); // make it 100%
-        
+
         do {
             auto progress( adwidgets::ProgressWnd::instance()->addbar() );
             auto future = std::async( std::launch::async, [&](){ computeScanLawTimeCourse( dp, progress ); } );
 
             while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
                 QCoreApplication::instance()->processEvents();
-            
+
         } while ( 0 );
-        
-        // update current massSpectrometer 
+
+        // update current massSpectrometer
         if ( auto spectrometer = dp->massSpectrometer() )
             spectrometer->initialSetup( *dp->db(), boost::uuids::uuid{ 0 } );
 
@@ -270,24 +270,24 @@ bool
 CalibScanLaw::computeScanLawTimeCourse( std::shared_ptr< adprocessor::dataprocessor > dp
                                         , std::shared_ptr< adwidgets::Progress > progress )
 {
-    // compute scanlaw time course 
+    // compute scanlaw time course
     auto sql = adfs::stmt( *dp->db() );
 
     sql.prepare( "SELECT min(rowid),formula,mass,time,mode,exactMass FROM ReferenceTof,MassReference"
                  " WHERE refid=id AND rowid >= ? GROUP BY protocol" );
 
     adcontrols::MSPeaks peaks;
-    
+
     int64_t rowid(0), thisid(0);
     sql.bind( 1 ) = rowid;
 
     results_.clear();
 
     int pCount(0);
-    
+
     for ( ;; ) {
         adcontrols::MSPeaks peaks;
-        
+
         while ( sql.step() == adfs::sqlite_row ) {
             rowid = std::max( rowid, sql.get_column_value< int64_t >( 0 ) );
 
@@ -302,16 +302,16 @@ CalibScanLaw::computeScanLawTimeCourse( std::shared_ptr< adprocessor::dataproces
                                          , sql.get_column_value< double >( 5 ) );      // exact_mass
             (*progress)( ++pCount );
         }
-        
+
         if ( peaks.size() == 0 )
             break;
-        
+
         if ( peaks.size() >= 2 ) {
             double acclVoltage(0), tDelay(0);
             if ( dp->massSpectrometer()->estimateScanLaw( peaks, acclVoltage, tDelay ) )
                 results_.emplace_back( thisid, tDelay, acclVoltage );
         }
-        
+
         sql.reset();
         sql.bind( 1 ) = ++rowid;
     }
@@ -354,4 +354,3 @@ CalibScanLaw::loadScanLawTimeCourse( std::shared_ptr< adprocessor::dataprocessor
     }
     return ! results_.empty();
 }
-

@@ -41,7 +41,7 @@
 #include <adprocessor/scanlawextractor.hpp>
 #include <adwidgets/mslockdialog.hpp>
 #include <adwidgets/progresswnd.hpp>
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <infitofwidgets/nlapdialog.hpp>
 #include <QCoreApplication>
 #include <QMenu>
@@ -53,7 +53,7 @@
 #include <thread>
 
 using namespace infitofprocessor;
-    
+
 nLapDeconv::nLapDeconv()
 {
 }
@@ -66,15 +66,15 @@ void
 nLapDeconv::initialSetup( std::shared_ptr< adprocessor::dataprocessor > dp, infitofwidgets::nLapDialog& dlg )
 {
     double acclVoltage( 4000 ), tDelay( 0 );
-    std::shared_ptr< multumcontrols::ScanLaw > scanlaw = std::make_shared< multumcontrols::infitof::ScanLaw >();
-    
+    std::shared_ptr< admtcontrols::ScanLaw > scanlaw = std::make_shared< admtcontrols::infitof::ScanLaw >();
+
     if ( auto db = dp->db() ) {
         {
             adfs::stmt sql( *db );
-            
+
             sql.prepare( "SELECT acclVoltage,tDelay FROM ScanLaw WHERE objuuid=?" );
             sql.bind( 1 ) = boost::uuids::uuid( { 0 } ); // find master scanlaw
-        
+
             if ( sql.step() == adfs::sqlite_row ) {
                 acclVoltage = sql.get_column_value< double >( 0 );
                 tDelay      = sql.get_column_value< double >( 1 );
@@ -89,7 +89,7 @@ nLapDeconv::initialSetup( std::shared_ptr< adprocessor::dataprocessor > dp, infi
                 ", FLIGHT_LENGTH_LT"
                 ", FLIGHT_LENGTH_EXIT"
                 " FROM MULTUM_ANALYZER_CONFIG LIMIT 1");
-            
+
             if ( sql.step() == adfs::sqlite_row ) {
                 int row(0);
                 double L1 = sql.get_column_value<double>(row++);
@@ -99,14 +99,14 @@ nLapDeconv::initialSetup( std::shared_ptr< adprocessor::dataprocessor > dp, infi
                 double L4 = sql.get_column_value<double>(row++);
                 double LT = sql.get_column_value<double>(row++);
                 double LE = sql.get_column_value<double>(row++);
-            
-                scanlaw = std::make_shared< multumcontrols::ScanLaw >( acclVoltage
+
+                scanlaw = std::make_shared< admtcontrols::ScanLaw >( acclVoltage
                                                                        , tDelay
                                                                        , L1, L2, L3, LG, L4, LT, LE );
                 dlg.setAcceleratorVoltage( acclVoltage, true );
                 dlg.setTDelay( tDelay * std::micro::den, true );
                 dlg.setL1( L1, true );
-                                
+
                 dlg.setOrbitalLength( scanlaw->orbital_length() );
                 dlg.setLinearLength( scanlaw->linear_length() );
                 dlg.setScanLaw( scanlaw );
@@ -140,7 +140,7 @@ nLapDeconv::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
         return;
 
     infitofwidgets::nLapDialog dlg;
-    
+
     for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
         int mode = fms.getMSProperty().mode();
         for ( const auto& a: fms.get_annotations() ) {
@@ -166,4 +166,3 @@ void
 nLapDeconv::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, const portfolio::Folium& )
 {
 }
-

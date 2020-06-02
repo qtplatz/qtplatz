@@ -37,7 +37,7 @@ add_library( ${PROJECT_NAME} SHARED
 )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  multumcontrols
+  admtcontrols
   adwidgets
   adcontrols
   adportable

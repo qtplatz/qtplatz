@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "multumcontrols_global.hpp"
+#include "admtcontrols_global.hpp"
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <vector>
@@ -32,9 +32,9 @@
 
 namespace boost { namespace serialization { class access; } }
 
-namespace multumcontrols {
-    class MULTUMCONTROLSSHARED_EXPORT OrbitProtocol;
-    class MULTUMCONTROLSSHARED_EXPORT DelayMethod;
+namespace admtcontrols {
+    class ADMTCONTROLSSHARED_EXPORT OrbitProtocol;
+    class ADMTCONTROLSSHARED_EXPORT DelayMethod;
 
     class DelayMethod {
     public:
@@ -106,11 +106,11 @@ namespace multumcontrols {
     };
 
 #if defined _MSC_VER
-    /* MULTUMCONTROLSSHARED_TEMPLATE_EXPORT */ template class MULTUMCONTROLSSHARED_EXPORT std::vector< DelayMethod >;
-    /* MULTUMCONTROLSSHARED_TEMPLATE_EXPORT */ template class MULTUMCONTROLSSHARED_EXPORT std::vector< OrbitProtocol >;
+    /* ADMTCONTROLSSHARED_TEMPLATE_EXPORT */ template class ADMTCONTROLSSHARED_EXPORT std::vector< DelayMethod >;
+    /* ADMTCONTROLSSHARED_TEMPLATE_EXPORT */ template class ADMTCONTROLSSHARED_EXPORT std::vector< OrbitProtocol >;
 #endif
 
 }
 
-BOOST_CLASS_VERSION( multumcontrols::OrbitProtocol, 9 )
-BOOST_CLASS_VERSION( multumcontrols::DelayMethod, 1 )
+BOOST_CLASS_VERSION( admtcontrols::OrbitProtocol, 9 )
+BOOST_CLASS_VERSION( admtcontrols::DelayMethod, 1 )
