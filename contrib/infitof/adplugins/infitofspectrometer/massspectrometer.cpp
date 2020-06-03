@@ -27,6 +27,7 @@
 #include <admtcontrols/scanlaw.hpp>
 #include <admtcontrols/infitof.hpp>
 #include <admtcontrols/orbitprotocol.hpp>
+#include <infitofcontrols/constants.hpp>
 #include <infitofcontrols/method.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
@@ -99,7 +100,7 @@ MassSpectrometer::massSpectrometerName() const
 const boost::uuids::uuid&
 MassSpectrometer::massSpectrometerClsid() const
 {
-    static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
+    static boost::uuids::uuid uuid = ::infitof::iids::uuid_massspectrometer;  // boost::uuids::string_generator()( clsid_text );
     return uuid;
 }
 

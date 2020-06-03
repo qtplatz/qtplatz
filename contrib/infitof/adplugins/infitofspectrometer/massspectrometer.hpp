@@ -61,9 +61,9 @@ namespace infitofspectrometer {
         // dataformat v2 class name
         const wchar_t * name() const override;
 
-        // dataformat v3 class uuid
-        static constexpr const char * clsid_text = "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}";
-        static constexpr const char * class_name = "InfiTOF"; // historical name, don't change
+        // dataformat v3 class uuid --> moved to qtplatz/contrib/infitof/libs/infitofcontrols/constants.hpp
+        //static constexpr const char * clsid_text = "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}";
+        //static constexpr const char * class_name = "InfiTOF"; // historical name, don't change
 
         //const char * objtext() const override;
         //const boost::uuids::uuid& objclsid() const override;

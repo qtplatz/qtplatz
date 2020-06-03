@@ -42,6 +42,9 @@ namespace infitof {
     namespace names {
         constexpr const char * const objtext_massspectrometer = "InfiTOF"; // historical name (don't change)
         constexpr const char * const objtext_datainterpreter = "InfiTOF"; // historical name (don't change)
+        // used be defined in adplugins/infitofspectrometer/massspectrometer
+        //constexpr const char * massspectrometer_clsid_text = "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}";
+        //constexpr const char * massspectrometer_class_name = "InfiTOF"; // historical name, don't change
     }
 
     namespace iids {

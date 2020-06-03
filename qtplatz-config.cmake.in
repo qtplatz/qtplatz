@@ -98,7 +98,7 @@ add_library( adio STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
 add_library( eventbroker SHARED IMPORTED )
-add_library( multumcontrols SHARED IMPORTED )
+add_library( admtcontrols SHARED IMPORTED )
 add_library( socfpga SHARED IMPORTED )
 add_library( infitofcontrols SHARED IMPORTED )
 add_library( infitofwidgets SHARED IMPORTED )
@@ -224,9 +224,9 @@ if (WIN32)
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/socfpgad.lib )
 
   # multum | infitof
-  set_target_properties( multumcontrols PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/multumcontrols.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/multumcontrolsd.lib )
+  set_target_properties( admtcontrols PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/admtcontrols.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/admtcontrolsd.lib )
 
   set_target_properties( infitofcontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/infitofcontrols.lib
@@ -347,9 +347,9 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libsocfpga.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libsocfpga_debug.dylib )
 
-  set_target_properties( multumcontrols PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols_debug.dylib )
+  set_target_properties( admtcontrols PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtcontrols.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtcontrols_debug.dylib )
 
   set_target_properties( infitofcontrols PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofcontrols.dylib
@@ -450,8 +450,8 @@ else()  #Linux
   set_target_properties( socfpga PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libsocfpga.so )
 
-  set_target_properties( multumcontrols PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.so )
+  set_target_properties( admtcontrols PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtcontrols.so )
 
   set_target_properties( infitofcontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofcontrols.so )
