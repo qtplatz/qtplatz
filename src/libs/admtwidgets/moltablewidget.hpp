@@ -62,21 +62,16 @@ namespace admtwidgets {
         };
 
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
-        bool getContents( adcontrols::CountingMethod& ) const;
-        bool setContents( const adcontrols::CountingMethod& );
         void setValue( int row, column_type column, const QVariant& value );
         QVariant value( int row, column_type column ) const;
 
     signals:
-        void editChanged( int row, column_type column, const QVariant& value );
-        void valueChanged( int row, column_type column, const QVariant& );
+        void valueChanged( const QByteArray& json );
         void rowsRemoved( int, int );
 
     public slots:
 
     private slots:
-        void addRow();
-        void handleComputeTof();
         void handleItemChanged( const QStandardItem * );
 
     private:
