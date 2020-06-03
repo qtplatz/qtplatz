@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8.11)
 cmake_policy( SET CMP0022 NEW )
-project ( multumwidgets)
+project ( admtwidgets)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -19,7 +19,7 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
-add_definitions( -DMULTUMWIDGETS_LIBRARY )
+add_definitions( -DADMTWIDGETS_LIBRARY )
 
 if ( WIN32 )
   add_definitions( -wd4996 )
@@ -29,7 +29,7 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 add_library( ${PROJECT_NAME} SHARED
-  multumwidgets_global.hpp
+  admtwidgets_global.hpp
   protocolform.cpp
   protocolform.hpp
   protocolwidget.cpp

@@ -25,16 +25,16 @@
 #pragma once
 
 #include <QWidget>
-#include "multumwidgets_global.hpp"
+#include "admtwidgets_global.hpp"
 #include <boost/property_tree/ptree_fwd.hpp>
 
 class QJsonObject;
 
-namespace multumcontrols { class ScanLaw; class OrbitProtocol; }
+namespace admtcontrols { class ScanLaw; class OrbitProtocol; }
 
-namespace multumwidgets {
+namespace admtwidgets {
 
-    class MULTUMWIDGETSSHARED_EXPORT protocolForm;
+    class ADMTWIDGETSSHARED_EXPORT protocolForm;
 
     class protocolForm : public QWidget {
 

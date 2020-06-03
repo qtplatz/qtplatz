@@ -56,7 +56,7 @@
 
 namespace metric = adcontrols::metric;
 
-namespace multumwidgets {
+namespace admtwidgets {
 
     constexpr int time_resolution = 10; // DG has 10ns precision
 
@@ -121,7 +121,7 @@ namespace multumwidgets {
     static constexpr const char * const itemlist [] = { "push", "inject", "exit", "exit_1", "gate", "gate_1", "adc", "p_lift", "gate7" };
 }
 
-using namespace multumwidgets;
+using namespace admtwidgets;
 
 protocolForm::protocolForm( int protocol, QWidget *parent ) : QWidget(parent)
                                                             , impl_( new impl() )

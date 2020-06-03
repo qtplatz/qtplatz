@@ -102,7 +102,7 @@ add_library( admtcontrols SHARED IMPORTED )
 add_library( socfpga SHARED IMPORTED )
 add_library( infitofcontrols SHARED IMPORTED )
 add_library( infitofwidgets SHARED IMPORTED )
-add_library( multumwidgets SHARED IMPORTED )
+add_library( admtwidgets SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
 add_library( u5303a SHARED IMPORTED )
@@ -236,9 +236,9 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/infitofwidgets.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/infitofwidgetsd.lib )
 
-  set_target_properties( multumwidgets PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/multumwidgets.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/multumwidgetsd.lib )
+  set_target_properties( admtwidgets PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/admtwidgets.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/admtwidgetsd.lib )
 
 elseif ( APPLE )
 
@@ -359,9 +359,9 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofwidgets.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofwidgets_debug.dylib )
 
-  set_target_properties( multumwidgets PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumwidgets.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumwidgets_debug.dylib )
+  set_target_properties( admtwidgets PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtwidgets.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtwidgets_debug.dylib )
 
 else()  #Linux
 
@@ -459,8 +459,8 @@ else()  #Linux
   set_target_properties( infitofwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofwidgets.so )
 
-  set_target_properties( multumwidgets PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumwidgets.so )
+  set_target_properties( admtwidgets PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtwidgets.so )
 
 endif()
 

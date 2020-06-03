@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "multumwidgets_global.hpp"
+#include "admtwidgets_global.hpp"
 #include <admtcontrols/fwd.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <QFrame>
@@ -36,9 +36,9 @@ class QModelIndex;
 namespace adcontrols { namespace ControlMethod { class MethodItem; } }
 namespace admtcontrols { class ScanLaw;  class OrbitProtocol; }
 
-namespace multumwidgets {
+namespace admtwidgets {
 
-    class MULTUMWIDGETSSHARED_EXPORT protocolWidget : public QFrame
+    class ADMTWIDGETSSHARED_EXPORT protocolWidget : public QFrame
                                                      , public adplugin::LifeCycle {
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )

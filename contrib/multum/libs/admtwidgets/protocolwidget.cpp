@@ -72,9 +72,9 @@
 
 Q_DECLARE_METATYPE( admtcontrols::OrbitProtocol )
 
-using namespace multumwidgets;
+using namespace admtwidgets;
 
-namespace multumwidgets {
+namespace admtwidgets {
 
     class protocolWidget::impl {
     public:
@@ -153,10 +153,10 @@ protocolWidget::protocolWidget( QWidget * parent ) : QFrame( parent )
             auto hLayout = new QHBoxLayout( center );
             hLayout->setMargin( 0 );
             hLayout->setSpacing( 0 );
-            hLayout->addWidget( qtwrapper::make_widget< multumwidgets::protocolForm >( "p.0", 0) );
-            hLayout->addWidget( qtwrapper::make_widget< multumwidgets::protocolForm >( "p.1", 1) );
-            hLayout->addWidget( qtwrapper::make_widget< multumwidgets::protocolForm >( "p.2", 2) );
-            hLayout->addWidget( qtwrapper::make_widget< multumwidgets::protocolForm >( "p.3", 3) );
+            hLayout->addWidget( qtwrapper::make_widget< admtwidgets::protocolForm >( "p.0", 0) );
+            hLayout->addWidget( qtwrapper::make_widget< admtwidgets::protocolForm >( "p.1", 1) );
+            hLayout->addWidget( qtwrapper::make_widget< admtwidgets::protocolForm >( "p.2", 2) );
+            hLayout->addWidget( qtwrapper::make_widget< admtwidgets::protocolForm >( "p.3", 3) );
         }
 
         if ( auto hLayout = new QHBoxLayout() ) {
@@ -183,7 +183,7 @@ protocolWidget::protocolWidget( QWidget * parent ) : QFrame( parent )
 void
 protocolWidget::setDirty( bool dirty )
 {
-    for ( auto form: findChildren< multumwidgets::protocolForm * >() )
+    for ( auto form: findChildren< admtwidgets::protocolForm * >() )
         form->setDirty( false );
 }
 
@@ -278,7 +278,7 @@ protocolWidget::toJson( bool pritty ) const
 {
     QJsonArray protocols;
     for ( auto& name: { "p.0", "p.1", "p.2", "p.3" } ) {
-        if ( auto w = findChild< multumwidgets::protocolForm * >( name ) ) {
+        if ( auto w = findChild< admtwidgets::protocolForm * >( name ) ) {
             protocols.push_back( w->json() );
         }
     }
@@ -297,7 +297,7 @@ protocolWidget::fromJson( const QByteArray& ba )
         boost::property_tree::read_json( in, pt );
         for ( const auto& v: pt.get_child( "protocols.protocol" ) ) {
             if ( auto index = v.second.get_optional< int >( "index" ) ) {
-                if ( auto w = findChild< multumwidgets::protocolForm * >( QString("p.%1").arg( index.get() ) ) ) {
+                if ( auto w = findChild< admtwidgets::protocolForm * >( QString("p.%1").arg( index.get() ) ) ) {
                     w->setJson( v.second );
                 }
             }
@@ -310,7 +310,7 @@ protocolWidget::fromJson( const QByteArray& ba )
             for ( const auto& p: protocol ) {
                 auto jobj = p.toObject();
                 if ( jobj.contains( "index" ) ) {
-                    if ( auto w = findChild< multumwidgets::protocolForm * >( QString("p.%1").arg( jobj[ "index" ].toInt() ) ) ) {
+                    if ( auto w = findChild< admtwidgets::protocolForm * >( QString("p.%1").arg( jobj[ "index" ].toInt() ) ) ) {
                         w->setJson( jobj );
                         w->setDirty( false );
                     }
