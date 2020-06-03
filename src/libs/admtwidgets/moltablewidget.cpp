@@ -52,6 +52,8 @@ namespace {
         , c_mass
         , c_time
         , c_laps
+        , c_tdiff
+        , ncols
     };
 }
 
@@ -65,17 +67,19 @@ namespace admtwidgets {
     public:
         impl( MolTableWidget * p ) : this_( p )
                                    , model_( std::make_unique< QStandardItemModel >() ) {
-            model_->setColumnCount( 4 );
+            model_->setColumnCount( ncols );
             model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
             model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
             model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
             model_->setHeaderData( c_laps,       Qt::Horizontal, QObject::tr( "lap#" ) );
+            model_->setHeaderData( c_tdiff,      Qt::Horizontal, QObject::tr( "dt" ) );
         }
 
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
             ADDEBUG() << _1.row() << ", " << _1.column();
         }
 
+        //-----------
         void handleContextMenu( const QPoint& pt ) {
             QMenu menu;
             typedef std::pair< QAction *, std::function< void() > > action_type;
@@ -90,10 +94,12 @@ namespace admtwidgets {
                 }
             }
         }
-        ///-----------
+
+        //-----------
         void addLine() {
             model_->insertRow( model_->rowCount() );
         }
+
         //-------------------
         void setTime( int row, double mass ) {
             if ( auto sp = spectrometer_.lock() ) {
@@ -102,6 +108,18 @@ namespace admtwidgets {
                     double tof = scanlaw->getTime( mass, nlaps );
                     model_->setData( model_->index( row, c_time ), tof * std::micro::den, Qt::EditRole );
                 }
+                deltaTime();
+            }
+        }
+
+        void deltaTime() {
+            if ( model_->rowCount() > 2 ) {
+                std::vector< double > times;
+                for ( size_t i = 0; i < model_->rowCount(); ++i )
+                    times.emplace_back( model_->index( i, c_time ).data( Qt::EditRole ).toDouble() );
+                auto it = std::min_element( times.begin(), times.end() );
+                for ( size_t i = 0; i < model_->rowCount(); ++i )
+                    model_->setData( model_->index( i, c_tdiff ), times[i] - *it );
             }
         }
     };
@@ -119,6 +137,7 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
         auto gbox = new QGroupBox;
         gbox->setTitle( tr( "Enable ion list" ) );
         gbox->setCheckable( true );
+        gbox->setChecked( true );
         connect( gbox, &QGroupBox::clicked, [this]( bool checked ){ emit valueChanged( -1, MolTableEnable, checked ); } );
 
         topLayout->addWidget( gbox );
@@ -136,29 +155,6 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
             table->setPrecision( c_mass, 4 );
             table->setPrecision( c_time, 3 );
             table->setColumnField( c_laps, ColumnState::f_uint, true, false );
-
-            // setup( moltable );
-            // QDoubleSpinBox -->
-            // connect( moltable, &MolTableView::valueChanged, this, [&]( const QModelIndex& index, double value ){
-            //         QPair< double, double > range;
-            //         if ( index.column() == c_time ) {
-            //             range.first = value / std::micro::den;
-            //             range.second = model_->index( index.row(), c_width ).data( Qt::EditRole ).toDouble() / std::micro::den;
-            //         } else if ( index.column() == c_width ) {
-            //             range.first = model_->index( index.row(), c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
-            //             range.second = value / std::micro::den;
-            //         }
-            //         emit editChanged( index.row(), column_type( index.column() ), QVariant::fromValue( range ) );
-            //     } );
-
-            // check box state changed
-            // connect( table, &MolTableView::stateChanged
-            //          , [&]( const QModelIndex& index, Qt::CheckState state ){
-            //                ADDEBUG() << "state changed: " << index.row() << ", " << index.column();
-            //                // emit valueChanged( index.row(), MolTableWidget::CountingEnable, state == Qt::Checked );
-            //            });
-
-            // rows removed --> handle by MolTableView, do nothing at here
 
             // item changed
             connect( impl_->model_.get(), &QStandardItemModel::itemChanged, this, &MolTableWidget::handleItemChanged );
@@ -428,17 +424,5 @@ MolTableWidget::handleItemChanged( const QStandardItem * item )
 //     if ( auto item = model.item( row, c_laps ) )
 //         item->setEditable( false );
 
-//     return true;
-// }
-
-// bool
-// CountingHelper::setTime( int row, double mass, std::shared_ptr< const adcontrols::MassSpectrometer > sp, QStandardItemModel& model )
-// {
-//     if ( sp ) {
-//         if ( auto scanlaw = sp->scanLaw() ) {
-//             double tof = scanlaw->getTime( mass, model.data( model.index( row, c_laps ) ).toInt() );
-//             model.setData( model.index( row, c_time ), tof * std::micro::den, Qt::EditRole );
-//         }
-//     }
 //     return true;
 // }
