@@ -2,6 +2,7 @@
 
 add_subdirectory ( adportable )
 add_subdirectory ( adcontrols )
+add_subdirectory ( admtcontrols )
 
 add_subdirectory ( acewrapper )
 add_subdirectory ( adacquire )
@@ -32,7 +33,7 @@ if ( NOT CMAKE_CROSSCOMPILING AND Qt5_FOUND )
   add_subdirectory (adplot)
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
-#  add_subdirectory (admtwidgets)
+  add_subdirectory (admtwidgets)
   add_subdirectory (aggregation)
   add_subdirectory (extensionsystem)
   add_subdirectory (utils)

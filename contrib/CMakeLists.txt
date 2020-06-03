@@ -14,11 +14,6 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM AND AqMD3_FOUND )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  # message( STATUS "------------ contrib/multum ----------------" )
-  add_subdirectory( multum )
-endif()
-
-if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( infitof )
 endif()
 
