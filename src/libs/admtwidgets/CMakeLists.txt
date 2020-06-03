@@ -34,6 +34,8 @@ add_library( ${PROJECT_NAME} SHARED
   protocolform.hpp
   protocolwidget.cpp
   protocolwidget.hpp
+  moltablewidget.cpp
+  moltablewidget.hpp
 )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

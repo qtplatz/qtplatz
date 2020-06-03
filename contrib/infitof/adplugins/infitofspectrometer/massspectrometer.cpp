@@ -279,6 +279,7 @@ bool
 MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) const
 {
     auto mode = ms.mode();
+    (void)mode;
     auto scanlaw = scanLaw( rowid );
     return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
 }

@@ -94,6 +94,7 @@ namespace adwidgets {
         std::map< int, ColumnState > columnStates_;
 
         inline const ColumnState& state( int column ) { return columnStates_[ column ]; }
+
         inline ColumnState::fields field( int column ) { return columnStates_[ column ].field; }
 
         inline int findColumn( ColumnState::fields field ) const {
@@ -284,6 +285,10 @@ namespace adwidgets {
 					if ( idx >= 0 && idx < state.choice.size() )
 						model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
 				}
+            } else if ( state.field == ColumnState::f_uint ) {
+                if ( auto spin = qobject_cast< QSpinBox * >( editor ) ) {
+                    model->setData( index, spin->value(), Qt::EditRole );
+                }
             } else if ( state.field == ColumnState::f_protocol ) {
 				if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
 					int idx = ( combo->currentIndex() - 1 ); // -1 = none, 0, 1, 2, 3
@@ -323,7 +328,12 @@ namespace adwidgets {
                 connect( spin, static_cast< void( QDoubleSpinBox::* )(double) >(&QDoubleSpinBox::valueChanged)
                          , [=]( double value ){ impl_->handleEditorValueChanged( index, value ); });
                 return spin;
-
+            } else if ( state.field == ColumnState::f_uint ) {
+                auto spin = new QSpinBox( parent );
+                spin->setValue( index.data( Qt::EditRole ).toUInt() );
+                spin->setMinimum(0);
+                spin->setMaximum(9999);
+                return spin;
             } else if ( state.field == ColumnState::f_protocol ) {
                 auto combo = new QComboBox( parent );
                 combo->addItem( "*" ); // none

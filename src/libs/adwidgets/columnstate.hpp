@@ -44,16 +44,17 @@ namespace adwidgets {
             , f_smiles
             , f_time
             , f_protocol
+            , f_uint
         };
-            
+
         fields field;
         bool isEditable;
         bool isCheckable;
         int precision;
         std::vector< std::pair< QString, QVariant > > choice;
-        
+
         inline bool isChoice() const { return !choice.empty(); }
-        
+
         ColumnState( fields f = f_any
                      , bool editable = true
                      , bool checkable = false ) : field( f )
@@ -71,4 +72,3 @@ namespace adwidgets {
     };
 
 }
-
