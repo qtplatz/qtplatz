@@ -61,7 +61,7 @@ namespace acqrscontrols {
 
             if ( !accessor->list.empty() ) {
                 auto dataWriter = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
-                adacquire::task::instance()->handle_write( uuid_, dataWriter );
+                adacquire::task::instance()->handle_write( uuid_, std::move( dataWriter ) );
             }
         }
 
@@ -74,4 +74,3 @@ namespace acqrscontrols {
     };
 
 }
-
