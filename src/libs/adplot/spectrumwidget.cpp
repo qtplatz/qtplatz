@@ -368,11 +368,10 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
             }
         }
     }
-
     if ( ! hasYLeft )
         left = std::make_pair( -5.0, 100 );
-    else
-        left.second = left.second + (left.second - left.first) * 0.12;
+//    else
+//        left.second = left.second + (left.second - left.first) * 0.12;
 
     if ( hasYRight )
         right.second = right.second + (right.second - right.first) * 0.12;
