@@ -32,7 +32,8 @@ namespace infitof {
     template< DETECTOR T > struct length_compensation {  /* static constexpr double value = 0.087863113; */ };
 
     template<> struct length_compensation< DETECTOR_ETP > { static constexpr double value = 0.087863113; };
-    template<> struct length_compensation< DETECTOR_HPK_MCP > { static constexpr double value = 0.086401891; };
+    //template<> struct length_compensation< DETECTOR_HPK_MCP > { static constexpr double value = 0.086401891; };
+    template<> struct length_compensation< DETECTOR_HPK_MCP > { static constexpr double value = 0.0452587; }; // 2020-07-21, TH, see acceleration.nb
 
     namespace Constants {
 
