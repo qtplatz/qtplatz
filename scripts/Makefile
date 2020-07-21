@@ -34,6 +34,8 @@ default_darwin:
 	@echo "make rdkit"
 	@echo "make opencv"
 	@echo "make bower"
+	@echo "You can install"
+	@echo "	brew cask install emacs; brew install gnuplot"
 
 default_debian_10:
 	@echo "====================================="
