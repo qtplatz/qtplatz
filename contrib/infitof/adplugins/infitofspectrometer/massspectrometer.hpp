@@ -55,6 +55,7 @@ namespace infitofspectrometer {
         void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& ) override;
         void setAcceleratorVoltage( double, double ) override;
         bool assignMasses( adcontrols::MassSpectrum&, int64_t rowid ) const override;
+        double assignMass( double time, int mode ) const override;
 
         std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override;
 

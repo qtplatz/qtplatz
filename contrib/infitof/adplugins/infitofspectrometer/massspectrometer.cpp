@@ -284,6 +284,14 @@ MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) co
     return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
 }
 
+double
+MassSpectrometer::assignMass( double time, int mode ) const
+{
+    if ( scanLaw_ )
+        return scanLaw_->getMass( time, mode );
+    return 0;
+}
+
 const char *
 MassSpectrometer::dataInterpreterText() const
 {
