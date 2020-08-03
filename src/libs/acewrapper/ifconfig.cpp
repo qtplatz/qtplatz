@@ -25,7 +25,7 @@
 #include "ifconfig.hpp"
 
 #include <adportable/debug.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #include <cstdlib>
 #include <cstring>
@@ -83,4 +83,3 @@ ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
 
     return false;
 }
-

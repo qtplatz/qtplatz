@@ -152,9 +152,12 @@ namespace adurl {
                                          error_code_ = ec;
                                          handle_resolve( ec, it, functor );
                                      });
-
+#if BOOST_VERSION > 106900
+            // https://stackoverflow.com/questions/56223084/get-boostasioio-context-from-a-boostasioiptcpsocket-to-exec-a-custom?noredirect=1&lq=1
+            static_cast< boost::asio::io_context&>(socket_.get_executor().context()).run();
+#else
             socket_.get_io_context().run(); // block until response complete
-
+#endif
             if ( error_code_ )
                 return boost::none;
             return std::move( functor.res_ );

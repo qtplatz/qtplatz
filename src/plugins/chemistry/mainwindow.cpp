@@ -66,7 +66,7 @@
 #include <QProgressBar>
 
 #include <boost/filesystem/path.hpp>
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 #include <algorithm>
 
 using namespace chemistry;
@@ -83,7 +83,7 @@ MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
                                            , actionSearch_( 0 )
                                            , progressBar_( 0 )
 {
-    
+
 	instance_ = this;
 }
 
@@ -92,7 +92,7 @@ void
 MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::onConnectionChanged, [this]{ handleConnectionChanged(); } );
-    
+
 	setSimpleDockWidgetArrangement();
     document::instance()->initialSetup();
 
@@ -109,11 +109,11 @@ MainWindow::OnInitialUpdate()
                             "}"
                             "QHeaderView::section:checked {"
                             "  background-color: gray;"
-                            "  font-size: 9pt;"                            
+                            "  font-size: 9pt;"
                             "}"
                             "QTableView {"
-                            "  font-size: 9pt;"                            
-                            "}"                            
+                            "  font-size: 9pt;"
+                            "}"
             );
     }
 
@@ -161,7 +161,7 @@ MainWindow::createContents( Core::IMode * mode )
 
     QWidget * editorAndFindWidget = new QWidget;
     if ( editorAndFindWidget ) {
-        
+
         editorAndFindWidget->setLayout( editorHolderLayout );
         editorAndFindWidget->setLayout( editorHolderLayout );
 
@@ -232,7 +232,7 @@ MainWindow::setSimpleDockWidgetArrangement()
 		dockWidget->setFloating( false );
 		removeDockWidget( dockWidget );
 	}
-  
+
     size_t npos = 0;
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
 		addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
@@ -299,7 +299,7 @@ MainWindow::createToolbar()
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( QAction * action )
 {
 	QToolButton * button = new QToolButton;
@@ -309,7 +309,7 @@ MainWindow::toolButton( QAction * action )
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( const char * id )
 {
 	return toolButton( Core::ActionManager::instance()->command(id)->action() );
@@ -353,7 +353,7 @@ MainWindow::createMidStyledBar()
         if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::SDFILE_OPEN)->action()));
         }
-        
+
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         progressBar_ = new QProgressBar;
@@ -394,20 +394,20 @@ MainWindow::actSDFileOpen()
         if ( auto wnd = findChild< MolTableWnd * >() ) {
             qtwrapper::waitCursor wait;
             QFileInfo finfo( name );
-            
+
             if ( finfo.suffix() == "sdf" || finfo.suffix() == "mol" ) {
-                
+
                 //topLineEdit_->setText( name );
                 adchem::SDFile file( name.toStdString() );
                 //wnd->setMol( file, *progressBar_ );
-                
+
             } else if ( finfo.suffix() == "adfs" ) {
-                
+
                 if ( auto connection = std::make_shared< ChemConnection >() ) {
-                    
+
                     if ( connection->connect( name.toStdWString() ) )
                         document::instance()->setConnection( connection.get() );
-                    
+
                 }
             }
         }
@@ -423,4 +423,3 @@ MainWindow::handleConnectionChanged()
             "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
     }
 }
-

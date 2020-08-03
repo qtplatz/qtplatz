@@ -62,7 +62,7 @@
 #include <fstream>
 #include <adportable/string.hpp>
 #include <boost/format.hpp>
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 
 using namespace dataproc;
 
