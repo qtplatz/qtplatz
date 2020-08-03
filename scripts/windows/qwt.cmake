@@ -9,8 +9,9 @@ if ( NOT QWT_SOURCE_DIR )
 endif()
 
 set ( QWT_BUILD_DIR ${QWT_SOURCE_DIR} )
-set ( QWT_TARBALL "qwt-6.1.3.tar.bz2" )
-set ( QWT_DOWNLOAD_URL "https://sourceforge.net/projects/qwt/files/qwt/6.1.3/qwt-6.1.3.tar.bz2/download" )
+set ( QWT_TARBALL "qwt-6.1.5.tar.bz2" )
+#set ( QWT_DOWNLOAD_URL "https://sourceforge.net/projects/qwt/files/qwt/6.1.3/qwt-6.1.3.tar.bz2/download" )
+set ( QWT_DOWNLOAD_URL "https://sourceforge.net/projects/qwt/files/qwt/6.1.5/qwt-6.1.5.tar.bz2/download" )
 
 if ( NOT EXISTS ${DOWNLOADS}/${QWT_TARBALL} )
   file( DOWNLOAD ${QWT_DOWNLOAD_URL} ${DOWNLOADS}/${QWT_TARBALL} SHOW_PROGRESS )
@@ -18,8 +19,8 @@ endif()
 
 if ( NOT EXISTS ${QWT_SOURCE_DIR} )
   get_filename_component( __qwt_parent ${QWT_SOURCE_DIR} DIRECTORY )
-  message( STATUS "tar xvf ${DOWNLOADS}/${QWT_TARBALL} -C ${__qwt_parent}" )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${QWT_TARBALL} -C ${__qwt_parent} )
+  message( STATUS "tar -xvf \"${DOWNLOADS}/${QWT_TARBALL}\" -C \"${__qwt_parent}\"" )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E tar -xvf "${DOWNLOADS}/${QWT_TARBALL}" -C "${__qwt_parent}" )
 endif()
 
 add_custom_command(

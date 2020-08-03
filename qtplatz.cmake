@@ -12,6 +12,7 @@ set( Boost_ADDITIONAL_VERSIONS "1.70.0" )
 if( WIN32 )
   # See 'libs/serialization/src/basic_archive.cpp library_version_type
   find_path( _boost NAMES boost HINTS
+    "C:/Boost/include/boost-1_73"   # --
     "C:/Boost/include/boost-1_69"   # V17
     "C:/Boost/include/boost-1_67"   # V16
     "C:/Boost/include/boost-1_62"   # V14

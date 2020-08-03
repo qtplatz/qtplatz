@@ -23,7 +23,7 @@ echo "BUILD_DIR=%BUILD_DIR%"
 echo "QMAKE=%QMAKE%"
 echo "GENERATOR=%GENERATOR%"
 echo "##############################################"
-
+pause
 if not exist %BUILD_DIR% (
    echo mkdir "%BUILD_DIR%"
    mkdir "%BUILD_DIR%"
