@@ -24,6 +24,8 @@ setlocal enabledelayedexpansion
 
 if %VisualStudioVersion% EQU 15.0 (
    set GENERATOR="Visual Studio 15 2017 Win64"
+) else if %VisualStudioVersion% EQU 16.0 (
+   set GENERATOR="Visual Studio 16 2019"
 ) else (
   echo "Not supported compiler version"
   goto end

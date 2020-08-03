@@ -98,6 +98,14 @@ add_custom_target( eigen
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   )
 
+find_package( Python3 )
+if ( Python3_FOUND )
+  #-DPYTHON_NUMPY_INCLUDE_PATH="$(python -c 'import numpy ; print(numpy.get_include())')" \
+  execute_process( COMMAND
+    ${Python3_EXECUTABLE} -c "'import numpy ; print(numpy.get_include())'"
+    OUTPUT_VARIABLE NUMPYDIR )
+endif()
+
 ### rdkit
 add_custom_target( rdkit 
   COMMAND ${CMAKE_COMMAND}
@@ -108,7 +116,8 @@ add_custom_target( rdkit
   -DGENERATOR=${GENERATOR}
   -P "${CMAKE_CURRENT_SOURCE_DIR}/rdkit.cmake"
   COMMENT "Run rdkit.bat"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}  
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
+  COMMAND cmd /c "rdkit.bat"
   )
 
 configure_file(
@@ -129,4 +138,8 @@ message( STATUS "RDKIT_BINARY_DIR    = " ${RDKIT_BINARY_DIR} )
 message( STATUS "BOOST_VERSION       = " ${BOOST_VERSION} )
 message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
-message( STATUS )
+message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )
+if ( Python3_FOUND ) 
+  message( STATUS "\tEXECUTABLE     = " ${Python3_EXECUTABLE} )
+  message( STATUS "\tNUMPY          = " ${NUMPYDIR} )  
+endif()
