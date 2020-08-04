@@ -30,6 +30,7 @@
 #include <boost/serialization/vector.hpp>
 #include <memory>
 #include <map>
+#include <string>
 
 namespace adcontrols {
 

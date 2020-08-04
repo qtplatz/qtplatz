@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "peaks.hpp"
 #include "peak.hpp"
+#include "peaks.hpp"
 #include "baseline.hpp"
 #include "baselines.hpp"
 

@@ -3,6 +3,6 @@
 
 file ( READ qwtconfig.pri.orig config )
 string ( REGEX REPLACE "(QWT_CONFIG[ \t]*\+\=[ \t]*QwtDesigner)"  "\# \\1" config "${config}" )
-string ( REGEX REPLACE "(QWT_CONFIG[ \t]*\+\=[ \t]*QwtDll)"  "\# \\1 (cmake modified)" config "${config}" )
+#string ( REGEX REPLACE "(QWT_CONFIG[ \t]*\+\=[ \t]*QwtDll)"  "\# \\1 (cmake modified)" config "${config}" )
 file ( WRITE qwtconfig.pri "${config}" )
 

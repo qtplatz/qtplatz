@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "baselines.hpp"
 #include "baseline.hpp"
+#include "baselines.hpp"
 
 using namespace adcontrols;
 

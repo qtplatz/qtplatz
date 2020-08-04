@@ -117,7 +117,7 @@ double
 MSMolTable::tolerance( eTolerance m ) const
 {
     if ( m >= nToleranceMethod )
-        tolerances_[ this->toleranceMethod_ ];
+        return tolerances_[ this->toleranceMethod_ ];
     return tolerances_[ m ];
 }
 

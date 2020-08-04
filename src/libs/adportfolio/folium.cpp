@@ -26,6 +26,7 @@
 #include "folder.hpp"
 #include "portfolioimpl.hpp"
 #include <adportable/debug.hpp>
+#include <algorithm>
 
 using namespace portfolio;
 

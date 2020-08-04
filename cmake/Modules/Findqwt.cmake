@@ -32,12 +32,23 @@ if ( qwt_DIR )
   find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
 #  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )
   if ( QWT_LIB )
-    add_library( Qwt STATIC IMPORTED )
-    set ( QWT_LIBRARIES Qwt )
-    set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION ${QWT_LIB} )
-    if ( QWT_DEBUG_LIB )
-      set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION_DEBUG ${QWT_DEBUG_LIB} )
+    add_library( qwt STATIC IMPORTED )
+    set ( QWT_LIBRARIES qwt )
+
+    if ( WIN32 ) 
+      set_target_properties( qwt PROPERTIES
+	IMPORTED_LOCATION ${qwt_DIR}/lib/qwt.lib
+	IMPORTED_LOCATION_DEBUG ${qwt_DIR}/lib/qwtd.lib
+	)
+    else()
+      set_target_properties( qwt PROPERTIES
+	IMPORTED_LOCATION ${qwt_DIR}/lib/libqwt.a
+	)
     endif()
+    #set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION ${QWT_LIB} )
+    #if ( QWT_DEBUG_LIB )
+    #  set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION_DEBUG ${QWT_DEBUG_LIB} )
+    #endif()
     set( qwt_FOUND TRUE )
   else()
     message( FATAL_ERROR ${QWT_LIB} " " ${QWT_DLL} )

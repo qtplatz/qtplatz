@@ -17,6 +17,13 @@ if ( NOT EXISTS ${DOWNLOADS}/${QWT_TARBALL} )
   file( DOWNLOAD ${QWT_DOWNLOAD_URL} ${DOWNLOADS}/${QWT_TARBALL} SHOW_PROGRESS )
 endif()
 
+if ( WIN32 )
+  message( STATUS "----------------------------------------")
+  message( STATUS "-- QWT need to be configured manually --")
+  message( STATUS "----------------------------------------")  
+  return()
+endif()
+
 if ( NOT EXISTS ${QWT_SOURCE_DIR} )
   get_filename_component( __qwt_parent ${QWT_SOURCE_DIR} DIRECTORY )
   message( STATUS "tar -xvf \"${DOWNLOADS}/${QWT_TARBALL}\" -C \"${__qwt_parent}\"" )

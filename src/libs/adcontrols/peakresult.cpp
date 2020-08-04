@@ -23,10 +23,10 @@
 **************************************************************************/
 
 #include "peakresult.hpp"
-#include "baselines.hpp"
 #include "baseline.hpp"
-#include "peaks.hpp"
+#include "baselines.hpp"
 #include "peak.hpp"
+#include "peaks.hpp"
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>

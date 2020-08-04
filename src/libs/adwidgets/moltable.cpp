@@ -51,12 +51,14 @@
 #include <QStyledItemDelegate>
 #include <QSvgRenderer>
 #include <QUrl>
-#include <sstream>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <array>
+#include <algorithm>
 #include <functional>
+#include <sstream>
 
 using namespace adwidgets;
 

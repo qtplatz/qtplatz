@@ -38,8 +38,9 @@
 
 namespace adurl {
 
-    class client;
-
+    class ADURLSHARED_EXPORT client;
+    class ADURLSHARED_EXPORT sse_handler;
+    
     typedef std::tuple< std::string, int32_t, std::string > sse_event_data_t; // event,id,data
 
     class sse_handler {

@@ -23,6 +23,7 @@
 
 #include "quanmethod.hpp"
 #include <adportable/debug.hpp>
+#include <tuple>
 
 using namespace adcontrols;
 
