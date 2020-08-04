@@ -98,12 +98,19 @@ add_custom_target( eigen
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   )
 
+set ( RDK_BUILD_PYTHON_WRAPPERS "OFF" )
 find_package( Python3 )
 if ( Python3_FOUND )
   #-DPYTHON_NUMPY_INCLUDE_PATH="$(python -c 'import numpy ; print(numpy.get_include())')" \
   execute_process( COMMAND
-    ${Python3_EXECUTABLE} -c "'import numpy ; print(numpy.get_include())'"
-    OUTPUT_VARIABLE NUMPYDIR )
+    ${Python3_EXECUTABLE} -c "import numpy ; print( numpy.get_include() );"
+    OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE )
+  if ( PYTHON_NUMPY_INCLUDE_PATH )
+    # uncomment following line to enable PYTHON_WRAPPERS build
+    set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
+    set ( PYTHON_NUMPY_INCLUDE_PATH ${PYTHON_NUMPY_INCLUDE_PATH} ) 
+  endif()
 endif()
 
 ### rdkit
@@ -113,6 +120,7 @@ add_custom_target( rdkit
   -DRDKIT_SOURCE_DIR=${RDKIT_SOURCE_DIR}
   -DRDKIT_BINARY_DIR=${RDKIT_BINARY_DIR}
   -DRDKIT_REVISION=${RDKIT_REVISION}
+  -DRDK_BUILD_PYTHON_WRAPPERS=${RDK_BUILD_PYTHON_WRAPPERS}
   -DGENERATOR=${GENERATOR}
   -P "${CMAKE_CURRENT_SOURCE_DIR}/rdkit.cmake"
   COMMENT "Run rdkit.bat"
@@ -141,5 +149,5 @@ message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )
 if ( Python3_FOUND ) 
   message( STATUS "\tEXECUTABLE     = " ${Python3_EXECUTABLE} )
-  message( STATUS "\tNUMPY          = " ${NUMPYDIR} )  
+  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_PATH} ) 
 endif()
