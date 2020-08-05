@@ -22,6 +22,8 @@ if( WIN32 )
   set( BOOST_INCLUDEDIR ${_boost} )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
+  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS )
+
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )
 
@@ -31,7 +33,6 @@ if( WIN32 )
   else()
     add_definitions( -DBOOST_LOG_DYN_LINK )
   endif()
-  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS )
 else()
 
   find_path( _boost NAMES include/boost HINTS
