@@ -28,7 +28,9 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
@@ -62,6 +64,7 @@ QuanDataWriter::~QuanDataWriter()
 }
 
 QuanDataWriter::QuanDataWriter( const std::wstring& path ) : path_( path )
+                                                           , seqId_( 1 )
 {
 }
 
@@ -75,7 +78,6 @@ QuanDataWriter::open()
         if ( !fs_.mount( path_.c_str() ) )
             return false;
     }
-
     return true;
 }
 
@@ -125,6 +127,20 @@ QuanDataWriter::write( const adcontrols::MassSpectrum& ms, const std::wstring& t
 }
 
 adfs::file
+QuanDataWriter::write( const adcontrols::MassSpectra& a, const std::wstring& tittle )
+{
+    if ( adfs::folder folder = fs_.addFolder( L"/Processed/Spectrograms" ) ) {
+        if ( adfs::file file = folder.addFile( adfs::create_uuid(), tittle ) ) {
+            file.dataClass( a.dataClass() );
+            if ( file.save( a ) )
+                file.commit();
+            return file;
+        }
+    }
+    return adfs::file();
+}
+
+adfs::file
 QuanDataWriter::write( const adcontrols::Chromatogram& c, const std::wstring& tittle )
 {
     if ( adfs::folder folder = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
@@ -148,7 +164,7 @@ QuanDataWriter::write( const adcontrols::Chromatogram& c, const wchar_t * dataSo
     if ( auto top = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
 
         boost::filesystem::path path = boost::filesystem::path( L"/Processed/Chromatograms" ) / boost::filesystem::path( dataSource ).stem();
-        ADDEBUG() << path.string();
+        // ADDEBUG() << path.string();
 
         if ( adfs::folder folder = fs_.addFolder( path.wstring() ) ) {
             if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
@@ -577,7 +593,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
             sql.bind( row++ ) = int64_t( sample.sampleType() );
             sql.bind( row++ ) = sample.level();
             sql.bind( row++ ) = sample.istdId();
-            if ( sample.inletType() == adcontrols::QuanSample::Chromatography )
+            if ( sample.inletType() == adcontrols::Quan::Chromatography )
                 sql.bind( row++ ) = sample.injVol();
             else
                 sql.bind( row++ ) = adfs::null();
@@ -891,6 +907,85 @@ QuanDataWriter::addMSLock( std::shared_ptr< adprocessor::dataprocessor> dp
             }
         }
         sql.commit();
+    }
+    return true;
+}
+
+bool
+QuanDataWriter::create_spectrogram_tables()
+{
+    adfs::sqlite & db = fs_.db();
+
+    adfs::stmt sql( db );
+    bool result( true );
+
+    result &= sql.exec(
+        "CREATE TABLE SGSpectrum ("
+        "id INTEGER PRIMARY KEY"
+        ",idSample      INTEGAR"
+        ",fcn           INTEGER"
+        ",pkd           INTEGAR"
+        ",epochTime     INTEGAR"
+        ",injTime       REAL"
+        ",stem          TEXT"
+        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+
+    result &= sql.exec(
+        "CREATE TABLE SGPeak ("
+        "idSpectrum     INTEGER"
+        ",mass          REAL"
+        ",time          REAL"
+        ",intensity     REAL"
+        ",FOREIGN KEY( idSpectrum ) REFERENCES SGSpectrum ( id ) )" );
+
+    return result;
+}
+
+bool
+QuanDataWriter::insert_spectrogram( const boost::uuids::uuid& fileGuid
+                                    , adcontrols::MassSpectra& a
+                                    , const adprocessor::dataprocessor& dp
+                                    , int idx ) // 0 = AVG, 1 = PKD
+{
+    ADDEBUG() << dp.filename();
+
+    uint64_t idSample(0);
+    adfs::stmt sql( fs_.db() );
+    sql.prepare( "SELECT id FROM QuanSample WHERE dataSource like ?" );
+    sql.bind(1) = dp.filename();
+    if ( sql.step() == adfs::sqlite_row )
+        idSample = sql.get_column_value< uint64_t >(0);
+    else
+        return false;
+
+    for ( const auto& ms: a ) {
+        const auto& prop = ms->getMSProperty();
+        uint64_t epoch_time = prop.timeSinceEpoch();
+        double inj_time = prop.timeSinceInjection();
+        const uint64_t id = seqId_++;
+
+        sql.prepare( "INSERT INTO SGSpectrum (id,idSample,fcn,pkd,epochTime,injTime) VALUES (?,?,?,?,?,?)" );
+        sql.bind( 1 ) = id;
+        sql.bind( 2 ) = idSample;
+        sql.bind( 3 ) = 0;          // fcn
+        sql.bind( 4 ) = idx;        // AVG == 0, PKD == 1
+        sql.bind( 5 ) = epoch_time;
+        sql.bind( 6 ) = inj_time;
+
+        if ( sql.step() == adfs::sqlite_done ) {
+
+            sql.prepare( "INSERT INTO SGPeak (idSpectrum,mass,time,intensity) VALUES (?,?,?,?)" );
+            for ( size_t i = 0; i < ms->size(); ++i ) {
+                sql.bind( 1 ) = id;
+                sql.bind( 2 ) = ms->mass( i );
+                sql.bind( 3 ) = ms->time( i );
+                sql.bind( 4 ) = ms->intensity( i );
+                if ( sql.step() != adfs::sqlite_done )
+                    ADTRACE() << "sql error " << sql.errmsg();
+                sql.reset();
+            }
+            //sql.commit();
+        }
     }
     return true;
 }

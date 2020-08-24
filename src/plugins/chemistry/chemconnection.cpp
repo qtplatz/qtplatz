@@ -52,9 +52,8 @@ ChemConnection::ChemConnection()
 bool
 ChemConnection::connect( const boost::filesystem::path& database )
 {
-    if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
+    if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { //
         if ( fs_->mount( database.wstring().c_str() ) ) {
-            fs_->db().register_error_handler( [=](const char * msg){ QMessageBox::warning(0, "SQLite SQL Error", msg); });
             filename_ = database;
             return true;
         }
@@ -78,4 +77,3 @@ ChemConnection::db()
     static adfs::sqlite dummy;
     return dummy;
 }
-

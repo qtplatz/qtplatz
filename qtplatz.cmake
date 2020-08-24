@@ -10,14 +10,19 @@ set( Boost_NO_SYSTEM_PATHS ON )
 set( Boost_ADDITIONAL_VERSIONS "1.70.0" )
 
 if( WIN32 )
+  # See 'libs/serialization/src/basic_archive.cpp library_version_type
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_67"   # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
-    "C:/Boost/include/boost-1_62"   # V14 <-- prefereed version (but it may not be able to comple due to std::auto_ptr)
+    "C:/Boost/include/boost-1_73"   # V18
+    "C:/Boost/include/boost-1_69"   # V17
+    "C:/Boost/include/boost-1_67"   # V16
+    "C:/Boost/include/boost-1_62"   # V14
     )
 
   set( BOOST_ROOT ${_boost} )
   set( BOOST_INCLUDEDIR ${_boost} )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
+
+  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS )
 
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )
@@ -25,12 +30,13 @@ if( WIN32 )
   if ( NOT Boost_USE_STATIC_LIBS )
     add_definitions( -DBOOST_ALL_DYN_LINK )
     add_definitions( -wd4141 ) # dllexport more than once
+  else()
+    add_definitions( -DBOOST_LOG_DYN_LINK )
   endif()
-
 else()
 
   find_path( _boost NAMES include/boost HINTS
-    "/usr/local/boost-1_70"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
+    "/usr/local/boost-1_73"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
     "/usr/local/boost-1_69"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
     "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
     "/usr/local/boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 (debian9 default)
@@ -52,10 +58,11 @@ endif()
 
 if ( WITH_QT5 )
 
-  set ( __qt5_versions "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" "5.11.1" "5.11.0" "5.10.1" "5.9.2" )
+  set ( __qt5_versions "5.15.0" "5.14.2" "5.14.1" "5.12.7" "5.12.6" "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" )
 
   if ( WIN32 )
     foreach( v ${__qt5_versions} )
+      list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2019_64/bin" )
       list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2017_64/bin" )
     endforeach()
   elseif( APPLE )
@@ -82,12 +89,6 @@ if ( WITH_QT5 )
     string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
     list( APPEND CMAKE_PREFIX_PATH "${__prefix}/lib/cmake" )
     set( QTDIR ${__prefix} )
-    #message( "=============================================================" )
-    #message( "===== QMAKE: " ${QMAKE} )
-    #message( "===== PREFIX: " ${__prefix} )
-    #message( "===== QTDIR: " ${QTDIR} )
-    #message( "===== CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
-    #message( "=============================================================" )
   else()
     message( "=============================================================" )
     message( "====== No QMAKE FOUND =======================================" )
@@ -176,6 +177,7 @@ endif()
 if ( CMAKE_COMPILER_IS_GNUCC )
   add_definitions( "-Wno-deprecated-declarations" )
 endif()
+remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 
 add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )

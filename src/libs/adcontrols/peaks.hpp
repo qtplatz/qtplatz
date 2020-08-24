@@ -26,7 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
-
+#include "peak.hpp"
 #include <vector>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -35,8 +35,8 @@
 
 namespace adcontrols {
 
-    class Peak;
-    class Baseline;
+    class ADCONTROLSSHARED_EXPORT Peak;
+    class ADCONTROLSSHARED_EXPORT Baseline;
 
     class ADCONTROLSSHARED_EXPORT Peaks {
     public:

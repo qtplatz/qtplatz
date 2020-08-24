@@ -1,8 +1,6 @@
-cmake_minimum_required ( VERSION 3.14 )
+cmake_minimum_required ( VERSION 3.13 )
 
 project ( adControls )
-
-add_definitions( -DBOOST_NO_AUTO_PTR )
 
 find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
 if ( Boost_FOUND )
@@ -15,6 +13,13 @@ endif()
 
 add_library( ${PROJECT_NAME} MODULE
   adcontrols.cpp
+  chemicalformula.cpp
+  chemicalformula.hpp
+  isotopecluster.cpp
+  isotopecluster.hpp
+  peakresult.cpp
+  peakresult.hpp
+  uuid.cc
   )
 
 link_directories(
@@ -40,7 +45,7 @@ set ( CMAKE_INSTALL_RPATH "@loader_path/../../../../../Contents/Frameworks" )
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   PREFIX ""
-  SUFFIX ${suffix} 
+  SUFFIX ${suffix}
   LIBRARY_OUTPUT_DIRECTORY ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PYTHON_MODULE_DIR}

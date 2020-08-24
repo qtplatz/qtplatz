@@ -34,7 +34,7 @@ class QLabel;
 
 namespace portfolio { class Folium; }
 namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace advision { class ImageWidget; }
+namespace adcv { class ImageWidget; }
 
 namespace video {
 
@@ -48,19 +48,18 @@ namespace video {
 
     private:
         //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< advision::ImageWidget > view_;
-            
+        std::unique_ptr< adcv::ImageWidget > view_;
+
 
     public slots :
-            
+
     private slots:
         void handlePlayer( QImage );
         void handlePlayerChanged( const QString& );
         void handleCameraChanged();
 
     signals:
-        
+
     };
 
 }
-

@@ -24,8 +24,8 @@
 
 #include "method.hpp"
 #include "infitofcontrols_global.hpp"
-#include <multumcontrols/scanlaw.hpp>
-#include <multumcontrols/orbitprotocol.hpp>
+#include <admtcontrols/scanlaw.hpp>
+#include <admtcontrols/orbitprotocol.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adportable/debug.hpp>
 #include <boost/serialization/serialization.hpp>
@@ -55,7 +55,7 @@ namespace infitofcontrols {
             using namespace boost::serialization;
 
             bool isLinear_deprecated;
-            multumcontrols::OrbitProtocol linear_protocol;
+            admtcontrols::OrbitProtocol linear_protocol;
 
             ar & BOOST_SERIALIZATION_NVP( _.isMaxNumAverage );
 

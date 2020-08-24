@@ -23,10 +23,10 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec  
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 add_definitions(
@@ -39,10 +39,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5Core_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
-  )
-
-link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
 set( quan_SOURCES
@@ -58,8 +54,8 @@ set( quan_SOURCES
   quanfactory.hpp
   quanmode.cpp
   quanmode.hpp
-  quandocument.cpp
-  quandocument.hpp
+  document.cpp
+  document.hpp
   panelswidget.cpp
   panelswidget.hpp
   paneldata.cpp
@@ -70,7 +66,7 @@ set( quan_SOURCES
   datasequencewidget.hpp
   datasequencetree.cpp
   datasequencetree.hpp
-  datasequencetable.cpp  
+  datasequencetable.cpp
   datasequencetable.hpp
   compoundswidget.cpp
   compoundswidget.hpp
@@ -84,18 +80,20 @@ set( quan_SOURCES
   quanconfigform.hpp
   quanconfigwidget.cpp
   quanconfigwidget.hpp
-  quanchromatogram.cpp  
-  quanchromatogram.hpp  
-  quanchromatograms.cpp  
+  quanchromatogram.cpp
+  quanchromatogram.hpp
+  quanchromatograms.cpp
   quanchromatograms.hpp
   quandatawriter.cpp
   quandatawriter.hpp
   quansampleprocessor.cpp
   quansampleprocessor.hpp
   quancountingprocessor.cpp
-  quancountingprocessor.hpp  
+  quancountingprocessor.hpp
   quanchromatogramprocessor.cpp
   quanchromatogramprocessor.hpp
+  quanexportprocessor.cpp
+  quanexportprocessor.hpp
   processmethodwidget.cpp
   processmethodwidget.hpp
   quanreportwidget.cpp
@@ -135,9 +133,10 @@ set( quan_SOURCES
   )
 
 set( quan_RESOURCES quan.qrc )
-set( quan_FORMS doubletabwidget.ui  quanconfigform.ui  quanqueryform.ui )
 
 add_library( Quan MODULE
+  samplemethodform.hpp
+  samplemethodform.cpp
   ${quan_SOURCES}
   ${quan_RESOURCES}
   )
@@ -171,7 +170,7 @@ target_link_libraries(
   adplot
   ${Boost_LIBRARIES}
   )
-  
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32

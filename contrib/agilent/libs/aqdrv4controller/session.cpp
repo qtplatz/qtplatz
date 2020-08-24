@@ -40,74 +40,6 @@
 #include <memory>
 #include <sstream>
 
-namespace aqdrv4controller { namespace Instrument {
-#if 0
-        struct Session::impl {
-            
-            impl() : work_( io_service_ )
-                   , masterObserver_( std::make_shared< adacquire::MasterObserver >( "master.aqdrv4.ms-cheminfo.com" ) )
-                   , waveformObserver_( std::make_shared< WaveformObserver >() ) {
-
-                // {5df0f451-4b42-597f-b223-4378f92baa48}
-                masterObserver_->addSibling( waveformObserver_.get() );
-
-            }
-            
-            static std::once_flag flag_, flag2_, flag3_;
-            static std::shared_ptr< Session > instance_;
-            static std::mutex mutex_;
-
-            boost::asio::io_service io_service_;
-            boost::asio::io_service::work work_;
-            std::vector< std::thread > threads_;
-
-            typedef std::pair< std::shared_ptr< adi::Receiver >, std::string > client_pair_t;
-            std::vector< client_pair_t > clients_;
-            inline std::mutex& mutex() { return mutex_; }
-
-            std::shared_ptr< ap240::digitizer > digitizer_;
-            std::shared_ptr< adacquire::MasterObserver > masterObserver_;
-            std::shared_ptr< WaveformObserver > waveformObserver_;
-            
-            void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
-                std::lock_guard< std::mutex > lock( mutex_ );
-                for ( auto& r: clients_ )
-                    r.first->message( msg, value );
-            }
-            
-            void reply_handler( const std::string& method, const std::string& reply ) {
-                if ( method == "InitialSetup" ) {
-                    reply_message( adi::Receiver::STATE_CHANGED, ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eOff );
-                } else {
-                    adacquire::EventLog::LogMessage mlog( "%1%", method, "AP240" );
-                    mlog << reply;
-                    for ( auto& r: clients_ )
-                        r.first->log( mlog );
-                }
-            }
-            
-            bool waveform_handler( const acqrscontrols::ap240::waveform * ch1, const acqrscontrols::ap240::waveform * ch2, acqrscontrols::ap240::method& next ) {
-                if ( masterObserver_ && waveformObserver_ ) {
-                    if ( ch1 || ch2 ) {
-                        auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
-                        auto pos = (*waveformObserver_) << pair;
-                        masterObserver_->dataChanged( waveformObserver_.get(), pos );
-                        return false; // no next method changed.
-                    }
-                }
-                return false;
-            }
-        };
-
-        std::once_flag Session::impl::flag_;
-        std::once_flag Session::impl::flag2_;
-        std::once_flag Session::impl::flag3_;
-        std::mutex Session::impl::mutex_;
-        std::shared_ptr< Session > Session::impl::instance_;
-#endif        
-    }
-}
-
 using namespace aqdrv4controller::Instrument;
 
 Session *
@@ -138,7 +70,7 @@ bool
 Session::setConfiguration( const std::string& xml )
 {
     using boost::property_tree::ptree;
-    
+
     std::istringstream ss( xml );
     ptree pt;
     boost::property_tree::read_xml( ss, pt );
@@ -153,16 +85,16 @@ Session::setConfiguration( const std::string& xml )
         if ( remote_port_.empty() )
             remote_port_ = "8010";
     }
-    
+
     return true;
 }
 
 bool
 Session::configComplete()
 {
-    return true;    
+    return true;
 }
-            
+
 bool
 Session::disconnect( adacquire::Receiver * receiver )
 {
@@ -172,7 +104,7 @@ Session::disconnect( adacquire::Receiver * receiver )
 
     return true;
 }
-      
+
 uint32_t
 Session::get_status()
 {
@@ -189,7 +121,7 @@ bool
 Session::connect( adacquire::Receiver * receiver, const std::string& token )
 {
     auto ptr( receiver->shared_from_this() );
-    
+
     task::instance()->connect_client( ptr, token );
 
     return true;
@@ -224,7 +156,7 @@ Session::echo( const std::string& msg )
 bool
 Session::shell( const std::string& cmdline )
 {
-    return false;    
+    return false;
 }
 
 std::shared_ptr< const adcontrols::ControlMethod::Method >
@@ -241,7 +173,7 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
         if ( it != m->end() ) {
             auto method = std::make_shared< acqrscontrols::ap240::method >();
             if ( it->get<>( *it, *method ) ) {
-                
+
                 task::instance()->prepare_for_run( method );
 
                 return true;
@@ -309,4 +241,3 @@ Session::isRecording() const
 {
     return true;
 }
-

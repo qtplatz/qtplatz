@@ -67,7 +67,7 @@ target_link_libraries( infitofspectrometer LINK_PUBLIC
   acewrapper
   acqrscontrols
   adfs
-  multumcontrols
+  admtcontrols
   ${Boost_LIBRARIES}
 )
 

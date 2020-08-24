@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from qtplatz import adProcessor, adControls
+from qtplatz import adControls, adProcessor
 from datetime import datetime
 file = adProcessor.processor();
 filename = '/media/toshi/data/data/hpk-mcp/2019-05-31/Ar_10-90laps_1680V(1790)_3850mA_0001.adfs';

@@ -40,8 +40,7 @@ extern "C" {
     EVENTBROKER_EXPORT bool eventbroker_regiser_handler( event_handler );
     EVENTBROKER_EXPORT bool eventbroker_unregiser_handler( event_handler );
 
-    EVENTBROKER_EXPORT bool eventbroker_bind( const char * host, const char * port = "7125" );
+    EVENTBROKER_EXPORT bool eventbroker_bind( const char * host, const char * port = "7125", bool bcast = false );
     EVENTBROKER_EXPORT bool eventbroker_out( uint32_t );
 
 }
-

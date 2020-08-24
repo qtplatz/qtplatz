@@ -25,13 +25,22 @@ option( WITH_QWT           "Include QWT"                ON )
 option( WITH_AqDrv4        "Keysight AP240/DC122"       OFF )
 option( WITH_AgMD2         "Keysight U5303A"            ON ) # deprecated
 option( WITH_AqMD3         "Keysight U5303A/SA220"      ON )
-
-if ( CMAKE_CROSSCOMPILING )
-  option( WITH_CUDA          "CUDA"                     OFF )
-  option( WITH_PYTHON3       "Python3 modules"          OFF )
+if ( APPLE )
+  option( WITH_Wolfram     "Wolfram Engine support"     ON )
 else()
-  option( WITH_CUDA          "CUDA"                     ON )
-  option( WITH_PYTHON3       "Python3 modules"          ON )
+  option( WITH_Wolfram     "Wolfram Engine support"     OFF )
+endif()
+option( WITH_TESTS         "Tests"                      OFF )
+if ( CMAKE_CROSSCOMPILING )
+  option( WITH_CUDA        "CUDA"                     OFF )
+  option( WITH_PYTHON3     "Python3 modules"          OFF )
+else()
+  option( WITH_CUDA        "CUDA"                     ON )
+  if ( WIN32 )
+    option( WITH_PYTHON3     "Python3 modules"        OFF )
+  else()
+    option( WITH_PYTHON3     "Python3 modules"        ON )
+  endif()
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
@@ -50,6 +59,7 @@ endif()
 
 include (qtplatz.cmake)
 include (version)
+#remove_definitions( -DBOOST_NO_AUTO_PTR )
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
@@ -109,8 +119,8 @@ elseif ( APPLE )
   set( CPACK_SET_DESTDIR ON )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.12" )
-  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.12" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.14" )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
@@ -118,20 +128,26 @@ else() # Linux
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
 endif()
 
+if ( WITH_PYTHON3 )
+  find_package( Python3 COMPONENTS Interpreter Development )
+endif()
+
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
+  set( boost_libs "bzip2" )
+  if ( Python3_FOUND )
+    list( APPEND boost_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
+  endif()
 endif()
 if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
-  set( boost_bzip2 "" )
 else()
-  set( boost_bzip2 "bzip2" )
 endif()
 
 # adplugin now uses boost_dll, which require 1.61
-find_package( Boost 1.62 REQUIRED COMPONENTS
+find_package( Boost 1.67 REQUIRED COMPONENTS
   atomic
-#  ${boost_bzip2}
+  ${boost_libs} # windows
   chrono
   date_time
   filesystem
@@ -231,6 +247,10 @@ if ( WITH_CUDA )
   endif()
 endif()
 
+if ( WITH_Wolfram )
+  find_package( Wolfram )
+endif()
+
 if ( WIN32 )
   set( SOLUTION_FILE "qtplatz" )
   configure_file(
@@ -261,7 +281,10 @@ add_subdirectory ( contrib )
 if ( Qt5_FOUND )
   add_subdirectory ( share )
 endif()
-add_subdirectory( tests )
+
+if ( WITH_TESTS )
+  add_subdirectory( tests )
+endif()
 
 ########### CPack ########
 #message( STATUS "------------ cpack ----------------" )
@@ -344,7 +367,8 @@ message( STATUS "# Boost_INCLUDE_DIRS    : " ${Boost_INCLUDE_DIRS} )
 message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
 if ( WITH_QWT )
   get_target_property( _value ${QWT_LIBRARIES} IMPORTED_LOCATION )
-  message( STATUS "# QWT                   : ${_value};${QWT_INCLUDE_DIR}" )
+  get_target_property( _valued ${QWT_LIBRARIES} IMPORTED_LOCATION_DEBUG )  
+  message( STATUS "# QWT                   : ${_value};${_valued};${QWT_INCLUDE_DIR}" )
 endif()
 message( STATUS "# XMLPATTERNS           : " ${XMLPATTERNS} )
 if ( libxml2_FOUND )
@@ -442,6 +466,14 @@ if ( AqDrv4_FOUND )
     message( STATUS "                        : "  ${_value} )
   else()
     message( STATUS "# AqDrv4 LIBRARIES      : "  ${AqDrv4_LIBRARIES} )
+  endif()
+endif()
+if ( WITH_Wolfram )
+  message( STATUS "# Wolfram               : " "${Wolfram_FOUND}" )
+  if ( Wolfram_FOUND )
+    message( STATUS "# WSTP_INCLUDE_DIRS     : " "${WSTP_INCLUDE_DIRS}" )
+    message( STATUS "# WSTP_LIBRARY_DIRS     : " "${WSTP_LIBRARY_DIRS}" )
+    message( STATUS "# WSTP_LIBRARIES        : " "${WSTP_LIBRARIES}" )
   endif()
 endif()
 

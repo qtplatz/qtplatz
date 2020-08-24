@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,6 +26,7 @@
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
+#include <boost/exception/all.hpp>
 #include <algorithm>
 #include <numeric>
 #include <cassert>
@@ -36,16 +36,16 @@ using namespace acqrscontrols::u5303a;
 
 histogram::histogram() : serialnumber_( 0 )
                        , timeSinceEpoch_( 0 )
+                       , wellKnownEvents_(0)
                        , trigger_count_( 0 )
                        , reset_requested_( true )
-                       , wellKnownEvents_(0)
 {
 }
 
 void
 histogram::clear()
 {
-    reset_requested_ = true;    
+    reset_requested_ = true;
 }
 
 void
@@ -63,20 +63,20 @@ histogram::append( const threshold_result& result )
          meta_.actualPoints != result.data()->meta_.actualPoints ||
          ( std::abs( meta_.initialXOffset - result.data()->meta_.initialXOffset ) >= meta_.xIncrement * 2 ) ||
          !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
-        
-        method_ = result.data()->method_; // delay pulse + protocols
-        
-        // ADDEBUG() << "append: " << method_.protocolIndex() << "/" << method_.protocols().size();        
 
-        meta_ = result.data()->meta_;        
-        
+        method_ = result.data()->method_; // delay pulse + protocols
+
+        // ADDEBUG() << "append: " << method_.protocolIndex() << "/" << method_.protocols().size();
+
+        meta_ = result.data()->meta_;
+
         assert ( meta_.actualPoints );
 
         data_.resize( meta_.actualPoints );
-        
+
         reset_requested_ = false;
         trigger_count_ = 0;
-        
+
         std::fill( data_.begin(), data_.end(), 0 );
 
         serialnumber_0_ = result.data()->serialnumber_;
@@ -91,7 +91,7 @@ histogram::append( const threshold_result& result )
 
     if ( ! result.indices().empty() )
         std::for_each( result.indices().begin(), result.indices().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
-    
+
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
     wellKnownEvents_ |= result.data()->wellKnownEvents_;
@@ -117,7 +117,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     std::lock_guard< std::mutex > lock( mutex_ );
 
     x.histogram().clear();
-    
+
     x.setInitialXTimeSeconds( meta_.initialXTimeSeconds );
     x.setInitialXOffset( meta_.initialXOffset );
     x.setXIncrement( meta_.xIncrement );
@@ -126,11 +126,19 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.setSerialnumber( std::make_pair( serialnumber_0_, serialnumber_ ) );
     x.setTimeSinceEpoch( std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ ) );
     x.setWellKnownEvents( wellKnownEvents_ );
-    x.setThis_protocol( method_.protocols() [ method_.protocolIndex() ] );
-    x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
+
+    const size_t hard_index = method_.protocolIndex();
+    const size_t safe_index = method_.protocolIndex() % method_.protocols().size();
+    if ( hard_index != safe_index ) {
+        ADDEBUG() << "Error: wrong protocol index of " << method_.protocolIndex() << " while num protocols are: " << method_.protocols().size();
+        BOOST_THROW_EXCEPTION( std::range_error( "wrong protocol number" ) );
+    }
+
+    x.setThis_protocol( method_.protocols() [ safe_index ] );
+    x.setProtocolIndex( safe_index, uint32_t( method_.protocols().size() ) );
 
     double ext_trig_delay = x.this_protocol().delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
-    
+
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
             double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
@@ -156,8 +164,8 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
     serialnumber = std::make_pair( serialnumber_0_, serialnumber_ );
     timeSinceEpoch = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
 
-    // external trig. delay will to be taken account at TimeDigitalHistogram::translate() 
-    double t0 = meta_.initialXOffset;
+    // external trig. delay will to be taken account at TimeDigitalHistogram::translate()
+    //double t0 = meta_.initialXOffset;
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
             double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
@@ -177,7 +185,7 @@ histogram::average( const std::vector< std::pair< double, uint32_t > >& hist
                     , std::vector< double >& intens )
 {
     std::vector< std::pair< double, uint32_t > > time_merged;
-    
+
     if ( adcontrols::TimeDigitalHistogram::average_time( hist, resolution, time_merged ) ) {
 
         times.resize( time_merged.size() );
@@ -199,5 +207,3 @@ histogram::average( const std::vector< std::pair< double, uint32_t > >& hist
 {
     return adcontrols::TimeDigitalHistogram::average_time( hist, resolution, time_merged );
 }
-
-

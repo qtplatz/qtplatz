@@ -66,6 +66,7 @@ namespace accutof { namespace acquire {
         void handle_threshold_method( int ch );
         void handle_threshold_action();
         void handle_method( const QString& );
+        void handleScaleY( int, bool autoScale, double top, double bottom );
 
     private slots:
         void dataChanged( const boost::uuids::uuid&, int idx );

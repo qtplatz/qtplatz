@@ -24,7 +24,7 @@
 
 #include "quanpublisher.hpp"
 #include "quanconnection.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanplotdata.hpp"
 #include "quansvgplot.hpp"
 #include <adcontrols/annotations.hpp>
@@ -92,10 +92,10 @@ namespace quan {
             // template<> pugi::xml_node operator()( const char * decl, const char * name, const int64_t& value ) const;
 
             pugi::xml_node operator()( const adfs::stmt& sql, int nCol, bool dropNull = false ) const {
-            
+
                 if ( sql.is_null_column( nCol ) && dropNull )
                     return pugi::xml_node();
-            
+
                 switch ( sql.column_type( nCol ) ) {
                 case SQLITE_INTEGER:
 #if defined __GNUC__ && defined __linux
@@ -181,7 +181,7 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
         if ( article ) {
             doc.append_copy( article->select_single_node( "/article" ).node() );
         }
-        
+
         int step = 1;
         if ( appendSampleSequence( doc ) ) {
             progress( step++ );
@@ -197,7 +197,7 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
 
                         if ( appendQuanCalib( doc ) ) {
                             progress( step++ );
-        
+
                             if ( appendQuanDataGuids( doc ) ) {
                                 progress( step++ );
 
@@ -234,7 +234,7 @@ QuanPublisher::operator()( QuanConnection * conn )
              appendQuanResponseUnk( doc ) &&
              appendQuanResponseStd( doc ) &&
              appendQuanCalib( doc ) ) {
-            
+
             boost::filesystem::path path( conn->filepath() );
             path.replace_extension( ".published.xml" );
             filepath_ = path.string();
@@ -265,7 +265,7 @@ bool
 QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& response, const std::string& refGuid, int refidx, int reffcn )
 {
     auto respid = response.select_single_node( "column[@name='id']" ).node().text().as_int();
-    
+
     if ( auto node = dst.append_child( "dataSource" ) )
         node.text() = response.select_single_node( "column[@name='dataSource']" ).node().text().as_string();
 
@@ -291,7 +291,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
     double exact_mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
     if ( exact_mass > 0.5 )
         range = std::make_pair( exact_mass - 0.05, exact_mass + 0.05 );
-                
+
     std::wstring dataGuid = pugi::as_wide( response.select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
 
     if ( auto data = conn_->fetch( dataGuid ) ) {
@@ -323,7 +323,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
                     }
                 }
             }
-            
+
         } else if ( data->profile ) {
 
             detail::append_class()( dst, data->profile.get()->getDescriptions(), "class adcontrols::descriptions" );
@@ -363,7 +363,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
                 detail::append_class()( dst, data->profile.get()->getDescriptions(), "class adcontrols::descriptions" );
 
                 QuanSvgPlot svg;
-                
+
                 if ( svg.plot( *data, refidx, reffcn, "data source tba" ) ) {
                     pugi::xml_document dom;
                     if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
@@ -373,9 +373,9 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
                     }
                 }
             }
-        }        
+        }
     }
-    
+
     return true;
 }
 
@@ -383,7 +383,7 @@ bool
 QuanPublisher::appendTraceData( adwidgets::ProgressInterface& progress )
 {
     if ( bProcessed_ && conn_ ) {
-        
+
         size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end()
                                       , [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
         progress.progress.setProgressRange( 0, int(nTask) );
@@ -413,9 +413,9 @@ QuanPublisher::appendTraceData( adwidgets::ProgressInterface& progress )
                 if ( it != refData.end() ) {
                     refGuid = std::get<0>(it->second);
                     idx = std::get<1>(it->second);
-                    fcn = std::get<2>(it->second);                    
+                    fcn = std::get<2>(it->second);
                 }
-                
+
                 appendTraceData( spectra.append_child( "PeakResponse" ), std.node(), refGuid, idx, fcn );
                 progress();
             }
@@ -423,20 +423,20 @@ QuanPublisher::appendTraceData( adwidgets::ProgressInterface& progress )
             auto unks = doc.select_nodes( "QuanResponse[@sampleType='UNK']/row" );
             for ( auto& unk : unks ) {
                 std::string refGuid;
-                int fcn(0), idx(0);                
+                int fcn(0), idx(0);
                 auto it = refData.find( unk.node().select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
                 if ( it != refData.end() ) {
                     refGuid = std::get<0>(it->second);
                     idx = std::get<1>(it->second);
-                    fcn = std::get<2>(it->second);                                        
+                    fcn = std::get<2>(it->second);
                 }
-                
+
                 appendTraceData( spectra.append_child( "PeakResponse" ), unk.node(), refGuid, idx, fcn );
                 progress();
             }
 
         }
-        return true;        
+        return true;
     }
     return false;
 }
@@ -478,8 +478,8 @@ bool
 QuanPublisher::appendSampleSequence( pugi::xml_node& doc )
 {
     if ( auto node = doc.append_child( "SampleSequence" ) ) {
-        
-        if ( auto p = conn_->quanSequence() ) 
+
+        if ( auto p = conn_->quanSequence() )
             detail::append_class()(node, *p, "class adcontrols::QuanSequence");
         return true;
     }
@@ -530,12 +530,12 @@ WHERE QuanCompound.uuid = ? AND sampleType = 0 AND QuanResponse.idCmpd = QuanCom
                         auto d = std::make_shared< resp_data >();
                         int row = 0;
                         d->cmpId      = cmpd.uuid(); row++;
-                        d->respId     = sql.get_column_value< int64_t >( row++ );                        
-                        d->name       = sql.get_column_value< std::string >( row++ );                        
-                        d->sampType   = sql.get_column_value< int64_t >( row++ );                        
-                        d->formula    = sql.get_column_value< std::string >( row++ ); 
+                        d->respId     = sql.get_column_value< int64_t >( row++ );
+                        d->name       = sql.get_column_value< std::string >( row++ );
+                        d->sampType   = sql.get_column_value< int64_t >( row++ );
+                        d->formula    = sql.get_column_value< std::string >( row++ );
                         row++; // sikip 'exact mass'
-                        d->mass       = sql.get_column_value< double >( row++ );                        
+                        d->mass       = sql.get_column_value< double >( row++ );
                         d->mass_error = sql.get_column_value< double >( row++ );
                         d->intensity  = sql.get_column_value< double >( row++ );
                         d->amount     = sql.get_column_value< double >( row++ );
@@ -588,11 +588,11 @@ WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCom
                         auto d = std::make_shared< resp_data >();
                         int row = 0;
                         d->cmpId      = cmpd.uuid(); row++;
-                        d->respId     = sql.get_column_value< int64_t >( row++ );                        
-                        d->name       = sql.get_column_value< std::string >( row++ );                        
-                        d->sampType   = sql.get_column_value< int64_t >( row++ );                        
-                        d->formula    = sql.get_column_value< std::string >( row++ );                        
-                        d->mass       = sql.get_column_value< double >( row++ );     
+                        d->respId     = sql.get_column_value< int64_t >( row++ );
+                        d->name       = sql.get_column_value< std::string >( row++ );
+                        d->sampType   = sql.get_column_value< int64_t >( row++ );
+                        d->formula    = sql.get_column_value< std::string >( row++ );
+                        d->mass       = sql.get_column_value< double >( row++ );
                         row++; // skip 'exact mass'
                         d->mass_error = sql.get_column_value< double >( row++ );
                         d->intensity  = sql.get_column_value< double >( row++ );
@@ -651,7 +651,7 @@ QuanPublisher::appendCountingCalib( pugi::xml_node& doc, bool isISTD )
                     calib->min_x = sql.get_column_value< double >( row++ );
                     calib->max_x = sql.get_column_value< double >( row++ );
                     calib->n = sql.get_column_value< uint64_t >( row++ );
-                    
+
                     for ( int i = 'a'; i <= 'f'; ++i ) {
                         if ( sql.is_null_column( row ) )
                             break;
@@ -704,7 +704,7 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
 
         if ( auto cmpds = conn_->processMethod()->find< adcontrols::QuanCompounds >() ) {
             for ( auto& cmpd : *cmpds ) {
-                
+
                 adfs::stmt sql( conn_->db() );
                 if ( sql.prepare( "SELECT QuanCompound.uuid as cmpid, formula, description, date, min_x, max_x, n, a, b, c, d, e, f \
                                           FROM QuanCalib, QuanCompound WHERE QuanCompound.uuid = ? AND idCompound = QuanCompound.id" ) ) {
@@ -721,7 +721,7 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
                                 append( "richtext", "formula", text );
                             }
                         }
-                        
+
                         auto calib = std::make_shared< calib_curve >();
                         if ( calib ) {
                             int row = 0;
@@ -738,10 +738,10 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
                                     break;
                                 calib->coeffs.push_back( sql.get_column_value< double >( row++ ) );
                             }
-                            
+
                             calib_curves_[ cmpd.uuid() ] = calib;
                         }
-                        
+
                         adfs::stmt sql2( conn_->db() );
                         std::string query =
                             "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity"
@@ -759,7 +759,7 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
                             auto response_node = rnode.append_child( "response" );
 
                             sql2.bind( 1 ) = cmpd.uuid();
-                            
+
                             while ( sql2.step() == adfs::sqlite_row ) {
                                 auto row_node = response_node.append_child( "row" );
                                 detail::append_column append2( row_node );

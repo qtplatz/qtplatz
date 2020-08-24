@@ -87,7 +87,7 @@ debug_core::log( int pri, const std::string& msg, const std::string& file, int l
         of << date_string::logformat( std::chrono::system_clock::now(), false )
            << "\t" << loc << msg << std::endl;
     }
-    std::cout << loc << msg << std::endl;
+    std::cerr << loc << msg << std::endl;
 }
 
 void

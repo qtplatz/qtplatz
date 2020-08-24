@@ -74,13 +74,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDockWidget>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QLineEdit>
 #include <QMenu>
@@ -122,7 +123,7 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    QFile file( ":/pkdavg/stylesheet/tabbar.qss" );
+    QFile file( ":/accutof/stylesheet/tabbar.qss" );
     file.open( QFile::ReadOnly );
     QString tabStyle( file.readAll() );
 
@@ -152,7 +153,7 @@ MainWindow::createDockWidgets()
 
         createDockWidget( widget, tr( "U5303A" ), "ControlMethod" );
 
-        connect( widget, &acqrswidgets::u5303AWidget::applyTriggered, [this,widget]() {
+        connect( widget, &acqrswidgets::u5303AWidget::applyTriggered, []() {
                 document::instance()->applyTriggered();
             });
 
@@ -202,9 +203,10 @@ MainWindow::createDockWidgets()
 
         createDockWidget( widget, "Modules", "CherryPicker" );
 
-        connect( widget, &adwidgets::CherryPicker::stateChanged, [this]( const QString& key, bool enable ){
-                document::instance()->setControllerSettings( key, enable );
-            });
+        connect( widget, &adwidgets::CherryPicker::stateChanged
+                 , []( const QString& key, bool enable ){
+                       document::instance()->setControllerSettings( key, enable );
+                   });
     }
 }
 
@@ -271,7 +273,7 @@ MainWindow::OnInitialUpdate()
             picker->addItem( iController->module_name(), iController->module_name(), checked, enabled );
         }
 
-        connect( document::instance(), &document::moduleConfigChanged, this, [this,picker](){
+        connect( document::instance(), &document::moduleConfigChanged, this, [picker](){
                 for ( auto& module: document::instance()->controllerSettings() ) {
                     picker->setChecked( module.first, module.second );
                 }
@@ -295,6 +297,29 @@ MainWindow::OnInitialUpdate()
                                                                                       QSignalBlocker block( cbx );
                                                                                       cbx->setChecked( flag );
                                                                                   } );
+            }
+        }
+        for ( int i = 0; i < 1; ++i ) {
+            if ( auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) ) ) {
+                connect( cb, &QCheckBox::toggled, this, [wnd,i,this](bool checked){
+                    auto top = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) );
+                    auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+                    wnd->handleScaleY( i, checked, top->value(), bottom->value() );
+                } );
+            }
+            if ( auto sp = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) ) ) {
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [wnd,i,this](double value){
+                    auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+                    auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+                    wnd->handleScaleY( i, cb->isChecked(), value, bottom->value() );
+                } );
+            }
+            if ( auto sp = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) ) ) {
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [wnd,i,this](double value){
+                    auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+                    auto top = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) );
+                    wnd->handleScaleY( i, cb->isChecked(), top->value(), value );
+                } );
             }
         }
     }
@@ -537,6 +562,23 @@ MainWindow::createTopStyledToolbar()
             toolBarLayout->addWidget( choice );
             choice->setProperty( "id", QVariant( id ) ); // <------------ combo id
             connect( choice, qOverload<int>( &QComboBox::currentIndexChanged ), [=] ( int index ) { axisChanged( choice, index ); } );
+            const int i = 0;
+            if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {
+                cb->setCheckState( Qt::Checked ); // defalut start with auto
+                toolBarLayout->addWidget( cb );
+            }
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spB%1%" ) % i ).str().c_str() ) ) {
+                sp->setRange( -2000.0, 2000.0 );
+                sp->setDecimals( 0 );
+                sp->setSingleStep( 1 );
+                toolBarLayout->addWidget( sp );
+            }
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spT%1%" ) % i ).str().c_str() ) ) {
+                sp->setRange( -2000.0, 2000.0 );
+                sp->setDecimals( 0 );
+                sp->setSingleStep( 1 );
+                toolBarLayout->addWidget( sp );
+            }
         }
         //----
         // check boxes
@@ -676,7 +718,7 @@ MainWindow::createActions()
             action->setEnabled( false );
             auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
             menu->addAction( cmd );
-            connect( action, &QAction::triggered, [this](bool rec){
+            connect( action, &QAction::triggered, [](bool rec){
                     document::instance()->actionRec(rec);
                     if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
                         if ( !action->isEnabled() )

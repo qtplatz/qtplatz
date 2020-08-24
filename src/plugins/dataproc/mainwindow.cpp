@@ -39,6 +39,7 @@
 #include "mspeakswnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
+#include "peaklist_export.hpp"
 #include "sessionmanager.hpp"
 #include "contourwnd.hpp"
 
@@ -362,8 +363,9 @@ MainWindow::createStyledBarMiddle()
             QComboBox * features = new QComboBox;
             features->addItem( tr("Centroid") );
             features->addItem( tr("Targeting") ); // Centroid + find targets
-            features->addItem( tr("MS Calibration") );
+            features->addItem( tr("MS Chromatogr") );
             features->addItem( tr("Find peaks") );
+            features->addItem( tr("MS Calibration") );
             toolBarLayout->addWidget( features );
 
             connect( features, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::handleFeatureSelected );
@@ -1009,30 +1011,89 @@ MainWindow::handleProcessChecked()
 void
 MainWindow::handleExportPeakList()
 {
-    QString filename = QFileDialog::getSaveFileName( 0
-                                                     , tr( "Save peak list for all checked spectra")
-                                                     , currentDir()
-                                                     , tr( "Text files(*.txt)" ) );
-    if ( filename.isEmpty() )
+    QFileDialog dlg( this, tr( "Save peak list for all checked spectra/chromatograms") );
+    dlg.setDirectory( currentDir() );
+    dlg.setAcceptMode( QFileDialog::AcceptSave );
+    dlg.setFileMode( QFileDialog::AnyFile );
+    QStringList filter;
+    filter << "SQLite(*.db)" << "Text files(*.txt)" << "All files(*)";
+    dlg.setNameFilters( filter );
+
+    if ( !dlg.exec() )
         return;
-    std::ofstream outf( filename.toStdString() );
+
+    auto files = dlg.selectedFiles();
+    if ( files.isEmpty() )
+        return;
+
+    boost::filesystem::path path( files.at(0).toStdString() );
+
+    if ( path.extension().empty() ) {
+        if ( dlg.selectedNameFilter().contains( "SQLite" ) )
+            path.replace_extension( ".db" );
+        else
+            path.replace_extension( ".txt" );
+    }
+
+    if ( boost::filesystem::exists( path ) ) {
+        boost::system::error_code ec;
+        if ( !boost::filesystem::remove( path,ec ) ) {
+            QMessageBox::critical( this, "QtPlatz::dataproc::mainwindow", QString("Cannot delete existing file: %1").arg( path.string().c_str() ) );
+            return;
+        }
+    }
+
+    if ( path.extension() == ".db" ) {
+        peaklist_export::sqlite_export( path );
+    } else {
+        peaklist_export::text_export( path );
+    }
+}
+
+void
+MainWindow::handleExportAllChecked()
+{
+    QString dataPath;
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
+        dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
+
+    QFileDialog dlg( this, tr("Select directory for export" ) );
+    dlg.setDirectory( dataPath );
+    dlg.setAcceptMode( QFileDialog::AcceptSave );
+    dlg.setFileMode( QFileDialog::DirectoryOnly );
+    if ( dlg.exec() ) {
+        auto files = dlg.selectedFiles();
+        if ( files.empty() )
+            return;
+    }
+    boost::filesystem::path dir( dlg.selectedFiles().at(0).toStdString() );
+
+
+    ADDEBUG() << dir.string();
+    if ( !boost::filesystem::exists( dir ) )
+        boost::filesystem::create_directory( dir );
 
     for ( auto& session : *SessionManager::instance() ) {
         if ( auto processor = session.processor() ) {
             auto spectra = processor->getPortfolio().findFolder( L"Spectra" );
-
+            uint32_t ident(1);
+            auto basename = dir / boost::filesystem::path( processor->filename() ).stem();
             for ( auto& folium: spectra.folio() ) {
                 if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                    auto outname = basename.string() + ( boost::format( "_spectrum_%d.txt" ) % ident++ ).str();
+                    auto outf = std::ofstream( outname );
+
                     if ( folium.empty() )
                         processor->fetch( folium );
-
+                    processor->export_text( folium, outf );
+#if 0
                     // output filename
                     outf << adportable::utf::to_utf8( processor->filename() ) << std::endl;
 
                     portfolio::Folio atts = folium.attachments();
                     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
-                            return f.name() == Constants::F_CENTROID_SPECTRUM;
-                        });
+                                                                                  return f.name() == Constants::F_CENTROID_SPECTRUM;
+                                                                              });
 
                     if ( itCentroid != atts.end() ) {
 
@@ -1062,6 +1123,7 @@ MainWindow::handleExportPeakList()
                             }
                         }
                     }
+#endif
                 }
             }
         }
@@ -1116,6 +1178,8 @@ MainWindow::actionApply()
 
         if ( currentFeature_ == CalibrationProcess )
             processor->applyCalibration( pm );
+        else if ( currentFeature_ == MSChromatogrProcess )
+            handleProcess( "MSChromatogramWidget" );
         else
             processor->applyProcess( pm, currentFeature_ );
     }
@@ -1176,6 +1240,8 @@ MainWindow::handleFeatureSelected( int value )
 
     if ( currentFeature_ == TargetingProcess )
         object_name = "TargetingMethod";
+    else if ( currentFeature_ == MSChromatogrProcess )
+        object_name = "MSChromatogrMethod";
     else if ( currentFeature_ == CalibrationProcess )
         object_name = "MSCalibrationMethod";
     else if ( currentFeature_ == PeakFindProcess )

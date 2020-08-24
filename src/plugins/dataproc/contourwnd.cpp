@@ -64,12 +64,12 @@ namespace dataproc {
 
         class SpectrogramData : public adplot::SpectrogramData {
         public:
-            SpectrogramData( std::shared_ptr< adcontrols::MassSpectra >& spectra );
+            SpectrogramData( std::shared_ptr< adcontrols::MassSpectra >&& spectra );
             SpectrogramData( const SpectrogramData& );
             double value( double x, double y ) const override;
             QRectF boundingRect() const override;
             bool zoomed( const QRectF& ) override;
-            
+
         private:
             std::shared_ptr< adcontrols::MassSpectra > spectra_;
             boost::numeric::ublas::matrix< double > m_;
@@ -117,9 +117,9 @@ ContourWnd::init()
         }
         splitter->setStretchFactor( 0, 9 );
         splitter->setStretchFactor( 1, 3 );
-        
+
         QBoxLayout * layout = new QVBoxLayout( this );
-        layout->addWidget( splitter ); 
+        layout->addWidget( splitter );
     }
 
     setStyleSheet( "background-color: rgb(24,0,0); color: green;" );
@@ -142,7 +142,7 @@ ContourWnd::handlePrintCurrentView( const QString& pdfname )
 
     QPainter painter( &printer );
     QRectF drawRect( printer.resolution()/2, printer.resolution()/2, printer.width() - printer.resolution(), (12.0/72)*printer.resolution() );
-    
+
     QRectF boundingRect;
     printer.setDocName( "QtPlatz Process Report" );
     painter.drawText( drawRect, Qt::TextWordWrap, fullpath_.c_str(), &boundingRect );
@@ -150,12 +150,12 @@ ContourWnd::handlePrintCurrentView( const QString& pdfname )
     drawRect.setTop( boundingRect.bottom() + printer.resolution() / 4 );
     drawRect.setHeight( printer.height() - boundingRect.top() - printer.resolution()/2 );
     // drawRect.setWidth( printer.width() );
-    
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
-    
+
     if ( printer.colorMode() == QPrinter::GrayScale )
         renderer.setLayoutFlag( QwtPlotRenderer::FrameWithScales );
 
@@ -168,7 +168,7 @@ ContourWnd::handlePrintCurrentView( const QString& pdfname )
 	rc2.setHeight( drawRect.height() * 0.30 );
     rc2.setRight( drawRect.width() / 2 );
     renderer.render( sp_.get(), &painter, rc2 );
-    
+
     rc2.moveLeft( rc2.right() + printer.resolution() / 4 );
     renderer.render( chromatogr_.get(), &painter, rc2 );
 }
@@ -190,12 +190,12 @@ ContourWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& folium )
     portfolio::Folder folder = folium.parentFolder();
 
     if ( folder && ( ( folder.name() == L"Spectrograms" ) || ( folder.name() == L"Contours" ) ) ) {
-        adcontrols::MassSpectraPtr ptr;
-        if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
+        if ( auto ptr = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) ) {
+            // if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
             foliumId_ = folium.id();
             fullpath_ = folium.fullpath();
             data_ = ptr;
-            plot_->setData( new detail::SpectrogramData( ptr ) );
+            plot_->setData( new detail::SpectrogramData( std::move( ptr ) ) );
         }
         portfolio::Folio atts = folium.attachments();
         portfolio::Folio::iterator it
@@ -231,13 +231,13 @@ ContourWnd::handleSelected( const QRectF& rect )
     QMenu menu;
     std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
-    int w = int( std::abs( plot_->transform( QwtPlot::xBottom, rect.left() ) - plot_->transform( QwtPlot::xBottom, rect.right() ) ) + 0.5 );
-    int h = int( std::abs( plot_->transform( QwtPlot::yLeft, rect.top() ) - plot_->transform( QwtPlot::yLeft, rect.bottom() ) ) + 0.5 );
-    
-    if ( adcontrols::MassSpectraPtr ptr = data_.lock() ) {
-        
+    // int w = int( std::abs( plot_->transform( QwtPlot::xBottom, rect.left() ) - plot_->transform( QwtPlot::xBottom, rect.right() ) ) + 0.5 );
+    // int h = int( std::abs( plot_->transform( QwtPlot::yLeft, rect.top() ) - plot_->transform( QwtPlot::yLeft, rect.bottom() ) ) + 0.5 );
+
+    if ( auto ptr = data_.lock() ) {
+
         qtwrapper::waitCursor wait;
-        
+
         if ( const adcontrols::MassSpectrumPtr ms = ptr->find( rect.left() ) ) {
             sp_->setData( ms, 0 );
             sp_->setTitle( (boost::format("Spectrum @ %.3fmin") % rect.left()).str() );
@@ -331,10 +331,10 @@ bool
 ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVector< QPair<int, int> >& indices )
 {
     adcontrols::lockmass::mslock lkms;
-    for ( auto& index : indices ) 
+    for ( auto& index : indices )
         adcontrols::lockmass::mslock::findReferences( lkms, *ref, index.first, index.second );
     double mserr( 0.010 );
-    for ( auto m : lkms ) 
+    for ( auto m : lkms )
         mserr = std::max( mserr, std::abs( m.exactMass() - m.matchedMass() ) * 1.05 );
 
     adcontrols::moltable mols;
@@ -350,7 +350,7 @@ ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVect
     adcontrols::MSLockMethod lockm;
     adcontrols::ProcessMethod pm;
     MainWindow::instance()->getProcessMethod( pm );
-    if ( auto it = pm.find< adcontrols::MSLockMethod >() ) 
+    if ( auto it = pm.find< adcontrols::MSLockMethod >() )
         lockm = *it;
     lockm.setMolecules( mols );
     lockm.setEnabled( true );
@@ -371,6 +371,8 @@ ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVect
     return true;
 }
 
+// #define MASS_MAJOR // x-axis on masses
+
 //
 namespace dataproc {
     namespace detail {
@@ -384,17 +386,24 @@ namespace dataproc {
         {
         }
 
-        SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr& spectra ) : spectra_( spectra )
-                                                                                , m_( 1280, 720 ) // 720p
-                                                                                , xlimits_( spectra_->x_left(), spectra_->x_right() )
-                                                                                , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+        SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr&& spectra )
+            : spectra_( spectra )
+#ifdef MASS_MAJOR
+            , m_( spectra->size(), 1024 )
+            , xlimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+            , ylimits_( spectra_->x_left(), spectra_->x_right() )
+#else
+            , m_( 1024, spectra->size() )
+            , xlimits_( spectra_->x_left(), spectra_->x_right() )
+            , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+#endif
         {
             size1_ = m_.size1();
             size2_ = m_.size2();
             updateData();
         }
 
-        size_t 
+        size_t
         SpectrogramData::dx( double x ) const
         {
             size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( size1_ - 1 );
@@ -411,13 +420,13 @@ namespace dataproc {
 				return m_.size2() - 1;
             return d;
         }
-        
+
         double
         SpectrogramData::value( double x, double y ) const
         {
 			size_t ix = dx( x );
 			size_t iy = dy( y );
-            return m_( ix, iy );
+            return m_( iy, ix );
         }
 
         QRectF
@@ -427,7 +436,7 @@ namespace dataproc {
         }
 
         bool
-        SpectrogramData::zoomed( const QRectF& rc ) 
+        SpectrogramData::zoomed( const QRectF& rc )
         {
             xlimits_ = std::make_pair( rc.left(), rc.right() );
             ylimits_ = std::make_pair( rc.top(), rc.bottom() );
@@ -436,40 +445,51 @@ namespace dataproc {
         }
 
         void
-        SpectrogramData::updateData() 
+        SpectrogramData::updateData()
         {
             m_.clear();
 
             size_t id1 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.first ) );
             size_t id2 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.second ) );
             size1_ = std::min( m_.size1(), id2 - id1 + 1 );
-            
+
             double z_max = std::numeric_limits<double>::lowest();
             size_t id = 0;
             for ( auto& ms: *spectra_ ) {
-                double x = spectra_->x()[ id++ ];
-                
-                if ( xlimits_.first <= x && x <= xlimits_.second ) {
-                    size_t ix = dx(x);
+                double t = spectra_->x()[ id++ ];
 
+                if ( xlimits_.first <= t && t <= xlimits_.second ) {
+                    size_t ix = dx(t);
                     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
                     for ( auto& seg: segs ) {
                         for ( size_t i = 0; i < seg.size(); ++i ) {
-                            double m = seg.getMass( i );
+                            double m = seg.mass( i );
                             if ( ylimits_.first < m && m < ylimits_.second ) {
                                 size_t iy = dy(m);
-                                m_( ix, iy ) += seg.getIntensity( i ); 
-                                z_max = std::max( z_max, m_( ix, iy ) );
+#ifdef MASS_MAJOR
+                                m_( ix, iy ) += seg.intensity( i );
+#else
+                                m_( iy, ix ) += seg.intensity( i );
+#endif
                             }
                         }
                     }
                 }
             }
+
+            for ( size_t i = 0; i < m_.size1(); ++i ) {
+                for ( size_t j = 0; j < m_.size2(); ++j ) {
+                    z_max = std::max( z_max, m_( i, j ) );
+                }
+            }
+#ifdef MASS_MAJOR
+            setInterval( Qt::XAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
+            setInterval( Qt::YAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
+#else
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
-
+#endif
             setInterval( Qt::ZAxis, QwtInterval( 0.0, z_max ) );
         }
     }
 }
-

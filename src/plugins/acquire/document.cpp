@@ -80,7 +80,7 @@
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
@@ -968,7 +968,7 @@ document::handleInfo( adextension::iController *, const QByteArray& json )
         emit onTick( json );
         if ( std::chrono::duration_cast< std::chrono::seconds >( std::chrono::steady_clock::now() - __tp ).count() > 6 ) {
             adurl::ajax ajax( impl_->http_host_.toStdString(), impl_->http_port_.toStdString() );
-            if ( ajax( "GET", "/dg/ctl?status.json" ) ) {
+            if ( ajax( "GET", "/dg/ctl$status.json", "application/json" ) ) {
                 size_t sz;
                 if ( auto resp = ajax.get_response( sz ) ) {
                     QByteArray data( resp, sz );

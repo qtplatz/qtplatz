@@ -42,13 +42,17 @@
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adportfolio/folium.hpp>
 #include <adutils/acquiredconf_v3.hpp>
 
 #include <boost/exception/all.hpp>
@@ -115,7 +119,6 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
             adutils::v3::AcquiredConf::create_table_v3( *db() );
         } else
             return false;
-
         file_ = std::move( file );
         try {
             file_->accept( *this );  // may access 'db' if file was imported from csv.
@@ -128,7 +131,6 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
 #endif
             return false;
         }
-
         if ( auto sp = massSpectrometer() )
             ProcessMediator::instance()->onCreate( sp->massSpectrometerClsid(), this->shared_from_this() );
 
@@ -179,6 +181,18 @@ dataprocessor::db() const
         return fs_->_ptr();
     else
         return nullptr;
+}
+
+adfs::filesystem *
+dataprocessor::fs()
+{
+    return fs_ ? fs_.get() : nullptr;
+}
+
+const adfs::filesystem *
+dataprocessor::fs() const
+{
+    return fs_ ? fs_.get() : nullptr;
 }
 
 const portfolio::Portfolio&
@@ -349,6 +363,7 @@ dataprocessor::readSpectrumFromTimeCount()
     return hist;
 }
 
+#if 0
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readSpectrum( bool histogram, uint32_t pos, int proto )
 {
@@ -373,6 +388,7 @@ dataprocessor::readSpectrum( bool histogram, uint32_t pos, int proto )
     }
     return nullptr;
 }
+#endif
 
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readCoAddedSpectrum( bool histogram, int proto )
@@ -493,4 +509,57 @@ dataprocessor::estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum 
                                                              , refs );
 
     return false;
+}
+
+bool
+dataprocessor::export_text( const portfolio::Folium& folium, std::ostream& outf ) const
+{
+    auto any = folium.data();
+
+    return true;
+}
+
+std::shared_ptr< adcontrols::MassSpectra >
+dataprocessor::createSpectrogram( std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                  , const adcontrols::DataReader * reader
+                                  , int proto
+                                  , std::function< bool(size_t, size_t) > progress ) const
+{
+    const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
+
+    auto spectra = std::make_shared< adcontrols::MassSpectra >();
+
+    // todo: handle fcn
+    if ( auto tic = reader->TIC( proto ) ) {
+
+        spectra->setChromatogram( *tic );
+
+        const size_t total = tic->size();
+        progress( 0, total );
+
+        int pos( 0 );
+
+        for ( auto it = reader->begin( proto ); it != reader->end(); ++it ) {
+
+            auto ms = reader->getSpectrum( it->rowid() );
+            progress( ++pos, total );
+
+            if ( !ms->isCentroid() || ms->isHistogram() ) {
+                adcontrols::MSPeakInfo result;
+                auto ptr = std::make_shared< adcontrols::MassSpectrum >();
+                doCentroid( result, *ptr, *ms, *centroidMethod );
+                ( *spectra ) << std::move( ptr );
+            } else {
+                ( *spectra ) << std::move( ms );
+            }
+
+        }
+        using adportable::utf;
+        spectra->addDescription( adcontrols::description( L"Create"
+                                                          , ( boost::wformat( L"%s,fcn(%d)" )
+                                                              % utf::to_wstring( reader->display_name() )
+                                                              % proto ).str() )  );
+        return spectra;
+    }
+    return nullptr;
 }

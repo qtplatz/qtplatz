@@ -18,13 +18,60 @@ function boost_download {
 		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 	fi
-	if [ ! -f ${BOOST_BUILD_DIR} ]; then
+
+	if [ ! -d ${BOOST_BUILD_DIR} ]; then
+		echo "BOOST_BUID_DIR=" ${BOOST_BUILD_DIR} " does not exists -- may i create?"
+		prompt
 		tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
 	fi
-#	if [ -f ${BOOST_BUILD_DIR} ]; then
-#		rm -rf ${BOOST_BUILD_DIR}
-#	fi
 }
+
+function python_dirs {
+	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+}
+
+function make_user_config_darwin {
+#Catalina workaround, which failed to find pyconfig.h 
+	PYTHON=$(which python3)
+	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+
+	if [ ! -f ~/user-config.jam ]; then
+	cat << END > ~/user-config.jam 
+#from sysconfig import get_paths
+#from pprint import pprint
+#pprint( get_paths() )
+#workaround: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/
+
+using python
+	  : 3.7
+	  : $PYTHON
+	  : $PYTHON_INCLUDE 
+	  ;
+END
+	fi
+}
+
+function make_user_config_linux {
+	PYTHON=$(which python3)
+	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+
+	if [ ! -f ~/user-config.jam ]; then
+	cat << END > ~/user-config.jam 
+#from sysconfig import get_paths
+#from pprint import pprint
+#pprint( get_paths() )
+
+using python : 3.7 : $PYTHON : $PYTHON_INCLUDE ;
+END
+	fi
+}
+
 
 function boost_build {
     echo "=============================="
@@ -61,22 +108,21 @@ function boost_build {
 			  echo "if you got failed by zlib, try following command."
 			  echo "sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /"
 			  echo "***********************************************************************************************************"
-			  PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
-			  PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
-			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
-			  OSX_VERSION_MIN=-mmacosx-version-min=10.12
-			  #CXX_FLAGS="-std=c++17 $OSX_VERSION_MIN"
-			  #LINKFLAGS="-stdlib=libc++ $OSX_VERSION_MIN"
+			  #PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+			  #PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+			  #PYTHON=$(python3 -c "import sys; print(sys.executable)")
+			  #OSX_VERSION_MIN=-mmacosx-version-min=10.12
 			  CXX_FLAGS="-std=c++17"
 			  LINKFLAGS="-stdlib=libc++"
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang \
-				   --with-python=${PYTHON} --with-python-root=${PYTHON_ROOT} --with-python-version=3.7 install
+			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
+							 --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
-			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
+			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  prompt
-			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
+			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
+			  sudo ./b2 install
 			  ;;
 		  *)
 			  echo "Unknown arch: " $arch
@@ -104,11 +150,11 @@ function boost_cross_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 toolset=gcc-arm -s -j $nproc install
+      echo ./b2 toolset=gcc-arm -j$nproc install
       prompt
 
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 toolset=gcc-arm -s -j $nproc install
+	  ./b2 toolset=gcc-arm -j$nproc install
     )
 }
 
@@ -137,6 +183,21 @@ echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
 echo "	BOOST_PREFIX      : ${BOOST_PREFIX}"
 echo "	CROSS_ROOT        : ${CROSS_ROOT}"
 
+python_dirs
+
+case "${arch}" in
+	Darwin*)
+		make_user_config_darwin
+		;;
+	Linux*)
+		make_user_config_linux
+		;;
+esac
+
+echo "	PYTHON            : ${PYTHON}"
+echo "	PYTHON_INCLUDE    : ${PYTHON_INCLUDE}"
+echo "	PYTHON_ROOT       : ${PYTHON_ROOT}"
+
 if [ ! -d $BOOST_BUILD_DIR ]; then
     echo "	BOOST_BUILD_DIR   : download to ${BOOST_BUILD_DIR}"
 else
@@ -164,7 +225,7 @@ if [ -z $cross_target ]; then
 	#	if [ -f ~/user-config.jam ]; then
 	#		mv ~/user-config.jam ~/user-config.jam.orig
 	#	fi
-    boost_build $BOOST_BUILD_DIR 
+    boost_build $BOOST_BUILD_DIR
 
 else
     if [ ! -w $CROSS_ROOT ]; then
@@ -193,7 +254,7 @@ using gcc :		arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
 using python : 2.7 ;
 EOF
     fi
-	    boost_cross_build ${BOOST_BUILD_DIR} 
+	    boost_cross_build ${BOOST_BUILD_DIR}
 fi
 
 echo "=============================="

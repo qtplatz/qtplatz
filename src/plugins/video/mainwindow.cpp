@@ -25,7 +25,7 @@
 #include "mainwindow.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include <advision/imagewidget.hpp>
+#include <adcv/imagewidget.hpp>
 #include "videoprocwnd.hpp"
 #include "imageview.hpp"
 #include "player.hpp"
@@ -112,7 +112,7 @@ MainWindow::createContents( Core::IMode * mode )
     QBoxLayout * topRightLayout = new QVBoxLayout;
 	topRightLayout->setMargin( 0 );
 	topRightLayout->setSpacing( 0 );
-	    
+
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( topRightLayout );
@@ -128,15 +128,15 @@ MainWindow::createContents( Core::IMode * mode )
         if ( auto wnd = new VideoCaptureWnd() ) {
             stack_->addWidget( wnd );
             wnd->setStyleSheet( "background-color:black;");
-        }        
-        
+        }
+
         topRightLayout->addWidget( stack_ );
-        
+
         //---------- central widget ------------
         if ( QWidget * centralWidget = new QWidget ) {
-            
+
             setCentralWidget( centralWidget );
-            
+
             QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
             centralWidget->setLayout( centralLayout );
             centralLayout->setMargin( 0 );
@@ -222,7 +222,7 @@ MainWindow::onInitialUpdate()
         if ( auto lifecycle = qobject_cast< adplugin::LifeCycle * >( widget->widget() ) )
             lifecycle->OnInitialUpdate();
     }
-    
+
 #if defined Q_OS_LINUX
     auto fsize = qtwrapper::font_size()( 9 );
 
@@ -241,13 +241,13 @@ MainWindow::onFinalClose()
         if ( auto lifecycle = qobject_cast< adplugin::LifeCycle * >( widget->widget() ) )
             lifecycle->OnFinalClose();
     }
-    
+
     commit();
     // delete iSequenceImpl factories
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( QAction * action )
 {
     QToolButton * button = new QToolButton;
@@ -257,7 +257,7 @@ MainWindow::toolButton( QAction * action )
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( const char * id )
 {
     return toolButton( Core::ActionManager::instance()->command(id)->action() );
@@ -267,7 +267,7 @@ void
 MainWindow::createActions()
 {
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
-        
+
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("VIDEO") );
 
@@ -276,7 +276,7 @@ MainWindow::createActions()
             connect( p, &QAction::triggered, this, [](){ document::instance()->captureCamera(); } );
             menu->addAction( am->command( Constants::VIDEO_CAPTURE ) );
         }
-        
+
         if ( auto p = new QAction( QIcon( ":/video/images/filesave.png" ), tr( "Save video to..." ), this ) ) {
             am->registerAction( p, Constants::VIDEO_FILE_SAVE, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Malpix|Open SQLite file...
             //connect( p, &QAction::triggered, this, &MainWindow::capturedVideoSaveTo );
@@ -329,7 +329,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 
     if ( widget->objectName().isEmpty() ) // avoid QTC warning at fancymainwindow.cpp L327,L328
         widget->setObjectName( pageName );
-    
+
     QDockWidget * dockWidget = addDockForWidget( widget );
     dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
 
@@ -358,14 +358,13 @@ MainWindow::filePrintPdf()
         printer.setOutputFileName( pdfname );
 
     QPrintDialog dialog(&printer, this);
-    
+
     if (dialog.exec() == QDialog::Accepted) {
 
         settings.setValue( "Printer/FileName", printer.outputFileName() );
-        
+
         QPainter painter(&printer);
         if ( auto view = findChild< VideoProcWnd * >() )
             view->print( painter, printer );
     }
 }
-

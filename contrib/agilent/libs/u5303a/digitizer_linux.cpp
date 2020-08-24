@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,6 +32,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/string.hpp>
 #include <adportable/asio/thread.hpp>
@@ -44,8 +45,11 @@
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/logic/tribool.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <algorithm>
@@ -84,8 +88,6 @@ namespace u5303a {
             void connect( digitizer::waveform_reply_type f );
             void disconnect( digitizer::waveform_reply_type f );
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
-
-            bool findResource();
 
             inline AgMD2 * spDriver() { return spDriver_.get(); }
 
@@ -139,7 +141,6 @@ namespace u5303a {
             size_t darkCount_;
 
             std::atomic<double> u5303_inject_timepoint_;
-            std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
@@ -176,8 +177,17 @@ namespace u5303a {
 
         const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
         const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
-
+        /////
+        struct configFile {
+            static void saveResource( const std::string& res );
+            static boost::optional< std::string > loadResource();
+        };
+        /////
     }
+}
+
+namespace {
+
 }
 
 using namespace u5303a;
@@ -328,22 +338,6 @@ task::task() : exptr_( nullptr )
 
 task::~task()
 {
-}
-
-bool
-task::findResource()
-{
-    // workaround
-    foundResources_ = { "PXI7::0::0::INSTR"
-                        , "PXI6::0::0::INSTR"
-                        , "PXI5::0::0::INSTR"
-                        , "PXI4::0::0::INSTR"
-                        , "PXI3::0::0::INSTR"
-                        , "PXI2::0::0::INSTR"
-                        , "PXI1::0::0::INSTR"
-                        , "PXI0::0::0::INSTR" };
-
-    return true;
 }
 
 task *
@@ -559,19 +553,19 @@ task::handle_initial_setup()
     if ( auto p = getenv( "AcqirisOption" ) ) {
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
             strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
-            simulated = true;
-            success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
-            ADDEBUG() << "################# U5303A SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
+            auto code = spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions );
+            simulated = code == VI_SUCCESS;
+            success = code == VI_SUCCESS;
+            AgMD2::log( code, __FILE__,__LINE__ );
+            ADDEBUG() << "##### U5303A SIMULATION MODE #####: " << strInitOptions << " code: " << code;
         }
     }
 
     if ( !simulated ) {
-        for ( auto& res : foundResources_ ) {
-            if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
-                ADTRACE() << "Initialize resource: " << res;
-                break;
-            }
-        }
+        std::string res;
+        std::tie( success, res ) = u5303a::findResource()( spDriver_ );
+        if ( success )
+            ADTRACE() << "Initialize resource: " << res;
     }
 
     if ( success ) {
@@ -963,10 +957,11 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     bool interleave = ( options.find("INT") != options.npos ) && ( m._device_method().samp_rate > input_rate );
     const bool pkd_enabled = m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
 
+    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) )
+        adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
+
     if ( pkd_enabled )
         interleave = false;  // force disable interleaving
-    else
-        adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
 
     double max_rate = interleave ? input_rate * 2 : input_rate;
 
@@ -1012,6 +1007,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
         // PKD - POC
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
+
             ADINFO() << "##### PKD ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" )
                      << "; Amplitude accum. " << (m._device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
 
@@ -1043,22 +1039,17 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         } else {
             ADINFO() << "##### AVG ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" );
 
-            //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
             AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 
-            //task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
             AgMD2::log( attribute< acquisition_mode >::set( *task.spDriver(), AGMD2_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
 
-            // task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
             AgMD2::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
                                                                           , "Channel1"
                                                                           , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
 
-            //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
             AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
 
             //It looks like this command should be issued at last
-            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
             AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
         }
     }
@@ -1297,4 +1288,64 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         }
     }
     return false;
+}
+
+std::pair< bool, std::string >
+findResource::operator()( std::shared_ptr< AgMD2 > md2 ) const
+{
+    const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
+
+    if ( auto res = configFile::loadResource() ) {
+        if ( md2->initWithOptions( res.get(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS )
+            return std::make_pair( true, res.get() );
+    }
+    for ( int num = 0; num < 199; num++ ) {
+        std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
+        if ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) {
+            configFile::saveResource( res );
+            return std::make_pair( true, res );
+        }
+        ADDEBUG() << "Resource: " << res << "\tfaild";
+    }
+    return std::make_pair( false, "" );
+}
+
+//static
+void
+configFile::saveResource( const std::string& res )
+{
+    const boost::filesystem::path path = boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
+    const boost::filesystem::path file = path / "digitizer.ini";
+
+    if ( ! boost::filesystem::exists( path ) ) {
+        boost::system::error_code ec;
+        boost::filesystem::create_directories( path, ec );
+        if ( ec ) {
+            ADDEBUG() << ec;
+            return; // error
+        }
+    }
+    boost::property_tree::ptree pt;
+    pt.put( "U5303A.resource", res );
+    boost::property_tree::write_ini( file.string(), pt );
+}
+
+//static
+boost::optional< std::string >
+configFile::loadResource()
+{
+    const boost::filesystem::path path = boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
+    const boost::filesystem::path file = path / "digitizer.ini";
+
+    if ( boost::filesystem::exists( file ) ) {
+
+        boost::property_tree::ptree pt;
+        try {
+            boost::property_tree::read_ini( file.string(), pt );
+        } catch ( std::exception& ex ) {
+            ADDEBUG() << ex.what();
+        }
+        return pt.get_optional<std::string>( "U5303A.resource" );
+    }
+    return boost::none;
 }

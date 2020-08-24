@@ -25,7 +25,7 @@
 #include "quanresultwnd.hpp"
 #include "quancmpdwidget.hpp"
 #include "quanconnection.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanplot.hpp"
 #include "quanplotdata.hpp"
 #include "quanplotwidget.hpp"
@@ -88,20 +88,20 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     cplot_->setMinimumHeight( 40 );
 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;// compound-table | plots
-    
+
     splitter->setOrientation( Qt::Horizontal );
-    
+
     // compound-table on left
     if ( Core::MiniSplitter * wndSplitter = new Core::MiniSplitter ) {
         splitter->addWidget( wndSplitter ); // <<------------ add to splitter
 
         wndSplitter->setOrientation( Qt::Vertical );  // horizontal line
         wndSplitter->addWidget( respTable_ );
-        
+
         if ( Core::MiniSplitter  * splitter2 = new Core::MiniSplitter ) { // left pane split top (table) & bottom (time,mass plot)
             splitter2->setOrientation( Qt::Horizontal );        // Caibration curve plot | Mass spectrum plot
             wndSplitter->addWidget( splitter2 );
-            
+
             splitter2->addWidget( calibplot_.get() );
             splitter2->addWidget( dplot_.get() );
         }
@@ -110,7 +110,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     splitter->addWidget( cmpdWidget_ );
     splitter->setStretchFactor( 0, 5 );
     splitter->setStretchFactor( 1, 1 );
-    
+
     auto layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
     layout->setSpacing( 0 );
@@ -125,13 +125,13 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     // QuanResultWidget
     connect( respTable_, &QuanResultWidget::onResponseSelected, this, &QuanResultWnd::handleResponseSelected );
 
-    connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
+    connect( document::instance(), &document::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
 }
 
 void
 QuanResultWnd::handleConnectionChanged()
 {
-    if ( auto connection = QuanDocument::instance()->connection() ) {
+    if ( auto connection = document::instance()->connection() ) {
         respTable_->setConnection ( connection );
 
         // make compounds table (right bar)
@@ -171,7 +171,7 @@ QuanResultWnd::handleCompoundSelectionChanged( const QItemSelection&, const QIte
     QModelIndexList indices = cmpdWidget_->table().selectionModel()->selectedIndexes();
     for ( auto& index : indices )
         cmpds.insert( cmpdWidget_->uuid( index.row() ) );
-    
+
     respTable_->setCompoundSelected( cmpds );
 }
 
@@ -180,19 +180,19 @@ QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 {
     boost::uuids::uuid uuid = cmpdWidget_->uuid( index.row() );
 
-#if !defined NDEBUG    
+#if !defined NDEBUG
     ADDEBUG() << "CompoundSelected: " << uuid;
 #endif
-    auto publisher = QuanDocument::instance()->publisher();
+    auto publisher = document::instance()->publisher();
     if ( !publisher ) {
         if ( ( publisher = std::make_shared< QuanPublisher >() ) ) {
-            if ( (*publisher)(QuanDocument::instance()->connection()) )
-                QuanDocument::instance()->publisher( publisher );
+            if ( (*publisher)(document::instance()->connection()) )
+                document::instance()->publisher( publisher );
             else
                 return;
         }
     }
-    
+
     if ( auto curve = publisher->find_calib_curve( uuid ) ) {
         QuanPlot plot( curves_, markers_ );
         plot.plot_calib_curve_yx( calibplot_.get(), *curve );
@@ -203,16 +203,16 @@ QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 void
 QuanResultWnd::handleResponseSelected( int respId )
 {
-#if !defined NDEBUG    
+#if !defined NDEBUG
     ADDEBUG() << __FUNCTION__ << " (" << respId << ")";
-#endif    
-    if ( auto conn = QuanDocument::instance()->connection() ) {
+#endif
+    if ( auto conn = document::instance()->connection() ) {
 
-        auto publisher = QuanDocument::instance()->publisher();
+        auto publisher = document::instance()->publisher();
         if ( !publisher ) {
             if ( ( publisher = std::make_shared< QuanPublisher >() ) ) {
                 if ( (*publisher)( conn ) )
-                    QuanDocument::instance()->publisher( publisher );
+                    document::instance()->publisher( publisher );
                 else
                     return;
             }
@@ -244,7 +244,7 @@ QuanResultWnd::handleResponseSelected( int respId )
                         amount = sql.get_column_value< double >( row );
                     ++row;
                     if ( auto calib = publisher->find_calib_curve( uuid ) ) {
-                        
+
                         QuanPlot plot( curves_, markers_ );
 
                         if ( uuid_plot_ != uuid ) {
@@ -259,7 +259,7 @@ QuanResultWnd::handleResponseSelected( int respId )
 
             }
         }
-        
+
         std::wstring dataGuid;
         std::wstring dataSource;
         size_t idx;
@@ -313,4 +313,3 @@ QuanResultWnd::handleResponseSelected( int respId )
 
     }
 }
-

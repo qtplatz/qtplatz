@@ -28,9 +28,10 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/version.hpp>
 #include <memory>
+#include <string>
 
 namespace boost {
-    namespace uuids { class uuid; }
+    namespace uuids { struct uuid; }
     namespace serialization { class access; }
 }
 

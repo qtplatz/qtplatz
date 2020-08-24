@@ -3,7 +3,7 @@
 if [ -z $distro ]; then
     distro=$(lsb_release -cs)
 fi
-echo "distribution=$distro"
+#echo "distribution=$distro"
 
 #sudo apt-get -y install curl
 sudo dpkg --add-architecture armhf

@@ -51,15 +51,30 @@ namespace adfs {
         ~Msg() { sqlite3_free( p ); }
     };
 
-    namespace detail {
+    namespace {
         struct error_log {
             static void log( const std::string& sql, const char * msg, const char * file, int line ) {
-                ADDEBUG() << sql << "\terror : " << (msg ? msg : "nullstr") << " at " << file << " line: " << line;
+                adportable::debug( file, line ) << sql << "\terror : " << (msg ? msg : "nullstr");
             }
             static void log( const std::wstring& sql, const char * msg, const char * file, int line ) {
                 if ( msg )
-                    ADDEBUG() << sql << "\terror : " << ( msg ? msg : "nullstr" ) << " at " << file << " line: " << line;
+                    adportable::debug( file, line ) << sql << "\terror : " << ( msg ? msg : "nullstr" );
             }
+
+            std::string operator()( std::tuple< int, std::string, std::string, std::string > t, const char * __file, int __line ) {
+                std::ostringstream o;
+                int rcode;
+                std::string emsg, file, sql;
+                std::tie( rcode, emsg, file, sql ) = t;
+                o << "sqlite rcode:\t" << rcode << "\t" << emsg;
+                if ( ! file.empty() )
+                    o << "\n\t--\tfile:\t" << file;
+                if ( ! sql.empty() )
+                    o << "\n\t--\tsql:\t" << sql;
+                adportable::debug( __file, __line ) << "***** " << o.str();
+                return o.str();
+            }
+
         };
     };
 
@@ -92,7 +107,7 @@ sqlite::uuid_storage_format()
 }
 
 sqlite::~sqlite()
-{ 
+{
     if ( db_ )
         sqlite3_close( db_ );
 }
@@ -114,18 +129,18 @@ sqlite::fs_format_version() const
     return fs_format_version_;
 }
 
-void
-sqlite::register_error_handler( std::function< void(const char * )> f )
-{
-    error_handler_ = f;
-}
+// void
+// sqlite::register_error_handler( std::function< void(const char * )> f )
+// {
+//     error_handler_ = f;
+// }
 
-void
-sqlite::error_message( const char * msg )
-{
-    if ( error_handler_ )
-        error_handler_( msg );
-}
+// void
+// sqlite::error_message( const char * msg )
+// {
+//     if ( error_handler_ )
+//         error_handler_( msg );
+// }
 
 bool
 sqlite::open( const wchar_t * path )
@@ -167,6 +182,12 @@ sqlite::close()
 	return false;
 }
 
+int64_t
+sqlite::last_insert_rowid() const
+{
+    return sqlite3_last_insert_rowid( db_ );
+}
+
 //////////////////////
 
 stmt::~stmt()
@@ -188,8 +209,8 @@ stmt::begin()
         transaction_active_ = true;
         return true;
     }
-    sqlite_.error_message( msg.p );
-    detail::error_log::log( "BEGIN DEFERRED", msg.p, __FILE__, __LINE__ );
+    //sqlite_.error_message( msg.p );
+    error_log::log( "BEGIN DEFERRED", msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -200,8 +221,8 @@ stmt::commit()
     transaction_active_ = false;
     if ( sqlite3_exec( sqlite_, "COMMIT", callback, 0, msg ) == SQLITE_OK )
         return true;
-    sqlite_.error_message( msg.p );
-    detail::error_log::log( "COMMIT", msg.p, __FILE__, __LINE__ );
+    //sqlite_.error_message( msg.p );
+    error_log::log( "COMMIT", msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -212,8 +233,8 @@ stmt::rollback()
     transaction_active_ = false;
     if ( sqlite3_exec( sqlite_, "ROLLBACK", callback, 0, msg ) == SQLITE_OK )
         return true;
-    sqlite_.error_message( msg.p );
-    detail::error_log::log( "ROOLBACK", msg.p, __FILE__, __LINE__ );
+    //sqlite_.error_message( msg.p );
+    error_log::log( "ROOLBACK", msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -223,8 +244,8 @@ stmt::exec( const std::string& sql )
     Msg msg;
     if ( sqlite3_exec( sqlite_, sql.c_str(), callback, 0, msg ) == SQLITE_OK )
         return true;
-    sqlite_.error_message( msg.p );
-    detail::error_log::log( sql, msg.p, __FILE__, __LINE__ );
+    //sqlite_.error_message( msg.p );
+    error_log::log( sql, msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -244,10 +265,14 @@ stmt::prepare( const std::string& sql )
         sqlite3_finalize( stmt_ );
 
     const char * tail = 0;
-    if ( sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
+    int rcode;
+    if ( (rcode = sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail )) == SQLITE_OK )
         return true;
-    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
-    sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
+
+    if ( rcode == SQLITE_ERROR ) // no such table
+        return false;
+
+    error_log()( error_details( rcode ), __FILE__, __LINE__ );
     return false;
 }
 
@@ -265,8 +290,7 @@ stmt::prepare( const std::wstring& sql )
     const char * tail = 0;
     if ( sqlite3_prepare_v2( sqlite_, utf8.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
-    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
-    sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
+    error_log::log( sql, sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
     return false;
 }
 
@@ -293,14 +317,17 @@ stmt::step()
 {
     int rc = sqlite3_step( stmt_ );
     switch( rc ) {
+    case SQLITE_OK:    return sqlite_ok;
     case SQLITE_ROW:   return sqlite_row;
     case SQLITE_DONE:  return sqlite_done;
     case SQLITE_CONSTRAINT: return sqlite_constraint;
     case SQLITE_LOCKED: return sqlite_locked;
+    case SQLITE_MISUSE: return sqlite_error; // not an error
     default: break;
     }
-    detail::error_log::log( "", sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
-    sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
+
+    error_log()( error_details( rc ), __FILE__, __LINE__ );
+
     return sqlite_error;
 }
 
@@ -363,6 +390,31 @@ stmt::expanded_sql() const
     return sql;
 }
 
+std::tuple< int, std::string, std::string, std::string >
+stmt::error_details( int rcode ) const
+{
+    std::string emsg, query, file;
+
+    int errc = sqlite3_errcode( sqlite_ );
+    assert( rcode == errc );
+
+    if ( auto p = sqlite3_sql( stmt_ ) )
+        query = std::string( p );
+
+    if ( auto p = sqlite3_errmsg( sqlite_ ) )
+        emsg = std::string( p );
+
+    sqlite3_stmt * stmt(0);
+    const char * tail(0);
+    if ( sqlite3_prepare_v2( sqlite_, "SELECT file FROM pragma_database_list WHERE name='main'", -1, &stmt, &tail ) == SQLITE_OK ) {
+        if ( sqlite3_step( stmt ) == SQLITE_ROW )
+            file = reinterpret_cast< const char * >( sqlite3_column_text( stmt, 0 ) );
+    }
+    sqlite3_finalize( stmt );
+
+    return std::make_tuple( rcode, emsg, file, query );
+}
+
 namespace adfs {
 
     template<> ADFSSHARED_EXPORT bool
@@ -370,41 +422,41 @@ namespace adfs {
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
-    
-    template<> ADFSSHARED_EXPORT bool 
+
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const uint32_t& v )
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
-    
+
     template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const long & v )
     {
 #if _MSC_VER
-        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;        
-#else
-        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;        
-#endif
-    }
-    
-    template<> ADFSSHARED_EXPORT bool 
-    stmt::bind_item::operator = ( const unsigned long & v )
-    {
-#if _MSC_VER        
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
 #else
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
 #endif
     }
 
-#if (defined __x86_64__ && defined __linux__ )    
+    template<> ADFSSHARED_EXPORT bool
+    stmt::bind_item::operator = ( const unsigned long & v )
+    {
+#if _MSC_VER
+        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+#else
+        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
+#endif
+    }
+
+#if (defined __x86_64__ && defined __linux__ )
     // int64_t, long and long long on linux gcc x86_64 is identical (8 byte int)
-    template<> bool 
+    template<> bool
     stmt::bind_item::operator = ( const long long & v )
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
-    template<> bool 
+    template<> bool
     stmt::bind_item::operator = ( const unsigned long long & v )
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
@@ -426,13 +478,13 @@ namespace adfs {
     {
         return sqlite3_bind_double( stmt_, nnn_, v ) == SQLITE_OK;
     }
-    
+
     template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const std::string& v )
     {
         return sqlite3_bind_text( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
-    
+
     template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const std::wstring& v )
     {
@@ -549,7 +601,7 @@ namespace adfs {
 
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
             return boost::lexical_cast<boost::uuids::uuid>( text );
-            
+
         } else if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB ) {
             boost::uuids::uuid uuid;
             auto pBlob = sqlite3_column_blob( stmt_, nCol );
@@ -612,7 +664,7 @@ blob::blob( std::size_t octets, const char *p ) : p_( reinterpret_cast< const in
 
 boost::uint32_t
 blob::size() const
-{ 
+{
     return static_cast<uint32_t>(octets_);
 }
 

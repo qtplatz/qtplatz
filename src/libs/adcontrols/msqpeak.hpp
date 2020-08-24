@@ -29,6 +29,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 #include <memory>
+#include <string>
 
 namespace adcontrols {
 

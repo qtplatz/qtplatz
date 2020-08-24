@@ -61,7 +61,7 @@ namespace socfpga {
             impl() : work_( io_service_ )
                    , masterObserver_( std::make_shared< adacquire::MasterObserver >( "acquire.master.observer.ms-cheminfo.com" ) )
                    , traceObserver_( std::make_shared< socfpga::dgmod::TraceObserver >() )
-                   , sse_( std::make_unique< adurl::sse >( io_service_ ) )
+                   , sse_( std::make_unique< adurl::sse_handler >( io_service_ ) )
                    , pos_( 0 )
                    , acquisition_active_( false )
                    , software_inject_requested_( false )
@@ -84,7 +84,7 @@ namespace socfpga {
             std::shared_ptr< TraceObserver > traceObserver_;
 
             std::pair< std::string, std::string > httpd_address_;
-            std::unique_ptr< adurl::sse > sse_;
+            std::unique_ptr< adurl::sse_handler > sse_;
             std::uint32_t pos_;
             bool acquisition_active_;
             bool software_inject_requested_;
@@ -185,7 +185,9 @@ session::connect( adacquire::Receiver * receiver, const std::string& token )
         //auto self = this->shared_from_this();
         //singleton::instance()->connect( self );
         //singleton::instance()->connect( ptr );
-        impl_->io_service_.post( [this] () { impl_->reply_message( adacquire::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
+        impl_->io_service_.post(
+            [this] () { impl_->reply_message( adacquire::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) );
+            });
         return true;
     }
     return false;
@@ -335,25 +337,31 @@ session::dark_run( size_t waitCount )
 void
 session::impl::connect_sse( const std::string& host, const std::string& port, const std::string& url )
 {
-    sse_->register_sse_handler(
-        [&]( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
-
+    sse_->connect(
+        url
+        , host
+        , port
+        , [&]( adurl::sse_event_data_t&& ev ) {
+            std::string event, data;
+            std::tie( event, std::ignore, data ) = std::move( ev );
+            //sse_->register_sse_handler(
+            //[&]( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
             //std::for_each( headers.begin(), headers.end(), [](const auto& pair){ ADDEBUG() << pair; });
-            auto it = std::find_if( headers.begin(), headers.end()
-                                    , [](const auto& pair){ return pair.first == "event" && pair.second == "ad.values"; } );
-
-            // handle non ad.values data
-            if ( it == headers.end() ) {
-                if ( ( it = std::find_if( headers.begin(), headers.end(), [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() )
-                    reply_info( it->second );
-                return;
-            }
-
-            // handle ad.values
-            if ( ( it = std::find_if( headers.begin(), headers.end(), [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() ) {
-
-                auto jdoc = QJsonDocument::fromJson( QByteArray( it->second.data(), it->second.size() ) );
-
+            if ( event == "ad.values" ) {
+                // auto it = std::find_if( headers.begin(), headers.end()
+                // , [](const auto& pair){ return pair.first == "event" && pair.second == "ad.values"; } );
+                reply_info( data );
+                // handle non ad.values data
+                // if ( it == headers.end() ) {
+                //     if ( ( it = std::find_if( headers.begin(), headers.end()
+                // , [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() )
+                //         reply_info( it->second );
+                //     return;
+                // }
+                // handle ad.values
+                // if ( ( it = std::find_if( headers.begin(), headers.end()
+                // , [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() ) {
+                auto jdoc = QJsonDocument::fromJson( QByteArray( data.data(), data.size() ) );
                 // ADDEBUG() << "acquisition_active: " << acquisition_active_;
 
                 if ( jdoc.object().contains( "ad.values" ) ) {
@@ -408,6 +416,6 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
             }
         } );
 
-    sse_->connect( url, host, port );
+    // sse_->connect( url, host, port );
     threads_.emplace_back( [&]{ io_service_.run(); } );
 }

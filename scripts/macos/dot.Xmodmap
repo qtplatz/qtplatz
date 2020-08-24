@@ -1,0 +1,12 @@
+! undo any meta keys already set
+ clear Mod1
+ ! keycodes 63 and 71 are the left and right COMMAND buttons adjacent to the spacebar; set them to be control keys
+ keycode 63=Control_L
+ keycode 71=Control_R
+ ! keycodes 66 and 69 are the option/alt keys; assign them as Meta keys
+ keycode 66=Meta_L
+ keycode 69=Meta_R
+ ! now tell X11 that the Meta keys act as the Mod1 (meta) modier key; that is, when they are pressed with KEY, it is the same as hitting M-KEY
+ add Mod1 = Meta_L Meta_R
+ ! tell X11 that the Control keys are Control modifiers, so when pressed with u (for example) it is the same as hitting C-u
+ add Control = Control_L Control_R

@@ -28,7 +28,7 @@
 #include "quanchromatograms.hpp"
 #include "quanchromatogramprocessor.hpp"
 #include "quandatawriter.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <adcontrols/annotation.hpp>
@@ -224,7 +224,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
     auto cm = procm_->find< adcontrols::CentroidMethod >();
     auto qm = procm_->find< adcontrols::QuanMethod >();
-    auto rm = procm_->find< adcontrols::QuanResponseMethod >();
+    // auto rm = procm_->find< adcontrols::QuanResponseMethod >();
 
     if ( !cm || !qm )
         return false;
@@ -317,7 +317,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         (*progress_)();
         processor_->complete( &sample );
     }
-    QuanDocument::instance()->sample_processed( this );
+    document::instance()->sample_processed( this );
     return true;
 }
 

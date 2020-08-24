@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,6 +28,7 @@
 #include "portfolio_global.h"
 #include "node.hpp"
 #include <boost/any.hpp>
+#include <boost/optional.hpp>
 
 namespace portfolio {
 
@@ -43,7 +44,7 @@ namespace portfolio {
         return std::string( a.type().name() ) == typeid( T ).name();
 #else
         return a.type() == typeid( T );
-#endif            
+#endif
     }
 
     template<class T> inline bool is_type( const boost::any& a ) {
@@ -52,7 +53,7 @@ namespace portfolio {
         return std::string( a.type().name() ) == typeid( T ).name();
 #else
         return a.type() == typeid( T );
-#endif            
+#endif
     }
 
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
@@ -84,8 +85,8 @@ namespace portfolio {
         typedef std::vector< Folium > vector_type;
 
         template<class T> static vector_type::iterator find( vector_type::iterator it, vector_type::iterator ite ) {
-			return std::find_if( it, ite, [=]( vector_type::value_type& f ){ 
-                    return is_type<T>( static_cast< boost::any& >( f ) );
+			return std::find_if( it, ite, [=]( vector_type::value_type& f ){
+                                              return is_type<T>( static_cast< boost::any& >( f ) );
 				} );
         }
 
@@ -96,6 +97,18 @@ namespace portfolio {
                 return true;
             }
             return false;
+        }
+
+        template< typename T > boost::optional<T> get() {
+            if ( is_type<T>( this->data() ) )
+                return boost::any_cast<T>( this->data() );
+            return boost::none;
+        }
+
+        template< typename T > boost::optional<T> get() const {
+            if ( is_type<T>( this->data() ) )
+                return boost::any_cast<T>( this->data() );
+            return boost::none;
         }
 
         // --- create/modify
@@ -129,5 +142,3 @@ namespace portfolio {
     }
 
 }
-
-

@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( dataproc )
 
 set( PROVIDER MS-Cheminformatics )
-find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network )
+find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -38,7 +38,9 @@ find_package( qwt )
 add_definitions(
   -DDATAPROC_LIBRARY
   -D_SCL_SECURE_NO_WARNINGS
-  )
+)
+
+set ( _SOURCE surface.cpp surface.hpp )
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
@@ -48,92 +50,86 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
 
-link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
-  )
-
 add_library( ${PROJECT_NAME} MODULE
   aboutdlg.cpp
+  aboutdlg.hpp
+  actionmanager.cpp
+  actionmanager.hpp
+  assign_masses.cpp
+  assign_masses.hpp
+  assign_peaks.cpp
+  assign_peaks.hpp
+  chromatogramwnd.cpp
+  chromatogramwnd.hpp
   contourwnd.cpp
+  contourwnd.hpp
   datafolder.cpp
   datafolder.hpp
+  dataproc_global.hpp
+  dataprocconstants.hpp
+  dataproceditor.cpp
+  dataproceditor.hpp
+  dataprocessor.cpp
+  dataprocessor.hpp
+  dataprocessor.hpp
+  dataprocessor.hpp
+  dataprocessorfactory.cpp
+  dataprocessorfactory.hpp
+  dataprocessworker.cpp
+  dataprocessworker.hpp
+  dataprochandler.cpp
+  dataprochandler.hpp
   dataprocplugin.cpp
-  mode.cpp
-  mainwindow.cpp
+  dataprocplugin.hpp
+  dataprocplugin.hpp
+  dialogspectrometerchoice.cpp
+  dialogspectrometerchoice.hpp
   document.cpp
   document.hpp
-  navigationdelegate.cpp
-  navigationwidgetfactory.cpp
-  navigationwidget.cpp
-  dataprocessor.hpp
-  actionmanager.cpp
-  assign_masses.cpp
-  assign_peaks.cpp
-  chromatogramwnd.cpp
-  mass_calibrator.cpp
-  dataproceditor.cpp
-  dataprocessor.cpp
-  dataprocessorfactory.cpp
-  dataprochandler.cpp
   elementalcompwnd.cpp
-#  isequenceimpl.cpp
-  isnapshothandlerimpl.cpp
-  mscalibrationwnd.cpp
-#  mscalibspectrawnd.cpp
-  msprocessingwnd.cpp
-  msspectrawnd.cpp
-  sessionmanager.cpp
-  mspropertyform.cpp
-  dataprocessworker.cpp
-  dialogspectrometerchoice.cpp
+  elementalcompwnd.hpp
   filepropertywidget.cpp
+  filepropertywidget.hpp
+  ipeptidehandlerimpl.cpp
+  ipeptidehandlerimpl.hpp
+  isnapshothandlerimpl.cpp
+  isnapshothandlerimpl.hpp
+  mainwindow.cpp
+  mainwindow.hpp
+  mainwindow.hpp
+  mass_calibrator.cpp
+  mass_calibrator.hpp
+  mimetypehelper.hpp
+  mode.cpp
+  mode.hpp
+  mode.hpp
+  mscalibrationwnd.cpp
+  mscalibrationwnd.hpp
   mspeakswnd.cpp
+  mspeakswnd.hpp
   mspeaktable.cpp
   mspeaktable.hpp
-  ipeptidehandlerimpl.cpp
-  aboutdlg.hpp
-  dataproc_global.hpp
-  mimetypehelper.hpp
-  selchanged.hpp
-  qtwidgets_name.hpp
-  dataprocplugin.hpp
-  dataprocconstants.hpp
-  mode.hpp
-  mainwindow.hpp
-  navigationwidgetfactory.hpp
-  navigationwidget.hpp
-  dataprocessor.hpp
-  actionmanager.hpp
-  chromatogramwnd.hpp
-  dataproceditor.hpp
-  dataprocessor.hpp
-  dataprocessorfactory.hpp
-  dataprochandler.hpp
-  dataprocplugin.hpp
-  elementalcompwnd.hpp
-#  isequenceimpl.hpp
-  isnapshothandlerimpl.hpp
-  mscalibrationwnd.hpp
-#  mscalibspectrawnd.hpp
+  msprocessingwnd.cpp
   msprocessingwnd.hpp
-  msspectrawnd.hpp
-  navigationdelegate.hpp
-  navigationwidget.hpp
-  navigationwidgetfactory.hpp
-  sessionmanager.hpp
-  mainwindow.hpp
-  mode.hpp
-  assign_masses.hpp
-  mass_calibrator.hpp
-  assign_peaks.hpp
+  mspropertyform.cpp
   mspropertyform.hpp
-  dataprocessworker.hpp
-  dialogspectrometerchoice.hpp
-  filepropertywidget.hpp
-  mspeakswnd.hpp
-  contourwnd.hpp
-  ipeptidehandlerimpl.hpp
+  msspectrawnd.cpp
+  msspectrawnd.hpp
+  navigationdelegate.cpp
+  navigationdelegate.hpp
+  navigationwidget.cpp
+  navigationwidget.hpp
+  navigationwidget.hpp
+  navigationwidgetfactory.cpp
+  navigationwidgetfactory.hpp
+  navigationwidgetfactory.hpp
+  peaklist_export.cpp
+  peaklist_export.hpp
+  qtwidgets_name.hpp
+  selchanged.hpp
+  sessionmanager.cpp
+  sessionmanager.hpp
+  ${_source}
   ${Resources}
   )
 

@@ -31,7 +31,7 @@
 #include <infitofdefns/serializer.hpp>
 #include <infitofdefns/avgrdata.hpp>
 #include <infitofdefns/tracedata.hpp>
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 
 #include <adcontrols/centroidmethod.hpp>
@@ -279,7 +279,7 @@ InfiTofDataInterpreter::setProcessMethod( const adcontrols::ProcessMethod& pm )
 {
     if ( ( pm_ = std::make_shared< adcontrols::ProcessMethod >( pm ) ) ) {
         if ( auto centroid = pm_->find< adcontrols::CentroidMethod >() ) {
-            multumcontrols::infitof::ScanLaw law;
+            admtcontrols::infitof::ScanLaw law;
 
             double width = centroid->rsTofInDa();
             double mass = centroid->rsTofAtMz();

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from qtplatz import adProcessor
+from qtplatz import adControls, adProcessor
 
 t = adProcessor.tuple();
 print ( t );

@@ -1,0 +1,6 @@
+SetDirectory["/Users/toshi/src/build-Darwin-i386/qtplatz.release/bin/qtplatz.app/Library/Wolfram"]
+link=Install["./ws_adprocessor.bin"]
+uuid=adFileOpen["/Users/toshi/data/z440/2020-02-27/HCOONa_0002.adfs"]
+readers=ImportString[adDataReaders[uuid], "JSON"]
+portfolio=ImportString[adProcessed[uuid], "XML"]
+

@@ -38,6 +38,10 @@ namespace adcontrols {
         const wchar_t * const F_TARGETING          = L"Targeting";
         const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
         const wchar_t * const F_PROFILED_HISTOGRAM = L"Profiled Histogram";
+        const wchar_t * const F_PEAKRESULT         = L"PeakResult";
+
+        // (attachment) dataType
+        const wchar_t * const DT_PEAKRESULT        = L"PeakResult";
     }
 
     namespace iids {
@@ -51,4 +55,13 @@ namespace adcontrols {
     enum hor_axis: unsigned int { hor_axis_mass, hor_axis_time };
 
     extern const boost::uuids::uuid adcontrols_uuid;
+
+    namespace Quan {
+        enum QuanInlet {
+            Chromatography
+            , Infusion
+            , Counting
+            , ExportData // 2020-03-14, for mapping data export
+        };
+    }
 }

@@ -1,0 +1,7 @@
+*.aux
+*.eps
+*-inc-eps-converted-to.pdf
+*.log
+*.pdf
+*.tex
+*~

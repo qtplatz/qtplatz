@@ -25,7 +25,7 @@
 #include "u5303a_translator.hpp"
 #include "infitofdatainterpreter.hpp"
 #include "constants.hpp"
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <infitofdefns/avgrdata.hpp>
 
 #include <adportable/debug.hpp>
@@ -71,7 +71,7 @@ u5303a_translator::translate( adcontrols::MassSpectrum& ms
         return adcontrols::translate_error;
     }
 
-    multumcontrols::infitof::ScanLaw scanLaw( avgr.kAcceleratorVoltage, avgr.tDelay );
+    admtcontrols::infitof::ScanLaw scanLaw( avgr.kAcceleratorVoltage, avgr.tDelay );
 
     unsigned long wellKnownEvents = avgr.wellKnownEvents;
     (void)wellKnownEvents;

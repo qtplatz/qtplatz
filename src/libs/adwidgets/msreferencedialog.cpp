@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -140,6 +140,7 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
     materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
     materials->addItem( "TFANa", "\tCF3COONa\t[Na]+\t" ); //
     materials->addItem( "Acetonitrile", "(CH3CN)2\t\t[H]+\t" ); //
+    materials->addItem( "YOKUDELUNA(+)", "\tC2F3O2Na\t[Na]+\t" );
 
     connect( materials, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MSReferenceDialog::handleIndexChanged );
 
@@ -150,6 +151,12 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
 MSReferenceDialog::~MSReferenceDialog()
 {
     delete ui;
+}
+
+void
+MSReferenceDialog::setHMass( double value )
+{
+    hMass_ = value;
 }
 
 void
@@ -218,7 +225,7 @@ MSReferenceDialog::handleAddReference()
     if ( reference_receiver_ ) {
         if ( !repeat.empty() ) {
             int lMass = 1;
-            int hMass = 1000;
+            int hMass = hMass_;
             int nRepeat = 1;
             adcontrols::MSReference ref;
             do {
@@ -268,6 +275,16 @@ MSReferenceDialog::handleAddReference()
                 reference_receiver_( adcontrols::MSReference( L"C42H18F72N3O6P3", true, L"H", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C48H18F84N3O6P3", true, L"H", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false ) );
+            } else if ( endGroup == L"YOKUDELUNA(+)" ) {
+                //                                            formula             pos,  adduct, enable, exactmass, charge, desc
+                // reference_receiver_( adcontrols::MSReference( L"C2F3O2Na",        true, L"Na", false, 0.0, 1, L"" ) );
+                // for ( size_t i = 2; i < 30; ++i ) {
+                //     auto ref = ( boost::wformat( L"(C2F3O2Na)%d" ) % i ).str();
+                //     reference_receiver_( adcontrols::MSReference( ref.c_str(),    true, L"Na", false, 0.0, 1, L"" ) );
+                // }
+
+            } else if ( endGroup == L"YOKUDELUNA(-)" ) {
+
             } else {
                 // check if an element
                 if ( adcontrols::mol::element element = adcontrols::TableOfElement::instance()->findElement( adportable::utf::to_utf8( endGroup ) ) ) {

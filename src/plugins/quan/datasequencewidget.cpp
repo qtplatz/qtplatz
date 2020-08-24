@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,7 +25,7 @@
 #include "datasequencewidget.hpp"
 #include "datasequencetree.hpp"
 #include "datasequencetable.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "paneldata.hpp"
 #include "quanconstants.hpp"
 #include <utils/styledbar.h>
@@ -142,10 +142,9 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
             spw->enableAxis( QwtPlot::yRight, true );
             spw->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
             spw->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
+            spw->hide();
             splitter->addWidget( spw );
         }
-        // if ( auto chartView = new adplot::ChartView )
-        //     splitter->addWidget( chartView );
         stack_->addWidget( splitter );
     }
 
@@ -156,7 +155,7 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
 
     connect( dataSequenceChromatography_.get(), &DataSequenceTable::plot, this, &DataSequenceWidget::handlePlot );
 
-    QuanDocument::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
+    document::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
 }
 
 void
@@ -167,7 +166,7 @@ DataSequenceWidget::commit()
             sequence->outfile( edit->text().toStdWString().c_str() );
         }
         if ( datasequence_type().getContents( stack_->currentWidget(), *sequence ) )
-            QuanDocument::instance()->quanSequence( sequence );
+            document::instance()->quanSequence( sequence );
     }
 }
 
@@ -181,7 +180,7 @@ DataSequenceWidget::dataSelectionBar()
 
         // [DATA OPEN]|[SAVE][...line edit...][EXEC]
 
-        auto label = new QLabel;
+        //auto label = new QLabel;
         auto button = new QToolButton;
         button->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
         button->setToolTip( tr("Open data files...") );
@@ -219,7 +218,7 @@ DataSequenceWidget::dataSelectionBar()
         // open datafile(s)
         connect( button, &QToolButton::clicked, this, [this] ( bool ){
 
-                QFileDialog dlg( 0, tr( "Open data file(s)" ), QuanDocument::instance()->lastDataDir() );
+                QFileDialog dlg( 0, tr( "Open data file(s)" ), document::instance()->lastDataDir() );
 
                 dlg.setNameFilter( tr("Data Files(*.adfs *.csv *.txt *.spc)") );
                 dlg.setFileMode( QFileDialog::ExistingFiles );
@@ -228,7 +227,7 @@ DataSequenceWidget::dataSelectionBar()
                     auto result = dlg.selectedFiles();
                     datasequence_type().setData( stack_->currentWidget(), result );
                     QDir dir( result[ 0 ] );
-                    QuanDocument::instance()->addRecentDataDir( dir.absolutePath() );
+                    document::instance()->addRecentDataDir( dir.absolutePath() );
                 }
             } );
 
@@ -266,7 +265,7 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
     if ( id == idQuanSequence ) { // && fnChanged ) {
         if ( fnChanged ) { // result outfile changed
             if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
-                boost::filesystem::path path( QuanDocument::instance()->quanSequence()->outfile() );
+                boost::filesystem::path path( document::instance()->quanSequence()->outfile() );
                 path = path.generic_wstring(); // posix format
                 int number = 0;
                 if ( boost::filesystem::exists( path ) ) {
@@ -288,10 +287,10 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
                 edit->setText( QString::fromStdWString( path.wstring() ) ); // native format
             }
         }
-        datasequence_type().setContents( stack_->currentWidget(), *QuanDocument::instance()->quanSequence() );
+        datasequence_type().setContents( stack_->currentWidget(), *document::instance()->quanSequence() );
     }
     if ( id == idQuanMethod ) {
-        if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+        if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
             levels_ = qm->levels();
             replicates_ = qm->replicates();
             datasequence_type().handleLevelChanged( stack_->currentWidget(), qm->levels() );
@@ -315,13 +314,17 @@ DataSequenceWidget::handleReplicatesChanged( int value )
 }
 
 void
-DataSequenceWidget::handleSampleInletChanged( int inlet )
+DataSequenceWidget::handleSampleInletChanged( adcontrols::Quan::QuanInlet inlet )
 {
-    if ( adcontrols::QuanSample::Chromatography == inlet ) {
+    if ( adcontrols::Quan::Chromatography == inlet ) {
         stack_->setCurrentIndex( 0 );
         if ( auto table = stack_->currentWidget()->findChild< DataSequenceTable * >() )
             table->setSampleInlet( inlet );
-    } else if ( adcontrols::QuanSample::Counting == inlet ) {
+    } else if ( adcontrols::Quan::Counting == inlet ) {
+        stack_->setCurrentIndex( 0 );
+        if ( auto table = stack_->currentWidget()->findChild< DataSequenceTable * >() )
+            table->setSampleInlet( inlet );
+    } else if ( adcontrols::Quan::ExportData == inlet ) {
         stack_->setCurrentIndex( 0 );
         if ( auto table = stack_->currentWidget()->findChild< DataSequenceTable * >() )
             table->setSampleInlet( inlet );

@@ -27,7 +27,7 @@
 
 #include "constants.hpp"
 #include <adcontrols/massspectrometer.hpp>
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adplugin/plugin.hpp>
 #include <memory>
@@ -36,7 +36,7 @@
 namespace adcontrols { class datafile; class MSProperty; namespace ControlMethod { class Method; } }
 namespace adfs { class filesystem; }
 namespace boost { namespace uuids { struct uuid; } }
-namespace multumcontrols { class ScanLaw; class OrbitProtocol; }
+namespace admtcontrols { class ScanLaw; class OrbitProtocol; }
 
 namespace infitofspectrometer {
 
@@ -55,15 +55,16 @@ namespace infitofspectrometer {
         void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& ) override;
         void setAcceleratorVoltage( double, double ) override;
         bool assignMasses( adcontrols::MassSpectrum&, int64_t rowid ) const override;
+        double assignMass( double time, int mode ) const override;
 
         std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override;
 
         // dataformat v2 class name
         const wchar_t * name() const override;
 
-        // dataformat v3 class uuid
-        static constexpr const char * clsid_text = "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}";
-        static constexpr const char * class_name = "InfiTOF"; // historical name, don't change
+        // dataformat v3 class uuid --> moved to qtplatz/contrib/infitof/libs/infitofcontrols/constants.hpp
+        //static constexpr const char * clsid_text = "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}";
+        //static constexpr const char * class_name = "InfiTOF"; // historical name, don't change
 
         //const char * objtext() const override;
         //const boost::uuids::uuid& objclsid() const override;
@@ -84,10 +85,10 @@ namespace infitofspectrometer {
         //--------- local -----------
         const adcontrols::ScanLaw * scanLaw( int64_t ) const;
     private:
-        std::unique_ptr< multumcontrols::ScanLaw > scanLaw_;
+        std::unique_ptr< admtcontrols::ScanLaw > scanLaw_;
         std::unique_ptr< adcontrols::ControlMethod::Method > method_;
-        std::vector< multumcontrols::OrbitProtocol > protocols_;
-        std::vector< std::pair< int64_t, std::unique_ptr< multumcontrols::ScanLaw > > > scanLaws_;
+        std::vector< admtcontrols::OrbitProtocol > protocols_;
+        std::vector< std::pair< int64_t, std::unique_ptr< admtcontrols::ScanLaw > > > scanLaws_;
     };
 
 }

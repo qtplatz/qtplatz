@@ -87,11 +87,11 @@ PKDAVGWriter::commitData()
     if ( wforms && pkds ) {
 
         if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( wforms ) )
-            adacquire::task::instance()->handle_write( acqrscontrols::u5303a::waveform_observer, tmp );
+            adacquire::task::instance()->handle_write( acqrscontrols::u5303a::waveform_observer, std::move( tmp ) );
 
         if ( !pkds->list.empty() ) {
             if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( pkds ) )
-                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::pkd_observer, tmp );
+                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::pkd_observer, std::move( tmp ) );
 
             //==== u5303a threshold count (digitizer) data to trigger/peak table  ===========================
             if ( auto dataWriter = std::make_shared< acqrscontrols::pkd_counting_data_writer >( pkds ) )

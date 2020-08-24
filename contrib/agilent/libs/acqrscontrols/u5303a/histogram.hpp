@@ -26,7 +26,7 @@
 
 #include "../acqrscontrols_global.hpp"
 #include "waveform.hpp"
-#include <adportable/float.hpp>  
+#include <adportable/float.hpp>
 #include <atomic>
 #include <vector>
 #include <mutex>
@@ -49,7 +49,7 @@ namespace acqrscontrols {
             void clear();
             void reset();
             size_t append( const threshold_result& result );
-            
+
             size_t trigger_count() const;
             double triggers_per_sec() const;
 
@@ -66,7 +66,7 @@ namespace acqrscontrols {
 
             [[deprecated]] static bool average( const std::vector< std::pair< double, uint32_t > >&
                                                 , double resolution, std::vector< double >& times, std::vector< double >& intens );
-            
+
             [[deprecated]] static bool average( const std::vector< std::pair< double, uint32_t > >&
                                                 , double resolution, std::vector< std::pair< double, uint32_t > >&);
 

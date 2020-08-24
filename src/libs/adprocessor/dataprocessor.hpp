@@ -27,9 +27,10 @@
 
 #include "adprocessor_global.hpp"
 #include <adcontrols/datasubscriber.hpp>
+#include <functional>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 class QMenu;
 
@@ -38,8 +39,11 @@ namespace adfs { class filesystem; class sqlite; }
 namespace adcontrols {
     class CentroidMethod;
     class datafile;
+    class DataReader;
     class LCMSDataset;
     class ProcessedDataset;
+    class ProcessMethod;
+    class MassSpectra;
     class MassSpectrum;
     class MassSpectrometer;
     class MSPeakInfo;
@@ -86,7 +90,7 @@ namespace adprocessor {
 
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
         virtual std::shared_ptr< adcontrols::MassSpectrum > readCoAddedSpectrum( bool histogram = false, int proto = (-1) );
-        virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( bool histogram = false, uint32_t pos = 0, int proto = (-1) );
+        // virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( bool histogram = false, uint32_t pos = 0, int proto = (-1) );
 
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
@@ -105,6 +109,17 @@ namespace adprocessor {
         virtual void addContextMenu( ContextID, QMenu&, std::shared_ptr< const adcontrols::MassSpectrum >, const std::pair< double, double >&, bool isTime );
         virtual void addContextMenu( ContextID, QMenu&, const portfolio::Folium& );
         virtual bool estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum >, const std::vector< std::pair<int, int> >& );
+
+        virtual bool export_text( const portfolio::Folium&, std::ostream& ) const;
+
+        adfs::filesystem * fs();
+        const adfs::filesystem * fs() const;
+
+        std::shared_ptr< adcontrols::MassSpectra >
+            createSpectrogram( std::shared_ptr< const adcontrols::ProcessMethod > pm
+                               , const adcontrols::DataReader * reader
+                               , int proto
+                               , std::function< bool(size_t, size_t) > progress ) const;
 
     private:
         std::unique_ptr< adfs::filesystem > fs_;

@@ -44,10 +44,13 @@ namespace adwidgets {
         ~MSReferenceDialog();
 
         void register_handler( std::function< void( const adcontrols::MSReference& ) > );
+        void setHMass( double );
+
 
     private:
         ::Ui::MSReferenceDialog *ui;
 
+        double hMass_;
         void handleIndexChanged( int index );
         void handleAddReference();
 

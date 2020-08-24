@@ -22,7 +22,7 @@
 **************************************************************************/
 
 #include "compoundstable.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
@@ -94,14 +94,14 @@ namespace quan {
         };
 
         class CompoundsDelegate : public QStyledItemDelegate {
-        
+
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
 
                 QStyleOptionViewItem opt(option);
                 initStyleOption( &opt, index );
 
                 if ( index.column() == c_formula ) {
-                    
+
                     std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                     adwidgets::DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
@@ -165,7 +165,7 @@ namespace quan {
                     return QStyledItemDelegate::createEditor( parent, option, index );
                 }
             }
-            
+
         public:
             void register_handler( std::function< void( const QModelIndex& ) > f ) {
                 valueChanged_ = f;
@@ -194,7 +194,7 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &CompoundsTable::handleContextMenu );
-    connect( QuanDocument::instance(), &QuanDocument::onMSLockEnabled, this, [=] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
+    connect( document::instance(), &document::onMSLockEnabled, this, [=] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
 
     setEditTriggers( QAbstractItemView::AllEditTriggers );
 
@@ -237,7 +237,7 @@ CompoundsTable::onInitialUpdate()
     for ( int col = c_level_0; col < c_level_last; ++col )
         model.setHeaderData( col, Qt::Horizontal, QString( "amounts [%1]" ).arg( col - c_level_0 + 1 ) );
 
-    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
+    if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() )
         handleQuanMethod( *qm );
 }
 
@@ -259,7 +259,7 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
 
         // set default values for amounts (avoid zero value in the table)
         for ( int col = c_level_0; col < int(c_level_0 + levels_); ++col ) {
-            if ( model_->index( index.row(), col ).data().isNull() || 
+            if ( model_->index( index.row(), col ).data().isNull() ||
                  model_->index( index.row(), col ).data().toDouble() <= 1.0e-30 )
                 model_->setData( model_->index( index.row(), col ), double( col - c_level_0 + 1 ) );
         }
@@ -363,7 +363,7 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
     QStandardItemModel& model = *model_;
     model.setRowCount( int( c.size() ) + 1 ); // add last empty line
 
-    if ( auto lkms = QuanDocument::instance()->getm< adcontrols::MSLockMethod >() ) {
+    if ( auto lkms = document::instance()->getm< adcontrols::MSLockMethod >() ) {
         setColumnHidden( c_isLKMSReference, !lkms->enabled() );
     }
 
@@ -448,4 +448,3 @@ CompoundsTable::handleQuanMethod( const adcontrols::QuanMethod& qm )
         setColumnHidden( column, hidden );
     }
 }
-

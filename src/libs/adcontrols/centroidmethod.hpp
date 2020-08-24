@@ -46,8 +46,8 @@ namespace adcontrols {
 		};
 
         enum eAreaMethod {
-            eAreaDa         // I * Da
-            , eAreaTime       // I * ns
+            eAreaDa         // I * Da -- deprecated
+            , eAreaTime       // I * ns --> default
             , eWidthNormalized  // A / width
             , eAreaPoint      // assume data interval := 1
         };

@@ -24,8 +24,8 @@
 
 #include "msfinder.hpp"
 #include "massspectrum.hpp"
-#include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
+#include "mspeakinfo.hpp"
 #include <algorithm>
 #include <iterator>
 

@@ -89,6 +89,7 @@ namespace adacquire {
         void post( std::shared_ptr< SampleProcessor > );
 
         std::shared_ptr< SampleProcessor > deque();
+        void close( std::shared_ptr< SampleProcessor > );
 
         const SampleSequence * sampleSequence() const;
 
@@ -110,7 +111,7 @@ namespace adacquire {
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
 
-        void handle_write( const boost::uuids::uuid&, std::shared_ptr< adacquire::SignalObserver::DataWriter > );
+        void handle_write( const boost::uuids::uuid&, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& );
 
         //
         void handle_so_event( SignalObserver::wkEvent );

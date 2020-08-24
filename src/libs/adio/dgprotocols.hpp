@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC
+** Copyright (C) 2016-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -34,17 +33,19 @@ namespace adio {
         template< typename protocol_type = protocol< delay_pulse_count > >
         class protocols {
         public:
+            typedef protocol< delay_pulse_count > value_type;
+
             protocols() : interval_( 1.0e-3 )
                         , protocols_( 1 ) {
             }
-            
+
             protocols( const protocols& t ) : interval_( t.interval_ )
                                             , protocols_( t.protocols_ ) {
             }
 
             static bool read_json( std::istream&, protocols<protocol<> >& );
             static bool write_json( std::ostream&, const protocols<protocol<> >& );
-            
+
             double interval() const {
                 return interval_;
             }
@@ -75,6 +76,10 @@ namespace adio {
             iterator begin() { return protocols_.begin(); }
             iterator end() { return protocols_.end(); }
 
+            void emplace_back( protocol_type&& t ) {
+                protocols_.emplace_back( std::move( t ) );
+            }
+
         private:
             double interval_;
             std::vector< protocol_type > protocols_;
@@ -82,6 +87,6 @@ namespace adio {
 
         // bool protocols::read_json( std::istream&, protocols< protocol<> >& );
         // bool write_json( std::ostream&, const protocols< protocol<> >& );
-        
+
     }
 }

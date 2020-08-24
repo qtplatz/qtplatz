@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -36,20 +36,16 @@
 
 namespace quan {
     namespace detail {
-        enum idItem { 
-            idGroupBox1
-            , idGroupBox2
-            //, idGroupBox3 // Query
-            , idRadioCounting
-            , idRadioChromatogram
+        enum idItem {
+            idGroupBox2
             , idLabelCalibEq
             , idComboPolynomials
             , idCbxWeighting
             , idRadio_C1
-            , idRadio_C2        
+            , idRadio_C2
             , idRadio_C3
             , idRadio_Y1
-            , idRadio_Y2        
+            , idRadio_Y2
             , idRadio_Y3
             , idGroupBox_ISTD
             , idRadioInternalStandard
@@ -70,12 +66,7 @@ namespace quan {
             ui_accessor( Ui::QuanConfigForm * ui ) : ui_( ui ) {}
             QWidget * operator()( idItem id ) {
                 switch ( id ) {
-                case idGroupBox1: return ui_->groupBox_2;
                 case idGroupBox2: return ui_->groupBox;
-                    //case idGroupBox3: return ui_->groupBox_8;
-                case idRadioCounting: return ui_->radioButton_3;
-                case idRadioChromatogram: return ui_->radioButton;
-                    // case idRadioInfusion: return ui_->radioButton_2;
                 case idLabelCalibEq: return ui_->groupBox_6;
                 case idComboPolynomials: return ui_->comboBox;
                 case idCbxWeighting: return ui_->groupBox_5;
@@ -114,14 +105,7 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
 {
     ui->setupUi(this);
 
-    //QFont font;
-    //qtwrapper::font::setFamily( font, qtwrapper::fontForm );
-
     ui_accessor accessor( ui );
-    // for ( int id = idGroupBox1; id < idEnd; ++id ) {
-    //     if ( QWidget * w = accessor( idItem( id ) ) )
-    //         w->setFont( font );
-    // }
     if ( QComboBox * order = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         order->clear();
         order->insertItems( 0, QStringList()
@@ -142,26 +126,22 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
         combo->insertItems( 0, QStringList() << tr("None") << tr("2nd phase") << tr("1st phase") << tr("1st&2nd phases"));
     }
 
-    if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) ) {
-        connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
-                 , [&]( bool counting ){
-                     if ( counting ) {
-                         //ui->groupBox->setEnabled( false );
-                         //ui->groupBox_8->setEnabled( true );
-                         emit onSampleInletChanged( int( adcontrols::QuanSample::Counting ) );
-                     }
-                 });
-    }
-    if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) ) {
-        connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
-                 , [&]( bool chromatogram ){
-                     if ( chromatogram ) {
-                         //ui->groupBox->setEnabled( true );
-                         //ui->groupBox_8->setEnabled( false );
-                         emit onSampleInletChanged( int( adcontrols::QuanSample::Chromatography ) );
-                     }
-                 });
-    }
+    // if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) ) {
+    //     connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
+    //              , [&]( bool counting ){
+    //                  if ( counting ) {
+    //                      emit onSampleInletChanged( adcontrols::QuanSample::Counting );
+    //                  }
+    //              });
+    // }
+    // if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) ) {
+    //     connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
+    //              , [&]( bool chromatogram ){
+    //                  if ( chromatogram ) {
+    //                      emit onSampleInletChanged( adcontrols::QuanSample::Chromatography );
+    //                  }
+    //              });
+    // }
 
 }
 
@@ -190,7 +170,9 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
     ui_accessor accessor(ui);
 
     QWidget * w = 0;
-    
+
+    handleInletChanged( m.inlet() );
+
     if ( auto combo = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         uint32_t order = m.polynomialOrder() - 2;
         switch( m.equation() ) {
@@ -208,13 +190,14 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
         cbx->setChecked( m.save_on_datasource() ? Qt::Checked : Qt::Unchecked );
     }
 
-    if ( m.isCounting() ) {
-        if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) )
-            radioButton->setChecked( true );
-    } else if ( m.isChromatogram() ) {
-        if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
-            radioButton->setChecked( true );
-    }
+    // if ( m.isCounting() ) {
+    //     if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) )
+    //         radioButton->setChecked( true );
+    // } else if ( m.isChromatogram() ) {
+    //     if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
+    //         radioButton->setChecked( true );
+    // }
+
     if ( auto gbx = qobject_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
         if ( m.isWeighting() )
             gbx->setChecked( true );
@@ -222,11 +205,13 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
             gbx->setChecked( false );
     }
 
+
+
     // if ( auto gbox = accessor( idGroupBox2 ) )
     //     gbox->setEnabled( !m.isCounting() );
     // if ( auto gbox = accessor( idGroupBox3 ) )
-    //     gbox->setEnabled( m.isCounting() );    
-    
+    //     gbox->setEnabled( m.isCounting() );
+
     w = 0;
     switch ( m.weighting() ) {
     case adcontrols::QuanMethod::idWeight_C1: w = accessor( idRadio_C1 ); break;
@@ -273,7 +258,7 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
             m.polynomialOrder( idEq - 3 + 2 );
         }
     }
-    
+
     if ( auto combo = qobject_cast<QComboBox *>( accessor( idComboDebugLevel ) ) ) {
         uint32_t debuglevel = combo->currentIndex();
         m.set_debug_level( debuglevel * 2 );  // 0, 2, 4
@@ -283,18 +268,18 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
         m.set_save_on_datasource( save );
     }
 
-    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioCounting )) ) {
-        m.setIsCounting( radioButton->isChecked() );
-    }
-    
-    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioChromatogram )) ) {
-        m.setIsChromatogram( radioButton->isChecked() );
-    }
-    
+    // if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioCounting )) ) {
+    //     m.setIsCounting( radioButton->isChecked() );
+    // }
+
+    // if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioChromatogram )) ) {
+    //     m.setIsChromatogram( radioButton->isChecked() );
+    // }
+
     // if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioInfusion )) ) {
     //     m.setIsChromatogram( radioButton->isChecked() );
     // }
-    
+
     if ( auto gbx = qobject_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
         m.setIsWeighting( gbx->isChecked() );
     }
@@ -326,6 +311,13 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
         m.setReplicates( spin->value() );
     }
     return true;
+}
+
+void
+QuanConfigForm::handleInletChanged( adcontrols::Quan::QuanInlet inlet )
+{
+    if ( auto grpbox = ui_accessor( ui )( idGroupBox2 ) )
+        grpbox->setDisabled( inlet == adcontrols::Quan::ExportData );
 }
 
 void

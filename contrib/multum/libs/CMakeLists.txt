@@ -1,3 +1,3 @@
 
-add_subdirectory( multumcontrols )
-add_subdirectory( multumwidgets )
+add_subdirectory( admtcontrols )
+add_subdirectory( admtwidgets )

@@ -29,7 +29,7 @@
 #include "adplot_global.hpp"
 #include <functional>
 #include <memory>
-
+#include <tuple>
 class QwtPlotZoomer;
 
 namespace adcontrols { class MassSpectrum; class MassSpectrometer; }
@@ -41,14 +41,14 @@ namespace adplot {
     public:
         explicit SpectrumWidget(QWidget *parent = 0);
         ~SpectrumWidget();
-        
+
         void clear();
         void removeData( int idx, bool replot = true );
         void setData( std::shared_ptr< const adcontrols::MassSpectrum >, int idx, bool axisRight = false );
         void setAlpha( int idx, int alpha );
         void setColor( int idx, const QColor& color );
         void setFocusedFcn( int fcn );
-        
+
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
         void setAxis( HorizontalAxis
                       , bool replot = false
@@ -68,6 +68,8 @@ namespace adplot {
         void rescaleY( int fcn );
         void setViewId( uint32_t id );
         uint32_t viewId() const;
+        void setYScale( double top, double bottom, bool axisRight = false );
+        std::tuple< bool, double, double > yScale( bool ) const;
 
     private:
         class impl;
@@ -80,7 +82,7 @@ namespace adplot {
     signals:
         void onMoved( const QPointF& );
 		void onSelected( const QRectF& );
-        
+
     public slots:
 		virtual void moved( const QPointF& );
 		virtual void selected( const QPointF& );
@@ -89,4 +91,3 @@ namespace adplot {
     };
 
 }
-

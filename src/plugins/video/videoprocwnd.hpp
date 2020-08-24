@@ -37,7 +37,7 @@ namespace portfolio { class Folium; }
 namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
 namespace adplot { class ChromatogramWidget; }
 namespace cv { class Mat; }
-namespace advision { class ImageWidget; }
+namespace adcv { class ImageWidget; }
 
 namespace video {
 
@@ -66,11 +66,10 @@ namespace video {
         void handleFileChanged( const QString& );
 
     private:
-        std::array< std::unique_ptr< advision::ImageWidget >, 2 > imgWidgets_;
+        std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
         std::unique_ptr< adplot::ChromatogramWidget > tplot_;
         std::unique_ptr< cv::Mat > average_;
         size_t numAverage_;
     };
 
 }
-

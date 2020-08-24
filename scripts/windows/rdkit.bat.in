@@ -5,23 +5,28 @@ set Boost_ROOT="${BOOST_ROOT}"
 set BOOST_LIBRARYDIR="${BOOST_LIBRARYDIR}"
 set GENERATOR="${GENERATOR}"
 set RDBASE="${RDBASE}"
+set PYTHON_NUMPY_INCLUDE_PATH="${PYTHON_NUMPY_INCLUDE_PATH}"
+
+if not exist "${RDKIT_BINARY_DIR}" mkdir "${RDKIT_BINARY_DIR}"
 
 pushd "${RDKIT_BINARY_DIR}"
 
 cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
    	 -DBOOST_ROOT=%BOOST_ROOT% ^
-      	 -DBoost_USE_STATIC_LIBS=ON ^
+      	 -DBoost_USE_STATIC_LIBS=OFF ^
       	 -DRDK_BUILD_INCHI_SUPPORT=ON ^
-      	 -DRDK_BUILD_PYTHON_WRAPPERS=OFF ^
+      	 -DRDK_BUILD_PYTHON_WRAPPERS=${RDK_BUILD_PYTHON_WRAPPERS} ^
+      	 -DPYTHON_EXECUTABLE="${Python3_EXECUTABLE}" ^
       	 -DRDK_BUILD_SWIG_JAVA_WRAPPER=OFF ^
       	 -DRDK_INSTALL_STATIC_LIBS=OFF ^
-	 -DRDK_INSTALL_DYNAMIC_LIBS=ON ^
+	 -DRDK_INSTALL_DLLS_MSVC=ON ^
 	 -DRDK_INSTALL_INTREE=OFF ^
+	 -DRDK_BUILD_FREETYPE_SUPPORT=OFF ^
 	 -DCMAKE_INSTALL_PREFIX="C:/RDKit" ^
       	 -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %RDBASE%
 
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build-debug.bat
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj > build-release.bat
 echo "*******************************"
-echo "run build-release.bat manually."
+echo "run build-[release|debug].bat manually."
 echo "*******************************"

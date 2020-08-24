@@ -53,7 +53,7 @@ namespace eventbroker {
         static document * instance();
         bool register_handler( event_handler );
         bool unregister_handler( event_handler );
-        bool bind( const char * host, const char * port );
+        bool bind( const char * host, const char * port, bool bcast );
         bool event_out( uint32_t );
     };
 

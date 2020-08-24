@@ -24,7 +24,7 @@
 
 #include "textfile.hpp"
 #include "constants.hpp"
-#include <multumcontrols/scanlaw.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/textfile.hpp>
@@ -100,7 +100,7 @@ textfile::setup( adcontrols::MassSpectrum& ms
 {
     size_t nidx = 0;
 
-    multumcontrols::infitof::ScanLaw law;
+    admtcontrols::infitof::ScanLaw law;
     adcontrols::MSProperty prop( ms.getMSProperty() );
     // prop.setDataInterpreterClsid( constants::dataInterpreter::spectrometer::utf8_name() );
 

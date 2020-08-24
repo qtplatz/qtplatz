@@ -74,7 +74,6 @@ namespace adfs {
         operator bool () const { return db_ != nullptr; }
 
         inline sqlite& db() const { return *db_; }
-        // inline const std::wstring& name() const { return name_; }
         template< typename T = wchar_t > const std::basic_string< T > name() const;
 
         inline int64_t rowid() const { return rowid_; }  // rowid on table 'directory'

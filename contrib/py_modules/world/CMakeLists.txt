@@ -1,8 +1,6 @@
-cmake_minimum_required ( VERSION 3.14 )
+cmake_minimum_required ( VERSION 3.13 )
 
 project (world)
-
-add_definitions( -DBOOST_NO_AUTO_PTR )
 
 find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
 if ( Boost_FOUND )
@@ -36,7 +34,7 @@ endif()
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   PREFIX ""
-  SUFFIX ${suffix} 
+  SUFFIX ${suffix}
   LIBRARY_OUTPUT_DIRECTORY ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PYTHON_MODULE_DIR}

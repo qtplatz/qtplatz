@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from qtplatz import adProcessor
+from qtplatz import adControls, adProcessor
 
 uuid = adProcessor.gen_uuid();
 print ( '---------- got: {} --------'.format( uuid ) );

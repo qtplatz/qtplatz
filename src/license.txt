@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
  *
-** Copyright (C) 2010-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 MS-Cheminformatics LLC
 **
 ** Contact: toshi.hondo@qtplatz.com
 **

@@ -6,6 +6,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
 
   add_subdirectory (adfile)
   add_subdirectory (adimport)
+  add_subdirectory (adexport)  
 #  add_subdirectory (adhist)
 
   if ( Qt5_FOUND )

@@ -89,8 +89,6 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence > s
                                                   , progress_total_(0)
                                                   , progress_count_(0)
 {
-    ADDEBUG() << "QuanProcessor nThreads=" << nThreads;
-
     // combine per number-of-threads
     size_t n(0);
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it ) {

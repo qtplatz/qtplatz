@@ -28,18 +28,6 @@ include_directories(
   ${Qt5Core_INCLUDE_DIRS}
   )
 
-if (WIN32)
-  set( servant_LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-elseif( ${CMAKE_SYSTEM_NAME} MATCHES Darwin )
-  set( servant_LINK_DIRS ${QTPLATZ_SOURCE_DIR}/bin/qtplatz.app/Contents/Plugins/QtProject )
-else()
-  set( servant_LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
-endif()
-
-link_directories(
-  ${servant_LINK_DIRS}
-  )
-
 add_definitions( -DSERVANT_LIBRARY )
 
 add_library( servant MODULE

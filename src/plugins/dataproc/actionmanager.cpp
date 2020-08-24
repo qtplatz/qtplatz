@@ -85,6 +85,7 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::PROCESS_ALL_CHECKED ) );
             menu->addAction( am->command( Constants::LISTPEAKS_ON_CHECKED ) );
             menu->addAction( am->command( Constants::IMPORT_ALL_CHECKED ) );
+            menu->addAction( am->command( Constants::EXPORT_ALL_CHECKED ) );
 
             menu->addAction( am->command( Constants::CREATE_SPECTROGRAM ) );
             menu->addAction( am->command( Constants::CLUSTER_SPECTROGRAM ) );
@@ -171,6 +172,11 @@ ActionManager::initialize_actions( const Core::Context& context )
         if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra..." ), this ) ) {
             am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportPeakList );
+        }
+
+        if ( auto p = actions_[ idActExportAllChecked ] = new QAction( tr( "Export all checked data..." ), this ) ) {
+            am->registerAction( p, Constants::EXPORT_ALL_CHECKED, context );
+            connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportAllChecked );
         }
 
         if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra..." ), this ) ) {

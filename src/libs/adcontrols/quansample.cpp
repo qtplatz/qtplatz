@@ -43,7 +43,7 @@ namespace adcontrols {
         impl() : uuid_( adportable::uuid()() )
                , rowid_(0)
                , sampleType_( SAMPLE_TYPE_UNKNOWN )
-               , inletType_( Infusion )
+               , inletType_( Quan::Infusion )
                , level_(0)
                , istdId_(-1)
                , injVol_(0)
@@ -81,7 +81,7 @@ namespace adcontrols {
         std::wstring dataSource_;                // fullpath for data file + "::" + data node
         // std::wstring dataGuid_;               // data guid on portfolio (for redisplay)
         QuanSampleType sampleType_;
-        QuanInlet inletType_;                    // Infusion | Chromatogram
+        Quan::QuanInlet inletType_;                    // Infusion | Chromatogram
         int32_t level_;                          // 0 for UNK, otherwise >= 1
         int32_t istdId_;                         // id for istd sample (id for myself if this is ISTD)
         double injVol_;                          // conc. for infusion
@@ -168,20 +168,20 @@ namespace adcontrols {
             ar & id_;
             ar & amounts_;
         }
-        
+
         template<> void
         ISTD::serialize( portable_binary_iarchive& ar, const unsigned int ) {
             ar & id_;
             ar & amounts_;
         }
-        
+
         ///////// ISTD XML archive ////////
         template<> void
         ISTD::serialize( boost::archive::xml_woarchive& ar, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( id_ );
             ar & BOOST_SERIALIZATION_NVP( amounts_ );
         }
-        
+
         template<> void
         ISTD::serialize( boost::archive::xml_wiarchive& ar, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( id_ );
@@ -203,6 +203,13 @@ QuanSample::QuanSample() : impl_( new impl() )
 
 QuanSample::QuanSample( const QuanSample& t ) : impl_( new impl( *t.impl_ ) )
 {
+}
+
+QuanSample&
+QuanSample::operator = ( const QuanSample& t )
+{
+    impl_ = std::make_unique< impl >( *t.impl_ );
+    return *this;
 }
 
 const wchar_t *
@@ -253,7 +260,7 @@ QuanSample::sampleType( QuanSampleType v )
 {
     impl_->sampleType_ = v;
 }
-        
+
 int32_t
 QuanSample::istdId() const
 {
@@ -266,7 +273,7 @@ QuanSample::istdId( int32_t v )
     impl_->istdId_ = v;
 }
 
-        
+
 int32_t
 QuanSample::level() const
 {
@@ -278,7 +285,7 @@ QuanSample::level( int32_t v )
 {
     impl_->level_ = v;
 }
-        
+
 double
 QuanSample::injVol() const
 {
@@ -290,7 +297,7 @@ QuanSample::injVol( double v )
 {
     impl_->injVol_ = v;
 }
-        
+
 double
 QuanSample::addedAmounts() const
 {
@@ -342,7 +349,7 @@ int32_t QuanSample::row() const { return impl_->rowid_; }
 void QuanSample::sequence_uuid( const boost::uuids::uuid& d, int32_t rowid ) { impl_->sequence_uuid_ = d; impl_->rowid_ = rowid; }
 
 const boost::uuids::uuid&
-QuanSample::uuid() const { return impl_->uuid_; }        
+QuanSample::uuid() const { return impl_->uuid_; }
 
 QuanSample::QuanDataGeneration
 QuanSample::dataGeneration() const
@@ -368,14 +375,14 @@ QuanSample::channel() const  { return impl_->channel_; }
 void
 QuanSample::channel( int32_t t ) { impl_->channel_ = t; }
 
-QuanSample::QuanInlet
+Quan::QuanInlet
 QuanSample::inletType() const
 {
     return impl_->inletType_;
 }
 
 void
-QuanSample::inletType( QuanInlet v )
+QuanSample::inletType( Quan::QuanInlet v )
 {
     impl_->inletType_ = v;
 }

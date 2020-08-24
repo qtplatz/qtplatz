@@ -25,7 +25,7 @@
 #include "quanquerywidget.hpp"
 #include "quanconnection.hpp"
 #include "quanconstants.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
@@ -62,12 +62,12 @@ QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanQueryWidget::handleConnectionChanged );
-    
+    connect( document::instance(), &document::onConnectionChanged, this, &QuanQueryWidget::handleConnectionChanged );
+
     if ( auto toolBar = new Utils::StyledBar ) {
 
         layout_->addWidget( toolBar );
-        
+
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 2 );
         toolBarLayout->setSpacing( 2 );
@@ -82,7 +82,7 @@ QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
         edit->setObjectName( Constants::editQuanFilename );
         toolBarLayout->addWidget( edit );
     } // end toolbar
-    
+
     layout_->addWidget( table_.get() );
     //layout_->setRowStretch( 1, 0 );
     //layout_->setRowStretch( 2, 1 );
@@ -92,6 +92,5 @@ void
 QuanQueryWidget::handleConnectionChanged()
 {
     if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
-        edit->setText( QString::fromStdWString( QuanDocument::instance()->connection()->filepath() ) );
+        edit->setText( QString::fromStdWString( document::instance()->connection()->filepath() ) );
 }
-

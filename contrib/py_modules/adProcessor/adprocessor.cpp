@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2019 MS-Cheminformatics LLC
+** Copyright (C) 2019-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,6 +24,8 @@
 
 #include "dataprocessor.hpp"
 #include "datareader.hpp"
+#include "file.hpp"
+#include "folder.hpp"
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -33,13 +34,14 @@
 #include <adportable/debug.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <memory>
 
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace boost::python;
-void exportUUID();
+// void exportUUID();
 
 boost::uuids::uuid
 gen_uuid() {
@@ -75,9 +77,9 @@ my_tuples()
 
 BOOST_PYTHON_MODULE( adProcessor )
 {
-    exportUUID();
+    // exportUUID();
 
-    register_ptr_to_python< std::shared_ptr< DataReader > >();
+    register_ptr_to_python< std::shared_ptr< py_module::DataReader > >();
 
     def( "gen_uuid", gen_uuid );
     def( "set_uuid", set_uuid );
@@ -89,33 +91,51 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( vector_indexing_suite< std::vector< std::string > >() )
         ;
 
-    class_< std::vector< boost::python::tuple > >("std_vector_tuple")
-        .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
+    class_< std::vector< std::shared_ptr< py_module::DataReader > > >("std_vector_std_shared_ptr_DataReader")
+        .def( vector_indexing_suite< std::vector< std::shared_ptr< py_module::DataReader > >, true >() )
         ;
 
-    class_< std::vector< std::shared_ptr< DataReader > > >("std_vector_std_shared_ptr_DataReader")
-        .def( vector_indexing_suite< std::vector< std::shared_ptr< DataReader > >, true >() )
+    class_< py_module::dataProcessor >( "processor" )
+        .def( "open",               &py_module::dataProcessor::open )
+        .def( "dataReaderTuples",   &py_module::dataProcessor::dataReaderTuples )
+        .def( "dataReaders",        &py_module::dataProcessor::dataReaders )
+        .def( "dataReader",         &py_module::dataProcessor::dataReader )
+        .def( "filename",           &py_module::dataProcessor::filename )
+        //.def( "root",               &py_module::dataProcessor::root )
+        .def( "findFolder",         &py_module::dataProcessor::findFolder )
+        .def( "massSpectrometer",   &py_module::dataProcessor::massSpectrometer )
         ;
 
-    class_< dataProcessor >( "processor" )
-        .def( "open", &dataProcessor::open )
-        .def( "dataReaderTuples", &dataProcessor::dataReaderTuples )
-        .def( "dataReaders", &dataProcessor::dataReaders )
-        .def( "dataReader", &dataProcessor::dataReader )
+    class_< py_module::folder >( "folder" )
+        .def( "rowid",              &py_module::folder::rowid )
+        .def( "name",               &py_module::folder::name )
+        .def( "id",                 &py_module::folder::id )
+        .def( "attributes",         &py_module::folder::attributes )
+        .def( "folders",            &py_module::folder::folders )
+        .def( "files",              &py_module::folder::files )
         ;
 
-    class_< DataReader >( "dataReader", no_init )
-        .def( "objuuid", &DataReader::objuuid )
-        .def( "objtext", &DataReader::objtext )
-        .def( "display_name", &DataReader::display_name )
-        .def( "size", &DataReader::size, DataReader_overloads() )
-        .def( "readSpectrum", &DataReader::readSpectrum )
-        .def( "rewind", &DataReader::rewind )
-        .def( "next",   &DataReader::next )
-        .def( "rowid", &DataReader::rowid )
-        .def( "epoch_time",        &DataReader::epoch_time )
-        .def( "elapsed_time",      &DataReader::elapsed_time )
-        .def( "time_since_inject", &DataReader::time_since_inject )
-        .def( "protocol",          &DataReader::protocol )
+    class_< py_module::file >( "file" )
+        .def( "rowid",              &py_module::file::rowid )
+        .def( "name",               &py_module::file::name )
+        .def( "id",                 &py_module::file::id )
+        .def( "attributes",         &py_module::file::attributes )
+        .def( "attachments",        &py_module::file::attachments )
+        .def( "body",               &py_module::file::body )
+        ;
+
+    class_< py_module::DataReader >( "dataReader", no_init )
+        .def( "objuuid",            &py_module::DataReader::objuuid )
+        .def( "objtext",            &py_module::DataReader::objtext )
+        .def( "display_name",       &py_module::DataReader::display_name )
+        .def( "size",               &py_module::DataReader::size, py_module::DataReader_overloads() )
+        .def( "readSpectrum",       &py_module::DataReader::readSpectrum )
+        .def( "rewind",             &py_module::DataReader::rewind )
+        .def( "next",               &py_module::DataReader::next )
+        .def( "rowid",              &py_module::DataReader::rowid )
+        .def( "epoch_time",         &py_module::DataReader::epoch_time )
+        .def( "elapsed_time",       &py_module::DataReader::elapsed_time )
+        .def( "time_since_inject",  &py_module::DataReader::time_since_inject )
+        .def( "protocol",           &py_module::DataReader::protocol )
         ;
 }

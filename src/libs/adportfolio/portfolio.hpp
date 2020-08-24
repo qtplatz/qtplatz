@@ -26,6 +26,7 @@
 #pragma once
 
 #include "portfolio_global.h"
+#include <string>
 #include <vector>
 #include <memory>
 

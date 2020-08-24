@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,8 @@
 #ifndef DATASEQUENCEWIDGET_HPP
 #define DATASEQUENCEWIDGET_HPP
 
+#include <adcontrols/computemass.hpp>
+#include <adcontrols/constants.hpp>
 #include <QWidget>
 #include <memory>
 
@@ -34,7 +36,7 @@ class QStackedWidget;
 namespace quan {
 
     class DataSequenceTree;  // Infusion (no timed peak)
-    class DataSequenceTable; // Chromatography 
+    class DataSequenceTable; // Chromatography
 
     class DataSequenceWidget : public QWidget
     {
@@ -42,8 +44,6 @@ namespace quan {
     public:
         ~DataSequenceWidget();
         explicit DataSequenceWidget( QWidget *parent = 0 );
-
-        //QSize sizeHint() const { return QSize( 600, 600 ); }
 
         void commit();
 
@@ -64,7 +64,7 @@ namespace quan {
     public slots :
         void handleLevelChaged( int );
         void handleReplicatesChanged( int );
-        void handleSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
+        void handleSampleInletChanged( adcontrols::Quan::QuanInlet );
     private slots:
         void handlePlot( const QString& );
     };

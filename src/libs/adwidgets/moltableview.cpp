@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,6 +24,7 @@
 
 #include "moltableview.hpp"
 #include "delegatehelper.hpp"
+#include "moltablehelper.hpp"
 #include "htmlheaderview.hpp"
 #include "moldraw.hpp"
 #include <adchem/drawing.hpp>
@@ -38,6 +39,7 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/optional.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -52,27 +54,12 @@
 #include <QPainter>
 #include <QSignalBlocker>
 #include <QStyledItemDelegate>
+#include <QStandardItemModel>
 #include <QSvgRenderer>
 #include <QUrl>
 #include <sstream>
 #ifndef NDEBUG
 # include <QDebug>
-#endif
-
-#if defined HAVE_RDKit && HAVE_RDKit
-#if defined _MSC_VER
-# pragma warning( disable: 4267 4018 )
-#endif
-#include <GraphMol/Depictor/RDDepictor.h>
-#include <GraphMol/Descriptors/MolDescriptors.h>
-#include <GraphMol/RDKitBase.h>
-#include <GraphMol/SmilesParse/SmilesParse.h>
-#include <GraphMol/SmilesParse/SmilesWrite.h>
-#include <GraphMol/Substruct/SubstructMatch.h>
-#include <GraphMol/FileParsers/FileParsers.h>
-#include <GraphMol/FileParsers/MolSupplier.h>
-#include <RDGeneral/Invariant.h>
-#include <RDGeneral/RDLog.h>
 #endif
 
 #include <boost/format.hpp>
@@ -118,11 +105,25 @@ namespace adwidgets {
             return (-1);
         }
 
+        adportable::optional< std::pair< int, ColumnState > > findColumnState( ColumnState::fields field ) const {
+            auto it = std::find_if( columnStates_.begin(), columnStates_.end()
+                                    , [field]( const std::pair< int, ColumnState >& c ){ return c.second.field == field; });
+            if ( it != columnStates_.end() ) {
+#if __cplusplus >= 201703L
+                return *it;
+#else
+                return std::pair< int, ColumnState >(*it);
+#endif
+            }
+            return {};
+        }
+
         QAbstractItemModel * model() { return this_->model(); }
 
         inline void handleEditorValueChanged( const QModelIndex& index, double value ) {
             emit this_->valueChanged( index, value );
         }
+
 
     };
 
@@ -198,7 +199,7 @@ namespace adwidgets {
                 paint_f_precision()( state, painter, option, index );
             }
         };
-        
+
         ///////////////////////
         struct paint_f_svg {
 
@@ -249,7 +250,7 @@ namespace adwidgets {
 
             } else if ( field == ColumnState::f_time ) {
 
-                paint_f_time()( state, painter, opt, index );                
+                paint_f_time()( state, painter, opt, index );
 
             } else if ( field == ColumnState::f_mass ) {
 
@@ -284,6 +285,10 @@ namespace adwidgets {
 					if ( idx >= 0 && idx < state.choice.size() )
 						model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
 				}
+            } else if ( state.field == ColumnState::f_uint ) {
+                if ( auto spin = qobject_cast< QSpinBox * >( editor ) ) {
+                    model->setData( index, spin->value(), Qt::EditRole );
+                }
             } else if ( state.field == ColumnState::f_protocol ) {
 				if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
 					int idx = ( combo->currentIndex() - 1 ); // -1 = none, 0, 1, 2, 3
@@ -307,7 +312,7 @@ namespace adwidgets {
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
 
             auto& state = impl_->state( index.column() );
-
+            ADDEBUG() << "createEditor col,row=" << index.column() << ", " << index.row();
             if ( state.isChoice() ) {
                 auto combo = new QComboBox( parent );
                 for ( auto& x : state.choice )
@@ -323,7 +328,12 @@ namespace adwidgets {
                 connect( spin, static_cast< void( QDoubleSpinBox::* )(double) >(&QDoubleSpinBox::valueChanged)
                          , [=]( double value ){ impl_->handleEditorValueChanged( index, value ); });
                 return spin;
-
+            } else if ( state.field == ColumnState::f_uint ) {
+                auto spin = new QSpinBox( parent );
+                spin->setValue( index.data( Qt::EditRole ).toUInt() );
+                spin->setMinimum(0);
+                spin->setMaximum(9999);
+                return spin;
             } else if ( state.field == ColumnState::f_protocol ) {
                 auto combo = new QComboBox( parent );
                 combo->addItem( "*" ); // none
@@ -369,10 +379,40 @@ namespace adwidgets {
                 return QStyledItemDelegate::sizeHint( option, index );
             }
         }
-
     };
 }
 
+namespace {
+
+    struct SetData {
+        typedef std::function< adportable::optional< std::pair< int, ColumnState > >( ColumnState::fields ) > findColumn_t;
+        findColumn_t findColumn_;
+
+        SetData( findColumn_t functor ) : findColumn_( functor ) {}
+
+        void operator()( QAbstractItemModel& model, int row, ColumnState::fields field, QVariant&& v, bool checked = false ) {
+            if ( auto res = findColumn_( field ) ) {
+#if __cplusplus >= 201703L
+                auto [ col, state ] = *res;
+#else
+                int col; ColumnState state;
+                std::tie( col, state ) = *res;
+#endif
+                model.setData( model.index( row, col ), v, Qt::EditRole );
+
+                if ( state.isCheckable ) {
+                    if ( auto pmodel = qobject_cast< QStandardItemModel * >(&model) ) {
+                        if ( auto item = pmodel->item( row, col )) {
+                            item->setEditable( true );
+                            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                            model.setData( model.index( row, col ), checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+                        }
+                    }
+                }
+            }
+        }
+    };
+}
 
 
 ////////////////////////////////////////
@@ -500,34 +540,29 @@ MolTableView::dropEvent( QDropEvent * event )
 	if ( mimeData->hasUrls() ) {
 
         QSignalBlocker block( this );
-#if 0
-        int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
+        auto& model = *this->model();
+
+        int row = model.rowCount() == 0 ? 0 : model.rowCount() - 1;
 
         QList<QUrl> urlList = mimeData->urls();
         for ( auto& url : urlList ) {
-
-#if HAVE_RDKit
-            std::string filename = url.toLocalFile().toStdString();
-            std::cout << "dropEvent: " << filename << std::endl;
-
-            if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
-
-                model_->insertRows( row, supplier->length() );
-
-                for ( size_t i = 0; i < supplier->length(); ++i ) {
-                    if ( auto mol = std::unique_ptr< RDKit::ROMol >( ( *supplier )[ i ] ) ) {
-                        mol->updatePropertyCache( false );
-                        auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-                        auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-                    }
-                    ++row;
-                }
-            }
-            resizeRowsToContents();
+            auto vec = MolTableHelper::SDMolSupplier()( url );
+            model.insertRows( row, vec.size() );
+            for ( const auto& d: vec ) {
+#if __cplusplus >= 201703L
+                auto [ formula, smiles, svg ] = d;
+#else
+                QString formula, smiles;  QByteArray svg;
+                std::tie( formula, smiles, svg ) = d;
 #endif
+                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+                assign( model, row, ColumnState::f_formula, formula, true );
+                assign( model, row, ColumnState::f_smiles, smiles );
+                assign( model, row, ColumnState::f_svg, svg );
+                ++row;
+            }
         }
         event->accept();
-#endif
 	}
 }
 
@@ -606,43 +641,50 @@ MolTableView::handleCopyToClipboard()
 void
 MolTableView::handlePaste()
 {
+    int row = model()->rowCount() - 1;
     auto md = QApplication::clipboard()->mimeData();
     auto data = md->data( "application/moltable-xml" );
-    if ( !data.isEmpty() ) {
-        QString utf8( QString::fromUtf8( data ) );
-        std::wistringstream is( utf8.toStdWString() );
+    if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
 
-        adcontrols::moltable molecules;
-        if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
-#if 0
-            impl_->model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
+        if ( !data.isEmpty() ) {
+            QString utf8( QString::fromUtf8( data ) );
+            std::wistringstream is( utf8.toStdWString() );
 
-            for ( auto& mol : molecules.data() ) {
+            adcontrols::moltable molecules;
+            if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
+                model->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
 
-                impl_->setData( *this, row
-                               , QString::fromStdString( mol.formula() )
-                               , QString::fromStdString( mol.adducts() )
-                               , QString::fromStdString( mol.smiles() )
-                               , QByteArray()
-                               , QString::fromStdString( mol.synonym() )
-                               , QString::fromStdWString( mol.description() )
-                               , mol.mass()
-                               , mol.abundance()
-                               , mol.enable() );
-                ++row;
+                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+
+                for ( auto& mol : molecules.data() ) {
+                    assign( *model, row, ColumnState::f_formula,     QString::fromStdString( mol.formula() ), mol.enable() );
+                    assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts() ) );
+                    assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
+                    assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
+                    assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
+                    assign( *model, row, ColumnState::f_abundance,   mol.abundance() );
+                    ++row;
+                }
             }
+        } else {
+            // drop plain/text from chemical draw software
+            auto vec = MolTableHelper::SDMolSupplier()( QApplication::clipboard() );
+            if ( ! vec.empty() ) {
+                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+                int row = model->rowCount() == 0 ? 0 : model->rowCount() - 1;
+                model->insertRows( row, vec.size() );
+                for ( auto d: vec ) {
+#if __cplusplus >= 201703L
+                    auto [ formula, smiles, svg ] = d;
+#else
+                    QString formula, smiles; QByteArray svg;
+                    std::tie( formula, smiles, svg ) = d;
 #endif
-            resizeRowsToContents();
-            resizeColumnsToContents();
-        }
-    } else {
-        QString pasted = QApplication::clipboard()->text();
-        QStringList lines = pasted.split( "\n" );
-        for ( auto line : lines ) {
-            QStringList texts = line.split( "\t" );
-            for ( auto& test : texts ) {
-                (void)test;
-                // TODO...
+                    assign( *model, row, ColumnState::f_formula, formula );
+                    assign( *model, row, ColumnState::f_smiles,  smiles );
+                    assign( *model, row, ColumnState::f_svg,     svg );
+                    ++row;
+                }
             }
         }
     }
@@ -657,28 +699,15 @@ MolTableView::setColumnField( int column, ColumnState::fields f, bool editable, 
 }
 
 // static
-double
-MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adducts )
-{
-    auto expr = formula;
+// double
+// MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adducts )
+// {
+//     auto expr = formula;
 
-    if ( ! adducts.isEmpty() )
-        expr += " " + adducts;
+//     if ( ! adducts.isEmpty() )
+//         expr += " " + adducts;
 
-    double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
+//     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
 
-    return exactMass;
-}
-
-// static
-QByteArray
-MolTableView::smilesToSvg( const QString& smiles )
-{
-#if HAVE_RDKit
-    if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles.toStdString() ) ) ) {
-        std::string svg = adchem::drawing::toSVG( *mol );
-        return QByteArray( svg.data(), svg.size() );
-    }
-#endif
-    return QByteArray();
-}
+//     return exactMass;
+// }

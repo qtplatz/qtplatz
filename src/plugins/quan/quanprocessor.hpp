@@ -28,6 +28,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace adcontrols { class QuanSequence; class QuanSample;  class ProcessMethod; class QuanCalibration; }

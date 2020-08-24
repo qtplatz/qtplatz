@@ -935,7 +935,7 @@ DataReader::getSpectrum( int64_t rowid ) const
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
-DataReader::readSpectrum( const_iterator& it ) const
+DataReader::readSpectrum( const const_iterator& it ) const
 {
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );

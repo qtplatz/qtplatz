@@ -27,7 +27,7 @@
 #include "quanchromatograms.hpp"
 #include "quanchromatogramprocessor.hpp"
 #include "quandatawriter.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -125,7 +125,7 @@ QuanSampleProcessor::dryrun()
 
             file->accept( subscribe );
 
-            size_t n = 0;            
+            size_t n = 0;
             if ( subscribe.raw && subscribe.raw->db() ) {
                 adfs::stmt sql( *subscribe.raw->db() );
                 sql.prepare( "SELECT COUNT(*) FROM AcquiredData GROUP BY fcn" );
@@ -149,7 +149,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
         path_ = sample.dataSource();
         open();
-        
+
         switch ( sample.dataGeneration() ) {
 
         case adcontrols::QuanSample::GenerateChromatogram:
@@ -161,7 +161,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
                     (*chromatogram_processor)( *this, sample, writer, progress_ );
                     writer->insert_table( sample ); // once per sample
-                    
+
                 } else {
                     ADDEBUG() << "data file version 2 or earlier versions not supported";
                 }
@@ -186,10 +186,10 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) {
                     if ( (*progress_)() )
                         return false;
-                    auto file = processIt( sample, ms, writer.get(), false );       
+                    auto file = processIt( sample, ms, writer.get(), false );
                     writer->insert_table( sample );
                     sample.results().clear();
-                } 
+                }
             }
             break;
         case adcontrols::QuanSample::ASIS:
@@ -210,10 +210,13 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 }
             } while ( 0 );
             break;
+        case adcontrols::QuanSample::Spectrogram:
+            // do nothing
+            break;
         }
         processor_->complete( &sample );
     }
-    QuanDocument::instance()->sample_processed( this );
+    document::instance()->sample_processed( this );
     return true;
 }
 
@@ -258,7 +261,7 @@ QuanSampleProcessor::fetch( portfolio::Folium& folium )
     return true;
 }
 
-size_t 
+size_t
 QuanSampleProcessor::read_first_spectrum( const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms, uint32_t tidx )
 {
     size_t pos = 0;
@@ -267,7 +270,7 @@ QuanSampleProcessor::read_first_spectrum( const adcontrols::LCMSDataset * raw, a
     } else {
         pos = raw->find_scan( tidx, -1 );
     }
-    
+
     int idx, fcn, rep;
     if ( raw->index( pos, idx, fcn, rep ) ) {
         assert( fcn == 0 );
@@ -285,14 +288,14 @@ QuanSampleProcessor::read_first_spectrum( const adcontrols::LCMSDataset * raw, a
     return 0;
 }
 
-size_t 
+size_t
 QuanSampleProcessor::read_next_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms )
 {
     int idx, fcn, rep;
     while ( raw->index( pos, idx, fcn, rep ) && (fcn != 0 || rep != 0) ) // find next protocol=0 aligned data
         ++pos;
     if ( fcn == 0 && rep == 0 ) {
-        if ( raw->index( pos + 1, idx, fcn, rep ) ) 
+        if ( raw->index( pos + 1, idx, fcn, rep ) )
             ++pos;
         if ( raw->getSpectrum( -1, pos, ms ) ) {
             while ( raw->index( pos + 1, idx, fcn, rep ) && fcn == 0 ) {
@@ -306,11 +309,11 @@ QuanSampleProcessor::read_next_spectrum( size_t pos, const adcontrols::LCMSDatas
     return 0;
 }
 
-size_t 
+size_t
 QuanSampleProcessor::read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms )
 {
     int idx, fcn, rep;
-    while ( raw->index( pos, idx, fcn, rep ) && fcn != 0 )  // skip until 'fcn = 0' data 
+    while ( raw->index( pos, idx, fcn, rep ) && fcn != 0 )  // skip until 'fcn = 0' data
         ++pos;
     if ( raw->getSpectrum( -1, pos, ms ) ) // read all corresponding segments
         return pos + 1;
@@ -318,7 +321,7 @@ QuanSampleProcessor::read_raw_spectrum( size_t pos, const adcontrols::LCMSDatase
 }
 
 
-bool 
+bool
 QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
                                         , const adcontrols::QuanSample& sample
                                         , adcontrols::MassSpectrum& ms )
@@ -394,14 +397,14 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                         doMSLock( pkInfo, centroid, *lkMethod, *pCompounds );
                 }
             }
-            
+
             // Look up compounds
             if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
                 if ( auto pTgtMethod = procmethod_->find< adcontrols::TargetingMethod >() ) {
                     doMSFind( pkInfo, centroid, sample, *pCompounds, *pTgtMethod );
                 }
             }
-            
+
             if ( bSerialize ) {
                 adcontrols::MassSpectrum * pProfile = &profile;
                 adcontrols::MassSpectrum * pFiltered = (filtered.size() > 0 ) ? &filtered : 0;
@@ -435,12 +438,12 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
 
                     for ( auto& resp: sample.results() )
                         resp.setDataGuid( file.name() );
-                    
+
                     if ( pFiltered )
                         writer->attach<adcontrols::MassSpectrum>( file, *pFiltered, dataproc::Constants::F_DFT_FILTERD );
-                    
+
                     auto afile = writer->attach< adcontrols::MassSpectrum >( file, *pCentroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-                    
+
                     writer->attach< adcontrols::ProcessMethod >( afile, *procmethod_, L"ProcessMethod" );
                     writer->attach< adcontrols::MSPeakInfo >( file, *pPkInfo, dataproc::Constants::F_MSPEAK_INFO );
                     writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
@@ -460,21 +463,21 @@ QuanSampleProcessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
 {
     adcontrols::CentroidProcess peak_detector;
     bool result = false;
-    
+
     res.clone( profile, false );
-    
+
     if ( peak_detector( m, profile ) ) {
         result = peak_detector.getCentroidSpectrum( res );
         pkInfo = peak_detector.getPeakInfo();
     }
-    
+
     if ( profile.numSegments() > 0 ) {
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
             auto centroid = std::make_shared< adcontrols::MassSpectrum >();
             result |= peak_detector( profile.getSegment( fcn ) );
             pkInfo.addSegment( peak_detector.getPeakInfo() );
             peak_detector.getCentroidSpectrum( *centroid );
-            res << std::move( centroid ); 
+            res << std::move( centroid );
         }
     }
     return result;
@@ -489,7 +492,7 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
     // find reference peak by mass window
     adcontrols::lockmass::mslock mslock;
 
-    // TODO: consider how to handle segmented spectrum -- current impl is always process first 
+    // TODO: consider how to handle segmented spectrum -- current impl is always process first
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
 
     for ( auto& compound : compounds ) {
@@ -531,18 +534,18 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
             ++fcn;
             continue;
         }
-        
+
         auto& info = vPkInfo[ fcn ];
         adcontrols::MSFinder find( tolerance, adcontrols::idFindLargest, adcontrols::idToleranceDaltons );
-        
+
         for ( auto& compound : compounds ) {
             adcontrols::QuanResponse resp;
-            
+
             double exactMass = cformula_->getMonoIsotopicMass( compound.formula() );
-            
+
             size_t idx = find( fms, exactMass );
             if ( idx != adcontrols::MSFinder::npos ) {
-                
+
                 resp.uuid_cmpd( compound.uuid() );
                 resp.uuid_cmpd_table( compounds.uuid() );
                 resp.formula( compound.formula() );
@@ -556,7 +559,7 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
                 using adcontrols::annotation;
                 annotation anno( resp.formula(), resp.mass_, resp.intensity_, resp.idx_, resp.intensity_, annotation::dataFormula );
                 fms.get_annotations() << anno;
-                
+
                 (info.begin() + idx)->formula( resp.formula() );
 
                 sample << resp;
@@ -566,4 +569,3 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
     }
     return false;
 }
-

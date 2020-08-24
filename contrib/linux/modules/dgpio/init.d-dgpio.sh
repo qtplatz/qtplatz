@@ -23,7 +23,7 @@ case "$1" in
 
     restart)
         /sbin/rmmod dgpio
-        /sbin/modprobe dgpio.ko
+        /sbin/modprobe dgpio
         exit 0
     ;;
 
@@ -32,5 +32,3 @@ case "$1" in
         exit 0
     ;;
 esac
-
-

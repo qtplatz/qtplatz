@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,68 +27,16 @@
 #include "client.hpp"
 #include "request.hpp"
 #include <string>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <adportable/debug.hpp>
-
-#if 0 // todo
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/qi.hpp>
-
-namespace adurl {
-
-    namespace qi = boost::spirit::qi;
-    namespace ascii = boost::spirit::ascii;
-
-    struct url {
-        std::string protocol;
-        std::string address;
-        std::string port;
-        std::string path;
-        url() {}
-        url( const url& t ) : protocol( t.protocol )
-                            , address( t.address )
-                            , port( t.port )
-                            , path( t.path ) {
-        }
-    };
-}
-
-// this has to be a global scope
-BOOST_FUSION_ADAPT_STRUCT(
-    adurl::url,
-    (std::string, protocol)
-    (std::string, address)
-    (std::string, port)
-    (std::string, path)
-    )
-
-namespace adurl {
-
-    template< typename Iterator >
-    struct url_parser : boost::spirit::qi::grammer< Iterator, url() > {
-
-        url_parser() : url_parser::base_type( start ) {
-            using qi::lit;
-            using qi::lexeme;
-
-            //string %= (+(char_))
-            string = ( +( char_ ) );
-
-            start %= string_
-                >> lit("://")
-                >> string_ >> (":") >> string_
-        }
-
-        qi::rule< Iterator, std::string() > string; //protocol, address, port, path;
-        boost::spirit::qi::rule< Iterator, url_type() > start;
-    };
-}
-#endif
 
 namespace adurl {
     std::string server_port_string( const std::string& server, const std::string& port ) {
@@ -113,86 +61,47 @@ ajax::ajax( const std::string& server
 }
 
 
-// url := 'http://www.qtplatz.com:8080/foo/bar'
-bool
+//url := 'http://www.qtplatz.com:8080/foo/bar'
+//target := '/dg/ctl$status.json'
+//bool
+boost::optional< boost::beast::http::response< boost::beast::http::string_body > >
 ajax::operator()( const std::string& method
-                  , const std::string& url
+                  , const std::string& target // url
                   , const std::string& mimeType )
 {
-    auto request = std::make_unique< boost::asio::streambuf >();
-    std::ostream request_stream ( request.get() );
+    namespace http = boost::beast::http;
+    const auto verb = boost::beast::http::string_to_verb( method ); //== "GET" ? http::verb::get : http::verb::post;
 
-    request_stream << method << " " << request::url_encode( url ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server_port_string( server_, port_ ) << "\r\n";
-    request_stream << "Accept: */*\r\n";
-    request_stream << "Connection: close\r\n";
-    request_stream << "Content-Type: " << mimeType << "\r\n";  //"Content-Type: application/json\r\n";
-    request_stream << "\r\n";
+    http::request< boost::beast::http::empty_body > req{ verb, target, 11 };
+    req.set( http::field::host, server_ );
+    req.set( http::field::user_agent, BOOST_BEAST_VERSION_STRING );
+    req.set( http::field::content_type, mimeType );
 
     boost::asio::io_service io_service;
-    adurl::client client( io_service, std::move( request ), server_, port_ );
-
-    io_service.run();
-
-    status_code_ = client.status_code();
-    status_message_ = std::move( client.status_message_ );
-
-    response_header_ = std::string( (std::istreambuf_iterator<char>(&client.response_header())), std::istreambuf_iterator<char>() );
-
-    if ( status_code_ == 200 )
-        response_ = std::move( client.response_ );
-
-    if ( adurl::client::debug_mode() ) {
-        ADDEBUG() << "\n-----------------------------------"
-                  << "\n" << &client.response_header()
-                  << "\nstatus_code: " << status_code_ << ", " << status_message_
-                  << "\n-----------------------------------";
-    }
-
-    return client.error() == adurl::client::NoError && client.status_code() == 200;
+    return adurl::client( io_service )( server_, port_, std::move( req ) );
 }
 
-bool
+boost::optional< boost::beast::http::response< boost::beast::http::string_body > >
 ajax::operator()( const std::string& method
                   , const std::string& url
-                  , const std::string& body
+                  , std::string&& body
                   , const std::string& mimeType )
 {
-    auto request = std::make_unique< boost::asio::streambuf >();
-    std::ostream request_stream ( request.get() );
+    namespace http = boost::beast::http;
+    const auto verb = boost::beast::http::string_to_verb( method ); //== "GET" ? http::verb::get : http::verb::post;
 
-    if ( method == "GET" )
-        request_stream << "GET " << request::url_encode( url ) << "?" << body << " HTTP/1.0\r\n";
-    else
-        request_stream << method << " " << request::url_encode( url ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server_port_string( server_, port_ ) << "\r\n";
-    request_stream << "Accept: */*\r\n";
-    request_stream << "Connection: close\r\n";
-    request_stream << "Content-Type: " << mimeType << "\r\n";  //"Content-Type: application/json\r\n";
-    request_stream << "Content-Length: " << body.size() << "\r\n";
-    request_stream << "\r\n";
-    request_stream << body << "\r\n";
-
+    //http::request< boost::beast::http::string_body > req{ verb, url, 11 };
+    //req.body() = body;
+    boost::beast::http::request<boost::beast::http::string_body> req{
+        std::piecewise_construct,
+        std::make_tuple(std::move(body)),
+        std::make_tuple(verb, url, 11)};
+    req.set( http::field::host, server_ );
+    req.set( http::field::user_agent, BOOST_BEAST_VERSION_STRING );
+    req.set( http::field::content_type, mimeType );
+    req.prepare_payload();
     boost::asio::io_service io_service;
-    adurl::client client( io_service, std::move( request ), server_, port_ );
-
-    io_service.run();
-
-    status_code_ = client.status_code();
-    status_message_ = std::move( client.status_message_ );
-
-    response_header_ = std::string( (std::istreambuf_iterator<char>(&client.response_header())), std::istreambuf_iterator<char>() );
-
-    if ( status_code_ == 200 )
-        response_ = std::move( client.response_ );
-
-    if ( adurl::client::debug_mode() ) {
-        ADDEBUG() << "\n-----------------------------------"
-                  << "\n" << &client.response_header()
-                  << "\nstatus_code: " << status_code_ << ", " << status_message_
-                  << "\n-----------------------------------";
-    }
-    return client.error() == adurl::client::NoError && client.status_code() == 200;
+    return adurl::client( io_service )( server_, port_, std::move( req ) );
 }
 
 unsigned int

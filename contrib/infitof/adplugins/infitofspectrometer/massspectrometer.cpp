@@ -24,9 +24,10 @@
 
 #include "massspectrometer.hpp"
 #include "constants.hpp"
-#include <multumcontrols/scanlaw.hpp>
-#include <multumcontrols/infitof.hpp>
-#include <multumcontrols/orbitprotocol.hpp>
+#include <admtcontrols/scanlaw.hpp>
+#include <admtcontrols/infitof.hpp>
+#include <admtcontrols/orbitprotocol.hpp>
+#include <infitofcontrols/constants.hpp>
 #include <infitofcontrols/method.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
@@ -56,7 +57,7 @@ MassSpectrometer::~MassSpectrometer()
 {
 }
 
-MassSpectrometer::MassSpectrometer() : scanLaw_( std::make_unique< multumcontrols::infitof::ScanLaw >() )
+MassSpectrometer::MassSpectrometer() : scanLaw_( std::make_unique< admtcontrols::infitof::ScanLaw >() )
 {
 }
 
@@ -70,12 +71,12 @@ std::shared_ptr< adcontrols::ScanLaw >
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 {
     if ( scanLaw_ ) {
-        auto ptr = std::make_shared< multumcontrols::ScanLaw >( *scanLaw_ );
+        auto ptr = std::make_shared< admtcontrols::ScanLaw >( *scanLaw_ );
         ptr->setAcceleratorVoltage( prop.acceleratorVoltage() );
         ptr->setTDelay( prop.tDelay() );
         return ptr;
     } else {
-        return std::make_shared< multumcontrols::infitof::ScanLaw >( prop.acceleratorVoltage(), prop.tDelay() );
+        return std::make_shared< admtcontrols::infitof::ScanLaw >( prop.acceleratorVoltage(), prop.tDelay() );
     }
 }
 
@@ -83,7 +84,7 @@ void
 MassSpectrometer::setAcceleratorVoltage( double acclVoltage, double tDelay )
 {
     if ( !scanLaw_ ) {
-        scanLaw_ = std::make_unique< multumcontrols::infitof::ScanLaw >( acclVoltage, tDelay );
+        scanLaw_ = std::make_unique< admtcontrols::infitof::ScanLaw >( acclVoltage, tDelay );
     } else {
         scanLaw_->setAcceleratorVoltage( acclVoltage );
         scanLaw_->setTDelay( tDelay );
@@ -99,7 +100,7 @@ MassSpectrometer::massSpectrometerName() const
 const boost::uuids::uuid&
 MassSpectrometer::massSpectrometerClsid() const
 {
-    static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
+    static boost::uuids::uuid uuid = ::infitof::iids::uuid_massspectrometer;  // boost::uuids::string_generator()( clsid_text );
     return uuid;
 }
 
@@ -202,7 +203,7 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
         LE = sql.get_column_value<double>(row++);
     }
 
-    scanLaw_ = std::make_unique< multumcontrols::ScanLaw >( acceleratorVoltage_
+    scanLaw_ = std::make_unique< admtcontrols::ScanLaw >( acceleratorVoltage_
                                                             , tDelay_
                                                             , L1, L2, L3, LG, L4, LT, LE );
 
@@ -218,7 +219,7 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
 
         while ( sql.step() == adfs::sqlite_row ) {
             scanLaws_.emplace_back( sql.get_column_value< int64_t >( 0 )
-                                    , std::make_unique< multumcontrols::ScanLaw >( sql.get_column_value< double >( 2 )
+                                    , std::make_unique< admtcontrols::ScanLaw >( sql.get_column_value< double >( 2 )
                                                                                    , sql.get_column_value< double >( 1 )
                                                                                    , L1, L2, L3, LG, L4, LT, LE ) );
         }
@@ -278,8 +279,17 @@ bool
 MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) const
 {
     auto mode = ms.mode();
+    (void)mode;
     auto scanlaw = scanLaw( rowid );
     return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
+}
+
+double
+MassSpectrometer::assignMass( double time, int mode ) const
+{
+    if ( scanLaw_ )
+        return scanLaw_->getMass( time, mode );
+    return 0;
 }
 
 const char *

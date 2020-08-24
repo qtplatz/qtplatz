@@ -84,6 +84,7 @@
 #include <date/date.h>
 #include <extensionsystem/pluginmanager.h>
 #include <qtwrapper/settings.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -301,9 +302,9 @@ namespace accutof { namespace acquire {
             bool pkdSpectrumEnabled_;
             bool longTermHistogramEnabled_;
 
-            boost::asio::io_service io_context_;
+            boost::asio::io_context io_context_;
             boost::asio::steady_timer timer_;
-            std::unique_ptr< adurl::sse > sse_;
+            std::unique_ptr< adurl::sse_handler > sse_;
             std::unique_ptr< adurl::blob > blob_;
             std::vector< std::thread > threads_;
             bool hasDark_;
@@ -322,7 +323,7 @@ namespace accutof { namespace acquire {
                                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                , QLatin1String( "accutof" ) ) )
                    , timer_( io_context_ )
-                   , sse_( std::make_unique< adurl::sse >( io_context_ ) )
+                   , sse_( std::make_unique< adurl::sse_handler >( io_context_ ) )
                    , blob_( std::make_unique< adurl::blob >( io_context_ ) )
                    , hasDark_( false ) {
 
@@ -589,8 +590,11 @@ void
 document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm )
 {
     // make empty que
-    while( auto sample = adacquire::task::instance()->deque() )
-        ;
+    while( auto sample = adacquire::task::instance()->deque() ) {
+        ADDEBUG() << "##### self use count: " << sample.use_count();
+        sample->close( true ); // async (detach)
+        ADDEBUG() << "##### self use count: " << sample.use_count();
+    }
 
     // push new sample
     adacquire::task::instance()->prepare_next_sample( run, cm );
@@ -801,7 +805,7 @@ document::finalClose()
 
     // make empty que
     while( auto sample = adacquire::task::instance()->deque() )
-        ;
+        sample->close( false ); // sync
 
     task::instance()->finalize();
 
@@ -1467,7 +1471,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
             sql.bind( 5 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer );
             sql.bind( 6 ) = accutof::spectrometer::iids::uuid_massspectrometer;
 
-            ADDEBUG() << "initStorage acceleratorVoltage: " << sp->acceleratorVoltage() << ", " << sp->tDelay() << ", " << uuid;
+            // ADDEBUG() << "initStorage acceleratorVoltage: " << sp->acceleratorVoltage() << ", " << sp->tDelay() << ", " << uuid;
 
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << "sqlite error";
@@ -1548,7 +1552,7 @@ document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
         // counting peaks
         if ( uuid == boost::uuids::uuid{{ 0 }} ) {
             acqrscontrols::pkd_counting_data_writer::prepare_storage( sp.filesystem() );
-        };
+        }
 
         return true;
     }
@@ -1559,10 +1563,9 @@ document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
 bool
 document::impl::closingStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
-
+    // ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
     if ( uuid == boost::uuids::uuid{{ 0 }} ) {
-        // auto& fs = sp.filesystem();
+        ADDEBUG() << "## " << __FUNCTION__ << " " << boost::filesystem::path( sp.filesystem().filename() ).stem().string();
     }
     return true;
 }
@@ -1714,10 +1717,9 @@ document::massSpectrometer() const
 void
 document::progress( double elapsed_time, std::shared_ptr< const adcontrols::SampleRun >&& sampleRun )
 {
-    double method_time = sampleRun->methodTime();
-    QString runName = QString::fromStdWString( sampleRun->filePrefix() );
-    ADDEBUG() << __FUNCTION__ << " runName: " << runName.toStdString() << ", method time: " << method_time;
-    // emit sampleProgress( elapsed_time, method_time, runName, sampleRun->runCount() + 1, sampleRun->replicates() );
+    // double method_time = sampleRun->methodTime();
+    // QString runName = QString::fromStdWString( sampleRun->filePrefix() );
+    //ADDEBUG() << __FUNCTION__ << " runName: " << runName.toStdString() << ", method time: " << method_time;
 }
 
 void

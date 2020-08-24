@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC
+** Copyright (C) 2016-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -36,86 +36,88 @@
 #include <string>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/asio.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/bind.hpp>
-
-namespace adurl {
-
-    static boost::asio::ip::tcp::resolver::query make_query( const std::string& server )
-    {
-        auto sep = server.find( ':' );
-        if ( sep != std::string::npos ) {
-            return boost::asio::ip::tcp::resolver::query( server.substr( 0, sep ), server.substr( sep + 1 ) );
-        } else {
-            return boost::asio::ip::tcp::resolver::query( server, "http" );
-        }
-    }
-
-    static boost::asio::ip::tcp::resolver::query make_query( const std::string& server, const std::string& port )
-    {
-        auto sep = server.find( ':' );
-        if ( sep != std::string::npos ) {
-            return boost::asio::ip::tcp::resolver::query( server.substr( 0, sep ), port );
-        } else {
-            return boost::asio::ip::tcp::resolver::query( server, port );
-        }
-    }
-    
-}
 
 using boost::asio::ip::tcp;
 using namespace adurl;
 
 bool client::debug_mode_ = false;
 
+client::client( boost::asio::io_service& io_service ) : resolver_(io_service)
+                                                      , socket_(io_service)
+{
+}
+
+// client::client( boost::asio::io_service& io_service
+//                 , const std::string& server
+//                 , const std::string& port )  : resolver_(io_service)
+//                                              , socket_(io_service)
+//                                              , status_code_( 0 )
+//                                              , error_( NoError )
+//                                              , event_stream_( false )
+//                                              , server_( server )
+// {
+//     resolver_.async_resolve( server
+//                              , port
+//                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
+//                                  handle_resolve( err, endpoint_iterator );
+//                              });
+// }
+
+// for backword compatibility
 client::client( boost::asio::io_service& io_service
                 , const std::string& path
                 , const std::string& server
                 , const std::string& port )  : resolver_(io_service)
                                              , socket_(io_service)
-                                             , request_( std::make_unique< boost::asio::streambuf >() )
-                                             , response_( std::make_unique< boost::asio::streambuf >() )
+                                             , request_( std::make_unique< boost::asio::streambuf >() ) // deprecated
+                                             , response_( std::make_unique< boost::asio::streambuf >() ) // deprecated
                                              , status_code_( 0 )
                                              , error_( NoError )
                                              , event_stream_( false )
                                              , server_( server )
 {
-    // Form the request. We specify the "Connection: close" header so that the
-    // server will close the socket after transmitting the response. This will
-    // allow us to treat all data up until the EOF as the content.
-
+#if ENABLE_BEAST
+    boost::beast::http::request< boost::beast::http::empty_body > req{ boost::beast::http::verb::get, path, 11 };
+    req.set( boost::beast::http::field::host, server );
+    req.set( boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING );
+    //req_ = req;
+    //io_service.run();
+#else
     std::ostream request_stream( request_.get() );
 
     request_stream << "GET " << path << " HTTP/1.0\r\n";
     request_stream << "Host: " << server << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
+#endif
 
-    tcp::resolver::query query = make_query( server, port );
-
-    resolver_.async_resolve( query
+    resolver_.async_resolve( server
+                             , port
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
                                  handle_resolve( err, endpoint_iterator );
                              });
 }
+
 
 client::client(boost::asio::io_service& io_service
                , std::unique_ptr< boost::asio::streambuf >&& request
                , const std::string& server
                , const std::string& port )  : resolver_( io_service )
                                             , socket_( io_service )
-                                            , request_( std::move( request ) )
-                                            , response_( std::make_unique< boost::asio::streambuf >() )
                                             , status_code_( 0 )
                                             , error_( NoError )
                                             , server_( server )
 {
-    tcp::resolver::query query = make_query( server, port );
-
-    resolver_.async_resolve( query
-                             , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
+    resolver_.async_resolve( server
+                             , port
+                             , [&]( const boost::system::error_code& err
+                                    , tcp::resolver::iterator endpoint_iterator ){
                                  handle_resolve( err, endpoint_iterator );
-                             });                             
+                             });
 }
+
 
 void
 client::setDebug_mode( bool mode )
@@ -170,22 +172,21 @@ client::handle_resolve(const boost::system::error_code& err,
                        tcp::resolver::iterator endpoint_iterator )
 {
     if ( !err )  {
-
         tcp::endpoint endpoint = *endpoint_iterator;
+
+        if ( debug_mode_ )
+            ADDEBUG() << "handle_resolve " << err << "\tendpoint: " <<endpoint;
+
         auto next = ++endpoint_iterator;
-        
-        socket_.async_connect( endpoint, [=]( const boost::system::error_code& ec ) {
-                handle_connect( ec, next );
-            });
-
+        socket_.async_connect( endpoint
+                               , [=]( const boost::system::error_code& ec ) {
+                                   handle_connect( ec, next );
+                               });
     } else {
-
         error_ = Error;
         status_message_ = err.message();
-        
         if ( debug_mode_ )
-            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
-
+            ADDEBUG() << "server resolve for [" << server_ << "] " << err.message();
     }
 }
 
@@ -195,27 +196,39 @@ client::handle_connect(const boost::system::error_code& err,
 {
     error_code_ = err;
 
-    if (!err)  {
+    ADDEBUG() << __FUNCTION__ << ": " << error_code_;
 
+    if ( !err )  {
+#if ENABLE_BEAST
+        if ( req_ ) {
+            boost::beast::http::async_write( socket_
+                                             , req_.get()
+                                             , [&]( const boost::system::error_code& ec, size_t ) {
+                                                 handle_write_request( ec );
+                                             } );
+        }
+#else
         // The connection was successful. Send the request.
         boost::asio::async_write( socket_
                                   , *request_
                                   , [&]( const boost::system::error_code& ec, size_t ) { handle_write_request( ec ); } );
+#endif
 
     } else if (endpoint_iterator != tcp::resolver::iterator()) {
-        
+
         // The connection failed. Try the next endpoint in the list.
         socket_.close();
         tcp::endpoint endpoint = *endpoint_iterator;
         auto next = ++endpoint_iterator;
 
         socket_.async_connect( endpoint, [=]( const boost::system::error_code& ec ) {
-                handle_connect( ec, next );
-            });
-        
+            handle_connect( ec, next );
+        });
+
     } else {
 
         error_ = Error;
+
         if ( debug_mode_ )
             ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
@@ -224,36 +237,46 @@ client::handle_connect(const boost::system::error_code& err,
 void
 client::handle_write_request(const boost::system::error_code& err)
 {
-    error_code_ = err;    
+    error_code_ = err;
+    ADDEBUG() << "******************* " << __FUNCTION__ << ": " << err;
 
     if (!err) {
+#if ENABLE_BEAST
+        boost::beast::http::async_read( socket_, buffer_, res_
+                                        , [&]( const boost::system::error_code& ec, size_t ) {
+                                            status_code_ = res_.result_int();
+                                            // handle_read_status_line( ec );
+                                        });
+
+#else
         // Read the response status line.
         boost::asio::async_read_until(socket_, *response_, "\r\n"
                                       , [&]( const boost::system::error_code& ec, size_t ) {
                                           handle_read_status_line( ec );
                                       });
-
+#endif
     } else {
-
         error_ = Error;
         if ( debug_mode_ )
             ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
+#if ! ENABLE_BEAST
 void
 client::handle_read_status_line( const boost::system::error_code& err )
 {
     error_code_ = err;
 
     if ( !err )  {
+        ADDEBUG() << "--------------------------------\n" << response_.get() << "\n-----------------------------";
 
         // Check that response is OK.
         std::istream response_stream( response_.get() );
         response_stream >> http_version_;
         response_stream >> status_code_;
         std::getline( response_stream, status_message_ );
-        
+
         if ( !response_stream || http_version_.substr(0, 5) != "HTTP/")  {
             error_ = Error;
             ADDEBUG() << "Invalid response";
@@ -263,22 +286,22 @@ client::handle_read_status_line( const boost::system::error_code& err )
         if ( status_code_ != 200 )  {
             error_ = Error;
             ADDEBUG() << "[" << server_ << "] Response returned with status code " << status_code_;
-            return;
         }
-        
+
         // Read the response headers, which are terminated by a blank line.
         boost::asio::async_read_until( socket_, *response_, "\r\n\r\n"
                                        , [&]( const boost::system::error_code& ec, size_t ) {
                                            handle_read_headers( ec );
-                                       });        
+                                       });
     } else  {
-
         error_ = Error;
         if ( debug_mode_ )
             ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
+#endif
 
+#if ! ENABLE_BEAST
 void
 client::handle_read_headers(const boost::system::error_code& err)
 {
@@ -314,7 +337,7 @@ client::handle_read_headers(const boost::system::error_code& err)
                                      , boost::asio::transfer_at_least(1)
                                      , [&]( const boost::system::error_code& ec, size_t ) { handle_read_content( ec ); });
         }
-            
+
     } else {
 
         error_ = Error;
@@ -322,19 +345,19 @@ client::handle_read_headers(const boost::system::error_code& err)
             ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
+#endif
 
-
+#if ! ENABLE_BEAST
 void
 client::handle_read_content(const boost::system::error_code& err)
 {
     if ( !err ) {
-
         // Continue reading remaining data until EOF.
         boost::asio::async_read( socket_
                                  , *response_
                                  , boost::asio::transfer_at_least(1)
                                  , [&]( const boost::system::error_code& ec, size_t ) { handle_read_content( ec ); });
-        
+
     } else if (err != boost::asio::error::eof) {
 
         error_ = Error;
@@ -342,7 +365,9 @@ client::handle_read_content(const boost::system::error_code& err)
             ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
+#endif
 
+#if ! ENABLE_BEAST
 void
 client::handle_read_stream( const boost::system::error_code& ec )
 {
@@ -366,7 +391,7 @@ client::handle_read_stream( const boost::system::error_code& ec )
                                        , *response_
                                        , "\r\n\r\n"
                                        , [&]( const boost::system::error_code& ec, size_t ) { handle_read_stream( ec ); });
-        
+
     } else if ( ec != boost::asio::error::eof ) {
 
         error_ = Error;
@@ -374,3 +399,4 @@ client::handle_read_stream( const boost::system::error_code& ec )
             ADDEBUG() << "[" << server_ << "] Error: " << ec;
     }
 }
+#endif

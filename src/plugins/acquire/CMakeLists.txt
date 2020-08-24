@@ -9,7 +9,6 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Threads REQUIRED )
 
-#QT += core svg printsupport widgets
 find_package( Qt5 REQUIRED Core Gui PrintSupport Sql Svg Widgets )
 
 find_package( qwt )
@@ -34,7 +33,10 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   )
 
 if (WIN32)
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+  add_definitions(
+    -D_SCL_SECURE_NO_WARNINGS
+    -DACQUIRE_LIBRARY
+    )
 endif()
 
 include_directories(
@@ -68,10 +70,6 @@ add_library( ${PROJECT_NAME} MODULE
   waveformwnd.hpp
   idgmodimpl.cpp
   idgmodimpl.hpp
-#  isequenceimpl.cpp
-#  isequenceimpl.hpp
-#  resultwriter.cpp
-#  resultwriter.hpp
   ${Resources}
   )
 

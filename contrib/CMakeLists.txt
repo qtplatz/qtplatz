@@ -14,11 +14,6 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM AND AqMD3_FOUND )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  # message( STATUS "------------ contrib/multum ----------------" )
-  add_subdirectory( multum )
-endif()
-
-if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( infitof )
 endif()
 
@@ -28,6 +23,11 @@ endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( socfpga )
+endif()
+
+if ( WITH_Wolfram AND NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+  message( STATUS "------------ Wolfram ----------------" )
+  add_subdirectory( wolfram )
 endif()
 
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )

@@ -538,6 +538,8 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
             // should not be here
         } else if ( procType == PeakFindProcess ) {
             selector.append< adcontrols::PeakMethod >( method );
+        } else if ( procType == MSChromatogrProcess ) {
+            // this is done in MainWindow::handleProcess
         }
 
         adutils::ProcessedData::value_type data
@@ -1146,7 +1148,7 @@ DataprocessorImpl::applyMethod( Dataprocessor *
                                 , const adcontrols::TargetingMethod& m )
 {
     ADDEBUG() << "doSpectraolProcess -- Targeting";
-    
+
     if ( auto fCentroid = portfolio::find_first_of(
              folium.attachments()
              , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; }) ) {

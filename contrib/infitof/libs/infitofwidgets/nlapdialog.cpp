@@ -24,8 +24,9 @@
 
 #include "nlapdialog.hpp"
 #include "scanlawform.hpp"
-#include <multumcontrols/scanlaw.hpp>
-#include <multumcontrols/infitof.hpp>
+#include <admtcontrols/scanlaw.hpp>
+#include <admtcontrols/infitof.hpp>
+#include <adwidgets/moltablehelper.hpp>
 #include <adwidgets/moltableview.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adcontrols/mspeak.hpp>
@@ -64,7 +65,7 @@ namespace infitofwidgets {
     class nLapDialog::impl {
     public:
         enum columns { c_id, c_formula, c_matched_mass, c_time, c_mode, c_error };
-        
+
         impl() : model1busy_( false )
                , model_( std::make_unique< QStandardItemModel >() )
                , model2_( std::make_unique< QStandardItemModel >() )  {
@@ -91,7 +92,7 @@ namespace infitofwidgets {
         std::unique_ptr< QStandardItemModel > model2_;
         boost::uuids::uuid spectrometer_uuid_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
-        std::shared_ptr< multumcontrols::ScanLaw > scanlaw_;
+        std::shared_ptr< admtcontrols::ScanLaw > scanlaw_;
     };
 
     class nLapDialog_archive {
@@ -154,7 +155,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
                  if ( _1.column() == impl::c_formula ) {
                      QSignalBlocker block( impl_->model_.get() );
                      double matchedMass = impl_->model_->index( _1.row(), impl::c_matched_mass ).data( Qt::EditRole ).toDouble();
-                     double exactMass = adwidgets::MolTableView::getMonoIsotopicMass( _1.data( Qt::EditRole ).toString() );
+                     double exactMass = adwidgets::MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
                      double error = ( exactMass - matchedMass ) * std::milli::den;
                      impl_->model_->setData( impl_->model_->index( _1.row(), impl::c_error ), error, Qt::EditRole );
                  }
@@ -168,7 +169,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
                  if ( ( _1.column() == impl::c_formula ) || ( _1.column() == impl::c_mode ) ) {
                      QSignalBlocker block( &model );
                      auto formula = model.index( _1.row(), impl::c_formula ).data( Qt::EditRole ).toString();
-                     double exactMass = adwidgets::MolTableView::getMonoIsotopicMass( formula );
+                     double exactMass = adwidgets::MolTableHelper::monoIsotopicMass( formula );
                      int mode = model.index( _1.row(), impl::c_mode ).data().toInt();
                      double tof = impl_->scanlaw_->getTime( exactMass, mode );
                      double mass = impl_->scanlaw_->getTime( exactMass, mode );
@@ -176,7 +177,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
                      model.setData( model.index( _1.row(), impl::c_time ), tof * std::micro::den, Qt::EditRole );
                  }
              } );
-    
+
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
         layout->setMargin(4);
@@ -187,7 +188,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
             auto moltable = new adwidgets::MolTableView();
             moltable->setObjectName( "peakTable" );
             moltable->setContextMenuHandler( [&]( const QPoint& pt ){ handlePeakTableMenu( pt ); } );
-            
+
             splitter1->addWidget( moltable );
             auto objtable = new adwidgets::MolTableView();
             objtable->setObjectName( "objText" );
@@ -205,9 +206,9 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
                 layout->addLayout( hLayout );
             }
         }
-            
+
         if ( auto table = findChild< adwidgets::MolTableView * >("peakTable" ) ) {
-            
+
             table->setModel( impl_->model_.get() );
             table->setColumnHidden( impl::c_id, true );
             table->setColumnField( impl::c_formula, adwidgets::ColumnState::f_formula, true, true ); // editable, checkable
@@ -216,7 +217,7 @@ nLapDialog::nLapDialog(QWidget *parent) : QDialog(parent)
 
             table->onInitialUpdate();
         }
-        
+
         if ( auto table = findChild< adwidgets::MolTableView * >( "objText" ) ) {
             table->setModel( impl_->model2_.get() );
             table->setColumnHidden( impl::c_id, true );
@@ -248,7 +249,7 @@ nLapDialog::~nLapDialog()
 }
 
 void
-nLapDialog::setScanLaw( std::shared_ptr< multumcontrols::ScanLaw > scanlaw )
+nLapDialog::setScanLaw( std::shared_ptr< admtcontrols::ScanLaw > scanlaw )
 {
     impl_->scanlaw_ = scanlaw;
 }
@@ -293,7 +294,7 @@ void
 nLapDialog::setOrbitalLength( double l )
 {
     if ( auto form = findChild< ScanLawForm * >() )
-        form->setOrbitalLength( l );    
+        form->setOrbitalLength( l );
 }
 
 double
@@ -301,13 +302,13 @@ nLapDialog::acceleratorVoltage() const
 {
     if ( auto form = findChild< ScanLawForm * >() )
         return form->acceleratorVoltage();
-    return 0;    
+    return 0;
 }
 
 double
 nLapDialog::tDelay() const
 {
-    if ( auto form = findChild< ScanLawForm * >() )    
+    if ( auto form = findChild< ScanLawForm * >() )
         return form->tDelay();
     return 0;
 }
@@ -315,7 +316,7 @@ nLapDialog::tDelay() const
 double
 nLapDialog::L1() const
 {
-    if ( auto form = findChild< ScanLawForm * >() )    
+    if ( auto form = findChild< ScanLawForm * >() )
         return form->L1();
     return 0;
 }
@@ -331,13 +332,13 @@ nLapDialog::addPeak( uint32_t id, const QString& formula, double time, double ma
 {
     auto row = impl_->model_->rowCount();
     auto& model = *impl_->model_;
-    
+
     impl_->model1busy_ = true;
 
     model.setRowCount( row + 1 );
     model.setData( model.index( row, impl::c_id ), id, Qt::EditRole );
     model.setData( model.index( row, impl::c_formula ), formula, Qt::EditRole );
-    double exact_mass = adwidgets::MolTableView::getMonoIsotopicMass( formula, "" );
+    double exact_mass = adwidgets::MolTableHelper::monoIsotopicMass( formula, "" );
     model.setData( model.index( row, impl::c_matched_mass), matchedMass, Qt::EditRole );
     model.setData( model.index( row, impl::c_time), time * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, impl::c_mode), mode );
@@ -363,12 +364,12 @@ nLapDialog::updateMasses()
 {
     auto scanlaw = impl_->scanlaw_;
     auto& model = *impl_->model_;
-    
+
     ADDEBUG() << "scanlaw: " << scanlaw->kAcceleratorVoltage() << ", " << scanlaw->tDelay() << "s";
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        using adwidgets::MolTableView;
-        double exactMass = MolTableView::getMonoIsotopicMass( model.index( row, impl::c_formula ).data( Qt::EditRole ).toString() );
+        using adwidgets::MolTableHelper;
+        double exactMass = MolTableHelper::monoIsotopicMass( model.index( row, impl::c_formula ).data( Qt::EditRole ).toString() );
         double time = model.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
         int mode = model.index( row, impl::c_mode ).data( Qt::EditRole ).toInt();
         double mass = scanlaw->getMass( time, mode );
@@ -400,12 +401,12 @@ nLapDialog::read( int row, adcontrols::MSPeaks& peaks ) const
 {
     const auto& m = *impl_->model_;
     const size_t rowCount = m.rowCount();
-    
+
     if ( 0 <= row && row < m.rowCount() ) {
 
         auto formula = m.index( row, impl::c_formula ).data( Qt::EditRole ).toString();
-        double exactMass = adwidgets::MolTableView::getMonoIsotopicMass( formula );
-    
+        double exactMass = adwidgets::MolTableHelper::monoIsotopicMass( formula );
+
         if ( exactMass > 0.7 ) {
             peaks << adcontrols::MSPeak( formula.toStdString()
                                          , m.index( row, impl::c_matched_mass ).data( Qt::EditRole ).toDouble()
@@ -416,7 +417,7 @@ nLapDialog::read( int row, adcontrols::MSPeaks& peaks ) const
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -426,14 +427,14 @@ nLapDialog::handleCopyToClipboard()
 	QString selected_text;
 
     nLapDialog_archive x( *this );
-    
+
 	selected_text.append( QString::number( acceleratorVoltage(), 'e', 14 ) );
 	selected_text.append( '\t' );
 	selected_text.append( QString::number( tDelay(), 'e', 14 ) );
 
 	QMimeData * md = new QMimeData();
 	md->setText( selected_text );
-    
+
     std::wostringstream os;
     try {
         boost::archive::xml_woarchive ar ( os );
@@ -486,7 +487,7 @@ nLapDialog::handlePeakTableMenu( const QPoint& pt )
                 formula_nlaps[ formula ].insert( nlaps );
             }
         }
-#endif        
+#endif
         // select checked
         for ( int row = 0; row < table->model()->rowCount(); ++row ) {
             if ( table->model()->index( row, impl::c_formula ).data( Qt::CheckStateRole ) == Qt::Checked ) {
@@ -501,7 +502,7 @@ nLapDialog::handlePeakTableMenu( const QPoint& pt )
     adcontrols::MSPeaks peaks1;
     for ( auto row: selected_rows )
         read( row, peaks1 );
-    
+
     QString list1, list2;
     for ( auto item: formula_nlaps )
         list1 += list1.isEmpty() ? item.first : QString( ", %1" ).arg( item.first );
@@ -516,7 +517,7 @@ nLapDialog::handlePeakTableMenu( const QPoint& pt )
 
     QString title1( tr( "Calibrate accelerator voltage using %1" ).arg( list1 ) );
     QString title2( tr( "Calibrate dimension using %1" ).arg( list2 ) );
-    
+
     menu.addAction( title1, [=](){ estimateAcceleratorVoltage( peaks1 ); } );
     menu.addAction( tr( "Add row" ), this, SLOT( handleAddRow() ) );
 
@@ -539,10 +540,10 @@ nLapDialog::estimateAcceleratorVoltage( const adcontrols::MSPeaks& peaks )
     double va(0), t0(0);
 
     if ( auto form = findChild< ScanLawForm * >() ) {
-        // using namespace multumcontrols::infitof;
+        // using namespace admtcontrols::infitof;
         using namespace infitof::Constants;
-        impl_->scanlaw_ = 
-            std::make_shared< multumcontrols::ScanLaw >(
+        impl_->scanlaw_ =
+            std::make_shared< admtcontrols::ScanLaw >(
                 form->acceleratorVoltage()
                 , form->tDelay() / std::micro::den
                 , form->L1()
@@ -555,8 +556,8 @@ nLapDialog::estimateAcceleratorVoltage( const adcontrols::MSPeaks& peaks )
     }
 
     auto& law = *impl_->scanlaw_;
-    
-    ADDEBUG() << "############# ACCL-V ##################################";        
+
+    ADDEBUG() << "############# ACCL-V ##################################";
 
     if ( peaks.size() == 1 ) {
 
@@ -574,7 +575,7 @@ nLapDialog::estimateAcceleratorVoltage( const adcontrols::MSPeaks& peaks )
         return true;
 
     } else if ( peaks.size() >= 2 ) {
-        
+
         std::vector<double> x, y, coeffs;
 
         for ( auto& pk : peaks ) {
@@ -591,7 +592,7 @@ nLapDialog::estimateAcceleratorVoltage( const adcontrols::MSPeaks& peaks )
             ADDEBUG() << "scanlaw: " << va << ", " << t0;
             law.setAcceleratorVoltage(va);
             law.setTDelay(t0);
-            
+
             if ( auto form = findChild< ScanLawForm * >() ) {
                 form->setAcceleratorVoltage(va);
                 form->setTDelay( t0 * std::micro::den );

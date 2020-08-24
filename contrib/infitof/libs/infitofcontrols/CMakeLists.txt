@@ -37,7 +37,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin
   adportable
   adcontrols
-  multumcontrols
+  admtcontrols
   ${Boost_LIBRARIES}
   )
 

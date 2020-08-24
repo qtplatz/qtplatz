@@ -25,7 +25,7 @@
 #include "quanreportwidget.hpp"
 #include "quanconnection.hpp"
 #include "quanconstants.hpp"
-#include "quandocument.hpp"
+#include "document.hpp"
 #include "quanpublisher.hpp"
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
@@ -101,7 +101,7 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
             xslt->addItems( list );
             toolBar->addWidget( xslt );
 
-            if ( auto settings = QuanDocument::instance()->settings_ptr() ) {
+            if ( auto settings = document::instance()->settings_ptr() ) {
                 auto lastfile = settings->value( "QuanReport/XSLFILE" ).toString();
                 if ( ! lastfile.isEmpty() ) {
                     int i = list.indexOf( lastfile );
@@ -124,13 +124,13 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
 
     layout_->addWidget( docBrowser_.get() );
     layout_->setStretch( 1, 10 );
-    QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    // QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 }
 
 void
-QuanReportWidget::onInitialUpdate( QuanDocument * d )
+QuanReportWidget::onInitialUpdate( document * d )
 {
-    connect( d, &QuanDocument::onConnectionChanged, this, &QuanReportWidget::handleConnectionChanged );
+    connect( d, &document::onConnectionChanged, this, &QuanReportWidget::handleConnectionChanged );
 }
 
 void
@@ -155,11 +155,11 @@ QuanReportWidget::filePublish()
 
     QString xslfile = currentStylesheet();
 
-    if ( auto settings = QuanDocument::instance()->settings_ptr() )
+    if ( auto settings = document::instance()->settings_ptr() )
         settings->setValue( "QuanReport/XSLFILE", xslfile );
 
     adwidgets::ProgressInterface progress(0, 5);
-        
+
     Core::ProgressManager::addTask( progress.progress.future()
                                     , "Quan connecting database..."
                                     , Constants::QUAN_TASK_OPEN );
@@ -180,11 +180,11 @@ QuanReportWidget::filePublish()
 std::pair< QString, QString >
 QuanReportWidget::publishTask( const QString& xslfile, adwidgets::ProgressInterface progress )
 {
-    if ( auto publisher = QuanDocument::instance()->publisher() ) {
+    if ( auto publisher = document::instance()->publisher() ) {
 
         try {
-            
-            auto conn = QuanDocument::instance()->connection();
+
+            auto conn = document::instance()->connection();
             ( *publisher )( conn, progress ); //, article->xml_document().get() );
 
         } catch ( boost::exception& ex ) {
@@ -207,15 +207,15 @@ QuanReportWidget::publishTask( const QString& xslfile, adwidgets::ProgressInterf
             return std::make_pair( "", "" );
         }
 
-        boost::filesystem::path path = publisher->filepath(); 
-                
+        boost::filesystem::path path = publisher->filepath();
+
         publisher->save_file( path.string().c_str() ); // save publisher document xml
-        
+
         QString output, method;
         adpublisher::document::apply_template( path.string().c_str(), xslfile.toStdString().c_str(), output, method );
-        
+
         if ( !output.isEmpty() ) {
-            
+
             std::string extension =
                 ( method.isEmpty() || method == "xhtml" ) ? ".html"
                 : (QString( ".%1" ).arg( method )).toStdString();
@@ -248,7 +248,7 @@ QuanReportWidget::filePrintPdf()
 void
 QuanReportWidget::fileDebug()
 {
-    auto publisher = QuanDocument::instance()->publisher();
+    auto publisher = document::instance()->publisher();
     if ( *publisher ) { // if processed
         publisher->save_file( publisher->filepath().string().c_str() );
         std::ostringstream o;

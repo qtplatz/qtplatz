@@ -81,11 +81,11 @@ document::unregister_handler( event_handler h )
 }
 
 bool
-document::bind( const char * host, const char * port )
+document::bind( const char * host, const char * port, bool bcast )
 {
     try {
         std::lock_guard< std::mutex > lock( mutex_ );
-        udpSender_ = std::make_unique< acewrapper::udpEventSender>( io_service_, host, port );
+        udpSender_ = std::make_unique< acewrapper::udpEventSender>( io_service_, host, port, bcast );
         return true;
     } catch ( boost::exception& ex ) {
         ADDEBUG() << boost::diagnostic_information( ex );

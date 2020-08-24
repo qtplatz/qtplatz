@@ -41,7 +41,7 @@ namespace quan {
 
     class QuanQueryForm;
     class QuanResultTable;
-    class QuanDocument;
+    class document;
     class ProgressHandler;
 
     class QuanReportWidget : public QWidget  {
@@ -49,13 +49,13 @@ namespace quan {
     public:
         ~QuanReportWidget();
         explicit QuanReportWidget(QWidget *parent = 0);
-        void onInitialUpdate( QuanDocument * );
+        void onInitialUpdate( document * );
 
     private:
         QVBoxLayout * layout_;
 
         std::unique_ptr< QTextBrowser > docBrowser_;
- 
+
         void importDocTemplate();
         void exportDocTemplate();
         void setupFileActions( QMenu *, QToolBar * );

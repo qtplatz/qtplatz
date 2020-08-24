@@ -25,6 +25,7 @@
 #ifndef QUANCONFIGWIDGET_HPP
 #define QUANCONFIGWIDGET_HPP
 
+#include <adcontrols/constants.hpp>
 #include <QWidget>
 #include <memory>
 
@@ -49,7 +50,6 @@ namespace quan {
 
     private:
         QGridLayout * layout_;
-        std::unique_ptr< QuanConfigForm > form_;
         QWidget * fileSelectionBar();
 
         void handleDataChanged( int, bool );
@@ -58,7 +58,7 @@ namespace quan {
     signals:
         void onLevelChanged( int );
         void onReplicatesChanged( int );
-        void onSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
+        void onSampleInletChanged( adcontrols::Quan::QuanInlet );
 
     public slots:
 

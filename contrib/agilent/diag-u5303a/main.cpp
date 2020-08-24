@@ -30,6 +30,7 @@
 #include <acqrscontrols/u5303a/method.hpp>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <bitset>
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
@@ -81,11 +82,11 @@ std::ostream& operator << ( std::ostream& out, const execStatistics& t )
 {
     uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now() - t.tp_ ).count();
     double s = double(ns) * 1.0e-9;
-    
+
     out << "Took " << s << " seconds; " << double(t.dataCount_) / s << "Hz" << std::endl;
     out << t.deadCount_ << " DEAD data received / " << t.dataCount_ << " waveforms read" << std::endl;
     out << t.exceededTimings_.size() << " waveforms has the trigger timing exceeded from external trig rate of " << t.rate_ << std::endl;
-    
+
     for ( auto& pair: t.exceededTimings_ )
         out << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
     return out;
@@ -100,7 +101,7 @@ static void sigint(int num )
     std::cout << "************* got signal " << num << " ***************" << std::endl;
 
     std::cout << execStatistics::instance() << std::endl;
-    
+
     std::cout << "Merci, Salut" << std::endl;
     exit( num );
 }
@@ -116,7 +117,7 @@ main( int argc, char * argv [] )
     bool TSR_enabled( false );
 
     po::variables_map vm;
-    po::options_description description( "test_u5303a" );
+    po::options_description description( argv[0] );
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
@@ -133,12 +134,12 @@ main( int argc, char * argv [] )
             ( "width,w",    po::value<double>()->default_value( 50.0 ), "Waveform width (us)" )
             ( "replicates", po::value<int>()->default_value( 1000 ), "Number of triggers to acquire waveforms" )
             ( "rate",       po::value<double>()->default_value( 1.0 ),  "Expected trigger interval in millisecond (trigger drop/nodrop validation)" )
-            ( "verbose",    po::value<int>()->default_value( 5 ),  "Verbose 0..9" )            
+            ( "verbose",    po::value<int>()->default_value( 5 ),  "Verbose 0..9" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
     }
-    
+
     if ( vm.count( "help" ) ) {
         std::cout << description;
         return 0;
@@ -199,7 +200,7 @@ main( int argc, char * argv [] )
     std::cout << "nbr_of_averages = " << method._device_method().nbr_of_averages << std::endl;
 
     const size_t replicates = vm[ "replicates" ].as<int>();
-        
+
 #if defined __linux
     signal( SIGINT, &sigint );
     signal( SIGQUIT, &sigint );
@@ -217,7 +218,7 @@ main( int argc, char * argv [] )
         std::cerr << "dgpio open failed -- ignored." << std::endl;
 
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
-        
+
         const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
@@ -227,27 +228,18 @@ main( int argc, char * argv [] )
                 success = ( md2->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             }
         }
-        
-        if ( !simulated ) {
-            for ( auto& res : {
-                    "PXI6::0::0::INSTR"
-                        , "PXI5::0::0::INSTR"
-                        , "PXI4::0::0::INSTR"
-                        , "PXI3::0::0::INSTR"
-                        , "PXI2::0::0::INSTR"
-                        , "PXI1::0::0::INSTR"
-                        } ) {
 
-                std::cerr << "Attempting resource: " << res << std::endl;
-                if ( ( success = ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) )
-                    break;
-            }
+        if ( !simulated ) {
+            std::string res;
+            std::tie( success, res ) = u5303a::findResource()( md2 );
+            if ( success )
+                std::cerr << "Found resource: " << res << std::endl;
         }
-        
+
         if ( success ) {
 
             method._device_method().TSR_enabled = TSR_enabled;
-            
+
             auto ident = std::make_shared< acqrscontrols::u5303a::identify >();
             md2->Identify( ident );
 
@@ -301,7 +293,7 @@ main( int argc, char * argv [] )
 
             if ( vm.count( "pkd" ) && ident->Options().find( "PKD" ) != std::string::npos )
                 return pkd_main( md2, method, replicates );
-            
+
             if ( ident->Options().find( "INT" ) != std::string::npos ) // Interleave ON
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
 
@@ -319,7 +311,7 @@ main( int argc, char * argv [] )
             AgMD2::log( attribute< u5303a::sample_rate >::get( *md2, method._device_method().samp_rate ), __FILE__,__LINE__ );
             //method._device_method().samp_rate = md2->SampleRate();
 
-            std::cout << "SampleRate: " << method._device_method().samp_rate << std::endl;            
+            std::cout << "SampleRate: " << method._device_method().samp_rate << std::endl;
 
             attribute< u5303a::record_size >::set( *md2, method._device_method().nbr_of_s_to_acquire_ );
             // md2->setAcquisitionRecordSize( method._device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
@@ -337,24 +329,22 @@ main( int argc, char * argv [] )
             // md2->setTSREnabled( method._device_method().TSR_enabled );
 
             md2->CalibrationSelfCalibrate();
-            
+
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
             std::cout << "Replicates: " << replicates << std::endl;
 
-            std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();            
-
             bool tsrEnabled;
             if ( AgMD2::log( attribute< u5303a::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
                 // if ( md2->TSREnabled() ) {
-                
+
                 md2->AcquisitionInitiate();
-                
+
                 while ( replicates > execStatistics::instance().dataCount_ ) {
 
                     do {
                         boost::optional< u5303a::tsr_memory_overflow_occurred::value_type > p;
-                        if ( p = attribute< u5303a::tsr_memory_overflow_occurred >::value( *md2 ) && p.get() ) {
+                        if ( (p = attribute< u5303a::tsr_memory_overflow_occurred >::value( *md2 ) && p.get()) ) {
                             std::cout << "***** Memory Overflow" << std::endl;
                             break;
                         }
@@ -365,15 +355,15 @@ main( int argc, char * argv [] )
                     // }
                     do {
                         boost::optional< u5303a::tsr_is_acquisition_complete::value_type > p;
-                        while ( p = attribute< u5303a::tsr_is_acquisition_complete >::value( *md2 ) && !p.get() )
+                        while ( (p = attribute< u5303a::tsr_is_acquisition_complete >::value( *md2 ) && !p.get()) )
                             std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
                         //while ( !md2->isTSRAcquisitionComplete() )
                         //    std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
                     } while ( 0 );
-                    
+
                     u5303a::digitizer::readData( *md2, method, vec );
                     md2->TSRContinue();
-                    
+
                     for ( auto& waveform: vec ) {
 
                         // report if trigger receive interval exceeded
@@ -388,41 +378,37 @@ main( int argc, char * argv [] )
                         }
                         execStatistics::instance().last_ = seconds;
                     }
-                    
+
                     execStatistics::instance().dataCount_ += vec.size();
-                    
-#if defined _MSC_VER
-                    const size_t deadsize = 100;
-#else
-                    constexpr size_t deadsize = 100;
-#endif
+
                     for ( auto& waveform: vec ) {
-                        size_t count(0);
                         if ( waveform->isDEAD() )
                             execStatistics::instance().deadCount_++;
                     }
                     vec.clear();  // throw waveforms away.
                 }
-                
+
             } else {
 
                 for ( int i = 0; i < replicates; ++i ) {
 
                     pp << uint8_t( 0x01 );
-                    
+
                     md2->AcquisitionInitiate();
                     md2->AcquisitionWaitForAcquisitionComplete( 3000 );
 
                     pp << uint8_t( 0x02 );
-                    
+
                     u5303a::digitizer::readData( *md2, method, vec );
 
                     int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
+                    std::bitset< 2 > proto = protocolIndex;
                     execStatistics::instance().dataCount_ += vec.size();
 
                     if ( __verbose__ >= 5 ) {
                         std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveform(s), proto#"
-                                  << dgpio.protocol_number()
+                                  << boost::format("0x%02x") % protocolIndex
+                                  << "[" << proto.to_string() << "]"
                                   << "\t(" << i << "/" << replicates << ")" << execStatistics::instance().dataCount_ << std::endl;
                     }
 
@@ -431,10 +417,10 @@ main( int argc, char * argv [] )
             }
 
             std::cout << execStatistics::instance();
-            
+
         }
     }
-    
+
     return 0;
 }
 
@@ -444,12 +430,12 @@ int
 pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::method& m, size_t replicates )
 {
     using u5303a::AgMD2;
-    
+
     std::cout << "PeakDetection + Averager POC\n\n";
     std::cout << "Driver initialized \n";
-    
+
     // Configure the acquisition.
-    
+
     ViInt32 const coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;
     std::cerr << "Configuring acquisition\n";
     std::cerr << "Range:              " << m._device_method().front_end_range << '\n';
@@ -466,7 +452,7 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
     md2->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords );
 
     using u5303a::attribute;
-    
+
     attribute< u5303a::record_size >::set( *md2, int32_t( m._device_method().digitizer_nbr_of_s_to_acquire ) );
     // md2->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
 
@@ -476,8 +462,8 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
 	// Configure the number of accumulation
     std::cout << "Number of averages: " << m._device_method().nbr_of_averages << "\n\n";
     md2->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, m._device_method().nbr_of_averages );
- 
-	// Enable the Peak Detection mode 	
+
+	// Enable the Peak Detection mode
     md2->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
 
 	// Configure the peak detection on channel 1
@@ -506,7 +492,6 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
     md2->CalibrationSelfCalibrate();
 
     // Perform the acquisition.
-    ViInt32 const timeoutInMs = 2000;
     std::cout << "Performing acquisition\n";
 
     md2->AcquisitionInitiate();
@@ -568,17 +553,17 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
                                                          &d2.initialXOffset, d2.initialXTimeSeconds, d2.initialXTimeFraction,
                                                          &d2.xIncrement, &d2.scaleFactor, &d2.scaleOffset, d2.flags )
                     , __FILE__, __LINE__ );
-    
+
         std::cout << "\nactualAverages: " << d1.actualAverages;
 
-        // Read the peaks values on Channel 1 
+        // Read the peaks values on Channel 1
         std::cout << "\nProcessing data\n";
 
         d1.print( std::cout, "Channel1(PKD)" );
         d2.print( std::cout, "Channel2(PKD)" );
 
         constexpr size_t currentRecord = 0;
-    
+
         for ( size_t currentPoint = 0;
               currentPoint < d1.actualPoints[currentRecord] && currentPoint < d2.actualPoints[currentRecord]; ++currentPoint )  {
 
@@ -598,4 +583,3 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
 
     return 0;
 }
-

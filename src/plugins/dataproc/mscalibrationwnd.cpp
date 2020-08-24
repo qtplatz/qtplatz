@@ -263,7 +263,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         if ( result && centroid ) {
             QVector< QPointF > errors;
 
-            boost::uuids::uuid massSpectrometerClsid;
+            //boost::uuids::uuid massSpectrometerClsid;
             if ( auto processor = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto sp = processor->massSpectrometer() ) {
                     if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( sp->massSpectrometerClsid(), centroid->getMSProperty() ) ) {

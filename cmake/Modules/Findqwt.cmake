@@ -5,9 +5,14 @@ if ( qwt_FOUND )
 endif()
 
 if ( WIN32 )
-  find_path( qwt_DIR NAMES include/qwt.h HINTS C:/qwt-6.1.4-svn C:/Qwt-6.1.3 $ENV{QWT} )
+  find_path( qwt_DIR NAMES include/qwt.h HINTS
+    C:/qwt-6.1.5
+    C:/qwt-6.1.4-svn
+    C:/Qwt-6.1.3
+    $ENV{QWT} )
 else()
   find_path( qwt_DIR NAMES include/qwt.h HINTS
+    /usr/local/qwt-6.1.6-svn
     /usr/local/qwt-6.1.5-svn
     /usr/local/qwt-6.1.4-svn
     /usr/local/qwt-6.1.3-svn
@@ -27,12 +32,23 @@ if ( qwt_DIR )
   find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
 #  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )
   if ( QWT_LIB )
-    add_library( Qwt STATIC IMPORTED )
-    set ( QWT_LIBRARIES Qwt )
-    set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION ${QWT_LIB} )
-    if ( QWT_DEBUG_LIB )
-      set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION_DEBUG ${QWT_DEBUG_LIB} )
+    add_library( qwt STATIC IMPORTED )
+    set ( QWT_LIBRARIES qwt )
+
+    if ( WIN32 ) 
+      set_target_properties( qwt PROPERTIES
+	IMPORTED_LOCATION ${qwt_DIR}/lib/qwt.lib
+	IMPORTED_LOCATION_DEBUG ${qwt_DIR}/lib/qwtd.lib
+	)
+    else()
+      set_target_properties( qwt PROPERTIES
+	IMPORTED_LOCATION ${qwt_DIR}/lib/libqwt.a
+	)
     endif()
+    #set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION ${QWT_LIB} )
+    #if ( QWT_DEBUG_LIB )
+    #  set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION_DEBUG ${QWT_DEBUG_LIB} )
+    #endif()
     set( qwt_FOUND TRUE )
   else()
     message( FATAL_ERROR ${QWT_LIB} " " ${QWT_DLL} )

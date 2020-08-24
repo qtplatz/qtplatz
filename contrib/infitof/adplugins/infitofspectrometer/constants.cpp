@@ -28,17 +28,16 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-namespace infitofspectrometer {
+// namespace infitofspectrometer {
 
-    namespace iids {
-        
-        // InfiTOF
-        //const boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}" );
-        const boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( MassSpectrometer::clsid_text ); 
+//     namespace iids {
 
-        // InfiTOF
-        const boost::uuids::uuid uuid_datainterpreter = boost::uuids::string_generator()( "{06C98B98-9BF7-4056-BB31-0CF42E33FB36}" );
-    }
+//         // InfiTOF
+//         //const boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}" );
+//         const boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( MassSpectrometer::clsid_text );
 
-}
+//         // InfiTOF
+//         const boost::uuids::uuid uuid_datainterpreter = boost::uuids::string_generator()( "{06C98B98-9BF7-4056-BB31-0CF42E33FB36}" );
+//     }
 
+// }

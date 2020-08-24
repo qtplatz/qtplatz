@@ -53,7 +53,7 @@ namespace u5303a { namespace Instrument {
                 masterObserver_->addSibling( waveformObserver_.get() );
 
             }
-            
+
             static std::once_flag flag_, flag2_, flag3_;
             static std::shared_ptr< Session > instance_;
             static std::mutex mutex_;
@@ -69,7 +69,7 @@ namespace u5303a { namespace Instrument {
             std::shared_ptr< u5303a::digitizer > digitizer_;
             std::shared_ptr< adacquire::MasterObserver > masterObserver_;
             std::shared_ptr< WaveformObserver > waveformObserver_;
-            
+
             void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
                 for ( auto& r: clients_ )
@@ -90,12 +90,12 @@ namespace u5303a { namespace Instrument {
                 } else if ( method == "DarkCanceled" ) {
                     reply_message( adi::Receiver::DARK_CANCELED, 0 );
                 } else if ( method == "DarkAcquired" ) {
-                    reply_message( adi::Receiver::DARK_ACQUIRED, 0 );                    
+                    reply_message( adi::Receiver::DARK_ACQUIRED, 0 );
                 } else {
                     ADINFO() << "U5303A: " << method << " = " << reply;
                 }
             }
-            
+
             bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1
                                    , const acqrscontrols::u5303a::waveform * ch2
                                    , acqrscontrols::u5303a::method& next ) {
@@ -116,7 +116,7 @@ namespace u5303a { namespace Instrument {
         std::once_flag Session::impl::flag3_;
         std::mutex Session::impl::mutex_;
         std::shared_ptr< Session > Session::impl::instance_;
-        
+
     }
 }
 
@@ -153,9 +153,9 @@ Session::setConfiguration( const std::string& xml )
 bool
 Session::configComplete()
 {
-    return true;    
+    return true;
 }
-            
+
 bool
 Session::connect( adi::Receiver * receiver, const std::string& token )
 {
@@ -163,7 +163,7 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 
     if ( ptr ) {
         std::call_once( impl::flag2_, [&] () {
-                impl_->threads_.push_back( adportable::asio::thread( [=]() { 
+                impl_->threads_.push_back( adportable::asio::thread( [=]() {
                     try {
                         impl_->io_service_.run();
                     } catch ( std::exception& ex ) {
@@ -172,7 +172,7 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
                     }
                     } ) );
             });
-        
+
         do {
             std::lock_guard< std::mutex > lock( impl_->mutex() );
             impl_->clients_.emplace_back( ptr, token );
@@ -189,7 +189,7 @@ bool
 Session::disconnect( adacquire::Receiver * receiver )
 {
     auto self( receiver->shared_from_this() );
-    
+
     std::lock_guard< std::mutex > lock( impl_->mutex() );
     auto it = std::find_if( impl_->clients_.begin(), impl_->clients_.end(), [self]( const impl::client_pair_t& a ){
             return a.first == self; });
@@ -198,10 +198,10 @@ Session::disconnect( adacquire::Receiver * receiver )
         impl_->clients_.erase( it );
         return true;
     }
-    
+
     return false;
 }
-      
+
 uint32_t
 Session::get_status()
 {
@@ -213,7 +213,7 @@ Session::getObserver()
 {
     return impl_->masterObserver_.get();
 }
-      
+
 bool
 Session::initialize()
 {
@@ -224,7 +224,12 @@ Session::initialize()
             impl_->digitizer_->connect_reply( std::bind( &impl::reply_handler, impl_, _1, _2 ) );
             impl_->digitizer_->connect_waveform( std::bind( &impl::waveform_handler, impl_, _1, _2, _3 ) );
         } );
-    return impl_->digitizer_->peripheral_initialize();
+    try {
+        return impl_->digitizer_->peripheral_initialize();
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+        BOOST_THROW_EXCEPTION( ex );
+    }
 }
 
 bool
@@ -249,7 +254,7 @@ Session::echo( const std::string& msg )
 bool
 Session::shell( const std::string& cmdline )
 {
-    return false;    
+    return false;
 }
 
 std::shared_ptr< const adcontrols::ControlMethod::Method >
@@ -265,18 +270,24 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
         auto it = m->find( m->begin(), m->end(), acqrscontrols::u5303a::method::clsid() );
         if ( it != m->end() ) {
             acqrscontrols::u5303a::method method;
-            if ( it->get<>( *it, method ) )
-                return impl_->digitizer_->peripheral_prepare_for_run( method );
+            if ( it->get<>( *it, method ) ) {
+                try {
+                    return impl_->digitizer_->peripheral_prepare_for_run( method );
+                } catch ( std::exception& ex ) {
+                    ADDEBUG() << boost::current_exception_diagnostic_information();
+                    BOOST_THROW_EXCEPTION( ex );
+                }
+            }
         }
     }
     return false;
 }
-    
+
 bool
 Session::event_out( uint32_t event )
 {
     ADDEBUG() << "##### Session::event_out( " << event << " )";
-    return impl_->digitizer_->peripheral_trigger_inject();    
+    return impl_->digitizer_->peripheral_trigger_inject();
 }
 
 bool

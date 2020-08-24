@@ -26,6 +26,7 @@
 #include "centroidprocess.hpp"
 #include "centroidmethod.hpp"
 #include "description.hpp"
+#include "histogram.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
 #include "mspeakinfoitem.hpp"
@@ -34,6 +35,7 @@
 #include "waveform_filter.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/scanlaw_solver.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/histogram_processor.hpp>
 #include <adportable/moment.hpp>
@@ -43,6 +45,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <ratio>
 #include <sstream>
 #include <vector>
 
@@ -112,6 +115,7 @@ namespace adcontrols {
         };
 
     }
+
 }
 
 CentroidProcess::~CentroidProcess(void)
@@ -152,7 +156,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 
     } else {
 
-        if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.getMass( 0 ) - profile.getMass( profile.size() - 1 ) ) < 0.001 ) {
+        if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.mass( 0 ) - profile.mass( profile.size() - 1 ) ) < 0.001 ) {
             pImpl_->findpeaks_by_time( profile );
         } else {
             pImpl_->findpeaks( profile );
@@ -235,15 +239,11 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
     adportable::spectrum_peakfinder finder;
     if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
-        finder.width_method_ = adportable::spectrum_peakfinder::Constant;
-        finder.peakwidth_ = method_.rsConstInDa();
+        finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, method_.rsConstInDa() );
     } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
-        finder.width_method_ = adportable::spectrum_peakfinder::Proportional;
-        finder.peakwidth_ = method_.rsConstInDa();
+        finder.setPeakWidth( adportable::spectrum_peakfinder::Proportional, method_.rsPropoInPpm() );
     } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
-        finder.width_method_ = adportable::spectrum_peakfinder::TOF;
-        finder.peakwidth_ = method_.rsTofInDa();
-        finder.atmz_ = method_.rsTofAtMz();
+        finder.setPeakWidth( adportable::spectrum_peakfinder::TOF, method_.rsTofInDa(), method_.rsTofAtMz() );
     }
 
     finder( profile.size(), profile.getMassArray(), profile.getIntensityArray() );
@@ -258,7 +258,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     info_.setProtocol( profile.protocolId(), profile.nProtocols() );
     info_.setIsAreaIntensity( method_.centroidAreaIntensity() );
 
-    for ( adportable::peakinfo& pk: finder.results_ ) {
+    for ( const adportable::peakinfo& pk: finder.results() ) {
 
         adportable::array_wrapper<const double>::iterator it =
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
@@ -309,7 +309,6 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                     ADDEBUG() << "area(HH) = " << a << ", " << area;
                 }
 #endif
-
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
                 size_t index = std::distance( masses.begin(), --pos );
 
@@ -323,22 +322,30 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 timeFunctor functor( profile );
                 adportable::Moment time_moment( functor );
                 double time = time_moment.centreX( profile.getIntensityArray(), threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
+                //--------
                 item.time_from_time_ = time;
                 item.centroid_left_time_ = time_moment.xLeft();
                 item.centroid_right_time_ = time_moment.xRight();
+                //
 				time_moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second );
 				item.HH_left_time_ = time_moment.xLeft();
 				item.HH_right_time_ = time_moment.xRight();
-
-                // double width = moment.xRight() - moment.xLeft(); // m/z
-                if ( method_.areaMethod() == CentroidMethod::eAreaDa )
-                    item.area_ = area * ( moment.xRight() - moment.xLeft() ) * 1000; // Intens. x mDa
-                else if ( method_.areaMethod() == CentroidMethod::eAreaTime )
-                    item.area_ = area * adcontrols::metric::scale_to_nano( time_moment.xRight() - time_moment.xLeft() ); // Intens. x ns
-                else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized )
-                    item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac); // width of unit of sample interval
-                else if ( method_.areaMethod() == CentroidMethod::eAreaPoint )
+                //--------
+                const double dw = fraction.uPos - fraction.lPos + fraction.lFrac + fraction.uFrac;
+                if ( method_.areaMethod() == CentroidMethod::eAreaDa ) {
+                    item.area_ = area * ( item.centroid_right_mass_ - item.centroid_left_mass_ ) * std::milli::den / dw; // I x mDa
+                } else if ( method_.areaMethod() == CentroidMethod::eAreaTime ) {
+                    item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den / dw;  // I x ns
+                    // ADDEBUG() << "mass: " << item.mass();
+                    // ADDEBUG() << "area: " << area
+                    //           << ", area(ns): " << item.area_
+                    //           << ", time(ns): " << ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den
+                    //           << ", width: " << dw;
+                } else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized ) {
+                    item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac);   // width of unit of sample interval
+                } else if ( method_.areaMethod() == CentroidMethod::eAreaPoint ) {
                     item.area_ = area; // Intens x ns that assumes data is always 1ns interval
+                }
 
                 double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
 
@@ -350,8 +357,8 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.set_peak_start_index( uint32_t(pk.first) );
                 item.set_peak_end_index( uint32_t(pk.second) );
 
-				if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth_ )
-					info_ << item;
+				// if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth() )
+                info_ << item;
             }
         } while(0);
     }
@@ -368,8 +375,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     using adportable::array_wrapper;
 
     adportable::spectrum_peakfinder finder;
-    finder.width_method_ = adportable::spectrum_peakfinder::Constant;
-    finder.peakwidth_ = method_.rsInSeconds();
+    finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, method_.rsInSeconds() );
 
     std::vector< double > times( profile.size() );
     timeFunctor functor( profile );
@@ -388,13 +394,13 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     info_.setProtocol( profile.protocolId(), profile.nProtocols() );
     info_.setIsAreaIntensity( method_.centroidAreaIntensity() );
 
-    for ( adportable::peakinfo& pk: finder.results_ ) {
+    for ( const adportable::peakinfo& pk: finder.results() ) {
 
         adportable::array_wrapper<const double>::iterator it =
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
 
         double h = *it - pk.base;
-        //double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
+        //double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
 
         size_t idx = std::distance( intens.begin(), it );
 
@@ -453,21 +459,50 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 }
 
 void
-CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
+CentroidProcessImpl::findCluster( const MassSpectrum& xhistogram )
 {
-    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval(), 3 );
-    adportable::histogram_merger merge( histogram.getMSProperty().samplingInfo().fSampInterval(), method_.peakCentroidFraction() );
+    if ( xhistogram.size() < 2 )
+        return;
+    size_t width_i(3);
+    {
+        adportable::scanlaw_solver solver( { xhistogram.mass(0), xhistogram.mass(xhistogram.size() - 1)}
+                                           ,{ xhistogram.time(0), xhistogram.time(xhistogram.size() - 1)} );
 
-    const double * pCounts = histogram.getIntensityArray();
-    const double * pTimes = histogram.getTimeArray();
-    const double * pMasses = histogram.getMassArray();
+        double width_m(0), width_t(0);
+        switch ( method_.peakWidthMethod() ) {
+        case CentroidMethod::ePeakWidthTOF:
+            width_m = method_.rsTofInDa();
+            width_t = solver.delta_t( width_m, method_.rsTofAtMz() );
+            break;
+        case CentroidMethod::ePeakWidthProportional:
+            width_m = xhistogram.mass( 0 ) * method_.rsPropoInPpm() / 1000000;
+            width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
+            break;
+        case CentroidMethod::ePeakWidthConstant:
+            width_m = method_.rsConstInDa();
+            width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
+            break;
+        }
+        size_t width_i = size_t( width_t / xhistogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
 
-    if ( finder( histogram.size(), pTimes, pCounts ) ) {
+        ADDEBUG() << "width_m: " << (width_m *1000) << "mDa\twidth_t: "
+                  << (width_t *1e9) << "ns \twidth_i: " << width_i << "\t@" << method_.rsTofAtMz();
+    }
 
-        // merge( finder.results_, histogram.size(), pTimes, pCounts );
+    const double timeInterval = xhistogram.getMSProperty().samplingInfo().fSampInterval();
 
-        info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
-        info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );
+    adportable::histogram_peakfinder finder( timeInterval, width_i );
+
+    auto profiled = histogram::make_profile( xhistogram );
+
+    const double * pCounts = profiled->getIntensityArray();
+    const double * pTimes = profiled->getTimeArray();
+    const double * pMasses = profiled->getMassArray();
+
+    if ( finder( profiled->size(), pTimes, pCounts ) ) {
+
+        info_.setMode( xhistogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+        info_.setProtocol( xhistogram.protocolId(), xhistogram.nProtocols() );
 
         for ( adportable::peakinfo& pk: finder.results_ ) {
 
@@ -517,35 +552,22 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
             // front interporation
             {
-                auto it = std::lower_bound( pTimes, pTimes + histogram.size(), item.centroid_left_time_ );
+                auto it = std::lower_bound( pTimes, pTimes + profiled->size(), item.centroid_left_time_ );
                 size_t idx = std::distance( pTimes, it );
-                if ( idx != 0 && ( pTimes[ idx ] - pTimes[ idx-1 ] ) <= histogram.getMSProperty().samplingInfo().fSampInterval() * 2 ) {
-
+                if ( idx != 0 && ( pTimes[ idx ] - pTimes[ idx-1 ] ) <= timeInterval * 2 ) {
                     double y = pCounts[ idx - 1 ] +
                         ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_left_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
-
-                    if ( pTimes[ idx ] > 30.058e-6 && pTimes[ idx ] < 30.067e-6 )
-                        ADDEBUG() << "F: idx=" << idx << "\tCounts: " << std::make_pair( pCounts[ idx - 1 ], pCounts[idx] )
-                                  << "\tm/z: " << std::make_pair( pMasses[ idx - 1 ], pMasses[ idx ] )
-                                  << ", y=" << y;
                     item.area_ += y;
                 }
             }
 
             // rear interporation
             {
-                auto it = std::lower_bound( pTimes, pTimes + histogram.size(), item.centroid_right_time_ );
+                auto it = std::lower_bound( pTimes, pTimes + profiled->size(), item.centroid_right_time_ );
                 size_t idx = std::distance( pTimes, it );
-                if ( (idx != histogram.size() - 2) && ( pTimes[idx+1] - pTimes[idx] ) <= histogram.getMSProperty().samplingInfo().fSampInterval() * 2 ) {
-
+                if ( (idx != profiled->size() - 2) && ( pTimes[idx+1] - pTimes[idx] ) <= timeInterval * 2 ) {
                     double y = pCounts[ idx - 1 ] +
                         ( pCounts[ idx ] - pCounts[ idx - 1 ] ) * ( item.centroid_right_time_ - pTimes[ idx - 1 ] ) / ( pTimes[ idx ] - pTimes[ idx - 1 ] );
-
-                    if ( pTimes[ idx ] > 30.058e-6 && pTimes[ idx ] < 30.067e-6 )
-                        ADDEBUG() << "R: idx=" << idx << "\tCounts: " << std::make_pair( pCounts[ idx - 1 ], pCounts[idx] )
-                                  << "\tm/z: " << std::make_pair( pMasses[ idx - 1 ], pMasses[ idx ] )
-                                  << ", y=" << y;
-
                     item.area_ += y;
                 }
             }

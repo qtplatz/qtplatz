@@ -193,6 +193,8 @@ namespace adplot {
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
                , scaleFcn_( -1 )
+               , yScale1_{0,0}
+               , hasYScale1_( false )
             {}
         bool autoAnnotation_;
         bool isTimeAxis_;
@@ -206,6 +208,8 @@ namespace adplot {
         std::atomic<int> focusedFcn_;
         int scaleFcn_;
         std::mutex mutex_;
+        std::pair< double, double > yScale1_;
+        bool hasYScale1_;
 
         void clear();
         void update_annotations( plot&, const std::pair<double, double>& );
@@ -298,7 +302,8 @@ SpectrumWidget::yZoom( double xmin, double xmax )
         setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
     }
 
-    if ( hasAxis.first && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
+    ADDEBUG() << "******************* yZoom **************************";
+    if ( hasAxis.first && ! adportable::compare<double>::approximatelyEqual( left.first, left.second ) ) {
         setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
     }
     replot();
@@ -363,11 +368,10 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
             }
         }
     }
-
     if ( ! hasYLeft )
         left = std::make_pair( -5.0, 100 );
-    else
-        left.second = left.second + (left.second - left.first) * 0.12;
+//    else
+//        left.second = left.second + (left.second - left.first) * 0.12;
 
     if ( hasYRight )
         right.second = right.second + (right.second - right.first) * 0.12;
@@ -569,11 +573,18 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 
     auto& trace = impl_->traces_[ idx ];
 
-    QRectF rect;
-    trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
+    do {
+        QRectF rect;
+        trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
+    } while ( 0 );
 
     QRectF baseRect;
     impl_->baseScale( yRight, baseRect );
+
+    if ( impl_->hasYScale1_ ) {
+        baseRect.setTop( impl_->yScale1_.first );
+        baseRect.setBottom( impl_->yScale1_.second );
+    }
 
     auto rectIndex = zoomer()->zoomRectIndex();
 
@@ -597,7 +608,10 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
             if ( hasAxis.first ) {
                 QStack< QRectF > zstack;
                 zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
-                zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
+                if ( impl_->hasYScale1_ )
+                    zstack.push_back( QRectF( z.x(), impl_->yScale1_.second, z.width(), impl_->yScale1_.first - impl_->yScale1_.second ) );
+                else
+                    zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
                 QSignalBlocker block( zoomer() );
                 zoomer()->setZoomStack( zstack );
             }
@@ -631,6 +645,28 @@ SpectrumWidget::rescaleY( int fcn )
     // redraw_all( true );
     QRectF z = zoomer()->zoomRect(); // current
     yZoom( z.x(), z.x() + z.width() );
+}
+
+void
+SpectrumWidget::setYScale( double top, double bottom, bool axisRight )
+{
+    if ( axisRight == false ) {
+        impl_->yScale1_ = std::make_pair(top, bottom);
+        impl_->hasYScale1_ = !adportable::compare< double >::essentiallyEqual( top, bottom );
+
+        if ( auto zoomer = plot::zoomer() )
+            zoomer->autoYScale( !impl_->hasYScale1_ );
+    }
+}
+
+std::tuple< bool, double, double >
+SpectrumWidget::yScale( bool axisRight ) const
+{
+    if ( axisRight ) {
+        return std::make_tuple( false, 0.0, 0.0 );
+    } else {
+        return std::make_tuple( impl_->hasYScale1_, impl_->yScale1_.first, impl_->yScale1_.second );
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////

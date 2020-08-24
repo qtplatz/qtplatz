@@ -45,10 +45,6 @@ if ( NOT WIN32 )
   set( _xslt_sources libxslt_transformer.cpp libxslt_transformer.hpp )
   set( _xslt_libs ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
 
-  if (${CMAKE_SYSTEM_NAME} MATCHES Darwin ) # APPLE
-    link_directories( /opt/local/lib )
-  endif()
-
 else()
 
   set( _xslt_sources msxml_transformer.cpp msxml_transformer.hpp )
@@ -91,14 +87,16 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   )
 
-add_executable( adedit
-  main.cpp
-  )
+if ( NOT WIN32 )
+  add_executable( adedit
+    main.cpp
+    )
 
 target_link_libraries(
   adedit LINK_PUBLIC
   ${PROJECT_NAME}
   )
+endif()
 
 
 install( TARGETS ${PROJECT_NAME}

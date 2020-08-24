@@ -25,6 +25,7 @@ namespace Constants {
     const char * const PROCESS_ALL_CHECKED  = "dataproc.ProcessAllCheckedSpectra";
     const char * const IMPORT_ALL_CHECKED   = "dataproc.ImportAllCheckedSpectra";
     const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
+    const char * const EXPORT_ALL_CHECKED   = "dataproc.ExportAllChecked";
     const char * const HIDE_DOCK            = "dataproc.HideDock";
 
     const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
@@ -51,6 +52,7 @@ namespace Constants {
     const wchar_t * const F_MSPEAK_INFO        = adcontrols::constants::F_MSPEAK_INFO;
     const wchar_t * const F_TARGETING          = adcontrols::constants::F_TARGETING;
     const wchar_t * const F_PROFILED_HISTOGRAM = adcontrols::constants::F_PROFILED_HISTOGRAM;
+    const wchar_t * const F_PEAKRESULT         = adcontrols::constants::F_PEAKRESULT;
 
     // settings
     const char * const GRP_DATA_FILES       = "DataFiles";
@@ -73,11 +75,11 @@ namespace Constants {
     enum ProcessType {
         CentroidProcess
         , TargetingProcess
+        , MSChromatogrProcess
+        , PeakFindProcess
         , CalibrationProcess
-        , PeakFindProcess 
     };
 
 } // namespace dataproc
 
 #endif // DATAPROCCONSTANTS_HPP
-

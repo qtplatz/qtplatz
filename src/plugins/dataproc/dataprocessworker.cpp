@@ -52,6 +52,7 @@
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/semaphore.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
@@ -154,6 +155,8 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
         if ( rawfile->dataformat_version() < 3 )
             return;
 
+        ADDEBUG() << "################ " << json.toStdString();
+
         adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
         dlg.setProtocolHidden( true );
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
@@ -163,7 +166,6 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
 
         if ( dlg.exec() == QDialog::Accepted ) {
             auto reader_params = dlg.toJson();
-            ADDEBUG() << "################ " << json.toStdString();
             for ( auto& sel: dlg.selection() ) {
                 auto progress( adwidgets::ProgressWnd::instance()->addbar() );
                 progresses.emplace_back( progress );
@@ -175,7 +177,12 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
 
                 if ( auto reader = rawfile->dataReaders().at( sel.first ) ) {
                     double width = enableTime ? timeWidth : massWidth;
-                    threads_.emplace_back( adportable::asio::thread( [=] { handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress ); } ) );
+                    threads_.emplace_back(
+                        adportable::asio::thread(
+                            [=]{
+                                handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress );
+                            })
+                        );
                 }
             }
         }
@@ -216,10 +223,17 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
                             threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 } else {
-                    for ( auto reader: rawfile->dataReaders() ) {
-                        ADDEBUG() << "existing data reader: " << tm->dataReader();
-                        if ( reader->objtext() == tm->dataReader() )
-                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, *it, p ); } ) );
+                    auto readers = rawfile->dataReaders();
+                    auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
+                    if ( it != readers.end() ) {
+                        adportable::semaphore sem;
+                        auto reader = (*it);
+                        threads_.emplace_back( std::thread(
+                                                   [=,&sem] {
+                                                       handleChromatogramsByMethod3( processor, *tm, pm, reader, p );
+                                                       sem.signal();
+                                                   } ) );
+                        sem.wait();
                     }
                 }
 
@@ -477,7 +491,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                     processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
                     bool found( false );
                     if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
-                        if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& f ) { return f.name() == Constants::F_TARGETING; } ) ) {
+                        if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& a ) { return a.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
                                 found = true;
                                 for ( const auto& c : targeting->candidates() ) {
@@ -503,7 +517,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
         }
         QJsonObject top{ { "formulae", a } };
         auto json = QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
-        ADDEBUG() << json;
+        // ADDEBUG() << json;
         double width = cm.width( cm.widthMethod() );
 
         if ( auto dset = processor->rawdata() ) {
@@ -787,37 +801,15 @@ DataprocessWorker::handleCreateSpectrogram3( Dataprocessor* processor
                                              , int fcn
                                              , std::shared_ptr<adwidgets::Progress> progress )
 {
-    const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
-
-    auto spectra = std::make_shared< adcontrols::MassSpectra >();
-
-    // todo: handle fcn
-    if ( auto tic = reader->TIC( fcn ) ) {
-
-        spectra->setChromatogram( *tic );
-
-        progress->setRange( 0, static_cast<int>( tic->size() ) );
-
-        int pos( 0 );
-
-        for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
-
-            auto ms = reader->getSpectrum( it->rowid() );
-            (*progress)( pos++ );
-
-            if ( !ms->isCentroid() ) {
-                adcontrols::MSPeakInfo result;
-                auto ptr = std::make_shared< adcontrols::MassSpectrum >();
-                DataprocHandler::doCentroid( result, *ptr, *ms, *centroidMethod );
-                ( *spectra ) << std::move( ptr );
-
-            } else {
-                ( *spectra ) << std::move( ms );
-            }
-
-        }
-        using adportable::utf;
-        spectra->addDescription( adcontrols::description( L"Create", ( boost::wformat( L"%s,fcn(%d)" ) % utf::to_wstring( reader->display_name() ) % fcn ).str() ) );
+    if ( auto spectra = processor->createSpectrogram( pm
+                                                      , reader
+                                                      , fcn
+                                                      , [progress](size_t curr, size_t total){
+                                                            if ( curr == 0 )
+                                                                progress->setRange( 0, int(total) );
+                                                            (*progress)( curr );
+                                                            return false;
+                                                        } ) ) {
         portfolio::Folium folium = processor->addContour( spectra );
         SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }

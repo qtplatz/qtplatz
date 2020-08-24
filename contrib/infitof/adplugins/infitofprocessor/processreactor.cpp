@@ -28,14 +28,14 @@
 #include "estimatescanlaw.hpp"
 #include "oncreate.hpp"
 #include <adprocessor/processmediator.hpp>
-#include "../infitofspectrometer/massspectrometer.hpp"
+#include <infitofcontrols/constants.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace infitofprocessor;
 
 ProcessReactor::ProcessReactor()
-    : clsid_( boost::uuids::string_generator()( infitofspectrometer::MassSpectrometer::clsid_text ) )
+    : clsid_( ::infitof::iids::uuid_massspectrometer ) // boost::uuids::string_generator()( infitofspectrometer::MassSpectrometer::clsid_text ) )
     , onCreate_( std::make_unique< OnCreate >() )
     , addContextMenu_(std::make_unique< AddContextMenu >() )
     , estimateScanLaw_(std::make_unique< EstimateScanLaw >() )

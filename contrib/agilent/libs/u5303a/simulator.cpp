@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -42,16 +42,14 @@
 namespace u5303a {
 
     static std::mt19937 __gen__;
-    static std::uniform_real_distribution<> __dist__( -15.0, 35.0 );
+    static std::uniform_real_distribution<> __dist__( -15.0, 15.0 );
     static auto __noise__ = []{ return __dist__( __gen__ ); };
 
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
     static std::chrono::high_resolution_clock::time_point __last__;
     static size_t __counter__;
 
-    static const std::vector< std::pair<double, double> >
-
-    //peak_list = { { 104.0e-6, 0.01 }, { 105.0e-6, 0.005 }, { 106.0e-6, 0.0030 } };
+    static std::vector< std::pair<double, double> >
     peak_list = { { 14.0e-6, 0.01 }, { 25.0e-6, 0.005 }, { 46.0e-6, 0.0030 } };
 
     class waveform_simulator : public adacquire::waveform_simulator {
@@ -153,7 +151,7 @@ simulator::protocol_handler( double delay, double width )
 int
 simulator::protocol_number() const
 {
-    return protocolIndex_;
+    return protocolIndex_ ;// 0x02; <-- simulate fault condition
 }
 
 bool
@@ -209,6 +207,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
     (void)invert;
     (void)offset;
 
+    // AVG
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
@@ -233,6 +232,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         avg.setData( mblk, 0 );
     }
 
+    // PKD
     if ( ptr ) {
 
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
@@ -244,6 +244,13 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
             if ( idx < nbrSamples_ )
                 dp[ idx ] = peak.second * 10000 + __noise__();// + __counter__;
         }
+
+        for ( size_t i = 0; i < ptr->nbrSamples(); ++i ) {
+            double d = __noise__();
+            if ( d > 13.5 )
+                dp[ i ] += d;
+        }
+
         __counter__ ++;
 
         pkd.method_ = *method_;

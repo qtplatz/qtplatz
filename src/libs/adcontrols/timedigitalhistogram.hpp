@@ -29,8 +29,8 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
-#include <compiler/pragma_warning.hpp>
 #include <functional>
+#include <memory>
 
 namespace boost {
     namespace serialization { class access; }
@@ -61,7 +61,7 @@ namespace adcontrols {
         iterator end();
         const_iterator begin() const;
         const_iterator end() const;
-#if 0        
+#if 0
         double& initialXTimeSeconds();                    // digitizer time stamp, since acquisition started
         double& initialXOffset();                         // digitizer acquisition start offset ( delay )
         double& xIncrement();                             // digitizer sampling interval
@@ -98,7 +98,7 @@ namespace adcontrols {
         uint32_t protocolIndex() const;
         uint32_t nProtocols() const;
         void setProtocolIndex( uint32_t idx, uint32_t count );
-        
+
         uint32_t accumulate( double tof, double window ) const;
 
         double triggers_per_second() const;
@@ -158,4 +158,3 @@ BOOST_CLASS_VERSION( adcontrols::TimeDigitalHistogram, 2 )
 
 // V1 := + this_protocol
 // V2 := + protocolIndex_, nProtocol
-

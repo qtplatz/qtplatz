@@ -31,4 +31,3 @@
 # include <boost/integer/integer_log2.hpp> // workaround for boost 1.69
 
 #endif
-

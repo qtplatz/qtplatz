@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,7 +29,9 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/asio/streambuf.hpp>
-#include <array>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+//#include <array>
 #include <memory>
 #include <string>
 
@@ -37,31 +39,39 @@
 
 namespace adurl {
 
-    class client;
-
     class ADURLSHARED_EXPORT ajax {
     public:
         ~ajax();
         ajax( const std::string& server = "localhost", const std::string& port = "http" );
 
-        bool operator()( const std::string& method, const std::string& url, const std::string& mimeType = "application/json" );
-        bool operator()( const std::string& method, const std::string& url, const std::string& body, const std::string& mimeType = "application/json" );
+        boost::optional< boost::beast::http::response< boost::beast::http::string_body > >
+        operator()( const std::string& method
+                    , const std::string& url
+                    , const std::string& mimeType );
+
+        boost::optional< boost::beast::http::response< boost::beast::http::string_body > >
+        operator()( const std::string& method
+                    , const std::string& url
+                    , std::string&& body
+                    , const std::string& mimeType );
 
         bool get_response( boost::property_tree::ptree& ) const;
         const char * get_response( size_t& ) const;
         const char * response() const;
         std::string response_header() const;
-        
+
         unsigned int status_code() const;
         const std::string& status_message() const;
 
     private:
         std::string server_;
         std::string port_;
+        boost::system::error_code error_code_;
+
         std::string response_header_;
         unsigned int status_code_;
         std::string status_message_;
         std::unique_ptr< boost::asio::streambuf > response_;
     };
-    
+
 }

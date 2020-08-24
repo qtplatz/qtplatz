@@ -58,7 +58,10 @@ namespace infitofwidgets {
 
         std::string server_;
         std::string port_;
-        std::unique_ptr< adurl::old::sse > sse_;
+        // std::unique_ptr< adurl::old::sse > sse_;
+        std::unique_ptr< adurl::sse_handler > sse_;
+        boost::asio::io_context io_context_;
+        std::vector< std::thread > threads_;
 
     public:
         Impl( const std::string& server
@@ -66,8 +69,20 @@ namespace infitofwidgets {
               , hvWidget * parent ) : server_( server )
                                     , port_( port ) {
 
-            sse_ = std::make_unique< adurl::old::sse >( server_.c_str(), "/hv/api$events", port_.c_str() );
-
+            if ( ( sse_ = std::make_unique< adurl::sse_handler >( io_context_ ) ) ) {
+                sse_->connect( "/hv/api$events"
+                               , server, port
+                               , [&]( adurl::sse_event_data_t&& ev ) {
+                                   std::string event, data;
+                                   std::tie( event, std::ignore, data ) = std::move( ev );
+                                   if ( event == "hv.tick" )
+                                       emit onReply( QString::fromStdString( event ), QByteArray( data.c_str() ) );
+                                   // ADDEBUG() << "event: " << event << "\tdata: " << data.substr( 0, 120 );
+                               }, false );
+                threads_.emplace_back( [&](){ io_context_.run(); } );
+            }
+#if 0
+            // sse_ = std::make_unique< adurl::old::sse >( server_.c_str(), "/hv/api$events", port_.c_str() );
             sse_->exec( [this]( const char * event, const char * data ) {
                     if ( ( std::strcmp( event, "event: hv.tick" ) == 0 ) && ( std::strncmp( data, "data:", 5 ) == 0 ) ) {
                         data += 5;
@@ -76,12 +91,16 @@ namespace infitofwidgets {
                         QByteArray a( data, std::strlen( data ) );
                         emit onReply( event, data );
                     }
-                });
+            });
+#endif
         }
 
         ~Impl() {
-            if ( sse_ )
-                sse_->stop();
+            io_context_.stop();
+            for ( auto& t: threads_ )
+                t.join();
+            // if ( sse_ )
+            //     sse_->stop();
         }
 
         const std::string& server() const { return server_; }
@@ -315,8 +334,6 @@ hvWidget::sizeHint() const
 void
 hvWidget::handleReply( const QString& ev, const QByteArray& data )
 {
-    static size_t count = 0;
-
     boost::property_tree::ptree pt;
     try {
         std::stringstream is( data.constData() );

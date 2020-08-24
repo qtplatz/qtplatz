@@ -4,33 +4,31 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adchem )
 
-#find_package( rdkit )
-if ( NOT rdkit_FOUND )
-  return()
-endif()
-
 add_definitions( -DADCHEM_LIBRARY )
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
 
-#[[
-foreach( a ${RDKit_LIBRARIES} )
-  message( STATUS "-----------> " ${a} )
-endforeach()
-]]
+if ( rdkit_FOUND )
+  set( rdkit_SOURCES
+    sdfile.cpp
+    sdfile.hpp
+    mol.cpp
+    mol.hpp
+    drawing.cpp
+    drawing.hpp
+    )  
+endif()
 
-set( adchem_SOURCES
+add_library( adchem SHARED
+  sdfile_parser.hpp
+  sdmolsupplier.cpp
+  sdmolsupplier.hpp
+  smilestosvg.cpp
+  smilestosvg.hpp
   adchem.cpp
   adchem.hpp
-  sdfile.cpp
-  sdfile.hpp
-  mol.cpp
-  mol.hpp
-  drawing.cpp
-  drawing.hpp
+  ${rdkit_SOURCES}
   )
-
-add_library( adchem SHARED ${adchem_SOURCES} )
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable

@@ -26,7 +26,7 @@
 
 #include "player.hpp"
 #include "recorder.hpp"
-#include <advision/transform.hpp>
+#include <adcv/transform.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
 
@@ -215,7 +215,7 @@ Player::fetch( cv::Mat& mat )
 QImage
 Player::toImage( const cv::Mat& mat )
 {
-    return advision::transform_< QImage >()( mat );
+    return adcv::transform_< QImage >()( mat );
     // if ( mat.channels()== 3 ) {
     //     cv::Mat rgb;
     //     cv::cvtColor( mat, rgb, CV_BGR2RGB );

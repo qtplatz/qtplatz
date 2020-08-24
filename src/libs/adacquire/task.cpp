@@ -196,8 +196,17 @@ task::post( std::shared_ptr< SampleProcessor > sp )
 std::shared_ptr< SampleProcessor >
 task::deque()
 {
+    // application document's prepare_next_sampley may call this method
+    ADDEBUG() << "########### deque sample processor ##############";
     std::lock_guard< std::mutex > lock( impl::mutex_ );
     return impl_->sequence_->deque();
+}
+
+void
+task::close( std::shared_ptr< SampleProcessor > sp )
+{
+    sp->close();
+    sp.reset();
 }
 
 const SampleSequence *
@@ -263,7 +272,7 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 }
 
 void
-task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter > dw )
+task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& dw )
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
 
@@ -276,7 +285,7 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
 
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
 
-        sampleprocessor->write( uuid, *dw );
+        sampleprocessor->write( uuid, dw );
         impl_->sequence_warning_count_ = 0;
 
     }
@@ -311,31 +320,42 @@ void
 task::impl::initialize()
 {
     static std::once_flag flag;
-    std::call_once( flag
-                    , [&](){
-                          // Injection event listener via UDP port 7125 start
-                          udpReceiver_ = std::make_unique< acewrapper::udpEventReceiver >( io_service_, 7125 );
-                          udpReceiver_->connect( std::bind( &task::impl::handle_event_out
-                                                            , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+    std::call_once(
+        flag
+        , [&](){
+            // Injection event listener via UDP port 7125 start
+            udpReceiver_ = std::make_unique< acewrapper::udpEventReceiver >( io_service_, 7125 );
+            udpReceiver_->connect( std::bind( &task::impl::handle_event_out
+                                              , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
 
-                          timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
-                          timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
+            timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
+            timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
 
-                          threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
-                      });
-
+            threads_.emplace_back( std::thread( [&](){ io_service_.run(); } ) );
+        });
     fsm_.stop();
 }
 
 void
 task::impl::finalize()
 {
+    boost::system::error_code ec;
+
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
+
     fsm_.stop();
     sequence_->clear();
     udpReceiver_.reset();
+    timer_.cancel( ec );
+    if ( ec )
+        ADDEBUG() << ec;
+
     io_service_.stop();
+
     for ( auto& t: threads_ )
         t.join();
+
+    threads_.clear(); // prevent thread::join call more than once
 }
 
 void

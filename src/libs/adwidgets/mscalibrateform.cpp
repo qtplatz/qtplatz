@@ -34,7 +34,7 @@
 namespace adwidgets {
     namespace detail {
         namespace mscalibrateform {
-            
+
             enum idItem {
                 ePolynomialDegreeLabel
                 , eMassToleranceLabel
@@ -128,7 +128,12 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMassTolerance)), 2.0, 50.0, 1.0);
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA)), 0.0, 100.0, 1.0); // %
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eLowMass)), 1.0, 10000, 1);
-    spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eHighMass)), 1.0, 10000, 1);
+    spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eHighMass)), 1000.0, 10000, 1);
+
+    if ( auto spin = boost::get< QDoubleSpinBox * >( accessor( eHighMass ) ) ) {
+        connect( spin, qOverload<double>(&QDoubleSpinBox::valueChanged)
+                 , [&]( double value ){ if ( dlg_ ) dlg_->setHMass( value ); } );
+    }
 }
 
 MSCalibrateForm::~MSCalibrateForm()
@@ -145,7 +150,7 @@ MSCalibrateForm::finalClose()
 {
     //ADDEBUG() << "MSCalibrateForm::finalClose";
     if ( dlg_ )
-        dlg_->close();    
+        dlg_->close();
 }
 
 void
@@ -183,8 +188,12 @@ MSCalibrateForm::handleReferenceDlg()
         dlg_->show();
         dlg_->raise();
         dlg_->activateWindow();
+
+        ui_locator accessor( ui );
+        if ( auto spin = boost::get< QDoubleSpinBox * >( accessor( eHighMass ) ) ) {
+            dlg_->setHMass( spin->value() );
+        }
     }
     dlg_->show();
     dlg_->raise();
 }
-

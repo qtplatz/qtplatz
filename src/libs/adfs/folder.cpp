@@ -26,8 +26,9 @@
 #include "folder.hpp"
 #include "file.hpp"
 #include "fs.hpp"
-#include <adportable/utf.hpp>
 #include "adfs.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 
 using namespace adfs;
 
@@ -106,7 +107,7 @@ namespace adfs {
     {
         return adportable::utf::to_utf8( name_ );
     }
-    
+
     template<> ADFSSHARED_EXPORT const std::basic_string< wchar_t >
     folder::name() const
     {

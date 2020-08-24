@@ -26,16 +26,17 @@
 #pragma once
 
 #include "adcontrols_global.h"
-
+#include "baseline.hpp"
 #include <vector>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 //#include <boost/serialization/string.hpp>
 
+
 namespace adcontrols {
 
-    class Baseline;
+    class ADCONTROLSSHARED_EXPORT Baseline;
 
     class ADCONTROLSSHARED_EXPORT Baselines {
     public:

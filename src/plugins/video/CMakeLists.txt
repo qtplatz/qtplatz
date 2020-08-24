@@ -38,10 +38,10 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec  
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 find_package( qwt )
@@ -66,11 +66,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/adplugins
   ${QTPLATZ_SOURCE_DIR}/src/plugins
   ${QTPLATZ_SOURCE_DIR}/src      # version number
-  )
-
-link_directories(
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plubins/QtProject
-  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
 set( RESOURCES video.qrc )
@@ -123,7 +118,7 @@ target_link_libraries(
   adwidgets
   adportable
   adprocessor
-  advision
+  adcv
   portfolio
   qtwrapper
   ${Boost_LIBRARIES}
@@ -137,7 +132,7 @@ target_link_libraries(
   Qt5::OpenGL
   Qt5::Multimedia
   )
-  
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32

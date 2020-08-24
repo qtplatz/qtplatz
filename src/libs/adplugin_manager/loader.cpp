@@ -101,7 +101,9 @@ loader::populate( const wchar_t * topdir )
                             boost::system::error_code ec;
                             boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
                             if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
+#ifndef NDEBUG
                                 ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
+#endif
                                 break;
                             } else {
                                 ADDEBUG() << "loading\n\t" << fname << "\t" << ec.message();

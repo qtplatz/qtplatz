@@ -234,6 +234,7 @@ add_library( adcontrols SHARED
   traceaccessor.hpp
   targeting.cpp
   targeting.hpp
+  typelist.hpp
   visitor.cpp
   msfinder.cpp
   quanresponses.cpp
@@ -246,6 +247,8 @@ add_library( adcontrols SHARED
   samplinginfo.hpp
   serializer.cpp
   serializer.hpp
+  surface.cpp
+  surface.hpp
   waveform_filter.cpp
   waveform_filter.hpp
   )

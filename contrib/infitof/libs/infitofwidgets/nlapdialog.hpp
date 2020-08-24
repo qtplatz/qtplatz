@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,16 +32,16 @@
 
 class QMenu;
 
-namespace multumcontrols { class ScanLaw; }
+namespace admtcontrols { class ScanLaw; }
 namespace adcontrols { class MSPeaks; class MassSpectrometer; }
 namespace boost { namespace uuids { struct uuid; } }
 
 namespace infitofwidgets {
 
     class INFITOFWIDGETSSHARED_EXPORT nLapDialog : public QDialog {
-        
+
         Q_OBJECT
-        
+
     public:
         explicit nLapDialog(QWidget *parent = 0);
         ~nLapDialog();
@@ -56,17 +56,17 @@ namespace infitofwidgets {
         double acceleratorVoltage() const;
         double tDelay() const;
         double L1() const;
-        
+
         void addPeak( uint32_t id, const QString& formula, double time, double matchedMass, int mode );
         bool commit();
         size_t peakCount() const;
 
-        void setScanLaw( std::shared_ptr< multumcontrols::ScanLaw > );
+        void setScanLaw( std::shared_ptr< admtcontrols::ScanLaw > );
         void setSpectrometerData( const boost::uuids::uuid& id, const QString&, std::shared_ptr< adcontrols::MassSpectrometer >  );
 
         // void addObserver( const boost::uuids::uuid&, const QString& objtext, double va, double t0, bool checked = true );
         // QVector< QString > checkedObservers() const;
-                                                   
+
     public slots:
         void handleCopyToClipboard();
         void handlePaste();
@@ -78,11 +78,10 @@ namespace infitofwidgets {
         void updateObservers( double t0, double acclVolts );
         void handlePeakTableMenu( const QPoint& );
         bool estimateAcceleratorVoltage( const adcontrols::MSPeaks& );
-        
+
         class impl;
         std::unique_ptr< impl > impl_;
         friend class nLapDialog_archive;
     };
 
 }
-

@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2019-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,35 +23,43 @@
 
 #pragma once
 
+#include "folder.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/python.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
+    class MassSpectrometer;
     class DataReader;
 }
 
-class DataReader;
+namespace adprocessor {
+    class dataprocessor;
+}
 
-class dataProcessor : public adcontrols::dataSubscriber {
-    const adcontrols::LCMSDataset * raw_;
-    adcontrols::datafile * file_;
-public:
-    dataProcessor();
-    ~dataProcessor();
+namespace py_module {
 
-    bool subscribe( const adcontrols::LCMSDataset& raw ) override;
-    bool subscribe( const adcontrols::ProcessedDataset& ) override;
-    void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
-    //
-    const adcontrols::LCMSDataset * raw() const { return raw_; }
+    class DataReader;
 
-    bool open( const std::wstring& filename );
-    std::vector< boost::python::tuple > dataReaderTuples() const;
-    std::vector< std::shared_ptr< DataReader > > dataReaders() const;
-    std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
-};
+    class dataProcessor {
+        std::shared_ptr< adprocessor::dataprocessor > processor_;
+    public:
+        dataProcessor();
+        ~dataProcessor();
+
+        bool open( const std::wstring& filename );
+        std::vector< boost::python::tuple > dataReaderTuples() const;
+        std::vector< std::shared_ptr< DataReader > > dataReaders() const;
+        std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
+        std::wstring filename() const;
+        std::string xml() const;
+        folder root() const;
+        folder findFolder( const std::wstring& ) const;
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const;
+    };
+}

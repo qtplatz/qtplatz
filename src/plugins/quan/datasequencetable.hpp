@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,12 +25,14 @@
 #ifndef DATASEQUENCETABLE_HPP
 #define DATASEQUENCETABLE_HPP
 
+#include <adcontrols/constants.hpp>
 #include <adwidgets/tableview.hpp>
+#include <QStandardItemModel>
 #include <memory>
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include <QStandardItemModel>
+
 class QStandardItem;
 class QModelIndex;
 
@@ -49,7 +51,8 @@ namespace quan {
 
         void setData( std::shared_ptr< adcontrols::datafile >& );
         void setData( const QStringList& );
-        void setSampleInlet( int );
+        void setSampleInlet( adcontrols::Quan::QuanInlet );
+
         bool setContents( const adcontrols::QuanSequence& );
         bool getContents( adcontrols::QuanSequence& );
 

@@ -244,9 +244,10 @@ WaveformWnd::traceDataChanged( int )
     uint64_t posix_time;
     std::tie( posix_time, std::ignore ) = document::instance()->find_event_time( 0 );
 
-    //auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point() + std::chrono::nanoseconds( posix_time ), true );
-#if defined (Q_OS_MACOS) || (_MSC_VER)
+#if defined (Q_OS_MACOS)
     auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::microseconds( posix_time / 1000 ) ), true );    
+#elif defined (_MSC_VER)
+	auto t = ""; // adportable::date_string::utc_to_localtime_string(posix_time / std::nano::den, posix_time % std::nano::den);
 #else
     auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::nanoseconds( posix_time ) ), true );
 #endif    
@@ -408,6 +409,7 @@ WaveformWnd::handleSampleProgress( double elapsed_time, double method_time, cons
               , QString::number( replicates )
             );
 
+#if !defined (_MSC_VER) // workaround
     if ( posix_time ) {
 #if defined (Q_OS_MACOS)
         using namespace std::chrono_literals;
@@ -420,6 +422,6 @@ WaveformWnd::handleSampleProgress( double elapsed_time, double method_time, cons
         o << tp;
         title += QString("     Inject @ %1").arg( QString::fromStdString( o.str() ) );
     }
-
+#endif
     tpw_.at(0)->setTitle( title );
 }
