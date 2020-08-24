@@ -21,7 +21,7 @@ set( SOURCES test_aqmd3.cpp )
 
 add_executable( ${PROJECT_NAME} main.cpp )
 
-link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplatz )
+link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.release/lib/qtplatz )
 
 target_link_libraries( ${PROJECT_NAME}
   aqmd3

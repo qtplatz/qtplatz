@@ -102,7 +102,7 @@ target_link_libraries(
   adutils
   adwidgets
   infitofwidgets
-  multumwidgets
+  admtwidgets
   qtwrapper
   socfpga
   xmlparser
