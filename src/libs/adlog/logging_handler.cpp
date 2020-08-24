@@ -56,7 +56,7 @@ logging_handler::logging_handler()
 #ifdef __linux__
     openlog( "adlog", LOG_CONS | LOG_PID,  LOG_USER );
 #endif
-    adportable::core::debug_core::instance()->open( std::string() );  // disable file logging
+    // adportable::core::debug_core::instance()->open( std::string() );  // disable file logging
 }
 
 logging_handler *

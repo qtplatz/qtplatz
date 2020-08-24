@@ -31,6 +31,7 @@
 #include <adportable/semaphore.hpp>
 #include <adacquire/receiver.hpp>
 #include <adacquire/masterobserver.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
 
@@ -220,7 +221,8 @@ singleton::reply_message( int msg, int value )
 void
 singleton::reply_handler( const std::string& method, const std::string& reply )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "(" << method << ", " << reply << ")";
+    // ADDEBUG() << "## " << __FUNCTION__ << "(" << method << ", " << reply << ")";
+    ADINFO() << "## " << __FUNCTION__ << "(" << method << ", " << reply << ")";
 }
 
 bool

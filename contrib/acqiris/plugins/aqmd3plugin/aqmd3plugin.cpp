@@ -32,8 +32,8 @@
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adextension/isequenceimpl.hpp>
-#include <adportable/debug_core.hpp>
-#include <adlog/logging_handler.hpp>
+// #include <adportable/debug_core.hpp>
+// #include <adlog/logging_handler.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>

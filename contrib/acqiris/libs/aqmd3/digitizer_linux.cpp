@@ -342,6 +342,7 @@ task::task() : exptr_( nullptr )
 {
     listResources_ = {
         "PXI59::0::0::INSTR"
+        , "PXI9::0::0::INSTR"
         , "PXI7::0::0::INSTR"
         , "PXI6::0::0::INSTR"
         , "PXI5::0::0::INSTR"

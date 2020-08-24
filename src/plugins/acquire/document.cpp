@@ -745,8 +745,8 @@ document::initialSetup()
         [&]( int pri, const std::string& text, const std::string& file, int line, const std::chrono::system_clock::time_point& tp ){
             impl_->console_ << text << std::endl;
         });
-    adportable::core::debug_core::instance()->open( std::string() ); // disable log file
-    adlog::logging_handler::instance()->setlogfile( std::string() );
+    //adportable::core::debug_core::instance()->open( std::string() ); // disable log file
+    //adlog::logging_handler::instance()->setlogfile( std::string() );
 
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
