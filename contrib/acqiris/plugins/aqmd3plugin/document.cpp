@@ -961,11 +961,15 @@ void
 document::set_method( const aqmd3controls::method& m )
 {
     ADDEBUG() << "set_method(" << m.modelClass();
+    ADDEBUG() << m.toJson();
 
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         setControlMethod( cm );
 
-        auto it = std::find_if( impl_->iControllers_.begin(), impl_->iControllers_.end(), [] ( std::shared_ptr<adextension::iController> ic ) {
+        auto it = std::find_if(
+            impl_->iControllers_.begin()
+            , impl_->iControllers_.end()
+            , [] ( std::shared_ptr<adextension::iController> ic ) {
                 return ic->module_name() == "aqmd3";
             });
         if ( it != impl_->iControllers_.end() ) {

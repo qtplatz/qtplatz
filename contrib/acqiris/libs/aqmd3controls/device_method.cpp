@@ -30,7 +30,8 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 namespace aqmd3controls {
 
@@ -108,6 +109,35 @@ device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
                                , pkd_falling_delta( 0 )
                                , pkd_amplitude_accumulation_enabled( false )
 {
+}
+
+bool
+device_method::write_ptree( boost::property_tree::ptree& top, const device_method& _)
+{
+    boost::property_tree::ptree pt;
+
+    pt.put( "front_end_range",       _.front_end_range );
+    pt.put( "front_end_offset",      _.front_end_offset );
+    pt.put( "ext_trigger_level",     _.ext_trigger_level );
+    pt.put( "samp_rate",             _.samp_rate );
+    pt.put( "nbr_of_s_to_acquire",   _.nbr_of_s_to_acquire_ );
+    pt.put( "nbr_of_averages",       _.nbr_of_averages );
+    pt.put( "delay_to_first_sample", _.delay_to_first_sample_ );
+    pt.put( "invert_signal",         _.invert_signal );
+    pt.put( "nsa_threshold",         _.nsa_threshold );
+    pt.put( "digitizer_delay_to_first_sample", _.digitizer_delay_to_first_sample );
+    pt.put( "digitizer_nbr_of_s_to_acquire", _.digitizer_nbr_of_s_to_acquire );
+    pt.put( "nbr_records",           _.nbr_records );
+    pt.put( "TSR_enabled",           _.TSR_enabled );
+    pt.put( "nsa_enabled",           _.nsa_enabled );
+    pt.put( "pkd_enabled",           _.pkd_enabled );
+    pt.put( "pkd_raising_delta",     _.pkd_raising_delta );
+    pt.put( "pkd_falling_delta",     _.pkd_falling_delta );
+    pt.put( "pkd_amplitude_accumulation_enabled", _.pkd_amplitude_accumulation_enabled );
+
+    top.add_child( "device_method", pt );
+
+    return true;
 }
 
 // All member variables are POD, so that no copy constractor implemented

@@ -80,6 +80,8 @@ namespace aqmd3controls {
         std::vector< adcontrols::TofProtocol >& protocols();
         const std::vector< adcontrols::TofProtocol >& protocols() const;
 
+        std::string toJson() const;
+
         static bool archive( std::ostream&, const method& );
         static bool restore( std::istream&, method& );
         static bool xml_archive( std::wostream&, const method& );

@@ -34,6 +34,9 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <sstream>
 
 namespace aqmd3controls {
 
@@ -220,4 +223,16 @@ method::setProtocolIndex( uint32_t value , bool modifyDeviceMethod )
         }
     }
     return dirty;
+}
+
+std::string
+method::toJson() const
+{
+    boost::property_tree::ptree pt;
+    device_method::write_ptree(pt, device_method_);
+    
+    std::ostringstream o;
+    boost::property_tree::write_json( o, pt );
+
+    return o.str();
 }

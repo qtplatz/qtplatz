@@ -25,9 +25,10 @@
 #pragma once
 
 #include "aqmd3controls_global.hpp"
-
 #include <boost/serialization/version.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <cstdint>
+#include <ostream>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -62,6 +63,8 @@ namespace aqmd3controls {
         int32_t pkd_raising_delta;
         int32_t pkd_falling_delta;
         bool pkd_amplitude_accumulation_enabled;
+        static bool write_ptree( boost::property_tree::ptree&, const device_method& );
+        static bool write_json( std::ostream&, const device_method& );
     private:
 
         friend class boost::serialization::access;
