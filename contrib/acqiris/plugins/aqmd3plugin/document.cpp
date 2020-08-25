@@ -960,9 +960,6 @@ document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 void
 document::set_method( const aqmd3controls::method& m )
 {
-    ADDEBUG() << "set_method(" << m.modelClass();
-    ADDEBUG() << m.toJson();
-
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         setControlMethod( cm );
 

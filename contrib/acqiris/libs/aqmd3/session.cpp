@@ -129,14 +129,14 @@ session::get_status()
 adacquire::SignalObserver::Observer *
 session::getObserver()
 {
-    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
+    //ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
     return singleton::instance()->getObserver();
 }
 
 bool
 session::initialize()
 {
-    ADDEBUG() << "\n\n\t------------- sesson::initialize -> peripheral_initialize() ----------------";
+    //ADDEBUG() << "\n\n\t------------- sesson::initialize -> peripheral_initialize() ----------------";
     return singleton::instance()->digitizer().peripheral_initialize();
 }
 
@@ -170,8 +170,8 @@ session::getControlMethod()
 bool
 session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
-    ADDEBUG() << "\t=====================================================";
-    ADDEBUG() << "\t=============== " << __FUNCTION__ << " ===============";
+    // ADDEBUG() << "\t=====================================================";
+    // ADDEBUG() << "\t=============== " << __FUNCTION__ << " ===============";
     if ( m ) {
         auto it = m->find( m->begin(), m->end(), aqmd3controls::method::clsid() );
         if ( it != m->end() ) {
@@ -188,7 +188,7 @@ session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
 bool
 session::prepare_for_run( const std::string& json, arg_type atype )
 {
-    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ---------------- ==> TODO";
+    //ADDEBUG() << "\t------------- " << __FUNCTION__ << " ---------------- ==> TODO";
     assert(0);
     if ( atype != arg_json )
         return false;
@@ -225,7 +225,7 @@ session::resume_run()
 bool
 session::stop_run()
 {
-    ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
+    //ADDEBUG() << "\t------------- " << __FUNCTION__ << " ----------------";
     return singleton::instance()->digitizer().peripheral_stop();
 }
 

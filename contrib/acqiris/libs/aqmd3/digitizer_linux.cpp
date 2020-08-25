@@ -991,24 +991,27 @@ bool
 device::initial_setup( task& task, const aqmd3controls::method& m, const std::string& options )
 {
     ADDEBUG() << "##### initial_setup for '" << task.ident().InstrumentModel() << "' #####";
-    ADDEBUG() << "##### front_end_range: " << std::make_pair( m.device_method().front_end_offset, m.device_method().front_end_range );
+    ADDEBUG() << "##### front_end_range: " << m.toJson();
 
     auto front_end_range( m.device_method().front_end_range );
 
     if ( std::find( ModelSA.begin(), ModelSA.end(), task.ident().InstrumentModel() ) != ModelSA.end() ) {
-        ADDEBUG() << "##### Model SA: " << task.ident().InstrumentModel() << " --> range: " << front_end_range;
         if ( !( adportable::compare<double>::is_equal(front_end_range, 0.5) ||
                 adportable::compare<double>::is_equal(front_end_range, 2.5) ) ) {
             front_end_range = 0.5;
             ADDEBUG() << "##### Model SA FIX front_end_range: --> range: " << front_end_range;
+        } else {
+            ADDEBUG() << "##### front_end_range validated OK #####";
         }
     }
     
-    task.log( AqMD3_ConfigureChannel( task.spDriver()->session()
-                                      , "Channel1"
-                                      , front_end_range
-                                      , m.device_method().front_end_offset
-                                      , AQMD3_VAL_VERTICAL_COUPLING_DC, VI_TRUE ), __FILE__, __LINE__ );
+    auto rcode = AqMD3_ConfigureChannel( task.spDriver()->session()
+                                         , "Channel1"
+                                         , front_end_range
+                                         , m.device_method().front_end_offset
+                                         , AQMD3_VAL_VERTICAL_COUPLING_DC, VI_TRUE );
+    task.log( rcode, __FILE__, __LINE__ );
+    ADDEBUG() << "##### ConfigureChannel DONE " << rcode << " #####";
 
     task.log( attribute< active_trigger_source >::set( *task.spDriver(), std::string( "External1" ) ), __FILE__, __LINE__ );
     task.log( attribute< trigger_level >::set( *task.spDriver(), "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );
