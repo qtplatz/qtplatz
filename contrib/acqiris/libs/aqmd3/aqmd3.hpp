@@ -55,9 +55,13 @@ namespace aqmd3 {
 
         inline ViSession session() { return session_; }
 
-        static bool log( ViStatus rcode, const char * const file, int line
-                         , std::function< std::string()> details = std::function<std::string()>() );
-
+        // static bool log( ViStatus rcode, const char * const file, int line
+        //                  , std::function< std::string()> details = std::function<std::string()>() );
+        void syslog( ViStatus rcode, const char * const file, int line
+                     , std::function< std::string()> details = std::function<std::string()>() ) const;        
+        bool clog( ViStatus rcode, const char * const file, int line
+                   , std::function< std::string()> details = std::function<std::string()>() ) const;
+        
         //<------------------------  refactord code --------------------------
         ViStatus initWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
 
@@ -113,8 +117,8 @@ namespace aqmd3 {
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
         bool isAcquisitionIdle() const;
 
-        bool setTSREnabled( bool );
-        bool TSREnabled();
+        //bool setTSREnabled( bool );
+        //bool TSREnabled();
 
         boost::tribool isTSRAcquisitionComplete() const;
 
@@ -150,10 +154,13 @@ namespace aqmd3 {
     struct active_trigger_source          { static constexpr ViAttr id = AQMD3_ATTR_ACTIVE_TRIGGER_SOURCE;          typedef std::string value_type; };
     struct channel_data_inversion_enabled { static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_DATA_INVERSION_ENABLED; typedef bool value_type; };
     struct control_io_count               { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_COUNT;               typedef ViInt32 value_type; };
+    struct control_io_signal              { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_SIGNAL;              typedef std::string value_type; };
+    struct control_io_available_signals   { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_AVAILABLE_SIGNALS;   typedef std::string value_type; };    
     struct instrument_info_nbr_adc_bits   { static constexpr ViAttr id = AQMD3_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS;   typedef ViInt32 value_type; };
     struct is_idle                        { static constexpr ViAttr id = AQMD3_ATTR_IS_IDLE;                        typedef ViInt32 value_type; };
     struct num_records_to_acquire         { static constexpr ViAttr id = AQMD3_ATTR_NUM_RECORDS_TO_ACQUIRE;         typedef ViInt64 value_type; };
-    struct peak_detection_amplitude_accumulation_enabled { static constexpr ViAttr id = AQMD3_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED; typedef bool value_type; };
+    struct peak_detection_amplitude_accumulation_enabled {
+        static constexpr ViAttr id = AQMD3_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED; typedef bool value_type; };
     struct peak_detection_falling_delta   { static constexpr ViAttr id = AQMD3_ATTR_PEAK_DETECTION_FALLING_DELTA;   typedef ViInt32 value_type; };
     struct peak_detection_rising_delta    { static constexpr ViAttr id = AQMD3_ATTR_PEAK_DETECTION_RISING_DELTA;    typedef ViInt32 value_type; };
     struct record_size                    { static constexpr ViAttr id = AQMD3_ATTR_RECORD_SIZE;                    typedef ViInt64 value_type; };
@@ -167,6 +174,7 @@ namespace aqmd3 {
     struct tsr_enabled                    { static constexpr ViAttr id = AQMD3_ATTR_TSR_ENABLED;                    typedef bool value_type; };
     struct tsr_is_acquisition_complete    { static constexpr ViAttr id = AQMD3_ATTR_TSR_IS_ACQUISITION_COMPLETE;    typedef bool value_type; };
     struct tsr_memory_overflow_occurred   { static constexpr ViAttr id = AQMD3_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED;   typedef bool value_type; };
+    struct channel_connector_name         { static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_CONNECTOR_NAME;         typedef std::string value_type; };
 
     //////////////////////////////////////////////////////
     struct agmd2_exception : std::exception { ViStatus rcode; agmd2_exception( ViStatus t ) : rcode( t ) {} };
@@ -197,14 +205,14 @@ namespace aqmd3 {
             return boost::none;
         }
 
-        static typename attribute_type::value_type
+        static boost::optional< typename attribute_type::value_type >
         value( AqMD3& a, ViConstString RepCapIdentifier = "" ) {
-            ViStatus rcode(0);
             typename attribute_type::value_type d;
-            if ( ( rcode = a.getAttribute( RepCapIdentifier, attribute_type::id, d ) ) == VI_SUCCESS )
+            if ( a.getAttribute( RepCapIdentifier, attribute_type::id, d ) == VI_SUCCESS )
                 return d;
-            throw agmd2_exception( rcode );
+            return boost::none;
         }
+
     };
 
 }

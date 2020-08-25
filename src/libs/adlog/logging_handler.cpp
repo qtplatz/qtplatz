@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,11 +23,13 @@
 **************************************************************************/
 
 #include "logging_handler.hpp"
+#include "logger.hpp"
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/debug_core.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/format.hpp>
 #include <fstream>
 #if defined WIN32
 #include <process.h>
@@ -101,7 +103,11 @@ logging_handler::appendLog( int pri
     logger_( pri, msg, file, line, tp );
 
 #ifdef __linux__
-    syslog( pri, "%s", msg.c_str() );
+    if ( file.empty() || pri == LOG_INFO ) {
+        syslog( pri, "%s", msg.c_str() );        
+    } else {
+        syslog( pri, "%s", ( boost::format( "%s; at %s(%d)" ) % msg % file % line ).str().c_str() );
+    }
 #else
     if ( !logfile_.empty() ) {
         std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );

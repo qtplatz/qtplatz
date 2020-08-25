@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include <libdgpio/pio.hpp>
+#include <adportable/float.hpp>
 #include <aqmd3/ppio.hpp>
 #include <aqmd3/aqmd3.hpp>
 #include <aqmd3/digitizer.hpp>
@@ -109,6 +110,8 @@ static void sigint(int num )
 
 int pkd_main( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method&, size_t replicates );
 
+const std::vector< std::string > ModelSA = { "SA220P", "SAS220E", "SA217P", "SA217E" };
+            
 int
 main( int argc, char * argv [] )
 {
@@ -231,7 +234,8 @@ main( int argc, char * argv [] )
 
         if ( !simulated ) {
             for ( auto& res : {
-                    "PXI59::0::0::INSTR"
+                    "PXI7::0::0::INSTR"
+                    , "PXI59::0::0::INSTR"
                     , "PXI9::0::0::INSTR"
                     , "PXI7::0::0::INSTR"
                     , "PXI6::0::0::INSTR"
@@ -244,7 +248,7 @@ main( int argc, char * argv [] )
 
                 std::cerr << "Attempting resource: " << res << std::endl;
                 auto rcode = md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions );
-                md2->log( rcode, __FILE__, __LINE__ );
+                md2->clog( rcode, __FILE__, __LINE__ );
                 if ( rcode == VI_SUCCESS ) {
                     success = true;
                     break;
@@ -270,40 +274,49 @@ main( int argc, char * argv [] )
                       << "IOVersion:        " << ident->IOVersion() << std::endl
                       << "NbrADCBits:       " << ident->NbrADCBits() << std::endl;
 
-            ViStatus rcode;
-            std::string result;
-
             using aqmd3::AqMD3;
             using aqmd3::attribute;
 
             int32_t count(0);
-            AqMD3::log( aqmd3::attribute< aqmd3::control_io_count >::get(*md2, "ControlIO", count ), __FILE__,__LINE__ );
-
-            if ( auto p = attribute< aqmd3::control_io_count >::value( *md2, rcode, "ControlIO" ) ) {
-                std::cout << p.get() << " == " << count << "\t" << (count == p.get() ) << std::endl;
+            // md2->clog( aqmd3::attribute< aqmd3::control_io_count >::get(*md2, "ControlIO", count ), __FILE__,__LINE__ );
+            
+            if ( auto ccount = aqmd3::attribute< aqmd3::control_io_count >::value( *md2, "ControlIO" ) ) {
+                count = ccount.get();
+                std::cout << "Control IO Count: " << count << std::endl;
             }
 
+            ViStatus rcode;
             ViChar name [ 256 ];
             for ( int i = 1; i <= count; ++i ) {
-                AqMD3::log( AqMD3_GetControlIOName( md2->session(), i, 256, name ), __FILE__,__LINE__ );
-                if ( rcode == 0 ) {
-                    AqMD3::log( md2->getAttribute<>( name, AQMD3_ATTR_CONTROL_IO_SIGNAL, result ), __FILE__,__LINE__ );
-                    std::cout << name << "\t" << result << std::endl;
-                    if ( AqMD3::log( md2->getAttribute( name, AQMD3_ATTR_CONTROL_IO_AVAILABLE_SIGNALS, result ), __FILE__,__LINE__ ) )
-                        std::cout << "\t" << result << std::endl;
+                if ( AqMD3_GetControlIOName( md2->session(), i, 256, name ) == 0 ) {
+                    std::cout << "\tControlIO Name: " << name << std::endl;
+                    if ( auto res = aqmd3::attribute< aqmd3::control_io_signal >::value( *md2, name ) )
+                        std::cout << "\tControlIO name: " << name << "\t" << res.get() << std::endl;
+                    if ( auto sig = aqmd3::attribute< aqmd3::control_io_available_signals >::value( *md2, name ) )
+                        std::cout << "\tAvilable Signals: " << sig.get() << std::endl;
                 }
             }
 
-            attribute< aqmd3::active_trigger_source >::set( *md2, std::string( "External1" ) );
-            // md2->setActiveTriggerSource( "External1" );
+            std::cout << "## External1" << std::endl;
+            md2->clog( attribute< aqmd3::active_trigger_source >::set( *md2, std::string( "External1" ) ), __FILE__,__LINE__ );
+            // if ( auto value = attribute< aqmd3::active_trigger_source >::value( *md2, rcode, "External1" ) )
+            //     std::cout << "\tActive Trigger Source: " << value.get() << std::endl;
+            // else
+            //     md2->clog( rcode, __FILE__, __LINE__, []{return "--active trigger source--";});
 
-            attribute< aqmd3::trigger_level >::set( *md2, "External1", method.device_method().ext_trigger_level );
-            // md2->setTriggerLevel( "External1", method.device_method().ext_trigger_level ); // 1V
+            md2->clog( attribute< aqmd3::trigger_level >::set( *md2, "External1", method.device_method().ext_trigger_level ), __FILE__,__LINE__ );
+            if ( auto value = attribute< aqmd3::trigger_level >::value( *md2, rcode, "External1" ) )
+                std::cout << "\ttrigger level: " << value.get() << std::endl;
+            else
+                md2->clog( rcode, __FILE__, __LINE__ );
+            
+            md2->clog( attribute< aqmd3::trigger_slope >::set( *md2, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__,__LINE__ );
+            if ( auto value = attribute< aqmd3::trigger_slope >::value( *md2, rcode, "External1" ) )
+                std::cout << "\ttrigger slope: " << value.get() << std::endl;
+            else
+                md2->clog( rcode, __FILE__, __LINE__ );
 
-            attribute< aqmd3::trigger_slope >::set( *md2, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE );
-            // md2->setTriggerSlope( "External1", AQMD3_VAL_POSITIVE );
-            // std::cout << "TriggerSlope: " << md2->TriggerSlope( "External1" ) << std::endl;
-
+            //-------------- dispatch pkd main -------------
             if ( vm.count( "pkd" ) && ident->Options().find( "PKD" ) != std::string::npos )
                 return pkd_main( md2, method, replicates );
 
@@ -314,8 +327,27 @@ main( int argc, char * argv [] )
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
             }
 
+            std::cerr << "## Configuring acquisition\n";
+            if ( std::find( ModelSA.begin(), ModelSA.end(), ident->InstrumentModel() ) != ModelSA.end() ) {
+                if ( !( adportable::compare<double>::is_equal(method.device_method().front_end_range, 0.5) ||
+                        adportable::compare<double>::is_equal(method.device_method().front_end_range, 2.5) ) )
+                    method.device_method().front_end_range = 0.5;
+            }
+
+            std::cerr << "Range:              " << method.device_method().front_end_range << '\n';
+            std::cerr << "Offset:             " << method.device_method().front_end_offset << '\n';
+
+            md2->clog( AqMD3_ConfigureChannel( md2->session(), "Channel1"
+                                               , method.device_method().front_end_range
+                                               , method.device_method().front_end_offset
+                                               , AQMD3_VAL_VERTICAL_COUPLING_DC
+                                               , VI_TRUE ), __FILE__,__LINE__ );
+                        
+
+            const std::vector< std::string > ModelSA = { "SA220P", "SAS220E", "SA217P", "SA217E" };
+            
             double max_rate(0);
-            if ( ident->InstrumentModel() == "SA220P" ) {
+            if ( std::find( ModelSA.begin(), ModelSA.end(), ident->InstrumentModel() ) != ModelSA.end() ) {
                 max_rate = 2.0e9;
             } else {
                 // U5303A
@@ -327,10 +359,10 @@ main( int argc, char * argv [] )
             }
 
             using aqmd3::attribute;
-            AqMD3::log( attribute< aqmd3::sample_rate >::set( *md2, max_rate ), __FILE__,__LINE__ );
+            md2->clog( attribute< aqmd3::sample_rate >::set( *md2, max_rate ), __FILE__,__LINE__ );
             // md2->setSampleRate( max_rate );
 
-            AqMD3::log( attribute< aqmd3::sample_rate >::get( *md2, method.device_method().samp_rate ), __FILE__,__LINE__ );
+            md2->clog( attribute< aqmd3::sample_rate >::get( *md2, method.device_method().samp_rate ), __FILE__,__LINE__ );
             //method.device_method().samp_rate = md2->SampleRate();
 
             std::cout << "SampleRate: " << method.device_method().samp_rate << std::endl;
@@ -359,7 +391,7 @@ main( int argc, char * argv [] )
             execStatistics::instance().tp_ = std::chrono::system_clock::now();
 
             bool tsrEnabled;
-            if ( AqMD3::log( attribute< aqmd3::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
+            if ( md2->clog( attribute< aqmd3::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
                 std::cout << "\t------------------ TSR enabled ------------------" << std::endl;
                 // if ( md2->TSREnabled() ) {
 
@@ -465,7 +497,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
     std::cerr << "Offset:             " << m.device_method().front_end_offset << '\n';
     std::cerr << "Coupling:           " << ( coupling?"DC":"AC" ) << '\n';
 
-    AqMD3::log( AqMD3_ConfigureChannel( md2->session(), "Channel1"
+    md2->clog( AqMD3_ConfigureChannel( md2->session(), "Channel1"
                                         , m.device_method().front_end_range
                                         , m.device_method().front_end_offset, coupling, VI_TRUE ), __FILE__,__LINE__ );
 
@@ -524,7 +556,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
 
     // Fetch the acquired data in array.
     ViInt64 arraySize = 0;
-    AqMD3::log( AqMD3_QueryMinWaveformMemory( md2->session(), 32, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, &arraySize ), __FILE__,__LINE__ );
+    md2->clog( AqMD3_QueryMinWaveformMemory( md2->session(), 32, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, &arraySize ), __FILE__,__LINE__ );
 
     struct data {
         ViInt32 actualAverages;
@@ -561,20 +593,20 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
 
     while ( replicates-- ) {
         // Read the peaks on Channel 1 in INT32.
-        AqMD3::log( AqMD3_FetchAccumulatedWaveformInt32( md2->session(),  "Channel1",
-                                                         0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray1.data(),
-                                                         &d1.actualAverages, &d1.actualRecords, d1.actualPoints, d1.firstValidPoint,
-                                                         &d1.initialXOffset, d1.initialXTimeSeconds, d1.initialXTimeFraction,
-                                                         &d1.xIncrement, &d1.scaleFactor, &d1.scaleOffset, d1.flags )
-                    , __FILE__, __LINE__ );
-
+        md2->clog( AqMD3_FetchAccumulatedWaveformInt32( md2->session(),  "Channel1",
+                                                        0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray1.data(),
+                                                        &d1.actualAverages, &d1.actualRecords, d1.actualPoints, d1.firstValidPoint,
+                                                        &d1.initialXOffset, d1.initialXTimeSeconds, d1.initialXTimeFraction,
+                                                        &d1.xIncrement, &d1.scaleFactor, &d1.scaleOffset, d1.flags )
+                   , __FILE__, __LINE__ );
+        
         // Read the averaged waveform on Channel 2 in INT32.
 
-        AqMD3::log( AqMD3_FetchAccumulatedWaveformInt32( md2->session(), "Channel2",
-                                                         0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray2.data(),
-                                                         &d2.actualAverages, &d2.actualRecords, d2.actualPoints, d2.firstValidPoint,
-                                                         &d2.initialXOffset, d2.initialXTimeSeconds, d2.initialXTimeFraction,
-                                                         &d2.xIncrement, &d2.scaleFactor, &d2.scaleOffset, d2.flags )
+        md2->clog( AqMD3_FetchAccumulatedWaveformInt32( md2->session(), "Channel2",
+                                                        0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray2.data(),
+                                                        &d2.actualAverages, &d2.actualRecords, d2.actualPoints, d2.firstValidPoint,
+                                                        &d2.initialXOffset, d2.initialXTimeSeconds, d2.initialXTimeFraction,
+                                                        &d2.xIncrement, &d2.scaleFactor, &d2.scaleOffset, d2.flags )
                     , __FILE__, __LINE__ );
 
         std::cout << "\nactualAverages: " << d1.actualAverages;
