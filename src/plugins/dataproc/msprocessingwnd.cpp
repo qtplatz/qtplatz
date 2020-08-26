@@ -1131,6 +1131,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         menu.addAction( tr( "Zero filling" ),       [this] () { zero_filling(); } );
         menu.addAction( tr( "Save image file..." ), [this] () { save_image_file(); } );
         menu.addAction( tr( "Auto Y Scale" ),       [this] () { autoYScale( pImpl_->profileSpectrum_ ); } );
+        menu.addAction( tr( "RMS to clipboard" ),   [this] () { compute_rms( 0, 0 ); } );        
+
         menu.actions()[4]->setCheckable( true );
         menu.actions()[4]->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
 
@@ -1480,12 +1482,12 @@ MSProcessingWnd::compute_rms( double s, double e )
 
             std::pair< size_t, size_t > range;
             if ( pImpl_->is_time_axis_ ) {
-                range.first = ms.getIndexFromTime( scale_to_base(s, pfx::micro), false );
-                range.second = ms.getIndexFromTime( scale_to_base(e, pfx::micro), true );
+                range.first = s > 0 ? ms.getIndexFromTime( scale_to_base(s, pfx::micro), false ) : 0;
+                range.second = e > 0 ? ms.getIndexFromTime( scale_to_base(e, pfx::micro), true ) : ms.size() - 1;
             } else {
                 const double * masses = ms.getMassArray();
-                range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
-                range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
+                range.first = s > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) ) : 0;
+                range.second = e > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) ) : ms.size() - 1;
             }
             size_t n = range.second - range.first + 1;
             if ( n >= 5 ) {
@@ -1507,11 +1509,14 @@ MSProcessingWnd::compute_rms( double s, double e )
                                                                  % rms).str() ) );
 
                 QString text = QString::fromStdString(
-                    ( boost::format("rms(start,end,N,rms)\t%.14f\t%.14f\t%d\t%.7f")
+                    ( boost::format("rms(start,end,N,rms)\t%.14f\t%.14f\t%d\t%.7f\t%d")
                       % scale_to_micro( ms.getTime( range.first ) )
                       % scale_to_micro( ms.getTime( range.second ) )
                       % n
-                      % rms).str() );
+                      % rms
+                      % ms.getMSProperty().numAverage()
+                        ).str()
+                    );
 
                 QApplication::clipboard()->setText( text );
 
