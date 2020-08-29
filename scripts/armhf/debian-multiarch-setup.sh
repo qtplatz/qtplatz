@@ -14,6 +14,7 @@ dpkg --print-foreign-architectures
 
 sudo apt-get update
 sudo apt-get -y install crossbuild-essential-armhf
+sudo apt-get -y bzip2:armhf
 
 echo "==========================="
 echo dpkg --print-foreign-architectures
