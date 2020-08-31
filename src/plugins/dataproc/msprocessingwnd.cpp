@@ -1097,7 +1097,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 , [=](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } );
 
             menu.addAction( QString( f_rms ).arg( left, right ), [&](){
-                    if ( compute_rms( rect.left(), rect.right() ) > 0 )
+                    if ( compute_rms( rect.left(), rect.right() ) )
                         draw1();
                 });
 
@@ -1125,13 +1125,15 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         if ( auto ms = pProfileSpectrum_.second.lock() )
             isHistogram = ms->isCentroid();
 
+        auto rect = pImpl_->profileSpectrum_->zoomRect();
+
         menu.addAction( tr( "Correct baseline" ),   [this] () { correct_baseline(); draw1(); } );
         menu.addAction( tr( "Copy to clipboard" ),  [this] () { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } );
         menu.addAction( tr( "Frequency analysis" ), [this] () { frequency_analysis(); } );
         menu.addAction( tr( "Zero filling" ),       [this] () { zero_filling(); } );
         menu.addAction( tr( "Save image file..." ), [this] () { save_image_file(); } );
         menu.addAction( tr( "Auto Y Scale" ),       [this] () { autoYScale( pImpl_->profileSpectrum_ ); } );
-        menu.addAction( tr( "RMS to clipboard" ),   [this] () { compute_rms( 0, 0 ); } );        
+        menu.addAction( tr( "RMS to clipboard" ),   [this,rect] () { compute_rms( rect.left(), rect.right() ); draw1(); } );        
 
         menu.actions()[4]->setCheckable( true );
         menu.actions()[4]->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
@@ -1451,8 +1453,8 @@ MSProcessingWnd::correct_baseline()
 
         QString name;
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-            auto folium = dp->getPortfolio().findFolder( idActiveFolium_ );
-            name = QString::fromStdString( folium.path() );
+            auto folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+            name = QString::fromStdString( boost::filesystem::path( folium.fullpath() ).filename().string() );
         }
 
         std::wostringstream o;
@@ -1460,7 +1462,8 @@ MSProcessingWnd::correct_baseline()
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
 
-        QString text("%1\tH(mV),-L(mV),RMS(mV),nAVG/").arg( name );
+        QString text( QString("%1\tH(mV),-L(mV),RMS(mV),nAVG/" ).arg(name) );
+
         boost::format fmt( "\tp%1%\t%2%\t%3%\t%4%\t%5%\t|" );
 
         size_t proto(0);
@@ -1484,14 +1487,23 @@ MSProcessingWnd::correct_baseline()
 	return tic;
 }
 
-double
+bool
 MSProcessingWnd::compute_rms( double s, double e )
 {
 	if ( auto ptr = this->pProfileSpectrum_.second.lock() ) {
 
         namespace pfx = adcontrols::metric;
 
+        QString name;
+        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            auto folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+            name = QString::fromStdString( boost::filesystem::path( folium.fullpath() ).filename().string() );
+        }
+
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
+
+        QString text( QString("%1\trms(start,end,N,rms,nAvg,rms2,max,min)").arg( name ) );
+        boost::format fmt("\t%.14f\t%.14f\t%d\t%.7f\t%d\t%.7f\t%.7f\t%.7f\t|");
 
         for ( auto& ms: segments ) {
 
@@ -1505,6 +1517,7 @@ MSProcessingWnd::compute_rms( double s, double e )
                 range.second = e > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) ) : ms.size() - 1;
             }
             size_t n = range.second - range.first + 1;
+            
             if ( n >= 5 ) {
 
                 adportable::array_wrapper<const double> data( ms.getIntensityArray() + range.first, n );
@@ -1522,25 +1535,29 @@ MSProcessingWnd::compute_rms( double s, double e )
                                                                  % scale_to_micro( ms.getTime(range.second) )
                                                                  % n
                                                                  % rms).str() ) );
+                // --->
+                double tic, dbase, rms2;
+                std::tie( tic, dbase, rms2 ) = adportable::spectrum_processor::tic( data.size(), data.data() );
+                auto mm = std::minmax_element( data.begin(), data.end() );
+                // <--
 
-                QString text = QString::fromStdString(
-                    ( boost::format("rms(start,end,N,rms)\t%.14f\t%.14f\t%d\t%.7f\t%d")
-                      % scale_to_micro( ms.getTime( range.first ) )
-                      % scale_to_micro( ms.getTime( range.second ) )
-                      % n
-                      % rms
-                      % ms.getMSProperty().numAverage()
-                        ).str()
-                    );
-
-                QApplication::clipboard()->setText( text );
-
-				return rms;
+                text.append( QString::fromStdString(
+                                 ( fmt
+                                   % scale_to_micro( ms.getTime( range.first ) )
+                                   % scale_to_micro( ms.getTime( range.second ) )
+                                   % n
+                                   % rms
+                                   % ms.getMSProperty().numAverage()
+                                   % rms2
+                                   % (*mm.second - dbase)
+                                   % (*mm.first - dbase)
+                                     ).str() ) );
             }
         }
-
+        QApplication::clipboard()->setText( text );                
+        return true;
     }
-	return 0;
+	return false;
 }
 
 std::pair< double, double >

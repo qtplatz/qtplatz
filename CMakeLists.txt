@@ -165,6 +165,10 @@ find_package( Boost 1.67 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
+  message( STATUS "#################### " ${Boost_VERSION} )
+  if ( ${Boost_VERSION} VERSION_EQUAL 1.73 )
+    add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS ) # workaround for boost-1.73
+  endif()
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()

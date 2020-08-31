@@ -122,7 +122,7 @@ namespace dataproc {
         void init();
         void draw1();
         double compute_count( double, double );
-        double compute_rms( double, double );
+        bool compute_rms( double, double );
         std::pair<double, double> compute_minmax( double, double );
         bool power_spectrum( const adcontrols::MassSpectrum&, const std::pair<size_t, size_t>& );
         void power_spectrum( const adcontrols::Chromatogram& );
