@@ -1,8 +1,12 @@
 
-find_package( Python3 COMPONENTS Interpreter Development )
+if ( NOT Python3_FOUND )
+  find_package( Python3 COMPONENTS Interpreter Development )
+endif()
 
 if ( Python3_FOUND )
 
+  message( STATUS "------------> contrib/py_modules" )
+  
   if ( APPLE )
     set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages/qtplatz )
   else()
@@ -29,7 +33,9 @@ if ( Python3_FOUND )
     )
 
   add_subdirectory( world )
+  message( STATUS "------------> contrib/py_modules/adControls")
   add_subdirectory( adControls )
+  message( STATUS "------------> contrib/py_modules/adProcessor")
   add_subdirectory( adProcessor )
 
   install( FILES  __init__.py DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules )

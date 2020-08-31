@@ -30,6 +30,7 @@ function python_dirs {
 	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+	PYTHON_VERSION=$(python3 -c "import sys; print('{}.{}'.format(*sys.version_info))")
 }
 
 function make_user_config_darwin {
@@ -38,21 +39,22 @@ function make_user_config_darwin {
 	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+	if [ -f ~/user-config.jam ]; then
+		mv ~/user-config.jam ~/user-config.jam.orig
+	fi
 
-	if [ ! -f ~/user-config.jam ]; then
 	cat << END > ~/user-config.jam 
 #from sysconfig import get_paths
 #from pprint import pprint
 #pprint( get_paths() )
-#workaround: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/
+#workaround: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/${PYTHON_VERSION}/Headers/
 
 using python
-	  : 3.7
+	  : $PYTHON_VERSION
 	  : $PYTHON
 	  : $PYTHON_INCLUDE 
 	  ;
 END
-	fi
 }
 
 function make_user_config_linux {
@@ -67,7 +69,7 @@ function make_user_config_linux {
 #from pprint import pprint
 #pprint( get_paths() )
 
-using python : 3.7 : $PYTHON : $PYTHON_INCLUDE ;
+using python : $PYTHON_VERSION : $PYTHON : $PYTHON_INCLUDE ;
 END
 	fi
 }
@@ -115,10 +117,10 @@ function boost_build {
 			  CXX_FLAGS="-std=c++17"
 			  LINKFLAGS="-stdlib=libc++"
 			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
-							 --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
+							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
-							 --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
+							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
 			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  prompt
 			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
@@ -195,6 +197,7 @@ case "${arch}" in
 esac
 
 echo "	PYTHON            : ${PYTHON}"
+echo "	PYTHON_VERSION    : ${PYTHON_VERSION}"
 echo "	PYTHON_INCLUDE    : ${PYTHON_INCLUDE}"
 echo "	PYTHON_ROOT       : ${PYTHON_ROOT}"
 

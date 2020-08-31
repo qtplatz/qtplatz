@@ -130,6 +130,7 @@ endif()
 
 if ( WITH_PYTHON3 )
   find_package( Python3 COMPONENTS Interpreter Development )
+  message( STATUS "################# Python3: " ${Python3_FOUND} "\t" ${Python3_VERSION} )
 endif()
 
 if ( WIN32 )
@@ -164,7 +165,6 @@ find_package( Boost 1.67 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
-  message( STATUS "############################### Boost_FOUND=" ${Boost_FOUND} ", Boost_INCLUDE_DIRS: " ${Boost_INCLUDE_DIRS} )
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()

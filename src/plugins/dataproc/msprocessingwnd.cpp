@@ -1449,22 +1449,37 @@ MSProcessingWnd::correct_baseline()
 
     if ( auto x = this->pProfileSpectrum_.second.lock() ) {
 
+        QString name;
+        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            auto folium = dp->getPortfolio().findFolder( idActiveFolium_ );
+            name = QString::fromStdString( folium.path() );
+        }
+
         std::wostringstream o;
         o << L"Baseline corrected";
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
 
+        QString text("%1\tH(mV),-L(mV),RMS(mV),nAVG/").arg( name );
+        boost::format fmt( "\tp%1%\t%2%\t%3%\t%4%\t%5%\t|" );
+
+        size_t proto(0);
 		for ( auto& ms: segments ) {
+            auto nAvg = ms.getMSProperty().numAverage();
 
             double dbase(0), rms(0);
             const double * data = ms.getIntensityArray();
             tic += adportable::spectrum_processor::tic( static_cast< unsigned int >( ms.size() ), data, dbase, rms );
             for ( size_t idx = 0; idx < ms.size(); ++idx )
                 ms.setIntensity( idx, data[ idx ] - dbase );
-            double h = *std::max_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );
-            o << boost::wformat( L" H=%.2f/RMS=%.2f" ) % h % rms;
+            auto mm = std::minmax_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );
+            o << boost::wformat( L" p%d H=%.2f/RMS=%.2f(navg=%d)" ) % proto % (*mm.second) % rms % nAvg;
+
+            text.append( QString::fromStdString( (fmt % proto % *mm.second % *mm.first % rms % nAvg).str() ) );
+            ++proto;
 		}
 		x->addDescription( adcontrols::description( L"process", o.str() ) );
+        QApplication::clipboard()->setText( text );
 	}
 	return tic;
 }
