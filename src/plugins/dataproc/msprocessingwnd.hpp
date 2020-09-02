@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -71,6 +71,8 @@ namespace dataproc {
         void draw( std::shared_ptr< adcontrols::Chromatogram >&, int idx );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
 
+        std::pair< QRectF, adcontrols::hor_axis > profileRect() const;
+
         void idSpectrumFolium( const std::wstring& );
         void idChromatogramFolium( const std::wstring& );
         void handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked );
@@ -127,6 +129,7 @@ namespace dataproc {
         bool power_spectrum( const adcontrols::MassSpectrum&, const std::pair<size_t, size_t>& );
         void power_spectrum( const adcontrols::Chromatogram& );
         void estimateScanLaw( const boost::uuids::uuid& spectrometer_uuid );
+        
 
         // from menu
         void frequency_analysis();

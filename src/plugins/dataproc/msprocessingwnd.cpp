@@ -23,12 +23,14 @@
 **************************************************************************/
 
 #include "msprocessingwnd.hpp"
-#include "document.hpp"
-#include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
-#include "sessionmanager.hpp"
+#include "dataprocplugin.hpp"
+#include "document.hpp"
 #include "mainwindow.hpp"
+#include "rms_export.hpp"
+#include "sessionmanager.hpp"
+
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -1462,9 +1464,9 @@ MSProcessingWnd::correct_baseline()
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
 
-        QString text( QString("%1\tH(mV),-L(mV),RMS(mV),nAVG/" ).arg(name) );
+        QString text( QString("%1\tt_min,h_min,t_max,h_max,RMS,nAVG/" ).arg(name) );
 
-        boost::format fmt( "\tp%1%\t%2%\t%3%\t%4%\t%5%\t|" );
+        boost::format fmt( "\t%1%\t%2%\t%3%\t%4%\t%5%\%6%\t;" );
 
         size_t proto(0);
 		for ( auto& ms: segments ) {
@@ -1475,10 +1477,13 @@ MSProcessingWnd::correct_baseline()
             tic += adportable::spectrum_processor::tic( static_cast< unsigned int >( ms.size() ), data, dbase, rms );
             for ( size_t idx = 0; idx < ms.size(); ++idx )
                 ms.setIntensity( idx, data[ idx ] - dbase );
-            auto mm = std::minmax_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );
+            auto mm = std::minmax_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );            
             o << boost::wformat( L" p%d H=%.2f/RMS=%.2f(navg=%d)" ) % proto % (*mm.second) % rms % nAvg;
 
-            text.append( QString::fromStdString( (fmt % proto % *mm.second % *mm.first % rms % nAvg).str() ) );
+            auto t_max = ms.time( std::distance(ms.getIntensityArray(), mm.second) );
+            auto t_min = ms.time( std::distance(ms.getIntensityArray(), mm.first) );
+
+            text.append( QString::fromStdString( (fmt % t_min % *mm.first % t_max % *mm.second % rms % nAvg).str() ) );
             ++proto;
 		}
 		x->addDescription( adcontrols::description( L"process", o.str() ) );
@@ -1502,57 +1507,95 @@ MSProcessingWnd::compute_rms( double s, double e )
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
 
-        QString text( QString("%1\trms(start,end,N,rms,nAvg,rms2,max,min)").arg( name ) );
-        boost::format fmt("\t%.14f\t%.14f\t%d\t%.7f\t%d\t%.7f\t%.7f\t%.7f\t|");
+        QString text( QString("%1\trms(t0,t1,N,rms,t_min,h_min,t_max,h_max,nAvg)").arg( name ) );
+        //                   t0     t1      N   rms  t_min h_min t_max   hmax nAVG
+        boost::format fmt("\t%1%\t%2%\t%3%\t%4%\t%5%\t%6%\t%7%\t%8%\t%9%\t;");
 
         for ( auto& ms: segments ) {
 
-            std::pair< size_t, size_t > range;
-            if ( pImpl_->is_time_axis_ ) {
-                range.first = s > 0 ? ms.getIndexFromTime( scale_to_base(s, pfx::micro), false ) : 0;
-                range.second = e > 0 ? ms.getIndexFromTime( scale_to_base(e, pfx::micro), true ) : ms.size() - 1;
-            } else {
-                const double * masses = ms.getMassArray();
-                range.first = s > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) ) : 0;
-                range.second = e > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) ) : ms.size() - 1;
-            }
-            size_t n = range.second - range.first + 1;
-            
-            if ( n >= 5 ) {
+            std::pair<double, double> xrange(pImpl_->is_time_axis_ ? range_t<true>()( s, e ) : range_t<false>()( s, e ));
 
-                adportable::array_wrapper<const double> data( ms.getIntensityArray() + range.first, n );
-
-				double sum = std::accumulate( data.begin(), data.end(), 0.0 );
-                double m = sum / data.size();
-                double sdd = std::accumulate( data.begin(), data.end(), 0.0, [=]( double a, double x ){ return a + ( (x - m) * (x - m) ); }) / n;
-                double rms = std::sqrt( sdd );
-
-				using namespace adcontrols::metric;
-
+            if ( auto res = dataproc::rms_export::compute_rms( ms, xrange, pImpl_->is_time_axis_ ) ) {
+                std::pair<double, double> time_range;
+                size_t N;
+                double rms, min_time, min_value, max_time, max_value;
+                std::tie( time_range, N, rms, min_time, min_value, max_time, max_value ) = res.get();
+                ADDEBUG() << "compute_rms: " << time_range;
+                
                 ptr->addDescription( adcontrols::description( L"process"
-                                                              , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf")
-                                                                 % scale_to_micro( ms.getTime(range.first) )
-                                                                 % scale_to_micro( ms.getTime(range.second) )
-                                                                 % n
-                                                                 % rms).str() ) );
-                // --->
-                double tic, dbase, rms2;
-                std::tie( tic, dbase, rms2 ) = adportable::spectrum_processor::tic( data.size(), data.data() );
-                auto mm = std::minmax_element( data.begin(), data.end() );
-                // <--
-
+                                                              , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf(%d)")
+                                                                 % (time_range.first * std::micro::den )
+                                                                 % (time_range.second * std::micro::den )
+                                                                 % N
+                                                                 % rms
+                                                                 % ms.getMSProperty().numAverage()
+                                                                  ).str() ) );
+                // ---
                 text.append( QString::fromStdString(
                                  ( fmt
-                                   % scale_to_micro( ms.getTime( range.first ) )
-                                   % scale_to_micro( ms.getTime( range.second ) )
-                                   % n
+                                   % time_range.first
+                                   % time_range.second
+                                   % N
                                    % rms
+                                   % min_time
+                                   % min_value
+                                   % max_time
+                                   % max_value
                                    % ms.getMSProperty().numAverage()
-                                   % rms2
-                                   % (*mm.second - dbase)
-                                   % (*mm.first - dbase)
                                      ).str() ) );
             }
+#if 0
+            // std::pair< size_t, size_t > range;
+            // if ( pImpl_->is_time_axis_ ) {
+            //     range.first = s > 0 ? ms.getIndexFromTime( scale_to_base(s, pfx::micro), false ) : 0;
+            //     range.second = e > 0 ? ms.getIndexFromTime( scale_to_base(e, pfx::micro), true ) : ms.size() - 1;
+            // } else {
+            //     const double * masses = ms.getMassArray();
+            //     range.first = s > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) ) : 0;
+            //     range.second = e > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) ) : ms.size() - 1;
+            // }
+            // size_t n = range.second - range.first + 1;
+            
+            // if ( n >= 5 ) {
+
+            //     adportable::array_wrapper<const double> data( ms.getIntensityArray() + range.first, n );
+
+			// 	double sum = std::accumulate( data.begin(), data.end(), 0.0 );
+            //     double m = sum / data.size();
+            //     double sdd = std::accumulate( data.begin(), data.end(), 0.0, [=]( double a, double x ){ return a + ( (x - m) * (x - m) ); }) / n;
+            //     double rms = std::sqrt( sdd );
+
+			// 	using namespace adcontrols::metric;
+
+            //     ptr->addDescription( adcontrols::description( L"process"
+            //                                                   , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf")
+            //                                                      % scale_to_micro( ms.getTime(range.first) )
+            //                                                      % scale_to_micro( ms.getTime(range.second) )
+            //                                                      % n
+            //                                                      % rms).str() ) );
+            //     // --->
+            //     double tic, dbase, rms2;
+            //     std::tie( tic, dbase, rms2 ) = adportable::spectrum_processor::tic( data.size(), data.data() );
+            //     auto mm = std::minmax_element( data.begin(), data.end() );
+            //     double t_min = ms.time( std::distance( data.begin(), mm.first ) + range.first );
+            //     double t_max = ms.time( std::distance( data.begin(), mm.second ) + range.first );
+            //     // <--
+
+            //     text.append( QString::fromStdString(
+            //                      ( fmt
+            //                        % ms.time( range.first )   // t0
+            //                        % ms.time( range.second )  // t1
+            //                        % n
+            //                        % rms
+            //                        % t_min
+            //                        % (*mm.first - dbase)      // h_min
+            //                        % t_max
+            //                        % (*mm.second - dbase)     // h_max
+            //                        % rms2
+            //                        % ms.getMSProperty().numAverage()
+            //                          ).str() ) );
+            // }
+#endif
         }
         QApplication::clipboard()->setText( text );                
         return true;
@@ -1932,4 +1975,10 @@ MSProcessingWnd::onInitialUpdate()
                            DataprocessWorker::instance()->genChromatograms( dp, pm, json );
                    });
     }
+}
+
+std::pair< QRectF, adcontrols::hor_axis >
+MSProcessingWnd::profileRect() const
+{
+    return std::make_pair( pImpl_->profileSpectrum_->zoomRect(), axis_ );
 }

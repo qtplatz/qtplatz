@@ -126,6 +126,8 @@ add_library( ${PROJECT_NAME} MODULE
   peaklist_export.cpp
   peaklist_export.hpp
   qtwidgets_name.hpp
+  rms_export.cpp
+  rms_export.hpp
   selchanged.hpp
   sessionmanager.cpp
   sessionmanager.hpp

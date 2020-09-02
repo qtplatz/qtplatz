@@ -68,6 +68,7 @@ namespace dataproc {
             , idActCreateSpectrogram
             , idActClusterSpectrogram
             , idActExportAllChecked
+            , idActExportRMSAllChecked
             , numOfActions
         };
 

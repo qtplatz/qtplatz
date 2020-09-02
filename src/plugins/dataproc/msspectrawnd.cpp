@@ -23,14 +23,13 @@
 **************************************************************************/
 
 #include "msspectrawnd.hpp"
-#include "mainwindow.hpp"
+#include "datafolder.hpp"
 #include "dataprocessor.hpp"
+#include "document.hpp"
+#include "mainwindow.hpp"
+#include "qtwidgets_name.hpp"
 #include "selchanged.hpp"
 #include "sessionmanager.hpp"
-#include "document.hpp"
-#include "qtwidgets_name.hpp"
-#include "datafolder.hpp"
-
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>

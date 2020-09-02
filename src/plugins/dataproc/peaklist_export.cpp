@@ -131,6 +131,7 @@ namespace {
                       ",fileid INTEGER"
                       ",spname TEXT"
                       ",sptype TEXT"
+                      ",UNIQUE( spname )"                                            
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 
@@ -219,7 +220,7 @@ namespace {
             uint32_t proto(0);
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( t ) ){
                 for ( const auto& pk: info ) {
-                    ADDEBUG() << "spid: " << spid << ", " << pk.formula();
+                    //ADDEBUG() << "spid: " << spid << ", " << pk.formula();
                     sql.reset();
                     uint32_t id(1);
                     sql.bind(id++) = spid;

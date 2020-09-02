@@ -423,15 +423,20 @@ size_t
 MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
 {
     size_t idx;
+    if ( seconds > time( size() - 1 ) )
+        return size() - 1;
+    if ( seconds < time( 0 ) )
+        return 0;
     if ( ! impl_->tofArray_.empty() ) {
         idx = std::distance( impl_->tofArray_.begin(), std::lower_bound( impl_->tofArray_.begin(), impl_->tofArray_.end(), seconds ) );
     } else {
         const SamplingInfo& info = impl_->property_.samplingInfo();
         idx = size_t( ( seconds - info.fSampDelay() ) / info.fSampInterval() );
     }
+    
     if ( closest && idx < impl_->size() ) {
         if ( ( ( idx + 1 ) < impl_->size() )
-             && ( std::abs( seconds - getTime( idx ) ) > std::abs( seconds - getTime( idx + 1 ) ) ) )
+             && ( std::abs( seconds - time( idx ) ) > std::abs( seconds - getTime( idx + 1 ) ) ) )
             ++idx;
     }
     return idx; // will return size() when 'seconds' does not exist

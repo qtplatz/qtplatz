@@ -26,6 +26,7 @@ namespace Constants {
     const char * const IMPORT_ALL_CHECKED   = "dataproc.ImportAllCheckedSpectra";
     const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
     const char * const EXPORT_ALL_CHECKED   = "dataproc.ExportAllChecked";
+    const char * const EXPORT_RMS_CHECKED   = "dataproc.ExportRMSAllChecked";    
     const char * const HIDE_DOCK            = "dataproc.HideDock";
 
     const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";

@@ -105,6 +105,7 @@ namespace dataproc {
         void handleImportChecked();
         void handleExportPeakList();
         void handleExportAllChecked();
+        void handleExportRMSAllChecked();
 
         enum idPage { idSelMSProcess, idSelElementalComp, idSelMSCalibration //, idSelMSCalibSpectra
                       , idSelChromatogram, idSelMSPeaks, idSelSpectrogram, idSelSpectra, idNum };
@@ -169,6 +170,25 @@ namespace dataproc {
         void onZoomedOnSpectrum( const QRectF&, int axis ) const;
         void onZoomedOnChromatogram( const QRectF& ) const;
     };
+
+    ///// SpectrumWidget scale (us) -> seconds
+    template <bool isTime> struct range_t {};
+    
+    template <> struct range_t<true> {
+        inline std::pair<double,double> operator()( const QRectF& rect ) const {
+            return std::make_pair( rect.left() / std::micro::den, rect.right() / std::micro::den );
+        }
+        inline std::pair<double,double> operator()( const double& s, const double& e ) const {
+            return std::make_pair( s / std::micro::den, e / std::micro::den );
+        }
+    };
+    template<> struct range_t<false> {
+        inline std::pair< double, double> operator()( const QRectF& rect ) const {
+            return std::make_pair( rect.left(), rect.right() );
+        }
+        inline std::pair<double,double> operator()( const double& s, const double& e ) const { return std::make_pair( s, e ); }
+    };
+    
 
 }
 

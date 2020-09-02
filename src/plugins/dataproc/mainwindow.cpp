@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -40,6 +40,7 @@
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
 #include "peaklist_export.hpp"
+#include "rms_export.hpp"
 #include "sessionmanager.hpp"
 #include "contourwnd.hpp"
 
@@ -1047,6 +1048,58 @@ MainWindow::handleExportPeakList()
         peaklist_export::sqlite_export( path );
     } else {
         peaklist_export::text_export( path );
+    }
+}
+
+void
+MainWindow::handleExportRMSAllChecked()
+{
+    QFileDialog dlg( this, tr( "Save RMS for all checked spectra") );
+    dlg.setDirectory( currentDir() );
+    dlg.setAcceptMode( QFileDialog::AcceptSave );
+    dlg.setFileMode( QFileDialog::AnyFile );
+    QStringList filter;
+    filter << "SQLite(*.db)" << "Text files(*.txt)" << "All files(*)";
+    dlg.setNameFilters( filter );
+
+    if ( !dlg.exec() )
+        return;
+
+    auto files = dlg.selectedFiles();
+    if ( files.isEmpty() )
+        return;
+
+    boost::filesystem::path path( files.at(0).toStdString() );
+
+    if ( path.extension().empty() ) {
+        if ( dlg.selectedNameFilter().contains( "SQLite" ) )
+            path.replace_extension( ".db" );
+        else
+            path.replace_extension( ".txt" );
+    }
+#if 0
+    if ( boost::filesystem::exists( path ) ) {
+        boost::system::error_code ec;
+        if ( !boost::filesystem::remove( path,ec ) ) {
+            QMessageBox::critical( this, "QtPlatz::dataproc::mainwindow", QString("Cannot delete existing file: %1").arg( path.string().c_str() ) );
+            return;
+        }
+    }
+#endif
+
+    if ( auto pWnd = findChild< MSProcessingWnd * >() ) {
+        QRectF rect;
+        adcontrols::hor_axis axis;
+        std::tie( rect, axis ) = pWnd->profileRect();
+        auto isTime = (axis == adcontrols::hor_axis_time);
+             
+        const std::pair< double, double > range( isTime ? range_t<true>()(rect) : range_t<false>()(rect) );
+    
+        if ( path.extension() == ".db" ) {
+            rms_export::sqlite_export( path, range, axis == adcontrols::hor_axis_time );
+        } else {
+            QMessageBox::information(0, QLatin1String("QtPlatz export RMS"), "Sorry, text format export not supported." );
+        }
     }
 }
 
