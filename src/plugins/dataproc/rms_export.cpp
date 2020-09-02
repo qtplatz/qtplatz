@@ -83,6 +83,7 @@ namespace {
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 
+            sql.exec( "DROP TABLE IF EXISTS RMS");
             sql.exec( "CREATE TABLE IF NOT EXISTS RMS ("
                       "spid     INTEGER"
                       ",proto   INTEGER"

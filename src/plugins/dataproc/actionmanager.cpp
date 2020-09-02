@@ -84,9 +84,9 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::CALIBFILE_APPLY ) );
             menu->addAction( am->command( Constants::PROCESS_ALL_CHECKED ) );
             menu->addAction( am->command( Constants::LISTPEAKS_ON_CHECKED ) );
-            menu->addAction( am->command( Constants::IMPORT_ALL_CHECKED ) );
+            menu->addAction( am->command( Constants::EXPORT_RMS_CHECKED ) );            
             menu->addAction( am->command( Constants::EXPORT_ALL_CHECKED ) );
-            menu->addAction( am->command( Constants::EXPORT_RMS_CHECKED ) );
+            menu->addAction( am->command( Constants::IMPORT_ALL_CHECKED ) );
 
             menu->addAction( am->command( Constants::CREATE_SPECTROGRAM ) );
             menu->addAction( am->command( Constants::CLUSTER_SPECTROGRAM ) );
@@ -169,7 +169,6 @@ ActionManager::initialize_actions( const Core::Context& context )
             am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleProcessChecked );
         }
-
         if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra..." ), this ) ) {
             am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportPeakList );

@@ -134,6 +134,13 @@ document::addToRecentFiles( const QString& filename )
 }
 
 void
+document::addToRecentFiles( const QString& filename, const char * const GRP )
+{
+    qtwrapper::settings(*settings_).addRecentFiles( GRP, Constants::KEY_FILES, filename );
+}
+
+
+void
 document::initialSetup()
 {
     boost::filesystem::path dir = user_preference::path( settings_.get() );

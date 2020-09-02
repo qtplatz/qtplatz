@@ -72,7 +72,8 @@ namespace dataproc {
 
         QSettings * settings() { return settings_.get(); }
 
-        void addToRecentFiles( const QString& );
+        void addToRecentFiles( const QString&, const char * const GRP );
+        void addToRecentFiles( const QString& ); // GRP_DATA_FILES
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
 
         void saveScanLaw( const QString& model_name, double flength, double accv, double tdelay, double mass, const QString& );

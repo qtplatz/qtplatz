@@ -1013,7 +1013,9 @@ void
 MainWindow::handleExportPeakList()
 {
     QFileDialog dlg( this, tr( "Save peak list for all checked spectra/chromatograms") );
-    dlg.setDirectory( currentDir() );
+    //dlg.setDirectory( currentDir() );
+    dlg.setDirectory( document::instance()->recentFile( Constants::GRP_EXPORT_FILES ) );
+
     dlg.setAcceptMode( QFileDialog::AcceptSave );
     dlg.setFileMode( QFileDialog::AnyFile );
     QStringList filter;
@@ -1049,13 +1051,16 @@ MainWindow::handleExportPeakList()
     } else {
         peaklist_export::text_export( path );
     }
+
+    document::instance()->addToRecentFiles( QString::fromStdString( path.string() ), Constants::GRP_EXPORT_FILES );
 }
 
 void
 MainWindow::handleExportRMSAllChecked()
 {
     QFileDialog dlg( this, tr( "Save RMS for all checked spectra") );
-    dlg.setDirectory( currentDir() );
+    // dlg.setDirectory( currentDir() );
+    dlg.setDirectory( document::instance()->recentFile( Constants::GRP_EXPORT_FILES ) );
     dlg.setAcceptMode( QFileDialog::AcceptSave );
     dlg.setFileMode( QFileDialog::AnyFile );
     QStringList filter;

@@ -57,26 +57,28 @@ void
 settings::addRecentFiles( const QString& group, const QString& key, const QString& value )
 {
     QFileInfo path( value );
-    if ( !path.exists() )
+
+    if ( ! path.exists() || value.isEmpty() )
         return;
 
     std::vector< QString > list;
     getRecentFiles( group, key, list );
 
-    auto it = std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a; } );
-
-    if ( it != list.end() )
-        list.erase( it, list.end() );
+    list.erase( std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a || a.isEmpty(); } ), list.end() );
 
     settings_.beginGroup( group );
 
     settings_.beginWriteArray( key );
-    settings_.setArrayIndex( 0 );
 
+    size_t idx(0);
+    settings_.setArrayIndex( idx++ );
     settings_.setValue( "File", path.canonicalFilePath() );
-    for ( size_t i = 0; i < list.size() && i < 7; ++i ) {
-        settings_.setArrayIndex( int(i + 1) );
-        settings_.setValue( "File", list[ i ] );
+    
+    for ( const auto& f: list ) {
+        settings_.setArrayIndex( idx++ );
+        settings_.setValue( "File", f );
+        if ( idx >= 16 )
+            break;
     }
 
     settings_.endArray();
