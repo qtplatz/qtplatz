@@ -8,12 +8,7 @@ source ${cwd}/nproc.sh
 PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 PYTHON=$(python3 -c "import sys; print(sys.executable)")
-# workaround
-#if [ `uname` == "Darwin" ]; then
-#	PYTHON_INCLUDE="/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/Headers/"
-#fi
 
-cwd=$(pwd)
 arch=`uname`-`arch`
 
 __nproc nproc
@@ -56,14 +51,16 @@ if [ `uname` == "Darwin" ]; then
 	fi
     cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
 else
-	cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
+    cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
 				 "-DRDK_BUILD_INCHI_SUPPORT=ON"
 				 "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
 				 "-DPYTHON_EXECUTABLE=${PYTHON}"
 				 "-DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE}"
 				 "-DRDK_INSTALL_INTREE=OFF"
-				 "-DRDK_INSTALL_STATIC_LIBS=OFF"
-				 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
+#				 "-DRDK_INSTALL_STATIC_LIBS=OFF"
+#				 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
+				 "-DBoost_NO_BOOST_CMAKE=ON"
+				 "-DRDK_BUILD_FREETYPE_SUPPORT=OFF"
 			   )
 fi
 
@@ -87,7 +84,7 @@ cd $BUILD_DIR;
 echo "RDBASE    : " $RDBASE
 echo "BUILD_DIR : " `pwd`
 echo cmake "${cmake_args[@]}" $RDBASE
-
+prompt
 cmake "${cmake_args[@]}" $RDBASE
 echo "make -j${nproc}"
 prompt

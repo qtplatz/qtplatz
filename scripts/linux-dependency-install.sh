@@ -2,6 +2,10 @@
 
 failed_list=()
 
+PYTHON_VERSION=$(python3 -c "import sys; print('{}.{}'.format(*sys.version_info))")
+
+echo "PYTHON_VERSION: ${PYTHON_VERSION}"
+
 #qt5
 list_dependency+=('mesa-common-dev'
 		  'libglu1-mesa-dev'
@@ -14,7 +18,7 @@ list_dependency+=('mesa-common-dev'
 list_dependency+=('libbz2-dev')
 
 #python3
-list_dependency+=('python3.5-dev' 'python3-pip')
+list_dependency+=("python${PYTHON_VERSION}-dev" 'python3-pip')
 
 #rtags
 list_dependency+=('clang-3.9'
@@ -25,7 +29,7 @@ list_dependency+=('clang-3.9'
 list_dependency+=('libclang-3.8-dev')
 
 #rdkit
-list_dependency+=('libeigen3-dev')
+list_dependency+=('libeigen3-dev' ) # 'libschroedinger-maeparser-dev' <-- something wrong
 
 #cmake+opencv
 list_dependency+=('libcurl4-openssl-dev'
@@ -90,3 +94,6 @@ if [ ${#failed_list[@]} -gt 0 ]; then
 	echo "	" "$arg"
    done
 fi
+
+sudo python3 -m pip install --upgrade pip
+python3 -m pip install numpy
