@@ -31,7 +31,7 @@ world:
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c qtplatz.app | tar xvf -
 	find @Boost_LIBRARY_DIRS@ -name "libboost_python*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
-	tar -C /usr/local/lib/python3.7/site-packages -c rdkit | tar xvf - -C ./qtplatz.app/Library/Python/3.7/site-packages
+	tar -C /usr/local/lib/python@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages -c rdkit | tar xvf - -C ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages
 
 deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
@@ -65,18 +65,16 @@ list_rpath:
 		otool -l $$i | grep RPATH -A2; \
 	done
 	echo "installed rpath for qtplatz ----->"
-	find ./qtplatz.app/Library/Python/3.7/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
+	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
 	echo "installed rpath for rdkit ---->"
-	find ./qtplatz.app/Library/Python/3.7/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
+	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
 
 rpath.sh:
-	(cd ./qtplatz.app/Library; find Python/3.7/site-packages/rdkit -name "*.so" |\
+	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" |\
 		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh	
 
-#	(cd ./qtplatz.app/Library; find Python/3.7/site-packages/rdkit -name "*.so" | sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/\2 \1/')
-
 rpath: rpath.sh
-	for i in qtplatz.app/Library/Python/3.7/site-packages/qtplatz/*.so; do \
+	for i in qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz/*.so; do \
 		echo $$i; \
 		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ $$i; \
 		install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ $$i; \

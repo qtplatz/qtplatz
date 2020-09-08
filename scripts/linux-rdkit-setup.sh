@@ -44,6 +44,7 @@ if [ `uname` == "Darwin" ]; then
 			 "-DRDK_INSTALL_INTREE=OFF"
 			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
 			 "-DBoost_NO_BOOST_CMAKE=ON"
+			 "-DRDK_BUILD_FREETYPE_SUPPORT=OFF"
 			   )
 	if (( $nproc < 8 )); then
 		cmake_args+=(
