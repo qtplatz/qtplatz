@@ -20,14 +20,16 @@ else
 fi
 
 if [ ! -z $cross_target ]; then
-    cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" "-DRDK_OPTIMIZE_NATIVE=OFF" )
+    cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" )
+else
+	cmake_args+=( "-DBOOST_ROOT=$BOOST_ROOT" )
 fi
 
 if [ ! -d $SRCDIR ]; then
     if [ ! -d $(dirname $SRCDIR) ]; then
 		mkdir -p $(dirname $SRCDIR)
     fi
-    git clone https://github.com/rdkit/rdkit $SRCDIR
+    git clone https://github.com/schrodinger/maeparser $SRCDIR
 fi
 
 mkdir -p $BUILD_DIR;
@@ -36,6 +38,7 @@ cd $BUILD_DIR;
 echo cmake "${cmake_args[@]}" $SRCDIR
 prompt
 cmake "${cmake_args[@]}" $SRCDIR
+
 echo "make -j${nproc}"
 prompt
 make -k -j${nproc}

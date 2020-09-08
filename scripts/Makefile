@@ -49,6 +49,7 @@ default_debian_10:
 	@echo "make bower"
 	@echo "make boost, check python version in your user-config.jam"
 	@echo "make qwt"
+	@echo "make maeparser"
 	@echo "make rdkit"
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make qemu"
@@ -71,6 +72,7 @@ default:
 	@echo "make bower"
 	@echo "make boost"
 	@echo "make qwt"
+	@echo "make maeparser"
 	@echo "make rdkit"
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make qemu"
@@ -109,6 +111,9 @@ boost:
 
 boost-armhf:
 	cross_target=armhf ./linux-boost-setup.sh
+
+maeparser:
+	./linux-maeparser-setup.sh
 
 rdkit:
 	./linux-rdkit-setup.sh

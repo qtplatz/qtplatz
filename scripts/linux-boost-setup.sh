@@ -34,7 +34,7 @@ function python_dirs {
 }
 
 function make_user_config_darwin {
-#Catalina workaround, which failed to find pyconfig.h 
+#Catalina workaround, which failed to find pyconfig.h
 	PYTHON=$(which python3)
 	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
@@ -43,16 +43,11 @@ function make_user_config_darwin {
 		mv ~/user-config.jam ~/user-config.jam.orig
 	fi
 
-	cat << END > ~/user-config.jam 
-#from sysconfig import get_paths
-#from pprint import pprint
-#pprint( get_paths() )
-#workaround: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/${PYTHON_VERSION}/Headers/
-
+	cat << END > ~/user-config.jam
 using python
 	  : $PYTHON_VERSION
 	  : $PYTHON
-	  : $PYTHON_INCLUDE 
+	  : $PYTHON_INCLUDE
 	  ;
 END
 }
@@ -63,13 +58,17 @@ function make_user_config_linux {
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
 
-	if [ ! -f ~/user-config.jam ]; then
-	cat << END > ~/user-config.jam 
-#from sysconfig import get_paths
-#from pprint import pprint
-#pprint( get_paths() )
+	if [ -f ~/user-config.jam ]; then
+		mv ~/user-config.jam ~/user-config.jam.orig
+	fi
 
-using python : $PYTHON_VERSION : $PYTHON : $PYTHON_INCLUDE ;
+	if [ ! -f ~/user-config.jam ]; then
+	cat << END > ~/user-config.jam
+using python
+	  : $PYTHON_VERSION
+	  : $PYTHON
+	  : $PYTHON_INCLUDE
+	  ;
 END
 	fi
 }
@@ -87,22 +86,37 @@ function boost_build {
 
       case "${arch}" in
 		  Linux*)
-			  echo "********************************************"
-			  echo "It seems that libbz2.a should be removed befor run following"
-			  echo "********************************************"
+			  if [ -d ${cwd}/../../bzip2-1.0.6 ]; then
+				  BZIP2="-s BZIP2_SOURCE=${cwd}/../../bzip2-1.0.6"
+			  else
+				  echo "********************************************"
+				  echo "If libbz2.a exists in the sytem library path, iostreams build may be failed."
+				  echo "********************************************"
+			  fi
+			  echo "##### ${BZIP2} #####"
 			  PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 			  PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
+			  CXX_FLAGS="-fPIC -std=c++17"
+			  C_FLAGS="-fPIC"
 			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON}
-			  echo ./b2 -j $nproc address-model=64 toolset=gcc threading=multi cflags=-fPIC cxxflags="-fPIC -std=c++17" \
-				   include=${PYTHON_INCLUDE} \
-				   install
-			  prompt
-			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
-			  	  ./b2 -j $nproc address-model=64 toolset=gcc cflags=-fPIC cxxflags="-fPIC -std=c++17" \
+			  echo ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
 					   threading=multi \
 					   link=shared \
-					   include=${PYTHON_INCLUDE} \
+					   include="${PYTHON_INCLUDE}" \
+					   --without-mpi \
+					   --without-graph_parallel \
+					   "${BZIP2}" \
+					   install
+			  prompt
+			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
+			  	  ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
+					   threading=multi \
+					   link=shared \
+					   include="${PYTHON_INCLUDE}" \
+					   --without-mpi \
+					   --without-graph_parallel \
+					   "${BZIP2}" \
 					   install
 			  ;;
 		  Darwin*)
@@ -179,7 +193,7 @@ fi
 BOOST_BUILD_DIR=$BUILD_ROOT/boost_${BOOST_VERSION}
 BOOST_PREFIX=${CROSS_ROOT}$PREFIX/boost-${BOOST_VERSION/%_0//}
 
-echo "INSTALLING 'boost' $cross_target to"
+echo "INSTALLING 'boost' $cross_target to:"
 echo "	BOOST DOWNLOAD    : ${DOWNLOADS}"
 echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
 echo "	BOOST_PREFIX      : ${BOOST_PREFIX}"
