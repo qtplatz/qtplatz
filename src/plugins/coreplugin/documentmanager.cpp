@@ -28,7 +28,7 @@
 ****************************************************************************/
 
 #include "documentmanager.h"
-
+#include <adportable/debug.hpp>
 #include "icore.h"
 #include "idocument.h"
 #include "mimedatabase.h"
@@ -662,6 +662,8 @@ bool DocumentManager::saveDocument(IDocument *document, const QString &fileName,
 QString DocumentManager::getSaveFileName(const QString &title, const QString &pathIn,
                                      const QString &filter, QString *selectedFilter)
 {
+    ADDEBUG() << "getSaveFileName(" << title.toStdString() << ", " << pathIn.toStdString() << ", " << filter.toStdString() << ")";
+
     const QString &path = pathIn.isEmpty() ? fileDialogInitialDirectory() : pathIn;
     QString fileName;
     bool repeat;
@@ -870,6 +872,8 @@ QStringList DocumentManager::getOpenFileNames(const QString &filters,
                                               const QString &pathIn,
                                               QString *selectedFilter)
 {
+    ADDEBUG() << "getOpenFileNames filters: " << filters.toStdString() << "\npathIn: \t" << pathIn.toStdString();
+
     QString path = pathIn;
     if (path.isEmpty()) {
         if (!d->m_currentFile.isEmpty())
@@ -877,10 +881,16 @@ QStringList DocumentManager::getOpenFileNames(const QString &filters,
         if (path.isEmpty() && useProjectsDirectory())
             path = projectsDirectory();
     }
-    const QStringList files = QFileDialog::getOpenFileNames(ICore::dialogParent(),
-                                                      tr("Open File"),
-                                                      path, filters,
-                                                      selectedFilter);
+    ADDEBUG() << "----------->";
+
+    const QStringList files = QFileDialog::getOpenFileNames( ICore::dialogParent()
+                                                             , tr("Open File")
+                                                             , path
+                                                             , filters
+                                                             , selectedFilter );
+    for ( const auto& file: files )
+        ADDEBUG() << "<-----------" << file.toStdString();
+
     if (!files.isEmpty())
         setFileDialogLastVisitedDirectory(QFileInfo(files.front()).absolutePath());
     return files;
@@ -1458,7 +1468,7 @@ void DocumentManager::executeOpenWithMenuAction(QAction *action)
         EditorManager::openExternalEditor(entry.fileName, entry.externalEditor->id());
 }
 
-// TH: this was disabled by removing 'installeventfilter' call, 
+// TH: this was disabled by removing 'installeventfilter' call,
 bool DocumentManager::eventFilter(QObject *obj, QEvent *e)
 {
     if (obj == qApp && e->type() == QEvent::ApplicationActivate) {

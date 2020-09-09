@@ -26,7 +26,7 @@ list_dependency+=('clang-3.9'
 		  'libclang-3.9-dev')
 
 #qt5 from source build
-list_dependency+=('libclang-3.8-dev')
+#list_dependency+=('libclang-3.8-dev')
 
 #rdkit
 list_dependency+=('libeigen3-dev' ) # 'libschroedinger-maeparser-dev' <-- something wrong
