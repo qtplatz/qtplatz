@@ -86,14 +86,12 @@ function boost_build {
 
       case "${arch}" in
 		  Linux*)
-			  if [ -d ${cwd}/../../bzip2-1.0.6 ]; then
-				  BZIP2="-s BZIP2_SOURCE=${cwd}/../../bzip2-1.0.6"
-			  else
+			  release=$(lsb_release -sr)
+			  if [ "${release%.*}" -lt "10" ]; then
 				  echo "********************************************"
-				  echo "If libbz2.a exists in the sytem library path, iostreams build may be failed."
+				  echo "If libbz2.a exists in the sytem library path on Debian 9, iostreams build may be failed."
 				  echo "********************************************"
 			  fi
-			  echo "##### ${BZIP2} #####"
 			  PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 			  PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
@@ -106,7 +104,6 @@ function boost_build {
 					   include="${PYTHON_INCLUDE}" \
 					   --without-mpi \
 					   --without-graph_parallel \
-					   "${BZIP2}" \
 					   install
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
@@ -116,7 +113,6 @@ function boost_build {
 					   include="${PYTHON_INCLUDE}" \
 					   --without-mpi \
 					   --without-graph_parallel \
-					   "${BZIP2}" \
 					   install
 			  ;;
 		  Darwin*)
@@ -150,7 +146,6 @@ function boost_cross_build {
     echo "=============================="
     echo "   BOOST cross install for $cross_target "
     echo "=============================="
-
     BOOST_BUILD_DIR=$1
     if [ ! -d $(dirname $BOOST_PREFIX) ]; then
 		if ! mkdir -p $(dirname $BOOST_PREFIX) ; then
