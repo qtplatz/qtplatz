@@ -33,6 +33,7 @@
 #include <boost/variant.hpp>
 #include <boost/serialization/version.hpp>
 #include <array>
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -69,7 +70,7 @@ namespace acqrscontrols {
             template<class Archive> void serialize( Archive& ar, const unsigned int );
         };
 
-        
+
 #if defined _MSC_VER
         class waveform;
         ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
@@ -95,13 +96,13 @@ namespace acqrscontrols {
         template< typename T > class waveform_xdata_archive;
 
         class ACQRSCONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
-            
+
             waveform( const waveform& ); // = delete;
             void operator = ( const waveform& ); // = delete;
 
         public:
             waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
-            
+
             waveform( const method&
                       , const metadata&
                       , uint32_t serialnumber
@@ -131,7 +132,7 @@ namespace acqrscontrols {
             size_t size() const; // number of samples
 
             int dataType() const; // 2 = int16_t, 4 = int32_t
-            
+
             // 32bit interface
             void setData( const std::shared_ptr< adportable::mblock<int32_t> >&, size_t firstValidPoint );
 
@@ -146,11 +147,11 @@ namespace acqrscontrols {
             double time( size_t idx ) const;
             bool isDEAD() const;
             uint32_t serialnumber() const { return serialnumber_; };
-            
+
             const identify* ident() const { return ident_.get(); }
 
             const std::shared_ptr< const identify >& ident_ptr() const { return ident_; }
-            
+
             template< typename value_type > const value_type* begin() const;
             template< typename value_type > const value_type* end() const;
             template< typename value_type > value_type* begin();
@@ -171,7 +172,7 @@ namespace acqrscontrols {
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
 
             static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-            
+
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
@@ -187,7 +188,7 @@ namespace acqrscontrols {
                 return ( ( adportable::compare<double>::essentiallyEqual( a.xIncrement, b.xIncrement )
                            && adportable::compare<double>::essentiallyEqual( a.initialXOffset, b.initialXOffset, a.xIncrement ) ) );
             }
-            
+
         private:
             friend class waveform_xmeta_archive< waveform >;
             friend class waveform_xmeta_archive< const waveform >;
@@ -199,7 +200,7 @@ namespace acqrscontrols {
             double tic_;
             double dbase_;
             double rms_;
-            
+
             boost::variant < std::shared_ptr< adportable::mblock<int16_t> >
                              , std::shared_ptr< adportable::mblock<int32_t> >
                              , std::shared_ptr< adportable::mblock<int64_t> >
@@ -208,13 +209,13 @@ namespace acqrscontrols {
             template< typename lvalue_type
                       , typename rvalue_type > void add( const waveform& t, double dbase ) {
                 std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );                
+                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );
             }
-            
+
             template< typename lvalue_type
                       , typename rvalue_type > void sub( const waveform& t ) {
                 std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( b - a ); } );                
+                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( b - a ); } );
             }
         };
 
@@ -237,4 +238,3 @@ namespace acqrscontrols {
 }
 
 BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_data, 1 )
-

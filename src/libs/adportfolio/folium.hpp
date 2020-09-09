@@ -29,6 +29,7 @@
 #include "node.hpp"
 #include <boost/any.hpp>
 #include <boost/optional.hpp>
+#include <algorithm>
 
 namespace portfolio {
 
