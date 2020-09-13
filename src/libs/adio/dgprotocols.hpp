@@ -26,6 +26,8 @@
 
 #include "dgprotocol.hpp"
 #include <vector>
+#include <istream>
+#include <ostream>
 
 namespace adio {
     namespace dg {

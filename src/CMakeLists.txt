@@ -26,5 +26,7 @@ if ( WITH_QT5 AND NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( plugins )
 endif()
 
-message( STATUS "------------ src/tools --------------------" )
+if ( VERBOSE )
+  message( STATUS "------------ src/tools --------------------" )
+endif()
 add_subdirectory( tools )

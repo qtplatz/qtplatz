@@ -1466,7 +1466,7 @@ MSProcessingWnd::correct_baseline()
 
         QString text( QString("%1\tt_min,h_min,t_max,h_max,RMS,nAVG/" ).arg(name) );
 
-        boost::format fmt( "\t%1%\t%2%\t%3%\t%4%\t%5%\%6%\t;" );
+        boost::format fmt( "\t%1%\t%2%\t%3%\t%4%\t%5%\t%6%\t;" );
 
         size_t proto(0);
 		for ( auto& ms: segments ) {

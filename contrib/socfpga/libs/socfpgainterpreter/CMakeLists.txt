@@ -10,8 +10,10 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
-message( STATUS "##### configure adplugin " "${QTPLATZ_PLUGIN_DIRECTORY}" )
-message( STATUS "##### configure adplugin " "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}" )
+if ( VERBOSE )
+  message( STATUS "##### configure adplugin " "${QTPLATZ_PLUGIN_DIRECTORY}" )
+  message( STATUS "##### configure adplugin " "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}" )
+endif()
 
 if ( MSVC )
   add_definitions(-DADS54JINTERPRETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS -wd4996 )
