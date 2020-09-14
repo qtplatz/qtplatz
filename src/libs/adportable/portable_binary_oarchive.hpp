@@ -1,10 +1,9 @@
 #ifndef PORTABLE_BINARY_OARCHIVE_HPP
 #define PORTABLE_BINARY_OARCHIVE_HPP
 
-// MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#include "adportable_global.h"
+
 # pragma once
-#endif
 
 #if defined(_MSC_VER)
 #pragma warning( push )
@@ -17,7 +16,7 @@
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // portable_binary_oarchive.hpp
 
-// (C) Copyright 2002 Robert Ramey - http://www.rrsd.com . 
+// (C) Copyright 2002 Robert Ramey - http://www.rrsd.com .
 // Use, modification and distribution is subject to the Boost Software
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -34,15 +33,18 @@
 #include <boost/version.hpp>
 #include <ostream>
 
+class ADPORTABLESHARED_EXPORT portable_binary_oarchive_exception;
+class ADPORTABLESHARED_EXPORT portable_binary_oarchive;
+
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit
 // variable being loaded
-class portable_binary_oarchive_exception : 
+class portable_binary_oarchive_exception :
     public virtual boost::archive::archive_exception
 {
 public:
     typedef enum {
-        invalid_flags 
+        invalid_flags
     } exception_code;
     portable_binary_oarchive_exception(exception_code c = invalid_flags )
         { (void)c; }
@@ -61,14 +63,14 @@ public:
 };
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
-// "Portable" output binary archive.  This is a variation of the native binary 
+// "Portable" output binary archive.  This is a variation of the native binary
 // archive. it addresses integer size and endienness so that binary archives can
 // be passed across systems. Note:floating point types not addressed here
 
 class portable_binary_oarchive :
     public boost::archive::basic_binary_oprimitive<
         portable_binary_oarchive,
-        std::ostream::char_type, 
+        std::ostream::char_type,
         std::ostream::traits_type
     >,
     public boost::archive::detail::common_oarchive<
@@ -77,7 +79,7 @@ class portable_binary_oarchive :
 {
     typedef boost::archive::basic_binary_oprimitive<
         portable_binary_oarchive,
-        std::ostream::char_type, 
+        std::ostream::char_type,
         std::ostream::traits_type
     > primitive_base_t;
     typedef boost::archive::detail::common_oarchive<
@@ -138,7 +140,7 @@ protected:
 
     // default processing - kick back to base class.  Note the
     // extra stuff to get it passed borland compilers
-    typedef boost::archive::detail::common_oarchive<portable_binary_oarchive> 
+    typedef boost::archive::detail::common_oarchive<portable_binary_oarchive>
         detail_common_oarchive;
 
 #if ! defined BOOST_VERSION
@@ -155,7 +157,7 @@ protected:
         const std::string s( t );
         *this << s;
     }
-    // binary files don't include the optional information 
+    // binary files don't include the optional information
     void save_override(const boost::archive::class_id_optional_type & /* t */ ){
     }
 #else
@@ -167,9 +169,9 @@ protected:
         const std::string s(t);
         * this << s;
     }
-    // binary files don't include the optional information 
+    // binary files don't include the optional information
     void save_override(
-        const boost::archive::class_id_optional_type & /* t */, 
+        const boost::archive::class_id_optional_type & /* t */,
         int
     ){}
 #endif
@@ -188,13 +190,13 @@ public:
 
     portable_binary_oarchive(
         std::basic_streambuf<
-            std::ostream::char_type, 
+            std::ostream::char_type,
             std::ostream::traits_type
-        > & bsb, 
+        > & bsb,
         unsigned int flags
     ) :
         primitive_base_t(
-            bsb, 
+            bsb,
             0 != (flags & boost::archive::no_codecvt)
         ),
         archive_base_t(flags),

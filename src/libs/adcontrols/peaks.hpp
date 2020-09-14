@@ -35,10 +35,11 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT Peak;
-    class ADCONTROLSSHARED_EXPORT Baseline;
+    class Baseline;
 
-    class ADCONTROLSSHARED_EXPORT Peaks {
+    class ADCONTROLSSHARED_EXPORT Peaks;
+
+    class Peaks {
     public:
         ~Peaks();
         Peaks();
@@ -99,4 +100,3 @@ namespace adcontrols {
     };
 
 }
-

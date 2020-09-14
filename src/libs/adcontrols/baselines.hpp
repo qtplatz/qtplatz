@@ -31,14 +31,10 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
-//#include <boost/serialization/string.hpp>
-
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT Baseline;
-
-    class ADCONTROLSSHARED_EXPORT Baselines {
+    class Baselines {
     public:
         virtual ~Baselines();
         Baselines();
@@ -64,20 +60,15 @@ namespace adcontrols {
     private:
         int nextId_;
 		int baseId_;
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
         vector_type baselines_;
 
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version ) {
-	    (void)version;
-	    ar & BOOST_SERIALIZATION_NVP( baseId_ );
-	    ar & BOOST_SERIALIZATION_NVP( baselines_ );
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP( baseId_ );
+            ar & BOOST_SERIALIZATION_NVP( baselines_ );
         }
     };
 
 }
-
-
