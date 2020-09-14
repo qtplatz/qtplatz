@@ -80,6 +80,8 @@ namespace adcontrols {
 
         bool assignFormula( adcontrols::MSPeakInfoItem&, const adcontrols::ScanLaw&, int mode ) const;
 
+        static bool deserialize( MSMolTable&, const char * data, size_t size );
+
     private:
         idAudit ident_;
         double acceleratorVoltage_;

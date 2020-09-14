@@ -26,7 +26,6 @@
 #include "ui_scanlawhistorydialog.h"
 #include <adcontrols/msmoltable.hpp>
 #include <adcontrols/mspeak.hpp>
-#include <adportable/binary_serializer.hpp>
 #include <adwidgets/htmlheaderview.hpp>
 #include <QItemSelectionModel>
 #include <QDebug>
@@ -103,9 +102,6 @@ ScanLawHistoryDialog::openDatabase( const QString& file )
 std::shared_ptr< adcontrols::MSMolTable >
 ScanLawHistoryDialog::selectedData()
 {
-# if defined(WIN32) || defined(_WIN32)
-    return nullptr;
-# else
     auto index = ui->masterView->currentIndex();
     if ( index.isValid() ) {
         QSqlQuery query( "SELECT data FROM ident WHERE id=?", *sqldb_ );
@@ -113,13 +109,13 @@ ScanLawHistoryDialog::selectedData()
         if ( query.exec() && query.next() ) {
             auto blob = query.value( 0 ).toByteArray();
             auto table = std::make_shared< adcontrols::MSMolTable >();
-            if ( adportable::binary::deserialize<>()( *table, blob.constData(), blob.size() ) )
+            if ( adcontrols::MSMolTable::deserialize( *table, blob.constData(), blob.size() ) )
+                // if ( adportable::binary::deserialize<>()( *table, blob.constData(), blob.size() ) )
                 return table;
         } else {
             qDebug() << query.lastError();
         }
     }
     return nullptr;
-#endif
 }
 

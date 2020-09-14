@@ -45,10 +45,10 @@ add_library( ${PROJECT_NAME} SHARED
 )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adportable
   admtcontrols
   adwidgets
   adcontrols
-  adportable
   adlog
   adplugin
   adurl

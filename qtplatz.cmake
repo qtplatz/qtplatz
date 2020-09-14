@@ -22,8 +22,6 @@ if( WIN32 )
   set( BOOST_INCLUDEDIR ${_boost} )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
-  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS ) # workaround for boost 1.73 warnings
-
   # add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
   
   # On windows, boost::archive templates are not possible to implment across shared object boundary

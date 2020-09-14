@@ -27,8 +27,13 @@
 #include "mspeak.hpp"
 #include "mspeakinfoitem.hpp"
 #include "scanlaw.hpp"
+#include <adportable/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 using namespace adcontrols;
 
@@ -229,4 +234,18 @@ MSMolTable::assignFormula( adcontrols::MSPeakInfoItem& pk, const adcontrols::Sca
     }
 
     return false;
+}
+
+bool
+MSMolTable::deserialize( MSMolTable& data, const char * s, size_t size )
+{
+    if ( size > 0 ) {
+        boost::iostreams::basic_array_source< char > device( s, size );
+        boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
+        portable_binary_iarchive ar( strm );
+        ar & data;
+		return true;
+    }
+    return false;
+    // return adportable::binary::deserialize<>()( table, data, size );
 }
