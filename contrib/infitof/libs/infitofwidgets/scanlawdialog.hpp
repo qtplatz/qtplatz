@@ -82,7 +82,7 @@ namespace infitofwidgets {
 
         class impl;
         std::unique_ptr< impl > impl_;
-        friend class ScanLawDialog_archive;
+        //friend class ScanLawDialog_archive;
     };
 
 }

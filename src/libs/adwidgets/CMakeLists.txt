@@ -94,7 +94,7 @@ set( ${PROJECT_NAME}_SOURCES
   moltablehelper.cpp
   moltableview.cpp
   samplerunwidget.cpp
-  scanlawdialog.cpp
+#  scanlawdialog.cpp
   scanlawdialog2.cpp
   scanlawform.cpp
   spinbox.cpp
@@ -159,7 +159,7 @@ set( ${PROJECT_NAME}_HEADERS
   pressuregauge.hpp
   moltablehelper.hpp
   moltableview.hpp
-  scanlawdialog.hpp
+#  scanlawdialog.hpp
   scanlawdialog2.hpp
   scanlawform.hpp
   spin_t.hpp

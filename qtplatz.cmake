@@ -22,16 +22,19 @@ if( WIN32 )
   set( BOOST_INCLUDEDIR ${_boost} )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
-  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS )
+  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS ) # workaround for boost 1.73 warnings
 
+  # add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
+  
   # On windows, boost::archive templates are not possible to implment across shared object boundary
+  # so following option need to be on
   set( Boost_USE_STATIC_LIBS ON )
 
-  if ( NOT Boost_USE_STATIC_LIBS )
+  if ( Boost_USE_STATIC_LIBS )
+    add_definitions( -DBOOST_LOG_DYN_LINK )
+  else()
     add_definitions( -DBOOST_ALL_DYN_LINK )
     add_definitions( -wd4141 ) # dllexport more than once
-  else()
-    add_definitions( -DBOOST_LOG_DYN_LINK )
   endif()
 else()
 
@@ -133,7 +136,8 @@ endif()
 if (MSVC)
 
   add_definitions( "-DUNICODE" "-D_UNICODE" "-D_WIN32_WINNT=0x0601" "-D_SCL_SECURE_NO_WARNINGS" )
-  message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
+  set( CMAKE_CXX_STANDARD 17 )  
+  #message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
 
 else()
 

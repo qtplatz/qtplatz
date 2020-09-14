@@ -41,7 +41,6 @@ target_link_libraries( eventtool LINK_PUBLIC
 		       adwidgets
 		       acewrapper
 		       Qt5::Widgets
-		       Qt5::Widgets
 		       ${Boost_LIBRARIES} ${libs} )
 
 install( TARGETS ${PROJECT_NAME}

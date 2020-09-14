@@ -40,6 +40,7 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/export.hpp>
 #include <cmath>
 #include <sstream>
 
@@ -105,6 +106,8 @@ namespace adwidgets {
     };
     
 }
+
+//BOOST_CLASS_EXPORT(adwidgets::ScanLaw_archive);
 
 using namespace adwidgets;
 using namespace adcontrols::metric;

@@ -37,6 +37,9 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStandardItemModel>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/mspeak.hpp>
@@ -45,10 +48,11 @@
 #include <adportable/debug.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
+// #include <boost/archive/xml_wiarchive.hpp>
+// #include <boost/archive/xml_woarchive.hpp>
+// #include <boost/serialization/access.hpp>
+// #include <boost/serialization/export.hpp>
+// #include <boost/serialization/nvp.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cmath>
 #include <ratio>
@@ -112,23 +116,22 @@ namespace adwidgets {
         }
 
     private:
-        friend class boost::serialization::access;
-        template< class Archive >
-        void serialize( Archive& ar, const unsigned int ) {
-            ar & BOOST_SERIALIZATION_NVP( L_ );
-            ar & BOOST_SERIALIZATION_NVP( acclVolts_ );
-            ar & BOOST_SERIALIZATION_NVP( t0_ );
-            ar & BOOST_SERIALIZATION_NVP( peaks_ );
-        }
+        // friend class boost::serialization::access;
+        // template< class Archive >
+        // void serialize( Archive& ar, const unsigned int ) {
+        //     ar & BOOST_SERIALIZATION_NVP( L_ );
+        //     ar & BOOST_SERIALIZATION_NVP( acclVolts_ );
+        //     ar & BOOST_SERIALIZATION_NVP( t0_ );
+        //     ar & BOOST_SERIALIZATION_NVP( peaks_ );
+        // }
         double L_;
         double acclVolts_;
         double t0_;
         adcontrols::MSPeaks peaks_;
     };
-
-
 };
 
+// BOOST_CLASS_EXPORT(adwidgets::ScanLawDialog2_archive);
 
 using namespace adwidgets;
 
@@ -601,15 +604,30 @@ ScanLawDialog2::handleCopyToClipboard()
 	QMimeData * md = new QMimeData();
 	md->setText( selected_text );
 
-    std::wostringstream os;
-    try {
-        boost::archive::xml_woarchive ar ( os );
-        ar & boost::serialization::make_nvp( "scanlaw", x );
-        QString xml( QString::fromStdWString( os.str() ) );
-        md->setData( QLatin1String( "application/scanlaw-xml" ), xml.toUtf8() );
-    } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+    QJsonArray peaks;
+    const auto& m = *impl_->model_;
+    for ( int row = 0; row < m.rowCount(); ++row ) {
+        QJsonObject pk{
+            { "formula", m.index( row, impl::c_formula ).data( Qt::EditRole ).toString() }
+            , { "exact_mass", m.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble() }
+        };
+        if ( m.index( row, impl::c_formula ).data( Qt::CheckStateRole ).toBool() ) {
+            pk[ "time" ] = m.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den; // time
+            pk[ "mode" ] = m.index( row, impl::c_mode ).data( Qt::EditRole ).toInt();   // mode
+            pk[ "id" ]   = m.index( row, impl::c_id ).data( Qt::EditRole ).toInt(); // spectrum index
+            pk[ "mass" ] = m.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble();
+        }
+        peaks.push_back( pk );
     }
+
+    QJsonObject scanlaw{
+        { "L", length() }
+        , { "acclVolts", acceleratorVoltage() }
+        , { "t0", tDelay() }
+        , { "peaks", peaks } };
+
+    md->setData(QLatin1String("application/scanlaw-json")
+        , QJsonDocument(scanlaw).toJson());
 
 	QApplication::clipboard()->setMimeData( md );
 }
@@ -618,17 +636,20 @@ void
 ScanLawDialog2::handlePaste()
 {
     auto md = QApplication::clipboard()->mimeData();
-    auto data = md->data( "application/scanlaw-xml" );
+    auto data = md->data( "application/scanlaw-json" );
     if ( !data.isEmpty() ) {
-        QString utf8( QString::fromUtf8( data ) );
-        std::wistringstream is( utf8.toStdWString() );
-        boost::archive::xml_wiarchive ar( is );
-        try {
-            ScanLawDialog2_archive x;
-            ar & boost::serialization::make_nvp( "scanlaw", x );
-            x.load( *this );
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
+        auto obj = QJsonDocument::fromJson( data ).object();
+        setLength( obj[ "L" ].toDouble() );
+        setAcceleratorVoltage( obj[ "acclVolts" ].toDouble() );
+        setTDelay( obj[ "t0" ].toDouble() );
+        const auto& peaks = obj[ "peaks" ].toObject();
+        impl_->model_->setRowCount( 0 );
+        for ( const auto& pk: peaks ) {
+            addPeak( pk[ "id" ].toInt()
+                     , pk[ "formula" ].toString()
+                     , pk[ "time" ].toDouble()
+                     , pk[ "mass" ].toDouble()
+                     , pk[ "mode" ].toInt() );
         }
     }
 }

@@ -16,7 +16,7 @@ set ( CMAKE_ECLIPSE_VERSION 4.5 )
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
-set ( Boost_NO_BOOST_CMAKE ON )
+set ( Boost_NO_BOOST_CMAKE OFF )
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
@@ -156,6 +156,7 @@ find_package( Boost 1.67 REQUIRED COMPONENTS
   log
   program_options
   regex
+  random
   serialization
   system
   thread

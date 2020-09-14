@@ -103,6 +103,9 @@ ScanLawHistoryDialog::openDatabase( const QString& file )
 std::shared_ptr< adcontrols::MSMolTable >
 ScanLawHistoryDialog::selectedData()
 {
+# if defined(WIN32) || defined(_WIN32)
+    return nullptr;
+# else
     auto index = ui->masterView->currentIndex();
     if ( index.isValid() ) {
         QSqlQuery query( "SELECT data FROM ident WHERE id=?", *sqldb_ );
@@ -117,5 +120,6 @@ ScanLawHistoryDialog::selectedData()
         }
     }
     return nullptr;
+#endif
 }
 

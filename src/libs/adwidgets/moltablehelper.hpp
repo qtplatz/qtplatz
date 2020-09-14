@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "adwidgets_global.hpp"
 #include <adportable/optional.hpp>
 #include <vector>
 #include <QString>
@@ -33,6 +34,8 @@ class QByteArray;
 
 namespace adwidgets {
 
+    class ADWIDGETSSHARED_EXPORT MolTableHelper;
+    
     class MolTableHelper {
     public:
         struct SmilesToSVG {

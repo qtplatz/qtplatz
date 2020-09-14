@@ -47,10 +47,10 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QMetaType>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
+// #include <boost/serialization/access.hpp>
+// #include <boost/serialization/nvp.hpp>
+// #include <boost/archive/xml_woarchive.hpp>
+// #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cmath>
 #include <map>
@@ -95,44 +95,44 @@ namespace infitofwidgets {
         std::shared_ptr< admtcontrols::ScanLaw > scanlaw_;
     };
 
-    class nLapDialog_archive {
-    public:
-        nLapDialog_archive() : L_( 0.5 ), acclVolts_( 4500.0 ), t0_( 0.0 ) {}
+    // class nLapDialog_archive {
+    // public:
+    //     nLapDialog_archive() : L_( 0.5 ), acclVolts_( 4500.0 ), t0_( 0.0 ) {}
 
-        nLapDialog_archive( const nLapDialog& t ) { //: L_( t.length() )
-        //  , acclVolts_( t.acceleratorVoltage() )
-        //                                                , t0_( t.tDelay() ) {
-            //t.read( peaks_ );
-        }
+    //     nLapDialog_archive( const nLapDialog& t ) { //: L_( t.length() )
+    //     //  , acclVolts_( t.acceleratorVoltage() )
+    //     //                                                , t0_( t.tDelay() ) {
+    //         //t.read( peaks_ );
+    //     }
 
-        void load( nLapDialog& t ) {
-            //t.setLength( L_ );
-            t.setAcceleratorVoltage( acclVolts_ );
-            t.setTDelay( t0_ );
-            t.impl_->model_->setRowCount( 0 );
-            for ( auto& pk: peaks_ ) {
-                t.addPeak( pk.spectrumIndex()
-                           , QString::fromStdString( pk.formula() )
-                           , pk.time()
-                           , pk.mass()
-                           , pk.mode() );
-            }
-        }
+    //     void load( nLapDialog& t ) {
+    //         //t.setLength( L_ );
+    //         t.setAcceleratorVoltage( acclVolts_ );
+    //         t.setTDelay( t0_ );
+    //         t.impl_->model_->setRowCount( 0 );
+    //         for ( auto& pk: peaks_ ) {
+    //             t.addPeak( pk.spectrumIndex()
+    //                        , QString::fromStdString( pk.formula() )
+    //                        , pk.time()
+    //                        , pk.mass()
+    //                        , pk.mode() );
+    //         }
+    //     }
 
-    private:
-        friend class boost::serialization::access;
-        template< class Archive >
-        void serialize( Archive& ar, const unsigned int ) {
-            ar & BOOST_SERIALIZATION_NVP( L_ );
-            ar & BOOST_SERIALIZATION_NVP( acclVolts_ );
-            ar & BOOST_SERIALIZATION_NVP( t0_ );
-            ar & BOOST_SERIALIZATION_NVP( peaks_ );
-        }
-        double L_;
-        double acclVolts_;
-        double t0_;
-        adcontrols::MSPeaks peaks_;
-    };
+    // private:
+    //     // friend class boost::serialization::access;
+    //     // template< class Archive >
+    //     // void serialize( Archive& ar, const unsigned int ) {
+    //     //     ar & BOOST_SERIALIZATION_NVP( L_ );
+    //     //     ar & BOOST_SERIALIZATION_NVP( acclVolts_ );
+    //     //     ar & BOOST_SERIALIZATION_NVP( t0_ );
+    //     //     ar & BOOST_SERIALIZATION_NVP( peaks_ );
+    //     // }
+    //     double L_;
+    //     double acclVolts_;
+    //     double t0_;
+    //     adcontrols::MSPeaks peaks_;
+    // };
 };
 
 
@@ -426,7 +426,7 @@ nLapDialog::handleCopyToClipboard()
 {
 	QString selected_text;
 
-    nLapDialog_archive x( *this );
+    //nLapDialog_archive x( *this );
 
 	selected_text.append( QString::number( acceleratorVoltage(), 'e', 14 ) );
 	selected_text.append( '\t' );
@@ -435,15 +435,15 @@ nLapDialog::handleCopyToClipboard()
 	QMimeData * md = new QMimeData();
 	md->setText( selected_text );
 
-    std::wostringstream os;
-    try {
-        boost::archive::xml_woarchive ar ( os );
-        ar & boost::serialization::make_nvp( "scanlaw", x );
-        QString xml( QString::fromStdWString( os.str() ) );
-        md->setData( QLatin1String( "application/scanlaw-xml" ), xml.toUtf8() );
-    } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
-    }
+    // std::wostringstream os;
+    // try {
+    //     boost::archive::xml_woarchive ar ( os );
+    //     ar & boost::serialization::make_nvp( "scanlaw", x );
+    //     QString xml( QString::fromStdWString( os.str() ) );
+    //     md->setData( QLatin1String( "application/scanlaw-xml" ), xml.toUtf8() );
+    // } catch ( std::exception& ex ) {
+    //     BOOST_THROW_EXCEPTION( ex );
+    // }
 
 	QApplication::clipboard()->setMimeData( md );
 }
@@ -454,16 +454,16 @@ nLapDialog::handlePaste()
     auto md = QApplication::clipboard()->mimeData();
     auto data = md->data( "application/scanlaw-xml" );
     if ( !data.isEmpty() ) {
-        QString utf8( QString::fromUtf8( data ) );
-        std::wistringstream is( utf8.toStdWString() );
-        boost::archive::xml_wiarchive ar( is );
-        try {
-            nLapDialog_archive x;
-            ar & boost::serialization::make_nvp( "scanlaw", x );
-            x.load( *this );
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
-        }
+        // QString utf8( QString::fromUtf8( data ) );
+        // std::wistringstream is( utf8.toStdWString() );
+        // boost::archive::xml_wiarchive ar( is );
+        // try {
+        //     nLapDialog_archive x;
+        //     ar & boost::serialization::make_nvp( "scanlaw", x );
+        //     x.load( *this );
+        // } catch ( std::exception& ex ) {
+        //     BOOST_THROW_EXCEPTION( ex );
+        // }
     }
 }
 
@@ -476,18 +476,6 @@ nLapDialog::handlePeakTableMenu( const QPoint& pt )
     std::map< QString, std::set< int > > formula_nlaps;
 
     if ( auto table = findChild< adwidgets::MolTableView * >( "peakTable" ) ) {
-#if 0
-        // select selected
-        QModelIndexList list = table->selectionModel()->selectedIndexes();
-        if ( list.size() > 0 ) {
-            for ( auto index: list ) {
-                selected_rows.insert( index.row() );
-                auto formula = table->model()->index( index.row(), impl::c_formula ).data( Qt::EditRole ).toString();
-                int nlaps = table->model()->index( index.row(), impl::c_mode ).data( Qt::EditRole ).toInt();
-                formula_nlaps[ formula ].insert( nlaps );
-            }
-        }
-#endif
         // select checked
         for ( int row = 0; row < table->model()->rowCount(); ++row ) {
             if ( table->model()->index( row, impl::c_formula ).data( Qt::CheckStateRole ) == Qt::Checked ) {

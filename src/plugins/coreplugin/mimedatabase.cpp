@@ -881,7 +881,14 @@ void MimeType::setMagicMatchers(const IMagicMatcherList &matchers)
 }
 
 namespace {
-struct RemovePred : std::unary_function<MimeType::IMagicMatcherSharedPointer, bool>
+
+    template <typename ArgumentType, typename ResultType>
+    struct unary_function    {
+        using argument_type = ArgumentType;
+        using result_type = ResultType;
+    };
+
+struct RemovePred : unary_function<MimeType::IMagicMatcherSharedPointer, bool>
 {
     RemovePred(bool keepRuleBased) : m_keepRuleBase(keepRuleBased) {}
     bool m_keepRuleBase;

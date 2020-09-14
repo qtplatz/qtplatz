@@ -47,10 +47,12 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStandardItemModel>
-#include <boost/archive/xml_wiarchive.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
+// #include <boost/archive/archive_exception.hpp>
+// #include <boost/archive/xml_wiarchive.hpp>
+// #include <boost/archive/xml_woarchive.hpp>
+// #include <boost/serialization/access.hpp>
+// #include <boost/serialization/export.hpp>
+// #include <boost/serialization/nvp.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cmath>
 #include <map>
@@ -93,46 +95,47 @@ namespace infitofwidgets {
         std::shared_ptr< admtcontrols::ScanLaw > scanlaw_;
     };
 
-    class ScanLawDialog_archive {
-    public:
-        ScanLawDialog_archive() : L_( 0.5 ), acclVolts_( 4500.0 ), t0_( 0.0 ) {}
+    // class ScanLawDialog_archive {
+    // public:
+    //     ScanLawDialog_archive() : L_( 0.5 ), acclVolts_( 4500.0 ), t0_( 0.0 ) {}
 
-        ScanLawDialog_archive( const ScanLawDialog& t ) { //: L_( t.length() )
-        //  , acclVolts_( t.acceleratorVoltage() )
-        //                                                , t0_( t.tDelay() ) {
-            //t.read( peaks_ );
-        }
+    //     ScanLawDialog_archive( const ScanLawDialog& t ) { //: L_( t.length() )
+    //     //  , acclVolts_( t.acceleratorVoltage() )
+    //     //                                                , t0_( t.tDelay() ) {
+    //         //t.read( peaks_ );
+    //     }
 
-        void load( ScanLawDialog& t ) {
-            //t.setLength( L_ );
-            t.setAcceleratorVoltage( acclVolts_ );
-            t.setTDelay( t0_ );
-            t.impl_->model_->setRowCount( 0 );
-            for ( auto& pk: peaks_ ) {
-                t.addPeak( pk.spectrumIndex()
-                           , QString::fromStdString( pk.formula() )
-                           , pk.time()
-                           , pk.mass()
-                           , pk.mode() );
-            }
-        }
+    //     void load( ScanLawDialog& t ) {
+    //         //t.setLength( L_ );
+    //         //t.setAcceleratorVoltage( acclVolts_ );
+    //         //t.setTDelay( t0_ );
+    //         //t.impl_->model_->setRowCount( 0 );
+    //         //for ( auto& pk: peaks_ ) {
+    //         //    t.addPeak( pk.spectrumIndex()
+    //         //               , QString::fromStdString( pk.formula() )
+    //         //               , pk.time()
+    //         //               , pk.mass()
+    //         //               , pk.mode() );
+    //         //}
+    //     }
 
-    private:
-        friend class boost::serialization::access;
-        template< class Archive >
-        void serialize( Archive& ar, const unsigned int ) {
-            ar & BOOST_SERIALIZATION_NVP( L_ );
-            ar & BOOST_SERIALIZATION_NVP( acclVolts_ );
-            ar & BOOST_SERIALIZATION_NVP( t0_ );
-            ar & BOOST_SERIALIZATION_NVP( peaks_ );
-        }
-        double L_;
-        double acclVolts_;
-        double t0_;
-        adcontrols::MSPeaks peaks_;
-    };
+    // private:
+    //     // friend class boost::serialization::access;
+    //     // template< class Archive >
+    //     // void serialize( Archive& ar, const unsigned int ) {
+    //     //     ar & BOOST_SERIALIZATION_NVP( L_ );
+    //     //     ar & BOOST_SERIALIZATION_NVP( acclVolts_ );
+    //     //     ar & BOOST_SERIALIZATION_NVP( t0_ );
+    //     //     ar & BOOST_SERIALIZATION_NVP( peaks_ );
+    //     // }
+    //     double L_;
+    //     double acclVolts_;
+    //     double t0_;
+    //     adcontrols::MSPeaks peaks_;
+    // };
 };
 
+//BOOST_CLASS_EXPORT( infitofwidgets::ScanLawDialog_archive )
 
 using namespace infitofwidgets;
 
@@ -428,6 +431,7 @@ void
 ScanLawDialog::addObserver( const boost::uuids::uuid& uuid, const QString& objtext, double va, double t0, bool checked )
 {
     auto& model = *impl_->model2_;
+
     int row = model.rowCount();
 
     model.setRowCount( row + 1 );
@@ -575,7 +579,7 @@ ScanLawDialog::handleCopyToClipboard()
 {
 	QString selected_text;
 
-    ScanLawDialog_archive x( *this );
+    // ScanLawDialog_archive x( *this );
 
 	selected_text.append( QString::number( acceleratorVoltage(), 'e', 14 ) );
 	selected_text.append( '\t' );
@@ -583,7 +587,7 @@ ScanLawDialog::handleCopyToClipboard()
 
 	QMimeData * md = new QMimeData();
 	md->setText( selected_text );
-
+#if 0
     std::wostringstream os;
     try {
         boost::archive::xml_woarchive ar ( os );
@@ -591,9 +595,10 @@ ScanLawDialog::handleCopyToClipboard()
         QString xml( QString::fromStdWString( os.str() ) );
         md->setData( QLatin1String( "application/scanlaw-xml" ), xml.toUtf8() );
     } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+        (void)ex;
+        //BOOST_THROW_EXCEPTION( ex );
     }
-
+#endif
 	QApplication::clipboard()->setMimeData( md );
 }
 
@@ -603,16 +608,17 @@ ScanLawDialog::handlePaste()
     auto md = QApplication::clipboard()->mimeData();
     auto data = md->data( "application/scanlaw-xml" );
     if ( !data.isEmpty() ) {
-        QString utf8( QString::fromUtf8( data ) );
-        std::wistringstream is( utf8.toStdWString() );
-        boost::archive::xml_wiarchive ar( is );
-        try {
-            ScanLawDialog_archive x;
-            ar & boost::serialization::make_nvp( "scanlaw", x );
-            x.load( *this );
-        } catch ( std::exception& ex ) {
-            BOOST_THROW_EXCEPTION( ex );
-        }
+        // QString utf8( QString::fromUtf8( data ) );
+        // std::wistringstream is( utf8.toStdWString() );
+        // boost::archive::xml_wiarchive ar( is );
+        // try {
+        //     ScanLawDialog_archive x;
+        //     ar & boost::serialization::make_nvp( "scanlaw", x );
+        //     x.load( *this );
+        // } catch ( std::exception& ex ) {
+        //     (void)ex;
+        //     //BOOST_THROW_EXCEPTION( ex );
+        // }
     }
 }
 

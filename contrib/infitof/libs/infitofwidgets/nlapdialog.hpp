@@ -81,7 +81,6 @@ namespace infitofwidgets {
 
         class impl;
         std::unique_ptr< impl > impl_;
-        friend class nLapDialog_archive;
     };
 
 }

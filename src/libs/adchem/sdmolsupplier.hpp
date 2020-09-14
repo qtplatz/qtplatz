@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "adchem_global.hpp"
 #include <memory>
 #include <string>
 #include <tuple>
@@ -31,6 +32,8 @@
 namespace RDKit { class SDMolSupplier; class ROMol; }
 
 namespace adchem {
+
+    class ADCHEMSHARED_EXPORT SDMolSupplier;
 
     class SDMolSupplier {
     public:
