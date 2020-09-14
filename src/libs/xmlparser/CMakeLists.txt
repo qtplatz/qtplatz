@@ -2,7 +2,9 @@ project( xmlparser )
 
 cmake_policy(SET CMP0022 NEW)
 
-add_library( xmlparser
+add_definitions(-DXMLPARSER_LIBRARY)
+
+add_library( ${PROJECT_NAME} SHARED
   pugiwrapper.cpp pugixml.cpp )
 
 install( TARGETS ${PROJECT_NAME}

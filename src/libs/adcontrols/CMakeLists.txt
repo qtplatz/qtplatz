@@ -251,11 +251,6 @@ add_library( adcontrols SHARED
   surface.hpp
   waveform_filter.cpp
   waveform_filter.hpp
-  portable_binary_archive.hpp
-  portable_binary_iarchive.cpp
-  portable_binary_iarchive.hpp
-  portable_binary_oarchive.cpp
-  portable_binary_oarchive.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -275,7 +270,7 @@ install( FILES
   adcontrols.hpp
   baseline.hpp
   baselines.hpp
-  
+
   centroidmethod.hpp
   centroidprocess.hpp
   chemicalformula.hpp

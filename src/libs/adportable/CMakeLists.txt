@@ -1,7 +1,14 @@
 
 project( adportable )
 
-add_library( adportable
+add_definitions(-DADPORTABLE_LIBRARY)
+
+if ( MSVC )
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  add_definitions( -wd4251 -wd4244 )
+endif()
+
+add_library( ${PROJECT_NAME} SHARED
   array_wrapper.hpp
   base64.cpp
   bzip2.cpp
@@ -51,6 +58,12 @@ add_library( adportable
   )
 
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  xmlparser
+  ${Boost_LIBRARIES}
+  Threads::Threads
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

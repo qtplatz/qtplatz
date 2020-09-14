@@ -1,7 +1,7 @@
 # adutils
 project ( adutils )
 
-add_library( adutils
+add_library( ${PROJECT_NAME} SHARED
   adutils.cpp
   adutils.hpp
   acquiredconf.cpp
@@ -26,6 +26,15 @@ add_library( adutils
   mscalibio.cpp
   mscalibio.hpp
   processeddata.hpp
+  )
+
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adportable
+  adfs
+  adcontrols
+  portfolio
+  ${Boost_LIBRARIES}
+  Threads::Threads
   )
 
 install( TARGETS ${PROJECT_NAME}

@@ -25,10 +25,13 @@
 
 #pragma once
 
+#include "xmlparser_global.h"
 #include "pugixml.hpp"
 #include <string>
 
 namespace pugi {
+
+    class XMLPARSERSHARED_EXPORT helper;
 
     class helper {
     public:
@@ -37,4 +40,3 @@ namespace pugi {
     };
 
 }
-

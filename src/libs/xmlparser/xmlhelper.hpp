@@ -25,12 +25,15 @@
 
 #pragma once
 
+#include "xmlparser_global.h"
 #include "pugixml.hpp"
 #include <adportable/xml_serializer.hpp>
 #include <string>
 #include <sstream>
 
 namespace pugi {
+
+
 
     class xmlhelper {
         xml_document dom;
@@ -55,4 +58,3 @@ namespace pugi {
     };
 
 }
-
