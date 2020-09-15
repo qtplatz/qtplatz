@@ -1,6 +1,7 @@
 # adtoolkit
 
 add_subdirectory ( adportable )
+add_subdirectory ( adportable_serializer )
 add_subdirectory ( adcontrols )
 add_subdirectory ( admtcontrols )
 

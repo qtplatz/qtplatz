@@ -26,8 +26,8 @@
 #include "waveform.hpp"
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/format.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
@@ -160,7 +160,7 @@ namespace acqrscontrols {
                 return int32_t ( t / xIncrement - 0.5 );
         }
     };
-    
+
     template<>
     bool
     threshold_result_< acqrscontrols::ap240::waveform >::operator >> ( adcontrols::TimeDigitalHistogram& x ) const
@@ -168,14 +168,14 @@ namespace acqrscontrols {
         index_to_time to_time( *data() );
 
         std::vector< std::pair< double, uint32_t > >& hgrm = x.histogram();
-    
+
         if ( x.trigger_count() == 0 ) {
-        
+
             x.setInitialXTimeSeconds( this->data()->meta_.initialXTimeSeconds );
             x.setInitialXOffset( this->data()->meta_.initialXOffset );
 
             ADDEBUG() << "x.setInitialXOffset(" << this->data()->meta_.initialXOffset;
-            
+
             x.setXIncrement( this->data()->meta_.xIncrement );
             x.setActualPoints( this->data()->meta_.actualPoints );
             x.setSerialnumber( { this->data()->serialnumber_, this->data()->serialnumber_ } );
@@ -187,21 +187,21 @@ namespace acqrscontrols {
         }
 
         x.setTrigger_count( x.trigger_count() + 1 );
-    
+
         if ( indices_.empty() )
             return true;
-    
+
         if ( hgrm.empty() ) {
 
             std::for_each( indices().begin(), indices().end(), [&] ( uint32_t idx ) {
                     x.histogram().emplace_back( to_time( idx ), 1 );
                 } );
-            return true;        
+            return true;
 
         } else {
 
             for ( const auto& index: indices_ ) {
-            
+
                 double t = to_time( index );
                 auto it = std::lower_bound( hgrm.begin(), hgrm.end(), t, [&]( std::pair< double, uint32_t >& a, const double& b ) {
                         return to_time.bin( a.first ) < to_time.bin( b );
@@ -212,7 +212,7 @@ namespace acqrscontrols {
                     hgrm.emplace( it, t, 1 );
             }
         }
-    
+
         return true;
     }
 

@@ -25,8 +25,8 @@
 #include "softaveraged_waveform_accessor.hpp"
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -37,7 +37,7 @@ using namespace acqrscontrols;
 softaveraged_waveform_accessor::softaveraged_waveform_accessor()
 {
 }
-        
+
 size_t
 softaveraged_waveform_accessor::ndata() const
 {
@@ -45,11 +45,11 @@ softaveraged_waveform_accessor::ndata() const
 }     // number of data in the buffer
 
 void
-softaveraged_waveform_accessor::rewind() 
-{ 
+softaveraged_waveform_accessor::rewind()
+{
     it_ = avgd.begin();
 }
-        
+
 bool
 softaveraged_waveform_accessor::next()
 {
@@ -61,39 +61,39 @@ softaveraged_waveform_accessor::elapsed_time() const
 {
     return uint64_t( (*it_)->meta_.initialXTimeSeconds * 1.0e9 );
 }
-        
+
 uint64_t
 softaveraged_waveform_accessor::epoch_time() const
 {
     return (*it_)->timeSinceEpoch_;
 }
-        
+
 uint64_t
 softaveraged_waveform_accessor::pos() const
 {
     return (*it_)->serialnumber_;
 }
-        
+
 uint32_t
 softaveraged_waveform_accessor::fcn() const
 {
     return ( *it_ )->method_.protocolIndex();
 }
-        
+
 uint32_t
 softaveraged_waveform_accessor::events() const
 {
     return (*it_)->wellKnownEvents_;
 }
-        
+
 size_t
 softaveraged_waveform_accessor::xdata( std::string& ar ) const
 {
     return (*it_)->serialize_xdata( ar );
  }
-        
+
 size_t
 softaveraged_waveform_accessor::xmeta( std::string& ar ) const
 {
-    return (*it_)->serialize_xmeta( ar );    
+    return (*it_)->serialize_xmeta( ar );
 }

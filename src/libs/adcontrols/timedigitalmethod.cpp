@@ -28,8 +28,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -43,9 +43,9 @@ namespace adcontrols {
         public:
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
-            
+
             using namespace boost::serialization;
-            
+
             ar & BOOST_SERIALIZATION_NVP( _.action_ );
             ar & BOOST_SERIALIZATION_NVP( _.thresholds_ );
 
@@ -56,22 +56,22 @@ namespace adcontrols {
     {
         TimeDigitalMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void TimeDigitalMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         TimeDigitalMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void TimeDigitalMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         TimeDigitalMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void TimeDigitalMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         TimeDigitalMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     bool TimeDigitalMethod::archive( std::ostream& os, const TimeDigitalMethod& t )
     {
         try {
@@ -83,7 +83,7 @@ namespace adcontrols {
         }
         return false;
     }
-    
+
     bool TimeDigitalMethod::restore( std::istream& is, TimeDigitalMethod& t )
     {
         try {
@@ -95,7 +95,7 @@ namespace adcontrols {
         }
         return false;
     }
-    
+
     bool TimeDigitalMethod::xml_archive( std::wostream& os, const TimeDigitalMethod& t )
     {
         try {
@@ -107,7 +107,7 @@ namespace adcontrols {
         }
         return false;
     }
-    
+
     bool TimeDigitalMethod::xml_restore( std::wistream& is, TimeDigitalMethod& t )
     {
         try {
@@ -118,7 +118,7 @@ namespace adcontrols {
             BOOST_THROW_EXCEPTION( ex );
         }
         return false;
-        
+
     }
 }
 
@@ -177,7 +177,7 @@ TimeDigitalMethod::action()
 const threshold_action&
 TimeDigitalMethod::action() const
 {
-    return action_;    
+    return action_;
 }
 
 //static

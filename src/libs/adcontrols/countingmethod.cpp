@@ -30,8 +30,8 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -50,7 +50,7 @@ namespace boost {
             ar & boost::serialization::make_nvp( "range",    get<CountingMethod::CountingRange>( _ ) );
             ar & boost::serialization::make_nvp( "protocol", get<CountingMethod::CountingProtocol>( _ ) );
         }
-        
+
     }
 }
 
@@ -66,8 +66,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.values_ );
         }
     };
-    
-    ///////// Portable binary archive ////////    
+
+    ///////// Portable binary archive ////////
     template<> ADCONTROLSSHARED_EXPORT void
     CountingMethod::serialize( portable_binary_oarchive& ar, const unsigned int version ) {
         CountingMethod_archive<>().serialize( ar, *this, version );
@@ -88,7 +88,7 @@ namespace adcontrols {
     template<> void
     CountingMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        CountingMethod_archive<>().serialize( ar, *this, version );        
+        CountingMethod_archive<>().serialize( ar, *this, version );
     }
 
 }
@@ -207,11 +207,11 @@ CountingMethod::archive( std::ostream& os, const CountingMethod& t )
         ar & t;
         return true;
     } catch ( std::exception& ) {
-        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("binary archive CountingMethod" ) ) );        
+        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("binary archive CountingMethod" ) ) );
     }
     return false;
 }
-    
+
 bool
 CountingMethod::restore( std::istream& is, CountingMethod& t )
 {
@@ -220,11 +220,11 @@ CountingMethod::restore( std::istream& is, CountingMethod& t )
         ar & t;
         return true;
     } catch ( std::exception& ) {
-        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("binary restore CountingMethod" ) ) );        
+        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("binary restore CountingMethod" ) ) );
     }
     return false;
 }
-    
+
 bool
 CountingMethod::xml_archive( std::wostream& os, const CountingMethod& t )
 {
@@ -237,7 +237,7 @@ CountingMethod::xml_archive( std::wostream& os, const CountingMethod& t )
     }
     return false;
 }
-    
+
 bool
 CountingMethod::xml_restore( std::wistream& is, CountingMethod& t )
 {
@@ -249,5 +249,5 @@ CountingMethod::xml_restore( std::wistream& is, CountingMethod& t )
         BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("xml restore CountingMethod" ) ) );
     }
     return false;
-        
+
 }

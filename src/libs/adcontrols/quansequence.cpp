@@ -27,8 +27,8 @@
 #include "quansequence.hpp"
 #include "serializer.hpp"
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -39,9 +39,9 @@
 #include <boost/uuid/uuid_serialize.hpp>
 
 namespace adcontrols {
-    
+
     class QuanSequence::impl {
-        
+
     public:
         ~impl() {
         }

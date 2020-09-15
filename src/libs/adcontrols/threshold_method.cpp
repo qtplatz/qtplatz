@@ -27,8 +27,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -73,7 +73,7 @@ namespace adcontrols {
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( _.lCutoffHz );
             if ( version >= 2 )
-                ar & BOOST_SERIALIZATION_NVP( _.algo_ );                
+                ar & BOOST_SERIALIZATION_NVP( _.algo_ );
         }
     };
 
@@ -84,7 +84,7 @@ namespace adcontrols {
 
     template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        threshold_method_archive<>().serialize( ar, *this, version );        
+        threshold_method_archive<>().serialize( ar, *this, version );
     }
 
     template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
@@ -94,7 +94,7 @@ namespace adcontrols {
 
     template<> ADCONTROLSSHARED_EXPORT void threshold_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        threshold_method_archive<>().serialize( ar, *this, version );        
+        threshold_method_archive<>().serialize( ar, *this, version );
     }
 
     bool threshold_method::archive( std::ostream& os, const threshold_method& t )
@@ -147,7 +147,7 @@ bool
 threshold_method::operator != ( const threshold_method& m ) const
 {
     namespace ap = adportable;
-    
+
     if ( enable != m.enable ||
          (!ap::compare<double>::approximatelyEqual( threshold_level, m.threshold_level )) ||
          (!ap::compare<double>::approximatelyEqual( response_time, m.response_time )) ||
@@ -158,9 +158,9 @@ threshold_method::operator != ( const threshold_method& m ) const
 
     if ( use_filter ) {
         if ( ( filter != m.filter ) ||
-             ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
+             ( ( m.filter == adcontrols::threshold_method::SG_Filter ) &&
                ( !ap::compare<double>::approximatelyEqual( sgwidth, m.sgwidth ) ) ) ||
-             ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
+             ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) &&
                ( ( !ap::compare<double>::approximatelyEqual( hCutoffHz, m.hCutoffHz ) ) ||
                  ( !ap::compare<double>::approximatelyEqual( lCutoffHz, m.lCutoffHz ) ) ||
                  ( m.complex_ != complex_ ) ) ) ) {

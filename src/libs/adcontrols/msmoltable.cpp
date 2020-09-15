@@ -27,7 +27,8 @@
 #include "mspeak.hpp"
 #include "mspeakinfoitem.hpp"
 #include "scanlaw.hpp"
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -51,7 +52,7 @@ MSMolTable::MSMolTable() : acceleratorVoltage_( 0 )
 {
     // tolerances_[ ToleranceInDa ] = 0.100; // 100mDa
     // tolerances_[ ToleranceInTime ] = 0.1e-6; // 0.1us
-    // tolerances_[ ToleranceInPeakWidth ] = 5.0; 
+    // tolerances_[ ToleranceInPeakWidth ] = 5.0;
 }
 
 MSMolTable::MSMolTable( const MSMolTable& t )
@@ -174,7 +175,7 @@ MSMolTable::tolerance( eTolerance t, double v )
     tolerances_[ t ] = v;
 }
 
-const MSPeaks& 
+const MSPeaks&
 MSMolTable::expected() const
 {
     return expected_;
@@ -202,7 +203,7 @@ bool
 MSMolTable::assignFormula( adcontrols::MSPeakInfoItem& pk, const adcontrols::ScanLaw& scanLaw, int mode ) const
 {
     std::map< std::string, double > candidates;
-    
+
     const auto& mols = this->expected();
 
     if ( ( toleranceMethod_ == ToleranceInPeakWidth ) || ( toleranceMethod_ == ToleranceInTime ) ) {
@@ -211,7 +212,7 @@ MSMolTable::assignFormula( adcontrols::MSPeakInfoItem& pk, const adcontrols::Sca
 
         if ( toleranceMethod_ == ToleranceInPeakWidth )
             tolerance = ( pk.hh_right_time() - pk.hh_left_time() ) * this->tolerance() / 2.0;
-    
+
         std::for_each( mols.begin(), mols.end(), [&]( auto& mol ){
                 if ( mol.exact_mass() > 0.7 ) {
                     double tof = scanLaw.getTime( mol.exact_mass(), mode );

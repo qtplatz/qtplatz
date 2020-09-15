@@ -45,13 +45,12 @@ add_library( ${PROJECT_NAME} SHARED
   ${adfs_SOURCE}
   )
 
-if ( SHARED_ADFS_LIBRARY )
-  target_link_libraries( adfs LINK_PUBLIC
-    adportable
-    ${oslibs}
-    ${Boost_LIBRARIES}
-    )
-endif()
+target_link_libraries( adfs LINK_PUBLIC
+  adportable
+  adportable_serializer
+  ${oslibs}
+  ${Boost_LIBRARIES}
+  )
 
 add_executable( sqlite3  shell.c sqlite3.c )
 

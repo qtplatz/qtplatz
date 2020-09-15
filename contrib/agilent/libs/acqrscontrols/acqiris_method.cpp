@@ -37,8 +37,8 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 
 namespace acqrscontrols {
 namespace aqdrv4 {
@@ -64,7 +64,7 @@ namespace aqdrv4 {
     template<> void trigger_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         trigger_method_archive<>().serialize( ar, *this, version );
-    }    
+    }
     template<> void trigger_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         trigger_method_archive<>().serialize( ar, *this, version );
@@ -72,8 +72,8 @@ namespace aqdrv4 {
     template<> void trigger_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         trigger_method_archive<>().serialize( ar, *this, version );
-    }    
-    
+    }
+
     template< typename T = acqiris_method >
     struct acqiris_method_archive {
         template<class Archive>
@@ -82,7 +82,7 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.clsid_ );
             ar & BOOST_SERIALIZATION_NVP( _.trig_ );
             ar & BOOST_SERIALIZATION_NVP( _.hor_ );
-            ar & BOOST_SERIALIZATION_NVP( _.ext_ );            
+            ar & BOOST_SERIALIZATION_NVP( _.ext_ );
             ar & BOOST_SERIALIZATION_NVP( _.ch1_ );
             ar & BOOST_SERIALIZATION_NVP( _.ch2_ );
             ar & BOOST_SERIALIZATION_NVP( _.methodNumber_ );
@@ -96,7 +96,7 @@ namespace aqdrv4 {
     template<> DECL_EXPORT void acqiris_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         acqiris_method_archive<>().serialize( ar, *this, version );
-    }    
+    }
     template<> DECL_EXPORT void acqiris_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         acqiris_method_archive<>().serialize( ar, *this, version );
@@ -140,7 +140,7 @@ namespace aqdrv4 {
     template<> void horizontal_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         horizontal_method_archive<>().serialize( ar, *this, version );
-    }    
+    }
     template<> void horizontal_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         horizontal_method_archive<>().serialize( ar, *this, version );
@@ -172,7 +172,7 @@ namespace aqdrv4 {
     template<> void vertical_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         vertical_method_archive<>().serialize( ar, *this, version );
-    }    
+    }
     template<> void vertical_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         vertical_method_archive<>().serialize( ar, *this, version );
@@ -181,8 +181,8 @@ namespace aqdrv4 {
     {
         vertical_method_archive<>().serialize( ar, *this, version );
     }
-    
-}    
+
+}
 }
 
 using namespace acqrscontrols::aqdrv4;
@@ -248,7 +248,7 @@ acqiris_method::mutable_ch2()
         ch2_ = std::make_shared< vertical_method >();
         ch2_->enable = false;
     }
-    return ch2_;    
+    return ch2_;
 }
 
 std::shared_ptr< const trigger_method >
@@ -278,7 +278,7 @@ acqiris_method::ch1() const
 std::shared_ptr< const vertical_method >
 acqiris_method::ch2() const
 {
-    return ch2_;    
+    return ch2_;
 }
 
 
@@ -381,11 +381,11 @@ acqiris_method::write_json( std::ostream& o, const acqiris_method& m, bool pritt
         pt.add_child( "hor", hor );
     }
 
-    if ( auto p = m.ext() ) 
+    if ( auto p = m.ext() )
         pt.add_child( "ext", json_vertical::make_ptree( p.get() ) );
-    if ( auto p = m.ch1() ) 
+    if ( auto p = m.ch1() )
         pt.add_child( "ch1", json_vertical::make_ptree( p.get() ) );
-    if ( auto p = m.ch2() ) 
+    if ( auto p = m.ch2() )
         pt.add_child( "ch2", json_vertical::make_ptree( p.get() ) );
 
     boost::property_tree::write_json( o, pt, pritty );
@@ -412,9 +412,9 @@ acqiris_method::read_json( std::istream& i, acqiris_method& m )
         if ( auto a = p->get_optional< double >( "trigLevel1" ) )
             d->trigLevel1 = a.get();
         if ( auto a = p->get_optional< double >( "trigLevel2" ) )
-            d->trigLevel2 = a.get();                        
+            d->trigLevel2 = a.get();
     }
-    
+
     if ( auto p = pt.get_child_optional( "hor" ) ) {
         auto d = m.mutable_hor();
         if ( auto a = p->get_optional< double >( "sampInterval" ) )
@@ -422,29 +422,29 @@ acqiris_method::read_json( std::istream& i, acqiris_method& m )
         if ( auto a = p->get_optional< double >( "delayTime" ) )
             d->delayTime = a.get();
         if ( auto a = p->get_optional< uint32_t >( "nbrSamples" ) )
-            d->nbrSamples = a.get();                
+            d->nbrSamples = a.get();
         if ( auto a = p->get_optional< uint32_t >( "mode" ) )
-            d->mode = a.get();                
+            d->mode = a.get();
         if ( auto a = p->get_optional< uint32_t >( "flags" ) )
-            d->flags = a.get();                
+            d->flags = a.get();
         if ( auto a = p->get_optional< uint32_t >( "nbrAvgWaveforms" ) )
-            d->nbrAvgWaveforms = a.get();                
+            d->nbrAvgWaveforms = a.get();
     }
-    
+
     if ( auto p = pt.get_child_optional( "ext" ) ) {
         auto d = m.mutable_ext();
         json_vertical::get_vertical( *d, p.get() );
     }
-    
+
     if ( auto p = pt.get_child_optional( "ch1" ) ) {
         auto d = m.mutable_ch1();
         json_vertical::get_vertical( *d, p.get() );
     }
-    
+
     if ( auto p = pt.get_child_optional( "ch2" ) ) {
         auto d = m.mutable_ch2();
         json_vertical::get_vertical( *d, p.get() );
     }
-    
+
     return true;
 }

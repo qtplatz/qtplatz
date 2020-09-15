@@ -12,7 +12,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 include_directories(
-  ${Qt5Core_INCLUDE_DIRS}  
+  ${Qt5Core_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
@@ -36,4 +36,5 @@ target_link_libraries( ${PROJECT_NAME}
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  ARCHIVE DESTINATION lib COMPONENT libraries )

@@ -9,8 +9,6 @@
 #pragma warning( disable : 4996 )
 #endif
 
-#include "adportable_global.h"
-
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // portable_binary_iarchive.hpp
 
@@ -35,7 +33,7 @@
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit
 // variable being loaded
-class ADPORTABLESHARED_EXPORT portable_binary_iarchive_exception :
+class portable_binary_iarchive_exception :
     public virtual boost::archive::archive_exception
 {
 public:
@@ -74,12 +72,12 @@ class portable_binary_iarchive :
                                                     , std::istream::traits_type >
     , public boost::archive::detail::common_iarchive< portable_binary_iarchive > {
 
-    typedef 
+    typedef
     boost::archive::basic_binary_iprimitive<
         portable_binary_iarchive, std::istream::char_type, std::istream::traits_type > primitive_base_t;
-    
+
     typedef boost::archive::detail::common_iarchive< portable_binary_iarchive > archive_base_t;
-    
+
 #ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
 public:
 #else

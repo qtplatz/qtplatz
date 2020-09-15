@@ -26,8 +26,8 @@
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adportable/bzip2.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -39,7 +39,7 @@ using namespace acqrscontrols::ap240;
 waveform_accessor::waveform_accessor()
 {
 }
-        
+
 size_t
 waveform_accessor::ndata() const
 {
@@ -47,11 +47,11 @@ waveform_accessor::ndata() const
 }
 
 void
-waveform_accessor::rewind() 
-{ 
+waveform_accessor::rewind()
+{
     it_ = list.begin();
 }
-        
+
 bool
 waveform_accessor::next()
 {
@@ -69,26 +69,26 @@ waveform_accessor::epoch_time() const
 {
     return (*it_)->timeSinceEpoch_;
 }
-        
+
 uint64_t
 waveform_accessor::pos() const
 {
     return (*it_)->serialnumber_;
 }
-        
+
 uint32_t
 waveform_accessor::fcn() const
 {
     auto idx = ( *it_ )->method_.protocolIndex();
     return idx;
 }
-        
+
 uint32_t
 waveform_accessor::events() const
 {
     return (*it_)->wellKnownEvents_;
 }
-        
+
 size_t
 waveform_accessor::xdata( std::string& ar ) const
 {
@@ -97,7 +97,7 @@ waveform_accessor::xdata( std::string& ar ) const
         adportable::bzip2::compress( ar, o.data(), o.size() );
 	return ar.size();
 }
-        
+
 size_t
 waveform_accessor::xmeta( std::string& ar ) const
 {

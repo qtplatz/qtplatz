@@ -27,8 +27,8 @@
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/bzip2.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -36,7 +36,7 @@
 #include <boost/serialization/vector.hpp>
 
 namespace acqrscontrols {
-    //////////// AP240 
+    //////////// AP240
     template<>
     uint64_t
     waveform_accessor_< acqrscontrols::ap240::waveform >::elapsed_time() const
@@ -91,7 +91,7 @@ namespace acqrscontrols {
     }
 
     //////////////////////////////////////////////////
-    //////////// U5303A 
+    //////////// U5303A
     template<>
     uint64_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::elapsed_time() const

@@ -30,8 +30,8 @@
 #include <string>
 #include <vector>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -75,13 +75,13 @@ namespace aqdrv4 {
         template< typename T > pod_reader& operator >> ( T& t ) {
             strm_ >> t;   return *this;
         }
-        
+
         template< typename T > const T get() {
             T t;  strm_ >> t;
             return t;
-        }        
+        }
     };
-    
+
     class ACQRSCONTROLSSHARED_EXPORT acqiris_protocol : public std::enable_shared_from_this< acqiris_protocol > {
     public:
         acqiris_protocol();
@@ -98,7 +98,7 @@ namespace aqdrv4 {
         }
 
         std::vector< boost::asio::const_buffer > to_buffers();
-        
+
     private:
         struct preamble preamble_;
         std::string payload_;
@@ -112,7 +112,7 @@ namespace aqdrv4 {
             {
                 boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
                 boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-            
+
                 portable_binary_oarchive ar( device );
                 try {
                     ar & d;
@@ -129,14 +129,14 @@ namespace aqdrv4 {
 
         template< typename T >
         static std::shared_ptr< T > deserialize( const aqdrv4::preamble& pre, const char * data ) {
-            
+
             auto s = std::string( data, pre.length );
 
             auto p = std::make_shared< T >();
             boost::iostreams::basic_array_source< char > device( data, pre.length );
             boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
             portable_binary_iarchive ar( st );
-            try {            
+            try {
                 ar & *p;
             } catch ( ... ) {
                 ADDEBUG() << boost::current_exception_diagnostic_information()
@@ -150,4 +150,3 @@ namespace aqdrv4 {
 
 }
 }
-

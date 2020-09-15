@@ -28,8 +28,8 @@
 #include "serializer.hpp"
 #include <adportable/base64.hpp>
 #include <adportable/float.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/any.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -91,7 +91,7 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( _.description_ );
                 if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP( _.clsid_ );
-            }            
+            }
         };
 
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -99,22 +99,22 @@ namespace adcontrols {
             data_ = base64_encode( reinterpret_cast<const unsigned char *>( data_.data() ), data_.size() );
             MethodItem_archive<>().serialize( ar, *this, version );
         }
-    
+
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
             MethodItem_archive<>().serialize( ar, *this, version );
             data_ = base64_decode( data_ );
         }
-    
+
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
             MethodItem_archive<>().serialize( ar, *this, version );
         }
-    
+
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             MethodItem_archive<>().serialize( ar, *this, version );
-        }        
+        }
     }
 }
 
@@ -175,7 +175,7 @@ Method::Method() : impl_( new impl() )
 {
 }
 
-Method::Method( const Method& t ) : impl_( new impl( *t.impl_ ) ) 
+Method::Method( const Method& t ) : impl_( new impl( *t.impl_ ) )
 {
 }
 
@@ -279,7 +279,7 @@ Method::sort()
                     return a.unitnumber() < b.unitnumber();
                 return a.modelname() < b.modelname();
             }
-            return a.time() < b.time();            
+            return a.time() < b.time();
         });
 }
 
@@ -290,12 +290,12 @@ Method::clear()
 }
 
 size_t
-Method::size() const 
+Method::size() const
 {
     return impl_->items_.size();
 }
 
-const char * 
+const char *
 Method::description() const
 {
     return impl_->description_.c_str();
@@ -394,7 +394,7 @@ MethodItem::unitnumber() const
 }
 
 void
-MethodItem::setUnitnumber( uint32_t value ) 
+MethodItem::setUnitnumber( uint32_t value )
 {
     unitnumber_ = value;
 }
@@ -558,7 +558,7 @@ any_cast<const MethodItem *>::operator()( boost::any& a, const boost::uuids::uui
         return pi;
     } catch ( boost::bad_any_cast& ) {
     }
-    
+
     try {
         if ( auto ptr = boost::any_cast<std::shared_ptr< const Method > >( a ) ) {
             auto it = ptr->find( ptr->begin(), ptr->end(), clsid );
@@ -588,4 +588,3 @@ any_cast<MethodItem *>::operator()( boost::any& a, const boost::uuids::uuid& cls
     }
     return nullptr;
 }
-

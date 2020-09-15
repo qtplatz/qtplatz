@@ -12,5 +12,5 @@ add_library( ${PROJECT_NAME} SHARED
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  ARCHIVE DESTINATION lib COMPONENT libraries
-  )
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  ARCHIVE DESTINATION lib COMPONENT libraries )

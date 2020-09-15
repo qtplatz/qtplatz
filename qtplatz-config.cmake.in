@@ -41,8 +41,8 @@ endif()
 set ( __arch "@__arch@" )
 
 set ( CMAKE_DEBUG_POSTFIX	"@CMAKE_DEBUG_POSTFIX@" )
-set ( CPACK_SET_DESTDIR "@CPACK_SET_DESTDIR@" )
-set ( CPACK_INSTALL_PREFIX "@CPACK_INSTALL_PREFIX@" )
+set ( CPACK_SET_DESTDIR         "@CPACK_SET_DESTDIR@" )
+set ( CPACK_INSTALL_PREFIX      "@CPACK_INSTALL_PREFIX@" )
 set ( CPACK_PACKAGE_INSTALL_DIRECTORY "@CPACK_PACKAGE_INSTALL_DIRECTORY@" )
 set ( QMAKE			"@QMAKE@" )
 set ( QTDIR			"@QTDIR@" )
@@ -63,50 +63,46 @@ set ( Boost_ADDITIONAL_VERSIONS "@Boost_ADDITIONAL_VARSIONS@" )
 set ( RDBASE			"@RDBASE@" )
 set ( PKG_WITH_DEV              "@PKG_WITH_DEV@" )
 
-add_library( QTC::Core SHARED IMPORTED )
+add_library( QTC::Core       SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )
-add_library( QTC::Utils SHARED IMPORTED )
+add_library( QTC::Utils      SHARED IMPORTED )
 
-add_library( acewrapper STATIC IMPORTED )
-add_library( adchem SHARED IMPORTED )
-add_library( adcontrols SHARED IMPORTED )
-add_library( admethods SHARED IMPORTED )
-add_library( adextension SHARED IMPORTED )
-add_library( adacquire SHARED IMPORTED )
-add_library( adlog SHARED IMPORTED )
-add_library( adplugin SHARED IMPORTED )
+add_library( acewrapper      SHARED IMPORTED )
+add_library( adchem          SHARED IMPORTED )
+add_library( adcontrols      SHARED IMPORTED )
+add_library( admethods       SHARED IMPORTED )
+add_library( adextension     SHARED IMPORTED )
+add_library( adacquire       SHARED IMPORTED )
+add_library( adlog           SHARED IMPORTED )
+add_library( adplugin        SHARED IMPORTED )
 add_library( adplugin_manager SHARED IMPORTED )
-add_library( adprocessor SHARED IMPORTED )
-add_library( adorbmgr SHARED IMPORTED )
-add_library( adplot SHARED IMPORTED )
-add_library( adprot SHARED IMPORTED )
-add_library( adurl  SHARED IMPORTED )
-#if ( WIN32 )
-#  add_library( adcv STATIC IMPORTED )
-#else()
-  add_library( adcv SHARED IMPORTED )
-#endif()
-add_library( adwidgets SHARED IMPORTED )
-add_library( adsequence SHARED IMPORTED )
-add_library( ap240 SHARED IMPORTED )
-add_library( acqrswidgets SHARED IMPORTED )
-add_library( acqrscontrols SHARED IMPORTED )
-add_library( adfs SHARED IMPORTED )
-add_library( adinterface STATIC IMPORTED )
-add_library( adportable STATIC IMPORTED )
-add_library( adio STATIC IMPORTED )
-add_library( adutils STATIC IMPORTED )
-add_library( chromatogr SHARED IMPORTED )
-add_library( eventbroker SHARED IMPORTED )
-add_library( admtcontrols SHARED IMPORTED )
-add_library( socfpga SHARED IMPORTED )
+add_library( adprocessor     SHARED IMPORTED )
+add_library( adorbmgr        SHARED IMPORTED )
+add_library( adplot          SHARED IMPORTED )
+add_library( adprot          SHARED IMPORTED )
+add_library( adurl           SHARED IMPORTED )
+add_library( adcv            SHARED IMPORTED )
+add_library( adwidgets       SHARED IMPORTED )
+add_library( adsequence      SHARED IMPORTED )
+add_library( ap240           SHARED IMPORTED )
+add_library( acqrswidgets    SHARED IMPORTED )
+add_library( acqrscontrols   SHARED IMPORTED )
+add_library( adfs            SHARED IMPORTED )
+add_library( adportable      SHARED IMPORTED )
+add_library( adportable_serializer STATIC IMPORTED )
+add_library( adio            SHARED IMPORTED )
+add_library( adutils         SHARED IMPORTED )
+add_library( chromatogr      SHARED IMPORTED )
+add_library( eventbroker     SHARED IMPORTED )
+add_library( admtcontrols    SHARED IMPORTED )
+add_library( socfpga         SHARED IMPORTED )
 add_library( infitofcontrols SHARED IMPORTED )
-add_library( infitofwidgets SHARED IMPORTED )
-add_library( admtwidgets SHARED IMPORTED )
-add_library( portfolio SHARED IMPORTED )
-add_library( qtwrapper STATIC IMPORTED )
-add_library( u5303a SHARED IMPORTED )
-add_library( xmlparser STATIC IMPORTED )
+add_library( infitofwidgets  SHARED IMPORTED )
+add_library( admtwidgets     SHARED IMPORTED )
+add_library( portfolio       SHARED IMPORTED )
+add_library( qtwrapper       SHARED IMPORTED )
+add_library( u5303a          SHARED IMPORTED )
+add_library( xmlparser       SHARED IMPORTED )
 
 if (WIN32)
   set_target_properties( QTC::Core PROPERTIES
@@ -183,8 +179,6 @@ if (WIN32)
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adurld.lib )
 
   set_target_properties( adcv PROPERTIES
-#    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcv.lib
-#    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcvd.lib )
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcv.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcvd.lib )
 
@@ -239,6 +233,31 @@ if (WIN32)
   set_target_properties( admtwidgets PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/admtwidgets.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/admtwidgetsd.lib )
+
+  ## static lib --> dll
+  set_target_properties( adfs PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
+
+  set_target_properties( adio PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adio.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adiod.lib )
+
+  set_target_properties( acewrapper PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acewrapper.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acewrapperd.lib )
+
+  set_target_properties( adutils PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adutils.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adutilsd.lib )
+
+  set_target_properties( qtwrapper PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/qtwrapper.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/qtwrapperd.lib )
+
+  set_target_properties( xmlparser PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/xmlparser.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/xmlparserd.lib )
 
 elseif ( APPLE )
 
@@ -363,6 +382,30 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtwidgets.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtwidgets_debug.dylib )
 
+  set_target_properties( adportable PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadportable.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadportable_debug.dylib )
+
+  set_target_properties( adio PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadio.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadio_debug.dylib )
+
+  set_target_properties( acewrapper PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacewrapper.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacewrapper_debug.dylib )
+
+  set_target_properties( adutils PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadutils.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadutils_debug.dylib )
+
+  set_target_properties( qtwrapper PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libqtwrapper.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libqtwrapper_debug.dylib )
+
+  set_target_properties( xmlparser PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libxmlparser.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libxmlparser_debug.dylib )
+
 else()  #Linux
 
   set_target_properties( QTC::Core PROPERTIES
@@ -462,92 +505,39 @@ else()  #Linux
   set_target_properties( admtwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmtwidgets.so )
 
+  set_target_properties( adportable PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadportable.so )
+
+  set_target_properties( adio PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadio.so )
+
+  set_target_properties( acewrapper PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacewrapper.so )
+
+  set_target_properties( adutils PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadutils.so )
+
+  set_target_properties( qtwrapper PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libqtwrapper.so )
+
+  set_target_properties( xmlparser PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libxmlparser.so )
+
 endif()
 
 if (WIN32)
-  set_target_properties( adfs PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
-
-  set_target_properties( adinterface PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adinterface.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adinterfaced.lib )
-
-  set_target_properties( adportable PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adportable.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adportabled.lib )
-
-  set_target_properties( adio PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adio.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adiod.lib )
-
-  set_target_properties( acewrapper PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acewrapper.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acewrapperd.lib )
-
-  set_target_properties( adutils PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adutils.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adutilsd.lib )
-
-  set_target_properties( qtwrapper PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/qtwrapper.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/qtwrapperd.lib )
-
-  set_target_properties( xmlparser PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/xmlparser.lib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/xmlparserd.lib )
+  set_target_properties( adportable_serializer PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adportable_serializer.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adportabled_serializer.lib )
 
 elseif( APPLE )
-
-  set_target_properties( adinterface PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadinterface.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadinterface_debug.a )
-
-  set_target_properties( adportable PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable_debug.a )
-
-  set_target_properties( adio PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio_debug.a )
-
-  set_target_properties( acewrapper PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper_debug.a )
-
-  set_target_properties( adutils PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadutils.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadutils_debug.a )
-
-  set_target_properties( qtwrapper PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libqtwrapper.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libqtwrapper_debug.a )
-
-  set_target_properties( xmlparser PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser_debug.a )
+  set_target_properties( adportable_serializer PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable_serializer.a
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable_serializer_debug.a )
 
 else()
 
-  set_target_properties( adinterface PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadinterface.a )
-
-  set_target_properties( adportable PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable.a )
-
-  set_target_properties( adio PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio.a )
-
-  set_target_properties( acewrapper PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper.a )
-
-  set_target_properties( adutils PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadutils.a )
-
-  set_target_properties( qtwrapper PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libqtwrapper.a )
-
-  set_target_properties( xmlparser PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser.a )
+  set_target_properties( adportable_serializer PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable_serializer.a )
 
 endif()

@@ -25,8 +25,8 @@ target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  ARCHIVE DESTINATION lib COMPONENT libraries
-  )
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
   dgprotocol.hpp

@@ -7,6 +7,8 @@ add_definitions(-DADCONTROLS_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
   add_definitions( -wd4251 -wd4244 )
+elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+  add_definitions(-Wno-attributes)
 endif()
 
 add_library( adcontrols SHARED
@@ -254,7 +256,13 @@ add_library( adcontrols SHARED
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
-target_link_libraries( adcontrols LINK_PUBLIC adportable ${Boost_LIBRARIES} )
+
+target_link_libraries(
+  adcontrols LINK_PUBLIC
+  adportable
+  adportable_serializer
+  ${Boost_LIBRARIES}
+  )
 
 #set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
 

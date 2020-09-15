@@ -24,8 +24,8 @@
 
 #include "timedigital_histogram_accessor.hpp"
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -36,7 +36,7 @@ using namespace adacquire;
 timedigital_histogram_accessor::timedigital_histogram_accessor()
 {
 }
-        
+
 size_t
 timedigital_histogram_accessor::ndata() const
 {
@@ -44,11 +44,11 @@ timedigital_histogram_accessor::ndata() const
 }     // number of data in the buffer
 
 void
-timedigital_histogram_accessor::rewind() 
-{ 
+timedigital_histogram_accessor::rewind()
+{
     it_ = vec.begin();
 }
-        
+
 bool
 timedigital_histogram_accessor::next()
 {
@@ -60,31 +60,31 @@ timedigital_histogram_accessor::elapsed_time() const
 {
     return uint64_t( (*it_)->initialXTimeSeconds() * 1.0e9 );
 }
-        
+
 uint64_t
 timedigital_histogram_accessor::epoch_time() const
 {
     return (*it_)->timeSinceEpoch().first;
 }
-        
+
 uint64_t
 timedigital_histogram_accessor::pos() const
 {
     return (*it_)->serialnumber().first;
 }
-        
+
 uint32_t
 timedigital_histogram_accessor::fcn() const
 {
     return (*it_)->protocolIndex();
 }
-        
+
 uint32_t
 timedigital_histogram_accessor::events() const
 {
     return (*it_)->wellKnownEvents();
 }
-        
+
 size_t
 timedigital_histogram_accessor::xdata( std::string& ar ) const
 {
@@ -99,7 +99,7 @@ timedigital_histogram_accessor::xdata( std::string& ar ) const
 	return ar.size();
     // return T::archive( device, t );
  }
-        
+
 size_t
 timedigital_histogram_accessor::xmeta( std::string& ) const
 {

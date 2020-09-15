@@ -27,9 +27,8 @@
 #include <adportable/debug.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
-#include <adportable/portable_binary_archive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -176,7 +175,7 @@ data_accessor::debug_print( const socfpga::dgmod::advalue& d, double t0 )
 #endif
 
     //std::chrono::system_clock::time_point() + std::chrono::nanoseconds( d.posix_time );
-    
+
     ADDEBUG() << "time: " << boost::format( "%.4fs" ) % (( d.elapsed_time - t0 ) / 1.0e9)
               << ", flag: " << boost::format( "{0x%x, %.3f}" ) % (d.flags >> 24) % (( d.flags_time - t0 ) / 1.0e9 )
               << ", " << adportable::date_string::logformat( tp, true )

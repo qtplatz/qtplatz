@@ -25,8 +25,8 @@
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 

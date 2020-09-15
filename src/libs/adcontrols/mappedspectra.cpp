@@ -30,8 +30,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -42,7 +42,7 @@ namespace adcontrols {
     public:
         ~impl() {
         }
-        
+
         impl( size_t i, size_t j ) : data_( i, j )
                                    , averageCount_( 0 )
                                    , dataReaderUuid_( { 0 } )
@@ -53,7 +53,7 @@ namespace adcontrols {
                                    , nSamples_( 4096 )
                                    , sampInterval_( 20.0e-9 / 16 ) {
         }
-        
+
         impl( impl& t ) : data_( t.data_ )
                         , averageCount_( t.averageCount_ )
                         , dataReaderUuid_( t.dataReaderUuid_ )
@@ -64,7 +64,7 @@ namespace adcontrols {
                         , nSamples_( t.nSamples_ )
                         , sampInterval_( t.sampInterval_ ) {
         }
-        
+
         boost::numeric::ublas::matrix< MappedSpectrum > data_; // co-added spectral matrix
         idAudit ident_;
         uint32_t averageCount_;
@@ -112,13 +112,13 @@ namespace adcontrols {
     template<> void
     MappedSpectra::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
-        ar & BOOST_SERIALIZATION_NVP(*impl_);                        
+        ar & BOOST_SERIALIZATION_NVP(*impl_);
     }
 
     template<> void
     MappedSpectra::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
     {
-        ar & BOOST_SERIALIZATION_NVP(*impl_);            
+        ar & BOOST_SERIALIZATION_NVP(*impl_);
     }
 }
 
@@ -219,7 +219,7 @@ MappedSpectra::sum_in_range( MappedSpectrum& sp, size_t x /* column */, size_t y
         for ( size_t j = x; j < impl_->data_.size2() && j < ( x + w ); ++j ) {
 
             sp += (impl_->data_)( i, j );
-            
+
         }
     }
     return true;
@@ -350,4 +350,3 @@ MappedSpectra::empty() const
     }
     return true;
 }
-

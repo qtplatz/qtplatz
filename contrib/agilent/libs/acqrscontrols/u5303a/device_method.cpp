@@ -26,14 +26,14 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
 
 namespace acqrscontrols {
-    
+
     namespace u5303a {
 
         template<typename T = device_method>
@@ -123,4 +123,3 @@ device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
 }
 
 // All member variables are POD, so that no copy constractor implemented
-

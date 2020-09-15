@@ -34,8 +34,8 @@
 #include <acqrscontrols/acqiris_protocol.hpp>
 #include <QSettings>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -115,9 +115,9 @@ document::finalClose()
     auto name = path.parent_path() / "acqiris_method.xml";
 
     settings_->setValue( "DefaultMethod", QString::fromStdString( name.string() ) );
-    
+
     save( name.string(), method_ );
-    
+
     return true;
 }
 
@@ -131,7 +131,7 @@ void
 document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
+
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
 
     static auto tp_data_handled = std::chrono::system_clock::now();
@@ -147,9 +147,9 @@ document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 
     if ( server_ )
         server_->post( d );
-    
+
     if ( que_.size() >= 4096 ) {
-        
+
         if ( tp - tp_rate_handled > 10s ) {
             tp_rate_handled = tp;
 
@@ -159,14 +159,14 @@ document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 
         que_.erase( que_.begin(), que_.begin() + ( que_.size() - 2048 ) );
     }
-    
+
 }
 
 std::shared_ptr< acqrscontrols::aqdrv4::waveform >
 document::recentWaveform()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
+
     if ( !que_.empty() )
         return que_.back();
     return nullptr;
@@ -229,7 +229,7 @@ void
 document::set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&& client )
 {
     using namespace acqrscontrols;
-    
+
     client_ = std::move( client );
 
     acqiris::client::tcp_task::instance()->initialize();
@@ -237,27 +237,27 @@ document::set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&&
     std::call_once( flag, [&](){
             tcp_threads_.emplace_back( std::thread( [&]{ client_->run(); } ) );
         });
-    
+
     client_->connect( [&]( const aqdrv4::preamble * preamble, const char * data, size_t length ){
             if ( preamble->clsid == aqdrv4::waveform::clsid() ) {
-                
+
                 if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::waveform >( *preamble, data ) )
                     acqiris::client::tcp_task::instance()->push( p );
-                
+
             } else if ( preamble->clsid == aqdrv4::acqiris_method::clsid() ) {
-                
+
                 if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
                     acqiris::client::tcp_task::instance()->push( p );
 
-            } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_event_out ) {                
+            } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_event_out ) {
 
                 ADDEBUG() << "## Error: Got event out from server.";
-                
+
             } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_temperature ) {
-                
+
                 aqdrv4::pod_reader reader( data, preamble->length );
                 replyTemperature( reader.get< int32_t >() );
-                
+
             }
         });
 }
@@ -330,18 +330,18 @@ document::replyTemperature( int temp )
     if ( server_ ) {
 
         auto data = std::make_shared< acqrscontrols::aqdrv4::acqiris_protocol >();
-        
+
         data->preamble().clsid = acqrscontrols::aqdrv4::clsid_temperature;
         *data << int32_t( temp );
-        
+
         server_->post( data );
-        
+
     } else {
         ADDEBUG() << "Temperature: " << temp;
     }
-    
+
     if ( temp >= 58 )
         std::cout << "WARNING: Temperature " << temp << " too high" << std::endl;
-        
+
     temperature_ = temp;
 }

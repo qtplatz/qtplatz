@@ -28,9 +28,9 @@
 
 #include "sqlite.hpp"
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/utf.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/exception/all.hpp>
@@ -69,12 +69,12 @@ attributes::attributes() : dirty_( false )
 {
 }
 
-attributes::attributes( const attributes& t ) : dirty_( t.dirty_ ) 
+attributes::attributes( const attributes& t ) : dirty_( t.dirty_ )
                                               , attrib_( t.attrib_ )
 {
 }
 
-attributes::operator bool () const 
+attributes::operator bool () const
 {
     return static_cast<sqlite *>(&db()) != 0 && rowid() != 0;
 }
@@ -155,7 +155,7 @@ bool
 attributes::fetch()
 {
     adfs::blob blob;
-    
+
     if ( rowid() && blob.open( db(), "main", "directory", "attr", rowid(), adfs::readonly ) ) {
         if ( blob.size() ) {
 			std::unique_ptr< boost::int8_t [] > p( new boost::int8_t [ blob.size() ] );
@@ -206,7 +206,7 @@ attributes::fetch_format_version() const
     uint32_t format_version = 0;
     if ( ( format_version = db().fs_format_version() ) )
         return format_version;
-    
+
     adfs::stmt sql( db() );
     if ( sql.prepare( "PRAGMA TABLE_INFO(directory)" ) ) {
         while ( sql.step() == adfs::sqlite_row ) {

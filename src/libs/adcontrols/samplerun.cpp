@@ -35,8 +35,8 @@
 #include <adportable/uuid.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/date_string.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/split_filename.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -52,7 +52,7 @@
 namespace adcontrols {
 
     class SampleRun::impl {
-        
+
     public:
         ~impl() {
         }
@@ -69,7 +69,7 @@ namespace adcontrols {
             os << "<p>Created: " << ident_.dateCreated() << "</p>"
                << "<p>Computer: <i>'" << adportable::utf::to_utf8( ident_.idComputer() ) << "'</i></p>"
                << "<p>by <i>" << adportable::utf::to_utf8( ident_.nameCreatedBy() ) << "</i></p>" << std::endl;
-            
+
             description_ = os.str();
         }
 
@@ -82,12 +82,12 @@ namespace adcontrols {
                               , runCount_( t.runCount_ )
                               , runNumber_( t.runNumber_ ) {
         }
-        
+
         size_t findLastRunNumber() {
             boost::filesystem::path dir( dataDirectory_ );
-            
-            boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );    
-            
+
+            boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
+
             size_t lastRunNumber(0);
             if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
                 using boost::filesystem::directory_iterator;
@@ -100,14 +100,14 @@ namespace adcontrols {
             }
             return lastRunNumber;
         }
-        
+
         std::wstring make_name( size_t n ) {
             boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
             std::wostringstream o;
             o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( n );
             return o.str();
         }
-        
+
         idAudit ident_;
         double methodTime_;
         size_t replicates_;
@@ -145,7 +145,7 @@ namespace adcontrols {
     template<> void
     SampleRun::serialize( portable_binary_iarchive& ar, const unsigned int )
     {
-        ar & *impl_;        
+        ar & *impl_;
     }
 
     ///////// XML archive ////////
@@ -275,7 +275,7 @@ SampleRun::operator ++ ()
     ADDEBUG() << "##### increment sample run number : " << prev << " --> " << impl_->runNumber_ << " ####################";
 
     boost::filesystem::path dir( impl_->dataDirectory_ );
-    
+
     bool exists( false );
     do {
         boost::filesystem::path path = dir / ( impl_->make_name( impl_->runNumber_ ) + L".adfs" );

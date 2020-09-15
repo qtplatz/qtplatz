@@ -36,8 +36,8 @@
 #include <adportable/debug.hpp>
 #include <adportable/combination.hpp>
 #include <adportable/for_each_combination.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <iterator>

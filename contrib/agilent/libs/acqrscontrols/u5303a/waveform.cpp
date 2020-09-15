@@ -44,8 +44,8 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adacquire/signalobserver.hpp>
 #include <adlog/logger.hpp>
 #include <boost/archive/xml_woarchive.hpp>

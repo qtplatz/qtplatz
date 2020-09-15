@@ -25,8 +25,8 @@
 #pragma once
 
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/exception/all.hpp>
@@ -42,7 +42,7 @@ namespace adcontrols {
 
         struct xmlSerializer {
             const char * name_;
-            
+
             xmlSerializer( const char * name );
 
             template<class T> bool archive( std::wostream& os, const T& t ) {
@@ -95,4 +95,3 @@ namespace adcontrols {
 
     }
 }
-

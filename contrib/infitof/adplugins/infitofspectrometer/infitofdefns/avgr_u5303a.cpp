@@ -29,8 +29,8 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
@@ -62,17 +62,16 @@ namespace infitof {
         {
             Descriptors_archive<>().serialize( ar, *this, version );
         }
-    
+
         template<> void Descriptors::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
             Descriptors_archive<>().serialize( ar, *this, version );
         }
-    
+
         template<> void Descriptors::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             Descriptors_archive<>().serialize( ar, *this, version );
         }
-        
+
     }
 }
-

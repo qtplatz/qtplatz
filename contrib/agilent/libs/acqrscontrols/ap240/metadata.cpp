@@ -26,8 +26,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
@@ -60,7 +60,7 @@ namespace acqrscontrols {
         {
             metadata_archive<>().serialize( ar, *this, version );
         }
-        
+
         template<> ACQRSCONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
         {
             metadata_archive<>().serialize( ar, *this, version );
@@ -70,7 +70,7 @@ namespace acqrscontrols {
         {
             metadata_archive<>().serialize( ar, *this, version );
         }
-        
+
         template<> ACQRSCONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
         {
             metadata_archive<>().serialize( ar, *this, version );
@@ -95,4 +95,3 @@ metadata::metadata() : actualPoints( 0 )
                      , horPos( 0 )
 {
 }
-

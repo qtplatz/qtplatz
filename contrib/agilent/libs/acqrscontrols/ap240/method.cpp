@@ -24,8 +24,8 @@
 
 #include "method.hpp"
 #include <adportable/float.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
@@ -62,7 +62,7 @@ method::method( const method& t ) : channels_( t.channels_ )
                                   , slope2_( t.slope2_ )
                                   , action_( t.action_ )
                                   , protocolIndex_( t.protocolIndex_ )
-                                  , protocols_( t.protocols_ ) 
+                                  , protocols_( t.protocols_ )
 {
 }
 
@@ -216,4 +216,3 @@ namespace acqrscontrols {
         }
     }
 }
-

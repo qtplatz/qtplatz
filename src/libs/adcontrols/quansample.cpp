@@ -24,8 +24,8 @@
 
 #include "quansample.hpp"
 #include "serializer.hpp"
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>

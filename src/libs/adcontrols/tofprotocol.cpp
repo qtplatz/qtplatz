@@ -30,8 +30,8 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
@@ -48,14 +48,14 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.upper_mass_ );
                 ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
                 if ( version >= 1 )
-                    ar & BOOST_SERIALIZATION_NVP( _.mode_ );                
+                    ar & BOOST_SERIALIZATION_NVP( _.mode_ );
                 if ( version >= 2 )
                     ar & BOOST_SERIALIZATION_NVP( _.digitizer_delay_width_ );
                 ar & BOOST_SERIALIZATION_NVP( _.delay_pulses_ );
                 ar & BOOST_SERIALIZATION_NVP( _.additionals_ );
                 ar & BOOST_SERIALIZATION_NVP( _.reference_ );
-                ar & BOOST_SERIALIZATION_NVP( _.formulae_ );            
-                ar & BOOST_SERIALIZATION_NVP( _.devicedata_ );                
+                ar & BOOST_SERIALIZATION_NVP( _.formulae_ );
+                ar & BOOST_SERIALIZATION_NVP( _.devicedata_ );
         }
     };
 
@@ -67,18 +67,18 @@ namespace adcontrols {
     {
         TofProtocol_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void TofProtocol::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         TofProtocol_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void TofProtocol::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         TofProtocol_archive<>().serialize( ar, *this, version );
     }
 
-}        
+}
 
 using namespace adcontrols;
 
@@ -105,13 +105,13 @@ TofProtocol::TofProtocol( const TofProtocol& t ) : lower_mass_( t.lower_mass_ )
                                                  , reference_( t.reference_ )
                                                  , formulae_( t.formulae_ )
                                                  , devicedata_( t.devicedata_ )
-{            
+{
 }
 
 std::vector< TofProtocol::delay_pulse_type >&
 TofProtocol::delay_pulses()
 {
-    return delay_pulses_;    
+    return delay_pulses_;
 }
 
 const std::vector< TofProtocol::delay_pulse_type >&
@@ -205,4 +205,3 @@ TofProtocol::digitizerDelayWidth() const
 }
 
 ///////////////////
-

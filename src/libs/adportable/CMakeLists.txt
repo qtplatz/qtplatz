@@ -8,15 +8,6 @@ if ( MSVC )
   add_definitions( -wd4251 -wd4244 )
 endif()
 
-add_library( adserializer
-  portable_binary_oarchive.cpp
-  portable_binary_oarchive.hpp
-  portable_binary_iarchive.cpp
-  portable_binary_iarchive.hpp
-  )
-
-target_include_directories( adserializer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
-
 add_library( ${PROJECT_NAME} SHARED
   array_wrapper.hpp
   base64.cpp
@@ -72,7 +63,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  ARCHIVE DESTINATION lib COMPONENT libraries ) # .a
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
   debug.hpp
@@ -83,9 +75,6 @@ install( FILES
   base64.hpp
   base85.hpp
   binary_search.hpp
-  portable_binary_archive.hpp
-  portable_binary_iarchive.hpp
-  portable_binary_oarchive.hpp
   binary_serializer.hpp
   serializer.hpp
   DESTINATION include/adportable COMPONENT headers

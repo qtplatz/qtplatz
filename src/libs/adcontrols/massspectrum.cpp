@@ -46,8 +46,8 @@
 
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 
 #include <algorithm>
 #include <sstream>
@@ -433,7 +433,7 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
         const SamplingInfo& info = impl_->property_.samplingInfo();
         idx = size_t( ( seconds - info.fSampDelay() ) / info.fSampInterval() );
     }
-    
+
     if ( closest && idx < impl_->size() ) {
         if ( ( ( idx + 1 ) < impl_->size() )
              && ( std::abs( seconds - time( idx ) ) > std::abs( seconds - getTime( idx + 1 ) ) ) )

@@ -32,7 +32,8 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+// #include <adportable_serializer/portable_binary_oarchive.hpp>
+// #include <adportable_serializer/portable_binary_iarchive.hpp>
 
 #include <algorithm>
 #include <sstream>
@@ -62,7 +63,7 @@ WaveformObserver::~WaveformObserver()
 {
 }
 
-const char * 
+const char *
 WaveformObserver::objtext() const
 {
     return objtext__;
@@ -74,31 +75,31 @@ WaveformObserver::objid() const
     return objid_;
 }
 
-uint64_t 
-WaveformObserver::uptime() const 
+uint64_t
+WaveformObserver::uptime() const
 {
     return 0;
 }
 
-void 
-WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
+void
+WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
 {
     oldest = newest = 0;
-    
+
     std::lock_guard< std::mutex > lock( const_cast<WaveformObserver *>( this )->mutex() );
 
     if ( !que_.empty() ) {
         oldest = que_.front()->pos();
         newest = que_.back()->pos();
     }
-    
+
 }
 
 std::shared_ptr< so::DataReadBuffer >
 WaveformObserver::readData( uint32_t pos )
 {
     std::lock_guard< std::mutex > lock( mutex() );
-    
+
     if ( que_.empty() )
         return 0;
 
@@ -110,15 +111,15 @@ WaveformObserver::readData( uint32_t pos )
                             , [pos]( const std::shared_ptr< so::DataReadBuffer >& p ){ return pos == p->pos(); } );
     if ( it != que_.end() )
         return *it;
-    
+
     return 0;
 }
 
 int32_t
-WaveformObserver::posFromTime( uint64_t usec ) const 
+WaveformObserver::posFromTime( uint64_t usec ) const
 {
     std::lock_guard< std::mutex > lock( const_cast< WaveformObserver *>(this)->mutex() );
-    
+
     if ( que_.empty() )
         return false;
 
@@ -136,12 +137,12 @@ WaveformObserver::push_back( std::shared_ptr< acqrscontrols::aqdrv4::waveform > 
     auto rb = std::make_shared< so::DataReadBuffer >();
 
     auto pos = d->serialNumber();
-    
+
     rb->pos() = pos;
     rb->timepoint() = d->timeStamp();
 
     auto ap240w = std::make_shared< acqrscontrols::ap240::waveform >();
-    
+
     auto it = std::find_if( methods_.begin(), methods_.end()
                             , [&]( const std::pair< uint32_t, std::shared_ptr< const acqrscontrols::ap240::method > >& a ){
                                 return a.first == d->methodNumber();
@@ -157,9 +158,9 @@ WaveformObserver::push_back( std::shared_ptr< acqrscontrols::aqdrv4::waveform > 
     }
 
     ap240w->move( std::move( d ) );
-    
+
     rb->setData( boost::any( const_waveform_pair_t( ap240w, 0 ) ) );
-    
+
     std::lock_guard< std::mutex > lock( mutex() );
 
     if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
@@ -167,16 +168,15 @@ WaveformObserver::push_back( std::shared_ptr< acqrscontrols::aqdrv4::waveform > 
         std::advance( tail, 500 );
         que_.erase( que_.begin(), tail );
     }
-    
+
     que_.emplace_back( std::move( rb ) );
-    
+
     return pos;
 }
 
 void
 WaveformObserver::prepare_for_run( uint32_t methodNumber, std::shared_ptr< const acqrscontrols::ap240::method > p )
 {
-    std::lock_guard< std::mutex > lock( mutex() );    
+    std::lock_guard< std::mutex > lock( mutex() );
     methods_.emplace_back( methodNumber, p );
 }
-

@@ -31,8 +31,8 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <numeric>
@@ -74,7 +74,7 @@ namespace adcontrols {
         size_t mergeCount_;
 
     private:
-            
+
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
@@ -100,13 +100,13 @@ namespace adcontrols {
     template<> void
     MappedImage::serialize( boost::archive::xml_woarchive& ar, const unsigned int )
     {
-        ar & BOOST_SERIALIZATION_NVP(*impl_);                        
+        ar & BOOST_SERIALIZATION_NVP(*impl_);
     }
 
     template<> void
     MappedImage::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        ar & BOOST_SERIALIZATION_NVP(*impl_);            
+        ar & BOOST_SERIALIZATION_NVP(*impl_);
     }
 }
 
@@ -218,7 +218,7 @@ MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsign
                     impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
                 }
             }
-            
+
         }
     }
     impl_->mergeCount_++;
@@ -241,7 +241,7 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
 
     for ( size_t i = 0; i < map.size1(); ++i ) {
         for ( size_t j = 0; j < map.size2(); ++j ) {
-            
+
             auto& sp = map( i, j );
 
             if ( sp.size() > 0 ) {
@@ -258,10 +258,10 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
             }
         }
     }
-    
+
     impl_->mergeCount_ += map.averageCount();
     impl_->trig_range_.second = map.trigIds().second;
-    
+
     return true;
 }
 
@@ -280,9 +280,9 @@ MappedImage::merge( const MappedSpectra& map )
 
     for ( size_t i = 0; i < map.size1(); ++i ) {
         for ( size_t j = 0; j < map.size2(); ++j ) {
-            
+
             auto& sp = map( i, j );
-            
+
             if ( sp.size() > 0 ) {
                 size_t d = std::accumulate( sp.begin(), sp.end(), size_t(0)
                                             , []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
@@ -292,7 +292,7 @@ MappedImage::merge( const MappedSpectra& map )
         }
     }
 
-    impl_->mergeCount_ += map.averageCount();    
+    impl_->mergeCount_ += map.averageCount();
     return true;
 }
 

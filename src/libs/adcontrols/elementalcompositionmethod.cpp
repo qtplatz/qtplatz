@@ -27,8 +27,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -36,7 +36,7 @@ ElementalCompositionMethod::ElementalCompositionMethod() : electron_mode_(Even)
                                                          , tolerance_in_ppm_( false )
                                                          , tolerance_mDa_( 5.0 )
                                                          , tolerance_ppm_( 10 )
-                                                         , dbe_minimum_( -0.5 )                        
+                                                         , dbe_minimum_( -0.5 )
                                                          , dbe_maximum_( 200.0 )
                                                          , numResults_( 100 )
 {
@@ -173,7 +173,7 @@ ElementalCompositionMethod::end() const
 
 //
 
-ElementalCompositionMethod::CompositionConstraint::CompositionConstraint( 
+ElementalCompositionMethod::CompositionConstraint::CompositionConstraint(
     const std::string & a
     , size_t minimum
     , size_t maximum ) : atom( a )
@@ -182,7 +182,7 @@ ElementalCompositionMethod::CompositionConstraint::CompositionConstraint(
 {
 }
 
-ElementalCompositionMethod::CompositionConstraint::CompositionConstraint( 
+ElementalCompositionMethod::CompositionConstraint::CompositionConstraint(
     const CompositionConstraint& t ) : atom( t.atom )
                                      , numMinimum( t.numMinimum )
                                      , numMaximum( t.numMaximum )

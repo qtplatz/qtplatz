@@ -1,8 +1,6 @@
 #ifndef PORTABLE_BINARY_OARCHIVE_HPP
 #define PORTABLE_BINARY_OARCHIVE_HPP
 
-#include "adportable_global.h"
-
 # pragma once
 
 #if defined(_MSC_VER)
@@ -36,8 +34,7 @@
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit
 // variable being loaded
-class ADPORTABLESHARED_EXPORT portable_binary_oarchive_exception :
-    public virtual boost::archive::archive_exception
+class portable_binary_oarchive_exception : public virtual boost::archive::archive_exception
 {
 public:
     typedef enum {

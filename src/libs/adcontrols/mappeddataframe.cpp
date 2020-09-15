@@ -32,8 +32,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <mutex>
@@ -42,7 +42,7 @@
 namespace adcontrols {
 
     ////////// PORTABLE BINARY ARCHIVE //////////
-    template<> ADCONTROLSSHARED_EXPORT void 
+    template<> ADCONTROLSSHARED_EXPORT void
     MappedDataFrame::serialize( portable_binary_oarchive& ar, const unsigned int )
     {
         ar & data_;
@@ -250,18 +250,18 @@ MappedDataFrame::samplingInterval() const
 double&
 MappedDataFrame::samplingInterval()
 {
-    return sampInterval_;    
+    return sampInterval_;
 }
 
 uint32_t
 MappedDataFrame::coaddSpectrum( adcontrols::MappedSpectrum& sp, size_t x0, size_t y0, size_t w, size_t h ) const
 {
     uint32_t tic( 0 );
-    
+
     if ( sp.timeSinceEpoch().first == 0 ) {
         double clockTime = 1.0 / double( clock_count_ ); // 20.0e-9; // if 50MHz
         double sampInterval = clockTime / 16; // 4bit TMC
-        
+
         // Need change if not 50MHz
         sp.setSamplingInfo( sampInterval, trig_delay_, 4096 );
         sp.timeSinceEpoch().second = timeSinceEpoch_;
@@ -289,7 +289,7 @@ MappedDataFrame::transform( adcontrols::MappedSpectrum& sp, size_t x0, size_t y0
 {
     double clockTime = 1.0 / double( clock_count_ ); // 20.0e-9; // if 50MHz
     double sampInterval = clockTime / 16; // 4bit TMC
-    
+
     // Need change if not 50MHz
     sp.setSamplingInfo( sampInterval, trig_delay_, 4096 );
     sp.timeSinceEpoch() = std::make_pair( timeSinceEpoch(), timeSinceEpoch() );
@@ -299,4 +299,3 @@ MappedDataFrame::transform( adcontrols::MappedSpectrum& sp, size_t x0, size_t y0
 
     return true;
 }
-

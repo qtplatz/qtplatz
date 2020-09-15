@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "method.hpp"
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/float.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -46,9 +46,9 @@ namespace acqrscontrols {
 
                 if ( version < 4 )
                     throw boost::archive::archive_exception( boost::archive::archive_exception::unsupported_version );
-                
+
                 using namespace boost::serialization;
-                
+
                 ar & BOOST_SERIALIZATION_NVP( _.channels_ );
                 ar & BOOST_SERIALIZATION_NVP( _.mode_ );
                 ar & BOOST_SERIALIZATION_NVP( _.method_ );
@@ -241,4 +241,3 @@ method::setProtocolIndex( uint32_t value , bool modifyDeviceMethod )
     }
     return dirty;
 }
-

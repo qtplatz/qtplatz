@@ -30,8 +30,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/version.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
@@ -52,7 +52,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.value_ );
             }
         }
-            
+
     };
 
     template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -63,12 +63,12 @@ namespace adcontrols {
     {
         TimedEvent_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> void PeakMethod::TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         TimedEvent_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> void PeakMethod::TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         TimedEvent_archive<>().serialize( ar, *this, version );
@@ -91,7 +91,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.pharmacopoeia_ );
             ar & BOOST_SERIALIZATION_NVP( _.peakWidthMethod_ );
             ar & BOOST_SERIALIZATION_NVP( _.theoreticalPlateMethod_ );
-                
+
             if ( version >= 2 ) {
                 ar & BOOST_SERIALIZATION_NVP( _.noiseFilterMethod_);
                 ar & BOOST_SERIALIZATION_NVP( _.cutoffFreqHz_ );
@@ -118,7 +118,7 @@ namespace adcontrols {
             BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::PeakMethod' to xml_wiarchive" ) );
         }
     }
-    
+
     template<> void PeakMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         try {
@@ -127,7 +127,7 @@ namespace adcontrols {
             BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::PeakMethod' to portable_binary_oarchive" ) );
         }
     }
-    
+
     template<> void PeakMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         try {
@@ -158,7 +158,7 @@ PeakMethod::PeakMethod(void) : minimumHeight_( 10 )
 {
 }
 
-PeakMethod::PeakMethod(const PeakMethod & t ) 
+PeakMethod::PeakMethod(const PeakMethod & t )
 {
     operator=(t);
 }
@@ -385,7 +385,7 @@ PeakMethod::TimedEvent::TimedEvent() : time_(0)
                                      , event_( chromatography::ePeakEvent_Nothing )
                                      , value_( false )
 {
-} 
+}
 
 PeakMethod::TimedEvent::TimedEvent( seconds_t t
                                     , chromatography::ePeakEvent e ) : time_( t )
@@ -440,7 +440,7 @@ PeakMethod::TimedEvent::isDouble( adcontrols::chromatography::ePeakEvent t )
 {
     return !isBool( t );
 }
-  
+
 double
 PeakMethod::TimedEvent::time( bool asMinutes ) const
 {

@@ -31,8 +31,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <numeric>
@@ -58,7 +58,7 @@ namespace adcontrols {
         }
 
     };
-    
+
     ////////// PORTABLE BINARY ARCHIVE //////////
     template<> void
     MappedSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
@@ -85,7 +85,7 @@ namespace adcontrols {
         if ( version >= 2 )
             serializer<const MappedSpectrum>().serialize( ar, *this, version );
         else
-            ar & BOOST_SERIALIZATION_NVP( data_ );            
+            ar & BOOST_SERIALIZATION_NVP( data_ );
     }
 
     template<> void
@@ -152,7 +152,7 @@ MappedSpectrum::operator []( size_t idx ) const
 {
     return data_[ idx ];
 }
-            
+
 MappedSpectrum::iterator
 MappedSpectrum::begin()
 {
@@ -162,7 +162,7 @@ MappedSpectrum::begin()
 MappedSpectrum::iterator
 MappedSpectrum::end()
 {
-    return data_.end();    
+    return data_.end();
 }
 
 MappedSpectrum::const_iterator
@@ -174,7 +174,7 @@ MappedSpectrum::begin() const
 MappedSpectrum::const_iterator
 MappedSpectrum::end() const
 {
-    return data_.end();        
+    return data_.end();
 }
 
 MappedSpectrum::iterator
@@ -203,7 +203,7 @@ MappedSpectrum::accumulate( double tof, double window ) const
     } else {
         double lBound = tof - window / 2;
         double uBound = tof + window / 2;
-        
+
         auto it1 = std::lower_bound( data_.begin(), data_.end(), lBound, [&]( const datum_type& a, const double& b ){ return a.first < b; } );
         if ( it1 != data_.end() ) {
             auto it2 = std::lower_bound( data_.begin(), data_.end(), uBound, [&]( const datum_type& a, const double& b ){ return a.first < b; } );
@@ -245,7 +245,7 @@ MappedSpectrum::trigNumberOrigin() const
     return trig_number_origin_;
 }
 
-std::pair<uint64_t, uint64_t>& 
+std::pair<uint64_t, uint64_t>&
 MappedSpectrum::timeSinceEpoch()
 {
     return timeSinceEpoch_;
@@ -278,7 +278,7 @@ MappedSpectrum::timeSinceEpoch() const
 
 //         } else {
 
-//             data_.push_back( t );                
+//             data_.push_back( t );
 
 //         }
 //     }
@@ -306,7 +306,7 @@ MappedSpectrum::operator << ( datum_type&& t )
 
         } else {
 
-            data_.push_back( t );                
+            data_.push_back( t );
 
         }
     }
@@ -329,7 +329,7 @@ MappedSpectrum::operator += ( const MappedSpectrum& t )
     num_average_ += t.numAverage() ? t.numAverage() : 1;
 
     if ( data_.empty() ) {
-        
+
         data_ = t.data_;
 
         sampInterval_ = t.sampInterval_;
@@ -342,14 +342,14 @@ MappedSpectrum::operator += ( const MappedSpectrum& t )
 
             auto it = std::lower_bound( data_.begin(), data_.end(), inIt->first
                                         , [] ( const datum_type& a, const double& b ) { return a.first < b; } );
- 
+
             if ( it != data_.end() ) {
-        
+
                 if ( adportable::compare< decltype( datum_type::first ) >::approximatelyEqual( it->first, inIt->first ) )
                     it->second += inIt->second;
                 else
                     data_.insert( it, *inIt );
-        
+
             } else {
 
                 while ( inIt != t.data_.end() )
@@ -386,12 +386,12 @@ MappedSpectrum::transform( adcontrols::MassSpectrum& ms ) const
     ms.resize( data_.size() );
     ms.setCentroid( adcontrols::CentroidNative );
     //auto scanlaw = prop.scanLaw();
-    
+
     for ( size_t idx = 0; idx < data_.size(); ++idx ) {
         double tof = this->time( idx );
         ms.setTime( idx, tof );
         //if ( scanlaw )
-        //    ms.setMass( idx, ms.compute_mass( data_[ idx ].first ) ); 
+        //    ms.setMass( idx, ms.compute_mass( data_[ idx ].first ) );
         ms.setIntensity( idx, data_[ idx ].second );
     }
     return true;

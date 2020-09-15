@@ -27,9 +27,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -49,4 +48,3 @@ ElementalCompositionCollection::restore( std::istream&, ElementalCompositionColl
 {
     return true;
 }
-

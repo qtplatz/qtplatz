@@ -25,8 +25,8 @@
 #include "threshold_result.hpp"
 #include "waveform.hpp"
 #include <boost/format.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/counting/threshold_finder.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -163,9 +163,9 @@ threshold_result::write3( std::ostream& os, const threshold_result& t )
     if ( os.tellp() == std::streamoff(0) )
         os << "## trig#, prot#, timestamp(s), epoch_time(ns), events, threshold(mV), algo(0=absolute,1=average,2=differential)"
             "\t[time(s), peak-front(s), peak-front(mV), peak-end(s), peak-end(mV)]";
-    
+
     if ( auto data = t.data() ) {
-        
+
         os << boost::format( "\n%d, %d, %.8lf, %.8lf, 0x%08x, %.8lf, %d" )
             % data->serialnumber_
             % data->method_.protocolIndex()
@@ -174,10 +174,10 @@ threshold_result::write3( std::ostream& os, const threshold_result& t )
             % t.data()->wellKnownEvents_
             % ( t.threshold_level() * std::milli::den )
             % t.algo();
-        
+
         if ( ! t.indices2().empty() ) {
             for ( auto& idx : t.indices2() ) {
-                
+
                 auto apex  = data->xy( idx.apex );
 
                 os << boost::format( ",\t%.14le, %.6f, %d, %.6f, %d, %.6f" )
@@ -201,7 +201,7 @@ namespace acqrscontrols {
             if ( os.tellp() == std::streamoff(0) )
                 os << "## trig#, time-stamp(s), time(s), epoch time(ns), events, scale factor, scale offset, delay time(s),"
                     "[time(s), idx0, idx1, idx2, value]";
-            
+
             if ( auto data = t.data() ) {
 
                 os << boost::format( "\n%d, %.8lf, %.8lf, " )
@@ -210,7 +210,7 @@ namespace acqrscontrols {
                    << boost::format( ", 0x%08x" ) % t.data()->wellKnownEvents_
                    << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
                    << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
-                
+
                 if ( ! t.indices2().empty() ) {
                     for ( auto& idx : t.indices2() ) {
                         auto v = data->xy( idx.first );
@@ -218,7 +218,7 @@ namespace acqrscontrols {
                             % v.first % idx.first % idx.second % idx.apex
                             % t.data()->toVolts( idx.value );
                     }
-                    
+
                 } else {
                     for ( auto& idx : t.indices() ) {
                         auto v = data->xy( idx );
@@ -230,4 +230,3 @@ namespace acqrscontrols {
         }
     }
 }
-

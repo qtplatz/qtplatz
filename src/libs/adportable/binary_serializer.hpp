@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -117,7 +117,7 @@ namespace adportable {
         template<class Archiver = portable_binary_iarchive> class deserialize {
         public:
             template<class T> bool operator()( T& data, std::istream& strm ) {
-                
+
                 typename IF<has_restore<T,bool(std::istream&,T&)>::value
                             , Archiver, restore_functor<T> >::type ar( strm ); // SFINAE dispatch
 
@@ -142,4 +142,3 @@ namespace adportable {
 
     //----------------------------------------
 }
-

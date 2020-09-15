@@ -26,8 +26,8 @@
 
 #include <adportable/counting/threshold_index.hpp>
 #include <adportable/counting/counting_result.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/format.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
@@ -68,11 +68,11 @@ threshold_result::processed()
 {
     return processed_;
 }
-    
+
 const std::vector< double >&
 threshold_result::processed() const
 {
-    return processed_;            
+    return processed_;
 }
 
 const std::pair<uint32_t, uint32_t >&
@@ -80,26 +80,26 @@ threshold_result::findRange() const
 {
     return findRange_;
 }
-    
+
 uint32_t
 threshold_result::foundIndex() const
 {
     return foundIndex_;
 }
-    
+
 void
 threshold_result::setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& range )
 {
     foundIndex_ = index;
     findRange_ = range;
 }
-    
+
 void
 threshold_result::setFindUp( bool value )
 {
     findUp_ = value;
 }
-    
+
 bool
 threshold_result::findUp() const
 {
@@ -115,7 +115,7 @@ threshold_result::indices()
 const std::vector< uint32_t >&
 threshold_result::indices() const
 {
-    return indices_;    
+    return indices_;
 }
 
 bool
@@ -124,14 +124,14 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize )
     // restore indices
     boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char *>(xdata), dsize );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
-    
+
     try {
         portable_binary_iarchive ar( st );
         ar >> indices_;
     } catch ( std::exception& ) {
         return false;
     }
-    
+
     return true;
 }
 

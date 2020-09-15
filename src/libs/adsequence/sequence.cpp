@@ -24,8 +24,7 @@
 
 #include "schema.hpp"
 #include "sequence.hpp"
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/serializer.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -194,4 +193,3 @@ sequence::restore( std::istream& in, sequence& sequence )
 	}
 	return true;
 }
-

@@ -26,7 +26,6 @@
 #endif
 
 #include <boost/archive/basic_archive.hpp>
-#include "adportable_global.h"
 
 enum portable_binary_archive_flags {
     endian_big        = 0x4000,

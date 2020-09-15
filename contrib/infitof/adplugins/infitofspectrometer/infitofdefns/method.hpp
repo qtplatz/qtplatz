@@ -27,8 +27,8 @@
 #if defined __GNUC__ && !__APPLE__
 #  pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
@@ -45,9 +45,9 @@ namespace infitof {
         eIonSource_EI
         , eIonSource_MALDI
     };
-    
+
     enum ePolarity { ePolarity_Indeterminate, ePolarity_Positive, ePolarity_Negative };
-    
+
     class IonSource_EI_Method {
     public:
         // EI
@@ -62,7 +62,7 @@ namespace infitof {
         double gc_temp;
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( einzel_voltage );
             ar & BOOST_SERIALIZATION_NVP( va_pulse_voltage );
@@ -80,7 +80,7 @@ namespace infitof {
         double tba;
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
             ar  & BOOST_SERIALIZATION_NVP( tba );
         }
@@ -95,7 +95,7 @@ namespace infitof {
             {}
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( outer_voltage );
             ar & BOOST_SERIALIZATION_NVP( inner_voltage );
@@ -127,7 +127,7 @@ namespace infitof {
         }
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( injection_sector );
             ar & BOOST_SERIALIZATION_NVP( ejection_sector );
@@ -146,12 +146,12 @@ namespace infitof {
         DelayMethod() : delay(0), width( 0 ) {
         }
         DelayMethod( double d, double w ) : delay( d ), width( w ) {
-        }        
+        }
         DelayMethod( const DelayMethod& t ) : delay( t.delay ), width( t.width ) {
         }
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( delay ) & BOOST_SERIALIZATION_NVP( width );
         }
@@ -194,11 +194,11 @@ namespace infitof {
             , nlaps_( t.nlaps_ )
             , reference_( t.reference_ )
             , formulae_( t.formulae_ )
-            , external_adc_delay( t.external_adc_delay ) {            
+            , external_adc_delay( t.external_adc_delay ) {
         }
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int version ) {
             if ( version >= 6 ) {
                 ar & BOOST_SERIALIZATION_NVP( lower_mass );
@@ -283,7 +283,7 @@ namespace infitof {
 
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int version ) {
             ar & BOOST_SERIALIZATION_NVP( isMaxNumAverage );
             ar & BOOST_SERIALIZATION_NVP( isLinear );
@@ -300,9 +300,9 @@ namespace infitof {
         }
     };
 
-    
+
     /*************************************/
-    
+
     class ControlMethod {
     public:
         static const char * modelClass() { return "InfiTOF"; }
@@ -317,7 +317,7 @@ namespace infitof {
         boost::variant< IonSource_EI_Method, IonSource_MALDI_Method > ionSource; // WTI
         std::vector< int32_t > arp_hv_;  // infitofinterface::arp::HVSetpts
         std::string description_;
-        
+
         ControlMethod() : ionSource( IonSource_EI_Method() ) {
         }
 
@@ -345,10 +345,10 @@ namespace infitof {
             }
             return false;
         }
-        
+
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
         void serialize( Archive& ar, const unsigned int version ) {
             ar & BOOST_SERIALIZATION_NVP( analyzer );
             ar & BOOST_SERIALIZATION_NVP( tof );

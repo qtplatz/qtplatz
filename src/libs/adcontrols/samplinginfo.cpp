@@ -27,8 +27,8 @@
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
 #include <adportable/base64.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -40,7 +40,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 namespace adcontrols {
-    
+
     template<typename T = SamplingInfo >
     class SamplingInfo_archive {
     public:
@@ -58,7 +58,7 @@ namespace adcontrols {
 
                 if ( version == 6 )
                     _.delayTime_ = ( _.nSamplingDelay_ * _.fsampInterval_ );
-                
+
             } else {
                 uint32_t sampInterval;
                 ar & BOOST_SERIALIZATION_NVP( sampInterval );
@@ -80,7 +80,7 @@ namespace adcontrols {
                     _.fsampInterval_ = sampInterval * 1.0e-12; // ps -> s
             }
         }
-        
+
     };
 
     ////////// SamplingInfo ///////////
@@ -88,21 +88,21 @@ namespace adcontrols {
     {
         SamplingInfo_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void SamplingInfo::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         SamplingInfo_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void SamplingInfo::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         SamplingInfo_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void SamplingInfo::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         SamplingInfo_archive<>().serialize( ar, *this, version );
-    }    
+    }
 
 }
 
@@ -114,7 +114,7 @@ SamplingInfo::SamplingInfo( double interval
                             , uint32_t nsamples
                             , uint32_t navgr
                             , uint32_t _mode )   : nSamplingDelay_( ndelay )
-                                                 , nSamples_( nsamples )  
+                                                 , nSamples_( nsamples )
                                                  , nAverage_( navgr )
                                                  , mode_( _mode )
                                                  , fsampInterval_( interval )
@@ -165,7 +165,7 @@ SamplingInfo::horPos() const
     return horPos_;
 }
 
-void 
+void
 SamplingInfo::setDelayTime( double v )
 {
     delayTime_ = v;

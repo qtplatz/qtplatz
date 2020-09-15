@@ -11,8 +11,8 @@
 #include "tcp_server.hpp"
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -80,12 +80,12 @@ tcp_server::do_accept()
                                if ( !acceptor_.is_open() )  {
                                    return;
                                }
-                               
+
                                if (!ec) {
                                    connection_manager_.start(std::make_shared<connection>(
                                                                  std::move(socket_), connection_manager_, request_handler_));
                                }
-                                       
+
                                do_accept();
                            });
 }
@@ -115,11 +115,11 @@ void
 tcp_server::post( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > p )
 {
     strand_.post( [=] {
-            
+
             if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *p ) ) {
-                
+
                 connection_manager_.write_all( data );
-                
+
             }
         });
 }

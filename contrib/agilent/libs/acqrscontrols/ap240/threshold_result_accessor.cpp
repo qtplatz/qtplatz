@@ -26,8 +26,8 @@
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adportable/bzip2.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -40,7 +40,7 @@ using namespace acqrscontrols::ap240;
 threshold_result_accessor::threshold_result_accessor()
 {
 }
-        
+
 size_t
 threshold_result_accessor::ndata() const
 {
@@ -48,11 +48,11 @@ threshold_result_accessor::ndata() const
 }
 
 void
-threshold_result_accessor::rewind() 
-{ 
+threshold_result_accessor::rewind()
+{
     it_ = list.begin();
 }
-        
+
 bool
 threshold_result_accessor::next()
 {
@@ -70,31 +70,31 @@ threshold_result_accessor::epoch_time() const
 {
     return (*it_)->data()->timeSinceEpoch_;
 }
-        
+
 uint64_t
 threshold_result_accessor::pos() const
 {
     return (*it_)->data()->serialnumber_;
 }
-        
+
 uint32_t
 threshold_result_accessor::fcn() const
 {
    auto idx = ( *it_ )->data()->method_.protocolIndex();
    return idx;
 }
-        
+
 uint32_t
 threshold_result_accessor::events() const
 {
     return (*it_)->data()->wellKnownEvents_;
 }
-        
+
 size_t
 threshold_result_accessor::xdata( std::string& ar ) const
 {
     std::ostringstream o;
-    
+
     auto& indices = ( *it_ )->indices();
     try {
         portable_binary_oarchive a( o );
@@ -105,7 +105,7 @@ threshold_result_accessor::xdata( std::string& ar ) const
     }
 	return ar.size();
 }
-        
+
 size_t
 threshold_result_accessor::xmeta( std::string& ar ) const
 {

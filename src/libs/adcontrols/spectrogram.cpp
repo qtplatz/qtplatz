@@ -28,8 +28,8 @@
 #include "spectrogram.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <algorithm>
@@ -120,14 +120,14 @@ Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra, SpectrogramC
 
     if ( method_.lMassLimit_ < 1.0 )
         method_.lMassLimit_ = spectra.lower_mass();
-    
+
     if ( method_.hMassLimit_ < 1.0 )
         method_.hMassLimit_ = spectra.upper_mass();
 
     int idx = 0;
     std::vector< peak_type > peaks;
     for ( auto& ms: spectra ) {
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );        
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
         for ( auto& fms: segs ) {
             for ( size_t i = 0; i < fms.size(); ++i )
                 peaks.push_back( peak_type( idx, fms.getMass( i ), fms.getIntensity( i ) ) );
@@ -217,7 +217,7 @@ Spectrogram::ChromatogramExtractor::operator () ( Chromatogram& c, double lMass,
         }
         c.setIntensity( idx++, y );
     }
-    
+
 }
 
 //////////////////
@@ -238,4 +238,3 @@ SpectrogramClusters::restore( std::istream& is, SpectrogramClusters& v )
     ar >> v;
     return true;
 }
-

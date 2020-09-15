@@ -44,7 +44,7 @@ namespace adcontrols {
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < MSPeakInfo > ;
 #endif
 
-    class ADCONTROLSSHARED_EXPORT MSPeakInfo {
+    class MSPeakInfo {
     public:
         MSPeakInfo( int mode = 0 );
         MSPeakInfo( const MSPeakInfo& );

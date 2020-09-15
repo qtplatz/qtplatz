@@ -30,8 +30,8 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -53,13 +53,13 @@ acqiris_client::acqiris_client( const std::string& server
                                                              , server_( server )
 {
     std::ostream request_stream( request_.get() );
-    
-    acqrscontrols::aqdrv4::preamble preamble( acqrscontrols::aqdrv4::clsid_connection_request );    
-    
+
+    acqrscontrols::aqdrv4::preamble preamble( acqrscontrols::aqdrv4::clsid_connection_request );
+
     request_stream.write( preamble.data(), sizeof( preamble ) );
-    
+
     tcp::resolver::query query = tcp::resolver::query( server, port );
-    
+
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err
                                     , tcp::resolver::iterator endpoint_iterator ){
@@ -105,15 +105,15 @@ acqiris_client::handle_resolve( const boost::system::error_code& err
 
         tcp::endpoint endpoint = *endpoint_iterator;
         auto next = ++endpoint_iterator;
-        
+
         socket_.async_connect( endpoint, [=]( const boost::system::error_code& ec ) {
                 handle_connect( ec, next );
             });
-        
+
     } else {
-        
+
         ADDEBUG() << "[" << server_ << "] Error: " << err.message();
-        
+
     }
 }
 
@@ -124,7 +124,7 @@ acqiris_client::handle_connect( const boost::system::error_code& err,
     if (!err)  {
 
         ADDEBUG() << "connection successed: " << socket_.remote_endpoint() << " - " << socket_.local_endpoint();
-        
+
         // The connection was successful. Send the request.
         boost::asio::async_write( socket_
                                   , *request_
@@ -135,17 +135,17 @@ acqiris_client::handle_connect( const boost::system::error_code& err,
         // acqiris_client_task::instance()->initialize();
 
     } else if ( endpoint_iterator != tcp::resolver::iterator() ) {
-        
+
         // The connection failed. Try the next endpoint in the list.
         socket_.close();
-        
+
         tcp::endpoint endpoint = *endpoint_iterator;
         auto next = ++endpoint_iterator;
 
         socket_.async_connect( endpoint, [=]( const boost::system::error_code& ec ) {
                 handle_connect( ec, next );
             });
-        
+
     } else {
 
         ADDEBUG() << "[" << server_ << "] Error: " << err.message();
@@ -163,20 +163,20 @@ acqiris_client::handle_write_request(const boost::system::error_code& err)
             , response_
             , boost::asio::transfer_at_least( sizeof( acqrscontrols::aqdrv4::preamble ) )
             , [&]( const boost::system::error_code& ec, size_t ) {
-                
+
                 auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
 
-                if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
+                if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) &&
                      preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
-                    
+
                     if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_acknowledge ) {
                         ADDEBUG() << ">>> acqiris_client: got ACK\t" << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
-                        
+
                     } else {
                         ADDEBUG() << "## ERROR \t" << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         response_.consume( response_.size() );
-                        
+
                     }
                     do_read();
                 }
@@ -195,17 +195,17 @@ acqiris_client::do_read()
     using acqrscontrols::aqdrv4::protocol_serializer;
     using acqrscontrols::aqdrv4::waveform;
     using namespace acqrscontrols;
-    
+
     boost::asio::async_read(
         socket_
         , response_
         , boost::asio::transfer_at_least( 1 )
         , [&]( const boost::system::error_code& ec, size_t ) {
-            
+
             if ( !ec ) {
 
                 if ( response_.size() >= sizeof( aqdrv4::preamble ) ) {
-                
+
                     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
 
                     if ( !aqdrv4::preamble::isOk( preamble ) ) {
@@ -215,7 +215,7 @@ acqiris_client::do_read()
 
                     } else {
                         // ADDEBUG() << "OK: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
-                        
+
                         if ( preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
 
                             const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( aqdrv4::preamble );
@@ -224,11 +224,11 @@ acqiris_client::do_read()
                                 response_handler_( preamble, data, preamble->length );
 
                             response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
-                            
+
                         }
                     }
                 }
-                do_read();                                         
+                do_read();
 
             } else {
                 ADDEBUG() << __FILE__ << ":" << __LINE__ << ">>> do_read: failed: " << ec.message();
