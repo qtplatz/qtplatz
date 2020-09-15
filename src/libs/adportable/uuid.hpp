@@ -28,10 +28,11 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class uuid {
+    class ADPORTABLESHARED_EXPORT uuid {
         uuid( const uuid& ) = delete;
     public:
         uuid();

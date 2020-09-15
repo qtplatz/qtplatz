@@ -26,7 +26,7 @@
 #pragma once
 
 namespace qtwrapper {
-
+    
     template<class _Ty,  class... _Types>
     inline _Ty * make_widget(const char * ident, _Types&&... _Args)
     {

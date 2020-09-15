@@ -31,10 +31,11 @@
 #include <functional>
 
 #include "spectrum_processor.hpp"
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class histogram_peakfinder {
+    class ADPORTABLESHARED_EXPORT histogram_peakfinder {
     public:
         histogram_peakfinder( double xInterval = 1.0e-9, uint32_t width = 3 );
 
@@ -45,7 +46,7 @@ namespace adportable {
         std::vector< peakinfo > results_;
     };
 
-    class histogram_merger {
+    class ADPORTABLESHARED_EXPORT histogram_merger {
     public:
         histogram_merger( double xInterval, double threshold );
 

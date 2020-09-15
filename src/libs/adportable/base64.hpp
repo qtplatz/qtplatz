@@ -28,6 +28,7 @@
 #pragma once
 
 #include <string>
+#include "adportable_global.h"
 
-std::string base64_encode(unsigned char const* , size_t len);
-std::string base64_decode(std::string const& s);
+std::string ADPORTABLESHARED_EXPORT base64_encode(unsigned char const* , size_t len);
+std::string ADPORTABLESHARED_EXPORT base64_decode(std::string const& s);

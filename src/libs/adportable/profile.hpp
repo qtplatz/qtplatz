@@ -25,11 +25,12 @@
 #ifndef PROFILE_HPP
 #define PROFILE_HPP
 
+#include "adportable_global.h"
 #include <string>
 
 namespace adportable {
 
-    class profile {
+    class ADPORTABLESHARED_EXPORT profile {
     public:
         profile();
         template< class char_type > static std::basic_string<char_type> user_login_name();

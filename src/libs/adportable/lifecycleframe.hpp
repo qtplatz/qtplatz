@@ -26,10 +26,11 @@
 #define LIFECYCLEFRAME_HPP
 
 #include <adportable/protocollifecycle.hpp>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class LifeCycleFrame {
+    class ADPORTABLESHARED_EXPORT LifeCycleFrame {
     public:
         boost::uint16_t endian_mark;    // 0xfffe
         boost::uint16_t proto_version;  // 0x0001

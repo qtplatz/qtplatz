@@ -1,6 +1,7 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,22 +25,12 @@
 
 #pragma once
 
-#include "adportable_global.h"
-#include <string>
-#include <ctime>
-#include <chrono>
+#include <compiler/decl_export.h>
+#include <compiler/pragma_warning.hpp>
 
-namespace boost { namespace gregorian { class date; } }
-
-namespace adportable {
-
-    class ADPORTABLESHARED_EXPORT date_string {
-    public:
-        static std::string string( const boost::gregorian::date& dt, const char * fmt = "%Y-%m-%d" );
-        static std::wstring wstring( const boost::gregorian::date& dt, const wchar_t * fmt = L"%Y-%m-%d" );
-        static std::string utc_to_localtime_string( time_t utc, unsigned usec, bool add_utc_offset = false );
-        static std::string logformat( const std::chrono::system_clock::time_point& tp, bool add_utc_offset = false );
-    };
-
-}
+#if defined(QTWRAPPER_LIBRARY)
+#  define QTWRAPPERSHARED_EXPORT DECL_EXPORT
+#else
+#  define QTWRAPPERSHARED_EXPORT DECL_IMPORT
+#endif
 

@@ -22,16 +22,16 @@
 **
 **************************************************************************/
 
-#ifndef FONT_HPP
-#define FONT_HPP
-
 #pragma once
 
+#include "qtwrapper_global.h"
 class QFont;
 class QString;
 
 namespace qtwrapper {
 
+    class QTWRAPPERSHARED_EXPORT font;
+    
     enum fontFamily {
         fontDefault
         , fontTableHeader
@@ -73,4 +73,4 @@ namespace qtwrapper {
     };
 }
 
-#endif // FONT_HPP
+

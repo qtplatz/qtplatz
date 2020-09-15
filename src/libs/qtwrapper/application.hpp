@@ -22,13 +22,15 @@
 **
 **************************************************************************/
 
-#ifndef APPLICATION_HPP
-#define APPLICATION_HPP
+#pragma once
 
 #include <string>
+#include "qtwrapper_global.h"
 
 namespace qtwrapper {
 
+    class QTWRAPPERSHARED_EXPORT application;
+    
 	class application {
 	public:
 		application();
@@ -37,4 +39,4 @@ namespace qtwrapper {
 
 }
 
-#endif // APPLICATION_HPP
+

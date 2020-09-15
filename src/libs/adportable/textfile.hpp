@@ -28,10 +28,11 @@
 #pragma once
 
 #include <fstream>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class textfile {
+    class ADPORTABLESHARED_EXPORT textfile {
     public:
         textfile();
         

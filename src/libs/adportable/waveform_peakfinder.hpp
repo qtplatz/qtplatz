@@ -29,6 +29,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include "adportable_global.h"
 
 namespace adportable {
 
@@ -68,7 +69,7 @@ namespace adportable {
         //                  npeakw := interger (count) value corresponding peak width equivalent
         //                  return := double value of peak width
 
-        class peakfinder {
+        class ADPORTABLESHARED_EXPORT peakfinder {
         public:
             peakfinder( std::function< double( size_t idx, int& npeakw )> fpeakw );
 

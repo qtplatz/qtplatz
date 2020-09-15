@@ -1,6 +1,8 @@
 # adutils
 project ( adutils )
 
+add_definitions( -DADUTILS_LIBRARY )
+
 add_library( ${PROJECT_NAME} SHARED
   adutils.cpp
   adutils.hpp

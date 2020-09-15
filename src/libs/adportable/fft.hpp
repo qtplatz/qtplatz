@@ -33,10 +33,11 @@
 #include <complex>
 #include <cstdlib>
 #include <limits>
+#include "adportable_global.h"
 
 namespace adportable {
 
-	class fft {
+	class ADPORTABLESHARED_EXPORT fft {
 	public:
 		static bool apodization(int napod, std::vector< std::complex<double> > &);
 		static bool apodization(int napod_zero, int napod_slope, std::vector< std::complex<double> > &);
@@ -62,3 +63,4 @@ namespace adportable {
 	};
 
 }
+

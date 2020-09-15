@@ -8,6 +8,15 @@ if ( MSVC )
   add_definitions( -wd4251 -wd4244 )
 endif()
 
+add_library( adserializer
+  portable_binary_oarchive.cpp
+  portable_binary_oarchive.hpp
+  portable_binary_iarchive.cpp
+  portable_binary_iarchive.hpp
+  )
+
+target_include_directories( adserializer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+
 add_library( ${PROJECT_NAME} SHARED
   array_wrapper.hpp
   base64.cpp
@@ -30,10 +39,6 @@ add_library( ${PROJECT_NAME} SHARED
   mslockref.cpp
   mslockref.hpp
   polfit.cpp
-  portable_binary_oarchive.cpp
-  portable_binary_oarchive.hpp
-  portable_binary_iarchive.cpp
-  portable_binary_iarchive.hpp
   profile.cpp
   semaphore.hpp
   serialport.cpp

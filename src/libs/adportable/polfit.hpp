@@ -27,10 +27,11 @@
 
 #include <vector>
 #include <cstdlib> // size_t
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class polfit {
+    class ADPORTABLESHARED_EXPORT polfit {
     public:
         polfit();
 

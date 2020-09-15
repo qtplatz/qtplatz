@@ -27,13 +27,14 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "adutils_global.h"
 
 namespace adfs { class sqlite; }
 namespace adcontrols { namespace ControlMethod { class Method; } }
 
 namespace adutils {
 
-    class inifile {
+    class ADUTILSSHARED_EXPORT inifile {
     public:
         static bool save( adfs::sqlite&, const adcontrols::ControlMethod::Method& );
         static bool load( adfs::sqlite&, adcontrols::ControlMethod::Method& );

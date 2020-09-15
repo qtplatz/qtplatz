@@ -25,16 +25,18 @@
 
 #pragma once
 
+#include "adportable_global.h"
 #include <string>
 
 namespace adportable {
 
-  class utf {
-  public:
-      static std::string to_utf8( const std::wstring& /* utf16|utf32 */ );
-      static std::wstring to_wstring( const std::string& /* utf8 */ );
-      static std::wstring to_wstring( const unsigned char * /* utf8 */ );
-  };
+    class ADPORTABLESHARED_EXPORT utf;
 
+    class utf {
+    public:
+        static std::string to_utf8( const std::wstring& /* utf16|utf32 */ );
+        static std::wstring to_wstring( const std::string& /* utf8 */ );
+        static std::wstring to_wstring( const unsigned char * /* utf8 */ );
+    };
 }
 

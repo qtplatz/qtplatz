@@ -24,7 +24,7 @@
 
 #ifndef DEBUG_CORE_HPP
 #define DEBUG_CORE_HPP
-
+#include "adportable_global.h"
 #include <atomic>
 #include <mutex>
 #include <memory>
@@ -35,6 +35,8 @@
 namespace adportable {
 
     namespace core {
+
+        class ADPORTABLESHARED_EXPORT debug_core;
         
         class debug_core { //: public std::enable_shared_from_this< debug_core > {
             debug_core();

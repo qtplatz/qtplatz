@@ -31,10 +31,11 @@
 #include <cstdint>
 #include <functional>
 #include <tuple>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class spectrum_processor {
+    class ADPORTABLESHARED_EXPORT spectrum_processor {
     public:
         struct areaFraction {
             size_t lPos;
@@ -64,7 +65,7 @@ namespace adportable {
         static double area( const areaFraction&, double base, const int8_t* pData, size_t nData );
     };
 
-    struct peakinfo {
+    struct ADPORTABLESHARED_EXPORT peakinfo {
         size_t first;
         size_t second;
         double base;
@@ -75,7 +76,7 @@ namespace adportable {
             : first( x1 ), second( x2 ), base( _base ), mass(0), time(0), width(0) {}
     };
 
-    class spectrum_peakfinder {
+    class ADPORTABLESHARED_EXPORT spectrum_peakfinder {
     public:
         enum WidthMethod { Constant, Proportional, TOF };
         spectrum_peakfinder( double pw = 0.1, double bw = 0, WidthMethod wm = Constant );

@@ -33,13 +33,10 @@
 #include <boost/version.hpp>
 #include <ostream>
 
-class ADPORTABLESHARED_EXPORT portable_binary_oarchive_exception;
-class ADPORTABLESHARED_EXPORT portable_binary_oarchive;
-
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit
 // variable being loaded
-class portable_binary_oarchive_exception :
+class ADPORTABLESHARED_EXPORT portable_binary_oarchive_exception :
     public virtual boost::archive::archive_exception
 {
 public:
@@ -68,14 +65,10 @@ public:
 // be passed across systems. Note:floating point types not addressed here
 
 class portable_binary_oarchive :
-    public boost::archive::basic_binary_oprimitive<
-        portable_binary_oarchive,
-        std::ostream::char_type,
-        std::ostream::traits_type
-    >,
-    public boost::archive::detail::common_oarchive<
-        portable_binary_oarchive
-    >
+    public boost::archive::basic_binary_oprimitive< portable_binary_oarchive
+                                                    , std::ostream::char_type
+                                                    , std::ostream::traits_type >
+    , public boost::archive::detail::common_oarchive< portable_binary_oarchive >
 {
     typedef boost::archive::basic_binary_oprimitive<
         portable_binary_oarchive,

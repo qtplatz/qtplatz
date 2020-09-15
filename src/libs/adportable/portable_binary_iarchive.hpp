@@ -32,13 +32,10 @@
 #include <boost/version.hpp>
 #include <istream>
 
-class ADPORTABLESHARED_EXPORT portable_binary_iarchive_exception;
-class ADPORTABLESHARED_EXPORT portable_binary_iarchive;
-
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit
 // variable being loaded
-class portable_binary_iarchive_exception :
+class ADPORTABLESHARED_EXPORT portable_binary_iarchive_exception :
     public virtual boost::archive::archive_exception
 {
 public:
@@ -71,13 +68,18 @@ public:
 // shared_ptr_helper has been removed, since it make undefined symbol error for ctor/dtor of shared_ptr_helper on boost-1.56
 // and pretty sure that QtPlatz never use boost::shared_ptr<> for the data that need to be serialized into 'portable' format
 // 17, Aug, 2014 --toshi
-class portable_binary_iarchive :  public boost::archive::basic_binary_iprimitive< portable_binary_iarchive, std::istream::char_type, std::istream::traits_type >
-                               ,  public boost::archive::detail::common_iarchive< portable_binary_iarchive > {
-                                  // ,  public boost::archive::detail::shared_ptr_helper  {
+class portable_binary_iarchive :
+    public boost::archive::basic_binary_iprimitive< portable_binary_iarchive
+                                                    , std::istream::char_type
+                                                    , std::istream::traits_type >
+    , public boost::archive::detail::common_iarchive< portable_binary_iarchive > {
 
-    typedef boost::archive::basic_binary_iprimitive< portable_binary_iarchive, std::istream::char_type, std::istream::traits_type > primitive_base_t;
+    typedef 
+    boost::archive::basic_binary_iprimitive<
+        portable_binary_iarchive, std::istream::char_type, std::istream::traits_type > primitive_base_t;
+    
     typedef boost::archive::detail::common_iarchive< portable_binary_iarchive > archive_base_t;
-
+    
 #ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
 public:
 #else

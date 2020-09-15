@@ -26,12 +26,13 @@
 #pragma once
 
 #include <string>
+#include "adportable_global.h"
 
 namespace adportable {
 
     typedef std::string u8string;
 
-    class string {
+    class ADPORTABLESHARED_EXPORT string {
     public:
         string(void);
         ~string(void);

@@ -27,10 +27,11 @@
 
 #include <QString>
 #include <QSettings>
+#include "qtwrapper_global.h"
 
 namespace qtwrapper {
 
-    struct settings {
+    struct QTWRAPPERSHARED_EXPORT settings {
         QSettings& settings_;
         settings( QSettings& settings );
 

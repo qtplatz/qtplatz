@@ -26,10 +26,11 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class http_client {
+    class ADPORTABLESHARED_EXPORT http_client {
         
         http_client( const http_client& ) = delete;
         http_client& operator = ( const http_client& ) = delete;

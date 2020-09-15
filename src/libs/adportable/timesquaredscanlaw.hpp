@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #pragma once
+#include "adportable_global.h"
 
 namespace adportable {
 
@@ -33,7 +34,7 @@ namespace adportable {
 
     const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
 
-    class TimeSquaredScanLaw {
+    class ADPORTABLESHARED_EXPORT TimeSquaredScanLaw {
     public:
         TimeSquaredScanLaw( const TimeSquaredScanLaw& t );
         TimeSquaredScanLaw( double kAcceleratorVoltage = 3000, double tDelay = 0, double fLength = 1.0 );

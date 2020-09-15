@@ -28,6 +28,7 @@
 #include <boost/variant.hpp>
 #include <string>
 #include <memory>
+#include "adportable_global.h"
 
 namespace adportable {
 

@@ -208,9 +208,9 @@ function prototypes
             }
         .
 */
+#include "adportable_global.h"
 
-
-void cdft(int n, int isgn, double *a)
+void DECL_EXPORT cdft(int n, int isgn, double *a)
 {
     void bitrv2(int n, double *a);
     void bitrv2conj(int n, double *a);

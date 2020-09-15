@@ -29,6 +29,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "adutils_global.h"
 
 namespace adfs { class sqlite; class stmt; }
 namespace adcontrols { namespace lockmass { class mslock; } }
@@ -37,7 +38,7 @@ namespace adutils {
 
     enum AcquiredFormatVersion { format_v2, format_v3 };
 
-    class AcquiredConf {
+    class ADUTILSSHARED_EXPORT AcquiredConf {
     public:
         AcquiredConf();
 

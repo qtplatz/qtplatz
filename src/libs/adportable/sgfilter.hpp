@@ -24,6 +24,7 @@
 
 #ifndef SGFILTER_HPP
 #define SGFILTER_HPP
+#include "adportable_global.h"
 
 /** Savitzky-Golay filter coefficient genelrator
 
@@ -48,7 +49,7 @@
 
 namespace adportable {
 
-    class SGFilter {
+    class ADPORTABLESHARED_EXPORT SGFilter {
     public:
         enum Filter { Smoothing, Derivative1, Derivative2 };
         enum PolynomialOrder { Quadratic = 2, Cubic = 3 };
