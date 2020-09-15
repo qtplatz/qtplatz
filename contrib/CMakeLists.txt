@@ -26,7 +26,9 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
 endif()
 
 if ( WITH_Wolfram AND NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  message( STATUS "------------ contrib/Wolfram ----------------" )
+  if ( VERBOSE )
+    message( STATUS "------------ contrib/Wolfram ----------------" )
+  endif()
   add_subdirectory( wolfram )
 endif()
 

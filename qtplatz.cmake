@@ -9,7 +9,8 @@ set( Boost_NO_SYSTEM_PATHS ON )
 
 set( Boost_ADDITIONAL_VERSIONS "1.70.0" )
 
-if( WIN32 )
+if ( WIN32 )
+
   # See 'libs/serialization/src/basic_archive.cpp library_version_type
   find_path( _boost NAMES boost HINTS
     "C:/Boost/include/boost-1_73"   # V18
@@ -23,7 +24,7 @@ if( WIN32 )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
   # add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
-  
+
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   # so following option need to be on
   set( Boost_USE_STATIC_LIBS ON )
@@ -34,7 +35,10 @@ if( WIN32 )
     add_definitions( -DBOOST_ALL_DYN_LINK )
     add_definitions( -wd4141 ) # dllexport more than once
   endif()
+
 else()
+  ## Boost setup for mac/linux
+  set( Boost_USE_STATIC_LIBS OFF )
 
   find_path( _boost NAMES include/boost HINTS
     "/usr/local/boost-1_73"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
@@ -50,7 +54,6 @@ else()
   if ( _boost )
     set( BOOST_ROOT ${_boost} )
   endif()
-
 endif()
 
 #####################
@@ -134,7 +137,7 @@ endif()
 if (MSVC)
 
   add_definitions( "-DUNICODE" "-D_UNICODE" "-D_WIN32_WINNT=0x0601" "-D_SCL_SECURE_NO_WARNINGS" )
-  set( CMAKE_CXX_STANDARD 17 )  
+  set( CMAKE_CXX_STANDARD 17 )
   #message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
 
 else()

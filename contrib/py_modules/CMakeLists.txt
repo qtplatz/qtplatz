@@ -5,7 +5,7 @@ endif()
 
 if ( Python3_FOUND )
 
-  
+
   if ( APPLE )
     set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages/qtplatz )
   else()
@@ -20,9 +20,11 @@ if ( Python3_FOUND )
     set( PYTHON_DIST_PACKAGES "/usr/local/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/dist-packages" )
   endif()
 
-  message( STATUS "------------> contrib/py_modules == " ${PYTHON_DIST_PACKAGES})
-  message( STATUS "------------> contrib/py_modules == " ${PYTHON_MODULE_DIR})
-  
+  if ( VERBOSE )
+    message( STATUS "------------> contrib/py_modules == " ${PYTHON_DIST_PACKAGES})
+    message( STATUS "------------> contrib/py_modules == " ${PYTHON_MODULE_DIR})
+  endif()
+
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py"
     "${PYTHON_MODULE_DIR}/__init__.py"

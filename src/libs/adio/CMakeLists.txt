@@ -7,7 +7,7 @@ if ( Qt5_FOUND )
 endif()
 
 add_library(
-  ${PROJECT_NAME}
+  ${PROJECT_NAME} SHARED
   dgprotocols.cpp
   dgprotocols.hpp
   dgprotocol.hpp
