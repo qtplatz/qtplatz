@@ -6,6 +6,8 @@ if ( Qt5_FOUND )
   include_directories( ${Qt5Core_INCLUDES} )
 endif()
 
+add_definitions(-DADIO_LIBRARY)
+
 add_library(
   ${PROJECT_NAME} SHARED
   dgprotocols.cpp
