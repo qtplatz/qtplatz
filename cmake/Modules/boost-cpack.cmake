@@ -26,6 +26,7 @@ if ( Boost_FOUND )
     log_setup
     program_options
     regex
+    random
     serialization
     system
     thread
