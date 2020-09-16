@@ -318,7 +318,13 @@ manager::impl::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
 void
 manager::standalone_initialize()
 {
+#if defined WIN32
+    // Windows -->   qtplatz.rekiease/bin/adplugin_manager.dll
+    auto tpath = boost::dll::this_line_location().parent_path().parent_path();
+#else
+    // Mac/Linux --> qtplatz.release/lib/qtplatz/libadplugin_manager.so
     auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+#endif
 
 #ifndef NDEBUG
     ADDEBUG() << "app: " << boost::dll::program_location();

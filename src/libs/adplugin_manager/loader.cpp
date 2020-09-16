@@ -79,6 +79,7 @@ loader::populate( const wchar_t * topdir )
 #ifndef NDEBUG
     ADDEBUG() << "loader populating in directory: " << topdir;
 #endif
+    
     if ( boost::filesystem::is_directory( modules ) ) {
 
         boost::system::error_code ec;
