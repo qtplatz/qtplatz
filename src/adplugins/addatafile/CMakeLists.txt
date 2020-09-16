@@ -29,7 +29,7 @@ add_library( addatafile MODULE
 target_link_libraries( addatafile LINK_PUBLIC
   ${Boost_LIBRARIES}
   adplugin
-  acewrapper
+#  acewrapper
   adcontrols
   adlog
   adfs

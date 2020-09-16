@@ -30,6 +30,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include "adutils_global.h"
 
 namespace adfs { class sqlite; }
 namespace adcontrols { class MSCalibrateResult; }
@@ -37,7 +38,7 @@ namespace boost { namespace uuids { struct uuid; } }
 
 namespace adutils {
 
-    class mscalibio {
+    class ADUTILSSHARED_EXPORT mscalibio {
     public:
         mscalibio();
         [[deprecated]] static bool readCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * dataClass, std::vector< char >&, int64_t& revision );

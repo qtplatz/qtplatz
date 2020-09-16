@@ -27,10 +27,11 @@
 
 #include <QString>
 #include <string>
+#include "qtwrapper_global.h"
 
 namespace qtwrapper {
 
-    struct qstring {
+    struct QTWRAPPERSHARED_EXPORT qstring {
         QString impl_;
         qstring() {}
         qstring( const std::wstring& );
@@ -38,7 +39,7 @@ namespace qtwrapper {
         static QString copy( const std::wstring& );
     };
 
-    struct wstring {
+    struct QTWRAPPERSHARED_EXPORT wstring {
         std::wstring impl_;
         wstring() {}
         wstring( const QString& );

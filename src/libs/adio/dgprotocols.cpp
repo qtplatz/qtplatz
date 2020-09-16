@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "dgprotocols.hpp"
-
+#include "dgprotocol.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>

@@ -42,7 +42,7 @@ namespace adutils {
     public:
         AcquiredConf();
 
-        struct data {
+        struct ADUTILSSHARED_EXPORT data {
             data();
             data( const data& );
             uint64_t objid;

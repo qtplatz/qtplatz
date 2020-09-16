@@ -39,7 +39,18 @@ namespace adportable {
         template< class char_type > static std::basic_string<char_type> computer_name();
         template< class char_type > static std::basic_string<char_type> user_config_dir();
     };
-
+#if defined WIN32
+    template<> ADPORTABLESHARED_EXPORT std::string profile::user_login_name<char>();
+    template<> ADPORTABLESHARED_EXPORT std::string profile::user_login_id<char>();
+    template<> ADPORTABLESHARED_EXPORT std::string profile::user_data_dir<char>();
+    template<> ADPORTABLESHARED_EXPORT std::string profile::computer_name<char>();
+    template<> ADPORTABLESHARED_EXPORT std::string profile::user_config_dir<char>();
+    template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_login_name<wchar_t>();
+    template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_login_id<wchar_t>();
+    template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_data_dir<wchar_t>();
+    template<> ADPORTABLESHARED_EXPORT std::wstring profile::computer_name<wchar_t>();
+    template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_config_dir<wchar_t>();
+#endif
 }
 
 #endif // PROFILE_HPP

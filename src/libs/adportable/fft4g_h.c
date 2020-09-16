@@ -231,7 +231,7 @@ void DECL_EXPORT cdft(int n, int isgn, double *a)
 }
 
 
-void rdft(int n, int isgn, double *a)
+void DECL_EXPORT rdft(int n, int isgn, double *a)
 {
     void bitrv2(int n, double *a);
     void cftfsub(int n, double *a);

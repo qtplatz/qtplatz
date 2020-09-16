@@ -29,11 +29,12 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include "adio_global.h"
 
 namespace adio {
     namespace io {
     
-        class sample {
+        class ADIOSHARED_EXPORT sample {
         public:
             sample();
             sample( const sample& );
@@ -45,7 +46,7 @@ namespace adio {
             std::string methodId_;
         };
 
-        class sequence {
+        class ADIOSHARED_EXPORT sequence {
         public:
             sequence();
             sequence( const sequence& );

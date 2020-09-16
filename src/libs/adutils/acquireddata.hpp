@@ -30,12 +30,13 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "adutils_global.h"
 
 namespace adfs { class sqlite; }
 
 namespace adutils {
 
-    class AcquiredData  {
+    class ADUTILSSHARED_EXPORT AcquiredData  {
     public:
         AcquiredData();
 

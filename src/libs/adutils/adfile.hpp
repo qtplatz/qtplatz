@@ -25,6 +25,7 @@
 #pragma once
 
 #include <memory>
+#include "adutils_global.h"
 
 namespace adfs { class filesystem; class folder; class file; }
 namespace portfolio { class Portfolio; class Folium; }
@@ -35,7 +36,7 @@ namespace adutils {
 	
     // high level data file io over adfs::filesystem and adfs::file
 
-	class adfile {
+	class ADUTILSSHARED_EXPORT adfile {
     public:
         ~adfile();
         adfile();

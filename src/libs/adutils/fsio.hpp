@@ -27,6 +27,7 @@
 
 #include <string>
 #include <boost/filesystem.hpp>
+#include "adutils_global.h"
 
 namespace adcontrols {
     class MassSpectrum;
@@ -52,7 +53,7 @@ namespace adutils {
         const wchar_t * const file_mscalibration_massspectrum = L"MassSpectrum"; // same as T::dataClass()
     };
     
-	class fsio {
+	class ADUTILSSHARED_EXPORT fsio {
     public:
         fsio();
 

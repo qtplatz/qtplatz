@@ -1,6 +1,7 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,36 +25,11 @@
 
 #pragma once
 
-#if defined WIN32
+#include <compiler/decl_export.h>
+#include <compiler/pragma_warning.hpp>
 
-// # include <winsock2.h>
-// # include <ws2tcpip.h>
-// # include <iphlpapi.h>
-// # pragma comment( lib, "iphlpapi.lib" )
-// # pragma comment( lib, "ws2_32.lib" )
-
-// # include <sys/socket.h>
-// # include <net/if.h> // this must be earlier than ifaddrs.h (see BSD manual, BUGS)
-// # include <ifaddrs.h>
-// # include <netinet/in.h>
-// # include <arpa/inet.h>
-// //# include <net/if_dl.h>
-// //# include <net/if_types.h>
-
-#include <string>
-#include <vector>
-#include "acewrapper_global.h"
-
-namespace acewrapper {
-
-    namespace windows {
-
-        class ACEWRAPPERSHARED_EXPORT ifconfig {
-        public:
-            static bool if_addrs( std::vector< std::pair< std::string, std::string > >& addrs );
-            static bool if_broadaddrs( std::vector< std::pair< std::string, std::string > >& baddrs );
-        };
-    }
-}
-
-#endif // defined WIN32
+#if defined(ACEWRAPPER_LIBRARY)
+#  define ACEWRAPPERSHARED_EXPORT DECL_EXPORT
+#else
+#  define ACEWRAPPERSHARED_EXPORT DECL_IMPORT
+#endif

@@ -25,18 +25,20 @@
 
 #pragma once
 
+#include "acewrapper_global.h"
+
 namespace acewrapper {
 
     namespace constants {
 
         namespace adcontroller {
-            struct manager {
+            struct ACEWRAPPERSHARED_EXPORT manager {
                 static const char * _name();
             };
         }
 
         namespace adbroker {
-            struct manager {
+            struct ACEWRAPPERSHARED_EXPORT manager {
                 static const char * _name();
             };
             const unsigned short OBJECTDISCOVERY_PORT = 7402;

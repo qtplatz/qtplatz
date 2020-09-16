@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "adutils_global.h"
 
 namespace adfs { class sqlite; }
 
@@ -38,11 +39,11 @@ namespace adutils {
     
     namespace v3 {
 
-        class AcquiredConf {
+        class ADUTILSSHARED_EXPORT AcquiredConf {
         public:
             AcquiredConf();
 
-            struct data {
+            struct ADUTILSSHARED_EXPORT data {
                 data();
                 data( const data& );
                 int64_t rowid;                    // SQLite rowid

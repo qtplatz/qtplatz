@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "adutils_global.h"
 
 namespace boost { namespace uuids { struct uuid; } }
 namespace adfs { class sqlite; }
@@ -35,7 +36,7 @@ namespace adutils {
 
     namespace v3 {
     
-        class AcquiredData  {
+        class ADUTILSSHARED_EXPORT AcquiredData  {
         public:
             AcquiredData();
             

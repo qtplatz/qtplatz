@@ -28,10 +28,11 @@
 #include <boost/signals2.hpp>
 #include <functional>
 #include <memory>
+#include "acewrapper_global.h"
 
 namespace acewrapper {
 
-    class udpEventReceiver {
+    class ACEWRAPPERSHARED_EXPORT udpEventReceiver {
     public:
         ~udpEventReceiver();
 

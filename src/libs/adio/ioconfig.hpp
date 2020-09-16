@@ -29,6 +29,7 @@
 #include <vector>
 #include <cstdint>
 #include <boost/property_tree/ptree_fwd.hpp>
+#include "adio_global.h"
 
 namespace adio {
     namespace io {
@@ -38,7 +39,7 @@ namespace adio {
         enum trigConfig   { Edge = 0, Level = 1 };
         enum trigPolarity { Positive = 0x00, Negative = 0x10 };
 
-        class ioConfig {
+        class ADIOSHARED_EXPORT ioConfig {
         public:
             ioConfig();
             ioConfig( const ioConfig& );
@@ -58,7 +59,7 @@ namespace adio {
             std::string note_;
         };
 
-        class configuration {
+        class ADIOSHARED_EXPORT configuration {
         public:
             configuration();
             configuration( const configuration& );

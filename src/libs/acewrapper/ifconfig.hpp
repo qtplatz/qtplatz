@@ -27,10 +27,11 @@
 
 #include <vector>
 #include <string>
+#include "acewrapper_global.h"
 
 namespace acewrapper {
 
-    class ifconfig {
+    class ACEWRAPPERSHARED_EXPORT ifconfig {
     public:
         ifconfig();
         typedef std::pair< std::string, std::string > ifaddr; // <eth0, 192.168.x.x>

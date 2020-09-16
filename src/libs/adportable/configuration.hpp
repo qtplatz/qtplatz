@@ -28,10 +28,11 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class Configuration {
+    class ADPORTABLESHARED_EXPORT Configuration {
     public:
         ~Configuration(void);
         Configuration(void);

@@ -29,10 +29,11 @@
 #include <thread>
 #include <mutex>
 #include <functional>
+#include "acewrapper_global.h"
 
 namespace acewrapper {
 
-    class udpEventSender {
+    class ACEWRAPPERSHARED_EXPORT udpEventSender {
     public:
         udpEventSender( boost::asio::io_service&, const char * host, const char * port, bool bcast = false );
         enum result_code { transaction_completed, transaction_timeout };

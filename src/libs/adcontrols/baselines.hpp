@@ -34,7 +34,7 @@
 
 namespace adcontrols {
 
-    class Baselines {
+    class ADCONTROLSSHARED_EXPORT Baselines {
     public:
         virtual ~Baselines();
         Baselines();

@@ -45,8 +45,8 @@ namespace adio {
                                             , protocols_( t.protocols_ ) {
             }
 
-            static bool read_json( std::istream&, protocols<protocol<> >& );
-            static bool write_json( std::ostream&, const protocols<protocol<> >& );
+            static bool ADIOSHARED_EXPORT read_json( std::istream&, protocols<protocol<> >& );
+            static bool ADIOSHARED_EXPORT write_json( std::ostream&, const protocols<protocol<> >& );
 
             double interval() const {
                 return interval_;
@@ -89,6 +89,6 @@ namespace adio {
 
         // bool protocols::read_json( std::istream&, protocols< protocol<> >& );
         // bool write_json( std::ostream&, const protocols< protocol<> >& );
-
+        
     }
 }

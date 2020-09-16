@@ -65,6 +65,20 @@ namespace adportable {
         static double area( const areaFraction&, double base, const int8_t* pData, size_t nData );
     };
 
+#if defined WIN32
+    template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const double * praw, size_t N );
+    
+    template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, size_t N );
+
+    template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, size_t N );
+
+    template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, size_t N );        
+#endif
+
     struct ADPORTABLESHARED_EXPORT peakinfo {
         size_t first;
         size_t second;

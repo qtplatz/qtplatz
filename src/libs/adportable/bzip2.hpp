@@ -28,10 +28,11 @@
 #pragma once
 
 #include <string>
+#include "adportable_global.h"
 
 namespace adportable {
 
-    class bzip2 {
+    class ADPORTABLESHARED_EXPORT bzip2 {
     public:
         bzip2();
         static void compress( std::string& compressed, const char * uncompressed, size_t length );

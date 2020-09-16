@@ -63,9 +63,9 @@ namespace adportable {
 		debug& operator << ( const std::wstring& t );
     };
 
-    template<> debug& debug::operator << ( const std::wstring& t );
-    template<> debug& debug::operator << ( const boost::system::error_code& );
-    template<> debug& debug::operator << ( const boost::property_tree::ptree& );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::wstring& t );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::system::error_code& );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::property_tree::ptree& );
 
     inline std::string where( const char * file, const int line ) {
         debug x( file, line );

@@ -26,6 +26,7 @@
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
 #include <array>
+#include "socfpga_global.hpp"
 
 namespace socfpga {
 
@@ -33,7 +34,7 @@ namespace socfpga {
         // Session class define here is psude singletion by a manager class
         // which is only the class make Session instance.
 
-        struct advalue {
+        struct SOCFPGASHARED_EXPORT advalue {
             uint64_t elapsed_time;
             uint64_t flags_time;
             uint64_t posix_time;

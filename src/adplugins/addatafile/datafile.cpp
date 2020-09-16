@@ -95,7 +95,7 @@ namespace addatafile { namespace detail {
                     import::attributes( dbThis, folium.attributes() );
                     try {
                         adutils::cpio::save( dbThis, any );
-                    } catch ( boost::bad_any_cast& ex ) {
+                    } catch ( boost::bad_any_cast& ) {
                         assert( 0 );
                         return false;
                     }

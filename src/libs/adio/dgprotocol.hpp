@@ -26,6 +26,7 @@
 #pragma once
 
 #include <array>
+#include "adio_global.h"
 
 namespace adio {
 
@@ -74,5 +75,6 @@ namespace adio {
             size_t replicates_;
             std::array< std::pair< double, double >, _size > pulses_;
         };
+
     }
 }

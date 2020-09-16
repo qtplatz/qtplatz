@@ -26,10 +26,11 @@
 #define WAITCURSOR_HPP
 
 #include <atomic>
+#include "qtwrapper_global.h"
 
 namespace qtwrapper {
 
-    class waitCursor {
+    class QTWRAPPERSHARED_EXPORT waitCursor {
         static std::atomic_flag blocked_;
 	public:
         static void block();

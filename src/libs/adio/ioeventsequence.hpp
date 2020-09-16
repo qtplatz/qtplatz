@@ -29,10 +29,11 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include "adio_global.h"
 
 namespace adio {
 
-    class ioEvent {
+    class ADIOSHARED_EXPORT ioEvent {
     public:
         ioEvent() {
         }
@@ -57,7 +58,7 @@ namespace adio {
         std::string action_; // 'disable', 'open/load' 'close/inject', 'pulse'
     };
 
-    class ioEventSequence {
+    class ADIOSHARED_EXPORT ioEventSequence {
     public:
         ioEventSequence();
         ioEventSequence( const ioEventSequence& );

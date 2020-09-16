@@ -29,6 +29,7 @@
 #include <boost/variant.hpp>
 #include <adportable/is_type.hpp>
 #include <memory>
+#include "adutils_global.h"
 
 namespace adcontrols {
     class MassSpectrum;
@@ -54,11 +55,11 @@ namespace adutils {
     typedef std::shared_ptr< adcontrols::MassSpectra > MassSpectraPtr;
     typedef std::shared_ptr< adcontrols::SpectrogramClusters > SpectrogramClustersPtr;
 
-    class ProcessedData {
+    class ADUTILSSHARED_EXPORT ProcessedData {
     public:
         ProcessedData();
 
-        class Nothing { 
+        class ADUTILSSHARED_EXPORT Nothing { 
         public:
             Nothing() {}
         };

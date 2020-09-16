@@ -27,6 +27,7 @@
 
 #include <string>
 #include <boost/filesystem.hpp>
+#include "adutils_global.h"
 
 namespace adcontrols {
     class MassSpectrum;
@@ -47,7 +48,7 @@ namespace portfolio { class Portfolio; class Folium; }
 
 namespace adutils {
 	
-	class fsio2 {
+	class ADUTILSSHARED_EXPORT fsio2 {
     public:
         fsio2();
 

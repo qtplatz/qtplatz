@@ -27,10 +27,11 @@
 
 #include <adfs/adfs.hpp>
 #include <boost/any.hpp>
+#include "adutils_global.h"
 
 namespace adutils {
 
-    class cpio {
+    class ADUTILSSHARED_EXPORT cpio {
     public:
         cpio();
         static bool save( adfs::file&, const boost::any& );
