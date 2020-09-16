@@ -94,7 +94,7 @@ set( ${PROJECT_NAME}_SOURCES
   moltablehelper.cpp
   moltableview.cpp
   samplerunwidget.cpp
-#  scanlawdialog.cpp
+  scanlawdialog.cpp
   scanlawdialog2.cpp
   scanlawform.cpp
   spinbox.cpp

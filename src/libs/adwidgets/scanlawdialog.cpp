@@ -392,7 +392,7 @@ ScanLawDialog::handleCopyToClipboard()
 
 	QMimeData * md = new QMimeData();
 	md->setText( selected_text );
-    
+#if 0
     std::wostringstream os;
     try {
         boost::archive::xml_woarchive ar ( os );
@@ -402,7 +402,7 @@ ScanLawDialog::handleCopyToClipboard()
     } catch ( std::exception& ex ) {
         BOOST_THROW_EXCEPTION( ex );
     }
-
+#endif
 	QApplication::clipboard()->setMimeData( md );
 }
 
@@ -413,6 +413,7 @@ ScanLawDialog::handlePaste()
     auto data = md->data( "application/scanlaw-xml" );
     if ( !data.isEmpty() ) {
         QString utf8( QString::fromUtf8( data ) );
+#if 0
         std::wistringstream is( utf8.toStdWString() );
         boost::archive::xml_wiarchive ar( is );
         try {
@@ -426,6 +427,7 @@ ScanLawDialog::handlePaste()
         } catch ( std::exception& ex ) {
             BOOST_THROW_EXCEPTION( ex );
         }
+#endif
     }
 }
 
