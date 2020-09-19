@@ -101,8 +101,9 @@ namespace adportable {
         };
 
         // due to Moment class is depend on 'double' y-array, cannot suppor other value_type for now.  to be fixed.
-        template<> size_t peakfinder::operator()( std::function< double( size_t ) > fx, const double * pY
-                                                  , size_t beg, size_t end, std::vector< waveform_peakfinder::peakinfo >& results );
+        template<> ADPORTABLESHARED_EXPORT
+        size_t peakfinder::operator()( std::function< double( size_t ) > fx, const double * pY
+                                       , size_t beg, size_t end, std::vector< waveform_peakfinder::peakinfo >& results );
     }
 }
 
