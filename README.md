@@ -3,70 +3,38 @@ Visit
 
 BUILD PROCEDURE
 
- Prerequisite
+Prerequisite
 ===============
 
-1. Qt 5.12
-2. QWT
-3. Boost
-4. RDKit
-5. OpenCV
+1. git
+2. cmake 3.18
+3. c++17 complient c/c++ compiler
+
+
+Dependent libraries
+=====================
+
+1. Qt 5.15.1 (also work with 5.12 and later versions) ([download](https://www.qt.io/download))
+2. QWT 6.1
+3. Boost-1.73 (also work with 1.69 and later versions)
+4. RDKit 2020.09 (optional, but recommended)
+5. OpenCV 3.1 (optional)
+6. Python3 (optional)
 
 Linux platform also require following modules:
 libxml2-dev, libxslt1-dev, mesa-common-dev, bc, libncurses5-dev libgstreamer-plugins-base0.10
 
-------------
-Check Boost serialization version_type
------------
-Check <boost-source-dir>/libs/serialization/src/basic_archive.cpp
-find library_version_type returned by BOOST_ARCHIVE_VERSION()
-Current QtPlatz data acquisition is based on 14.
+QtPlatz uses `boost_serialization` for binary data storing on file.  The file stored by the older version of `boost` can be opened in a newer version of `boost,` but no reverse compatibility.  To check the version of `boost_serialization`, see the `BOOST_ARCHIVE_VERSION` macro value located in the file `boost-source-dir/libs/serialization/src/basic_archive.cpp`.
 
-------
- QWT (Qt 5.9 should be installed before compile QWT)
-------
-// change nmake rather than make on windows
 
-svn checkout svn://svn.code.sf.net/p/qwt/code/branches/qwt-6.1
-cd qwt-6.1
-<edit qwtconf.pro ...>
-qmake qwt.pro
-make
-make install
+Install dependencies
+====================
 
---------
- Boost
---------
-// On Mac
-./bootstrap.sh --prefix=/usr/local/boost-1_62 --with-toolset=clang
-sudo ./b2 -j4 toolset=clang cxxflags="-std=c++11 -stdlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=~/src/bzip2-1.0.6 install
+Download respective qt5 installer from [download](https://www.qt.io/download) page, and follow the instraction.
 
-// On Linux
-./bootstrap.sh
-sudo ./b2 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=~/src/bzip2-1.0.6 install
+------------------------------------
+Dependency installation from source
+------------------------------------
 
-// On Windows (Win64 Visual Studio 14)
-.\b2 -j4 --stagedir=./x86_64 --toolset=msvc-14.0 architecture=x86 address-model=64 -s BZIP2_SOURCE=%USERPROFILE%\src\bzip2-1.0.6 link=static stage
-<move x86_64 directory under C:/Boost>
+Go to `<qtplatz-source-dir>/scripts` directory, there are script files for install dependency software modules.
 
-------------------------
- RDKit (require Boost) on Windows
-------------------------
-git clone git://github.com/rdkit/rdkit
-mkdir rdkit\build; cd rdkit\build
-cmake -DBOOST_LIBRARYDIR=C:\Boost\x86_64\lib -DBOOST_ROOT=C:\Boost\include\boost-1_62 -DBoost_USE_STATIC_LIBS=ON -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DCMAKE_DEBUG_POSTFIX="d" -G "Visual Studio 14 Win64" ..
-msbuild /m:4 /p:Configuration=Debug INSTALL.vcxproj
-msbuild /m:4 /p:Configuration=Release INSTALL.vcxproj
-
-------------------------
- RDKit (require Boost) on Linux & Mac
-------------------------
-git clone git://github.com/rdkit/rdkit
-cd rdkit
-export RDBASE=`pwd`
-mkdir build; cd build
-cmake -DBOOST_ROOT=/usr/local/boost-1_62 -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF ..
-cmake -DBOOST_ROOT=/usr/local/boost-1_62 -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DRDK_INSTALL_INTREE=OFF -DCMAKE_MACOSX_RPATH=TRUE ..
-make -j8
-make test
-make install
