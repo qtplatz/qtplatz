@@ -59,7 +59,13 @@ Windows
 
 ```
 cd %USERPROFILE%\src\qtplatz\scripts
-.\bootstrap-windows.bat
+.\windows-bootstrap.bat
+nmake boost
+.\boost.bat
+nmake eigen
+.\eigen.bat
+nmake rdkit
+.\rdkit.bat
 ```
 
 ```
