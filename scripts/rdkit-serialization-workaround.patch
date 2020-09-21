@@ -1,0 +1,72 @@
+diff --git a/Code/GraphMol/FilterCatalog/FilterCatalog.cpp b/Code/GraphMol/FilterCatalog/FilterCatalog.cpp
+index 74e8b0d5d..2df0540a8 100644
+--- a/Code/GraphMol/FilterCatalog/FilterCatalog.cpp
++++ b/Code/GraphMol/FilterCatalog/FilterCatalog.cpp
+@@ -90,8 +90,9 @@ void FilterCatalogParams::toStream(std::ostream &ss) const {
+ #ifndef RDK_USE_BOOST_SERIALIZATION
+   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
+ #else
++  std::cerr << __FILE__ << "(" << __LINE__ << "):" << __FUNCTION__;      
+   boost::archive::text_oarchive ar(ss);
+-  ar << *this;
++  //ar << *this;
+ #endif
+ }
+ 
+@@ -106,7 +107,8 @@ void FilterCatalogParams::initFromStream(std::istream &ss) {
+   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
+ #else
+   boost::archive::text_iarchive ar(ss);
+-  ar >> *this;
++  std::cerr << __FILE__ << "(" << __LINE__ << "):" << __FUNCTION__;      
++  //ar >> *this;
+ #endif
+ }
+ 
+@@ -126,7 +128,8 @@ FilterCatalog::FilterCatalog(const std::string &binStr)
+ #else
+   std::stringstream ss(binStr);
+   boost::archive::text_iarchive ar(ss);
+-  ar &d_entries;
++  std::cerr << __FILE__ << "(" << __LINE__ << "):" << __FUNCTION__;      
++  //ar &d_entries;
+ #endif
+ }
+ 
+@@ -134,10 +137,10 @@ std::string FilterCatalog::Serialize() const {
+ #ifndef RDK_USE_BOOST_SERIALIZATION
+   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
+ #else
+-
+   std::stringstream ss;
+   boost::archive::text_oarchive ar(ss);
+-  ar &d_entries;
++  std::cerr << __FILE__ << "(" << __LINE__ << "):" << __FUNCTION__;      
++  //ar &d_entries;
+   return ss.str();
+ #endif
+ }
+diff --git a/Code/GraphMol/FilterCatalog/FilterCatalogEntry.cpp b/Code/GraphMol/FilterCatalog/FilterCatalogEntry.cpp
+index f9734d7c0..7713168ff 100644
+--- a/Code/GraphMol/FilterCatalog/FilterCatalogEntry.cpp
++++ b/Code/GraphMol/FilterCatalog/FilterCatalogEntry.cpp
+@@ -51,7 +51,7 @@ void FilterCatalogEntry::toStream(std::ostream &ss) const {
+   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
+ #else
+   boost::archive::text_oarchive ar(ss);
+-  ar << *this;
++  //ar << *this;
+ #endif
+ }
+ 
+@@ -65,8 +65,9 @@ void FilterCatalogEntry::initFromStream(std::istream &ss) {
+ #ifndef RDK_USE_BOOST_SERIALIZATION
+   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
+ #else
++  std::cerr << __FILE__ << "(" << __LINE__ << "):" << __FUNCTION__;
+   boost::archive::text_iarchive ar(ss);
+-  ar >> *this;
++  //ar >> *this;
+ #endif
+ }
+ 
