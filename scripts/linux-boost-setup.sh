@@ -73,6 +73,19 @@ END
 	fi
 }
 
+function make_user_config_cross_armhf {
+	if [ -f ~/user-config.jam ]; then
+		mv ~/user-config.jam ~/user-config.jam.orig
+	fi
+
+	if [ ! -f ~/user-config.jam ]; then
+		cat << END > ~/user-config.jam
+using gcc :	arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
+using python : 2.7 ;
+END
+	fi
+}
+
 
 function boost_build {
     echo "=============================="
@@ -196,14 +209,20 @@ echo "	CROSS_ROOT        : ${CROSS_ROOT}"
 
 python_dirs
 
-case "${arch}" in
-	Darwin*)
-		make_user_config_darwin
-		;;
-	Linux*)
-		make_user_config_linux
-		;;
-esac
+
+if [ -z $cross_target ]; then
+	case "${arch}" in
+		Darwin*)
+			make_user_config_darwin
+			;;
+		Linux*)
+			make_user_config_linux
+			;;
+	esac
+else
+	make_user_config_cross_armhf
+fi
+
 
 echo "	PYTHON            : ${PYTHON}"
 echo "	PYTHON_VERSION    : ${PYTHON_VERSION}"
@@ -251,7 +270,8 @@ else
 		staff=$(id -Gn | grep -c staff)
 		if [ $staff = 0 ]; then
 			echo "You need to join 'staff' group as run follwoing command".
-			sudo usermod -a -G staff $USER
+			echo sudo usermod -aG staff $USER
+			sudo usermod -aG staff $USER
 		fi
 		if [ ! -w $CROSS_ROOT ]; then
 			echo "You may need to logout/login cycle"
@@ -259,18 +279,7 @@ else
 		fi
     fi
 
-	if [ -f ~/user-config.jam ]; then
-		mv ~/user-config.jam ~/user-config.jam.orig
-	fi
-
-    if [ ! -f ~/user-config.jam ]; then
-		echo "# Creating ~/user-config.jam..."
-		cat <<EOF>~/user-config.jam
-using gcc :		arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
-using python : 2.7 ;
-EOF
-    fi
-	    boost_cross_build ${BOOST_BUILD_DIR}
+	boost_cross_build ${BOOST_BUILD_DIR}
 fi
 
 echo "=============================="
