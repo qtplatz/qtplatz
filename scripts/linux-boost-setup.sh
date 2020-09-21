@@ -259,6 +259,10 @@ else
 		fi
     fi
 
+	if [ -f ~/user-config.jam ]; then
+		mv ~/user-config.jam ~/user-config.jam.orig
+	fi
+
     if [ ! -f ~/user-config.jam ]; then
 		echo "# Creating ~/user-config.jam..."
 		cat <<EOF>~/user-config.jam
