@@ -320,17 +320,17 @@ QuanConfigForm::handleInletChanged( adcontrols::Quan::QuanInlet inlet )
         grpbox->setDisabled( inlet == adcontrols::Quan::ExportData );
 }
 
-void
-QuanConfigForm::on_pushButton_clicked()
-{
-}
+// void
+// QuanConfigForm::on_pushButton_clicked()
+// {
+// }
 
-void
-QuanConfigForm::on_radioButton_clicked()
-{
-}
+// void
+// QuanConfigForm::on_radioButton_clicked()
+// {
+// }
 
-void
-QuanConfigForm::on_radioButton_2_clicked()
-{
-}
+// void
+// QuanConfigForm::on_radioButton_2_clicked()
+// {
+// }

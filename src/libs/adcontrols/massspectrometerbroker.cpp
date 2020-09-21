@@ -59,12 +59,15 @@ namespace adcontrols {
         }
 
         void clear() {
-            for ( auto& a: factories_ ) {
 #ifndef NDEBUG
-                ADDEBUG() << "deleting : " << a.second.first;
+            adportable::debug dbg( __FILE__, __LINE__ );
+            size_t count(0);
+            for ( const auto& a: factories_ )
+                dbg << ( count++ == 0 ? "deleting factories: " : ", ") << a.second.first;
 #endif
-                a.second.second = nullptr;
-            }
+            for ( auto& a: factories_ )
+                a.second.second.reset();
+
             factories_.clear();
         }
 

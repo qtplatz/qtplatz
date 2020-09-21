@@ -273,7 +273,7 @@ task::impl::finalize()
         t.join();
 
 #if ! defined NDEBUG
-    ADDEBUG() << "\t\t## task finalize completed.";
+    ADDEBUG() << "\t\t-- task finalize completed.";
 #endif
 
     return true;
