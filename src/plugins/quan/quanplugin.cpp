@@ -38,8 +38,10 @@
 #include <QMessageBox>
 #include <QMainWindow>
 #include <QMenu>
-
 #include <QtPlugin>
+#include <adportable/debug.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/path.hpp>
 
 using namespace quan;
 
@@ -53,6 +55,9 @@ QuanPlugin::~QuanPlugin()
     if ( mode_ )
         removeObject( mode_.get() );
     // mainWindow has been deleted at BaseMode dtor
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## DTOR ##";
+#endif
 }
 
 bool
@@ -78,12 +83,20 @@ void QuanPlugin::extensionsInitialized()
     mainWindow_->onInitialUpdate();
 }
 
-ExtensionSystem::IPlugin::ShutdownFlag QuanPlugin::aboutToShutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+QuanPlugin::aboutToShutdown()
 {
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
     mainWindow_->onFinalClose();
+
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## Shutdown: "
+              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
+
     return SynchronousShutdown;
 }
 

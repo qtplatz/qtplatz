@@ -41,6 +41,8 @@
 #include <QRegExp>
 #include <QCoreApplication>
 #include <QDebug>
+#include <adportable/debug.hpp>
+
 
 #ifdef Q_OS_LINUX
 // Using the patched version breaks on Fedora 10, KDE4.2.2/Qt4.5.
@@ -1079,6 +1081,9 @@ IPlugin::ShutdownFlag PluginSpecPrivate::stop()
     if (!plugin)
         return IPlugin::SynchronousShutdown;
     state = PluginSpec::Stopped;
+#if ! defined NDEBUG && 0
+    ADDEBUG() << ">> stopping: " << plugin->pluginSpec()->name().toStdString() << " ...";
+#endif
     return plugin->aboutToShutdown();
 }
 

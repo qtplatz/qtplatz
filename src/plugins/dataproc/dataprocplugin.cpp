@@ -139,6 +139,11 @@ DataprocPlugin::~DataprocPlugin()
 
     if ( iPeptideHandler_ )
         removeObject( iPeptideHandler_.get() );
+
+#if ! defined NDEBUG
+    ADDEBUG() << "## DTOR ##";
+#endif
+
 }
 
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
@@ -266,6 +271,17 @@ DataprocPlugin::aboutToShutdown()
     document::instance()->finalClose();
 
     mainWindow_->OnFinalClose();
+
+    if ( adextension::iSessionManager * mgr = SessionManager::instance() ) {
+        removeObject( mgr );
+        delete mgr;
+    }
+
+#if ! defined NDEBUG
+    ADDEBUG() << "## Shutdown: "
+              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
 
 	return SynchronousShutdown;
 }

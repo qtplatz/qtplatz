@@ -52,6 +52,8 @@
 #include <QtWidgets/QStackedWidget>
 #include <QTextEdit>
 #include <QWidget>
+#include <adlog/logger.hpp>
+#include <boost/dll.hpp>
 #include <memory>
 
 using namespace chemistry;
@@ -126,6 +128,7 @@ ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
 { 
 	return SynchronousShutdown;
+    ADLOG(adlog::LOG_INFO) << "Shutdown " << boost::dll::this_line_location();        
 	mainWindow_->OnClose();
 }
 

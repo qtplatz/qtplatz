@@ -48,6 +48,10 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QtPlugin>
+#include <adportable/debug.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/path.hpp>
+
 
 namespace accutof { namespace acquire {
         class Mode;
@@ -135,6 +139,11 @@ acquirePlugin::aboutToShutdown()
 
     if ( mode_ )
         removeObject( mode_.get() );
+
+#if ! defined NDEBUG
+    ADDEBUG() << "## Shutdown "
+              << boost::dll::this_line_location().stem()  << "\n\t" << boost::dll::this_line_location();
+#endif
 
     return SynchronousShutdown;
 }

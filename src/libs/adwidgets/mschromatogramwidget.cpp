@@ -349,8 +349,6 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
         if ( row <= model.rowCount() )
             model.setRowCount( row + 1 );
 
-        ADDEBUG() << "setRow: " << row;
-
         if ( !QString::fromStdString( mol.formula() ).isEmpty() && QString::fromStdString( mol.smiles() ).isEmpty() )
             model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
 

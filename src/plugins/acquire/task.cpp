@@ -272,7 +272,9 @@ task::impl::finalize()
     for ( auto& t : threads_ )
         t.join();
 
-    ADDEBUG() << "###################### task finalize completed ################";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## task finalize completed.";
+#endif
 
     return true;
 }

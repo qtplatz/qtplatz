@@ -77,6 +77,9 @@ ServantPlugin * ServantPlugin::instance_ = 0;
 ServantPlugin::~ServantPlugin()
 {
     instance_ = 0;
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## DTOR ##";
+#endif
 }
 
 ServantPlugin::ServantPlugin() : logger_(0)
@@ -149,7 +152,12 @@ ServantPlugin::aboutToShutdown()
     if ( outputWindow_ && logger_ )
         disconnect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
 
-    ADLOG(adlog::LOG_INFO) << "Shutdown " << QCoreApplication::applicationFilePath().toStdString();    
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## Shutdown: "
+              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
+
 	return SynchronousShutdown;
 }
 

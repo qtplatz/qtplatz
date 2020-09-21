@@ -48,6 +48,9 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QtPlugin>
+#include <adportable/debug.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/path.hpp>
 
 using namespace acquire;
 
@@ -58,6 +61,9 @@ acquireplugin::acquireplugin() : mainWindow_( new MainWindow() )
 
 acquireplugin::~acquireplugin()
 {
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## DTOR ##";
+#endif
 }
 
 bool
@@ -129,6 +135,12 @@ acquireplugin::aboutToShutdown()
 
     if ( mode_ )
         removeObject( mode_.get() );
+    
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## Shutdown: "
+              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
 
     return SynchronousShutdown;
 }

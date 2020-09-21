@@ -73,6 +73,7 @@ add_library(
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
+  adportable
   utils
   Qt5::Widgets
   Qt5::Core

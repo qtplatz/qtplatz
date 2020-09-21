@@ -65,9 +65,8 @@ namespace dataproc {
         explicit SessionManager(QObject *parent = 0);
         friend class DataprocPlugin;
 
+        ~SessionManager();        
     public:
-        ~SessionManager();
-
         static SessionManager * instance();
 
         Dataprocessor * getActiveDataprocessor();

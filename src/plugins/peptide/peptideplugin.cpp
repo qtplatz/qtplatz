@@ -45,6 +45,9 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QtPlugin>
+#include <adportable/debug.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/path.hpp>
 
 using namespace peptide;
 
@@ -90,6 +93,13 @@ ExtensionSystem::IPlugin::ShutdownFlag peptideplugin::aboutToShutdown()
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
+
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## Shutdown: "
+              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
+
     return SynchronousShutdown;
 }
 

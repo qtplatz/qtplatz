@@ -79,10 +79,13 @@ namespace adplugin {
         const plugin_data& operator = ( const plugin_data& t ) = delete;
     public:
         ~plugin_data() {
-            boost::system::error_code ec;
             plugin_ = nullptr; // release plugin before unload library
-#ifndef NDEBUG
-            ADDEBUG() << "<<< plugin_data dtor : " << dll_.location( ec ) << "\t" << (ec ? ec.message() : "Success");
+#ifndef NDEBUG            
+            auto loc = boost::filesystem::relative( dll_.location(), boost::dll::program_location().parent_path() );
+#endif
+            dll_.unload();
+#ifndef NDEBUG                        
+            ADDEBUG() << "<<< unloading " << loc << " " << (dll_.is_loaded() ? " fail" : " success");
 #endif
         }
 
@@ -97,7 +100,7 @@ namespace adplugin {
                                                                    , dll_( dll ) {
 #if !defined NDEBUG && 0
             boost::system::error_code ec;
-            ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
+            ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec );
 #endif
         }
 
@@ -324,12 +327,6 @@ manager::standalone_initialize()
 #else
     // Mac/Linux --> qtplatz.release/lib/qtplatz/libadplugin_manager.so
     auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
-#endif
-
-#ifndef NDEBUG
-    ADDEBUG() << "app: " << boost::dll::program_location();
-    ADDEBUG() << "this: " << boost::dll::this_line_location();
-    ADDEBUG() << "tpath: " << tpath.string();
 #endif
 
     adplugin::loader::populate( tpath.wstring().c_str() );

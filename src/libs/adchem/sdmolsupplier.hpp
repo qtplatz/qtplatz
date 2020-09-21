@@ -29,7 +29,9 @@
 #include <tuple>
 #include <iterator>
 
+#if HAVE_RDKit
 namespace RDKit { class SDMolSupplier; class ROMol; }
+#endif
 
 namespace adchem {
 

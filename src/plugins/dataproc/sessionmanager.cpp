@@ -35,6 +35,7 @@
 #include <QSignalBlocker>
 #include <mutex>
 #include <thread>
+#include <adportable/debug.hpp>
 
 using namespace dataproc;
 
@@ -48,6 +49,7 @@ SessionManager::SessionManager( QObject *parent ) : iSessionManager( parent )
 
 SessionManager::~SessionManager()
 {
+    instance_ = 0;
 }
 
 SessionManager *

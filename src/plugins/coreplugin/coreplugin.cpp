@@ -48,6 +48,10 @@
 #include <QDebug>
 #include <QDateTime>
 
+#include <adportable/debug.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/path.hpp>
+
 using namespace Core;
 using namespace Core::Internal;
 
@@ -80,6 +84,11 @@ CorePlugin::~CorePlugin()
 #endif
 
     delete m_mainWindow;
+
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## DTOR ##";
+#endif
+    
 }
 
 void CorePlugin::parseArguments(const QStringList &arguments)
@@ -155,6 +164,13 @@ ExtensionSystem::IPlugin::ShutdownFlag CorePlugin::aboutToShutdown()
 {
     //m_findPlugin->aboutToShutdown();
     m_mainWindow->aboutToShutdown();
+
+#if ! defined NDEBUG
+    ADDEBUG() << "\t## Shutdown: "
+              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+                                                      , boost::dll::program_location().parent_path() );
+#endif
+    
     return SynchronousShutdown;
 }
 
