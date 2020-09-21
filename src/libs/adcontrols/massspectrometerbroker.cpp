@@ -97,9 +97,14 @@ MassSpectrometerBroker::clear_factories()
 bool
 MassSpectrometerBroker::register_factory( massspectrometer_factory* f )
 {
-    auto& uuid = f->objclsid();
-    impl::instance().factories_ [ uuid ] = std::make_pair( f->objtext(), f->shared_from_this() );
-    return true;
+    if ( f ) {
+        if ( auto ptr = f->shared_from_this() )  {
+            auto& uuid = f->objclsid();
+            impl::instance().factories_ [ uuid ] = { f->objtext(), ptr };
+            return true;
+        }
+    }
+    return false;
 }
 
 //static
@@ -150,6 +155,6 @@ MassSpectrometerBroker::installed_uuids()
 {
     std::vector< std::pair< boost::uuids::uuid, std::string > > values;
     for ( auto& pair: impl::instance().factories_ )
-        values.push_back( std::make_pair( pair.first, pair.second.first ) );
+        values.emplace_back( pair.first, pair.second.first );
     return values;
 }
