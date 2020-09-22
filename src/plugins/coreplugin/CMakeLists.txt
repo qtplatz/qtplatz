@@ -19,7 +19,7 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
@@ -44,7 +44,7 @@ include_directories(
   ${Qt5Gui_INCLUDE_DIRS}
   ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Network_INCLUDE_DIRS}  
+  ${Qt5Network_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
 
@@ -294,7 +294,7 @@ set( core_FORMS
   removefiledialog.ui
   dialogs/addtovcsdialog.ui
   )
-  
+
 set( core_RESOURCES
   core.qrc
   fancyactionbar.qrc
@@ -325,6 +325,7 @@ target_link_libraries(
   ${EXTRA_LIBS}
   adportable
   ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
 )
 
 if ( UNIX )
