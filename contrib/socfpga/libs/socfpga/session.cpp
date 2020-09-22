@@ -46,6 +46,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <atomic>
+#include <bitset>
 #include <chrono>
 #include <future>
 #include <memory>
@@ -158,7 +159,6 @@ session::setConfiguration( const std::string& json )
             impl_->connect_sse( ip_addr.get(), port.get(), "/ad/api$events" );
         }
     }
-
     return true;
 }
 
@@ -179,12 +179,13 @@ session::connect( adacquire::Receiver * receiver, const std::string& token )
 {
     auto ptr( receiver->shared_from_this() );
 
+#if ! defined NDEBUG
+    ADDEBUG() << __FUNCTION__ << " token: " << token;
+#endif
+
     if ( ptr ) {
         impl_->clients_.emplace_back( ptr, token );
 
-        //auto self = this->shared_from_this();
-        //singleton::instance()->connect( self );
-        //singleton::instance()->connect( ptr );
         impl_->io_service_.post(
             [this] () { impl_->reply_message( adacquire::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) );
             });
@@ -197,7 +198,6 @@ bool
 session::disconnect( adacquire::Receiver * receiver )
 {
     auto self( receiver->shared_from_this() );
-    //singleton::instance()->connect( self );
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
     auto it = std::find_if( impl_->clients_.begin(), impl_->clients_.end(), [self]( const impl::client_pair_t& a ){
@@ -321,9 +321,6 @@ session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::T
                              , adcontrols::ControlMethod::const_time_event_iterator begin
                              , adcontrols::ControlMethod::const_time_event_iterator end )
 {
-#ifndef NDEBUG
-    ADDEBUG() << "TODO -- time_event_triger";
-#endif
     return true;
 }
 
@@ -337,32 +334,25 @@ session::dark_run( size_t waitCount )
 void
 session::impl::connect_sse( const std::string& host, const std::string& port, const std::string& url )
 {
+#if ! defined NDEBUG
+    ADDEBUG() << __FUNCTION__ << " " << host << ":" << port << "/" << url;
+#endif
+
     sse_->connect(
         url
         , host
         , port
         , [&]( adurl::sse_event_data_t&& ev ) {
+
             std::string event, data;
             std::tie( event, std::ignore, data ) = std::move( ev );
-            //sse_->register_sse_handler(
-            //[&]( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
-            //std::for_each( headers.begin(), headers.end(), [](const auto& pair){ ADDEBUG() << pair; });
+
+
             if ( event == "ad.values" ) {
-                // auto it = std::find_if( headers.begin(), headers.end()
-                // , [](const auto& pair){ return pair.first == "event" && pair.second == "ad.values"; } );
+
                 reply_info( data );
-                // handle non ad.values data
-                // if ( it == headers.end() ) {
-                //     if ( ( it = std::find_if( headers.begin(), headers.end()
-                // , [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() )
-                //         reply_info( it->second );
-                //     return;
-                // }
-                // handle ad.values
-                // if ( ( it = std::find_if( headers.begin(), headers.end()
-                // , [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() ) {
+
                 auto jdoc = QJsonDocument::fromJson( QByteArray( data.data(), data.size() ) );
-                // ADDEBUG() << "acquisition_active: " << acquisition_active_;
 
                 if ( jdoc.object().contains( "ad.values" ) ) {
 
@@ -372,6 +362,9 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                     std::vector< advalue > values;
 
                     for ( const auto& jadval: jarray ) {
+#if ! defined NDEBUG && 0
+                        qDebug() << jadval;
+#endif
                         advalue value;
                         auto jobj = jadval.toObject();
                         value.posix_time   = jobj[ "posix_time" ].toString().toULongLong(); // SoC kernel time (must be using ptpd)
@@ -382,13 +375,15 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
 
                         auto jflags = jobj[ "flags" ].toArray();
                         std::array< uint32_t, 2 > flags;
-                        std::transform( jflags.begin(), jflags.end(), flags.begin(), [&](const auto& o){ return o.toString().toUInt(); } );
+                        std::transform( jflags.begin(), jflags.end(), flags.begin()
+                                        , [&](const auto& o){ return o.toString().toUInt(); } );
                         value.flags = flags[ 0 ];
 
                         events |= value.flags;
 
                         auto vec = jobj[ "ad" ].toArray();
-                        std::transform( vec.begin(), vec.end(), value.ad.begin(), [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
+                        std::transform( vec.begin(), vec.end(), value.ad.begin()
+                                        , [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
 
                         // handle hardware injection -- this is desiered
                         if ( value.flags & adacquire::SignalObserver::wkEvent_INJECT ) {

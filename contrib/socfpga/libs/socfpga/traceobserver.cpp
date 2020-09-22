@@ -34,6 +34,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <algorithm>
+#include <bitset>
 #include <sstream>
 
 using namespace socfpga::dgmod;
@@ -137,6 +138,18 @@ TraceObserver::emplace_back( std::vector< advalue >&& values, uint32_t events )
     auto rb = std::make_shared< so::DataReadBuffer >();
 
     const auto& top    = values[0];
+#if ! defined NDEBUG && 0
+    ADDEBUG() << "advalue: "
+              << "time: " << top.elapsed_time
+              << ", flags: " << std::bitset< 32 >( top.flags ).to_string()
+              << ", counter: " << top.adc_counter
+              << ", nacc: "    << top.nacc
+              << ", [0]" << top.ad[0]
+              << ", [1]" << top.ad[1]
+              << ", [2]" << top.ad[2]
+              << ", [3]" << top.ad[3]
+        ;
+#endif
 
     auto pos = top.adc_counter;
 
@@ -147,7 +160,6 @@ TraceObserver::emplace_back( std::vector< advalue >&& values, uint32_t events )
     rb->fcn()          = 0;
     rb->ndata()        = values.size();
     rb->events()       = events;
-    //rb->setData( std::move( values ) );
     rb->setData( std::make_shared< std::vector< advalue > >( std::move( values ) ) );
 
     std::lock_guard< std::mutex > lock( mutex() );

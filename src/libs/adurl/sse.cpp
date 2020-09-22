@@ -120,7 +120,6 @@ namespace {
                 socket
                 , req_
                 , [&]( const boost::system::error_code& ec, size_t ) {
-                    //do_read_header( socket, ec );
                     do_asio_read_header( socket, ec );
                 });
         } // operator
@@ -163,7 +162,9 @@ namespace {
 
                         if ( auto ev = sse_stream_ << std::move( s ) )
                             handler_( std::move( ev.get() ) );
-
+#if ! defined NDEBUG && 0
+                        ADDEBUG() << __FUNCTION__ << " bytes_transferred: " << bytes_transferred;
+#endif
                         sse_response_->consume( bytes_transferred );
                         do_asio_read( socket, ec );
                     });
@@ -295,11 +296,6 @@ sse_handler::connect( const std::string& target
         , [&]( sse_event_data_t&& ev ){
             handler_( std::move( ev ) );
         });
-
-    // sse_functor_a<> fn( std::move( req )
-    //                   , [&]( sse_event_data_t&& ev ){
-    //                       handler_( std::move( ev ) );
-    //                   });
 
     (*client_)( host, port, *(impl_->sse_functor_) );
 

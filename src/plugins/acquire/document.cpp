@@ -1482,6 +1482,19 @@ document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
 void
 document::setData( const std::vector< socfpga::dgmod::advalue >& data )
 {
+#if ! defined NDEBUG && 0
+    const auto& top = data[0];
+    ADDEBUG() << "setData: "
+              << "time: " << top.elapsed_time
+              << ", flags: " << std::bitset< 32 >( top.flags ).to_string()
+              << ", counter: " << top.adc_counter
+              << ", nacc: "    << top.nacc
+              << ", [0]" << top.ad[0]
+              << ", [1]" << top.ad[1]
+              << ", [2]" << top.ad[2]
+              << ", [3]" << top.ad[3]
+        ;
+#endif
     bool injflag( false );
     for ( auto& item: data ) {
         double time = double(item.elapsed_time) / std::nano::den;
@@ -1514,8 +1527,10 @@ document::setData( const std::vector< socfpga::dgmod::advalue >& data )
             a /= data.size();
         emit on_auto_zero_changed( avrg );
     }
-
-    emit document::instance()->dataChanged( socfpga::dgmod::trace_observer, -1 );
+#if ! defined NDEBUG
+    ADDEBUG() << "emit document::dataChanged";
+#endif
+    emit dataChanged( socfpga::dgmod::trace_observer, -1 );
 }
 
 void

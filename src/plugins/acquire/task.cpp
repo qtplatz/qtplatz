@@ -292,7 +292,9 @@ void
 task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
-
+#if ! defined NDEBUG && 0
+    ADDEBUG() << __FUNCTION__ << " pos: " << pos << ", isRecording: " << impl_->isRecording_;
+#endif
     if ( impl_->isRecording_ ) {
         impl_->data_status_[ so->objid() ].posted_data_count_++;
         impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
@@ -338,61 +340,6 @@ task::impl::worker_thread()
         if ( worker_stopping_ )
             return;
 #if 0
-        // per trigger waveform
-        if ( data_status_[ WaveformObserver::__objid__ ].plot_ready_ ) {
-            auto& status = data_status_[ WaveformObserver::__objid__ ];
-            status.plot_ready_ = false;
-            status.tp_plot_handled_ = std::chrono::system_clock::now();
-            auto avgms = std::make_shared< adcontrols::MassSpectrum >();
-            auto pkdms = std::make_shared< adcontrols::MassSpectrum >();
-            auto q(que_); // lock;
-            auto avg = q.first;
-            auto pkd = q.second;
-
-            adcontrols::waveform_translator::translate< waveform >( *avgms
-                                                                    , *avg
-                                                                    , avg->xIncrement()
-                                                                    , avg->trigger_delay()
-                                                                    , avg->xmeta().actual_averages_
-                                                                    , 0 // mode
-                                                                    , "acquire.dataInterpreterClsid"
-                                                                    , std::string()
-                                                                    , [&]( const int32_t& d ){ return 1000 * waveform::toVolts( d, avg->xmeta().actual_averages_ ); } );
-            document::instance()->setData( WaveformObserver::__objid__, avgms, 0 );
-
-            adcontrols::waveform_translator::translate< waveform >( *pkdms
-                                                                    , *pkd
-                                                                    , pkd->xIncrement()
-                                                                    , pkd->trigger_delay()
-                                                                    , pkd->xmeta().actual_averages_
-                                                                    , 0 // mode
-                                                                    , "acquire.dataInterpreterClsid"
-                                                                    , std::string()
-                                                                    , []( const int32_t& d ){ return d; } );
-            pkdms->setCentroid( adcontrols::CentroidHistogram );
-            document::instance()->setData( pkd_observer, pkdms, 0 );
-        }
-
-        // software averaged waveform
-        if ( data_status_[ avrg_waveform_observer ].plot_ready_ ) {
-            auto& status = data_status_[ avrg_waveform_observer ];
-            status.plot_ready_ = false;
-            status.tp_plot_handled_ = std::chrono::system_clock::now();
-            auto choice = histogram_clear_cycle_enabled_ ? ProfileAvgd : ProfileLongTerm;
-            if ( auto ms = document::instance()->recentSpectrum( choice ) )
-                document::instance()->setData( avrg_waveform_observer, ms, 0 );
-        }
-
-        // counting data
-        if ( data_status_[ histogram_observer ].plot_ready_ ) {
-            auto& status = data_status_[ histogram_observer ];
-            status.plot_ready_ = false;
-            status.tp_plot_handled_ = std::chrono::system_clock::now();
-            if ( auto ms = document::instance()->recentSpectrum( HistogramLongTerm ) ) {
-                document::instance()->setData( histogram_observer, ms, 0 );
-            }
-        }
-
         // single trigger waveform
         if ( data_status_[ WaveformObserver::__objid__ ].data_ready_ ) {
             data_status_[ WaveformObserver::__objid__ ].data_ready_ = false;
@@ -407,7 +354,6 @@ void
 task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     if ( so ) {
-
         auto& status = data_status_[ so->objid() ];
 
         if ( status.pos_origin_ == uint32_t( -1 ) ) {
@@ -439,6 +385,7 @@ task::impl::handle_trace_data( data_status& status, std::shared_ptr<adacquire::S
         adacquire::task::instance()->handle_so_event( static_cast< adacquire::SignalObserver::wkEvent >( rb->events() ) );
 
     document::instance()->setData( *data );
+
     const auto tp = std::chrono::steady_clock::now();
     using namespace std::chrono_literals;
     if ( ( tp - status.tp_data_handled_ ) > 1000ms ) {
@@ -449,10 +396,10 @@ task::impl::handle_trace_data( data_status& status, std::shared_ptr<adacquire::S
     // ================== write trace data to datafile ======================
     do {
         auto accessor = std::make_shared< socfpga::dgmod::data_accessor >( data );
-        if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) )
-            adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__, std::move( tmp ) );
-        //io_service_.post( [=](){ adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__, std::move( tmp ) ); } );
-     } while (0 );
+        io_service_.post( [=](){
+            adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__
+                                                       , std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) ); } );
+    } while ( 0 );
     // ============================================================================
 }
 

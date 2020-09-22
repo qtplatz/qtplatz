@@ -40,18 +40,18 @@ namespace adacquire {
                             , std::string
                             , adacquire::SignalObserver::eUpdateFrequency
                             , bool > client_type;
-        
+
         std::vector< client_type > clients_;
-        
+
         impl( const char * objtext ) : objtext_( objtext ? objtext : "" )
                                      , uuid_( { {0} } ) {
         }
 
         ~impl()  {
         }
-        
+
     };
-    
+
 }
 
 using namespace adacquire;
@@ -151,7 +151,7 @@ MasterObserver::prepareStorage( SampleProcessor& sp ) const
     return true;
 }
 
-bool 
+bool
 MasterObserver::closingStorage( SampleProcessor& sp ) const
 {
     for ( auto observer : siblings() )

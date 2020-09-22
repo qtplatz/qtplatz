@@ -64,6 +64,8 @@
 #include <chrono>
 #include <sstream>
 
+Q_DECLARE_METATYPE( boost::uuids::uuid );
+
 using namespace acquire;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
@@ -76,7 +78,13 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
     std::for_each( spw_.begin(), spw_.end(), [](auto& pw){ pw = std::make_unique< adplot::SpectrumWidget >(); } );
 
     init();
-    connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
+    // connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
+
+    connect( document::instance(), &document::dataChanged
+             , [&]( const boost::uuids::uuid& uuid, int idx ){
+                 ADDEBUG() << uuid;
+                 dataChanged( uuid, idx );
+             });
 }
 
 WaveformWnd::~WaveformWnd()
@@ -217,22 +225,14 @@ WaveformWnd::onInitialUpdate()
 void
 WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 {
+#if ! defined NDEBUG
+    ADDEBUG() << "dataChanged: " << uuid;
+#endif
     if ( uuid == socfpga::dgmod::trace_observer ) {
         traceDataChanged( idx );
+    } else {
+        ADDEBUG() << "unhandled dataChange event. uuid: " << uuid;
     }
-    // if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
-    //     if ( uuid == WaveformObserver::__objid__ ) {
-    //         //         // waveform (analog)
-    //         double seconds = sp->getMSProperty().timeSinceInjection();
-    //         size_t nacc = sp->getMSProperty().numAverage();
-    //         QString title = QString( "ACQUIRE[AVG]: Elapsed time: %1s, <font color=blue>#%2, N=%3" ).arg( QString::number( seconds, 'f', 4 )
-    //                                                                                          , QString::number( sp->getMSProperty().trigNumber() )
-    //                                                                                          , QString::number( nacc )  );
-    //         spw_->setTitle( title );
-    //         spw_->setData( sp, idx, bool( idx ) );
-    //         spw_->setKeepZoomed( true );
-
-    //     } else if ( uuid == pkd_observer ) {
 }
 
 void
@@ -245,12 +245,12 @@ WaveformWnd::traceDataChanged( int )
     std::tie( posix_time, std::ignore ) = document::instance()->find_event_time( 0 );
 
 #if defined (Q_OS_MACOS)
-    auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::microseconds( posix_time / 1000 ) ), true );    
+    auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::microseconds( posix_time / 1000 ) ), true );
 #elif defined (_MSC_VER)
 	auto t = ""; // adportable::date_string::utc_to_localtime_string(posix_time / std::nano::den, posix_time % std::nano::den);
 #else
     auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::nanoseconds( posix_time ) ), true );
-#endif    
+#endif
     QString timeString = QString::fromStdString( t );
 
     QString footer;
@@ -259,6 +259,10 @@ WaveformWnd::traceDataChanged( int )
 
     auto nEnabled = std::accumulate( traces.begin(), traces.end(), 0, [](size_t a, const auto& trace){ return a + (trace->enable() ? 1 : 0); } );
     (void)nEnabled;
+
+#if ! defined NDEBUG
+    ADDEBUG() << "traceDataChanged: " << timeString.toStdString();
+#endif
 
     for ( auto& trace: traces ) {
         auto& tpw = tpw_.at( idx >= 4 ? 1 : 0 );
