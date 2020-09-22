@@ -78,13 +78,7 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
     std::for_each( spw_.begin(), spw_.end(), [](auto& pw){ pw = std::make_unique< adplot::SpectrumWidget >(); } );
 
     init();
-    // connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
-
-    connect( document::instance(), &document::dataChanged
-             , [&]( const boost::uuids::uuid& uuid, int idx ){
-                 ADDEBUG() << uuid;
-                 dataChanged( uuid, idx );
-             });
+    connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
 }
 
 WaveformWnd::~WaveformWnd()
@@ -225,9 +219,6 @@ WaveformWnd::onInitialUpdate()
 void
 WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 {
-#if ! defined NDEBUG
-    ADDEBUG() << "dataChanged: " << uuid;
-#endif
     if ( uuid == socfpga::dgmod::trace_observer ) {
         traceDataChanged( idx );
     } else {
@@ -259,10 +250,6 @@ WaveformWnd::traceDataChanged( int )
 
     auto nEnabled = std::accumulate( traces.begin(), traces.end(), 0, [](size_t a, const auto& trace){ return a + (trace->enable() ? 1 : 0); } );
     (void)nEnabled;
-
-#if ! defined NDEBUG
-    ADDEBUG() << "traceDataChanged: " << timeString.toStdString();
-#endif
 
     for ( auto& trace: traces ) {
         auto& tpw = tpw_.at( idx >= 4 ? 1 : 0 );

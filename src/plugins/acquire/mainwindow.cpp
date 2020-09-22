@@ -70,7 +70,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-//#include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <QApplication>
@@ -736,6 +735,9 @@ MainWindow::handleInstState( int status )
 {
     // if ( auto w = findChild< OperationForm * >() )
     //     w->setEnabled( status > adacquire::Instrument::eNotConnected );
+    ADDEBUG() << "\n#######################################################"
+              << "\n status " << status
+              << "\n#######################################################";
 
     if ( status > adacquire::Instrument::eNotConnected ) {
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )

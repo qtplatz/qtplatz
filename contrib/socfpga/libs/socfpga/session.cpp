@@ -149,6 +149,10 @@ session::software_revision() const
 bool
 session::setConfiguration( const std::string& json )
 {
+    ADDEBUG() << "##### setConfiguration: " << json;
+    adportable::debug dbg(__FILE__,__LINE__) ;
+    dbg << "##### setConfiguration: " << json << " returning #####";
+
     boost::property_tree::ptree pt;
     std::istringstream in( json );
     boost::property_tree::read_json( in, pt );
@@ -178,10 +182,6 @@ bool
 session::connect( adacquire::Receiver * receiver, const std::string& token )
 {
     auto ptr( receiver->shared_from_this() );
-
-#if ! defined NDEBUG
-    ADDEBUG() << __FUNCTION__ << " token: " << token;
-#endif
 
     if ( ptr ) {
         impl_->clients_.emplace_back( ptr, token );
@@ -335,7 +335,9 @@ void
 session::impl::connect_sse( const std::string& host, const std::string& port, const std::string& url )
 {
 #if ! defined NDEBUG
-    ADDEBUG() << __FUNCTION__ << " " << host << ":" << port << "/" << url;
+    ADDEBUG() << "\t##### " << __FUNCTION__ << " " << host << ":" << port << "/" << url;
+    adportable::debug dbg(__FILE__,__LINE__);
+    dbg << "\t##### " << __FUNCTION__ << " " << host << ":" << port << "/" << url << " ##### out of scope #####";
 #endif
 
     sse_->connect(
@@ -407,9 +409,9 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                     auto pos = traceObserver_->emplace_back( std::move( values ), events );
                     masterObserver_->dataChanged( traceObserver_.get(), pos );
                 }
-
             }
-        } );
+        }
+        , false /* blocking */ );
 
     // sse_->connect( url, host, port );
     threads_.emplace_back( [&]{ io_service_.run(); } );

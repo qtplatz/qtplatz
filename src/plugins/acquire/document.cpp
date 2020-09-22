@@ -135,33 +135,6 @@ namespace acquire {
 
     namespace so = adacquire::SignalObserver;
 
-    struct ObserverData {
-        const char * objtext;
-        const boost::uuids::uuid objid;
-        const char * dataInterpreterClsid;
-        const so::Description desc;
-    };
-
-    //static ObserverData observers [] = {
-        // { acquire::waveform_observer_name      // "1.acquire.ms-cheminfo.com"
-        //   , acquire::waveform_observer         // "ab4620f4-933f-4b44-9102-740caf8f791a"
-        //   , acquire::waveform_datainterpreter  // "a33d0d5e-5ace-4d2c-9d46-ddffcd799b51"
-        //   , { acquire::waveform_observer_name  // desc.traceId := data name on adfs file
-        //       , so::eTRACE_SPECTRA
-        //       , so::eMassSpectrometer
-        //       , L"Time", L"Count", 3, 0
-        //     }
-        // }
-        // , { acquire::histogram_observer_name     // "histogram.tdc.1.acquire.ms-cheminfo.com"
-        //     , acquire::histogram_observer        // "b3600237-527b-4689-8b25-4ca1c30b99dd"
-        //     , acquire::histogram_datainterpreter // "58fa8716-28fb-484f-bb89-49e843f70981"
-        //     , { acquire::histogram_observer_name // desc.traceId := data name on adfs file
-        //         , so::eTRACE_SPECTRA
-        //         , so::eMassSpectrometer
-        //         , L"Time", L"Count", 3, 0
-        //     }
-        // }
-
     struct exec_fsm_stop {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
             task::instance()->sample_stopped();
@@ -420,6 +393,7 @@ namespace acquire {
             settings_->setValue( Constants::THIS_GROUP + QString("/http_host"), host );
             settings_->setValue( Constants::THIS_GROUP + QString("/http_port"), port );
         }
+
         void config_http_addr( const QString& host, const QString& port ) {
             QJsonObject jobj {
                 { "ip_address", host }
@@ -427,8 +401,9 @@ namespace acquire {
             };
             QJsonDocument jdoc( jobj );
             auto json = std::string( jdoc.toJson( QJsonDocument::Compact ).data() );
-            if ( auto inst = iDGMODImpl_->getInstrumentSession() )
+            if ( auto inst = iDGMODImpl_->getInstrumentSession() ) {
                 inst->setConfiguration( json );
+            }
         }
     };
 
@@ -470,6 +445,11 @@ document::actionConnect()
 {
     using namespace std::literals::chrono_literals;
 
+#if ! defined NDEBUG
+    adportable::debug scope(__FILE__,__LINE__);
+    scope << "############## actionConnect complete ###############";
+#endif
+
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
@@ -486,11 +466,11 @@ document::actionConnect()
 
                 futures.emplace_back( std::async( [iController] () { return iController->wait_for_connection_ready( 3s ); } ) );
 
-                 if ( iController->connect() ) {
-                     if ( iController->module_name() == iDGMODImpl::__module_name__ ) {
-                         impl_->config_http_addr( impl_->http_host_, impl_->http_port_ );
-                     }
-                 }
+                if ( iController->connect() ) {
+                    if ( iController->module_name() == iDGMODImpl::__module_name__ ) {
+                        impl_->config_http_addr( impl_->http_host_, impl_->http_port_ );
+                    }
+                }
             }
         }
 
@@ -507,7 +487,6 @@ document::actionConnect()
         emit onModulesFailed( failed );
 
         auto cm = MainWindow::instance()->getControlMethod();
-        //setControlMethod( *cm, QString() );
 
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
@@ -536,13 +515,13 @@ document::actionConnect()
                 }
             }
 
-            // debug
-            // ADDEBUG() << "=======================================================";
-            // auto vec = masterObserver->siblings();
-            // for ( auto& o: vec )
-            //     ADDEBUG() << "============" << o->objtext() << ", " << o->objid();
-            // ADDEBUG() << "=======================================================";
-            // end debug
+#if ! defined NDEBUG
+            ADDEBUG() << "=======================================================";
+            auto vec = masterObserver->siblings();
+            for ( auto& o: vec )
+                ADDEBUG() << "============" << o->objtext() << ", " << o->objid();
+            ADDEBUG() << "=======================================================";
+#endif
         } else {
             ADTRACE() << "##### No master observer found #####";
         }
@@ -939,12 +918,15 @@ document::isRecording() const
 void
 document::handleConnected( adextension::iController * controller )
 {
+    ADDEBUG() << "############### handleConnected";
     task::instance()->initialize();
 }
 
 void
 document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t value )
 {
+    ADDEBUG() << "############### handleMessage: " << code;
+
     if ( code == adacquire::Receiver::CLIENT_ATTACHED ) {
 
         // do nothing
@@ -965,6 +947,9 @@ document::handleInfo( adextension::iController *, const QByteArray& json )
 
     auto jtick = QJsonDocument::fromJson( json ).object()[ "tick" ].toObject();
     if ( ! jtick.isEmpty() ) {
+#ifndef NDEBUG
+        ADDEBUG() << "############### handleInfo: " << json.toStdString();
+#endif
         emit onTick( json );
         if ( std::chrono::duration_cast< std::chrono::seconds >( std::chrono::steady_clock::now() - __tp ).count() > 6 ) {
             adurl::ajax ajax( impl_->http_host_.toStdString(), impl_->http_port_.toStdString() );
@@ -1527,9 +1512,6 @@ document::setData( const std::vector< socfpga::dgmod::advalue >& data )
             a /= data.size();
         emit on_auto_zero_changed( avrg );
     }
-#if ! defined NDEBUG
-    ADDEBUG() << "emit document::dataChanged";
-#endif
     emit dataChanged( socfpga::dgmod::trace_observer, -1 );
 }
 

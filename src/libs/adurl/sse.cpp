@@ -137,7 +137,7 @@ namespace {
                         std::string line;
                         std::string::size_type pos(0);
                         while ( std::getline( is, line ) && line != "\r" ) {
-                            ADDEBUG() << line;
+                            // ADDEBUG() << line;
                             if ( (pos = line.find( "Content-Type:") ) != std::string::npos ) {
                                 content_type_ = line.substr( line.find( ':', pos ), line.find( '\r', pos ) );
                                 // "text/event-stream" || "blob/event-stream"
