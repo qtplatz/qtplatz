@@ -735,9 +735,6 @@ MainWindow::handleInstState( int status )
 {
     // if ( auto w = findChild< OperationForm * >() )
     //     w->setEnabled( status > adacquire::Instrument::eNotConnected );
-    ADDEBUG() << "\n#######################################################"
-              << "\n status " << status
-              << "\n#######################################################";
 
     if ( status > adacquire::Instrument::eNotConnected ) {
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
