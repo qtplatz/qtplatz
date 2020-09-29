@@ -169,11 +169,12 @@ namespace dataproc {
         void onDataMayCanged() const;
         void onZoomedOnSpectrum( const QRectF&, int axis ) const;
         void onZoomedOnChromatogram( const QRectF& ) const;
+        void onScaleYChanged( bool checked, double bottom, double top ) const;
     };
 
     ///// SpectrumWidget scale (us) -> seconds
     template <bool isTime> struct range_t {};
-    
+
     template <> struct range_t<true> {
         inline std::pair<double,double> operator()( const QRectF& rect ) const {
             return std::make_pair( rect.left() / std::micro::den, rect.right() / std::micro::den );
@@ -188,7 +189,7 @@ namespace dataproc {
         }
         inline std::pair<double,double> operator()( const double& s, const double& e ) const { return std::make_pair( s, e ); }
     };
-    
+
 
 }
 

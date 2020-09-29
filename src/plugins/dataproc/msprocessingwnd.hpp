@@ -64,6 +64,7 @@ namespace dataproc {
         Q_OBJECT
         public:
         explicit MSProcessingWnd(QWidget *parent = 0);
+        ~MSProcessingWnd();
 
         void draw_profile( const std::wstring& id, std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw_histogram( portfolio::Folium&, std::shared_ptr< adcontrols::MassSpectrum >& );
@@ -107,7 +108,7 @@ namespace dataproc {
     private:
         size_t drawIdx1_;
         size_t drawIdx2_;
-        std::shared_ptr<MSProcessingWndImpl> pImpl_;
+        MSProcessingWndImpl * pImpl_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileHistogram_;
@@ -129,7 +130,7 @@ namespace dataproc {
         bool power_spectrum( const adcontrols::MassSpectrum&, const std::pair<size_t, size_t>& );
         void power_spectrum( const adcontrols::Chromatogram& );
         void estimateScanLaw( const boost::uuids::uuid& spectrometer_uuid );
-        
+
 
         // from menu
         void frequency_analysis();

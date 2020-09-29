@@ -34,6 +34,7 @@
 #include "filepropertywidget.hpp"
 #include "mspeaktable.hpp"
 #include <adwidgets/mspeaktree.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mspeakswnd.hpp"
@@ -107,9 +108,11 @@
 #include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
 #include <QDockWidget>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -296,6 +299,44 @@ MainWindow::createStyledBarTop()
         axisChoice_->addItem( tr("time") );
         toolBarLayout->addWidget( new QLabel( tr("Axis:") ) );
         toolBarLayout->addWidget( axisChoice_ );
+
+        // -- axis y-scale
+        constexpr int i = 1;
+        if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {
+            cb->setCheckState( Qt::Checked ); // defalut start with auto
+            toolBarLayout->addWidget( cb );
+
+            connect( cb, &QCheckBox::toggled, [&](bool checked){
+                auto height = findChild< QDoubleSpinBox * >( QString( "spH%1" ).arg( i ) );
+                auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+                emit onScaleYChanged( checked, bottom->value(), height->value() );
+            });
+        }
+
+        if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spB%1%" ) % i ).str().c_str() ) ) {
+            sp->setRange( -200000.0, 200000.0 );
+            sp->setDecimals( 3 );
+            sp->setSingleStep( 0.1 );
+            toolBarLayout->addWidget( sp );
+            connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double bottom){
+                auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+                auto height = findChild< QDoubleSpinBox * >( QString( "spH%1" ).arg( i ) );
+                emit onScaleYChanged( cb->isChecked(), bottom, height->value() );
+            } );
+        }
+
+        if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spH%1%" ) % i ).str().c_str() ) ) {
+            sp->setRange( -200000.0, 200000.0 );
+            sp->setDecimals( 3 );
+            sp->setSingleStep( 0.1 );
+            toolBarLayout->addWidget( sp );
+            connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double height){
+                auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+                auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+                emit onScaleYChanged( cb->isChecked(), bottom->value(), height );
+            } );
+        }
+        // <---- y-scale
 
         toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
         toolBarLayout->addWidget( new QLineEdit );
@@ -1097,9 +1138,9 @@ MainWindow::handleExportRMSAllChecked()
         adcontrols::hor_axis axis;
         std::tie( rect, axis ) = pWnd->profileRect();
         auto isTime = (axis == adcontrols::hor_axis_time);
-             
+
         const std::pair< double, double > range( isTime ? range_t<true>()(rect) : range_t<false>()(rect) );
-    
+
         if ( path.extension() == ".db" ) {
             rms_export::sqlite_export( path, range, axis == adcontrols::hor_axis_time );
         } else {

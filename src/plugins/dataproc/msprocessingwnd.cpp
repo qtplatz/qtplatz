@@ -132,7 +132,9 @@ namespace dataproc {
                               , processedSpectrum_(0)
                               , pwplot_( new adplot::TraceWidget )
                               , is_time_axis_( false )
-                              , hasHistogram_( false ) {
+                              , hasHistogram_( false )
+                              , scaleYAuto_( true )
+                              , scaleY_( {0, 0} ) {
         }
 
         void currentChanged( const adcontrols::MSPeakInfoItem& pk ) {
@@ -259,14 +261,22 @@ namespace dataproc {
         std::map< int, std::weak_ptr< adcontrols::Chromatogram > > checkedChromatograms_;
         bool is_time_axis_;
         bool hasHistogram_;
+        bool scaleYAuto_;
+        std::pair< double, double > scaleY_;
     };
 
+}
+
+MSProcessingWnd::~MSProcessingWnd()
+{
+    delete pImpl_;
 }
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
                                                   , drawIdx1_( 0 )
                                                   , drawIdx2_( 0 )
                                                   , axis_(adcontrols::hor_axis_mass)
+                                                  , pImpl_( new MSProcessingWndImpl() )
 {
     init();
 }
@@ -274,8 +284,6 @@ MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
 void
 MSProcessingWnd::init()
 {
-    pImpl_ = std::make_shared< MSProcessingWndImpl >();
-
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
 
@@ -1134,11 +1142,10 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         menu.addAction( tr( "Frequency analysis" ), [this] () { frequency_analysis(); } );
         menu.addAction( tr( "Zero filling" ),       [this] () { zero_filling(); } );
         menu.addAction( tr( "Save image file..." ), [this] () { save_image_file(); } );
-        menu.addAction( tr( "Auto Y Scale" ),       [this] () { autoYScale( pImpl_->profileSpectrum_ ); } );
-        menu.addAction( tr( "RMS to clipboard" ),   [this,rect] () { compute_rms( rect.left(), rect.right() ); draw1(); } );        
+        menu.addAction( tr( "RMS to clipboard" ),   [this,rect] () { compute_rms( rect.left(), rect.right() ); draw1(); } );
 
-        menu.actions()[4]->setCheckable( true );
-        menu.actions()[4]->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
+        // menu.actions()[4]->setCheckable( true );
+        // menu.actions()[4]->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
 
         if ( isHistogram )
             menu.actions()[2]->setEnabled( false ); // Frequency analysis
@@ -1477,7 +1484,7 @@ MSProcessingWnd::correct_baseline()
             tic += adportable::spectrum_processor::tic( static_cast< unsigned int >( ms.size() ), data, dbase, rms );
             for ( size_t idx = 0; idx < ms.size(); ++idx )
                 ms.setIntensity( idx, data[ idx ] - dbase );
-            auto mm = std::minmax_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );            
+            auto mm = std::minmax_element( ms.getIntensityArray(), ms.getIntensityArray() + ms.size() );
             o << boost::wformat( L" p%d H=%.2f/RMS=%.2f(navg=%d)" ) % proto % (*mm.second) % rms % nAvg;
 
             auto t_max = ms.time( std::distance(ms.getIntensityArray(), mm.second) );
@@ -1521,7 +1528,7 @@ MSProcessingWnd::compute_rms( double s, double e )
                 double rms, min_time, min_value, max_time, max_value;
                 std::tie( time_range, N, rms, min_time, min_value, max_time, max_value ) = res.get();
                 ADDEBUG() << "compute_rms: " << time_range;
-                
+
                 ptr->addDescription( adcontrols::description( L"process"
                                                               , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf(%d)")
                                                                  % (time_range.first * std::micro::den )
@@ -1555,7 +1562,7 @@ MSProcessingWnd::compute_rms( double s, double e )
             //     range.second = e > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) ) : ms.size() - 1;
             // }
             // size_t n = range.second - range.first + 1;
-            
+
             // if ( n >= 5 ) {
 
             //     adportable::array_wrapper<const double> data( ms.getIntensityArray() + range.first, n );
@@ -1597,7 +1604,7 @@ MSProcessingWnd::compute_rms( double s, double e )
             // }
 #endif
         }
-        QApplication::clipboard()->setText( text );                
+        QApplication::clipboard()->setText( text );
         return true;
     }
 	return false;
@@ -1973,7 +1980,22 @@ MSProcessingWnd::onInitialUpdate()
                        MainWindow::instance()->getProcessMethod( *pm );
                        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
                            DataprocessWorker::instance()->genChromatograms( dp, pm, json );
-                   });
+                 });
+    }
+
+    if ( auto w = MainWindow::instance() ) {
+        connect( w, &MainWindow::onScaleYChanged, this
+                 , [&]( bool autoScale, double base, double height ) {
+                     pImpl_->scaleYAuto_ = autoScale;
+                     pImpl_->scaleY_ = std::make_pair( base, height );
+
+                     if ( autoScale )
+                         pImpl_->profileSpectrum_->setYScale( 0, 0, false );
+                     else
+                         pImpl_->profileSpectrum_->setYScale( base + height, base, false );
+                     pImpl_->profileSpectrum_->replot();
+                     ADDEBUG() << "handleScaleYChanged(" << autoScale << ", " << base << ", " << height << "--> {" << base << ", " << (base + height) << "}";
+                 });
     }
 }
 
