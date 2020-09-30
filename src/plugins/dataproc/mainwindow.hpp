@@ -162,6 +162,8 @@ namespace dataproc {
         Utils::StyledBar * createStyledBarTop();
         Utils::StyledBar * createStyledBarMiddle();
         void currentPageChanged( int );
+        void handleScaleYChanged( int );
+        void loadSettings();
 
     signals:
         void onPrintCurrentView( const QString& ) const;

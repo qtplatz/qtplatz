@@ -35,6 +35,7 @@
 #include "mspeaktable.hpp"
 #include <adwidgets/mspeaktree.hpp>
 #include <qtwrapper/make_widget.hpp>
+#include <qtwrapper/settings.hpp>
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mspeakswnd.hpp"
@@ -83,6 +84,7 @@
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qtwrapper/jsonhelper.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <extensionsystem/pluginmanager.h>
@@ -115,6 +117,8 @@
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -127,12 +131,14 @@
 #include <QToolButton>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QVariant>
 #include <QtGui/QIcon>
 #include <qdebug.h>
 #include <qstackedwidget.h>
 
 #include <functional>
 #include <fstream>
+#include <optional>
 
 namespace dataproc {
 
@@ -305,12 +311,7 @@ MainWindow::createStyledBarTop()
         if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {
             cb->setCheckState( Qt::Checked ); // defalut start with auto
             toolBarLayout->addWidget( cb );
-
-            connect( cb, &QCheckBox::toggled, [&](bool checked){
-                auto height = findChild< QDoubleSpinBox * >( QString( "spH%1" ).arg( i ) );
-                auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
-                emit onScaleYChanged( checked, bottom->value(), height->value() );
-            });
+            connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleYChanged( 1 ); } );
         }
 
         if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spB%1%" ) % i ).str().c_str() ) ) {
@@ -318,11 +319,7 @@ MainWindow::createStyledBarTop()
             sp->setDecimals( 3 );
             sp->setSingleStep( 0.1 );
             toolBarLayout->addWidget( sp );
-            connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double bottom){
-                auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
-                auto height = findChild< QDoubleSpinBox * >( QString( "spH%1" ).arg( i ) );
-                emit onScaleYChanged( cb->isChecked(), bottom, height->value() );
-            } );
+            connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleYChanged( 1 ); } );
         }
 
         if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spH%1%" ) % i ).str().c_str() ) ) {
@@ -330,11 +327,7 @@ MainWindow::createStyledBarTop()
             sp->setDecimals( 3 );
             sp->setSingleStep( 0.1 );
             toolBarLayout->addWidget( sp );
-            connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double height){
-                auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
-                auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
-                emit onScaleYChanged( cb->isChecked(), bottom->value(), height );
-            } );
+            connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleYChanged( 1 ); } );
         }
         // <---- y-scale
 
@@ -342,6 +335,40 @@ MainWindow::createStyledBarTop()
         toolBarLayout->addWidget( new QLineEdit );
     }
     return toolBar;
+}
+
+void
+MainWindow::handleScaleYChanged( int i )
+{
+    auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) );
+    auto height = findChild< QDoubleSpinBox * >( QString( "spH%1" ).arg( i ) );
+    auto bottom = findChild< QDoubleSpinBox * >( QString( "spB%1" ).arg( i ) );
+    emit onScaleYChanged( cb->isChecked(), bottom->value(), height->value() );
+
+    QJsonDocument doc( QJsonObject{{"autoY", cb->isChecked()}, {"bottom", bottom->value()}, {"height", height->value()}} );
+    document::instance()->settings()->setValue( QString( "MainWindow/axes/%1" ).arg( i ), QString(doc.toJson()) );
+}
+
+void
+MainWindow::loadSettings()
+{
+    constexpr int i = 1;
+
+    auto axes = QJsonDocument::fromJson( document::instance()->settings()->value( QString("MainWindow/axes/%1").arg(i), "{}").toByteArray() ).object();
+    if ( ! axes.isEmpty() ) {
+        if ( auto autoY = qtwrapper::JsonHelper::value<bool>( axes, "autoY" ) )
+            ; // ignore settings (always auto Y scale)
+
+        if ( auto height = qtwrapper::JsonHelper::value< double >( axes, "height" ) ) {
+            if ( auto sbox = findChild< QDoubleSpinBox * >( QString("spH%1").arg(i) ) )
+                sbox->setValue( *height );
+        }
+
+        if ( auto bottom = qtwrapper::JsonHelper::value< double >( axes, "bottom" ) ) {
+            if ( auto sbox = findChild< QDoubleSpinBox * >( QString("spB%1").arg(i) ) )
+                sbox->setValue( *bottom );
+        }
+    }
 }
 
 void
@@ -983,6 +1010,7 @@ MainWindow::OnInitialUpdate()
     setSimpleDockWidgetArrangement();
 
     currentPageChanged( 0 );
+    loadSettings();
 
 #if defined Q_OS_LINUX
     for ( auto dock: dockWidgets() ) {

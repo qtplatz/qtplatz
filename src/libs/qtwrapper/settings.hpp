@@ -28,6 +28,7 @@
 #include <QString>
 #include <QSettings>
 #include "qtwrapper_global.h"
+#include <tuple>
 
 namespace qtwrapper {
 
@@ -39,6 +40,24 @@ namespace qtwrapper {
         void addRecentFiles( const QString& group, const QString& key, const QString& value );
         void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;
 
+    };
+
+    template< typename T > std::pair< QString, T > keyValue;
+
+    struct setValue_t {
+        QSettings& settings_;
+        setValue_t( QSettings& settings, const QString& group ) : settings_( settings ) {
+            settings_.beginGroup( group );
+        }
+        ~setValue_t() {
+            settings_.endGroup();
+        }
+        template< typename T > setValue_t& operator << ( std::pair< QString, T>&& t ) {
+            settings_.setValue( t.first, t.second );
+        };
+        template< typename T> setValue_t& operator()( std::pair< QString, T>&& t ) {
+            settings_.setValue( t.first, t.second );
+        };        
     };
 }
 

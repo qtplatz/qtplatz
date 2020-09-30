@@ -1993,8 +1993,8 @@ MSProcessingWnd::onInitialUpdate()
                          pImpl_->profileSpectrum_->setYScale( 0, 0, false );
                      else
                          pImpl_->profileSpectrum_->setYScale( base + height, base, false );
+
                      pImpl_->profileSpectrum_->replot();
-                     ADDEBUG() << "handleScaleYChanged(" << autoScale << ", " << base << ", " << height << "--> {" << base << ", " << (base + height) << "}";
                  });
     }
 }
