@@ -52,6 +52,7 @@
 #include <boost/format.hpp>
 #include <atomic>
 #include <mutex>
+#include <optional>
 #include <set>
 
 using namespace adplot;
@@ -220,6 +221,11 @@ namespace adplot {
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
 
+        std::optional< std::pair< double, double > > scaleY( const QRectF&, QwtPlot::Axis ) const;
+
+        // std::pair< std::optional< std::pair< double, double > >
+        //            , std::optional< std::pair< double, double > > > scaleY( const QRectF&, QwtPlot::Axis ) const;
+
         std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
         void baseScale( bool, QRectF& rc );
     };
@@ -346,6 +352,24 @@ SpectrumWidget::setVectorCompression( int compression )
                 curve->setVectorCompression( compression );
         }
     }
+}
+
+std::optional< std::pair< double, double > >
+SpectrumWidget::impl::scaleY( const QRectF& rc, QwtPlot::Axis axisId ) const
+{
+    using spectrumwidget::TraceData;
+
+    const bool yRight = axisId == QwtPlot::yRight;
+
+    std::optional< std::pair< double, double > > range{ std::nullopt };
+
+    for ( const auto& trace: traces_ ) {
+        if ( trace && (trace->yRight() == yRight) ) {
+            auto y = trace->y_range( rc.left(), rc.right(), scaleFcn_ );
+            range = range ? std::make_pair( std::min( y.first, range->first ), std::max( y.second, range->second ) ) : y;
+        }
+    }
+    return range;
 }
 
 std::pair<bool, bool>
@@ -640,22 +664,8 @@ void
 SpectrumWidget::rescaleY( int fcn )
 {
     impl_->scaleFcn_ = fcn;
-    // redraw_all( true );
     QRectF z = zoomer()->zoomRect(); // current
     yZoom( z.x(), z.x() + z.width() );
-}
-
-void
-SpectrumWidget::setYScale( double top, double bottom, bool axisRight )
-{
-    if ( axisRight == false ) {
-        
-        impl_->yScale1_ = std::make_pair(top, bottom);
-        impl_->hasYScale1_ = !adportable::compare< double >::essentiallyEqual( top, bottom );
-
-        if ( auto zoomer = plot::zoomer() )
-            zoomer->autoYScale( !impl_->hasYScale1_ );
-    }
 }
 
 std::tuple< bool, double, double >
@@ -666,6 +676,52 @@ SpectrumWidget::yScale( bool axisRight ) const
     } else {
         return std::make_tuple( impl_->hasYScale1_, impl_->yScale1_.first, impl_->yScale1_.second );
     }
+}
+
+void
+SpectrumWidget::setYScale( double top, double bottom, bool axisRight )
+{
+    if ( axisRight == false ) {
+
+        impl_->yScale1_ = std::make_pair(top, bottom);
+        impl_->hasYScale1_ = !adportable::compare< double >::essentiallyEqual( top, bottom );
+
+        if ( auto zoomer = plot::zoomer() )
+            zoomer->autoYScale( !impl_->hasYScale1_ );
+    }
+}
+
+void
+SpectrumWidget::replotYScale()
+{
+    auto rectIndex = zoomer()->zoomRectIndex();
+
+    QRectF baseRect;
+    impl_->baseScale( false, baseRect ); // always get left-Y axis
+    if ( impl_->hasYScale1_ ) {
+        baseRect.setTop( impl_->yScale1_.first );
+        baseRect.setBottom( impl_->yScale1_.second );
+    }
+
+    if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
+        setAxisScale( QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
+        setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
+        zoomer()->setZoomBase();
+    } else {
+        QRectF z = zoomer()->zoomRect(); // current zoom rect
+        // std::pair<double, double> left, right;
+        QStack< QRectF > zstack;
+        zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
+        if ( impl_->hasYScale1_ ) {
+            zstack.push_back( QRectF( z.x(), impl_->yScale1_.second, z.width(), impl_->yScale1_.first - impl_->yScale1_.second ) );
+        } else {
+            if ( auto yLeft = impl_->scaleY( z, QwtPlot::yLeft ) )
+                zstack.push_back( QRectF( z.x(), yLeft->first, z.width(), yLeft->second - yLeft->first ) );
+        }
+        QSignalBlocker block( zoomer() );
+        zoomer()->setZoomStack( zstack );
+    }
+    replot();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -1994,7 +1994,7 @@ MSProcessingWnd::onInitialUpdate()
                      else
                          pImpl_->profileSpectrum_->setYScale( base + height, base, false );
 
-                     pImpl_->profileSpectrum_->replot();
+                     pImpl_->profileSpectrum_->replotYScale();
                  });
     }
 }

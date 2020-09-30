@@ -70,6 +70,9 @@ namespace adplot {
         uint32_t viewId() const;
         void setYScale( double top, double bottom, bool axisRight = false );
         std::tuple< bool, double, double > yScale( bool ) const;
+        void replotYScale();
+
+
 
     private:
         class impl;

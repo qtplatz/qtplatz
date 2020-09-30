@@ -41,7 +41,7 @@ Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis,
 {
     // Shift+LeftButton: zoom out to full size
     setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton, Qt::ShiftModifier );
-    
+
     // Ctrl+LeftButton: zoom out by 1 => override for zoom y
     // setMousePattern( QwtEventPattern::MouseSelect3, Qt::LeftButton, Qt::ControlModifier );
     // in addition to this, double click for zoom out by 1 via override widgetMouseDoubleClickEvent
@@ -72,7 +72,7 @@ Zoomer::autoYScale() const
 }
 
 void
-Zoomer::widgetMousePressEvent( QMouseEvent * e ) 
+Zoomer::widgetMousePressEvent( QMouseEvent * e )
 {
     p1_ = e->pos();
     QwtPlotZoomer::widgetMousePressEvent( e );
@@ -111,10 +111,10 @@ Zoomer::accept( QPolygon &pa ) const
 {
     if ( pa.count() < 2 )
         return false;
-  
+
     QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] );
     rect = rect.normalized();
-  
+
     if ( rect.width() < 2 && rect.height() < 2 ) {
         return false;
     }
@@ -164,7 +164,7 @@ Zoomer::drawRubberBand( QPainter *painter ) const
 	if ( pa.count() >= 2 ) {
         const QPoint p1 = pa[0];
         const QRect rect = QRect( p1, p2 ).normalized();
-        
+
         if ( autoYScale_ || rect.height() < minY ) { // select horizontal (indicate by 2 vertical lines)
             QwtPainter::drawLine( painter, p1.x(), rc.top(), p1.x(), rc.bottom() );  // vertical @ 1st point
         } else if ( rect.width() < minX ) {
