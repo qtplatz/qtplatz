@@ -91,6 +91,7 @@ namespace dataproc {
         // slot for MSPeakTable
         void handleCurrentChanged( int idx, int fcn );
         void handleFormulaChanged( int idx, int fcn );
+        void handleModeChanged( int idx, int fcn, int mode );
         void handleLockMass( const QVector< QPair<int, int> >& );
         void handleDataMayChanged();
         void handleScanLawEst( const QVector< QPair< int, int > >& );

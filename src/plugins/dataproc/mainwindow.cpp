@@ -521,7 +521,7 @@ MainWindow::createContents( Core::IMode * mode )
 
     connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
     connect( SessionManager::instance(), &SessionManager::onProcessed, this, &MainWindow::handleProcessed );
-
+    
     // The handleSelectionChanged on MainWindow should be called in advance for all stacked child widgets.
     // This is significantly important for child widget has right QRectF for each QwtPlot.
     connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );
@@ -680,6 +680,7 @@ MainWindow::createDockWidgets()
                 if ( auto wnd = findChild< MSProcessingWnd *>() ) {
                     connect( pWidget, SIGNAL( currentChanged( int, int ) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
                     connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
+                    connect( pWidget, SIGNAL( modeChanged( int, int, int ) ), wnd, SLOT( handleModeChanged( int, int, int ) ) );
                     connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) )
                              , wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
                     connect( pWidget, SIGNAL( estimateScanLaw( const QVector<QPair<int, int>>& ) )
@@ -853,6 +854,11 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
             }
         }
     }
+}
+
+void
+MainWindow::repaintTable()
+{
 }
 
 void

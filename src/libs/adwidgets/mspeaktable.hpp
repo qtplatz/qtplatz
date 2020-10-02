@@ -87,6 +87,7 @@ namespace adwidgets {
         void valueChanged();
         void currentChanged( int idx, int fcn );
         void formulaChanged( int idx, int fcn );
+        void modeChanged( int idx, int fcn, int mode );
         void triggerLockMass( const QVector< QPair<int, int> >& );
         void estimateScanLaw( const QVector< QPair<int, int> >& );
         void rescaleY( int protocol );
@@ -114,6 +115,7 @@ namespace adwidgets {
         void updateData( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
         void descriptionChanged( const QModelIndex& );
+        void modeChanged( const QModelIndex& );
         static double exactMass( std::string );
         friend struct detail::dataMayChanged;
     };

@@ -55,6 +55,7 @@ MSPeakInfoItem::MSPeakInfoItem(void)
     , centroid_threshold_(0)
     , is_visible_( true )
     , is_reference_( false )
+    , mode_( boost::none )
 {
 }
 
@@ -81,6 +82,7 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t )
     , is_reference_( t.is_reference_)      
     , formula_( t.formula_ )      
     , annotation_( t.annotation_ )
+    , mode_( t.mode_ )
 {
 }
 
@@ -109,6 +111,7 @@ MSPeakInfoItem::MSPeakInfoItem( const adportable::waveform_peakfinder::peakinfo&
     , centroid_threshold_(0)
     , is_visible_( true )
     , is_reference_( false )
+    , mode_( boost::none )
 {
     set_centroid_threshold( pk.height / 2 + dbase );
     
@@ -337,6 +340,18 @@ MSPeakInfoItem::assign_mass( double mass )
     centroid_right_mass_ += d;
     HH_left_mass_ += d;
     HH_right_mass_ += d;
+}
+
+std::optional< int >
+MSPeakInfoItem::mode() const
+{
+    return mode_ ? std::optional<int>(*mode_) : std::nullopt;
+}
+
+void 
+MSPeakInfoItem::set_mode( std::optional< int >&& mode )
+{
+    mode_ = mode ? boost::optional<int32_t>(*mode) : boost::none;
 }
 
 //static

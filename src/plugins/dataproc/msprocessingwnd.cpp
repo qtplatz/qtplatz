@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -110,6 +110,7 @@
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
@@ -770,6 +771,46 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
         if ( segs.size() > unsigned( fcn ) ) {
             pImpl_->currentChanged( segs[ fcn ], idx );
+        }
+    }
+}
+
+void
+MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
+{
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto sp = dp->massSpectrometer() ) {
+            if ( auto pkinfo = pkinfo_.second.lock() ) {
+                adcontrols::segment_wrapper< adcontrols::MSPeakInfo > fpks( *pkinfo );
+                if ( fpks[ fcn ].size() > idx ) {
+                    auto pk = fpks[ fcn ].begin() + idx;
+                    pk->set_mass( sp->assignMass( pk->time(), mode )
+                                  , sp->assignMass( pk->hh_left_time(), mode )
+                                  , sp->assignMass( pk->hh_right_time(), mode ) );
+                    if ( mode == fpks[ fcn ].mode() )
+                        pk->set_mode( std::nullopt );
+                    else
+                        pk->set_mode( mode );
+                    ADDEBUG() << "handleModeChanged: mass=" << pk->mass();
+                }
+                if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) )
+                    p->onUpdate( pkinfo );
+            }
+            if ( auto ms = pProcessedSpectrum_.second.lock() ) {
+                if ( ms->isCentroid() && !ms->isHistogram() ) {
+                    auto& fms = adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms )[ fcn ];
+                    auto it = std::find_if( fms.get_annotations().begin(), fms.get_annotations().end()
+                                            , [&]( const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
+                    boost::property_tree::ptree pt;
+                    if ( auto opt = it->ptree() )
+                        pt = *opt;
+                    pt.put( "peak.mode", mode );
+                    pt.put( "peak.mass", sp->assignMass( fms.time( idx ), mode ) );
+                    fms.get_annotations() << adcontrols::annotation( pt );
+                }
+            } else {
+                ADDEBUG() << "------- no processing spectrum can be locked ---------";
+            }
         }
     }
 }

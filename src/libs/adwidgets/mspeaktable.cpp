@@ -44,10 +44,13 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
 #include <QApplication>
+#include <QByteArray>
 #include <QClipboard>
 #include <QDebug>
 #include <QHeaderView>
 #include <QItemDelegate>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QStandardItemModel>
 #include <QMenu>
@@ -181,12 +184,16 @@ namespace adwidgets {
             MSPeakTable * pThis_;
             dataMayChanged( MSPeakTable * table ) : pThis_( table ) {}
             bool operator()( std::weak_ptr< adcontrols::MassSpectrum >& wptr ) const {
+                ADDEBUG() << "------------------> setMassSpectrum";
                 if ( auto ptr = wptr.lock() )
                     pThis_->setData( *ptr );
                 return true;
             }
-            bool operator()( std::weak_ptr< adcontrols::MSPeakInfo >& ) const {
-                return false; // do nothing
+            bool operator()( std::weak_ptr< adcontrols::MSPeakInfo >& pkinfo ) const {
+                ADDEBUG() << "------------------> setPeakInfo";
+                if ( auto ptr = pkinfo.lock() )
+                    pThis_->setPeakInfo( *ptr );
+                return true;
             }
         };
 
@@ -468,7 +475,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
     double iMax(0);
     for ( auto& pkinfo: segs ) {
-        auto it = std::max_element( pkinfo.begin(), pkinfo.end(), [&](const auto& a, const auto& b){ return is_area ? (a.area() < b.area()) : (a.height() < b.height()); });
+        auto it = std::max_element( pkinfo.begin(), pkinfo.end()
+                                    , [&](const auto& a, const auto& b){ return is_area ? (a.area() < b.area()) : (a.height() < b.height()); });
         if ( it != pkinfo.end() )
             iMax = std::max( iMax, is_area ? it->area() : it->height() );
     }
@@ -490,7 +498,12 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             auto abundance = is_area ? pk.area() : pk.height();
             model.setData( model.index( row, c_mspeaktable_intensity ), abundance );
             model.setData( model.index( row, c_mspeaktable_relative_intensity ), (abundance * 100) / iMax );
-            model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
+            if ( auto mode = pk.mode() ) { // if peak has modified mode value
+                model.setData( model.index( row, c_mspeaktable_mode ), *mode );
+                ADDEBUG() << "--------- local mode found: " << *mode << " <- " << pkinfo.mode() << "(" << pk.mass() << ")";
+            } else {
+                model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
+            }
             if ( ! pk.formula().empty() ) {
                 double mass = exactMass( pk.formula() );
                 model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( pk.formula() ) );
@@ -520,6 +533,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     size_t total_size = 0;
 
     setUpdatesEnabled( false );
+
+    ADDEBUG() << "=============== setPeakInfo for MassSpectrum =================";
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for( auto& t: segs )
@@ -569,9 +584,17 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_mass_width ), QVariant() ); // clear width
             model.setData( model.index( row, c_mspeaktable_time_width ), QVariant() ); // clear width
 
-
             auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
+                ADDEBUG() << "##### " << it->text();
+                if ( auto json = it->json() ) {
+                    auto obj = QJsonDocument::fromJson( QByteArray(json->c_str(), json->size() ) ).object();
+                    ADDEBUG() << "########### find json annotation ###########";
+                    qDebug() << obj;
+                    auto pt = it->ptree();
+                    if ( auto mode = pt->get_optional< int >( "peak.mode" ) )
+                        model.setData( model.index( row, c_mspeaktable_mode ), *mode );
+                }
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
                     model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );
                 } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
@@ -850,9 +873,10 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
         return;
     if ( index.column() == c_mspeaktable_formula ) {
         formulaChanged( index );
-    }
-    else if ( index.column() == c_mspeaktable_description ) {
+    } else if ( index.column() == c_mspeaktable_description ) {
         descriptionChanged( index );
+    } else if ( index.column() == c_mspeaktable_mode ) {
+        modeChanged( index );
     }
 }
 
@@ -933,6 +957,22 @@ MSPeakTable::descriptionChanged( const QModelIndex& index )
         }
     }
 }
+
+void
+MSPeakTable::modeChanged( const QModelIndex& index )
+{
+	QStandardItemModel& model = *impl_->model_;
+
+    if ( index.column() == c_mspeaktable_mode ) {
+
+        int fcn = model.index( index.row(), c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+        int idx = model.index( index.row(), c_mspeaktable_index ).data( Qt::EditRole ).toInt();
+        int mode = index.data( Qt::EditRole ).toInt();
+
+        emit modeChanged( idx, fcn, mode );
+    }
+}
+
 
 double
 MSPeakTable::exactMass( std::string formula )

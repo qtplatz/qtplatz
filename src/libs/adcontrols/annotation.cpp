@@ -24,6 +24,9 @@
 
 #include "annotation.hpp"
 #include <adportable/utf.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 using namespace adcontrols;
 
@@ -88,6 +91,52 @@ annotation::annotation( const std::string& text
 {
 }
 
+annotation::annotation( const boost::property_tree::ptree& pt
+                        , double x
+                        , double y
+                        , int idx
+                        , int priority
+                        , DataFlag flg ) : format_( dataJSON )
+                                         , index_( idx )
+                                         , priority_( priority )
+                                         , x_( x ), y_( y )
+                                         , w_( 0 )
+                                         , h_( 0 )
+                                         , flags_( flg )
+{
+    boost::iostreams::back_insert_device< std::string > inserter( text_ );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > json( inserter );
+    boost::property_tree::write_json( json, pt );
+}
+
+void
+annotation::setJson( const boost::property_tree::ptree& pt )
+{
+    boost::iostreams::back_insert_device< std::string > inserter( text_ );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > json( inserter );
+    boost::property_tree::write_json( json, pt );
+    format_ = dataJSON;
+}
+
+std::optional< std::string >
+annotation::json() const
+{
+    if ( !text_.empty() && format_ == dataJSON )
+        return text_;
+    return std::nullopt;
+}
+
+std::optional< boost::property_tree::ptree >
+annotation::ptree() const
+{
+    if ( !text_.empty() && format_ == dataJSON ) {
+        boost::property_tree::ptree pt;
+        std::istringstream in( text_.data(), text_.size() );
+        boost::property_tree::read_json( in, pt );
+        return pt;
+    }
+    return std::nullopt;    
+}
 
 const std::string&
 annotation::text() const

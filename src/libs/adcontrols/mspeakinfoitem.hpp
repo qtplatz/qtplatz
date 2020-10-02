@@ -29,6 +29,9 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/serialization/optional.hpp>
+#include <boost/optional.hpp>
+#include <optional>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -95,6 +98,8 @@ namespace adcontrols {
         bool is_reference() const;
         void is_reference( bool );
 
+        std::optional<int> mode() const;
+        void set_mode( std::optional<int>&& );
 
         static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
         static bool xml_restore( std::wistream&, MSPeakInfoItem& );
@@ -125,6 +130,7 @@ namespace adcontrols {
         bool is_reference_;
         std::string formula_;
         std::wstring annotation_;
+        boost::optional< int32_t > mode_; // use boost's optional for serialization
 
         friend class internal::CentroidProcessImpl;
         friend class boost::serialization::access;
@@ -155,10 +161,13 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP( annotation_ )
                     ;
             }
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+            }
         }
 
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeakInfoItem, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSPeakInfoItem, 3 )

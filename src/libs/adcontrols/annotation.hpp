@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <string>
 
 namespace adcontrols {
@@ -42,6 +43,7 @@ namespace adcontrols {
             , dataFormula
             , dataSmiles
             , dataMOL
+            , dataJSON
         };
 
         enum DataFlag {
@@ -53,13 +55,17 @@ namespace adcontrols {
 
         ~annotation();
         annotation();
+        annotation( const annotation& );
         annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
         annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
-        annotation( const annotation& );
+        annotation( const boost::property_tree::ptree& pt, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFlag flag = flag_auto );
 
         const std::string& text() const;
         void text( const std::wstring& text, DataFormat f = dataText );
         void text( const std::string& text, DataFormat f = dataText );
+        void setJson( const boost::property_tree::ptree& );
+        std::optional< std::string > json() const;
+        std::optional< boost::property_tree::ptree > ptree() const;
 
         int index() const;
         void index( int );

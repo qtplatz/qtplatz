@@ -118,6 +118,8 @@ namespace dataproc {
 
         void selectionChanged( std::shared_ptr< adcontrols::MassSpectrum >, std::function<adwidgets::MSPeakTable::callback_t> );
 
+        void repaintTable();
+
     private:
         void handleProcessed( Dataprocessor *, portfolio::Folium& );
 
