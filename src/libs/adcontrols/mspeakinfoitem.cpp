@@ -342,16 +342,18 @@ MSPeakInfoItem::assign_mass( double mass )
     HH_right_mass_ += d;
 }
 
-std::optional< int >
+boost::optional< int >
 MSPeakInfoItem::mode() const
 {
-    return mode_ ? std::optional<int>(*mode_) : std::nullopt;
+    return mode_;
+    // return mode_ ? std::optional<int>(*mode_) : std::nullopt;
 }
 
 void 
-MSPeakInfoItem::set_mode( std::optional< int >&& mode )
+MSPeakInfoItem::set_mode( boost::optional< int >&& mode )
 {
-    mode_ = mode ? boost::optional<int32_t>(*mode) : boost::none;
+    mode_ = mode;
+    //mode_ = mode ? boost::optional<int32_t>(*mode) : boost::none;
 }
 
 //static

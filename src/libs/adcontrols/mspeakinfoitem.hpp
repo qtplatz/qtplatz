@@ -98,8 +98,8 @@ namespace adcontrols {
         bool is_reference() const;
         void is_reference( bool );
 
-        std::optional<int> mode() const;
-        void set_mode( std::optional<int>&& );
+        boost::optional<int> mode() const;
+        void set_mode( boost::optional<int>&& );
 
         static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
         static bool xml_restore( std::wistream&, MSPeakInfoItem& );

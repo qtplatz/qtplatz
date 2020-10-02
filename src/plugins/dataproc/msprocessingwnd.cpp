@@ -788,7 +788,7 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
                                   , sp->assignMass( pk->hh_left_time(), mode )
                                   , sp->assignMass( pk->hh_right_time(), mode ) );
                     if ( mode == fpks[ fcn ].mode() )
-                        pk->set_mode( std::nullopt );
+                        pk->set_mode( boost::none );
                     else
                         pk->set_mode( mode );
                     ADDEBUG() << "handleModeChanged: mass=" << pk->mass();

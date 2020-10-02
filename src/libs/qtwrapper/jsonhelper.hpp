@@ -28,14 +28,24 @@
 #include <QJsonObject>
 #include <QVariant>
 #include <optional>
+#include <adportable/optional.hpp>
 
 namespace qtwrapper {
     struct JsonHelper {
+#if __cplusplus >= 201703
         template< typename T > static std::optional<T> value( const QJsonObject& obj, const QString& key ) {
             auto it = obj.find( key );
             if ( it != obj.end() )
                 return qvariant_cast<T>(*it);
             return std::nullopt;
         }
+#else
+        template< typename T > static boost::optional<T> value( const QJsonObject& obj, const QString& key ) {
+            auto it = obj.find( key );
+            if ( it != obj.end() )
+                return qvariant_cast<T>(*it);
+            return boost::none;
+        }
+#endif
     };
 }

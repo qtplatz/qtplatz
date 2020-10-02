@@ -221,10 +221,7 @@ namespace adplot {
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
 
-        std::optional< std::pair< double, double > > scaleY( const QRectF&, QwtPlot::Axis ) const;
-
-        // std::pair< std::optional< std::pair< double, double > >
-        //            , std::optional< std::pair< double, double > > > scaleY( const QRectF&, QwtPlot::Axis ) const;
+        boost::optional< std::pair< double, double > > scaleY( const QRectF&, QwtPlot::Axis ) const;
 
         std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
         void baseScale( bool, QRectF& rc );
@@ -354,14 +351,14 @@ SpectrumWidget::setVectorCompression( int compression )
     }
 }
 
-std::optional< std::pair< double, double > >
+boost::optional< std::pair< double, double > >
 SpectrumWidget::impl::scaleY( const QRectF& rc, QwtPlot::Axis axisId ) const
 {
     using spectrumwidget::TraceData;
 
     const bool yRight = axisId == QwtPlot::yRight;
 
-    std::optional< std::pair< double, double > > range{ std::nullopt };
+    boost::optional< std::pair< double, double > > range{ boost::none };
 
     for ( const auto& trace: traces_ ) {
         if ( trace && (trace->yRight() == yRight) ) {

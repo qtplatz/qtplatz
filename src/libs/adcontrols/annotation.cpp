@@ -118,15 +118,15 @@ annotation::setJson( const boost::property_tree::ptree& pt )
     format_ = dataJSON;
 }
 
-std::optional< std::string >
+boost::optional< std::string >
 annotation::json() const
 {
     if ( !text_.empty() && format_ == dataJSON )
         return text_;
-    return std::nullopt;
+    return boost::none;
 }
 
-std::optional< boost::property_tree::ptree >
+boost::optional< boost::property_tree::ptree >
 annotation::ptree() const
 {
     if ( !text_.empty() && format_ == dataJSON ) {
@@ -135,7 +135,7 @@ annotation::ptree() const
         boost::property_tree::read_json( in, pt );
         return pt;
     }
-    return std::nullopt;    
+    return boost::none;
 }
 
 const std::string&
