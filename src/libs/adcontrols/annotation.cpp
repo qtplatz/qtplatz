@@ -131,7 +131,11 @@ annotation::ptree() const
 {
     if ( !text_.empty() && format_ == dataJSON ) {
         boost::property_tree::ptree pt;
+#if __cplusplus >= 201703L
         std::istringstream in( text_.data(), text_.size() );
+#else
+        std::istringstream in( text_ );
+#endif
         boost::property_tree::read_json( in, pt );
         return pt;
     }

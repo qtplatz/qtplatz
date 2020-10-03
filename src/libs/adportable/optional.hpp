@@ -35,10 +35,8 @@ namespace adportable {
 
 #if __cplusplus >= 201703L
     template< typename T > using optional = std::optional< T >;
-    typedef std::nullopt_t nullopt;
 #else
     template< typename T > using optional = boost::optional< T >;
-    typedef boost::none nullopt; 
 #endif
 
 }

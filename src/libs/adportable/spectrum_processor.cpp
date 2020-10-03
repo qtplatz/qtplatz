@@ -560,8 +560,10 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
             iw = next_w.first;
             slope = double( rms ) / double( iw * 9 );
             diff = SGFilter( iw, SGFilter::Derivative1, SGFilter::Cubic );
-#if !defined NDEBUG
-            ADDEBUG() << "diff coefficients.size: " << diff.coefficients().size() << "\twidth: " << width_calculator( x ) << "\t@" << pX[ x ]
+#if ! defined NDEBUG && 0
+            ADDEBUG() << "diff coefficients.size: " << diff.coefficients().size()
+                      << "\twidth: " << width_calculator( x )
+                      << "\t@" << pX[ x ]
                       << "\tslope=" << slope;
 #endif
         }

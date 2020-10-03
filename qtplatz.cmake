@@ -7,8 +7,6 @@ find_package( arch )
 #
 set( Boost_NO_SYSTEM_PATHS ON )
 
-set( Boost_ADDITIONAL_VERSIONS "1.70.0" )
-
 if ( WIN32 )
 
   # See 'libs/serialization/src/basic_archive.cpp library_version_type
@@ -36,7 +34,7 @@ if ( WIN32 )
       -DBOOST_CHRONO_DYN_LINK
       -DBOOST_RANDOM_DYN_LINK
       -DBOOST_SYSTEM_DYN_LINK
-      -DBOOST_TIMER_DYN_LINK            
+      -DBOOST_TIMER_DYN_LINK
       )
   else()
     add_definitions( -DBOOST_ALL_DYN_LINK )
@@ -46,6 +44,7 @@ if ( WIN32 )
 else()
   ## Boost setup for mac/linux
   set( Boost_USE_STATIC_LIBS OFF )
+  set( Boost_NO_SYSTEM_PATHS ON )
 
   find_path( _boost NAMES include/boost HINTS
     "/usr/local/boost-1_73"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )

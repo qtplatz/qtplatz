@@ -251,9 +251,9 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
 
         zoomer->autoYScale( true );
 
-        using namespace std::placeholders;
-        zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, _1 ) );
-        zoomer->tracker2( std::bind( &SpectrumWidget::impl::tracker2, impl_, _1, _2 ) );
+        // using namespace std::placeholders;
+        zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, std::placeholders::_1 ) );
+        zoomer->tracker2( std::bind( &SpectrumWidget::impl::tracker2, impl_, std::placeholders::_1, std::placeholders::_2 ) );
 
         zoomer->autoYScaleHock( [this]( QRectF& rc ){ yScaleHock( rc ); } );
 

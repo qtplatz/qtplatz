@@ -145,8 +145,9 @@ if ( APPLE )
 else()
 endif()
 
-# adplugin now uses boost_dll, which require 1.61
-find_package( Boost 1.67 REQUIRED COMPONENTS
+message( STATUS "############ BOOST_ROOT: " ${BOOST_ROOT} )
+
+find_package( Boost 1.69 REQUIRED COMPONENTS
   atomic
   ${boost_libs} # windows
   chrono
