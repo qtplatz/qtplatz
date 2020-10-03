@@ -79,7 +79,7 @@ loader::populate( const wchar_t * topdir )
 #ifndef NDEBUG
     ADDEBUG() << "loader populating in directory: " << topdir;
 #endif
-    
+
     if ( boost::filesystem::is_directory( modules ) ) {
 
         boost::system::error_code ec;
@@ -101,13 +101,13 @@ loader::populate( const wchar_t * topdir )
                             auto fname = dir / (stem.string() + debug_trail);
                             boost::system::error_code ec;
                             boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
-                            if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
-#ifndef NDEBUG
+                            if ( ec )
+                                ADDEBUG() << "loading\n\t" << fname << "\tError: " << ec.message();
+                            else if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
+#if defined NDEBUG && 0
                                 ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
 #endif
                                 break;
-                            } else {
-                                ADDEBUG() << "loading\n\t" << fname << "\t" << ec.message();
                             }
                         }
                     }

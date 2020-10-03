@@ -22,8 +22,8 @@ else
     export RDBASE=$CROSS_ROOT/usr/local/rdkit
     TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
     if [ -z $BOOST_ROOT ]; then
-		if [ -d $CROSS_ROOT/usr/local/boost-1_67 ]; then
-			BOOST_ROOT=/usr/local/boost-1_67
+		if [ -d $CROSS_ROOT/usr/local/boost-1_69 ]; then
+			BOOST_ROOT=/usr/local/boost-1_69
 		elif [ -d $CROSS_ROOT/usr/local/boost-1_62 ]; then
 			BOOST_ROOT=/usr/local/boost-1_62
 		fi

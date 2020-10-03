@@ -49,8 +49,8 @@ default_debian_10:
 	@echo "make bower"
 	@echo "make boost, check python version in your user-config.jam"
 	@echo "make qwt"
-	@echo "make maeparser"
-	@echo "make rdkit"
+	@echo "make maeparser (depend on boost)"
+	@echo "make rdkit     (depend on maeparser,boost)"
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make qemu"
 	@echo "make cross-tools"
@@ -58,6 +58,7 @@ default_debian_10:
 	@echo "make gnuplot"
 	@echo "make rtags -- run 'apt install rtags' after install llvm; see https://apt.llvm.org/"
 	@echo "make code"
+	@echo "make emacs"
 
 default:
 	@echo "====================================="
@@ -72,8 +73,8 @@ default:
 	@echo "make bower"
 	@echo "make boost"
 	@echo "make qwt"
-	@echo "make maeparser"
-	@echo "make rdkit"
+	@echo "make maeparser (depend on boost)"
+	@echo "make rdkit     (depend on maeparser,boost)"
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make qemu"
 	@echo "make cross-tools"
@@ -81,6 +82,7 @@ default:
 	@echo "make gnuplot"
 	@echo "make rtags"
 	@echo "make code"
+	@echo "make Emacs"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
 
 dependency:
@@ -90,6 +92,9 @@ else
 	./linux-initial-setup.sh
 	./linux-dependency-install.sh
 endif
+
+Emacs:
+	./linux-emacs-setup.sh
 
 qemu:
 	./linux-qemu-setup.sh
