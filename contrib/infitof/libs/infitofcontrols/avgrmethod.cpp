@@ -40,12 +40,16 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #if defined __GNUC__
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 namespace infitofcontrols {
+
+    constexpr boost::uuids::uuid AvgrMethod::__clsid;
+    constexpr boost::uuids::uuid AvgrMethod::__dlg_clsid;
 
     template<typename T >
     class AvgrMethod_archive {
@@ -108,9 +112,10 @@ using namespace infitofcontrols;
 const boost::uuids::uuid&
 AvgrMethod::clsid()
 {
-    static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
-    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "InfiTOF.Avgr" );
-    return myclsid;
+    // static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    // static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "InfiTOF.Avgr" );
+    // return myclsid;
+    return __clsid;
 }
 
 bool

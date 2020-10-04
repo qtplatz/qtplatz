@@ -133,7 +133,7 @@ time_event_processor::preparing_for_run()
 
             ADINFO() << "--------------------- preparing ---------->";
             std::for_each( begin, nextIt_, []( const auto& e ){
-                    ADDEBUG() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.item_name() % e.toString( e.value() );
+                ADDEBUG() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.itemName() % e.toString( e.value() );
                 });
             ADINFO() << "<-------------------- preparing -----------";
         }
@@ -161,7 +161,7 @@ time_event_processor::exec_steps()
             auto round_trip = std::chrono::duration<double>( this_clock::now() - tp_inject_ ).count() - elapsed_time;
             ADINFO() << "----------- exec_step at " << elapsed_time << " round trip " << ( round_trip * 1000 ) << "ms ---------->";
             std::for_each( begin, nextIt_, []( const auto& e ){
-                    ADINFO() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.item_name() % e.toString( e.value() );
+                    ADINFO() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.itemName() % e.toString( e.value() );
                 });
             ADINFO() << "<---------- exec_step at " << elapsed_time << " ----------";
         }

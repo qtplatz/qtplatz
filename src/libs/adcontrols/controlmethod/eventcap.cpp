@@ -23,10 +23,11 @@
 **************************************************************************/
 
 #include "eventcap.hpp"
+#include <boost/uuid/uuid_io.hpp>
 
 using namespace adcontrols::ControlMethod;
 
-        
+
 EventCap::EventCap()
 {
 }
@@ -114,24 +115,24 @@ namespace adcontrols {
             std::string operator()( const duration_type& t ) const {
                 return ( boost::format("%.3f") % t.value ).str();
             };
-            
+
             std::string operator()( const switch_type& t ) const {
                 return t.value ? t.choice.first : t.choice.second;
             };
-            
+
             std::string operator()( const choice_type& t ) const {
                 if ( t.choice.size() > t.value )
                     return t.choice.at( t.value );
                 return "";
             };
-            
+
             std::string operator()( const delay_width_type& t ) const {
                 return ( boost::format("%.3g, %3g") % t.value.first % t.value.second ).str();
             };
 
             std::string operator()( const any_type& t ) const {
-                return "any";
-            };            
+                return ( boost::format("any: editor=%s, size=%d") % t.editor_ % t.value.size() ).str();
+            };
         };
     }
 }

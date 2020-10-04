@@ -36,6 +36,9 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QDoubleSpinBox>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -46,6 +49,7 @@
 #include <QStyledItemDelegate>
 #include <QMetaType>
 #include <QDebug>
+#include <boost/property_tree/ptree.hpp>
 
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 Q_DECLARE_METATYPE( adcontrols::ControlMethod::EventCap::value_type );
@@ -74,7 +78,7 @@ namespace adwidgets {
         void callback( const adcontrols::ControlMethod::any_type& a ) {
             value_ = a;
         }
-        
+
         void commit() {
             cap_->invalidate_any();
         }
@@ -84,12 +88,12 @@ namespace adwidgets {
         TimedEventsWidget * this_;
     public:
         enum columns { c_clsid, c_time, c_model_name, c_item_name, c_value, c_value_2, ncolumns };
-        
+
         impl( TimedEventsWidget * p ) : this_( p )
                                       , model_( new QStandardItemModel() ) {
 
             model_->setColumnCount( ncolumns );
-            
+
             model_->setHeaderData( c_clsid,        Qt::Horizontal, QObject::tr( "clsid" ) );
             model_->setHeaderData( c_time,         Qt::Horizontal, QObject::tr( "Time(seconds)" ) );
             model_->setHeaderData( c_model_name,   Qt::Horizontal, QObject::tr( "Module" ) );
@@ -99,7 +103,7 @@ namespace adwidgets {
         }
 
         ~impl() { }
-        
+
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
             emit this_->valueChanged();
         }
@@ -125,7 +129,8 @@ namespace adwidgets {
 
         void handleContextMenu( const QPoint& pt );
         void addLine( const adcontrols::ControlMethod::ModuleCap& );
-        QList< QStandardItem * > make_row( const adcontrols::ControlMethod::ModuleCap&, size_t, const EventCap::value_type&, double seconds );
+        // QList< QStandardItem * > make_row( const adcontrols::ControlMethod::ModuleCap&, size_t, const EventCap::value_type&, double seconds );
+        QList< QStandardItem * > make_row( const adcontrols::ControlMethod::TimedEvent& e ) const;
 
         void refreshTable();
 
@@ -144,7 +149,7 @@ namespace adwidgets {
                                    , const QModelIndex& index )
             : painter_( painter ), option_( option ), index_( index ) {
         }
-        
+
         template< typename T > void operator()( const T& t ) const {
             if ( index_.column() ==  TimedEventsWidget::impl::c_time )
                 painter_->drawText( option_.rect, option_.displayAlignment, QString::number( index_.data( Qt::EditRole ).toDouble(), 'f', 3 /* 0.001 */ ) );
@@ -204,15 +209,15 @@ namespace adwidgets {
         template< typename T > QVariant operator()( const T& t ) const { return QVariant( t.value ); } // voltage, switch & choice may handle here
     };
     template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::duration_type& t ) const {
-        return t.value;  // seconds 
+        return t.value;  // seconds
     }
-    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::delay_width_type& t ) const {    
+    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::delay_width_type& t ) const {
         return t.value.first * 1.0e6; // delay (s) -> us
-    }    
-    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::any_type& t ) const {    
+    }
+    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::any_type& t ) const {
         return QString( "" );
-    }    
-    
+    }
+
     /////////////////// set model data ////////////////////////////
     struct TimedEventsWidget_setModelData : boost::static_visitor< void > {
         QWidget * editor_;
@@ -223,7 +228,7 @@ namespace adwidgets {
                                         , const QModelIndex& index )
             : editor_( editor ), model_( model ), index_( index ) {
         }
-        
+
         template< typename T > void operator()( const T& t ) const { model_->setData( index_, t, Qt::EditRole ); }
     };
 
@@ -349,7 +354,7 @@ namespace adwidgets {
         auto spinbox = new QDoubleSpinBox( parent_ );
         spinbox->setMinimum( t.limits.first );
         spinbox->setMaximum( t.limits.second );
-        spinbox->setSingleStep( 0.1 ); 
+        spinbox->setSingleStep( 0.1 );
         spinbox->setValue( t.value );
         spinbox->setDecimals( 2 );
         return spinbox;
@@ -367,7 +372,7 @@ namespace adwidgets {
         } else {
             spinbox->setValue( t.value.second * 1e6 );
         }
-        return spinbox;        
+        return spinbox;
     }
 
     /////////////////////// Function ////////////////////////////
@@ -381,7 +386,7 @@ namespace adwidgets {
         }
     };
 
-    template<> QWidget * 
+    template<> QWidget *
     TimedEventsWidget_createEditor<TimedEventsWidget::impl::c_item_name>::operator()( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const
     {
         int currSel = index.data( Qt::UserRole + 1 ).toInt();
@@ -395,7 +400,7 @@ namespace adwidgets {
         return nullptr;
     }
 
-    template<> QWidget * 
+    template<> QWidget *
     TimedEventsWidget_createEditor<TimedEventsWidget::impl::c_value>::operator()( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const
     {
         auto value = index.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
@@ -407,13 +412,13 @@ namespace adwidgets {
         return nullptr;
     }
 
-    template<> QWidget * 
+    template<> QWidget *
     TimedEventsWidget_createEditor<TimedEventsWidget::impl::c_value_2>::operator()( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const
     {
         auto value = index.model()->data( index.model()->index( index.row(), TimedEventsWidget::impl::c_value ), Qt::UserRole + 1 ).value< EventCap::value_type >();
         if ( auto cap = impl_.findEventCap( index ) ) {
             if ( cap->default_value().type() == typeid( adcontrols::ControlMethod::delay_width_type ) ) {
-                if ( value.type() != typeid( adcontrols::ControlMethod::delay_width_type ) ) 
+                if ( value.type() != typeid( adcontrols::ControlMethod::delay_width_type ) )
                     value = cap->default_value();
                 return boost::apply_visitor( TimedEventsWidget_createValueEditor( parent, option, index ), value );
             }
@@ -429,7 +434,7 @@ namespace adwidgets {
     public:
         delegate( impl& t ) : impl_( t ) {
         }
-        
+
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             if ( index.column() == impl::c_time ) {
                 TimedEventsWidget_painter( painter, option, index )( index.data( Qt::EditRole ).toDouble() );
@@ -525,7 +530,7 @@ namespace adwidgets {
             QSize sz =  QStyledItemDelegate::sizeHint( option, index );
             return sz;
         }
-        
+
     };
 
 }
@@ -542,7 +547,7 @@ TimedEventsWidget::TimedEventsWidget(QWidget *parent) : QWidget(parent)
 
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( new TimedTableView ) );
-            splitter->addWidget( ( new QPushButton() ) ); 
+            splitter->addWidget( ( new QPushButton() ) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 5 );
             splitter->setOrientation( Qt::Vertical );
@@ -551,7 +556,7 @@ TimedEventsWidget::TimedEventsWidget(QWidget *parent) : QWidget(parent)
     }
 
     if ( auto table = findChild< TimedTableView * >() ) {
-        
+
         table->setModel( impl_->model_.get() );
         table->setItemDelegate( new delegate( *impl_ ) );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
@@ -619,7 +624,7 @@ TimedEventsWidget::getContents( boost::any& a ) const
 
         return true;
     }
-    
+
     return false;
 }
 
@@ -659,7 +664,7 @@ TimedEventsWidget::getContents( adcontrols::ControlMethod::TimedEvents& m ) cons
     }
 
     std::sort( m.begin(), m.end(), []( const auto& a, const auto& b ){ return a.time() < b.time(); } );
-    
+
     return true;
 }
 
@@ -671,13 +676,19 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
     model.setRowCount( 0 );
     int row = 0;
 
-#if ! defined NDEBUG && 0
-    for ( auto it = m.begin(); it != m.end(); ++it ) {
-        ADDEBUG() << "set " << it->time() << ", " << it->item_name() << ", " << it->item_display_name();
-    }
-#endif            
+#if ! defined NDEBUG // && 0
+    ADDEBUG() << "TimedEventsWidget -- setContents";
+#endif
 
-    std::for_each( m.begin(), m.end(), [&] ( const adcontrols::ControlMethod::TimedEvent& timeEvent ) {
+    std::for_each( m.begin(), m.end(), [&] ( const adcontrols::ControlMethod::TimedEvent& e ) {
+#if !defined NDEBUG
+        auto obj = QJsonDocument::fromJson( e.json().data() ).object();
+        qDebug() << obj;
+#endif
+        auto items = impl_->make_row( e );
+        model.insertRow( row++, items );
+
+#if 0
         auto it = impl_->capList_.find( timeEvent.modelClsid() );
         if ( it != impl_->capList_.end() ) {
             const ModuleCap& moduleCap = it->second;
@@ -691,10 +702,11 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
                 model.insertRow( row, items );
                 ++row;
             } else {
-                assert(0);
+                ADDEBUG() << "-------- not in the eventCap -----";
+                // assert(0);
             }
         }
-
+#endif
     } );
     return true;
 }
@@ -712,7 +724,7 @@ void
 TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
-    
+
     if ( auto table = this_->findChild< TimedTableView * >() ) {
 
         menu.addAction( "Refresh", [&](){ refreshTable(); } );
@@ -735,69 +747,70 @@ TimedEventsWidget::addModuleCap( const std::vector< adcontrols::ControlMethod::M
 void
 TimedEventsWidget::impl::addLine( const adcontrols::ControlMethod::ModuleCap& modcap )
 {
-    int row = model_->rowCount();
-    double seconds = 0;
-    if ( row ) 
-        seconds = model_->index( row - 1, c_time ).data().toDouble();
+    const int row = model_->rowCount();
+    double time = 0;
+    if ( row )
+        time = model_->index( row - 1, c_time ).data().toDouble();
 
-    auto items = make_row( modcap, 0, modcap.eventCaps().at( 0 ).default_value(), seconds );
-    if ( ! items.empty() ) {
-        model_->insertRow( row, items );
-    } else {
-        model_->insertRow( row );
-    }
+    auto cap = modcap.eventCaps()[ 0 ];
+    auto te = adcontrols::ControlMethod::TimedEvent( modcap, cap, time, cap.default_value() );
+    model_->insertRow( model_->rowCount(), make_row( te ) );
 }
 
+
 QList< QStandardItem * >
-TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& modcap, size_t capIdx, const EventCap::value_type& value, double seconds )
+TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::TimedEvent& e ) const
 {
     QList< QStandardItem * > items;
-    if ( modcap.eventCaps().empty() )
-        return items;
 
     // clsid (hidden)
     if ( auto item = new QStandardItem() ) {
         QVariant v;
-        v.setValue<>( modcap.clsid() );
+        v.setValue<>( e.modelClsid() );
         item->setData( v, Qt::UserRole + 1 );
         item->setEditable( false );
         items.push_back( item );
     }
-    
+
     // time (seconds)
     if ( auto item = new QStandardItem() ) {
-        item->setData( seconds, Qt::EditRole );
+        item->setData( e.time(), Qt::EditRole );
         items.push_back( item );
     }
 
     // module display_name, not editable
     if ( auto item = new QStandardItem() ) {
-        item->setData( QString::fromStdString( modcap.model_display_name() ), Qt::EditRole );
+        item->setData( QString::fromStdString( e.modelDisplayName() ), Qt::EditRole );
         item->setEditable( false );
         items.push_back( item );
     }
 
-    // item display_name    
+    // item display_name
     if ( auto item = new QStandardItem() ) {
-        const auto& cap = modcap.eventCaps().at( capIdx );
-        item->setData( QString::fromStdString( cap.item_display_name() ), Qt::EditRole );
+        item->setData( QString::fromStdString( e.itemDisplayName() ), Qt::EditRole );
+        int capIdx = 0;
         item->setData( int( capIdx ), Qt::UserRole + 1 );
         items.push_back( item );
     }
 
     // value
     if ( auto item = new QStandardItem() ) {
-        if ( !modcap.eventCaps().empty() ) {
-            item->setData( boost::apply_visitor( TimedEventsWidget_displayValue(), value ), Qt::DisplayRole );
-            QVariant v;
-            v.setValue<>( value );
-            item->setData( v, Qt::UserRole + 1 );
-        } else {
-            item->setData( 0.0, Qt::EditRole );
-        }
+        auto value = e.value();
+        item->setData( boost::apply_visitor( TimedEventsWidget_displayValue(), value ), Qt::DisplayRole );
+        QVariant v;
+        v.setValue<>( value );
+        item->setData( v, Qt::UserRole + 1 );
+        // if ( !modcap.eventCaps().empty() ) {
+        //     item->setData( boost::apply_visitor( TimedEventsWidget_displayValue(), value ), Qt::DisplayRole );
+        //     QVariant v;
+        //     v.setValue<>( value );
+        //     item->setData( v, Qt::UserRole + 1
+        // } else {
+        //     item->setData( 0.0, Qt::EditRole );
+        // }
         items.push_back( item );
     }
-
+#if 0
     // value_2 ( delay_width_type only )
     if ( auto item = new QStandardItem() ) {
         if ( value.type() == typeid( adcontrols::ControlMethod::delay_width_type ) ) {
@@ -808,6 +821,6 @@ TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& m
             item->setEditable( false );
         }
     }
-
+#endif
     return items;
 }

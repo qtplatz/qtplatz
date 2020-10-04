@@ -125,9 +125,9 @@ public:
     static IEditor *currentEditor();
     static QList<IEditor *> visibleEditors();
 
-    static void activateEditor(IEditor *editor, OpenEditorFlags flags = 0);
-    static void activateEditorForEntry(DocumentModel::Entry *entry, OpenEditorFlags flags = 0);
-    static IEditor *activateEditorForDocument(IDocument *document, OpenEditorFlags flags = 0);
+    static void activateEditor(IEditor *editor, OpenEditorFlags flags = OpenEditorFlags());
+    static void activateEditorForEntry(DocumentModel::Entry *entry, OpenEditorFlags flags = OpenEditorFlags());
+    static IEditor *activateEditorForDocument(IDocument *document, OpenEditorFlags flags = OpenEditorFlags());
 
     static bool closeDocuments(const QList<IDocument *> &documents, bool askAboutModifiedEditors = true);
     static void closeEditor(DocumentModel::Entry *entry);

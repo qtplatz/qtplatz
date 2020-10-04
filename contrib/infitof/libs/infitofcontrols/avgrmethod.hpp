@@ -27,6 +27,7 @@
 #include "infitofcontrols_global.hpp"
 #include <admtcontrols/orbitprotocol.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -46,6 +47,12 @@ namespace infitofcontrols {
 
     class AvgrMethod {
     public:
+        // dialog "{0EB051AB-7820-4FB5-B5A4-7359A13D8CD1}";
+        static constexpr boost::uuids::uuid __dlg_clsid = {{ 0x0e, 0xb0, 0x51, 0xab, 0x78, 0x20, 0x4f, 0xb5, 0xb5, 0xa4, 0x73, 0x59, 0xa1, 0x3d, 0x8c, 0xd1 }};
+
+        // this 9dc75ee5-16e2-50a2-b82a-fb31898ec105
+        static constexpr boost::uuids::uuid __clsid = {{ 0x9d, 0xc7, 0x5e, 0xe5, 0x16, 0xe2, 0x50, 0xa2, 0xb8, 0x2a, 0xfb, 0x31, 0x89, 0x8e, 0xc1, 0x05 }};
+
         static const char * modelClass() { return "InfiTOF,Avgr"; }
         static const char * itemLabel()  { return "Avgr"; }
         static const boost::uuids::uuid& clsid();
