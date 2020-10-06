@@ -31,7 +31,9 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/optional.hpp>
 #include <boost/optional.hpp>
+#if __cplusplus >= 201703L
 #include <optional>
+#endif
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -53,14 +55,14 @@ namespace adcontrols {
                         , std::function<double( double )> mass_assignee = std::function<double( double )>() );
 
         double mass() const;
-        
+
         void assign_mass( double );     // this will change centroid left/right values (for lock mass)
         void set_mass( double mass, double left, double right );
 
         double area() const;
         void set_area( double );
         //void setArea( double );
-        
+
         double height() const;
         void set_height( double );
         double time( bool from_time = false ) const;
@@ -76,7 +78,7 @@ namespace adcontrols {
 
         double centroid_left( bool time = false ) const;
         void set_centroid_left( double t, bool time );
-        
+
         double centroid_right( bool time = false ) const;
         void set_centroid_right( double t, bool time );
 

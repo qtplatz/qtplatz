@@ -141,7 +141,7 @@ namespace adcontrols {
             template<class Archive> void serialize( Archive& ar, T& _, const unsigned int version )
             {
                 using namespace boost::serialization;
-                if ( version == 0 ) {
+                if ( version == 0 && Archive::is_loading::value ) {
                     boost::uuids::uuid clsid = {{0}};
                     std::string module_display_name, item_name, item_display_name;
                     double time;
@@ -152,14 +152,6 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( item_display_name );
                     ar & BOOST_SERIALIZATION_NVP( time );
                     ar & BOOST_SERIALIZATION_NVP( value );
-
-                    ADDEBUG() << "clsid: " << clsid;
-                    ADDEBUG() << "module_display_name: " << module_display_name;
-                    ADDEBUG() << "item_name: " << item_name;
-                    ADDEBUG() << "item_display_name: " << item_display_name;
-                    ADDEBUG() << "time: " << time;
-                    ADDEBUG() << "value: " << TimedEvent::toString( value );
-
                     _.ptree_->put( "modelClsid", clsid );
                     _.ptree_->put( "modelDisplayName", module_display_name );
                     _.ptree_->put( "name", item_name );
@@ -170,11 +162,6 @@ namespace adcontrols {
                 if ( version >= 1 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.ptree_ );
                 }
-#if !defined NDEBUG
-                std::ostringstream o;
-                boost::property_tree::write_json( o, *_.ptree_ );
-                ADDEBUG() << "\n" << o.str();
-#endif
             }
         };
 
@@ -235,9 +222,7 @@ TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, do
     ptree_->put_child( "data", values );
 
 #if !defined NDEBUG
-    std::ostringstream o;
-    boost::property_tree::write_json( o, *ptree_ );
-    ADDEBUG() << "\n" << o.str();
+    ADDEBUG() << *ptree_;
 #endif
 
 }
@@ -305,7 +290,6 @@ TimedEvent::modelDisplayName() const
 TimedEvent::value_type
 TimedEvent::value() const
 {
-    ADDEBUG() << "----------- value ------------";
     if ( auto typ = ptree_->get_optional< std::string >( "data.type" ) ) {
         if ( *typ == "any_type" ) {
             if ( auto value = ptree_->get_optional< std::string >( "data.value" ) ) {
