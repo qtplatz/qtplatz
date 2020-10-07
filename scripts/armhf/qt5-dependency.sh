@@ -3,13 +3,17 @@
 #=========================
 #     Preparation
 #========================
-QTVER=5.12.3
+
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/constants.sh
+
 QTDIR=/opt/Qt/${QTVER}
 QTSRC=${QTDIR}/Src/qtbase
 
-mkdir /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
-cp -r /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabi-g++/* /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
-sed -i -e 's/arm-linux-gnueabi-/arm-linux-gnueabihf-/g' /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++/qmake.conf
+if ! ${cwd}/qt5-mkspecs.sh; then
+	echo "qt5-mkspecs.sh script failed."
+	exit 1
+fi
 
 failed_list=()
 list_dependency+=('libclang-3.8-dev'
@@ -23,10 +27,11 @@ list_dependency+=('mesa-common-dev:armhf'
 				  'freeglut3-dev:armhf'
 				  )
 
-
 for arg in "${list_dependency[@]}"; do
-    echo sudo apt-get install -y "$arg"
-    sudo apt-get install -y "$arg" || failed_list+=("$arg")
+	if ! dpkg -s "$arg" ; then
+		echo sudo apt-get install -y "$arg"
+		sudo apt-get install -y "$arg" || failed_list+=("$arg")
+	fi
 done
 
 if [ ${#failed_list[@]} -gt 0 ]; then

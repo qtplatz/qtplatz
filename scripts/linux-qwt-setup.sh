@@ -13,7 +13,9 @@ fi
 echo "==========================="
 echo "Install qwt using $QMAKE"
 prompt
-   
+
+# https://sourceforge.net/projects/qwt/files/latest/download
+
 if ! type svn >/dev/null; then
     sudo apt-get -y install subversion
 fi
@@ -40,4 +42,3 @@ make -j4
 echo "==========================="
 echo "sudo make install on `pwd`"
 sudo make install
-

@@ -55,6 +55,7 @@ default_debian_10:
 	@echo "make qemu"
 	@echo "make cross-tools"
 	@echo "make boost-armhf"
+	@echo "make qt5-armhf"
 	@echo "make gnuplot"
 	@echo "make rtags -- run 'apt install rtags' after install llvm; see https://apt.llvm.org/"
 	@echo "make code"
@@ -79,6 +80,7 @@ default:
 	@echo "make qemu"
 	@echo "make cross-tools"
 	@echo "make boost-armhf"
+	@echo "make qt5-armhf"
 	@echo "make gnuplot"
 	@echo "make rtags"
 	@echo "make code"
@@ -116,6 +118,12 @@ boost:
 
 boost-armhf:
 	cross_target=armhf ./linux-boost-setup.sh
+
+qt5-armhf-dependency:
+	./armhf/qt5-dependency.sh
+
+qt5-armhf: qt5-armhf-dependency
+	./armhf/qt5-build.sh
 
 maeparser:
 	./linux-maeparser-setup.sh
