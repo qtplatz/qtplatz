@@ -25,6 +25,7 @@
 
 #include "adwidgets_global.hpp"
 #include <adportable/optional.hpp>
+#include <boost/optional.hpp>
 #include <vector>
 #include <QString>
 
@@ -35,7 +36,7 @@ class QByteArray;
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT MolTableHelper;
-    
+
     class MolTableHelper {
     public:
         struct SmilesToSVG {
@@ -50,7 +51,9 @@ namespace adwidgets {
             std::vector< value_type > operator()( const QClipboard* ) const;     // paste
         };
 
-        static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );        
+        static boost::optional< std::pair<double, double> > logP( const QString& smiles );
+
+        static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
     };
 
 }

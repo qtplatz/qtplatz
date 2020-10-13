@@ -77,26 +77,8 @@ namespace adwidgets {
         stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
                 return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
             });
-        ///////////////////////
         return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
     }
-#if 0
-    static QVector<double> computeMasses( const QString& formula, const QString& adducts, QString& stdFormula )
-    {
-        QVector<double> masses;
-        std::string stdformula = formula.toStdString();
-        std::string stdadducts = adducts.toStdString();
-        auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
-
-        std::for_each( v.begin(), v.end(), [&]( const std::string& f ){ masses << adcontrols::ChemicalFormula().getMonoIsotopicMass( f ); } );
-
-        stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
-                return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
-            });
-
-        return masses;
-    }
-#endif
     /////////////////
 
     class MolTable::delegate : public QStyledItemDelegate {
@@ -224,15 +206,20 @@ namespace adwidgets {
 
             model.setData( model.index( row, c_svg ), svg );
 
-            if ( svg.isEmpty() && !smiles.isEmpty() ) {
-                if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
+            if ( !smiles.isEmpty() ) {
+                if ( svg.isEmpty() ) {
+                    if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
 #if __cplusplus >= 201703L
-                    auto [ formula, svg ] = *d;
+                        auto [ formula, svg ] = *d;
 #else
-                    QByteArray svg;
-                    std::tie( std::ignore, svg ) = *d;
+                        QByteArray svg;
+                        std::tie( std::ignore, svg ) = *d;
 #endif
-                    model.setData( model.index( row, c_svg ), svg );
+                        model.setData( model.index( row, c_svg ), svg );
+                    }
+                }
+                if ( auto res = MolTableHelper::logP( smiles ) ) {
+                    model.setData( model.index( row, c_logp ), res->first );
                 }
             }
 
@@ -324,6 +311,7 @@ MolTable::onInitialUpdate()
     model.setHeaderData( c_svg, Qt::Horizontal, QObject::tr( "structure" ) );
     model.setHeaderData( c_smiles, Qt::Horizontal, QObject::tr( "SMILES" ) );
     model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
+    model.setHeaderData( c_logp, Qt::Horizontal, QObject::tr( "log P" ) );
     // setEditTriggers( QAbstractItemView::AllEditTriggers );
 
     setColumnHidden( c_msref, true );

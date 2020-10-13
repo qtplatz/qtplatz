@@ -22,6 +22,7 @@
 **************************************************************************/
 
 #include "moltablehelper.hpp"
+#include <adchem/mol.hpp>
 #include <adchem/sdmolsupplier.hpp>
 #include <adchem/smilestosvg.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -106,4 +107,12 @@ MolTableHelper::monoIsotopicMass( const QString& formula, const QString& adducts
         expr += " " + adducts;
     double exactMass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( expr.toStdString() ) );
     return exactMass;
+}
+
+//static
+boost::optional< std::pair< double, double > >
+MolTableHelper::logP( const QString& smiles )
+{
+    auto mol = adchem::mol( smiles.toStdString() );
+    return mol.logP();
 }

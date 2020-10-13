@@ -28,6 +28,7 @@
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
+#include <GraphMol/Descriptors/Crippen.h>
 #include <GraphMol/inchi.h>
 
 using namespace adchem;
@@ -104,4 +105,15 @@ std::string
 mol::InChIToInChIKey( const std::string& inchi )
 {
     return RDKit::InchiToInchiKey( inchi );
+}
+
+boost::optional< std::pair< double, double > >
+mol::logP() const
+{
+    if ( mol_ ) {
+        double logp, mr;
+        RDKit::Descriptors::calcCrippenDescriptors(*mol_, logp, mr );
+        return {{ logp, mr }};
+    }
+    return boost::none;
 }

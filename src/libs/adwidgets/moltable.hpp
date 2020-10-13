@@ -50,6 +50,7 @@ namespace adwidgets {
             , c_description
             , c_svg
             , c_smiles
+            , c_logp
             , nbrColums
         };
 
@@ -82,7 +83,7 @@ namespace adwidgets {
     signals:
         void onContextMenu( QMenu&, const QPoint& );
         void onValueChanged();
-                                           
+
     private slots:
         void handleCopyToClipboard() override;
         void handlePaste() override;

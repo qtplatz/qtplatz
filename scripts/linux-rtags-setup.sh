@@ -16,6 +16,7 @@ fi
 
 echo "=========="
 echo "building rtags on the directory '$SRC'"
+echo "Try: 'apt-get install libclang-3.8-dev' build failed with <clang-c/Index.h> matter"
 
 if [ ! -d $SRC ]; then
     echo "$SRC not exist.  Create?"
