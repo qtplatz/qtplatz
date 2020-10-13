@@ -44,7 +44,7 @@ id INTEGER PRIMARY KEY \
 ,mass REAL \
 ,csid NUMBER \
 ,cite TEXT )" );
-    
+
     result &= sql.exec(
         "CREATE TABLE IF NOT EXISTS synonyms (\
 id INTEGER PRIMARY KEY \

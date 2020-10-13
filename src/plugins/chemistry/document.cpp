@@ -109,6 +109,7 @@ namespace chemistry {
         , { "Cc1nnc(s1)NS(=O)(=O)c2ccc(cc2)N",       "sulfamethizole" }       // 270
         , { "C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C", "Cholesterol" }
         , { "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "Caffine" }
+        , { "c1ccc2ccccc2c1", "Naphthalene" }
     };
 
 }

@@ -110,7 +110,7 @@ MolTableHelper::monoIsotopicMass( const QString& formula, const QString& adducts
 }
 
 //static
-boost::optional< std::pair< double, double > >
+adportable::optional< std::pair< double, double > >
 MolTableHelper::logP( const QString& smiles )
 {
     auto mol = adchem::mol( smiles.toStdString() );

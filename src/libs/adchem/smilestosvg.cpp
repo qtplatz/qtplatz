@@ -35,20 +35,24 @@
 //#include <GraphMol/FileParsers/MolSupplier.h>
 #include <RDGeneral/RDLog.h>
 #endif
+#include <adportable/debug.hpp>
 
 using namespace adchem;
 
 
-adportable::optional< adchem::SmilesToSVG::value_type > 
+adportable::optional< adchem::SmilesToSVG::value_type >
 SmilesToSVG::operator()( const std::string& smiles ) const
 {
 #if HAVE_RDKit
-    if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles, 0, false ) ) ) {
-        mol->updatePropertyCache( false );
-        auto svg = adchem::drawing::toSVG( *mol );
-        return std::make_tuple( RDKit::Descriptors::calcMolFormula( *mol, true, false ), svg );
+    try {
+        if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles, 0, false ) ) ) {
+            mol->updatePropertyCache( false );
+            auto svg = adchem::drawing::toSVG( *mol );
+            return std::make_tuple( RDKit::Descriptors::calcMolFormula( *mol, true, false ), svg );
+        }
+    } catch( std::exception& ex ) {
+        ADDEBUG() << "Exception:: " << ex.what();
     }
 #endif
     return {};
 }
-

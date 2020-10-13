@@ -26,7 +26,7 @@
 #define MOL_HPP
 
 #include "adchem_global.hpp"
-#include <boost/optional.hpp>
+#include <adportable/optional.hpp>
 #include <memory>
 #include <string>
 
@@ -45,7 +45,7 @@ namespace adchem {
         inline operator RDKit::ROMol * () { return mol_.get(); }
         static std::string smiles( const RDKit::ROMol& );
         static std::string formula( const RDKit::ROMol&, bool separateIsotopes = true, bool abbreviateHIsotopes = false );
-        boost::optional< std::pair< double, double > > logP() const;
+        adportable::optional< std::pair< double, double > > logP() const;
 
         std::string formula() const;
         std::string smiles() const;

@@ -30,6 +30,8 @@
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/Descriptors/Crippen.h>
 #include <GraphMol/inchi.h>
+#include <adportable/debug.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace adchem;
 
@@ -107,13 +109,17 @@ mol::InChIToInChIKey( const std::string& inchi )
     return RDKit::InchiToInchiKey( inchi );
 }
 
-boost::optional< std::pair< double, double > >
+adportable::optional< std::pair< double, double > >
 mol::logP() const
 {
     if ( mol_ ) {
         double logp, mr;
-        RDKit::Descriptors::calcCrippenDescriptors(*mol_, logp, mr );
-        return {{ logp, mr }};
+        try {
+            RDKit::Descriptors::calcCrippenDescriptors(*mol_, logp, mr );
+            return {{ logp, mr }};
+        } catch ( std::exception& ex ) {
+            ADDEBUG() << "Exception: " << ex.what();
+        }
     }
-    return boost::none;
+    return {};
 }
