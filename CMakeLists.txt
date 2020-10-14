@@ -130,7 +130,6 @@ endif()
 
 if ( WITH_PYTHON3 )
   find_package( Python3 COMPONENTS Interpreter Development )
-  message( STATUS "################# Python3: " ${Python3_FOUND} "\t" ${Python3_VERSION} )
 endif()
 
 if ( WIN32 )
@@ -144,8 +143,6 @@ if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
 else()
 endif()
-
-message( STATUS "############ BOOST_ROOT: " ${BOOST_ROOT} )
 
 find_package( Boost 1.69 REQUIRED COMPONENTS
   atomic
@@ -170,7 +167,6 @@ if ( Boost_FOUND )
   if ( ${Boost_VERSION} VERSION_EQUAL "1.73"
       OR ${Boost_VERSION} EQUAL "107300" )
     add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 ) # workaround for boost-1.73
-    message( STATUS "#### BOOST_BIND_GLOBAL_PLACEHOLDERS=1 #####" )
   endif()
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
@@ -352,7 +348,6 @@ endif()
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
-message( STATUS "======== QMAKE; " ${QMAKE} )
 include (config_qtplatz_config)
 
 config_qtplatz_config( "TRUE" )   # installed
@@ -366,6 +361,7 @@ configure_file(
 include( CPack )
 
 message( STATUS "---------- SUMMARY ------------" )
+message( STATUS "# BOOST_BIND_GLOBAL_PLACEHOLDERS=" ${BOOST_BIND_GLOBAL_PLACEHOLDERS} )
 message( STATUS "# QTPLATZ_BINARY_DIR    : " ${QTPLATZ_BINARY_DIR} )
 if ( QTPLATZ_CORELIB_ONLY )
   message( STATUS "# QTPLATZ_CORELIB_ONLY  : " ${QTPLATZ_CORELIB_ONLY} )
@@ -394,7 +390,7 @@ message( STATUS "# RDKit                 : " ${rdkit_FOUND} )
 if ( rdkit_FOUND )
   message( STATUS "# RDKit VERSION         : " ${RDKit_PACKAGE_VERSION} )
   message( STATUS "\t# RDBASE           : " ${RDBASE} )
-  if ( VERBOSE AND 1 )
+  if ( VERBOSE )
     foreach ( _dir ${RDKit_INCLUDE_DIRS} )
       message( STATUS "\t# INCLUDE          : " ${_dir} )
     endforeach()

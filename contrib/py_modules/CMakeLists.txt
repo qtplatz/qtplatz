@@ -21,8 +21,8 @@ if ( Python3_FOUND )
   endif()
 
   if ( VERBOSE )
-    message( STATUS "------------> contrib/py_modules == " ${PYTHON_DIST_PACKAGES})
-    message( STATUS "------------> contrib/py_modules == " ${PYTHON_MODULE_DIR})
+    message( STATUS "------------> contrib/py_modules PYTHON_DIST_PACKAGES: " ${PYTHON_DIST_PACKAGES})
+    message( STATUS "------------> contrib/py_modules PYTHON_MODULE_DIR: " ${PYTHON_MODULE_DIR})
   endif()
 
   configure_file(
@@ -37,9 +37,15 @@ if ( Python3_FOUND )
     )
 
   add_subdirectory( world )
-  message( STATUS "------------> contrib/py_modules/adControls")
+
+  if ( VERBOSE )
+    message( STATUS "------------> contrib/py_modules/adControls")
+  endif()
   add_subdirectory( adControls )
-  message( STATUS "------------> contrib/py_modules/adProcessor")
+
+  if ( VERBOSE )
+    message( STATUS "------------> contrib/py_modules/adProcessor")
+  endif()
   add_subdirectory( adProcessor )
 
   install( FILES  __init__.py DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules )

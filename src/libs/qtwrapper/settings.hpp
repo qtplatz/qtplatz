@@ -54,10 +54,11 @@ namespace qtwrapper {
         }
         template< typename T > setValue_t& operator << ( std::pair< QString, T>&& t ) {
             settings_.setValue( t.first, t.second );
+            return *this;
         };
         template< typename T> setValue_t& operator()( std::pair< QString, T>&& t ) {
             settings_.setValue( t.first, t.second );
-        };        
+            return *this;
+        };
     };
 }
-

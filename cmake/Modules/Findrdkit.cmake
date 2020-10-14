@@ -18,7 +18,10 @@ list ( APPEND _rdkit_libdirs ${RDBASE} "${CMAKE_SOURCE_DIR}/../rdkit/lib/cmake/r
 
 find_file( rdkit_config_cmake "rdkit-config.cmake" PATHS ${_rdkit_libdirs} )
 
+set ( VERBOSE ON )
+
 if ( rdkit_config_cmake )
+  message( STATUS "##### found rdkit_config_cmake: " ${rdkit_config_cmake} )
 
   include( ${rdkit_config_cmake} )
 
@@ -27,46 +30,82 @@ if ( rdkit_config_cmake )
 
   find_file( version_cmake NAMES "rdkit-config-version.cmake" PATHS ${_dir} NO_DEFAULT_PATH )
 
+  if ( VERBOSE )
+    message( STATUS "##### found rdkit_config_cmake dir: " ${_dir} )
+    message( STATUS "##### found rdkit_config_cmake prefix: " ${_prefix} )
+    message( STATUS "##### version_cmake: " ${version_cmake} )
+  endif()
+
   if ( version_cmake )
     include( ${version_cmake} )
     set( RDKit_PACKAGE_VERSION ${PACKAGE_VERSION} )
   endif()
 
   if ( VERBOSE )
-    message( STATUS "##### findrdkit.cmake -- RDKit_PACKAGE_VERSION = " ${RDKit_PACKAGE_VERSION} )
+    message( STATUS "##### find rdkit.cmake -- RDKit_PACKAGE_VERSION = " ${RDKit_PACKAGE_VERSION} )
   endif()
 
-  set ( RDKit_LIBRARIES
-    Catalogs
-    ChemReactions
-    DataStructs
-    Depictor
-    Descriptors
-    EigenSolvers
-    FileParsers
-    FilterCatalog
-    Fingerprints
-    GraphMol
-    MolDraw2D
-    PartialCharges
-    SubstructMatch
-    ChemTransforms
-    Subgraphs
-    MolTransforms
-    RDGeometryLib
-    RDGeneral
-    Inchi
-    RDInchiLib
-    SmilesParse
-    )
-
-  get_target_property( _path RDGeneral IMPORTED_LOCATION_RELEASE )
+  set ( rdkit_import_prefix TRUE )
+  get_target_property( _path RDKit::RDGeneral IMPORTED_LOCATION_RELEASE )
   if ( NOT _path )
-    message( FATAL_ERROR "##### Cannot get RDKit library location #####" )
-    return()
+    get_target_property( _path RDGeneral IMPORTED_LOCATION_RELEASE )
+    set ( rdkit_import_prefix FALSE )
+    if ( NOT _path )
+      message( FATAL_ERROR "##### Cannot get RDKit library location #####" )
+      return()
+    endif()
   endif()
   get_filename_component( RDKit_LIBRARY_DIRS ${_path} PATH )
 
+  if ( rdkit_import_prefix )
+    set ( RDKit_LIBRARIES
+      RDKit::Catalogs
+      RDKit::ChemReactions
+      RDKit::DataStructs
+      RDKit::Depictor
+      RDKit::Descriptors
+      RDKit::EigenSolvers
+      RDKit::FileParsers
+      RDKit::FilterCatalog
+      RDKit::Fingerprints
+      RDKit::GraphMol
+      RDKit::MolDraw2D
+      RDKit::PartialCharges
+      RDKit::SubstructMatch
+      RDKit::ChemTransforms
+      RDKit::Subgraphs
+      RDKit::MolTransforms
+      RDKit::RDGeometryLib
+      RDKit::RDGeneral
+      RDKit::Inchi
+      RDKit::RDInchiLib
+      RDKit::SmilesParse
+      )
+  else()
+    set ( RDKit_LIBRARIES
+      Catalogs
+      ChemReactions
+      DataStructs
+      Depictor
+      Descriptors
+      EigenSolvers
+      FileParsers
+      FilterCatalog
+      Fingerprints
+      GraphMol
+      MolDraw2D
+      PartialCharges
+      SubstructMatch
+      ChemTransforms
+      Subgraphs
+      MolTransforms
+      RDGeometryLib
+      RDGeneral
+      Inchi
+      RDInchiLib
+      SmilesParse
+      )
+  endif()
   set( rdkit_FOUND TRUE )
   return()
 endif()

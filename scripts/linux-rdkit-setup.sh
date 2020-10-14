@@ -10,8 +10,18 @@ PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"da
 PYTHON=$(python3 -c "import sys; print(sys.executable)")
 
 arch=`uname`-`arch`
-
 __nproc nproc
+
+build_clean=false
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		clean)
+			shift
+			build_clean=true
+			;;
+	esac
+done
 
 if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/rdkit.release
@@ -28,6 +38,12 @@ else
 			BOOST_ROOT=/usr/local/boost-1_62
 		fi
     fi
+fi
+
+if [ $build_clean = true ]; then
+	set -x
+	rm -rf $BUILD_DIR
+	exit
 fi
 
 if [ `uname` == "Darwin" ]; then
@@ -75,12 +91,19 @@ if [ ! -d $RDBASE ]; then
     if [ ! -d $(dirname $RDBASE) ]; then
 		mkdir -p $(dirname $RDBASE)
     fi
+	if [ -d $BUILD_DIR ]; then
+	   # force clean destination if exists
+	   set -x
+	   rm -rf $BUILD_DIR
+	fi
     git clone https://github.com/rdkit/rdkit $RDBASE
 fi
 
-mkdir -p $BUILD_DIR;
-cd $BUILD_DIR;
+if [ ! -d $BUILD_DIR ]; then
+	mkdir -p $BUILD_DIR;
+fi
 
+cd $BUILD_DIR;
 echo "RDBASE    : " $RDBASE
 echo "BUILD_DIR : " `pwd`
 echo cmake "${cmake_args[@]}" $RDBASE

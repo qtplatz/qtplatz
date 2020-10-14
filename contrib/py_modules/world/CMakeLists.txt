@@ -2,8 +2,6 @@ cmake_minimum_required ( VERSION 3.13 )
 
 project (world)
 
-message( STATUS "------------> contrib/py_modules/world")
-
 find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
@@ -24,8 +22,6 @@ target_link_libraries( ${PROJECT_NAME}
   ${Python3_LIBRARIES}
   ${Boost_LIBRARIES}
   )
-
-message( STATUS "PROJECT_BIANRY_DIR: " ${PROJECT_BINARY_DIR} )
 
 if ( WIN32 )
   set ( suffix ".dll" )
