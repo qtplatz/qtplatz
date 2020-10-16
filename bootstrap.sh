@@ -25,10 +25,10 @@ while [ $# -gt 0 ]; do
 	    shift
 	    ;;
 	codelite)
-	    config=debug	    
+	    config=debug
 	    ide=codelite
 	    shift
-	    ;;	
+	    ;;
 	xcode)
 	    ide=xcode
 	    shift
@@ -66,7 +66,7 @@ if [ -z $cross_target ]; then
 	    ;;
 	*)
 	    source_dirs=( "$cwd" )
-	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
+	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
 	    if [ "$config" = "debug" ]; then
 			cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
 			if [ "$ide" = "eclipse" ]; then
@@ -84,7 +84,7 @@ else
     build_dirs=( "$build_root/build-$cross_target/qtplatz.$config" )
 fi
 
-## Clean destinatiuon 
+## Clean destinatiuon
 if [ $build_clean = true ]; then
     for build_dir in ${build_dirs[@]}; do
 	echo rm -rf $build_dir; rm -rf $build_dir
@@ -115,8 +115,8 @@ for build_dir in ${build_dirs[@]}; do
 
     echo "------------------------"
     echo "build for '$source_dir' --> '$build_dir'"
-    echo "------------------------"    
-    
+    echo "------------------------"
+
     echo "#" mkdir -p $build_dir
     echo "#" cd $build_dir
     mkdir -p $build_dir
@@ -125,30 +125,33 @@ for build_dir in ${build_dirs[@]}; do
 
     if [ -z $cross_target ]; then
 
-	echo cmake "${cmake_args[@]}" $source_dir
-	cmake "${cmake_args[@]}" $source_dir
+		echo cmake "${cmake_args[@]}" $source_dir
+		cmake "${cmake_args[@]}" $source_dir
 
     else
-	echo "#######################################"
-	echo "## Cross build for $cross_target"
-	echo "#######################################"	
-	case $cross_target in
-	    armhf|armv7l|arm-linux-gnueabihf|de0-nano-soc|helio)
-		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
-		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
-		      -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir
-		echo cp $toolchain_file $build_dir/toolchain.cmake
-		cp $toolchain_file toolchain.cmake 
-		;;
-	    raspi)
-		toolchain_file=$cwd/toolchain-raspi.cmake
-		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file -DCMAKE_PREFIX_PATH=/opt/qt5pi $source_dir
-		cp $toolchain_file toolchain.cmake
-		;;
-	    *)
-		echo "Unknown cross_target: $cross_target"
-		;;
-	esac    
+		echo "#######################################"
+		echo "## Cross build for $cross_target"
+		echo "#######################################"
+		case $cross_target in
+			armhf|armv7l|arm-linux-gnueabihf|de0-nano-soc|helio)
+				toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
+				cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
+					  -DWITH_QWT=OFF \
+					  -DWITH_OPENCV=OFF \
+					  -DWITH_RDKIT=OFF \
+					  $source_dir
+				echo cp $toolchain_file $build_dir/toolchain.cmake
+				cp $toolchain_file toolchain.cmake
+				;;
+			raspi)
+				toolchain_file=$cwd/toolchain-raspi.cmake
+				cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file -DCMAKE_PREFIX_PATH=/opt/qt5pi $source_dir
+				cp $toolchain_file toolchain.cmake
+				;;
+			*)
+				echo "Unknown cross_target: $cross_target"
+				;;
+		esac
     fi
     cd $cwd
     index=$((index+1))

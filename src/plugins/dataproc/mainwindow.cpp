@@ -138,7 +138,6 @@
 
 #include <functional>
 #include <fstream>
-#include <optional>
 
 namespace dataproc {
 
@@ -521,7 +520,7 @@ MainWindow::createContents( Core::IMode * mode )
 
     connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
     connect( SessionManager::instance(), &SessionManager::onProcessed, this, &MainWindow::handleProcessed );
-    
+
     // The handleSelectionChanged on MainWindow should be called in advance for all stacked child widgets.
     // This is significantly important for child widget has right QRectF for each QwtPlot.
     connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );

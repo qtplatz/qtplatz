@@ -27,7 +27,6 @@
 
 #include <QJsonObject>
 #include <QVariant>
-#include <optional>
 #include <adportable/optional.hpp>
 
 namespace qtwrapper {

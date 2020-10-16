@@ -52,7 +52,6 @@
 #include <boost/format.hpp>
 #include <atomic>
 #include <mutex>
-#include <optional>
 #include <set>
 
 using namespace adplot;
