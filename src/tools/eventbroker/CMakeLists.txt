@@ -10,25 +10,25 @@ link_directories( ${Boost_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib )
 
 add_definitions( -DEVENTBROKER_LIBRARY )
 
-if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" )
-  set( _libs pthread )
-endif()
+#if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" )
+#  set( _libs pthread )
+#endif()
 
 add_library( eventbroker SHARED
-  api.cpp 
-  document.cpp 
+  api.cpp
+  document.cpp
   )
 
 target_link_libraries( eventbroker LINK_PUBLIC
 		       adportable
 		       acewrapper
 		       ${Boost_LIBRARIES}
-		       ${_libs}
+		       Threads::Threads #${_libs}
 		       )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES

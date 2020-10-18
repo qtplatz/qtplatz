@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,6 +33,8 @@
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <iostream>
 
 using namespace eventbroker;
@@ -106,6 +108,34 @@ document::event_out( uint32_t value )
                                           for ( auto callback : handlers_ )
                                               callback( "event_out", code, duration, msg );
                                       } );
+        return true;
+    }
+    return false;
+}
+
+bool
+document::event_out( event_id value, uint64_t tp, const std::string& json )
+{
+    boost::property_tree::ptree pt;
+    pt.add( "EVENTOUT.id", value );
+    pt.add( "EVENTOUT.tp", tp );
+
+    if ( !json.empty() ) {
+        std::istringstream in( json );
+        boost::property_tree::ptree a;
+        boost::property_tree::read_json(in, a);
+        pt.add_child("EVENTOUT.data", a );
+    }
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+    if ( udpSender_ ) {
+        std::ostringstream o;
+        boost::property_tree::write_json( o, pt );
+        return udpSender_->send_to( o.str()
+                                    , [=] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
+                                        for ( auto callback : handlers_ )
+                                            callback( "event_out", code, duration, msg );
+                                    } );
         return true;
     }
     return false;

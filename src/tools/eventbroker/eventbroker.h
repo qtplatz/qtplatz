@@ -42,5 +42,6 @@ extern "C" {
 
     EVENTBROKER_EXPORT bool eventbroker_bind( const char * host, const char * port = "7125", bool bcast = false );
     EVENTBROKER_EXPORT bool eventbroker_out( uint32_t );
+    EVENTBROKER_EXPORT bool eventbroker_json_out( uint32_t id, uint64_t tp, const char * json );
 
 }

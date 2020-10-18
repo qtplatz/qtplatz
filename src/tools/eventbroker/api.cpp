@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -47,4 +47,10 @@ bool
 eventbroker_out( uint32_t value )
 {
     return eventbroker::document::instance()->event_out( value );
+}
+
+bool
+eventbroker_json_out( uint32_t id, uint64_t tp, const char * json )
+{
+    return eventbroker::document::instance()->event_out( eventbroker::event_id( id ), tp, json );
 }

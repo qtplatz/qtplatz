@@ -46,10 +46,10 @@ namespace http = boost::beast::http;
 
 namespace adurl {
 
+    class ajax;
     class ADURLSHARED_EXPORT request;
-    class ADURLSHARED_EXPORT ajax;
     class ADURLSHARED_EXPORT client;
-    
+
     template< typename request_type >
     struct request_functor {
         request_functor( const request_functor& t ) = delete;

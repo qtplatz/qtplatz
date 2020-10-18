@@ -37,6 +37,12 @@ namespace acewrapper { class udpEventSender; }
 
 namespace eventbroker {
 
+    enum event_id {
+        event_inject    = 0x00000001
+        , event_warning = 0x40000000
+        , event_error   = 0x80000000
+    };
+
     class document {
         document();
         static std::atomic< document * > instance_;
@@ -55,6 +61,7 @@ namespace eventbroker {
         bool unregister_handler( event_handler );
         bool bind( const char * host, const char * port, bool bcast );
         bool event_out( uint32_t );
+        bool event_out( event_id id, uint64_t epoch_time, const std::string& json = "{}" );
     };
 
 }
