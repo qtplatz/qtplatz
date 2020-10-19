@@ -33,8 +33,9 @@
 
 template< bool is_system_clock = true >
 struct date_time_t {
-    template< typename duration_t, typename clock_t, typename time_point_t >
+    template< typename duration_t, typename time_point_t >
     std::pair< std::time_t, duration_t > to_time_t( time_point_t tp ) {
+        typedef typename decltype( tp )::clock clock_t;
         std::cout << "-- system_clock -->";
         auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tp ) );
         return { utc, duration_t( std::chrono::time_point_cast< duration_t >( tp ) - date::floor< std::chrono::seconds >( tp ) ) };
@@ -42,9 +43,10 @@ struct date_time_t {
 };
 
 template<>
-template< typename duration_t, typename clock_t, typename time_point_t >
+template< typename duration_t, typename time_point_t >
 std::pair< std::time_t, duration_t >
 date_time_t< false >::to_time_t( time_point_t tp ) {
+    typedef typename decltype( tp )::clock clock_t;
     std::cout << "-- steady_clock -->";
     auto tt = std::chrono::time_point_cast< duration_t >( std::chrono::system_clock::now() ) + ( tp - clock_t::now() );
     auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tt ) );
@@ -73,30 +75,30 @@ template<> std::string subseconds_t<0>::operator()( uint64_t ) const {
 };
 
 struct date_time {
-    template< typename duration_t, typename clock_t, typename time_point_t >
+    template< typename duration_t, typename time_point_t >
     std::string to_iso( time_point_t tp, bool utc_offset = true ) {
+        typedef typename decltype( tp )::clock clock_t;
 #if __cplusplus < 201703L
-        std::time_t utc; duration_t duration;
-        std::tie( utc, duration )
+        std::time_t utc; duration_t subseconds;
+        std::tie( utc, subseconds )
 #else
-        auto [utc, duration]
+        auto [utc, subseconds]
 #endif
-            = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t, clock_t>( tp );
+            = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t >( tp );
 
-        auto subseconds = duration.count();
         subseconds_t< num_digits< duration_t::period::den >::value - 1 > subseconds_to_string;
 
         std::ostringstream o;
         if ( utc_offset ) {
-            boost::posix_time::time_duration tz( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );
-            o << std::put_time( std::localtime(&utc), "%FT%T" ) << subseconds_to_string( subseconds )
+            auto tz( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );
+            o << std::put_time( std::localtime(&utc), "%FT%T" ) << subseconds_to_string( subseconds.count() )
               << boost::format( "%c%02d%02d" )
                 % (tz.is_negative() ? '-' : '+')
                 % boost::date_time::absolute_value( tz.hours() )
                 % boost::date_time::absolute_value( tz.minutes() );
         } else {
             o << boost::posix_time::to_iso_extended_string( boost::posix_time::from_time_t( utc ) )
-              << subseconds_to_string( subseconds ) << "Z";
+              << subseconds_to_string( subseconds.count() ) << "Z";
         }
         return o.str();
     }
@@ -112,20 +114,20 @@ main()
     auto sys_tp = std::chrono::system_clock::now();
     auto sdy_tp = std::chrono::steady_clock::now();
 
-    std::cout << "us: " << date_time().to_iso< std::chrono::microseconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
-    std::cout << "ms: " << date_time().to_iso< std::chrono::milliseconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
-    std::cout << " s: " << date_time().to_iso< std::chrono::seconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
+    std::cout << "us: " << date_time().to_iso< std::chrono::microseconds >( sys_tp, true ) << std::endl;
+    std::cout << "ms: " << date_time().to_iso< std::chrono::milliseconds >( sys_tp, true ) << std::endl;
+    std::cout << " s: " << date_time().to_iso< std::chrono::seconds >( sys_tp, true ) << std::endl;
 
-    std::cout << "us: " << date_time().to_iso< std::chrono::microseconds, std::chrono::steady_clock >( sdy_tp, true ) << std::endl;
-    std::cout << "ms: " << date_time().to_iso< std::chrono::milliseconds, std::chrono::steady_clock >( sdy_tp, true ) << std::endl;
-    std::cout << " s: " << date_time().to_iso< std::chrono::seconds, std::chrono::steady_clock >( sdy_tp, true ) << std::endl;
+    std::cout << "us: " << date_time().to_iso< std::chrono::microseconds >( sdy_tp, true ) << std::endl;
+    std::cout << "ms: " << date_time().to_iso< std::chrono::milliseconds >( sdy_tp, true ) << std::endl;
+    std::cout << " s: " << date_time().to_iso< std::chrono::seconds >( sdy_tp, true ) << std::endl;
 
     // std::cout << date_time().to_iso< std::chrono::seconds, std::chrono::system_clock >( sdy_tp, true ) << std::endl;
     std::cout << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::steady_clock >( sdy_tp, true ) << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sdy_tp, true ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sys_tp, true ) << std::endl;
     std::cout << std::endl;
     // std::cout << date_time().to_iso< std::chrono::nanoseconds, this_clock >( tp, false ) << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::steady_clock >( sdy_tp, false ) << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, false ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sdy_tp, false ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sys_tp, false ) << std::endl;
 }
