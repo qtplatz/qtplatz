@@ -57,7 +57,12 @@ date_time_t< false >::to_time_t( time_point_t tp ) {
 struct date_time {
     template< typename duration_t, typename clock_t, typename time_point_t >
     std::string to_iso( time_point_t tp, bool utc_offset = true ) {
+#if __cplusplus < 201703L
+        std::time_t utc; duration_t duration;
+        std::tie( utc, duration )
+#else
         auto [utc, duration]
+#endif
             = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t, clock_t>( tp );
 
         auto subseconds = duration.count();
@@ -86,21 +91,13 @@ main()
 
     auto tp = this_clock::now();
     auto sys_tp = std::chrono::system_clock::now();
+    auto sdy_tp = std::chrono::steady_clock::now();
 
-    std::cout << date_time().to_iso<std::chrono::nanoseconds, this_clock>( tp, true ) << std::endl;
-    std::cout << date_time().to_iso<std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds, this_clock >( tp, true ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::steady_clock >( sdy_tp, true ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
 
-    std::cout << date_time().to_iso<std::chrono::nanoseconds, this_clock>( tp, false ) << std::endl;
-    std::cout << date_time().to_iso<std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, false ) << std::endl;
-
-    // std::cout << date_time_t<false>().to_iso<std::chrono::nanoseconds, this_clock>( tp, true ) << std::endl;
-    // std::cout << date_time_t<true>().to_iso<std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, true ) << std::endl;
-
-    // std::cout << date_time_t<false>().to_iso<std::chrono::nanoseconds, this_clock>( tp, false ) << std::endl;
-    // std::cout << date_time_t<true>().to_iso<std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, false ) << std::endl;
-
-    // std::cout << adportable::date_string::to_iso( epoch, true ) << std::endl;
-    // std::cout << adportable::date_string::to_iso( res ) << std::endl;
-
-    // std::cout << adportable::date_string::logformat( since_epoch, true ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds, this_clock >( tp, false ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::steady_clock >( sdy_tp, false ) << std::endl;
+    std::cout << date_time().to_iso< std::chrono::nanoseconds, std::chrono::system_clock >( sys_tp, false ) << std::endl;
 }
