@@ -9,7 +9,7 @@ if ( Boost_USE_STATIC_LIBS)
 endif()
 
 find_package( Boost 1.62 REQUIRED COMPONENTS
-  unit_test_framework    
+  unit_test_framework
   )
 
 #add_subdirectory( filename_splitter )
@@ -18,6 +18,7 @@ add_subdirectory( test_ptree )
 add_subdirectory( test_serializer )
 #add_subdirectory( isotope )
 add_subdirectory( test_adfs )
+add_subdirectory( test_date )
 #add_subdirectory( test_json )
 
 if ( NOT CMAKE_CROSSCOMPILING )

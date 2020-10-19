@@ -39,7 +39,17 @@ namespace adportable {
         static std::wstring wstring( const boost::gregorian::date& dt, const wchar_t * fmt = L"%Y-%m-%d" );
         static std::string utc_to_localtime_string( time_t utc, unsigned usec, bool add_utc_offset = false );
         static std::string logformat( const std::chrono::system_clock::time_point& tp, bool add_utc_offset = false );
+
+        // template< typename duration_t = std::chrono::microseconds >
+        // std::string to_iso( std::chrono::system_clock_time_point&& tp, bool utc_offset = true ) {
+        //     std::time_t utc = std::chrono::to_time_t( tp );
+        //     auto subseconcs = duration_t( tp.time_since_epoch() ).count() - utc;
+        //     if ( utc_offset ) {
+        //         std::ostringstream o;
+        //         o << std::put_time( std::localtime(&utc), "%FT%T" ) << "." << subseconds;
+        //     }
+        //     return std::put_time( std::localtime(&utc), "%FT%T" );
+        // }
     };
 
 }
-
