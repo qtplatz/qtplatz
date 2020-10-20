@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2020 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -80,8 +79,9 @@ namespace adportable {
     };
 
     struct date_time {
+
         template< typename duration_t, typename time_point_t >
-        std::string to_iso( time_point_t tp, bool utc_offset = true ) {
+        static std::string to_iso( time_point_t tp, bool utc_offset = true ) {
             typedef typename decltype( tp )::clock clock_t;
 #if __cplusplus < 201703L
             std::time_t utc; duration_t subseconds;

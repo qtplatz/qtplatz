@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include <date/date.h>
+#include <adportable/date_time.hpp>
 #include <chrono>
 #include <iostream>
 #include <iomanip>
@@ -31,103 +32,190 @@
 #include <boost/format.hpp>
 #include <adportable/date_string.hpp>
 
-template< bool is_system_clock = true >
-struct date_time_t {
-    template< typename duration_t, typename time_point_t >
-    std::pair< std::time_t, duration_t > to_time_t( time_point_t tp ) {
-        typedef typename decltype( tp )::clock clock_t;
-        std::cout << "-- system_clock -->";
-        auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tp ) );
-        return { utc, duration_t( std::chrono::time_point_cast< duration_t >( tp ) - date::floor< std::chrono::seconds >( tp ) ) };
-    }
-};
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+#include <boost/fusion/include/std_pair.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
 
-template<>
-template< typename duration_t, typename time_point_t >
-std::pair< std::time_t, duration_t >
-date_time_t< false >::to_time_t( time_point_t tp ) {
-    typedef typename decltype( tp )::clock clock_t;
-    std::cout << "-- steady_clock -->";
-    auto tt = std::chrono::time_point_cast< duration_t >( std::chrono::system_clock::now() ) + ( tp - clock_t::now() );
-    auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tt ) );
-    return { utc, std::chrono::duration_cast< duration_t >( tt - date::floor< std::chrono::seconds >( tt ) ) };
-}
 
-template< uint64_t N > struct num_digits {
-    enum { value = 1 + num_digits< N / 10 >::value };
-};
+namespace test {
 
-template<> struct num_digits<0> {
-    enum { value = 0 };
-};
-
-template< int N >
-struct subseconds_t {
-    std::string operator()( uint64_t value ) const {
-        std::ostringstream o;
-        o << "," << std::setw(N) << std::setfill('0') << value;
-        return o.str();
-    }
-};
-
-template<> std::string subseconds_t<0>::operator()( uint64_t ) const {
-    return std::string();
-};
-
-struct date_time {
-    template< typename duration_t, typename time_point_t >
-    std::string to_iso( time_point_t tp, bool utc_offset = true ) {
-        typedef typename decltype( tp )::clock clock_t;
-#if __cplusplus < 201703L
-        std::time_t utc; duration_t subseconds;
-        std::tie( utc, subseconds )
-#else
-        auto [utc, subseconds]
-#endif
-            = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t >( tp );
-
-        subseconds_t< num_digits< duration_t::period::den >::value - 1 > subseconds_to_string;
-
-        std::ostringstream o;
-        if ( utc_offset ) {
-            auto tz( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );
-            o << std::put_time( std::localtime(&utc), "%FT%T" ) << subseconds_to_string( subseconds.count() )
-              << boost::format( "%c%02d%02d" )
-                % (tz.is_negative() ? '-' : '+')
-                % boost::date_time::absolute_value( tz.hours() )
-                % boost::date_time::absolute_value( tz.minutes() );
-        } else {
-            o << boost::posix_time::to_iso_extended_string( boost::posix_time::from_time_t( utc ) )
-              << subseconds_to_string( subseconds.count() ) << "Z";
+    template< bool is_system_clock = true >
+    struct date_time_t {
+        template< typename duration_t, typename time_point_t >
+        std::pair< std::time_t, duration_t > to_time_t( time_point_t tp ) {
+            typedef typename decltype( tp )::clock clock_t;
+            std::cout << "-- system_clock -->";
+            auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tp ) );
+            return { utc, duration_t( std::chrono::time_point_cast< duration_t >( tp ) - date::floor< std::chrono::seconds >( tp ) ) };
         }
-        return o.str();
+    };
+
+    template<>
+    template< typename duration_t, typename time_point_t >
+    std::pair< std::time_t, duration_t >
+    date_time_t< false >::to_time_t( time_point_t tp ) {
+        typedef typename decltype( tp )::clock clock_t;
+        std::cout << "-- steady_clock -->";
+        auto tt = std::chrono::time_point_cast< duration_t >( std::chrono::system_clock::now() ) + ( tp - clock_t::now() );
+        auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tt ) );
+        return { utc, std::chrono::duration_cast< duration_t >( tt - date::floor< std::chrono::seconds >( tt ) ) };
     }
-};
+
+    template< uint64_t N > struct num_digits {
+        enum { value = 1 + num_digits< N / 10 >::value };
+    };
+
+    template<> struct num_digits<0> {
+        enum { value = 0 };
+    };
+
+    template< int N >
+    struct subseconds_t {
+        std::string operator()( uint64_t value ) const {
+            std::ostringstream o;
+            o << "," << std::setw(N) << std::setfill('0') << value;
+            return o.str();
+        }
+    };
+
+    template<> std::string subseconds_t<0>::operator()( uint64_t ) const {
+        return std::string();
+    };
+
+    struct date_time {
+
+        template< typename duration_t, typename time_point_t >
+        static std::string to_iso( time_point_t tp, bool utc_offset = true ) {
+            typedef typename decltype( tp )::clock clock_t;
+#if __cplusplus < 201703L
+            std::time_t utc; duration_t subseconds;
+            std::tie( utc, subseconds )
+#else
+                  auto [utc, subseconds]
+#endif
+                  = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t >( tp );
+
+            subseconds_t< num_digits< duration_t::period::den >::value - 1 > subseconds_to_string;
+
+            std::ostringstream o;
+            if ( utc_offset ) {
+                auto tz( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );
+                o << std::put_time( std::localtime(&utc), "%FT%T" ) << subseconds_to_string( subseconds.count() )
+                  << boost::format( "%c%02d%02d" )
+                    % (tz.is_negative() ? '-' : '+')
+                    % boost::date_time::absolute_value( tz.hours() )
+                    % boost::date_time::absolute_value( tz.minutes() );
+            } else {
+                o << boost::posix_time::to_iso_extended_string( boost::posix_time::from_time_t( utc ) )
+                  << subseconds_to_string( subseconds.count() ) << "Z";
+            }
+            return o.str();
+        }
+    };
+} // namespace test
+
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+#include <boost/fusion/include/std_pair.hpp>
+#include <boost/fusion/include/map.hpp>
+
+namespace iso8601 {
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+    namespace phoenix = boost::phoenix;
+    using qi::_1;
+    using phoenix::ref;
+    using ascii::space;
+
+    typedef std::tuple< int, int, int
+                        , int, int, int, int
+                        , char, int > date_time_type;
+
+    template <typename Iterator>
+    bool parse( Iterator first, Iterator last, date_time_type& dt )
+    {
+        dt = date_time_type{};
+
+        auto tzf = [&](auto& ctx){ std::get< 7 >(dt) = ctx; };
+
+        bool r = qi::phrase_parse(
+            first
+            , last
+            //  Begin grammar
+            , (
+                qi::int_[ ref( std::get<0>(dt) ) = _1 ]
+                >> '-' >> qi::int_[ref( std::get<1>(dt) ) = _1 ]
+                >> '-' >> qi::int_[ref( std::get<2>(dt) ) = _1 ]
+                >> 'T' >> qi::int_[ref( std::get<3>(dt) ) = _1 ]
+                >> ':' >> qi::int_[ref( std::get<4>(dt) ) = _1 ]
+                >> ':' >> qi::int_[ref( std::get<5>(dt) ) = _1 ]
+                >> -(
+                    (qi::char_('.')|qi::char_(',')) >> qi::int_[ref( std::get<6>(dt) ) = _1 ]
+                    )
+                >> ( qi::char_('Z') [ tzf ]
+                     |( qi::char_("+-") [ tzf ] >> qi::int_[ ref( std::get<8>(dt) ) = qi::_1 ] )
+                    )
+                )
+            , space);
+
+        return r;
+    }
+}
 
 
 int
 main()
 {
-    using this_clock = std::chrono::high_resolution_clock;
-
-    auto tp = this_clock::now();
+    auto tp = std::chrono::high_resolution_clock::now();
     auto sys_tp = std::chrono::system_clock::now();
     auto sdy_tp = std::chrono::steady_clock::now();
 
-    std::cout << "us: " << date_time().to_iso< std::chrono::microseconds >( sys_tp, true ) << std::endl;
-    std::cout << "ms: " << date_time().to_iso< std::chrono::milliseconds >( sys_tp, true ) << std::endl;
-    std::cout << " s: " << date_time().to_iso< std::chrono::seconds >( sys_tp, true ) << std::endl;
+    std::cout << "us: " << adportable::date_time::to_iso< std::chrono::microseconds >( sys_tp, true ) << std::endl;
+    std::cout << "ms: " << adportable::date_time::to_iso< std::chrono::milliseconds >( sys_tp, true ) << std::endl;
+    std::cout << " s: " << adportable::date_time::to_iso< std::chrono::seconds >( sys_tp, true ) << std::endl;
 
-    std::cout << "us: " << date_time().to_iso< std::chrono::microseconds >( sdy_tp, true ) << std::endl;
-    std::cout << "ms: " << date_time().to_iso< std::chrono::milliseconds >( sdy_tp, true ) << std::endl;
-    std::cout << " s: " << date_time().to_iso< std::chrono::seconds >( sdy_tp, true ) << std::endl;
+    std::cout << "us: " << adportable::date_time::to_iso< std::chrono::microseconds >( sdy_tp, true ) << std::endl;
+    std::cout << "ms: " << adportable::date_time::to_iso< std::chrono::milliseconds >( sdy_tp, true ) << std::endl;
+    std::cout << " s: " << adportable::date_time::to_iso< std::chrono::seconds >( sdy_tp, true ) << std::endl;
 
-    // std::cout << date_time().to_iso< std::chrono::seconds, std::chrono::system_clock >( sdy_tp, true ) << std::endl;
     std::cout << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sdy_tp, true ) << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sys_tp, true ) << std::endl;
+    std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( tp, true ) << std::endl;
+    std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( sdy_tp, true ) << std::endl;
+    std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( sys_tp, true ) << std::endl;
+
     std::cout << std::endl;
-    // std::cout << date_time().to_iso< std::chrono::nanoseconds, this_clock >( tp, false ) << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sdy_tp, false ) << std::endl;
-    std::cout << date_time().to_iso< std::chrono::nanoseconds >( sys_tp, false ) << std::endl;
+    std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( tp, false ) << std::endl;
+    std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( sdy_tp, false ) << std::endl;
+    std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( sys_tp, false ) << std::endl;
+
+    //--------------
+    std::cout << "parser test" << std::endl;
+    auto str = adportable::date_time::to_iso< std::chrono::nanoseconds >( tp, false );
+
+    for ( auto s: { "2020-10-20T09:31:54,125197267+0900"
+                , "2020-10-20T09:31:54.125197267-0800"
+                , "2020-10-19T23:24:16,497177778Z"
+                , "2020-10-19T23:24:16.497177778Z" } ) {
+        iso8601::date_time_type dt;
+        auto str = std::string( s );
+        if ( iso8601::parse( str.begin(), str.end(), dt ) ) {
+            std::cout << str << "\tok -->\t";
+            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "\t";
+            std::cout << std::get<3>(dt) << ":" << std::get<4>(dt) << ":" << std::get<5>(dt) << "," << std::get<6>(dt)
+                      << " " << std::get<7>(dt) << ", " << std::get<8>(dt)
+                      << std::endl;
+            // std::cout << tm.tm_year << "-" << tm.tm_mon << "-" << tm.tm_mday << "\t";
+            // std::cout << tm.tm_hour << "-" << tm.tm_min << "-" << tm.tm_sec << std::endl;
+        } else {
+            std::cout << str << "\tparse failed\t";
+            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "\t";
+            std::cout << std::get<3>(dt) << ":" << std::get<4>(dt) << ":" << std::get<5>(dt) << "," << std::get<6>(dt)
+                      << " " << std::get<7>(dt) << ", " << std::get<8>(dt)
+                      << std::endl;
+
+        }
+    }
 }
