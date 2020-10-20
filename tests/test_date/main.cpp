@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#include "iso8601.hpp"
+
 #include <date/date.h>
 #include <adportable/date_time.hpp>
 #include <chrono>
@@ -31,11 +33,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <adportable/date_string.hpp>
-
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
 
 
 namespace test {
@@ -115,57 +112,6 @@ namespace test {
     };
 } // namespace test
 
-#define BOOST_SPIRIT_USE_PHOENIX_V3 1
-
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include <boost/fusion/include/map.hpp>
-
-namespace iso8601 {
-    namespace qi = boost::spirit::qi;
-    namespace ascii = boost::spirit::ascii;
-    namespace phoenix = boost::phoenix;
-    using qi::_1;
-    using phoenix::ref;
-    using ascii::space;
-
-    typedef std::tuple< int, int, int
-                        , int, int, int, int
-                        , char, int > date_time_type;
-
-    template <typename Iterator>
-    bool parse( Iterator first, Iterator last, date_time_type& dt )
-    {
-        dt = date_time_type{};
-
-        auto tzf = [&](auto& ctx){ std::get< 7 >(dt) = ctx; };
-
-        bool r = qi::phrase_parse(
-            first
-            , last
-            //  Begin grammar
-            , (
-                qi::int_[ ref( std::get<0>(dt) ) = _1 ]
-                >> '-' >> qi::int_[ref( std::get<1>(dt) ) = _1 ]
-                >> '-' >> qi::int_[ref( std::get<2>(dt) ) = _1 ]
-                >> 'T' >> qi::int_[ref( std::get<3>(dt) ) = _1 ]
-                >> ':' >> qi::int_[ref( std::get<4>(dt) ) = _1 ]
-                >> ':' >> qi::int_[ref( std::get<5>(dt) ) = _1 ]
-                >> -(
-                    (qi::char_('.')|qi::char_(',')) >> qi::int_[ref( std::get<6>(dt) ) = _1 ]
-                    )
-                >> ( qi::char_('Z') [ tzf ]
-                     |( qi::char_("+-") [ tzf ] >> qi::int_[ ref( std::get<8>(dt) ) = qi::_1 ] )
-                    )
-                )
-            , space);
-
-        return r;
-    }
-}
-
-
 int
 main()
 {
@@ -195,15 +141,18 @@ main()
     std::cout << "parser test" << std::endl;
     auto str = adportable::date_time::to_iso< std::chrono::nanoseconds >( tp, false );
 
-    for ( auto s: { "2020-10-20T09:31:54,125197267+0900"
+    for ( auto s: { "2020-10-20T09:31:54+0900"
+                , "2020-10-20T09:31:54,125+0900"
+                , "2020-10-20T09:31:54,125197+0900"
+                , "2020-10-20T09:31:54,125197267+0900"
                 , "2020-10-20T09:31:54.125197267-0800"
                 , "2020-10-19T23:24:16,497177778Z"
-                , "2020-10-19T23:24:16.497177778Z" } ) {
+                , "2020-10-19T23:24:16.000077778Z" } ) {
         iso8601::date_time_type dt;
         auto str = std::string( s );
         if ( iso8601::parse( str.begin(), str.end(), dt ) ) {
             std::cout << str << "\tok -->\t";
-            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "\t";
+            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "T";
             std::cout << std::get<3>(dt) << ":" << std::get<4>(dt) << ":" << std::get<5>(dt) << "," << std::get<6>(dt)
                       << " " << std::get<7>(dt) << ", " << std::get<8>(dt)
                       << std::endl;
@@ -211,7 +160,7 @@ main()
             // std::cout << tm.tm_hour << "-" << tm.tm_min << "-" << tm.tm_sec << std::endl;
         } else {
             std::cout << str << "\tparse failed\t";
-            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "\t";
+            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "T";
             std::cout << std::get<3>(dt) << ":" << std::get<4>(dt) << ":" << std::get<5>(dt) << "," << std::get<6>(dt)
                       << " " << std::get<7>(dt) << ", " << std::get<8>(dt)
                       << std::endl;
