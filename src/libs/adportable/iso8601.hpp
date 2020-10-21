@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#pragma once
+
 #include <date/date.h>
 #include <boost/optional.hpp>
 #include <boost/fusion/include/map.hpp>
@@ -32,6 +34,8 @@
 #include <type_traits>
 #include <utility>
 
+
+namespace adportable {
 namespace iso8601 {
 
     //------------
@@ -119,4 +123,5 @@ namespace iso8601 {
         }
         return boost::none;
     }
+}
 }
