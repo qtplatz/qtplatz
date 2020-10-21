@@ -148,22 +148,12 @@ main()
                 , "2020-10-20T09:31:54.125197267-0800"
                 , "2020-10-19T23:24:16,497177778Z"
                 , "2020-10-19T23:24:16.000077778Z" } ) {
-        iso8601::date_time_type dt;
         auto str = std::string( s );
-        if ( iso8601::parse( str.begin(), str.end(), dt ) ) {
+        if ( auto tp = iso8601::parse( str.begin(), str.end() ) ) {
             std::cout << str << "\tok -->\t";
-            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "T";
-            std::cout << std::get<3>(dt) << ":" << std::get<4>(dt) << ":" << std::get<5>(dt) << "," << std::get<6>(dt)
-                      << " " << std::get<7>(dt) << ", " << std::get<8>(dt)
-                      << std::endl;
-            // std::cout << tm.tm_year << "-" << tm.tm_mon << "-" << tm.tm_mday << "\t";
-            // std::cout << tm.tm_hour << "-" << tm.tm_min << "-" << tm.tm_sec << std::endl;
+            std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( *tp ) << std::endl;
         } else {
-            std::cout << str << "\tparse failed\t";
-            std::cout << std::get<0>(dt) << "-" << std::get<1>(dt) << "-" << std::get<2>(dt) << "T";
-            std::cout << std::get<3>(dt) << ":" << std::get<4>(dt) << ":" << std::get<5>(dt) << "," << std::get<6>(dt)
-                      << " " << std::get<7>(dt) << ", " << std::get<8>(dt)
-                      << std::endl;
+            std::cout << str << "\tparse failed\t" << std::endl;
 
         }
     }
