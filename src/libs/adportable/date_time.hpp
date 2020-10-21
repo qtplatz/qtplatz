@@ -87,7 +87,7 @@ namespace adportable {
             std::time_t utc; duration_t subseconds;
             std::tie( utc, subseconds )
 #else
-                  auto [utc, subseconds]
+            auto [utc, subseconds]
 #endif
                   = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t >( tp );
 
@@ -102,8 +102,8 @@ namespace adportable {
                     % boost::date_time::absolute_value( tz.hours() )
                     % boost::date_time::absolute_value( tz.minutes() );
             } else {
-                o << boost::posix_time::to_iso_extended_string( boost::posix_time::from_time_t( utc ) )
-                  << subseconds_to_string( subseconds.count() ) << "Z";
+                auto syst = std::chrono::time_point_cast< duration_t >( std::chrono::system_clock::from_time_t( utc ) ) + duration_t( subseconds );
+                o << date::format("%FT%TZ", syst );
             }
             return o.str();
         }
