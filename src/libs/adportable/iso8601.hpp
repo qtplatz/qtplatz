@@ -40,11 +40,10 @@ namespace iso8601 {
 
     //------------
     template< uint64_t N > struct n_power_of_ten {
-        // enum { value = 10 * n_power_of_ten< N - 1 >::value };
         static constexpr uint64_t value = 10 * n_power_of_ten< N - 1 >::value;
     };
+    
     template<> struct n_power_of_ten<0> {
-        // enum { value = 1 };
         static constexpr uint64_t value = 1;
     };
 
