@@ -83,9 +83,7 @@ main()
         auto str = std::string( s );
         if ( auto tp = adportable::iso8601::parse( str.begin(), str.end() ) ) {
             std::cout << str << "\t-->\t";
-            std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( *tp ) << "\t";
-            // using namespace date;
-            // std::cout << "date_t: " << date::format( "%FT%TZ", *tp ) << std::endl;
+            std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( *tp ) << std::endl;
         } else {
             std::cout << str << "\tparse failed\t" << std::endl;
         }

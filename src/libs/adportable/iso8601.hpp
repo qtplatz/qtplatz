@@ -51,7 +51,7 @@ namespace iso8601 {
 
     template< size_t arg > struct duration_type< arg > {
         auto operator()( size_t N, int64_t subseconds ) const {
-            auto dur = std::chrono::duration< int64_t, std::ratio< 1, n_power_of_ten< arg >::value > >{subseconds};
+            auto dur = std::chrono::duration< uint64_t, std::ratio< 1, n_power_of_ten< arg >::value > >{subseconds};
             return std::chrono::duration_cast< std::chrono::nanoseconds >( dur );
         }
     };
@@ -106,7 +106,7 @@ namespace iso8601 {
             , space);
 
         if ( r ) {
-            duration_type< 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 > dlist;  // seconds .. picoseconds
+            duration_type< 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 > dlist;  // seconds ...
             auto subseconds = dlist( std::get<6>(dt).size(), std::strtoull( std::get<6>(dt).c_str(), nullptr, 10 ) ); // (subseconds (ns))
             int sign = (std::get<7>(dt) == '+') ? (-1) : (std::get<7>(dt) == '-' ? 1 : 0);
             auto tzoffs = std::chrono::seconds( (3600 * (std::get<8>(dt) / 100)) + (60 * (std::get<8>(dt) % 100) ) ) * sign;
