@@ -33,6 +33,7 @@
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/optional.hpp>
 
 namespace adfs {
 
@@ -55,6 +56,13 @@ namespace adfs {
             boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
 
             return T::restore( st, t );
+        }
+
+        template<class T> static boost::optional< T > deserialize( const char * data, size_t length ) {
+            T t;
+            if ( deserialize( t, data, length ) )
+                 return t;
+            return boost::none;
         }
 
     };
