@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,6 +34,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -240,4 +241,37 @@ method::setProtocolIndex( uint32_t value , bool modifyDeviceMethod )
         }
     }
     return dirty;
+}
+
+bool
+method::import( const boost::property_tree::ptree& pt )
+{
+    bool success( true );
+
+    if ( auto pa = pt.get_child_optional( "protocols.protocol" ) ) {
+        protocols_.resize( pa->size() );
+        std::transform( pa->begin(), pa->end(), protocols_.begin(), [&]( auto& p ){
+                if ( auto tof = adcontrols::TofProtocol::fromJson( p.second ) )
+                    return *tof;
+                success = false;
+                return adcontrols::TofProtocol{};
+            });
+    }
+    if ( success )
+        setProtocolIndex( 0, true );
+    return success;
+}
+
+boost::property_tree::ptree
+method::toJson() const
+{
+    boost::property_tree::ptree pt, protocols;
+
+    int index(0);
+    for ( auto& p: this->protocols_ )
+        protocols.push_back( { "", p.toJson( index++ ) } );
+
+    pt.add_child( "protocols", protocols );
+
+    return pt;
 }

@@ -34,6 +34,7 @@
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 namespace adcontrols {
 
@@ -121,6 +122,12 @@ TofProtocol::delay_pulses() const
 }
 
 void
+TofProtocol::set_delay_pulses( std::vector< delay_pulse_type >&& t )
+{
+    delay_pulses_ = t;
+}
+
+void
 TofProtocol::setDevicedata( const std::string& value )
 {
     devicedata_ = value;
@@ -205,3 +212,78 @@ TofProtocol::digitizerDelayWidth() const
 }
 
 ///////////////////
+// static
+boost::optional< TofProtocol >
+TofProtocol::fromJson( const boost::property_tree::ptree& pt )
+{
+    TofProtocol atof;
+
+    auto avgr_delay = pt.get_optional< double >( "avgr_delay" );
+    auto avgr_duration = pt.get_optional< double >( "avgr_duration" );
+    if ( avgr_delay && avgr_duration )
+        atof.setDigitizerDelayWidth( { *avgr_delay, *avgr_duration } );
+
+    auto formulae = pt.get_optional< std::string >( "formulae" );
+    auto mode = pt.get_optional< int >( "mode" );
+    auto navg = pt.get_optional< int >( "number_of_triggers" );
+    if ( !( formulae && navg && mode ) )
+        return boost::none;
+
+    atof.setNumber_of_triggers( *navg );
+    atof.setMode( *mode );
+    atof.formulae().emplace_back( *formulae );
+    if ( auto ref = pt.get_optional< int >( "reference" ) )
+        atof.setReference( *ref );
+
+    if ( auto pulses = pt.get_child_optional( "pulses" ) ) {
+        std::vector< TofProtocol::delay_pulse_type > delay_pulses;
+        for ( auto pulse: *pulses ) {
+            if ( auto enable = pulse.second.get_optional< bool >( "enable" ) )
+                delay_pulses.emplace_back(
+                    pulse.second.get< double >( "delay" )
+                    , *enable ? pulse.second.get< double >( "width" ) : 0.0 );
+            else
+                delay_pulses.emplace_back(
+                    pulse.second.get< double >( "delay" )
+                    , pulse.second.get< double >( "width" ) );
+        }
+        atof.set_delay_pulses( std::move( delay_pulses ) );
+    }
+    return atof;
+}
+
+boost::property_tree::ptree
+TofProtocol::toJson( int index ) const
+{
+    boost::property_tree::ptree pt, pulses;
+
+    int id(0);
+    for ( auto& p: delay_pulses_ ) {
+        boost::property_tree::ptree pulse;
+        pulse.put( "delay", p.first );
+        pulse.put( "width", p.second );
+        pulse.put( "id", id++ );
+        pulses.push_back( { "", pulse } );
+    }
+
+    pt.put( "index", index );
+
+    pt.put( "lower_mass", lower_mass_ );
+    pt.put( "upper_mass", upper_mass_ );
+    pt.put( "mode", mode_ );
+    pt.put( "number_of_triggers", number_of_triggers_ );
+    pt.put( "avgr_delay",  digitizer_delay_width_.first );
+    pt.put( "avgr_duration",  digitizer_delay_width_.second );
+    pt.add_child( "pulses", pulses );
+    pt.put( "reference", reference_ );
+    //
+    std::string formulae;
+    std::for_each( formulae_.begin(), formulae_.end(),  [&]( const auto& formula ) {
+        formulae += formulae.empty() ? formula : (std::string(";") + formula);
+    });
+
+    if ( ! formulae.empty() )
+        pt.put( "formulae", formulae );
+    // todo: device_data
+    return pt;
+}

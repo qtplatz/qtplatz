@@ -28,6 +28,7 @@
 
 #include <boost/serialization/version.hpp>
 #include <cstdint>
+#include <string>
 
 namespace boost { namespace serialization { class access; } }
 
@@ -51,8 +52,8 @@ namespace acqrscontrols {
             // CLASS VERSION 3
             double digitizer_delay_to_first_sample; // actual delay set to u5303a
             uint32_t digitizer_nbr_of_s_to_acquire; // actual number of samples per waveform
-            
-            // CLASS VERSION 4; 2015-OCT-25 
+
+            // CLASS VERSION 4; 2015-OCT-25
             uint32_t nbr_records; // MultiRecord Acquisition
 
             // CLASS VERSION 5; 2015-NOV-02
@@ -64,6 +65,8 @@ namespace acqrscontrols {
             int32_t pkd_raising_delta;
             int32_t pkd_falling_delta;
             bool pkd_amplitude_accumulation_enabled;
+
+            std::string toJson() const;
         private:
 
             friend class boost::serialization::access;

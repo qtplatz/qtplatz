@@ -24,6 +24,8 @@
 #pragma once
 
 #include "adcontrols/adcontrols_global.h"
+#include <boost/optional.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <cstdint>
@@ -35,17 +37,18 @@ namespace boost { namespace serialization { class access; } }
 namespace adcontrols {
 
     template<typename T> class TofProtocol_archive;
-        
+
     //--
     class ADCONTROLSSHARED_EXPORT TofProtocol {
     public:
         typedef boost::variant< int32_t, double > additional_value_type;
         typedef std::pair< double, double > delay_pulse_type;
-        
+
         enum MULTUM_PULSE_CONFIG { MULTUM_PUSH, MULTUM_INJECT, MULTUM_EXIT, MULTUM_GATE_0, MULTUM_GATE_1, EXT_ADC_TRIG };
 
         std::vector< delay_pulse_type >& delay_pulses();
         const std::vector< delay_pulse_type >& delay_pulses() const;
+        void set_delay_pulses( std::vector< delay_pulse_type >&& );
 
         uint32_t number_of_triggers() const;
         void setNumber_of_triggers( uint32_t );
@@ -55,7 +58,7 @@ namespace adcontrols {
 
         std::vector< std::pair< int32_t, additional_value_type > >& additionals();
         const std::vector< std::pair< int32_t, additional_value_type > >& additionals() const;
-        
+
         std::vector< std::string >& formulae();
         const std::vector< std::string >& formulae() const;
 
@@ -87,9 +90,12 @@ namespace adcontrols {
         TofProtocol();
         TofProtocol( const TofProtocol& t );
 
+        static boost::optional< TofProtocol > fromJson( const boost::property_tree::ptree& );
+        boost::property_tree::ptree toJson( int index ) const;
+
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
             void serialize( Archive& ar, const unsigned int version );
 
         friend class TofProtocol_archive < TofProtocol > ;

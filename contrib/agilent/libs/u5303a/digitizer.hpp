@@ -80,6 +80,8 @@ namespace u5303a {
         bool peripheral_terminate();
         bool peripheral_dark( size_t waitCount );
 
+        acqrscontrols::u5303a::method method() const;
+
     // [[deprecated("replace with dgmod,hardwired")]] bool peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols );
 
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );

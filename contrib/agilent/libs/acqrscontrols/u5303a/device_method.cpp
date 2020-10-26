@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,7 +30,8 @@
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 namespace acqrscontrols {
 
@@ -123,3 +124,40 @@ device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
 }
 
 // All member variables are POD, so that no copy constractor implemented
+
+std::string
+device_method::toJson() const
+{
+    boost::property_tree::ptree pt;
+
+    pt.put( "front_end_range", front_end_range );
+    pt.put( "front_end_offset", front_end_offset );
+    pt.put( "ext_trigger_level", ext_trigger_level );
+    pt.put( "samp_rate", samp_rate ); // HZ
+    pt.put( "nbr_of_s_to_acquire", nbr_of_s_to_acquire_);
+    pt.put( "nbr_of_averages", nbr_of_averages );
+    pt.put( "delay_to_first_sample", delay_to_first_sample_ );
+    pt.put( "invert_signal", invert_signal );
+    pt.put( "nsa_threshold", nsa_threshold );
+
+    // CLASS VERSION 3
+    pt.put( "digitizer_delay_to_first_sample", digitizer_delay_to_first_sample );
+    pt.put( "digitizer_nbr_of_s_to_acquire", digitizer_nbr_of_s_to_acquire ); // actual number of samples per waveform
+
+    // CLASS VERSION 4; 2015-OCT-25
+    pt.put( "nbr_records", nbr_records ); // MultiRecord Acquisition
+
+    // CLASS VERSION 5; 2015-NOV-02
+    pt.put( "TSR_enabled", TSR_enabled );     // Triggered simultaneous acquisition and readout
+
+    // CLASS VERSION 6; 2017-DEC-18
+    pt.put( "nsa_enabled", nsa_enabled );
+    pt.put( "pkd_enabled", pkd_enabled );
+    pt.put( "pkd_raising_delta", pkd_raising_delta );
+    pt.put( "pkd_falling_delta", pkd_falling_delta );
+    pt.put( "pkd_amplitude_accumulation_enabled", pkd_amplitude_accumulation_enabled );
+
+    std::ostringstream o;
+    boost::property_tree::write_json( o, pt, false );
+    return o.str();
+}

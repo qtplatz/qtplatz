@@ -27,6 +27,9 @@
 #include "modulecap.hpp"
 #include "eventcap.hpp"
 #include <compiler/boost/workaround.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree_serialization.hpp>
@@ -220,11 +223,16 @@ TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, do
 
     auto values = boost::apply_visitor( toValue(), value );
     ptree_->put_child( "data", values );
-
 #if !defined NDEBUG
     ADDEBUG() << *ptree_;
 #endif
+}
 
+TimedEvent::TimedEvent( const std::string& json ) : ptree_( std::make_unique< boost::property_tree::ptree >() )
+{
+    boost::iostreams::basic_array_source< char > device( json.data(), json.size() );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+    boost::property_tree::read_json( st, *ptree_ );
 }
 
 TimedEvent::TimedEvent( const boost::property_tree::ptree& pt ) : ptree_( std::make_unique< boost::property_tree::ptree >( pt ) )
@@ -373,7 +381,7 @@ TimedEvent::setItemDisplayName( const std::string& name )
 std::string
 TimedEvent::data_type() const
 {
-    if ( auto typ = ptree_->get_optional< std::string >( "type" ) )
+    if ( auto typ = ptree_->get_optional< std::string >( "data.type" ) )
         return *typ;
     return "";
 }

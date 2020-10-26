@@ -61,7 +61,7 @@ std::string
 debug::where() const
 {
     std::ostringstream o;
-    if ( ! file_.empty() ) 
+    if ( ! file_.empty() )
         o << file_ << "(" << line_ << "): ";
     return o.str();
 }
@@ -84,7 +84,7 @@ debug::operator << ( const boost::system::error_code& error )
 template<> debug&
 debug::operator << ( const boost::property_tree::ptree& pt )
 {
-    boost::property_tree::write_json( o_, pt );
+    boost::property_tree::write_json( o_, pt, false );
     return *this;
 }
 

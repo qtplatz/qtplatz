@@ -391,7 +391,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tnbr_of_average: " << m.nbr_of_averages
               << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
               << "\tinvert_signal: " << m.invert_signal;
-        // << "\tnsa: " << m.nsa;
+    // << "\tnsa: " << m.nsa;
 
     ADDEBUG() << "##### u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
 #endif
@@ -1089,6 +1089,13 @@ device::waitForEndOfAcquisition( task& task, int timeout )
             return false;
     }
     return true;
+}
+
+///////////////
+acqrscontrols::u5303a::method
+digitizer::method() const
+{
+    return task::instance()->method();
 }
 
 /////////////

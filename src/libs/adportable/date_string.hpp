@@ -25,7 +25,6 @@
 #pragma once
 
 #include "adportable_global.h"
-#include <date/date.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <chrono>

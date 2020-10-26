@@ -27,7 +27,7 @@ if ( WIN32 AND NOT DISABLE_IVI_COM )
   list( APPEND u5303a_SOURCES digitizer_windows.cpp )
 
 else()
-  
+
   list( APPEND u5303a_SOURCES digitizer_linux.cpp agmd2.cpp )
   list( APPEND u5303a_HEADERS agmd2.hpp )
 
@@ -53,8 +53,9 @@ add_library( u5303a SHARED
   )
 
 include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  ${CMAKE_SOURCE_DIR}/contrib/socfpga/libs
   ${CMAKE_SOURCE_DIR}/contrib/linux
   ${AgMD2_INCLUDE_DIR}
   ${IVIROOTDIR}/Bin
@@ -80,4 +81,3 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-  

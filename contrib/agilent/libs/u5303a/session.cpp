@@ -33,8 +33,18 @@
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/semaphore.hpp>
+#include <adcontrols/controlmethod/timedevent.hpp>
+#include <adcontrols/controlmethod/timedevents.hpp>
+#include <socfpga/constants.hpp>
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/optional.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <atomic>
 #include <future>
 #include <memory>
@@ -220,9 +230,13 @@ Session::initialize()
     std::call_once( impl::flag3_, [&] () {
             std::lock_guard< std::mutex > lock( impl::mutex_ );
             impl_->digitizer_ = std::make_shared< u5303a::digitizer >();
-            using namespace std::placeholders;
-            impl_->digitizer_->connect_reply( std::bind( &impl::reply_handler, impl_, _1, _2 ) );
-            impl_->digitizer_->connect_waveform( std::bind( &impl::waveform_handler, impl_, _1, _2, _3 ) );
+            impl_->digitizer_->connect_reply( std::bind( &impl::reply_handler, impl_
+                                                         , std::placeholders::_1
+                                                         , std::placeholders::_2 ) );
+            impl_->digitizer_->connect_waveform( std::bind( &impl::waveform_handler, impl_
+                                                            , std::placeholders::_1
+                                                            , std::placeholders::_2
+                                                            , std::placeholders::_3 ) );
         } );
     try {
         return impl_->digitizer_->peripheral_initialize();
@@ -319,9 +333,24 @@ Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::T
                              , adcontrols::ControlMethod::const_time_event_iterator begin
                              , adcontrols::ControlMethod::const_time_event_iterator end )
 {
-#ifndef NDEBUG
-    ADDEBUG() << "TODO -- time_event_triger";
-#endif
+    std::for_each( begin, end, [&]( const auto& e ){
+        if ( e.modelClsid() == socfpga::infitof::dgmod_protocol && e.data_type() == "application/json" ) {
+            // see infitof/src/plugins/infitof2/document.cpp
+            if ( auto pt = e.ptree()->template get_child_optional( "data.value" ) ) {
+                auto method = impl_->digitizer_->method();
+                if ( method.import( *pt ) ) {
+                    ADDEBUG() << "------------------------------>\n" <<
+                        method.toJson();
+                    try {
+                        return impl_->digitizer_->peripheral_prepare_for_run( method );
+                    } catch ( std::exception& ) {
+                        ADDEBUG() << boost::current_exception_diagnostic_information();
+                    }
+                }
+            }
+        }
+    });
+    ADDEBUG() << "<------------------------------";
     return true;
 }
 

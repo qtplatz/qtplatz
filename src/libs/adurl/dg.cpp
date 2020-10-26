@@ -92,7 +92,6 @@ bool
 dg::commit( std::string&& json )
 {
     if ( auto res = ajax( server_, port_ )( "POST", "/dg/ctl$commit", std::move( json ), "application/json" ) ) {
-        ADDEBUG() << res.get();
         return res.get().result_int() == 200;
     }
     return false;
