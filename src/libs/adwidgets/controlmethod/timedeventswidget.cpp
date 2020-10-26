@@ -99,7 +99,7 @@ namespace adwidgets {
             model_->setHeaderData( c_model_name,   Qt::Horizontal, QObject::tr( "Module" ) );
             model_->setHeaderData( c_item_name,    Qt::Horizontal, QObject::tr( "Function" ) );
             model_->setHeaderData( c_value,        Qt::Horizontal, QObject::tr( "Value" ) );
-            model_->setHeaderData( c_value_2,      Qt::Horizontal, QObject::tr( "Value(width)" ) );
+            model_->setHeaderData( c_value_2,      Qt::Horizontal, QObject::tr( "Summary" ) );
         }
 
         ~impl() { }
@@ -129,7 +129,6 @@ namespace adwidgets {
 
         void handleContextMenu( const QPoint& pt );
         void addLine( const adcontrols::ControlMethod::ModuleCap& );
-        // QList< QStandardItem * > make_row( const adcontrols::ControlMethod::ModuleCap&, size_t, const EventCap::value_type&, double seconds );
         QList< QStandardItem * > make_row( const adcontrols::ControlMethod::TimedEvent& e ) const;
 
         void refreshTable();

@@ -559,8 +559,6 @@ WaveformWnd::handleDrawSettings()
 void
 WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
-    ADDEBUG() << "########### setAxis(" << axis << ")";
-
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 
     auto sp = document::instance()->massSpectrometer();
