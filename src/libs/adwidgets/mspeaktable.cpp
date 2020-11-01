@@ -534,7 +534,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     setUpdatesEnabled( false );
 
-    ADDEBUG() << "=============== setPeakInfo for MassSpectrum =================";
+    // ADDEBUG() << "=============== setPeakInfo for MassSpectrum =================";
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for( auto& t: segs )

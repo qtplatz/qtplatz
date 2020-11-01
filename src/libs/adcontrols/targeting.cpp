@@ -354,24 +354,26 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
         return false;
 
     auto neutral = ChemicalFormula::neutralize( formula );
-    double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
+    int charge = neutral.second ? neutral.second : 1;
+    // double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
+    double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
 
-    int proto( 0 );
-    for ( auto& fms: segment_wrapper< const adcontrols::MassSpectrum >( ms ) ) {
-        if ( proto == fcn ) {
-            double width = method_->tolerance( idToleranceDaltons );
-            do {
-                adcontrols::MSFinder finder( width, idFindClosest );
-                size_t pos = finder( fms, exact_mass );
-                if ( pos != MassSpectrum::npos ) {
-                    candidates_.emplace_back( pos, proto, /*charge*/ 1, fms.mass( pos ), exact_mass, formula );
-                    return true;
-                }
-                width += width;
-            } while ( width < 1.0 );
-        }
-        ++proto;
+    if ( ms.nProtocols() <= fcn ) {
+        ADDEBUG() << "Error: force_find: -- specified protocol " << fcn << " does not exist.";
+        return false;
     }
+    auto& fms = segment_wrapper< const adcontrols::MassSpectrum >( ms )[ fcn ];
+    double width = method_->tolerance( idToleranceDaltons );
+    do {
+        adcontrols::MSFinder finder( width, idFindClosest );
+        size_t pos = finder( fms, exact_mass );
+        if ( pos != MassSpectrum::npos ) {
+            candidates_.emplace_back( pos, fcn, charge, fms.mass( pos ), exact_mass, formula );
+            return true;
+        }
+        width += width;
+    } while ( width < 1.0 );
+
     return false;
 }
 

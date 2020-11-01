@@ -452,6 +452,20 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     return result;
 }
 
+boost::optional< std::pair< adcontrols::MSPeakInfo, adcontrols::MassSpectrum > >
+dataprocessor::doCentroid( const adcontrols::MassSpectrum& profile
+                           , const adcontrols::ProcessMethod& procm )
+{
+    if ( auto cm = procm.find< adcontrols::CentroidMethod >() ) {
+        adcontrols::MSPeakInfo pkinfo;
+        adcontrols::MassSpectrum centroid;
+
+        if ( doCentroid( pkinfo, centroid, profile, *cm ) )
+            return {{ pkinfo, centroid }};
+    }
+    return boost::none;
+}
+
 uint64_t
 dataprocessor::countTimeCounts( const adcontrols::MassSpectrum& hist, double lMass, double uMass )
 {

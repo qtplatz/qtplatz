@@ -484,9 +484,10 @@ CentroidProcessImpl::findCluster( const MassSpectrum& xhistogram )
             break;
         }
         size_t width_i = size_t( width_t / xhistogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
-
+#if !defined NDEBUG
         ADDEBUG() << "width_m: " << (width_m *1000) << "mDa\twidth_t: "
                   << (width_t *1e9) << "ns \twidth_i: " << width_i << "\t@" << method_.rsTofAtMz();
+#endif
     }
 
     const double timeInterval = xhistogram.getMSProperty().samplingInfo().fSampInterval();

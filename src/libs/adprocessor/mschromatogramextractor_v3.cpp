@@ -274,9 +274,9 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
             }
         }
     }
-
+#if !defined NDEBUG
     ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name() << ", areaIntensity: " << areaIntensity;
-
+#endif
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
         std::vector< cXtractor > temp;
@@ -291,8 +291,9 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         double width = cm->width_at_mass( mol.mass() );
                         double lMass = mol.mass() - width / 2;
                         double uMass = mol.mass() + width / 2;
+#if !defined NDEBUG
                         ADDEBUG() << "proto: " << proto << ", mol: " << mol.formula() << ", width: " << width;
-
+#endif
                         std::wstring desc = ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
                                               % adportable::utf::to_wstring( mol.formula() )
                                               % mol.mass()
@@ -321,7 +322,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                         temp.back().pChr->setGeneratorProperty( pt );
 
-#if !defined NDEBUG && 0
+#if !defined NDEBUG
                         ADDEBUG() << pt;
 #endif
                     }
@@ -332,6 +333,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         if ( temp.empty() )
             return false;
 
+        // Generate chromatograms
         if ( loadSpectra( &pm, reader, -1, progress ) ) {
 
             for ( auto& ms : impl_->spectra_ ) {
@@ -339,16 +341,18 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     try {
                         auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms.second )[ xc.proto ];
                         double time = t.getMSProperty().timeSinceInjection();
-                        if ( peak_detector && (*peak_detector)( t ) ) {
+                        auto y = computeIntensity( t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
+                        xc.append( ms.first, time, y ? y.get() : 0 );
+#if 0
+                        if ( peak_detector && (*peak_detector)( t ) ) { // CentroidProcess
+                            ADDEBUG() << "success centroid; time: " << time;
                             auto it = (*msfinder)( peak_detector->getPeakInfo(), xc.mass );
                             if ( it != peak_detector->getPeakInfo().end() ) {
                                 double y = areaIntensity ? it->area() : it->height();
                                 xc.append( ms.first, time, y, it->time(), it->mass() );
                             }
-                        } else {
-                            auto y = computeIntensity( t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
-                            xc.append( ms.first, time, y ? y.get() : 0 );
                         }
+#endif
                     } catch ( std::out_of_range& ex ) {
                         ADDEBUG() << ex.what() << "\t-- skip this data point"; // ignore and continue (no chromatogram data added)
                     } catch ( std::exception& ex ) {

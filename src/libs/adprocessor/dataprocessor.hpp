@@ -27,6 +27,7 @@
 
 #include "adprocessor_global.hpp"
 #include <adcontrols/datasubscriber.hpp>
+#include <boost/optional.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -98,6 +99,10 @@ namespace adprocessor {
                                 , adcontrols::MassSpectrum& centroid
                                 , const adcontrols::MassSpectrum& profile
                                 , const adcontrols::CentroidMethod& m );
+
+        static boost::optional< std::pair< adcontrols::MSPeakInfo, adcontrols::MassSpectrum > >
+            doCentroid( const adcontrols::MassSpectrum& profile
+                        , const adcontrols::ProcessMethod& procm );
 
         virtual uint64_t countTimeCounts( const adcontrols::MassSpectrum&, double lMass, double uMass );
 

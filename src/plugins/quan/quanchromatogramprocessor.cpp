@@ -65,6 +65,9 @@
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
+#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/molecule.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
@@ -73,6 +76,7 @@
 #include <adfs/folder.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/folder.hpp>
@@ -97,12 +101,19 @@
 namespace quan {
 
     struct target_result_finder {
+
         static bool find( const adcontrols::Targeting& t, const std::string& formula, int32_t proto
                           , const adcontrols::MassSpectrum& centroid, boost::property_tree::ptree& ptree ) {
 
             assert( centroid.isCentroid() );
 
-            auto it = std::find_if( t.candidates().begin(), t.candidates().end(), [&](const auto& c){ return c.fcn == proto && c.formula == formula; });
+#if !defined NDEBUG
+            for ( auto& c : t.candidates() )
+                ADDEBUG() << "target_finder: " << c.formula << " == " << formula << ", " << ( c.formula == formula ) << ", mass: " << c.mass;
+#endif
+            auto it = std::find_if( t.candidates().begin(), t.candidates().end()
+                                    , [&](const auto& c){ return c.fcn == proto && c.formula == formula; });
+
             if ( it != t.candidates().end() ) {
                 try {
                     auto& tms = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( centroid )[ proto ];
@@ -110,10 +121,12 @@ namespace quan {
                     ptree.put( "targeting.mass_error", (it->mass - it->exact_mass) );
                     ptree.put( "targeting.idx", it->idx );
                     return true;
+
                 } catch ( std::exception& ex ) {
-                    ADDEBUG() << ex.what();
+                    ADDEBUG() << "Exception: " << ex.what();
                 }
             }
+            ADDEBUG() << "no targget candidate found";
             return false;
         }
     };
@@ -170,6 +183,7 @@ namespace quan {
 
     // new interface as of 2018-MAY
     struct save_spectrum {
+
         static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double tR, const wchar_t * trailer = L"" ) {
             boost::filesystem::path path( dataSource );
             return ( boost::wformat( L"%s tR(%.3fs) {%s} %s" ) % adportable::utf::to_wstring( formula ) % tR %  path.stem().wstring() % trailer ).str();
@@ -179,6 +193,9 @@ namespace quan {
         save( std::shared_ptr< QuanDataWriter > writer
               , const wchar_t * dataSource
               , std::shared_ptr< const adcontrols::MassSpectrum > ms
+              , const adcontrols::MassSpectrum& centroid // added 2020-11-01
+              , const adcontrols::MSPeakInfo& pkinfo  // added 2020-11-01
+              , std::unique_ptr< const adcontrols::Targeting >&& targeting  // added 2020-11-01
               , const std::wstring& title
               , std::shared_ptr< const adcontrols::ProcessMethod > procm
               , const std::string& formula
@@ -186,39 +203,18 @@ namespace quan {
               , boost::property_tree::ptree& ptree )  {
 
             if ( auto file = writer->write( *ms, title ) ) {
-                if ( auto cm = procm->find< adcontrols::CentroidMethod >() ) {
-                    adcontrols::MSPeakInfo pkinfo;
-                    adcontrols::MassSpectrum centroid;
-                    boost::optional< adcontrols::Targeting > targeting;
-
-                    if ( adprocessor::dataprocessor::doCentroid( pkinfo, centroid, *ms, *cm ) ) {
-
-                        centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
-
-                        if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
-                            targeting = adcontrols::Targeting( *tm );
-                            if ( targeting.get()( centroid ) || targeting->force_find( centroid, formula, proto ) ) {
-                                if ( target_result_finder::find( targeting.get(), formula, proto, centroid, ptree ) )
-                                    annotation::add( centroid, ptree.get_optional< int >("targeting.idx").get(), proto, formula );
-                            }
-                        }
-
-                        if ( auto att = writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO ) ) {
-                        }
-                        if ( auto att = writer->attach< adcontrols::ProcessMethod >( file, *procm, L"Process Method" ) ) {
-                        }
-                        if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
-                            if ( targeting )
-                                writer->attach< adcontrols::Targeting >( att, targeting.get(), adcontrols::constants::F_TARGETING );
-                        }
-                    }
+                if ( auto att = writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO ) ) {
                 }
-
+                if ( auto att = writer->attach< adcontrols::ProcessMethod >( file, *procm, L"Process Method" ) ) {
+                }
+                if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
+                    if ( targeting )
+                        writer->attach< adcontrols::Targeting >( att, *targeting, adcontrols::constants::F_TARGETING );
+                }
                 if ( ms->isHistogram() ) {
                     if ( auto hist = adcontrols::histogram::make_profile( *ms ) )
                         writer->attach< adcontrols::MassSpectrum >( file, *hist, adcontrols::constants::F_PROFILED_HISTOGRAM );
                 }
-
                 return boost::uuids::string_generator()( file.name() );
             }
             return {{ 0 }};
@@ -236,7 +232,6 @@ namespace quan {
                          , const adcontrols::QuanCompounds& compounds ) {
 
             auto& ptree = pair.first->ptree();
-            ADDEBUG() << "************ " << ptree;
 
             auto matchedMass = ptree.get_optional< double >( "targeting.matchedMass" );
             auto dataGuid = ptree.get_optional< boost::uuids::uuid >( "folder.dataGuid" );
@@ -388,6 +383,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
 
                 adcontrols::ProcessMethod pm( *procm_ );
                 pm *= (*cXmethods_[ idx ]);
+                // ADDEBUG() << "----------- extract_by_mols ------------";
                 do {
                     std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
                     extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ return (*progress)(); } );
@@ -395,6 +391,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                     , []( auto p ){ return std::make_pair( std::move( p ), std::make_shared< adcontrols::PeakResult >() ); });
                 } while (0);
 
+                // detect chromatographic peaks
                 if ( auto peakm = procm_->find< adcontrols::PeakMethod >() ) {
                     for ( auto& pair: rlist ) {
                         if ( findPeaks( *pair.second, *pair.first, *peakm ) )
@@ -404,6 +401,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                     }
                 }
 
+                // load spectrum corresponding to chromatographic peak
                 for ( auto& pair: rlist ) {
                     boost::uuids::uuid msGuid{{ 0 }}, dataGuid{{ 0 }};
                     auto& chr = pair.first;
@@ -411,12 +409,41 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                     for ( auto& pk: pair.second->peaks() ) {
                         if ( !pk.name().empty() ) {
                             if ( auto ms = extractor->getMassSpectrum( pk.peakTime() ) ) {
+                                // save corresponding spectrum
                                 auto title = save_spectrum::make_title( sample.dataSource(), pk.formula(), pk.peakTime(), (idx == 0 ? L" (profile)" : L" (histogram)" ) );
-                                msGuid = save_spectrum::save( writer, sample.dataSource(), ms, title, procm_, pk.formula(), chr->protocol(), chr->ptree() );
+
+                                adcontrols::MassSpectrum centroid;
+                                adcontrols::MSPeakInfo pkinfo;
+                                std::unique_ptr< adcontrols::Targeting > targeting;
+
+                                if ( auto pkd = adprocessor::dataprocessor::doCentroid( *ms, *procm_ ) ) {
+                                    std::tie( pkinfo, centroid ) = *pkd;
+                                    centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
+
+                                    if ( auto tm = procm_->find< adcontrols::TargetingMethod >() ) {
+                                        targeting = std::make_unique< adcontrols::Targeting > ( *tm );
+                                        if ( targeting->force_find( centroid, pk.formula(), chr->protocol() ) ) {
+                                            if ( target_result_finder::find( *targeting, pk.formula(), chr->protocol(), centroid, ptree ) )
+                                                annotation::add( centroid, ptree.get_optional< int >("targeting.idx").get(), chr->protocol(), pk.formula() );
+                                        }
+                                    }
+                                }
+                                msGuid = save_spectrum::save( writer
+                                                              , sample.dataSource()
+                                                              , ms
+                                                              , centroid
+                                                              , pkinfo
+                                                              , std::move( targeting )
+                                                              , title
+                                                              , procm_
+                                                              , pk.formula()
+                                                              , chr->protocol()
+                                                              , chr->ptree() );
                             }
                         }
                     }
                     dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, pm, idx );
+                    // ADDEBUG() << "----------- add --------------\n" << pair.first->ptree();
                     response_builder::add( processor, sample, pair, *pCompounds );
                     auto index = ptree.get_optional< int32_t >( "targeting.idx" );
                     writer->insert_reference( dataGuid, msGuid, index ? index.get() : (-1), chr->protocol() );
