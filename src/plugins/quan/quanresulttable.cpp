@@ -40,29 +40,21 @@
 #include <boost/filesystem.hpp>
 
 namespace quan {
-    namespace quanresulttable {
-        
+    namespace {
+
         class ItemDelegate : public QStyledItemDelegate {
+            boost::filesystem::path ppath_;
         public:
+            void clear() {
+                ppath_.clear();
+            }
+
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
 
-                if ( auto sqlModel = qobject_cast< const QSqlQueryModel * >( index.model() ) ) {
-                    auto field = sqlModel->record().field( index.column() );
+                // if ( auto sqlModel = qobject_cast< const QSqlQueryModel * >( index.model() ) ) {
+                //     auto field = sqlModel->record().field( index.column() );
 
-                    if ( ( field.name() == "error(mDa)" ) && ( index.data().toDouble() > 1.0 ) ) {
-                        auto mass = sqlModel->record().value( "mass" ).toDouble();
-                        if ( mass < std::numeric_limits< double >::epsilon() ) {
-                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("n/a") );
-                            return;
-                        }
-                    }
-                    if ( ( field.name() == "mass" ) && ( index.data().toDouble() <= 0.5 ) ) {
-                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("n/a") );
-                        return;
-                    }
-                }
-                
                 if ( index.data().type() == QVariant::Double ) {
                     double value = index.data().toDouble();
                     if ( ( value <= std::numeric_limits< double >::epsilon() ) || value >= 0.01 )
@@ -71,17 +63,21 @@ namespace quan {
                         painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'e', 5 ) );
                 } else if ( index.data().type() == QVariant::String ) {
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
-                    if ( !formula.empty() )
+                    if ( !formula.empty() ) {
                         adwidgets::DelegateHelper::render_html( painter, op, QString::fromStdString( formula ) );
-                    else {
-                        boost::filesystem::path path( index.data().toString().toStdWString() );
-                        if ( path.is_complete() )
-                            op.textElideMode = Qt::ElideLeft; // elide left for filename, otherwise stay default
-                        QStyledItemDelegate::paint( painter, op, index );
+                        return;
+                    }
+                    boost::filesystem::path path( index.data().toString().toStdWString() );
+                    if ( path.is_absolute() ) {
+                        if ( ppath_.empty() )
+                            const_cast< ItemDelegate * >(this)->ppath_ = path.parent_path();
+                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( boost::filesystem::relative( path, ppath_ ).string() ) );
+                        return;
                     }
                 } else
                     QStyledItemDelegate::paint( painter, op, index );
             }
+
             void setEditorData( QWidget * editor, const QModelIndex& index ) const override {
                 QStyledItemDelegate::setEditorData( editor, index );
             }
@@ -89,7 +85,7 @@ namespace quan {
             void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
                 QStyledItemDelegate::setModelData( editor, model, index );
             }
-            
+
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
                 if ( index.data().isNull() ) {
@@ -108,7 +104,7 @@ namespace quan {
                 } else
                     return QStyledItemDelegate::sizeHint( option, index );
             }
-        
+
         };
     }
 }
@@ -124,7 +120,7 @@ QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
 {
     setAllowDelete( false );
     setModel( model_.get() );
-    setItemDelegate( new quanresulttable::ItemDelegate );
+    setItemDelegate( new ItemDelegate );
     setHorizontalHeader( new adwidgets::HtmlHeaderView );
 
     setSelectionMode(QAbstractItemView::ContiguousSelection);
@@ -148,6 +144,9 @@ QuanResultTable::model()
 void
 QuanResultTable::setQuery( const QSqlQuery& sqlQuery, const std::vector<QString>& hidelist )
 {
+    if ( auto delegate = dynamic_cast< ItemDelegate *>(itemDelegate()) )
+        delegate->clear();
+
     if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
         model->setQuery( sqlQuery );
     }

@@ -111,7 +111,7 @@ QuanResultWidget::execQuery( const std::string& sqlString )
     if ( auto conn = connection_.lock() ) {
 
         QSqlQuery sqlQuery( QString::fromStdString( sqlString ), conn->sqlDatabase() );
-
+        // ADDEBUG() << sqlString;
         table_->setQuery( sqlQuery, { "uuid" } );
     }
 }
@@ -124,77 +124,10 @@ QuanResultWidget::handleIndexChanged( int idx )
 
         std::string sql;
         conn->query()->buildQuery( sql, idx, conn->isCounting(), conn->isISTD(), {} );
+        // ADDEBUG() << sql;
         execQuery( sql );
-
-        // CountingIndexChanged( idx );
         return;
     }
-#if 0
-    if ( idx == 0 ) { // All
-
-        execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
-                  ", sampleType, QuanSample.level, QuanCompound.formula"
-                  ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
-                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
-                  ", intensity, QuanResponse.amount, QuanCompound.description, dataSource"
-                  " FROM QuanSample, QuanResponse, QuanCompound"
-                  " WHERE QuanSample.id = QuanResponse.idSample"
-                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
-                  " ORDER BY QuanCompound.id, QuanSample.level");
-
-    } else if ( idx == 1 ) { // Unknown
-
-        execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
-                  ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
-                  ", QuanResponse.mass"
-                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
-                  ", intensity, QuanResponse.amount, QuanCompound.description, dataSource"
-                  " FROM QuanSample, QuanResponse, QuanCompound"
-                  " WHERE QuanSample.id = QuanResponse.idSample"
-                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
-                  " AND sampleType = 0 "
-                  " ORDER BY QuanCompound.id");
-    }
-    else if ( idx == 2 ) { // Standard
-
-        execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
-                  ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
-                  ", QuanResponse.mass"
-                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
-                  ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
-                  " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
-                  " WHERE QuanSample.id = QuanResponse.idSample"
-                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
-                  " AND sampleType = 1 "
-                  " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
-                  " ORDER BY QuanCompound.id, QuanSample.level");
-    }
-    else if ( idx == 3 ) { // QC
-        execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
-                  ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass "
-                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
-                  ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
-                  " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
-                  " WHERE QuanSample.id = QuanResponse.idSample"
-                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
-                  " AND sampleType = 2"
-                  " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
-                  " ORDER BY QuanCompound.id, QuanSample.level");
-
-    } else if ( idx == 4 ) { // Blank
-
-        execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
-                  ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
-                  ", (QuanCompound.mass - QuanResponse.mass)*1000 AS 'error(mDa)'"
-                  ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
-                  " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
-                  " WHERE QuanSample.id = QuanResponse.idSample"
-                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
-                  " AND sampleType = 3"
-                  " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
-                  " ORDER BY QuanCompound.id, QuanSample.level");
-    }
-#endif
 }
 
 void
@@ -220,7 +153,7 @@ QuanResultWidget::setCompoundSelected( const std::set< boost::uuids::uuid >& uui
                 std::string sql;
                 if ( conn->query()->buildQuery( sql, currentIndex_, conn->isCounting(), conn->isISTD(), additionals.str() ) ) {
                     QSqlQuery sqlQuery( QString::fromStdString( sql ), conn->sqlDatabase() );
-                    // ADDEBUG() << sql;
+                    ADDEBUG() << sql;
                     table_->setQuery( sqlQuery, { "uuid" } );
                 }
             }
