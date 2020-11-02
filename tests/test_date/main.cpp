@@ -84,6 +84,9 @@ main()
         if ( auto tp = adportable::iso8601::parse( str.begin(), str.end() ) ) {
             std::cout << str << "\t-->\t";
             std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( *tp ) << std::endl;
+            auto dur = tp->time_since_epoch().count();
+            auto tst_tp = std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >{} + std::chrono::nanoseconds( dur );
+            std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( tst_tp, false ) << std::endl;
         } else {
             std::cout << str << "\tparse failed\t" << std::endl;
         }

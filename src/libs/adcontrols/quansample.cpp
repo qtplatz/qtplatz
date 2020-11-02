@@ -26,6 +26,8 @@
 #include "serializer.hpp"
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adportable/date_time.hpp>
+#include <adportable/iso8601.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
@@ -70,7 +72,8 @@ namespace adcontrols {
                               , dataGeneration_( t.dataGeneration_ )
                               , scan_range_( t.scan_range_ )
                               , channel_( t.channel_ )
-                              , description_( t.description_ ) {
+                              , description_( t.description_ )
+                              , time_of_injection_( t.time_of_injection_ ) {
         }
 
         boost::uuids::uuid uuid_;                // own id
@@ -92,6 +95,7 @@ namespace adcontrols {
         std::pair<int32_t,int32_t> scan_range_; // 0 := first spectrum, 1 := second spectrum, -1 := last spectrum
         int32_t channel_;                       // quan protocol id (channel
         std::wstring description_;
+        std::string time_of_injection_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
@@ -119,6 +123,9 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( results_ );
             if ( version >= 2 )
                 ar & BOOST_SERIALIZATION_NVP( description_ );
+
+            if ( version >= 4 )
+                ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
         }
     };
 }
@@ -411,6 +418,29 @@ QuanSample::dataType( const wchar_t * v )
     impl_->dataType_ = v;
 }
 
+void
+QuanSample::set_time_of_injection( std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >&& tp )
+{
+    impl_->time_of_injection_ = adportable::date_time::to_iso< std::chrono::nanoseconds >( tp );
+}
+
+std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >
+QuanSample::time_of_injection() const
+{
+    if ( auto tp = adportable::iso8601::parse( impl_->time_of_injection_.begin(), impl_->time_of_injection_.end() ) )
+        return *tp;
+    return {};
+}
+
+std::string
+QuanSample::time_of_injection_iso8601() const
+{
+    if ( impl_->time_of_injection_.empty() ) {
+        return adportable::date_time::to_iso< std::chrono::nanoseconds >(
+            std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >{} );
+    }
+    return impl_->time_of_injection_;
+}
 
 bool
 QuanSample::archive( std::ostream& os, const QuanSample& t )

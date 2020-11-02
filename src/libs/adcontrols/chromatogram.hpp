@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <boost/any.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
+#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -198,6 +199,10 @@ namespace adcontrols {
 
         void setIsCounting( bool );
         bool isCounting() const;
+
+        void set_time_of_injection( std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >&& );
+        std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds> time_of_injection() const;
+        std::string time_of_injection_iso8601() const;
 
     private:
         friend class boost::serialization::access;

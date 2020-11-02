@@ -285,6 +285,8 @@ QuanDataWriter::create_table()
 ,dataGeneration  INTEGER \
 ,data_first      INTEGER \
 ,data_second     INTEGER \
+,time_point_of_injection INTEGER \
+,time_of_injection TEXT  \
 ,UNIQUE(uuid) \
 ,UNIQUE(idSequence,row)  \
 ,FOREIGN KEY( uidQuanSequence ) REFERENCES QuanSequence( uuid ))" );
@@ -538,7 +540,7 @@ SELECT idAudit.id,:uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? from idAudit WHERE uuid = :u
 }
 
 bool
-QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
+QuanDataWriter::insert_sample( const adcontrols::QuanSequence& t )
 {
     adfs::stmt sql( fs_.db() );
 
@@ -603,6 +605,8 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
             sql.bind( row++ ) = int64_t( sample.dataGeneration() );
             sql.bind( row++ ) = sample.scan_range_first();
             sql.bind( row++ ) = sample.scan_range_second();
+            // sql.bind( row++ ) = sample.time_of_injection().time_since_epoch().count();
+            // sql.bind( row++ ) = sample.time_of_injection_iso8601();
 
             sql.bind( row++ ) = t.uuid(); // QuanSequence.uuid (uidQuanSequence)
 
@@ -689,7 +693,17 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 
     sql.begin();
 
-    // ADDEBUG() << "inserting QuanResponse table size=" << t.results().size();
+    ADDEBUG() << "## insert_table: " << t.time_of_injection_iso8601();
+
+    if ( sql.prepare( "UPDATE QuanSample SET time_point_of_injection=?,time_of_injection=? WHERE uuid=?" ) ) {
+        sql.bind( 1 ) = t.time_of_injection().time_since_epoch().count();
+        sql.bind( 2 ) = t.time_of_injection_iso8601();
+        sql.bind( 3 ) = t.uuid();
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "SQL Error: " << sql.errmsg() << "\n" << sql.expanded_sql();
+    } else {
+        ADDEBUG() << "sql.prepare failed: " << sql.errmsg();
+    }
 
     for ( auto& result: t.results() ) {
 

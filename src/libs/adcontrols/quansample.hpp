@@ -31,6 +31,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cstdint>
+#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -141,6 +142,10 @@ namespace adcontrols {
         const QuanResponses& results() const;
         QuanResponses& results();
 
+        void set_time_of_injection( std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >&& );
+        std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > time_of_injection() const;
+        std::string time_of_injection_iso8601() const;
+
         static bool archive( std::ostream&, const QuanSample& );
         static bool restore( std::istream&, QuanSample& );
         static bool xml_archive( std::wostream&, const QuanSample& );
@@ -158,7 +163,7 @@ namespace adcontrols {
     typedef std::shared_ptr<QuanSample> QuanSamplePtr;
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanSample, 3 )
+BOOST_CLASS_VERSION( adcontrols::QuanSample, 4 )
 BOOST_CLASS_VERSION( adcontrols::quan::ISTD, 1 )
 
 #endif // QUANSAMPLE_HPP

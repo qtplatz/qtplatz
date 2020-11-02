@@ -350,7 +350,7 @@ document::run()
 
                 writer->insert_table( *procm_->find< adcontrols::QuanMethod >() );    // write data into sql table for user query
                 writer->insert_table( *procm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
-                writer->insert_table( *quanSequence_ );  // ibid
+                writer->insert_sample( *quanSequence_ );  // ibid
 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
@@ -399,7 +399,7 @@ document::execute_counting()
 
                 writer->insert_table( *procm_->find< adcontrols::QuanMethod >() );    // write data into sql table for user query
                 writer->insert_table( *procm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
-                writer->insert_table( *quanSequence_ );  // ibid
+                writer->insert_sample( *quanSequence_ );  // ibid
 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
@@ -451,7 +451,7 @@ document::execute_spectrogram_export()
 
                 writer->insert_table( *procm_->find< adcontrols::QuanMethod >() );    // write data into sql table for user query
                 writer->insert_table( *procm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
-                writer->insert_table( *quanSequence_ );  // ibid
+                writer->insert_sample( *quanSequence_ );  // ibid
 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;

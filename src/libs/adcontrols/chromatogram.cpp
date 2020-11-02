@@ -32,6 +32,8 @@
 #include "peakresult.hpp"
 #include "peaks.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/date_time.hpp>
+#include <adportable/iso8601.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -50,6 +52,7 @@
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/float.hpp>
+#include <chrono>
 #include <numeric>
 #include <sstream>
 #include <vector>
@@ -122,6 +125,7 @@ namespace adcontrols {
             boost::property_tree::ptree ptree_;
             std::vector< double > tofArray_;
             std::vector< double > massArray_;
+            std::string time_of_injection_; // iso8601 extended
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -154,12 +158,15 @@ namespace adcontrols {
                 if ( version >= 6 ) {
                     ar & BOOST_SERIALIZATION_NVP( isCounting_ );
                 }
+                if ( version >= 7 ) {
+                    ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
+                }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 6 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 7 )
 
 ///////////////////////////////////////////
 
@@ -585,6 +592,31 @@ Chromatogram::getMinIntensity() const
     const ChromatogramImpl& d = *pImpl_;
     return *std::min_element( d.dataArray_.begin(), d.dataArray_.end() );
 }
+
+void
+Chromatogram::set_time_of_injection( std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds> && t )
+{
+    pImpl_->time_of_injection_ = adportable::date_time::to_iso< std::chrono::nanoseconds >( t );
+}
+
+std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >
+Chromatogram::time_of_injection() const
+{
+    if ( auto tp = adportable::iso8601::parse( pImpl_->time_of_injection_.begin(), pImpl_->time_of_injection_.end() ) )
+        return *tp;
+    return {};
+}
+
+std::string
+Chromatogram::time_of_injection_iso8601() const
+{
+    if ( pImpl_->time_of_injection_.empty() ) {
+        return adportable::date_time::to_iso< std::chrono::nanoseconds >(
+            std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >{} );
+    }
+    return pImpl_->time_of_injection_;
+}
+
 
 // specialized template<> for boost::serialization
 // template<class Archiver> void serialize(Archiver& ar, const unsigned int version);

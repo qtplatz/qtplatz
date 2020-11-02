@@ -34,6 +34,7 @@
 #include "descriptions.hpp"
 #include "lcmsdataset.hpp"
 #include "lockmass.hpp"
+#include <adacquire/constants.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -46,6 +47,8 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanresponsemethod.hpp>
 #include <adcontrols/waveform_filter.hpp>
+#include <adfs/sqlite.hpp>
+#include <adportable/date_time.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/unique_ptr.hpp>
@@ -246,6 +249,22 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
     return ! impl_->spectra_.empty();
 }
 
+std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >
+MSChromatogramExtractor::time_of_injection() const
+{
+    if ( auto db = impl_->raw_->db() ) {
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT epoch_time,events FROM AcquiredData WHERE events >= ? ORDER BY epoch_time" );
+        sql.bind( 1 ) = uint32_t( adacquire::SignalObserver::wkEvent_INJECT );  // most likely also set wkEvent_AcqInProgress bit
+        if ( sql.step() == adfs::sqlite_row ) {
+            if ( sql.get_column_value< int64_t >(1) & adacquire::SignalObserver::wkEvent_INJECT )
+                return std::chrono::system_clock::time_point() + std::chrono::nanoseconds( sql.get_column_value< int64_t >(0) );
+        } else
+            ADDEBUG() << "SQL Error : " << sql.errmsg();
+    }
+    return {}; // return epoch
+}
+
 ///////////////////////////////////////////////////////////////////
 ////// [0] Create chromatograms by a list of molecules    /////////
 ///////////////////////////////////////////////////////////////////
@@ -304,7 +323,10 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                         double tof = t.getTime( t.getIndexFromMass( mol.mass() ) );
 
+                        auto time_of_injection = this->time_of_injection();
+
                         boost::property_tree::ptree pt;
+                        pt.put( "generator.time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) );
                         if ( auto molid = mol.property< boost::uuids::uuid >( "molid" ) )
                             pt.put( "generator.extract_by_mols.molid", molid.get() );
                         pt.put( "generator.extract_by_mols.wform_type", (sp->isCentroid() ? "centroid" : "profile") );
@@ -321,7 +343,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                         temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                         temp.back().pChr->setGeneratorProperty( pt );
-
+                        temp.back().pChr->set_time_of_injection( std::move( time_of_injection ) );
 #if !defined NDEBUG
                         ADDEBUG() << pt;
 #endif
@@ -343,16 +365,6 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         double time = t.getMSProperty().timeSinceInjection();
                         auto y = computeIntensity( t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
                         xc.append( ms.first, time, y ? y.get() : 0 );
-#if 0
-                        if ( peak_detector && (*peak_detector)( t ) ) { // CentroidProcess
-                            ADDEBUG() << "success centroid; time: " << time;
-                            auto it = (*msfinder)( peak_detector->getPeakInfo(), xc.mass );
-                            if ( it != peak_detector->getPeakInfo().end() ) {
-                                double y = areaIntensity ? it->area() : it->height();
-                                xc.append( ms.first, time, y, it->time(), it->mass() );
-                            }
-                        }
-#endif
                     } catch ( std::out_of_range& ex ) {
                         ADDEBUG() << ex.what() << "\t-- skip this data point"; // ignore and continue (no chromatogram data added)
                     } catch ( std::exception& ex ) {

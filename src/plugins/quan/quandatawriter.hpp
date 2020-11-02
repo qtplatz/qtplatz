@@ -73,7 +73,7 @@ namespace quan {
         bool create_spectrogram_tables();
 
         bool insert_table( const adcontrols::QuanMethod& );
-        bool insert_table( const adcontrols::QuanSequence& );
+        bool insert_sample( const adcontrols::QuanSequence& );
         bool insert_table( const adcontrols::QuanCompounds& );
         bool insert_table( const adcontrols::QuanSample& );
         [[deprecated]] bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t> >& dataGuids );

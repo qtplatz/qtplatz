@@ -76,6 +76,7 @@
 #include <adfs/folder.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/date_time.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
@@ -375,6 +376,8 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
         if ( !pCompounds )
             return false;
 
+        sample.set_time_of_injection( extractor->time_of_injection() );
+
         size_t idx = 0;
         for ( auto reader: readers ) {
             if ( reader ) {
@@ -428,6 +431,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                         }
                                     }
                                 }
+
                                 msGuid = save_spectrum::save( writer
                                                               , sample.dataSource()
                                                               , ms
