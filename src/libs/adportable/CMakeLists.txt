@@ -17,6 +17,7 @@ add_library( ${PROJECT_NAME} SHARED
   constants.cpp
   ConvertUTF.c
   date_string.cpp
+  date_time.cpp
   debug.cpp
   debug_core.cpp
   fft.cpp

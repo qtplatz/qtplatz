@@ -35,11 +35,14 @@
 
 namespace adportable {
 
+    struct ADPORTABLESHARED_EXPORT subseconds {
+        static std::string to_str( int64_t, size_t n );
+    };
+
     template< bool is_system_clock = true >
     struct date_time_t {
         template< typename duration_t, typename time_point_t >
         std::pair< std::time_t, duration_t > to_time_t( time_point_t tp ) {
-            typedef typename decltype( tp )::clock clock_t;
             // std::cout << "-- system_clock -->";
             auto utc = std::chrono::system_clock::to_time_t( std::chrono::time_point_cast< std::chrono::system_clock::duration >( tp ) );
             return { utc, duration_t( std::chrono::time_point_cast< duration_t >( tp ) - date::floor< std::chrono::seconds >( tp ) ) };
@@ -65,19 +68,6 @@ namespace adportable {
         enum { value = 0 };
     };
 
-    template< int N >
-    struct subseconds_t {
-        std::string operator()( uint64_t value ) const {
-            std::ostringstream o;
-            o << "," << std::setw(N) << std::setfill('0') << value;
-            return o.str();
-        }
-    };
-
-    template<> std::string subseconds_t<0>::operator()( uint64_t ) const {
-        return std::string();
-    };
-
     struct date_time {
 
         template< typename duration_t, typename time_point_t >
@@ -91,12 +81,13 @@ namespace adportable {
 #endif
                   = date_time_t< std::is_same< clock_t, std::chrono::system_clock >::value >(). template to_time_t< duration_t >( tp );
 
-            subseconds_t< num_digits< duration_t::period::den >::value - 1 > subseconds_to_string;
+            // subseconds_t< num_digits< duration_t::period::den >::value - 1 > subseconds_to_string;
+            constexpr size_t N = num_digits< duration_t::period::den >::value - 1;
 
             std::ostringstream o;
             if ( utc_offset ) {
                 auto tz( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );
-                o << std::put_time( std::localtime(&utc), "%FT%T" ) << subseconds_to_string( subseconds.count() )
+                o << std::put_time( std::localtime(&utc), "%FT%T" ) << subseconds::to_str( subseconds.count(), N )
                   << boost::format( "%c%02d%02d" )
                     % (tz.is_negative() ? '-' : '+')
                     % boost::date_time::absolute_value( tz.hours() )
@@ -108,5 +99,4 @@ namespace adportable {
             return o.str();
         }
     };
-
 }
