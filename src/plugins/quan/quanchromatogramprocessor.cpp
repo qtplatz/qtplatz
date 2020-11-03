@@ -260,6 +260,13 @@ namespace quan {
                                 resp.setIntensity( it->peakArea() );
                                 resp.setAmounts( 0 );
                                 resp.set_tR( it->peakTime() );
+                                resp.setPkArea( it->peakArea() );
+                                resp.setPkHeight( it->peakHeight() );
+                                resp.setPkWidth( it->peakWidth() );
+                                resp.setTheoreticalPlate( it->theoreticalPlate().ntp() );
+                                resp.setAsymmetry( it->asymmetry().asymmetry() );
+                                resp.setResolution( it->resolution().resolution() );
+                                ADDEBUG() << "==================> " << it->theoreticalPlate().ntp() << resp.theoreticalPlate();
                             }
                             sample << resp;
 

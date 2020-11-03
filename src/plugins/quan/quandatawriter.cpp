@@ -721,6 +721,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
                           "FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 
             // ADDEBUG() << "insert_table fcn: " << result.fcn_ << ", " << result.uuid_cmpd();
+            ADDEBUG() << "write response ntp: " << result.theoreticalPlate() << ", h: " << result.pkheight();
 
             int col = 1;
             sql.bind( col++ ) = result.peakIndex();
