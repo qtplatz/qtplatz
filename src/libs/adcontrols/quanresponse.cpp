@@ -39,6 +39,13 @@ QuanResponse::QuanResponse() : idx_( 0 )
                              , tR_( 0 )
                              , countTimeCounts_( 0 )
                              , countTriggers_( 0 )
+                             , pkarea_( 0 )
+                             , pkheight_( 0 )
+                             , pkwidth_( 0 )
+                             , theoreticalPlate_( 0 )
+                             , capacityFactor_( 0 )
+                             , asymmetry_( 0 )
+                             , resolution_( 0 )
 {
 }
 
@@ -54,6 +61,13 @@ QuanResponse::QuanResponse( const QuanResponse& t ) : idx_( t.idx_ )
                                                     , formula_( t.formula_ )
                                                     , countTimeCounts_( t.countTimeCounts_ )
                                                     , countTriggers_( t.countTriggers_ )
+                                                    , pkarea_( t.pkarea_ )
+                                                    , pkheight_( t.pkheight_ )
+                                                    , pkwidth_( t.pkwidth_ )
+                                                    , theoreticalPlate_( t.theoreticalPlate_ )
+                                                    , capacityFactor_( t.capacityFactor_ )
+                                                    , asymmetry_( t.asymmetry_ )
+                                                    , resolution_( t.resolution_ )
 {
 }
 
@@ -196,3 +210,86 @@ QuanResponse::setCountTriggers( uint64_t d )
     countTriggers_ = d;
 }
 
+double
+QuanResponse::pkarea() const
+{
+    return pkarea_;
+}
+
+double
+QuanResponse::pkheight() const
+{
+    return pkheight_;
+}
+
+double
+QuanResponse::pkwidth() const
+{
+    return pkwidth_;
+}
+
+double
+QuanResponse::theoreticalPlate() const
+{
+    return theoreticalPlate_;
+}
+
+double
+QuanResponse::capacityFactor() const
+{
+    return capacityFactor_;
+}
+
+double
+QuanResponse::asymmetry() const
+{
+    return asymmetry_;
+}
+
+double
+QuanResponse::resolution() const
+{
+    return resolution_;
+}
+
+void
+QuanResponse::setPkArea( double t )
+{
+    pkarea_ = t;
+}
+
+void
+QuanResponse::setPkHeight( double t )
+{
+    pkheight_ = t;
+}
+
+void
+QuanResponse::setPkWidth( double t )
+{
+    pkwidth_ = t;
+}
+
+void
+QuanResponse::setTheoreticalPlate( double t )
+{
+    theoreticalPlate_ = t;
+}
+
+void
+QuanResponse::setCapacityFactor( double t )
+{
+    capacityFactor_ = t;
+}
+
+void
+QuanResponse::setAsymmetry( double t )
+{
+    asymmetry_ = t;
+}
+
+void
+QuanResponse::setResolution( double t )
+{
+    resolution_ = t;
+}

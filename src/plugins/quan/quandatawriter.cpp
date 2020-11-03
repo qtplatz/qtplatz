@@ -716,7 +716,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 
             int col = 1;
             sql.bind( col++ ) = result.idx_;
-            sql.bind( col++ ) = result.fcn_;
+            sql.bind( col++ ) = result.fcn();
             sql.bind( col++ ) = result.intensity();
             sql.bind( col++ ) = result.uuid_cmpd();              // QuanCompound.uuid
             sql.bind( col++ ) = result.uuid_cmpd_table();        // QuanCompounds.uuid (idTable)

@@ -51,6 +51,7 @@ namespace adcontrols {
 
         void uuid_cmpd( const boost::uuids::uuid& u ) { idCompound_ = u; }
         const boost::uuids::uuid& uuid_cmpd() const { return idCompound_; }
+    private:
 
         int32_t idx_;                    // index on centroid spectrum
         boost::uuids::uuid idTable_;     // foreign key reference to QuanCompounds (a file of molecles)
@@ -64,6 +65,15 @@ namespace adcontrols {
         uint64_t countTimeCounts_;       // count of time-counts
         uint64_t countTriggers_;         // count of triggers
 
+    // peak paramater
+        double pkarea_;
+        double pkheight_;
+        double pkwidth_;
+        double theoreticalPlate_;
+        double capacityFactor_;
+        double asymmetry_;
+        double resolution_;
+    public:
         int32_t peakIndex() const;
         const boost::uuids::uuid& idTable() const;
         const boost::uuids::uuid& idCompound() const;
@@ -75,6 +85,22 @@ namespace adcontrols {
         double tR() const;
         uint64_t countTimeCounts() const;
         uint64_t countTriggers() const;
+        //--- start peak parameter
+        double pkarea() const;
+        double pkheight() const;
+        double pkwidth() const;
+        double theoreticalPlate() const;
+        double capacityFactor() const;
+        double asymmetry() const;
+        double resolution() const;
+        void setPkArea( double );
+        void setPkHeight( double );
+        void setPkWidth( double );
+        void setTheoreticalPlate( double );
+        void setCapacityFactor( double );
+        void setAsymmetry( double );
+        void setResolution( double );
+        //------- end peak paramater
 
         void setPeakIndex( int32_t );
         boost::uuids::uuid& idTable();
@@ -108,6 +134,15 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( tR_ );
                 ar & BOOST_SERIALIZATION_NVP( countTimeCounts_ );
                 ar & BOOST_SERIALIZATION_NVP( countTriggers_ );
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( pkarea_ );
+                    ar & BOOST_SERIALIZATION_NVP( pkheight_ );
+                    ar & BOOST_SERIALIZATION_NVP( pkwidth_ );
+                    ar & BOOST_SERIALIZATION_NVP( theoreticalPlate_ );
+                    ar & BOOST_SERIALIZATION_NVP( capacityFactor_ );
+                    ar & BOOST_SERIALIZATION_NVP( asymmetry_ );
+                    ar & BOOST_SERIALIZATION_NVP( resolution_ );
+                }
             } else {
                 std::wstring dataGuid;
                 if ( version >= 1 )
@@ -133,6 +168,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanResponse, 3 )
+BOOST_CLASS_VERSION( adcontrols::QuanResponse, 4 )
 
 #endif // QUANRESPONSE_HPP
