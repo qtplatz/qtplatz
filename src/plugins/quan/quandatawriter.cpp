@@ -352,6 +352,13 @@ QuanDataWriter::create_table()
 ,amount         REAL    \
 ,timeCounts     INTEGER \
 ,trigCounts     INTEGER \
+,pkarea         REAL    \
+,pkheight       REAL    \
+,pkwidth        REAL    \
+,ntp            REAL    \
+,capacity_f     REAL    \
+,asymmetry      REAL    \
+,resolution     REAL    \
 ,FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
 
     result &= sql.exec("\
@@ -708,14 +715,15 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
     for ( auto& result: t.results() ) {
 
         if ( sql.prepare( "INSERT INTO QuanResponse"
-                          "(idSample,idx,fcn,intensity,idCmpd,idTable,dataGuid,formula,mass,tR,timeCounts,trigCounts)"
-                          "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?,?,?"
+                          "(idSample,idx,fcn,intensity,idCmpd,idTable,dataGuid,formula,mass,tR,timeCounts,trigCounts"
+                          ",pkarea,pkheight,pkwidth,ntp,capacity_f,asymmetry,resolution)"
+                          "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
                           "FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 
             // ADDEBUG() << "insert_table fcn: " << result.fcn_ << ", " << result.uuid_cmpd();
 
             int col = 1;
-            sql.bind( col++ ) = result.idx_;
+            sql.bind( col++ ) = result.peakIndex();
             sql.bind( col++ ) = result.fcn();
             sql.bind( col++ ) = result.intensity();
             sql.bind( col++ ) = result.uuid_cmpd();              // QuanCompound.uuid
@@ -726,6 +734,13 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
             sql.bind( col++ ) = result.tR();                      // observed retention time
             sql.bind( col++ ) = result.countTimeCounts();        // ion count
             sql.bind( col++ ) = result.countTriggers();          // total trigger count
+            sql.bind( col++ ) = result.pkarea();
+            sql.bind( col++ ) = result.pkheight();
+            sql.bind( col++ ) = result.pkwidth();
+            sql.bind( col++ ) = result.theoreticalPlate();
+            sql.bind( col++ ) = result.capacityFactor();
+            sql.bind( col++ ) = result.asymmetry();
+            sql.bind( col++ ) = result.resolution();
             sql.bind( col++ ) = t.uuid();                        // QuanSample.uuid
 
             if ( sql.step() != adfs::sqlite_done )

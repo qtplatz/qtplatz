@@ -62,10 +62,10 @@ namespace adcontrols {
         double amounts_;                 // result
         double mass_;                    // observed mass
         double tR_;                      // observed retention time
+        std::string formula_;
         uint64_t countTimeCounts_;       // count of time-counts
         uint64_t countTriggers_;         // count of triggers
-
-    // peak paramater
+        // peak paramater
         double pkarea_;
         double pkheight_;
         double pkwidth_;
@@ -116,8 +116,6 @@ namespace adcontrols {
         void setCountTriggers( uint64_t );
 
     private:
-        std::string formula_;
-
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;

@@ -250,27 +250,27 @@ namespace quan {
                             resp.uuid_cmpd_table( compounds.uuid() );
                             if ( dataGuid )
                                 resp.setDataGuid( dataGuid.get() );   // corresponding chromatogram data on output adfs file
-                            resp.mass_ = matchedMass ? matchedMass.get() : 0;
-                            resp.idx_ = (-1);
+                            resp.setMass( matchedMass ? matchedMass.get() : 0 );
+                            resp.setPeakIndex( -1 );
                             auto it = std::find_if( pair.second->peaks().begin(), pair.second->peaks().end(), [&](auto& p){ return p.formula() == formula.get(); } );
                             if ( it != pair.second->peaks().end() ) {
                                 resp.formula( formula.get().c_str() );
-                                resp.idx_ = it->peakId();
-                                resp.fcn_ = pair.first->protocol();
-                                resp.intensity_ = it->peakArea();
-                                resp.amounts_ = 0;
-                                resp.tR_ = it->peakTime();
+                                resp.setPeakIndex( it->peakId() );
+                                resp.setFcn( pair.first->protocol() );
+                                resp.setIntensity( it->peakArea() );
+                                resp.setAmounts( 0 );
+                                resp.set_tR( it->peakTime() );
                             }
                             sample << resp;
 
                             ptree.put( "resp.uuid_cmpd", resp.uuid_cmpd() );
                             ptree.put( "resp.uuid_cmpd_table", resp.uuid_cmpd_table() );
                             ptree.put( "resp.dataGuid", dataGuid.get() );
-                            ptree.put( "resp.mass", resp.mass_ );
-                            ptree.put( "resp.idx", resp.idx_ );
-                            ptree.put( "resp.fcn", resp.fcn_ );
-                            ptree.put( "resp.intensity", resp.intensity_ );
-                            ptree.put( "resp.tR", resp.tR_ );
+                            ptree.put( "resp.mass", resp.mass() );
+                            ptree.put( "resp.idx", resp.peakIndex() );
+                            ptree.put( "resp.fcn", resp.fcn() );
+                            ptree.put( "resp.intensity", resp.intensity() );
+                            ptree.put( "resp.tR", resp.tR() );
                         } else {
                             assert( 0 );
                         }

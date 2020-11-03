@@ -549,15 +549,15 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
                 resp.uuid_cmpd( compound.uuid() );
                 resp.uuid_cmpd_table( compounds.uuid() );
                 resp.formula( compound.formula() );
-                resp.idx_ = int32_t(idx);
-                resp.fcn_ = fcn;
-                resp.mass_ = fms.getMass( idx );
-                resp.intensity_ = fms.getIntensity( idx );
-                resp.amounts_ = 0;
-                resp.tR_ = 0;
+                resp.setPeakIndex( int32_t(idx) );
+                resp.setFcn( fcn );
+                resp.setMass( fms.getMass( idx ) );
+                resp.setIntensity( fms.getIntensity( idx ) );
+                resp.setAmounts( 0 );
+                resp.set_tR( 0 );
 
                 using adcontrols::annotation;
-                annotation anno( resp.formula(), resp.mass_, resp.intensity_, resp.idx_, resp.intensity_, annotation::dataFormula );
+                annotation anno( resp.formula(), resp.mass(), resp.intensity(), resp.peakIndex(), resp.intensity(), annotation::dataFormula );
                 fms.get_annotations() << anno;
 
                 (info.begin() + idx)->formula( resp.formula() );
