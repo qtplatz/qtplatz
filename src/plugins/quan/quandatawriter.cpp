@@ -164,7 +164,6 @@ QuanDataWriter::write( const adcontrols::Chromatogram& c, const wchar_t * dataSo
     if ( auto top = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
 
         boost::filesystem::path path = boost::filesystem::path( L"/Processed/Chromatograms" ) / boost::filesystem::path( dataSource ).stem();
-        // ADDEBUG() << path.string();
 
         if ( adfs::folder folder = fs_.addFolder( path.wstring() ) ) {
             if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
@@ -700,8 +699,6 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 
     sql.begin();
 
-    ADDEBUG() << "## insert_table: " << t.time_of_injection_iso8601();
-
     if ( sql.prepare( "UPDATE QuanSample SET time_point_of_injection=?,time_of_injection=? WHERE uuid=?" ) ) {
         sql.bind( 1 ) = t.time_of_injection().time_since_epoch().count();
         sql.bind( 2 ) = t.time_of_injection_iso8601();
@@ -719,9 +716,6 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
                           ",pkarea,pkheight,pkwidth,ntp,capacity_f,asymmetry,resolution)"
                           "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"
                           "FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
-
-            // ADDEBUG() << "insert_table fcn: " << result.fcn_ << ", " << result.uuid_cmpd();
-            ADDEBUG() << "write response ntp: " << result.theoreticalPlate() << ", h: " << result.pkheight();
 
             int col = 1;
             sql.bind( col++ ) = result.peakIndex();
@@ -814,8 +808,6 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
         variance = std::accumulate( chro.getIntensityArray(), chro.getIntensityArray() + N, 0.0
                                     , [&](const auto& a, const auto& v){ return a + (v - mean) * (v - mean); }) / (N - 1);
 
-    // ADDEBUG() << "addCountingResponse( proto: " << chro.protocol() << ", mean: " << mean << ")";
-
     if ( auto child = chro.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
         if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
             if ( auto mol = child.get().get_child_optional( "moltable" ) ) {               // "generator.extract_by_mols.moltable"
@@ -823,8 +815,6 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
                 auto proto = mol.get().get_optional< int32_t >( "protocol" );
                 if ( formula && proto ) {
 
-                    //ADDEBUG() << " " << cmpdGuid.get() << ", formula: "
-                    //<< formula.get() << ", proto: " << proto.get() << ", average: " << resp << ", idSample: " << sample.row();
                     auto tof = child.get().get_optional<double>( "tof" );
                     auto centroid = child.get().get_optional< std::string >( "centroid" );
 
@@ -977,8 +967,6 @@ QuanDataWriter::insert_spectrogram( const boost::uuids::uuid& fileGuid
                                     , const adprocessor::dataprocessor& dp
                                     , int idx ) // 0 = AVG, 1 = PKD
 {
-    ADDEBUG() << dp.filename();
-
     uint64_t idSample(0);
     adfs::stmt sql( fs_.db() );
     sql.prepare( "SELECT id FROM QuanSample WHERE dataSource like ?" );
