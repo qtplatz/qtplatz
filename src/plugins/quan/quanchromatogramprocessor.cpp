@@ -333,6 +333,14 @@ QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adc
         pCompounds->convert_if( cXmethods_[ 0 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return !comp.isCounting();} );
         pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
 
+        // override 'auto targeting befor XIC generation' parameter
+        if ( auto qrm = pm->find< adcontrols::QuanResponseMethod >() ) {
+            for ( size_t i = 0; i < 1; ++i ) {
+                cXmethods_[ 0 ]->setEnableAutoTargeting( qrm->enableAutoTargeting() );
+                cXmethods_[ 0 ]->setPeakWidthForChromatogram( qrm->peakWidthForChromatogram() );
+            }
+        }
+
         if ( auto lkm = pm->find< adcontrols::MSLockMethod >() ) {
 #ifndef NDEBUG
             ADDEBUG() << lkm->toJson();
@@ -393,10 +401,13 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
 
                 adcontrols::ProcessMethod pm( *procm_ );
                 pm *= (*cXmethods_[ idx ]);
+
                 // ADDEBUG() << "----------- extract_by_mols ------------";
                 do {
                     std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
+
                     extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ return (*progress)(); } );
+
                     std::transform( clist.begin(), clist.end(), std::back_inserter( rlist )
                                     , []( auto p ){ return std::make_pair( std::move( p ), std::make_shared< adcontrols::PeakResult >() ); });
                 } while (0);

@@ -37,7 +37,7 @@
 #endif
 
 namespace adcontrols {
-    
+
     class QuanCompounds::impl {
     public:
         impl() {
@@ -174,14 +174,14 @@ QuanCompounds::ident() const
 
 // static
 bool
-QuanCompounds::xml_archive( std::wostream& os, const QuanCompounds& t ) 
+QuanCompounds::xml_archive( std::wostream& os, const QuanCompounds& t )
 {
     return internal::xmlSerializer( "QuanCompounds" ).archive( os, t );
 }
 
 // static
 bool
-QuanCompounds::xml_restore( std::wistream& is, QuanCompounds& t ) 
+QuanCompounds::xml_restore( std::wistream& is, QuanCompounds& t )
 {
     return internal::xmlSerializer( "QuanCompounds" ).restore( is, t );
 }
@@ -218,6 +218,9 @@ QuanCompounds::convert_if( moltable& mols, std::function< bool( const value_type
             value.setIsMSRef( comp.isLKMSRef() );
             value.mass() = comp.mass();
 
+            if ( comp.tR() > 0 )
+                value.set_tR( comp.tR() );  // double -> optional<double>
+
             if ( comp.protocol() >= 0 )
                 value.setProtocol( comp.protocol() );
 
@@ -227,4 +230,3 @@ QuanCompounds::convert_if( moltable& mols, std::function< bool( const value_type
         }
     }
 }
-

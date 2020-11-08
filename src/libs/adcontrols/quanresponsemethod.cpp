@@ -39,6 +39,8 @@ QuanResponseMethod::QuanResponseMethod() : intensityMethod_( idArea )
                                          , widthPpm_( 100 )
                                          , widthDaltons_( 0.010 )
                                          , dataSelect_( idAverage )
+                                         , enableAutoTargeting_(true)
+                                         , peakWidthForChromatogram_( 1.0 )
 {
 }
 
@@ -48,6 +50,8 @@ QuanResponseMethod::QuanResponseMethod( const QuanResponseMethod& t ) : intensit
                                                                       , widthPpm_( t.widthPpm_ )
                                                                       , widthDaltons_( t.widthDaltons_ )
                                                                       , dataSelect_( t.dataSelect_ )
+                                                                      , enableAutoTargeting_( t.enableAutoTargeting_ )
+                                                                      , peakWidthForChromatogram_( t.peakWidthForChromatogram_ )
 {
 }
 
@@ -117,6 +121,30 @@ QuanResponseMethod::intensityMethod() const
     return intensityMethod_;
 }
 
+bool
+QuanResponseMethod::enableAutoTargeting() const
+{
+    return enableAutoTargeting_;
+}
+
+void
+QuanResponseMethod::setEnableAutoTargeting( bool enable )
+{
+    enableAutoTargeting_ = enable;
+}
+
+double
+QuanResponseMethod::peakWidthForChromatogram() const
+{
+    return peakWidthForChromatogram_;
+}
+
+void
+QuanResponseMethod::setPeakWidthForChromatogram( double value )
+{
+    peakWidthForChromatogram_ = value;
+}
+
 
 std::string
 QuanResponseMethod::toJson() const
@@ -129,6 +157,8 @@ QuanResponseMethod::toJson() const
     pt.put( "data.dataSelectionMethod", dataSelect_ );
     pt.put( "data.intensity", intensityMethod_ );  // doCentroid or Area
     pt.put( "data.findAlgo", findAlgo_ );          // Most intens peak/Closest
+    pt.put( "autoTargeting.enable", enableAutoTargeting_ );
+    pt.put( "autoTargeting.peakwidth", peakWidthForChromatogram_ );
 
     std::ostringstream o;
     boost::property_tree::write_json( o, pt );

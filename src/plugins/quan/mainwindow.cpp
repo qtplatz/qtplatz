@@ -63,6 +63,7 @@
 
 #include <QDockWidget>
 #include <QFileDialog>
+#include <QGroupBox>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QLabel>
@@ -242,10 +243,8 @@ MainWindow::onInitialUpdate()
     }
 
 #if defined Q_OS_LINUX
-    auto fsize = qtwrapper::font_size()( 9 );
-
     for ( auto e : findChildren<QLineEdit*>() )
-        e->setStyleSheet(QString( "* {font-size: %1pt;}" ).arg( fsize ) );
+        e->setStyleSheet( "* {font-size: 9pt;}" );
 
     for ( auto table: findChildren< QTableView * >() ) {
         table->setStyleSheet( "QTableView { font-size: 9pt; }"
@@ -253,14 +252,18 @@ MainWindow::onInitialUpdate()
     }
 
     if ( auto p = findChild< CompoundsWidget * >() ) {
-        p->setStyleSheet( QString("* { font-size: %1pt; }"
+        p->setStyleSheet( "* { font-size: 9pt; }"
                                   "QHeaderView::section {"
-                                  "  font-size: %1pt;"
+                                  "  font-size: 9pt;"
                                   "}"
                                   "QTableView {"
-                                  "  font-size: %1pt;"
+                                  "  font-size: 9pt;"
                                   "}"
-                              ).arg( fsize ) );
+            );
+    }
+
+    for ( auto w: findChildren< QGroupBox * >() ) {
+        w->setStyleSheet( "* { font-size: 9pt; }" );
     }
 #endif
 }

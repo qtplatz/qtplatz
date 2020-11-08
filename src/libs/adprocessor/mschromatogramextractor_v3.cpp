@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,6 +30,7 @@
 #include "chemicalformula.hpp"
 #include "chromatogram.hpp"
 #include "constants.hpp"
+#include "dataprocessor.hpp"
 #include "description.hpp"
 #include "descriptions.hpp"
 #include "lcmsdataset.hpp"
@@ -46,6 +47,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanresponsemethod.hpp>
+#include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/date_time.hpp>
@@ -153,6 +155,47 @@ namespace adprocessor {
         }
         inline void append( uint32_t pos, double time, double y, double tof, double mass ) {
             (*pChr) << std::make_tuple( time, y, tof, mass );
+        }
+    };
+
+    struct AutoTargeting {
+        adcontrols::ProcessMethod localm;
+        boost::optional< double > find( int proto
+                                        , const adcontrols::moltable::value_type& mol
+                                        , const adcontrols::ProcessMethod& pm
+                                        , std::shared_ptr< const adcontrols::DataReader > reader
+                                        , double pkw ) {
+
+            // cross check line 485, dataporocessworker.cpp in dataproc project
+
+            if ( mol.tR() && *mol.tR() > 0 ) {
+
+                double tR = *mol.tR();
+
+                if ( auto cm = pm.find< adcontrols::CentroidMethod >() )
+                    localm.appendMethod( *cm );
+
+                if ( auto tm = pm.find< adcontrols::TargetingMethod >() ) {
+                    auto it = std::find_if( tm->molecules().data().begin(), tm->molecules().data().end()
+                                            , [&]( const auto& a ){ return a.protocol() == proto; } );
+                    if ( it != tm->molecules().data().end() ) {
+                        if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
+                            if ( auto res = dataprocessor::doCentroid( *ms, localm ) ) { // pkinfo, spectrum
+                                auto targeting = adcontrols::Targeting( *tm );
+                                if ( targeting.force_find( res->second, it->formula(), proto ) ) {
+                                    for ( const auto& c: targeting.candidates() )
+                                        ADDEBUG() << "candidata: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn;
+                                    return targeting.candidates().at(0).mass;
+                                } else {
+                                    ADDEBUG() << "no target found";
+                                    return boost::none;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return boost::none;
         }
     };
 }
@@ -282,9 +325,9 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
     std::unique_ptr< adcontrols::CentroidProcess > peak_detector;
     std::unique_ptr< adcontrols::MSFinder > msfinder;
+
     bool areaIntensity( true );
     if ( auto qrm = pm.find< adcontrols::QuanResponseMethod >() ) {
-        // ADDEBUG() << qrm->toJson();
         if ( qrm->intensityMethod() == adcontrols::QuanResponseMethod::idCentroid ) {
             if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
                 areaIntensity = cm->centroidAreaIntensity();
@@ -305,8 +348,10 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         if ( auto sp = reader->readSpectrum( it ) ) {
 
             for ( auto& mol: cm->molecules().data() ) {
+
                 if ( auto proto = protocol_finder()( sp, mol, cm->width_at_mass( mol.mass() ) ) )  {
                     if ( proto && mol.enable() ) {
+
                         double width = cm->width_at_mass( mol.mass() );
                         double lMass = mol.mass() - width / 2;
                         double uMass = mol.mass() + width / 2;
@@ -319,6 +364,19 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                               % ( width * 1000 )
                                               % adportable::utf::to_wstring( reader->display_name() )
                                               % proto.get() ).str();
+
+                        if ( cm->enableAutoTargeting() ) {
+                            if ( auto mass = AutoTargeting().find( *proto, mol, pm, reader, cm->peakWidthForChromatogram() ) ) {
+                                lMass = *mass - width / 2;
+                                uMass = *mass + width / 2;
+                                desc = ( boost::wformat( L"%s %.4f AT (W:%.4gmDa) %s %d" )
+                                         % adportable::utf::to_wstring( mol.formula() )
+                                         % *mass
+                                         % ( width * 1000 )
+                                         % adportable::utf::to_wstring( reader->display_name() )
+                                         % proto.get() ).str();
+                            }
+                        }
 
                         auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                         double tof = t.getTime( t.getIndexFromMass( mol.mass() ) );

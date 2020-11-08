@@ -54,8 +54,8 @@ namespace adcontrols {
         double width( idWidthMethod = idWidthDaltons ) const;
         void setWidth( double, idWidthMethod = idWidthDaltons );
 
-        idDataSelect dataSelectionMethod() const;
-        void setDataSelectionMethod( idDataSelect );
+        idDataSelect dataSelectionMethod() const;    // deprecated -- not supported
+        void setDataSelectionMethod( idDataSelect ); // deprecated -- not supported
 
         idFindAlgorithm findAlgorithm() const;
         void setFindAlgorithm( idFindAlgorithm );
@@ -66,6 +66,12 @@ namespace adcontrols {
         std::string toJson() const;
         void fromJson( const std::string& );
 
+        bool enableAutoTargeting() const;
+        void setEnableAutoTargeting( bool );
+
+        double peakWidthForChromatogram() const;
+        void setPeakWidthForChromatogram( double );
+
     private:
         idIntensity intensityMethod_;
         idFindAlgorithm findAlgo_;
@@ -73,6 +79,8 @@ namespace adcontrols {
         double widthPpm_;
         double widthDaltons_;
         idDataSelect dataSelect_;
+        bool enableAutoTargeting_;
+        double peakWidthForChromatogram_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -85,9 +93,13 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( widthDaltons_ )
                 & BOOST_SERIALIZATION_NVP( widthPpm_ )
                 ;
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( enableAutoTargeting_ );
+                ar & BOOST_SERIALIZATION_NVP( peakWidthForChromatogram_ );
+            }
         };
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanResponseMethod, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanResponseMethod, 2 )

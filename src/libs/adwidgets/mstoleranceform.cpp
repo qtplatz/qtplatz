@@ -38,19 +38,21 @@ MSToleranceForm::MSToleranceForm(QWidget *parent) : QWidget(parent), ui( new Ui:
     ui->setupUi(this);
 
     ui->radioButton_area->setChecked( true );
-    ui->radioButton_intens->setChecked( true );
+    // ui->radioButton_intens->setChecked( true );
     ui->radioButton_2->setChecked( true );
 
-    ui->radioButton_intens->setEnabled( false );
-    ui->radioButton_closest->setEnabled( false );
+    // ui->radioButton_intens->setEnabled( false );
+    // ui->radioButton_closest->setEnabled( false );
     ui->label->setText( "Width(mDa)" );
 
     connect( ui->radioButton_centroid, &QRadioButton::toggled, this, [&](bool checked){
-            ui->radioButton_intens->setEnabled( checked );
-            ui->radioButton_closest->setEnabled( checked );
+            // ui->radioButton_intens->setEnabled( checked );
+            // ui->radioButton_closest->setEnabled( checked );
             ui->label->setText( checked ? "Tolerance(mDa)" : "Width(mDa)" );
         });
 
+    ui->groupBox_3->setChecked( true ); // auto tageting on/off
+    ui->doubleSpinBox->setValue( 1.0 ); // peak width for spectrum
 }
 
 MSToleranceForm::~MSToleranceForm()
@@ -96,16 +98,19 @@ MSToleranceForm::setContents( const adcontrols::QuanResponseMethod& m )
         ui->radioButton_area->setChecked( true );
     else
         ui->radioButton_centroid->setChecked( true );
-
+#if 0
     if ( m.findAlgorithm() == idFindLargest )
         ui->radioButton_intens->setChecked( true );
     else
         ui->radioButton_closest->setChecked( true );
-
+#endif
     if ( m.dataSelectionMethod() == QuanResponseMethod::idAverage )
         ui->radioButton_2->setChecked( true );
     else
         ui->radioButton_3->setChecked( true );
+
+    ui->radioButton_3->setChecked( m.enableAutoTargeting() );
+    ui->doubleSpinBox->setValue( m.peakWidthForChromatogram() );
 
     return true;
 }
@@ -118,8 +123,10 @@ MSToleranceForm::getContents( adcontrols::QuanResponseMethod& m ) const
     m.setWidthMethod( QuanResponseMethod::idWidthDaltons );
     m.setWidth( ui->doubleSpinBoxWidth->value() / 1000.0 );
     m.setIntensityMethod( ui->radioButton_centroid->isChecked() ? QuanResponseMethod::idCentroid : QuanResponseMethod::idArea );
-    m.setFindAlgorithm( ui->radioButton_closest->isChecked() ? idFindClosest : idFindLargest );
+    // m.setFindAlgorithm( ui->radioButton_closest->isChecked() ? idFindClosest : idFindLargest );
     m.setDataSelectionMethod( ui->radioButton_2->isChecked() ? QuanResponseMethod::idAverage : QuanResponseMethod::idLargest );
+    m.setEnableAutoTargeting( ui->groupBox_3->isChecked() );
+    m.setPeakWidthForChromatogram( ui->doubleSpinBox->value() );
 
     return true;
 }
