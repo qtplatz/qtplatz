@@ -20,6 +20,7 @@ add_subdirectory( test_serializer )
 add_subdirectory( test_adfs )
 add_subdirectory( test_date )
 #add_subdirectory( test_json )
+add_subdirectory( test_pkarea )
 
 if ( NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( test_dataprocessor )

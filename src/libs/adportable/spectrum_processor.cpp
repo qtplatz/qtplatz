@@ -592,6 +592,15 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
     return results_.size();
 }
 
+spectrum_processor::areaFraction
+spectrum_processor::getFraction( const double * pMasses, size_t size, double lMass, double hMass )
+{
+    areaFraction a;
+    if ( getFraction( a, pMasses, size, lMass, hMass ) )
+        return a;
+    return {};
+}
+
 bool
 spectrum_processor::getFraction( areaFraction& frac, const double * pMasses, size_t size, double lMass, double hMass )
 {

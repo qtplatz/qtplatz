@@ -58,6 +58,7 @@ namespace adportable {
         static double area( const double * beg, const double * end, double base );
 
         static bool getFraction( areaFraction&, const double * pMasses, size_t, double lMass, double hMass );
+        static areaFraction getFraction( const double * pMasses, size_t, double lMass, double hMass );
         static double area( const areaFraction&, double base, const double* pData, size_t nData );
         static double area( const areaFraction&, double base, const int64_t* pData, size_t nData );
         static double area( const areaFraction&, double base, const int32_t* pData, size_t nData );
@@ -68,7 +69,7 @@ namespace adportable {
 #if defined WIN32
     template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
     spectrum_processor::tic( size_t nbrSamples, const double * praw, size_t N );
-    
+
     template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
     spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, size_t N );
 
@@ -76,7 +77,7 @@ namespace adportable {
     spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, size_t N );
 
     template<> ADPORTABLESHARED_EXPORT std::tuple< double, double, double >
-    spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, size_t N );        
+    spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, size_t N );
 #endif
 
     struct ADPORTABLESHARED_EXPORT peakinfo {
