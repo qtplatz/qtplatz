@@ -41,6 +41,7 @@ mslock::mslock()
 }
 
 mslock::mslock( const mslock& t ) : references_( t.references_ )
+                                  , fitter_( t.fitter_ )
 {
 }
 

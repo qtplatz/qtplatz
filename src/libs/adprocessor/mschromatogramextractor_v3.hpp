@@ -94,7 +94,7 @@ namespace adprocessor {
 
             std::shared_ptr< const adcontrols::MassSpectrum > getMassSpectrum( double tR ) const;
 
-            const std::vector< std::pair< int64_t, std::array<double, 2> > >& lkms() const { return lkms_; }
+            const std::vector< std::pair< int64_t, std::array<double, 2> > >& lkms() const;
 
             std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > time_of_injection() const;
 
@@ -107,8 +107,6 @@ namespace adprocessor {
 
             class impl;
             impl * impl_;
-
-            std::vector< std::pair< int64_t, std::array< double, 2 > > > lkms_;  // time, coeffs
         };
     }
 }

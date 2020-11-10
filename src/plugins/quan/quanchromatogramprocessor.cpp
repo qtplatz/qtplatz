@@ -266,7 +266,6 @@ namespace quan {
                                 resp.setTheoreticalPlate( it->theoreticalPlate().ntp() );
                                 resp.setAsymmetry( it->asymmetry().asymmetry() );
                                 resp.setResolution( it->resolution().resolution() );
-                                ADDEBUG() << "==================> " << it->theoreticalPlate().ntp() << resp.theoreticalPlate();
                             }
                             sample << resp;
 
