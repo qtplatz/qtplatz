@@ -70,6 +70,7 @@ namespace admtwidgets {
         void rowsRemoved( int, int );
 
     public slots:
+        void handleScanLawChanged();
 
     private slots:
         void handleItemChanged( const QStandardItem * );

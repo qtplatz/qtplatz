@@ -68,9 +68,11 @@ namespace admtwidgets {
     public:
         std::unique_ptr< QStandardItemModel > model_;
         std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
+        bool enable_;
     public:
         impl( MolTableWidget * p ) : this_( p )
-                                   , model_( std::make_unique< QStandardItemModel >() ) {
+                                   , model_( std::make_unique< QStandardItemModel >() )
+                                   , enable_( true ) {
             model_->setColumnCount( ncols );
             model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
             model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
@@ -108,6 +110,8 @@ namespace admtwidgets {
         void setTime( int row, double mass ) {
             if ( auto sp = spectrometer_.lock() ) {
                 if ( auto scanlaw = sp->scanLaw() ) {
+                    if ( model_->index( row, c_laps ).data().isNull() )
+                        model_->setData( model_->index( row, c_laps ), 10 );
                     int32_t nlaps =  model_->index( row, c_laps ).data( Qt::EditRole ).toUInt();
                     double tof = scanlaw->getTime( mass, nlaps );
                     model_->setData( model_->index( row, c_time ), tof * std::micro::den, Qt::EditRole );
@@ -131,13 +135,15 @@ namespace admtwidgets {
             QJsonArray a;
             for ( size_t i = 0; i < model_->rowCount(); ++i ) {
                 auto formula = model_->index( i, c_formula ).data( Qt::EditRole ).toString();
+                double mass = model_->index( i, c_mass ).data( Qt::EditRole ).toDouble();
                 double tof = model_->index( i, c_time ).data( Qt::EditRole ).toDouble();
                 int nlaps = model_->index( i, c_laps ).data( Qt::EditRole ).toUInt();
-                QJsonObject obj{ {"formula", formula }, { "tof", tof }, { "nlaps", nlaps } };
+                QJsonObject obj{{"formula", formula }, { "mass", mass }, { "tof", tof }, { "nlaps", nlaps }};
                 a.push_back( obj );
             }
-            QJsonObject top{ { "tofdata", a } };
-            return QJsonDocument( top ).toJson( QJsonDocument::Indented );
+
+            QJsonObject top{{ "tofCalculator", QJsonObject{{ "enable", enable_}, { "tofdata", a }} }};
+            return QJsonDocument( top ).toJson( QJsonDocument::Compact );
         }
     };
 
@@ -155,7 +161,11 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
         gbox->setTitle( tr( "Enable TOF Calculator" ) );
         gbox->setCheckable( true );
         gbox->setChecked( true );
-        connect( gbox, &QGroupBox::clicked, [&]( bool checked ){ emit valueChanged( impl_->readJson() ); } );
+        connect( gbox, &QGroupBox::clicked
+                 , [&]( bool checked ){
+                       impl_->enable_ = checked;
+                       emit valueChanged( impl_->readJson() );
+                   } );
 
         topLayout->addWidget( gbox );
 
@@ -175,7 +185,6 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
 
             // item changed
             connect( impl_->model_.get(), &QStandardItemModel::itemChanged, this, &MolTableWidget::handleItemChanged );
-
         }
     }
 }
@@ -210,12 +219,35 @@ MolTableWidget::OnFinalClose()
 bool
 MolTableWidget::getContents( boost::any& a ) const
 {
-    return false;
+    a = impl_->readJson();
+    return true;
 }
 
 bool
 MolTableWidget::setContents( boost::any&& a )
 {
+    if ( a.type() == typeid( QByteArray ) ) {
+        auto& model = *impl_->model_;
+        auto obj = QJsonDocument::fromJson( boost::any_cast< QByteArray >( a ) ).object();
+        auto top = obj.value( "tofCalculator" );
+        bool enable = top[ "enable" ].toBool();
+        auto data = top[ "tofdata" ];
+        if ( data.isArray() ) {
+            for ( const auto& x: data.toArray() ) {
+                auto item = x.toObject();
+                size_t row = model.rowCount();
+                model.insertRow( row );
+                model.setData( model.index( row, c_formula ), item[ "formula" ].toString() );
+                model.setData( model.index( row, c_mass ),    item[ "mass" ].toDouble() );
+                model.setData( model.index( row, c_time ),    item[ "tof" ].toDouble() );
+                model.setData( model.index( row, c_laps ),    item[ "nlaps" ].toInt() );
+            }
+            impl_->deltaTime();
+        }
+        if ( auto gbox = findChild< QGroupBox * >() )
+            gbox->setChecked( enable );
+        return true;
+    }
     return false;
 }
 
@@ -262,18 +294,18 @@ MolTableWidget::handleItemChanged( const QStandardItem * item )
 {
     auto index = item->index();
 
-    ADDEBUG() << "------- " << __FUNCTION__ << "  index: " << index.row() << ", " << index.column();
+    // ADDEBUG() << "------- " << __FUNCTION__ << "  index: " << index.row() << ", " << index.column();
 
     auto& model = *impl_->model_;
 
     if ( index.column() == c_formula ) {
         QSignalBlocker block( impl_->model_.get() );
-        std::vector< adcontrols::mol::element > elements;
-        int charge;
-        if ( adcontrols::ChemicalFormula::getComposition( elements, index.data().toString().toStdString(), charge ) && charge == 0 ) {
-            QString f = QString( "[%1]+" ).arg( index.data().toString() );
-            model.setData( index, f, Qt::EditRole );
-        }
+        // std::vector< adcontrols::mol::element > elements;
+        // int charge;
+        // if ( adcontrols::ChemicalFormula::getComposition( elements, index.data().toString().toStdString(), charge ) && charge == 0 ) {
+        //     QString f = QString( "[%1]+" ).arg( index.data().toString() );
+        //     model.setData( index, f, Qt::EditRole );
+        // }
         double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( impl_->model_->data( index, Qt::EditRole ).toString().toStdString() );
         model.setData( model.index( index.row(), c_mass ), mass, Qt::EditRole );
         impl_->setTime( index.row(), mass );
@@ -284,4 +316,26 @@ MolTableWidget::handleItemChanged( const QStandardItem * item )
     }
     auto json = impl_->readJson();
     emit valueChanged( json );
+}
+
+void
+MolTableWidget::handleScanLawChanged()
+{
+    if ( auto sp = impl_->spectrometer_.lock() ) {
+        if ( auto scanlaw = sp->scanLaw() ) {
+
+            QSignalBlocker block( impl_->model_.get() );
+
+            for ( int i = 0; i < impl_->model_->rowCount(); ++i ) {
+
+                auto formula = impl_->model_->index( i, c_formula ).data( Qt::EditRole ).toString();
+                auto mass = impl_->model_->index( i, c_mass ).data( Qt::EditRole ).toDouble();
+                auto laps = impl_->model_->index( i, c_laps ).data( Qt::EditRole ).toUInt();
+                if ( mass > 0.5 )
+                    impl_->setTime( i, mass );
+            }
+            auto json = impl_->readJson();
+            emit valueChanged( json );
+        }
+    }
 }
