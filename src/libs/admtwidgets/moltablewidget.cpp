@@ -63,6 +63,40 @@ namespace {
 
 namespace admtwidgets {
 
+    struct lapFinder {
+        const adcontrols::ScanLaw& scanlaw_;
+        const double mass_;
+        const int laps_;
+        const double time_;
+        const double tlap_;
+        lapFinder( const adcontrols::ScanLaw& law, double mass, double time, int laps )
+            : scanlaw_( law ), mass_( mass ), time_( time ), laps_( laps )
+            , tlap_( scanlaw_.getTime( mass, 2 ) - scanlaw_.getTime( mass, 1 ) ) {
+        }
+            
+        std::pair< int, double > operator()( double mass ) const {
+            if ( laps_ > 0 && mass > 0.5 ) {
+                int laps = laps_;
+                if ( mass < mass_ ) {
+                    do {
+                        double time_p = time_ - (tlap_/2);
+                        double time = scanlaw_.getTime( mass, laps );
+                        if ( time > time_p )
+                            return { laps, time };
+                    } while ( ++laps && laps < 1000 );
+                } else {
+                    do {
+                        double time_n = time_ + (tlap_/2);
+                        double time = scanlaw_.getTime( mass, laps );
+                        if ( time < time_n )
+                            return { laps, time };
+                    } while ( laps && --laps );
+                }
+            }
+            return { 0, 0 };
+        }
+    };
+
     class MolTableWidget::impl {
         MolTableWidget * this_;
     public:
@@ -92,7 +126,8 @@ namespace admtwidgets {
 
             if ( auto table = this_->findChild< MolTableView * >() ) {
                 std::vector< action_type > actions;
-                actions.push_back( std::make_pair( menu.addAction( "add line" ), [&](){ addLine(); }) );
+                actions.emplace_back( menu.addAction( "add line" ), [&](){ addLine(); } );
+                actions.emplace_back( menu.addAction( "find laps" ), [&](){ findLaps(); } );
                 if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
                     auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){ return t.first == selected; });
                     if ( it != actions.end() )
@@ -104,6 +139,37 @@ namespace admtwidgets {
         //-----------
         void addLine() {
             model_->insertRow( model_->rowCount() );
+        }
+
+        //-----
+        void findLaps() {
+            if ( auto table = this_->findChild< MolTableView * >() ) {
+                QModelIndexList indices = table->selectionModel()->selectedIndexes();
+                qSort( indices );
+                if ( indices.size() < 1 )
+                    return;
+                if ( auto sp = spectrometer_.lock() ) {
+                    if ( auto scanlaw = sp->scanLaw() ) {
+                        auto row = indices.first().row();
+                        auto mass = model_->index( row, c_mass ).data( Qt::EditRole ).toDouble();
+                        auto laps = model_->index( row, c_laps ).data( Qt::EditRole ).toUInt();
+                        auto time = model_->index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
+                        lapFinder finder( *scanlaw, mass, time, int(laps) );
+                        for ( int i = 0; i < model_->rowCount(); ++i ) {
+                            if ( i != row ) {
+                                int lap;
+                                double tof;
+                                ADDEBUG() << "---------------------";
+                                std::tie( lap, tof ) = finder( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() );
+                                if ( lap > 0 ) {
+                                    model_->setData( model_->index( i, c_laps ), lap );
+                                    model_->setData( model_->index( i, c_time ), tof * std::micro::den );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         //-------------------
@@ -123,11 +189,15 @@ namespace admtwidgets {
         void deltaTime() {
             if ( model_->rowCount() >= 2 ) {
                 std::vector< double > times;
-                for ( size_t i = 0; i < model_->rowCount(); ++i )
-                    times.emplace_back( model_->index( i, c_time ).data( Qt::EditRole ).toDouble() );
+                for ( size_t i = 0; i < model_->rowCount(); ++i ) {
+                    if ( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() > 0.5 )
+                        times.emplace_back( model_->index( i, c_time ).data( Qt::EditRole ).toDouble() );
+                }
                 auto it = std::min_element( times.begin(), times.end() );
-                for ( size_t i = 0; i < model_->rowCount(); ++i )
-                    model_->setData( model_->index( i, c_tdiff ), times[i] - *it );
+                for ( size_t i = 0; i < model_->rowCount(); ++i ) {
+                    if ( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() > 0.5 )
+                        model_->setData( model_->index( i, c_tdiff ), times[i] - *it );
+                }
             }
         }
 
@@ -135,11 +205,13 @@ namespace admtwidgets {
             QJsonArray a;
             for ( size_t i = 0; i < model_->rowCount(); ++i ) {
                 auto formula = model_->index( i, c_formula ).data( Qt::EditRole ).toString();
-                double mass = model_->index( i, c_mass ).data( Qt::EditRole ).toDouble();
-                double tof = model_->index( i, c_time ).data( Qt::EditRole ).toDouble();
-                int nlaps = model_->index( i, c_laps ).data( Qt::EditRole ).toUInt();
-                QJsonObject obj{{"formula", formula }, { "mass", mass }, { "tof", tof }, { "nlaps", nlaps }};
-                a.push_back( obj );
+                if ( ! formula.isEmpty() ) {
+                    double mass = model_->index( i, c_mass ).data( Qt::EditRole ).toDouble();
+                    double tof = model_->index( i, c_time ).data( Qt::EditRole ).toDouble();
+                    int nlaps = model_->index( i, c_laps ).data( Qt::EditRole ).toUInt();
+                    QJsonObject obj{{"formula", formula }, { "mass", mass }, { "tof", tof }, { "nlaps", nlaps }};
+                    a.push_back( obj );
+                }
             }
 
             QJsonObject top{{ "tofCalculator", QJsonObject{{ "enable", enable_}, { "tofdata", a }} }};
@@ -185,6 +257,10 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
 
             // item changed
             connect( impl_->model_.get(), &QStandardItemModel::itemChanged, this, &MolTableWidget::handleItemChanged );
+
+            connect( impl_->model_.get(), &QAbstractItemModel::rowsRemoved, [&]( const QModelIndex& index, int first, int last ) {
+                    emit valueChanged( impl_->readJson() );
+                } );
         }
     }
 }
@@ -227,7 +303,10 @@ bool
 MolTableWidget::setContents( boost::any&& a )
 {
     if ( a.type() == typeid( QByteArray ) ) {
+        QSignalBlocker block( impl_->model_.get() );
+
         auto& model = *impl_->model_;
+        model.setRowCount( 0 );
         auto obj = QJsonDocument::fromJson( boost::any_cast< QByteArray >( a ) ).object();
         auto top = obj.value( "tofCalculator" );
         bool enable = top[ "enable" ].toBool();
@@ -236,16 +315,19 @@ MolTableWidget::setContents( boost::any&& a )
             for ( const auto& x: data.toArray() ) {
                 auto item = x.toObject();
                 size_t row = model.rowCount();
-                model.insertRow( row );
-                model.setData( model.index( row, c_formula ), item[ "formula" ].toString() );
-                model.setData( model.index( row, c_mass ),    item[ "mass" ].toDouble() );
-                model.setData( model.index( row, c_time ),    item[ "tof" ].toDouble() );
-                model.setData( model.index( row, c_laps ),    item[ "nlaps" ].toInt() );
+                if ( ! item[ "formula" ].toString().isEmpty() ) {
+                    model.insertRow( row );
+                    model.setData( model.index( row, c_formula ), item[ "formula" ].toString() );
+                    model.setData( model.index( row, c_mass ),    item[ "mass" ].toDouble() );
+                    model.setData( model.index( row, c_time ),    item[ "tof" ].toDouble() );
+                    model.setData( model.index( row, c_laps ),    item[ "nlaps" ].toInt() );
+                }
             }
             impl_->deltaTime();
         }
         if ( auto gbox = findChild< QGroupBox * >() )
             gbox->setChecked( enable );
+        impl_->addLine();
         return true;
     }
     return false;
@@ -295,24 +377,21 @@ MolTableWidget::handleItemChanged( const QStandardItem * item )
     auto index = item->index();
 
     // ADDEBUG() << "------- " << __FUNCTION__ << "  index: " << index.row() << ", " << index.column();
-
     auto& model = *impl_->model_;
-
-    if ( index.column() == c_formula ) {
+    {
         QSignalBlocker block( impl_->model_.get() );
-        // std::vector< adcontrols::mol::element > elements;
-        // int charge;
-        // if ( adcontrols::ChemicalFormula::getComposition( elements, index.data().toString().toStdString(), charge ) && charge == 0 ) {
-        //     QString f = QString( "[%1]+" ).arg( index.data().toString() );
-        //     model.setData( index, f, Qt::EditRole );
-        // }
-        double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( impl_->model_->data( index, Qt::EditRole ).toString().toStdString() );
-        model.setData( model.index( index.row(), c_mass ), mass, Qt::EditRole );
-        impl_->setTime( index.row(), mass );
-    }
-    if ( index.column() == c_laps ) {
-        double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
-        impl_->setTime( index.row(), mass );
+
+        if ( index.column() == c_formula ) {
+            double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( model.data( index, Qt::EditRole ).toString().toStdString() );
+            model.setData( model.index( index.row(), c_mass ), mass, Qt::EditRole );
+            impl_->setTime( index.row(), mass );
+        }
+        if ( index.column() == c_laps ) {
+            double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
+            impl_->setTime( index.row(), mass );
+        }
+        if ( index.row() == model.rowCount() )
+            impl_->addLine();
     }
     auto json = impl_->readJson();
     emit valueChanged( json );
