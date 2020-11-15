@@ -44,6 +44,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QByteArray>
+#include <boost/optional.hpp>
 #include <ratio>
 #include <cmath>
 
@@ -57,6 +58,7 @@ namespace {
         , c_time
         , c_laps
         , c_tdiff
+        , c_apparent_mass
         , ncols
     };
 }
@@ -73,7 +75,7 @@ namespace admtwidgets {
             : scanlaw_( law ), mass_( mass ), time_( time ), laps_( laps )
             , tlap_( scanlaw_.getTime( mass, 2 ) - scanlaw_.getTime( mass, 1 ) ) {
         }
-            
+
         std::pair< int, double > operator()( double mass ) const {
             if ( laps_ > 0 && mass > 0.5 ) {
                 int laps = laps_;
@@ -99,6 +101,7 @@ namespace admtwidgets {
 
     class MolTableWidget::impl {
         MolTableWidget * this_;
+        boost::optional< int > targetRow_;
     public:
         std::unique_ptr< QStandardItemModel > model_;
         std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
@@ -113,6 +116,7 @@ namespace admtwidgets {
             model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
             model_->setHeaderData( c_laps,       Qt::Horizontal, QObject::tr( "lap#" ) );
             model_->setHeaderData( c_tdiff,      Qt::Horizontal, QObject::tr( "dt" ) );
+            model_->setHeaderData( c_apparent_mass,   Qt::Horizontal, QObject::tr( "Apparent <i>m/z</i>" ) );
         }
 
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
@@ -126,6 +130,7 @@ namespace admtwidgets {
 
             if ( auto table = this_->findChild< MolTableView * >() ) {
                 std::vector< action_type > actions;
+                actions.emplace_back( menu.addAction( "set as target ion" ), [&](){ setTargetIon(); } );
                 actions.emplace_back( menu.addAction( "add line" ), [&](){ addLine(); } );
                 actions.emplace_back( menu.addAction( "find laps" ), [&](){ findLaps(); } );
                 if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
@@ -137,34 +142,69 @@ namespace admtwidgets {
         }
 
         //-----------
+        void updateTarget() {
+            int nlaps = model_->index( *targetRow_, c_laps ).data( Qt::EditRole ).toInt();
+            if ( auto sp = spectrometer_.lock() ) {
+                if ( auto scanlaw = sp->scanLaw() ) {
+                    for ( int row = 0; row < model_->rowCount(); ++row ) {
+                        auto xlaps = model_->index( row, c_laps ).data( Qt::EditRole ).toInt();
+                        if ( xlaps > 0 ) {
+                            double mass = model_->index( row, c_mass ).data( Qt::EditRole ).toDouble();
+                            double time = scanlaw->getTime( mass, xlaps );
+                            model_->setData( model_->index( row, c_apparent_mass ), scanlaw->getMass( time, nlaps ) );
+                            for ( int column = 0; column < ncols; ++column )
+                                model_->setData( model_->index( *targetRow_, column ), QColor( 0xff, 0x38, 0x3f, 0x40 ), Qt::BackgroundRole);
+                        }
+                    }
+                }
+            }
+        }
+
+        //-----------
+        bool setTargetIon() {
+            if ( auto table = this_->findChild< MolTableView * >() ) {
+                if ( *targetRow_ ){
+                    for ( int column = 0; column < ncols; ++column )
+                        model_->setData( model_->index( *targetRow_, column ), QColor( Qt::white ), Qt::BackgroundRole);
+                }
+                targetRow_ = boost::none;
+                QModelIndexList indices = table->selectionModel()->selectedIndexes();
+                qSort( indices );
+                if ( indices.size() ) {
+                    targetRow_ = indices.first().row();
+                    updateTarget();
+                }
+            }
+            return bool( targetRow_ );
+        }
+
         void addLine() {
             model_->insertRow( model_->rowCount() );
         }
 
         //-----
         void findLaps() {
-            if ( auto table = this_->findChild< MolTableView * >() ) {
-                QModelIndexList indices = table->selectionModel()->selectedIndexes();
-                qSort( indices );
-                if ( indices.size() < 1 )
-                    return;
-                if ( auto sp = spectrometer_.lock() ) {
-                    if ( auto scanlaw = sp->scanLaw() ) {
-                        auto row = indices.first().row();
-                        auto mass = model_->index( row, c_mass ).data( Qt::EditRole ).toDouble();
-                        auto laps = model_->index( row, c_laps ).data( Qt::EditRole ).toUInt();
-                        auto time = model_->index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
-                        lapFinder finder( *scanlaw, mass, time, int(laps) );
-                        for ( int i = 0; i < model_->rowCount(); ++i ) {
-                            if ( i != row ) {
-                                int lap;
-                                double tof;
-                                ADDEBUG() << "---------------------";
-                                std::tie( lap, tof ) = finder( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() );
-                                if ( lap > 0 ) {
-                                    model_->setData( model_->index( i, c_laps ), lap );
-                                    model_->setData( model_->index( i, c_time ), tof * std::micro::den );
-                                }
+            //if ( auto table = this_->findChild< MolTableView * >() ) {
+            if ( ! setTargetIon() )
+                return;
+            if ( auto sp = spectrometer_.lock() ) {
+                if ( auto scanlaw = sp->scanLaw() ) {
+                    auto row = *targetRow_;
+                    auto mass = model_->index( row, c_mass ).data( Qt::EditRole ).toDouble();
+                    auto laps = model_->index( row, c_laps ).data( Qt::EditRole ).toUInt();
+                    auto time = model_->index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
+                    model_->setData( model_->index( row, c_apparent_mass), mass );
+
+                    lapFinder finder( *scanlaw, mass, time, int(laps) );
+                    for ( int i = 0; i < model_->rowCount(); ++i ) {
+                        if ( i != *targetRow_ ) {
+                            int lap;
+                            double tof;
+                            std::tie( lap, tof ) = finder( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() );
+                            if ( lap > 0 ) {
+                                model_->setData( model_->index( i, c_laps ), lap );
+                                model_->setData( model_->index( i, c_time ), tof * std::micro::den );
+                                model_->setData( model_->index( i, c_apparent_mass), scanlaw->getMass( tof, int(laps) ) );
                             }
                         }
                     }
@@ -390,7 +430,7 @@ MolTableWidget::handleItemChanged( const QStandardItem * item )
             double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
             impl_->setTime( index.row(), mass );
         }
-        if ( index.row() == model.rowCount() )
+        if ( index.row() == model.rowCount() - 1 )
             impl_->addLine();
     }
     auto json = impl_->readJson();
