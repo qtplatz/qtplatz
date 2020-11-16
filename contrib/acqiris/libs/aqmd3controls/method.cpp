@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "method.hpp"
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable/float.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -230,7 +230,7 @@ method::toJson() const
 {
     boost::property_tree::ptree pt;
     device_method::write_ptree(pt, device_method_);
-    
+
     std::ostringstream o;
     boost::property_tree::write_json( o, pt );
 
