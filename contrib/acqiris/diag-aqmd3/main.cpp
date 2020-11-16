@@ -111,7 +111,7 @@ static void sigint(int num )
 int pkd_main( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method&, size_t replicates );
 
 const std::vector< std::string > ModelSA = { "SA220P", "SAS220E", "SA217P", "SA217E" };
-            
+
 int
 main( int argc, char * argv [] )
 {
@@ -233,24 +233,11 @@ main( int argc, char * argv [] )
         }
 
         if ( !simulated ) {
-            for ( auto& res : {
-                    "PXI7::0::0::INSTR"
-                    , "PXI59::0::0::INSTR"
-                    , "PXI9::0::0::INSTR"
-                    , "PXI7::0::0::INSTR"
-                    , "PXI6::0::0::INSTR"
-                    , "PXI5::0::0::INSTR"
-                    , "PXI4::0::0::INSTR"
-                    , "PXI3::0::0::INSTR"
-                    , "PXI2::0::0::INSTR"
-                    , "PXI1::0::0::INSTR"
-                } ) {
-
+            for ( int num = 0; num < 10; num++ ) {
+                std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
                 std::cerr << "Attempting resource: " << res << std::endl;
-                auto rcode = md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions );
-                md2->clog( rcode, __FILE__, __LINE__ );
-                if ( rcode == VI_SUCCESS ) {
-                    success = true;
+                if ( ( success = ( md2->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
+                    std::cerr << "Initialize resource: " << res << std::endl;
                     break;
                 }
             }
@@ -279,7 +266,7 @@ main( int argc, char * argv [] )
 
             int32_t count(0);
             // md2->clog( aqmd3::attribute< aqmd3::control_io_count >::get(*md2, "ControlIO", count ), __FILE__,__LINE__ );
-            
+
             if ( auto ccount = aqmd3::attribute< aqmd3::control_io_count >::value( *md2, "ControlIO" ) ) {
                 count = ccount.get();
                 std::cout << "Control IO Count: " << count << std::endl;
@@ -309,7 +296,7 @@ main( int argc, char * argv [] )
                 std::cout << "\ttrigger level: " << value.get() << std::endl;
             else
                 md2->clog( rcode, __FILE__, __LINE__ );
-            
+
             md2->clog( attribute< aqmd3::trigger_slope >::set( *md2, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__,__LINE__ );
             if ( auto value = attribute< aqmd3::trigger_slope >::value( *md2, rcode, "External1" ) )
                 std::cout << "\ttrigger slope: " << value.get() << std::endl;
@@ -342,10 +329,10 @@ main( int argc, char * argv [] )
                                                , method.device_method().front_end_offset
                                                , AQMD3_VAL_VERTICAL_COUPLING_DC
                                                , VI_TRUE ), __FILE__,__LINE__ );
-                        
+
 
             const std::vector< std::string > ModelSA = { "SA220P", "SAS220E", "SA217P", "SA217E" };
-            
+
             double max_rate(0);
             if ( std::find( ModelSA.begin(), ModelSA.end(), ident->InstrumentModel() ) != ModelSA.end() ) {
                 max_rate = 2.0e9;
@@ -599,7 +586,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
                                                         &d1.initialXOffset, d1.initialXTimeSeconds, d1.initialXTimeFraction,
                                                         &d1.xIncrement, &d1.scaleFactor, &d1.scaleOffset, d1.flags )
                    , __FILE__, __LINE__ );
-        
+
         // Read the averaged waveform on Channel 2 in INT32.
 
         md2->clog( AqMD3_FetchAccumulatedWaveformInt32( md2->session(), "Channel2",

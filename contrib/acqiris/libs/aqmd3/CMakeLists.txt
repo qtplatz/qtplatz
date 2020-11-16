@@ -50,6 +50,8 @@ add_library( ${PROJECT_NAME} SHARED
   aqmd3_global.hpp
   ${aqmd3_sources}
   aqmd3controller.cpp
+  configfile.cpp
+  configfile.hpp
   digitizer.hpp
   ppio.cpp
   ppio.hpp
