@@ -22,16 +22,28 @@
 **
 **************************************************************************/
 
-#include <boost/filesystem/path.hpp>
+#pragma once
+
 #include <boost/optional.hpp>
+#include <string>
+#include <memory>
+
 
 namespace aqmd3 {
 
-    struct configFile {
-        const boost::filesystem::path inifile_;
-        configFile();
-        ~configFile();
-        bool saveResource( const std::string& res ) const;
-        boost::optional< std::string > loadResource() const;
+    class AqMD3;
+
+    struct findResource {
+        const bool findConfig_;
+        const bool saveConfig_;
+        const std::string initOptions_;
+        findResource( bool findConfig = true
+                      , bool saveConfig = true
+                      , const char * const options =
+                      "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false" );
+        ~findResource();
+        boost::optional< std::string > operator()( std::shared_ptr< AqMD3 > ) const;
+        bool operator()( std::shared_ptr< AqMD3 >, const std::string& res ) const;
     };
+
 }

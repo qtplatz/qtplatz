@@ -22,16 +22,14 @@
 **
 **************************************************************************/
 
-#include <boost/filesystem/path.hpp>
-#include <boost/optional.hpp>
+#pragma once
+
+#include <string>
 
 namespace aqmd3 {
 
-    struct configFile {
-        const boost::filesystem::path inifile_;
-        configFile();
-        ~configFile();
-        bool saveResource( const std::string& res ) const;
-        boost::optional< std::string > loadResource() const;
+    struct error_message {
+        std::string operator [] ( uint32_t ) const;
     };
+
 }

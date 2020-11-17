@@ -26,7 +26,9 @@
 #include <adportable/float.hpp>
 #include <aqmd3/ppio.hpp>
 #include <aqmd3/aqmd3.hpp>
+#include <aqmd3/findresource.hpp>
 #include <aqmd3/digitizer.hpp>
+#include <aqmd3/configfile.hpp>
 #include <aqmd3controls/identify.hpp>
 #include <aqmd3controls/method.hpp>
 #include <boost/program_options.hpp>
@@ -119,24 +121,26 @@ main( int argc, char * argv [] )
     bool TSR_enabled( false );
 
     po::variables_map vm;
-    po::options_description description( "test_u5303a" );
+    po::options_description description( "diag_aqmd3" );
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
             ( "tsr,t",     "TSR enable" )
             ( "pkd",       "PKD enable" )
             ( "avg",       "AVG enable" )
-            ( "records,r",  po::value<int>()->default_value( 1 ), "Number of records" )
-            ( "average,a",  po::value<int>()->default_value( 0 ), "Number of average" )
-            ( "invert-signal", po::value<bool>()->default_value( true ), "Invert signal {true/false}" )
-            ( "raising-delta", po::value<int>()->default_value( 20 ), "PKD Raising delta" )
-            ( "falling-delta", po::value<int>()->default_value( 20 ), "PKD Falling delta" )
-            ( "mode,m",     po::value<int>()->default_value( 0 ), "=0 Normal(digitizer); =2 Averager" )
-            ( "delay,d",    po::value<double>()->default_value( 0.0 ), "Delay (us)" )
+            ( "records,r",  po::value<int>()->default_value( 1 ),       "Number of records" )
+            ( "average,a",  po::value<int>()->default_value( 0 ),       "Number of average" )
+            ( "invert-signal", po::value<bool>()->default_value( true ),"Invert signal {true/false}" )
+            ( "raising-delta", po::value<int>()->default_value( 20 ),   "PKD Raising delta" )
+            ( "falling-delta", po::value<int>()->default_value( 20 ),   "PKD Falling delta" )
+            ( "mode,m",     po::value<int>()->default_value( 0 ),       "=0 Normal(digitizer); =2 Averager" )
+            ( "delay,d",    po::value<double>()->default_value( 0.0 ),  "Delay (us)" )
             ( "width,w",    po::value<double>()->default_value( 50.0 ), "Waveform width (us)" )
-            ( "replicates", po::value<int>()->default_value( 1000 ), "Number of triggers to acquire waveforms" )
+            ( "replicates", po::value<int>()->default_value( 1000 ),    "Number of triggers to acquire waveforms" )
             ( "rate",       po::value<double>()->default_value( 1.0 ),  "Expected trigger interval in millisecond (trigger drop/nodrop validation)" )
-            ( "verbose",    po::value<int>()->default_value( 5 ),  "Verbose 0..9" )
+            ( "pxi",        po::value< std::string >(),                 "Resource name such as 'PXI8::0::0::INSTR'")
+            ( "find",       "Find resource" )
+            ( "verbose",    po::value<int>()->default_value( 5 ),       "Verbose 0..9" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -219,27 +223,25 @@ main( int argc, char * argv [] )
     if ( ! dgpio.open() )
         std::cerr << "dgpio open failed -- ignored." << std::endl;
 
-    if ( auto md2 = std::make_shared< aqmd3::AqMD3 >() ) {
+    const char * strInitOptions =
+        "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false";
 
-        //const char * strInitOptions = "Simulate=false, DriverSetup= Model=SA220P";
-        const char * strInitOptions = "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false";
+    if ( auto md3 = std::make_shared< aqmd3::AqMD3 >() ) {
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
             if ( p && std::strcmp( p, "simulate" ) == 0 ) {
                 strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
                 simulated = true;
-                success = ( md2->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
+                success = ( md3->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             }
         }
 
-        if ( !simulated ) {
-            for ( int num = 0; num < 10; num++ ) {
-                std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
-                std::cerr << "Attempting resource: " << res << std::endl;
-                if ( ( success = ( md2->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
-                    std::cerr << "Initialize resource: " << res << std::endl;
-                    break;
-                }
+        if ( ! simulated ) {
+            if ( vm.count( "pxi" ) ) {
+                success = aqmd3::findResource()( md3, vm[ "pxi" ].as< std::string >() );
+            } else {
+                if ( auto res = aqmd3::findResource()( md3 ) )
+                    success = true;
             }
         }
 
@@ -248,7 +250,7 @@ main( int argc, char * argv [] )
             method.device_method().TSR_enabled = TSR_enabled;
 
             auto ident = std::make_shared< aqmd3controls::identify >();
-            md2->Identify( ident );
+            md3->Identify( ident );
 
             std::cout << "Identifier:       " << ident->Identifier() << std::endl
                       << "Revision:         " << ident->Revision() << std::endl
@@ -265,9 +267,9 @@ main( int argc, char * argv [] )
             using aqmd3::attribute;
 
             int32_t count(0);
-            // md2->clog( aqmd3::attribute< aqmd3::control_io_count >::get(*md2, "ControlIO", count ), __FILE__,__LINE__ );
+            // md3->clog( aqmd3::attribute< aqmd3::control_io_count >::get(*md3, "ControlIO", count ), __FILE__,__LINE__ );
 
-            if ( auto ccount = aqmd3::attribute< aqmd3::control_io_count >::value( *md2, "ControlIO" ) ) {
+            if ( auto ccount = aqmd3::attribute< aqmd3::control_io_count >::value( *md3, "ControlIO" ) ) {
                 count = ccount.get();
                 std::cout << "Control IO Count: " << count << std::endl;
             }
@@ -275,43 +277,43 @@ main( int argc, char * argv [] )
             ViStatus rcode;
             ViChar name [ 256 ];
             for ( int i = 1; i <= count; ++i ) {
-                if ( AqMD3_GetControlIOName( md2->session(), i, 256, name ) == 0 ) {
+                if ( AqMD3_GetControlIOName( md3->session(), i, 256, name ) == 0 ) {
                     std::cout << "\tControlIO Name: " << name << std::endl;
-                    if ( auto res = aqmd3::attribute< aqmd3::control_io_signal >::value( *md2, name ) )
+                    if ( auto res = aqmd3::attribute< aqmd3::control_io_signal >::value( *md3, name ) )
                         std::cout << "\tControlIO name: " << name << "\t" << res.get() << std::endl;
-                    if ( auto sig = aqmd3::attribute< aqmd3::control_io_available_signals >::value( *md2, name ) )
+                    if ( auto sig = aqmd3::attribute< aqmd3::control_io_available_signals >::value( *md3, name ) )
                         std::cout << "\tAvilable Signals: " << sig.get() << std::endl;
                 }
             }
 
             std::cout << "## External1" << std::endl;
-            md2->clog( attribute< aqmd3::active_trigger_source >::set( *md2, std::string( "External1" ) ), __FILE__,__LINE__ );
-            // if ( auto value = attribute< aqmd3::active_trigger_source >::value( *md2, rcode, "External1" ) )
+            md3->clog( attribute< aqmd3::active_trigger_source >::set( *md3, std::string( "External1" ) ), __FILE__,__LINE__ );
+            // if ( auto value = attribute< aqmd3::active_trigger_source >::value( *md3, rcode, "External1" ) )
             //     std::cout << "\tActive Trigger Source: " << value.get() << std::endl;
             // else
-            //     md2->clog( rcode, __FILE__, __LINE__, []{return "--active trigger source--";});
+            //     md3->clog( rcode, __FILE__, __LINE__, []{return "--active trigger source--";});
 
-            md2->clog( attribute< aqmd3::trigger_level >::set( *md2, "External1", method.device_method().ext_trigger_level ), __FILE__,__LINE__ );
-            if ( auto value = attribute< aqmd3::trigger_level >::value( *md2, rcode, "External1" ) )
+            md3->clog( attribute< aqmd3::trigger_level >::set( *md3, "External1", method.device_method().ext_trigger_level ), __FILE__,__LINE__ );
+            if ( auto value = attribute< aqmd3::trigger_level >::value( *md3, rcode, "External1" ) )
                 std::cout << "\ttrigger level: " << value.get() << std::endl;
             else
-                md2->clog( rcode, __FILE__, __LINE__ );
+                md3->clog( rcode, __FILE__, __LINE__ );
 
-            md2->clog( attribute< aqmd3::trigger_slope >::set( *md2, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__,__LINE__ );
-            if ( auto value = attribute< aqmd3::trigger_slope >::value( *md2, rcode, "External1" ) )
+            md3->clog( attribute< aqmd3::trigger_slope >::set( *md3, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__,__LINE__ );
+            if ( auto value = attribute< aqmd3::trigger_slope >::value( *md3, rcode, "External1" ) )
                 std::cout << "\ttrigger slope: " << value.get() << std::endl;
             else
-                md2->clog( rcode, __FILE__, __LINE__ );
+                md3->clog( rcode, __FILE__, __LINE__ );
 
             //-------------- dispatch pkd main -------------
             if ( vm.count( "pkd" ) && ident->Options().find( "PKD" ) != std::string::npos )
-                return pkd_main( md2, method, replicates );
+                return pkd_main( md3, method, replicates );
 
             std::cout << "\t---------- DIGITIZER MODE ----------------" << std::endl;
 
             if ( ident->Options().find( "INT" ) != std::string::npos ) { // Interleave ON
                 std::cout << "\t-------------- INTERLEAVE ON ----------------------" << std::endl;
-                md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
+                md3->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
             }
 
             std::cerr << "## Configuring acquisition\n";
@@ -324,7 +326,7 @@ main( int argc, char * argv [] )
             std::cerr << "Range:              " << method.device_method().front_end_range << '\n';
             std::cerr << "Offset:             " << method.device_method().front_end_offset << '\n';
 
-            md2->clog( AqMD3_ConfigureChannel( md2->session(), "Channel1"
+            md3->clog( AqMD3_ConfigureChannel( md3->session(), "Channel1"
                                                , method.device_method().front_end_range
                                                , method.device_method().front_end_offset
                                                , AQMD3_VAL_VERTICAL_COUPLING_DC
@@ -346,30 +348,30 @@ main( int argc, char * argv [] )
             }
 
             using aqmd3::attribute;
-            md2->clog( attribute< aqmd3::sample_rate >::set( *md2, max_rate ), __FILE__,__LINE__ );
-            // md2->setSampleRate( max_rate );
+            md3->clog( attribute< aqmd3::sample_rate >::set( *md3, max_rate ), __FILE__,__LINE__ );
+            // md3->setSampleRate( max_rate );
 
-            md2->clog( attribute< aqmd3::sample_rate >::get( *md2, method.device_method().samp_rate ), __FILE__,__LINE__ );
-            //method.device_method().samp_rate = md2->SampleRate();
+            md3->clog( attribute< aqmd3::sample_rate >::get( *md3, method.device_method().samp_rate ), __FILE__,__LINE__ );
+            //method.device_method().samp_rate = md3->SampleRate();
 
             std::cout << "SampleRate: " << method.device_method().samp_rate << std::endl;
 
-            attribute< aqmd3::record_size >::set( *md2, method.device_method().nbr_of_s_to_acquire_ );
-            // md2->setAcquisitionRecordSize( method.device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
+            attribute< aqmd3::record_size >::set( *md3, method.device_method().nbr_of_s_to_acquire_ );
+            // md3->setAcquisitionRecordSize( method.device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
 
-            attribute< aqmd3::trigger_delay >::set( *md2, method.device_method().delay_to_first_sample_ );
-            // md2->setTriggerDelay( method.device_method().digitizer_delay_to_first_sample );
+            attribute< aqmd3::trigger_delay >::set( *md3, method.device_method().delay_to_first_sample_ );
+            // md3->setTriggerDelay( method.device_method().digitizer_delay_to_first_sample );
 
-            attribute< aqmd3::num_records_to_acquire >::set( *md2, int64_t( method.device_method().nbr_records ) );
-            // md2->setAcquisitionNumRecordsToAcquire( method.device_method().nbr_records );
+            attribute< aqmd3::num_records_to_acquire >::set( *md3, int64_t( method.device_method().nbr_records ) );
+            // md3->setAcquisitionNumRecordsToAcquire( method.device_method().nbr_records );
 
-            attribute< aqmd3::acquisition_mode >::set( *md2, AQMD3_VAL_ACQUISITION_MODE_NORMAL );
-            // md2->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
+            attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_NORMAL );
+            // md3->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
 
-            attribute< aqmd3::tsr_enabled >::set( *md2, method.device_method().TSR_enabled );
-            // md2->setTSREnabled( method.device_method().TSR_enabled );
+            attribute< aqmd3::tsr_enabled >::set( *md3, method.device_method().TSR_enabled );
+            // md3->setTSREnabled( method.device_method().TSR_enabled );
 
-            md2->CalibrationSelfCalibrate();
+            md3->CalibrationSelfCalibrate();
 
             std::vector< std::shared_ptr< aqmd3controls::waveform > > vec;
 
@@ -378,17 +380,17 @@ main( int argc, char * argv [] )
             execStatistics::instance().tp_ = std::chrono::system_clock::now();
 
             bool tsrEnabled;
-            if ( md2->clog( attribute< aqmd3::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
+            if ( md3->clog( attribute< aqmd3::tsr_enabled >::get( *md3, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
                 std::cout << "\t------------------ TSR enabled ------------------" << std::endl;
-                // if ( md2->TSREnabled() ) {
+                // if ( md3->TSREnabled() ) {
 
-                md2->AcquisitionInitiate();
+                md3->AcquisitionInitiate();
 
                 while ( replicates > execStatistics::instance().dataCount_ ) {
 
                     do {
                         boost::optional< aqmd3::tsr_memory_overflow_occurred::value_type > p;
-                        if ((p = attribute< aqmd3::tsr_memory_overflow_occurred >::value( *md2 ) && p.get() )) {
+                        if ((p = attribute< aqmd3::tsr_memory_overflow_occurred >::value( *md3 ) && p.get() )) {
                             std::cout << "***** Memory Overflow" << std::endl;
                             (void)p;
                             break;
@@ -396,12 +398,12 @@ main( int argc, char * argv [] )
                     } while ( 0 );
                     do {
                         boost::optional< aqmd3::tsr_is_acquisition_complete::value_type > p;
-                        while (( p = attribute< aqmd3::tsr_is_acquisition_complete >::value( *md2 ) && !p.get() ))
+                        while (( p = attribute< aqmd3::tsr_is_acquisition_complete >::value( *md3 ) && !p.get() ))
                             std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
                     } while ( 0 );
 
-                    aqmd3::digitizer::readData( *md2, method, vec );
-                    md2->TSRContinue();
+                    aqmd3::digitizer::readData( *md3, method, vec );
+                    md3->TSRContinue();
 
                     for ( auto& waveform: vec ) {
 
@@ -431,12 +433,12 @@ main( int argc, char * argv [] )
 
                     pp << uint8_t( 0x01 );
 
-                    md2->AcquisitionInitiate();
-                    md2->AcquisitionWaitForAcquisitionComplete( 3000 );
+                    md3->AcquisitionInitiate();
+                    md3->AcquisitionWaitForAcquisitionComplete( 3000 );
 
                     pp << uint8_t( 0x02 );
 
-                    aqmd3::digitizer::readData( *md2, method, vec );
+                    aqmd3::digitizer::readData( *md3, method, vec );
                     auto ts = vec.at(0)->xmeta().initialXTimeSeconds;
 
                     int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
@@ -469,7 +471,7 @@ main( int argc, char * argv [] )
 constexpr ViInt64 const numRecords = 1;			// only record=1 is supported in PKD mode
 
 int
-pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, size_t replicates )
+pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, size_t replicates )
 {
     using aqmd3::AqMD3;
 
@@ -484,66 +486,66 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
     std::cerr << "Offset:             " << m.device_method().front_end_offset << '\n';
     std::cerr << "Coupling:           " << ( coupling?"DC":"AC" ) << '\n';
 
-    md2->clog( AqMD3_ConfigureChannel( md2->session(), "Channel1"
+    md3->clog( AqMD3_ConfigureChannel( md3->session(), "Channel1"
                                         , m.device_method().front_end_range
                                         , m.device_method().front_end_offset, coupling, VI_TRUE ), __FILE__,__LINE__ );
 
 	// Configure the number of records (only 1 record is supported in AVG+PKD) and record size (in number of samples)
     std::cout << "Number of records:  " << numRecords << '\n';
     std::cout << "Record size:        " << m.device_method().digitizer_nbr_of_s_to_acquire << '\n';
-    md2->setAttributeViInt64( "", AQMD3_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords );
+    md3->setAttributeViInt64( "", AQMD3_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords );
 
     using aqmd3::attribute;
 
-    attribute< aqmd3::record_size >::set( *md2, int32_t( m.device_method().digitizer_nbr_of_s_to_acquire ) );
-    // md2->setAcquisitionRecordSize( m.device_method().digitizer_nbr_of_s_to_acquire );
+    attribute< aqmd3::record_size >::set( *md3, int32_t( m.device_method().digitizer_nbr_of_s_to_acquire ) );
+    // md3->setAcquisitionRecordSize( m.device_method().digitizer_nbr_of_s_to_acquire );
 
-    attribute< aqmd3::trigger_delay >::set( *md2, m.device_method().digitizer_delay_to_first_sample );
-    // md2->setTriggerDelay( m.device_method().digitizer_delay_to_first_sample );
+    attribute< aqmd3::trigger_delay >::set( *md3, m.device_method().digitizer_delay_to_first_sample );
+    // md3->setTriggerDelay( m.device_method().digitizer_delay_to_first_sample );
 
 	// Configure the number of accumulation
     std::cout << "Number of averages: " << m.device_method().nbr_of_averages << "\n\n";
-    md2->setAttributeViInt32( "", AQMD3_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, m.device_method().nbr_of_averages );
+    md3->setAttributeViInt32( "", AQMD3_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, m.device_method().nbr_of_averages );
 
 	// Enable the Peak Detection mode
-    md2->setAttributeViInt32( "", AQMD3_ATTR_ACQUISITION_MODE, AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION );
+    md3->setAttributeViInt32( "", AQMD3_ATTR_ACQUISITION_MODE, AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION );
 
 	// Configure the peak detection on channel 1
 	// Configure the data inversion mode - VI_FALSE (no data inversion) by default
-    md2->setAttributeViBoolean( "Channel1"
+    md3->setAttributeViBoolean( "Channel1"
                                 , AQMD3_ATTR_CHANNEL_DATA_INVERSION_ENABLED
                                 , m.device_method().invert_signal ? VI_TRUE : VI_FALSE );
     std::cout << "Signal inversion: " << std::boolalpha << m.device_method().invert_signal << std::endl;
 
-	md2->setAttributeViBoolean( "Channel1"
+	md3->setAttributeViBoolean( "Channel1"
                                 , AQMD3_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
                                 , m.device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE );
 
-	md2->setAttributeViInt32( "Channel1", AQMD3_ATTR_PEAK_DETECTION_RISING_DELTA, m.device_method().pkd_raising_delta );
-    md2->setAttributeViInt32( "Channel1", AQMD3_ATTR_PEAK_DETECTION_FALLING_DELTA, m.device_method().pkd_falling_delta );
+	md3->setAttributeViInt32( "Channel1", AQMD3_ATTR_PEAK_DETECTION_RISING_DELTA, m.device_method().pkd_raising_delta );
+    md3->setAttributeViInt32( "Channel1", AQMD3_ATTR_PEAK_DETECTION_FALLING_DELTA, m.device_method().pkd_falling_delta );
 
     // Configure the trigger.
     std::cout << "Configuring trigger\n";
-    attribute< aqmd3::active_trigger_source >::set( *md2, std::string( "External1" ) );
-    // md2->setActiveTriggerSource( "External1" );
+    attribute< aqmd3::active_trigger_source >::set( *md3, std::string( "External1" ) );
+    // md3->setActiveTriggerSource( "External1" );
 
-    attribute< aqmd3::trigger_level >::set( *md2, "External1", m.device_method().ext_trigger_level );
-    // md2->setTriggerLevel( "External1", m.device_method().ext_trigger_level ); // 1V
+    attribute< aqmd3::trigger_level >::set( *md3, "External1", m.device_method().ext_trigger_level );
+    // md3->setTriggerLevel( "External1", m.device_method().ext_trigger_level ); // 1V
 
     std::cout << "Performing self-calibration\n";
-    md2->CalibrationSelfCalibrate();
+    md3->CalibrationSelfCalibrate();
 
     // Perform the acquisition.
     std::cout << "Performing acquisition\n";
 
-    md2->AcquisitionInitiate();
-    md2->AcquisitionWaitForAcquisitionComplete( 3000 );
+    md3->AcquisitionInitiate();
+    md3->AcquisitionWaitForAcquisitionComplete( 3000 );
 
     std::cout << "Acquisition completed\n";
 
     // Fetch the acquired data in array.
     ViInt64 arraySize = 0;
-    md2->clog( AqMD3_QueryMinWaveformMemory( md2->session(), 32, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, &arraySize ), __FILE__,__LINE__ );
+    md3->clog( AqMD3_QueryMinWaveformMemory( md3->session(), 32, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, &arraySize ), __FILE__,__LINE__ );
 
     struct data {
         ViInt32 actualAverages;
@@ -580,7 +582,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
 
     while ( replicates-- ) {
         // Read the peaks on Channel 1 in INT32.
-        md2->clog( AqMD3_FetchAccumulatedWaveformInt32( md2->session(),  "Channel1",
+        md3->clog( AqMD3_FetchAccumulatedWaveformInt32( md3->session(),  "Channel1",
                                                         0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray1.data(),
                                                         &d1.actualAverages, &d1.actualRecords, d1.actualPoints, d1.firstValidPoint,
                                                         &d1.initialXOffset, d1.initialXTimeSeconds, d1.initialXTimeFraction,
@@ -589,7 +591,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
 
         // Read the averaged waveform on Channel 2 in INT32.
 
-        md2->clog( AqMD3_FetchAccumulatedWaveformInt32( md2->session(), "Channel2",
+        md3->clog( AqMD3_FetchAccumulatedWaveformInt32( md3->session(), "Channel2",
                                                         0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray2.data(),
                                                         &d2.actualAverages, &d2.actualRecords, d2.actualPoints, d2.firstValidPoint,
                                                         &d2.initialXOffset, d2.initialXTimeSeconds, d2.initialXTimeFraction,
@@ -620,7 +622,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md2, const aqmd3controls::method& m, s
 
     /////////////////////////
 
-    md2.reset();
+    md3.reset();
     std::cout << "Driver closed\n";
 
     return 0;

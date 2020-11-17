@@ -42,13 +42,17 @@ configFile::~configFile()
 }
 
 bool
-configFile::saveResource( const std::string& res )
+configFile::saveResource( const std::string& res ) const
 {
     if ( ! boost::filesystem::exists( inifile_ ) ) {
         boost::system::error_code ec;
         boost::filesystem::create_directories( inifile_, ec );
         if ( ec )
             return false; // error
+    }
+    if ( auto cres = loadResource() ) {
+        if ( res == *cres )
+            return true; // already exists; nothing to be done.
     }
     boost::property_tree::ptree pt;
     pt.put( "AQMD3.resource", res );

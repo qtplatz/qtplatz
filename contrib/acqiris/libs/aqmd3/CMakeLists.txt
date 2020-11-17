@@ -53,6 +53,10 @@ add_library( ${PROJECT_NAME} SHARED
   configfile.cpp
   configfile.hpp
   digitizer.hpp
+  error_message.cpp
+  error_message.hpp
+  findresource.cpp
+  findresource.hpp
   ppio.cpp
   ppio.hpp
   session.cpp
