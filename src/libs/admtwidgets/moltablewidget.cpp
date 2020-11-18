@@ -35,6 +35,7 @@
 #include <adcontrols/scanlaw.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>
+#include <admtcontrols/scanlaw.hpp>
 #include <QBoxLayout>
 #include <QMenu>
 #include <QStandardItemModel>
@@ -59,6 +60,7 @@ namespace {
         , c_laps
         , c_tdiff
         , c_apparent_mass
+        , c_gate
         , ncols
     };
 }
@@ -117,6 +119,7 @@ namespace admtwidgets {
             model_->setHeaderData( c_laps,       Qt::Horizontal, QObject::tr( "lap#" ) );
             model_->setHeaderData( c_tdiff,      Qt::Horizontal, QObject::tr( "dt" ) );
             model_->setHeaderData( c_apparent_mass,   Qt::Horizontal, QObject::tr( "Apparent <i>m/z</i>" ) );
+            model_->setHeaderData( c_gate,       Qt::Horizontal, QObject::tr( "Gate(&mu;s)" ) );
         }
 
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
@@ -195,6 +198,12 @@ namespace admtwidgets {
                     auto time = model_->index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
                     model_->setData( model_->index( row, c_apparent_mass), mass );
 
+                    auto mtlaw = dynamic_cast< const admtcontrols::ScanLaw * >( scanlaw );
+                    if ( mtlaw ) {
+                        auto gate = mtlaw->gate_through_threshold_time( mass );
+                        model_->setData( model_->index( row, c_gate), gate * std::micro::den );
+                    }
+
                     lapFinder finder( *scanlaw, mass, time, int(laps) );
                     for ( int i = 0; i < model_->rowCount(); ++i ) {
                         if ( i != *targetRow_ ) {
@@ -205,6 +214,10 @@ namespace admtwidgets {
                                 model_->setData( model_->index( i, c_laps ), lap );
                                 model_->setData( model_->index( i, c_time ), tof * std::micro::den );
                                 model_->setData( model_->index( i, c_apparent_mass), scanlaw->getMass( tof, int(laps) ) );
+                                if ( mtlaw ) {
+                                    auto gate = mtlaw->gate_through_threshold_time( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() );
+                                    model_->setData( model_->index( i, c_gate), gate * std::micro::den );
+                                }
                             }
                         }
                     }
@@ -425,6 +438,12 @@ MolTableWidget::handleItemChanged( const QStandardItem * item )
             double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( model.data( index, Qt::EditRole ).toString().toStdString() );
             model.setData( model.index( index.row(), c_mass ), mass, Qt::EditRole );
             impl_->setTime( index.row(), mass );
+            if ( auto sp = impl_->spectrometer_.lock() ) {
+                if ( auto mtlaw = dynamic_cast< const admtcontrols::ScanLaw * >( sp->scanLaw() ) ) {
+                    auto gate = mtlaw->gate_through_threshold_time( mass );
+                    model.setData( model.index( index.row(), c_gate ), gate * std::micro::den );
+                }
+            }
         }
         if ( index.column() == c_laps ) {
             double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
