@@ -50,7 +50,13 @@ add_library( ${PROJECT_NAME} SHARED
   aqmd3_global.hpp
   ${aqmd3_sources}
   aqmd3controller.cpp
+  configfile.cpp
+  configfile.hpp
   digitizer.hpp
+  error_message.cpp
+  error_message.hpp
+  findresource.cpp
+  findresource.hpp
   ppio.cpp
   ppio.hpp
   session.cpp

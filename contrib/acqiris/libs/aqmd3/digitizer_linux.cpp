@@ -26,28 +26,33 @@
 #include "simulator.hpp"
 #include "aqmd3.hpp"
 #include "automaton.hpp"
+#include "configfile.hpp"
 #include <aqmd3controls/method.hpp>
-#include <adlog/logger.hpp>
 #include <adacquire/constants.hpp>
+#include <adcontrols/controlmethod.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/asio/thread.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
+#include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/string.hpp>
-#include <adportable/asio/thread.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
-#include <adcontrols/controlmethod.hpp>
-#include <adcontrols/metric/prefix.hpp>
 #include <libdgpio/pio.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/logic/tribool.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #ifndef NDEBUG
 #include <boost/format.hpp>
 #endif
@@ -103,7 +108,8 @@ namespace aqmd3 {
             void error_reply( const std::string& emsg, const std::string& );
 
             // helper method
-            ViStatus log( ViStatus rcode, const char * const file, int line, std::function< std::string() > details = std::function< std::string() >() ) const;
+            ViStatus log( ViStatus rcode, const char * const file, int line
+                          , std::function< std::string() > details = std::function< std::string() >() ) const;
 
         private:
             // fsm::handler
@@ -200,7 +206,13 @@ namespace aqmd3 {
         };
 
         const static std::vector< std::string > ModelSA = { "SA220P", "SA220E", "SA217P", "SA217E" };
+
     }
+
+    struct findResource {
+
+    };
+
 }
 
 using namespace aqmd3;
@@ -584,12 +596,16 @@ task::handle_initial_setup()
     }
 
     if ( !simulated ) {
-
-        for ( auto& res : listResources_ ) {
-            ADDEBUG() << "\t\ttry resource: " << res;
-            if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
-                ADTRACE() << "Initialize resource: " << res;
-                break;
+        if ( auto res = configFile().loadResource() )
+            success = spDriver_->initWithOptions( res.get(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS;
+        if ( !success ) {
+            for ( int num = 0; num < 199; num++ ) {
+                std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
+                if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
+                    ADTRACE() << "Initialize resource: " << res;
+                    configFile().saveResource( res );
+                    break;
+                }
             }
         }
     }
@@ -1004,7 +1020,7 @@ device::initial_setup( task& task, const aqmd3controls::method& m, const std::st
             ADDEBUG() << "##### front_end_range validated OK #####";
         }
     }
-    
+
     auto rcode = AqMD3_ConfigureChannel( task.spDriver()->session()
                                          , "Channel1"
                                          , front_end_range
@@ -1042,7 +1058,7 @@ device::initial_setup( task& task, const aqmd3controls::method& m, const std::st
         if ( m.device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
             ADINFO() << "##### PKD ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" )
                      << "; Amplitude accum. " << (m.device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
-            
+
             task.log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
             task.log( attribute< acquisition_mode >::set( *task.spDriver(), AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
 
@@ -1217,7 +1233,7 @@ digitizer::readData16( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
     if ( md2.clog(
              AqMD3_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
-        
+
         ViInt32 actualAverages(0);
         ViInt64 actualPoints[numRecords] = {0}, firstValidPoint[numRecords] = {0};
         ViReal64 initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
@@ -1240,7 +1256,7 @@ digitizer::readData16( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
                                                  , &xIncrement
                                                  , &scaleFactor
                                                  , &scaleOffset ), __FILE__, __LINE__ ) ) {
-            
+
             ADDEBUG() << __FUNCTION__;
             data.set_method( m );
             data.xmeta().actualAverages = actualAverages;
@@ -1276,7 +1292,7 @@ digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
     if ( md2.clog(
              AqMD3_QueryMinWaveformMemory( md2.session(), 32, numRecords, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
-        
+
         ViInt32 actualAverages(0);
         ViInt64 actualRecords(0);
         ViInt64 actualPoints[numRecords] = {0}, firstValidPoint[numRecords] = {0};

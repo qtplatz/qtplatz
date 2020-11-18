@@ -18,8 +18,6 @@ list ( APPEND _rdkit_libdirs ${RDBASE} "${CMAKE_SOURCE_DIR}/../rdkit/lib/cmake/r
 
 find_file( rdkit_config_cmake "rdkit-config.cmake" PATHS ${_rdkit_libdirs} )
 
-set ( VERBOSE ON )
-
 if ( rdkit_config_cmake )
   message( STATUS "##### found rdkit_config_cmake: " ${rdkit_config_cmake} )
 

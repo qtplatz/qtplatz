@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "aqmd3.hpp"
+#include "error_message.hpp"
 #include <aqmd3controls/identify.hpp>
 #include <aqmd3controls/waveform.hpp>
 #include <adportable/debug.hpp>
@@ -53,7 +54,7 @@ namespace aqmd3 {
 using namespace aqmd3;
 
 AqMD3::AqMD3() : impl_( new impl() )
-               , session_( 0 )
+               , session_( -1 )
 {
 }
 
@@ -72,26 +73,6 @@ AqMD3::initWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolea
                                   , &session_ );
 }
 
-
-// bool
-// AqMD3::log( ViStatus rcode, const char * const file, int line, std::function< std::string()> describe )
-// {
-//     if ( rcode ) {
-
-//         ViChar msg[256] = {0};
-//         AqMD3_error_message( VI_NULL, rcode, msg );
-
-//         if ( describe ) {
-//             adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERR : adlog::LOG_WARNING))
-//                 << boost::format("0x%x: %s where %s") % rcode % msg % describe();
-//         } else {
-//             adlog::logger(file,line,(rcode < 0 ? adlog::LOG_ERR : adlog::LOG_WARNING))
-//                 << boost::format("rcode=0x%x: %s ") % rcode % msg;
-//         }
-//     }
-//     return rcode == VI_SUCCESS;
-// }
-
 void
 AqMD3::syslog( ViStatus rcode, const char * const file, int line, std::function< std::string()> describe ) const
 {
@@ -107,12 +88,17 @@ AqMD3::syslog( ViStatus rcode, const char * const file, int line, std::function<
 bool
 AqMD3::clog( ViStatus rcode, const char * const file, int line, std::function< std::string()> describe ) const
 {
-    if ( rcode ) {
-
-        ViChar msg[256] = {0};
-        ViStatus errCode;
-        AqMD3_GetError( session_, &errCode, sizeof(msg), msg );
-        adportable::debug( file, line ) << boost::format("0x%x: %s where %s") % errCode % msg % ( describe ? describe() : "" );
+    if ( rcode != VI_SUCCESS ) {
+        if ( session_ == (-1) ) {
+            auto format = describe ? boost::format( "0x%x: %s where %s" ) : boost::format( "0x%x: %s%s" );
+            adportable::debug( file, line ) << format % rcode % error_message()[ rcode ] % ( describe ? describe() : "" );
+        } else {
+            ViStatus errCode;
+            ViChar msg[256] = {0};
+            auto format = describe ? boost::format( "0x%x/0x%x: %s where %s" ) : boost::format( "0x%x/0x%x: %s%s" );
+            AqMD3_GetError( session_, &errCode, sizeof(msg), msg );
+            adportable::debug( file, line ) << format % rcode % errCode % msg % ( describe ? describe() : "" );
+        }
     }
     return rcode == VI_SUCCESS;
 }
