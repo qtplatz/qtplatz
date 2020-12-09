@@ -1027,7 +1027,9 @@ device::initial_setup( task& task, const aqmd3controls::method& m, const std::st
                                          , m.device_method().front_end_offset
                                          , AQMD3_VAL_VERTICAL_COUPLING_DC, VI_TRUE );
     task.log( rcode, __FILE__, __LINE__ );
+#if ! defined NDEBUG //|| 1
     ADDEBUG() << "##### ConfigureChannel DONE " << rcode << " #####";
+#endif
 
     task.log( attribute< active_trigger_source >::set( *task.spDriver(), std::string( "External1" ) ), __FILE__, __LINE__ );
     task.log( attribute< trigger_level >::set( *task.spDriver(), "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );

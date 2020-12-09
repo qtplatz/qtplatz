@@ -77,7 +77,7 @@ ServantPlugin * ServantPlugin::instance_ = 0;
 ServantPlugin::~ServantPlugin()
 {
     instance_ = 0;
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 1
     ADDEBUG() << "\t## DTOR ##";
 #endif
 }
@@ -99,9 +99,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
 	(void)error_message;
-    
+
     adlog::logging_handler::instance()->setpid( ::getpid() );
-        
+
     if ( ( outputWindow_ = new OutputWindow ) ) {
         addAutoReleasedObject( outputWindow_ );
 
@@ -118,7 +118,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Core::Context context;
     context.add( Core::Id( "Servant.MainView" ) );
     context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
-    
+
     //std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     //ADDEBUG() << "ServantPlugin::initilize -- loader::populate...";
     adplugin::manager::standalone_initialize();
@@ -127,7 +127,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     //adplugin::loader::populate( apppath.c_str() );
 	// std::vector< adplugin::plugin_ptr > spectrometers;
 	// if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
-	// 	std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
+	// 	std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){
     //             adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
     //             if ( factory )
     //                 adcontrols::MassSpectrometerBroker::register_factory( factory );
@@ -144,11 +144,11 @@ ServantPlugin::extensionsInitialized()
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
-{ 
+{
     adportable::core::debug_core::instance()->unhook();
     adcontrols::logging_hook::unregister_hook();
 	adlog::logging_handler::instance()->close();
-	
+
     if ( outputWindow_ && logger_ )
         disconnect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
 

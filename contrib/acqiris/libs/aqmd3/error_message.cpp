@@ -26,60 +26,6 @@
 #include <AqMD3.h>
 #include <boost/format.hpp>
 
-namespace {
-
-    struct messages {
-        const char * const msg;
-    };
-
-    const messages bffa_errors [] = {
-#define AQMD3_ERROR_CANNOT_RECOVER                          (IVIC_ERROR_BASE + 0x0000)
-#define AQMD3_ERROR_INSTRUMENT_STATUS                       (IVIC_ERROR_BASE + 0x0001)
-#define AQMD3_ERROR_CANNOT_OPEN_FILE                        (IVIC_ERROR_BASE + 0x0002)
-#define AQMD3_ERROR_READING_FILE                            (IVIC_ERROR_BASE + 0x0003)
-#define AQMD3_ERROR_WRITING_FILE                            (IVIC_ERROR_BASE + 0x0004)
-#define AQMD3_ERROR_INVALID_PATHNAME                        (IVIC_ERROR_BASE + 0x000B)
-#define AQMD3_ERROR_INVALID_ATTRIBUTE                       (IVIC_ERROR_BASE + 0x000C)
-#define AQMD3_ERROR_IVI_ATTR_NOT_WRITABLE                   (IVIC_ERROR_BASE + 0x000D)
-#define AQMD3_ERROR_IVI_ATTR_NOT_READABLE                   (IVIC_ERROR_BASE + 0x000E)
-#define AQMD3_ERROR_INVALID_VALUE                           (IVIC_ERROR_BASE + 0x0010)
-#define AQMD3_ERROR_FUNCTION_NOT_SUPPORTED                  (IVIC_ERROR_BASE + 0x0011)
-#define AQMD3_ERROR_ATTRIBUTE_NOT_SUPPORTED                 (IVIC_ERROR_BASE + 0x0012)
-#define AQMD3_ERROR_VALUE_NOT_SUPPORTED                     (IVIC_ERROR_BASE + 0x0013)
-#define AQMD3_ERROR_TYPES_DO_NOT_MATCH                      (IVIC_ERROR_BASE + 0x0015)
-#define AQMD3_ERROR_NOT_INITIALIZED                         (IVIC_ERROR_BASE + 0x001D)
-#define AQMD3_ERROR_UNKNOWN_CHANNEL_NAME                    (IVIC_ERROR_BASE + 0x0020)
-#define AQMD3_ERROR_TOO_MANY_OPEN_FILES                     (IVIC_ERROR_BASE + 0x0023)
-#define AQMD3_ERROR_CHANNEL_NAME_REQUIRED                   (IVIC_ERROR_BASE + 0x0044)
-#define AQMD3_ERROR_MISSING_OPTION_NAME                     (IVIC_ERROR_BASE + 0x0049)
-#define AQMD3_ERROR_MISSING_OPTION_VALUE                    (IVIC_ERROR_BASE + 0x004A)
-#define AQMD3_ERROR_BAD_OPTION_NAME                         (IVIC_ERROR_BASE + 0x004B)
-#define AQMD3_ERROR_BAD_OPTION_VALUE                        (IVIC_ERROR_BASE + 0x004C)
-#define AQMD3_ERROR_OUT_OF_MEMORY                           (IVIC_ERROR_BASE + 0x0056)
-#define AQMD3_ERROR_OPERATION_PENDING                       (IVIC_ERROR_BASE + 0x0057)
-#define AQMD3_ERROR_NULL_POINTER                            (IVIC_ERROR_BASE + 0x0058)
-#define AQMD3_ERROR_UNEXPECTED_RESPONSE                     (IVIC_ERROR_BASE + 0x0059)
-#define AQMD3_ERROR_FILE_NOT_FOUND                          (IVIC_ERROR_BASE + 0x005B)
-#define AQMD3_ERROR_INVALID_FILE_FORMAT                     (IVIC_ERROR_BASE + 0x005C)
-#define AQMD3_ERROR_STATUS_NOT_AVAILABLE                    (IVIC_ERROR_BASE + 0x005D)
-#define AQMD3_ERROR_ID_QUERY_FAILED                         (IVIC_ERROR_BASE + 0x005E)
-#define AQMD3_ERROR_RESET_FAILED                            (IVIC_ERROR_BASE + 0x005F)
-#define AQMD3_ERROR_RESOURCE_UNKNOWN                        (IVIC_ERROR_BASE + 0x0060)
-#define AQMD3_ERROR_ALREADY_INITIALIZED                     (IVIC_ERROR_BASE + 0x0061)
-#define AQMD3_ERROR_CANNOT_CHANGE_SIMULATION_STATE          (IVIC_ERROR_BASE + 0x0062)
-#define AQMD3_ERROR_INVALID_NUMBER_OF_LEVELS_IN_SELECTOR    (IVIC_ERROR_BASE + 0x0063)
-#define AQMD3_ERROR_INVALID_RANGE_IN_SELECTOR               (IVIC_ERROR_BASE + 0x0064)
-#define AQMD3_ERROR_UNKOWN_NAME_IN_SELECTOR                 (IVIC_ERROR_BASE + 0x0065)
-#define AQMD3_ERROR_BADLY_FORMED_SELECTOR                   (IVIC_ERROR_BASE + 0x0066)
-#define AQMD3_ERROR_UNKNOWN_PHYSICAL_IDENTIFIER             (IVIC_ERROR_BASE + 0x0067)
-
-        { "Failure cannot recover." }
-        , { "Failure cannot recover." }
-    };
-
-}
-
-
 using namespace aqmd3;
 
 std::string

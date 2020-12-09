@@ -64,7 +64,9 @@ singleton::singleton() : sema_( std::make_unique< semaphore >() )
 
 singleton::~singleton()
 {
-    //ADDEBUG() << "##### singleton dtor #####";
+#if ! defined NDEBUG // || 1
+    ADDEBUG() << "\t##### singleton dtor #####";
+#endif
 }
 
 singleton *
@@ -86,8 +88,10 @@ singleton::finalize()
         t.join();
 
     connections_.clear();
-
+#if ! defined NDEBUG
     ADDEBUG() << "##### singleton finalize gracefully #####";
+#endif
+    return true;
 }
 
 bool

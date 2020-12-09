@@ -16,7 +16,7 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [ { "name": "AcqirisOption", "value": "simulate" } ],
-            "externalConsole": false,
+            "externalConsole": false,sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
             "MIMode": "gdb",
             "setupCommands": [
                 {
