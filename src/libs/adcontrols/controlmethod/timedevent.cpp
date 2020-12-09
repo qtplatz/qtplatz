@@ -223,8 +223,8 @@ TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, do
 
     auto values = boost::apply_visitor( toValue(), value );
     ptree_->put_child( "data", values );
-#if !defined NDEBUG
-    ADDEBUG() << *ptree_;
+#if ! defined NDEBUG
+    // ADDEBUG() << *ptree_;
 #endif
 }
 
