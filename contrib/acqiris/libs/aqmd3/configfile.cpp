@@ -33,7 +33,7 @@
 using namespace aqmd3;
 
 configFile::configFile()
-    : inifile_( boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz" )
+    : inifile_( boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz/aqmd3.ini" )
 {
 }
 

@@ -25,6 +25,7 @@
 #include "findresource.hpp"
 #include "configfile.hpp"
 #include "aqmd3.hpp"
+#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 
 using namespace aqmd3;
@@ -45,16 +46,22 @@ boost::optional< std::string >
 findResource::operator()( std::shared_ptr< AqMD3 > md3 ) const
 {
     if ( findConfig_ ) {
-        if ( auto res = configFile().loadResource() )
+
+        if ( auto res = configFile().loadResource() ) {
             if ( md3->clog( md3->initWithOptions( *res, VI_FALSE, VI_TRUE, initOptions_ ), __FILE__, __LINE__, [&]{ return *res; }) )
                 return res;
+        } else {
+            ADDEBUG() << "-- findResource load configuration failed";
+        }
     }
 
     for ( int num = 0; num < 200; ++num ) {
         std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
         if ( md3->clog( md3->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, initOptions_ ), __FILE__, __LINE__, [&]{ return res; } ) ) {
-            if ( saveConfig_ )
+            if ( saveConfig_ ) {
+                ADDEBUG() << "saveResource(" << res << ")";
                 aqmd3::configFile().saveResource( res );
+            }
             return res;
         }
     }
