@@ -21,6 +21,8 @@ endif()
 add_library( ${PROJECT_NAME} SHARED
   avgrmethod.cpp
   avgrmethod.hpp
+  dghelper.cpp
+  dghelper.hpp
   infitofcontrols_global.hpp
 #  ionsourcemethod.hpp
 #  ionsourcemethod.cpp
