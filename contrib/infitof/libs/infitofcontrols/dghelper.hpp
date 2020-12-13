@@ -26,13 +26,16 @@
 
 #include <infitofcontrols/method.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adportable/debug.hpp>
-#include <boost/optional.hpp>
 
 namespace infitofcontrols {
 
     class dghelper {
+        const char * file_;
+        int line_;
+        std::string prefix_;
     public:
+        dghelper();
+        dghelper( const char * file, int line, std::string&& = std::string() );
         void operator()( const adcontrols::ControlMethod::Method& m ) const;
         void operator()( const infitofcontrols::method& ) const;
     };

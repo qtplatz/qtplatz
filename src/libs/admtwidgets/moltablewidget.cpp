@@ -74,7 +74,7 @@ namespace admtwidgets {
         const double time_;
         const double tlap_;
         lapFinder( const adcontrols::ScanLaw& law, double mass, double time, int laps )
-            : scanlaw_( law ), mass_( mass ), time_( time ), laps_( laps )
+            : scanlaw_( law ), mass_( mass ), laps_( laps ), time_( time )
             , tlap_( scanlaw_.getTime( mass, 2 ) - scanlaw_.getTime( mass, 1 ) ) {
         }
 
@@ -348,8 +348,11 @@ MolTableWidget::OnFinalClose()
 bool
 MolTableWidget::getContents( boost::any& a ) const
 {
-    a = impl_->readJson();
-    return true;
+    if ( a.empty() || ( a.type() == typeid( QByteArray ) ) ) {
+        a = impl_->readJson();
+        return true;
+    }
+    return false;
 }
 
 bool
@@ -469,6 +472,7 @@ MolTableWidget::handleScanLawChanged()
                 auto formula = impl_->model_->index( i, c_formula ).data( Qt::EditRole ).toString();
                 auto mass = impl_->model_->index( i, c_mass ).data( Qt::EditRole ).toDouble();
                 auto laps = impl_->model_->index( i, c_laps ).data( Qt::EditRole ).toUInt();
+                (void)laps;
                 if ( mass > 0.5 )
                     impl_->setTime( i, mass );
             }

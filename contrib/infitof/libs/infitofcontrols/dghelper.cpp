@@ -23,25 +23,37 @@
 **************************************************************************/
 
 #include "dghelper.hpp"
+#include <adportable/debug.hpp>
 
 using namespace infitofcontrols;
+
+dghelper::dghelper() : file_( 0 ), line_( 0 )
+{
+}
+
+dghelper::dghelper( const char * file, int line, std::string&& t ) : file_( file ), line_( line ), prefix_( t )
+{
+}
 
 void
 dghelper::operator()( const infitofcontrols::method& infm ) const
 {
-    ADDEBUG() << "\t===============================================================";
+    adportable::debug dout( file_, line_ );
+
+    dout << "\t============ " << prefix_ << " ==========================\n";
     size_t n(0);
+    std::ostringstream o;
     for ( auto& p: infm.tof().protocols ) {
-        ADDEBUG() << n++
-                  << "\t" << std::make_pair( p.pulser.delay, p.pulser.width )
-                  << "\t" << std::make_pair( p.inject.delay, p.inject.width )
-                  << "\t" << std::make_pair( p.exit.delay, p.exit.width )
-                  << "\t" << std::make_pair( p.gate[0].delay, p.gate[0].width )
-                  << "\t" << std::make_pair( p.gate[1].delay, p.gate[1].width )
-                  << "\t:" << std::make_pair( p.external_adc_delay.delay, p.external_adc_delay.width )
-                  << "\t" << std::make_pair( p.exit2.delay, p.exit2.width );
+        dout << n++
+             << std::make_pair( p.pulser.delay, p.pulser.width )
+             << ", " << std::make_pair( p.inject.delay, p.inject.width )
+             << ", " << std::make_pair( p.exit.delay, p.exit.width )
+             << ", " << std::make_pair( p.gate[0].delay, p.gate[0].width )
+             << ", " << std::make_pair( p.gate[1].delay, p.gate[1].width )
+             << "\t:" << std::make_pair( p.external_adc_delay.delay, p.external_adc_delay.width )
+             << ", " << std::make_pair( p.exit2.delay, p.exit2.width );
     }
-    ADDEBUG() << "\t===============================================================";
+    dout << "\n============ " << prefix_ << " ==========================";
 }
 
 void
@@ -52,6 +64,6 @@ dghelper::operator()( const adcontrols::ControlMethod::Method& m ) const
     if ( it != m.end() && it->get<>( *it, infm ) ) {
         (*this)( infm );
     } else {
-        ADDEBUG() << "\tMethod does not contains 'infitofcontrols::method::clsid'";
+        adportable::debug( file_, line_ )  << "\tMethod does not contains 'infitofcontrols::method::clsid'";
     }
 }
