@@ -38,6 +38,7 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace adcontrols {
 
@@ -53,12 +54,12 @@ namespace adcontrols {
         QuanCompounds();
         QuanCompounds( const QuanCompounds& );
         QuanCompounds& operator = ( const QuanCompounds& );
-        
+
         typedef QuanCompound value_type;
         typedef std::vector< value_type > vector_type;
         typedef std::vector< QuanCompound >::iterator iterator;
         typedef std::vector< QuanCompound >::const_iterator const_iterator;
-        
+
         iterator begin();
         iterator end();
         const_iterator begin() const;

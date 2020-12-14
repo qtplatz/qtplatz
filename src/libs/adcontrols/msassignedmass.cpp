@@ -28,17 +28,17 @@
 #include "samplinginfo.hpp"
 #include <adportable/float.hpp>
 #include <boost/bind.hpp>
-
+#include <algorithm>
 
 using namespace adcontrols;
 
 MSAssignedMass::MSAssignedMass() : idReference_(-1)
                                  , idMassSpectrum_(0)
 								 , idPeak_(-1)
-                                 , exactMass_( 0 ) 
+                                 , exactMass_( 0 )
                                  , time_( 0 )
-                                 , mass_( 0 )  
-                                 , enable_( false ) 
+                                 , mass_( 0 )
+                                 , enable_( false )
                                  , flags_( 0 )
                                  , mode_( 0 )
 {
@@ -50,7 +50,7 @@ MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_
 														  , idPeak_( t.idPeak_ )
                                                           , exactMass_( t.exactMass_ )
                                                           , time_( t.time_ )
-                                                          , mass_( t.mass_ )   
+                                                          , mass_( t.mass_ )
                                                           , enable_( t.enable_ )
                                                           , flags_( t.flags_ )
                                                           , mode_( t.mode_ )
@@ -71,9 +71,9 @@ MSAssignedMass::MSAssignedMass( uint32_t idReference
                                                   , idMassSpectrum_( idMassSpectrum )
                                                   , idPeak_( idPeak )
                                                   , exactMass_( exactMass )
-                                                  , time_( time )   
+                                                  , time_( time )
                                                   , mass_( mass )
-                                                  , enable_( enable ) 
+                                                  , enable_( enable )
                                                   , flags_( flags )
                                                   , mode_( mode )
 {
