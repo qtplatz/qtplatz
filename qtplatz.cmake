@@ -73,9 +73,8 @@ if ( WITH_QT5 )
   if ( NOT QMAKE )
     set ( __qt5_versions
       "5.15.2" "5.15.1" "5.15.0"
-      "5.14.2" "5.14.1"
-      "5.12.7" "5.12.6"
-      "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" )
+      "5.14.2" "5.14.1" "5.14.0"
+      "5.12.10" "5.12.5" "5.12.4" "5.12.3" "5.12.2" )
 
     if ( WIN32 )
       foreach( v ${__qt5_versions} )
@@ -109,8 +108,6 @@ if ( WITH_QT5 )
       OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
       OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-    #execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
-    #string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
     list( APPEND CMAKE_PREFIX_PATH "${QTDIR}/lib/cmake" )
     set( QTDIR ${__prefix} )
     execute_process( COMMAND ${QMAKE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION )
@@ -120,7 +117,6 @@ if ( WITH_QT5 )
     message( STATUS "=============================================================" )
   endif()
 
-  message( "==========>> QT_VERSION=" ${QT_VERSION} )
   if ( ${QT_VERSION} VERSION_GREATER_EQUAL "6.0.0" )
     find_package( Qt6 OPTIONAL_COMPONENTS Core QUIET )
     if ( Qt6_FOUND )
