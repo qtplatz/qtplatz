@@ -97,6 +97,8 @@ if [ -z "$cross_target" ]; then
 		if find_qmake QMAKE; then
 			QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
 			echo "$0: qmake found in "$QTDIR " (qmake="${QMAKE}")"
+			cmake_args+=("-DQMAKE=${QMAKE}")
+			echo cmake "${cmake_args[@]}" $source_dir
 			prompt
 			export PATH=$QTDIR/bin:$PATH
 		else

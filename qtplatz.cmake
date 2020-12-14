@@ -70,72 +70,80 @@ endif()
 
 if ( WITH_QT5 )
 
-  set ( __qt5_versions
-    "5.15.2" "5.15.1" "5.15.0"
-    "5.14.2" "5.14.1"
-    "5.12.7" "5.12.6"
-    "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" )
+  if ( NOT QMAKE )
+    set ( __qt5_versions
+      "5.15.2" "5.15.1" "5.15.0"
+      "5.14.2" "5.14.1"
+      "5.12.7" "5.12.6"
+      "5.12.5" "5.12.4" "5.12.3" "5.12.2" "5.12.1" "5.12.0" )
 
-  if ( WIN32 )
-    foreach( v ${__qt5_versions} )
-      list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2019_64/bin" )
-      list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2017_64/bin" )
-    endforeach()
-  elseif( APPLE )
-    foreach( v ${__qt5_versions} )
-      list ( APPEND __qmake_hints "$ENV{HOME}/Qt/${v}/clang_64/bin" )
-      list ( APPEND __qmake_hints "/opt/Qt/${v}/clang_64/bin" )
-    endforeach()
-  else()
-    if ( CMAKE_CROSSCOMPILING )
+    if ( WIN32 )
       foreach( v ${__qt5_versions} )
-        list ( APPEND __qmake_hints "/usr/local/arm-linux-gnueabihf/opt/Qt/${v}/bin" )
+        list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2019_64/bin" )
+        list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2017_64/bin" )
+      endforeach()
+    elseif( APPLE )
+      foreach( v ${__qt5_versions} )
+        list ( APPEND __qmake_hints "$ENV{HOME}/Qt/${v}/clang_64/bin" )
+        list ( APPEND __qmake_hints "/opt/Qt/${v}/clang_64/bin" )
       endforeach()
     else()
-      foreach( v ${__qt5_versions} )
-        list ( APPEND __qmake_hints "/opt/Qt/${v}/gcc_64/bin" )
-      endforeach()
+      if ( CMAKE_CROSSCOMPILING )
+        foreach( v ${__qt5_versions} )
+          list ( APPEND __qmake_hints "/usr/local/arm-linux-gnueabihf/opt/Qt/${v}/bin" )
+        endforeach()
+      else()
+        foreach( v ${__qt5_versions} )
+          list ( APPEND __qmake_hints "/opt/Qt/${v}/gcc_64/bin" )
+        endforeach()
+      endif()
     endif()
-  endif()
 
-  find_program( QMAKE NAMES qmake HINTS ${__qmake_hints} )
-
-  if ( QMAKE )
-    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
-    string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
-    list( APPEND CMAKE_PREFIX_PATH "${__prefix}/lib/cmake" )
-    set( QTDIR ${__prefix} )
-  else()
-    message( "=============================================================" )
-    message( "====== No QMAKE FOUND =======================================" )
-    message( "=============================================================" )
-  endif()
-
-  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-
-  if ( Qt5_FOUND )
-    find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
-    get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
-    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
-    # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
-    if ( NOT XMLPATTERNS )
-      message( FATAL_ERROR "xmlpatterns command not found" )
-    endif()
-  else()
-    message( STATUS "# Qt5_DIR = ${Qt5_DIR}" )
-    message( STATUS "# Disable QT5" )
-    #set( WITH_QT5 NO )
+    find_program( QMAKE NAMES qmake HINTS ${__qmake_hints} )
   endif()
 
   if ( QMAKE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
       OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
       OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
       OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+    #execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
+    #string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
+    list( APPEND CMAKE_PREFIX_PATH "${QTDIR}/lib/cmake" )
+    set( QTDIR ${__prefix} )
+    execute_process( COMMAND ${QMAKE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION )
+  else()
+    message( STATUS "=============================================================" )
+    message( STATUS "====== No QMAKE FOUND =======================================" )
+    message( STATUS "=============================================================" )
   endif()
+
+  message( "==========>> QT_VERSION=" ${QT_VERSION} )
+  if ( ${QT_VERSION} VERSION_GREATER_EQUAL "6.0.0" )
+    find_package( Qt6 OPTIONAL_COMPONENTS Core QUIET )
+    if ( Qt6_FOUND )
+      find_package( Qt6 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
+    else()
+      message( STATUS "# Qt6_DIR = ${Qt6_DIR}" )
+    endif()
+  else()
+    find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
+    if ( Qt5_FOUND )
+      find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
+      get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
+      find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
+      # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
+      if ( NOT XMLPATTERNS )
+        message( FATAL_ERROR "xmlpatterns command not found" )
+      endif()
+    else()
+      message( STATUS "# Qt5_DIR = ${Qt5_DIR}" )
+      message( STATUS "# Disable QT5" )
+    endif()
+  endif()
+
 
 endif()
 
