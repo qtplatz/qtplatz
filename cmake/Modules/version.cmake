@@ -1,5 +1,5 @@
 #
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.18.2)
 
 set( VERSION_TWEAK 0 )
 
@@ -22,12 +22,12 @@ if ( _count GREATER 1 ) # count >= 2
 endif()
 
 if ( _count GREATER 2 ) # count >= 3
-  string( REGEX REPLACE "v[0-9]+\\.[0-9]+[\\.-]([0-9]+).*$" "\\1" VERSION_PATCH ${git_describe} )  
+  string( REGEX REPLACE "v[0-9]+\\.[0-9]+[\\.-]([0-9]+).*$" "\\1" VERSION_PATCH ${git_describe} )
 endif()
 
 if ( _count GREATER 3 ) # count >= 4
   string( REGEX REPLACE "v[0-9]+\\.[0-9]+[\\.-][0-9]+-([0-9]+)-.*$" "\\1" VERSION_TWEAK ${git_describe} )
-  string( REGEX REPLACE "v[0-9]+\\.[0-9]+[\\.-][0-9]+-[0-9]+-(.*)$" "\\1" VERSION_HASH ${git_describe} )    
+  string( REGEX REPLACE "v[0-9]+\\.[0-9]+[\\.-][0-9]+-[0-9]+-(.*)$" "\\1" VERSION_HASH ${git_describe} )
 endif()
 
 # message( STATUS "## version: " "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK}(${VERSION_HASH})" )

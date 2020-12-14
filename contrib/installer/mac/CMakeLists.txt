@@ -1,5 +1,5 @@
 #
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.18.2)
 project( mac_installer )
 
 include( qtplatz-version )
@@ -24,4 +24,3 @@ configure_file(
   "${CMAKE_BINARY_DIR}/package/Makefile"
   @ONLY
   )
-

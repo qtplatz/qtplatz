@@ -36,8 +36,11 @@
 
 namespace adspectrometer {
 
-    class import_profile : boost::noncopyable {
+    class import_profile { // : boost::noncopyable {
+        import_profile( const import_profile& ) = delete;
+        const import_profile& operator = ( const import_profile& ) = delete;
     public:
+        import_profile() {}
         adcontrols::MSProperty prop_;
         adcontrols::MS_POLARITY polarity_;
         std::vector< float > intensities_;
@@ -71,4 +74,3 @@ namespace adspectrometer {
     };
 
 }
-

@@ -11,6 +11,7 @@ if ( WIN32 )
 
   # See 'libs/serialization/src/basic_archive.cpp library_version_type
   find_path( _boost NAMES boost HINTS
+    "C:/Boost/include/boost-1_75"   # V18
     "C:/Boost/include/boost-1_73"   # V18
     "C:/Boost/include/boost-1_69"   # V17
     "C:/Boost/include/boost-1_67"   # V16
@@ -47,6 +48,7 @@ else()
   set( Boost_NO_SYSTEM_PATHS ON )
 
   find_path( _boost NAMES include/boost HINTS
+    "/usr/local/boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
     "/usr/local/boost-1_73"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
     "/usr/local/boost-1_69"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
     "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)

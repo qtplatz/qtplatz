@@ -1,5 +1,5 @@
 #
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 3.18.2)
 
 if ( "${QTPLATZ_SOURCE_DIR}" STREQUAL "" )
   set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../.. )
@@ -13,13 +13,10 @@ if (WIN32)
 
 elseif( APPLE )
 
-  add_subdirectory( mac )  
+  add_subdirectory( mac )
 
 else()
 
   message(STATUS "On Linux(debian), independent .deb package for qt5, ace+tao and boost should be created" )
 
 endif()
-
-
-

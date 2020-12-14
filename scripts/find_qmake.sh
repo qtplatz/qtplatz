@@ -4,28 +4,36 @@ function find_qmake() {
     local __arch=`uname`
     local __result=$1
 
-    local hints=( "/Qt/5.15.1" \
+    local hintsX11=( "/Qt/5.15.1" \
 					  "/Qt/5.15.0" \
 					  "/Qt/5.14.2" \
 					  "/Qt/5.14.1" \
-					  "/Qt/5.12.7" "/Qt/5.12.6" "/Qt/5.12.5" "/Qt/5.12.4" "/Qt/5.12.3" "/Qt/5.12.2" "/Qt/5.12.1" "/Qt/5.12.0" \
-					  "/Qt/5.11.2" "/Qt/5.11.1" "/Qt/5.11.0" \
+					  "/Qt/5.12.7" \
+					  "/Qt/5.11.2" \
 					  "/Qt/5.10.1" \
-					  "/Qt/5.9.3" "/Qt/5.9.2" "/Qt/5.9.1" "/Qt/5.9" \
-					  "/Qt/5.8" \
-					  "/Qt/5.7" )
+					  "/Qt/5.9.3" )
+
+    local hintsOSX=( "/Qt/5.15.2" \
+					  "/Qt/5.15.1" \
+					  "/Qt/5.15.0" \
+					  "/Qt/5.14.2" \
+					  "/Qt/5.14.1" \
+					  "/Qt/5.12.7" \
+					  "/Qt/5.11.2" \
+					  "/Qt/5.10.1" \
+					  "/Qt/5.9.3" )
 
     case "${__arch}" in
 	Linux*)
 	    local __dirs=()
-	    for hint in "${hints[@]}"; do
+	    for hint in "${hintsX11[@]}"; do
 			__dirs+=("/opt$hint/gcc_64")
 	    done
 	    ;;
 	Darwin*)
 	    local home=~
 	    local __dirs=()
-	    for hint in "${hints[@]}"; do
+	    for hint in "${hintsOSX[@]}"; do
 			__dirs+=("$home$hint/clang_64")
 			__dirs+=("/opt$hint/clang_64")
 	    done

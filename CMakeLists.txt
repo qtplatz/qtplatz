@@ -1,5 +1,5 @@
 #
-cmake_minimum_required ( VERSION 3.7 )  # for GREATER_EQUAL
+cmake_minimum_required ( VERSION 3.18.2 )  # for GREATER_EQUAL
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
@@ -144,6 +144,25 @@ if ( APPLE )
 else()
 endif()
 
+##############################################
+### find rdkit will include rdkit-config.cmake that removes Boost_LIBRARIES,
+### so find rdkit must be invoked before find boost
+##############################################
+
+if ( WITH_RDKIT )
+  find_package( rdkit QUIET )
+  if ( rdkit_FOUND )
+    add_definitions( -DHAVE_RDKit=1 )
+    get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
+  else()
+    add_definitions( -DHAVE_RDKit=0 )
+    message( STATUS "No RDKit found" )
+  endif()
+endif()
+
+##############################################
+### find boost
+##############################################
 find_package( Boost 1.69 REQUIRED COMPONENTS
   atomic
   ${boost_libs} # windows
@@ -164,8 +183,8 @@ find_package( Boost 1.69 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
-  if ( ${Boost_VERSION} VERSION_EQUAL "1.73"
-      OR ${Boost_VERSION} EQUAL "107300" )
+  if ( ${Boost_VERSION} VERSION_GREATER_EQUAL "1.73"
+      OR ${Boost_VERSION} GREATER_EQUAL "107300" )
     add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 ) # workaround for boost-1.73
   endif()
 else()
@@ -182,17 +201,6 @@ if ( WITH_QWT )
 endif()
 
 find_package( Eigen3 REQUIRED )
-
-if ( WITH_RDKIT )
-  find_package( rdkit QUIET )
-  if ( rdkit_FOUND )
-    add_definitions( -DHAVE_RDKit=1 )
-    get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
-  else()
-    add_definitions( -DHAVE_RDKit=0 )
-    message( STATUS "No RDKit found" )
-  endif()
-endif()
 
 if ( WITH_OPENCV )
   if ( APPLE )
@@ -373,6 +381,7 @@ message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_ID} " " ${CMAK
 message( STATUS "# Boost_VERSION         : " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 message( STATUS "# Boost_INCLUDE_DIRS    : " ${Boost_INCLUDE_DIRS} )
 message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
+message( STATUS "# Boost_LIBRARIES       : " ${Boost_LIBRARIES} )
 if ( WITH_QWT )
   get_target_property( qwt_release ${QWT_LIBRARIES} IMPORTED_LOCATION )
   get_target_property( qwt_debug ${QWT_LIBRARIES} IMPORTED_LOCATION_DEBUG )
