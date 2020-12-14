@@ -33,6 +33,7 @@
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <map>
 #include <string>
@@ -45,7 +46,7 @@ using namespace adcontrols;
 ///////////////////////////////////////////////////////////////
 
 namespace adcontrols {
-    
+
     class MassSpectrometerBroker::impl {
     public:
         static impl& instance() {
@@ -71,7 +72,7 @@ namespace adcontrols {
             factories_.clear();
         }
 
-        typedef std::pair< std::string, std::shared_ptr< massspectrometer_factory > > value_type; 
+        typedef std::pair< std::string, std::shared_ptr< massspectrometer_factory > > value_type;
 
         std::map< boost::uuids::uuid, value_type > factories_;
     };
@@ -91,6 +92,19 @@ void
 MassSpectrometerBroker::clear_factories()
 {
     impl::instance().clear();
+}
+
+//static
+bool
+MassSpectrometerBroker::register_factory( std::shared_ptr< massspectrometer_factory >&& ptr )
+{
+    if ( ptr ) {
+        auto& uuid = ptr->objclsid();
+        auto text = ptr->objtext();
+        impl::instance().factories_[ uuid ] = { text, ptr };
+        return true;
+    }
+    return false;
 }
 
 //static

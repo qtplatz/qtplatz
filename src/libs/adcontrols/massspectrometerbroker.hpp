@@ -42,7 +42,8 @@ namespace adcontrols {
         ~MassSpectrometerBroker(void);
     public:
         static bool register_factory( massspectrometer_factory* );
-        
+        static bool register_factory( std::shared_ptr< massspectrometer_factory >&& );
+
         static massspectrometer_factory* find_factory( const boost::uuids::uuid& );
         static massspectrometer_factory* find_factory( const std::string& objtext );
 
@@ -59,5 +60,5 @@ namespace adcontrols {
     private:
         class impl;
     };
-    
+
 }

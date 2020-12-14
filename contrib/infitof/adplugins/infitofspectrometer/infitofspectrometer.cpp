@@ -81,15 +81,16 @@ void
 infitofspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
     if ( auto factory =
-         std::make_shared< adcontrols::massspectrometer_factory_type< MassSpectrometer > >( infitof::names::objtext_massspectrometer, infitof::iids::uuid_massspectrometer ) ) {
-
-        adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
+         std::make_shared< adcontrols::massspectrometer_factory_type< MassSpectrometer > >( infitof::names::objtext_massspectrometer
+                                                                                            , infitof::iids::uuid_massspectrometer ) ) {
+        adcontrols::MassSpectrometerBroker::register_factory( factory );
     }
 
     if ( auto factory =
          std::make_shared< adcontrols::datainterpreter::factory_type< InfiTofDataInterpreter > >() ) {
 
-        adcontrols::DataInterpreterBroker::register_factory( factory, infitof::iids::uuid_datainterpreter, infitof::names::objtext_datainterpreter );
+        adcontrols::DataInterpreterBroker::register_factory( std::move( factory )
+                                                             , infitof::iids::uuid_datainterpreter, infitof::names::objtext_datainterpreter );
     }
 
 }
