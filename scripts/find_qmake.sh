@@ -4,16 +4,20 @@ function find_qmake() {
     local __arch=`uname`
     local __result=$1
 
-    local hints=(
-		"/Qt/5.15.2" \
-			"/Qt/5.15.1" \
-			"/Qt/5.15.0" \
-			"/Qt/5.14.2" \
-			"/Qt/5.14.1" \
-			"/Qt/5.12.7" \
-			"/Qt/5.11.2" \
-			"/Qt/5.10.1" \
-			"/Qt/5.9.3" )
+    case "${__arch}" in
+		Linux*)
+			local hints=( 	  "/Qt/5.15.1" "/Qt/5.15.0" \
+							  "/Qt/5.14.2" "/Qt/5.14.1" \
+							  "/Qt/5.12.7" \
+							  "/Qt/5.11.2" )
+			;;
+		*)
+			local hints=( "/Qt/5.15.2" "/Qt/5.15.1" "/Qt/5.15.0" \
+							  "/Qt/5.14.2" "/Qt/5.14.1" \
+							  "/Qt/5.12.7" \
+							  "/Qt/5.11.2" )
+			;;
+	esac
 
     case "${__arch}" in
 	Linux*)
