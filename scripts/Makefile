@@ -126,9 +126,11 @@ qt5-armhf: qt5-armhf-dependency
 	./armhf/qt5-build.sh
 
 maeparser:
+	./linux-maeparser-setup.sh clean
 	./linux-maeparser-setup.sh
 
 rdkit:
+	./linux-rdkit-setup.sh clean
 	./linux-rdkit-setup.sh
 
 qwt:

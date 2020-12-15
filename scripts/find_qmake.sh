@@ -4,36 +4,28 @@ function find_qmake() {
     local __arch=`uname`
     local __result=$1
 
-    local hintsX11=(  "/Qt/5.15.1" \
-					  "/Qt/5.15.0" \
-					  "/Qt/5.14.2" \
-					  "/Qt/5.14.1" \
-					  "/Qt/5.12.7" \
-					  "/Qt/5.11.2" \
-					  "/Qt/5.10.1" \
-					  "/Qt/5.9.3" )
-
-    local hintsOSX=( "/Qt/5.15.2" \
-					  "/Qt/5.15.1" \
-					  "/Qt/5.15.0" \
-					  "/Qt/5.14.2" \
-					  "/Qt/5.14.1" \
-					  "/Qt/5.12.7" \
-					  "/Qt/5.11.2" \
-					  "/Qt/5.10.1" \
-					  "/Qt/5.9.3" )
+    local hints=(
+		"/Qt/5.15.2" \
+			"/Qt/5.15.1" \
+			"/Qt/5.15.0" \
+			"/Qt/5.14.2" \
+			"/Qt/5.14.1" \
+			"/Qt/5.12.7" \
+			"/Qt/5.11.2" \
+			"/Qt/5.10.1" \
+			"/Qt/5.9.3" )
 
     case "${__arch}" in
 	Linux*)
 	    local __dirs=()
-	    for hint in "${hintsX11[@]}"; do
+	    for hint in "${hints[@]}"; do
 			__dirs+=("/opt$hint/gcc_64")
 	    done
 	    ;;
 	Darwin*)
 	    local home=~
 	    local __dirs=()
-	    for hint in "${hintsOSX[@]}"; do
+	    for hint in "${hints[@]}"; do
 			__dirs+=("$home$hint/clang_64")
 			__dirs+=("/opt$hint/clang_64")
 	    done

@@ -27,11 +27,12 @@
 
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
-#include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
-#include <string>
-#include <mutex>
+#include <adfs/filesystem.hpp>
+#include <atomic>
 #include <functional>
+#include <mutex>
+#include <string>
 #include <tuple>
 
 namespace boost { namespace uuids { struct uuid; } }

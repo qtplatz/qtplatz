@@ -6,7 +6,7 @@ OS="$(uname -s)"
 if [ -z $BOOST_VERSION ]; then
 	case "${OS}" in
 		Darwin*) BOOST_VERSION=1_75_0;;
-		*) BOOST_VERSION=1_73_0;;
+		*) BOOST_VERSION=1_75_0;; # require Qt5.15.2 or higher
 	esac
 fi
 

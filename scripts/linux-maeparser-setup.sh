@@ -9,6 +9,17 @@ arch=`uname`-`arch`
 
 __nproc nproc
 
+build_clean=false
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		clean)
+			shift
+			build_clean=true
+			;;
+	esac
+done
+
 if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/maeparser.release
     SRCDIR=$SRC/maeparser
@@ -17,6 +28,12 @@ else
     CROSS_ROOT=/usr/local/arm-linux-gnueabihf
     SRCDIR=$CROSS_ROOT/usr/local/maeparser
     TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
+fi
+
+if [ $build_clean = true ]; then
+	set -x
+	rm -rf $BUILD_DIR
+	exit
 fi
 
 if [ ! -z $cross_target ]; then
