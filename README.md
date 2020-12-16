@@ -7,8 +7,8 @@ Prerequisite
 ===============
 
 1. git
-2. cmake 3.18
-3. c++17 complient c/c++ compiler
+2. cmake 3.18.2
+3. c++17 complient c/c++ compiler (Xcode 12|gcc-6.3|MSVC
 1. Qt 5.15.1 (also work with 5.12 and later versions) ([download](https://www.qt.io/download))
 2. QWT 6.1
 3. Boost-1.73 (also work with 1.69 and later versions)
