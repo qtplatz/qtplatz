@@ -145,7 +145,7 @@ function boost_build {
 			  echo "if you got failed by zlib, try following command."
 			  echo "sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /"
 			  echo "--- macosx-version-min= issue: edit the tools/build/v2/tools/darwin.jam file"
-			  echo "feature.extend macosx-version-min : 4.15 ; <-- 'below feature macosx-version-min : : propagated optional ;' line
+			  echo "feature.extend macosx-version-min : 4.15 ; <-- 'below feature macosx-version-min : : propagated optional ;' line"
 			  echo "***********************************************************************************************************"
 			  #PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 			  #PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")

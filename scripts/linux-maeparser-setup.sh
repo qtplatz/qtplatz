@@ -36,6 +36,11 @@ if [ $build_clean = true ]; then
 	exit
 fi
 
+if [ `uname` == "Darwin" ]; then
+    cmake_args=( "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"  # Catalina
+			   )
+fi
+
 if [ ! -z $cross_target ]; then
     cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" )
 else
