@@ -7,6 +7,17 @@ source ${cwd}/nproc.sh
 
 arch=`uname`-`arch`
 
+build_clean=false
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		clean)
+			shift
+			build_clean=true
+			;;
+	esac
+done
+
 function boost_download {
     BOOST_VERSION=$1
     BUILD_ROOT=$2
@@ -17,8 +28,6 @@ function boost_download {
 		VERSION=$(echo $BOOST_VERSION | tr _ .)
 		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/$VERSION/source/boost_$BOOST_VERSION.tar.bz2
 		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/$VERSION/source/boost_$BOOST_VERSION.tar.bz2
-#		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
-#		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 	fi
 
 	if [ ! -d ${BOOST_BUILD_DIR} ]; then
@@ -53,6 +62,7 @@ using python
 	  ;
 END
 }
+# using clang : : : <cxxflags>"-mmacosx-version-min=10.15" ;
 
 function make_user_config_linux {
 	PYTHON=$(which python3)
@@ -134,6 +144,8 @@ function boost_build {
 			  echo "***********************************************************************************************************"
 			  echo "if you got failed by zlib, try following command."
 			  echo "sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /"
+			  echo "--- macosx-version-min= issue: edit the tools/build/v2/tools/darwin.jam file"
+			  echo "feature.extend macosx-version-min : 4.15 ; <-- 'below feature macosx-version-min : : propagated optional ;' line
 			  echo "***********************************************************************************************************"
 			  #PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 			  #PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
@@ -146,9 +158,9 @@ function boost_build {
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
-			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
+			  echo ./b2 -j $nproc address-model=64 cxxflags="-std=c++14 -mmacosx-version-min=10.15" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  prompt
-			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
+			  ./b2 -j $nproc address-model=64 cxxflags="-std=c++14 -mmacosx-version-min=10.15" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  sudo ./b2 install
 			  ;;
 		  *)
@@ -202,6 +214,12 @@ fi
 
 BOOST_BUILD_DIR=$BUILD_ROOT/boost_${BOOST_VERSION}
 BOOST_PREFIX=${CROSS_ROOT}$PREFIX/boost-${BOOST_VERSION/%_0//}
+
+if [ $build_clean = true ]; then
+	set -x
+	rm -rf $BOOST_BUILD_DIR
+	exit
+fi
 
 echo "INSTALLING 'boost' $cross_target to:"
 echo "	BOOST DOWNLOAD    : ${DOWNLOADS}"

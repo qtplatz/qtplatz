@@ -18,6 +18,11 @@ set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
 set ( Boost_NO_BOOST_CMAKE OFF )
 
+if ( APPLE )
+  set( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # Catalina
+endif()
+
+
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
 option( WITH_QT5           "Include QT5"                ON )
@@ -119,8 +124,8 @@ elseif ( APPLE )
   set( CPACK_SET_DESTDIR ON )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
-#  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.14" )
-#  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
+  #  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.14" )
+  #  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
@@ -186,6 +191,7 @@ if ( Boost_FOUND )
   if ( ${Boost_VERSION} VERSION_GREATER_EQUAL "1.73"
       OR ${Boost_VERSION} GREATER_EQUAL "107300" )
     add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 ) # workaround for boost-1.73
+    add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
   endif()
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
