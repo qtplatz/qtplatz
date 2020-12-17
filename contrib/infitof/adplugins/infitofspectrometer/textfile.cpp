@@ -28,6 +28,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/textfile.hpp>
+#include <algorithm>
 #include <fstream>
 #include <cctype>
 

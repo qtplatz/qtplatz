@@ -26,6 +26,7 @@
 #include "msqpeaks.hpp"
 #include "msqpeak.hpp"
 #include <adportable/polfit.hpp>
+#include <algorithm>
 
 using namespace adcontrols;
 
@@ -47,7 +48,7 @@ MSQuant::operator()( MSQPeaks& peaks, std::function<void(MSQPeak&)> callback )
             if ( pk.isSTD() )
                 stdv[ pk.componentId() ].push_back( &pk );
         });
-    
+
     for ( auto& ref: stdv ) {
         std::vector< double > amounts, intens, coeffs;
         for ( auto t : ref.second ) {
@@ -62,7 +63,7 @@ MSQuant::operator()( MSQPeaks& peaks, std::function<void(MSQPeak&)> callback )
         }
         polynomials[ ref.first ] = coeffs;
     }
-    
+
     for ( auto& pk: peaks ) {
         if ( !pk.isSTD() && ! pk.componentId().empty() ) {
             auto it = polynomials.find( pk.componentId() );
