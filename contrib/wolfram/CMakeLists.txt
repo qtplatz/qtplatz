@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6.2)
+cmake_minimum_required(VERSION 3.18.2)
 
 message( STATUS "CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH} )
 
@@ -27,5 +27,5 @@ if ( Wolfram_FOUND )
   set( WSTP_DIST_PACKAGES "${CMAKE_INSTALL_PREFIX}/Library/Wolfram/WSTP" )
 
   add_subdirectory( ws_adprocessor )
-  
+
 endif()

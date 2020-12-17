@@ -1,5 +1,5 @@
 #
-cmake_minimum_required ( VERSION 3.7 )  # for GREATER_EQUAL
+cmake_minimum_required ( VERSION 3.18.2 )  # for GREATER_EQUAL
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
@@ -17,6 +17,11 @@ set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
 set ( Boost_NO_BOOST_CMAKE OFF )
+
+if ( APPLE )
+  set( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # Catalina
+endif()
+
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
@@ -119,8 +124,8 @@ elseif ( APPLE )
   set( CPACK_SET_DESTDIR ON )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
-#  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.14" )
-#  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
+  #  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.14" )
+  #  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
@@ -144,6 +149,25 @@ if ( APPLE )
 else()
 endif()
 
+##############################################
+### find rdkit will include rdkit-config.cmake that removes Boost_LIBRARIES,
+### so find rdkit must be invoked before find boost
+##############################################
+
+if ( WITH_RDKIT )
+  find_package( rdkit QUIET )
+  if ( rdkit_FOUND )
+    add_definitions( -DHAVE_RDKit=1 )
+    get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
+  else()
+    add_definitions( -DHAVE_RDKit=0 )
+    message( STATUS "No RDKit found" )
+  endif()
+endif()
+
+##############################################
+### find boost
+##############################################
 find_package( Boost 1.69 REQUIRED COMPONENTS
   atomic
   ${boost_libs} # windows
@@ -164,9 +188,10 @@ find_package( Boost 1.69 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
-  if ( ${Boost_VERSION} VERSION_EQUAL "1.73"
-      OR ${Boost_VERSION} EQUAL "107300" )
+  if ( ${Boost_VERSION} VERSION_GREATER_EQUAL "1.73"
+      OR ${Boost_VERSION} GREATER_EQUAL "107300" )
     add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 ) # workaround for boost-1.73
+    add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
   endif()
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
@@ -182,17 +207,6 @@ if ( WITH_QWT )
 endif()
 
 find_package( Eigen3 REQUIRED )
-
-if ( WITH_RDKIT )
-  find_package( rdkit QUIET )
-  if ( rdkit_FOUND )
-    add_definitions( -DHAVE_RDKit=1 )
-    get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
-  else()
-    add_definitions( -DHAVE_RDKit=0 )
-    message( STATUS "No RDKit found" )
-  endif()
-endif()
 
 if ( WITH_OPENCV )
   if ( APPLE )
@@ -361,7 +375,7 @@ configure_file(
 include( CPack )
 
 message( STATUS "---------- SUMMARY ------------" )
-message( STATUS "# BOOST_BIND_GLOBAL_PLACEHOLDERS=" ${BOOST_BIND_GLOBAL_PLACEHOLDERS} )
+message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION} )
 message( STATUS "# QTPLATZ_BINARY_DIR    : " ${QTPLATZ_BINARY_DIR} )
 if ( QTPLATZ_CORELIB_ONLY )
   message( STATUS "# QTPLATZ_CORELIB_ONLY  : " ${QTPLATZ_CORELIB_ONLY} )
@@ -369,10 +383,22 @@ endif()
 if ( DEBUG_SYMBOL )
   message( STATUS "# DEBUG SYMBOL          : " ${DEBUG_SYMBOL} )
 endif()
-message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION} )
+
+message( STATUS "# BOOST_BIND_GLOBAL_PLACEHOLDERS=" ${BOOST_BIND_GLOBAL_PLACEHOLDERS} )
+
 message( STATUS "# Boost_VERSION         : " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 message( STATUS "# Boost_INCLUDE_DIRS    : " ${Boost_INCLUDE_DIRS} )
 message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
+if ( Boost_FOUND AND VERBOSE )
+  message( STATUS "# Boost_LIBRARIES" )
+  foreach( _lib ${Boost_LIBRARIES} )
+    message( STATUS "\t" ${_lib} )
+  endforeach()
+endif()
+message( STATUS "# BOOST_ROOT            : "  ${BOOST_ROOT} )
+message( STATUS "# Boost_LIBRARY_DIRS    : "  ${Boost_LIBRARY_DIRS} )
+message( STATUS "# Boost_Use_STATIC_LIBS : "  ${Boost_USE_STATIC_LIBS} )
+
 if ( WITH_QWT )
   get_target_property( qwt_release ${QWT_LIBRARIES} IMPORTED_LOCATION )
   get_target_property( qwt_debug ${QWT_LIBRARIES} IMPORTED_LOCATION_DEBUG )
@@ -487,12 +513,6 @@ endif()
 
 message( STATUS     "# Eigen3                : " ${EIGEN3_INCLUDE_DIR} )
 
-if ( Boost_FOUND AND VERBOSE )
-  message( STATUS "# Boost_LIBRARIES" )
-  foreach( _lib ${Boost_LIBRARIES} )
-    message( STATUS "\t" ${_lib} )
-  endforeach()
-endif()
 message( STATUS "# TARGET_ARCHITECTURE   : "  ${__arch} )
 if ( CROSS_COMPILING )
   message( STATUS "# PACKAGE_ARCHITECTURE  : "  ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE} )
@@ -502,9 +522,6 @@ message( STATUS "# CMAKE_GENERATOR       : "  ${CMAKE_GENERATOR} )
 message( STATUS "# VERSION               : "  ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
 message( STATUS "# CMAKE_INSTALL_PREFIX  : "  ${CMAKE_INSTALL_PREFIX} )
 message( STATUS "# CPACK_PACKAGE_INSTALL_DIRECTORY: " ${CPACK_PACKAGE_INSTALL_DIRECTORY} )
-message( STATUS "# BOOST_ROOT            : "  ${BOOST_ROOT} )
-message( STATUS "# Boost_LIBRARY_DIRS    : "  ${Boost_LIBRARY_DIRS} )
-message( STATUS "# Boost_Use_STATIC_LIBS : "  ${Boost_USE_STATIC_LIBS} )
 message( STATUS "# Python3               : " ${Python3_VERSION} )
 message( STATUS "# CMAKE_CXX_STANDARD    : " ${CMAKE_CXX_STANDARD} )
 message( STATUS "# Qt5_DIR               : " ${Qt5_DIR} "\tQt5_FOUND=" ${Qt5_FOUND} )
@@ -516,3 +533,7 @@ if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
   message( STATUS "################## WARNING ###################" )
 endif()
 message( STATUS "---------- END SUMMARY ------------" )
+
+if ( NOT Boost_LIBRARIES )
+  message( FATAL_ERROR "Boost_LIBRARIES is empty" )
+endif()

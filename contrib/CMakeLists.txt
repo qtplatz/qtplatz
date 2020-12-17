@@ -1,4 +1,3 @@
-cmake_minimum_required (VERSION 2.8.9)
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( shrader )

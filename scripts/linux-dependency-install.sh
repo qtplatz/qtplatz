@@ -1,4 +1,6 @@
 #!/bin/bash
+cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source ${cwd}/find_qmake.sh
 
 failed_list=()
 
@@ -97,3 +99,25 @@ fi
 
 sudo python3 -m pip install --upgrade pip
 python3 -m pip install numpy
+
+## Check if Qt version 5.15.2 or higher, which libxcb-util1 required
+## but not provided on Debian 9/10.
+if find_qmake QMAKE; then
+	QT_VERSION=$($QMAKE -query QT_VERSION)
+	if dpkg --compare-versions ${QT_VERSION} ge "5.15.2"; then
+		case "`/usr/bin/lsb_release -si`" in
+			Debian)
+				if dpkg -s libxcb-util1; then
+					echo "libxcb-util1 installed -- nothing to be done"
+				else
+					echo "libxcb-util1 need to be installed"
+					echo "run command: sudo dpkg -i ~/Downloads/libxcb-util1_0.4.0-1+b1_amd64.deb"
+					(cd ~/Downloads/;
+					 wget http://ftp.br.debian.org/debian/pool/main/x/xcb-util/libxcb-util1_0.4.0-1+b1_amd64.deb
+					 sudo dpkg -i libxcb-util1_0.4.0-1+b1_amd64.deb
+					)
+				fi
+				;;
+		esac
+	fi
+fi

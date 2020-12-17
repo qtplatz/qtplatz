@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 3.18.2)
 cmake_policy(SET CMP0028 NEW)
 #cmake_policy(SET CMP0053 OLD)
 
@@ -16,7 +16,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/shared/qtsingleapplication
   ${CMAKE_SOURCE_DIR}/src/shared/qtlockedfile
   ${CMAKE_SOURCE_DIR}/src
-  ${Qt5Widgets_INCLUDE_DIRS}  
+  ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5Network_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
@@ -32,7 +32,7 @@ else()
 endif()
 
 set( SOURCES
-  main.cpp 
+  main.cpp
   ../tools/qtcreatorcrashhandler/crashhandlersetup.cpp
   ../tools/qtcreatorcrashhandler/crashhandlersetup.h
   ../shared/qtsingleapplication/qtsingleapplication.cpp
@@ -48,7 +48,7 @@ elseif ( WIN32 )
 endif()
 
 add_executable( qtplatz ${BUNDLE}
-  ${SOURCES}  
+  ${SOURCES}
   ${lockedfile_SOURCES}
   ${${PROJECT_NAME}_Resources}
   qtplatz.rc
@@ -71,7 +71,7 @@ if (APPLE)
     MACOSX_BUNDLE_BUNDLE_IDENTIFIER "com.ms-cheminfo.qtplatz"
     )
 endif()
-    
+
 install( TARGETS qtplatz
   RUNTIME DESTINATION bin COMPONENT applications
   BUNDLE DESTINATION bin COMPONENT applications

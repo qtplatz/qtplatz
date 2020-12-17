@@ -27,6 +27,7 @@
 #include "peaks.hpp"
 #include "baseline.hpp"
 #include "baselines.hpp"
+#include <algorithm>
 
 using namespace adcontrols;
 
@@ -119,7 +120,7 @@ Peaks::noiseLevel() const
 }
 
 void
-Peaks::noiseLevel( double v ) 
+Peaks::noiseLevel( double v )
 {
    noiseLevel_ = v;
 }

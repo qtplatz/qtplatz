@@ -44,14 +44,14 @@ default_debian_10:
 	@echo "Check access permission for /usr/local -- You shoud have write permission"
 	@echo "====================================="
 	@echo "make dependency"
+	@echo "make boost, check python version in your user-config.jam"
+	@echo "make maeparser (depend on boost)"
+	@echo "make rdkit     (depend on maeparser,boost)"
+	@echo "make qwt"
+	@echo "make opencv" || "make opencv.debug"
 	@echo "make fonts"
 	@echo "make mozc"
 	@echo "make bower"
-	@echo "make boost, check python version in your user-config.jam"
-	@echo "make qwt"
-	@echo "make maeparser (depend on boost)"
-	@echo "make rdkit     (depend on maeparser,boost)"
-	@echo "make opencv" || "make opencv.debug"
 	@echo "make qemu"
 	@echo "make cross-tools"
 	@echo "make boost-armhf"
@@ -126,9 +126,11 @@ qt5-armhf: qt5-armhf-dependency
 	./armhf/qt5-build.sh
 
 maeparser:
+	./linux-maeparser-setup.sh clean
 	./linux-maeparser-setup.sh
 
 rdkit:
+	./linux-rdkit-setup.sh clean
 	./linux-rdkit-setup.sh
 
 qwt:

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.18.2)
 project( translations )
 
 find_package( Qt5LinguistTools QUIET )
@@ -22,7 +22,7 @@ if ( UPDATE_TRANSLATIONS )
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/*.ui
     )
-  
+
   foreach( a ${files} )
     get_filename_component( file ${a} ABSOLUTE )
     list( APPEND sources ${file} )
@@ -42,4 +42,3 @@ add_executable( translations phony.c ${qm_files} )
 
 install( FILES ${qm_files} DESTINATION share/qtplatz/translations COMPONENT translations )
 set_directory_properties( PROPERTIES CLEAN_NO_CUSTOM true )
-
