@@ -1,6 +1,6 @@
 #!/bin/bash
 cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source ${cwd}/scripts/find_qmake.sh
+source ${cwd}/find_qmake.sh
 
 failed_list=()
 
@@ -119,4 +119,5 @@ if find_qmake QMAKE; then
 				fi
 				;;
 		esac
+	fi
 fi
