@@ -60,11 +60,10 @@ endif()
 
 if ( NOT EXISTS ${BZIP2_SOURCE_DIR} )
   message( STATUS "tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent}" )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent} )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} WORKING_DIRECTORY ${__bzip2_parent} )
 endif()
 
 if ( NOT EXISTS ${ZLIB_SOURCE_DIR} )
   message( STATUS "tar xvf ${DOWNLOADS}/${ZLIB_TARBALL} -C ${__zlib_parent}" )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${ZLIB_TARBALL} -C ${__zlib_parent} )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${ZLIB_TARBALL} WORKING_DIRECTORY ${__zlib_parent} )
 endif()
-

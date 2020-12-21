@@ -2,7 +2,7 @@
 @echo off
 
 ::set BOOST_VERSION=1_69_0
-set BOOST_VERSION=1_73_0
+set BOOST_VERSION=1_75_0
 call find_qmake
 
 pushd %~dp0..\..
@@ -17,4 +17,3 @@ set %~2=%QMAKE%
 set %~3=%SOURCE_ROOT%
 set %~4=%BUILD_ROOT%
 set %~5=%GENERATOR%
-
