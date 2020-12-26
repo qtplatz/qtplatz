@@ -23,8 +23,6 @@ set ( RDKIT_BINARY_DIR "${BUILD_ROOT}/rdkit" )
 set ( RDKIT_SOURCE_DIR "${RDBASE}" )
 set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
-# include( ${CMAKE_SOURCE_DIR}/../constants.cmake )
-
 if ( NOT BOOST_VERSION )
   message( FATAL_ERROR "Empty BOOST_VERSION" )
 endif()
@@ -40,10 +38,10 @@ elseif ( NOT $ENV{USERPROFILE} STREQUAL "")
 else()
   message( FATAL_ERROR "No user home directory found" )
 endif()
-  
+
 if ( $ENV{VisualStudioVersion} VERSION_LESS "15.0" )
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} too old" )
-elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "15.0" )  
+elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "15.0" )
   set ( GENERATOR "Visual Studio 15 2017 Win64" )
 elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "16.0" )
   set ( GENERATOR "Visual Studio 16 2019" )
@@ -59,10 +57,9 @@ endif()
 ###########################################################
 ### qwt
 
-
 include ( qwt.cmake )
 
-### boost
+###################### boost #########################
 file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH ) # use in boost-build.bat.in
 file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build.bat.in
 
@@ -71,10 +68,14 @@ add_custom_target( boost
   -DBOOST_VERSION=${BOOST_VERSION}
   -DBOOST_SOURCE_DIR=${BOOST_SOURCE_DIR}
   -DBZIP2_SOURCE_DIR=${BZIP2_SOURCE_DIR}
-  -DZLIB_SOURCE_DIR=${ZLIB_SOURCE_DIR}  
+  -DZLIB_SOURCE_DIR=${ZLIB_SOURCE_DIR}
   -DDOWNLOADS=${DOWNLOADS}
   -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
   COMMAND cmd /c "boost.bat"
+  COMMAND cmd /c "echo ####################################################"
+  COMMAND cmd /c "echo ################# boost.bat done ###################"
+  COMMAND cmd /c "echo ####################################################"
+  COMMAND cmd /c "echo run eigen-build.bat in the direcoty ${EIGEN_BINARY_DIR}"
   )
 
 # -- configure_file needs to be after the add_custom_target that prevent skip tar xvf ...
@@ -88,7 +89,7 @@ configure_file(
   ${BOOST_SOURCE_DIR}/boost-build.bat
   )
 
-### eigen
+###################### eigen #########################
 add_custom_target( eigen
   COMMAND ${CMAKE_COMMAND}
   -DEIGEN_SOURCE_DIR=${EIGEN_SOURCE_DIR}
@@ -96,6 +97,11 @@ add_custom_target( eigen
   -DGENERATOR="NMake Makefiles"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/eigen.cmake"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
+  COMMAND cmd /c "eigen.bat"
+  COMMAND cmd /c "echo ####################################################"
+  COMMAND cmd /c "echo ################# eigen.bat done ###################"
+  COMMAND cmd /c "echo ####################################################"
+  COMMAND cmd /c "echo run nmake install in the direcoty ${EIGEN_BINARY_DIR} (require administrator privilidge)"
   )
 
 set ( RDK_BUILD_PYTHON_WRAPPERS "OFF" )
@@ -109,12 +115,13 @@ if ( Python3_FOUND )
   if ( PYTHON_NUMPY_INCLUDE_PATH )
     # uncomment following line to enable PYTHON_WRAPPERS build
     set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
-    set ( PYTHON_NUMPY_INCLUDE_PATH ${PYTHON_NUMPY_INCLUDE_PATH} ) 
+    set ( PYTHON_NUMPY_INCLUDE_PATH ${PYTHON_NUMPY_INCLUDE_PATH} )
   endif()
 endif()
 
-### rdkit
-add_custom_target( rdkit 
+###########################################################
+####################### rdkit #############################
+add_custom_target( rdkit
   COMMAND ${CMAKE_COMMAND}
   -DRDBASE=${RDBASE}
   -DRDKIT_SOURCE_DIR=${RDKIT_SOURCE_DIR}
@@ -126,6 +133,10 @@ add_custom_target( rdkit
   COMMENT "Run rdkit.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   COMMAND cmd /c "rdkit.bat"
+  COMMAND cmd /c "echo ####################################################"
+  COMMAND cmd /c "echo ################# rdkit.bat done ###################"
+  COMMAND cmd /c "echo ####################################################"
+  COMMAND cmd /c "echo if you failed with zlib.h not found error, you may coment out zlib.h inclusion in GraphMol/FileParsers/PNGParser.cpp"
   )
 
 configure_file(
@@ -147,7 +158,7 @@ message( STATUS "BOOST_VERSION       = " ${BOOST_VERSION} )
 message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )
-if ( Python3_FOUND ) 
+if ( Python3_FOUND )
   message( STATUS "\tEXECUTABLE     = " ${Python3_EXECUTABLE} )
-  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_PATH} ) 
+  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_PATH} )
 endif()

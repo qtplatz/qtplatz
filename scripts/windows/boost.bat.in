@@ -1,4 +1,7 @@
 @echo off
+echo "#############################################################"
+echo "#################### boost.bat ##############################"
+echo "#############################################################"
 set BOOST_VERSION="${BOOST_VERSION}"
 set BOOST_ROOT="${BOOST_ROOT}"
 set BOOST_SOURCE_DIR="${BOOST_SOURCE_DIR}"
@@ -9,8 +12,3 @@ set ZLIB_SOURCE_DIR="${ZLIB_SOURCE_DIR}"
 pushd "${BOOST_SOURCE_DIR}"
 
 .\bootstrap.bat
-
-@echo off
-echo "----------------------------------------------------------"
-echo "run boost-build.bat in the directory " %BOOST_SOURCE_DIR%
-echo "----------------------------------------------------------"
