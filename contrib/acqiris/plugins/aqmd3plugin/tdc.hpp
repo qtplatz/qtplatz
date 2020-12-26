@@ -27,6 +27,7 @@
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/mass_assign_t.hpp>
+#include <array>
 #include <deque>
 #include <mutex>
 #include <memory>
