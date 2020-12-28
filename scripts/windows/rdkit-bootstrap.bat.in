@@ -11,7 +11,8 @@ if not exist "${RDKIT_BINARY_DIR}" mkdir "${RDKIT_BINARY_DIR}"
 
 pushd "${RDKIT_BINARY_DIR}"
 
-cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
+cmake -Wno-dev ^
+      -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
    	 -DBOOST_ROOT=%BOOST_ROOT% ^
       	 -DBoost_USE_STATIC_LIBS=OFF ^
       	 -DRDK_BUILD_INCHI_SUPPORT=ON ^
@@ -22,11 +23,22 @@ cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
 	 -DRDK_INSTALL_DLLS_MSVC=ON ^
 	 -DRDK_INSTALL_INTREE=OFF ^
 	 -DRDK_BUILD_FREETYPE_SUPPORT=OFF ^
+         -DRDK_BUILD_MAEPARSER_SUPPORT=OFF ^
+         -DRDK_BUILD_COORDGEN_SUPPORT=OFF ^
 	 -DCMAKE_INSTALL_PREFIX="C:/RDKit" ^
+         -DEIGEN3_INCLUDE_DIR="${EIGEN3_INCLUDE_DIR}" ^
       	 -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %RDBASE%
 
+if errorlevel 1 (
+   echo "------------ Generator Error -------------"
+   goto done
+)
+if errorlevel 0 (
+   echo "*******************************"
+   echo "run build-[release|debug].bat manually."
+   echo "*******************************"
+)
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build-debug.bat
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj > build-release.bat
-echo "*******************************"
-echo "run build-[release|debug].bat manually."
-echo "*******************************"
+
+:done

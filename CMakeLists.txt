@@ -59,7 +59,7 @@ endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 if ( WIN32 )
-  list ( APPEND CMAKE_MODULE_PATH "C:/eigen3/cmake" )
+  list ( APPEND CMAKE_MODULE_PATH "C:/Eigen3/share/eigen3/cmake" )
 endif()
 
 include (qtplatz.cmake)
@@ -188,6 +188,7 @@ find_package( Boost 1.69 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
+
   if ( ${Boost_VERSION} VERSION_GREATER_EQUAL "1.73"
       OR ${Boost_VERSION} GREATER_EQUAL "107300" )
     add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 ) # workaround for boost-1.73
@@ -384,8 +385,6 @@ if ( DEBUG_SYMBOL )
   message( STATUS "# DEBUG SYMBOL          : " ${DEBUG_SYMBOL} )
 endif()
 
-message( STATUS "# BOOST_BIND_GLOBAL_PLACEHOLDERS=" ${BOOST_BIND_GLOBAL_PLACEHOLDERS} )
-
 message( STATUS "# Boost_VERSION         : " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 message( STATUS "# Boost_INCLUDE_DIRS    : " ${Boost_INCLUDE_DIRS} )
 message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
@@ -524,7 +523,7 @@ message( STATUS "# CMAKE_INSTALL_PREFIX  : "  ${CMAKE_INSTALL_PREFIX} )
 message( STATUS "# CPACK_PACKAGE_INSTALL_DIRECTORY: " ${CPACK_PACKAGE_INSTALL_DIRECTORY} )
 message( STATUS "# Python3               : " ${Python3_VERSION} )
 message( STATUS "# CMAKE_CXX_STANDARD    : " ${CMAKE_CXX_STANDARD} )
-message( STATUS "# Qt5_DIR               : " ${Qt5_DIR} "\tQt5_FOUND=" ${Qt5_FOUND} )
+message( STATUS "# Qt5_DIR               : " ${Qt5_DIR} )
 message( STATUS "# QTDIR                 : " ${QTDIR} )
 message( STATUS "# QMAKE                 : " ${QMAKE} )
 if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )

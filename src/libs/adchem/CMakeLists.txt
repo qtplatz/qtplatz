@@ -16,7 +16,7 @@ if ( rdkit_FOUND )
     mol.hpp
     drawing.cpp
     drawing.hpp
-    )  
+    )
 endif()
 
 add_library( adchem SHARED
@@ -32,12 +32,11 @@ add_library( adchem SHARED
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable
-  ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${RDKit_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-

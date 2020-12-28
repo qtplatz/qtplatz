@@ -5,10 +5,11 @@
 message( STATUS "RDKIT_BINARY_DIR = " ${RDKIT_BINARY_DIR} )
 message( STATUS "RDBASE = " ${RDBASE} )
 if ( NOT RDBASE )
-  mseeage( FATAL_ERROR "RDBASE=")
+  mseeage( FATAL_ERROR "RDBASE=${RDBASE}")
 endif()
+
 if ( NOT RDKIT_BINARY_DIR )
-  mseeage( FATAL_ERROR "RDKIT_BINARY_DIR=")
+  mseeage( FATAL_ERROR "RDKIT_BINARY_DIR=${RDKIT_BINARY_DIR}")
 endif()
 
 if ( NOT EXISTS ${RDBASE} )
@@ -16,7 +17,7 @@ if ( NOT EXISTS ${RDBASE} )
 endif()
 
 if ( RDKIT_REVISION )
-  execute_process( 
+  execute_process(
     COMMAND git checkout -b ${RDKIT_REVISION}
     WORKING_DIRECTORY ${RDBASE}
     )
@@ -26,4 +27,7 @@ if ( NOT EXISTS ${RDKIT_BINARY_DIR} )
   file( MAKE_DIRECTORY ${RDKIT_BINARY_DIR} )
 endif()
 
-message( STATUS "************************" )
+configure_file(
+  ${CURRENT_SOURCE_DIR}/rdkit-bootstrap.bat.in
+  ${RDKIT_BINARY_DIR}/bootstrap.bat
+  )

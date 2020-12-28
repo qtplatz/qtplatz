@@ -26,8 +26,9 @@
 #define DRAWING_HPP
 
 #include <string>
-namespace RDKit { class ROMol; }
 #include "adchem_global.hpp"
+
+namespace RDKit { class ROMol; }
 
 namespace adchem {
 

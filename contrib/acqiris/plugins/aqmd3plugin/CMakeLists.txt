@@ -95,6 +95,7 @@ target_link_libraries(
   adplugin
   adplugin_manager
   adportable
+  adportable_serializer
   aqmd3
   aqmd3widgets
  # acqrswidgets

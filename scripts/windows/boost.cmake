@@ -59,9 +59,9 @@ if ( NOT TAR )
   set ( TAR tar )
 endif()
 
-message( STATUS "------------------> working directory: " ${__boost_parent} )
-message( STATUS "------------------> working directory: " ${__bzip2_parent} )
-message( STATUS "------------------> working directory: " ${__zlib_parent} )
+message( STATUS "------------------> working directory for boost: " ${__boost_parent} )
+message( STATUS "------------------> working directory for bzip2: " ${__bzip2_parent} )
+message( STATUS "------------------> working directory for zlib:  " ${__zlib_parent} )
 
 if ( NOT EXISTS ${BOOST_SOURCE_DIR}/boost )
   message( STATUS "${TAR} xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent}" )
@@ -77,3 +77,8 @@ if ( NOT EXISTS ${ZLIB_SOURCE_DIR} )
   message( STATUS "${TAR} xvf ${DOWNLOADS}/${ZLIB_TARBALL} -C ${__zlib_parent}" )
   execute_process( COMMAND ${CMAKE_COMMAND} -E ${TAR} xvf ${DOWNLOADS}/${ZLIB_TARBALL} WORKING_DIRECTORY ${__zlib_parent} )
 endif()
+
+configure_file(
+  ${CURRENT_SOURCE_DIR}/boost-build.bat.in
+  ${BOOST_SOURCE_DIR}/boost-build.bat
+  )

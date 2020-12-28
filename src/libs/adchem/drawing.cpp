@@ -22,14 +22,15 @@
 **
 **************************************************************************/
 
-#include "drawing.hpp"
 #if _MSC_VER
 # pragma warning(disable:4267)
 #endif
+#include "drawing.hpp"
+#include <adportable/debug.hpp>
 
 #include <GraphMol/Depictor/RDDepictor.h>
-
 #include <RDGeneral/versions.h>
+#include <RDGeneral/RDLog.h>
 
 #if RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 1)
 # include <GraphMol/MolDrawing/MolDrawing.h>
@@ -51,13 +52,19 @@ drawing::toSVG( const RDKit::ROMol& mol )
 #if (RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 2))
     std::vector< int > drawing = RDKit::Drawing::MolToDrawing( mol );
     return RDKit::Drawing::DrawingToSVG( drawing );
-#else // tried with 2018,9,1
+#else
+
+    if (rdErrorLog)
+        ADDEBUG() << rdErrorLog.use_count();
+
+
     RDKit::ROMol mol1( mol );
     RDDepict::compute2DCoords( mol1 );
+
     std::ostringstream o;
     RDKit::MolDraw2DSVG svg_drawer( 300, 300, o );
     svg_drawer.drawMolecule( mol1 );
     svg_drawer.finishDrawing();
     return o.str();
-#endif    
+#endif
 }

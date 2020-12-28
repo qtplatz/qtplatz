@@ -13,3 +13,7 @@ if ( NOT EXISTS ${EIGEN_BINARY_DIR} )
   file( MAKE_DIRECTORY ${EIGEN_BINARY_DIR} )
 endif()
 
+configure_file(
+  ${CURRENT_SOURCE_DIR}/eigen-bootstrap.bat.in
+  ${EIGEN_BINARY_DIR}/bootstrap.bat
+  )

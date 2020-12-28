@@ -23,7 +23,8 @@ echo "BUILD_DIR=%BUILD_DIR%"
 echo "QMAKE=%QMAKE%"
 echo "GENERATOR=%GENERATOR%"
 echo "##############################################"
-pause
+
+::pause
 if not exist %BUILD_DIR% (
    echo mkdir "%BUILD_DIR%"
    mkdir "%BUILD_DIR%"
@@ -32,7 +33,9 @@ if not exist %BUILD_DIR% (
 pushd %BUILD_DIR%
 echo cmake -G %GENERATOR% %SOURCE_DIR%
 cmake -DBOOST_VERSION=%BOOST_VERSION% ^
-      -G %GENERATOR% %SOURCE_DIR% 
+      -DQMAKE=%QMAKE% ^
+      -G %GENERATOR% ^
+      %SOURCE_DIR%
 
 nmake help
 :end
