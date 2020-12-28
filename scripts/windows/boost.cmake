@@ -29,6 +29,9 @@ message( STATUS "boost version (parsed) : " ${BOOST_Major}.${BOOST_Minor}.${BOOS
 message( STATUS "BOOST_SOURCE_DIR       : " ${BOOST_SOURCE_DIR} )
 message( STATUS "BZIP2_SOURCE_DIR       : " ${BZIP2_SOURCE_DIR} )
 
+file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH ) # use in boost-build.bat.in
+file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build.bat.in
+
 set ( BOOST_TARBALL "boost_${BOOST_VERSION}.tar.bz2" )
 set ( BOOST_DOWNLOAD_URL "https://dl.bintray.com/boostorg/release/${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro}/${BOOST_TARBALL}" )
 
