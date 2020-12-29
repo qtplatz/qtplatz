@@ -24,14 +24,12 @@ cmake -DCMAKE_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE_DIR}\modules" ^
 	  -DCMAKE_DEBUG_POSTFIX="d" ^
 	  -DCPACK_GENERATOR=WIX ^
 	  -DCPACK_WIX_UPGRADE_GUID="6C1F190B-B5A3-48A9-BA43-0B8AF0BC370E" ^
-	  -DOPENCV_LICENSE_FILE="LICENSE.txt" ^
-	  -DCPACK_RESOURCE_FILE_LICENSE="LICENSE.txt" ^
+	  -DOPENCV_LICENSE_FILE="LICENSE" ^
+	  -DCPACK_RESOURCE_FILE_LICENSE="LICENSE" ^
 	  -DCPACK_WIX_LICENSE_RTF="LICENSE.txt" ^
 	  -G "${GENERATOR}" "${OPENCV_SOURCE_DIR}"
 
-echo msbuild OpenCV.sln /t:build /mp /p:Configuration=Debug         > build.bat
-echo msbuild OpenCV.sln /t:build /mp /p:Configuration=Release      >> build.bat
-echo msbuild INSTALL.vcxproj /t:build /mp /p:Configuration=Debug   >> build.bat
-echo msbuild INSTALL.vcxproj /t:build /mp /p:Configuration=Release >> build.bat
+echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build-debug.bat
+echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj > build-release.bat
 
-echo "run build.bat"
+echo "cd ${OPENCV_BINARY_DIR}"; build-release.bat

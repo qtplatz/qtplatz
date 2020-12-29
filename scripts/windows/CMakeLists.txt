@@ -223,7 +223,7 @@ add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
 
 add_custom_target( rdkit
   COMMAND cmd /c "rdkit-bootstrap.bat"
-  COMMAND cmd /c "build-debug.bat && build-release.bat"
+  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat && build-debug.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS rdkit.download
   )
@@ -246,19 +246,20 @@ add_custom_target( opencv.download
 add_custom_target( opencv_contrib.download
   COMMAND ${CMAKE_COMMAND}
   -DGIT_CLONE_DIR="${OPENCV_CONTRIB_SOURCE_DIR}"
-  -DGIT_CLONE_URL="https://github.com/opencv_contrib/opencv_contrib.git"
+  -DGIT_CLONE_URL="https://github.com/opencv/opencv_contrib.git"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
   )
 
 add_custom_target( opencv_extra.download
   COMMAND ${CMAKE_COMMAND}
   -DGIT_CLONE_DIR="${OPENCV_EXTRA_SOURCE_DIR}"
-  -DGIT_CLONE_URL="https://github.com/opencv_extra/opencv_extra.git"
+  -DGIT_CLONE_URL="https://github.com/opencv/opencv_extra.git"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
   )
 
 add_custom_target( opencv
   COMMAND cmd /c "opencv-bootstrap.bat"
+  COMMAND cmd /c "cd ${OPENCV_BINARY_DIR} && build-release.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS opencv.download opencv_contrib.download opencv_extra.download
   )
