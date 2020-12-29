@@ -223,7 +223,7 @@ add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
 
 add_custom_target( rdkit
   COMMAND cmd /c "rdkit-bootstrap.bat"
-  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && nmake install"
+  COMMAND cmd /c "build-debug.bat && build-release.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS rdkit.download
   )
