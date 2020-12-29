@@ -34,6 +34,15 @@ if ( NOT BOOST_VERSION )
   message( FATAL_ERROR "Empty BOOST_VERSION" )
 endif()
 
+#----------------- opencv --------------
+set ( OPENCV_SOURCE_DIR "${SRCDIR}/opencv" )
+set ( OPENCV_CONTRIB_SOURCE_DIR "${SRCDIR}/opencv_contrib" )
+set ( OPENCV_EXTRA_SOURCE_DIR "${SRCDIR}/opencv_extra" )
+
+set ( OPENCV_BINARY_DIR "${BUILD_ROOT}/opencv.build" )
+
+#--------------------------------------------
+
 set ( BOOST_SOURCE_DIR ${BUILD_ROOT}/boost_${BOOST_VERSION} )
 set ( BZIP2_SOURCE_DIR ${SRCDIR}/bzip2-1.0.6 )
 
@@ -71,28 +80,6 @@ endif()
 if ( BOOST_VERSION )
   string ( REGEX REPLACE "([0-9]+)_([0-9]+)_[0-9]+.*$" "boost-\\1_\\2" __boost_root ${BOOST_VERSION} )
   set ( BOOST_ROOT "c:/Boost/include/${__boost_root}" )
-endif()
-
-if ( OFF )
-  message( STATUS "##########################################" )
-  if ( EXISTS ${BOOST_ROOT} )
-    #  set ( Boost_DEBUG 1 )
-    set ( BOOST_NO_SYSTEM_PATHS ON )
-    message( STATUS "BOOST_ROOT: ${BOOST_ROOT} -- exists" )
-    message( STATUS "BOOST_LIBRARYDIR: ${BOOST_LIBRARYDIR}" )
-    message( STATUS "BOOST_NO_SYSTEM_PATHS: ${BOOST_NO_SYSTEM_PATHS}" )
-    find_package( Boost ) #1.69 REQUIRED COMPONENTS program_options )
-    if ( Boost_FOUND )
-      find_package( Boost 1.73 REQUIRED COMPONENTS program_options )
-      message( STATUS "BOOST_VERSION: ${Boost_VERSION}")
-      message( STATUS "BOOST_INCLUDE_DIR: ${Boost_INCLUDE_DIR}")
-      message( STATUS "BOOST_LIBS: ${Boost_LIBRARIES}")
-    else()
-      message( STATUS "##########################################" )
-      message( FATAL_ERROR "BOOST_VERSION: ${Boost_VERSION}")
-    endif()
-    return()
-  endif()
 endif()
 
 ###########################################################
@@ -137,7 +124,6 @@ endif()
 
 ###########################################################
 ### qwt
-
 include ( qwt.cmake )
 
 #########################################################
@@ -209,13 +195,15 @@ configure_file(
   )
 
 ######################### zlib #######################
-add_custom_target( zlib
-  COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}" -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
-  WORKING_DIRECTORY ${ZLIB_BINARY_DIR}
-  )
+if ( OFF )
+  add_custom_target( zlib
+    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}" -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
+    WORKING_DIRECTORY ${ZLIB_BINARY_DIR}
+    )
 
-if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
-  file( MAKE_DIRECTORY ${ZLIB_BINARY_DIR} )
+  if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
+    file( MAKE_DIRECTORY ${ZLIB_BINARY_DIR} )
+  endif()
 endif()
 
 ###########################################################
@@ -227,8 +215,7 @@ if ( maeparser_dirs )
   set( RDK_BUILD_MAEPARSER_SUPPORT "ON" )
 endif()
 
-add_custom_target( rdkit.download
-  COMMAND ${CMAKE_COMMAND}
+add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
   -DGIT_CLONE_DIR="${RDBASE}"
   -DGIT_CLONE_URL="https://github.com/rdkit/rdkit"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
@@ -246,6 +233,42 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/rdkit-bootstrap.bat
   )
 
+###########################################################
+####################### opencv #############################
+
+add_custom_target( opencv.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${OPENCV_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/opencv/opencv.git"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( opencv_contrib.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${OPENCV_CONTRIB_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/opencv_contrib/opencv_contrib.git"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( opencv_extra.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${OPENCV_EXTRA_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/opencv_extra/opencv_extra.git"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( opencv
+  COMMAND cmd /c "opencv-bootstrap.bat"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
+  DEPENDS opencv.download opencv_contrib.download opencv_extra.download
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/opencv-bootstrap.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/opencv-bootstrap.bat
+  )
+
+###########################################################
 message( STATUS "SRCDIR              = " ${SRCDIR} )
 message( STATUS "BUILD_ROOT          = " ${BUILD_ROOT} )
 message( STATUS "EIGEN_SOURCE_DIR    = " ${EIGEN_SOURCE_DIR} )
