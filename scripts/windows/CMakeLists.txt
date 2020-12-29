@@ -7,7 +7,7 @@ if ( NOT WIN32 )
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../cmake/Modules" )
-include ( ${CMAKE_CURRENT_LIST_DIR}/../../qtplatz.cmake )
+#include ( ${CMAKE_CURRENT_LIST_DIR}/../../qtplatz.cmake )
 
 get_filename_component( SRCDIR "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
 set ( BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR} )
@@ -18,10 +18,12 @@ set ( EIGEN_SOURCE_DIR ${SRCDIR}/eigen )
 set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
 set ( EIGEN_INSTALL_PREFIX "c:/opt/Eigen3" )
 set ( EIGEN3_INCLUDE_DIR "${EIGEN_INSTALL_PREFIX}/include/eigen3" ) # reference in rdkit-bootstrap.bat
+
 #----------------- maeparser ---------------
 set ( MAEPARSER_SOURCE_DIR ${SRCDIR}/maeparser )
 set ( MAEPARSER_BINARY_DIR ${BUILD_ROOT}/maeparser.build )
 set ( MAEPARSER_INSTALL_PREFIX "C:/opt/maeparser" )
+set ( MAEPARSER_DIR "${MAEPARSER_INSTALL_PREFIX}" )
 
 #----------------- rdkit --------------=
 set ( RDBASE ${SRCDIR}/rdkit )  # <- RDKit source & install directory
@@ -71,6 +73,28 @@ if ( BOOST_VERSION )
   set ( BOOST_ROOT "c:/Boost/include/${__boost_root}" )
 endif()
 
+if ( OFF )
+  message( STATUS "##########################################" )
+  if ( EXISTS ${BOOST_ROOT} )
+    #  set ( Boost_DEBUG 1 )
+    set ( BOOST_NO_SYSTEM_PATHS ON )
+    message( STATUS "BOOST_ROOT: ${BOOST_ROOT} -- exists" )
+    message( STATUS "BOOST_LIBRARYDIR: ${BOOST_LIBRARYDIR}" )
+    message( STATUS "BOOST_NO_SYSTEM_PATHS: ${BOOST_NO_SYSTEM_PATHS}" )
+    find_package( Boost ) #1.69 REQUIRED COMPONENTS program_options )
+    if ( Boost_FOUND )
+      find_package( Boost 1.73 REQUIRED COMPONENTS program_options )
+      message( STATUS "BOOST_VERSION: ${Boost_VERSION}")
+      message( STATUS "BOOST_INCLUDE_DIR: ${Boost_INCLUDE_DIR}")
+      message( STATUS "BOOST_LIBS: ${Boost_LIBRARIES}")
+    else()
+      message( STATUS "##########################################" )
+      message( FATAL_ERROR "BOOST_VERSION: ${Boost_VERSION}")
+    endif()
+    return()
+  endif()
+endif()
+
 ###########################################################
 ####################### python #############################
 
@@ -108,12 +132,6 @@ if ( Python3_FOUND )
       set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
       set ( PYTHON_NUMPY_INCLUDE_PATH ${PYTHON_NUMPY_INCLUDE_PATH} )
     endif()
-
-    message( STATUS "PYTHON_VERSION: ${PYTHON_VERSION}" )
-    if ( EXISTS ${BOOST_ROOT} )
-      message( STATUS "BOOST_ROOT: ${BOOST_ROOT} -- exists" )
-    endif()
-    find_package( Boost COMPONENTS python39 REQUIRED )
 
 endif()
 
@@ -171,7 +189,6 @@ configure_file(
   )
 
 ###################### maeparser #########################
-
 add_custom_target( maeparser.download
   COMMAND ${CMAKE_COMMAND}
   -DGIT_CLONE_DIR="${MAEPARSER_SOURCE_DIR}"
@@ -201,7 +218,6 @@ if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
   file( MAKE_DIRECTORY ${ZLIB_BINARY_DIR} )
 endif()
 
-
 ###########################################################
 ####################### rdkit #############################
 set( RDK_BUILD_MAEPARSER_SUPPORT "OFF" )
@@ -221,26 +237,6 @@ add_custom_target( rdkit.download
 add_custom_target( rdkit
   COMMAND cmd /c "rdkit-bootstrap.bat"
   COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && nmake install"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
-  DEPENDS rdkit.download
-  )
-
-add_custom_target( rdkit
-  COMMAND ${CMAKE_COMMAND}
-  -DCURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-  -DRDBASE="${RDBASE}"
-  -DRDKIT_SOURCE_DIR="${RDKIT_SOURCE_DIR}"
-  -DRDKIT_BINARY_DIR="${RDKIT_BINARY_DIR}"
-  -DRDKIT_REVISION="${RDKIT_REVISION}"
-  -DRDK_BUILD_PYTHON_WRAPPERS="${RDK_BUILD_PYTHON_WRAPPERS}"
-  -DPython3_EXECUTABLE="${Python3_EXECUTABLE}"
-  -DPYTHON_NUMPY_INCLUDE_PATH="${PYTHON_NUMPY_INCLUDE_PATH}"
-  -DGENERATOR="${GENERATOR}"
-  -DEIGEN3_INCLUDE_DIR="${EIGEN_INSTALL_PREFIX}/include/eigen3"
-  -P "${CMAKE_CURRENT_SOURCE_DIR}/rdkit.cmake"
-  COMMAND cmd /c "echo #################################################################################"
-  COMMAND cmd /c "echo ## ${RDKIT_BINARY_DIR} has been created. ##"
-  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && bootstrap.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS rdkit.download
   )
