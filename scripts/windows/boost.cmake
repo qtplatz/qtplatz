@@ -36,7 +36,7 @@ set ( BOOST_TARBALL "boost_${BOOST_VERSION}.tar.bz2" )
 set ( BOOST_DOWNLOAD_URL "https://dl.bintray.com/boostorg/release/${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro}/${BOOST_TARBALL}" )
 
 set ( BZIP2_TARBALL bzip2-1.0.6.tar.gz )
-set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" ) #http://www.bzip.org/1.0.6/${BZIP2_TARBALL}
+set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" )
 
 set ( ZLIB_TARBALL zlib-1.2.11.tar.xz )
 set ( ZLIB_DOWNLOAD_URL "https://www.zlib.net/${ZLIB_TARBALL}" )

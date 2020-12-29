@@ -5,6 +5,8 @@ set Boost_ROOT="${BOOST_ROOT}"
 set BOOST_LIBRARYDIR="${BOOST_LIBRARYDIR}"
 set GENERATOR="NMake Makefiles"
 
+if not exist "${EIGEN_BINARY_DIR}" mkdir "${EIGEN_BINARY_DIR}"
+
 pushd "${EIGEN_BINARY_DIR}"
 
 cmake -Wno-dev ^

@@ -1,0 +1,5 @@
+using python
+	  : ${PYTHON_VERSION}
+	  : ${PYTHON}
+	  : ${PYTHON_INCLUDE}
+	  ;

@@ -37,5 +37,5 @@ cmake -DBOOST_VERSION=%BOOST_VERSION% ^
       -G %GENERATOR% ^
       %SOURCE_DIR%
 
-nmake help
+::nmake help
 :end
