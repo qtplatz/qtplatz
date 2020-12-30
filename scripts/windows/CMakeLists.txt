@@ -40,6 +40,7 @@ set ( OPENCV_CONTRIB_SOURCE_DIR "${SRCDIR}/opencv_contrib" )
 set ( OPENCV_EXTRA_SOURCE_DIR "${SRCDIR}/opencv_extra" )
 
 set ( OPENCV_BINARY_DIR "${BUILD_ROOT}/opencv.build" )
+set ( OPENCV_INSTALL_PREFIX "C:/opt/OpenCV" )
 
 #--------------------------------------------
 
@@ -50,7 +51,8 @@ set ( ZLIB_SOURCE_DIR ${SRCDIR}/zlib-1.2.11 )
 set ( ZLIB_BINARY_DIR ${BUILD_ROOT}/zlib.build )
 set ( ZLIB_INSTALL_PREFIX "C:/opt/zlib" )
 
-set ( QWT_SOURCE_DIR ${SRCDIR}/qwt-6.1.5 )
+set ( QWT_VERSION "6.1.6" )
+set ( QWT_SOURCE_DIR ${SRCDIR}/qwt-${QWT_VERSION} )
 
 if ( NOT $ENV{HOME} STREQUAL "")
   set ( DOWNLOADS $ENV{HOME}/Downloads )
@@ -115,16 +117,40 @@ if ( Python3_FOUND )
       OUTPUT_STRIP_TRAILING_WHITESPACE )
 
     if ( PYTHON_NUMPY_INCLUDE_PATH )
-      # uncomment following line to enable PYTHON_WRAPPERS build
       set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
-      set ( PYTHON_NUMPY_INCLUDE_PATH ${PYTHON_NUMPY_INCLUDE_PATH} )
     endif()
+
+    set ( OCV_BUILD_PYTHON3 "OFF" )
 
 endif()
 
 ###########################################################
-### qwt
-include ( qwt.cmake )
+######################### qwt #############################
+#include ( qwt.cmake )
+
+add_custom_target( qwt.download
+  COMMAND ${CMAKE_COMMAND}
+  -DDOWNLOAD_URL="https://sourceforge.net/projects/qwt/files/qwt/${QWT_VERSION}/qwt-${QWT_VERSION}.tar.bz2/download"
+  -DDOWNLOAD_FILE="qwt-${QWT_VERSION}.tar.bz2"
+  -DDOWNLOAD_SOURCE_DIR="${QWT_SOURCE_DIR}"
+  -DDOWNLOAD_FORMAT="tar"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/download.cmake"
+  )
+
+add_custom_target( qwt
+  COMMAND cmd /c qwt-build.bat
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS qwt.download
+  )
+
+file ( TO_NATIVE_PATH ${QWT_SOURCE_DIR} QWT_SOURCE_NATIVE_DIR ) # use in boost-build.bat.in
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/qwt-build.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/qwt-build.bat
+  )
+
+###########################################################
 
 #########################################################
 ######################## boost ##########################

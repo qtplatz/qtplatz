@@ -10,7 +10,10 @@ if ( DEFINED $ENV{RDBASE} )
   set ( _rdkit_libdirs "$ENV{RDBASE}/lib" )
 endif()
 if ( WIN32 )
-  list ( APPEND _rdkit_libdirs "C:/RDKit/lib/cmake/rdkit" "$ENV{PROGRAMFILES}/RDKit/lib/cmake/rdkit" )
+  list ( APPEND _rdkit_libdirs
+    "C:/RDKit/lib/cmake/rdkit"
+    "C:/opt/RDKit/lib/cmake/rdkit"
+    "$ENV{PROGRAMFILES}/RDKit/lib/cmake/rdkit" )
 else()
   list ( APPEND _rdkit_libdirs "/usr/local/lib/cmake/rdkit" )
 endif()

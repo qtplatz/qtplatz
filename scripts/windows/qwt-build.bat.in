@@ -1,0 +1,5 @@
+::
+pushd ${QWT_SOURCE_NATIVE_DIR}
+${QMAKE} qwt.pro
+nmake
+nmake install
