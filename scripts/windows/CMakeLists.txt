@@ -126,7 +126,6 @@ endif()
 
 ###########################################################
 ######################### qwt #############################
-#include ( qwt.cmake )
 
 add_custom_target( qwt.download
   COMMAND ${CMAKE_COMMAND}
@@ -137,10 +136,17 @@ add_custom_target( qwt.download
   -P "${CMAKE_CURRENT_SOURCE_DIR}/download.cmake"
   )
 
+add_custom_target( qwtconfig
+  COMMAND ${CMAKE_COMMAND}
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/qwtconfig.cmake"
+  WORKING_DIRECTORY ${QWT_SOURCE_DIR}
+  DEPENDS qwt.download
+)
+
 add_custom_target( qwt
   COMMAND cmd /c qwt-build.bat
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS qwt.download
+  DEPENDS qwt.download qwtconfig
   )
 
 file ( TO_NATIVE_PATH ${QWT_SOURCE_DIR} QWT_SOURCE_NATIVE_DIR ) # use in boost-build.bat.in
