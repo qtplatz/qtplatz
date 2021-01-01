@@ -29,6 +29,11 @@
 # pragma warning( disable: 4267 4018 )
 # endif
 
+#if defined WIN32 // workaround, to avoid LNK2019
+#include <RDGeneral/RDLog.h>
+RDLogger rdErrorLog;
+#endif
+
 #include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>

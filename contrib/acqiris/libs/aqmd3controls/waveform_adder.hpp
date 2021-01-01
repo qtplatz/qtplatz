@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "aqmd3controls_global.hpp"
 #include "waveform.hpp"
 #include "meta_data.hpp"
 #include <adportable/float.hpp>
@@ -35,6 +36,8 @@
 namespace aqmd3controls {
 
     typedef aqmd3controls::waveform waveform_t;
+
+    class AQMD3CONTROLSSHARED_EXPORT waveform_adder;
 
     class waveform_adder {
         waveform_adder( const waveform_adder & ) = delete;

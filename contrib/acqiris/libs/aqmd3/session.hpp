@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "aqmd3_global.hpp"
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
 
@@ -33,6 +34,8 @@ namespace aqmd3 {
 
     // Session class define here is psude singletion by a manager class
     // which is only the class make Session instance.
+
+    class AQMD3SHARED_EXPORT session;
 
     class session : public adacquire::Instrument::Session { // inherit from enable_shared_from_this<Session>
         session( const Session& ) = delete;

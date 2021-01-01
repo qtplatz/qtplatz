@@ -25,14 +25,17 @@
 
 #pragma once
 
+#include "adportable_global.h"
 #include "mblock.hpp"
 
 namespace adportable {
 
+    class ADPORTABLESHARED_EXPORT waveform_simulator;
+
     class waveform_simulator {
 
         class impl;
-        
+
     public:
         ~waveform_simulator();
         waveform_simulator();
@@ -45,6 +48,5 @@ namespace adportable {
 
         size_t actualPoints() const;
     };
-    
-}
 
+}

@@ -62,7 +62,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Threads::Threads
   )
 
-message( STATUS "Boost_LIBRARIES = " ${Boost_LIBRARIES} )
+# message( STATUS "Boost_LIBRARIES = " ${Boost_LIBRARIES} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

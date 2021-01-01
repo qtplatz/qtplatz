@@ -29,17 +29,21 @@ message( STATUS "boost version (parsed) : " ${BOOST_Major}.${BOOST_Minor}.${BOOS
 message( STATUS "BOOST_SOURCE_DIR       : " ${BOOST_SOURCE_DIR} )
 message( STATUS "BZIP2_SOURCE_DIR       : " ${BZIP2_SOURCE_DIR} )
 
+file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH ) # use in boost-build.bat.in
+file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build.bat.in
+
 set ( BOOST_TARBALL "boost_${BOOST_VERSION}.tar.bz2" )
-set ( BOOST_DOWNLOAD_URL "https://sourceforge.net/projects/boost/files/boost/${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro}/${BOOST_TARBALL}/download" )
+set ( BOOST_DOWNLOAD_URL "https://dl.bintray.com/boostorg/release/${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro}/${BOOST_TARBALL}" )
 
 set ( BZIP2_TARBALL bzip2-1.0.6.tar.gz )
-set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" ) #http://www.bzip.org/1.0.6/${BZIP2_TARBALL}
+set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" )
 
 set ( ZLIB_TARBALL zlib-1.2.11.tar.xz )
 set ( ZLIB_DOWNLOAD_URL "https://www.zlib.net/${ZLIB_TARBALL}" )
 
 get_filename_component( __boost_parent ${BOOST_SOURCE_DIR} DIRECTORY )
 get_filename_component( __bzip2_parent ${BZIP2_SOURCE_DIR} DIRECTORY )
+get_filename_component( __zlib_parent ${ZLIB_SOURCE_DIR} DIRECTORY )
 
 if ( NOT EXISTS ${DOWNLOADS}/${BOOST_TARBALL} )
   file( DOWNLOAD ${BOOST_DOWNLOAD_URL} ${DOWNLOADS}/${BOOST_TARBALL} SHOW_PROGRESS )
@@ -53,18 +57,31 @@ if ( NOT EXISTS ${DOWNLOADS}/${ZLIB_TARBALL} )
   file( DOWNLOAD ${ZLIB_DOWNLOAD_URL} ${DOWNLOADS}/${ZLIB_TARBALL} SHOW_PROGRESS )
 endif()
 
+if ( NOT TAR )
+  message( STATUS "================= No tar command specified --> " ${TAR})
+  set ( TAR tar )
+endif()
+
+message( STATUS "------------------> working directory for boost: " ${__boost_parent} )
+message( STATUS "------------------> working directory for bzip2: " ${__bzip2_parent} )
+message( STATUS "------------------> working directory for zlib:  " ${__zlib_parent} )
+
 if ( NOT EXISTS ${BOOST_SOURCE_DIR}/boost )
-  message( STATUS "tar xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent}" )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent} )
+  message( STATUS "${TAR} xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent}" )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E ${TAR} xvf ${DOWNLOADS}/${BOOST_TARBALL} WORKING_DIRECTORY ${__boost_parent} )
 endif()
 
 if ( NOT EXISTS ${BZIP2_SOURCE_DIR} )
-  message( STATUS "tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent}" )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent} )
+  message( STATUS "${TAR} xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent}" )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E ${TAR} xvf ${DOWNLOADS}/${BZIP2_TARBALL} WORKING_DIRECTORY ${__bzip2_parent} )
 endif()
 
 if ( NOT EXISTS ${ZLIB_SOURCE_DIR} )
-  message( STATUS "tar xvf ${DOWNLOADS}/${ZLIB_TARBALL} -C ${__zlib_parent}" )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${ZLIB_TARBALL} -C ${__zlib_parent} )
+  message( STATUS "${TAR} xvf ${DOWNLOADS}/${ZLIB_TARBALL} -C ${__zlib_parent}" )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E ${TAR} xvf ${DOWNLOADS}/${ZLIB_TARBALL} WORKING_DIRECTORY ${__zlib_parent} )
 endif()
 
+configure_file(
+  ${CURRENT_SOURCE_DIR}/boost-build.bat.in
+  ${BOOST_SOURCE_DIR}/boost-build.bat
+  )

@@ -1,0 +1,5 @@
+using python
+	  : ${PYTHON_VERSION}
+	  : ${PYTHON3_EXECUTABLE}
+	  : ${PYTHON_INCLUDE_DIR}
+	  ;

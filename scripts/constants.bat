@@ -17,4 +17,3 @@ set %~2=%QMAKE%
 set %~3=%SOURCE_ROOT%
 set %~4=%BUILD_ROOT%
 set %~5=%GENERATOR%
-

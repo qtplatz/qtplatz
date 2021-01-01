@@ -12,10 +12,15 @@ set hints=\Qt\5.15.2 ^
           \Qt\5.10.1 ^
 	  \Qt\5.9.3 ^
 
+set QMAKE=
+
+echo %hist%
 (for %%a in (%hints%) do (
-     set QMAKE=
      if exist "%drv%%%a\%msvc%\bin\qmake.exe" ( set "QMAKE=%drv%%%a\%msvc%\bin\qmake.exe" & goto found )
 ))
+goto done
 
 :found
 set %~1=%QMAKE%
+
+:done

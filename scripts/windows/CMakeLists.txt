@@ -1,153 +1,323 @@
-cmake_minimum_required( VERSION 3.11 )
+cmake_minimum_required( VERSION 3.18.2 )
 
 project( qtplatz-windows-dependency )
-
-message( STATUS "**************************************" )
-message( STATUS "** " ${CMAKE_CURRENT_LIST_DIR}/CMakeList.txt " **")
-message( STATUS "**************************************" )
 
 if ( NOT WIN32 )
   message( FATAL_ERROR "This cmake script is targetted for win32")
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../cmake/Modules" )
-include ( ${CMAKE_CURRENT_LIST_DIR}/../../qtplatz.cmake )
+#include ( ${CMAKE_CURRENT_LIST_DIR}/../../qtplatz.cmake )
 
-get_filename_component( SOURCE_ROOT "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
+get_filename_component( SRCDIR "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
 set ( BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR} )
-set ( EIGEN_SOURCE_DIR ${BUILD_ROOT}/eigen )
-set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
-
-set ( RDBASE ${SOURCE_ROOT}/rdkit )  # <- RDKit source & install directory
-set ( RDKIT_BINARY_DIR "${BUILD_ROOT}/rdkit" )
-set ( RDKIT_SOURCE_DIR "${RDBASE}" )
 set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
-# include( ${CMAKE_SOURCE_DIR}/../constants.cmake )
+#----------------- eigen ---------------
+set ( EIGEN_SOURCE_DIR ${SRCDIR}/eigen )
+set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
+set ( EIGEN_INSTALL_PREFIX "C:/opt/Eigen3" ) # -- default was $ENV{ProgramFiles(x86)}
+set ( EIGEN3_INCLUDE_DIR "${EIGEN_INSTALL_PREFIX}/include/eigen3" ) # reference in rdkit-bootstrap.bat
 
+#----------------- maeparser ---------------
+set ( MAEPARSER_SOURCE_DIR ${SRCDIR}/maeparser )
+set ( MAEPARSER_BINARY_DIR ${BUILD_ROOT}/maeparser.build )
+set ( MAEPARSER_INSTALL_PREFIX "C:/opt/maeparser" )
+set ( MAEPARSER_DIR "${MAEPARSER_INSTALL_PREFIX}" )
+
+#----------------- rdkit --------------=
+set ( RDBASE ${SRCDIR}/rdkit )  # <- RDKit source & install directory
+set ( RDKIT_BINARY_DIR "${BUILD_ROOT}/rdkit.build" )
+set ( RDKIT_SOURCE_DIR "${RDBASE}" )
+set ( RDKIT_INSTALL_PREFIX "C:/opt/RDKit" )
 if ( NOT BOOST_VERSION )
   message( FATAL_ERROR "Empty BOOST_VERSION" )
 endif()
 
+#----------------- opencv --------------
+set ( OPENCV_SOURCE_DIR "${SRCDIR}/opencv" )
+set ( OPENCV_CONTRIB_SOURCE_DIR "${SRCDIR}/opencv_contrib" )
+set ( OPENCV_EXTRA_SOURCE_DIR "${SRCDIR}/opencv_extra" )
+
+set ( OPENCV_BINARY_DIR "${BUILD_ROOT}/opencv.build" )
+set ( OPENCV_INSTALL_PREFIX "C:/opt/OpenCV" )
+
+#--------------------------------------------
+
 set ( BOOST_SOURCE_DIR ${BUILD_ROOT}/boost_${BOOST_VERSION} )
-set ( BZIP2_SOURCE_DIR ${BUILD_ROOT}/bzip2-1.0.6 )
-set ( ZLIB_SOURCE_DIR ${BUILD_ROOT}/zlib-1.2.11 )
-set ( QWT_SOURCE_DIR ${BUILD_ROOT}/qwt-6.1.5 )
+set ( BZIP2_SOURCE_DIR ${SRCDIR}/bzip2-1.0.6 )
+
+set ( ZLIB_SOURCE_DIR ${SRCDIR}/zlib-1.2.11 )
+set ( ZLIB_BINARY_DIR ${BUILD_ROOT}/zlib.build )
+set ( ZLIB_INSTALL_PREFIX "C:/opt/zlib" )
+
+set ( QWT_VERSION "6.1.6" )
+set ( QWT_SOURCE_DIR ${SRCDIR}/qwt-${QWT_VERSION} )
+
 if ( NOT $ENV{HOME} STREQUAL "")
   set ( DOWNLOADS $ENV{HOME}/Downloads )
+  set ( HOME $ENV{HOME} )
 elseif ( NOT $ENV{USERPROFILE} STREQUAL "")
   set ( DOWNLOADS $ENV{USERPROFILE}/Downloads )
+  set ( HOME $ENV{USERPROFILE} )
 else()
   message( FATAL_ERROR "No user home directory found" )
 endif()
-  
+
 if ( $ENV{VisualStudioVersion} VERSION_LESS "15.0" )
+  set ( BJAM_TOOLSET "msvc-14.0" )
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} too old" )
-elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "15.0" )  
+elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "15.0" )
   set ( GENERATOR "Visual Studio 15 2017 Win64" )
+  set ( BJAM_TOOLSET "msvc-14.1" )
 elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "16.0" )
   set ( GENERATOR "Visual Studio 16 2019" )
+  set ( BJAM_TOOLSET "msvc-14.2" )
 else()
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} not supported" )
 endif()
 
 if ( QMAKE )
   execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE QTDIR )
-  message( STATUS "QTDIR               = " ${QTDIR} )
+endif()
+
+# force set BOOST_ROOT, otherwise pick up most recent version of boost installed
+if ( BOOST_VERSION )
+  string ( REGEX REPLACE "([0-9]+)_([0-9]+)_[0-9]+.*$" "boost-\\1_\\2" __boost_root ${BOOST_VERSION} )
+  set ( BOOST_ROOT "c:/Boost/include/${__boost_root}" )
 endif()
 
 ###########################################################
-### qwt
-
-
-include ( qwt.cmake )
-
-### boost
-file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH ) # use in boost-build.bat.in
-file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build.bat.in
-
-add_custom_target( boost
-  COMMAND ${CMAKE_COMMAND}
-  -DBOOST_VERSION=${BOOST_VERSION}
-  -DBOOST_SOURCE_DIR=${BOOST_SOURCE_DIR}
-  -DBZIP2_SOURCE_DIR=${BZIP2_SOURCE_DIR}
-  -DZLIB_SOURCE_DIR=${ZLIB_SOURCE_DIR}  
-  -DDOWNLOADS=${DOWNLOADS}
-  -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
-  COMMAND cmd /c "boost.bat"
-  )
-
-# -- configure_file needs to be after the add_custom_target that prevent skip tar xvf ...
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/boost.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/boost.bat
-  )
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/boost-build.bat.in
-  ${BOOST_SOURCE_DIR}/boost-build.bat
-  )
-
-### eigen
-add_custom_target( eigen
-  COMMAND ${CMAKE_COMMAND}
-  -DEIGEN_SOURCE_DIR=${EIGEN_SOURCE_DIR}
-  -DEIGEN_BINARY_DIR=${EIGEN_BINARY_DIR}
-  -DGENERATOR="NMake Makefiles"
-  -P "${CMAKE_CURRENT_SOURCE_DIR}/eigen.cmake"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
-  )
+####################### python #############################
 
 set ( RDK_BUILD_PYTHON_WRAPPERS "OFF" )
 find_package( Python3 )
+
 if ( Python3_FOUND )
-  #-DPYTHON_NUMPY_INCLUDE_PATH="$(python -c 'import numpy ; print(numpy.get_include())')" \
-  execute_process( COMMAND
-    ${Python3_EXECUTABLE} -c "import numpy ; print( numpy.get_include() );"
-    OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_PATH
-    OUTPUT_STRIP_TRAILING_WHITESPACE )
-  if ( PYTHON_NUMPY_INCLUDE_PATH )
-    # uncomment following line to enable PYTHON_WRAPPERS build
-    set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
-    set ( PYTHON_NUMPY_INCLUDE_PATH ${PYTHON_NUMPY_INCLUDE_PATH} ) 
+    file ( TO_CMAKE_PATH ${Python3_EXECUTABLE} PYTHON3_EXECUTABLE )
+
+    execute_process( COMMAND
+      ${Python3_EXECUTABLE} -c "import numpy ; print( numpy.get_include() );"
+      OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_NATIVE_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    file ( TO_CMAKE_PATH ${PYTHON_NUMPY_INCLUDE_NATIVE_PATH} PYTHON_NUMPY_INCLUDE_DIR )
+
+    execute_process( COMMAND
+      ${Python3_EXECUTABLE} -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])"
+      OUTPUT_VARIABLE PYTHON_INCLUDE_NATIVE_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE )
+    file ( TO_CMAKE_PATH ${PYTHON_INCLUDE_NATIVE_PATH} PYTHON_INCLUDE_DIR )
+
+    execute_process( COMMAND
+      ${Python3_EXECUTABLE} -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])"
+      OUTPUT_VARIABLE PYTHON_ROOT
+      OUTPUT_STRIP_TRAILING_WHITESPACE  )
+
+
+    execute_process( COMMAND
+      ${Python3_EXECUTABLE} -c "import sys; print('{}.{}'.format(*sys.version_info))"
+      OUTPUT_VARIABLE PYTHON_VERSION
+      OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    if ( PYTHON_NUMPY_INCLUDE_DIR )
+      set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
+    endif()
+
+    set ( OCV_BUILD_PYTHON3 "OFF" )
+
+endif()
+
+###########################################################
+######################### qwt #############################
+
+add_custom_target( qwt.download
+  COMMAND ${CMAKE_COMMAND}
+  -DDOWNLOAD_URL="https://sourceforge.net/projects/qwt/files/qwt/${QWT_VERSION}/qwt-${QWT_VERSION}.tar.bz2/download"
+  -DDOWNLOAD_FILE="qwt-${QWT_VERSION}.tar.bz2"
+  -DDOWNLOAD_SOURCE_DIR="${QWT_SOURCE_DIR}"
+  -DDOWNLOAD_FORMAT="tar"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/download.cmake"
+  )
+
+add_custom_target( qwtconfig
+  COMMAND ${CMAKE_COMMAND}
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/qwtconfig.cmake"
+  WORKING_DIRECTORY ${QWT_SOURCE_DIR}
+  DEPENDS qwt.download
+)
+
+add_custom_target( qwt
+  COMMAND cmd /c qwt-build.bat
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS qwt.download qwtconfig
+  )
+
+file ( TO_NATIVE_PATH ${QWT_SOURCE_DIR} QWT_SOURCE_NATIVE_DIR ) # use in boost-build.bat.in
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/qwt-build.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/qwt-build.bat
+  )
+
+###########################################################
+
+#########################################################
+######################## boost ##########################
+
+add_custom_target( boost
+  COMMAND ${CMAKE_COMMAND}
+  -DCURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DBOOST_VERSION="${BOOST_VERSION}"
+  -DBOOST_SOURCE_DIR="${BOOST_SOURCE_DIR}"
+  -DBZIP2_SOURCE_DIR="${BZIP2_SOURCE_DIR}"
+  -DZLIB_SOURCE_DIR="${ZLIB_SOURCE_DIR}"
+  -DDOWNLOADS="${DOWNLOADS}"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
+  COMMAND cmd /c "echo ####################################################################################"
+  COMMAND cmd /c "echo boost.cmake done."
+  COMMAND cmd /c "echo ####################################################################################"
+  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && bootstrap.bat"
+  COMMAND cmd /c "echo boost bootstrap.bat completed"
+  COMMAND cmd /c "echo ####################################################################################"
+  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && boost-build.bat static dynamic"
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/user-config.jam.in
+  ${HOME}/user-config.jam
+  )
+
+###################### eigen #########################
+add_custom_target( eigen.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${EIGEN_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/eigenteam/eigen-git-mirror"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( eigen
+  COMMAND cmd /c "eigen-bootstrap.bat"
+  COMMAND cmd /c "cd ${EIGEN_BINARY_DIR} && nmake install"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
+  DEPENDS eigen.download
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/eigen-bootstrap.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/eigen-bootstrap.bat
+  )
+
+###################### maeparser #########################
+add_custom_target( maeparser.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${MAEPARSER_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/schrodinger/maeparser"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( maeparser
+  COMMAND cmd /c "maeparser-bootstrap.bat"
+  COMMAND cmd /c "cd ${MAEPARSER_BINARY_DIR} && nmake install"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
+  DEPENDS maeparser.download
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/maeparser-bootstrap.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/maeparser-bootstrap.bat
+  )
+
+######################### zlib #######################
+if ( OFF )
+  add_custom_target( zlib
+    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}" -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
+    WORKING_DIRECTORY ${ZLIB_BINARY_DIR}
+    )
+
+  if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
+    file( MAKE_DIRECTORY ${ZLIB_BINARY_DIR} )
   endif()
 endif()
 
-### rdkit
-add_custom_target( rdkit 
-  COMMAND ${CMAKE_COMMAND}
-  -DRDBASE=${RDBASE}
-  -DRDKIT_SOURCE_DIR=${RDKIT_SOURCE_DIR}
-  -DRDKIT_BINARY_DIR=${RDKIT_BINARY_DIR}
-  -DRDKIT_REVISION=${RDKIT_REVISION}
-  -DRDK_BUILD_PYTHON_WRAPPERS=${RDK_BUILD_PYTHON_WRAPPERS}
-  -DGENERATOR=${GENERATOR}
-  -P "${CMAKE_CURRENT_SOURCE_DIR}/rdkit.cmake"
-  COMMENT "Run rdkit.bat"
+###########################################################
+####################### rdkit #############################
+set( RDK_BUILD_MAEPARSER_SUPPORT "OFF" )
+find_path( maeparser_dirs
+  NAMES "maeparser/Reader.hpp" HINTS ${MAEPARSER_INSTALL_PREFIX} PATH_SUFFIXES "include" )
+if ( maeparser_dirs )
+  set( RDK_BUILD_MAEPARSER_SUPPORT "ON" )
+endif()
+
+add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${RDBASE}"
+  -DGIT_CLONE_URL="https://github.com/rdkit/rdkit"
+  -DGIT_CHECKOUT_BRANCH="Release_2020_09_3"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( rdkit
+  COMMAND cmd /c "rdkit-bootstrap.bat"
+  #  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat && build-debug.bat"
+  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
-  COMMAND cmd /c "rdkit.bat"
+  DEPENDS rdkit.download
   )
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/rdkit.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/rdkit.bat
+  ${CMAKE_CURRENT_SOURCE_DIR}/rdkit-bootstrap.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/rdkit-bootstrap.bat
+  )
+
+###########################################################
+####################### opencv #############################
+
+add_custom_target( opencv.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${OPENCV_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/opencv/opencv.git"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( opencv_contrib.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${OPENCV_CONTRIB_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/opencv/opencv_contrib.git"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( opencv_extra.download
+  COMMAND ${CMAKE_COMMAND}
+  -DGIT_CLONE_DIR="${OPENCV_EXTRA_SOURCE_DIR}"
+  -DGIT_CLONE_URL="https://github.com/opencv/opencv_extra.git"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  )
+
+add_custom_target( opencv
+  COMMAND cmd /c "opencv-bootstrap.bat"
+  COMMAND cmd /c "cd ${OPENCV_BINARY_DIR} && build-release.bat"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
+  DEPENDS opencv.download opencv_contrib.download opencv_extra.download
   )
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/eigen.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/eigen.bat
+  ${CMAKE_CURRENT_SOURCE_DIR}/opencv-bootstrap.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/opencv-bootstrap.bat
   )
 
-message( STATUS "SOURCE_ROOT         = " ${SOURCE_ROOT} )
+###########################################################
+message( STATUS "SRCDIR              = " ${SRCDIR} )
 message( STATUS "BUILD_ROOT          = " ${BUILD_ROOT} )
 message( STATUS "EIGEN_SOURCE_DIR    = " ${EIGEN_SOURCE_DIR} )
 message( STATUS "RDKIT_REVISION      = " ${RDKIT_REVISION} )
 message( STATUS "RDKIT_BINARY_DIR    = " ${RDKIT_BINARY_DIR} )
 message( STATUS "BOOST_VERSION       = " ${BOOST_VERSION} )
+message( STATUS "BOOST_ROOT          = " ${BOOST_ROOT} )
+message( STATUS "BOOST_SOURCE_DIR    = " ${BOOST_SOURCE_DIR} )
 message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )
-if ( Python3_FOUND ) 
-  message( STATUS "\tEXECUTABLE     = " ${Python3_EXECUTABLE} )
-  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_PATH} ) 
+if ( Python3_FOUND )
+  message( STATUS "\tEXECUTABLE     = " ${PYTHON3_EXECUTABLE} "(" ${Python3_EXECUTABLE} ")")
+  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_DIR} "(" ${PYTHON_NUMPY_INCLUDE_PATH} ")")
 endif()

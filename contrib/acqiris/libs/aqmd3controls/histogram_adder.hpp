@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "aqmd3controls_global.hpp"
 #include "waveform.hpp"
 #include "meta_data.hpp"
 #include <adportable/float.hpp>
@@ -36,7 +37,9 @@ namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace aqmd3controls {
 
-    class pkd_result;
+    class AQMD3CONTROLSSHARED_EXPORT pkd_result;
+
+    class AQMD3CONTROLSSHARED_EXPORT histogram_adder;
 
     class histogram_adder {
         histogram_adder( const histogram_adder & ) = delete;
