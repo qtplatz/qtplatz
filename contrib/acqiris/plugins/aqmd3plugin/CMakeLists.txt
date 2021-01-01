@@ -84,7 +84,6 @@ add_library(
 
 target_link_libraries(
   aqmd3plugin LINK_PUBLIC
-  ${Boost_LIBRARIES}
   adacquire
   adcontrols
   adextension
@@ -94,10 +93,9 @@ target_link_libraries(
   adplugin
   adplugin_manager
   adportable
-  adportable_serializer
+#  adportable_serializer
   aqmd3
   aqmd3widgets
- # acqrswidgets
   adurl
   adutils
   adwidgets
@@ -110,6 +108,7 @@ target_link_libraries(
   Qt5::Svg
   Qt5::Widgets
   Threads::Threads
+#  ${Boost_LIBRARIES}
   ${QWT_LIBRARIES}
   )
 

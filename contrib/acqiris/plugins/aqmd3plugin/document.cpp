@@ -66,16 +66,16 @@
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <extensionsystem/pluginmanager.h>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
+//#include <boost/archive/xml_woarchive.hpp>
+//#include <boost/archive/xml_wiarchive.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/at.hpp>
+//#include <boost/mpl/vector.hpp>
+//#include <boost/mpl/for_each.hpp>
+//#include <boost/mpl/at.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <QSettings>
 #include <QFileInfo>
@@ -770,28 +770,36 @@ document::recentFile( const char * group, bool dir_on_fail )
 bool
 document::load( const QString& filename, aqmd3controls::method& m )
 {
+#if defined WIN32
+
+#else
     try {
 
         std::wifstream inf( filename.toStdString() );
         boost::archive::xml_wiarchive ar( inf );
 
-        ar >> boost::serialization::make_nvp( "u5303a_method", m );
+        ar >> boost::serialization::make_nvp( "aqmd3controls_method", m );
 
         return true;
 
     } catch( ... ) {
         std::cout << "############# aqmd3controls::u5303a::method load failed" << std::endl;
     }
+#endif
     return false;
 }
 
 bool
 document::save( const QString& filename, const aqmd3controls::method& m )
 {
+#if defined WIN32
+
+#else
     std::wofstream outf( filename.toStdString() );
 
     boost::archive::xml_woarchive ar( outf );
-    ar << boost::serialization::make_nvp( "u5303a_method", m );
+    ar << boost::serialization::make_nvp( "aqmd3controls_method", m );
+#endif
     return true;
 }
 

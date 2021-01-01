@@ -149,14 +149,10 @@ endif()
 #
 
 if ( MSVC )
-  message( STATUS "#############################################################" )
-  message( STATUS "############# Eigen3 preparation ############################" )
   find_path( __eigen3_include_path signature_of_eigen3_matrix_library HINTS "C:/opt/Eigen3/include" "C:/Eigen3/include" PATH_SUFFIXES "eigen3" "eigen" )
   if ( __eigen3_include_path )
     get_filename_component( __eigen3_dir "${__eigen3_include_path}/../.." ABSOLUTE )
     list ( APPEND CMAKE_PREFIX_PATH ${__eigen3_dir} )
-    # message( STATUS "-------------------- eigen3 found in " ${__eigen3_include_path} " up two levels " ${__eigen3_dir} )
-    # message( STATUS "-------------------- add eigen3 " ${CMAKE_PREFIX_PATH} )
   endif()
 endif()
 
