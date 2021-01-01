@@ -188,6 +188,9 @@ find_package( Boost 1.69 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
+  if ( WIN32 )
+    add_definitions( -DBOOST_UUID_FORCE_AUTO_LINK=1 )
+  endif()
 
   if ( ${Boost_VERSION} VERSION_GREATER_EQUAL "1.73"
       OR ${Boost_VERSION} GREATER_EQUAL "107300" )

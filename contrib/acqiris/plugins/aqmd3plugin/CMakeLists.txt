@@ -36,8 +36,6 @@ if (WIN32)
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
-add_definitions(  -DAQMD3_LIBRARY  )
-
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/acqiris/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
