@@ -15,18 +15,18 @@ foreach( file ${files} )
   message( STATUS "## " ${file} " --> " ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} )
   install ( PROGRAMS "${file}" DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT applications )
 endforeach()
+
 message( STATUS "###################################################################" )
+
 set ( REDIST "$ENV{VCTOOLSREDISTDIR}vc_redist.x64.exe" )
 message( STATUS ${REDIST} )
 
 if( EXISTS ${REDIST} )
   message( STATUS "VC Redistribution installer found: " ${REDIST} )
-  install( PROGRAMS ${REDIST} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT applications )
+  file( TO_CMAKE_PATH ${REDIST} cmake_REDIST )
+  install( PROGRAMS ${cmake_REDIST} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT applications )
 else()
   message( FATAL "VC Redist installer NOT found")
 endif()
 
-file( GLOB REDIST "$ENV{VCTOOLSREDISTDIR}*.exe" )
-message( STATUS "${REDIST}")
-message( FATALL "${REDISt}")
 message( STATUS "###################################################################" )

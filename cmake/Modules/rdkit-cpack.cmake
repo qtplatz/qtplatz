@@ -11,7 +11,12 @@ if ( rdkit_FOUND )
 
     if ( WIN32 )
 
-      install( FILES ${_lib} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )      
+      install( FILES ${_lib} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
+
+      find_library( maeparser_dll "maeparser"  HINTS "c:/opt/maeparser" "c:/maeparser" PATH_SUFFIXES "bin" "lib" )
+      if ( maeparser_dll )
+        install( FILES ${maeparser_dll} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
+      endif()
 
     else()
 
@@ -25,6 +30,5 @@ if ( rdkit_FOUND )
 
     endif()
   endforeach()
-  
-endif()
 
+endif()
