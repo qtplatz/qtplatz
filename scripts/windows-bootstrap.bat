@@ -34,14 +34,14 @@ echo "##############################################"
 if defined build_clean (
    if exist %BUILD_DIR% (
       echo removing %BUILD_DIR%
-      rmdir "%BUILD_DIR%" /s /q
+      rmdir "%BUILD_DIR%" /s
    ) else (
      echo "Nothing to be done for clean"
    )
    goto end
 )
 
-::pause
+pause
 if not exist %BUILD_DIR% (
    echo mkdir "%BUILD_DIR%"
    mkdir "%BUILD_DIR%"

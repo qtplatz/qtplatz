@@ -12,5 +12,7 @@ pushd "${EIGEN_BINARY_DIR}"
 cmake -Wno-dev ^
       -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
    	 -DBOOST_ROOT=%BOOST_ROOT% ^
-         -DCMAKE_INSTALL_PREFIX="${EIGEN_INSTALL_PREFIX}" ^
          -G %GENERATOR% "${EIGEN_SOURCE_DIR}"
+
+:: add follwing if you need to install specific location -- default location should be $ENV{ProgramFiles(x86)}
+::-DCMAKE_INSTALL_PREFIX="${EIGEN_INSTALL_PREFIX}" ^

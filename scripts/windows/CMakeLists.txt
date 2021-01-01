@@ -16,7 +16,7 @@ set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 #----------------- eigen ---------------
 set ( EIGEN_SOURCE_DIR ${SRCDIR}/eigen )
 set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
-set ( EIGEN_INSTALL_PREFIX "c:/opt/Eigen3" )
+set ( EIGEN_INSTALL_PREFIX "C:/opt/Eigen3" ) # -- default was $ENV{ProgramFiles(x86)}
 set ( EIGEN3_INCLUDE_DIR "${EIGEN_INSTALL_PREFIX}/include/eigen3" ) # reference in rdkit-bootstrap.bat
 
 #----------------- maeparser ---------------
@@ -65,11 +65,14 @@ else()
 endif()
 
 if ( $ENV{VisualStudioVersion} VERSION_LESS "15.0" )
+  set ( BJAM_TOOLSET "msvc-14.0" )
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} too old" )
 elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "15.0" )
   set ( GENERATOR "Visual Studio 15 2017 Win64" )
+  set ( BJAM_TOOLSET "msvc-14.1" )
 elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "16.0" )
   set ( GENERATOR "Visual Studio 16 2019" )
+  set ( BJAM_TOOLSET "msvc-14.2" )
 else()
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} not supported" )
 endif()
@@ -91,32 +94,33 @@ set ( RDK_BUILD_PYTHON_WRAPPERS "OFF" )
 find_package( Python3 )
 
 if ( Python3_FOUND )
+    file ( TO_CMAKE_PATH ${Python3_EXECUTABLE} PYTHON3_EXECUTABLE )
+
     execute_process( COMMAND
       ${Python3_EXECUTABLE} -c "import numpy ; print( numpy.get_include() );"
-      OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_PATH
+      OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_NATIVE_PATH
       OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    file ( TO_CMAKE_PATH ${PYTHON_NUMPY_INCLUDE_NATIVE_PATH} PYTHON_NUMPY_INCLUDE_DIR )
 
     execute_process( COMMAND
       ${Python3_EXECUTABLE} -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])"
-      OUTPUT_VARIABLE PYTHON_INCLUDE
+      OUTPUT_VARIABLE PYTHON_INCLUDE_NATIVE_PATH
       OUTPUT_STRIP_TRAILING_WHITESPACE )
+    file ( TO_CMAKE_PATH ${PYTHON_INCLUDE_NATIVE_PATH} PYTHON_INCLUDE_DIR )
 
     execute_process( COMMAND
       ${Python3_EXECUTABLE} -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])"
       OUTPUT_VARIABLE PYTHON_ROOT
       OUTPUT_STRIP_TRAILING_WHITESPACE  )
 
-    execute_process( COMMAND
-      ${Python3_EXECUTABLE} -c "import sys; print(sys.executable)"
-      OUTPUT_VARIABLE PYTHON
-      OUTPUT_STRIP_TRAILING_WHITESPACE  )
 
     execute_process( COMMAND
       ${Python3_EXECUTABLE} -c "import sys; print('{}.{}'.format(*sys.version_info))"
       OUTPUT_VARIABLE PYTHON_VERSION
       OUTPUT_STRIP_TRAILING_WHITESPACE )
 
-    if ( PYTHON_NUMPY_INCLUDE_PATH )
+    if ( PYTHON_NUMPY_INCLUDE_DIR )
       set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
     endif()
 
@@ -163,22 +167,20 @@ configure_file(
 
 add_custom_target( boost
   COMMAND ${CMAKE_COMMAND}
-  -DCURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-  -DBOOST_VERSION=${BOOST_VERSION}
-  -DBOOST_SOURCE_DIR=${BOOST_SOURCE_DIR}
-  -DBZIP2_SOURCE_DIR=${BZIP2_SOURCE_DIR}
-  -DZLIB_SOURCE_DIR=${ZLIB_SOURCE_DIR}
-  -DDOWNLOADS=${DOWNLOADS}
+  -DCURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DBOOST_VERSION="${BOOST_VERSION}"
+  -DBOOST_SOURCE_DIR="${BOOST_SOURCE_DIR}"
+  -DBZIP2_SOURCE_DIR="${BZIP2_SOURCE_DIR}"
+  -DZLIB_SOURCE_DIR="${ZLIB_SOURCE_DIR}"
+  -DDOWNLOADS="${DOWNLOADS}"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
   COMMAND cmd /c "echo ####################################################################################"
   COMMAND cmd /c "echo boost.cmake done."
   COMMAND cmd /c "echo ####################################################################################"
   COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && bootstrap.bat"
-  COMMAND cmd /c "echo ####################################################################################"
-  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && boost-build.bat"
-  COMMAND cmd /c "echo ####################################################################################"
   COMMAND cmd /c "echo boost bootstrap.bat completed"
   COMMAND cmd /c "echo ####################################################################################"
+  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && boost-build.bat static dynamic"
   )
 
 configure_file(
@@ -250,12 +252,14 @@ endif()
 add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
   -DGIT_CLONE_DIR="${RDBASE}"
   -DGIT_CLONE_URL="https://github.com/rdkit/rdkit"
+  -DGIT_CHECKOUT_BRANCH="Release_2020_09_3"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
   )
 
 add_custom_target( rdkit
   COMMAND cmd /c "rdkit-bootstrap.bat"
-  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat && build-debug.bat"
+  #  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat && build-debug.bat"
+  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS rdkit.download
   )
@@ -314,6 +318,6 @@ message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )
 if ( Python3_FOUND )
-  message( STATUS "\tEXECUTABLE     = " ${Python3_EXECUTABLE} )
-  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_PATH} )
+  message( STATUS "\tEXECUTABLE     = " ${PYTHON3_EXECUTABLE} "(" ${Python3_EXECUTABLE} ")")
+  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_DIR} "(" ${PYTHON_NUMPY_INCLUDE_PATH} ")")
 endif()

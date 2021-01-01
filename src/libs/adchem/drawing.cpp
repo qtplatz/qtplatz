@@ -30,7 +30,11 @@
 
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <RDGeneral/versions.h>
+#if defined WIN32 // workaround, which cause an error:
+// Error	LNK2019	unresolved external symbol "class std::shared_ptr<class boost::logging::rdLogger> rdErrorLog" (? rdErrorLog@@3V ? $shared_ptr@VrdLogger@logging@boost@@@std@@A) referenced in function "public: static class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl adchem::drawing::toSVG(class RDKit::ROMol const &)" (? toSVG@drawing@adchem@@SA ? AV ? $basic_string@DU ? $char_traits@D@std@@V ? $allocator@D@2@@std@@AEBVROMol@RDKit@@@Z)	adchem	C : \Users\toshi\src\build - x86_64\qtplatz.release\src\libs\adchem\drawing.obj	1
 #include <RDGeneral/RDLog.h>
+RDLogger rdErrorLog;
+#endif
 
 #if RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 1)
 # include <GraphMol/MolDrawing/MolDrawing.h>
