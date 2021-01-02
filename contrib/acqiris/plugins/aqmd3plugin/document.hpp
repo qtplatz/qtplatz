@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef DOCUMENT_HPP
-#define DOCUMENT_HPP
+#pragma once
 
 #include <QObject>
 #include <deque>
@@ -168,5 +167,3 @@ namespace aqmd3 {
     };
 
 }
-
-#endif // DOCUMENT_HPP

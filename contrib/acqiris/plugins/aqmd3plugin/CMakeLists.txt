@@ -36,8 +36,6 @@ if (WIN32)
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
-add_definitions(  -DAQMD3_LIBRARY  )
-
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/acqiris/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
@@ -86,7 +84,6 @@ add_library(
 
 target_link_libraries(
   aqmd3plugin LINK_PUBLIC
-  ${Boost_LIBRARIES}
   adacquire
   adcontrols
   adextension
@@ -96,10 +93,9 @@ target_link_libraries(
   adplugin
   adplugin_manager
   adportable
-  adportable_serializer
+#  adportable_serializer
   aqmd3
   aqmd3widgets
- # acqrswidgets
   adurl
   adutils
   adwidgets
@@ -112,6 +108,7 @@ target_link_libraries(
   Qt5::Svg
   Qt5::Widgets
   Threads::Threads
+#  ${Boost_LIBRARIES}
   ${QWT_LIBRARIES}
   )
 

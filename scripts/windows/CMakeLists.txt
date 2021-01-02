@@ -20,6 +20,7 @@ set ( EIGEN_INSTALL_PREFIX "C:/opt/Eigen3" ) # -- default was $ENV{ProgramFiles(
 set ( EIGEN3_INCLUDE_DIR "${EIGEN_INSTALL_PREFIX}/include/eigen3" ) # reference in rdkit-bootstrap.bat
 
 #----------------- maeparser ---------------
+# RDKit 2020_09_3 (Q3 2020) Release require maeparser shared object as reported in https://github.com/rdkit/rdkit/issues/3648
 set ( MAEPARSER_SOURCE_DIR ${SRCDIR}/maeparser )
 set ( MAEPARSER_BINARY_DIR ${BUILD_ROOT}/maeparser.build )
 set ( MAEPARSER_INSTALL_PREFIX "C:/opt/maeparser" )
@@ -196,9 +197,10 @@ add_custom_target( eigen.download
   -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
   )
 
+
 add_custom_target( eigen
   COMMAND cmd /c "eigen-bootstrap.bat"
-  COMMAND cmd /c "cd ${EIGEN_BINARY_DIR} && nmake install"
+  COMMAND ${CMAKE_COMMAND} --build "${EIGEN_BINARY_DIR}" --config Release --target install
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS eigen.download
   )
@@ -218,7 +220,7 @@ add_custom_target( maeparser.download
 
 add_custom_target( maeparser
   COMMAND cmd /c "maeparser-bootstrap.bat"
-  COMMAND cmd /c "cd ${MAEPARSER_BINARY_DIR} && nmake install"
+  COMMAND ${CMAKE_COMMAND} --build "${MAEPARSER_BINARY_DIR}" --config Release --target install
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS maeparser.download
   )
@@ -242,6 +244,7 @@ endif()
 
 ###########################################################
 ####################### rdkit #############################
+# if MAEPARSER_SUPPORT to ON, whole system will has a dependency to the maeparser.dll
 set( RDK_BUILD_MAEPARSER_SUPPORT "OFF" )
 find_path( maeparser_dirs
   NAMES "maeparser/Reader.hpp" HINTS ${MAEPARSER_INSTALL_PREFIX} PATH_SUFFIXES "include" )
@@ -258,8 +261,7 @@ add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
 
 add_custom_target( rdkit
   COMMAND cmd /c "rdkit-bootstrap.bat"
-  #  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat && build-debug.bat"
-  COMMAND cmd /c "cd ${RDKIT_BINARY_DIR} && build-release.bat"
+  COMMAND ${CMAKE_COMMAND} --build "${RDKIT_BINARY_DIR}" --config Release --target install -- /m
   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   DEPENDS rdkit.download
   )
