@@ -16,8 +16,6 @@ Prerequisite
 5. OpenCV 4.5 (optional)
 6. Python3 (optional)
 
-Additional prerequisite for Windows
-1. [WiX toolset](wixtool.org) need to be installed
 
 QtPlatz uses `boost_serialization` for binary data storing on file.  The file stored by the older version of `boost` can be opened in a newer version of `boost,` but no reverse compatibility.  To check the version of `boost_serialization`, see the `BOOST_ARCHIVE_VERSION` macro value located in the file `boost-source-dir/libs/serialization/src/basic_archive.cpp`.
 
@@ -27,14 +25,19 @@ QtPlatz uses `boost_serialization` for binary data storing on file.  The file st
  * Qt 5.12.2 does not work on Debian based linux -- use Qt 5.12.1 instead.
  * Qt 6 is not supported yet.
 
-Install on Mac
+Mac macOS 10 and 11
 ====================
 
-Download the respective qt5 installer from [download](https://www.qt.io/download) page, and follow the instructions.
+Prerequisite
+--------------
+1. Xcode Version 12.3 (12C33)
+1. Download the respective qt5 installer from [download](https://www.qt.io/download) page, and follow the instructions.
+
+Install dependencies for Mac
+----------------------------
 
 Go to `<qtplatz-source-dir>/scripts` directory; there are script files for install dependency software modules.
 Assume qtplatz source is stored under `~/src`
-
 
 ```
 cd ~/src/qtplarz/scripts
@@ -44,8 +47,8 @@ make qwt
 make rdkit
 ```
 
-Install qtplatz
-----------------
+Build qtplatz
+-------------
 
 ```
 cd ~/src/qtplatz
@@ -58,8 +61,17 @@ QtPlatz binary to be built under `~src/build-Darwin-i386/bin` (`~/src/build-Linu
 Install for Linux is essentially the same step with macOS.
 
 
-Windows
-===========
+Windows 10 (x64)
+===============
+
+Prerequisite for Windows
+------------------------
+1. Visual Studio 2019
+1. [WiX toolset](wixtool.org)
+1. [Python](https://www.python.org/downloads/windows/) 3.7 (optional)
+
+Install dependencies for Windows
+--------------------------------
 
 ```
 cd %USERPROFILE%\src\qtplatz\scripts
@@ -68,8 +80,11 @@ nmake boost
 nmake eigen
 nmake maeparser
 nmake rdkit
+nmake opencv
 ```
 
+Build qtplatz 
+--------------
 ```
 cd %USERPROFILE%\src\qtplatz
 ./bootstrap.bat package
