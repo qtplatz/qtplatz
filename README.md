@@ -8,19 +8,24 @@ Prerequisite
 
 1. git
 2. cmake 3.18.2
-3. c++17 complient c/c++ compiler (Xcode 12|gcc-6.3|MSVC
+3. c++17 complient c/c++ compiler (Xcode 12|gcc-6.3|msvc-16)
 1. Qt 5.15.1 (also work with 5.12 and later versions) ([download](https://www.qt.io/download))
 2. QWT 6.1
 3. Boost-1.73 (also work with 1.69 and later versions)
 4. RDKit 2020.09 (optional, but recommended)
-5. OpenCV 3.1 (optional)
+5. OpenCV 4.5 (optional)
 6. Python3 (optional)
+
+Additional prerequisite for Windows
+1. [WiX toolset](wixtool.org) need to be installed
 
 QtPlatz uses `boost_serialization` for binary data storing on file.  The file stored by the older version of `boost` can be opened in a newer version of `boost,` but no reverse compatibility.  To check the version of `boost_serialization`, see the `BOOST_ARCHIVE_VERSION` macro value located in the file `boost-source-dir/libs/serialization/src/basic_archive.cpp`.
 
 * Xcode 12 (command-line tools) needs to be installed for macOS.
 * Visual Studio 2019 needs to be installed for Windows.
 * Qt 5.12 or later version needs to be installed for the target OS.
+ * Qt 5.12.2 does not work on Debian based linux -- use Qt 5.12.1 instead.
+ * Qt 6 is not supported yet.
 
 Install on Mac
 ====================
@@ -50,7 +55,6 @@ make
 ```
 
 QtPlatz binary to be built under `~src/build-Darwin-i386/bin` (`~/src/build-Linux-x86_64/bin`) directory.
-
 Install for Linux is essentially the same step with macOS.
 
 
@@ -61,15 +65,13 @@ Windows
 cd %USERPROFILE%\src\qtplatz\scripts
 .\windows-bootstrap.bat
 nmake boost
-.\boost.bat
 nmake eigen
-.\eigen.bat
+nmake maeparser
 nmake rdkit
-.\rdkit.bat
 ```
 
 ```
 cd %USERPROFILE%\src\qtplatz
 ./bootstrap.bat package
-build-package.bat
+nmake package
 ```
