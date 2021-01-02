@@ -770,37 +770,20 @@ document::recentFile( const char * group, bool dir_on_fail )
 bool
 document::load( const QString& filename, aqmd3controls::method& m )
 {
-#if defined WIN32
-
-#else
     try {
-
         std::wifstream inf( filename.toStdString() );
-        boost::archive::xml_wiarchive ar( inf );
-
-        ar >> boost::serialization::make_nvp( "aqmd3controls_method", m );
-
-        return true;
-
+        return aqmd3controls::method::xml_restore( inf, m );
     } catch( ... ) {
         std::cout << "############# aqmd3controls::u5303a::method load failed" << std::endl;
     }
-#endif
     return false;
 }
 
 bool
 document::save( const QString& filename, const aqmd3controls::method& m )
 {
-#if defined WIN32
-
-#else
     std::wofstream outf( filename.toStdString() );
-
-    boost::archive::xml_woarchive ar( outf );
-    ar << boost::serialization::make_nvp( "aqmd3controls_method", m );
-#endif
-    return true;
+    return aqmd3controls::method::xml_archive( outf, m );
 }
 
 bool
