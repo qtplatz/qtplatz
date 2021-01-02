@@ -69,6 +69,9 @@ Prerequisite for Windows
 1. [WiX toolset](wixtool.org)
 1. [Python](https://www.python.org/downloads/windows/) 3.7 (optional)
 
+Tool for dll dependency diagnostics:
+https://github.com/adamrehn/dll-diagnostics
+
 Install dependencies for Windows
 --------------------------------
 
@@ -86,6 +89,6 @@ Build qtplatz
 --------------
 ```
 cd %USERPROFILE%\src\qtplatz
-./bootstrap.bat package
+.\bootstrap.bat package
 nmake package
 ```
