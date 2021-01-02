@@ -12,8 +12,9 @@ message( STATUS "## CRTDIR: " ${CRTDIR} )
 
 file( GLOB files "${CRTDIR}/*.dll" )
 foreach( file ${files} )
-  message( STATUS "## " ${file} " --> " ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} )
-  install ( PROGRAMS "${file}" DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT applications )
+  file( TO_CMAKE_PATH ${file} cmake_file )
+  message( STATUS "## ${cmake_file} --> ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY}" )
+  install ( PROGRAMS "${cmake_file}" DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT applications )
 endforeach()
 
 message( STATUS "###################################################################" )
