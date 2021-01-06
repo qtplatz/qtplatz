@@ -29,7 +29,7 @@
 #include <utility>
 #include <tuple>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class Chromatogram; }
 
 namespace dataproc {
 
@@ -47,6 +47,17 @@ namespace dataproc {
                         , double // max value
                         >
             > compute_rms( const adcontrols::MassSpectrum&, const std::pair< double, double >&, bool rangeIsTime );
+        static boost::optional<
+            std::tuple< std::pair<double, double> // t0,t1
+                        , size_t // N
+                        , double // rms
+                        , double // avg
+                        , double // min time
+                        , double // min value
+                        , double // max time
+                        , double // max value
+                        >
+            > compute_rms( const adcontrols::Chromatogram&, const std::pair< double, double >& );
     };
 
 }

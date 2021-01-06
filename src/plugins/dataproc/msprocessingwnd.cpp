@@ -1033,7 +1033,6 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                                 ( boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str() )
                                             , [=] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
                     }
-
                 } else {
                     // v2 data
                     size_t pos;
@@ -1076,6 +1075,17 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     }
                 }
             } );
+
+        menu.addAction( tr("RMS to clipboard"), [&]() {
+            auto range = ( (x0 - x1) >= 2 ) ?
+                std::make_pair( rect.left(), rect.right() ) :
+                std::make_pair( pImpl_->ticPlot_->zoomer()->zoomRect().left(), pImpl_->ticPlot_->zoomer()->zoomRect().right() );
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) )
+                    compute_rms( *chr, range, folium.fullpath() );
+            }
+        });
 
         menu.exec( QCursor::pos() );
 
@@ -1541,6 +1551,27 @@ MSProcessingWnd::correct_baseline()
 }
 
 bool
+MSProcessingWnd::compute_rms( const adcontrols::Chromatogram& chr
+                              , const std::pair<double,double>& time_range
+                              , const std::string& name )
+{
+    QString text( QString("\"%1\"\tmin(x,y),max(x,y),rms,mean,n" ).arg( QString::fromStdString( name )) );
+
+    if ( auto res = dataproc::rms_export::compute_rms( chr, time_range ) ) {
+        std::pair< double, double > xrange;
+        size_t n;
+        double avg, rms, min_time, min_value, max_time, max_value;
+        std::tie( xrange, n, rms, avg, min_time, min_value, max_time, max_value ) = *res;
+        boost::format fmt( "\t%1%\t%2%\t%3%\t%4%\t%5%\t%6%\t%7%\t" );
+        text.append( QString::fromStdString( (fmt % min_time % min_value % max_time % max_value % rms % avg % n ).str() ) );
+        QApplication::clipboard()->setText( text );
+        return true;
+    }
+    QApplication::clipboard()->setText( text + "RMS calculation has failed");
+    return false;
+}
+
+bool
 MSProcessingWnd::compute_rms( double s, double e )
 {
 	if ( auto ptr = this->pProfileSpectrum_.second.lock() ) {
@@ -1592,58 +1623,6 @@ MSProcessingWnd::compute_rms( double s, double e )
                                    % ms.getMSProperty().numAverage()
                                      ).str() ) );
             }
-#if 0
-            // std::pair< size_t, size_t > range;
-            // if ( pImpl_->is_time_axis_ ) {
-            //     range.first = s > 0 ? ms.getIndexFromTime( scale_to_base(s, pfx::micro), false ) : 0;
-            //     range.second = e > 0 ? ms.getIndexFromTime( scale_to_base(e, pfx::micro), true ) : ms.size() - 1;
-            // } else {
-            //     const double * masses = ms.getMassArray();
-            //     range.first = s > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) ) : 0;
-            //     range.second = e > 0 ? std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) ) : ms.size() - 1;
-            // }
-            // size_t n = range.second - range.first + 1;
-
-            // if ( n >= 5 ) {
-
-            //     adportable::array_wrapper<const double> data( ms.getIntensityArray() + range.first, n );
-
-			// 	double sum = std::accumulate( data.begin(), data.end(), 0.0 );
-            //     double m = sum / data.size();
-            //     double sdd = std::accumulate( data.begin(), data.end(), 0.0, [=]( double a, double x ){ return a + ( (x - m) * (x - m) ); }) / n;
-            //     double rms = std::sqrt( sdd );
-
-			// 	using namespace adcontrols::metric;
-
-            //     ptr->addDescription( adcontrols::description( L"process"
-            //                                                   , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf")
-            //                                                      % scale_to_micro( ms.getTime(range.first) )
-            //                                                      % scale_to_micro( ms.getTime(range.second) )
-            //                                                      % n
-            //                                                      % rms).str() ) );
-            //     // --->
-            //     double tic, dbase, rms2;
-            //     std::tie( tic, dbase, rms2 ) = adportable::spectrum_processor::tic( data.size(), data.data() );
-            //     auto mm = std::minmax_element( data.begin(), data.end() );
-            //     double t_min = ms.time( std::distance( data.begin(), mm.first ) + range.first );
-            //     double t_max = ms.time( std::distance( data.begin(), mm.second ) + range.first );
-            //     // <--
-
-            //     text.append( QString::fromStdString(
-            //                      ( fmt
-            //                        % ms.time( range.first )   // t0
-            //                        % ms.time( range.second )  // t1
-            //                        % n
-            //                        % rms
-            //                        % t_min
-            //                        % (*mm.first - dbase)      // h_min
-            //                        % t_max
-            //                        % (*mm.second - dbase)     // h_max
-            //                        % rms2
-            //                        % ms.getMSProperty().numAverage()
-            //                          ).str() ) );
-            // }
-#endif
         }
         QApplication::clipboard()->setText( text );
         return true;
