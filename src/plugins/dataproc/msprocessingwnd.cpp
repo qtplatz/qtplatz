@@ -1557,7 +1557,7 @@ MSProcessingWnd::compute_rms( const adcontrols::Chromatogram& chr
 {
     QString text( QString("\"%1\"\tmin(x,y),max(x,y),rms,mean,n" ).arg( QString::fromStdString( name )) );
 
-    if ( auto res = dataproc::rms_export::compute_rms( chr, time_range ) ) {
+    if ( auto res = dataproc::rms_calculator::compute_rms( chr, time_range ) ) {
         std::pair< double, double > xrange;
         size_t n;
         double avg, rms, min_time, min_value, max_time, max_value;
@@ -1594,7 +1594,7 @@ MSProcessingWnd::compute_rms( double s, double e )
 
             std::pair<double, double> xrange(pImpl_->is_time_axis_ ? range_t<true>()( s, e ) : range_t<false>()( s, e ));
 
-            if ( auto res = dataproc::rms_export::compute_rms( ms, xrange, pImpl_->is_time_axis_ ) ) {
+            if ( auto res = dataproc::rms_calculator::compute_rms( ms, xrange, pImpl_->is_time_axis_ ) ) {
                 std::pair<double, double> time_range;
                 size_t N;
                 double rms, min_time, min_value, max_time, max_value;
@@ -2023,4 +2023,10 @@ std::pair< QRectF, adcontrols::hor_axis >
 MSProcessingWnd::profileRect() const
 {
     return std::make_pair( pImpl_->profileSpectrum_->zoomRect(), axis_ );
+}
+
+QRectF
+MSProcessingWnd::chromatogrRect() const
+{
+    return pImpl_->ticPlot_->zoomRect();
 }

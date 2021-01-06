@@ -84,7 +84,7 @@ ActionManager::install_file_actions()
             menu->addAction( am->command( Constants::CALIBFILE_APPLY ) );
             menu->addAction( am->command( Constants::PROCESS_ALL_CHECKED ) );
             menu->addAction( am->command( Constants::LISTPEAKS_ON_CHECKED ) );
-            menu->addAction( am->command( Constants::EXPORT_RMS_CHECKED ) );            
+            menu->addAction( am->command( Constants::EXPORT_RMS_CHECKED ) );
             menu->addAction( am->command( Constants::EXPORT_ALL_CHECKED ) );
             menu->addAction( am->command( Constants::IMPORT_ALL_CHECKED ) );
 
@@ -179,7 +179,7 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportAllChecked );
         }
 
-        if ( auto p = actions_[ idActExportRMSAllChecked ] = new QAction( tr( "Export RMS for all checked spectra..." ), this ) ) {
+        if ( auto p = actions_[ idActExportRMSAllChecked ] = new QAction( tr( "Export RMS for all checked nodes..." ), this ) ) {
             am->registerAction( p, Constants::EXPORT_RMS_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportRMSAllChecked );
         }

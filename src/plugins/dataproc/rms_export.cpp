@@ -44,7 +44,7 @@
 using namespace dataproc;
 
 void
-rms_export::text_export( const boost::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
+rms_export< adcontrols::MassSpectrum >::text_export( const boost::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
 {
 }
 
@@ -74,7 +74,7 @@ namespace {
                       ",UNIQUE( filename )"
                       ")" );
 
-            sql.exec( "CREATE TABLE IF NOT EXISTS spectrum ("
+            sql.exec( "CREATE TABLE IF NOT EXISTS Spectrum ("
                       "id INTEGER PRIMARY KEY"
                       ",fileid INTEGER"
                       ",spname TEXT"
@@ -99,8 +99,36 @@ namespace {
                       ",nAvg    INTEGER"
                       ",FOREIGN KEY ( spid ) REFERENCES spectrum ( id )"
                       ")" );
+
+            sql.exec( "DROP TABLE IF EXISTS Chromatogram");
+            sql.exec( "CREATE TABLE IF NOT EXISTS Chromatogram ("
+                      "id INTEGER PRIMARY KEY"
+                      ",fileid INTEGER"
+                      ",name TEXT"
+                      ",time_of_injection INTEGER"
+                      ",iso_time_of_injection TEXT"
+                      ",UNIQUE( name )"
+                      ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
+                      ")" );
+
+            sql.exec( "DROP TABLE IF EXISTS RMS_C");
+            sql.exec( "CREATE TABLE IF NOT EXISTS RMS_C ("
+                      "cid      INTEGER"
+                      ",proto   INTEGER"
+                      ",t_left  REAL"
+                      ",t_right REAL"
+                      ",N       INTEGER"
+                      ",rms     REAL"
+                      ",mean    REAL"
+                      ",t_min   REAL"
+                      ",v_min   REAL"
+                      ",t_max   REAL"
+                      ",v_max   REAL"
+                      ",FOREIGN KEY ( cid ) REFERENCES Chromatogram ( id )"
+                      ")" );
         }
 
+        //------------------ MassSpectrum ------------
         void write( adcontrols::MassSpectrum& profile, const portfolio::Folium& f, const std::pair<double,double>& range, bool isTime ) {
             int64_t spid(0);
             adfs::stmt sql( *db_ );
@@ -118,10 +146,10 @@ namespace {
             sql.prepare(
                 "INSERT OR REPLACE INTO RMS (spid,proto,mode,t_left,t_right,N,rms,t_min,v_min,t_max,v_max,nAvg )"
                 " SELECT id,?,?,?,?,?,?,?,?,?,?,? FROM spectrum WHERE spname = ?" );
-            // sql.prepare( "INSERT OR REPLACE INTO RMS(spid,proto,mode,t_left,t_right,N,rms,t_min,v_min,t_max,v_max,nAvg ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)" );
+
             uint32_t proto(0);
             for ( const auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( profile ) ){
-                if ( auto rms = rms_export::compute_rms( ms, range, isTime ) ) {
+                if ( auto rms = rms_calculator::compute_rms( ms, range, isTime ) ) {
                     sql.reset();
                     uint32_t id(1);
                     sql.bind(id++) = proto;
@@ -144,12 +172,54 @@ namespace {
             }
         }
 
+        //----------------------------------------------------
+        //------------------ Chromatogram --------------------
+        void write( adcontrols::Chromatogram& chro, const portfolio::Folium& f, const std::pair<double,double>& range ) {
+            int64_t cid(0);
+            adfs::stmt sql( *db_ );
+            sql.begin();
+            sql.prepare( "INSERT OR IGNORE INTO Chromatogram (fileid, name, time_of_injection, iso_time_of_injection )"
+                         " SELECT id,?,?,? FROM dataSource WHERE filename = ?" );
+            sql.bind(1) = f.name();
+            sql.bind(2) = uint64_t( chro.time_of_injection().time_since_epoch().count() );
+            sql.bind(3) = chro.time_of_injection_iso8601();
+            sql.bind(4) = filename_;
+            if ( sql.step() == adfs::sqlite_done )
+                cid = db_->last_insert_rowid();
+            else
+                ADDEBUG() << sql.errmsg();
+            sql.commit();
+
+            sql.prepare(
+                "INSERT OR REPLACE INTO RMS_C (cid,proto,t_left,t_right,N,rms,mean,t_min,v_min,t_max,v_max)"
+                " SELECT id,?,?,?,?,?,?,?,?,?,? FROM Chromatogram WHERE name = ?" );
+
+            if ( auto rms = rms_calculator::compute_rms( chro, range ) ) {
+                sql.reset();
+                uint32_t id(1);
+                sql.bind(id++) = chro.protocol();
+                sql.bind(id++) = std::get<0>( rms.get() ).first;  // time start
+                sql.bind(id++) = std::get<0>( rms.get() ).second; // time end
+                sql.bind(id++) = std::get<1>( rms.get() );        // N
+                sql.bind(id++) = std::get<2>( rms.get() );        // rms
+                sql.bind(id++) = std::get<3>( rms.get() );        // mean
+                sql.bind(id++) = std::get<4>( rms.get() );        // min time
+                sql.bind(id++) = std::get<5>( rms.get() );        // min value
+                sql.bind(id++) = std::get<6>( rms.get() );        // max time
+                sql.bind(id++) = std::get<7>( rms.get() );        // max value
+                sql.bind(id++) = f.name();
+
+                if ( sql.step() != adfs::sqlite_done )
+                    ADDEBUG() << sql.errmsg();
+            }
+        }
+
     };
 }
 
 
 void
-rms_export::sqlite_export( const boost::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
+rms_export< adcontrols::MassSpectrum >::sqlite_export( const boost::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
 {
     auto db = std::make_shared< adfs::sqlite >();
     if ( db->open( path.string().c_str(), adfs::flags::opencreate ) ) {
@@ -171,7 +241,7 @@ rms_export::sqlite_export( const boost::filesystem::path& path, const std::pair<
                         if ( folium.empty() )
                             processor->fetch( folium );
                         if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-                            ADDEBUG() << profile->getMSProperty().numAverage();
+                            // ADDEBUG() << profile->getMSProperty().numAverage();
                             writer.write(*profile, folium, range, axisIsTime );
                         }
                     }
@@ -180,6 +250,44 @@ rms_export::sqlite_export( const boost::filesystem::path& path, const std::pair<
         }
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
+void
+rms_export< adcontrols::Chromatogram >::sqlite_export( const boost::filesystem::path& path, const std::pair<double,double>& range )
+{
+    auto db = std::make_shared< adfs::sqlite >();
+    if ( db->open( path.string().c_str(), adfs::flags::opencreate ) ) {
+        adfs::stmt sql( *db );
+        sql.exec( "PRAGMA synchronous = OFF" );
+        sql.exec( "PRAGMA journal_mode = MEMORY" );
+        sql.exec( "PRAGMA FOREIGN_KEYS = ON" );
+        rms_writer::create_table( db );
+
+        for ( auto& session : *SessionManager::instance() ) {
+            if ( auto processor = session.processor() ) {
+
+                rms_writer writer( db, processor->filename() );
+
+                auto cfolio = processor->getPortfolio().findFolder( L"Chromatograms" );
+
+                for ( auto& folium: cfolio.folio() ) {
+                    if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                        if ( folium.empty() )
+                            processor->fetch( folium );
+                        if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                            // ADDEBUG() << folium.fullpath();
+                            writer.write( *chro, folium, range );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 boost::optional<
     std::tuple< std::pair<double, double> // t0,t1
@@ -191,7 +299,7 @@ boost::optional<
                 , double // max value
                 >
             >
-rms_export::compute_rms( const adcontrols::MassSpectrum& ms, const std::pair< double, double >& xrange, bool isTime )
+rms_calculator::compute_rms( const adcontrols::MassSpectrum& ms, const std::pair< double, double >& xrange, bool isTime )
 {
     std::pair<size_t, size_t> range;
     if ( isTime ) {
@@ -238,7 +346,7 @@ boost::optional<
                 , double // max value
                 >
             >
-rms_export::compute_rms( const adcontrols::Chromatogram& chro, const std::pair< double, double >& xrange )
+rms_calculator::compute_rms( const adcontrols::Chromatogram& chro, const std::pair< double, double >& xrange )
 {
     auto range = chro.toIndexRange( xrange.first, xrange.second );
     const size_t N = range.second - range.first + 1;

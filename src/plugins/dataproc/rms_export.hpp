@@ -33,10 +33,8 @@ namespace adcontrols { class MassSpectrum; class Chromatogram; }
 
 namespace dataproc {
 
-    class rms_export {
+    class rms_calculator {
     public:
-        static void text_export( const boost::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
-        static void sqlite_export(  const boost::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
         static boost::optional<
             std::tuple< std::pair<double, double> // t0,t1
                         , size_t // N
@@ -58,6 +56,21 @@ namespace dataproc {
                         , double // max value
                         >
             > compute_rms( const adcontrols::Chromatogram&, const std::pair< double, double >& );
+    };
+
+    enum rms_data_origin { Spectrum, Chromatogram };
+
+    //template< rms_data_origin > struct rms_export {};
+    template< typename T > struct rms_export {};
+
+    template<> struct rms_export< adcontrols::MassSpectrum > {
+        static void text_export( const boost::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
+        static void sqlite_export(  const boost::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
+    };
+
+    template<> struct rms_export< adcontrols::Chromatogram > {
+        static void text_export( const boost::filesystem::path&, const std::pair<double,double>& );
+        static void sqlite_export(  const boost::filesystem::path&, const std::pair<double,double>& );
     };
 
 }

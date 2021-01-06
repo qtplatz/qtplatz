@@ -73,6 +73,7 @@ namespace dataproc {
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
 
         std::pair< QRectF, adcontrols::hor_axis > profileRect() const;
+        QRectF chromatogrRect() const;
 
         void idSpectrumFolium( const std::wstring& );
         void idChromatogramFolium( const std::wstring& );

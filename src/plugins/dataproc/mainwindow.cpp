@@ -1175,11 +1175,21 @@ MainWindow::handleExportRMSAllChecked()
         const std::pair< double, double > range( isTime ? range_t<true>()(rect) : range_t<false>()(rect) );
 
         if ( path.extension() == ".db" ) {
-            rms_export::sqlite_export( path, range, axis == adcontrols::hor_axis_time );
+            rms_export< adcontrols::MassSpectrum >::sqlite_export( path, range, axis == adcontrols::hor_axis_time );
         } else {
             QMessageBox::information(0, QLatin1String("QtPlatz export RMS"), "Sorry, text format export not supported." );
         }
     }
+
+    if ( auto pWnd = findChild< MSProcessingWnd * >() ) {
+        auto rect = pWnd->chromatogrRect();
+        if ( path.extension() == ".db" ) {
+            rms_export< adcontrols::Chromatogram >::sqlite_export( path, std::make_pair( rect.left(), rect.right() ) );
+        } else {
+            QMessageBox::information(0, QLatin1String("QtPlatz export RMS"), "Sorry, text format export not supported." );
+        }
+    }
+
 }
 
 void
