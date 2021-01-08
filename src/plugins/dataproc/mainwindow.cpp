@@ -126,6 +126,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QResizeEvent>
+#include <QStandardPaths>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -1449,13 +1450,17 @@ MainWindow::actClusterSpectrogram()
 }
 
 QString
-MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& insertor, const char * extension )
+MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& insertor, const char * extension, const QString& lastDir )
 {
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+
         portfolio::Portfolio portfolio = dp->getPortfolio();
 
-        boost::filesystem::path path( portfolio.fullpath() );
-        path = path.parent_path() / path.stem();
+        boost::filesystem::path dir( lastDir.isEmpty() ?
+                                     QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString() :
+                                     lastDir.toStdString() );
+        // boost::filesystem::path path( portfolio.fullpath() );
+        auto path = dir / boost::filesystem::path( portfolio.fullpath() ).stem();
 
         if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
             std::wstring name = folium.name();
@@ -1465,9 +1470,9 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
 
             boost::filesystem::path tpath = path;
             tpath += extension;
-            int nnn = 0;
+            int nnn = 1;
             while( boost::filesystem::exists( tpath ) ) {
-				tpath = path.wstring() + ( boost::wformat(L"(%d)%s") % nnn++ % extension).str();
+				tpath = path.wstring() + ( boost::wformat(L",%d%s") % nnn++ % extension).str();
             }
             return QString::fromStdString( tpath.string() );
         }

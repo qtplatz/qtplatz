@@ -101,6 +101,7 @@
 #include <QPrinter>
 #include <QSettings>
 #include <QSlider>
+#include <QStandardPaths>
 #include <QSvgGenerator>
 #include <QTextCursor>
 #include <QTextDocument>
@@ -1947,13 +1948,14 @@ MSProcessingWnd::save_image_file()
     QString fmt = settings->value( KEY_IMAGEE_FORMAT, "svg" ).toString();
     bool compress = settings->value( KEY_COMPRESS, true ).toBool();
     int dpi = settings->value( KEY_DPI, 300 ).toInt();
+    auto lastDir = settings->value( KEY_IMAGE_SAVE_DIR, QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) ).toString();
     settings->endGroup();
 
     std::string dfmt = "." + fmt.toStdString();
 
     adwidgets::FileDialog dlg( MainWindow::instance()
                                , tr( "Save Image File" )
-                               , MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_", dfmt.c_str() ) );
+                               , MainWindow::makePrintFilename( idSpectrumFolium_, L"", dfmt.c_str(), lastDir ) );
 
     dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
 
@@ -1968,6 +1970,7 @@ MSProcessingWnd::save_image_file()
         settings->setValue( KEY_IMAGEE_FORMAT, format );
         settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
         settings->setValue( KEY_DPI, dlg.dpi() );
+        settings->setValue( KEY_IMAGE_SAVE_DIR, QString::fromStdString( path.parent_path().string() ) );
         settings->endGroup();
 
         adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
