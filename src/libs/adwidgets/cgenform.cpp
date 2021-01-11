@@ -54,13 +54,13 @@ CGenForm::setEnableTime( bool enable )
 void
 CGenForm::on_doubleSpinBox_valueChanged( double arg1 )
 {
-    emit valueChanged( ID_MASS_WIDTH, arg1 );
+    emit valueChanged( ID_MASS_WIDTH, arg1 / std::milli::den );
 }
 
 void
 CGenForm::on_doubleSpinBox_2_valueChanged( double arg1 )
 {
-    emit valueChanged( ID_TIME_WIDTH, arg1 );
+    emit valueChanged( ID_TIME_WIDTH, arg1 / std::micro::den );
 }
 
 void

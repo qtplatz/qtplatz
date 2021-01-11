@@ -245,8 +245,9 @@ DataReaderChoiceDialog::selection() const
 }
 
 void
-DataReaderChoiceDialog::setMassWidth( double width )
+DataReaderChoiceDialog::setMassWidth( double width /* dalton */ )
 {
+    // ADDEBUG() << "setMassWidth(" << width << ")";
     if ( auto w = findChild< CGenForm * >() )
         w->setMassWidth( width );
     if ( auto table = findChild< TableView * >() ) {
@@ -258,8 +259,10 @@ DataReaderChoiceDialog::setMassWidth( double width )
 double
 DataReaderChoiceDialog::massWidth() const
 {
-    if ( auto w = findChild< CGenForm * >() )
+    if ( auto w = findChild< CGenForm * >() ) {
+        // ADDEBUG() << "massWidth = " << w;
         return massWidth();
+    }
     return 0;
 }
 
@@ -315,6 +318,8 @@ DataReaderChoiceDialog::toJson() const
                 , { "enableTime", table->model()->index( row, c_display_name ).data( Qt::UserRole + 3 ).toBool() }
             };
             a.emplace_back( QJsonDocument{ obj }.toJson() );
+            //-----------
+            // ADDEBUG() << a.back().toStdString();
         }
     }
 

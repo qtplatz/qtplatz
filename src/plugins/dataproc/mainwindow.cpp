@@ -26,6 +26,7 @@
 #include "aboutdlg.hpp"
 #include "chromatogramwnd.hpp"
 #include "document.hpp"
+#include "dataprocconstants.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
@@ -1449,6 +1450,17 @@ MainWindow::actClusterSpectrogram()
         processor->clusterContour();
 }
 
+void
+MainWindow::addPrintFileToSettings( const QString& name )
+{
+    if ( auto settings = document::instance()->settings() ) {
+        auto dir = boost::filesystem::path( name.toStdString() ).parent_path();
+        settings->beginGroup( Constants::GRP_SPECTRUM_IMAGE );
+        settings->setValue( Constants::KEY_IMAGE_SAVE_DIR, QString::fromStdString( dir.string() ) );
+        settings->endGroup();
+    }
+}
+
 QString
 MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& insertor, const char * extension, const QString& lastDir )
 {
@@ -1456,10 +1468,17 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
 
         portfolio::Portfolio portfolio = dp->getPortfolio();
 
-        boost::filesystem::path dir( lastDir.isEmpty() ?
-                                     QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString() :
-                                     lastDir.toStdString() );
-        // boost::filesystem::path path( portfolio.fullpath() );
+        boost::filesystem::path dir;
+        if ( lastDir.isEmpty() ) {
+            auto settings = document::instance()->settings();
+            settings->beginGroup( Constants::GRP_SPECTRUM_IMAGE );
+            dir = settings->value( Constants::KEY_IMAGE_SAVE_DIR
+                                   , QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) ).toString().toStdString();
+            settings->endGroup();
+        } else {
+            dir = lastDir.toStdString();
+        }
+
         auto path = dir / boost::filesystem::path( portfolio.fullpath() ).stem();
 
         if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
@@ -1471,9 +1490,9 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
             boost::filesystem::path tpath = path;
             tpath += extension;
             int nnn = 1;
-            while( boost::filesystem::exists( tpath ) ) {
+            while( boost::filesystem::exists( tpath ) )
 				tpath = path.wstring() + ( boost::wformat(L",%d%s") % nnn++ % extension).str();
-            }
+
             return QString::fromStdString( tpath.string() );
         }
     }
