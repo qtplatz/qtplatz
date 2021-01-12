@@ -121,6 +121,45 @@ MSCalibration::compute_mass( double time ) const
     return 0;
 }
 
+double
+MSCalibration::compute_time( double mass, double resolution ) const
+{
+    // ADDEBUG() << "----- coeffs_.size() : " << coeffs_.size();
+    if ( coeffs_.size() == 2 ) { // first order (linear)
+        return ( std::sqrt( mass ) - coeffs_[0] ) * coeffs_[1];
+    } else if ( coeffs_.size() == 3 ) { // second order (parabolic)
+        double a = coeffs_[0];
+        double b = coeffs_[1];
+        double c = coeffs_[2];
+        double q = std::sqrt( mass );
+        double t1 = ( -b - std::sqrt( (b * b) - (4 * a * c) + (4 * c * q ) ) ) / ( 2 * c );
+        double t2 = ( -b + std::sqrt( (b * b) - (4 * a * c) + (4 * c * q ) ) ) / ( 2 * c );
+        if ( t1 < 0 && t2 > 0 )
+            return t2;
+        if ( t2 < 0  && t1 > 0 )
+            return t1;
+        return std::abs( compute_mass( t1 ) - mass ) < std::abs( compute_mass( t2 ) - mass ) ? t1 : t2;
+    } else {
+        double t = ( std::sqrt( mass ) - coeffs_[0] ) * coeffs_[1];
+        size_t iteration(0);
+        if ( compute_mass( t ) > mass ) {
+            while ( ( compute_mass( t - resolution ) > mass ) && ( iteration < 1000 ) ) {
+                t -= resolution;
+                ++iteration;
+            }
+            return t;
+        } else {
+            while ( ( compute_mass( t + resolution ) < mass ) && ( iteration < 1000 ) ) {
+                t += resolution;
+                ++iteration;
+            }
+            return t;
+        }
+        return t;
+    }
+    return 0;
+}
+
 // static
 double
 MSCalibration::compute( const std::vector<double>& v, double t )
