@@ -70,6 +70,7 @@ namespace adcontrols {
 
     class /* ADCONTROLSSHARED_EXPORT */ Chromatogram {
     public:
+        static const constexpr size_t npos = std::size_t(-1);
         ~Chromatogram();
         Chromatogram();
         Chromatogram( const Chromatogram& );
@@ -115,6 +116,7 @@ namespace adcontrols {
         double timeFromDataIndex( size_t sampleIndex ) const;
         size_t toSampleIndex( double time, bool closest = false ) const;
         size_t toDataIndex( double time, bool closest = false ) const;
+        std::pair< size_t,size_t> toIndexRange( double s, double e ) const;
 
         double getMinIntensity() const;
         double getMaxIntensity() const;

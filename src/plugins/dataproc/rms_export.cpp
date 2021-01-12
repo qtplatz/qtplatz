@@ -79,7 +79,7 @@ namespace {
                       ",fileid INTEGER"
                       ",spname TEXT"
                       ",sptype TEXT"
-                      ",UNIQUE( spname )"                      
+                      ",UNIQUE( spname )"
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 
@@ -89,14 +89,14 @@ namespace {
                       ",proto   INTEGER"
                       ",mode    INTEGER"
                       ",t_left  REAL"
-                      ",t_right REAL"                      
+                      ",t_right REAL"
                       ",N       INTEGER"
                       ",rms     REAL"
                       ",t_min   REAL"
                       ",v_min   REAL"
                       ",t_max   REAL"
                       ",v_max   REAL"
-                      ",nAvg    INTEGER"                                            
+                      ",nAvg    INTEGER"
                       ",FOREIGN KEY ( spid ) REFERENCES spectrum ( id )"
                       ")" );
         }
@@ -224,6 +224,51 @@ rms_export::compute_rms( const adcontrols::MassSpectrum& ms, const std::pair< do
                                 , t_max
                                 , *mm.second );
     }
-    return boost::none;    
+    return boost::none;
 }
 
+boost::optional<
+    std::tuple< std::pair<double, double> // t0,t1
+                , size_t // N
+                , double // rms
+                , double // avg
+                , double // min time
+                , double // min value
+                , double // max time
+                , double // max value
+                >
+            >
+rms_export::compute_rms( const adcontrols::Chromatogram& chro, const std::pair< double, double >& xrange )
+{
+    auto range = chro.toIndexRange( xrange.first, xrange.second );
+    const size_t N = range.second - range.first + 1;
+
+    const double * const data = chro.getIntensityArray() + range.first;
+    std::tuple< double, double, size_t > sdx
+        = std::accumulate( data, data + N, std::make_tuple( 0.0, 0.0, 0 )
+                           , []( const std::tuple< double, double, size_t >& a, double b ) {
+                               return std::make_tuple( std::get<0>(a) + b
+                                                       , std::get<1>(a) + (b * b)
+                                                       , std::get<2>(a) + 1 );
+                           } );
+    double sum, sum2;
+    size_t n;
+    std::tie( sum, sum2, n ) = sdx;
+    if ( n > 3 ) {
+        double avg = sum / n;
+        double rms = std::sqrt( ( sum2 / n ) - ( avg * avg ) );
+        auto mm = std::minmax_element( data, data + N );
+        double t_min = chro.time( std::distance( data, mm.first ) + range.first );
+        double t_max = chro.time( std::distance( data, mm.second ) + range.first );
+
+        return std::make_tuple( std::make_pair( chro.time( range.first ), chro.time( range.second ) )
+                                , n
+                                , rms
+                                , avg
+                                , t_min
+                                , *mm.first
+                                , t_max
+                                , *mm.second );
+    }
+    return boost::none;
+}

@@ -561,53 +561,62 @@ WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 
-    auto sp = document::instance()->massSpectrometer();
+    std::vector< adplot::SpectrumWidget * > views;
+    if ( idView == 0 ) {
+        views = { spw_, hpw_ };
+    } else if ( idView == 1 ) {
+        for ( auto& closeup: closeups_ )
+            views.emplace_back( closeup.sp.get() );
+    }
 
-    for ( auto& spw: { spw_, hpw_ } ) {
+    for ( auto& spw: views ) {
         spw->setAxis( haxis, true
                       , []( const QRectF& z, const adcontrols::MassSpectrum& vms, adplot::SpectrumWidget::HorizontalAxis axis ){
-                            auto sp = document::instance()->massSpectrometer();
-                            auto scanLaw = sp->scanLaw();
-
-                            if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
-                                for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
-                                    if ( ms.getAcquisitionMassRange().first < z.left() && z.right() < ms.getAcquisitionMassRange().second ) {
-                                        auto range = std::make_pair( scanLaw->getTime( z.left(), ms.mode() ), scanLaw->getTime( z.right(), ms.mode() ) );
-                                        return QRectF( range.first * std::micro::den, z.bottom(), ( range.second - range.first ) * std::micro::den, z.height() );
-                                    }
-                                }
-                            } else { // time --> mass
-                                auto sp = document::instance()->massSpectrometer();
-                                auto scanLaw = sp->scanLaw();
-                                for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
-                                    auto left = z.left() / std::micro::den;
-                                    auto right = z.right() / std::micro::den;
-                                    if ( ms.getMSProperty().instTimeRange().first < left && right < ms.getMSProperty().instTimeRange().second ) {
-                                        auto range = std::make_pair( scanLaw->getMass( left, ms.mode() ), scanLaw->getMass( right, ms.mode() ) );
-                                        return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
-                                    }
-                                }
-                            }
-                            return QRectF();
-                        });
+                          auto sp = document::instance()->massSpectrometer();
+                          auto scanLaw = sp->scanLaw();
+                          if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
+                              for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
+                                  if ( ms.getAcquisitionMassRange().first < z.left() && z.right() < ms.getAcquisitionMassRange().second ) {
+                                      auto range = std::make_pair( scanLaw->getTime( z.left(), ms.mode() ), scanLaw->getTime( z.right(), ms.mode() ) );
+                                      return QRectF( range.first * std::micro::den, z.bottom(), ( range.second - range.first ) * std::micro::den, z.height() );
+                                  }
+                              }
+                          } else { // time --> mass
+                              auto sp = document::instance()->massSpectrometer();
+                              auto scanLaw = sp->scanLaw();
+                              for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
+                                  auto left = z.left() / std::micro::den;
+                                  auto right = z.right() / std::micro::den;
+                                  if ( ms.getMSProperty().instTimeRange().first < left && right < ms.getMSProperty().instTimeRange().second ) {
+                                      auto range = std::make_pair( scanLaw->getMass( left, ms.mode() ), scanLaw->getMass( right, ms.mode() ) );
+                                      return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
+                                  }
+                              }
+                          }
+                          return QRectF();
+                      });
     }
 
     handle_threshold_action();
-
-    //emit axisChanged( idView );
-    //if ( idView == 0 && threshold_action_ )
-    //    _threshold_action( *threshold_action_ );
-    // redraw counting marker
-    //if ( auto m = document::instance()->countingMethod() )
-    //     setMethod( *m );
 }
 
 void
 WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom )
 {
-    ADDEBUG() << "handleScaleY which=" << which << ", autoScale=" << autoScale << ", top:bottom=" << top << ", " << bottom;
-    if ( autoScale )
-        spw_->setYScale( 0, 0, false );
-    else
-        spw_->setYScale( top, bottom, false );
+    if ( which == 0 ) {
+        if ( autoScale )
+            spw_->setYScale( 0, 0, false );
+        else
+            spw_->setYScale( top, bottom, false );
+    } else {
+        for ( auto& closeup: closeups_ ) {
+            if ( closeup.enable ) {
+                ADDEBUG() << "handleScaleY which=" << which << ", autoScale=" << autoScale << ", top:bottom=" << top << ", " << bottom;
+                if ( autoScale )
+                    closeup.sp->setYScale(0, 0, false );
+                else
+                    closeup.sp->setYScale(top, bottom, false );
+            }
+        }
+    }
 }

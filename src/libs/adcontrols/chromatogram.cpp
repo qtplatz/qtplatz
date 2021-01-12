@@ -332,6 +332,25 @@ Chromatogram::toDataIndex( double time, bool closest ) const
     return toSampleIndex( time, closest ) - pImpl_->dataDelayPoints();
 }
 
+std::pair<size_t,size_t>
+Chromatogram::toIndexRange( double s, double e ) const
+{
+    if ( pImpl_->dataArray_.empty() )
+        return { npos, npos };
+    if ( pImpl_->timeArray_.empty() ) {
+        return std::make_pair( toDataIndex( s ), toDataIndex( e ) );
+    } else {
+        auto its = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), s );
+        auto ite = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), e );
+        if ( ite != pImpl_->timeArray_.end() ) {
+            // ADDEBUG() << "-------- Index returning end of vector -----------";
+            --ite;
+        }
+        return std::make_pair( std::distance( pImpl_->timeArray_.begin(), its )
+                               , std::distance( pImpl_->timeArray_.begin(), ite ) );
+    }
+}
+
 const double *
 Chromatogram::getIntensityArray() const
 {
