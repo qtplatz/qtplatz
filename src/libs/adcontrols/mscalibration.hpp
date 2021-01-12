@@ -62,6 +62,7 @@ namespace adcontrols {
         void setCoeffs( const std::vector<double>& );
 
         double compute_mass( double time ) const;
+        double compute_time( double mass, double resolution = 1.0e-9 ) const;
 
         std::string formulaText( bool ritchText = true ) const;
 

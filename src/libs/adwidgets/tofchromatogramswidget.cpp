@@ -28,6 +28,7 @@
 #include "moltablehelper.hpp"
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -42,7 +43,7 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <ratio>
-
+#include <cmath>
 
 #if defined _DEBUG
 # include <fstream>
@@ -75,16 +76,45 @@ namespace adwidgets {
         }
 
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
+            int row = _1.row();
             if ( _1.column() == c_formula ) {
-                int row = _1.row();
                 double exactMass = MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
                 if ( exactMass > 0.7 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );
-                    if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.001 ) // < 1ns
+                    if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.0001 )
                         model_->setData( model_->index( row, c_masswindow ), 0.100 );
+
+                    if ( auto sp = spectrometer_.lock() ) {
+                        double time = sp->timeFromMass( exactMass );
+                        model_->setData( model_->index( row, c_time ), time * std::micro::den );
+                    }
                 } else {
                     for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
                         model_->setData( model_->index( row, id ), QVariant() );
+                }
+            } else if ( _1.column() == c_time ) {
+                if ( auto sp = spectrometer_.lock() ) {
+                    double mass = sp->assignMass( _1.data( Qt::EditRole ).toDouble() / std::micro::den );
+                    model_->setData( model_->index( row, c_mass ), mass );
+                }
+            } else if ( _1.column() == c_timewindow ) {
+                if ( auto sp = spectrometer_.lock() ) {
+                    double t1 = model_->data( model_->index( row, c_time ), Qt::EditRole ).toDouble() / std::micro::den;
+                    double t2 = t1 + _1.data( Qt::EditRole ).toDouble() / std::micro::den;
+                    double dm = std::abs( sp->assignMass( t2 ) - sp->assignMass( t1 ) );
+                    model_->setData( model_->index( row, c_masswindow ), dm );
+                }
+            } else if ( _1.column() == c_mass ) {
+                if ( auto sp = spectrometer_.lock() ) {
+                    double time = sp->timeFromMass( _1.data( Qt::EditRole ).toDouble() );
+                    model_->setData( model_->index( row, c_time ), time * std::micro::den );
+                }
+            } else if ( _1.column() == c_masswindow ) {
+                if ( auto sp = spectrometer_.lock() ) {
+                    double m1 = model_->data( model_->index( row, c_mass ), Qt::EditRole ).toDouble();
+                    double m2 = m1 + _1.data( Qt::EditRole ).toDouble();
+                    double dt = std::abs( sp->timeFromMass( m2 ) - sp->timeFromMass( m1 ) );
+                    model_->setData( model_->index( row, c_timewindow ), ( dt * std::micro::den ) );
                 }
             }
             emit this_->valueChanged();

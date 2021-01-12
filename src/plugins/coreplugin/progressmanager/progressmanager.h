@@ -54,9 +54,9 @@ public:
     static QObject *instance();
 
     static FutureProgress *addTask(const QFuture<void> &future, const QString &title,
-                                   Core::Id type, ProgressFlags flags = 0);
+                                   Core::Id type, ProgressFlags flags = ProgressFlags());
     static FutureProgress *addTimedTask(const QFutureInterface<void> &fi, const QString &title,
-                                   Core::Id type, int expectedSeconds, ProgressFlags flags = 0);
+                                        Core::Id type, int expectedSeconds, ProgressFlags flags = ProgressFlags());
     static void setApplicationLabel(const QString &text);
 
 public slots:

@@ -48,7 +48,6 @@
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
 #include <adplugin/lifecycle.hpp>
-//#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adwidgets/dgwidget.hpp>
 #include <adwidgets/cherrypicker.hpp>
 #include <adwidgets/countingwidget.hpp>
@@ -74,7 +73,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-//#include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <QApplication>
@@ -104,6 +102,11 @@ using namespace accutof::acquire;
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 MainWindow * MainWindow::instance_ = 0;
+
+namespace {
+    enum { numAxes = 2 };
+}
+
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
 {
@@ -241,6 +244,9 @@ MainWindow::OnInitialUpdate()
             widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
     }
+    if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
+        w->setMassSpectrometer( document::instance()->massSpectrometer() );
+    }
 
     // Set control method name on MidToolBar
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
@@ -299,7 +305,7 @@ MainWindow::OnInitialUpdate()
                                                                                   } );
             }
         }
-        for ( int i = 0; i < 1; ++i ) {
+        for ( int i = 0; i < numAxes; ++i ) {
             if ( auto cb = findChild< QCheckBox * >( QString( "cbY%1" ).arg( i ) ) ) {
                 connect( cb, &QCheckBox::toggled, this, [wnd,i,this](bool checked){
                     auto top = findChild< QDoubleSpinBox * >( QString( "spT%1" ).arg( i ) );
@@ -326,11 +332,13 @@ MainWindow::OnInitialUpdate()
 
     ///////// Restore AXIS /////////
     if ( auto settings = document::instance()->settings() ) {
-        auto axis = settings->value( "mainwindow/axis_0" ).toInt();
-        if ( auto choice = findChild< QComboBox * >( "axis_0" ) ) {
-            choice->setCurrentIndex( axis );
-            if ( auto wnd = findChild< WaveformWnd * >() )
-                wnd->setAxis( 0, axis );
+        for ( size_t i = 0; i < numAxes; ++i ) {
+            auto axis = settings->value( QString( "mainwindow/axis_%1" ).arg( QString::number( i ) ) ).toInt();
+            if ( auto choice = findChild< QComboBox * >( QString( "axis_%1" ).arg( QString::number( i ) ) ) ) {
+                choice->setCurrentIndex( axis );
+                if ( auto wnd = findChild< WaveformWnd * >() )
+                    wnd->setAxis( i, axis );
+            }
         }
     }
 
@@ -553,16 +561,21 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
-        // axis (time|m/z)
-        toolBarLayout->addWidget( new QLabel( "Axis 1: " ) );
-        {
-            const int id = 0;
-            auto choice = qtwrapper::make_widget< QComboBox >( "axis_0" );
-            choice->addItems( QStringList() << "m/z" << "time" );
-            toolBarLayout->addWidget( choice );
-            choice->setProperty( "id", QVariant( id ) ); // <------------ combo id
-            connect( choice, qOverload<int>( &QComboBox::currentIndexChanged ), [=] ( int index ) { axisChanged( choice, index ); } );
-            const int i = 0;
+        for ( size_t i = 0; i < numAxes; ++i ) {
+            // ======== spacer =========
+            toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
+
+            // axis (time|m/z)
+            toolBarLayout->addWidget( new QLabel( QString( tr( "Axis %1:" ) ).arg( i + 1 ) ) );
+            {
+                auto choice = new QComboBox;
+                choice->setObjectName( QString( "axis_%1" ).arg( QString::number(i) ) );
+                choice->addItems( QStringList() << "m/z" << "time" );
+                toolBarLayout->addWidget( choice );
+                choice->setProperty( "id", QVariant( int(i) ) ); // <------------ combo id
+                connect( choice, qOverload<int>( &QComboBox::currentIndexChanged ), [=] ( int index ) { axisChanged( choice, index ); } );
+            }
+
             if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {
                 cb->setCheckState( Qt::Checked ); // defalut start with auto
                 toolBarLayout->addWidget( cb );
@@ -790,7 +803,7 @@ void
 MainWindow::axisChanged( QComboBox * combo, int currentIndex )
 {
     auto id = combo->property( "id" ).toInt();
-    ADDEBUG() << "####################### axisChanged " << id << ", " << currentIndex;
+    // ADDEBUG() << "####################### axisChanged " << id << ", " << currentIndex;
     if ( auto wnd = findChild< WaveformWnd * >() ) {
         wnd->setAxis( id, currentIndex );
         //instance_->updateSetpoints();
