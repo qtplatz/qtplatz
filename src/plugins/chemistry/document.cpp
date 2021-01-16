@@ -110,6 +110,10 @@ namespace chemistry {
         , { "C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C", "Cholesterol" }
         , { "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "Caffine" }
         , { "c1ccc2ccccc2c1", "Naphthalene" }
+        , { "C[C@H](CCC=C(C)C)[C@H]1CC[C@@]2([C@@]1(CC[C@]34[C@H]2CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", "Oryzanol A" }
+        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", "Tocopherol" }
+        , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O", "Oleic acid" }
+        , { "CCCCCCCCCCCCCCCC(=O)O", "Palmitic acid" }
     };
 
 }
