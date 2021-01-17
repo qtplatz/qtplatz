@@ -50,7 +50,6 @@
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adportable/configloader.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 
 #include <QCoreApplication>

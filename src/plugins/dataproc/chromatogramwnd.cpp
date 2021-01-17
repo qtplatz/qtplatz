@@ -52,7 +52,6 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 

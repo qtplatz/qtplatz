@@ -40,7 +40,6 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/icore.h>

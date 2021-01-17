@@ -37,7 +37,6 @@
 #include <coreplugin/documentmanager.h>
 #include <QStringList>
 #include <adcontrols/datafile.hpp>
-#include <qtwrapper/qstring.hpp>
 
 using namespace dataproc;
 
@@ -45,7 +44,7 @@ DataprocessorFactory::~DataprocessorFactory()
 {
 }
 
-DataprocessorFactory::DataprocessorFactory( QObject * owner, 
+DataprocessorFactory::DataprocessorFactory( QObject * owner,
 										    const QStringList& ) : Core::IEditorFactory( owner )
 {
     setId( Constants::C_DATAPROCESSOR );
@@ -67,4 +66,3 @@ DataprocessorFactory::createEditor()
     editor->setDataprocessor( doc.get() );
     return editor;
 }
-

@@ -91,7 +91,6 @@
 #include <coreplugin/id.h>
 #include <coreplugin/idocument.h>
 #include <qtwrapper/waitcursor.hpp>
-#include <qtwrapper/qstring.hpp>
 
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
@@ -288,7 +287,7 @@ Dataprocessor::isSaveAsAllowed() const
 bool
 Dataprocessor::create(const QString& filename )
 {
-    boost::filesystem::path path( qtwrapper::wstring::copy( filename ) );
+    boost::filesystem::path path( filename.toStdString() );
     path.replace_extension( L".adfs" );
 
     portfolio_->create_with_fullpath( path.wstring() );
@@ -834,6 +833,8 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 void
 Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibration )
 {
+    ADDEBUG() << "applyCalibration: ";
+
     if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
 
         setModified( true );

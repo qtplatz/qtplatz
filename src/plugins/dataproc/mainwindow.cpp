@@ -84,7 +84,6 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <qtwrapper/jsonhelper.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>

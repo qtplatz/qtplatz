@@ -72,7 +72,6 @@
 #include <adwidgets/progresswnd.hpp>
 #include <adportfolio/logging_hook.hpp>
 #include <adportfolio/folium.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
@@ -147,7 +146,7 @@ DataprocPlugin::~DataprocPlugin()
 }
 
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
-                                 , pActionManager_( std::make_unique< ActionManager >( this ) ) 
+                                 , pActionManager_( std::make_unique< ActionManager >( this ) )
 {
     instance_ = this;
 }
@@ -184,14 +183,14 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
                 //long x = 0;
             }
         } while ( 0 );
-        
+
         //------------------------------------------------
         QStringList mTypes;
 
         // core mime-types
         if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
             ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
-        
+
         // externally installed mime-types
         std::wstring mimefile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
 
@@ -212,7 +211,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
 
         addAutoReleasedObject( new DataprocessorFactory( this, mTypes ) );
-        
+
     } while ( 0 );
 
     mode_.reset( new dataproc::Mode( this ) );
@@ -254,7 +253,7 @@ void
 DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 {
 	emit onApplyMethod( m );
-}	
+}
 
 void
 DataprocPlugin::extensionsInitialized()

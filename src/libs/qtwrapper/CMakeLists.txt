@@ -22,7 +22,6 @@ add_library( ${PROJECT_NAME} SHARED
   font.cpp
   progresshandler.hpp
   qtwrapper.cpp
-  qstring.cpp
   settings.cpp
   waitcursor.cpp
   waitcursor.hpp

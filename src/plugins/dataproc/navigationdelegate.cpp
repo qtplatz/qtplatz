@@ -27,7 +27,6 @@
 #include "dataprocessor.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adportable/debug.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <qdebug.h>
 #include <QEvent>
@@ -77,7 +76,7 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
         }
 
     } else if ( data.canConvert< portfolio::Folder >() ) {
-        
+
         portfolio::Folder folder = data.value< portfolio::Folder >();
         drawDisplay( painter, option, option.rect, QString::fromStdWString( folder.name() ) );
 

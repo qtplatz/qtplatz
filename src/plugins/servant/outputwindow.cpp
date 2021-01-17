@@ -29,8 +29,6 @@
 # include <QtWidgets/QPlainTextEdit>
 # include <QtWidgets/QTextEdit>
 
-#include <qtwrapper/qstring.hpp>
-
 using namespace servant;
 
 OutputWindow::OutputWindow(void)
@@ -90,7 +88,7 @@ OutputWindow::priorityInStatusBar() const
 void
 OutputWindow::visibilityChanged(bool visible)
 {
-    Q_UNUSED(visible);   
+    Q_UNUSED(visible);
 }
 
 void
@@ -112,4 +110,3 @@ void
 OutputWindow::clearContents()
 {
 }
-

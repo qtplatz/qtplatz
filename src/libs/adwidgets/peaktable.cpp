@@ -35,7 +35,6 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <boost/format.hpp>
 #include <functional>
 

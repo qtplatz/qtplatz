@@ -41,7 +41,6 @@
 #include <adlog/logger.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <qtwrapper/qstring.hpp>
 #include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
@@ -199,7 +198,7 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
         QString formula = model.data( model.index( row, c_formula ) ).toString();
-        std::wstring wformula = qtwrapper::wstring( formula );
+        auto wformula = formula.toStdWString();
 
         if ( ! formula.isEmpty()  ) {
 
@@ -255,7 +254,7 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
         mass = adcontrols::detail::compute_mass< adcontrols::MSCalibration::TIMESQUARED >::compute( it->time(), calib );
     }
 
-    model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
+    model.setData( model.index( row, c_formula ), QString::fromStdWString( it->formula() ) );
     model.setData( model.index( row, c_exact_mass ), it->exactMass() );
     model.setData( model.index( row, c_mass_calibrated ), mass );
 
@@ -468,7 +467,7 @@ MSCalibrateSummaryTable::formulaChanged( const QModelIndex& index )
 
     if ( index.column() == c_formula ) {
 
-        std::wstring formula = qtwrapper::wstring( index.data( Qt::EditRole ).toString() );
+        std::wstring formula = index.data( Qt::EditRole ).toString().toStdWString();
         std::wstring adduct_lose;
         if ( ! formula.empty() ) {
 

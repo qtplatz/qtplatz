@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "application.hpp"
-#include "qstring.hpp"
 #include <QtCore>
 
 using namespace qtwrapper;
@@ -36,8 +35,7 @@ std::wstring
 application::path( const std::wstring& cd )
 {
     QDir dir( QCoreApplication::instance()->applicationDirPath() );
-	if ( ! cd.empty() ) 
-		dir.cd( qtwrapper::qstring( cd ) );
-	return qtwrapper::wstring( QDir::cleanPath( dir.path() ) );
+	if ( ! cd.empty() )
+		dir.cd( QString::fromStdWString( cd ) );
+	return QDir::cleanPath( dir.path() ).toStdWString();
 }
-

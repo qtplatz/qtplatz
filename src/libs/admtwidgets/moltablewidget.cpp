@@ -246,10 +246,20 @@ namespace admtwidgets {
                     if ( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() > 0.5 )
                         times.emplace_back( model_->index( i, c_time ).data( Qt::EditRole ).toDouble() );
                 }
-                auto it = std::min_element( times.begin(), times.end() );
+                std::sort( times.begin(), times.end() );
+                // auto it = std::min_element( times.begin(), times.end() );
                 for ( size_t i = 0; i < model_->rowCount(); ++i ) {
-                    if ( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() > 0.5 )
-                        model_->setData( model_->index( i, c_tdiff ), times[i] - *it );
+                    if ( model_->index( i, c_mass ).data( Qt::EditRole ).toDouble() > 0.5 ) {
+                        double tt = model_->index( i, c_time ).data( Qt::EditRole ).toDouble();
+                        auto it = std::lower_bound( times.begin(), times.end(), tt );
+                        if ( it != times.end() ) {
+                            if ( it != times.begin() )
+                                --it;
+                            model_->setData( model_->index( i, c_tdiff ), *it - tt );
+                        } else {
+                            model_->setData( model_->index( i, c_tdiff ), 0 );
+                        }
+                    }
                 }
             }
         }

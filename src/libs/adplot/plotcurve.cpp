@@ -27,14 +27,12 @@
 #include "plot.hpp"
 #include "seriesdata.hpp"
 #include <qwt_plot_curve.h>
-#include <qtwrapper/qstring.hpp>
 
 using namespace adplot;
-using qtwrapper::qstring;
 
 PlotCurve::PlotCurve( plot& plot
-					 , const std::wstring& title ) : curve_( new QwtPlotCurve( qstring(title) ) )
-												   , series_( 0 ) 
+                      , const std::wstring& title ) : curve_( new QwtPlotCurve( QString::fromStdWString( title ) ) )
+												   , series_( 0 )
 {
     // curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );
@@ -44,7 +42,7 @@ PlotCurve::PlotCurve( plot& plot
 }
 
 PlotCurve::PlotCurve( const PlotCurve& t ) : curve_( t.curve_ )
-                                           , series_( t.series_ ) 
+                                           , series_( t.series_ )
 {
 }
 
@@ -71,4 +69,3 @@ PlotCurve::setData( const double * xData, const double * yData, size_t size )
 {
     curve_->setSamples( xData, yData, static_cast<int>(size) );
 }
-

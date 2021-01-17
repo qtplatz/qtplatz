@@ -42,7 +42,7 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/profile.hpp>
 #include <adportfolio/portfolio.hpp>
-#include <qtwrapper/qstring.hpp>
+#include <qtwrapper/settings.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -310,7 +310,7 @@ ActionManager::actPrintCurrentView()
 			pdfname = base_name.string() + ( boost::format("_%d.pdf") % nnn++ ).str();
 
 		auto caption = QString( tr( "Save %1 current view to file" ) ).arg( QString::fromStdString( title ) );
-		QString qpdfname( qtwrapper::qstring::copy( pdfname.wstring() ) );
+		QString qpdfname = QString::fromStdWString( pdfname.wstring() );
         QString fname = QFileDialog::getSaveFileName( MainWindow::instance() // parent
                                                       , caption
                                                       , QString::fromStdString( pdfname.string() )
@@ -324,23 +324,25 @@ ActionManager::actPrintCurrentView()
 void
 ActionManager::actCalibFileApply()
 {
-    boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
-    path /= "default.msclb";
+    auto file = qtwrapper::settings( *document::instance()->settings() ).recentFile( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES );
 
-	QFileDialog dlg( 0, "Open MS Calibration file", QString::fromStdString( path.string() ) );
+	QFileDialog dlg( 0, "Open MS Calibration file", file );
 	dlg.setNameFilter( tr("MSCalibrations(*.msclb)" ) );
 	dlg.setFileMode( QFileDialog::ExistingFile );
 
     if ( dlg.exec() == QDialog::Accepted ) {
 
 		auto result = dlg.selectedFiles();
+        qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
 
         adcontrols::MSCalibrateResult calibResult;
         adcontrols::MassSpectrum ms;
 
         if ( Dataprocessor::MSCalibrationLoad( result[0], calibResult, ms ) ) {
 
-            ADTRACE() << "Apply calibration for mass spectrometer: " << calibResult.calibration().massSpectrometerClsid();
+            ADTRACE() << "Apply calibration for mass spectrometer: " << calibResult.calibration().massSpectrometerClsid()
+                      << ", " << calibResult.calibration().date()
+                      << ", " << calibResult.calibration().formulaText();
 
             if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
 				processor->applyCalibration( calibResult );

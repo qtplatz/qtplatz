@@ -67,6 +67,8 @@ namespace Constants {
     const char * const KEY_DPI              = "DPI";
     const char * const KEY_IMAGE_SAVE_DIR   = "ImageSaveDir";
 
+    const char * const GRP_MSCALIB_FILES   =  "MSCalibFiles";
+
     // shared with Quan
     const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
 

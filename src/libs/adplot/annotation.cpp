@@ -25,7 +25,6 @@
 
 #include "annotation.hpp"
 #include "plot.hpp"
-#include <qtwrapper/qstring.hpp>
 #include <qwt_plot_marker.h>
 #include <qwt_text.h>
 #include <memory>
@@ -61,7 +60,7 @@ Annotation::Annotation( plot& plot
     impl_->marker_->setValue( x, y );
     impl_->marker_->setLineStyle( QwtPlotMarker::NoLine );
     impl_->marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
-    QwtText text( qtwrapper::qstring::copy( label ) );
+    QwtText text( QString::fromStdWString( label ) );
     text.setFont( font() );
     text.setColor( color );
     impl_->marker_->setLabel( text );
@@ -82,7 +81,7 @@ Annotation::Annotation( plot& plot
 
 Annotation::Annotation( const Annotation& t ) : impl_( new impl( *t.impl_ ) )
 {
-} 
+}
 
 void
 Annotation::setLabelAlighment( Qt::Alignment align )

@@ -27,15 +27,13 @@
 #include "plot.hpp"
 #include "seriesdata.hpp"
 #include <qwt_plot_curve.h>
-#include <qtwrapper/qstring.hpp>
 
 using namespace adplot;
-using qtwrapper::qstring;
 
 Trace::Trace( plot& plot
              , const std::wstring& title ) : plot_( &plot )
-                                           , curve_( new QwtPlotCurve( qstring(title) ) )
-                                           , data_(0) 
+                                           , curve_( new QwtPlotCurve( QString::fromStdWString(title) ) )
+                                           , data_(0)
 {
     curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );
@@ -85,4 +83,3 @@ Trace::getSeriesData()
 {
     return data_;
 }
-

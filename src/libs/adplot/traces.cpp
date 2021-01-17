@@ -26,7 +26,6 @@
 #include "traces.hpp"
 #include "trace.hpp"
 #include "plot.hpp"
-#include <qtwrapper/qstring.hpp>
 
 using namespace adplot;
 
@@ -56,4 +55,3 @@ Traces::add( const std::wstring& title )
     vec_.push_back( Trace( plot_, title ) );
     return vec_.back();
 }
-

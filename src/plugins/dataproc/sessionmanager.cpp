@@ -25,7 +25,6 @@
 
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
-#include <qtwrapper/qstring.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adextension/isessionmanager.hpp>
 #include <adportfolio/folium.hpp>
@@ -83,7 +82,7 @@ void
 SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
 {
     loadInprogress_ = true; // block check state events
-    
+
     sessions_.push_back( Session( proc, editor ) );
 	activeDataprocessor_ = proc.get();
 
@@ -211,4 +210,3 @@ Session::getDataprocessor()
 {
     return *processor_;
 }
-
