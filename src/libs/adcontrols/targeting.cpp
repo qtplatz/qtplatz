@@ -321,8 +321,8 @@ Targeting::operator()( MassSpectrum& ms )
                 int pri = 1000 * (std::log10( tms.intensity( candidate.idx ) / tms.maxIntensity() ) + 15); // 0..15000
                 tms.get_annotations()
                     << annotation( candidate.formula, tms.getMass( candidate.idx ), tms.getIntensity( candidate.idx ), candidate.idx, pri, annotation::dataFormula, annotation::flag_targeting );
-
-                std::string text = ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
+                // annotate isotopes
+                std::string text = "*"; // ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
                 for ( const auto& i: candidate.isotopes ) {
                     if ( i.idx >= 0 ) {
                         tms.setColor( i.idx, 16 ); // dark orange

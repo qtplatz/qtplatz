@@ -396,9 +396,9 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     }
 
     pImpl_->profileSpectrum_->setData( profile, static_cast<int>(drawIdx1_++) );
-    pImpl_->profileSpectrum_->setAlpha( drawIdx1_ - 1, 0x60 );
-
+    // pImpl_->profileSpectrum_->setAlpha( drawIdx1_ - 1, 0x60 );
     pImpl_->profileSpectrum_->setData( hist, static_cast<int>(drawIdx1_++) );
+    pImpl_->profileSpectrum_->setAxisTitle( QwtPlot::yLeft, QwtText( "Counts" ) );
 
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: hist->getDescriptions() )

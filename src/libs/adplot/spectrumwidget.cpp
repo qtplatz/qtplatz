@@ -583,6 +583,13 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         return;
     }
 
+    if ( ptr->isHistogram() ) {
+        setAxisTitle( yRight ? QwtPlot::yRight : QwtPlot::yLeft, QwtText( "Counts" ) );
+    } else {
+        auto label = ptr->isCentroid() ? QwtText( "Intensity" ) : QwtText( "Intensity (mV)" );
+        setAxisTitle( yRight ? QwtPlot::yRight : QwtPlot::yLeft, label );
+    }
+
     if ( impl_->traces_.size() <= idx )
         impl_->traces_.resize( idx + 1 );
 

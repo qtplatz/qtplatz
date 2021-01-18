@@ -139,7 +139,7 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
     materials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
     materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
     materials->addItem( "TFANa(+)", "\tCF3COONa\t[Na]+\t" ); //
-    materials->addItem( "TFANa(-)", "\tCF3COONa\tCF3COO" ); //
+    materials->addItem( "TFANa(-)", "\tCF3COONa\t[CF3COO]-" ); //
     materials->addItem( "Acetonitrile", "(CH3CN)2\t\t[H]+\t" ); //
     materials->addItem( "YOKUDELUNA(+)", "\tC2F3O2Na\t[Na]+\t" );
 
@@ -176,6 +176,7 @@ MSReferenceDialog::handleIndexChanged( int index )
     boost::apply_visitor( set_text(""), accessor( idAdductLineEdit ) );
 
     auto materials = boost::get<QComboBox *>( accessor( idAdductsMaterialsCombo ) );
+    auto refText   = materials->currentText();
 
     std::wstring userData = materials->itemData( index ).toString().toStdWString();
     if ( userData.empty() )
@@ -206,7 +207,7 @@ MSReferenceDialog::handleIndexChanged( int index )
         boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idAdductLineEdit ) );
     }
     auto positive = boost::get< QLabel *>( accessor( idPolarityLabel ) );
-    if ( adducts[ 0 ] == L'-' || endGroup == L"Agilent TOF Mix(-)" ) {
+    if ( adducts[ 0 ] == L'-' || refText.contains( "(-)" ) ) {
         positive->setText( "Negative" );
     }
     else {
@@ -223,7 +224,17 @@ MSReferenceDialog::handleAddReference()
     std::wstring repeat = boost::apply_visitor( get_text(), accessor( idRepeatLineEdit ) );
     std::wstring adduct = boost::apply_visitor( get_text(), accessor( idAdductLineEdit ) );
 
+    QString refname;
+    if ( auto combo = boost::get<QComboBox *>( accessor( idAdductsMaterialsCombo ) ) )
+        refname = combo->currentText();
+
     if ( reference_receiver_ ) {
+
+        if ( refname == "TFANa(-)" ) {
+            reference_receiver_( adcontrols::MSReference( L"[CF3]-",        false, L"", true, 0.0, 1, L"CF3" ) );
+            reference_receiver_( adcontrols::MSReference( L"[CF3COO]-",     false, L"", true, 0.0, 1, L"C2F3O2" ) );
+        }
+
         if ( !repeat.empty() ) {
             int lMass = 1;
             int hMass = hMass_;
@@ -276,15 +287,6 @@ MSReferenceDialog::handleAddReference()
                 reference_receiver_( adcontrols::MSReference( L"C42H18F72N3O6P3", true, L"H", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C48H18F84N3O6P3", true, L"H", false ) );
                 reference_receiver_( adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false ) );
-            } else if ( endGroup == L"YOKUDELUNA(+)" ) {
-                //                                            formula             pos,  adduct, enable, exactmass, charge, desc
-                // reference_receiver_( adcontrols::MSReference( L"C2F3O2Na",        true, L"Na", false, 0.0, 1, L"" ) );
-                // for ( size_t i = 2; i < 30; ++i ) {
-                //     auto ref = ( boost::wformat( L"(C2F3O2Na)%d" ) % i ).str();
-                //     reference_receiver_( adcontrols::MSReference( ref.c_str(),    true, L"Na", false, 0.0, 1, L"" ) );
-                // }
-
-            } else if ( endGroup == L"YOKUDELUNA(-)" ) {
 
             } else {
                 // check if an element
