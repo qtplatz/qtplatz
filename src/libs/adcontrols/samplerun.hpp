@@ -30,7 +30,7 @@
 #include <string>
 #include <compiler/pragma_warning.hpp>
 
-namespace boost { 
+namespace boost {
     namespace uuids { struct uuid; }
     namespace serialization { class access; }
 }
@@ -68,6 +68,11 @@ namespace adcontrols {
         const char * description() const;
         void description( const char * );
 
+        std::string ionization() const;
+        void setIonization( const std::string& );
+        bool polarityPositive() const;
+        void setPolarityPositive( bool );
+
         void resetRunCount();
         size_t runCount() const;
         size_t operator ++();
@@ -88,10 +93,6 @@ namespace adcontrols {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
 
-    typedef std::shared_ptr<SampleRun> SampleRunPtr;   
+    typedef std::shared_ptr<SampleRun> SampleRunPtr;
 
 }
-
-
-
-

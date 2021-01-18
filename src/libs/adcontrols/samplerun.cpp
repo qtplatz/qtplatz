@@ -61,6 +61,8 @@ namespace adcontrols {
                , replicates_( 999 )
                , filePrefix_( L"RUN_0001" )
                , runCount_( 0 )
+               , ionization_( "" )
+               , polarityPositive_( true )
                , runNumber_( 0 ) {
 
             std::ostringstream os;
@@ -80,7 +82,9 @@ namespace adcontrols {
                               , filePrefix_( t.filePrefix_ )
                               , description_( t.description_ )
                               , runCount_( t.runCount_ )
-                              , runNumber_( t.runNumber_ ) {
+                              , runNumber_( t.runNumber_ )
+                              , ionization_( t.ionization_ )
+                              , polarityPositive_( true ) {
         }
 
         size_t findLastRunNumber() {
@@ -114,13 +118,15 @@ namespace adcontrols {
         std::wstring dataDirectory_;
         std::wstring filePrefix_;
         std::string description_;
+        std::string ionization_; // EI+, ESI+, ESI-, PTR+, PTR-
+        bool polarityPositive_;
 
         // exclude from archive
         size_t runCount_;
         size_t runNumber_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( ident_ );
             ar & BOOST_SERIALIZATION_NVP( methodTime_ );
@@ -128,11 +134,15 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( dataDirectory_ );
             ar & BOOST_SERIALIZATION_NVP( filePrefix_ );
             ar & BOOST_SERIALIZATION_NVP( description_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( ionization_ );
+                ar & BOOST_SERIALIZATION_NVP( polarityPositive_ );
+            }
         }
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::SampleRun::impl, 1 )
+BOOST_CLASS_VERSION( adcontrols::SampleRun::impl, 2 )
 
 namespace adcontrols {
     ////////// PORTABLE BINARY ARCHIVE //////////
@@ -266,6 +276,30 @@ SampleRun::filename( const wchar_t * extension ) const
     boost::filesystem::path path( dir / impl_->filePrefix_ );
     path.replace_extension( extension );
     return path.wstring();
+}
+
+std::string
+SampleRun::ionization() const
+{
+    return impl_->ionization_;
+}
+
+void
+SampleRun::setIonization( const std::string& value )
+{
+    impl_->ionization_ = value;
+}
+
+bool
+SampleRun::polarityPositive() const
+{
+    return impl_->polarityPositive_;
+}
+
+void
+SampleRun::setPolarityPositive( bool value )
+{
+    impl_->polarityPositive_ = value;
 }
 
 size_t
