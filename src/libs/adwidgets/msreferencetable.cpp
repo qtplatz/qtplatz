@@ -44,7 +44,7 @@
 namespace adwidgets {
 
     class MSReferenceTable::delegate : public QStyledItemDelegate {
-        
+
         std::function< void( const QModelIndex& ) > valueChanged_;
 
     public:
@@ -52,38 +52,38 @@ namespace adwidgets {
         delegate( std::function< void( const QModelIndex& ) > f ) {
             valueChanged_ = f;
         }
-        
+
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            
+
             QStyleOptionViewItem opt(option);
             initStyleOption( &opt, index );
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-            
+
             if ( index.column() == c_formula ) {
-                
+
                 std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                 DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
-                
+
             } else if ( index.column() == c_exact_mass ) {
-                
+
                 QTextOption o;
                 o.setAlignment( Qt::AlignRight | Qt::AlignHCenter );
                 QString text = QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 9 );
                 painter->drawText( option.rect, text, o );
-                
+
             } else {
-                
+
                 QStyledItemDelegate::paint( painter, opt, index );
-                
+
             }
         }
-        
+
         void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
             QStyledItemDelegate::setModelData( editor, model, index );
             if ( valueChanged_ )
                 valueChanged_( index );
         }
-        
+
     public:
         void register_handler( std::function< void( const QModelIndex& ) > f ) {
             valueChanged_ = f;
@@ -98,14 +98,14 @@ namespace adwidgets {
             std::vector< std::pair<std::string, char> > formulae = adcontrols::ChemicalFormula::split( formula.toStdString() );
             return adcontrols::ChemicalFormula().getMonoIsotopicMass( formulae );
         }
-        
+
         static double toMass( const QModelIndex& index ) {
             std::pair< std::string, std::string > adducts;
             return toMass( index.data( Qt::EditRole ).toString() );
         }
 
     };
-    
+
 }
 
 using namespace adwidgets;
@@ -118,12 +118,12 @@ MSReferenceTable::MSReferenceTable(QWidget *parent) : TableView(parent)
 
     connect( this, &TableView::rowsDeleted, [this]() {
             if ( model_->rowCount() == 0 )
-                model_->setRowCount( 1 );                
+                model_->setRowCount( 1 );
         });
 
     setContextMenuPolicy( Qt::CustomContextMenu );
-    connect( this, &MSReferenceTable::customContextMenuRequested, this, &MSReferenceTable::handleContextMenu ); 
-    
+    connect( this, &MSReferenceTable::customContextMenuRequested, this, &MSReferenceTable::handleContextMenu );
+
     model_->setRowCount( 1 );
 }
 
@@ -153,7 +153,7 @@ MSReferenceTable::onInitialUpdate()
 void
 MSReferenceTable::getContents( adcontrols::MSCalibrateMethod& m )
 {
-    QStandardItemModel& model = *model_;    
+    QStandardItemModel& model = *model_;
 
     m.references().clear();
 
@@ -170,10 +170,10 @@ MSReferenceTable::getContents( adcontrols::MSCalibrateMethod& m )
             bool enable = model.data( model.index( row, c_enable ), Qt::CheckStateRole ).toBool();
             int charge = model.data( model.index( row, c_charge ) ).toInt();
             std::wstring description = model.data( model.index( row, c_description ) ).toString().toStdWString();
-            
+
             m.references() << adcontrols::MSReference( formula.c_str(), true, adducts.c_str(), enable, exactMass, charge, description.c_str() );
         }
-    }    
+    }
 }
 
 void
@@ -200,8 +200,8 @@ MSReferenceTable::addReference( const adcontrols::MSReference& ref, int row )
 {
     QStandardItemModel& model = *model_;
 
-    std::wstring formula = ref.display_formula();
-        
+    std::wstring formula = ref.wdisplay_formula();
+
     model.setData( model.index( row, c_formula ),     QString::fromStdWString( formula ) );
     model.setData( model.index( row, c_exact_mass ),  ref.exact_mass() );
     if ( auto item = model.item( row, c_exact_mass ) )
@@ -213,7 +213,7 @@ MSReferenceTable::addReference( const adcontrols::MSReference& ref, int row )
         chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
         chk->setData( ref.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
-    model.setData( model.index( row, c_description ), QString::fromStdWString( ref.description() ) );
+    model.setData( model.index( row, c_description ), QString::fromStdWString( ref.wdescription() ) );
     model.setData( model.index( row, c_charge ), ref.charge_count() );
 }
 
@@ -231,7 +231,7 @@ MSReferenceTable::handleValueChanged( const QModelIndex& index )
         model.setData( model.index( index.row(), c_charge ), 1 );
         if ( auto item = model.item( index.row(), c_exact_mass ) )
             item->setEditable( false );
-        
+
         if ( mass > 0.9 && ( index.row() == model.rowCount() - 1 ) )
             model.insertRow( model.rowCount() );
     }
@@ -241,7 +241,7 @@ void
 MSReferenceTable::handleAddReference( const adcontrols::MSReference& ref )
 {
     QStandardItemModel& model = *model_;
-    
+
     int row = model.rowCount();
     model.insertRow( row );
     addReference( ref, row - 1 );
@@ -253,18 +253,18 @@ MSReferenceTable::handleContextMenu(const QPoint &pt)
     QMenu menu;
 
     addActionsToContextMenu( menu, pt );
-    
+
     struct action_type { QAction * first; std::function<void()> second; };
-        
+
     action_type actions [] = {
         { menu.addAction("Clear"), [&]() {
                 model_->setRowCount(0);
                 model_->insertRow( 0 );
             }
         }
-        , { menu.addAction("Delete line(s)"), [=](){ 
+        , { menu.addAction("Delete line(s)"), [=](){
                 handleDeleteSelection();
-                if ( model_->rowCount() == 0 || 
+                if ( model_->rowCount() == 0 ||
                      !model_->index( model_->rowCount() - 1, c_formula ).data( Qt::EditRole ).toString().isEmpty() ) {
                     model_->insertRow( model_->rowCount() );
                 }
@@ -310,7 +310,7 @@ MSReferenceTable::handlePaste()
             }
         }
     } else {
-        
+
         for ( auto text : texts ) {
             auto formulae = adcontrols::ChemicalFormula::split( text.toStdString() );
             if ( !formulae.empty() && !formulae[ 0 ].first.empty() ) {
@@ -320,7 +320,7 @@ MSReferenceTable::handlePaste()
                 ++row;
             }
         }
-        
+
     }
     // resizeRowsToContents();
     // resizeColumnsToContents();

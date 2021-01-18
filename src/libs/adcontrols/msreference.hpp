@@ -62,10 +62,14 @@ namespace adcontrols {
         double exact_mass() const;
         bool polarityPositive() const;
 		uint32_t charge_count() const;
-        const wchar_t * formula() const;
-        const wchar_t * adduct_or_loss() const;
-        const wchar_t * display_formula() const;
-        const wchar_t * description() const;
+        const wchar_t * wformula() const;
+        const wchar_t * wadduct_or_loss() const;
+        const wchar_t * wdisplay_formula() const;
+        const wchar_t * wdescription() const;
+        std::string formula() const;
+        std::string adduct_or_loss() const;
+        std::string display_formula() const;
+        std::string description() const;
 
         void enable( bool );
         void exact_mass( double );

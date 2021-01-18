@@ -30,17 +30,17 @@
 #include <sstream>
 
 namespace adcontrols {
-    
+
     class MSReference::impl {
     public:
         impl() : enable_( true )
-               , exactMass_(0)  
+               , exactMass_(0)
                , polarityPositive_( true )
                , chargeCount_( 1 ) {
         }
 
         impl( const impl& t ) : enable_( t.enable_ )
-                              , exactMass_( t.exactMass_ ) 
+                              , exactMass_( t.exactMass_ )
                               , polarityPositive_( t.polarityPositive_ )
                               , chargeCount_( t.chargeCount_ )
                               , formula_( t.formula_ )
@@ -58,7 +58,7 @@ namespace adcontrols {
 
         // exclude from serialize
         std::wstring display_formula_;
-		
+
 		void compute_mass();
 
         friend class boost::serialization::access;
@@ -207,29 +207,54 @@ MSReference::polarityPositive() const
     return impl_->polarityPositive_;
 }
 
-const wchar_t * 
-MSReference::formula() const
+const wchar_t *
+MSReference::wformula() const
 {
     return impl_->formula_.c_str();
 }
 
 const wchar_t *
-MSReference::display_formula() const
+MSReference::wdisplay_formula() const
 {
     impl_->display_formula_ = impl_->formula_ + impl_->adduct_or_loss_;
     return impl_->display_formula_.c_str();
 }
 
-const wchar_t * 
-MSReference::adduct_or_loss() const
+const wchar_t *
+MSReference::wadduct_or_loss() const
 {
     return impl_->adduct_or_loss_.c_str();
 }
 
 const wchar_t *
-MSReference::description() const
+MSReference::wdescription() const
 {
     return impl_->description_.c_str();
+}
+
+std::string
+MSReference::formula() const
+{
+    return adportable::utf::to_utf8( impl_->formula_ );
+}
+
+std::string
+MSReference::display_formula() const
+{
+    impl_->display_formula_ = impl_->formula_ + impl_->adduct_or_loss_;
+    return adportable::utf::to_utf8( impl_->display_formula_ );
+}
+
+std::string
+MSReference::adduct_or_loss() const
+{
+    return adportable::utf::to_utf8( impl_->adduct_or_loss_ );
+}
+
+std::string
+MSReference::description() const
+{
+    return adportable::utf::to_utf8( impl_->description_ );
 }
 
 void
@@ -291,4 +316,3 @@ MSReference::description( const wchar_t * value )
 {
     impl_->description_ = value ? value : L"";
 }
-

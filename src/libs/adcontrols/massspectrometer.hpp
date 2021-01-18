@@ -76,7 +76,8 @@ namespace adcontrols {
         // data format v3 interface
         virtual void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& objuuid ) = 0;
         virtual void setAcceleratorVoltage( double acclVolts, double tDelay );
-        // virtual void setScanLaw( double acclVolts, double tDelay, double fLength );
+        virtual std::shared_ptr< const adcontrols::MSCalibrateResult > calibrateResult() const { return nullptr; }
+
         virtual double fLength() const;
         virtual double tDelay() const;
         virtual double acceleratorVoltage() const;

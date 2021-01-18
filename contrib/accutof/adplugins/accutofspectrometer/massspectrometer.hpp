@@ -58,6 +58,7 @@ namespace accutof { namespace spectrometer {
             bool assignMasses( adcontrols::MassSpectrum&, int64_t rowid ) const override;
             double assignMass( double time, int mode ) const override;
             double timeFromMass( double mass, int mode ) const override;
+            std::shared_ptr< const adcontrols::MSCalibrateResult > calibrateResult() const override;
 
             std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override;
             double tDelay() const override;
@@ -90,6 +91,7 @@ namespace accutof { namespace spectrometer {
             std::unique_ptr< adcontrols::ControlMethod::Method > method_;
             std::unique_ptr< adcontrols::MSCalibration > calibration_;
             std::unique_ptr< adcontrols::MSCalibration > prev_calibration_;
+            std::shared_ptr< adcontrols::MSCalibrateResult > calibrateResult_;
         };
     }
 }

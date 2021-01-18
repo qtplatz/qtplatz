@@ -26,16 +26,21 @@
 #include "ui_mspropertyform.h"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
-#include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/mscalibration.hpp>
-#include <adcontrols/msproperty.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datareader.hpp>
-#include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <adportable/debug.hpp>
@@ -111,6 +116,16 @@ MSPropertyForm::setContents( boost::any&& a )
         o << "<p>";
         render( o, folium );
         o << "</p>";
+        //-----------------
+        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            if ( auto sp = dp->massSpectrometer() ) {
+                if ( auto calibResult = sp->calibrateResult() ) {
+                    o << "<p>";
+                    render( o, *calibResult );
+                    o << "</p>";
+                }
+            }
+        }
         ui->textEdit->setText( o.str().c_str() );
     }
     return false;
@@ -235,11 +250,11 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         //-----------------------------
         if ( calib ) {
             o << "<tr>";
-            o << "<td colspan=7><b>Calibration ID:</b><i>" << calib->calibrationUuid() << "</i>"
-              << "     " << calib->date();
+            o << "<td colspan=7><b>Calibration ID:</b><i>" << calib->calibrationUuid() << "</i>";
+            o << "&#8287;<b>Process date:</b>" << calib->date();
             o << "<hr>";
             o << calib->formulaText( true );
-            o << "</tr>";
+            o << "</td></tr>";
         }
         //-----------------------------
     }
@@ -317,6 +332,63 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         }
     }
 }
+
+void
+MSPropertyForm::render( std::ostream& o, const adcontrols::MSCalibrateResult& result )
+{
+    using adportable::utf;
+
+    // o << "<em>" << "calibration process date: " << result.calibration().date() << "</em>";
+    o << "<table border=\"1\" cellpadding=\"4\">";
+    o << "<caption>MS Calibration Result (process date: " << result.calibration().date() << ")</caption>";
+    o << "<tr>";
+    o << "<th>" << "formula" << "</th>";
+    o << "<th>" << "exact mass" << "</th>";
+    o << "<th>" << "enable" << "</th>";
+    o << "<th>" << "charge" << "</th>";
+    o << "</tr>";
+
+    for ( const auto& ref: result.references() ) {
+        o << "<tr>"
+          << "<td>" << adcontrols::ChemicalFormula().formatFormula( ref.display_formula() ) << "</td>"
+          << "<td>" << ref.exact_mass() << "</td>"
+          << "<td>" << (ref.enable() ? "enable" : "disable" ) << "</td>"
+          << "<td>" << ref.charge_count() << "</td>"
+          << "</tr>";
+    }
+    o << "</table>";
+    //-------
+    o << "<table border=\"1\" cellpadding=\"4\">";
+    o << "<caption>" << "Assigned masses" << "</caption>";
+    o << "<tr>";
+    o << "<th>" << "formula" << "</th>";
+    o << "<th>" << "ref. id" << "</th>";
+    o << "<th>" << "peak id" << "</th>";
+    o << "<th>" << "exact mass" << "</th>";
+    o << "<th>" << "time (&mu;s)" << "</th>";
+    o << "<th>" << "mass" << "</th>";
+    o << "<th>" << "error (mDa)" << "</th>";
+    o << "<th>" << "enable" << "</th>";
+    o << "<th>" << "flags" << "</th>";
+    o << "<th>" << "mode" << "</th>";
+    o << "</tr>";
+    for ( const auto& a: result.assignedMasses() ) {
+        o << "<tr>"
+          << "<td>" << adcontrols::ChemicalFormula().formatFormula( utf::to_utf8( a.formula() ) ) << "</td>"
+          << "<td>" << a.idReference() << "</td>"
+          << "<td>" << a.idPeak() << "</td>"
+          << "<td>" << a.exactMass() << "</td>"
+          << "<td>" << boost::format( "%.3f" ) % (a.time() * std::micro::den) << "</td>"
+          << "<td>" << a.mass() << "</td>"
+          << "<td>" << boost::format( "%.3f" ) % ( (a.exactMass() - a.mass()) * 1000 ) << "</td>"
+          << "<td>" << a.enable() << "</td>"
+          << "<td>" << a.flags() << "</td>"
+          << "<td>" << a.mode() << "</td>"
+          << "</tr>";
+    }
+    o << "</table>";
+}
+
 
 void
 MSPropertyForm::make_protocol_text( std::vector< std::pair< std::string, std::string > >& textv

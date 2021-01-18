@@ -138,7 +138,8 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
     materials->addItem( "Anionic Surfactants 1(-)", "C12H26SO4\tC2H4O\t-H\t" ); // negative
     materials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
     materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
-    materials->addItem( "TFANa", "\tCF3COONa\t[Na]+\t" ); //
+    materials->addItem( "TFANa(+)", "\tCF3COONa\t[Na]+\t" ); //
+    materials->addItem( "TFANa(-)", "\tCF3COONa\tCF3COO" ); //
     materials->addItem( "Acetonitrile", "(CH3CN)2\t\t[H]+\t" ); //
     materials->addItem( "YOKUDELUNA(+)", "\tC2F3O2Na\t[Na]+\t" );
 

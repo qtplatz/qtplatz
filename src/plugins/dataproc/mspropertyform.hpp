@@ -31,7 +31,7 @@
 #include <sstream>
 
 namespace portfolio { class Folium; }
-namespace adcontrols { class MassSpectrum; class MSProperty; }
+namespace adcontrols { class MassSpectrum; class MSProperty; class MSCalibrateResult; }
 
 namespace Ui {
 class MSPropertyForm;
@@ -64,6 +64,7 @@ namespace dataproc {
 
         void render( std::ostream&, const portfolio::Folium& );
         void render( std::ostream&, const adcontrols::MassSpectrum& );
+        void render( std::ostream&, const adcontrols::MSCalibrateResult& );
         void make_protocol_text( std::vector< std::pair< std::string, std::string > >& textv
                                  , const adcontrols::MSProperty& prop ) const;
     };
