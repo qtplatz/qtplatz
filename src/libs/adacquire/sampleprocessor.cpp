@@ -162,7 +162,7 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
 
     adutils::v3::AcquiredConf::create_table_v3( fs_->db() );
     adutils::v3::AcquiredData::create_table_v3( fs_->db() );
-    v3::mscalibio::create_table_v3( fs_->db() );
+    adacquire::v3::mscalibio::create_table_v3( fs_->db() );
 
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
@@ -413,7 +413,7 @@ SampleProcessor::prepare_snapshot_storage( adfs::sqlite& db ) const
 
         adutils::v3::AcquiredConf::create_table_v3( db );
         adutils::v3::AcquiredData::create_table_v3( db );
-        v3::mscalibio::create_table_v3( db );
+        adacquire::v3::mscalibio::create_table_v3( db );
 
         populate_descriptions( masterObserver.get(), db );
         populate_calibration( masterObserver.get(), db );

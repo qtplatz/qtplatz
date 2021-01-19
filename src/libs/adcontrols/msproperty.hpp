@@ -83,10 +83,9 @@ namespace adcontrols {
 
         // Device specific parameters
 
-        /*[[deprecated("only for rawdata v2")]] */
         void setDataInterpreterClsid_v2( const std::string& );  // addatafile v2 data uses dataInterpreterClsid
-        /*[[deprecated("only for rawdata v2")]] */
         const char * dataInterpreterClsid_v2() const;
+
         void setDeviceData( const char * device, size_t size );
 
         const char * deviceData() const;

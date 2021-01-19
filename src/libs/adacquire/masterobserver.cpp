@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -77,7 +77,7 @@ MasterObserver::connect( so::ObserverEvents * cb, so::eUpdateFrequency freq, con
 {
     if ( cb ) {
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
-        impl_->clients_.push_back( std::make_tuple( cb, token, freq, true ) );
+        impl_->clients_.emplace_back( cb, token, freq, true ); // tuple
         return true;
     }
     return false;
