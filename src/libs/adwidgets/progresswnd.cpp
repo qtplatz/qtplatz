@@ -70,13 +70,13 @@ ProgressWnd::ProgressWnd(QWidget *parent) : QDialog( parent, Qt::Tool )
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     setSizePolicy( sizePolicy );
-    setWindowTitle( "QtPlatz" );
-    
+    setWindowTitle( "QtPlatz/Progress" );
+
     auto topLayout = new QVBoxLayout(this);
     //topLayout->setMargin( 0 );
     topLayout->setSpacing( 6 );
     topLayout->setContentsMargins( 9, 9, 7, 7 );
-    
+
     layout_ = new QGridLayout;
     topLayout->addLayout( layout_ );
 
@@ -107,7 +107,7 @@ ProgressWnd::handleAdd( int id )
     progressBar->setMaximumSize(QSize(16777215, 12));
     progressBar->setBaseSize(QSize(0, 0));
     progressBar->setValue(24);
-    
+
     layout_->addWidget( progressBar, int( progressive_.size() ), 0, 1, 1 );
 }
 
@@ -134,14 +134,15 @@ ProgressWnd::handleSetRange( int id, int beg, int end )
         bar->setRange( beg, end );
         bar->setVisible( true );
         bar->setTextVisible( true );
+
+        show();
+        raise();
     }
 }
 
 void
 ProgressWnd::handleSetValue( int id, int value )
 {
-    show();
-    raise();
     auto it = progressive_.find( id );
     if ( it != progressive_.end() ) {
         auto bar = it->second;

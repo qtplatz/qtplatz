@@ -40,12 +40,12 @@ namespace adcontrols {
         MSReference();
         MSReference( const MSReference& t );
         MSReference( const wchar_t * formula
-                   , bool polarityPositive
-                   , const wchar_t * adduct_or_loss
+                     , bool polarityPositive
+                     , const wchar_t * adduct_or_loss
                      , bool enable = true
-                   , double exactMass = 0
-				   , uint32_t charge = 1
-                   , const wchar_t * description = L"" );
+                     , double exactMass = 0
+                     , uint32_t charge = 1
+                     , const wchar_t * description = L"" );
 
         MSReference( const char * formula
                      , bool polarityPositive

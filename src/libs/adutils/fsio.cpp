@@ -160,4 +160,3 @@ fsio::load( adfs::filesystem& fs, adinterface::Method& t, const std::wstring& id
     return false;
     // return adfsio< adinterface::Method >::read( folder, t, id );
 }
-
