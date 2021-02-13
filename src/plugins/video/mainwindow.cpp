@@ -29,7 +29,6 @@
 #include "videoprocwnd.hpp"
 #include "imageview.hpp"
 #include "player.hpp"
-#include "playercontrols.hpp"
 #include "videocapturewnd.hpp"
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -40,12 +39,14 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adextension/ieditorfactory_t.hpp>
 #include <adwidgets/centroidform.hpp>
+#include <adwidgets/playercontrols.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/mspeaktable.hpp>
 #include <adportable/profile.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
@@ -215,6 +216,22 @@ MainWindow::createTopStyledToolbar()
     return toolBar;
 }
 
+Utils::StyledBar *
+MainWindow::createMidStyledToolbar()
+{
+    if ( auto toolBar = new Utils::StyledBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        return toolBar;
+    }
+    return nullptr;
+}
+
 void
 MainWindow::onInitialUpdate()
 {
@@ -309,16 +326,6 @@ MainWindow::commit()
 void
 MainWindow::createDockWidgets()
 {
-#if 0
-    if ( auto widget = new PlayerControls() ) {
-        createDockWidget( widget, "Player Controls", "PlayerControls" );
-
-        connect( document::instance(), &document::playerChanged, this, [=]( QString ){
-                widget->setNumberOfFrames( document::instance()->player()->numberOfFrames() );
-            });
-
-    }
-#endif
 }
 
 QDockWidget *

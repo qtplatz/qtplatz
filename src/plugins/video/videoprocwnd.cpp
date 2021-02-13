@@ -29,7 +29,6 @@
 #include "dft2d.hpp"
 #include "document.hpp"
 #include "player.hpp"
-#include "playercontrols.hpp"
 #include <opencv2/core/core.hpp>
 #include <utils/styledbar.h>
 #include <adportable/debug.hpp>
@@ -38,6 +37,7 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adplot/chromatogramwidget.hpp>
+#include <adwidgets/playercontrols.hpp>
 #if HAVE_ARRAYFIRE
 # include <adcv/aftypes.hpp>
 #endif
@@ -98,7 +98,8 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             tbLayout->setMargin( 0 );
             tbLayout->setSpacing( 0 );
 
-            if ( auto widget = new PlayerControls() ) {
+            if ( auto widget = new adwidgets::PlayerControls() ) {
+                using adwidgets::PlayerControls;
                 // start new .mp4 file
                 connect( widget, &PlayerControls::play, this, [=](){
                         document::instance()->player()->Play();
@@ -153,7 +154,7 @@ VideoProcWnd::handleFileChanged( const QString& name )
     document::instance()->player()->Play();
     average_.reset();
 
-    if ( auto controls = findChild< PlayerControls * >() ) {
+    if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
         controls->setState( QMediaPlayer::PlayingState );
         boost::filesystem::path path( name.toStdString() );
         controls->setName( QString::fromStdString( path.filename().string() ) );
@@ -170,7 +171,7 @@ VideoProcWnd::handlePlayer( QImage img )
 
         auto player = document::instance()->player();
 
-        if ( auto controls = findChild< PlayerControls * >() ) {
+        if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
             controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
             controls->setTime( double( player->currentTime() ) );
         }
@@ -205,7 +206,7 @@ VideoProcWnd::handleData()
             avg = adcv::ApplyColorMap_< cv::Mat >()( *average_, 8.0 / numAverage_ );
         }
 
-        if ( auto controls = findChild< PlayerControls * >() ) {
+        if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
             controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
             controls->setTime( double( player->currentTime() ) );
         }

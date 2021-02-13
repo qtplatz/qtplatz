@@ -82,6 +82,7 @@ VideoEditor::open( QString* errorMessage, const QString& filename, const QString
 {
     if ( document::instance()->openFile( filename, *errorMessage ) ) {
         Core::DocumentManager::addToRecentFiles( filename );
+        Core::DocumentManager::setCurrentFile( filename );
         return true;
     }
     return false;
@@ -175,4 +176,3 @@ VideoEditor::Document::isFileReadOnly() const
 }
 
 #include "videoeditor.moc"
-
