@@ -29,6 +29,10 @@
 #include "dft2d.hpp"
 #include "document.hpp"
 #include "player.hpp"
+<<<<<<< HEAD
+=======
+// #include "playercontrols.hpp"
+>>>>>>> fac266fb56739320de9ef0b22d593dc5ab8ca4bf
 #include <opencv2/core/core.hpp>
 #include <utils/styledbar.h>
 #include <adportable/debug.hpp>
@@ -97,28 +101,36 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             auto tbLayout = new QHBoxLayout( toolBar );
             tbLayout->setMargin( 0 );
             tbLayout->setSpacing( 0 );
+<<<<<<< HEAD
 
             if ( auto widget = new adwidgets::PlayerControls() ) {
                 using adwidgets::PlayerControls;
+=======
+#if 0
+            if ( auto widget = new PlayerControls() ) {
+>>>>>>> fac266fb56739320de9ef0b22d593dc5ab8ca4bf
                 // start new .mp4 file
                 connect( widget, &PlayerControls::play, this, [=](){
-                        document::instance()->player()->Play();
-                        widget->setState( QMediaPlayer::PlayingState );
-                    });
+                    ADDEBUG() << "play";
+                    document::instance()->player()->Play();
+                    widget->setState( QMediaPlayer::PlayingState );
+                });
 
                 connect( widget, &PlayerControls::pause, this, [=](){
-                        document::instance()->player()->Stop();
-                        widget->setState( QMediaPlayer::PausedState );
-                    });
+                    ADDEBUG() << "pause/stop";
+                    document::instance()->player()->Stop();
+                    widget->setState( QMediaPlayer::PausedState );
+                });
 
                 connect( widget, &PlayerControls::stop, this, [=](){
-                        document::instance()->player()->Stop();
-                        average_.reset();
-                        widget->setState( QMediaPlayer::StoppedState );
-                    });
-
+                    ADDEBUG() << "stop";
+                    document::instance()->player()->Stop();
+                    average_.reset();
+                    widget->setState( QMediaPlayer::StoppedState );
+                });
                 tbLayout->addWidget( widget );
             }
+#endif
             splitter->addWidget( toolBar );
         }
 
@@ -153,13 +165,18 @@ VideoProcWnd::handleFileChanged( const QString& name )
 {
     document::instance()->player()->Play();
     average_.reset();
+<<<<<<< HEAD
 
     if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
+=======
+#if 0
+    if ( auto controls = findChild< PlayerControls * >() ) {
+>>>>>>> fac266fb56739320de9ef0b22d593dc5ab8ca4bf
         controls->setState( QMediaPlayer::PlayingState );
         boost::filesystem::path path( name.toStdString() );
         controls->setName( QString::fromStdString( path.filename().string() ) );
     }
-
+#endif
 }
 
 void
@@ -170,11 +187,17 @@ VideoProcWnd::handlePlayer( QImage img )
         imgWidgets_.at( 0 )->setImage( img );
 
         auto player = document::instance()->player();
+<<<<<<< HEAD
 
         if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
+=======
+#if 0
+        if ( auto controls = findChild< PlayerControls * >() ) {
+>>>>>>> fac266fb56739320de9ef0b22d593dc5ab8ca4bf
             controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
             controls->setTime( double( player->currentTime() ) );
         }
+#endif
     }
 }
 

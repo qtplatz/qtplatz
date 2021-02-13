@@ -157,12 +157,32 @@ void
 Player::Stop()
 {
     stop_ = true;
+    //state_ = StoppedState;
+}
+
+void
+Player::Next()
+{
+    // if ( ! threads_.empty() )
+    //     __stop();
+    // state_ = PausedState;
+    // emit next( true );
+}
+
+void
+Player::Prev()
+{
 }
 
 bool
 Player::isStopped() const
 {
     return this->stop_;
+}
+
+void
+Player::setRate( double rate )
+{
 }
 
 double

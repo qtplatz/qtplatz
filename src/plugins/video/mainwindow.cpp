@@ -149,7 +149,7 @@ MainWindow::createContents( Core::IMode * mode )
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
             // ----------------- mid tool bar -------------------
-            // centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
+            centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
         }
     }
 

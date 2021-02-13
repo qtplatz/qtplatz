@@ -62,10 +62,10 @@ namespace video {
     signals:
         void processedImage( const QImage& image );
         void dataChanged();
-        
+
     protected:
         void run();
-        
+
     public:
         Player(QObject *parent = 0);
         ~Player();
@@ -75,16 +75,16 @@ namespace video {
 
         bool loadCamera( int );
 
-        //Play the video
         void Play();
-
-        //Stop the video
         void Stop();
+        void Next();
+        void Prev();
 
         //check if the player has been stopped
         bool isStopped() const;
 
         //
+        void setRate( double );
         double frameRate() const;
         size_t numberOfFrames() const;
         size_t currentFrame() const;
@@ -97,4 +97,3 @@ namespace video {
     };
 
 }
-

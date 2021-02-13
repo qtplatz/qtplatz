@@ -62,7 +62,7 @@
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/iwidgetfactory.hpp>
 #include <adlog/logger.hpp>
-#include <adwidgets/lifecycle.hpp>
+#include <admtwidgets/moltablewidget.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -70,10 +70,11 @@
 #include <adportable/utf.hpp>
 #include <adprocessor/processmediator.hpp>
 #include <adprot/digestedpeptides.hpp>
-#include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
+#include <adprot/peptides.hpp>
 #include <adutils/adfile.hpp>
 #include <adwidgets/centroidform.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adwidgets/peptidewidget.hpp>
 #include <adwidgets/targetingwidget.hpp>
 #include <adwidgets/mscalibratewidget.hpp>
