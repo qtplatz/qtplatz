@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multimedia )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
@@ -19,6 +19,7 @@ include_directories(
   ${Qt5Sql_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5OpenGL_INCLUDE_DIRS}
+  ${Qt5Multimedia_INCLUDE_DIRS}
   )
 
 if ( rdkit_FOUND )
@@ -89,6 +90,7 @@ set( ${PROJECT_NAME}_SOURCES
   peaktable.cpp
   peptidewidget.cpp
   peptidetable.cpp
+  playercontrols.cpp
   progresswnd.cpp
   moltablehelper.cpp
   moltableview.cpp
@@ -154,6 +156,7 @@ set( ${PROJECT_NAME}_HEADERS
   outputwidget.hpp
   peaktable.hpp
   peakmethodform.hpp
+  playercontrols.hpp
   progresswnd.hpp
   pressuregauge.hpp
   moltablehelper.hpp

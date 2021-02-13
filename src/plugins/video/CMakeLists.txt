@@ -86,8 +86,8 @@ add_library( ${PROJECT_NAME} MODULE
   mode.hpp
   player.cpp
   player.hpp
-  playercontrols.cpp
-  playercontrols.hpp
+  playcontrolform.cpp
+  playcontrolform.hpp
   recorder.cpp
   recorder.hpp
   recordercontrols.cpp

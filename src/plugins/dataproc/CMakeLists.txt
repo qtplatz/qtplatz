@@ -145,6 +145,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adfs
   adio
   adlog
+  admtwidgets
   adplot
   adplugin
   adportable

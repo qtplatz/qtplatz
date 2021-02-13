@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef VIDEODOCUMENT_HPP
-#define VIDEODOCUMENT_HPP
+#pragma once
 
 #include <map>
 #include <memory>
@@ -45,6 +44,7 @@ namespace boost {
 namespace video {
 
     class Player;
+    class processor;
 
     class document : public QObject {
         Q_OBJECT
@@ -57,7 +57,7 @@ namespace video {
 
         void initialSetup();
         void finalClose();
-        
+
         QSettings& settings();
         QString lastDataDir() const;
 
@@ -73,8 +73,10 @@ namespace video {
 
         void captureCamera();
 
+        std::shared_ptr< processor > currentProcessor();
+
     public slots:
-        
+
     private:
         std::unique_ptr< QSettings > settings_;
         std::unique_ptr< Player > player_;
@@ -85,5 +87,3 @@ namespace video {
         void cameraChanged();
     };
 }
-
-#endif // VIDEODOCUMENT_HPP

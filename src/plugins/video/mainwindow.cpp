@@ -29,7 +29,7 @@
 #include "videoprocwnd.hpp"
 #include "imageview.hpp"
 #include "player.hpp"
-#include "playercontrols.hpp"
+#include "playcontrolform.hpp"
 #include "videocapturewnd.hpp"
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -40,12 +40,14 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adextension/ieditorfactory_t.hpp>
 #include <adwidgets/centroidform.hpp>
+#include <adwidgets/playercontrols.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/mspeaktable.hpp>
 #include <adportable/profile.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
@@ -148,7 +150,7 @@ MainWindow::createContents( Core::IMode * mode )
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
             // ----------------- mid tool bar -------------------
-            // centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
+            centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
         }
     }
 
@@ -213,6 +215,48 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
     }
     return toolBar;
+}
+
+Utils::StyledBar *
+MainWindow::createMidStyledToolbar()
+{
+    if ( auto toolBar = new Utils::StyledBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+
+        if ( auto widget = qtwrapper::make_widget< adwidgets::PlayerControls >( "playerContnrols" ) ) {
+            using adwidgets::PlayerControls;
+            connect( widget, &PlayerControls::play, this, [widget](){
+                document::instance()->player()->Play();
+                widget->setState( QMediaPlayer::PlayingState );
+            });
+            connect( widget, &PlayerControls::pause, this, [widget](){
+                document::instance()->player()->Stop();
+                widget->setState( QMediaPlayer::PausedState );
+            });
+            connect( widget, &PlayerControls::stop, this, [widget](){
+                document::instance()->player()->Stop();
+                widget->setState( QMediaPlayer::StoppedState );
+            });
+            connect( widget, &PlayerControls::next, this, [widget](){
+                document::instance()->player()->Next();
+            });
+            connect( widget, &PlayerControls::previous, this, [widget](){
+                document::instance()->player()->Prev();
+            });
+
+            connect( widget, &PlayerControls::changeRate, this, []( double rate ){ document::instance()->player()->setRate( rate ); } );
+
+            toolBarLayout->addWidget( widget );
+        }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        return toolBar;
+    }
+    return nullptr;
 }
 
 void

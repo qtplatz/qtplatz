@@ -128,7 +128,7 @@ MainWindow::MainWindow() :
     m_modeManager(0),
     m_mimeDatabase(new MimeDatabase),
 //#if defined __ARM_EABI__
-    //m_helpManager(0), 
+    //m_helpManager(0),
 //#else
 //    m_helpManager(new HelpManager),
 //#endif
@@ -754,6 +754,7 @@ void MainWindow::newFile()
 
 void MainWindow::openFile()
 {
+    ADDEBUG() << "------- openFile ---------";
     openFiles(EditorManager::getOpenFileNames(), ICore::SwitchMode);
 }
 

@@ -29,7 +29,7 @@
 #include "dft2d.hpp"
 #include "document.hpp"
 #include "player.hpp"
-#include "playercontrols.hpp"
+// #include "playercontrols.hpp"
 #include <opencv2/core/core.hpp>
 #include <utils/styledbar.h>
 #include <adportable/debug.hpp>
@@ -97,27 +97,30 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             auto tbLayout = new QHBoxLayout( toolBar );
             tbLayout->setMargin( 0 );
             tbLayout->setSpacing( 0 );
-
+#if 0
             if ( auto widget = new PlayerControls() ) {
                 // start new .mp4 file
                 connect( widget, &PlayerControls::play, this, [=](){
-                        document::instance()->player()->Play();
-                        widget->setState( QMediaPlayer::PlayingState );
-                    });
+                    ADDEBUG() << "play";
+                    document::instance()->player()->Play();
+                    widget->setState( QMediaPlayer::PlayingState );
+                });
 
                 connect( widget, &PlayerControls::pause, this, [=](){
-                        document::instance()->player()->Stop();
-                        widget->setState( QMediaPlayer::PausedState );
-                    });
+                    ADDEBUG() << "pause/stop";
+                    document::instance()->player()->Stop();
+                    widget->setState( QMediaPlayer::PausedState );
+                });
 
                 connect( widget, &PlayerControls::stop, this, [=](){
-                        document::instance()->player()->Stop();
-                        average_.reset();
-                        widget->setState( QMediaPlayer::StoppedState );
-                    });
-
+                    ADDEBUG() << "stop";
+                    document::instance()->player()->Stop();
+                    average_.reset();
+                    widget->setState( QMediaPlayer::StoppedState );
+                });
                 tbLayout->addWidget( widget );
             }
+#endif
             splitter->addWidget( toolBar );
         }
 
@@ -152,13 +155,13 @@ VideoProcWnd::handleFileChanged( const QString& name )
 {
     document::instance()->player()->Play();
     average_.reset();
-
+#if 0
     if ( auto controls = findChild< PlayerControls * >() ) {
         controls->setState( QMediaPlayer::PlayingState );
         boost::filesystem::path path( name.toStdString() );
         controls->setName( QString::fromStdString( path.filename().string() ) );
     }
-
+#endif
 }
 
 void
@@ -169,11 +172,12 @@ VideoProcWnd::handlePlayer( QImage img )
         imgWidgets_.at( 0 )->setImage( img );
 
         auto player = document::instance()->player();
-
+#if 0
         if ( auto controls = findChild< PlayerControls * >() ) {
             controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
             controls->setTime( double( player->currentTime() ) );
         }
+#endif
     }
 }
 
@@ -204,12 +208,12 @@ VideoProcWnd::handleData()
         if ( average_ ) {
             avg = adcv::ApplyColorMap_< cv::Mat >()( *average_, 8.0 / numAverage_ );
         }
-
+#if 0
         if ( auto controls = findChild< PlayerControls * >() ) {
             controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
             controls->setTime( double( player->currentTime() ) );
         }
-
+#endif
         imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
         imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
     }

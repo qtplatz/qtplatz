@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,7 +23,8 @@
 **************************************************************************/
 
 #include "playercontrols.hpp"
-
+#include <qtwrapper/make_widget.hpp>
+#include <adportable/debug.hpp>
 #include <QAudio>
 #include <QBoxLayout>
 #include <QComboBox>
@@ -33,19 +34,21 @@
 #include <QTime>
 #include <QToolButton>
 #include <QLineEdit>
+#include <ratio>
 
-PlayerControls::PlayerControls(QWidget *parent)
-    : QWidget(parent)
-    , playerState(QMediaPlayer::StoppedState)
-    , playerMuted(false)
-    , playButton(0)
-    , stopButton(0)
-    , nextButton(0)
-    , previousButton(0)
-    , muteButton(0)
-    , volumeSlider(0)
-    , rateBox(0)
-    , frameSlider(0)
+using namespace adwidgets;
+
+PlayerControls::PlayerControls( QWidget *parent )
+    : QWidget( parent )
+    , playerState( QMediaPlayer::StoppedState )
+    , playerMuted( false )
+    , playButton( 0 )
+    , stopButton( 0 )
+    , nextButton( 0 )
+    , previousButton( 0 )
+    , rateBox( 0 )
+    , frameSlider( 0 )
+    , sliderScaleFactor_( 10 )
 {
     playButton = new QToolButton(this);
     playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
@@ -68,21 +71,11 @@ PlayerControls::PlayerControls(QWidget *parent)
 
     connect(previousButton, SIGNAL(clicked()), this, SIGNAL(previous()));
 
-    muteButton = new QToolButton(this);
-    muteButton->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
-
-    connect(muteButton, SIGNAL(clicked()), this, SLOT(muteClicked()));
-
-    volumeSlider = new QSlider(Qt::Horizontal, this);
-    volumeSlider->setRange(0, 100);
-
-    connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(onVolumeSliderValueChanged()));
-
     frameSlider = new QSlider(Qt::Horizontal, this);
     frameSlider->setRange(0, 100);
 
     connect( frameSlider, &QSlider::valueChanged, this, [&]( int value ){ emit changeFrame( value ); });
-    
+
     rateBox = new QComboBox(this);
     rateBox->addItem("0.5x", QVariant(0.5));
     rateBox->addItem("1.0x", QVariant(1.0));
@@ -97,13 +90,11 @@ PlayerControls::PlayerControls(QWidget *parent)
     layout->addWidget(previousButton);
     layout->addWidget(playButton);
     layout->addWidget(nextButton);
-    layout->addWidget(muteButton);
-    layout->addWidget(volumeSlider);
+
     layout->addWidget(frameSlider);
     layout->addWidget(rateBox);
 
-    if ( auto edit = new QLineEdit ) {
-        edit->setObjectName( "Time" );
+    if ( auto edit = qtwrapper::make_widget< QLineEdit >( "Time" ) ) {
         edit->setReadOnly( true );
         edit->setText( QTime( 0, 0 ).toString( "hh:mm:ss" ) );
         layout->addWidget( edit );
@@ -114,9 +105,9 @@ PlayerControls::PlayerControls(QWidget *parent)
         edit->setReadOnly( true );
         layout->addWidget( edit );
     }
-    
+
     layout->setStretchFactor( frameSlider, 10 );
-    
+
     setLayout(layout);
 }
 
@@ -127,7 +118,7 @@ PlayerControls::state() const
 }
 
 void
-PlayerControls::setState(QMediaPlayer::State state)
+PlayerControls::setState( QMediaPlayer::State state )
 {
     if (state != playerState) {
         playerState = state;
@@ -149,49 +140,11 @@ PlayerControls::setState(QMediaPlayer::State state)
     }
 }
 
-int
-PlayerControls::volume() const
-{
-    qreal linearVolume =  QAudio::convertVolume(volumeSlider->value() / qreal(100),
-                                                QAudio::LogarithmicVolumeScale,
-                                                QAudio::LinearVolumeScale);
-
-    return qRound(linearVolume * 100);
-}
-
-void
-PlayerControls::setVolume(int volume)
-{
-    qreal logarithmicVolume = QAudio::convertVolume(volume / qreal(100),
-                                                    QAudio::LinearVolumeScale,
-                                                    QAudio::LogarithmicVolumeScale);
-
-    volumeSlider->setValue(qRound(logarithmicVolume * 100));
-}
-
 void
 PlayerControls::setPos( double aviRatio )
 {
     QSignalBlocker block( frameSlider );
     frameSlider->setValue( int( aviRatio * 100 ) );
-}
-
-bool
-PlayerControls::isMuted() const
-{
-    return playerMuted;
-}
-
-void
-PlayerControls::setMuted(bool muted)
-{
-    if (muted != playerMuted) {
-        playerMuted = muted;
-
-        muteButton->setIcon(style()->standardIcon(muted
-                ? QStyle::SP_MediaVolumeMuted
-                : QStyle::SP_MediaVolume));
-    }
 }
 
 void
@@ -206,12 +159,6 @@ PlayerControls::playClicked()
         emit pause();
         break;
     }
-}
-
-void
-PlayerControls::muteClicked()
-{
-    emit changeMuting(!playerMuted);
 }
 
 qreal
@@ -241,30 +188,30 @@ PlayerControls::updateRate()
 }
 
 void
-PlayerControls::onVolumeSliderValueChanged()
-{
-    emit changeVolume(volume());
-}
-
-void
 PlayerControls::setNumberOfFrames( size_t value )
 {
-    frameSlider->setRange( 0, int( value ) );
 }
 
 void
 PlayerControls::setCurrentFrame( size_t value )
 {
-    frameSlider->setSliderPosition( int( value ) );
 }
 
 void
-PlayerControls::setTime( double msec )
+PlayerControls::setTime( double sec )
 {
     if ( auto edit = findChild< QLineEdit * >( "Time" ) ) {
-        QTime t = QTime::fromMSecsSinceStartOfDay( int( msec ) );
+        QTime t = QTime::fromMSecsSinceStartOfDay( int( sec * std::milli::den ) );
         edit->setText( t.toString( "hh:mm:ss" ) );
+
+        frameSlider->setSliderPosition( int( sec * sliderScaleFactor_ ) );
     }
+}
+
+void
+PlayerControls::setDuration( double seconds )
+{
+    frameSlider->setRange( 0, int( seconds * sliderScaleFactor_ ) ); // 100ms resolution
 }
 
 void
