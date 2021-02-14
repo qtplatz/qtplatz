@@ -59,6 +59,7 @@ namespace video {
     signals:
 
     public slots :
+        void handleSelectedOnTime( const QRectF& );
 
     private slots:
         void handleData();

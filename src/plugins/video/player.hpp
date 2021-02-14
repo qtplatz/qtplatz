@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,9 +34,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <boost/optional.hpp>
 #include <deque>
 #include <mutex>
-#include <thread>
 
 namespace video {
 
@@ -56,7 +56,7 @@ namespace video {
         QImage img_;
         std::mutex mutex_;
 
-        std::deque< cv::Mat > que_;
+        std::deque< std::tuple< size_t, double, cv::Mat > > que_;
         std::unique_ptr< Recorder > recorder_;
 
     signals:
@@ -92,7 +92,7 @@ namespace video {
         void setCurrentFrame( int frameNumber );
 
         //
-        bool fetch( cv::Mat& ); // remove from top
+        boost::optional< std::tuple< size_t, double, cv::Mat > > fetch();
         static QImage toImage( const cv::Mat& );
     };
 

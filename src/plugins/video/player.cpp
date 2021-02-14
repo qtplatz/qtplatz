@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,9 +26,12 @@
 
 #include "player.hpp"
 #include "recorder.hpp"
+#include <adcontrols/chromatogram.hpp>
 #include <adcv/transform.hpp>
+#include <adportable/debug.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
+#include <vector>
 
 using namespace video;
 
@@ -47,9 +50,10 @@ Player::loadVideo( const std::string& filename )
 
     if ( capture_.open( filename ) ) {
         if ( capture_.isOpened() )    {
+            // capture_.set( cv::CAP_PROP_CONVERT_RGB, false ); // --> request raw value
             frameRate_ = capture_.get( cv::CAP_PROP_FPS );
-            if ( frameRate_ > 30 )
-                frameRate_ = 30; // workaround for webm that returning 1000 fps
+            if ( frameRate_ >= 1000 ) // workaround for webm that returning 1000 fps
+                frameRate_ = 30;
 
             // save as .mp4 if not exists
             auto path = boost::filesystem::path( filename );
@@ -80,8 +84,8 @@ Player::loadCamera( int index )
         if ( frameRate_ > 30 )
             frameRate_ = 30;
         isCamera_ = true;
-        if ( ( recorder_ = std::make_unique< Recorder >() ) ) {
 
+        if ( ( recorder_ = std::make_unique< Recorder >() ) ) {
             cv::Size sz( capture_.get( cv::CAP_PROP_FRAME_WIDTH )
                          , capture_.get( cv::CAP_PROP_FRAME_HEIGHT ) );
 
@@ -108,24 +112,32 @@ Player::Play()
 void
 Player::run()
 {
-    size_t frame_counts = 0;
     auto start = std::chrono::high_resolution_clock::now();
 
     double delay = 1.0 / frameRate_;
 
-    while( !stop_ ) {
-        {
-            cv::Mat mat;
-            if ( ! capture_.read( mat ) )
-                stop_ = true;
-            std::lock_guard< std::mutex > lock( mutex_ );
-            que_.emplace_back( std::move( mat ) );
-        }
-        emit dataChanged();
+    // std::vector< double > trace;
+    auto trace = std::make_shared< adcontrols::Chromatogram >();
 
-        const cv::Mat& mat = que_.back();
+    while( !stop_ ) {
+
+        double pos = capture_.get( cv::CAP_PROP_POS_MSEC ) / 1000; // ms -> s
+        auto pos_frames = capture_.get( cv::CAP_PROP_POS_FRAMES );
+
+        cv::Mat mat;
+        if ( ! capture_.read( mat ) ) {
+            stop_ = true;
+            continue;
+        }
+        //----------->
+        {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            que_.emplace_back( pos_frames, pos, mat );
+        }
         if ( recorder_ )
-            (*recorder_) << que_.back();
+            (*recorder_) << mat;
+
+        emit dataChanged();
 
         if ( isCamera_ ) {
             if ( mat.channels()== 3 ) {
@@ -133,12 +145,12 @@ Player::run()
                 img_ = QImage( RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888 );
             } else {
                 img_ = QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
-                }
+            }
             emit processedImage( img_ );
         }
 
         // no wait
-        std::this_thread::sleep_until( start + ( ++frame_counts * std::chrono::duration< double >( delay ) ) );
+        std::this_thread::sleep_until( start + std::chrono::duration< double >( pos + delay ) );
     }
 }
 
@@ -218,17 +230,16 @@ Player::currentTime() const
     return capture_.get( cv::CAP_PROP_POS_MSEC );
 }
 
-bool
-Player::fetch( cv::Mat& mat )
+boost::optional< std::tuple< size_t, double, cv::Mat > >
+Player::fetch()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-
-    if ( !que_.empty() ) {
-        mat = std::move( que_.back() );
+    if ( ! que_.empty() ) {
+        auto pair = std::move( que_.front() );
         que_.pop_front();
-        return ! mat.empty();
+        return pair;
     }
-    return false;
+    return boost::none;
 }
 
 //static

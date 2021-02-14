@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -38,9 +38,6 @@
 #include <adportfolio/folium.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adwidgets/playercontrols.hpp>
-#if HAVE_ARRAYFIRE
-# include <adcv/aftypes.hpp>
-#endif
 #include <adcv/applycolormap.hpp>
 #include <adcv/cvtypes.hpp>
 #include <adcv/imagewidget.hpp>
@@ -76,7 +73,6 @@ VideoProcWnd::~VideoProcWnd()
 }
 
 VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
-                                              , tplot_( std::make_unique< adplot::ChromatogramWidget >() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
 
@@ -89,7 +85,6 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                 splitter2->addWidget( widget.get() );
             }
             splitter2->setOrientation( Qt::Horizontal );
-
             splitter->addWidget( splitter2 );
         }
 
@@ -125,10 +120,12 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             splitter->addWidget( toolBar );
         }
 
-        tplot_->setMaximumHeight( 120 );
-
-        splitter->addWidget( tplot_.get() );
-        splitter->setOrientation( Qt::Vertical );
+        if ( tplot_ = std::make_unique< adplot::ChromatogramWidget >( this ) ) {
+            tplot_->setMaximumHeight( 120 );
+            connect( tplot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelectedOnTime( const QRectF& ) ) );
+            splitter->addWidget( tplot_.get() );
+            splitter->setOrientation( Qt::Vertical );
+        }
 
         auto layout = new QVBoxLayout( this );
         layout->setMargin( 0 );
@@ -191,7 +188,21 @@ VideoProcWnd::handleData()
 
     auto player = document::instance()->player();
 
-    if ( player->fetch( mat ) ) {
+    while ( auto tuple = player->fetch() ) {
+
+        const size_t pos_frames = std::get< 0 >( *tuple );
+        const double pos = std::get< 1 >( *tuple );
+        const cv::Mat& mat = std::get< 2 >( *tuple );
+        double sum(0);
+
+        if ( mat.empty() ) {
+            ADDEBUG() << boost::format("pos_frames %d, pos: %.3f, sum: --") % pos_frames % (pos * 1000);
+            continue;
+        } else {
+            sum = cv::sum( mat )[0];
+            ADDEBUG() << boost::format("pos_frames %d, pos: %.3f, sum: %g") % pos_frames % (pos * 1000) % sum;
+        }
+
         cv::Mat_< uchar > gray8u;
         cv::cvtColor( mat, gray8u, cv::COLOR_BGR2GRAY );
 
@@ -219,4 +230,10 @@ VideoProcWnd::handleData()
         imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
         imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
     }
+}
+
+void
+VideoProcWnd::handleSelectedOnTime( const QRectF& rc )
+{
+    ADDEBUG() << "handle selcted on time";
 }

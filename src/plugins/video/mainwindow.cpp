@@ -123,12 +123,13 @@ MainWindow::createContents( Core::IMode * mode )
 
         if ( auto wnd = new VideoProcWnd() ) {
             stack_->addWidget( wnd );
-            wnd->setStyleSheet( "background-color:black;");
+            //wnd->setStyleSheet( "background-color:black;");
+            wnd->setStyleSheet( "background-color: black; color: green;");
         }
 
         if ( auto wnd = new VideoCaptureWnd() ) {
             stack_->addWidget( wnd );
-            wnd->setStyleSheet( "background-color:black;");
+            wnd->setStyleSheet( "background-color: black; color: green;");
         }
 
         topRightLayout->addWidget( stack_ );
