@@ -24,12 +24,82 @@
 
 #include "processor.hpp"
 #include "document.hpp"
+#include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adcv/applycolormap.hpp>
 #include <adcv/cvtypes.hpp>
 #include <adcv/imagewidget.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <opencv2/imgproc.hpp>
+
+namespace {
+
+    struct result_writer {
+        static bool open_db( adfs::sqlite& db, const std::string& file ) {
+            return db.open( file.c_str(), adfs::opencreate );
+        }
+
+        static void create_table( adfs::sqlite& db ) {
+            auto sql = adfs::stmt( db );
+            sql.exec( "PRAGMA synchronous = OFF" );
+            sql.exec( "PRAGMA journal_mode = MEMORY" );
+            sql.exec( "DROP TABLE IF EXISTS frame" );
+            sql.exec( "DROP TABLE IF EXISTS contours" );
+            sql.exec( "CREATE TABLE IF NOT EXISTS frame ("
+                      "frame_pos INTEGER"
+                      ",pos REAL"
+                      ",counts INTEGER"
+                      ",tic INTEGER"
+                      ",bp  INTEGER"
+                      ");" );
+
+            sql.exec( "CREATE TABLE IF NOT EXISTS contours ("
+                      " frame_pos INTEGER"
+                      ",pos REAL"
+                      ",id INTEGER"
+                      ",area REAL"
+                      ",cx REAL"
+                      ",cy REAL"
+                      ",width REAL"
+                      ",height REAL"
+                      ",FOREIGN KEY(frame_pos) REFERENCES frame(frame_pos)"
+                      ");" );
+        }
+        static void insert_frame( adfs::sqlite& db
+                                  , size_t pos_frames, double pos, size_t sum, size_t bp, size_t counts ) {
+            auto sql = adfs::stmt( db );
+            sql.prepare( "INSERT INTO frame (frame_pos, pos, counts, tic, bp)"
+                         " VALUES (?,?,?,?,?)" );
+            sql.bind( 1 ) = pos_frames;
+            sql.bind( 2 ) = pos;
+            sql.bind( 3 ) = counts;
+            sql.bind( 4 ) = sum;
+            sql.bind( 5 ) = bp;
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << __FUNCTION__ << " : sqlite error.";
+        }
+        static void insert_contours( adfs::sqlite& db
+                                     , size_t pos_frames, double pos
+                                     , size_t id, double area, double cx, double cy, double width, double height ) {
+            auto sql = adfs::stmt( db );
+            sql.prepare( "INSERT INTO contours (frame_pos, pos, id, area, cx, cy, width, height)"
+                         " VALUES (?,?,?,?,?,?,?,?)" );
+            sql.bind( 1 ) = pos_frames;
+            sql.bind( 2 ) = pos;
+            sql.bind( 3 ) = id;
+            sql.bind( 4 ) = area;
+            sql.bind( 5 ) = cx;
+            sql.bind( 6 ) = cy;
+            sql.bind( 7 ) = width;
+            sql.bind( 8 ) = height;
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << sql.errmsg();
+        }
+    };
+
+}
+
 
 using namespace video;
 
@@ -39,7 +109,9 @@ processor::~processor()
 
 processor::processor() : tic_( std::make_shared< adcontrols::Chromatogram >() )
                        , bp_( std::make_shared< adcontrols::Chromatogram >() )
+                       , counts_( std::make_shared< adcontrols::Chromatogram >() )
                        , numAverage_( 0 )
+                       , db_( std::make_unique< adfs::sqlite >() )
 {
 }
 
@@ -48,6 +120,7 @@ processor::reset()
 {
     tic_ = std::make_shared< adcontrols::Chromatogram >();
     bp_ = std::make_shared< adcontrols::Chromatogram >();
+    counts_ = std::make_shared< adcontrols::Chromatogram >();
     avg_.reset();
 }
 
@@ -121,6 +194,9 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     std::vector< cv::Vec4i > hierarchy;
 
     cv::findContours( canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+    *counts_ << std::make_pair( pos, contours.size() );
+
+    result_writer::insert_frame( *db_, pos_frames, pos, sum, max, contours.size() );
 
     cv::Mat drawing = cv::Mat::zeros( canny.size(), CV_8UC3 );
 
@@ -138,6 +214,7 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
         size_t y = size_t( 0.5 + rc.y / szFactor );
         double width = rc.width / szFactor;
         double height = rc.height / szFactor;
+        result_writer::insert_contours( *db_, pos_frames, pos, i, area, cx, cy, width, height );
     } // for
     contours_.emplace_back( pos_frames, pos, drawing );
 }
@@ -152,6 +229,12 @@ std::shared_ptr< adcontrols::Chromatogram >
 processor::time_profile_bp() const
 {
     return bp_;
+}
+
+std::shared_ptr< adcontrols::Chromatogram >
+processor::time_profile_counts() const
+{
+    return counts_;
 }
 
 std::pair< const cv::Mat *, size_t >
@@ -184,4 +267,21 @@ processor::contours( size_t frame_pos )
     if ( it != contours_.end() )
         return *it;
     return boost::none;
+}
+
+void
+processor::set_filename( const std::string& name )
+{
+    filename_ = name;
+    boost::filesystem::path path( name );
+    dbfile_ = path.replace_extension( ".db" ).string();
+    if ( result_writer::open_db( *db_, dbfile_ ) ) {
+        result_writer::create_table( *db_ );
+    }
+}
+
+const std::string&
+processor::filename() const
+{
+    return filename_;
 }

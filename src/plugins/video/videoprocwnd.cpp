@@ -153,8 +153,8 @@ void
 VideoProcWnd::handleFileChanged( const QString& name )
 {
     document::instance()->currentProcessor()->reset();
+    document::instance()->currentProcessor()->set_filename( name.toStdString() );
     document::instance()->player()->Play();
-    // average_.reset();
 
     if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
         controls->setState( QMediaPlayer::PlayingState );
@@ -218,12 +218,16 @@ VideoProcWnd::handleData()
         }
     }
 
-    if ( auto tic = processor->time_profile_tic() )
-        tplot_->setData( std::move( tic ), 0, false );
+    // if ( auto tic = processor->time_profile_tic() )
+    //     tplot_->setData( std::move( tic ), 0, false );
 
     // tplot_->enableAxis( QwtPlot::yRight, true );
-    if ( auto bp = processor->time_profile_bp() )
-        tplot_->setData( std::move( bp ), 1, false );
+    // tplot_->setAxisScale( QwtPlot::yRight, 0, 200 );
+    // if ( auto bp = processor->time_profile_bp() )
+    //     tplot_->setData( std::move( bp ), 1, false );
+
+    if ( auto counts = processor->time_profile_counts() )
+        tplot_->setData( std::move( counts ), 1, false );
 }
 
 void

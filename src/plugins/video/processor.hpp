@@ -36,6 +36,10 @@ namespace adcontrols {
     class Chromatogram;
 }
 
+namespace adfs {
+    class sqlite;
+}
+
 namespace video {
 
     class processor {
@@ -43,10 +47,14 @@ namespace video {
         std::vector< std::tuple< size_t, double, cv::Mat > > frames_;   // raw frames
         std::vector< std::tuple< size_t, double, cv::Mat > > cannys_;   // canny
         std::vector< std::tuple< size_t, double, cv::Mat > > contours_; // contours_ drawable
-        std::shared_ptr< adcontrols::Chromatogram > tic_; // total ion current
-        std::shared_ptr< adcontrols::Chromatogram > bp_;  // base peak intensity
+        std::shared_ptr< adcontrols::Chromatogram > tic_;     // total ion current
+        std::shared_ptr< adcontrols::Chromatogram > bp_;      // base peak intensity
+        std::shared_ptr< adcontrols::Chromatogram > counts_;  // contour counts
         std::unique_ptr< cv::Mat > avg_;
         size_t numAverage_;
+        std::string filename_;
+        std::string dbfile_;
+        std::unique_ptr< adfs::sqlite > db_;
     public:
         ~processor();
         processor();
@@ -54,9 +62,12 @@ namespace video {
         void addFrame( size_t pos, double t, const cv::Mat& );
         std::shared_ptr< adcontrols::Chromatogram > time_profile_tic() const;
         std::shared_ptr< adcontrols::Chromatogram > time_profile_bp() const;
+        std::shared_ptr< adcontrols::Chromatogram > time_profile_counts() const;
         std::pair< const cv::Mat *, size_t > avg() const;
         boost::optional< std::tuple< size_t, double, cv::Mat > > canny( size_t frame_pos = size_t(-1) );
         boost::optional< std::tuple< size_t, double, cv::Mat > > contours( size_t frame_pos = size_t(-1) );
+        void set_filename( const std::string& );
+        const std::string& filename() const;
     };
 
 }
