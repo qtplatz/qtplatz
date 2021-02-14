@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -62,7 +62,7 @@ namespace video {
         // bool loadFile(const QString &fileName);
 
         static QToolButton * toolButton( const char * );
-        
+
     private:
         QStackedWidget * stack_;
 
@@ -78,6 +78,7 @@ namespace video {
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
         void filePrintPdf();
+        void hideDock( bool );
 
     signals:
 

@@ -24,6 +24,7 @@
 
 #include "mainwindow.hpp"
 #include "constants.hpp"
+#include "contoursform.hpp"
 #include "document.hpp"
 #include <adcv/imagewidget.hpp>
 #include "videoprocwnd.hpp"
@@ -228,6 +229,9 @@ MainWindow::createMidStyledToolbar()
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+        toolBarLayout->addWidget( toolButton( Core::ActionManager::command( Constants::HIDE_DOCK )->action() ) );
+
         return toolBar;
     }
     return nullptr;
@@ -301,10 +305,22 @@ MainWindow::createActions()
             menu->addAction( am->command( Constants::VIDEO_FILE_SAVE ) );
         }
 
+        menu->addAction( am->command( Constants::HIDE_DOCK ) );
+
         // am->registerAction( p, Constants::VIDEO_PRINT_PDF, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Malpix|Open SQLite file...
         // connect( p, &QAction::triggered, this, &MainWindow::filePrintPdf );
         // menu->addAction( am->command( Constants::VIDEO_PRINT_PDF ) );
         // am->registerAction( p, Core::Constants::PRINT, Core::Context( Constants::C_VIDEO_MODE ) );    // File|Print
+
+        do {
+            QIcon icon;
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+            icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
+            auto * action = new QAction( icon, tr( "Hide dock" ), this );
+            action->setCheckable( true );
+            am->registerAction( action, Constants::HIDE_DOCK, Core::Context( Core::Constants::C_GLOBAL ) );
+            connect( action, &QAction::triggered, this, &MainWindow::hideDock );
+        } while ( 0 );
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
@@ -327,6 +343,14 @@ MainWindow::commit()
 void
 MainWindow::createDockWidgets()
 {
+    if ( auto form = new ContoursForm( this ) ) {
+
+        auto dock = createDockWidget( form, tr( "Contours" ), "Contours" );
+        dock->setMinimumWidth( 200 );
+        dock->setMaximumWidth( 400 );
+        dock->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
+
+    }
 }
 
 QDockWidget *
@@ -374,5 +398,16 @@ MainWindow::filePrintPdf()
         QPainter painter(&printer);
         if ( auto view = findChild< VideoProcWnd * >() )
             view->print( painter, printer );
+    }
+}
+
+void
+MainWindow::hideDock( bool hide )
+{
+    for ( auto& w :  dockWidgets() ) {
+        if ( hide )
+            w->hide();
+        else
+            w->show();
     }
 }

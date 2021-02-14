@@ -37,6 +37,10 @@ namespace video {
         const char * const VIDEO_RECENTFILES    = "video.RecentFiles";
         const char * const VIDEO_PRINT_PDF      = "video.PrintPDF";
         const char * const VIDEO_CAPTURE        = "video.capture";
+        const char * const HIDE_DOCK            = "video.HideDock";
+
+        const char * const ICON_DOCKHIDE        = ":/dataproc/image/button_close.png";
+        const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";
 
         const int ICON_SIZE( 64 );
         const int ABOVE_HEADING_MARGIN( 10 );
@@ -50,9 +54,7 @@ namespace video {
         const char * const KEY_FILES        = "Files";
         const char * const KEY_REFERENCE    = "ReferenceFiles";
         const char * const GRP_DIRECTORIES  = "Directories";
-        
+
     } // Constants
-    
+
 }
-
-
