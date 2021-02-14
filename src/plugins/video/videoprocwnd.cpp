@@ -195,7 +195,7 @@ VideoProcWnd::handleData()
         const size_t pos_frames = std::get< 0 >( *tuple );
         const double pos = std::get< 1 >( *tuple );
         const cv::Mat& mat = std::get< 2 >( *tuple );
-        double sum(0);
+        imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
 
         if ( mat.empty() ) {
             continue;
@@ -212,8 +212,18 @@ VideoProcWnd::handleData()
             imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
         }
         //<-----
-        imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
+
+        if ( auto drawable = processor->contours() ) {
+            imgWidgets_.at( 1 )->setImage( Player::toImage( std::get< 2 >(*drawable) ) );
+        }
     }
+
+    if ( auto tic = processor->time_profile_tic() )
+        tplot_->setData( std::move( tic ), 0, false );
+
+    // tplot_->enableAxis( QwtPlot::yRight, true );
+    if ( auto bp = processor->time_profile_bp() )
+        tplot_->setData( std::move( bp ), 1, false );
 }
 
 void

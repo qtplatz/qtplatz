@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,7 +23,10 @@
 **************************************************************************/
 #include "contoursform.hpp"
 #include "ui_contoursform.h"
+#include <QByteArray>
 #include <QSignalBlocker>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <limits>
 
 ContoursForm::ContoursForm(QWidget *parent) :
@@ -35,7 +38,7 @@ ContoursForm::ContoursForm(QWidget *parent) :
     ui->spinBox_4->setRange( 0, std::numeric_limits<int>::max() );
     ui->spinBox_5->setRange( 0, std::numeric_limits<int>::max() );
     ui->spinBox_5->setValue( std::numeric_limits<int>::max() );
-    
+
     connect( ui->spinBox, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idBlurSize, value ); });
     connect( ui->spinBox_2, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
@@ -45,7 +48,7 @@ ContoursForm::ContoursForm(QWidget *parent) :
     connect( ui->spinBox_4, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idMinSizeThreshold, value ); });
     connect( ui->spinBox_5, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
-             , this, [&]( int value ){ emit valueChanged( idMaxSizeThreshold, value ); });        
+             , this, [&]( int value ){ emit valueChanged( idMaxSizeThreshold, value ); });
 }
 
 ContoursForm::~ContoursForm()
@@ -79,7 +82,7 @@ ContoursForm::setMinSizeThreshold( unsigned value )
 {
     QSignalBlocker( ui->spinBox_4 );
     if ( value > static_cast< unsigned >( std::numeric_limits< int >::max() ) )
-        value = std::numeric_limits< int >::max();    
+        value = std::numeric_limits< int >::max();
     ui->spinBox_4->setValue( value );
 }
 
@@ -102,4 +105,18 @@ unsigned
 ContoursForm::maxSizeThreshold() const
 {
     return ui->spinBox_5->value();
+}
+
+QString
+ContoursForm::toJson() const
+{
+    QJsonDocument doc(
+        QJsonObject{
+            { "blurSize", ui->spinBox->value() }
+            , {"cannyThreshold", ui->spinBox_3->value() }
+            , {"minSizeThreshold", ui->spinBox_4->value() }
+            , {"maxSizeThreshold", ui->spinBox_5->value() }
+            , {"resize", ui->spinBox_2->value() }
+        });
+    return doc.toJson();
 }

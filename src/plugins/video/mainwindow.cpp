@@ -350,6 +350,10 @@ MainWindow::createDockWidgets()
         dock->setMaximumWidth( 400 );
         dock->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
 
+        connect( form, &ContoursForm::valueChanged, [=]( auto id, int value ){
+            document::instance()->setContoursMethod( form->toJson() );
+        });
+
     }
 }
 

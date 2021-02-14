@@ -43,12 +43,13 @@ public:
     void setCannyThreshold( int );
     void setMinSizeThreshold( unsigned );
     void setMaxSizeThreshold( unsigned );
-    
+
     int resize() const;
     int blurSize() const;
     int cannyThreshold() const;
     unsigned minSizeThreshold() const;
     unsigned maxSizeThreshold() const;
+    QString toJson() const;
 
     enum valueId { idResize, idBlurSize, idCannyThreshold, idMinSizeThreshold, idMaxSizeThreshold };
 

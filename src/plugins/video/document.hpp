@@ -74,6 +74,10 @@ namespace video {
         void captureCamera();
 
         std::shared_ptr< processor > currentProcessor();
+        void setContoursMethod( QString&& json );
+        int cannyThreshold() const;
+        int sizeFactor() const;
+        int blurSize() const;
 
     public slots:
 

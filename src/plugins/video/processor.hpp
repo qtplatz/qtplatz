@@ -40,7 +40,9 @@ namespace video {
 
     class processor {
         std::mutex mutex_;
-        std::vector< std::tuple< size_t, double, cv::Mat > > frames_; // raw frames
+        std::vector< std::tuple< size_t, double, cv::Mat > > frames_;   // raw frames
+        std::vector< std::tuple< size_t, double, cv::Mat > > cannys_;   // canny
+        std::vector< std::tuple< size_t, double, cv::Mat > > contours_; // contours_ drawable
         std::shared_ptr< adcontrols::Chromatogram > tic_; // total ion current
         std::shared_ptr< adcontrols::Chromatogram > bp_;  // base peak intensity
         std::unique_ptr< cv::Mat > avg_;
@@ -53,6 +55,8 @@ namespace video {
         std::shared_ptr< adcontrols::Chromatogram > time_profile_tic() const;
         std::shared_ptr< adcontrols::Chromatogram > time_profile_bp() const;
         std::pair< const cv::Mat *, size_t > avg() const;
+        boost::optional< std::tuple< size_t, double, cv::Mat > > canny( size_t frame_pos = size_t(-1) );
+        boost::optional< std::tuple< size_t, double, cv::Mat > > contours( size_t frame_pos = size_t(-1) );
     };
 
 }

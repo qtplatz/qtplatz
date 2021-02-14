@@ -51,10 +51,13 @@
 #include <boost/lexical_cast.hpp>
 #include <app/app_version.h>
 #include <QApplication>
-#include <QMessageBox>
-#include <QSettings>
+#include <QByteArray>
 #include <QFuture>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMessageBox>
 #include <QMetaType>
+#include <QSettings>
 #include <algorithm>
 
 Q_DECLARE_METATYPE( portfolio::Folium )
@@ -70,11 +73,27 @@ namespace video {
 
 
 namespace video {
+
+    struct cannyValue {
+        size_t blurSize;
+        size_t cannyThreshold;
+        size_t maxSizeThreshold;
+        size_t minSizeThreshold;
+        size_t resize;
+        cannyValue() : blurSize( 1 )
+                     , cannyThreshold( 1 )
+                     , maxSizeThreshold( 2147483647 )
+                     , minSizeThreshold( 1 )
+                     , resize( 0 ) {
+        }
+    };
+
     class document::impl {
     public:
         impl() {}
         ~impl() {}
         std::shared_ptr< processor > processor_;
+        cannyValue canny_value_;
     };
 }
 
@@ -161,4 +180,40 @@ document::currentProcessor()
     if ( ! impl_->processor_ )
         impl_->processor_ = std::make_shared< processor >();
     return impl_->processor_;
+}
+
+void
+document::setContoursMethod( QString&& json )
+{
+    auto obj = QJsonDocument::fromJson( json.toUtf8() ).object();
+    impl_->canny_value_.blurSize = obj["blurSize"].toInt();
+    impl_->canny_value_.cannyThreshold = obj["cannyThreshold"].toInt();
+    impl_->canny_value_.maxSizeThreshold = obj["maxSizeThreshold"].toInt();
+    impl_->canny_value_.minSizeThreshold = obj["minSizeThreshold"].toInt();
+    impl_->canny_value_.resize  = obj["resize"].toInt();
+#if 0
+    ADDEBUG() << "blurSize: " << impl_->canny_value_.blurSize
+              << ", cannyThreshold: " << impl_->canny_value_.cannyThreshold
+              << ", maxSizeThreshold: " << impl_->canny_value_.maxSizeThreshold
+              << ", minSizeThreshold: " << impl_->canny_value_.minSizeThreshold
+              << ", resize: " << impl_->canny_value_.resize;
+#endif
+}
+
+int
+document::cannyThreshold() const
+{
+    return impl_->canny_value_.cannyThreshold;
+}
+
+int
+document::sizeFactor() const
+{
+    return impl_->canny_value_.resize;
+}
+
+int
+document::blurSize() const
+{
+    return impl_->canny_value_.blurSize;
 }
