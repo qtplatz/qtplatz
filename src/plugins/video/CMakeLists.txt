@@ -88,6 +88,8 @@ add_library( ${PROJECT_NAME} MODULE
   mode.hpp
   player.cpp
   player.hpp
+  processor.cpp
+  processor.hpp
   recorder.cpp
   recorder.hpp
   recordercontrols.cpp

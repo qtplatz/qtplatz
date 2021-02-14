@@ -69,8 +69,6 @@ namespace video {
     private:
         std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
         std::unique_ptr< adplot::ChromatogramWidget > tplot_;
-        std::unique_ptr< cv::Mat > average_;
-        size_t numAverage_;
     };
 
 }

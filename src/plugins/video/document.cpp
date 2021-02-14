@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,7 @@
 #include "document.hpp"
 #include "constants.hpp"
 #include "player.hpp"
+#include "processor.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/msreferences.hpp>
@@ -67,17 +68,30 @@ namespace video {
     };
 }
 
+
+namespace video {
+    class document::impl {
+    public:
+        impl() {}
+        ~impl() {}
+        std::shared_ptr< processor > processor_;
+    };
+}
+
+
 using namespace video;
 
 std::mutex document::mutex_;
 
 document::~document()
 {
+    delete impl_;
 }
 
 document::document() : settings_( std::make_unique< QSettings >() )
                      , player_( std::make_unique< Player >() )
                      , camera_( std::make_unique< Player >() )
+                     , impl_( new impl() )
 {
 }
 
@@ -139,4 +153,12 @@ document::captureCamera()
 {
     camera_->loadCamera( 0 );
     emit cameraChanged();
+}
+
+std::shared_ptr< processor >
+document::currentProcessor()
+{
+    if ( ! impl_->processor_ )
+        impl_->processor_ = std::make_shared< processor >();
+    return impl_->processor_;
 }

@@ -85,5 +85,8 @@ namespace video {
     signals:
         void fileChanged( const QString& );
         void cameraChanged();
+    private:
+        class impl;
+        impl * impl_;
     };
 }

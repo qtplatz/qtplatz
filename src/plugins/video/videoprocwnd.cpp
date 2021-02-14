@@ -29,6 +29,7 @@
 #include "dft2d.hpp"
 #include "document.hpp"
 #include "player.hpp"
+#include "processor.hpp"
 #include <opencv2/core/core.hpp>
 #include <utils/styledbar.h>
 #include <adportable/debug.hpp>
@@ -111,7 +112,7 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                 connect( widget, &PlayerControls::stop, this, [=](){
                     ADDEBUG() << "stop";
                     document::instance()->player()->Stop();
-                    average_.reset();
+                    // average_.reset();
                     widget->setState( QMediaPlayer::StoppedState );
                 });
                 tbLayout->addWidget( widget );
@@ -151,8 +152,9 @@ VideoProcWnd::print( QPainter& painter, QPrinter& printer )
 void
 VideoProcWnd::handleFileChanged( const QString& name )
 {
+    document::instance()->currentProcessor()->reset();
     document::instance()->player()->Play();
-    average_.reset();
+    // average_.reset();
 
     if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
         controls->setState( QMediaPlayer::PlayingState );
@@ -183,8 +185,8 @@ VideoProcWnd::handlePlayer( QImage img )
 void
 VideoProcWnd::handleData()
 {
-    cv::Mat mat;
-    cv::Mat avg;
+    auto processor = document::instance()->currentProcessor();
+    // processor->reset();
 
     auto player = document::instance()->player();
 
@@ -196,39 +198,21 @@ VideoProcWnd::handleData()
         double sum(0);
 
         if ( mat.empty() ) {
-            ADDEBUG() << boost::format("pos_frames %d, pos: %.3f, sum: --") % pos_frames % (pos * 1000);
             continue;
         } else {
-            sum = cv::sum( mat )[0];
-            ADDEBUG() << boost::format("pos_frames %d, pos: %.3f, sum: %g") % pos_frames % (pos * 1000) % sum;
+            processor->addFrame( pos_frames, pos, mat );
         }
 
-        cv::Mat_< uchar > gray8u;
-        cv::cvtColor( mat, gray8u, cv::COLOR_BGR2GRAY );
-
-        cv::Mat_< float > gray32f( mat.rows, mat.cols );
-
-        gray8u.convertTo( gray32f, CV_32FC(1), 1.0/255 ); // 0..1.0 float gray scale
-
-        if ( !average_ ) {
-            average_ = std::make_unique< cv::Mat_< float > >( gray32f );
-            numAverage_ = 1;
-        } else {
-            *average_ += gray32f;
-            numAverage_++;
+        //----->
+        const cv::Mat * average;
+        size_t n;
+        std::tie( average, n ) = processor->avg();
+        if ( average ) {
+            auto avg = adcv::ApplyColorMap_< cv::Mat >()( *average, 8.0 / n );
+            imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
         }
-
-        if ( average_ ) {
-            avg = adcv::ApplyColorMap_< cv::Mat >()( *average_, 8.0 / numAverage_ );
-        }
-
-        if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
-            controls->setPos( double( player->currentFrame() ) / player->numberOfFrames() );
-            controls->setTime( double( player->currentTime() ) );
-        }
-
+        //<-----
         imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
-        imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
     }
 }
 
