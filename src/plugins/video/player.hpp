@@ -94,6 +94,7 @@ namespace video {
         //
         boost::optional< std::tuple< size_t, double, cv::Mat > > fetch();
         static QImage toImage( const cv::Mat& );
+        static QImage toImage( cv::Mat&& );
     };
 
 }

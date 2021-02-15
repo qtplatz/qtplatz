@@ -202,19 +202,21 @@ VideoProcWnd::handleData()
         } else {
             processor->addFrame( pos_frames, pos, mat );
         }
-
         //----->
+        auto [ average, n ] = processor->avg();
+#if 0 // __cplusplus < 201703L
         const cv::Mat * average;
         size_t n;
         std::tie( average, n ) = processor->avg();
+#endif
         if ( average ) {
             auto avg = adcv::ApplyColorMap_< cv::Mat >()( *average, 8.0 / n );
             imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
         }
-        //<-----
 
+        //<-----  contour plot -----
         if ( auto drawable = processor->contours() ) {
-            imgWidgets_.at( 1 )->setImage( Player::toImage( std::get< 2 >(*drawable) ) );
+            //imgWidgets_.at( 1 )->setImage( Player::toImage( std::get< 2 >(*drawable) ) );
         }
     }
 

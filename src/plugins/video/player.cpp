@@ -255,3 +255,9 @@ Player::toImage( const cv::Mat& mat )
     //     return QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
     // }
 }
+
+QImage
+Player::toImage( cv::Mat&& mat )
+{
+    return adcv::transform_< QImage >()( mat );
+}

@@ -98,6 +98,29 @@ namespace {
         }
     };
 
+    ///////////
+    struct averager {
+        std::unique_ptr< cv::Mat >& _;
+        size_t& n_;
+        averager( std::unique_ptr< cv::Mat >& a, size_t& n ) : _( a ), n_(n) {
+        }
+        void operator()( const cv::Mat& m ) const {
+            cv::Mat_< uchar > gray8u;
+            cv::cvtColor( m, gray8u, cv::COLOR_BGR2GRAY );
+
+            cv::Mat_< float > gray32f( m.rows, m.cols );
+            gray8u.convertTo( gray32f, CV_32FC(1), 1.0/255 ); // 0..1.0 float gray scale
+
+            if ( !_ ) {
+                _ = std::make_unique< cv::Mat_< float > >( gray32f );
+                n_ = 1;
+            } else {
+                *_ += gray32f;
+                n_++;
+            }
+        }
+    };
+
 }
 
 
@@ -139,19 +162,7 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     frames_.emplace_back( pos_frames, pos, m );
 
     // average
-    cv::Mat_< uchar > gray8u;
-    cv::cvtColor( m, gray8u, cv::COLOR_BGR2GRAY );
-
-    cv::Mat_< float > gray32f( m.rows, m.cols );
-    gray8u.convertTo( gray32f, CV_32FC(1), 1.0/255 ); // 0..1.0 float gray scale
-
-    if ( !avg_ ) {
-        avg_ = std::make_unique< cv::Mat_< float > >( gray32f );
-        numAverage_ = 1;
-    } else {
-        *avg_ += gray32f;
-        numAverage_++;
-    }
+    averager( avg_, numAverage_ )( m );
 
     //---------------
     cv::Mat canny;
