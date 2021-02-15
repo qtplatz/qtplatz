@@ -30,31 +30,33 @@
 #include "document.hpp"
 #include "player.hpp"
 #include "processor.hpp"
-#include <opencv2/core/core.hpp>
-#include <utils/styledbar.h>
-#include <adportable/debug.hpp>
-#include <adportable/float.hpp>
-#include <adportfolio/portfolio.hpp>
-#include <adportfolio/folder.hpp>
-#include <adportfolio/folium.hpp>
-#include <adplot/chromatogramwidget.hpp>
-#include <adwidgets/playercontrols.hpp>
 #include <adcv/applycolormap.hpp>
 #include <adcv/cvtypes.hpp>
 #include <adcv/imagewidget.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/spanmarker.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/float.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adwidgets/playercontrols.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/progressmanager/progressmanager.h>
+#include <utils/styledbar.h>
 #include <QBoxLayout>
 #include <QCoreApplication>
+#include <QDebug>
 #include <QEvent>
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
 #include <QPrinter>
 #include <QSignalBlocker>
+#include <opencv2/core/core.hpp>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
@@ -67,13 +69,26 @@
 #include <mutex>
 #include <thread>
 
+namespace video {
+
+    class VideoProcWnd::impl {
+    public:
+        std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
+        std::unique_ptr< adplot::ChromatogramWidget > tplot_;
+        std::unique_ptr< adplot::SpanMarker > tplotMarker_;
+    };
+
+}
+
 using namespace video;
 
 VideoProcWnd::~VideoProcWnd()
 {
+    delete impl_;
 }
 
 VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
+                                              , impl_( new impl() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
 
@@ -81,7 +96,7 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
 
         if ( auto splitter2 = new Core::MiniSplitter ) {
 
-            for ( auto& widget: imgWidgets_ ) {
+            for ( auto& widget: impl_->imgWidgets_ ) {
                 widget = std::make_unique< adcv::ImageWidget >( this );
                 splitter2->addWidget( widget.get() );
             }
@@ -121,11 +136,18 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             splitter->addWidget( toolBar );
         }
 
-        if ( tplot_ = std::make_unique< adplot::ChromatogramWidget >( this ) ) {
-            tplot_->setMaximumHeight( 120 );
-            connect( tplot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelectedOnTime( const QRectF& ) ) );
-            splitter->addWidget( tplot_.get() );
+        if ( impl_->tplot_ = std::make_unique< adplot::ChromatogramWidget >( this ) ) {
+            impl_->tplot_->setMaximumHeight( 120 );
+            connect( impl_->tplot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelectedOnTime( const QRectF& ) ) );
+            splitter->addWidget( impl_->tplot_.get() );
             splitter->setOrientation( Qt::Vertical );
+
+            if ( ( impl_->tplotMarker_ =
+                   std::make_unique< adplot::SpanMarker >( QColor( 0xff, 0xa5, 0x00, 0x80 ), QwtPlotMarker::VLine, 2.5 ) ) ) { // orange
+                impl_->tplotMarker_->setXValue( 0.0, 0.0 );
+                impl_->tplotMarker_->attach( impl_->tplot_.get() );
+            }
+            impl_->tplot_->installEventFilter( this );
         }
 
         auto layout = new QVBoxLayout( this );
@@ -134,8 +156,14 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
         layout->addWidget( splitter );
     }
 
+    // connect( impl_->imgWidgets_[0].get(), &adcv::ImageWidget::onZoom, impl_->imgWidgets_[1].get(), &adcv::ImageWidget::handleZoom );
+    // connect( impl_->imgWidgets_[1].get(), &adcv::ImageWidget::onZoom, impl_->imgWidgets_[0].get(), &adcv::ImageWidget::handleZoom );
+    impl_->imgWidgets_[ 0 ]->sync( impl_->imgWidgets_[ 1 ].get() );
+    impl_->imgWidgets_[ 1 ]->sync( impl_->imgWidgets_[ 0 ].get() );
+
     connect( document::instance(), &document::fileChanged, this, &VideoProcWnd::handleFileChanged );
     connect( document::instance()->player(), &Player::dataChanged, this, &VideoProcWnd::handleData );
+    connect( this, &VideoProcWnd::nextFrame, this, &VideoProcWnd::handleNextFrame );
 }
 
 void
@@ -144,8 +172,8 @@ VideoProcWnd::print( QPainter& painter, QPrinter& printer )
     QRectF rc0( 0.0,                 0.0, printer.width() / 2, printer.height() );
     QRectF rc1( printer.width() / 2, 0.0, printer.width() / 2, printer.height() );
 
-    imgWidgets_.at( 0 )->graphicsView()->render( &painter, rc0 ); //, drawRect1 );
-    imgWidgets_.at( 1 )->graphicsView()->render( &painter, rc1 ); // , drawRect2 );
+    impl_->imgWidgets_.at( 0 )->graphicsView()->render( &painter, rc0 ); //, drawRect1 );
+    impl_->imgWidgets_.at( 1 )->graphicsView()->render( &painter, rc1 ); // , drawRect2 );
 
 }
 
@@ -169,7 +197,7 @@ VideoProcWnd::handlePlayer( QImage img )
 {
     if ( !img.isNull() ) {
 
-        imgWidgets_.at( 0 )->setImage( img );
+        impl_->imgWidgets_.at( 0 )->setImage( img );
 
         auto player = document::instance()->player();
 
@@ -195,7 +223,7 @@ VideoProcWnd::handleData()
         const size_t pos_frames = std::get< 0 >( *tuple );
         const double pos = std::get< 1 >( *tuple );
         const cv::Mat& mat = std::get< 2 >( *tuple );
-        imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
+        impl_->imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
 
         if ( mat.empty() ) {
             continue;
@@ -211,7 +239,7 @@ VideoProcWnd::handleData()
 #endif
         if ( average ) {
             auto avg = adcv::ApplyColorMap_< cv::Mat >()( *average, 8.0 / n );
-            imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
+            impl_->imgWidgets_.at( 1 )->setImage( Player::toImage( avg ) );
         }
 
         //<-----  contour plot -----
@@ -229,11 +257,47 @@ VideoProcWnd::handleData()
     //     tplot_->setData( std::move( bp ), 1, false );
 
     if ( auto counts = processor->time_profile_counts() )
-        tplot_->setData( std::move( counts ), 1, false );
+        impl_->tplot_->setData( std::move( counts ), 1, false );
 }
 
 void
 VideoProcWnd::handleSelectedOnTime( const QRectF& rc )
 {
     ADDEBUG() << "handle selcted on time";
+    qDebug() << rc;
+}
+
+void
+VideoProcWnd::handleNextFrame( bool forward )
+{
+    if ( auto processor = document::instance()->currentProcessor() ) {
+        auto frame_pos = processor->next_frame_pos( forward );
+        if ( auto frame = processor->frame( frame_pos ) ) {
+            auto [ fpos, pos, mat ] = *frame;
+            impl_->imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
+            impl_->tplotMarker_->setXValue( pos, pos );
+            impl_->tplot_->replot();
+        }
+        if ( auto canny = processor->contours( frame_pos ) ) {
+            //if ( auto canny = processor->canny( frame_pos ) ) {
+            auto [ fpos, pos, mat ] = *canny;
+            impl_->imgWidgets_.at( 1 )->setImage( Player::toImage( mat ) );
+        }
+    }
+}
+
+bool
+VideoProcWnd::eventFilter( QObject * object, QEvent * event )
+{
+    if ( event->type() == QEvent::KeyPress ) {
+        if ( object == impl_->tplot_.get() ) {
+            if ( QKeyEvent * keyEvent = static_cast< QKeyEvent * >( event ) ) {
+                switch ( keyEvent->key() ) {
+                case Qt::Key_Left:  emit nextFrame( false ); break;
+                case Qt::Key_Right: emit nextFrame( true ); break;
+                }
+            }
+        }
+    }
+    return QWidget::eventFilter( object, event );
 }

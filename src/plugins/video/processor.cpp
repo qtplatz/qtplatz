@@ -123,7 +123,6 @@ namespace {
 
 }
 
-
 using namespace video;
 
 processor::~processor()
@@ -135,6 +134,7 @@ processor::processor() : tic_( std::make_shared< adcontrols::Chromatogram >() )
                        , counts_( std::make_shared< adcontrols::Chromatogram >() )
                        , numAverage_( 0 )
                        , db_( std::make_unique< adfs::sqlite >() )
+                       , current_frame_pos_( 0 )
 {
 }
 
@@ -255,6 +255,19 @@ processor::avg() const
 }
 
 boost::optional< std::tuple< size_t, double, cv::Mat > >
+processor::frame( size_t frame_pos )
+{
+    if ( frame_pos == size_t(-1) )
+        return frames_.back();
+    auto it = std::lower_bound( frames_.begin(), frames_.end(), frame_pos, []( const auto& a, const auto& b){
+        return std::get< 0 >(a) < b;
+    });
+    if ( it != frames_.end() )
+        return *it;
+    return boost::none;
+}
+
+boost::optional< std::tuple< size_t, double, cv::Mat > >
 processor::canny( size_t frame_pos )
 {
     if ( frame_pos == size_t(-1) )
@@ -295,4 +308,32 @@ const std::string&
 processor::filename() const
 {
     return filename_;
+}
+
+void
+processor::rewind( bool tail )
+{
+    if ( tail )
+        current_frame_pos_ = frames_.size();
+    else
+        current_frame_pos_ = 0;
+}
+
+size_t
+processor::current_frame_pos() const
+{
+    return current_frame_pos_;
+}
+
+size_t
+processor::next_frame_pos( bool forward )
+{
+    if ( forward ) {
+        if ( frames_.size() > current_frame_pos_ )
+            ++current_frame_pos_;
+    } else {
+        if ( current_frame_pos_ )
+            --current_frame_pos_;
+    }
+    return current_frame_pos_;
 }

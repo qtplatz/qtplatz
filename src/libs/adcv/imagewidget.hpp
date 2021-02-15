@@ -46,11 +46,17 @@ namespace adcv {
         void setImage( const QImage& );
         QGraphicsView * graphicsView();
 
+        void sync( ImageWidget * );
+
     protected:
         bool eventFilter( QObject *, QEvent * event ) override;
         void zoom( int delta );
 
     public slots:
+        void handleZoom( double scale );
+
+    signals:
+        void onZoom( double sclae );
 
     private slots:
         void setupMatrix();

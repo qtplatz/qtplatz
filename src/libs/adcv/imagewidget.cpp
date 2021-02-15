@@ -95,6 +95,14 @@ ImageWidget::zoom( int delta )
     else
         scale_ /= 1.02;
     setupMatrix();
+    emit onZoom( scale_ );
+}
+
+void
+ImageWidget::handleZoom( double scale )
+{
+    scale_ = scale;
+    setupMatrix();
 }
 
 void
@@ -111,6 +119,19 @@ ImageWidget::graphicsView()
 {
     return graphicsView_;
 }
+
+void
+ImageWidget::sync( ImageWidget * other )
+{
+    connect( other, &adcv::ImageWidget::onZoom,  this, &adcv::ImageWidget::handleZoom );
+
+    connect( other->graphicsView()->verticalScrollBar(), &QScrollBar::valueChanged
+             , graphicsView_->verticalScrollBar(), &QScrollBar::setValue );
+
+    connect( other->graphicsView()->horizontalScrollBar(), &QScrollBar::valueChanged
+             , graphicsView_->horizontalScrollBar(), &QScrollBar::setValue );
+}
+
 
 bool
 ImageWidget::eventFilter( QObject * object, QEvent * event )

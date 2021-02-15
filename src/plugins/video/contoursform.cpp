@@ -42,13 +42,27 @@ ContoursForm::ContoursForm(QWidget *parent) :
     connect( ui->spinBox, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idBlurSize, value ); });
     connect( ui->spinBox_2, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
-             , this, [&]( int value ){ emit valueChanged( idResize, value ); });
+             , this, [&]( int value ){ emit valueChanged( idSizeFactor, value ); });
     connect( ui->spinBox_3, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
-             , this, [&]( int value ){ emit valueChanged( idCannyThreshold, value ); });
+             , this, [&]( int value ){
+                 if ( ui->spinBox_6->value() < value ) {
+                     QSignalBlocker block( this );
+                     ui->spinBox_6->setValue( value + 2 );
+                 }
+                 emit valueChanged( idCannyThreshold, value );
+             });
     connect( ui->spinBox_4, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idMinSizeThreshold, value ); });
     connect( ui->spinBox_5, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idMaxSizeThreshold, value ); });
+    connect( ui->spinBox_6, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
+             , this, [&]( int value ){
+                 if ( ui->spinBox_3->value() > value && value > 0 ) {
+                     QSignalBlocker block( this );
+                     ui->spinBox_3->setValue( value - 1 );
+                 }
+                 emit valueChanged( idCannyThreshold_H, value );
+             });
 }
 
 ContoursForm::~ContoursForm()
@@ -59,28 +73,29 @@ ContoursForm::~ContoursForm()
 void
 ContoursForm::setBlurSize( int value )
 {
-    QSignalBlocker( ui->spinBox );
+    QSignalBlocker block( ui->spinBox );
     ui->spinBox->setValue( value );
 }
 
 void
-ContoursForm::setResize( int value )
+ContoursForm::setSizeFactor( int value )
 {
-    QSignalBlocker( ui->spinBox_2 );
+    QSignalBlocker block( ui->spinBox_2 );
     ui->spinBox_2->setValue( value );
 }
 
 void
-ContoursForm::setCannyThreshold( int value )
+ContoursForm::setCannyThreshold( int value, int value_h )
 {
-    QSignalBlocker( ui->spinBox_3 );
+    QSignalBlocker block( this );
     ui->spinBox_3->setValue( value );
+    ui->spinBox_6->setValue( value_h );
 }
 
 void
 ContoursForm::setMinSizeThreshold( unsigned value )
 {
-    QSignalBlocker( ui->spinBox_4 );
+    QSignalBlocker block( ui->spinBox_4 );
     if ( value > static_cast< unsigned >( std::numeric_limits< int >::max() ) )
         value = std::numeric_limits< int >::max();
     ui->spinBox_4->setValue( value );
@@ -89,7 +104,7 @@ ContoursForm::setMinSizeThreshold( unsigned value )
 void
 ContoursForm::setMaxSizeThreshold( unsigned value )
 {
-    QSignalBlocker( ui->spinBox_5 );
+    QSignalBlocker block( ui->spinBox_5 );
     if ( value > static_cast< unsigned >( std::numeric_limits< int >::max() ) )
         value = std::numeric_limits< int >::max();
     ui->spinBox_5->setValue( value );
@@ -114,9 +129,10 @@ ContoursForm::toJson() const
         QJsonObject{
             { "blurSize", ui->spinBox->value() }
             , {"cannyThreshold", ui->spinBox_3->value() }
+            , {"cannyThreshold_H", ui->spinBox_6->value() }
             , {"minSizeThreshold", ui->spinBox_4->value() }
             , {"maxSizeThreshold", ui->spinBox_5->value() }
-            , {"resize", ui->spinBox_2->value() }
+            , {"sizeFactor", ui->spinBox_2->value() }
         });
     return doc.toJson();
 }

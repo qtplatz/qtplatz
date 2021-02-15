@@ -38,20 +38,21 @@ public:
     explicit ContoursForm(QWidget *parent = 0);
     ~ContoursForm();
 
-    void setResize( int );
+    void setSizeFactor( int );
     void setBlurSize( int );
-    void setCannyThreshold( int );
+    void setCannyThreshold( int, int );
     void setMinSizeThreshold( unsigned );
     void setMaxSizeThreshold( unsigned );
 
-    int resize() const;
+    int sizeFactor() const;
     int blurSize() const;
     int cannyThreshold() const;
+    int cannyThreshold_H() const;
     unsigned minSizeThreshold() const;
     unsigned maxSizeThreshold() const;
     QString toJson() const;
 
-    enum valueId { idResize, idBlurSize, idCannyThreshold, idMinSizeThreshold, idMaxSizeThreshold };
+    enum valueId { idSizeFactor, idBlurSize, idCannyThreshold, idMinSizeThreshold, idMaxSizeThreshold, idCannyThreshold_H };
 
 signals:
     void valueChanged( valueId, int value );

@@ -57,6 +57,7 @@ namespace video {
         void print( QPainter&, QPrinter& );
 
     signals:
+        void nextFrame( bool );
 
     public slots :
         void handleSelectedOnTime( const QRectF& );
@@ -65,10 +66,12 @@ namespace video {
         void handleData();
         void handlePlayer( QImage );
         void handleFileChanged( const QString& );
+        void handleNextFrame( bool );
 
     private:
-        std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
-        std::unique_ptr< adplot::ChromatogramWidget > tplot_;
+        bool eventFilter( QObject *, QEvent * );
+        class impl;
+        impl * impl_;
     };
 
 }

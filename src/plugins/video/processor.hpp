@@ -55,6 +55,7 @@ namespace video {
         std::string filename_;
         std::string dbfile_;
         std::unique_ptr< adfs::sqlite > db_;
+        size_t current_frame_pos_;
     public:
         ~processor();
         processor();
@@ -64,10 +65,14 @@ namespace video {
         std::shared_ptr< adcontrols::Chromatogram > time_profile_bp() const;
         std::shared_ptr< adcontrols::Chromatogram > time_profile_counts() const;
         std::pair< const cv::Mat *, size_t > avg() const;
+        boost::optional< std::tuple< size_t, double, cv::Mat > > frame( size_t frame_pos = size_t(-1) );
         boost::optional< std::tuple< size_t, double, cv::Mat > > canny( size_t frame_pos = size_t(-1) );
         boost::optional< std::tuple< size_t, double, cv::Mat > > contours( size_t frame_pos = size_t(-1) );
         void set_filename( const std::string& );
         const std::string& filename() const;
+        void rewind( bool tail = false );
+        size_t current_frame_pos() const;
+        size_t next_frame_pos( bool forward );
     };
 
 }
