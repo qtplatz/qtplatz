@@ -76,12 +76,12 @@ namespace video {
 
     struct cannyValue {
         size_t blurSize;
-        size_t cannyThreshold;
+        std::pair< int, int > cannyThreshold;
         size_t maxSizeThreshold;
         size_t minSizeThreshold;
         size_t resize;
         cannyValue() : blurSize( 1 )
-                     , cannyThreshold( 1 )
+                     , cannyThreshold{ 1, 3 }
                      , maxSizeThreshold( 2147483647 )
                      , minSizeThreshold( 1 )
                      , resize( 0 ) {
@@ -187,7 +187,8 @@ document::setContoursMethod( QString&& json )
 {
     auto obj = QJsonDocument::fromJson( json.toUtf8() ).object();
     impl_->canny_value_.blurSize = obj["blurSize"].toInt();
-    impl_->canny_value_.cannyThreshold = obj["cannyThreshold"].toInt();
+    impl_->canny_value_.cannyThreshold.first = obj["cannyThreshold"].toInt();
+    impl_->canny_value_.cannyThreshold.second = obj["cannyThreshold_H"].toInt();
     impl_->canny_value_.maxSizeThreshold = obj["maxSizeThreshold"].toInt();
     impl_->canny_value_.minSizeThreshold = obj["minSizeThreshold"].toInt();
     impl_->canny_value_.resize  = obj["resize"].toInt();
@@ -200,7 +201,7 @@ document::setContoursMethod( QString&& json )
 #endif
 }
 
-int
+std::pair< int, int >
 document::cannyThreshold() const
 {
     return impl_->canny_value_.cannyThreshold;
@@ -216,4 +217,16 @@ int
 document::blurSize() const
 {
     return impl_->canny_value_.blurSize;
+}
+
+int
+document::minSizeThreshold() const
+{
+    return impl_->canny_value_.minSizeThreshold;
+}
+
+int
+document::maxSizeThreshold() const
+{
+    return impl_->canny_value_.maxSizeThreshold;
 }

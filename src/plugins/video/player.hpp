@@ -72,7 +72,6 @@ namespace video {
 
         //Load a video from memory
         bool loadVideo( const std::string& filename );
-
         bool loadCamera( int );
 
         void Play();
@@ -86,6 +85,7 @@ namespace video {
         //
         void setRate( double );
         double frameRate() const;
+        cv::Size frameSize() const;
         size_t numberOfFrames() const;
         size_t currentFrame() const;
         double currentTime() const;

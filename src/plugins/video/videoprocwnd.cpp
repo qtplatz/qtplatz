@@ -30,6 +30,7 @@
 #include "document.hpp"
 #include "player.hpp"
 #include "processor.hpp"
+#include "recorder.hpp"
 #include <adcv/applycolormap.hpp>
 #include <adcv/cvtypes.hpp>
 #include <adcv/imagewidget.hpp>
@@ -60,7 +61,7 @@
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <algorithm>
 #include <condition_variable>
 #include <iostream>
@@ -136,7 +137,7 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             splitter->addWidget( toolBar );
         }
 
-        if ( impl_->tplot_ = std::make_unique< adplot::ChromatogramWidget >( this ) ) {
+        if ( ( impl_->tplot_ = std::make_unique< adplot::ChromatogramWidget >( this ) ) ) {
             impl_->tplot_->setMaximumHeight( 120 );
             connect( impl_->tplot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelectedOnTime( const QRectF& ) ) );
             splitter->addWidget( impl_->tplot_.get() );
@@ -182,6 +183,18 @@ VideoProcWnd::handleFileChanged( const QString& name )
 {
     document::instance()->currentProcessor()->reset();
     document::instance()->currentProcessor()->set_filename( name.toStdString() );
+
+    boost::filesystem::path path( name.toStdString() );
+    boost::filesystem::path record_name = path.parent_path() / path.stem();
+    record_name += "_canny.mp4";
+    if ( auto processor = document::instance()->currentProcessor() ) {
+        if ( boost::filesystem::exists( record_name ) )
+            boost::filesystem::remove( record_name );
+        if ( auto recorder = processor->create_recorder() )
+            recorder->open( record_name.string()
+                            , document::instance()->player()->frameRate(), document::instance()->player()->frameSize(), true );
+    }
+
     document::instance()->player()->Play();
 
     if ( auto controls = findChild< adwidgets::PlayerControls * >() ) {
@@ -231,8 +244,9 @@ VideoProcWnd::handleData()
             processor->addFrame( pos_frames, pos, mat );
         }
         //----->
+#if __cplusplus >= 201703L
         auto [ average, n ] = processor->avg();
-#if 0 // __cplusplus < 201703L
+#else // __cplusplus < 201703L
         const cv::Mat * average;
         size_t n;
         std::tie( average, n ) = processor->avg();
@@ -244,6 +258,7 @@ VideoProcWnd::handleData()
 
         //<-----  contour plot -----
         if ( auto drawable = processor->contours() ) {
+            processor->record( std::get< 2 >( *drawable ) );
             //imgWidgets_.at( 1 )->setImage( Player::toImage( std::get< 2 >(*drawable) ) );
         }
     }
@@ -258,6 +273,10 @@ VideoProcWnd::handleData()
 
     if ( auto counts = processor->time_profile_counts() )
         impl_->tplot_->setData( std::move( counts ), 1, false );
+
+    if ( player->isStopped() ) {
+        processor->close_recorder();
+    }
 }
 
 void

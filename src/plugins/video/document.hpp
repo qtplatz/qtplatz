@@ -75,9 +75,11 @@ namespace video {
 
         std::shared_ptr< processor > currentProcessor();
         void setContoursMethod( QString&& json );
-        int cannyThreshold() const;
+        std::pair< int, int > cannyThreshold() const;
         int sizeFactor() const;
         int blurSize() const;
+        int minSizeThreshold() const;
+        int maxSizeThreshold() const;
 
     public slots:
 

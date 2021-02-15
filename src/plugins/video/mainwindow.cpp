@@ -245,6 +245,14 @@ MainWindow::onInitialUpdate()
             lifecycle->OnInitialUpdate();
     }
 
+    if ( auto form = findChild< ContoursForm * >() ) {
+        form->setSizeFactor( document::instance()->sizeFactor() );
+        form->setBlurSize( document::instance()->sizeFactor() );
+        form->setCannyThreshold( document::instance()->cannyThreshold() );
+        form->setMinSizeThreshold( document::instance()->minSizeThreshold() );
+        form->setMaxSizeThreshold( document::instance()->minSizeThreshold() );
+    }
+
 #if defined Q_OS_LINUX
     auto fsize = qtwrapper::font_size()( 9 );
 

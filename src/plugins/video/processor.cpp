@@ -24,8 +24,10 @@
 
 #include "processor.hpp"
 #include "document.hpp"
+#include "recorder.hpp"
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
+#include <adcv/minmaxidx.hpp>
 #include <adcv/applycolormap.hpp>
 #include <adcv/cvtypes.hpp>
 #include <adcv/imagewidget.hpp>
@@ -63,6 +65,8 @@ namespace {
                       ",cy REAL"
                       ",width REAL"
                       ",height REAL"
+                      ",volume REAL"
+                      ",cone_h REAL"
                       ",FOREIGN KEY(frame_pos) REFERENCES frame(frame_pos)"
                       ");" );
         }
@@ -81,10 +85,11 @@ namespace {
         }
         static void insert_contours( adfs::sqlite& db
                                      , size_t pos_frames, double pos
-                                     , size_t id, double area, double cx, double cy, double width, double height ) {
+                                     , size_t id, double area, double cx, double cy, double width, double height
+                                     , double volume, int cone_h ) {
             auto sql = adfs::stmt( db );
-            sql.prepare( "INSERT INTO contours (frame_pos, pos, id, area, cx, cy, width, height)"
-                         " VALUES (?,?,?,?,?,?,?,?)" );
+            sql.prepare( "INSERT INTO contours (frame_pos, pos, id, area, cx, cy, width, height,volume,cone_h)"
+                         " VALUES (?,?,?,?,?,?,?,?,?,?)" );
             sql.bind( 1 ) = pos_frames;
             sql.bind( 2 ) = pos;
             sql.bind( 3 ) = id;
@@ -93,6 +98,8 @@ namespace {
             sql.bind( 6 ) = cy;
             sql.bind( 7 ) = width;
             sql.bind( 8 ) = height;
+            sql.bind( 9 ) = volume;
+            sql.bind( 10 ) = cone_h;
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << sql.errmsg();
         }
@@ -150,14 +157,12 @@ processor::reset()
 void
 processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
 {
-    double min(0), max(0), sum( cv::sum( m )[ 0 ] );
+    double sum( cv::sum( m )[ 0 ] );
 
     *tic_ << std::make_pair( pos, sum );
 
-    cv::minMaxIdx( m, &min, &max );
+    auto [ min, max ] = adcv::minMaxIdx( m );
     *bp_ << std::make_pair( pos, max );
-
-    ADDEBUG() << boost::format("pos_frames:\t%d\tpos:\t%.3f,\ttic:\t%g,\tbp:\t%g") % pos_frames % (pos * 1000) % sum % max;
 
     frames_.emplace_back( pos_frames, pos, m );
 
@@ -168,7 +173,7 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     cv::Mat canny;
     cv::Mat blur;
     cv::Mat gray;
-    int cannyThreshold = document::instance()->cannyThreshold();
+    auto cannyThreshold = document::instance()->cannyThreshold();
     int szFactor = 1; // std::max( 1, document::instance()->sizeFactor() );
     int blurSize = 1; // document::instance()->blurSize();
 
@@ -194,7 +199,7 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
 
     // edge detection
     try {
-        cv::Canny( blur, canny, cannyThreshold, cannyThreshold * 2, 3 );
+        cv::Canny( blur, canny, cannyThreshold.first, cannyThreshold.second, 3 );
     } catch ( cv::Exception& e ) {
         ADDEBUG() << e.what();
     }
@@ -207,6 +212,8 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     cv::findContours( canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
     *counts_ << std::make_pair( pos, contours.size() );
 
+    ADDEBUG() << boost::format("pos_frames:\t%d\tpos:\t%.3f,\ttic:\t%g,\tbp:\t%d\tcount:\t%d") % pos_frames % (pos * 1000) % sum % max % contours.size();
+
     result_writer::insert_frame( *db_, pos_frames, pos, sum, max, contours.size() );
 
     cv::Mat drawing = cv::Mat::zeros( canny.size(), CV_8UC3 );
@@ -214,18 +221,22 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     for( int i = 0; i< contours.size(); i++ )  {
         unsigned c = i + 1;
         cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
-        drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+        cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
 
         cv::Moments mu = cv::moments( contours[i], false );
         double cx = ( mu.m10 / mu.m00 ) / szFactor;
         double cy = ( mu.m01 / mu.m00 ) / szFactor;
         double area = cv::contourArea( contours[i] ) / ( szFactor * szFactor );
         cv::Rect rc = boundingRect( contours[i] );
-        size_t x = size_t( 0.5 + rc.x / szFactor );
-        size_t y = size_t( 0.5 + rc.y / szFactor );
+        // size_t x = size_t( 0.5 + rc.x / szFactor );
+        // size_t y = size_t( 0.5 + rc.y / szFactor );
         double width = rc.width / szFactor;
         double height = rc.height / szFactor;
-        result_writer::insert_contours( *db_, pos_frames, pos, i, area, cx, cy, width, height );
+
+        cv::Mat roi( m, rc );
+        double volume = cv::sum( roi )[0];
+        auto [ min, cone_h ] = adcv::minMaxIdx( roi );
+        result_writer::insert_contours( *db_, pos_frames, pos, i, area, cx, cy, width, height, volume, cone_h );
     } // for
     contours_.emplace_back( pos_frames, pos, drawing );
 }
@@ -299,9 +310,8 @@ processor::set_filename( const std::string& name )
     filename_ = name;
     boost::filesystem::path path( name );
     dbfile_ = path.replace_extension( ".db" ).string();
-    if ( result_writer::open_db( *db_, dbfile_ ) ) {
+    if ( result_writer::open_db( *db_, dbfile_ ) )
         result_writer::create_table( *db_ );
-    }
 }
 
 const std::string&
@@ -336,4 +346,23 @@ processor::next_frame_pos( bool forward )
             --current_frame_pos_;
     }
     return current_frame_pos_;
+}
+
+Recorder *
+processor::create_recorder()
+{
+    recorder_ = std::make_unique< Recorder >();
+    return recorder_.get();
+}
+
+void
+processor::close_recorder()
+{
+    recorder_.reset();
+}
+
+void
+processor::record( const cv::Mat& m )
+{
+    (*recorder_) << m;
 }

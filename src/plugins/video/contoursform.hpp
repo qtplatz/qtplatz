@@ -41,6 +41,7 @@ public:
     void setSizeFactor( int );
     void setBlurSize( int );
     void setCannyThreshold( int, int );
+    void setCannyThreshold( std::pair< int, int >&& );
     void setMinSizeThreshold( unsigned );
     void setMaxSizeThreshold( unsigned );
 

@@ -36,9 +36,9 @@
 using namespace video;
 
 Player::Player( QObject * parent ) : QThread( parent )
+                                   , isCamera_( true )
                                    , stop_( true )
                                    , frameRate_( 0 )
-                                   , isCamera_( true )
 {
 }
 
@@ -72,6 +72,13 @@ Player::loadVideo( const std::string& filename )
         }
     }
     return false;
+}
+
+cv::Size
+Player::frameSize() const
+{
+    return cv::Size( capture_.get( cv::CAP_PROP_FRAME_WIDTH )
+                     , capture_.get( cv::CAP_PROP_FRAME_HEIGHT ) );
 }
 
 bool
@@ -134,6 +141,7 @@ Player::run()
             std::lock_guard< std::mutex > lock( mutex_ );
             que_.emplace_back( pos_frames, pos, mat );
         }
+
         if ( recorder_ )
             (*recorder_) << mat;
 
@@ -189,7 +197,7 @@ Player::Prev()
 bool
 Player::isStopped() const
 {
-    return this->stop_;
+    return stop_;
 }
 
 void

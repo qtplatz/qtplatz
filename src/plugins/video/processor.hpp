@@ -42,6 +42,8 @@ namespace adfs {
 
 namespace video {
 
+    class Recorder;
+
     class processor {
         std::mutex mutex_;
         std::vector< std::tuple< size_t, double, cv::Mat > > frames_;   // raw frames
@@ -56,6 +58,7 @@ namespace video {
         std::string dbfile_;
         std::unique_ptr< adfs::sqlite > db_;
         size_t current_frame_pos_;
+        std::unique_ptr< Recorder > recorder_;
     public:
         ~processor();
         processor();
@@ -73,6 +76,9 @@ namespace video {
         void rewind( bool tail = false );
         size_t current_frame_pos() const;
         size_t next_frame_pos( bool forward );
+        Recorder * create_recorder();
+        void close_recorder();
+        void record( const cv::Mat& );
     };
 
 }

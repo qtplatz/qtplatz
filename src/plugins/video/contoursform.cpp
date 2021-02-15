@@ -93,6 +93,14 @@ ContoursForm::setCannyThreshold( int value, int value_h )
 }
 
 void
+ContoursForm::setCannyThreshold( std::pair< int, int >&&  value )
+{
+    QSignalBlocker block( this );
+    ui->spinBox_3->setValue( value.first );
+    ui->spinBox_6->setValue( value.second );
+}
+
+void
 ContoursForm::setMinSizeThreshold( unsigned value )
 {
     QSignalBlocker block( ui->spinBox_4 );
