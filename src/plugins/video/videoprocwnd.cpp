@@ -138,7 +138,6 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                 connect( widget, &PlayerControls::stop, this, [=](){
                     ADDEBUG() << "stop";
                     document::instance()->player()->Stop();
-                    // average_.reset();
                     widget->setState( QMediaPlayer::StoppedState );
                 });
                 tbLayout->addWidget( widget );
@@ -294,7 +293,6 @@ VideoProcWnd::handleData()
 
     if ( player->isStopped() ) {
         processor->close_recorder();
-        auto [ average, n ] = processor->avg();
     }
 }
 
@@ -303,6 +301,13 @@ VideoProcWnd::handleSelectedOnTime( const QRectF& rc )
 {
     ADDEBUG() << "handle selcted on time";
     qDebug() << rc;
+    if ( auto processor = document::instance()->currentProcessor() ){
+        auto [ average, n ] = processor->avg();
+        if ( average ) {
+            auto avg = adcv::ApplyColorMap_< cv::Mat >()( *average, 8.0 / n );
+            impl_->map_->setData( avg );
+        }
+    }
 }
 
 void

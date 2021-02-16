@@ -129,46 +129,28 @@ namespace adcv {
             setInterval( Qt::ZAxis, QwtInterval( 0, 10.0 ) );
         }
 
-        // void setData( std::shared_ptr< const adcontrols::MappedImage >&& data ) {
-        //     data_ = std::move( data );
-        // }
         void setData( cv::Mat&& data ) {
             data_ = std::move( data );
-            dimension_ = std::make_pair( data.rows, data.cols );
-#if 0
-            for ( size_t row = 0; row < data_.rows; ++row ) {
-                for ( size_t col = 0; col < data_.cols; ++col ) {
-                    if ( data_.at< float >( row, col ) > 0 ) {
-                        ADDEBUG() << std::pair( row, col ) << ": " << data_.at< float >( row, col );
-                    }
-                }
-            }
-#endif
         }
 
-        inline const std::pair< size_t, size_t >& dimension() const { return dimension_; }
-
         void dimension( size_t nrows, size_t ncolumns ) {
-            ADDEBUG() << "dimension( " << nrows << ", " << ncolumns << ")";
             dimension_ = std::make_pair( nrows, ncolumns );
             setInterval( Qt::XAxis, QwtInterval( 0, ncolumns ) );
             setInterval( Qt::YAxis, QwtInterval( 0, nrows ) );
         }
 
         virtual double value( double _x, double _y ) const  {
-            if ( !data_.empty() ) {
+            if ( ! data_.empty() ) {
                 size_t x = size_t( _x + 0.5 );
                 size_t y = size_t( _y + 0.5 );
                 if ( x < data_.cols && y < data_.rows ) {
-                    double value = data_.at< double >( y, x );
-                    return value;
+                    return data_.at< float >( y, x );
                 }
             }
             return 0;
         }
     private:
         cv::Mat data_;
-        // std::shared_ptr< const adcontrols::MappedImage > data_;
         std::pair< size_t, size_t > dimension_;
     };
 
@@ -186,11 +168,9 @@ namespace adcv {
 
     //------------------------- impl ----------------------------------
     class SpectrogramPlot::impl {
-        SpectrogramPlot * this_;
     public:
-        impl( SpectrogramPlot * p ) : this_( p )
-                                    , spectrogram_( new QwtPlotSpectrogram() )
-                                    , drawable_( new SpectrogramData( 64, 64 ) )
+        impl( SpectrogramPlot * p ) : spectrogram_( new QwtPlotSpectrogram() )
+                                    , drawable_( new SpectrogramData( 1280, 960 ) )
                                     , marker_( new marker() ) {
         }
 
@@ -306,12 +286,12 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
     sd->setMinimumExtent( fm.width( "888.0" ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
-
 }
 
 void
 SpectrogramPlot::setData( const cv::Mat& mat )
 {
+#if 0
     auto depth = mat.type() & CV_MAT_DEPTH_MASK;
     auto chans = 1 + (mat.type() >> CV_CN_SHIFT);
 
@@ -328,7 +308,7 @@ SpectrogramPlot::setData( const cv::Mat& mat )
     }
     o << "C" << char( chans + '0' );
     ADDEBUG() << "mat.type: " << mat.type() << ", dim: " << std::make_pair( mat.cols, mat.rows ) << ", " << o.str();
-
+#endif
     cv::Mat_< float > gray( mat.rows, mat.cols );
 
     if ( mat.type() == CV_8UC3 ) {
@@ -340,10 +320,12 @@ SpectrogramPlot::setData( const cv::Mat& mat )
     }
 
     impl_->drawable_->dimension( gray.rows, gray.cols );
-    if ( auto zoomer = findChild< QwtPlotZoomer * >() )
-        zoomer->setZoomBase();
-
     impl_->drawable_->setData( std::move( gray ) );
+
+    if ( auto zoomer = findChild< QwtPlotZoomer * >() ) {
+        zoomer->setZoomBase();
+    }
+
 	impl_->spectrogram_->invalidateCache();
 
 	replot();
@@ -353,7 +335,6 @@ void
 SpectrogramPlot::setAxisZMax( double z )
 {
     if ( z > 0 ) {
-
         QwtInterval zInterval( 0.0, z );
         impl_->drawable_->setInterval( Qt::ZAxis, zInterval );
 

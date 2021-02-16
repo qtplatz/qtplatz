@@ -174,8 +174,8 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     cv::Mat blur;
     cv::Mat gray;
     auto cannyThreshold = document::instance()->cannyThreshold();
-    int szFactor = 1; // std::max( 1, document::instance()->sizeFactor() );
-    int blurSize = 1; // document::instance()->blurSize();
+    int szFactor = std::max( 1, document::instance()->sizeFactor() );
+    int blurSize = document::instance()->blurSize();
 
     try {
         if ( szFactor > 1 ) {

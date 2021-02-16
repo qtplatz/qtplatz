@@ -88,7 +88,7 @@ namespace video {
     };
 
     struct topToolBarValues {
-        int zScale;
+        double zScale;
         bool zScaleAutoEnabled;
         topToolBarValues() : zScale( 10 )
                            , zScaleAutoEnabled( true ) {
@@ -138,12 +138,13 @@ document::initialSetup()
     // auto obj = QJsonDocument::fromJson( settings_->value( "topToolBar", "{}" ).toByteArray() ).object();
     // ADDEBUG() << QJsonDocument( obj ).toJson().toStdString();
     impl_->topToolBarValues_.zScaleAutoEnabled = settings_->value( "topToolBar/zScaleAutoEnabled", true ).toBool();
-    impl_->topToolBarValues_.zScale = settings_->value( "topToolBar/zScale", 10 ).toInt();
+    impl_->topToolBarValues_.zScale = settings_->value( "topToolBar/zScale", 10 ).toDouble();
 }
 
 void
 document::finalClose()
 {
+    settings_->sync();
 }
 
 QSettings&
@@ -254,7 +255,7 @@ document::setZScaleAutoEnabled( bool enable )
 }
 
 void
-document::setZScale( int scale )
+document::setZScale( double scale )
 {
     impl_->topToolBarValues_.zScale = scale;
     settings_->setValue( "topToolBar/zScale", scale );
@@ -266,7 +267,7 @@ document::zScaleAutoEnabled() const
     return impl_->topToolBarValues_.zScaleAutoEnabled;
 }
 
-int
+double
 document::zScale() const
 {
     return impl_->topToolBarValues_.zScale;

@@ -190,8 +190,7 @@ MainWindow::createContents( Core::IMode * mode )
 Utils::StyledBar *
 MainWindow::createTopStyledToolbar()
 {
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
+    if ( auto toolBar = qtwrapper::make_widget< Utils::StyledBar >( "topToolbar" ) ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
@@ -225,15 +224,16 @@ MainWindow::createTopStyledToolbar()
             toolBarLayout->addItem( new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
             //--
             toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbZAuto", "Z-Auto" ) );
-            toolBarLayout->addWidget( qtwrapper::make_widget< QSpinBox >( "zScale" ) );
+            toolBarLayout->addWidget( qtwrapper::make_widget< QDoubleSpinBox >( "zScale" ) );
             //--
 
             toolBarLayout->addWidget( new Utils::StyledSeparator );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        return toolBar;
     }
-    return toolBar;
+    return nullptr;
 }
 
 Utils::StyledBar *
@@ -288,14 +288,20 @@ MainWindow::onInitialUpdate()
 
     if ( auto topBar = findChild< Utils::StyledBar * >( "topToolbar" ) ) {
         if ( auto cbx = topBar->findChild< QCheckBox * >( "cbZAuto" ) ) {
+            cbx->setChecked( document::instance()->zScaleAutoEnabled() );
             connect( cbx, &QCheckBox::toggled, document::instance(), &document::setZScaleAutoEnabled );
             if ( auto wnd = findChild< VideoProcWnd * >() )
                 connect( cbx, &QCheckBox::toggled, wnd, &VideoProcWnd::handleZAutoScaleEnabled );
         }
-        if ( auto spin = topBar->findChild< QSpinBox * >( "zScale" ) ) {
-            connect( spin, qOverload<int>(&QSpinBox::valueChanged), document::instance(), &document::setZScale );
+        if ( auto spin = topBar->findChild< QDoubleSpinBox * >( "zScale" ) ) {
+            spin->setRange( 0.01, 99999.99 );
+            spin->setSingleStep( 1.0 );
+            spin->setValue( document::instance()->zScale() );
+            connect( spin, qOverload<double>(&QDoubleSpinBox::valueChanged), document::instance(), &document::setZScale );
             if ( auto wnd = findChild< VideoProcWnd * >() )
-                connect( spin, qOverload<int>(&QSpinBox::valueChanged), wnd, &VideoProcWnd::handleZScale );
+                connect( spin, qOverload<double>(&QDoubleSpinBox::valueChanged), wnd, &VideoProcWnd::handleZScale );
+        } else {
+            assert(0);
         }
     }
 
