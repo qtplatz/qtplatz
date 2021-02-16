@@ -36,6 +36,7 @@
 #include <adcv/imagewidget.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spanmarker.hpp>
+#include <adcv/spectrogramplot.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportfolio/folder.hpp>
@@ -75,6 +76,7 @@ namespace video {
     class VideoProcWnd::impl {
     public:
         std::array< std::unique_ptr< adcv::ImageWidget >, 2 > imgWidgets_;
+        std::unique_ptr< adcv::SpectrogramPlot > map_;
         std::unique_ptr< adplot::ChromatogramWidget > tplot_;
         std::unique_ptr< adplot::SpanMarker > tplotMarker_;
     };
@@ -101,7 +103,15 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                 widget = std::make_unique< adcv::ImageWidget >( this );
                 splitter2->addWidget( widget.get() );
             }
+
+            if (( impl_->map_ = std::make_unique< adcv::SpectrogramPlot >( this ) )) {
+                splitter2->addWidget( impl_->map_.get() );
+            }
+
             splitter2->setOrientation( Qt::Horizontal );
+            splitter2->setStretchFactor( 0, 1 );
+            splitter2->setStretchFactor( 1, 1 );
+            splitter2->setStretchFactor( 2, 1 );
             splitter->addWidget( splitter2 );
         }
 
@@ -133,7 +143,6 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
                 });
                 tbLayout->addWidget( widget );
             }
-
             splitter->addWidget( toolBar );
         }
 
@@ -142,7 +151,6 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
             connect( impl_->tplot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelectedOnTime( const QRectF& ) ) );
             splitter->addWidget( impl_->tplot_.get() );
             splitter->setOrientation( Qt::Vertical );
-
             if ( ( impl_->tplotMarker_ =
                    std::make_unique< adplot::SpanMarker >( QColor( 0xff, 0xa5, 0x00, 0x80 ), QwtPlotMarker::VLine, 2.5 ) ) ) { // orange
                 impl_->tplotMarker_->setXValue( 0.0, 0.0 );
@@ -157,7 +165,9 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
         layout->addWidget( splitter );
     }
 
-    // connect( impl_->imgWidgets_[0].get(), &adcv::ImageWidget::onZoom, impl_->imgWidgets_[1].get(), &adcv::ImageWidget::handleZoom );
+    connect( impl_->imgWidgets_[0].get(), &adcv::ImageWidget::onZoom, this, [&]( double scale ){
+            emit onZoom( scale );
+        });
     // connect( impl_->imgWidgets_[1].get(), &adcv::ImageWidget::onZoom, impl_->imgWidgets_[0].get(), &adcv::ImageWidget::handleZoom );
     impl_->imgWidgets_[ 0 ]->sync( impl_->imgWidgets_[ 1 ].get() );
     impl_->imgWidgets_[ 1 ]->sync( impl_->imgWidgets_[ 0 ].get() );
@@ -175,7 +185,13 @@ VideoProcWnd::print( QPainter& painter, QPrinter& printer )
 
     impl_->imgWidgets_.at( 0 )->graphicsView()->render( &painter, rc0 ); //, drawRect1 );
     impl_->imgWidgets_.at( 1 )->graphicsView()->render( &painter, rc1 ); // , drawRect2 );
+}
 
+void
+VideoProcWnd::handleZoomScale( double scale )
+{
+    impl_->imgWidgets_.at( 0 )->handleZoom( scale );
+    impl_->imgWidgets_.at( 1 )->handleZoom( scale );
 }
 
 void
@@ -190,9 +206,11 @@ VideoProcWnd::handleFileChanged( const QString& name )
     if ( auto processor = document::instance()->currentProcessor() ) {
         if ( boost::filesystem::exists( record_name ) )
             boost::filesystem::remove( record_name );
+#if 0
         if ( auto recorder = processor->create_recorder() )
             recorder->open( record_name.string()
                             , document::instance()->player()->frameRate(), document::instance()->player()->frameSize(), true );
+#endif
     }
 
     document::instance()->player()->Play();
@@ -276,6 +294,7 @@ VideoProcWnd::handleData()
 
     if ( player->isStopped() ) {
         processor->close_recorder();
+        auto [ average, n ] = processor->avg();
     }
 }
 
@@ -296,6 +315,9 @@ VideoProcWnd::handleNextFrame( bool forward )
             impl_->imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
             impl_->tplotMarker_->setXValue( pos, pos );
             impl_->tplot_->replot();
+
+            ///
+            impl_->map_->setData( mat );
         }
         if ( auto canny = processor->contours( frame_pos ) ) {
             //if ( auto canny = processor->canny( frame_pos ) ) {
@@ -319,4 +341,21 @@ VideoProcWnd::eventFilter( QObject * object, QEvent * event )
         }
     }
     return QWidget::eventFilter( object, event );
+}
+
+void
+VideoProcWnd::handleZAutoScaleEnabled( bool enable )
+{
+    if ( enable ) {
+        impl_->map_->setAxisZMax( -1 );
+    } else {
+        impl_->map_->setAxisZMax( document::instance()->zScale() );
+    }
+}
+
+void
+VideoProcWnd::handleZScale( int scale )
+{
+    if ( ! document::instance()->zScaleAutoEnabled() )
+        impl_->map_->setAxisZMax( scale );
 }

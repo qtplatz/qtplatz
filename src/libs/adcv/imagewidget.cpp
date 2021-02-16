@@ -101,8 +101,10 @@ ImageWidget::zoom( int delta )
 void
 ImageWidget::handleZoom( double scale )
 {
-    scale_ = scale;
-    setupMatrix();
+    if ( scale > 0.5 ) {
+        scale_ = scale;
+        setupMatrix();
+    }
 }
 
 void
@@ -110,6 +112,8 @@ ImageWidget::setupMatrix()
 {
     QMatrix matrix;
     matrix.scale( scale_, scale_ );
+
+    ADDEBUG() << "setupMatrix scale: " << scale_;
 
     graphicsView_->setMatrix(matrix);
 }

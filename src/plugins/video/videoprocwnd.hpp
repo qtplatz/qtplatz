@@ -53,14 +53,17 @@ namespace video {
 
         void setHistogramWindow( double tof, double width );
         void setEnabled( int id, bool enable ); // check/uncheck map rect (0) or tof range(1)
-
         void print( QPainter&, QPrinter& );
 
     signals:
         void nextFrame( bool );
+        void onZoom( double );
 
     public slots :
         void handleSelectedOnTime( const QRectF& );
+        void handleZoomScale( double ); // to ImageViewer
+        void handleZAutoScaleEnabled( bool );
+        void handleZScale( int );
 
     private slots:
         void handleData();

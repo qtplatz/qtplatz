@@ -297,7 +297,6 @@ MainWindow::createStyledBarTop()
 
         }
 
-
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 

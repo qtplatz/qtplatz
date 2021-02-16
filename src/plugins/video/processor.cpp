@@ -212,11 +212,13 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     cv::findContours( canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
     *counts_ << std::make_pair( pos, contours.size() );
 
-    ADDEBUG() << boost::format("pos_frames:\t%d\tpos:\t%.3f,\ttic:\t%g,\tbp:\t%d\tcount:\t%d") % pos_frames % (pos * 1000) % sum % max % contours.size();
-
     result_writer::insert_frame( *db_, pos_frames, pos, sum, max, contours.size() );
 
     cv::Mat drawing = cv::Mat::zeros( canny.size(), CV_8UC3 );
+
+    double volume_total(0);
+    cv::Mat copy;
+    m.copyTo( copy );
 
     for( int i = 0; i< contours.size(); i++ )  {
         unsigned c = i + 1;
@@ -228,16 +230,22 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
         double cy = ( mu.m01 / mu.m00 ) / szFactor;
         double area = cv::contourArea( contours[i] ) / ( szFactor * szFactor );
         cv::Rect rc = boundingRect( contours[i] );
-        // size_t x = size_t( 0.5 + rc.x / szFactor );
-        // size_t y = size_t( 0.5 + rc.y / szFactor );
         double width = rc.width / szFactor;
         double height = rc.height / szFactor;
 
         cv::Mat roi( m, rc );
         double volume = cv::sum( roi )[0];
+        volume_total += volume;
         auto [ min, cone_h ] = adcv::minMaxIdx( roi );
         result_writer::insert_contours( *db_, pos_frames, pos, i, area, cx, cy, width, height, volume, cone_h );
+        cv::Mat zroi( copy, rc );
+        zroi.setTo( cv::Scalar( 0, 0, 0 ) );
     } // for
+
+    auto dark = cv::sum( copy )[0];
+    ADDEBUG() << boost::format("pos_frames:\t%4d\tpos:\t%7.2f,\ttic:\t%g\tdark:\t%g\tbp:\t%d\tn:\t%d")
+        % pos_frames % (pos * 1000) % sum % dark % max % contours.size();
+
     contours_.emplace_back( pos_frames, pos, drawing );
 }
 
@@ -364,5 +372,6 @@ processor::close_recorder()
 void
 processor::record( const cv::Mat& m )
 {
-    (*recorder_) << m;
+    if ( recorder_ )
+        (*recorder_) << m;
 }

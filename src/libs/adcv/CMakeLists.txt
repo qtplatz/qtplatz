@@ -38,8 +38,10 @@ if ( CUDA_FOUND )
 endif()
 
 find_package( Qt5 CONFIG REQUIRED Core Widgets OpenGL ) #Gui )
+find_package( qwt )
 
 include_directories(
+  ${QWT_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5OpenGL_INCLUDE_DIRS}
   )
@@ -69,6 +71,8 @@ set ( SOURCES
   utils.hpp
   plot.cpp
   plot.hpp
+  spectrogramplot.cpp
+  spectrogramplot.hpp
   transform.cpp
   transform.hpp
   dft2d.cpp
@@ -104,6 +108,8 @@ endif()
 target_link_libraries( ${PROJECT_NAME} ${LINK_KEYWORD}
   adportable
   adcontrols
+  adplot
+  ${QWT_LIBRARIES}
   ${ArrayFire_LIBRARIES}
   ${ArrayFire_CUDA_LIBRARIES}
   ${Boost_LIBRARIES}

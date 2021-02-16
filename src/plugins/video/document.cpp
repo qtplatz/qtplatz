@@ -71,7 +71,6 @@ namespace video {
     };
 }
 
-
 namespace video {
 
     struct cannyValue {
@@ -88,12 +87,21 @@ namespace video {
         }
     };
 
+    struct topToolBarValues {
+        int zScale;
+        bool zScaleAutoEnabled;
+        topToolBarValues() : zScale( 10 )
+                           , zScaleAutoEnabled( true ) {
+        }
+    };
+
     class document::impl {
     public:
         impl() {}
         ~impl() {}
         std::shared_ptr< processor > processor_;
         cannyValue canny_value_;
+        topToolBarValues topToolBarValues_;
     };
 }
 
@@ -107,7 +115,10 @@ document::~document()
     delete impl_;
 }
 
-document::document() : settings_( std::make_unique< QSettings >() )
+document::document() : settings_( std::make_unique< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                                 , QLatin1String( "video" ) ) )
+
                      , player_( std::make_unique< Player >() )
                      , camera_( std::make_unique< Player >() )
                      , impl_( new impl() )
@@ -124,6 +135,10 @@ document::instance()
 void
 document::initialSetup()
 {
+    // auto obj = QJsonDocument::fromJson( settings_->value( "topToolBar", "{}" ).toByteArray() ).object();
+    // ADDEBUG() << QJsonDocument( obj ).toJson().toStdString();
+    impl_->topToolBarValues_.zScaleAutoEnabled = settings_->value( "topToolBar/zScaleAutoEnabled", true ).toBool();
+    impl_->topToolBarValues_.zScale = settings_->value( "topToolBar/zScale", 10 ).toInt();
 }
 
 void
@@ -229,4 +244,30 @@ int
 document::maxSizeThreshold() const
 {
     return impl_->canny_value_.maxSizeThreshold;
+}
+
+void
+document::setZScaleAutoEnabled( bool enable )
+{
+    impl_->topToolBarValues_.zScaleAutoEnabled = enable;
+    settings_->setValue( "topToolBar/zScaleAutoEnabled", enable );
+}
+
+void
+document::setZScale( int scale )
+{
+    impl_->topToolBarValues_.zScale = scale;
+    settings_->setValue( "topToolBar/zScale", scale );
+}
+
+bool
+document::zScaleAutoEnabled() const
+{
+    return impl_->topToolBarValues_.zScaleAutoEnabled;
+}
+
+int
+document::zScale() const
+{
+    return impl_->topToolBarValues_.zScale;
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -62,8 +62,11 @@
 #include <utils/styledbar.h>
 
 #include <QComboBox>
+#include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QGuiApplication>
+#include <QtGlobal>
 #include <QImage>
 #include <QImageReader>
 #include <QImageWriter>
@@ -124,7 +127,6 @@ MainWindow::createContents( Core::IMode * mode )
 
         if ( auto wnd = new VideoProcWnd() ) {
             stack_->addWidget( wnd );
-            //wnd->setStyleSheet( "background-color:black;");
             wnd->setStyleSheet( "background-color: black; color: green;");
         }
 
@@ -211,6 +213,22 @@ MainWindow::createTopStyledToolbar()
             }
 
             toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+            //---
+            toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbMoments", "Moments" ) );
+            toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbContours", "Contours" ) );
+            toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbGray", "Gray" ) );
+            toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbBlur", "Blur" ) );
+            toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbDFT", "DFT" ) );
+            //--
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addItem( new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+            //--
+            toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbZAuto", "Z-Auto" ) );
+            toolBarLayout->addWidget( qtwrapper::make_widget< QSpinBox >( "zScale" ) );
+            //--
+
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -221,7 +239,7 @@ MainWindow::createTopStyledToolbar()
 Utils::StyledBar *
 MainWindow::createMidStyledToolbar()
 {
-    if ( auto toolBar = new Utils::StyledBar ) {
+    if ( auto toolBar = qtwrapper::make_widget< Utils::StyledBar >( "midToolbar" ) ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
@@ -229,6 +247,14 @@ MainWindow::createMidStyledToolbar()
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+        if ( auto spin = qtwrapper::make_widget< QDoubleSpinBox >( "zoomSpin" ) ) {
+            spin->setRange( 0.5, 999.0 );
+            spin->setValue( 1.0 );
+            spin->setSingleStep( 0.020 );
+            // spin->setSuffix( "\u03bcs" ); // == &mu;s
+            toolBarLayout->addWidget( spin );
+        }
 
         toolBarLayout->addWidget( toolButton( Core::ActionManager::command( Constants::HIDE_DOCK )->action() ) );
 
@@ -251,6 +277,26 @@ MainWindow::onInitialUpdate()
         form->setCannyThreshold( document::instance()->cannyThreshold() );
         form->setMinSizeThreshold( document::instance()->minSizeThreshold() );
         form->setMaxSizeThreshold( document::instance()->minSizeThreshold() );
+    }
+
+    if ( auto wnd = findChild< VideoProcWnd * >() ) {
+        if ( auto spin = findChild< QDoubleSpinBox * >( "zoomSpin" ) ) {
+            connect( wnd, &VideoProcWnd::onZoom, spin, &QDoubleSpinBox::setValue );
+            connect( spin, qOverload<double>(&QDoubleSpinBox::valueChanged), wnd, &VideoProcWnd::handleZoomScale );
+        }
+    }
+
+    if ( auto topBar = findChild< Utils::StyledBar * >( "topToolbar" ) ) {
+        if ( auto cbx = topBar->findChild< QCheckBox * >( "cbZAuto" ) ) {
+            connect( cbx, &QCheckBox::toggled, document::instance(), &document::setZScaleAutoEnabled );
+            if ( auto wnd = findChild< VideoProcWnd * >() )
+                connect( cbx, &QCheckBox::toggled, wnd, &VideoProcWnd::handleZAutoScaleEnabled );
+        }
+        if ( auto spin = topBar->findChild< QSpinBox * >( "zScale" ) ) {
+            connect( spin, qOverload<int>(&QSpinBox::valueChanged), document::instance(), &document::setZScale );
+            if ( auto wnd = findChild< VideoProcWnd * >() )
+                connect( spin, qOverload<int>(&QSpinBox::valueChanged), wnd, &VideoProcWnd::handleZScale );
+        }
     }
 
 #if defined Q_OS_LINUX

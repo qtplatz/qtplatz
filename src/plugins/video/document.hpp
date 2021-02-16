@@ -81,7 +81,12 @@ namespace video {
         int minSizeThreshold() const;
         int maxSizeThreshold() const;
 
+        bool zScaleAutoEnabled() const;
+        int zScale() const;
+
     public slots:
+        void setZScaleAutoEnabled( bool );
+        void setZScale( int );
 
     private:
         std::unique_ptr< QSettings > settings_;
