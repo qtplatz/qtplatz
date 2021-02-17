@@ -124,9 +124,10 @@ document::initialSetup()
 {
     boost::system::error_code ec;
     if ( auto t = adcontrols::adcv::ContoursMethod::from_json(
-             settings_->value( "ContoursMethod/JSON", "{}" ).toString().toStdString(), ec ) ) {
+             settings_->value( "ContoursMethod/JSON", "" ).toString().toStdString(), ec ) ) {
         *impl_->contoursMethod_ = *t;
     }
+    // ADDEBUG() << "initialSetup: " << impl_->contoursMethod_->to_json() << " error: " << ec.message();
 
     impl_->topToolBarValues_.zScaleAutoEnabled = settings_->value( "topToolBar/zScaleAutoEnabled", true ).toBool();
     impl_->topToolBarValues_.zScale = settings_->value( "topToolBar/zScale", 10 ).toDouble();
@@ -192,6 +193,7 @@ document::currentProcessor()
 void
 document::setContoursMethod( QString&& json )
 {
+    ADDEBUG() << json.toStdString();
     boost::system::error_code ec;
     if ( auto m = adcontrols::adcv::ContoursMethod::from_json( json.toStdString(), ec ) ) {
         *impl_->contoursMethod_ = *m;

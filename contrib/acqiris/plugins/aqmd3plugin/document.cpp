@@ -487,7 +487,7 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
     using adextension::iController;
     using adacquire::SignalObserver::Observer;
 
-    ADDEBUG() << "### " << __FUNCTION__ << "### module_name: " << p->module_name().toStdString();
+    // ADDEBUG() << "### " << __FUNCTION__ << "### module_name: " << p->module_name().toStdString();
 
     if ( document::instance()->isControllerEnabled( p->module_name() ) ) {
 

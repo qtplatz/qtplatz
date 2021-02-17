@@ -133,10 +133,14 @@ namespace adcv {
             data_ = std::move( data );
         }
 
-        void dimension( size_t nrows, size_t ncolumns ) {
-            dimension_ = std::make_pair( nrows, ncolumns );
-            setInterval( Qt::XAxis, QwtInterval( 0, ncolumns ) );
-            setInterval( Qt::YAxis, QwtInterval( 0, nrows ) );
+        bool dimension( size_t nrows, size_t ncolumns ) {
+            if ( dimension_ == std::make_pair( nrows, ncolumns ) ) {
+                dimension_ = std::make_pair( nrows, ncolumns );
+                setInterval( Qt::XAxis, QwtInterval( 0, ncolumns ) );
+                setInterval( Qt::YAxis, QwtInterval( 0, nrows ) );
+                return true;
+            }
+            return false;
         }
 
         virtual double value( double _x, double _y ) const  {
@@ -319,12 +323,14 @@ SpectrogramPlot::setData( const cv::Mat& mat )
         mat.copyTo( gray );
     }
 
-    impl_->drawable_->dimension( gray.rows, gray.cols );
+    if ( impl_->drawable_->dimension( gray.rows, gray.cols ) ) {
+        if ( auto zoomer = findChild< QwtPlotZoomer * >() ) {
+            zoomer->setZoomBase();
+        }
+    }
+
     impl_->drawable_->setData( std::move( gray ) );
 
-    if ( auto zoomer = findChild< QwtPlotZoomer * >() ) {
-        zoomer->setZoomBase();
-    }
 
 	impl_->spectrogram_->invalidateCache();
 

@@ -135,12 +135,15 @@ std::string
 ContoursMethod::to_json( const ContoursMethod& t )
 {
     boost::json::value jv = {
-        { "sizeFactor", t.sizeFactor() },
-        { "blurSize",   t.blurSize() },
-        { "cannyThreshold", t.cannyThreshold() },
-        { "minSizeThreshold", t.minSizeThreshold() },
-        { "maxSizeThreshold", t.maxSizeThreshold() },
-        { "blurAlgo", int( t.blur() ) }
+        { "ContoursMethod", {
+                { "sizeFactor", t.sizeFactor() }
+                , { "blurSize",   t.blurSize() }
+                , { "cannyThreshold", t.cannyThreshold() }
+                , { "minSizeThreshold", t.minSizeThreshold() }
+                , { "maxSizeThreshold", t.maxSizeThreshold() }
+                , { "blurAlgo", int( t.blur() ) }
+            }
+        }
     };
 
     return boost::json::serialize( jv );
@@ -155,24 +158,25 @@ ContoursMethod::from_json( const std::string& json, boost::system::error_code& e
         return boost::none;
     }
 
-    if ( jv.kind() == boost::json::kind::object ) {
-        try {
-            ContoursMethod t;
-            auto const& obj = jv.get_object();
-            t.setSizeFactor( obj.at("sizeFactor").as_int64() );
-            t.setBlurSize( obj.at( "blurSize" ).as_int64() );
+    if ( jv.is_null() )
+        return boost::none;
 
-            if ( auto const& a = obj.at( "cannyThreshold" ).if_array() ) {
+    try {
+        if ( auto top = jv.at( "ContoursMethod" ).if_object() ) {
+            ContoursMethod t;
+            t.setSizeFactor( top->at("sizeFactor").as_int64() );
+            t.setBlurSize( top->at( "blurSize" ).as_int64() );
+            if ( auto const& a = top->at( "cannyThreshold" ).if_array() ) {
                 if ( a->size() == 2 )
                     t.setCannyThreshold( { a->at(0).as_int64(), a->at(1).as_int64() } );
             }
-            t.setMinSizeThreshold( obj.at( "minSizeThreshold" ).as_int64() );
-            t.setMaxSizeThreshold( obj.at( "maxSizeThreshold" ).as_int64() );
-            t.setBlur( BlurAlgo( obj.at("blurAlgo").as_int64() ) );
+            t.setMinSizeThreshold( top->at( "minSizeThreshold" ).as_int64() );
+            t.setMaxSizeThreshold( top->at( "maxSizeThreshold" ).as_int64() );
+            t.setBlur( BlurAlgo( top->at("blurAlgo").as_int64() ) );
             return t;
-        } catch ( boost::exception& ex ) {
-            ADDEBUG() << boost::diagnostic_information_what( ex );
         }
+    } catch ( boost::exception& ex ) {
+        ADDEBUG() << boost::diagnostic_information_what( ex );
     }
     return boost::none;
 }

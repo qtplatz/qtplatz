@@ -33,6 +33,7 @@
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <adcontrols/adcv/contoursmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/mappedspectra.hpp>
@@ -272,7 +273,9 @@ MainWindow::onInitialUpdate()
     }
 
     if ( auto form = findChild< adwidgets::adcv::ContoursForm * >() ) {
+        // ADDEBUG() << "onInitialUpdate: " << document::instance()->contoursMethod().to_json();
         form->setValues( document::instance()->contoursMethod() );
+        // ADDEBUG() << "onInitialUpdate: ----- done.";
     }
 
     if ( auto wnd = findChild< VideoProcWnd * >() ) {

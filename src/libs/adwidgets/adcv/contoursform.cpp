@@ -67,7 +67,7 @@ ContoursForm::ContoursForm(QWidget *parent) :
                  }
                  emit valueChanged( idCannyThreshold_H, value );
              });
-    setValues( adcontrols::adcv::ContoursMethod() );
+    // setValues( adcontrols::adcv::ContoursMethod() );
 }
 
 ContoursForm::~ContoursForm()
@@ -159,15 +159,13 @@ ContoursForm::toJson() const
     t.setMinSizeThreshold( ui->spinBox_4->value() );
     t.setMaxSizeThreshold( ui->spinBox_5->value() );
 
-    ADDEBUG() << "min: " << ui->spinBox_4->value() << ", max: " << ui->spinBox_5->value()
-              << "min: " << t.minSizeThreshold() << ", max: " << t.maxSizeThreshold();
-
     return QString::fromStdString( t.to_json() );
 }
 
 void
 ContoursForm::setValues( const adcontrols::adcv::ContoursMethod& t )
 {
+    QSignalBlocker block( this );
     ui->comboBox->setCurrentIndex( t.blur() );
     ui->spinBox->setValue( t.blurSize() );
     ui->spinBox_2->setValue( t.sizeFactor() );

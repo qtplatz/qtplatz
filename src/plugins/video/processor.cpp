@@ -236,9 +236,7 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
 
         cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
         cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
-
-        color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );
-        cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
+        cv::drawMarker( drawing, centre, cv::Scalar( 255, 0, 0 ), cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
 
         cv::Mat roi( m, rc );
         double volume = cv::sum( roi )[0];

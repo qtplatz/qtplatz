@@ -94,6 +94,10 @@ ImageWidget::zoom( int delta )
         scale_ *= 1.02;
     else
         scale_ /= 1.02;
+    auto anchor = graphicsView_->transformationAnchor();
+    graphicsView_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    //scale( scale_, scale_ );
+    graphicsView_->setTransformationAnchor(anchor);
     setupMatrix();
     emit onZoom( scale_ );
 }
@@ -112,8 +116,6 @@ ImageWidget::setupMatrix()
 {
     QMatrix matrix;
     matrix.scale( scale_, scale_ );
-
-    ADDEBUG() << "setupMatrix scale: " << scale_;
 
     graphicsView_->setMatrix(matrix);
 }
@@ -141,8 +143,10 @@ bool
 ImageWidget::eventFilter( QObject * object, QEvent * event )
 {
     if ( object == graphicsView_ ) {
+        //ADDEBUG() << "eventFilter";
         if ( event->type() == QEvent::Wheel ) {
             auto e = static_cast< QWheelEvent * >(event);
+            ADDEBUG() << "wheelEvent: " << e->angleDelta().y();
             zoom( e->delta() > 0 ? 6 : -6 );
             event->accept();
         }

@@ -227,7 +227,7 @@ MainWindow::OnInitialUpdate()
     }
 
     for ( auto inst: document::instance()->iControllers() ) {
-        ADDEBUG() << inst->module_name().toStdString();
+        // ADDEBUG() << inst->module_name().toStdString();
         document::instance()->addInstController( inst );
     }
 
