@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "imagewidget.hpp"
-#include "graphicsview.hpp"
+//#include "graphicsview.hpp"
 #include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QEvent>
@@ -146,12 +146,15 @@ ImageWidget::eventFilter( QObject * object, QEvent * event )
     if ( object == graphicsView_ ) {
         if ( event->type() == QEvent::Wheel ) {
             auto e = static_cast< QWheelEvent * >(event);
-            ADDEBUG() << "wheelEvent: " << e->angleDelta().y();
-            zoom( e->delta() > 0 ? 6 : -6 );
+            zoom( e->angleDelta().y() > 0 ? 6 : -6 );
             event->accept();
         }
         if ( event->type() == QEvent::NativeGesture ) {
-            ADDEBUG() << "nativeGesture: ";
+            auto e = static_cast< QNativeGestureEvent * >( event );
+            // ADDEBUG() << "nativeGesture: " << e->gestureType() << ", value: " << e->value();
+            if ( e->gestureType() == Qt::ZoomNativeGesture ) {
+                zoom( e->value() * 1000 );
+            }
         }
     }
     return false;
