@@ -28,6 +28,7 @@
 #include "massspectrum.hpp"
 #include "samplinginfo.hpp"
 #include "msproperty.hpp"
+#include <algorithm>
 #include <memory>
 #include <ratio>
 #include <string>
