@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,6 +34,8 @@ class QPaintEvent;
 class QImage;
 
 namespace adcv {
+
+    class GraphicsView;
 
     class ADCVSHARED_EXPORT ImageWidget : public QWidget {
 

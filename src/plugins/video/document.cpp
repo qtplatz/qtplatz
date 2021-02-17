@@ -193,7 +193,6 @@ document::currentProcessor()
 void
 document::setContoursMethod( QString&& json )
 {
-    ADDEBUG() << json.toStdString();
     boost::system::error_code ec;
     if ( auto m = adcontrols::adcv::ContoursMethod::from_json( json.toStdString(), ec ) ) {
         *impl_->contoursMethod_ = *m;

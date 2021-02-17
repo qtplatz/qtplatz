@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "imagewidget.hpp"
+#include "graphicsview.hpp"
 #include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QEvent>
@@ -53,7 +54,7 @@ ImageWidget::ImageWidget( QWidget * parent ) : QWidget( parent )
     graphicsView_->setRenderHint(QPainter::Antialiasing, false);
     //graphicsView_->setDragMode(QGraphicsView::RubberBandDrag);
     graphicsView_->setDragMode( QGraphicsView::ScrollHandDrag );
-    graphicsView_->setOptimizationFlags(QGraphicsView::DontSavePainterState);
+    //graphicsView_->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     graphicsView_->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     graphicsView_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
@@ -143,13 +144,17 @@ bool
 ImageWidget::eventFilter( QObject * object, QEvent * event )
 {
     if ( object == graphicsView_ ) {
-        //ADDEBUG() << "eventFilter";
         if ( event->type() == QEvent::Wheel ) {
             auto e = static_cast< QWheelEvent * >(event);
             ADDEBUG() << "wheelEvent: " << e->angleDelta().y();
             zoom( e->delta() > 0 ? 6 : -6 );
             event->accept();
         }
+        if ( event->type() == QEvent::NativeGesture ) {
+            ADDEBUG() << "nativeGesture: ";
+        }
     }
     return false;
 }
+
+// #include "imagewidget.moc"

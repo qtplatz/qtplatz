@@ -77,6 +77,8 @@ set ( SOURCES
   transform.hpp
   dft2d.cpp
   dft2d.hpp
+#  graphicsview.cpp
+#  graphicsview.hpp
   )
 
 if ( WIN32 )
