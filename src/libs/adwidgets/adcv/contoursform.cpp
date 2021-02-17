@@ -22,12 +22,13 @@
 **
 **************************************************************************/
 #include "contoursform.hpp"
+#include <adcontrols/adcv/contoursmethod.hpp>
+#include <adportable/debug.hpp>
 #include "ui_contoursform.h"
-#include <QByteArray>
 #include <QSignalBlocker>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <limits>
+
+using namespace adwidgets::adcv;
 
 ContoursForm::ContoursForm(QWidget *parent) :
     QWidget(parent),
@@ -36,9 +37,11 @@ ContoursForm::ContoursForm(QWidget *parent) :
     ui->setupUi(this);
     ui->spinBox_3->setRange( 0, 256 );
     ui->spinBox_4->setRange( 0, std::numeric_limits<int>::max() );
-    ui->spinBox_5->setRange( 0, std::numeric_limits<int>::max() );
+    ui->spinBox_5->setRange( -1, std::numeric_limits<int>::max() );
     ui->spinBox_5->setValue( std::numeric_limits<int>::max() );
 
+    connect( ui->comboBox, qOverload<int>(&QComboBox::currentIndexChanged)
+             , this, [&]( int index ){ emit valueChanged( idBlurAlgo, index); });
     connect( ui->spinBox, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idBlurSize, value ); });
     connect( ui->spinBox_2, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
@@ -47,10 +50,11 @@ ContoursForm::ContoursForm(QWidget *parent) :
              , this, [&]( int value ){
                  if ( ui->spinBox_6->value() < value ) {
                      QSignalBlocker block( this );
-                     ui->spinBox_6->setValue( value + 2 );
+                     ui->spinBox_6->setValue( value + 1 );
                  }
                  emit valueChanged( idCannyThreshold, value );
              });
+
     connect( ui->spinBox_4, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
              , this, [&]( int value ){ emit valueChanged( idMinSizeThreshold, value ); });
     connect( ui->spinBox_5, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
@@ -63,11 +67,19 @@ ContoursForm::ContoursForm(QWidget *parent) :
                  }
                  emit valueChanged( idCannyThreshold_H, value );
              });
+    setValues( adcontrols::adcv::ContoursMethod() );
 }
 
 ContoursForm::~ContoursForm()
 {
     delete ui;
+}
+
+void
+ContoursForm::setBlurAlgo( int value )
+{
+    QSignalBlocker block( this );
+    ui->comboBox->setCurrentIndex( value );
 }
 
 void
@@ -84,12 +96,16 @@ ContoursForm::setSizeFactor( int value )
     ui->spinBox_2->setValue( value );
 }
 
-void
-ContoursForm::setCannyThreshold( int value, int value_h )
+int
+ContoursForm::blurAlgo() const
 {
-    QSignalBlocker block( this );
-    ui->spinBox_3->setValue( value );
-    ui->spinBox_6->setValue( value_h );
+    return ui->comboBox->currentIndex();
+}
+
+std::pair< int, int >
+ContoursForm::cannyThreshold() const
+{
+    return std::make_pair( ui->spinBox_3->value(), ui->spinBox_6->value() );
 }
 
 void
@@ -115,6 +131,7 @@ ContoursForm::setMaxSizeThreshold( unsigned value )
     QSignalBlocker block( ui->spinBox_5 );
     if ( value > static_cast< unsigned >( std::numeric_limits< int >::max() ) )
         value = std::numeric_limits< int >::max();
+    ADDEBUG() << "setMaxValue: " << value;
     ui->spinBox_5->setValue( value );
 }
 
@@ -133,14 +150,29 @@ ContoursForm::maxSizeThreshold() const
 QString
 ContoursForm::toJson() const
 {
-    QJsonDocument doc(
-        QJsonObject{
-            { "blurSize", ui->spinBox->value() }
-            , {"cannyThreshold", ui->spinBox_3->value() }
-            , {"cannyThreshold_H", ui->spinBox_6->value() }
-            , {"minSizeThreshold", ui->spinBox_4->value() }
-            , {"maxSizeThreshold", ui->spinBox_5->value() }
-            , {"sizeFactor", ui->spinBox_2->value() }
-        });
-    return doc.toJson();
+    adcontrols::adcv::ContoursMethod t;
+
+    t.setBlur( adcontrols::adcv::ContoursMethod::BlurAlgo(  ui->comboBox->currentIndex() ) );
+    t.setBlurSize ( ui->spinBox->value() );
+    t.setSizeFactor( ui->spinBox_2->value() );
+    t.setCannyThreshold( { ui->spinBox_3->value(), ui->spinBox_6->value() } );
+    t.setMinSizeThreshold( ui->spinBox_4->value() );
+    t.setMaxSizeThreshold( ui->spinBox_5->value() );
+
+    ADDEBUG() << "min: " << ui->spinBox_4->value() << ", max: " << ui->spinBox_5->value()
+              << "min: " << t.minSizeThreshold() << ", max: " << t.maxSizeThreshold();
+
+    return QString::fromStdString( t.to_json() );
+}
+
+void
+ContoursForm::setValues( const adcontrols::adcv::ContoursMethod& t )
+{
+    ui->comboBox->setCurrentIndex( t.blur() );
+    ui->spinBox->setValue( t.blurSize() );
+    ui->spinBox_2->setValue( t.sizeFactor() );
+    ui->spinBox_3->setValue( t.cannyThreshold().first );
+    ui->spinBox_6->setValue( t.cannyThreshold().second );
+    ui->spinBox_4->setValue( t.minSizeThreshold() );
+    ui->spinBox_5->setValue( t.maxSizeThreshold() );
 }

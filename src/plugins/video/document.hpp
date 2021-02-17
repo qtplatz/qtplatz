@@ -35,6 +35,7 @@ class QSettings;
 namespace adextension  { class iSessionManager; }
 namespace adprocessor  { class dataprocessor; }
 namespace adcontrols   { class MappedImage; }
+namespace adcontrols { namespace adcv { class ContoursMethod; } }
 namespace portfolio    { class Folium; }
 namespace boost {
     namespace filesystem { class path; }
@@ -75,11 +76,7 @@ namespace video {
 
         std::shared_ptr< processor > currentProcessor();
         void setContoursMethod( QString&& json );
-        std::pair< int, int > cannyThreshold() const;
-        int sizeFactor() const;
-        int blurSize() const;
-        int minSizeThreshold() const;
-        int maxSizeThreshold() const;
+        const adcontrols::adcv::ContoursMethod& contoursMethod() const;
 
         bool zScaleAutoEnabled() const;
         double zScale() const;

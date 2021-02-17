@@ -23,35 +23,52 @@
 **************************************************************************/
 #pragma once
 
-#include "adcontrols_global.h"
-
+#include "../adcontrols_global.h"
+#include <boost/system/error_code.hpp>
+#include <boost/optional.hpp>
 #include <utility>
+#include <string>
 
 namespace adcontrols {
+    namespace adcv {
 
-    class ADCONTROLSSHARED_EXPORT ContoursMethod {
-    public:
+        class ADCONTROLSSHARED_EXPORT ContoursMethod {
+        public:
+        enum BlurAlgo { NoBlur, Blur, GaussianBlur };
+
         explicit ContoursMethod();
         ContoursMethod( const ContoursMethod& );
         ~ContoursMethod();
 
         void setSizeFactor( int );
         void setBlurSize( int );
-        void setCannyThreshold( int );
+        void setCannyThreshold( std::pair< int, int >&& );
         void setMinSizeThreshold( unsigned );
         void setMaxSizeThreshold( unsigned );
-    
+        void setKernelSize( unsigned );
+
         int sizeFactor() const;
         int blurSize() const;
-        int cannyThreshold() const;
+        std::pair< int, int > cannyThreshold() const;
         unsigned minSizeThreshold() const;
         unsigned maxSizeThreshold() const;
-    
-    private:
+        unsigned kernelSize() const;
+
+        void setBlur( BlurAlgo );
+        BlurAlgo blur() const;
+
+        std::string to_json() const;
+        static std::string to_json( const ContoursMethod& );
+
+        static boost::optional< ContoursMethod > from_json( const std::string&, boost::system::error_code& );
+
+        private:
         int resize_;
         int blurSize_;
-        int cannyThreshold_;
+        std::pair< int, int > cannyThreshold_;
         std::pair< unsigned, unsigned > szThreshold_;
-    };
-    
+        unsigned kernelSize_;
+        BlurAlgo blur_;
+        };
+    }
 }

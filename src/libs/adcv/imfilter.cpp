@@ -86,7 +86,7 @@ class QPaintEvent;
 
 namespace adcv {
 
-///// GrayScale
+    ///// GrayScale
     template<>
     template<>
     QImage
@@ -98,7 +98,7 @@ namespace adcv {
         return ApplyColorMap_< QImage >(2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
     }
 
-////// Blur
+    ////// Blur
     template<>
     template<>
     QImage
@@ -117,7 +117,7 @@ namespace adcv {
         return transform_< QImage >()( mat );
     }
 
-////// ColorMap matrix<double>
+    ////// ColorMap matrix<double>
     template<>
     template<>
     QImage
@@ -143,7 +143,7 @@ namespace adcv {
         cv::Mat mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
 
         imBlur blur = ( size_ == 2 ) ? std::get<1>( algos_ ) : imBlur();
-        
+
         if ( blur.resizeFactor > 1 )
             cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
@@ -300,7 +300,8 @@ namespace adcv {
             //opencv::applyBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
         }
 
-        cv::Canny( mat, mat, method.cannyThreshold(), method.cannyThreshold() * 2, 3 );
+        auto [ thLow, thHigh ] = method.cannyThreshold();
+        cv::Canny( mat, mat, thLow, thHigh, 3 );
 
         std::vector< std::vector< cv::Point > > contours;
         std::vector< cv::Vec4i > hierarchy;

@@ -220,7 +220,7 @@ namespace adcv {
 #endif
 
 #if HAVE_OPENCV
-    // cv::Mat -> QImage
+    // ublas::matrix --> cv::Mat
     template<>
     template<>
 	ADCVSHARED_EXPORT cv::Mat transform_< cv::Mat >::operator()<>( const boost::numeric::ublas::matrix< double >& m ) const {
@@ -235,6 +235,7 @@ namespace adcv {
 
 
 #if HAVE_CUDA
+    // cuda --> QImage
     template<>
     template<>
     QImage transform_< QImage >::operator()<>( const cuda::device_ptr< unsigned char >& t ) const {

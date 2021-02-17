@@ -31,20 +31,22 @@
 
 using namespace adcv;
 
-Moments::Moments( const std::pair<int,int>& blurCount, int sizeFactor, int cannyThreshold
-                  , const std::pair< unsigned, unsigned >& szThreshold )
+Moments::Moments( std::pair<int,int>&& blurCount
+                  , int sizeFactor
+                  , std::pair< int, int >&& cannyThreshold
+                  , std::pair< unsigned, unsigned >&& szThreshold )
     : blurCount_( blurCount )
+    , szThreshold_( szThreshold )
     , sizeFactor_( sizeFactor )
     , cannyThreshold_( cannyThreshold )
-    , szThreshold_( szThreshold )
 {
 }
 
 Moments::Moments( const Moments& t )
     : blurCount_( t.blurCount_ )
+    , szThreshold_( t.szThreshold_ )
     , sizeFactor_( t.sizeFactor_ )
     , cannyThreshold_( t.cannyThreshold_ )
-    , szThreshold_( t.szThreshold_ )
 {
 }
 
@@ -61,7 +63,7 @@ Moments::operator()( const boost::numeric::ublas::matrix< double >& m ) const
     if ( blurCount_.first > 0 || blurCount_.second > 0 )
         cv::blur( mat, mat, cv::Size( blurCount_.first, blurCount_.second ) );
 
-    cv::Canny( mat, mat, cannyThreshold_, cannyThreshold_ * 2, 3 );
+    cv::Canny( mat, mat, cannyThreshold_.first, cannyThreshold_.second, 3 );
 
     std::vector< std::vector< cv::Point > > contours;
     std::vector< cv::Vec4i > hierarchy;
@@ -99,7 +101,7 @@ Moments::operator()( boost::numeric::ublas::matrix< double >& out, const boost::
     if ( blurCount_.first > 0 || blurCount_.second > 0 )
         cv::blur( mat, mat, cv::Size( blurCount_.first, blurCount_.second ) );
 
-    cv::Canny( mat, mat, cannyThreshold_, cannyThreshold_ * 2, 3 );
+    cv::Canny( mat, mat, cannyThreshold_.first, cannyThreshold_.second, 3 );
 
     std::vector< std::vector< cv::Point > > contours;
     std::vector< cv::Vec4i > hierarchy;

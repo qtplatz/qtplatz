@@ -32,7 +32,7 @@ if ( MSVC )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
 endif()
 
-file(GLOB UIs *.ui)
+file(GLOB UIs *.ui adcv/*.ui)
 file(GLOB Resources *.qrc)
 
 set( _sources "" )
@@ -41,6 +41,8 @@ if ( qwt_FOUND )
 endif()
 
 set( ${PROJECT_NAME}_SOURCES
+  adcv/contoursform.cpp
+  adcv/contoursform.hpp
   adwidgets.cpp
   centroidform.cpp
   cherrypicker.cpp

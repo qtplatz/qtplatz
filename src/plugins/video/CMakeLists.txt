@@ -74,8 +74,6 @@ add_library( ${PROJECT_NAME} MODULE
   constants.hpp
   cvmat.cpp
   cvmat.hpp
-  contoursform.cpp
-  contoursform.hpp
   document.cpp
   document.hpp
   dft2d.cpp

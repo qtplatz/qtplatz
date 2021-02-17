@@ -26,7 +26,7 @@
 
 #include "adcv_global.hpp"
 #include <boost/numeric/ublas/fwd.hpp>
-#include <adcontrols/contoursmethod.hpp>
+#include <adcontrols/adcv/contoursmethod.hpp>
 #include <tuple>
 #include <limits>
 
@@ -43,12 +43,13 @@ namespace adcv {
         std::pair<int, int> anchor;
         int resizeFactor;
         imBlur( const std::pair<int,int>& ksz = {5,5}, int szFactor = 1, const std::pair<int,int>& a = {-1,-1} )
-            : ksize( ksz ), resizeFactor(szFactor), anchor( a ) {}
+            : ksize( ksz ), anchor( a ), resizeFactor(szFactor) {}
         imBlur( const imBlur& t ) : ksize(t.ksize), resizeFactor( t.resizeFactor ) {}
     };
-    struct imContours : public adcontrols::ContoursMethod {
+
+    struct imContours : public adcontrols::adcv::ContoursMethod {
         imContours() {}
-        imContours( const adcontrols::ContoursMethod& t ) : adcontrols::ContoursMethod( t ) {}
+        imContours( const adcontrols::adcv::ContoursMethod& t ) : adcontrols::adcv::ContoursMethod( t ) {}
     };
 
     template< typename T, typename ... Algos >

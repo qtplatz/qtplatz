@@ -24,7 +24,6 @@
 
 #include "mainwindow.hpp"
 #include "constants.hpp"
-#include "contoursform.hpp"
 #include "document.hpp"
 #include <adcv/imagewidget.hpp>
 #include "videoprocwnd.hpp"
@@ -39,6 +38,7 @@
 #include <adcontrols/mappedspectra.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adextension/ieditorfactory_t.hpp>
+#include <adwidgets/adcv/contoursform.hpp>
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/playercontrols.hpp>
 #include <adwidgets/progresswnd.hpp>
@@ -271,12 +271,8 @@ MainWindow::onInitialUpdate()
             lifecycle->OnInitialUpdate();
     }
 
-    if ( auto form = findChild< ContoursForm * >() ) {
-        form->setSizeFactor( document::instance()->sizeFactor() );
-        form->setBlurSize( document::instance()->sizeFactor() );
-        form->setCannyThreshold( document::instance()->cannyThreshold() );
-        form->setMinSizeThreshold( document::instance()->minSizeThreshold() );
-        form->setMaxSizeThreshold( document::instance()->minSizeThreshold() );
+    if ( auto form = findChild< adwidgets::adcv::ContoursForm * >() ) {
+        form->setValues( document::instance()->contoursMethod() );
     }
 
     if ( auto wnd = findChild< VideoProcWnd * >() ) {
@@ -403,14 +399,14 @@ MainWindow::commit()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto form = new ContoursForm( this ) ) {
+    if ( auto form = new adwidgets::adcv::ContoursForm( this ) ) {
 
         auto dock = createDockWidget( form, tr( "Contours" ), "Contours" );
         dock->setMinimumWidth( 200 );
         dock->setMaximumWidth( 400 );
         dock->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
 
-        connect( form, &ContoursForm::valueChanged, [=]( auto id, int value ){
+        connect( form, &adwidgets::adcv::ContoursForm::valueChanged, [=]( auto id, int value ){
             document::instance()->setContoursMethod( form->toJson() );
         });
 

@@ -12,6 +12,8 @@ elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
 endif()
 
 add_library( adcontrols SHARED
+  adcv/contoursmethod.cpp
+  adcv/contoursmethod.hpp
   acceptor.cpp
   acceptor.hpp
   acquireddataset.cpp
@@ -37,8 +39,6 @@ add_library( adcontrols SHARED
   chromatogram.hpp
   constants.hpp
   constants.cpp
-  contoursmethod.cpp
-  contoursmethod.hpp
   controlmethod.cpp
   controlmethod.hpp
   controlmethod/timedevent.hpp

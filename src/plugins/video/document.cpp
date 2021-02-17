@@ -26,22 +26,23 @@
 #include "constants.hpp"
 #include "player.hpp"
 #include "processor.hpp"
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/msreferences.hpp>
-#include <adcontrols/msreference.hpp>
+#include <adcontrols/adcv/contoursmethod.hpp>
 #include <adcontrols/datareader.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adextension/isessionmanager.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
-#include <adportfolio/folium.hpp>
-#include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/profile.hpp>
+#include <adportfolio/folium.hpp>
 #include <adprocessor/dataprocessor.hpp>
+#include <qtwrapper/progresshandler.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -73,20 +74,6 @@ namespace video {
 
 namespace video {
 
-    struct cannyValue {
-        size_t blurSize;
-        std::pair< int, int > cannyThreshold;
-        size_t maxSizeThreshold;
-        size_t minSizeThreshold;
-        size_t resize;
-        cannyValue() : blurSize( 1 )
-                     , cannyThreshold{ 1, 3 }
-                     , maxSizeThreshold( 2147483647 )
-                     , minSizeThreshold( 1 )
-                     , resize( 0 ) {
-        }
-    };
-
     struct topToolBarValues {
         double zScale;
         bool zScaleAutoEnabled;
@@ -97,11 +84,11 @@ namespace video {
 
     class document::impl {
     public:
-        impl() {}
+        impl() : contoursMethod_( std::make_unique< adcontrols::adcv::ContoursMethod >() ) {}
         ~impl() {}
         std::shared_ptr< processor > processor_;
-        cannyValue canny_value_;
         topToolBarValues topToolBarValues_;
+        std::unique_ptr< adcontrols::adcv::ContoursMethod > contoursMethod_;
     };
 }
 
@@ -135,8 +122,12 @@ document::instance()
 void
 document::initialSetup()
 {
-    // auto obj = QJsonDocument::fromJson( settings_->value( "topToolBar", "{}" ).toByteArray() ).object();
-    // ADDEBUG() << QJsonDocument( obj ).toJson().toStdString();
+    boost::system::error_code ec;
+    if ( auto t = adcontrols::adcv::ContoursMethod::from_json(
+             settings_->value( "ContoursMethod/JSON", "{}" ).toString().toStdString(), ec ) ) {
+        *impl_->contoursMethod_ = *t;
+    }
+
     impl_->topToolBarValues_.zScaleAutoEnabled = settings_->value( "topToolBar/zScaleAutoEnabled", true ).toBool();
     impl_->topToolBarValues_.zScale = settings_->value( "topToolBar/zScale", 10 ).toDouble();
 }
@@ -201,50 +192,19 @@ document::currentProcessor()
 void
 document::setContoursMethod( QString&& json )
 {
-    auto obj = QJsonDocument::fromJson( json.toUtf8() ).object();
-    impl_->canny_value_.blurSize = obj["blurSize"].toInt();
-    impl_->canny_value_.cannyThreshold.first = obj["cannyThreshold"].toInt();
-    impl_->canny_value_.cannyThreshold.second = obj["cannyThreshold_H"].toInt();
-    impl_->canny_value_.maxSizeThreshold = obj["maxSizeThreshold"].toInt();
-    impl_->canny_value_.minSizeThreshold = obj["minSizeThreshold"].toInt();
-    impl_->canny_value_.resize  = obj["resize"].toInt();
-#if 0
-    ADDEBUG() << "blurSize: " << impl_->canny_value_.blurSize
-              << ", cannyThreshold: " << impl_->canny_value_.cannyThreshold
-              << ", maxSizeThreshold: " << impl_->canny_value_.maxSizeThreshold
-              << ", minSizeThreshold: " << impl_->canny_value_.minSizeThreshold
-              << ", resize: " << impl_->canny_value_.resize;
-#endif
+    boost::system::error_code ec;
+    if ( auto m = adcontrols::adcv::ContoursMethod::from_json( json.toStdString(), ec ) ) {
+        *impl_->contoursMethod_ = *m;
+    } else {
+        ADDEBUG() << ec.message();
+    }
+    settings_->setValue( "ContoursMethod/JSON", json );
 }
 
-std::pair< int, int >
-document::cannyThreshold() const
+const adcontrols::adcv::ContoursMethod&
+document::contoursMethod() const
 {
-    return impl_->canny_value_.cannyThreshold;
-}
-
-int
-document::sizeFactor() const
-{
-    return impl_->canny_value_.resize;
-}
-
-int
-document::blurSize() const
-{
-    return impl_->canny_value_.blurSize;
-}
-
-int
-document::minSizeThreshold() const
-{
-    return impl_->canny_value_.minSizeThreshold;
-}
-
-int
-document::maxSizeThreshold() const
-{
-    return impl_->canny_value_.maxSizeThreshold;
+    return *impl_->contoursMethod_;
 }
 
 void

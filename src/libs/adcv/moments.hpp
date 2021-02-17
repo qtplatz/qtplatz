@@ -34,10 +34,11 @@ namespace adcv {
         std::pair< int, int > blurCount_;
         std::pair< unsigned, unsigned > szThreshold_;
         int sizeFactor_;
-        int cannyThreshold_;
+        std::pair< int, int > cannyThreshold_;
     public:
-        Moments( const std::pair<int,int>& blurCount = {0,0}, int sizeFactor = 1, int cannyThreshold = 0
-                 , const std::pair<unsigned, unsigned>& szThreshold = { 0, std::numeric_limits<unsigned>::max()} );
+        Moments( std::pair<int,int>&& blurCount = {0, 0}, int sizeFactor = 1
+                 , std::pair< int, int >&& cannyThreshold = {1,2}
+                 , std::pair<unsigned, unsigned>&& szThreshold = { 0, std::numeric_limits<unsigned>::max()} );
         Moments( const Moments& );
 
         boost::numeric::ublas::matrix< double > operator()( const boost::numeric::ublas::matrix< double >& ) const;

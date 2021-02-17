@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,15 +22,21 @@
 **
 **************************************************************************/
 #include "contoursmethod.hpp"
+#include <adportable/debug.hpp>
+#include <boost/json/src.hpp>
+#include <boost/exception/all.hpp>
 #include <algorithm>
 #include <limits>
 
-using namespace adcontrols;
+using namespace adcontrols::adcv;
 
 ContoursMethod::ContoursMethod() : resize_(1)
                                  , blurSize_(0)
-                                 , cannyThreshold_(0)
+                                 , cannyThreshold_{0, 1}
                                  , szThreshold_{ 0, std::numeric_limits< int >::max() }
+                                 , kernelSize_( 3 )
+                                 , blur_( Blur )
+
 {
 }
 
@@ -38,6 +44,8 @@ ContoursMethod::ContoursMethod( const ContoursMethod& t ) : resize_( t.resize_ )
                                                           , blurSize_( t.blurSize_ )
                                                           , cannyThreshold_( t.cannyThreshold_ )
                                                           , szThreshold_( t.szThreshold_ )
+                                                          , kernelSize_( t.kernelSize_ )
+                                                          , blur_( t.blur_ )
 {
 }
 
@@ -58,7 +66,7 @@ ContoursMethod::setBlurSize( int value )
 }
 
 void
-ContoursMethod::setCannyThreshold( int value )
+ContoursMethod::setCannyThreshold( std::pair< int, int >&& value )
 {
     cannyThreshold_ = value;
 }
@@ -87,7 +95,7 @@ ContoursMethod::blurSize() const
     return blurSize_;
 }
 
-int
+std::pair< int, int >
 ContoursMethod::cannyThreshold() const
 {
     return cannyThreshold_;
@@ -105,3 +113,66 @@ ContoursMethod::maxSizeThreshold() const
     return szThreshold_.second;
 }
 
+void
+ContoursMethod::setBlur( BlurAlgo algo )
+{
+    blur_ = algo;
+}
+
+ContoursMethod::BlurAlgo
+ContoursMethod::blur() const
+{
+    return blur_;
+}
+
+std::string
+ContoursMethod::to_json() const
+{
+    return to_json( *this );
+}
+
+std::string
+ContoursMethod::to_json( const ContoursMethod& t )
+{
+    boost::json::value jv = {
+        { "sizeFactor", t.sizeFactor() },
+        { "blurSize",   t.blurSize() },
+        { "cannyThreshold", t.cannyThreshold() },
+        { "minSizeThreshold", t.minSizeThreshold() },
+        { "maxSizeThreshold", t.maxSizeThreshold() },
+        { "blurAlgo", int( t.blur() ) }
+    };
+
+    return boost::json::serialize( jv );
+}
+
+boost::optional< ContoursMethod >
+ContoursMethod::from_json( const std::string& json, boost::system::error_code& ec )
+{
+    auto jv = boost::json::parse( json, ec );
+    if ( ec ) {
+        ADDEBUG() << ec;
+        return boost::none;
+    }
+
+    if ( jv.kind() == boost::json::kind::object ) {
+        try {
+            ContoursMethod t;
+            auto const& obj = jv.get_object();
+            t.setSizeFactor( obj.at("sizeFactor").as_int64() );
+            t.setBlurSize( obj.at( "blurSize" ).as_int64() );
+
+            if ( auto const& a = obj.at( "cannyThreshold" ).if_array() ) {
+                if ( a->size() == 2 )
+                    t.setCannyThreshold( { a->at(0).as_int64(), a->at(1).as_int64() } );
+            }
+            t.setMinSizeThreshold( obj.at( "minSizeThreshold" ).as_int64() );
+            t.setMaxSizeThreshold( obj.at( "maxSizeThreshold" ).as_int64() );
+            t.setBlur( BlurAlgo( obj.at("blurAlgo").as_int64() ) );
+            return t;
+        } catch ( boost::exception& ex ) {
+            ADDEBUG() << boost::diagnostic_information_what( ex );
+        }
+    }
+    return boost::none;
+}

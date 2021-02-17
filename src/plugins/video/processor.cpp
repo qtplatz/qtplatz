@@ -25,6 +25,8 @@
 #include "processor.hpp"
 #include "document.hpp"
 #include "recorder.hpp"
+#include <adcontrols/adcv/contoursmethod.hpp>
+#include <adcv/imfilter.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adcv/minmaxidx.hpp>
@@ -173,9 +175,9 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     cv::Mat canny;
     cv::Mat blur;
     cv::Mat gray;
-    auto cannyThreshold = document::instance()->cannyThreshold();
-    int szFactor = std::max( 1, document::instance()->sizeFactor() );
-    int blurSize = document::instance()->blurSize();
+    auto cannyThreshold = document::instance()->contoursMethod().cannyThreshold();
+    int szFactor = std::max( 1, document::instance()->contoursMethod().sizeFactor() );
+    int blurSize = document::instance()->contoursMethod().blurSize();
 
     try {
         if ( szFactor > 1 ) {
@@ -222,8 +224,6 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
 
     for( int i = 0; i< contours.size(); i++ )  {
         unsigned c = i + 1;
-        cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
-        cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
 
         cv::Moments mu = cv::moments( contours[i], false );
         double cx = ( mu.m10 / mu.m00 ) / szFactor;
@@ -232,6 +232,13 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
         cv::Rect rc = boundingRect( contours[i] );
         double width = rc.width / szFactor;
         double height = rc.height / szFactor;
+        cv::Point centre( mu.m10 / mu.m00, mu.m01 / mu.m00 );
+
+        cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
+        cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+
+        color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );
+        cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
 
         cv::Mat roi( m, rc );
         double volume = cv::sum( roi )[0];
