@@ -302,7 +302,13 @@ VideoProcWnd::handleSelectedOnTime( const QRectF& rc )
     ADDEBUG() << "handle selcted on time";
     qDebug() << rc;
     if ( auto processor = document::instance()->currentProcessor() ){
+#if __cplusplus >= 201703L
         auto [ average, n ] = processor->avg();
+#else
+        const cv::Mat * average;
+        size_t n;
+        std::tie( average, n ) = processor->avg();
+#endif
         if ( average ) {
             auto avg = adcv::ApplyColorMap_< cv::Mat >()( *average, 8.0 / n );
             impl_->map_->setData( avg );
@@ -316,7 +322,12 @@ VideoProcWnd::handleNextFrame( bool forward )
     if ( auto processor = document::instance()->currentProcessor() ) {
         auto frame_pos = processor->next_frame_pos( forward );
         if ( auto frame = processor->frame( frame_pos ) ) {
+#if __cplusplus >= 201703L
             auto [ fpos, pos, mat ] = *frame;
+#else
+            size_t fpos; double pos; cv::Mat mat;
+            std::tie( fpos, pos, mat ) = *frame;
+#endif
             impl_->imgWidgets_.at( 0 )->setImage( Player::toImage( mat ) );
             impl_->tplotMarker_->setXValue( pos, pos );
             impl_->tplot_->replot();
@@ -325,8 +336,12 @@ VideoProcWnd::handleNextFrame( bool forward )
             impl_->map_->setData( mat );
         }
         if ( auto canny = processor->contours( frame_pos ) ) {
-            //if ( auto canny = processor->canny( frame_pos ) ) {
+#if __cplusplus >= 201703L
             auto [ fpos, pos, mat ] = *canny;
+#else
+            size_t fpos; double pos; cv::Mat mat;
+            std::tie( fpos, pos, mat ) = *canny;
+#endif
             impl_->imgWidgets_.at( 1 )->setImage( Player::toImage( mat ) );
         }
     }
