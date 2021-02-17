@@ -299,8 +299,12 @@ namespace adcv {
             opencv::applyGaussianBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
             //opencv::applyBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
         }
-
+#if __cplusplus >= 201703L
         auto [ thLow, thHigh ] = method.cannyThreshold();
+#else
+        int thLow, thHigh;
+        std::tie( thLow, thHigh ) = method.cannyThreshold();
+#endif
         cv::Canny( mat, mat, thLow, thHigh, 3 );
 
         std::vector< std::vector< cv::Point > > contours;

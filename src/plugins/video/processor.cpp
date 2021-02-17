@@ -162,8 +162,12 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
     double sum( cv::sum( m )[ 0 ] );
 
     *tic_ << std::make_pair( pos, sum );
-
+#if __cplusplus >= 201703L
     auto [ min, max ] = adcv::minMaxIdx( m );
+#else
+    int min, max;
+    std::tie( min, max ) = adcv::minMaxIdx( m );
+#endif
     *bp_ << std::make_pair( pos, max );
 
     frames_.emplace_back( pos_frames, pos, m );
@@ -241,7 +245,12 @@ processor::addFrame( size_t pos_frames, double pos, const cv::Mat& m )
         cv::Mat roi( m, rc );
         double volume = cv::sum( roi )[0];
         volume_total += volume;
+#if __cplusplus >= 201703L
         auto [ min, cone_h ] = adcv::minMaxIdx( roi );
+#else
+        int min, cone_h;
+        std::tie( min, cone_h ) = adcv::minMaxIdx( roi );
+#endif
         result_writer::insert_contours( *db_, pos_frames, pos, i, area, cx, cy, width, height, volume, cone_h );
         cv::Mat zroi( copy, rc );
         zroi.setTo( cv::Scalar( 0, 0, 0 ) );

@@ -168,7 +168,8 @@ endif()
 ##############################################
 ### find boost
 ##############################################
-find_package( Boost 1.69 REQUIRED COMPONENTS
+## boost-1.75 required boost::json, which uses in libadcv and libvideo
+find_package( Boost 1.75 REQUIRED COMPONENTS
   atomic
   ${boost_libs} # windows
   chrono
