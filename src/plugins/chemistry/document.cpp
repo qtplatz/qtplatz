@@ -112,6 +112,7 @@ namespace chemistry {
         , { "c1ccc2ccccc2c1", "Naphthalene" }
         , { "C[C@H](CCC=C(C)C)[C@H]1CC[C@@]2([C@@]1(CC[C@]34[C@H]2CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", "Oryzanol A" }
         , { "C[C@H](CCC(=C)C(C)C)[C@H]1CCC2[C@@]1(CC[C@]34[C@]2(CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", "Oryzanol B" }
+        , { "CC(C)C(C)CCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)OC(=O)C=CC5=CC(=C(C=C5)O)OC)C)C", "Campesteryl ferulate" }
         , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", "Tocopherol" }
         , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O", "Oleic acid" }
         , { "CCCCCCCCCCCCCCCC(=O)O", "Palmitic acid" }
