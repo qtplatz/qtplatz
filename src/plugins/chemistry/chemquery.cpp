@@ -127,7 +127,7 @@ ChemQuery::column_value( size_t idx ) const
 }
 
 bool
-ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std::string& synonym, const std::string& _inchi )
+ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std::vector< std::string>& synonyms, const std::string& _inchi )
 {
     std::string inchi( _inchi );
 #if !(defined WIN32 && defined _DEBUG) // it's too slow on debug mode vc14
@@ -162,11 +162,15 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
         sql_.bind( row++ ) = inchikey;
 
         if ( sql_.step() == adfs::sqlite_done ) {
-            row = 1;
             sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchi = ?" );
-            sql_.bind( row++ ) = synonym;
-            sql_.bind( row++ ) = inchi;
-            return sql_.step();
+            for ( auto synonym: synonyms ) {
+                sql_.bind( 1 ) = synonym;
+                sql_.bind( 2 ) = inchi;
+                if ( sql_.step() == adfs::sqlite_error )
+                    ADDEBUG() << sql_.errmsg();
+                sql_.reset();
+            }
+            return true;
         }
     }
     return false;

@@ -51,6 +51,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QProgressBar>
+#include <QSortFilterProxyModel>
 #include <QSqlField>
 #include <QSqlQueryModel>
 #include <QSqlQuery>
@@ -80,14 +81,20 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
         layout->setMargin( 0 );
         layout->addWidget( table_ );
     }
-    
+
     setAcceptDrops( true );
 
-    table_->setModel( model_ );
+    // table_->setModel( model_ );
+    if ( auto m = new QSortFilterProxyModel() ) {
+        m->setDynamicSortFilter( true );
+        m->setSourceModel( model_ );
+        table_->setModel( m );
+        table_->setSortingEnabled( true );
+    }
 
     for ( auto& cname : { "id", "uuid" } )
         hideColumns_.insert( cname );
-    
+
     table_->verticalHeader()->setDefaultSectionSize( 80 );
     table_->horizontalHeader()->setDefaultSectionSize( 200 );
 
@@ -130,7 +137,7 @@ MolTableWnd::setQuery( const QString& sqlstmt )
             else
                 table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
         }
-        
+
         model_->setQuery( query );
 
         for ( auto& hidden: hideColumns_ ) {
@@ -190,11 +197,11 @@ MolTableWnd::handleCopyToClipboard()
     qSort( indices );
     if ( indices.size() < 1 )
         return;
-    
+
     QSqlRecord rec = model_->query().record();
 
     adcontrols::moltable molecules;
-    
+
     QString selected_text;
     QModelIndex prev = indices.first();
     QModelIndex last = indices.last();
@@ -204,7 +211,7 @@ MolTableWnd::handleCopyToClipboard()
     adcontrols::moltable::value_type mol;
 
     for( int i = 0; i < indices.size(); ++i ) {
-        
+
         QModelIndex index = indices.at( i );
 
         if ( !table_->isRowHidden( prev.row() ) ) {
@@ -230,7 +237,7 @@ MolTableWnd::handleCopyToClipboard()
             } else if ( cname == "mass" ) {
                 mol.mass() = prev.data( Qt::EditRole ).toDouble();
             }
-            
+
             if ( index.row() != prev.row() ) {
                 selected_text.append( '\n' );
                 molecules << mol;
@@ -244,7 +251,7 @@ MolTableWnd::handleCopyToClipboard()
         selected_text.append( last.data( Qt::EditRole ).toString() );
 
     QApplication::clipboard()->setText( selected_text );
-    
+
     std::wostringstream o;
     try {
         if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
@@ -271,7 +278,7 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
 
     menu.addAction( tr("Copy"), this, SLOT( handleCopyToClipboard() ) );
     menu.addAction( tr("Paste"), this, SLOT( handlePaste() ) );
-    
+
     typedef std::pair< QAction *, std::function< void() > > action_type;
     std::vector< action_type > actions;
 
@@ -308,5 +315,5 @@ MolTableWnd::data( int row, const QString& column )
 void
 MolTableWnd::handleDataChaged( const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector< int >& roles )
 {
-    
+
 }
