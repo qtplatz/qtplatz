@@ -51,6 +51,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QProgressBar>
+#include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QSqlField>
 #include <QSqlQueryModel>
@@ -83,6 +84,9 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     }
 
     setAcceptDrops( true );
+
+    QShortcut* shortcut = new QShortcut(QKeySequence(QKeySequence::Copy), table_);
+    connect( shortcut, SIGNAL(activated()), table_, SLOT( handleCopyToClipboard() ) );
 
     // table_->setModel( model_ );
     if ( auto m = new QSortFilterProxyModel() ) {
@@ -201,8 +205,10 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
-    menu.addAction( tr("Copy"), table_, SLOT( handleCopyToClipboard() ) );
+    auto action = menu.addAction( tr("Copy"), table_, SLOT( handleCopyToClipboard() ) );
     // menu.addAction( tr("Paste"), this, SLOT( handlePaste() ) );
+    if ( table_->selectionModel()->selectedIndexes().size() == 0 )
+        action->setEnabled( false );
 
     typedef std::pair< QAction *, std::function< void() > > action_type;
     std::vector< action_type > actions;

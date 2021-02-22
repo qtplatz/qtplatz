@@ -574,7 +574,6 @@ void
 MolTableView::handleCopyToClipboard()
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
-
     qSort( indices );
     if ( indices.size() < 1 )
         return;
