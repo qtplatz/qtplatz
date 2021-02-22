@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -48,6 +48,9 @@
 #include <QDragEnterEvent>
 #include <QFileInfo>
 #include <QHeaderView>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QMimeData>
@@ -62,10 +65,12 @@
 # include <QDebug>
 #endif
 
+#include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <qtwrapper/font.hpp>
+#include <boost/json.hpp>
+
 #include <functional>
 
 using namespace adwidgets;
@@ -94,7 +99,6 @@ namespace adwidgets {
         std::map< int, ColumnState > columnStates_;
 
         inline const ColumnState& state( int column ) { return columnStates_[ column ]; }
-
         inline ColumnState::fields field( int column ) { return columnStates_[ column ].field; }
 
         inline int findColumn( ColumnState::fields field ) const {
@@ -575,66 +579,63 @@ MolTableView::handleCopyToClipboard()
     if ( indices.size() < 1 )
         return;
 
-    adcontrols::moltable molecules;
-
     QString selected_text;
     QModelIndex prev = indices.first();
     QModelIndex last = indices.last();
 
-    indices.removeFirst();
-
-    adcontrols::moltable::value_type mol;
+    // QJsonArray ja;
+    // QJsonObject jobj;
+    boost::json::array ja;
+    boost::json::object jobj;
 
     for( int i = 0; i < indices.size(); ++i ) {
 
         QModelIndex index = indices.at( i );
-
         if ( !isRowHidden( prev.row() ) ) {
 
             if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != ColumnState::f_svg ) ) {
-
                 QString text = prev.data( Qt::EditRole ).toString();
                 selected_text.append( text );
 
                 if ( index.row() == prev.row() )
                     selected_text.append( '\t' );
             }
-
             switch( impl_->field( prev.column() ) ) {
-            case ColumnState::f_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
-            case ColumnState::f_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;
-            case ColumnState::f_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
-            case ColumnState::f_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case ColumnState::f_formula:     jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString();   break;
+            case ColumnState::f_adducts:     jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString();   break;
+            case ColumnState::f_mass:        jobj[ "mass" ] = prev.data( Qt::EditRole ).toDouble();      break;
+            case ColumnState::f_abundance:   jobj[ "abundance" ] = prev.data( Qt::EditRole ).toDouble(); break;
+            case ColumnState::f_synonym:     jobj[ "synonym" ] = prev.data( Qt::EditRole ).toDouble();   break;
+            case ColumnState::f_description: jobj[ "description" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case ColumnState::f_smiles:      jobj[ "smiles" ] = prev.data( Qt::EditRole ).toString().toStdString();    break;
+            case ColumnState::f_any:
+                jobj[ model()->headerData( prev.column(), Qt::Horizontal ).toString().toStdString() ] = prev.data( Qt::EditRole ).toString().toStdString();
+                break;
             default: break;
             }
-
             if ( index.row() != prev.row() ) {
                 selected_text.append( '\n' );
-                molecules << mol;
-                mol = adcontrols::moltable::value_type();
+                if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
+                    ja.push_back( jobj );
+                jobj.clear();
             }
         }
         prev = index;
     }
+    if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
+        ja.push_back( jobj );
 
     if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
         selected_text.append( last.data( Qt::EditRole ).toString() );
 
-    QApplication::clipboard()->setText( selected_text );
-
-    std::wostringstream o;
-    try {
-        if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
-            QString xml( QString::fromStdWString( o.str() ) );
-            QMimeData * md = new QMimeData();
-            md->setData( QLatin1String( "application/moltable-xml" ), xml.toUtf8() );
+    auto json = QString::fromStdString( boost::json::serialize( boost::json::value{{ "moltable", ja }} ) );
+    if ( auto md = new QMimeData() ) {
+        md->setData( QLatin1String( "application/json" ), json.toUtf8() );
+        if ( QApplication::keyboardModifiers() & ( Qt::ShiftModifier | Qt::ControlModifier ) )
+            md->setText( json );
+        else
             md->setText( selected_text );
-            QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
-        }
-    } catch ( ... ) {
+        QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
     }
 }
 
@@ -642,29 +643,46 @@ void
 MolTableView::handlePaste()
 {
     int row = model()->rowCount() - 1;
-    auto md = QApplication::clipboard()->mimeData();
-    auto data = md->data( "application/moltable-xml" );
-    if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
+    auto model = qobject_cast< QStandardItemModel * >( this->model() );
 
-        if ( !data.isEmpty() ) {
-            QString utf8( QString::fromUtf8( data ) );
-            std::wistringstream is( utf8.toStdWString() );
-
-            adcontrols::moltable molecules;
-            if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
-                model->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
-
-                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
-
-                for ( auto& mol : molecules.data() ) {
-                    assign( *model, row, ColumnState::f_formula,     QString::fromStdString( mol.formula() ), mol.enable() );
-                    assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts() ) );
-                    assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
-                    assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
-                    assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
-                    assign( *model, row, ColumnState::f_abundance,   mol.abundance() );
-                    ++row;
+    if ( auto md = QApplication::clipboard()->mimeData() ) {
+        boost::json::value jv;
+        boost::system::error_code ec;
+        auto data = md->data( "application/json" );
+        if ( data.isEmpty() ) {
+            auto text = md->data( "text/plain" );
+            if ( text.at( 0 ) == '{' )
+                jv = boost::json::parse( text.toStdString(), ec );
+        } else {
+            jv = boost::json::parse( data.toStdString(), ec );
+        }
+        if ( !ec && jv.is_object() && jv.as_object().contains( "moltable" ) ) {
+            auto ja = jv.as_object()[ "moltable" ].as_array();
+            model->setRowCount( row + int( ja.size() + 1 ) ); // add one free line for add formula
+            adcontrols::moltable::value_type mol;
+            for ( const auto& ji: ja ) {
+                for ( const auto& it: ji.as_object() ) {
+                    if ( it.key() == "smiles" )
+                        mol.smiles() = it.value().as_string().data();
+                    if ( it.key() == "mass" )
+                        mol.mass() = it.value().as_double();
+                    if ( it.key() == "formula" )
+                        mol.formula() = it.value().as_string().data();
+                    if ( it.key() == "synonym" )
+                        mol.synonym() = it.value().as_string().data();
+                    if ( it.key() == "enable" )
+                        mol.enable() = it.value().as_bool();
+                    if ( it.key() == "abundance" )
+                        mol.enable() = it.value().as_double();
                 }
+                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+                assign( *model, row, ColumnState::f_formula,     QString::fromStdString( mol.formula() ), mol.enable() );
+                assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts() ) );
+                assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
+                assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
+                assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
+                assign( *model, row, ColumnState::f_abundance,   mol.abundance() );
+                ++row;
             }
         } else {
             // drop plain/text from chemical draw software
@@ -697,17 +715,3 @@ MolTableView::setColumnField( int column, ColumnState::fields f, bool editable, 
 	if ( f == ColumnState::f_mass )
         impl_->columnStates_[ column ].precision = 7;
 }
-
-// static
-// double
-// MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adducts )
-// {
-//     auto expr = formula;
-
-//     if ( ! adducts.isEmpty() )
-//         expr += " " + adducts;
-
-//     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
-
-//     return exactMass;
-// }

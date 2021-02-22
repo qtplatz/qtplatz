@@ -65,7 +65,7 @@ namespace dataproc {
         explicit SessionManager(QObject *parent = 0);
         friend class DataprocPlugin;
 
-        ~SessionManager();        
+        ~SessionManager();
     public:
         static SessionManager * instance();
 
@@ -76,7 +76,7 @@ namespace dataproc {
         void checkStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
         void removeEditor( Core::IEditor * );
         void processed( Dataprocessor *, portfolio::Folium& );
-        
+
         typedef std::vector< Session > vector_type;
 
         vector_type::iterator begin();
@@ -93,6 +93,7 @@ namespace dataproc {
         void onSessionRemoved( Dataprocessor * );
         void onProcessed( Dataprocessor *, portfolio::Folium& );
         void foliumChanged( Dataprocessor *, const portfolio::Folium& );
+        void onDataprocessorChanged( Dataprocessor * );
 
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );

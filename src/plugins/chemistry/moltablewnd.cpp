@@ -134,6 +134,8 @@ MolTableWnd::setQuery( const QString& sqlstmt )
                 table_->setColumnField( col, adwidgets::ColumnState::f_mass, false, false );
             else if ( column == "formula" )
                 table_->setColumnField( col, adwidgets::ColumnState::f_formula, false, true );
+            else if ( column == "smiles" )
+                table_->setColumnField( col, adwidgets::ColumnState::f_smiles, false, true );
             else
                 table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
         }
@@ -190,83 +192,6 @@ MolTableWnd::dropEvent( QDropEvent * event )
 }
 
 void
-MolTableWnd::handleCopyToClipboard()
-{
-    QModelIndexList indices = table_->selectionModel()->selectedIndexes();
-
-    qSort( indices );
-    if ( indices.size() < 1 )
-        return;
-
-    QSqlRecord rec = model_->query().record();
-
-    adcontrols::moltable molecules;
-
-    QString selected_text;
-    QModelIndex prev = indices.first();
-    QModelIndex last = indices.last();
-
-    indices.removeFirst();
-
-    adcontrols::moltable::value_type mol;
-
-    for( int i = 0; i < indices.size(); ++i ) {
-
-        QModelIndex index = indices.at( i );
-
-        if ( !table_->isRowHidden( prev.row() ) ) {
-
-            auto t = prev.data( Qt::EditRole ).type();
-            if ( !table_->isColumnHidden( prev.column() ) && ( prev.data().type() != QVariant::ByteArray ) ) {
-
-                QString text = prev.data( Qt::EditRole ).toString();
-                selected_text.append( text );
-
-                if ( index.row() == prev.row() )
-                    selected_text.append( '\t' );
-            }
-
-            int col = prev.column();
-            auto cname = rec.fieldName( col );
-            if ( cname == "formula" ) {
-                mol.formula() = prev.data( Qt::EditRole ).toString().toStdString();
-            } else if ( cname == "synonym" ) {
-                mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString();
-            } else if ( cname == "smiles" ) {
-                mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString();
-            } else if ( cname == "mass" ) {
-                mol.mass() = prev.data( Qt::EditRole ).toDouble();
-            }
-
-            if ( index.row() != prev.row() ) {
-                selected_text.append( '\n' );
-                molecules << mol;
-                mol = adcontrols::moltable::value_type();
-            }
-        }
-        prev = index;
-    }
-
-    if ( !table_->isRowHidden( last.row() ) && !table_->isColumnHidden( last.column() ) )
-        selected_text.append( last.data( Qt::EditRole ).toString() );
-
-    QApplication::clipboard()->setText( selected_text );
-
-    std::wostringstream o;
-    try {
-        if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
-            QString xml( QString::fromStdWString( o.str() ) );
-            QMimeData * md = new QMimeData();
-            md->setData( QLatin1String( "application/moltable-xml" ), xml.toUtf8() );
-            md->setText( selected_text );
-            QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
-        }
-    } catch ( ... ) {
-    }
-
-}
-
-void
 MolTableWnd::handlePaste()
 {
 }
@@ -276,8 +201,8 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
-    menu.addAction( tr("Copy"), this, SLOT( handleCopyToClipboard() ) );
-    menu.addAction( tr("Paste"), this, SLOT( handlePaste() ) );
+    menu.addAction( tr("Copy"), table_, SLOT( handleCopyToClipboard() ) );
+    // menu.addAction( tr("Paste"), this, SLOT( handlePaste() ) );
 
     typedef std::pair< QAction *, std::function< void() > > action_type;
     std::vector< action_type > actions;

@@ -46,9 +46,9 @@ namespace chemistry {
     public:
         explicit MolTableWnd(QWidget *parent = 0);
         ~MolTableWnd();
-        
+
         void setQuery( const QString& sqlstmt );
-        
+
         QAbstractItemModel * model();
         QVariant data( int row, const QString& column );
 
@@ -60,7 +60,7 @@ namespace chemistry {
 
     private:
         void handleContextMenu( const QPoint& );
-        
+
         void dragEnterEvent( QDragEnterEvent * ); // override;
         void dragMoveEvent( QDragMoveEvent * );   // override;
         void dragLeaveEvent( QDragLeaveEvent * ); // override;
@@ -71,7 +71,7 @@ namespace chemistry {
         std::set< QString > hideColumns_;
 
     private slots:
-        void handleCopyToClipboard(); // override;
+        // void handleCopyToClipboard(); // override;
         void handlePaste(); // override;
         void handleDataChaged( const QModelIndex&, const QModelIndex&, const QVector<int>& );
     };

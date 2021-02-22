@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,24 +25,35 @@
 #include "mssimulatorwidget.hpp"
 #include "mssimulatorform.hpp"
 #include "moltable.hpp"
+#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include <adportable/is_type.hpp>
+#include <adportable/debug.hpp>
 #include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <QMenu>
 
+namespace adwidgets {
+    class MSSimulatorWidget::impl {
+    public:
+        std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
+    };
+}
+
 using namespace adwidgets;
 
 MSSimulatorWidget::MSSimulatorWidget(QWidget *parent) : QWidget(parent)
+                                                      , impl_( new impl() )
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
         layout->setMargin(0);
         layout->setSpacing(2);
-        
+
         if ( QSplitter * splitter = new QSplitter ) {
-            splitter->addWidget( ( new MSSimulatorForm ) ); 
+            splitter->addWidget( ( new MSSimulatorForm ) );
             splitter->addWidget( ( new MolTable ) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
@@ -56,6 +67,7 @@ MSSimulatorWidget::MSSimulatorWidget(QWidget *parent) : QWidget(parent)
 
 MSSimulatorWidget::~MSSimulatorWidget()
 {
+    delete impl_;
 }
 
 QWidget *
@@ -72,9 +84,9 @@ MSSimulatorWidget::OnCreate( const adportable::Configuration& )
 void
 MSSimulatorWidget::OnInitialUpdate()
 {
-    if ( auto form = findChild< MSSimulatorForm * >() ) 
+    if ( auto form = findChild< MSSimulatorForm * >() )
         form->OnInitialUpdate();
-    
+
     if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
         connect( table, &MolTable::onContextMenu, this, &MSSimulatorWidget::handleContextMenu );
@@ -122,7 +134,7 @@ MSSimulatorWidget::setContents( boost::any&& a )
 
         const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( a );
         if ( auto cm = pm.find< adcontrols::MSSimulatorMethod >() ) {
-            
+
             if ( auto form = findChild< MSSimulatorForm * >() ) {
                 form->setContents( *cm );
 
@@ -131,7 +143,7 @@ MSSimulatorWidget::setContents( boost::any&& a )
 
                 return true;
             }
-            
+
         }
     }
     return false;
@@ -162,3 +174,15 @@ MSSimulatorWidget::run()
     emit triggerProcess( "MSSimulatorWidget" );
 }
 
+void
+MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
+{
+    impl_->massSpectrometer_ = p;
+    if ( p ) {
+        if ( p->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
+            ADDEBUG() << "found infiTOF";
+        } else {
+            ADDEBUG() << p->massSpectrometerName() << "\t" << p->massSpectrometerClsid();
+        }
+    }
+}

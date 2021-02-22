@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -37,12 +37,15 @@
 #include <adportable/debug.hpp>
 #include <QApplication>
 #include <QByteArray>
+#include <QByteArray>
 #include <QClipboard>
-#include <QDebug>
 #include <QDoubleSpinBox>
 #include <QDragEnterEvent>
 #include <QFileInfo>
 #include <QHeaderView>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
@@ -53,8 +56,10 @@
 #include <QUrl>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/json/src.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/system/error_code.hpp>
 #include <array>
 #include <algorithm>
 #include <functional>
@@ -198,7 +203,7 @@ namespace adwidgets {
                        , const QString& adducts
                        , const QString& smiles
                        , const QByteArray& svg
-                       , const QString& synonym = QString()
+                       , const QString& synonym
                        , const QString& description = QString()
                        , double mass = 0.0, double abundance = 1.0, bool enable = true, bool msref = false ) {
 
@@ -266,16 +271,16 @@ MolTable::MolTable(QWidget *parent) : TableView(parent)
 {
     setModel( model_ );
 	setItemDelegate( new delegate( [this]( const QModelIndex& index ){
-                if ( ! signalsBlocked() )
-                    handleValueChanged( index );
-            } ) );
+        if ( ! signalsBlocked() )
+            handleValueChanged( index );
+    } ) );
     setSortingEnabled( true );
     setAcceptDrops( true );
 
     connect( this, &TableView::rowsDeleted, [this]() {
-            if ( model_->rowCount() == 0 )
-                model_->setRowCount( 1 );
-        });
+        if ( model_->rowCount() == 0 )
+            model_->setRowCount( 1 );
+    });
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &MolTable::handleContextMenu );
@@ -538,7 +543,7 @@ MolTable::dropEvent( QDropEvent * event )
                 QByteArray svg;
                 std::tie( formula, smiles, svg ) = d;
 #endif
-                impl_->setData( *this, row, formula, QString(), smiles, svg );
+                impl_->setData( *this, row, formula, QString(), smiles, svg, QString() );
                 ++row;
             }
         }
@@ -563,8 +568,8 @@ MolTable::handleCopyToClipboard()
 
     indices.removeFirst();
 
-    adcontrols::moltable::value_type mol;
-
+    boost::json::array ja;
+    boost::json::object jobj;
     for( int i = 0; i < indices.size(); ++i ) {
 
         QModelIndex index = indices.at( i );
@@ -580,94 +585,90 @@ MolTable::handleCopyToClipboard()
                 if ( index.row() == prev.row() )
                     selected_text.append( '\t' );
             }
-
             switch( prev.column() ) {
-            case MolTable::c_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
-            case MolTable::c_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;
-            case MolTable::c_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
-            case MolTable::c_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_formula: jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_adducts: jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_mass:    jobj[ "mass" ] = prev.data( Qt::EditRole ).toDouble(); break;
+            case MolTable::c_abundance: jobj[ "abundance" ] = prev.data( Qt::EditRole ).toDouble(); break;
+            case MolTable::c_synonym: jobj[ "synonym" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_description: jobj[ "description" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case MolTable::c_smiles:  jobj[ "smiles" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
             }
-
             if ( index.row() != prev.row() ) {
                 selected_text.append( '\n' );
-                molecules << mol;
-                mol = adcontrols::moltable::value_type();
+                if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
+                    ja.push_back( jobj );
+                jobj.clear();
             }
         }
         prev = index;
     }
+    if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
+        ja.push_back( jobj );
 
     if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
         selected_text.append( last.data( Qt::EditRole ).toString() );
 
-    QApplication::clipboard()->setText( selected_text );
+    auto json = QString::fromStdString( boost::json::serialize( boost::json::value{{ "moltable", ja }} ) );
+    // ADDEBUG() << json.toStdString();
 
-    std::wostringstream o;
-    try {
-        if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
-            QString xml( QString::fromStdWString( o.str() ) );
-            QMimeData * md = new QMimeData();
-            md->setData( QLatin1String( "application/moltable-xml" ), xml.toUtf8() );
+    if ( auto md = new QMimeData() ) {
+        md->setData( QLatin1String( "application/json" ), json.toUtf8() );
+        if ( QApplication::keyboardModifiers() & ( Qt::ShiftModifier | Qt::ControlModifier ) )
+            md->setText( json );
+        else
             md->setText( selected_text );
-            QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
-        }
-    } catch ( ... ) {
+        QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
     }
 }
 
 void
 MolTable::handlePaste()
 {
-    int row = model_->rowCount() - 1;
+    int row = model_->rowCount() ? model_->rowCount() - 1 : 0;
 
-    auto md = QApplication::clipboard()->mimeData();
-
-    auto data = md->data( "application/moltable-xml" );
-    if ( !data.isEmpty() ) {
-        QString utf8( QString::fromUtf8( data ) );
-        std::wistringstream is( utf8.toStdWString() );
-
-        adcontrols::moltable molecules;
-        if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
-
-            model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
-
-            for ( auto& mol : molecules.data() ) {
-
-                impl_->setData( *this, row
-                               , QString::fromStdString( mol.formula() )
-                               , QString::fromStdString( mol.adducts() )
-                               , QString::fromStdString( mol.smiles() )
-                               , QByteArray()
-                               , QString::fromStdString( mol.synonym() )
-                               , QString::fromStdWString( mol.description() )
-                               , mol.mass()
-                               , mol.abundance()
-                               , mol.enable() );
-                ++row;
-            }
-            resizeRowsToContents();
-            resizeColumnsToContents();
+    if ( auto md = QApplication::clipboard()->mimeData() ) {
+        boost::json::value jv;
+        boost::system::error_code ec;
+        auto data = md->data( "application/json" );
+        if ( data.isEmpty() ) {
+            auto text = md->data( "text/plain" );
+            if ( text.at( 0 ) == '{' )
+                jv = boost::json::parse( text.toStdString(), ec );
+        } else {
+            jv = boost::json::parse( data.toStdString(), ec );
         }
-    } else {
-        // drop plain/text from chemical draw software
-        auto vec = MolTableHelper::SDMolSupplier()( QApplication::clipboard() );
-        if ( ! vec.empty() ) {
-            int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
 
-            model_->insertRows( row, vec.size() );
-#if __cplusplus >= 201703L
-            for ( auto [ formula, smiles, svg ]: vec ) {
-#else
-            for ( auto d: vec ) {
-                QString formula, smiles; QByteArray svg;
-                std::tie( formula, smiles, svg ) = d;
-#endif
-                impl_->setData( *this, row, formula, QString(), smiles, svg );
-                ++row;
+        if ( !ec && jv.is_object() && jv.as_object().contains( "moltable" ) ) {
+            auto ja = jv.as_object()[ "moltable" ].as_array();
+            model_->setRowCount( row + int( ja.size() ) + 1 );
+            adcontrols::moltable::value_type mol;
+            for ( const auto& ji: ja ) {
+                for ( const auto& it: ji.as_object() ) {
+                    if ( it.key() == "smiles" )
+                        mol.smiles() = it.value().as_string().data();
+                    if ( it.key() == "mass" )
+                        mol.mass() = it.value().as_double();
+                    if ( it.key() == "formula" )
+                        mol.formula() = it.value().as_string().data();
+                    if ( it.key() == "synonym" )
+                        mol.synonym() = it.value().as_string().data();
+                    if ( it.key() == "enable" )
+                        mol.enable() = it.value().as_bool();
+                    if ( it.key() == "abundance" )
+                        mol.enable() = it.value().as_double();
+                }
+                impl_->setData( *this
+                                , row++
+                                , QString::fromStdString( mol.formula() )
+                                , QString::fromStdString( mol.adducts() )
+                                , QString::fromStdString( mol.smiles() )
+                                , QByteArray()
+                                , QString::fromStdString( mol.synonym() )
+                                , QString::fromStdWString( mol.description() )
+                                , mol.mass()
+                                , mol.abundance()
+                                , mol.enable() );
             }
         }
     }

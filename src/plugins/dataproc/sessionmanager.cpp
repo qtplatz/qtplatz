@@ -71,8 +71,10 @@ SessionManager::removeEditor( Core::IEditor * editor )
         });
 
     if ( it != sessions_.end() ) {
-        if ( activeDataprocessor_ == it->processor() )
+        if ( activeDataprocessor_ == it->processor() ) {
             activeDataprocessor_ = 0;
+            emit onDataprocessorChanged( activeDataprocessor_ );
+        }
         emit onSessionRemoved( it->processor() );
         sessions_.erase( it );
     }
@@ -85,6 +87,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
 
     sessions_.push_back( Session( proc, editor ) );
 	activeDataprocessor_ = proc.get();
+    emit onDataprocessorChanged( activeDataprocessor_ );
 
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
@@ -98,8 +101,10 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
 void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
-    activeDataprocessor_ = dataprocessor;
-
+    if ( activeDataprocessor_ != dataprocessor ) {
+        activeDataprocessor_ = dataprocessor;
+        emit onDataprocessorChanged( activeDataprocessor_ );
+    }
     emit onSessionUpdated( dataprocessor, QString::fromStdWString( folium.id() ) );
 }
 
@@ -155,6 +160,7 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
 {
 	if ( activeDataprocessor_ != dataprocessor ) {
         activeDataprocessor_ = dataprocessor;
+        emit onDataprocessorChanged( activeDataprocessor_ );
 		auto it = std::find_if( sessions_.begin(), sessions_.end(), [dataprocessor]( dataproc::Session& s ){
                 return dataprocessor == s.processor();
             });

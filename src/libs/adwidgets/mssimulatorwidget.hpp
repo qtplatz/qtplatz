@@ -32,6 +32,8 @@
 
 class QMenu;
 
+namespace adcontrols { class MassSpectrometer; }
+
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT MSSimulatorWidget : public QWidget
@@ -56,6 +58,7 @@ namespace adwidgets {
 
         //
         void setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay );
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
     private:
         void handleContextMenu( QMenu&, const QPoint& );
@@ -67,6 +70,9 @@ namespace adwidgets {
 
     private slots:
         void run();
+    private:
+        class impl;
+        impl * impl_;
     };
 
 }

@@ -33,12 +33,69 @@
 #include <chrono>
 #include <vector>
 
+namespace video {
+
+    std::vector< std::string > cv_cap_prop_names = {
+        "cv::CAP_PROP_POS_MSEC"
+        , "cv::CAP_PROP_POS_FRAMES"
+        , "cv::CAP_PROP_POS_AVI_RATIO"
+        , "cv::CAP_PROP_FRAME_WIDTH"
+        , "cv::CAP_PROP_FRAME_HEIGHT"
+        , "cv::CAP_PROP_FPS"
+        , "cv::CAP_PROP_FOURCC"
+        , "cv::CAP_PROP_FRAME_COUNT"
+        , "cv::CAP_PROP_FORMAT"
+        , "cv::CAP_PROP_MODE9"
+        , "cv::CAP_PROP_BRIGHTNESS"
+        , "cv::CAP_PROP_CONTRAST"
+        , "cv::CAP_PROP_SATURATION"
+        , "cv::CAP_PROP_HUE"
+        , "cv::CAP_PROP_GAIN"
+        , "cv::CAP_PROP_EXPOSURE"
+        , "cv::CAP_PROP_CONVERT_RGB"
+        , "cv::CAP_PROP_WHITE_BALANCE_BLUE_U"
+        , "cv::CAP_PROP_RECTIFICATION"
+        , "cv::CAP_PROP_MONOCHROME"
+        , "cv::CAP_PROP_SHARPNESS"
+        , "cv::CAP_PROP_AUTO_EXPOSURE"
+        , "cv::CAP_PROP_GAMMA"
+        , "cv::CAP_PROP_TEMPERATURE"
+        , "cv::CAP_PROP_TRIGGER"
+        , "cv::CAP_PROP_TRIGGER_DELAY"
+        , "cv::CAP_PROP_WHITE_BALANCE_RED_V"
+        , "cv::CAP_PROP_ZOOM"
+        , "cv::CAP_PROP_FOCUS"
+        , "cv::CAP_PROP_GUID"
+        , "cv::CAP_PROP_ISO_SPEED"
+        , "cv::CAP_PROP_BACKLIGHT"
+        , "cv::CAP_PROP_PAN"
+        , "cv::CAP_PROP_TILT"
+        , "cv::CAP_PROP_ROLL"
+        , "cv::CAP_PROP_IRIS"
+        , "cv::CAP_PROP_SETTINGS"
+        , "cv::CAP_PROP_BUFFERSIZE"
+        , "cv::CAP_PROP_AUTOFOCUS"
+        , "cv::CAP_PROP_SAR_NUM"
+        , "cv::CAP_PROP_SAR_DEN"
+        , "cv::CAP_PROP_BACKEND"
+        , "cv::CAP_PROP_CHANNEL"
+        , "cv::CAP_PROP_AUTO_WB"
+        , "cv::CAP_PROP_WB_TEMPERATURE"
+        , "cv::CAP_PROP_CODEC_PIXEL_FORMAT"
+        , "cv::CAP_PROP_BITRATE"
+        , "cv::CAP_PROP_ORIENTATION_META"
+        , "cv::CAP_PROP_ORIENTATION_AUTO"
+    };
+}
+
 using namespace video;
 
 Player::Player( QObject * parent ) : QThread( parent )
                                    , isCamera_( true )
                                    , stop_( true )
                                    , frameRate_( 0 )
+                                   , prop_supported_( cv_cap_prop_names.size() )
+                                   , pos_frames_( 0 )
 {
 }
 
@@ -88,7 +145,18 @@ Player::loadCamera( int index )
     capture_.open( index );
     if ( capture_.isOpened() )    {
         frameRate_ = capture_.get( cv::CAP_PROP_FPS );
-        if ( frameRate_ > 30 )
+        ADDEBUG() << "loadCamera: " << index;
+        for ( size_t i = 0; i < cv_cap_prop_names.size(); ++i ) {
+            auto value = capture_.get( i );
+            if ( value != -1 ) {
+                prop_supported_[ i ] = true;
+                ADDEBUG() << cv_cap_prop_names.at( i ) << "\t" << capture_.get( i );
+            } else {
+                prop_supported_[ i ] = false;
+            }
+        }
+
+        if ( frameRate_ >= 1000 )
             frameRate_ = 30;
         isCamera_ = true;
 
@@ -119,9 +187,8 @@ Player::Play()
 void
 Player::run()
 {
-    auto start = std::chrono::high_resolution_clock::now();
-
-    double delay = 1.0 / frameRate_;
+    // auto start = std::chrono::high_resolution_clock::now();
+    // double delay = 1.0 / frameRate_;
 
     // std::vector< double > trace;
     auto trace = std::make_shared< adcontrols::Chromatogram >();
@@ -129,7 +196,7 @@ Player::run()
     while( !stop_ ) {
 
         double pos = capture_.get( cv::CAP_PROP_POS_MSEC ) / 1000; // ms -> s
-        auto pos_frames = capture_.get( cv::CAP_PROP_POS_FRAMES );
+        auto pos_frames = prop_supported_[ cv::CAP_PROP_POS_FRAMES ] ? capture_.get( cv::CAP_PROP_POS_FRAMES ) : pos_frames_++;
 
         cv::Mat mat;
         if ( ! capture_.read( mat ) ) {
@@ -158,7 +225,7 @@ Player::run()
         }
 
         // no wait
-        std::this_thread::sleep_until( start + std::chrono::duration< double >( pos + delay ) );
+        // std::this_thread::sleep_until( start + std::chrono::duration< double >( pos + delay ) );
     }
 }
 
@@ -255,13 +322,6 @@ QImage
 Player::toImage( const cv::Mat& mat )
 {
     return adcv::transform_< QImage >()( mat );
-    // if ( mat.channels()== 3 ) {
-    //     cv::Mat rgb;
-    //     cv::cvtColor( mat, rgb, CV_BGR2RGB );
-    //     return QImage( rgb.data, rgb.cols, rgb.rows, QImage::Format_RGB888 );
-    // } else {
-    //     return QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
-    // }
 }
 
 QImage

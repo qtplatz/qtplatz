@@ -58,6 +58,8 @@ namespace video {
 
         std::deque< std::tuple< size_t, double, cv::Mat > > que_;
         std::unique_ptr< Recorder > recorder_;
+        std::vector< bool > prop_supported_;
+        size_t pos_frames_;
 
     signals:
         void processedImage( const QImage& image );

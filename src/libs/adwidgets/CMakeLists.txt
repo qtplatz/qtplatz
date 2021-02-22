@@ -20,6 +20,7 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5OpenGL_INCLUDE_DIRS}
   ${Qt5Multimedia_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/contrib/infitof/libs
   )
 
 if ( rdkit_FOUND )

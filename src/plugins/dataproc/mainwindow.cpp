@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -294,7 +294,6 @@ MainWindow::createStyledBarTop()
                 am->registerAction( p, "dataproc.selSpectrogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelSpectrogram ) ) );
             }
-
         }
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -335,6 +334,16 @@ MainWindow::createStyledBarTop()
         toolBarLayout->addWidget( new QLineEdit );
     }
     return toolBar;
+}
+
+void
+MainWindow::handleDataprocessor( Dataprocessor * dp )
+{
+    ADDEBUG() << "handleDataprocessor";
+    auto sp = ( dp ) ? dp->massSpectrometer() : nullptr;
+    if ( auto form = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
+        form->setMassSpectrometer( sp );
+    }
 }
 
 void
@@ -519,6 +528,7 @@ MainWindow::createContents( Core::IMode * mode )
             connect( dynamic_cast<MSProcessingWnd *>(pSrc), &MSProcessingWnd::dataChanged, dynamic_cast<MSSpectraWnd *>(pDst), &MSSpectraWnd::onDataChanged );
     }
 
+    connect( SessionManager::instance(), &SessionManager::onDataprocessorChanged, this, &MainWindow::handleDataprocessor );
     connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
     connect( SessionManager::instance(), &SessionManager::onProcessed, this, &MainWindow::handleProcessed );
 
@@ -637,6 +647,7 @@ MainWindow::createDockWidgets()
         { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new dataproc::MSPeakTable; } }
         , { tr( "MS Simulator" ), "MSSimulatorMethod", [] () { return new adwidgets::MSSimulatorWidget; } }
+        , { tr( "TOF Calculator" ), "tofCalculator", [] () { return new admtwidgets::MolTableWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] () { return new adwidgets::TargetingWidget; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
         , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }
