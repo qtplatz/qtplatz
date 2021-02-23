@@ -767,7 +767,7 @@ MSPeakTree::exactMass( std::string formula )
     if ( formula.empty() )
         return 0;
     auto neutral = adcontrols::ChemicalFormula::neutralize( formula );
-    return adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( neutral.first ) );
+    return adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( neutral.first ) ).first;
 }
 
 bool

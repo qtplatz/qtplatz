@@ -64,9 +64,9 @@ ProteinWnd::init()
 
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
-    
+
         if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum
-            
+
             proteinTable_ = new ProteinTable;
             splitter->addWidget( proteinTable_ );
 
@@ -111,12 +111,12 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
 
     adcontrols::isotopeCluster isocalc;
     spectrum_->resize(0);
-    
+
     for ( auto& formula: formulae ) {
         int charge(0);
         adcontrols::mol::molecule mol;
         if ( adcontrols::ChemicalFormula::getComposition( mol.elements, formula.toStdString() + "H", charge ) ) { // protenated
-            isocalc( mol, 0 );
+            isocalc.compute( mol, 0 );
             double pmax = std::max_element( mol.cluster.begin(), mol.cluster.end()
                                             , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
                                                 return a.abundance < b.abundance;} )->abundance;
@@ -195,9 +195,9 @@ ProteinWnd::protSelChanged( int row )
             auto it = ptr->begin() + row;
 
             if ( auto enzyme = MainWindow::instance()->get_protease() ) {
-                
+
                 adprot::digestedPeptides digested( *it, *enzyme );
-                            
+
                 std::vector< std::string > sequences;
                 adprot::protease::digest( *enzyme, it->sequence(), sequences );
                 std::vector< peptide_formula_mass_type > vec;
@@ -248,18 +248,18 @@ void
 ProteinWnd::setData( const adprot::peptides& peptides )
 {
     if ( auto formulaParser = MainWindow::instance()->getChemicalFormula() ) {
-        
+
         spectrum_->resize( 0 );
 		spectrum_->setCentroid( adcontrols::CentroidNative );
         adcontrols::annotations& annots = spectrum_->get_annotations();
 		annots.clear();
-        
+
         auto it = std::max_element( peptides.begin(), peptides.end()
                                     , [](const adprot::peptide& lhs, const adprot::peptide& rhs){ return lhs.mass() < rhs.mass(); });
 		double hMass = it->mass();
 
         spectrum_->setAcquisitionMassRange( 100, double( int( ( hMass + 500 ) / 500 ) * 500 ) );
-        
+
         double proton = formulaParser->getMonoIsotopicMass( "H" ) - formulaParser->getElectronMass();
 
         int idx = 0;
@@ -272,6 +272,5 @@ ProteinWnd::setData( const adprot::peptides& peptides )
         }
         spectrumWidget_->setAutoAnnotation( false );
         spectrumWidget_->setData( spectrum_, 0 );
-    }    
+    }
 }
-

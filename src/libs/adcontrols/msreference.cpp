@@ -179,7 +179,7 @@ MSReference::impl::compute_mass()
 
     if ( ! adduct_or_loss_.empty() ) {
         auto adductlist = adcontrols::ChemicalFormula::split( adportable::utf::to_utf8( adduct_or_loss_ ) );
-        exactMass_ += adcontrols::ChemicalFormula().getMonoIsotopicMass( adductlist );
+        exactMass_ += adcontrols::ChemicalFormula().getMonoIsotopicMass( adductlist ).first;
     }
 }
 

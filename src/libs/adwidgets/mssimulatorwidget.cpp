@@ -178,6 +178,10 @@ void
 MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
 {
     impl_->massSpectrometer_ = p;
+
+    if ( auto form = findChild< MSSimulatorForm * >() ) {
+        form->setMassSpectrometer( p );
+    }
     if ( p ) {
         if ( p->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
             ADDEBUG() << "found infiTOF";

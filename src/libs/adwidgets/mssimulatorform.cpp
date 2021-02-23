@@ -25,6 +25,9 @@
 #include "mssimulatorform.hpp"
 #include "ui_mssimulatorform.h"
 #include <adcontrols/mssimulatormethod.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/scanlaw.hpp>
+#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include <QSignalBlocker>
 
 using namespace adwidgets;
@@ -35,13 +38,14 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect( ui->spinBox, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
+    ui->comboBox->setEnabled( false );
+    ui->spinBox_lap->setEnabled( false );
+    connect( ui->spinBox,     qOverload< int >( &QSpinBox::valueChanged ), [this]( int ){ emit onValueChanged(); } );
+    connect( ui->spinBox_lap, qOverload< int >( &QSpinBox::valueChanged ), [this]( int ){ emit onValueChanged(); } );
 
-    connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
-    connect( ui->doubleSpinBox_2, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_3, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
-    connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
+    connect( ui->doubleSpinBox_5, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
 
     connect( ui->spinBox_2, qOverload< int >( &QSpinBox::valueChanged )
              , [this] ( int ) {
@@ -61,13 +65,9 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
 
     connect( ui->spinBox_3, qOverload< int >( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
 
-    connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
+    //connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
-
-    // T0
-    ui->doubleSpinBox_5->setMinimum( -1000.0 ); // us
-    ui->doubleSpinBox_5->setMaximum( 1000.0 ); // us
 }
 
 MSSimulatorForm::~MSSimulatorForm()
@@ -89,8 +89,8 @@ bool
 MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
 {
     m.setResolvingPower( ui->spinBox->value() );
-    m.setLMassLimit( ui->checkBox->isChecked() ? ui->doubleSpinBox->value() : -ui->doubleSpinBox->value() );
-    m.setUMassLimit( ui->checkBox_2->isChecked() ? ui->doubleSpinBox_2->value() : -ui->doubleSpinBox_2->value() );
+    //m.setLMassLimit( ui->checkBox->isChecked() ? ui->doubleSpinBox->value() : -ui->doubleSpinBox->value() );
+    //m.setUMassLimit( ui->checkBox_2->isChecked() ? ui->doubleSpinBox_2->value() : -ui->doubleSpinBox_2->value() );
     m.setChargeStateMin( ui->spinBox_2->value() );
     m.setChargeStateMax( ui->spinBox_3->value() );
     m.setIsTof( ui->groupBox->isChecked() );
@@ -105,22 +105,12 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
 bool
 MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
 {
-    QSignalBlocker blocks[] = { QSignalBlocker( ui->spinBox )
-                                , QSignalBlocker( ui->spinBox_2 )
-                                , QSignalBlocker( ui->spinBox_3 )
-                                , QSignalBlocker( ui->checkBox )
-                                , QSignalBlocker( ui->groupBox )
-                                , QSignalBlocker( ui->doubleSpinBox )
-                                , QSignalBlocker( ui->doubleSpinBox_2 )
-                                , QSignalBlocker( ui->doubleSpinBox_3 )
-                                , QSignalBlocker( ui->doubleSpinBox_4 )
-                                , QSignalBlocker( ui->doubleSpinBox_5 ) };
-    (void)blocks;
+    QSignalBlocker blocks( this );
 
     ui->spinBox->setValue( m.resolvingPower() );
-    ui->checkBox->setChecked( m.lMassLimit() > 0 );
-    ui->doubleSpinBox->setValue( m.lMassLimit() > 0 ? m.lMassLimit() : -m.lMassLimit() );
-    ui->doubleSpinBox_2->setValue( m.uMassLimit() > 0 ? m.uMassLimit() : -m.uMassLimit() );
+    //ui->checkBox->setChecked( m.lMassLimit() > 0 );
+    //ui->doubleSpinBox->setValue( m.lMassLimit() > 0 ? m.lMassLimit() : -m.lMassLimit() );
+    //ui->doubleSpinBox_2->setValue( m.uMassLimit() > 0 ? m.uMassLimit() : -m.uMassLimit() );
 
     ui->spinBox_2->setValue( m.chargeStateMin() );
     ui->spinBox_3->setValue( m.chargeStateMax() );
@@ -131,5 +121,40 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
 
     ui->radioButtonPos->setChecked( m.isPositivePolarity() );
 
+    connect( ui->spinBox_lap, qOverload<int>(&QSpinBox::valueChanged), [&](int lap){
+        if ( auto sp = massSpectrometer_.lock() ) {
+            if ( auto law = sp->scanLaw() )
+                ui->doubleSpinBox_3->setValue( law->fLength( lap ) );
+        }
+    });
+
     return true;
+}
+
+void
+MSSimulatorForm::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
+{
+    QSignalBlocker block( this );
+    massSpectrometer_ = p;
+    if ( p ) {
+        ui->doubleSpinBox_3->setValue( p->fLength() );
+        ui->doubleSpinBox_4->setValue( p->acceleratorVoltage() );
+        ui->doubleSpinBox_5->setValue( p->tDelay() * std::micro::den );
+        if ( p->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
+
+            if ( auto law = p->scanLaw() )
+                ui->doubleSpinBox_3->setValue( law->fLength( 0 ) );
+
+            ui->comboBox->setEnabled( true );
+            ui->spinBox_lap->setEnabled( true );
+            ui->spinBox_lap->setValue( p->mode( 0 ) );
+            ui->doubleSpinBox_4->setEnabled( false );
+            ui->doubleSpinBox_5->setEnabled( false );
+        } else {
+            ui->comboBox->setEnabled( false );
+            ui->spinBox_lap->setEnabled( false );
+            ui->doubleSpinBox_4->setEnabled( true );
+            ui->doubleSpinBox_5->setEnabled( true );
+        }
+    }
 }

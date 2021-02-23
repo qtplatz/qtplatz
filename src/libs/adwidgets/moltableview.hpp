@@ -55,6 +55,11 @@ namespace adwidgets {
         void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
         void setPrecision( int column, int prec );
 
+        std::string json() const;
+        void setContents( const std::string& json );
+        bool setContents( const adcontrols::moltable& );
+        bool getContents( adcontrols::moltable& ) const;
+
         // static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
 
     private:
@@ -74,12 +79,10 @@ namespace adwidgets {
         void onContextMenu( QMenu&, const QPoint& );
         void valueChanged( const QModelIndex&, double ); // Editor 'QDoubleSpinBox' value changed
         void stateChanged( const QModelIndex&, Qt::CheckState );
-                                           
+
     private slots:
         void handleCopyToClipboard() override;
         void handlePaste() override;
     };
 
 }
-
-

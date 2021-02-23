@@ -42,20 +42,20 @@ namespace adcontrols {
         MSSimulatorMethod();
         MSSimulatorMethod( const MSSimulatorMethod& );
         MSSimulatorMethod& operator = ( const MSSimulatorMethod& );
-        
+
         static const wchar_t * dataClass() { return L"adcontrols::MSSimulatorMethod"; }
 
-        double lMassLimit() const;
-        double uMassLimit() const;
-        
-        void setLMassLimit( double );
-        void setUMassLimit( double );
+        // double lMassLimit() const;
+        // double uMassLimit() const;
+
+        // void setLMassLimit( double );
+        // void setUMassLimit( double );
 
         uint32_t chargeStateMin() const;
         uint32_t chargeStateMax() const;
-        
+
         void setChargeStateMin( uint32_t );
-        void setChargeStateMax( uint32_t );        
+        void setChargeStateMax( uint32_t );
 
         void setResolvingPower( double );
         double resolvingPower() const;
@@ -68,14 +68,14 @@ namespace adcontrols {
         double length() const;
         void setLength( double );
         double acceleratorVoltage() const;
-        void setAcceleratorVoltage( double );        
+        void setAcceleratorVoltage( double );
         double tDelay() const;
         void setTDelay( double );
 
         const moltable& molecules() const;
         moltable& molecules();
         void setMolecules( const moltable& );
-        
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;
@@ -83,7 +83,5 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
-    
+
 }
-
-

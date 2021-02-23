@@ -215,7 +215,7 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
     if ( it != annots.end() ) {
         const std::string& formula = it->text();
         auto list = adcontrols::ChemicalFormula::split( formula );
-        double exactMass = formulaParser.getMonoIsotopicMass( list );
+        double exactMass = formulaParser.getMonoIsotopicMass( list ).first;
         double matchedMass = segs[ fcn ].getMass( it->index() );
         double time        = segs[ fcn ].getTime( it->index() );
         lk << reference( formula, exactMass, matchedMass, time );

@@ -172,7 +172,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name )
     for ( auto& id : ids ) {
         double time = ptr->getTime( id.first );
         auto sformula = adcontrols::ChemicalFormula::split( id.second );
-        double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( sformula );
+        double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( sformula ).first;
         time_mass_array.push_back( std::make_pair( time, exactMass ) );
     }
 
@@ -312,6 +312,7 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
     renderer.render( impl_->processedWidget(), &painter, rc );
 }
 
+// action from MSSimulateWidget trigger
 void
 ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
 {
@@ -328,9 +329,12 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     }
     std::sort( formulae.begin(), formulae.end(), []( const auto& a, const auto& b ){ return std::get<1>( a ) < std::get<1>(b); });
 
-    // for ( const auto& formula: formulae ) {
-    //     ADDEBUG() << "isotope cluster: " << std::get<0>( formula ) << ", " << std::get<1>( formula ) << ", " << std::get<2>( formula );
-    // }
+
+#if __cplusplus >= 201703L
+    for ( auto [ formula, mass, charge ]: formulae ) {
+        ADDEBUG() << "isotope cluster: " << formula << ", " << mass << ", " << charge;
+    }
+#endif
 
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->setCentroid( adcontrols::CentroidNative );
@@ -345,8 +349,8 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
 
     double lMass = ms->getMass( 0 );
     double hMass = ms->getMass( ms->size() - 1 );
-    lMass = m.lMassLimit() > 0 ? m.lMassLimit() : double( int( lMass / 10 ) * 10 );
-    hMass = m.uMassLimit() > 0 ? m.uMassLimit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
+    //lMass = m.lMassLimit() > 0 ? m.lMassLimit() : double( int( lMass / 10 ) * 10 );
+    //hMass = m.uMassLimit() > 0 ? m.uMassLimit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
     ms->setAcquisitionMassRange( lMass, hMass );
 
     draw1( ms );

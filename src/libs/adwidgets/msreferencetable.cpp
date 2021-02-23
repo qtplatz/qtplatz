@@ -96,7 +96,7 @@ namespace adwidgets {
     public:
         static double toMass( const QString& formula ) {
             std::vector< std::pair<std::string, char> > formulae = adcontrols::ChemicalFormula::split( formula.toStdString() );
-            return adcontrols::ChemicalFormula().getMonoIsotopicMass( formulae );
+            return adcontrols::ChemicalFormula().getMonoIsotopicMass( formulae ).first;
         }
 
         static double toMass( const QModelIndex& index ) {

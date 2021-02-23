@@ -50,13 +50,6 @@ namespace adcontrols {
             isopeak( const isopeak& t ) : mass(t.mass), abundance(t.abundance), index(t.index) {}
         };
 
-        [[deprecated]] bool operator()( adcontrols::MassSpectrum& ms, const std::string& formula
-                                        , double relative_abundance = 1.0, double resolving_power = 1000000.0 );
-
-        [[deprecated]] bool operator()( adcontrols::MassSpectrum& ms
-                                        , const std::vector< std::pair<std::string, double > >& formula_abundance
-                                        , double resolving_power = 1000000.0 );
-
         bool operator()( adcontrols::MassSpectrum&
                          , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
                          , double resolving_power );
@@ -66,7 +59,7 @@ namespace adcontrols {
          */
         std::vector< isopeak > operator()( const std::vector< std::pair< std::string, char > >& formulae, int charge, int index = (-1) );
 
-        bool operator()( mol::molecule&, int charge ) const;
+        bool compute( mol::molecule&, int charge ) const;
 
         double threshold_daltons() const;
         void setThreshold_daltons( double d );
@@ -77,7 +70,7 @@ namespace adcontrols {
         /*
          * This function returns relative abundance that keeps table-of-element value
          */
-        bool operator()( std::vector< isopeak >&, const std::string& formula, double relative_abundance = 1.0, int index = ( -1 ) ) const; // historical
+        // bool operator()( std::vector< isopeak >&, const std::string& formula, double relative_abundance = 1.0, int index = ( -1 ) ) const; // historical
 
         static void merge_peaks( std::vector<isopeak>&, double resolving_power );
 

@@ -163,7 +163,7 @@ namespace adwidgets {
                     if ( cadducts >= 0 )
                         expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
 
-                    double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
+                    double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) ).first;
                     if ( exactMass > 0.7 ) {  // Any 'chemical formula' mass should be > 1.0 (Hydrogen := 1.007825)
                         double mass = index.data( Qt::EditRole ).toDouble();
                         if ( ! adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
@@ -402,6 +402,10 @@ namespace {
                 int col; ColumnState state;
                 std::tie( col, state ) = *res;
 #endif
+                if ( row >= model.rowCount() ) {
+                    model.insertRow( model.rowCount() );
+                    row = model.rowCount() - 1;
+                }
                 model.setData( model.index( row, col ), v, Qt::EditRole );
 
                 if ( state.isCheckable ) {
@@ -642,65 +646,66 @@ void
 MolTableView::handlePaste()
 {
     int row = model()->rowCount() - 1;
-    auto model = qobject_cast< QStandardItemModel * >( this->model() );
+    if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
 
-    if ( auto md = QApplication::clipboard()->mimeData() ) {
-        boost::json::value jv;
-        boost::system::error_code ec;
-        auto data = md->data( "application/json" );
-        if ( data.isEmpty() ) {
-            auto text = md->data( "text/plain" );
-            if ( text.at( 0 ) == '{' )
-                jv = boost::json::parse( text.toStdString(), ec );
-        } else {
-            jv = boost::json::parse( data.toStdString(), ec );
-        }
-        if ( !ec && jv.is_object() && jv.as_object().contains( "moltable" ) ) {
-            auto ja = jv.as_object()[ "moltable" ].as_array();
-            model->setRowCount( row + int( ja.size() + 1 ) ); // add one free line for add formula
-            adcontrols::moltable::value_type mol;
-            for ( const auto& ji: ja ) {
-                for ( const auto& it: ji.as_object() ) {
-                    if ( it.key() == "smiles" )
-                        mol.smiles() = it.value().as_string().data();
-                    if ( it.key() == "mass" )
-                        mol.mass() = it.value().as_double();
-                    if ( it.key() == "formula" )
-                        mol.formula() = it.value().as_string().data();
-                    if ( it.key() == "synonym" )
-                        mol.synonym() = it.value().as_string().data();
-                    if ( it.key() == "enable" )
-                        mol.enable() = it.value().as_bool();
-                    if ( it.key() == "abundance" )
-                        mol.enable() = it.value().as_double();
-                }
-                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
-                assign( *model, row, ColumnState::f_formula,     QString::fromStdString( mol.formula() ), mol.enable() );
-                assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts() ) );
-                assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
-                assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
-                assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
-                assign( *model, row, ColumnState::f_abundance,   mol.abundance() );
-                ++row;
+        if ( auto md = QApplication::clipboard()->mimeData() ) {
+            boost::json::value jv;
+            boost::system::error_code ec;
+            auto data = md->data( "application/json" );
+            if ( data.isEmpty() ) {
+                auto text = md->data( "text/plain" );
+                if ( text.at( 0 ) == '{' )
+                    jv = boost::json::parse( text.toStdString(), ec );
+            } else {
+                jv = boost::json::parse( data.toStdString(), ec );
             }
-        } else {
-            // drop plain/text from chemical draw software
-            auto vec = MolTableHelper::SDMolSupplier()( QApplication::clipboard() );
-            if ( ! vec.empty() ) {
-                SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
-                int row = model->rowCount() == 0 ? 0 : model->rowCount() - 1;
-                model->insertRows( row, vec.size() );
-                for ( auto d: vec ) {
-#if __cplusplus >= 201703L
-                    auto [ formula, smiles, svg ] = d;
-#else
-                    QString formula, smiles; QByteArray svg;
-                    std::tie( formula, smiles, svg ) = d;
-#endif
-                    assign( *model, row, ColumnState::f_formula, formula );
-                    assign( *model, row, ColumnState::f_smiles,  smiles );
-                    assign( *model, row, ColumnState::f_svg,     svg );
+            if ( !ec && jv.is_object() && jv.as_object().contains( "moltable" ) ) {
+                auto ja = jv.as_object()[ "moltable" ].as_array();
+                model->setRowCount( row + int( ja.size() + 1 ) ); // add one free line for add formula
+                adcontrols::moltable::value_type mol;
+                for ( const auto& ji: ja ) {
+                    for ( const auto& it: ji.as_object() ) {
+                        if ( it.key() == "smiles" )
+                            mol.smiles() = it.value().as_string().data();
+                        if ( it.key() == "mass" )
+                            mol.mass() = it.value().as_double();
+                        if ( it.key() == "formula" )
+                            mol.formula() = it.value().as_string().data();
+                        if ( it.key() == "synonym" )
+                            mol.synonym() = it.value().as_string().data();
+                        if ( it.key() == "enable" )
+                            mol.enable() = it.value().as_bool();
+                        if ( it.key() == "abundance" )
+                            mol.enable() = it.value().as_double();
+                    }
+                    SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+                    assign( *model, row, ColumnState::f_formula,     QString::fromStdString( mol.formula() ), mol.enable() );
+                    assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts() ) );
+                    assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
+                    assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
+                    assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
+                    assign( *model, row, ColumnState::f_abundance,   mol.abundance() );
                     ++row;
+                }
+            } else {
+                // drop plain/text from chemical draw software
+                auto vec = MolTableHelper::SDMolSupplier()( QApplication::clipboard() );
+                if ( ! vec.empty() ) {
+                    SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+                    int row = model->rowCount() == 0 ? 0 : model->rowCount() - 1;
+                    model->insertRows( row, vec.size() );
+                    for ( auto d: vec ) {
+#if __cplusplus >= 201703L
+                        auto [ formula, smiles, svg ] = d;
+#else
+                        QString formula, smiles; QByteArray svg;
+                        std::tie( formula, smiles, svg ) = d;
+#endif
+                        assign( *model, row, ColumnState::f_formula, formula );
+                        assign( *model, row, ColumnState::f_smiles,  smiles );
+                        assign( *model, row, ColumnState::f_svg,     svg );
+                        ++row;
+                    }
                 }
             }
         }
@@ -713,4 +718,150 @@ MolTableView::setColumnField( int column, ColumnState::fields f, bool editable, 
     impl_->columnStates_[ column ] = ColumnState( f, editable, checkable );
 	if ( f == ColumnState::f_mass )
         impl_->columnStates_[ column ].precision = 7;
+}
+
+std::string
+MolTableView::json() const
+{
+    boost::json::array ja;
+    boost::json::object jobj;
+
+    for ( int row = 0; row < model()->rowCount(); ++row ) {
+        for ( int col = 0; col < model()->columnCount(); ++col ) {
+            auto index (model()->index( row, col ));
+            switch( impl_->field( index.column() ) ) {
+            case ColumnState::f_any:
+                jobj[ "f_any" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "id", model()->headerData( index.column(), Qt::Horizontal ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked }};
+                break;
+            case ColumnState::f_uint:
+                jobj[ "f_uint" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toUInt()}
+                    ,{ "id", model()->headerData( index.column(), Qt::Horizontal ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_formula:
+                jobj[ "f_formula" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_adducts:
+                jobj[ "f_adducts" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString() }
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_mass:
+                jobj[ "f_mass" ] =   boost::json::value{{ "value",  index.data( Qt::EditRole ).toDouble()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_abundance:
+                jobj[ "f_abundance" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toDouble() }
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_synonym:
+                jobj[ "f_synonym" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_description:
+                jobj[ "f_description" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_svg:
+                jobj[ "f_svg" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_smiles:
+                jobj[ "f_smiles" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >()  == Qt::Checked }};
+                break;
+            case ColumnState::f_time:
+                jobj[ "f_time" ] = boost::json::value{{"id", model()->headerData( index.column(), Qt::Horizontal ).toString().toDouble() }
+                    , { "value", index.data( Qt::EditRole ).toString().toDouble()}
+                    , { "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            case ColumnState::f_protocol:
+                jobj[ "f_protocol" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                    ,{ "checked", index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked  }};
+                break;
+            default: break;
+            }
+        }
+    }
+    return boost::json::serialize( boost::json::value{{ "moltableview", ja }} );
+}
+
+void
+MolTableView::setContents( const std::string& json )
+{
+}
+
+bool
+MolTableView::setContents( const adcontrols::moltable& mols )
+{
+    size_t row = std::numeric_limits<int>::max();
+    SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
+
+    for ( const auto& mol: mols.data() ) {
+        assign( *model(), row, ColumnState::f_formula, mol.formula(), mol.enable() );
+        assign( *model(), row, ColumnState::f_adducts, mol.adducts() );
+        assign( *model(), row, ColumnState::f_mass,    mol.mass() );
+        assign( *model(), row, ColumnState::f_abundance, mol.abundance() );
+        assign( *model(), row, ColumnState::f_description, mol.description() );
+        // assign( model, row, ColumnState::f_svg, svg );
+        assign( *model(), row, ColumnState::f_smiles,    mol.smiles() );
+        if ( auto protocol = mol.protocol() )
+            assign( *model(), row, ColumnState::f_protocol,  *protocol );
+    }
+    return true;
+}
+
+bool
+MolTableView::getContents( adcontrols::moltable& mols ) const
+{
+    mols.data().clear();
+
+    for ( int row = 0; row < model()->rowCount(); ++row ) {
+
+        for ( int col = 0; col < model()->columnCount(); ++col ) {
+            adcontrols::moltable::value_type mol;
+            auto index (model()->index( row, col ));
+            switch( impl_->field( index.column() ) ) {
+            case ColumnState::f_any:
+            case ColumnState::f_uint:
+                break;
+            case ColumnState::f_formula:
+                mol.formula() = index.data( Qt::EditRole ).toString().toStdString();
+                mol.enable() = index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked;
+                break;
+            case ColumnState::f_adducts:
+                mol.adducts() = index.data( Qt::EditRole ).toString().toStdString();
+                break;
+            case ColumnState::f_mass:
+                mol.mass() =  index.data( Qt::EditRole ).toDouble();
+                break;
+            case ColumnState::f_abundance:
+                mol.abundance() = index.data( Qt::EditRole ).toDouble();
+                break;
+            case ColumnState::f_synonym:
+                mol.synonym() = index.data( Qt::EditRole ).toString().toStdString();
+                break;
+            case ColumnState::f_description:
+                mol.description() = index.data( Qt::EditRole ).toString().toStdWString();
+                break;
+            case ColumnState::f_svg:
+                //jobj[ "svg" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}
+                break;
+            case ColumnState::f_smiles:
+                mol.smiles() = index.data( Qt::EditRole ).toString().toStdString();
+                break;
+            case ColumnState::f_time:
+                //mol.time()  = index.data( Qt::EditRole ).toString().toDouble() / std::micro::den;
+                break;
+            case ColumnState::f_protocol:
+                mol.protocol() = index.data( Qt::EditRole ).toString().toInt();
+                break;
+            default: break;
+            }
+        }
+    }
+
+    return true;
 }

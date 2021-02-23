@@ -67,7 +67,7 @@ isotopeCluster::setThreshold_daltons( double d )
 }
 
 bool
-isotopeCluster::operator()( mol::molecule& mol, int charge ) const
+isotopeCluster::compute( mol::molecule& mol, int charge ) const
 {
     mol.cluster.clear();
     mol << mol::isotope( 0.0, 1.0 ); // trigger calculation
@@ -164,38 +164,38 @@ isotopeCluster::merge_peaks( std::vector< isopeak >& peaks, double resolving_pow
 }
 
 // historical method
-bool
-isotopeCluster::operator()( std::vector< isopeak >& mi
-                            , const std::string& formula, double relative_abundance, int idx ) const
-{
-    if ( formula.empty() || relative_abundance <= 0.0 )
-        return false;
+// bool
+// isotopeCluster::operator()( std::vector< isopeak >& mi
+//                             , const std::string& formula, double relative_abundance, int idx ) const
+// {
+//     if ( formula.empty() || relative_abundance <= 0.0 )
+//         return false;
 
-    int charge(0);
-    mol::molecule mol;
-    ChemicalFormula::getComposition( mol.elements, formula, charge );
+//     int charge(0);
+//     mol::molecule mol;
+//     ChemicalFormula::getComposition( mol.elements, formula, charge );
 
-    (*this)( mol, charge );
+//     compute( mol, charge );
 
-    auto maxIt = std::max_element( mol.cluster.begin(), mol.cluster.end()
-                                   , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
-    double pmax = maxIt->abundance;
+//     auto maxIt = std::max_element( mol.cluster.begin(), mol.cluster.end()
+//                                    , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
+//     double pmax = maxIt->abundance;
 
-    auto tail = mol.cluster.end();
+//     auto tail = mol.cluster.end();
 
-    if ( mol.elements.size() > 1 )  {
-        tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
-                               , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-12; } );
-    }
+//     if ( mol.elements.size() > 1 )  {
+//         tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
+//                                , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-12; } );
+//     }
 
-    std::for_each( mol.cluster.begin(), tail
-                   , [&]( const mol::isotope& i ){
-                         auto it = std::lower_bound( mi.begin(), mi.end(), i.mass, [] ( const isopeak& a, double m ) { return a.mass < m; } );
-                         mi.insert( it, isopeak( i.mass, i.abundance, idx ) );
-        });
+//     std::for_each( mol.cluster.begin(), tail
+//                    , [&]( const mol::isotope& i ){
+//                          auto it = std::lower_bound( mi.begin(), mi.end(), i.mass, [] ( const isopeak& a, double m ) { return a.mass < m; } );
+//                          mi.insert( it, isopeak( i.mass, i.abundance, idx ) );
+//         });
 
-    return true;
-}
+//     return true;
+// }
 
 // targeting support method
 std::vector< isotopeCluster::isopeak >
@@ -204,17 +204,24 @@ isotopeCluster::operator()( const std::vector< std::pair< std::string, char > >&
     if ( formulae.empty() )
         return std::vector< isotopeCluster::isopeak >();
 
-    double mass = ChemicalFormula().getMonoIsotopicMass( formulae, charge );
+    double mass;
+    std::tie( mass, charge ) = ChemicalFormula().getMonoIsotopicMass( formulae, charge ); // charge will be ignored if it is zero
     threshold_daltons_ = mass / resolving_power_ / 2;
+
+    // ADDEBUG() << "molFormula : " << ChemicalFormula::make_formula_string( formulae )
+    //           << ", adducts: " << ChemicalFormula::make_adduct_string( formulae )
+    //           << ", mol: " << ChemicalFormula::standardFormula( formulae )
+    //           << ", mass: " << mass
+    //           << ", charge: " << charge;
 
     int ignore;
     mol::molecule mol;
+    std::string stdformula;
+    std::tie( stdformula, std::ignore ) = ChemicalFormula::standardFormula( formulae );
 
-    ChemicalFormula::getComposition( mol.elements, ChemicalFormula::standardFormula( formulae ), ignore );
-    if ( charge == 0 )
-        charge = ignore;
+    ChemicalFormula::getComposition( mol.elements, stdformula, ignore );
 
-    (*this)( mol, charge );
+    compute( mol, charge );
 
     std::vector< isotopeCluster::isopeak > pks;
     pks.reserve( mol.cluster.size() );
@@ -259,73 +266,69 @@ isotopeCluster::operator()( adcontrols::MassSpectrum& ms
     ms.resize( peaks.size() );
 
     size_t idx(0);
-
+    auto& annots = ms.get_annotations();
     for ( auto& i: peaks ) {
         ms.setMass( idx, i.mass );
         ms.setIntensity( idx, i.abundance * 100 );
         ms.setColor( idx, static_cast<unsigned>(i.index) % 17 );
+        //
+        if ( formula_mass_charge.size() > i.index ) {
+            std::string formula; double mass; int charge;
+            std::tie( formula, mass, charge ) = formula_mass_charge[ i.index ];
+            annots <<
+                adcontrols::annotation( formula, mass, (i.abundance * 100 ), int( idx ), 0, adcontrols::annotation::dataFormula );
+        }
         ++idx;
     }
-
-    // annotation
-    auto& annots = ms.get_annotations();
-    for ( auto& formula: formula_mass_charge ) {
-        double mass = std::get<1>( formula );
-        auto pos = ms.find( mass, mass / resolving_power_ );
-        if ( pos != adcontrols::MassSpectrum::npos ) {
-            annots << adcontrols::annotation( std::get<0>( formula ), mass, ms.getIntensity( pos ), int( pos ), 0, adcontrols::annotation::dataFormula );
-        }
-    }
-
 
     return true;
 }
 
 
-bool
-isotopeCluster::operator()( MassSpectrum& ms, const std::string& formula
-                            , double relative_abundance, double resolving_power )
-{
-    std::vector< std::pair< std::string, double > > f;
+// bool
+// isotopeCluster::operator()( MassSpectrum& ms, const std::string& formula
+//                             , double relative_abundance, double resolving_power )
+// {
+//     std::vector< std::pair< std::string, double > > f;
 
-    f.emplace_back( formula, relative_abundance );
+//     f.emplace_back( formula, relative_abundance );
 
-    return ( *this )( ms, f, resolving_power );
-}
+//     return ( *this )( ms, f, resolving_power );
+// }
 
-bool
-isotopeCluster::operator()( MassSpectrum& ms
-                            , const std::vector< std::pair<std::string, double > >& formula_abundances
-                            , double resolving_power )
-{
-    std::vector< isopeak > peaks;
+// bool
+// isotopeCluster::operator()( MassSpectrum& ms
+//                             , const std::vector< std::pair<std::string, double > >& formula_abundances
+//                             , double resolving_power )
+// {
+//     std::vector< isopeak > peaks;
 
-    int index(0);
+//     int index(0);
 
-    for ( auto& formula_abundance: formula_abundances ) {
-        auto neutral = ChemicalFormula::neutralize( formula_abundance.first );
-        auto pks = (*this)( ChemicalFormula::split( neutral.first ), neutral.second, index++ );
+//     for ( auto& formula_abundance: formula_abundances ) {
+//         auto neutral = ChemicalFormula::neutralize( formula_abundance.first );
+//         auto pks = (*this)( ChemicalFormula::split( neutral.first ), neutral.second, index++ );
 
-        ( *this )( peaks, formula_abundance.first, formula_abundance.second );
-    }
+//         ( *this )( peaks, formula_abundance.first, formula_abundance.second );
+//     }
 
-    if ( ! peaks.empty() ) {
+//     if ( ! peaks.empty() ) {
 
-        //merge_peaks( peaks, resolving_power );
-        ms.resize( peaks.size() );
+//         //merge_peaks( peaks, resolving_power );
+//         ms.resize( peaks.size() );
 
-        size_t idx(0);
+//         size_t idx(0);
 
-        for ( auto& i: peaks ) {
-            ms.setMass( idx, i.mass );
-            ms.setIntensity( idx, i.abundance * 100 );
-            ++idx;
-        }
+//         for ( auto& i: peaks ) {
+//             ms.setMass( idx, i.mass );
+//             ms.setIntensity( idx, i.abundance * 100 );
+//             ++idx;
+//         }
 
-        return true;
-    }
-    return false;
-}
+//         return true;
+//     }
+//     return false;
+// }
 
 namespace adcontrols {
     namespace molformula {

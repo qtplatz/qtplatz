@@ -113,9 +113,10 @@ namespace admtwidgets {
                                    , model_( std::make_unique< QStandardItemModel >() )
                                    , enable_( true ) {
             model_->setColumnCount( ncols );
-            model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
+            model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "formula" ) );
+            model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "adducts" ) );
             model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
-            model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
+            model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "time(&mu;s)" ) );
             model_->setHeaderData( c_laps,       Qt::Horizontal, QObject::tr( "lap#" ) );
             model_->setHeaderData( c_tdiff,      Qt::Horizontal, QObject::tr( "dt" ) );
             model_->setHeaderData( c_apparent_mass,   Qt::Horizontal, QObject::tr( "Apparent <i>m/z</i>" ) );

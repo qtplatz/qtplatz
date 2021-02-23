@@ -356,7 +356,7 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
     auto neutral = ChemicalFormula::neutralize( formula );
     int charge = neutral.second ? neutral.second : 1;
     // double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
-    double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
+    double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) ).first;
 
     if ( ms.nProtocols() <= fcn ) {
         ADDEBUG() << "Error: force_find: -- specified protocol " << fcn << " does not exist.";
@@ -424,24 +424,24 @@ Targeting::setup( const TargetingMethod& m )
                     if ( adducts_local.empty() ) {
                         std::ostringstream t;
                         t << "[" << x.formula() << "]" << ( positive ? '+' : '-' );
-                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ) );
+                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
                     } else {
                         for ( const auto& a: adducts_local ) {
                             std::ostringstream t;
                             t << x.formula() << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ) );
+                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
                         }
                     }
                 } else if ( charge >= 2 ) {
                     if ( adducts_local.empty() ) {
                         std::ostringstream t;
                         t << "[" << x.formula() << "]" << charge << ( positive ? '+' : '-' );
-                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ) );
+                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
                     } else {
                         for ( const auto& a: make_combination()( charge, adducts_local ) ) {
                             std::ostringstream t;
                             t << x.formula() << a;
-                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ) );
+                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
                         }
                     }
                 }
@@ -469,17 +469,19 @@ Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range, cons
         if ( charge == 0 || charge == 1 ) {
             if ( adducts_local.empty() ) {
                 if ( charge == 0 ) {
-                    res.emplace_back( formula, ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ), icharge ), icharge );
+                    double mass; int fcharge;
+                    std::tie( mass, fcharge) = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
+                    res.emplace_back( formula, mass, fcharge ); // ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ), icharge ), icharge );
                 } else {
                     std::ostringstream t;
                     t << "[" << formula << "]" << (icharge > 0 ? '+' : '-');
-                    res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ), icharge );
+                    res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
                 }
             } else {
                 for ( const auto& a: adducts_local ) {
                     std::ostringstream t;
                     t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
+                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
                     res.emplace_back( t.str(), mass, icharge );
                 }
             }
@@ -487,12 +489,12 @@ Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range, cons
             if ( adducts_local.empty() ) {
                 std::ostringstream t;
                 t << "[" << formula << "]" << charge << (icharge > 0 ? '+' : '-');
-                res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ), icharge );
+                res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
             } else {
                 for ( const auto& a: make_combination()( charge, adducts_local ) ) {
                     std::ostringstream t;
                     t << formula << a;
-                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
+                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
                     res.emplace_back( t.str(), mass, icharge );
                 }
             }

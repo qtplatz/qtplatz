@@ -147,29 +147,29 @@ MSSimulatorMethod::operator = ( const MSSimulatorMethod& t )
     return *this;
 }
 
-double
-MSSimulatorMethod::lMassLimit() const
-{
-    return impl_->mass_limits_.first;
-}
+// double
+// MSSimulatorMethod::lMassLimit() const
+// {
+//     return impl_->mass_limits_.first;
+// }
 
-double
-MSSimulatorMethod::uMassLimit() const
-{
-    return impl_->mass_limits_.second;
-}
+// double
+// MSSimulatorMethod::uMassLimit() const
+// {
+//     return impl_->mass_limits_.second;
+// }
 
-void
-MSSimulatorMethod::setLMassLimit( double v )
-{
-    impl_->mass_limits_.first = v;
-}
+// void
+// MSSimulatorMethod::setLMassLimit( double v )
+// {
+//     impl_->mass_limits_.first = v;
+// }
 
-void
-MSSimulatorMethod::setUMassLimit( double v )
-{
-    impl_->mass_limits_.second = v;
-}
+// void
+// MSSimulatorMethod::setUMassLimit( double v )
+// {
+//     impl_->mass_limits_.second = v;
+// }
 
 uint32_t
 MSSimulatorMethod::chargeStateMin() const

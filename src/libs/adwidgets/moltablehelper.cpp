@@ -105,7 +105,7 @@ MolTableHelper::monoIsotopicMass( const QString& formula, const QString& adducts
 
     if ( ! adducts.isEmpty() )
         expr += " " + adducts;
-    double exactMass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( expr.toStdString() ) );
+    double exactMass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( expr.toStdString() ) ).first;
     return exactMass;
 }
 

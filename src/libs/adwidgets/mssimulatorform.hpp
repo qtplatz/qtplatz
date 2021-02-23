@@ -27,14 +27,14 @@
 
 #include <QWidget>
 
-namespace adcontrols { class MSSimulatorMethod; }
+namespace adcontrols { class MSSimulatorMethod; class MassSpectrometer; }
 
 namespace adwidgets {
 
     namespace Ui {
         class MSSimulatorForm;
     }
-    
+
     class MSSimulatorForm : public QWidget {
 
         Q_OBJECT
@@ -48,12 +48,15 @@ namespace adwidgets {
         bool getContents( adcontrols::MSSimulatorMethod& ) const;
         bool setContents( const adcontrols::MSSimulatorMethod& );
 
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p );
+
     signals:
         void onValueChanged();
         void triggerProcess();
 
     private:
         Ui::MSSimulatorForm *ui;
+        std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
     };
 
 }

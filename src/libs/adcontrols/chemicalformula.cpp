@@ -462,7 +462,7 @@ ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
     return chem::compute_mass()( formula );
 }
 
-double
+std::pair< double, int >
 ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae, int charge ) const
 {
     using namespace adportable::chem;
@@ -482,17 +482,23 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
 
     if ( charge == 0 )
         charge = comp.second + lose.second;
-    // ADDEBUG() << "charge : " << comp.second << " + " << lose.second << " = " << charge;
+
+    // ADDEBUG() << "formula comp: " << chem::make_string< char >( comp ) << " - " << chem::make_string< char >( lose );
+    for ( auto l: lose.first ) {
+        auto it = comp.first.find( l.first );
+        if ( it != comp.first.end() )
+            it->second -= std::min( it->second, l.second );
+    }
+    // ADDEBUG() << "\tfinal comp: " << chem::make_string< char >( comp );
 
     double mass = chem::monoIsotopicMass( comp, false );
-    mass -= chem::monoIsotopicMass( lose, false );
 
     if ( charge > 0 ) {
-        return ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * charge ) ) / charge;
+        return std::make_pair( ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * charge ) ) / charge, charge );
     } else if ( charge < 0 ) {
-        return ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * (-charge) ) ) / (-charge);
+        return std::make_pair( ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * (-charge) ) ) / (-charge), charge );
     }
-    return mass;
+    return std::make_pair( mass, charge );
 }
 
 double
@@ -723,8 +729,7 @@ ChemicalFormula::make_formula_string( const std::vector< std::pair< std::string,
     return chem::make_formula_string( list );
 }
 
-
-std::string
+std::pair< std::string, int >
 ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, char > >& formulae )
 {
     std::string mformula, lformula;
@@ -759,7 +764,7 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
                 o << a.count();
         }
     }
-    return o.str();
+    return std::make_pair( o.str(), charge );
 }
 
 std::vector< std::string >
