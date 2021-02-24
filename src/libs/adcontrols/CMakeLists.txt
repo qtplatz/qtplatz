@@ -99,6 +99,8 @@ add_library( adcontrols SHARED
   isotopemethod.hpp
   idaudit.cpp
   idaudit.hpp
+  lapfinder.cpp
+  lapfinder.hpp
   lcmsdataset.cpp
   lcmsdataset.hpp
   lockmass.cpp

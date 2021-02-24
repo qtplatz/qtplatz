@@ -48,6 +48,7 @@ include_directories(
   ${Qt5Core_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}        # version.h
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
+  ${CMAKE_SOURCE_DIR}/contrib/infitof/libs
   )
 
 add_library( ${PROJECT_NAME} MODULE

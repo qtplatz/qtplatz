@@ -147,6 +147,8 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
 
         if ( ( impl_->tplot_ = std::make_unique< adplot::ChromatogramWidget >( this ) ) ) {
             impl_->tplot_->setMaximumHeight( 120 );
+            impl_->tplot_->enableAxis( QwtPlot::yRight, true );
+
             connect( impl_->tplot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelectedOnTime( const QRectF& ) ) );
             splitter->addWidget( impl_->tplot_.get() );
             splitter->setOrientation( Qt::Vertical );
@@ -276,20 +278,20 @@ VideoProcWnd::handleData()
         //<-----  contour plot -----
         if ( auto drawable = processor->contours() ) {
             processor->record( std::get< 2 >( *drawable ) );
-            //imgWidgets_.at( 1 )->setImage( Player::toImage( std::get< 2 >(*drawable) ) );
+            impl_->imgWidgets_.at( 1 )->setImage( Player::toImage( std::get< 2 >(*drawable) ) );
         }
     }
 
-    // if ( auto tic = processor->time_profile_tic() )
-    //     tplot_->setData( std::move( tic ), 0, false );
+    if ( auto tic = processor->time_profile_tic() ) {
+        impl_->tplot_->setData( std::move( tic ), 0, true );
+    }
 
-    // tplot_->enableAxis( QwtPlot::yRight, true );
-    // tplot_->setAxisScale( QwtPlot::yRight, 0, 200 );
+    if ( auto counts = processor->time_profile_counts() ) {
+        impl_->tplot_->setData( std::move( counts ), 1, false );
+    }
+
     // if ( auto bp = processor->time_profile_bp() )
     //     tplot_->setData( std::move( bp ), 1, false );
-
-    if ( auto counts = processor->time_profile_counts() )
-        impl_->tplot_->setData( std::move( counts ), 1, false );
 
     if ( player->isStopped() ) {
         processor->close_recorder();

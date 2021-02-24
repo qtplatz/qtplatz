@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -44,12 +44,6 @@ namespace adcontrols {
         MSSimulatorMethod& operator = ( const MSSimulatorMethod& );
 
         static const wchar_t * dataClass() { return L"adcontrols::MSSimulatorMethod"; }
-
-        // double lMassLimit() const;
-        // double uMassLimit() const;
-
-        // void setLMassLimit( double );
-        // void setUMassLimit( double );
 
         uint32_t chargeStateMin() const;
         uint32_t chargeStateMax() const;

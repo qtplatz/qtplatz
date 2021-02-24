@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,7 +27,7 @@
 
 #include <QWidget>
 
-namespace adcontrols { class MSSimulatorMethod; class MassSpectrometer; }
+namespace adcontrols { class MSSimulatorMethod; class MassSpectrometer; class MassSpectrum; }
 
 namespace adwidgets {
 
@@ -49,6 +49,7 @@ namespace adwidgets {
         bool setContents( const adcontrols::MSSimulatorMethod& );
 
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p );
+        void setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > p );
 
     signals:
         void onValueChanged();
@@ -57,6 +58,7 @@ namespace adwidgets {
     private:
         Ui::MSSimulatorForm *ui;
         std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
+        std::weak_ptr< const adcontrols::MassSpectrum > massSpectrum_;
     };
 
 }

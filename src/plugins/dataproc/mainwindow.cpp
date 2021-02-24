@@ -341,8 +341,8 @@ MainWindow::handleDataprocessor( Dataprocessor * dp )
 {
     ADDEBUG() << "handleDataprocessor";
     auto sp = ( dp ) ? dp->massSpectrometer() : nullptr;
-    if ( auto form = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
-        form->setMassSpectrometer( sp );
+    if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
+        w->setMassSpectrometer( sp );
     }
 }
 

@@ -34,6 +34,7 @@ namespace adcontrols {
 
 	namespace mol { struct molecule; struct isotope; }
 
+    class MassSpectrometer;
     class MassSpectrum;
     class ADCONTROLSSHARED_EXPORT isotopeCluster;
 
@@ -53,6 +54,13 @@ namespace adcontrols {
         bool operator()( adcontrols::MassSpectrum&
                          , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
                          , double resolving_power );
+
+        // for multi-turn
+        bool operator()( adcontrols::MassSpectrum&
+                         , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
+                         , double resolving_power
+                         , std::shared_ptr< const adcontrols::MassSpectrometer >
+                         , int lap );
 
         /*
          * This function returns relative abundance that base peak abundance as 1.0

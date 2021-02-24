@@ -22,23 +22,25 @@
 **
 **************************************************************************/
 
-#include "mssimulatorwidget.hpp"
-#include "mssimulatorform.hpp"
 #include "moltable.hpp"
-#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
-#include <adportable/is_type.hpp>
-#include <adportable/debug.hpp>
+#include "mssimulatorform.hpp"
+#include "mssimulatorwidget.hpp"
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/massspectrometer.hpp>
-#include <QSplitter>
+#include <adportable/debug.hpp>
+#include <adportable/is_type.hpp>
+#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include <QBoxLayout>
 #include <QMenu>
+#include <QSplitter>
 
 namespace adwidgets {
     class MSSimulatorWidget::impl {
     public:
         std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
+        std::weak_ptr< const adcontrols::MassSpectrum > massSpectrum_;
     };
 }
 
@@ -146,6 +148,19 @@ MSSimulatorWidget::setContents( boost::any&& a )
 
         }
     }
+    if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( a ) ) {
+        ADDEBUG() << "found mass spectrum";
+        if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum> >( a ) ) {
+            impl_->massSpectrum_ = ptr;
+
+            if ( auto form = findChild< MSSimulatorForm * >() )
+                form->setMassSpectrum( ptr );
+        }
+        return true;
+    }
+
+    ADDEBUG() << a.type().name();
+
     return false;
 }
 

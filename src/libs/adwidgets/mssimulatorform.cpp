@@ -89,8 +89,6 @@ bool
 MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
 {
     m.setResolvingPower( ui->spinBox->value() );
-    //m.setLMassLimit( ui->checkBox->isChecked() ? ui->doubleSpinBox->value() : -ui->doubleSpinBox->value() );
-    //m.setUMassLimit( ui->checkBox_2->isChecked() ? ui->doubleSpinBox_2->value() : -ui->doubleSpinBox_2->value() );
     m.setChargeStateMin( ui->spinBox_2->value() );
     m.setChargeStateMax( ui->spinBox_3->value() );
     m.setIsTof( ui->groupBox->isChecked() );
@@ -108,9 +106,6 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
     QSignalBlocker blocks( this );
 
     ui->spinBox->setValue( m.resolvingPower() );
-    //ui->checkBox->setChecked( m.lMassLimit() > 0 );
-    //ui->doubleSpinBox->setValue( m.lMassLimit() > 0 ? m.lMassLimit() : -m.lMassLimit() );
-    //ui->doubleSpinBox_2->setValue( m.uMassLimit() > 0 ? m.uMassLimit() : -m.uMassLimit() );
 
     ui->spinBox_2->setValue( m.chargeStateMin() );
     ui->spinBox_3->setValue( m.chargeStateMax() );
@@ -157,4 +152,10 @@ MSSimulatorForm::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpe
             ui->doubleSpinBox_5->setEnabled( true );
         }
     }
+}
+
+void
+MSSimulatorForm::setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > p )
+{
+    massSpectrum_ = p;
 }

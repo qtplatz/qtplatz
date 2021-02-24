@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,6 +29,7 @@
 #include "elementalcompwnd.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
+#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
@@ -322,13 +323,13 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
 
     for ( auto& mol : m.molecules().data() ) {
         if ( mol.enable() ) {
-            auto list = adcontrols::Targeting::make_mapping( { m.chargeStateMin(), m.chargeStateMax() }, mol.formula(), mol.adducts(), m.isPositivePolarity() );
+            auto list = adcontrols::Targeting::make_mapping(
+                { m.chargeStateMin(), m.chargeStateMax() }, mol.formula(), mol.adducts(), m.isPositivePolarity() );
             for ( const auto& a: list )
                 formulae.emplace_back( a );
         }
     }
     std::sort( formulae.begin(), formulae.end(), []( const auto& a, const auto& b ){ return std::get<1>( a ) < std::get<1>(b); });
-
 
 #if __cplusplus >= 201703L
     for ( auto [ formula, mass, charge ]: formulae ) {
@@ -339,12 +340,23 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->setCentroid( adcontrols::CentroidNative );
 
-    adcontrols::isotopeCluster()( *ms, formulae, m.resolvingPower() );
+    bool handled( false );
+    // ---> trial for aparent m/z calculation
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto sp = dp->massSpectrometer() ) {
+            if ( sp->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
+                handled = adcontrols::isotopeCluster()( *ms, formulae, m.resolvingPower(), sp, 30 );
+            }
+        }
+    }
 
-    if ( m.isTof() ) {
-        adportable::TimeSquaredScanLaw scanLaw( m.acceleratorVoltage(), m.tDelay(), m.length() );
-        for ( size_t i = 0; i < ms->size(); ++i )
-            ms->setTime( i, scanLaw.getTime( ms->getMass( i ), 0 ) );
+    if ( !handled ) {
+        adcontrols::isotopeCluster()( *ms, formulae, m.resolvingPower() );
+        if ( m.isTof() ) {
+            adportable::TimeSquaredScanLaw scanLaw( m.acceleratorVoltage(), m.tDelay(), m.length() );
+            for ( size_t i = 0; i < ms->size(); ++i )
+                ms->setTime( i, scanLaw.getTime( ms->getMass( i ), 0 ) );
+        }
     }
 
     double lMass = ms->getMass( 0 );

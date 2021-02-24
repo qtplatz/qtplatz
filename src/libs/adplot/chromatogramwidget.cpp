@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -193,6 +193,7 @@ namespace adplot {
 
             void setData( std::shared_ptr< const adcontrols::Chromatogram>& cp, bool y2 ) {
                 grab_ = cp;
+                y2_ = y2;
                 auto range_x = cp->timeRange(); // adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
@@ -502,11 +503,14 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
         trace->plot_curve().setTitle( QString::fromStdString( value.get() ) );
 
     QRectF rect = trace->boundingRect();
+    qDebug() << rect;
     for ( const auto& v: impl_->traces_ ) {
         if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
             auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
+            ADDEBUG() << "trace->y2: " << trace->y2();
             if ( trace->y2() == yRight ) {
                 rect |= trace->boundingRect();
+                qDebug() << rect;
             }
         }
     }

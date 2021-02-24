@@ -32,7 +32,10 @@
 
 class QMenu;
 
-namespace adcontrols { class MassSpectrometer; }
+namespace adcontrols {
+    class MassSpectrometer;
+    class MassSpectrum;
+}
 
 namespace adwidgets {
 
