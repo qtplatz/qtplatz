@@ -73,7 +73,7 @@ counter( int i )
 double
 monoIsotopicMass( const char * formula )
 {
-    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) );
+    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) ).first;
     return exactMass;
 }
 
@@ -83,8 +83,11 @@ isotopeCluster( const char * formula, double resolving_power )
     ADDEBUG() << __FUNCTION__ << "(" << formula << ", " << resolving_power << ")";
 
     adcontrols::MassSpectrum ms;
-
-    adcontrols::isotopeCluster()( ms, formula, 1.0, resolving_power );
+    double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+    int charge = 0;
+    std::vector< std::tuple< std::string, double, int > > fmc{ std::make_tuple( formula, mass, charge ) };
+    adcontrols::isotopeCluster()( ms, fmc, resolving_power );
+    // adcontrols::isotopeCluster()( ms, formula, 1.0, resolving_power );
 
     long dimensions[ 2 ] = { long(ms.size()), 2 };
     const char * heads[ 2 ] = { "List", "List" };
@@ -127,16 +130,16 @@ dataReaders( int file )
 {
     if ( auto dp = singleton::instance()->dataProcessor( file ) ) {
         auto size = dp->dataReaders().size();
-        
+
         boost::property_tree::ptree pt;
         boost::property_tree::ptree child;
-        
+
         for ( auto reader : dp->dataReaders() ) {
             boost::property_tree::ptree a;
             a.put( "display_name", reader->display_name() );
             a.put( "objtext", reader->objtext() );
             a.put( "objuuid", reader->objuuid() );
-     
+
             child.push_back( std::make_pair( "", a ) );
         }
 
@@ -184,7 +187,7 @@ readSpectrum( int id, int readerId )
                 }
             }
             long dimensions[ 2 ] = { long(a.size() / 3), 3 };
-            const char * heads[ 3 ] = { "List", "List", "List" };            
+            const char * heads[ 3 ] = { "List", "List", "List" };
             WSPutDoubleArray( stdlink, a.data(), dimensions, heads, 2 );
             return;
         }

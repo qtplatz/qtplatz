@@ -78,7 +78,7 @@ releaseInstance(WolframLibraryData libData, mint Argc, MArgument *Args, MArgumen
 {
     mint id;
 
-    ADDEBUG() << __FUNCTION__;    
+    ADDEBUG() << __FUNCTION__;
     if (Argc != 1)
         return LIBRARY_FUNCTION_ERROR;
 	id = MArgument_getInteger(Args[0]);
@@ -123,10 +123,10 @@ monoIsotopicMass( WolframLibraryData libData, mint Argc, MArgument *Args, MArgum
 {
     auto formula = MArgument_getUTF8String( Args[0] );
     ADDEBUG() << __FUNCTION__ << "(" << formula << ")";
-    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) );
+    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) ).first;
     MArgument_setReal(Res, exactMass);
     //return exactMass;
-    return LIBRARY_NO_ERROR;    
+    return LIBRARY_NO_ERROR;
 }
 
 EXTERN_C DLLEXPORT int
@@ -136,7 +136,10 @@ isotopeCluster( WolframLibraryData libData, mint Argc, MArgument *Args, MArgumen
     auto resolving_power = MArgument_getReal( Args[ 1 ] );
 
     adcontrols::MassSpectrum ms;
-    adcontrols::isotopeCluster()( ms, formula, 1.0, resolving_power );
+    double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+    int charge = 0;
+    std::vector< std::tuple< std::string, double, int > > fmc{ std::make_tuple( formula, mass, charge ) };
+    adcontrols::isotopeCluster()( ms, fmc, resolving_power );
 
     MTensor T0;
     mint i, dims[2];
@@ -145,17 +148,17 @@ isotopeCluster( WolframLibraryData libData, mint Argc, MArgument *Args, MArgumen
     //I0 = MArgument_getInteger(Args[0]);
     dims[0] = 2;
     dims[1] = ms.size();
-    
+
     err = libData->MTensor_new(MType_Real, 2, dims, &T0);
     mint addr[2] = { 1, 1 };
     for ( int i = 0; i < ms.size() && !err; i++) {
         addr[0] = 1; addr[1] = i + 1;
         err = libData->MTensor_setReal( T0, addr, ms.mass(i-1));
-        addr[0] = 2; addr[1] = i + 1;        
+        addr[0] = 2; addr[1] = i + 1;
         err = libData->MTensor_setReal( T0, addr, ms.intensity(i-1));
     }
     MArgument_setMTensor(Res, T0);
-    return err;    
+    return err;
 }
 
 EXTERN_C DLLEXPORT int
@@ -175,7 +178,7 @@ adFileOpen( WolframLibraryData libData, mint Argc, MArgument *Args, MArgument Re
         }
     }
     MArgument_setInteger(Res, id);
-    return LIBRARY_NO_ERROR;    
+    return LIBRARY_NO_ERROR;
 }
 
 EXTERN_C DLLEXPORT int
@@ -186,7 +189,7 @@ adFileClose( WolframLibraryData libData, mint Argc, MArgument *Args, MArgument R
 
     singleton::instance()->remove_dataProcessor( id );
     MArgument_setInteger(Res, 0);
-    return LIBRARY_NO_ERROR;    
+    return LIBRARY_NO_ERROR;
 }
 
 EXTERN_C DLLEXPORT int
@@ -195,20 +198,20 @@ dataReaders( WolframLibraryData libData, mint Argc, MArgument *Args, MArgument R
     auto id = MArgument_getInteger(Args[0]);
 
     std::ostringstream o;
-    
+
     if ( auto dp = singleton::instance()->dataProcessor( id ) ) {
 
         auto size = dp->dataReaders().size();
-        
+
         boost::property_tree::ptree pt;
         boost::property_tree::ptree child;
-        
+
         for ( auto reader : dp->dataReaders() ) {
             boost::property_tree::ptree a;
             a.put( "display_name", reader->display_name() );
             a.put( "objtext", reader->objtext() );
             a.put( "objuuid", reader->objuuid() );
-     
+
             child.push_back( std::make_pair( "", a ) );
         }
 
@@ -218,9 +221,7 @@ dataReaders( WolframLibraryData libData, mint Argc, MArgument *Args, MArgument R
     } else {
         o << "{}";
     }
-        
+
     MArgument_setUTF8String( Res, const_cast< char * >( o.str().c_str() ) );
     return LIBRARY_NO_ERROR;
 }
-
-
