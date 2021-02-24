@@ -112,6 +112,17 @@ Player::loadVideo( const std::string& filename )
             if ( frameRate_ >= 1000 ) // workaround for webm that returning 1000 fps
                 frameRate_ = 30;
 
+            for ( size_t i = 0; i < cv_cap_prop_names.size(); ++i ) {
+                auto value = capture_.get( i );
+                if ( value != -1 ) {
+                    prop_supported_[ i ] = true;
+                    ADDEBUG() << cv_cap_prop_names.at( i ) << "\t" << capture_.get( i );
+                } else {
+                    prop_supported_[ i ] = false;
+                }
+            }
+
+
             // save as .mp4 if not exists
             auto path = boost::filesystem::path( filename );
             if ( path.extension() != ".mp4" ) {

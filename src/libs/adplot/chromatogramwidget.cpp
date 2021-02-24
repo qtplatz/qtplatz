@@ -57,7 +57,7 @@
 #include <boost/variant.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional.hpp>
-#include <QDebug>
+// #include <QDebug>
 #include <queue>
 #include <memory>
 
@@ -503,14 +503,11 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
         trace->plot_curve().setTitle( QString::fromStdString( value.get() ) );
 
     QRectF rect = trace->boundingRect();
-    qDebug() << rect;
     for ( const auto& v: impl_->traces_ ) {
         if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
             auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
-            ADDEBUG() << "trace->y2: " << trace->y2();
             if ( trace->y2() == yRight ) {
                 rect |= trace->boundingRect();
-                qDebug() << rect;
             }
         }
     }

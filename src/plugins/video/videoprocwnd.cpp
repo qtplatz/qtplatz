@@ -283,7 +283,7 @@ VideoProcWnd::handleData()
     }
 
     if ( auto tic = processor->time_profile_tic() ) {
-        impl_->tplot_->setData( std::move( tic ), 0, true );
+        impl_->tplot_->setData( std::move( tic ), 2, true );
     }
 
     if ( auto counts = processor->time_profile_counts() ) {
