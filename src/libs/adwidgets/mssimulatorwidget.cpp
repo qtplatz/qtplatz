@@ -31,6 +31,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
+#include <adportfolio/folium.hpp>
 #include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include <QBoxLayout>
 #include <QMenu>
@@ -149,7 +150,7 @@ MSSimulatorWidget::setContents( boost::any&& a )
         }
     }
     if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( a ) ) {
-        ADDEBUG() << "found mass spectrum";
+        // ADDEBUG() << "found mass spectrum";
         if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum> >( a ) ) {
             impl_->massSpectrum_ = ptr;
 
@@ -158,9 +159,17 @@ MSSimulatorWidget::setContents( boost::any&& a )
         }
         return true;
     }
+#if 0
+    if ( adportable::a_type< portfolio::Folium >::is_a( a ) ) {
+        ADDEBUG() << "is a folium";
+        auto folium = boost::any_cast< portfolio::Folium >( a );
+        if ( portfolio::is_type< std::shared_ptr< const adcontrols::MassSpectrum > >( folium.data() ) ) {
+            ADDEBUG() << "folium has mass spectrum";
+        }
 
-    ADDEBUG() << a.type().name();
-
+        return true;
+    }
+#endif
     return false;
 }
 
@@ -204,4 +213,9 @@ MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassS
             ADDEBUG() << p->massSpectrometerName() << "\t" << p->massSpectrometerClsid();
         }
     }
+}
+
+void
+MSSimulatorWidget::setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > p )
+{
 }

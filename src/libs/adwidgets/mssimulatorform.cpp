@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,9 +24,12 @@
 
 #include "mssimulatorform.hpp"
 #include "ui_mssimulatorform.h"
-#include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mssimulatormethod.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adportable/debug.hpp>
 #include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include <QSignalBlocker>
 
@@ -158,4 +161,12 @@ void
 MSSimulatorForm::setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > p )
 {
     massSpectrum_ = p;
+    if ( p ) {
+        ADDEBUG() << "mode: " << p->mode() << ", " << p->size();
+        size_t proto(0);
+        for ( const auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *p ) ) {
+            ADDEBUG() << "proto: " << proto << ", " << fms.mode() << ", size: " << fms.size();
+            ++proto;
+        }
+    }
 }

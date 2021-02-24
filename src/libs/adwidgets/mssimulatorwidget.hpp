@@ -62,6 +62,7 @@ namespace adwidgets {
         //
         void setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay );
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
+        void setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > );
 
     private:
         void handleContextMenu( QMenu&, const QPoint& );

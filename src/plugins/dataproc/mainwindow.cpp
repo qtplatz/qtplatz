@@ -834,6 +834,12 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 } else {
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }
+                // --> for multi-turn simulator
+                if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+                    if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
+                        w->setMassSpectrum( ms );
+                    }
+                }
             }
 			auto docks = dockWidgets();
 			auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
