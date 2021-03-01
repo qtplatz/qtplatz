@@ -176,6 +176,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   date_time
   filesystem
   iostreams
+  json
   log
   program_options
   regex
