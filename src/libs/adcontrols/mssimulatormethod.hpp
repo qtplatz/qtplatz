@@ -75,6 +75,9 @@ namespace adcontrols {
         moltable& molecules();
         void setMolecules( const moltable& );
 
+        void setAbundanceLowLimit( double );
+        double abundanceLowLimit() const;
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;

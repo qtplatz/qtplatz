@@ -647,7 +647,6 @@ MainWindow::createDockWidgets()
         { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
         , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new dataproc::MSPeakTable; } }
         , { tr( "MS Simulator" ), "MSSimulatorMethod", [] () { return new adwidgets::MSSimulatorWidget; } }
-        , { tr( "TOF Calculator" ), "tofCalculator", [] () { return new admtwidgets::MolTableWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] () { return new adwidgets::TargetingWidget; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
         , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }

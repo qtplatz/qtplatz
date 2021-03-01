@@ -26,15 +26,17 @@
 #include "mssimulatorform.hpp"
 #include "mssimulatorwidget.hpp"
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/isocluster.hpp>
+#include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/lapfinder.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/molecule.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/targeting.hpp>
-#include <adcontrols/moltable.hpp>
-#include <adcontrols/isocluster.hpp>
-#include <adcontrols/isotopecluster.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adportfolio/folium.hpp>
@@ -43,6 +45,7 @@
 #include <QBoxLayout>
 #include <QMenu>
 #include <QSplitter>
+#include <QAbstractItemModel>
 
 namespace adwidgets {
     class MSSimulatorWidget::impl {
@@ -71,8 +74,10 @@ MSSimulatorWidget::MSSimulatorWidget(QWidget *parent) : QWidget(parent)
             layout->addWidget( splitter );
         }
     }
-    if ( auto form = findChild< MSSimulatorForm * >() )
+    if ( auto form = findChild< MSSimulatorForm * >() ) {
         connect( form, &MSSimulatorForm::triggerProcess, [this] { run(); } );
+        connect( form, &MSSimulatorForm::onLapChanged, this, &MSSimulatorWidget::handleLapChanged );
+    }
 }
 
 MSSimulatorWidget::~MSSimulatorWidget()
@@ -213,6 +218,41 @@ MSSimulatorWidget::run()
 }
 
 void
+MSSimulatorWidget::handleLapChanged( int nlaps )
+{
+    ADDEBUG() << "handleLapChanged(" << nlaps << ")";
+
+    QAbstractItemModel * model(0);
+    if ( auto table = findChild< MolTable * >() ) {
+        model = table->model();
+    }
+
+    if ( auto table = findChild< MolTable * >() ) {
+        if ( auto sp = impl_->massSpectrometer_.lock() ) {
+            if ( sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) { // handle lap/apparent-m/z
+                adcontrols::moltable m;
+                table->getContents( m );
+                auto baseIt = std::max_element( m.data().begin(), m.data().end(), []( const auto& a, const auto& b ){
+                    return ( a.enable() ? a.mass() : 0 ) < ( b.enable() ? b.mass() : 0 );
+                });
+                ADDEBUG() << "base mass: " << baseIt->mass();
+                if ( auto scanlaw = sp->scanLaw() ) {
+                    adcontrols::lapFinder finder( *scanlaw, baseIt->mass(), nlaps );
+                    for ( int row = 0; row < model->rowCount() && row < m.data().size(); ++row ) {
+                        auto [xlaps, xtof] = finder( m.data().at( row ).mass() ); // lap, time
+                        auto apparent_mass = scanlaw->getMass( xtof, nlaps );
+                        ADDEBUG() << std::make_pair( xlaps, xtof );
+                        model->setData( model->index( row, MolTable::c_nlaps ), xlaps );
+                        model->setData( model->index( row, MolTable::c_apparent_mass ), apparent_mass );
+                        model->setData( model->index( row, MolTable::c_time ), xtof * 1e6 );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void
 MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
 {
     impl_->massSpectrometer_ = p;
@@ -222,9 +262,15 @@ MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassS
     }
     if ( p ) {
         if ( p->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
-            ADDEBUG() << "found infiTOF";
+            std::vector< std::pair< MolTable::fields, bool > > hides
+                = { { MolTable::c_nlaps, false }, { MolTable::c_apparent_mass, false }, { MolTable::c_time, false } };
+            if ( auto table = findChild< MolTable * >() )
+                table->setColumHide( hides );
         } else {
-            ADDEBUG() << p->massSpectrometerName() << "\t" << p->massSpectrometerClsid();
+            std::vector< std::pair< MolTable::fields, bool > > hides
+                = { { MolTable::c_nlaps, true }, { MolTable::c_apparent_mass, true }, { MolTable::c_time, true } };
+            if ( auto table = findChild< MolTable * >() )
+                table->setColumHide( hides );
         }
     }
 }
@@ -238,9 +284,8 @@ MSSimulatorWidget::massSpectrum() const
         ms->clone( *src );
     ms->setCentroid( adcontrols::CentroidNative );
 
-    const double abundance_threshold = 1.0e-6;
-
     if ( auto m = getMethod() ) {
+        const double abundance_threshold = m->abundanceLowLimit();
         std::vector< adcontrols::mol::molecule > molecules;
         for ( auto& mol : m->molecules().data() ) {
             if ( mol.enable() ) {

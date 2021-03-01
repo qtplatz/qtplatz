@@ -130,11 +130,11 @@ ElementalCompWnd::init()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
                      , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
 
-            plot->enableAxis( QwtPlot::yRight );
+            // plot->enableAxis( QwtPlot::yRight );
             plot->setMinimumHeight( 80 );
             marker->attach( plot.get() );
             marker->visible( true );
-            marker->setYAxis( QwtPlot::yRight );
+            // marker->setYAxis( QwtPlot::yRight );
 
             if ( i )
                 impl_->plots_[ 0 ]->link( plot.get() );

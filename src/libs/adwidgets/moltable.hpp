@@ -44,13 +44,16 @@ namespace adwidgets {
             c_formula
             , c_adducts
             , c_mass
+            , c_nlaps         // added 2021-03-01
+            , c_apparent_mass // added 2021-03-01
+            , c_time          // added 2021-03-01
             , c_msref
             , c_abundance
             , c_synonym
-            , c_description
             , c_svg
             , c_smiles
             , c_logp
+            , c_description
             , nbrColums
         };
 
@@ -62,7 +65,9 @@ namespace adwidgets {
         void setColumnEditable( int column, bool );
         bool isColumnEditable( int column ) const;
 
-        QStandardItemModel& model();
+        void setColumHide( const std::vector< std::pair< fields, bool > >& );
+
+        // QStandardItemModel& model();
 
     private:
         class delegate;

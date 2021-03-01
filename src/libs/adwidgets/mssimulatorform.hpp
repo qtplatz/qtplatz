@@ -53,6 +53,7 @@ namespace adwidgets {
 
     signals:
         void onValueChanged();
+        void onLapChanged( int );
         void triggerProcess();
 
     private:

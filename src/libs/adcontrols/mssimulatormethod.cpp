@@ -49,6 +49,7 @@ namespace adcontrols {
         double tof_tDelay_;
         int protocol_;
         int mode_;
+        double abundance_low_limit_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -67,6 +68,9 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( protocol_ );
                 ar & BOOST_SERIALIZATION_NVP( mode_ );
             }
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( abundance_low_limit_ );
+            }
         }
 
         impl() : mass_limits_( -1, -1 )
@@ -78,7 +82,8 @@ namespace adcontrols {
                , tof_accelerator_voltage_( 5000.0 )
                , tof_tDelay_( 0.0 )
                , protocol_( 0 )
-               , mode_( 0 ) {
+               , mode_( 0 )
+               , abundance_low_limit_( 0.1 ) {
         }
 
         impl( const impl& t ) : mass_limits_( t.mass_limits_ )
@@ -91,12 +96,13 @@ namespace adcontrols {
                               , tof_accelerator_voltage_( t.tof_accelerator_voltage_ )
                               , tof_tDelay_( t.tof_tDelay_ )
                               , protocol_( t.protocol_ )
-                              , mode_( t.mode_ ) {
+                              , mode_( t.mode_ )
+                              , abundance_low_limit_( t.abundance_low_limit_ ) {
         }
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSSimulatorMethod::impl, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSSimulatorMethod::impl, 3 )
 
 namespace adcontrols {
 
@@ -156,30 +162,6 @@ MSSimulatorMethod::operator = ( const MSSimulatorMethod& t )
     impl_.reset( new impl( *t.impl_ ) );
     return *this;
 }
-
-// double
-// MSSimulatorMethod::lMassLimit() const
-// {
-//     return impl_->mass_limits_.first;
-// }
-
-// double
-// MSSimulatorMethod::uMassLimit() const
-// {
-//     return impl_->mass_limits_.second;
-// }
-
-// void
-// MSSimulatorMethod::setLMassLimit( double v )
-// {
-//     impl_->mass_limits_.first = v;
-// }
-
-// void
-// MSSimulatorMethod::setUMassLimit( double v )
-// {
-//     impl_->mass_limits_.second = v;
-// }
 
 uint32_t
 MSSimulatorMethod::chargeStateMin() const
@@ -318,4 +300,16 @@ int
 MSSimulatorMethod::mode() const
 {
     return impl_->mode_;
+}
+
+void
+MSSimulatorMethod::setAbundanceLowLimit( double limit )
+{
+    impl_->abundance_low_limit_ = limit;
+}
+
+double
+MSSimulatorMethod::abundanceLowLimit() const
+{
+    return impl_->abundance_low_limit_;
 }

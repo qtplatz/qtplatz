@@ -44,7 +44,7 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     ui->comboBox->setEnabled( false );
     ui->spinBox_lap->setEnabled( false );
     connect( ui->spinBox,     qOverload< int >( &QSpinBox::valueChanged ), [this]( int ){ emit onValueChanged(); } );
-    connect( ui->spinBox_lap, qOverload< int >( &QSpinBox::valueChanged ), [this]( int ){ emit onValueChanged(); } );
+    connect( ui->spinBox_lap, qOverload< int >( &QSpinBox::valueChanged ), [this]( int value ){ emit onValueChanged(); emit onLapChanged( value ); } );
 
     connect( ui->doubleSpinBox_3, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
@@ -107,6 +107,8 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
     m.setMode( ui->spinBox_lap->value() );
     m.setProtocol( ui->comboBox->currentIndex() );
 
+    int index = ui->comboBox_2->currentIndex(); // 1, 1/10, 1/100 ...
+    m.setAbundanceLowLimit( 1.0 / std::pow( 10, index ) );
     return true;
 }
 
@@ -138,6 +140,9 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
                 ui->doubleSpinBox_3->setValue( law->fLength( lap ) );
         }
     });
+
+    int index = std::log( m.abundanceLowLimit() );
+    ui->comboBox_2->setCurrentIndex( index );
 
     return true;
 }

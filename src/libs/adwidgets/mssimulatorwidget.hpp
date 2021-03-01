@@ -77,6 +77,8 @@ namespace adwidgets {
 
     private slots:
         void run();
+        void handleLapChanged( int );
+
     private:
         class impl;
         impl * impl_;

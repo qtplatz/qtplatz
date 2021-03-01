@@ -24,6 +24,7 @@
 
 #include "moltable.hpp"
 #include "delegatehelper.hpp"
+#include "htmlheaderview.hpp"
 #include "moltablehelper.hpp"
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
@@ -207,9 +208,9 @@ namespace adwidgets {
                        , const QString& description = QString()
                        , double mass = 0.0, double abundance = 1.0, bool enable = true, bool msref = false ) {
 
-            auto& model = table.model();
+            auto model = qobject_cast< QStandardItemModel * >( table.model() );
 
-            model.setData( model.index( row, c_svg ), svg );
+            model->setData( model->index( row, c_svg ), svg );
 
             if ( !smiles.isEmpty() ) {
                 if ( svg.isEmpty() ) {
@@ -220,11 +221,11 @@ namespace adwidgets {
                         QByteArray svg;
                         std::tie( std::ignore, svg ) = *d;
 #endif
-                        model.setData( model.index( row, c_svg ), svg );
+                        model->setData( model->index( row, c_svg ), svg );
                     }
                 }
                 if ( auto res = MolTableHelper::logP( smiles ) ) {
-                    model.setData( model.index( row, c_logp ), res->first );
+                    model->setData( model->index( row, c_logp ), res->first );
                 }
             }
 
@@ -232,33 +233,33 @@ namespace adwidgets {
             if ( mass < 0.9 && !formula.isEmpty() )
                 mass = computeMass( formula, adducts, stdFormula );
 
-            model.setData( model.index( row, c_smiles ), smiles );
-            model.setData( model.index( row, c_formula ), formula );
-            model.setData( model.index( row, c_adducts ), adducts );
-            model.setData( model.index( row, c_synonym ), synonym );
-            model.setData( model.index( row, c_abundance ), abundance );
-            model.setData( model.index( row, c_mass ), mass );
-            model.setData( model.index( row, c_msref ), msref );
-            model.setData( model.index( row, c_description ), description );
+            model->setData( model->index( row, c_smiles ), smiles );
+            model->setData( model->index( row, c_formula ), formula );
+            model->setData( model->index( row, c_adducts ), adducts );
+            model->setData( model->index( row, c_synonym ), synonym );
+            model->setData( model->index( row, c_abundance ), abundance );
+            model->setData( model->index( row, c_mass ), mass );
+            model->setData( model->index( row, c_msref ), msref );
+            model->setData( model->index( row, c_description ), description );
 
-            if ( auto item = model.item( row, c_formula ) ) {
+            if ( auto item = model->item( row, c_formula ) ) {
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                model.setData( model.index( row, c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+                model->setData( model->index( row, c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
             }
 
-            if ( auto item = model.item( row, c_msref ) ) {
+            if ( auto item = model->item( row, c_msref ) ) {
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                model.setData( model.index( row, c_msref ), msref ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+                model->setData( model->index( row, c_msref ), msref ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
             }
 
             if ( !smiles.isEmpty() ) {
-                if ( auto item = model.item( row, c_svg ) ) // has structure data
+                if ( auto item = model->item( row, c_svg ) ) // has structure data
                     item->setEditable( false );
-                if ( auto item = model.item( row, c_formula ) )
+                if ( auto item = model->item( row, c_formula ) )
                     item->setEditable( false );
             }
 
-            if ( auto item = model.item( row, c_mass ) )
+            if ( auto item = model->item( row, c_mass ) )
                 item->setEditable( editable_[ c_mass ] );
         }
     };
@@ -274,6 +275,8 @@ MolTable::MolTable(QWidget *parent) : TableView(parent)
         if ( ! signalsBlocked() )
             handleValueChanged( index );
     } ) );
+
+    setHorizontalHeader( new HtmlHeaderView );
     setSortingEnabled( true );
     setAcceptDrops( true );
 
@@ -295,12 +298,6 @@ MolTable::~MolTable()
     delete model_;
 }
 
-QStandardItemModel&
-MolTable::model()
-{
-    return *model_;
-}
-
 void
 MolTable::onInitialUpdate()
 {
@@ -311,15 +308,25 @@ MolTable::onInitialUpdate()
     model.setHeaderData( c_adducts, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
     model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "mass" ) );
     model.setHeaderData( c_msref, Qt::Horizontal, QObject::tr( "lock mass" ) );
-    model.setHeaderData( c_abundance, Qt::Horizontal, QObject::tr( "R. A. " ) );
+    model.setHeaderData( c_abundance, Qt::Horizontal, QObject::tr( "R.A." ) );
     model.setHeaderData( c_synonym, Qt::Horizontal, QObject::tr( "synonym" ) );
     model.setHeaderData( c_svg, Qt::Horizontal, QObject::tr( "structure" ) );
     model.setHeaderData( c_smiles, Qt::Horizontal, QObject::tr( "SMILES" ) );
     model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
     model.setHeaderData( c_logp, Qt::Horizontal, QObject::tr( "log P" ) );
     // setEditTriggers( QAbstractItemView::AllEditTriggers );
+    model.setHeaderData( c_nlaps, Qt::Horizontal, QObject::tr( "nlaps" ) );
+    model.setHeaderData( c_apparent_mass, Qt::Horizontal, QObject::tr( "apparent <i>m/z</i>" ) );
+    model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "tof(&mu;s)" ) );
 
     setColumnHidden( c_msref, true );
+
+    setColumnHidden( c_nlaps, true );
+    setColumnHidden( c_apparent_mass, true );
+    setColumnHidden( c_time, true );
+
+    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
+    horizontalHeader()->setStretchLastSection( true );
 }
 
 void
@@ -465,8 +472,8 @@ MolTable::handleContextMenu( const QPoint& pt )
 
     std::vector< action_type > actions;
 
-    actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [=](){ enable_all( true ); }) );
-    actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [=](){ enable_all( false ); }) );
+    actions.emplace_back( menu.addAction( "Enable all" ), [=](){ enable_all( true ); } );
+    actions.emplace_back( menu.addAction( "Disable all" ), [=](){ enable_all( false ); } );
 
     TableView::addActionsToContextMenu( menu, pt );
 
@@ -672,4 +679,11 @@ MolTable::handlePaste()
             }
         }
     }
+}
+
+void
+MolTable::setColumHide( const std::vector< std::pair< fields, bool > >& hides )
+{
+    for ( auto& hide: hides )
+        setColumnHidden( hide.first, hide.second );
 }

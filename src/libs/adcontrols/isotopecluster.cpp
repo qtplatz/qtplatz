@@ -332,8 +332,10 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
 
     std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return std::get<3>(a) < std::get<3>(b); } );
 
-    // for ( auto pk: ipks )
-    //     ADDEBUG() << "find lap for " << std::get<0>(pk)->mass << " --> " << std::get<2>(pk) << ", " << std::get<3>(pk) << ", " << std::get<4>(pk);
+    // for ( auto pk: ipks ) {
+    //     ADDEBUG() << "find lap for " << std::get<1>(pk)->formula()
+    //               << ", " << std::get<0>(pk)->mass << " --> " << std::get<2>(pk) << ", " << std::get<3>(pk) << ", " << std::get<4>(pk);
+    // }
 
     auto ms = std::make_shared< MassSpectrum >();
     if ( source )
@@ -364,8 +366,9 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
             int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
             o << itMol->formula() << "(" << std::showpos << idelta << ")";
         }
-        // ADDEBUG() << o.str() << "\t" << xmass << ", " << itIso->mass << ", " <<itMol->mass() << " lap: " << xlap << "/" << assigned_lap;
-
+        // double delta = itIso->mass - itMol->max_abundant_isotope()->mass;
+        // int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
+        // ADDEBUG() << o.str() << "\t" << itIso->mass << "(" << xmass << ", " << xlap << ")" << " delta: " << delta << ", " << idelta;
         ms->get_annotations()
             << annotation( o.str(), xmass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
         ++idx;
