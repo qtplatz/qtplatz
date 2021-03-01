@@ -25,14 +25,21 @@
 #include "moltable.hpp"
 #include "mssimulatorform.hpp"
 #include "mssimulatorwidget.hpp"
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/molecule.hpp>
 #include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/targeting.hpp>
+#include <adcontrols/moltable.hpp>
+#include <adcontrols/isocluster.hpp>
+#include <adcontrols/isotopecluster.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adportfolio/folium.hpp>
 #include <infitofcontrols/constants.hpp> // clsid for massspectrometer
+#include <boost/json.hpp>
 #include <QBoxLayout>
 #include <QMenu>
 #include <QSplitter>
@@ -106,25 +113,31 @@ MSSimulatorWidget::OnFinalClose()
 {
 }
 
+std::unique_ptr< adcontrols::MSSimulatorMethod >
+MSSimulatorWidget::getMethod() const
+{
+    auto m = std::make_unique< adcontrols::MSSimulatorMethod >();
+
+    if ( auto form = findChild< MSSimulatorForm * >() )
+        form->getContents( *m );
+
+    if ( auto table = findChild< MolTable * >() )
+        table->getContents( m->molecules() );
+
+    return m;
+}
+
 bool
 MSSimulatorWidget::getContents( boost::any& a ) const
 {
-    if ( auto form = findChild< MSSimulatorForm * >() ) {
-
-        adcontrols::MSSimulatorMethod method;
-        form->getContents( method );
-
-        if ( auto table = findChild< MolTable * >() ) {
-            table->getContents( method.molecules() );
-
-            if ( auto pm = boost::any_cast<adcontrols::ProcessMethod *>( a ) ) {
-                if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
-                    *m = method;
-                } else {
-                    *pm << method;
-                }
-                return true;
+    if ( auto pm = boost::any_cast<adcontrols::ProcessMethod *>( a ) ) {
+        if ( auto method = getMethod() ) {
+            if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
+                *m = *method;
+            } else {
+                *pm << *method;
             }
+            return true;
         }
     }
     return false;
@@ -149,28 +162,29 @@ MSSimulatorWidget::setContents( boost::any&& a )
 
         }
     }
+    return false;
+}
+
+// This API added for mssimulator to determinse profile spectrum;  it used to use the interface for mspeakinfo, which take centroid
+// but also nullptr in order to clear existing centroid
+bool
+MSSimulatorWidget::setContents( boost::any&& a, const std::string& dataSource )
+{
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( dataSource, ec );
+    if ( ec )
+        ADDEBUG() << ec.message();
+
     if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( a ) ) {
-        // ADDEBUG() << "found mass spectrum";
+        ADDEBUG() << "found mass spectrum from " << dataSource;
         if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum> >( a ) ) {
             impl_->massSpectrum_ = ptr;
-
             if ( auto form = findChild< MSSimulatorForm * >() )
                 form->setMassSpectrum( ptr );
         }
         return true;
     }
-#if 0
-    if ( adportable::a_type< portfolio::Folium >::is_a( a ) ) {
-        ADDEBUG() << "is a folium";
-        auto folium = boost::any_cast< portfolio::Folium >( a );
-        if ( portfolio::is_type< std::shared_ptr< const adcontrols::MassSpectrum > >( folium.data() ) ) {
-            ADDEBUG() << "folium has mass spectrum";
-        }
-
-        return true;
-    }
-#endif
-    return false;
+    return true;
 }
 
 void
@@ -215,7 +229,38 @@ MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassS
     }
 }
 
-void
-MSSimulatorWidget::setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > p )
+
+std::shared_ptr< adcontrols::MassSpectrum >
+MSSimulatorWidget::massSpectrum() const
 {
+    std::shared_ptr< adcontrols::MassSpectrum > ms = std::make_shared< adcontrols::MassSpectrum >();
+    if ( auto src = impl_->massSpectrum_.lock() )
+        ms->clone( *src );
+    ms->setCentroid( adcontrols::CentroidNative );
+
+    const double abundance_threshold = 1.0e-6;
+
+    if ( auto m = getMethod() ) {
+        std::vector< adcontrols::mol::molecule > molecules;
+        for ( auto& mol : m->molecules().data() ) {
+            if ( mol.enable() ) {
+                auto molecule = adcontrols::ChemicalFormula::toMolecule( mol.formula(), mol.adducts() );
+                if ( m->chargeStateMin() == 0 ) {
+                    adcontrols::isoCluster( abundance_threshold, m->resolvingPower() )( molecule, molecule.charge() );
+                    molecules.emplace_back( molecule );
+                } else {
+                    for ( int charge = m->chargeStateMin(); charge <= m->chargeStateMax(); ++charge ) {
+                        molecule.setCharge( charge );
+                        adcontrols::isoCluster( abundance_threshold, m->resolvingPower() )( molecule, charge );
+                        molecules.emplace_back( molecule );
+                    }
+                }
+            }
+        }
+        return
+            adcontrols::isotopeCluster::toMassSpectrum( molecules, impl_->massSpectrum_.lock(), impl_->massSpectrometer_.lock(), m->mode() );
+        return ms;
+    }
+
+    return ms;
 }

@@ -23,7 +23,7 @@
 **************************************************************************/
 #include "contoursmethod.hpp"
 #include <adportable/debug.hpp>
-#include <boost/json/src.hpp>
+#include <boost/json.hpp>
 #include <boost/exception/all.hpp>
 #include <algorithm>
 #include <limits>

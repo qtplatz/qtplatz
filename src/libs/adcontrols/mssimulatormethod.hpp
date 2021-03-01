@@ -66,6 +66,11 @@ namespace adcontrols {
         double tDelay() const;
         void setTDelay( double );
 
+        void setProtocol( int );
+        int protocol() const;
+        void setMode( int );
+        int mode() const;
+
         const moltable& molecules() const;
         moltable& molecules();
         void setMolecules( const moltable& );

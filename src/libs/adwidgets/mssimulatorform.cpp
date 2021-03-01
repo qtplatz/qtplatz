@@ -71,6 +71,10 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     //connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
+
+    connect( ui->comboBox, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
+        ADDEBUG() << ui->comboBox->currentData().toInt();
+    });
 }
 
 MSSimulatorForm::~MSSimulatorForm()
@@ -100,6 +104,9 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
     m.setTDelay( ui->doubleSpinBox_5->value() * 1.0e-6 );
     m.setIsPositivePolarity( ui->radioButtonPos->isChecked() );
 
+    m.setMode( ui->spinBox_lap->value() );
+    m.setProtocol( ui->comboBox->currentIndex() );
+
     return true;
 }
 
@@ -116,6 +123,12 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
     ui->doubleSpinBox_3->setValue( m.length() );
     ui->doubleSpinBox_4->setValue( m.acceleratorVoltage() );
     ui->doubleSpinBox_5->setValue( m.tDelay() * 1.0e6 );
+
+    while ( ui->comboBox->count() <= m.protocol() )
+        ui->comboBox->addItem( QString("p%1").arg( ui->comboBox->count() ) );
+
+    ui->comboBox->setCurrentIndex( m.protocol() );
+    ui->spinBox_lap->setValue( m.mode() );
 
     ui->radioButtonPos->setChecked( m.isPositivePolarity() );
 
@@ -162,11 +175,10 @@ MSSimulatorForm::setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectru
 {
     massSpectrum_ = p;
     if ( p ) {
-        ADDEBUG() << "mode: " << p->mode() << ", " << p->size();
-        size_t proto(0);
-        for ( const auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *p ) ) {
-            ADDEBUG() << "proto: " << proto << ", " << fms.mode() << ", size: " << fms.size();
-            ++proto;
-        }
+        ui->comboBox->clear();
+        int proto(0);
+        for ( const auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *p ) )
+            ui->comboBox->addItem( QString( "p%1" ).arg( proto++ ), fms.mode() );
+        ui->spinBox_lap->setValue( p->mode() );
     }
 }

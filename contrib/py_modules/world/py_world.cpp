@@ -40,7 +40,7 @@ BOOST_PYTHON_MODULE( world )
         .def( "mass", &world::mass )
         ;
 
-    double (adcontrols::ChemicalFormula::*d1)( const std::string& ) const = &adcontrols::ChemicalFormula::getMonoIsotopicMass;
+    double (adcontrols::ChemicalFormula::*d1)( const std::string&, bool ) const = &adcontrols::ChemicalFormula::getMonoIsotopicMass;
     class_ < adcontrols::ChemicalFormula >( "ChemicalFormula" )
         .def( "getMonoIsotopicMass", d1 )
         ;

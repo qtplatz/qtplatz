@@ -35,6 +35,7 @@ class QMenu;
 namespace adcontrols {
     class MassSpectrometer;
     class MassSpectrum;
+    class MSSimulatorMethod;
 }
 
 namespace adwidgets {
@@ -58,14 +59,16 @@ namespace adwidgets {
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
-
+        bool setContents( boost::any&&, const std::string& json ) override;
         //
         void setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay );
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
-        void setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > );
+
+        std::shared_ptr< adcontrols::MassSpectrum > massSpectrum() const; // return simulated spectrum
 
     private:
         void handleContextMenu( QMenu&, const QPoint& );
+        std::unique_ptr< adcontrols::MSSimulatorMethod > getMethod() const;
 
     signals:
         void triggerProcess( const QString& );

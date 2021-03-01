@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/optional.hpp>
 #include <string>
 #include <map>
 #include <vector>
@@ -34,7 +35,7 @@ namespace adcontrols {
 
     class TableOfElement;
     class CTable;
-    namespace mol { class element; }
+    namespace mol { class element; class molecule; }
 
     class ADCONTROLSSHARED_EXPORT ChemicalFormula {
     public:
@@ -44,8 +45,8 @@ namespace adcontrols {
 
 		typedef std::map< std::string, size_t > elemental_composition_map_t;
 
-        double getMonoIsotopicMass( const std::wstring& formula ) const;
-		double getMonoIsotopicMass( const std::string& formula ) const;
+        double getMonoIsotopicMass( const std::wstring& formula, bool handleCharge = true ) const;
+		double getMonoIsotopicMass( const std::string& formula, bool handleCharge = true ) const;
         std::pair< double, int > getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae, int charge = 0 ) const;
 
         double getChemicalMass( const std::wstring& formula ) const;
@@ -55,7 +56,9 @@ namespace adcontrols {
 		static std::wstring standardFormula( const std::wstring& formula, bool removeChare = false );
 		static std::string standardFormula( const std::string& formula, bool removeCharge = false );
 		static std::pair< std::string, int > standardFormula( const std::vector< std::pair< std::string, char > >& formulae ); // formula, charge
-        static bool getComposition( std::vector< mol::element >&, const std::string& formula, int& charge );
+        [[deprecated("use toMoleclue")]] static bool getComposition( std::vector< mol::element >&, const std::string& formula, int& charge );
+        static mol::molecule toMolecule( const std::string& formula );
+        static mol::molecule toMolecule( const std::string& formula, const std::string& adduct );
 
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );

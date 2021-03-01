@@ -804,11 +804,13 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         adcontrols::MassSpectrumPtr centroid;
         adcontrols::TargetingPtr targeting;
         adcontrols::MSPeakInfoPtr pkinfo;
+        std::string dataSource;
+
+        const auto docks = dockWidgets();
 
         if ( folder.name() == L"Spectra" ) {
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium.data() ) ) {
-
                 if ( auto f = portfolio::find_first_of( folium.attachments(), []( auto& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
 					try {
 						centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
@@ -834,14 +836,16 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 } else {
                     centroid = std::make_shared< adcontrols::MassSpectrum >();  // empty data for clear table
                 }
-                // --> for multi-turn simulator
-                if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-                    if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
-                        w->setMassSpectrum( ms );
-                    }
+
+                if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) { // for ms-simulator, added 2021-02-27
+                    auto json = folium.attributes_json();
+                    std::for_each( docks.begin(), docks.end(), [=]( auto dock ){
+                        if ( auto pLifeCycle = qobject_cast< adplugin::LifeCycle * >( dock->widget() ) )
+                            pLifeCycle->setContents( boost::any( profile ), json );
+                    });
                 }
             }
-			auto docks = dockWidgets();
+
 			auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
 			if ( it != docks.end() )
 				(*it)->raise();
@@ -903,12 +907,18 @@ MainWindow::handleProcess( const QString& origin )
             }
         }
     } else if ( origin == "MSSimulatorWidget" ) {
-        if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
+        if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
             if ( auto wnd = findChild< ElementalCompWnd * >() ) {
-                wnd->simulate( *m );
+                wnd->setSimulatedSpectrum( w->massSpectrum() );
                 stack_->setCurrentIndex( idSelElementalComp );
             }
         }
+        //     if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
+
+        //         wnd->simulate( *m );
+        //         stack_->setCurrentIndex( idSelElementalComp );
+        //     }
+        // }
     } else if ( origin == "MSCalibrateWidget" ) {
         // peak identification, and then compute calibration equation
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )

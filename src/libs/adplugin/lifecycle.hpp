@@ -27,6 +27,8 @@
 
 #include "adplugin_global.h"
 #include <typeinfo>
+#include <string>
+
 namespace boost { class any; }
 
 namespace adportable {
@@ -44,7 +46,15 @@ namespace adplugin {
         virtual void OnFinalClose() = 0;
         virtual void onUpdate( boost::any&& ) {}
         virtual bool getContents( boost::any& ) const { return false; }
+
+        // old api
         virtual bool setContents( boost::any&& ) { return false; }
+
+        // new api
+        // This API added to determins the profile spectrum (for ms-simulator);  The previous api used to use only for centroid spectrum for table view
+        // that uses null massspectrum ptr in order to clear existing table, that does not tell centroid|profile.
+        virtual bool setContents( boost::any&&, const std::string& json ) { return false; }
+
         virtual void * query_interface_workaround( const char * typenam ) { (void)typenam; return 0; }
 
         template<typename T> T* query_interface() {

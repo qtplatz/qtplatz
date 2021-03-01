@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,14 +27,12 @@
 #include "adcontrols_global.h"
 #include "element.hpp"
 #include <cstdlib>
+#include <string>
 #include <vector>
 
 // interface for isotope cluster pattern
 
-namespace adcontrols {  
-
-    class isotopeCluster;
-    class ChemicalFormula;
+namespace adcontrols {
 
 	namespace mol {
 
@@ -49,15 +47,55 @@ namespace adcontrols {
         template class ADCONTROLSSHARED_EXPORT std::vector < element > ;
 #endif
 
-        struct ADCONTROLSSHARED_EXPORT molecule {
+        class ADCONTROLSSHARED_EXPORT molecule {
+        public:
             molecule();
             molecule( const molecule& t );
 
-            molecule& operator << (const element&);
-            molecule& operator << (const isotope&);
+            inline operator bool () const { return !elements_.empty(); }
 
-            std::vector< isotope > cluster;
-            std::vector< element > elements;
+            molecule& operator << (const element&);
+            molecule& operator << (element&& e);
+            molecule& operator << (const isotope&);
+            molecule& operator << (isotope&& i);
+            int charge() const;
+            void setCharge( int );
+            void clear();
+            typedef std::vector< isotope >::iterator       cluster_iterator ;
+            typedef std::vector< isotope >::const_iterator const_cluster_iterator ;
+            typedef std::vector< element >::iterator       elements_iterator ;
+            typedef std::vector< element >::const_iterator const_elements_iterator ;
+            cluster_iterator       cluster_begin()        { return cluster_.begin(); }
+            const_cluster_iterator cluster_begin() const  { return cluster_.begin(); }
+            cluster_iterator       cluster_end()          { return cluster_.end(); }
+            const_cluster_iterator cluster_end() const    { return cluster_.end(); }
+            elements_iterator       elements_begin()       { return elements_.begin(); }
+            const_elements_iterator elements_begin() const { return elements_.begin(); }
+            elements_iterator       elements_end()         { return elements_.end(); }
+            const_elements_iterator elements_end() const   { return elements_.end(); }
+
+            const std::vector< isotope >& cluster() const { return cluster_; }
+            const std::vector< element >& elements() const { return elements_; }
+            std::vector< isotope >::const_iterator max_abundant_isotope() const;
+
+            /* return standard formula
+             */
+            std::string formula() const;
+
+            /* display formula (usually, 'formula + adduct')
+             */
+            void set_display_formula( const std::string& );
+            const std::string& display_formula() const;
+
+            void setMass( double );
+            double mass( bool handleCharge = true ) const;
+
+        private:
+            std::vector< isotope > cluster_;
+            std::vector< element > elements_;
+            int charge_;
+            std::string display_formula_;
+            double mass_;
         };
 
     }

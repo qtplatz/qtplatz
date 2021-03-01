@@ -61,9 +61,12 @@ namespace portfolio {
             void dataClass( const std::wstring& );
 
             std::wstring attribute( const std::wstring& ) const;
+            std::string attribute( const std::string& ) const;
             void setAttribute( const std::wstring& key, const std::wstring& value );
+            void setAttribute( const std::string& key, const std::string& value );
 
             std::vector< std::pair<std::wstring, std::wstring> > attributes() const;
+            std::string attributes_json() const;
 
             static boost::uuids::uuid uuidFromString( const std::string& );
 
@@ -90,4 +93,3 @@ namespace portfolio {
 
     }
 }
-

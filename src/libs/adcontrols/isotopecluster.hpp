@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,6 +29,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace adcontrols {
 
@@ -56,18 +57,23 @@ namespace adcontrols {
                          , double resolving_power );
 
         // for multi-turn
-        bool operator()( adcontrols::MassSpectrum&
-                         , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
-                         , double resolving_power
-                         , std::shared_ptr< const adcontrols::MassSpectrometer >
-                         , int lap );
+        // bool operator()( adcontrols::MassSpectrum&
+        //                  , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
+        //                  , double resolving_power
+        //                  , std::shared_ptr< const adcontrols::MassSpectrometer >
+        //                  , int lap );
 
+        static  std::shared_ptr< adcontrols::MassSpectrum >
+        toMassSpectrum( const std::vector< adcontrols::mol::molecule >&
+                        , std::shared_ptr< const adcontrols::MassSpectrum >
+                        , std::shared_ptr< const adcontrols::MassSpectrometer >
+                        , int lap );
         /*
          * This function returns relative abundance that base peak abundance as 1.0
          */
         std::vector< isopeak > operator()( const std::vector< std::pair< std::string, char > >& formulae, int charge, int index = (-1) );
 
-        bool compute( mol::molecule&, int charge ) const;
+        // bool compute( mol::molecule&, int charge ) const;
 
         double threshold_daltons() const;
         void setThreshold_daltons( double d );
@@ -75,10 +81,16 @@ namespace adcontrols {
         static std::vector< std::string > formulae( const std::string& formula );
 
     private:
-        /*
-         * This function returns relative abundance that keeps table-of-element value
-         */
-        // bool operator()( std::vector< isopeak >&, const std::string& formula, double relative_abundance = 1.0, int index = ( -1 ) ) const; // historical
+        static  std::shared_ptr< adcontrols::MassSpectrum >
+        __toMTSpectrum( const std::vector< adcontrols::mol::molecule >&
+                        , std::shared_ptr< adcontrols::MassSpectrum >
+                        , std::shared_ptr< const adcontrols::MassSpectrometer >
+                        , int lap );
+        static  std::shared_ptr< adcontrols::MassSpectrum >
+        __toMassSpectrum( const std::vector< adcontrols::mol::molecule >&
+                          , std::shared_ptr< adcontrols::MassSpectrum >
+                          , std::shared_ptr< const adcontrols::MassSpectrometer >
+                          , int mode );
 
         static void merge_peaks( std::vector<isopeak>&, double resolving_power );
 

@@ -56,7 +56,7 @@
 #include <QUrl>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
-#include <boost/json/src.hpp>
+#include <boost/json.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/system/error_code.hpp>

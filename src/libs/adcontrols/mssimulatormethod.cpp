@@ -47,6 +47,8 @@ namespace adcontrols {
         double tof_length_;
         double tof_accelerator_voltage_;
         double tof_tDelay_;
+        int protocol_;
+        int mode_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -61,6 +63,10 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( tof_accelerator_voltage_ );
             ar & BOOST_SERIALIZATION_NVP( tof_tDelay_ );
             ar & BOOST_SERIALIZATION_NVP( molecules_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( protocol_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+            }
         }
 
         impl() : mass_limits_( -1, -1 )
@@ -70,7 +76,9 @@ namespace adcontrols {
                , is_tof_( true )
                , tof_length_( 0.5 )
                , tof_accelerator_voltage_( 5000.0 )
-               , tof_tDelay_( 0.0 ) {
+               , tof_tDelay_( 0.0 )
+               , protocol_( 0 )
+               , mode_( 0 ) {
         }
 
         impl( const impl& t ) : mass_limits_( t.mass_limits_ )
@@ -81,12 +89,14 @@ namespace adcontrols {
                               , is_tof_( t.is_tof_ )
                               , tof_length_( t.tof_length_ )
                               , tof_accelerator_voltage_( t.tof_accelerator_voltage_ )
-                              , tof_tDelay_( t.tof_tDelay_ ) {
+                              , tof_tDelay_( t.tof_tDelay_ )
+                              , protocol_( t.protocol_ )
+                              , mode_( t.mode_ ) {
         }
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSSimulatorMethod::impl, 1 )
+BOOST_CLASS_VERSION( adcontrols::MSSimulatorMethod::impl, 2 )
 
 namespace adcontrols {
 
@@ -284,4 +294,28 @@ void
 MSSimulatorMethod::setTDelay( double value )
 {
     impl_->tof_tDelay_ = value;
+}
+
+void
+MSSimulatorMethod::setProtocol( int value )
+{
+    impl_->protocol_ = value;
+}
+
+int
+MSSimulatorMethod::protocol() const
+{
+    return impl_->protocol_;
+}
+
+void
+MSSimulatorMethod::setMode( int value )
+{
+    impl_->mode_ = value;
+}
+
+int
+MSSimulatorMethod::mode() const
+{
+    return impl_->mode_;
 }

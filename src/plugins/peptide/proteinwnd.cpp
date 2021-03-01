@@ -31,7 +31,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
-#include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/isocluster.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adextension/ipeptidehandler.hpp>
 #include <adprot/protfile.hpp>
@@ -109,23 +109,38 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
     auto formulaParser = MainWindow::instance()->getChemicalFormula();
     double electron = formulaParser->getElectronMass();
 
-    adcontrols::isotopeCluster isocalc;
     spectrum_->resize(0);
 
     for ( auto& formula: formulae ) {
-        int charge(0);
-        adcontrols::mol::molecule mol;
-        if ( adcontrols::ChemicalFormula::getComposition( mol.elements, formula.toStdString() + "H", charge ) ) { // protenated
-            isocalc.compute( mol, 0 );
-            double pmax = std::max_element( mol.cluster.begin(), mol.cluster.end()
-                                            , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
-                                                return a.abundance < b.abundance;} )->abundance;
-            auto last = std::remove_if( mol.cluster.begin(), mol.cluster.end(), [=]( const adcontrols::mol::isotope& i ){
-                    return i.abundance / pmax < 0.001;}); // delete if peak high is less than 0.1% of base peak
-            for ( auto pi = mol.cluster.begin(); pi != last; ++pi ) {
-                *(spectrum_) << std::make_pair( pi->mass - electron, pi->abundance / pmax * 10000 ); // assume positive ion
+        if ( auto mol = adcontrols::ChemicalFormula::toMolecule( formula.toStdString() + "H" ) ) {
+            if ( adcontrols::isoCluster()( mol, 0 ) ) {
+                auto bp = mol.max_abundant_isotope();
+                if ( bp != mol.cluster_end() ) {
+                    auto last = std::remove_if( mol.cluster_begin()
+                                                , mol.cluster_end()
+                                                , [bp]( const adcontrols::mol::isotope& i ){
+                                                    return i.abundance / bp->abundance < 0.001;
+                                                }); // delete if peak high is less than 0.1% of base peak
+                    for ( auto pi = mol.cluster_begin(); pi != last; ++pi )
+                        *(spectrum_) << std::make_pair( pi->mass - electron, pi->abundance / bp->abundance * 10000 ); // assume positive ion
+                }
             }
         }
+        // int charge;
+        // adcontrols::mol::molecule mol;
+        // if ( adcontrols::ChemicalFormula::getComposition( mol.elements(), formula.toStdString() + "H", charge ) ) { // protenated
+        //     adcontrols::isoCluster()( mol, 0 );
+
+        //     double pmax = std::max_element( mol.cluster_begin(), mol.cluster_end()
+        //                                     , [](const adcontrols::mol::isotope& a
+        //                                          , const adcontrols::mol::isotope& b) {return a.abundance < b.abundance;} )->abundance;
+
+        //     auto last = std::remove_if( mol.cluster_begin(), mol.cluster_end(), [=]( const adcontrols::mol::isotope& i ){
+        //         return i.abundance / pmax < 0.001;}); // delete if peak high is less than 0.1% of base peak
+        //     for ( auto pi = mol.cluster_begin(); pi != last; ++pi ) {
+        //         *(spectrum_) << std::make_pair( pi->mass - electron, pi->abundance / pmax * 10000 ); // assume positive ion
+        //     }
+        // }
     }
 
     spectrum_->setCentroid( adcontrols::CentroidNative );
@@ -143,8 +158,9 @@ ProteinWnd::handleSelectionChanged( const QVector<int>& rows )
 {
     qtwrapper::waitCursor wait;
 
-    if ( rows.isEmpty() )
+    if ( rows.isEmpty() ) {
         return;
+    }
 
 	if ( rows.size() == 1 ) {
 		protSelChanged( rows[0] );

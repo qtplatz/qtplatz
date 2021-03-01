@@ -48,7 +48,7 @@ namespace dataproc {
     class Dataprocessor;
 
     // class ElementalCompWndImpl;
-    
+
     class ElementalCompWnd : public QWidget {
         Q_OBJECT
     public:
@@ -58,27 +58,28 @@ namespace dataproc {
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
         void simulate( const adcontrols::MSSimulatorMethod& );
         void estimateScanLaw( const QString& );
-      
+        void setSimulatedSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > );
+
     signals:
-      
+
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
-        void handleAxisChanged( unsigned int );        
+        void handleAxisChanged( unsigned int );
         void handlePrintCurrentView( const QString& outpdf );
-      
+
     private:
         void draw( int );
-        
+
         class impl;
         impl * impl_;
 
     private slots:
         void handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot );
     };
-    
+
 }
 
 #endif // ELEMENTALCOMPWND_H

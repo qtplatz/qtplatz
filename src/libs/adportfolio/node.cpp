@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -32,6 +32,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -92,7 +93,7 @@ Node::Node( const Node& t ) : node_( t.node_ )
 {
 }
 
-Node::operator bool () const 
+Node::operator bool () const
 {
     return impl_ != 0;
 }
@@ -161,6 +162,14 @@ Node::attribute( const std::wstring& key ) const
     return std::wstring();
 }
 
+std::string
+Node::attribute( const std::string& key ) const
+{
+    if ( node_ )
+        return node_.attribute( key.c_str() ).value();
+    return std::string();
+}
+
 std::vector< std::pair< std::wstring, std::wstring> >
 Node::attributes() const
 {
@@ -174,6 +183,15 @@ Node::attributes() const
     return attrs;
 }
 
+std::string
+Node::attributes_json() const
+{
+    boost::json::object obj;
+    for ( pugi::xml_attribute_iterator it = node_.attributes_begin(); it != node_.attributes_end(); ++it )
+        obj[ it->name() ] = it->value();
+    return boost::json::serialize( boost::json::object {{ "attributes", obj }} );
+}
+
 void
 Node::setAttribute( const std::wstring& key, const std::wstring& value )
 {
@@ -182,6 +200,17 @@ Node::setAttribute( const std::wstring& key, const std::wstring& value )
         if ( ! attrib )
             attrib = node_.append_attribute( pugi::as_utf8( key ).c_str() );
         attrib.set_value( pugi::as_utf8( value ).c_str() );
+    }
+}
+
+void
+Node::setAttribute( const std::string& key, const std::string& value )
+{
+    if ( node_ ) {
+        pugi::xml_attribute attrib = node_.attribute( key.c_str() );
+        if ( ! attrib )
+            attrib = node_.append_attribute( key.c_str() );
+        attrib.set_value( value.c_str() );
     }
 }
 
@@ -307,7 +336,7 @@ Node::removeAttachment( const std::wstring& name )
 	std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
 
     // ADDEBUG() << "Node::removeAttachment(" << query << ")";
-    
+
     try {
         pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
         for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
@@ -321,4 +350,3 @@ Node::removeAttachment( const std::wstring& name )
     }
     return false;
 }
-

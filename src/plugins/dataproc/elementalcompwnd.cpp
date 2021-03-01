@@ -290,8 +290,9 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
     QRectF drawRect( printer.resolution()/2, printer.resolution()/2, printer.width() - printer.resolution(), (12.0/72)*printer.resolution() );
 
     QString fullpath;
-    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         fullpath = processor->qfilename();
+    }
 
 	painter.drawText( drawRect, Qt::TextWordWrap, fullpath, &boundingRect );
 
@@ -311,61 +312,6 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
     renderer.render( impl_->referenceWidget(), &painter, rc );
     rc.moveTo( rc.left(), rc.bottom() );
     renderer.render( impl_->processedWidget(), &painter, rc );
-}
-
-// action from MSSimulateWidget trigger
-void
-ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
-{
-    const std::pair< int, int > charge_range{ m.chargeStateMin(), m.chargeStateMax() };
-
-    std::vector< std::tuple< std::string, double, int > > formulae; // formula, mass, charge
-
-    for ( auto& mol : m.molecules().data() ) {
-        if ( mol.enable() ) {
-            auto list = adcontrols::Targeting::make_mapping(
-                { m.chargeStateMin(), m.chargeStateMax() }, mol.formula(), mol.adducts(), m.isPositivePolarity() );
-            for ( const auto& a: list )
-                formulae.emplace_back( a );
-        }
-    }
-    std::sort( formulae.begin(), formulae.end(), []( const auto& a, const auto& b ){ return std::get<1>( a ) < std::get<1>(b); });
-
-#if __cplusplus >= 201703L
-    for ( auto [ formula, mass, charge ]: formulae ) {
-        ADDEBUG() << "isotope cluster: " << formula << ", " << mass << ", " << charge;
-    }
-#endif
-
-    auto ms = std::make_shared< adcontrols::MassSpectrum >();
-    ms->setCentroid( adcontrols::CentroidNative );
-
-    bool handled( false );
-    // ---> trial for aparent m/z calculation
-    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        if ( auto sp = dp->massSpectrometer() ) {
-            if ( sp->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
-                handled = adcontrols::isotopeCluster()( *ms, formulae, m.resolvingPower(), sp, 30 );
-            }
-        }
-    }
-
-    if ( !handled ) {
-        adcontrols::isotopeCluster()( *ms, formulae, m.resolvingPower() );
-        if ( m.isTof() ) {
-            adportable::TimeSquaredScanLaw scanLaw( m.acceleratorVoltage(), m.tDelay(), m.length() );
-            for ( size_t i = 0; i < ms->size(); ++i )
-                ms->setTime( i, scanLaw.getTime( ms->getMass( i ), 0 ) );
-        }
-    }
-
-    double lMass = ms->getMass( 0 );
-    double hMass = ms->getMass( ms->size() - 1 );
-    //lMass = m.lMassLimit() > 0 ? m.lMassLimit() : double( int( lMass / 10 ) * 10 );
-    //hMass = m.uMassLimit() > 0 ? m.uMassLimit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
-    ms->setAcquisitionMassRange( lMass, hMass );
-
-    draw1( ms );
 }
 
 void
@@ -401,6 +347,12 @@ ElementalCompWnd::draw( int which )
     }
 
     impl_->plots_[ impl::idProfile ]->setTitle( title );
+}
+
+void
+ElementalCompWnd::setSimulatedSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ms )
+{
+    impl_->referenceWidget()->setData( ms, 0 );
 }
 
 //////////////////////////////////////////
