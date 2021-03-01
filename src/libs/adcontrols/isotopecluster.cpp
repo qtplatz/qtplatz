@@ -23,7 +23,6 @@
 **
 **************************************************************************/
 
-#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include "chemicalformula.hpp"
@@ -38,6 +37,7 @@
 #include "scanlaw.hpp"
 #include "tableofelement.hpp"
 #include <adportable/debug.hpp>
+#include <adutils/constants.hpp> // clsid for massspectrometer
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -200,12 +200,6 @@ isotopeCluster::toMassSpectrum( const std::vector< adcontrols::mol::molecule >& 
         return {};
 
     auto size = std::accumulate( molecules.begin(), molecules.end(), size_t(0), []( size_t n, const auto& m ){ return m.cluster().size() + n; });
-    // std::vector< std::pair< std::vector< mol::isotope >::const_iterator, std::vector< mol::molecule >::const_iterator > > ipks;
-    // for ( auto mIt = molecules.begin(); mIt != molecules.end(); ++mIt ) {
-    //     for ( auto it = mIt->cluster_begin(); it != mIt->cluster_end(); ++it )
-    //         ipks.emplace_back( it, mIt );
-    // }
-    // std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return a.first->mass < b.first->mass; } );
 
     auto ms = std::make_shared< MassSpectrum >();
     if ( source )
@@ -213,7 +207,7 @@ isotopeCluster::toMassSpectrum( const std::vector< adcontrols::mol::molecule >& 
     ms->resize( size );
     ms->setCentroid( CentroidNative );
 
-    if ( sp && sp->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
+    if ( sp && sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
         return __toMTSpectrum( molecules, ms, sp, lap );
     } else {
         return __toMassSpectrum( molecules, ms, sp, lap );
@@ -372,16 +366,17 @@ isotopeCluster::formulae( const std::string& formula )
 
 //static
 std::shared_ptr< adcontrols::MassSpectrum >
-__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
-                , std::shared_ptr< const adcontrols::MassSpectrum > source
-                , std::shared_ptr< const adcontrols::MassSpectrometer > sp
-                , int lap )
+isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
+                                , std::shared_ptr< const adcontrols::MassSpectrum > source
+                                , std::shared_ptr< const adcontrols::MassSpectrometer > sp
+                                , int lap )
 {
     std::vector< std::pair< std::vector< mol::isotope >::const_iterator, std::vector< mol::molecule >::const_iterator > > ipks;
     for ( auto mIt = molecules.begin(); mIt != molecules.end(); ++mIt ) {
         for ( auto it = mIt->cluster_begin(); it != mIt->cluster_end(); ++it )
             ipks.emplace_back( it, mIt );
     }
+
     std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return a.first->mass < b.first->mass; } );
 
     auto hMol = std::max_element( molecules.begin(), molecules.end(), [](const auto& a, const auto& b){ return a.mass() < b.mass(); });
@@ -442,8 +437,8 @@ __toMTSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
 
 //static
 std::shared_ptr< adcontrols::MassSpectrum >
-__toMassSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
-                  , std::shared_ptr< adcontrols::MassSpectrum > ms
+isotopeCluster::__toMassSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
+                                  , std::shared_ptr< const adcontrols::MassSpectrum > source
                   , std::shared_ptr< const adcontrols::MassSpectrometer > sp
                   , int mode )
 {
@@ -454,6 +449,9 @@ __toMassSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
     }
     std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return a.first->mass < b.first->mass; } );
 
+    auto ms = std::make_shared< MassSpectrum >();
+    if ( source )
+        ms->clone( *source ); // shallow copy
     ms->resize( ipks.size() );
     ms->setCentroid( CentroidNative );
 

@@ -83,12 +83,12 @@ namespace adcontrols {
     private:
         static  std::shared_ptr< adcontrols::MassSpectrum >
         __toMTSpectrum( const std::vector< adcontrols::mol::molecule >&
-                        , std::shared_ptr< adcontrols::MassSpectrum >
+                        , std::shared_ptr< const adcontrols::MassSpectrum >
                         , std::shared_ptr< const adcontrols::MassSpectrometer >
                         , int lap );
         static  std::shared_ptr< adcontrols::MassSpectrum >
         __toMassSpectrum( const std::vector< adcontrols::mol::molecule >&
-                          , std::shared_ptr< adcontrols::MassSpectrum >
+                          , std::shared_ptr< const adcontrols::MassSpectrum >
                           , std::shared_ptr< const adcontrols::MassSpectrometer >
                           , int mode );
 

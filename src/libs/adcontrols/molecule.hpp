@@ -74,7 +74,8 @@ namespace adcontrols {
             elements_iterator       elements_end()         { return elements_.end(); }
             const_elements_iterator elements_end() const   { return elements_.end(); }
 
-            const std::vector< isotope >& cluster() const { return cluster_; }
+            const std::vector< isotope >& cluster() const  { return cluster_; }
+            std::vector< isotope >& cluster()              { return cluster_; }
             const std::vector< element >& elements() const { return elements_; }
             std::vector< isotope >::const_iterator max_abundant_isotope() const;
 
