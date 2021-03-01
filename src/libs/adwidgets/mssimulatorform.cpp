@@ -30,7 +30,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adportable/debug.hpp>
-#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
+#include <adutils/constants.hpp> // clsid for massspectrometer
 #include <QSignalBlocker>
 
 using namespace adwidgets;
@@ -151,7 +151,7 @@ MSSimulatorForm::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpe
         ui->doubleSpinBox_3->setValue( p->fLength() );
         ui->doubleSpinBox_4->setValue( p->acceleratorVoltage() );
         ui->doubleSpinBox_5->setValue( p->tDelay() * std::micro::den );
-        if ( p->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
+        if ( p->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
 
             if ( auto law = p->scanLaw() )
                 ui->doubleSpinBox_3->setValue( law->fLength( 0 ) );

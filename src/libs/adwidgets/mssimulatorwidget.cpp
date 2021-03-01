@@ -38,7 +38,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adportfolio/folium.hpp>
-#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
+#include <adutils/constants.hpp> // clsid for massspectrometer
 #include <boost/json.hpp>
 #include <QBoxLayout>
 #include <QMenu>
@@ -221,7 +221,7 @@ MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassS
         form->setMassSpectrometer( p );
     }
     if ( p ) {
-        if ( p->massSpectrometerClsid() == infitof::iids::uuid_massspectrometer ) {
+        if ( p->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
             ADDEBUG() << "found infiTOF";
         } else {
             ADDEBUG() << p->massSpectrometerName() << "\t" << p->massSpectrometerClsid();
