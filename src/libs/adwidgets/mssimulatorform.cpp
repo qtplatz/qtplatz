@@ -79,11 +79,11 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     ui->comboBox_2->addItems( QStringList() << "0.1" << "0.01" << "0.001" << "1.0e-4" << "1.0e-5" << "1.0e-6"  << "1.0e-7"  << "1.0e-8"  << "1.0e-9" );
     ui->comboBox_2->setCurrentIndex( 2 );
 
-    connect( ui->comboBox_2, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
-        double limit = std::pow( 10, -( index + 1) );
-        int rindex = -(std::log10( limit ) + 1);
-        ADDEBUG() << "index: " << index << ", limit: " << limit << ", --> rev-index: " << rindex;
-    });
+    // connect( ui->comboBox_2, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
+    //     double limit = std::pow( 10, -( index + 1) );
+    //     int rindex = -(std::log10( limit ) + 1);
+    //     ADDEBUG() << "index: " << index << ", limit: " << limit << ", --> rev-index: " << rindex;
+    // });
 }
 
 MSSimulatorForm::~MSSimulatorForm()
@@ -156,8 +156,7 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
     int index = -(std::log10( m.abundanceLowLimit()  ) + 1);
     ui->comboBox_2->setCurrentIndex( index );
 
-    ADDEBUG() << "limit: " << m.abundanceLowLimit() << " --> index: " << std::pow( 10, m.abundanceLowLimit() );
-
+    // ADDEBUG() << "limit: " << m.abundanceLowLimit() << " --> index: " << std::pow( 10, m.abundanceLowLimit() );
     return true;
 }
 

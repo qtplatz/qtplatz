@@ -38,6 +38,7 @@
 #include "tableofelement.hpp"
 #include <adportable/debug.hpp>
 #include <adutils/constants.hpp> // clsid for massspectrometer
+#include <boost/format.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -360,7 +361,7 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
         std::ostringstream o;
         if ( itMol->max_abundant_isotope() == itIso ) {
             o << ChemicalFormula::formatFormula( itMol->display_formula() )
-              << " " << std::to_string( itIso->mass );
+              << " " << boost::format( "%.2f" ) % itIso->mass;
         } else {
             double delta = itIso->mass - itMol->max_abundant_isotope()->mass;
             int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
@@ -415,7 +416,7 @@ isotopeCluster::__toMassSpectrum( const std::vector< adcontrols::mol::molecule >
         std::ostringstream o;
         if ( itMol->max_abundant_isotope() == itIso ) {
             o << ChemicalFormula::formatFormula( itMol->display_formula() )
-              << " " << std::to_string( itIso->mass );
+              << " " << boost::format( "%.2f" ) % itIso->mass;
         } else {
             double delta = itIso->mass - itMol->max_abundant_isotope()->mass;
             int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
