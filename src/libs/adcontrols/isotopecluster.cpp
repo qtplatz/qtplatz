@@ -199,81 +199,12 @@ isotopeCluster::toMassSpectrum( const std::vector< adcontrols::mol::molecule >& 
     if ( molecules.empty() )
         return {};
 
-    auto size = std::accumulate( molecules.begin(), molecules.end(), size_t(0), []( size_t n, const auto& m ){ return m.cluster().size() + n; });
-
-    auto ms = std::make_shared< MassSpectrum >();
-    if ( source )
-        ms->clone( *source ); // shallow copy
-    ms->resize( size );
-    ms->setCentroid( CentroidNative );
 
     if ( sp && sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
-        return __toMTSpectrum( molecules, ms, sp, lap );
+        return __toMTSpectrum( molecules, source, sp, lap );
     } else {
-        return __toMassSpectrum( molecules, ms, sp, lap );
+        return __toMassSpectrum( molecules, source, sp, lap );
     }
-#if 0
-    std::vector< std::pair< std::vector< mol::isotope >::const_iterator, std::vector< mol::molecule >::const_iterator > > ipks;
-    for ( auto mIt = molecules.begin(); mIt != molecules.end(); ++mIt ) {
-        for ( auto it = mIt->cluster_begin(); it != mIt->cluster_end(); ++it )
-            ipks.emplace_back( it, mIt );
-    }
-    std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return a.first->mass < b.first->mass; } );
-
-    auto hMol = std::max_element( molecules.begin(), molecules.end(), [](const auto& a, const auto& b){ return a.mass() < b.mass(); });
-    double hMass = hMol->mass();
-
-    auto ms = std::make_shared< MassSpectrum >();
-    if ( source )
-        ms->clone( *source ); // shallow copy
-    ms->resize( ipks.size() );
-    ms->setCentroid( CentroidNative );
-
-    if ( sp ) {
-        if ( auto scanlaw = sp->scanLaw() ) {
-            lapFinder finder( *scanlaw, hMass, lap );
-            size_t idx(0);
-            for ( auto& a: ipks ) {
-                const auto& isotope = a.first;
-#if __cplusplus >= 201703L
-                auto [ isoIt, molIt ] = a;
-                auto [ i_lap, i_time ] = finder( isoIt->mass ); // lap#, time
-#else
-                std::vector< molecule >::const_iterator molIt;
-                mol::molecule::const_cluster_iterator  isoIt;
-                std::tie( isoIt, molIt ) = a;
-                int i_lap;
-                double i_time;
-                std::tie(  ilap, itime ) = finder( isoIt->mass ); // lap#, time
-#endif
-                double aparent_mass = scanlaw->getMass( i_time, lap );
-                auto molid = std::distance( molecules.begin(), a.second );
-                // auto isoid = std::distance( a.second->cluster_begin(), a.first );
-                // ADDEBUG() << std::make_pair( molid, isoid )
-                //           << "\t" << i_lap << ", " << i_time << ", " << aparent_mass << "\t" << a.second->display_formula();
-                ms->setMass( idx, aparent_mass );
-                ms->setTime( idx, i_time );
-                ms->setIntensity( idx, isotope->abundance * 100 );
-                ms->setColor( idx, static_cast<unsigned>(molid) % 17 );
-
-                std::ostringstream o;
-                if ( molIt->max_abundant_isotope() == isoIt ) {
-                    o << ChemicalFormula::formatFormula( molIt->display_formula() )
-                      << " " << std::to_string( isotope->mass );
-                } else {
-                    double delta = isoIt->mass - molIt->max_abundant_isotope()->mass;
-                    int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
-                    o << molIt->formula() << "(" << std::showpos << idelta << ")";
-                }
-                ADDEBUG() << o.str() << ", " << isoIt->mass << ", " << molIt->mass() << ", " << aparent_mass << " lap: " << i_lap << "/" << lap;
-                ms->get_annotations()
-                    << annotation( o.str(), aparent_mass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
-                ++idx;
-            }
-        }
-        return ms;
-    }
-#endif
 }
 
 
@@ -369,18 +300,40 @@ std::shared_ptr< adcontrols::MassSpectrum >
 isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& molecules
                                 , std::shared_ptr< const adcontrols::MassSpectrum > source
                                 , std::shared_ptr< const adcontrols::MassSpectrometer > sp
-                                , int lap )
+                                , int assigned_lap )
 {
-    std::vector< std::pair< std::vector< mol::isotope >::const_iterator, std::vector< mol::molecule >::const_iterator > > ipks;
-    for ( auto mIt = molecules.begin(); mIt != molecules.end(); ++mIt ) {
-        for ( auto it = mIt->cluster_begin(); it != mIt->cluster_end(); ++it )
-            ipks.emplace_back( it, mIt );
-    }
+    if ( !sp || ( sp && ! sp->scanLaw() ) )
+        return {};
 
-    std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return a.first->mass < b.first->mass; } );
+    auto size = std::accumulate( molecules.begin(), molecules.end(), size_t(0), []( size_t n, const auto& m ){ return m.cluster().size() + n; });
 
+    // get 'base mass' := highest m/z
     auto hMol = std::max_element( molecules.begin(), molecules.end(), [](const auto& a, const auto& b){ return a.mass() < b.mass(); });
     double hMass = hMol->mass();
+
+    // lap number finder
+    lapFinder finder( *sp->scanLaw(), hMass, assigned_lap );
+
+    std::vector< std::tuple< std::vector< mol::isotope >::const_iterator     // cluset
+                             , std::vector< mol::molecule >::const_iterator  // molecule
+                             , int                                           // own lap number
+                             , double                                        // tof
+                             , double                                        // aparent mass
+                             >
+                 > ipks;
+
+    for ( auto mIt = molecules.begin(); mIt != molecules.end(); ++mIt ) {
+        for ( auto it = mIt->cluster_begin(); it != mIt->cluster_end(); ++it ) {
+            auto [ xlap, xtof ] = finder( it->mass );
+            double apparent_mass = sp->scanLaw()->getMass( xtof, assigned_lap );
+            ipks.emplace_back( it, mIt, xlap, xtof, apparent_mass );
+        }
+    }
+
+    std::sort( ipks.begin(), ipks.end(), []( const auto& a, const auto& b ){ return std::get<3>(a) < std::get<3>(b); } );
+
+    // for ( auto pk: ipks )
+    //     ADDEBUG() << "find lap for " << std::get<0>(pk)->mass << " --> " << std::get<2>(pk) << ", " << std::get<3>(pk) << ", " << std::get<4>(pk);
 
     auto ms = std::make_shared< MassSpectrum >();
     if ( source )
@@ -388,51 +341,36 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
     ms->resize( ipks.size() );
     ms->setCentroid( CentroidNative );
 
-    if ( sp ) {
-        if ( auto scanlaw = sp->scanLaw() ) {
-            lapFinder finder( *scanlaw, hMass, lap );
-            size_t idx(0);
-            for ( auto& a: ipks ) {
-                const auto& isotope = a.first;
+    size_t idx(0);
+    for ( auto& a: ipks ) {
 #if __cplusplus >= 201703L
-                auto [ isoIt, molIt ] = a;
-                auto [ i_lap, i_time ] = finder( isoIt->mass ); // lap#, time
+        auto [ itIso, itMol, xlap, xtof, xmass ] =  a;
 #else
-                std::vector< molecule >::const_iterator molIt;
-                mol::molecule::const_cluster_iterator  isoIt;
-                std::tie( isoIt, molIt ) = a;
-                int i_lap;
-                double i_time;
-                std::tie(  ilap, itime ) = finder( isoIt->mass ); // lap#, time
+        mol::molecule::const_cluster_iterator itIso; std::vector< mol::molecule >::const_iterator itMol; int xlap; double xtof, xmass;
+        std::tie( itIso, itMol, xlap, xtof, xmass ) = a;
 #endif
-                double aparent_mass = scanlaw->getMass( i_time, lap );
-                auto molid = std::distance( molecules.begin(), a.second );
-                // auto isoid = std::distance( a.second->cluster_begin(), a.first );
-                // ADDEBUG() << std::make_pair( molid, isoid )
-                //           << "\t" << i_lap << ", " << i_time << ", " << aparent_mass << "\t" << a.second->display_formula();
-                ms->setMass( idx, aparent_mass );
-                ms->setTime( idx, i_time );
-                ms->setIntensity( idx, isotope->abundance * 100 );
-                ms->setColor( idx, static_cast<unsigned>(molid) % 17 );
+        auto idMol = std::distance( molecules.begin(), itMol );
+        ms->setMass( idx, xmass );
+        ms->setTime( idx, xtof );
+        ms->setIntensity( idx, itIso->abundance * 100 );
+        ms->setColor( idx, static_cast<unsigned>(idMol) % 17 );
 
-                std::ostringstream o;
-                if ( molIt->max_abundant_isotope() == isoIt ) {
-                    o << ChemicalFormula::formatFormula( molIt->display_formula() )
-                      << " " << std::to_string( isotope->mass );
-                } else {
-                    double delta = isoIt->mass - molIt->max_abundant_isotope()->mass;
-                    int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
-                    o << molIt->formula() << "(" << std::showpos << idelta << ")";
-                }
-                ADDEBUG() << o.str() << ", " << isoIt->mass << ", " << molIt->mass() << ", " << aparent_mass << " lap: " << i_lap << "/" << lap;
-                ms->get_annotations()
-                    << annotation( o.str(), aparent_mass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
-                ++idx;
-            }
+        std::ostringstream o;
+        if ( itMol->max_abundant_isotope() == itIso ) {
+            o << ChemicalFormula::formatFormula( itMol->display_formula() )
+              << " " << std::to_string( itIso->mass );
+        } else {
+            double delta = itIso->mass - itMol->max_abundant_isotope()->mass;
+            int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
+            o << itMol->formula() << "(" << std::showpos << idelta << ")";
         }
-        return ms;
+        // ADDEBUG() << o.str() << "\t" << xmass << ", " << itIso->mass << ", " <<itMol->mass() << " lap: " << xlap << "/" << assigned_lap;
+
+        ms->get_annotations()
+            << annotation( o.str(), xmass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
+        ++idx;
     }
-    return {};
+    return ms;
 }
 
 //static
@@ -457,33 +395,31 @@ isotopeCluster::__toMassSpectrum( const std::vector< adcontrols::mol::molecule >
 
     size_t idx(0);
     for ( auto& a: ipks ) {
-        const auto& isotope = a.first;
 #if __cplusplus >= 201703L
-        auto [ isoIt, molIt ] = a;
+        auto [ itIso, itMol ] = a;
 #else
-        std::vector< molecule >::const_iterator molIt;
-        mol::molecule::const_cluster_iterator  isoIt;
-        std::tie( isoIt, molIt ) = a;
+        std::vector< molecule >::const_iterator itMol;  mol::molecule::const_cluster_iterator  itIso;
+        std::tie( itIsot, itMol ) = a;
 #endif
-        auto molid = std::distance( molecules.begin(), a.second );
-        ms->setMass( idx, isoIt->mass );
+        auto idMol = std::distance( molecules.begin(), a.second );
+        ms->setMass( idx, itIso->mass );
         if ( sp )
-            ms->setTime( idx, sp->timeFromMass( isoIt->mass ) );
+            ms->setTime( idx, sp->timeFromMass( itIso->mass ) );
 
-        ms->setIntensity( idx, isotope->abundance * 100 );
-        ms->setColor( idx, static_cast<unsigned>(molid) % 17 );
+        ms->setIntensity( idx, itIso->abundance * 100 );
+        ms->setColor( idx, static_cast<unsigned>(idMol) % 17 );
 
         std::ostringstream o;
-        if ( molIt->max_abundant_isotope() == isoIt ) {
-            o << ChemicalFormula::formatFormula( molIt->display_formula() )
-              << " " << std::to_string( isotope->mass );
+        if ( itMol->max_abundant_isotope() == itIso ) {
+            o << ChemicalFormula::formatFormula( itMol->display_formula() )
+              << " " << std::to_string( itIso->mass );
         } else {
-            double delta = isoIt->mass - molIt->max_abundant_isotope()->mass;
+            double delta = itIso->mass - itMol->max_abundant_isotope()->mass;
             int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
-            o << molIt->formula() << "(" << std::showpos << idelta << ")";
+            o << itMol->formula() << "(" << std::showpos << idelta << ")";
         }
         ms->get_annotations()
-            << annotation( o.str(), isoIt->mass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
+            << annotation( o.str(), itIso->mass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
         ++idx;
     }
     return ms;
