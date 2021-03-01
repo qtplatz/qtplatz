@@ -1019,7 +1019,8 @@ TraceData::y_range( double left, double right, int fcn ) const
     }
     if ( top < bottom )
         return std::make_pair( 0.0, 1.0 );
-    return std::make_pair<>(bottom, top);
+    //return std::make_pair<>(bottom, top );
+    return std::make_pair<>(bottom, top + ( top - bottom ) * 0.14 );
 }
 
 void

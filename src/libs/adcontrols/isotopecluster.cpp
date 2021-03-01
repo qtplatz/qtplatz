@@ -305,7 +305,7 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
     if ( !sp || ( sp && ! sp->scanLaw() ) )
         return {};
 
-    auto size = std::accumulate( molecules.begin(), molecules.end(), size_t(0), []( size_t n, const auto& m ){ return m.cluster().size() + n; });
+    // auto size = std::accumulate( molecules.begin(), molecules.end(), size_t(0), []( size_t n, const auto& m ){ return m.cluster().size() + n; });
 
     // get 'base mass' := highest m/z
     auto hMol = std::max_element( molecules.begin(), molecules.end(), [](const auto& a, const auto& b){ return a.mass() < b.mass(); });
