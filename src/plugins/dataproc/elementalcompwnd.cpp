@@ -29,7 +29,7 @@
 #include "elementalcompwnd.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
-#include <infitofcontrols/constants.hpp> // clsid for massspectrometer
+#include <adutils/constants.hpp> // clsid for massspectrometer
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
