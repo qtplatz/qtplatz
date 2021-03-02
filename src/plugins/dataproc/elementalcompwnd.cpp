@@ -71,7 +71,9 @@ namespace dataproc {
     public:
 
         impl( ElementalCompWnd * p ) : isTimeAxis_( false )
-                                     , dirty_( false ) {
+                                     , dirty_( false )
+                                     , scaleYAuto_( true )
+                                     , scaleY_{ 0, 0 } {
 
             for ( size_t i = 0; i < plots_.size(); ++i ) {
                 plots_[ i ] = std::make_unique< adplot::SpectrumWidget >();
@@ -86,21 +88,24 @@ namespace dataproc {
 
         std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
 
-        std::pair< std::wstring, datafolder > profile_;
+        // std::pair< std::wstring, datafolder > profile_;
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 3 > plots_; // profile,processed,reference
         std::array< std::unique_ptr< adplot::PeakMarker >, 3 > markers_;
         bool isTimeAxis_;
         bool dirty_;
+        bool scaleYAuto_;
+        std::pair< double, double > scaleY_;
+        std::wstring idSpectrumFolium_;
 
         enum idSpectrumWidget { idProfile, idProcessed, idReference };
 
+        template< idSpectrumWidget T > adplot::SpectrumWidget * splot() {
+            return plots_.at( T ).get();
+        }
         adplot::SpectrumWidget * spectrumWidget( idSpectrumWidget id ) { return plots_.at( id ).get(); }
-        adplot::SpectrumWidget * referenceWidget() { return plots_.at( idReference ).get(); }
-        adplot::SpectrumWidget * processedWidget() { return plots_.at( idProcessed ).get(); }
-        adplot::SpectrumWidget * profileWidget() { return plots_.at( idProfile ).get(); }
 
     private:
-        //ElementalCompWnd * this_;
+
     };
 }
 
@@ -128,7 +133,7 @@ ElementalCompWnd::init()
 
             connect( plot.get()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
-                     , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
+                     , [&plot,this,i]( const QRectF& rc ) { handleSelected( rc, plot.get(), i ); } );
 
             // plot->enableAxis( QwtPlot::yRight );
             plot->setMinimumHeight( 80 );
@@ -152,9 +157,27 @@ ElementalCompWnd::init()
 }
 
 void
+ElementalCompWnd::onInitialUpdate()
+{
+    if ( auto w = MainWindow::instance() ) {
+        connect( w, &MainWindow::onScaleYChanged, this
+                 , [&]( bool autoScale, double base, double height ) {
+                     ADDEBUG() << "autoScale: " << autoScale << ", " << std::make_pair( base, height );
+                     impl_->scaleYAuto_ = autoScale;
+                     impl_->scaleY_ = { base, height };
+                     if ( autoScale )
+                         impl_->splot< impl::idProfile >()->setYScale( 0, 0, false );
+                     else
+                         impl_->splot< impl::idProfile >()->setYScale( base + height, base, false );
+                     impl_->splot< impl::idProfile >()->replotYScale();
+                 });
+    }
+}
+
+void
 ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    impl_->referenceWidget()->setData( ptr, 0 );
+    impl_->splot< impl::idReference >()->setData( ptr, 0 );
 }
 
 void
@@ -211,8 +234,10 @@ ElementalCompWnd::handleAxisChanged( unsigned int axis )
 {
     using adplot::SpectrumWidget;
     using namespace adcontrols;
-    impl_->referenceWidget()->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
-    impl_->processedWidget()->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+
+    auto __axis = axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime;
+    for ( auto& plot: impl_->plots_ )
+        plot->setAxis( __axis, true );
 }
 
 void
@@ -239,7 +264,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         datafolder xdata = ( xit == impl_->dataIds_.end() ) ? datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() ) : xit->second;
 
         if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-
+            impl_->idSpectrumFolium_ = folium.id();
             xdata.profile = profile;
 
             portfolio::Folio atts = folium.attachments();
@@ -309,9 +334,9 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 	rc.setHeight( drawRect.height() / 4 );
     rc.setWidth( drawRect.width() * 0.6 );
 
-    renderer.render( impl_->referenceWidget(), &painter, rc );
+    renderer.render( impl_->splot< impl::idReference >(), &painter, rc );
     rc.moveTo( rc.left(), rc.bottom() );
-    renderer.render( impl_->processedWidget(), &painter, rc );
+    renderer.render( impl_->splot< impl::idProcessed >(), &painter, rc );
 }
 
 void
@@ -335,13 +360,19 @@ ElementalCompWnd::draw( int which )
         QColor color = impl_->plots_[ 0 ]->index_color( idx );
 
         if ( auto profile = data.second.profile.lock() ) {
-            impl_->plots_[ impl::idProfile ]->setData( profile, traceid );
-            impl_->plots_[ impl::idProfile ]->setColor( traceid, color );
+            if ( auto plot = impl_->splot< impl::idProfile >() ) {
+                plot->setData( profile, traceid );
+                plot->setColor( traceid, color );
+                plot->show();
+            }
         }
 
         if ( auto centroid = data.second.centroid.lock() ) {
-            impl_->plots_[ impl::idProcessed ]->setData( centroid, traceid + 1, true );
-            impl_->plots_[ impl::idProcessed ]->setColor( traceid + 1, color );
+            if ( auto plot = impl_->splot< impl::idProcessed >() ) {
+                plot->setData( centroid, traceid + 1, true );
+                plot->setColor( traceid + 1, color );
+                plot->show();
+            }
         }
 
     }
@@ -352,13 +383,13 @@ ElementalCompWnd::draw( int which )
 void
 ElementalCompWnd::setSimulatedSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ms )
 {
-    impl_->referenceWidget()->setData( ms, 0 );
+    impl_->splot< impl::idReference >()->setData( ms, 0 );
 }
 
 //////////////////////////////////////////
 
 void
-ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
+ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot, int id )
 {
     auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
 
@@ -369,14 +400,22 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         std::vector < action_type > actions;
 
         menu.addAction( tr("Copy image to clipboard"), [=](){ adplot::plot::copyToClipboard( plot ); } );
+        menu.addAction( tr("Save as SVG File"), [=](){
+            QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+                                                         , MainWindow::makePrintFilename( impl_->idSpectrumFolium_, L"_" )
+                                                         , tr( "SVG (*.svg)" ) );
+            if ( ! name.isEmpty() ) {
+                adplot::plot::copyImageToFile( plot, name, "svg" );
+                MainWindow::addPrintFileToSettings( name );
+            }
+        });
 
-        menu.addAction( tr("Save SVG File"), [=](){
-                QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                             , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
-                                                             , tr( "SVG (*.svg)" ) );
-                if ( ! name.isEmpty() )
-                    adplot::plot::copyImageToFile( plot, name, "svg" );
-            });
+        if ( id == impl::idProcessed ) {
+            menu.addAction( tr( "Dismiss" ), [&](){ impl_->splot< impl::idProcessed >()->hide(); } );
+        }
+        if ( id == impl::idProfile ) {
+            menu.addAction( tr( "Dismiss" ), [&](){ impl_->splot< impl::idProfile >()->hide(); } );
+        }
 
         //--------------
         std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();

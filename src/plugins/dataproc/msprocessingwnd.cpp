@@ -277,8 +277,8 @@ MSProcessingWnd::~MSProcessingWnd()
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
                                                   , drawIdx1_( 0 )
                                                   , drawIdx2_( 0 )
-                                                  , axis_(adcontrols::hor_axis_mass)
                                                   , pImpl_( new MSProcessingWndImpl() )
+                                                  , axis_(adcontrols::hor_axis_mass)
 {
     init();
 }
@@ -1265,7 +1265,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     menu.addAction( tr( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
 
     menu.addAction( tr( "Save as SVG File..." ), [&]{
-            QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                          , MainWindow::makePrintFilename( idSpectrumFolium_, L",processed;" )
                                                          , tr("SVG (*.svg)") );
             if ( ! name.isEmpty() ) {

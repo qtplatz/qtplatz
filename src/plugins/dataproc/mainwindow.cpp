@@ -1025,6 +1025,9 @@ MainWindow::OnInitialUpdate()
     if ( auto widget = findChild< MSProcessingWnd * >() )
         widget->onInitialUpdate();
 
+    if ( auto wnd = findChild< ElementalCompWnd * >() )
+        wnd->onInitialUpdate();
+
     if ( auto pm = document::instance()->processMethod() ) {
         setProcessMethod( *pm ); // write to UI
         getProcessMethod( *pm ); // read back from UI

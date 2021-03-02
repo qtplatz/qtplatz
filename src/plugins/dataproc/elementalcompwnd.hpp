@@ -55,6 +55,7 @@ namespace dataproc {
         explicit ElementalCompWnd(QWidget *parent = 0);
         ~ElementalCompWnd();
         void init();
+        void onInitialUpdate();
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
         void simulate( const adcontrols::MSSimulatorMethod& );
         void estimateScanLaw( const QString& );
@@ -77,7 +78,7 @@ namespace dataproc {
         impl * impl_;
 
     private slots:
-        void handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot );
+        void handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot, int id );
     };
 
 }
