@@ -105,6 +105,8 @@ MSSimulatorWidget::OnInitialUpdate()
     if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
         connect( table, &MolTable::onContextMenu, this, &MSSimulatorWidget::handleContextMenu );
+        if ( auto model = table->model() )
+            connect( model, &QAbstractItemModel::dataChanged, this, &MSSimulatorWidget::handleDataChanged ); //
     }
 }
 
@@ -220,7 +222,6 @@ MSSimulatorWidget::run()
 void
 MSSimulatorWidget::handleLapChanged( int nlaps )
 {
-    // ADDEBUG() << "handleLapChanged(" << nlaps << ")";
     QAbstractItemModel * model(0);
     if ( auto table = findChild< MolTable * >() ) {
         model = table->model();
@@ -240,7 +241,6 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
                     for ( int row = 0; row < model->rowCount() && row < m.data().size(); ++row ) {
                         auto [xlaps, xtof] = finder( m.data().at( row ).mass() ); // lap, time
                         auto apparent_mass = scanlaw->getMass( xtof, nlaps );
-                        // ADDEBUG() << std::make_pair( xlaps, xtof );
                         model->setData( model->index( row, MolTable::c_nlaps ), xlaps );
                         model->setData( model->index( row, MolTable::c_apparent_mass ), apparent_mass );
                         model->setData( model->index( row, MolTable::c_time ), xtof * 1e6 );
@@ -248,6 +248,19 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
                 }
             }
         }
+    }
+}
+
+void
+MSSimulatorWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex& )
+{
+    if (( topLeft.column() != MolTable::c_formula ) || ( topLeft.column() != MolTable::c_adducts )) {
+        return;
+
+    if ( auto form = findChild< MSSimulatorForm * >() ) {
+        adcontrols::MSSimulatorMethod m;
+        form->getContents( m );
+        handleLapChanged( m.mode() );
     }
 }
 

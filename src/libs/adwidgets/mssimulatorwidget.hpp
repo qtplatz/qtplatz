@@ -78,6 +78,7 @@ namespace adwidgets {
     private slots:
         void run();
         void handleLapChanged( int );
+        void handleDataChanged( const QModelIndex&, const QModelIndex& );
 
     private:
         class impl;

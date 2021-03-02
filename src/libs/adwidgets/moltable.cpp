@@ -374,12 +374,16 @@ MolTable::getContents( adcontrols::moltable& m )
             mol.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
             mol.adducts() = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
             mol.description() = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
-            mol.mass() = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
             mol.abundance() = model.index( row, c_abundance ).data( Qt::EditRole ).toDouble();
             mol.synonym() = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
             mol.smiles() = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
             mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
-
+            // mol.mass() = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+            // recalculate -- due to cells may not be updated yet, when call here during the event handling
+            QString r;
+            mol.mass() = computeMass( model.index( row, c_formula ).data( Qt::EditRole ).toString()
+                                      , model.index( row, c_adducts ).data( Qt::EditRole ).toString()
+                                      , r );
             m << mol;
         }
     }

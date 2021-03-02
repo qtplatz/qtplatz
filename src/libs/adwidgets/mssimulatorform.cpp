@@ -119,7 +119,7 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
     int index = ui->comboBox_2->currentIndex(); // 0.1 .. 1.0e-9
     m.setAbundanceLowLimit( std::pow(10, -(index + 1)) );
 
-    ADDEBUG() << "index : " << index << ", limit: " << m.abundanceLowLimit();
+    // ADDEBUG() << "index : " << index << ", limit: " << m.abundanceLowLimit();
 
     return true;
 }
