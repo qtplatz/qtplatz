@@ -25,7 +25,9 @@
 #pragma once
 
 #include <QWidget>
-
+#if WIN32
+#include "../adwidgets_global.hpp"
+#endif
 namespace Ui {
 class ContoursForm;
 }
@@ -36,7 +38,9 @@ namespace adcontrols { namespace adcv {
 }
 
 namespace adwidgets { namespace adcv {
-
+#if WIN32
+        class ADWIDGETSSHARED_EXPORT ContoursForm;
+#endif
         class ContoursForm : public QWidget
         {
             Q_OBJECT

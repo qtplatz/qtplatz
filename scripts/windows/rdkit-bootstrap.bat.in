@@ -10,6 +10,13 @@ if not exist "${RDKIT_BINARY_DIR}" mkdir "${RDKIT_BINARY_DIR}"
 
 pushd "${RDKIT_BINARY_DIR}"
 
+echo "***************************************************"
+echo "  If you get build failed by 'zlib.h' file not found error"
+echo "  delete a line '#include zlib.h' in Code/GraphMol/FileParsers/PGNParser.cpp, which never used"
+echo "***************************************************"
+echo
+pause
+
 cmake -Wno-dev ^
       -DBOOST_LIBRARYDIR="${BOOST_LIBRARYDIR}" ^
    	 -DBOOST_ROOT="${BOOST_ROOT}" ^

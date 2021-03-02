@@ -254,8 +254,9 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
 void
 MSSimulatorWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex& )
 {
-    if (( topLeft.column() != MolTable::c_formula ) || ( topLeft.column() != MolTable::c_adducts )) {
+    if ((topLeft.column() != MolTable::c_formula) || (topLeft.column() != MolTable::c_adducts)) {
         return;
+    }
 
     if ( auto form = findChild< MSSimulatorForm * >() ) {
         adcontrols::MSSimulatorMethod m;

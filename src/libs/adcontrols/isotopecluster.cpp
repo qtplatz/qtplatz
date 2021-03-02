@@ -402,8 +402,8 @@ isotopeCluster::__toMassSpectrum( const std::vector< adcontrols::mol::molecule >
 #if __cplusplus >= 201703L
         auto [ itIso, itMol ] = a;
 #else
-        std::vector< molecule >::const_iterator itMol;  mol::molecule::const_cluster_iterator  itIso;
-        std::tie( itIsot, itMol ) = a;
+        std::vector< mol::molecule >::const_iterator itMol;  mol::molecule::const_cluster_iterator  itIso;
+        std::tie( itIso, itMol ) = a;
 #endif
         auto idMol = std::distance( molecules.begin(), a.second );
         ms->setMass( idx, itIso->mass );

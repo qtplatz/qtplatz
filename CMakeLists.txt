@@ -173,6 +173,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   atomic
   ${boost_libs} # windows
   chrono
+  container
   date_time
   filesystem
   iostreams

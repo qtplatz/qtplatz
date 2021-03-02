@@ -26,6 +26,7 @@
 #include "chemicalformula.hpp"
 #include "tableofelement.hpp"
 #include <adportable/debug.hpp>
+#include <algorithm>
 
 using namespace adcontrols;
 using namespace adcontrols::mol;

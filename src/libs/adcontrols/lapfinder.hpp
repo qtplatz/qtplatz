@@ -24,9 +24,13 @@
 **************************************************************************/
 
 #pragma once
+
+#include "adcontrols_global.h"
 #include <utility>
 
 namespace adcontrols {
+
+    struct ADCONTROLSSHARED_EXPORT lapFinder;
 
     class ScanLaw;
 
