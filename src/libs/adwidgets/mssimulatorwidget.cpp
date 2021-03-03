@@ -240,7 +240,11 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
                     if (auto scanlaw = sp->scanLaw()) {
                         adcontrols::lapFinder finder(*scanlaw, baseIt->mass(), nlaps);
                         for (int row = 0; row < model->rowCount() && row < m.data().size(); ++row) {
+#if __cplusplus > 201703L
                             auto [xlaps, xtof] = finder(m.data().at(row).mass()); // lap, time
+#else
+                            int xlaps; double xtof; std::tie( xlaps, xtof ) = finder(m.data().at(row).mass()); // lap, time
+#endif
                             auto apparent_mass = scanlaw->getMass(xtof, nlaps);
                             model->setData(model->index(row, MolTable::c_nlaps), xlaps);
                             model->setData(model->index(row, MolTable::c_apparent_mass), apparent_mass);
