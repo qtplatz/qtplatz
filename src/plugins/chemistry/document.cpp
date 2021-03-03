@@ -249,6 +249,7 @@ document::dbInit( ChemConnection * connection )
 
     auto query = std::make_shared< ChemQuery >( connection->db() );
 
+#if !defined _DEBUG
     for ( const auto& rec : inidb ) {
         if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( rec.smiles ) ) ) {
             query->insert( *mol, rec.smiles, rec.synonym );
@@ -261,7 +262,7 @@ document::dbInit( ChemConnection * connection )
             query->insert( *mol, it->smiles(), v );
         }
     }
-
+#endif
 }
 
 QSqlDatabase

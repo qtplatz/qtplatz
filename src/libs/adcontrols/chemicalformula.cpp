@@ -319,7 +319,7 @@ namespace adcontrols {
                 std::vector< std::pair<std::basic_string< char_type >, char_type> > list;
 
                 iterator_type it = formula.begin();
-                while (( *it == ' ' || *it == '\t' || *it == ',' || *it == ';') && it != formula.end() ) // remove leading white space
+                while ( it != formula.end() && ( *it == ' ' || *it == '\t' || *it == ',' || *it == ';') ) // remove leading white space
                     ++it;
                 if ( it == formula.end() )
                     return list;

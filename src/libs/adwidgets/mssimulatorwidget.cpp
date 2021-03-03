@@ -223,27 +223,29 @@ void
 MSSimulatorWidget::handleLapChanged( int nlaps )
 {
     QAbstractItemModel * model(0);
+
     if ( auto table = findChild< MolTable * >() ) {
         model = table->model();
     }
 
     if ( auto table = findChild< MolTable * >() ) {
         if ( auto sp = impl_->massSpectrometer_.lock() ) {
-            if ( sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) { // handle lap/apparent-m/z
+            if (sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer) { // handle lap/apparent-m/z
                 adcontrols::moltable m;
-                table->getContents( m );
-                auto baseIt = std::max_element( m.data().begin(), m.data().end(), []( const auto& a, const auto& b ){
-                    return ( a.enable() ? a.mass() : 0 ) < ( b.enable() ? b.mass() : 0 );
-                });
-                // ADDEBUG() << "base mass: " << baseIt->mass();
-                if ( auto scanlaw = sp->scanLaw() ) {
-                    adcontrols::lapFinder finder( *scanlaw, baseIt->mass(), nlaps );
-                    for ( int row = 0; row < model->rowCount() && row < m.data().size(); ++row ) {
-                        auto [xlaps, xtof] = finder( m.data().at( row ).mass() ); // lap, time
-                        auto apparent_mass = scanlaw->getMass( xtof, nlaps );
-                        model->setData( model->index( row, MolTable::c_nlaps ), xlaps );
-                        model->setData( model->index( row, MolTable::c_apparent_mass ), apparent_mass );
-                        model->setData( model->index( row, MolTable::c_time ), xtof * 1e6 );
+                table->getContents(m);
+                auto baseIt = std::max_element(m.data().begin(), m.data().end(), [](const auto& a, const auto& b) {
+                    return (a.enable() ? a.mass() : 0) < (b.enable() ? b.mass() : 0);
+                    });
+                if (baseIt != m.data().end()) {
+                    if (auto scanlaw = sp->scanLaw()) {
+                        adcontrols::lapFinder finder(*scanlaw, baseIt->mass(), nlaps);
+                        for (int row = 0; row < model->rowCount() && row < m.data().size(); ++row) {
+                            auto [xlaps, xtof] = finder(m.data().at(row).mass()); // lap, time
+                            auto apparent_mass = scanlaw->getMass(xtof, nlaps);
+                            model->setData(model->index(row, MolTable::c_nlaps), xlaps);
+                            model->setData(model->index(row, MolTable::c_apparent_mass), apparent_mass);
+                            model->setData(model->index(row, MolTable::c_time), xtof * 1e6);
+                        }
                     }
                 }
             }
@@ -254,7 +256,7 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
 void
 MSSimulatorWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex& )
 {
-    if ((topLeft.column() != MolTable::c_formula) || (topLeft.column() != MolTable::c_adducts)) {
+    if ((topLeft.column() != MolTable::c_mass) ) {
         return;
     }
 
