@@ -325,7 +325,11 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
 
     for ( auto mIt = molecules.begin(); mIt != molecules.end(); ++mIt ) {
         for ( auto it = mIt->cluster_begin(); it != mIt->cluster_end(); ++it ) {
+#if __cplusplus >= 201703L
             auto [ xlap, xtof ] = finder( it->mass );
+#else
+            int xlap; double xtof; std::tie( xlap, xtof ) = finder( it->mass );
+#endif
             double apparent_mass = sp->scanLaw()->getMass( xtof, assigned_lap );
             ipks.emplace_back( it, mIt, xlap, xtof, apparent_mass );
         }
