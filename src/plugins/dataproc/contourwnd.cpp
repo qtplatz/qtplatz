@@ -75,7 +75,7 @@ namespace dataproc {
             boost::numeric::ublas::matrix< double > m_;
             std::pair< double, double > xlimits_, ylimits_;
             size_t dx( double x ) const;
-            size_t dy( double y ) const;
+            size_t dy( double y, size_t size ) const;
             void updateData();
             size_t size1_;
             size_t size2_;
@@ -413,11 +413,11 @@ namespace dataproc {
         }
 
         size_t
-        SpectrogramData::dy( double y ) const
+        SpectrogramData::dy( double y, size_t size ) const
         {
-            size_t d = ((y - ylimits_.first) / ( ylimits_.second - ylimits_.first )) * ( m_.size2() - 1 );
-			if ( d > m_.size2() - 1 )
-				return m_.size2() - 1;
+            size_t d = ((y - ylimits_.first) / ( ylimits_.second - ylimits_.first )) * ( size - 1 );
+            if ( d > size )
+                return size - 1;
             return d;
         }
 
@@ -425,7 +425,7 @@ namespace dataproc {
         SpectrogramData::value( double x, double y ) const
         {
 			size_t ix = dx( x );
-			size_t iy = dy( y );
+			size_t iy = dy( y, m_.size1() );
             return m_( iy, ix );
         }
 
@@ -449,8 +449,11 @@ namespace dataproc {
         {
             m_.clear();
 
+            // fist, last spectral index
             size_t id1 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.first ) );
             size_t id2 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.second ) );
+
+            // total number of spectra to be processed
             size1_ = std::min( m_.size1(), id2 - id1 + 1 );
 
             double z_max = std::numeric_limits<double>::lowest();
@@ -465,11 +468,14 @@ namespace dataproc {
                         for ( size_t i = 0; i < seg.size(); ++i ) {
                             double m = seg.mass( i );
                             if ( ylimits_.first < m && m < ylimits_.second ) {
-                                size_t iy = dy(m);
 #ifdef MASS_MAJOR
-                                m_( ix, iy ) += seg.intensity( i );
+                                size_t iy = dy( m, m_.size2() );
+                                if ( iy < m_.size2() && ix < m_.size1() )
+                                    m_( ix, iy ) += seg.intensity( i );
 #else
-                                m_( iy, ix ) += seg.intensity( i );
+                                size_t iy = dy( m, m_.size1() );
+                                if ( iy < m_.size1() && ix < m_.size2() )
+                                    m_( iy, ix ) += seg.intensity( i );
 #endif
                             }
                         }
