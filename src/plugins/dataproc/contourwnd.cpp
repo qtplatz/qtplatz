@@ -393,7 +393,7 @@ namespace dataproc {
             , xlimits_( spectra_->lower_mass(), spectra_->upper_mass() )
             , ylimits_( spectra_->x_left(), spectra_->x_right() )
 #else
-            , m_( 1024, spectra->size() )
+            , m_( 1024, spectra->size() ) // uBlas is row major := m_(mass, tR)
             , xlimits_( spectra_->x_left(), spectra_->x_right() )
             , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
 #endif

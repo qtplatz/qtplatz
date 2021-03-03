@@ -32,7 +32,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <numeric>
-#include <stack>
+//#include <stack>
 
 using namespace adportable;
 
@@ -67,10 +67,10 @@ namespace adportable {
         template< class T > class stack {
             T vec_[ stack_size ];
             T * bp_;
-            inline const T * end() const  { return &vec_[ stack_size ]; }
+            inline const T * end() const  { return &vec_[ stack_size - 1 ]; }
             inline const T * begin() const { return &vec_[ 0 ]; }
         public:
-            stack() : bp_( &vec_[ stack_size ] ) {   }
+            stack() : bp_( &vec_[ stack_size - 1 ] ) {   }
             inline bool empty() const                     { return bp_ == end(); }
             inline size_t size() const                    { return end() - bp_; }
             inline void push( const T& t )                { if ( bp_ <= begin() ) throw std::out_of_range("overflow"); *(--bp_) = t; }
@@ -78,7 +78,6 @@ namespace adportable {
             inline const T& top() const                   { return *bp_; }
             inline T& top()                               { return *bp_; }
             inline const T& operator [] ( int idx ) const { return bp_[ idx ]; }
-            inline T& operator [] ( int idx )             { return bp_[ idx ]; }
         };
 
         enum event_type { None, Up, Down };
@@ -159,7 +158,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
     // static const int width = 3;
     static const double slope = 0.1;
 
-    slope_state< counter > state( width_ / 2 );
+    slope_state< counter > state(std::max(3u, width_ / 2));
 
     for ( auto it = pCounts + 1; it < pCounts + nbrSamples - 1; ++it ) {
 
@@ -208,7 +207,6 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
                 results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
             }
         }
-
     }
 
     return results_.size();
