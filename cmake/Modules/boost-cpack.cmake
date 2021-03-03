@@ -17,10 +17,12 @@ if ( Boost_FOUND )
   set ( libs
     atomic
     bzip2
+    container
     chrono
     date_time
     filesystem
     iostreams
+    json
     locale
     log
     log_setup
