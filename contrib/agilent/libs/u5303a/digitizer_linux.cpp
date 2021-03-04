@@ -558,6 +558,10 @@ task::handle_initial_setup()
             success = code == VI_SUCCESS;
             AgMD2::log( code, __FILE__,__LINE__ );
             ADDEBUG() << "##### U5303A SIMULATION MODE #####: " << strInitOptions << " code: " << code;
+            if ( !success ) {
+                ADDEBUG() << "############## SIMULATION MODE FAILED ################## " << boost::format("%x") % code;
+                simulated = true;
+            }
         }
     }
 

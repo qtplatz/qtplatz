@@ -194,7 +194,7 @@ WaveformWnd::init()
         legend->setFont( font );
     }
 
-    QBoxLayout * layout = new QVBoxLayout( this );
+    QBoxLayout * layout = new QVBoxLayout();
     layout->setMargin( 0 );
     layout->setSpacing( 2 );
     layout->addWidget( top_splitter );
@@ -378,6 +378,7 @@ WaveformWnd::thresholdTraceChanged()
 void
 WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     QLocale loc;
     if ( uuid == pkd_trace_observer ) {
 
@@ -481,6 +482,9 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 void
 WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
+    ADDEBUG() << "--------------- setMethod ------------- <-- from Chrmatograms";
+    std::lock_guard< std::mutex > lock( mutex_ );
+
     hpw_->setData( nullptr, 1, true ); // clear co-added pkd
 
     for ( size_t i = 0; i < m.size() && i < closeups_.size(); ++i ) {
@@ -513,6 +517,10 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 void
 WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 = window */, double value )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    ADDEBUG() << "--------------- setSpanMarker ------------- <-- from Chrmatograms";
+
     if ( row < closeups_.size() ) {
         auto& closeup = closeups_.at( row );
 
@@ -541,6 +549,7 @@ WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 
 void
 WaveformWnd::handleDrawSettings()
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     pkdSpectrumEnabled_ = document::instance()->pkdSpectrumEnabled();
     longTermHistogramEnabled_ = document::instance()->longTermHistogramEnabled();
 
@@ -559,6 +568,8 @@ WaveformWnd::handleDrawSettings()
 void
 WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 
     std::vector< adplot::SpectrumWidget * > views;
@@ -603,6 +614,8 @@ WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 void
 WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
     if ( which == 0 ) {
         if ( autoScale )
             spw_->setYScale( 0, 0, false );

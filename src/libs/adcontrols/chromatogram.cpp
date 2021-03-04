@@ -62,6 +62,8 @@ using namespace adcontrols::internal;
 
 namespace adcontrols {
 
+    const size_t Chromatogram::npos;
+
     namespace internal {
 
         class ChromatogramImpl {

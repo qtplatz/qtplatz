@@ -27,6 +27,7 @@
 #include <QWidget>
 #include <array>
 #include <memory>
+#include <mutex>
 
 class QwtPlotMarker;
 
@@ -105,6 +106,7 @@ namespace accutof { namespace acquire {
         // values for spectrum view title
         double elapsedTime_;
         uint32_t numberOfTriggersSinceInject_;
+        std::mutex mutex_;
     };
 
 }
