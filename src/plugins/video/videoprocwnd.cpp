@@ -315,6 +315,9 @@ VideoProcWnd::handleSelectedOnTime( const QRectF& rc )
             auto avg = adcv::ApplyColorMap_< cv::Mat >()( *average, 8.0 / n );
             impl_->map_->setData( avg );
         }
+        processor->set_frame_pos( processor->frame_pos_from_time( rc.left() ) );
+        impl_->tplotMarker_->setXValue( rc.left(), rc.left() );
+        impl_->tplot_->replot();
     }
 }
 

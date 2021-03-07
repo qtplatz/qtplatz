@@ -74,6 +74,8 @@ namespace video {
         void set_filename( const std::string& );
         const std::string& filename() const;
         void rewind( bool tail = false );
+        size_t frame_pos_from_time( double ) const;
+        void set_frame_pos( size_t );
         size_t current_frame_pos() const;
         size_t next_frame_pos( bool forward );
         Recorder * create_recorder();

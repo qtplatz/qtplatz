@@ -352,6 +352,28 @@ processor::rewind( bool tail )
 }
 
 size_t
+processor::frame_pos_from_time( double t ) const
+{
+    auto it = std::lower_bound( frames_.begin(), frames_.end(), t
+                                , []( const auto& a, const auto& b ){ return std::get<1>( a ) < b; } );
+    if ( it != frames_.end() )
+        return std::get< 0 > (*it);
+    if ( t > std::get< 1 > ( frames_.back() ) )
+        return frames_.size() - 1;
+    else
+        return 0;
+}
+
+void
+processor::set_frame_pos( size_t pos )
+{
+    if ( pos < frames_.size() )
+        current_frame_pos_ = pos;
+    else
+        current_frame_pos_ = frames_.size() - 1;
+}
+
+size_t
 processor::current_frame_pos() const
 {
     return current_frame_pos_;

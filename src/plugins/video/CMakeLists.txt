@@ -114,7 +114,6 @@ target_link_libraries(
   adutils
   adfs
   adextension
-  adplot
   adwidgets
   adportable
   adprocessor

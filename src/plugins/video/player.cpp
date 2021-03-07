@@ -152,11 +152,12 @@ Player::frameSize() const
 bool
 Player::loadCamera( int index )
 {
+    ADDEBUG() << "loadCamera(" << index << ")";
     recorder_.reset();
     capture_.open( index );
     if ( capture_.isOpened() )    {
+        ADDEBUG() << "loadCamera: " << index << " is open";
         frameRate_ = capture_.get( cv::CAP_PROP_FPS );
-        ADDEBUG() << "loadCamera: " << index;
         for ( size_t i = 0; i < cv_cap_prop_names.size(); ++i ) {
             auto value = capture_.get( i );
             if ( value != -1 ) {
