@@ -198,8 +198,8 @@ if ( Boost_FOUND )
   if ( ${Boost_VERSION} VERSION_GREATER_EQUAL "1.73"
       OR ${Boost_VERSION} GREATER_EQUAL "107300" )
     add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 ) # workaround for boost-1.73
-    add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
   endif()
+  add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()
