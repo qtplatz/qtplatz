@@ -336,11 +336,11 @@ MSSpectraWnd::draw( int which )
 
         QColor color = impl_->plots_[ 0 ]->index_color( 0 );
         if ( auto ms = impl_->profile_.second.profile.lock() ) {
-            impl_->plots_[ 1 ]->setData( ms, 0 );
+            impl_->plots_[ 1 ]->setData( ms, 0, QwtPlot::yLeft );
             impl_->plots_[ 1 ]->setColor( 0, color );
         }
         if ( auto ms = impl_->profile_.second.centroid.lock() ) {
-            impl_->plots_[ 1 ]->setData( ms, 1, true );
+            impl_->plots_[ 1 ]->setData( ms, 1, QwtPlot::yRight );
             impl_->plots_[ 1 ]->setColor( 1, color );
             impl_->plots_[ 1 ]->setAlpha( 1, 0x40 );
         }
@@ -368,11 +368,11 @@ MSSpectraWnd::draw( int which )
                 QColor color = impl_->plots_[ 0 ]->index_color( idx );
 
                 if ( auto profile = data.second.profile.lock() ) {
-                    impl_->plots_[ 0 ]->setData( profile, traceid );
+                    impl_->plots_[ 0 ]->setData( profile, traceid, QwtPlot::yLeft );
                     impl_->plots_[ 0 ]->setColor( traceid, color );
                 }
                 if ( auto centroid = data.second.centroid.lock() ) {
-                    impl_->plots_[ 0 ]->setData( centroid, traceid + 1, true );
+                    impl_->plots_[ 0 ]->setData( centroid, traceid + 1, QwtPlot::yRight );
                     impl_->plots_[ 0 ]->setColor( traceid + 1, color );
                     impl_->plots_[ 0 ]->setAlpha( traceid + 1, 0x40 );
                 }

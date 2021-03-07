@@ -258,7 +258,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             emit onSetData( *result, *centroid );
 
         if ( centroid )
-            pImpl_->processedSpectrum_->setData( centroid, 1 );
+            pImpl_->processedSpectrum_->setData( centroid, 1, QwtPlot::yLeft );
 
         if ( result && centroid ) {
             QVector< QPointF > errors;
@@ -340,8 +340,9 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
     adcontrols::ProcessMethod pm;
     const adcontrols::MSCalibrateMethod * pCalibMethod = 0;
     MainWindow::instance()->getProcessMethod( pm );
-    if ( ! ( pCalibMethod = pm.find< adcontrols::MSCalibrateMethod >() ) )
+    if ( ! ( pCalibMethod = pm.find< adcontrols::MSCalibrateMethod >() ) ) {
         return false;
+    }
 
     // recalc polinomials
 	mass_calibrator calibrator( calibResult.assignedMasses(), prop );
@@ -406,11 +407,14 @@ void
 MSCalibrationWnd::handle_reassign_mass_requested()
 {
     std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
-    if ( ! calibResult )
+    if ( ! calibResult ) {
         return;
+    }
+
 	std::shared_ptr< adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibCentroid_.lock();
-	if ( ! calibSpectrum )
+	if ( ! calibSpectrum ) {
 		return;
+    }
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {

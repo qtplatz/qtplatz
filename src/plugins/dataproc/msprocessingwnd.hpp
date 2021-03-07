@@ -68,9 +68,9 @@ namespace dataproc {
 
         void draw_profile( const std::wstring& id, std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw_histogram( portfolio::Folium&, std::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw( std::shared_ptr< adcontrols::Chromatogram >&, int idx );
-        void draw( std::shared_ptr< adcontrols::PeakResult >& );
+        // void draw2( std::shared_ptr< adcontrols::MassSpectrum > );
+        void draw( std::shared_ptr< adcontrols::Chromatogram >, int idx );
+        void draw( std::shared_ptr< adcontrols::PeakResult > );
 
         std::pair< QRectF, adcontrols::hor_axis > profileRect() const;
         QRectF chromatogrRect() const;
@@ -109,7 +109,6 @@ namespace dataproc {
 
     private:
         size_t drawIdx1_;
-        size_t drawIdx2_;
         MSProcessingWndImpl * pImpl_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;

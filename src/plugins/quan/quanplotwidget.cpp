@@ -131,31 +131,31 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
 
         if ( ! d->centroid ) {
             spw->setTitle( L"" );
-            spw->setData( 0, 0, false );
-            spw->setData( 0, 1, false );
-            spw->setData( 0, 2, false );
+            spw->setData( 0, 0, QwtPlot::yLeft );
+            spw->setData( 0, 1, QwtPlot::yLeft );
+            spw->setData( 0, 2, QwtPlot::yLeft );
         }
 
         if ( d->filterd ) {
-            spw->setData( d->filterd.get(), 1, true );
+            spw->setData( d->filterd.get(), 1, QwtPlot::yRight );
             if ( d->profile ) {
-                spw->setData( d->profile.get(), 2, true );
+                spw->setData( d->profile.get(), 2, QwtPlot::yRight );
             }
         } else if ( d->profiledHist ) {
             if ( d->profiledHist )
-                spw->setData( d->profiledHist.get(), 1, true );
+                spw->setData( d->profiledHist.get(), 1, QwtPlot::yRight );
             if ( d->profile )  // this must be a histogram
-                spw->setData( d->profile.get(), 2, true );
+                spw->setData( d->profile.get(), 2, QwtPlot::yRight );
         } else {
             if ( d->profile )
-                spw->setData( d->profile.get(), 1, true );
+                spw->setData( d->profile.get(), 1, QwtPlot::yRight );
         }
         spw->setAlpha( 1, 0x60 );
         spw->setAlpha( 2, 0x60 );
         if ( d->centroid ) {
             // this must be last to make sure annotation will be drawn
             spw->setTitle( dataSource + L", " + d->centroid.get()->getDescriptions().toString() );
-            spw->setData( d->centroid.get(), 0, false );
+            spw->setData( d->centroid.get(), 0, QwtPlot::yLeft );
         }
 
         if ( d->pkinfo ) {

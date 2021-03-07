@@ -150,7 +150,7 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
 	double hMass = spectrum_->getMass( spectrum_->size() - 1 );
     spectrum_->setAcquisitionMassRange( double( int( lMass / 10 ) * 10 ), double( int( ( hMass + 10 ) / 10 ) * 10 ) );
 	spectrumWidget_->setAutoAnnotation( true );
-    spectrumWidget_->setData( spectrum_, 0 );
+    spectrumWidget_->setData( spectrum_, 0, QwtPlot::yLeft );
 }
 
 void
@@ -287,6 +287,6 @@ ProteinWnd::setData( const adprot::peptides& peptides )
             ++idx;
         }
         spectrumWidget_->setAutoAnnotation( false );
-        spectrumWidget_->setData( spectrum_, 0 );
+        spectrumWidget_->setData( spectrum_, 0, QwtPlot::yLeft );
     }
 }

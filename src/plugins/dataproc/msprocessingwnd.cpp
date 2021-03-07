@@ -136,7 +136,8 @@ namespace dataproc {
                               , is_time_axis_( false )
                               , hasHistogram_( false )
                               , scaleYAuto_( true )
-                              , scaleY_( {0, 0} ) {
+                              , scaleY_( {0, 0} )
+                              , yRightEnabled_( false ) {
         }
 
         void currentChanged( const adcontrols::MSPeakInfoItem& pk ) {
@@ -265,6 +266,7 @@ namespace dataproc {
         bool hasHistogram_;
         bool scaleYAuto_;
         std::pair< double, double > scaleY_;
+        bool yRightEnabled_;
     };
 
 }
@@ -276,7 +278,6 @@ MSProcessingWnd::~MSProcessingWnd()
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
                                                   , drawIdx1_( 0 )
-                                                  , drawIdx2_( 0 )
                                                   , pImpl_( new MSProcessingWndImpl() )
                                                   , axis_(adcontrols::hor_axis_mass)
 {
@@ -406,8 +407,6 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
 
 	pImpl_->profileSpectrum_->setTitle( title );
     pImpl_->processedSpectrum_->clear();
-
-	drawIdx2_ = 0;
 }
 
 void
@@ -435,7 +434,6 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
 		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
 	pImpl_->profileSpectrum_->setTitle( title );
     pImpl_->processedSpectrum_->clear();
-	drawIdx2_ = 0;
 }
 
 void
@@ -455,29 +453,33 @@ MSProcessingWnd::draw1()
     }
 }
 
+#if 0
 void
-MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
+MSProcessingWnd::draw2( adutils::MassSpectrumPtr ptr )
 {
-    int idx = int( drawIdx2_++ );
-    if ( ptr->isCentroid() )
-        pImpl_->processedSpectrum_->setData( ptr, idx, false );
-    else {
-        pImpl_->processedSpectrum_->setData( ptr, idx, true );
-        pImpl_->processedSpectrum_->setAlpha( idx, 0x20 );
-
-        pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
-        pImpl_->profileSpectrum_->enableAxis( QwtPlot::yRight, true );
+    if ( ptr ) {
+        int idx = int( drawIdx2_++ );
+        if ( ptr->isCentroid() )
+            pImpl_->processedSpectrum_->setData( ptr, idx, false );
+        else {
+            pImpl_->processedSpectrum_->setData( ptr, idx, true );
+            pImpl_->processedSpectrum_->setAlpha( idx, 0x20 );
+        }
+    } else {
+        // clear all
+        pImpl_->processedSpectrum_->removeData( -1 );
     }
 }
+#endif
 
 void
-MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr, int idx )
+MSProcessingWnd::draw( adutils::ChromatogramPtr ptr, int idx )
 {
     pImpl_->ticPlot_->setData( ptr, idx );
 }
 
 void
-MSProcessingWnd::draw( adutils::PeakResultPtr& ptr )
+MSProcessingWnd::draw( adutils::PeakResultPtr ptr )
 {
     pImpl_->ticPlot_->setData( *ptr );
 }
@@ -606,7 +608,6 @@ void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     drawIdx1_ = 0;
-    drawIdx2_ = 0;
 
     if ( portfolio::Folder folder = folium.parentFolder() ) {
 
@@ -629,11 +630,19 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     else if ( ptr->isHistogram() )
                         draw_histogram( folium, ptr ); // draw counting histogram
 
-                    if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
-                                return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                    if ( auto f = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
+                        return a.name() == Constants::F_DFT_FILTERD; }) ) {
+                        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( f ) ) {
+                            pImpl_->processedSpectrum_->setData( ptr, 1, QwtPlot::yRight ); // overlay DFT low pass filterd
+                            pImpl_->processedSpectrum_->setAlpha( 1, 0x20 );
+                        }
+                    }
 
+                    if ( auto fcentroid = portfolio::find_first_of( folium.attachments()
+                                                                    , []( const portfolio::Folium& a ){
+                                                                        return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
                         if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
-                            draw2( centroid );
+                            pImpl_->processedSpectrum_->setData( centroid, 0, QwtPlot::yLeft );
                             pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
                         } else {
                             pImpl_->processedSpectrum_->clear();
@@ -665,17 +674,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         }
 
                     } else {
-                        auto null = std::make_shared< adcontrols::MassSpectrum >();
-                        draw2( null ); // clear existing spectrum
                         pImpl_->processedSpectrum_->clear();
-                    }
-
-                    if ( auto f = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
-                                return a.name() == Constants::F_DFT_FILTERD; }) ) {
-                        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( f ) ) {
-                            // overlay DFT low pass filterd
-                            draw2( ptr );
-                        }
                     }
 
                 }

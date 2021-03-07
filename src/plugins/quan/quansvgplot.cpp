@@ -94,13 +94,13 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
         return false;
     if ( ! data.profile )
         return false;
-    
+
     if ( data.pkinfo ) {
-        
+
         if ( auto pkinfo = data.pkinfo.get()->findProtocol( fcn ) ) {
 
             auto pkIt = data.pkinfo.get()->size() >= idx ? data.pkinfo.get()->begin() + idx : pkinfo->end();
-            
+
             if ( pkIt == data.pkinfo.get()->end() )
                 return false;
 
@@ -120,7 +120,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
                     }
                     *tProfile = *(data.profile.get());
                 }
-                
+
                 if ( data.profiledHist ) {
                     tProfiledHist = std::make_shared< adcontrols::MassSpectrum >();
                     data.profiledHist.get()->trim( *tProfiledHist, range );
@@ -159,10 +159,10 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
     adplot::SpectrumWidget plot;
-    plot.setData( tProfile, 0, false );
+    plot.setData( tProfile, 0, QwtPlot::yLeft );
     if ( tProfiledHist )
-        plot.setData( tProfiledHist, 2, false );
-    plot.setData( tCentroid, 1, true );
+        plot.setData( tProfiledHist, 2, QwtPlot::yLeft );
+    plot.setData( tCentroid, 1,QwtPlot::yLeft );
 
     plot.setZoomBase( range, true );
     adplot::PeakMarker marker;
@@ -183,7 +183,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
     painter.begin( &generator );
 
     renderer.render( &plot, &painter, rect );
-    
+
     painter.end();
 
     return true;
@@ -194,7 +194,7 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
 {
     if ( ! data.chromatogram )
         return false;
-    
+
     QSvgGenerator generator;
 
     svg_.clear();
@@ -220,11 +220,11 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
     adplot::PeakMarker marker;
     if ( data.pkResult ) {
         if ( idx < data.pkResult.get()->peaks().size() ) {
-            
+
             // set color etc.
             for ( int id = 0; id < adplot::PeakMarker::numMarkers; ++id )
                 marker.marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
-        
+
             auto item = data.pkResult.get()->peaks().begin() + idx;
             marker.setPeak( *item );
             plot.drawPeakParameter( *item );
@@ -242,7 +242,7 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
     painter.begin( &generator );
 
     renderer.render( &plot, &painter, rect );
-    
+
     painter.end();
 
     return true;
@@ -276,9 +276,8 @@ QuanSvgPlot::plot( const QuanPublisher::resp_data& resp, const QuanPublisher::ca
     painter.begin( &generator );
 
     renderer.render( &dplot, &painter, rect );
-    
+
     painter.end();
 
     return true;
 }
-
