@@ -31,6 +31,7 @@
 #include "zoomer.hpp"
 #include "picker.hpp"
 #include "panner.hpp"
+#include <adportable/debug.hpp>
 #include <qtwrapper/font.hpp>
 #include <qwt_picker_machine.h>
 #include <qwt_scale_widget.h>
@@ -48,24 +49,24 @@ namespace adplot {
     public:
         ~impl() {
         }
-        
-        impl( plot * pThis ) : this_( pThis ) 
+
+        impl( plot * pThis ) : this_( pThis )
                              , linkedzoom_inprocess_( false )
-                             , vectorCompression_( false ) 
+                             , vectorCompression_( false )
                              , zoomer1_( new Zoomer( int(QwtPlot::xBottom), int(QwtPlot::yLeft), pThis->canvas() ) )
                              , picker_( new Picker( pThis->canvas() ) )
                              , panner_( new Panner( pThis->canvas() ) )  {
-            
+
             panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 
         }
-        
+
         void zoomChain( const QRectF& rect, const plot& origin ) {
             QSignalBlocker block( zoomer1_.get() );
             if ( &origin != this_ )
                 zoomer1_->zoom( rect );
         }
-        
+
         void panne( int dx, int dy, const plot& origin ) {
             if ( this_ != &origin )
                 panner_->panne( dx, dy );
@@ -188,7 +189,7 @@ plot::impl::link( plot * p )
         connect( this_->panner(), &QwtPlotPanner::panned, this_, &plot::onPanned );
         plotlink_ = p->impl_->plotlink_;
         plotlink_->push_back( this_ );
-        
+
     } else {
         // merge into this->plotlink_
         for ( auto& other : *p->impl_->plotlink_ ) {
@@ -218,7 +219,6 @@ plot::unlink()
 void
 plot::copyToClipboard( plot * plot )
 {
-    //QRectF rc = plot->zoomRect();
     QImage img( plot->size(), QImage::Format_ARGB32 );
     QPainter painter(&img);
 
@@ -253,7 +253,7 @@ plot::zoomer( int idx ) const
     return 0;
 }
 
-Picker * 
+Picker *
 plot::picker() const
 {
     return impl_->picker_.get();
@@ -266,7 +266,7 @@ plot::panner() const
 }
 
 void
-plot::setAxisScale( int axisId, double min, double max, double stepSize )
+plot::setAxisScale( QwtPlot::Axis axisId, double min, double max, double stepSize )
 {
     QwtPlot::setAxisScale( axisId, min, max, stepSize );
 }

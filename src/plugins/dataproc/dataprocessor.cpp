@@ -797,8 +797,9 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
 
     // todo: process method to be added
 
-    if ( DataprocessorImpl::applyMethod( this, folium, calibMethod, assigned, massSpectrometer() ) )
+    if ( DataprocessorImpl::applyMethod( this, folium, calibMethod, assigned, massSpectrometer() ) ) {
         SessionManager::instance()->updateDataprocessor( this, folium );
+    }
 
 	setModified( true );
 }
@@ -833,7 +834,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 void
 Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibration )
 {
-    ADDEBUG() << "applyCalibration: ";
+    // ADDEBUG() << "applyCalibration: ";
 
     if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
 
@@ -1148,7 +1149,7 @@ DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium
                                 , const adcontrols::TargetingMethod& m )
 {
-    ADDEBUG() << "doSpectraolProcess -- Targeting";
+    // ADDEBUG() << "doSpectraolProcess -- Targeting";
 
     if ( auto fCentroid = portfolio::find_first_of(
              folium.attachments()

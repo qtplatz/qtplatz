@@ -42,7 +42,7 @@ namespace adplot {
 
         void autoYScale( bool );
         bool autoYScale() const;
-        void autoYScaleHock( std::function< void( QRectF& ) > );
+        void autoYScaleHock( std::function< QRectF ( const QRectF& ) > );
         void tracker1( std::function<QwtText( const QPointF& )> );
         void tracker2( std::function<QwtText( const QPointF&, const QPointF& )> );
 
@@ -55,7 +55,7 @@ namespace adplot {
 
         bool autoYScale_;
         QPoint p1_;
-        std::function<void( QRectF& )> autoYScaleHock_;
+        std::function< QRectF ( const QRectF& )> autoYScaleHock_;
         std::function<QwtText( const QPointF& )> tracker1_;
         std::function<QwtText( const QPointF&, const QPointF& )> tracker2_;
 
@@ -64,15 +64,15 @@ namespace adplot {
         void widgetMouseDoubleClickEvent( QMouseEvent * ) override;
         void widgetMouseMoveEvent( QMouseEvent * ) override;
         void widgetLeaveEvent( QEvent * ) override;
-      
+
         // QwtPlotZoomer
         bool accept( QPolygon & ) const override;
         QSizeF minZoomSize() const override;
-      
+
         // QwtPicker
         void drawRubberBand( QPainter * ) const override;
         QwtText trackerTextF( const QPointF &pos ) const override;
-        
+
     private slots:
         void handleZoomed( const QRectF& );
     };

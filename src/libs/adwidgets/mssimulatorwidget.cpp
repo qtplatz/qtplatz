@@ -183,7 +183,7 @@ MSSimulatorWidget::setContents( boost::any&& a, const std::string& dataSource )
         ADDEBUG() << ec.message();
 
     if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( a ) ) {
-        ADDEBUG() << "found mass spectrum from " << dataSource;
+        // ADDEBUG() << "found mass spectrum from " << dataSource;
         if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum> >( a ) ) {
             impl_->massSpectrum_ = ptr;
             if ( auto form = findChild< MSSimulatorForm * >() )

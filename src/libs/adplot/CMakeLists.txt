@@ -16,45 +16,45 @@ include_directories(
   ${Qt5Svg_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
-		     
+
 add_definitions(-DADPLOT_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
 
-set( adplot_SOURCES 
+set( adplot_SOURCES
   annotation.cpp
-  annotation.hpp 
+  annotation.hpp
   annotations.cpp
-  annotations.hpp 
+  annotations.hpp
   axis.cpp
-  axis.hpp 
+  axis.hpp
   baseline.cpp
   baseline.hpp
   chartview.cpp
   chartview.hpp
   chromatogramwidget.cpp
-  chromatogramwidget.hpp 
+  chromatogramwidget.hpp
   plot.cpp
-  plot.hpp 
+  plot.hpp
   peak.cpp
-  peak.hpp 
+  peak.hpp
   plotcurve.cpp
-  plotcurve.hpp 
+  plotcurve.hpp
   seriesdata.cpp
-  seriesdata.hpp 
+  seriesdata.hpp
   spectrumwidget.cpp
-  spectrumwidget.hpp 
+  spectrumwidget.hpp
   tracewidget.cpp
-  tracewidget.hpp 
+  tracewidget.hpp
   trace.cpp
-  trace.hpp 
+  trace.hpp
   traces.cpp
-  traces.hpp 
+  traces.hpp
   zoomer.cpp
-  zoomer.hpp 
+  zoomer.hpp
   picker.cpp
-  picker.hpp 
+  picker.hpp
   panner.cpp
   panner.hpp
   rangemarker.cpp
@@ -62,19 +62,20 @@ set( adplot_SOURCES
   spanmarker.cpp
   spanmarker.hpp
   spectrogramwidget.cpp
-  spectrogramwidget.hpp 
+  spectrogramwidget.hpp
   spectrogramdata.cpp
-  spectrogramdata.hpp 
+  spectrogramdata.hpp
   peakmarker.cpp
-  peakmarker.hpp 
+  peakmarker.hpp
   plot_stderror.cpp
-  plot_stderror.hpp 
+  plot_stderror.hpp
   adplotcurve.cpp
-  adplotcurve.hpp 
+  adplotcurve.hpp
   timingchart.cpp
   timingchart.hpp
   xyseriesdata.cpp
   xyseriesdata.hpp
+  # ${CMAKE_SOURCE_DIR}/../qwt-6.1/src/qwt_plot_axis.cpp
 )
 
 add_library( adplot SHARED ${adplot_SOURCES} )

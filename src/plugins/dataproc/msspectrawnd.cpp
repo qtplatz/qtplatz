@@ -287,15 +287,24 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
         typedef std::pair < QAction *, std::function<void()> > action_type;
         std::vector < action_type > actions;
 
-        actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } ) );
+        actions.emplace_back( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } );
 
-        actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
-                    QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                                 , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
-                                                                 , tr( "SVG (*.svg)" ) );
-                    if ( ! name.isEmpty() )
-                        adplot::plot::copyImageToFile( plot, name, "svg" );
-                }) );
+        actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
+            QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+                                                         , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
+                                                         , tr( "SVG (*.svg)" ) );
+            if ( ! name.isEmpty() )
+                adplot::plot::copyImageToFile( plot, name, "svg" );
+        });
+
+        actions.emplace_back( menu.addAction( tr("setAxisScale(0,100)") ), [=](){
+            plot->setAxisScale( QwtPlot::yRight, 0, 100 );
+            plot->replot();
+        });
+
+        actions.emplace_back( menu.addAction( tr("replot") ), [=](){
+            plot->replot();
+        });
 
         QAction * selected = menu.exec( QCursor::pos() );
         if ( selected ) {
@@ -339,12 +348,17 @@ MSSpectraWnd::draw( int which )
             impl_->plots_[ 1 ]->setData( ms, 0, QwtPlot::yLeft );
             impl_->plots_[ 1 ]->setColor( 0, color );
         }
+
         if ( auto ms = impl_->profile_.second.centroid.lock() ) {
-            //impl_->plots_[ 0 ]->enableAxis( QwtPlot::yRight );
-            //impl_->plots_[ 1 ]->enableAxis( QwtPlot::yRight );
+            impl_->plots_[ 0 ]->enableAxis( QwtPlot::yRight );
+            impl_->plots_[ 1 ]->enableAxis( QwtPlot::yRight );
+
             impl_->plots_[ 1 ]->setData( ms, 1, QwtPlot::yRight );
             impl_->plots_[ 1 ]->setColor( 1, color );
             impl_->plots_[ 1 ]->setAlpha( 1, 0x40 );
+        } else {
+            impl_->plots_[ 0 ]->enableAxis( QwtPlot::yRight, false );
+            impl_->plots_[ 1 ]->enableAxis( QwtPlot::yRight, false );
         }
     }
 

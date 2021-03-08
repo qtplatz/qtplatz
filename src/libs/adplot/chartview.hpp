@@ -43,7 +43,7 @@ namespace adplot {
 
     public:
         ChartView( QWidget * parent = 0 );
-            
+
         ~ChartView();
 
         void setData( QAbstractItemModel *, const QString& title, int x, int y
@@ -68,7 +68,7 @@ namespace adplot {
         //void selected( const QPointF& );
         void selected( const QRectF& );
         void yZoom( const QRectF& );
-        void yScaleHock( QRectF& );
+        QRectF yScaleHock( const QRectF& );
     };
 
 }

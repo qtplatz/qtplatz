@@ -122,7 +122,7 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
     const QColor c( Qt::darkBlue );
     zoomer->setRubberBandPen( c );
     zoomer->setTrackerPen( c );
-    zoomer->autoYScaleHock( [&]( QRectF& rc ){ yScaleHock( rc ); } );
+    zoomer->autoYScaleHock( [&]( const QRectF& rc ){ return yScaleHock( rc ); } );
     zoomer->autoYScale( true );
 
     if ( auto panner = new QwtPlotPanner( canvas() ) ) {
@@ -459,8 +459,8 @@ ChartView::yZoom( const QRectF& rect )
     replot();
 }
 
-void
-ChartView::yScaleHock( QRectF& rc )
+QRectF
+ChartView::yScaleHock( const QRectF& rc )
 {
     std::pair<double, double > left, right;
 
@@ -469,10 +469,13 @@ ChartView::yScaleHock( QRectF& rc )
         if ( ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) )
             setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
     }
+
+    QRectF rect( rc );
     if ( hasAxis.first ) {
-        rc.setBottom( left.first );
-        rc.setTop( left.second );
+        rect.setBottom( left.first );
+        rect.setTop( left.second );
     }
+    return rect;
 }
 
 std::pair<bool, bool>

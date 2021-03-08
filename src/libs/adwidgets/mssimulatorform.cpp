@@ -73,7 +73,7 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
 
     connect( ui->comboBox, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
-        ADDEBUG() << ui->comboBox->currentData().toInt();
+        // ADDEBUG() << ui->comboBox->currentData().toInt();
     });
 
     ui->comboBox_2->addItems( QStringList() << "0.1" << "0.01" << "0.001" << "1.0e-4" << "1.0e-5" << "1.0e-6"  << "1.0e-7"  << "1.0e-8"  << "1.0e-9" );

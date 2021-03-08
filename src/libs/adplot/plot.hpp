@@ -53,7 +53,7 @@ namespace adplot {
 
         void setFooter( const std::wstring& text )  { setFooter( QString::fromStdWString( text ) ); }
         void setFooter( const std::string& text )  { setFooter( QString::fromStdString( text ) ); }
-    
+
         void link( plot * );
         void unlink();
 
@@ -66,28 +66,26 @@ namespace adplot {
         Picker * picker() const;
         Panner * panner() const;
 
-        void setAxisScale( int axisId, double min, double max, double stepSize = 0 );
+        void setAxisScale( QwtPlot::Axis axisId, double min, double max, double stepSize = 0 );
 
         virtual void yZoom( double xmin, double xmax );
 
         static void copyToClipboard( plot * );
         static void copyImageToFile( plot *, const QString& file, const QString& format = "svg", bool compress = false, int dpi = 300 );
-    
+
     private:
         class impl;
         impl * impl_;
 
     protected:
         virtual void zoom( const QRectF& );
-    
+
     signals:
-      
+
     protected slots:
         virtual void onZoomed( const QRectF& );
         virtual void onPanned( int dx, int dy );
-    
+
     };
-  
+
 }
-
-

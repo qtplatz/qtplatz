@@ -260,7 +260,7 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
         zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, std::placeholders::_1 ) );
         zoomer->tracker2( std::bind( &SpectrumWidget::impl::tracker2, impl_, std::placeholders::_1, std::placeholders::_2 ) );
 
-        zoomer->autoYScaleHock( [this]( QRectF& rc ){ yScaleHock( rc ); } );
+        zoomer->autoYScaleHock( [this]( const QRectF& rc ){ return yScaleHock( rc ); } );
 
         connect( zoomer, &QwtPlotZoomer::zoomed, this, &SpectrumWidget::zoomed );
     }
@@ -284,19 +284,14 @@ SpectrumWidget::update_annotation( bool bReplot )
         replot();
 }
 
-void
-SpectrumWidget::yScaleHock( QRectF& rc )
+QRectF
+SpectrumWidget::yScaleHock( const QRectF& rc )
 {
-    std::pair<double, double > left, right;
-
-    auto hasAxis = impl_->scaleY( rc, left, right );
-    if ( hasAxis.second ) {
-        if ( ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) )
-            setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+    QRectF rect(rc);
+    if ( auto range = impl_->scaleY( rc, QwtPlot::yLeft ) ) {
+        rect.setCoords( rc.left(), range->first, rc.right(), range->second );
     }
-
-    if ( hasAxis.first )
-        rc.setCoords( rc.left(), left.first, rc.right(), left.second );
+    return rect;
 }
 
 void
@@ -305,13 +300,13 @@ SpectrumWidget::yZoom( double xmin, double xmax )
     std::pair<double, double > left, right;
     QRectF rc( QPointF( xmin, 0 ), QPointF( xmax, 0 ) );
 
-    auto hasAxis = impl_->scaleY( rc, left, right );
-    if ( hasAxis.second && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
+    auto hasAxes = impl_->scaleY( rc, left, right );
+    if ( hasAxes.second && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
         setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
     }
 
     ADDEBUG() << "******************* yZoom **************************";
-    if ( hasAxis.first && ! adportable::compare<double>::approximatelyEqual( left.first, left.second ) ) {
+    if ( hasAxes.first && ! adportable::compare<double>::approximatelyEqual( left.first, left.second ) ) {
         setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
     }
     replot();
@@ -357,14 +352,14 @@ SpectrumWidget::setVectorCompression( int compression )
 }
 
 boost::optional< std::pair< double, double > >
-SpectrumWidget::impl::scaleY( const QRectF& rc, QwtPlot::Axis axisId ) const
+SpectrumWidget::impl::scaleY( const QRectF& rc, QwtPlot::Axis yAxis ) const
 {
     using spectrumwidget::TraceData;
 
     boost::optional< std::pair< double, double > > range{ boost::none };
 
     for ( const auto& trace: traces_ ) {
-        if ( trace && (trace->yAxis() == axisId ) ) {
+        if ( trace && (trace->yAxis() == yAxis ) ) {
             auto y = trace->y_range( rc.left(), rc.right(), scaleFcn_ );
             range = range ? std::make_pair( std::min( y.first, range->first ), std::max( y.second, range->second ) ) : y;
         }
@@ -443,7 +438,12 @@ SpectrumWidget::setKeepZoomed( bool value )
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
+    if ( auto range = impl_->scaleY( rect, QwtPlot::yRight ) ) {
+        setAxisScale( QwtPlot::yRight, range->first, range->second ); // set yRight
+    }
+
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ), impl_->yAxisForAnnotation_ );
+    replot();
 }
 
 void
@@ -641,14 +641,14 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         QRectF z = zoomer()->zoomRect(); // current
 
         std::pair<double, double> left, right;
-        auto hasAxis = impl_->scaleY( z, left, right );
+        auto hasAxes = impl_->scaleY( z, left, right );
 
-        if ( axis == QwtPlot::yRight && hasAxis.second ) {
+        if ( axis == QwtPlot::yRight && hasAxes.second ) {
 
             setAxisScale( QwtPlot::yRight, right.first, right.second );
 
         } else {
-            if ( hasAxis.first ) {
+            if ( hasAxes.first ) {
                 QStack< QRectF > zstack;
                 zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
                 if ( impl_->hasYScale1_ )

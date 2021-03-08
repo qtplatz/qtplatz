@@ -74,14 +74,12 @@ namespace adplot {
         std::tuple< bool, double, double > yScale( bool ) const;
         void replotYScale();
 
-
-
     private:
         class impl;
         impl * impl_;
         uint32_t viewid_;
         void redraw_all( bool keepX = false );
-        void yScaleHock( QRectF& );
+        QRectF yScaleHock( const QRectF& );
 
 
     signals:

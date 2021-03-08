@@ -99,9 +99,9 @@ Zoomer::widgetLeaveEvent( QEvent * )
 void
 Zoomer::widgetMouseDoubleClickEvent( QMouseEvent * event )
 {
-	if ( mouseMatch( MouseSelect1, event ) )
+	if ( mouseMatch( MouseSelect1, event ) ) {
 		QwtPlotZoomer::zoom( -1 );
-
+    }
     QwtPlotPicker::widgetMouseDoubleClickEvent( event );
 }
 
@@ -197,8 +197,7 @@ void
 Zoomer::zoom( const QRectF& rect )
 {
     if ( autoYScale_ && autoYScaleHock_ ) {
-        QRectF rc( rect );
-        autoYScaleHock_( rc );
+        auto rc = autoYScaleHock_( rect );
         QwtPlotZoomer::zoom( rc );
     } else {
         QwtPlotZoomer::zoom( rect );
@@ -206,7 +205,7 @@ Zoomer::zoom( const QRectF& rect )
 }
 
 void
-Zoomer::autoYScaleHock( std::function< void( QRectF& ) > f )
+Zoomer::autoYScaleHock( std::function< QRectF ( const QRectF& ) > f )
 {
     autoYScaleHock_ = f;
 }
