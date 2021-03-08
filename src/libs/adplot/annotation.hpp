@@ -31,6 +31,7 @@
 // #include <compiler/diagnostic_pop.h>
 // #include <memory>
 #include <QtCore>
+#include <qwt_plot.h>
 
 class QwtPlotMarker;
 class QwtText;
@@ -42,13 +43,22 @@ namespace adplot {
 
     class Annotation {
     public:
-        explicit Annotation( plot&, const std::wstring&
-                             , double x = 0.0, double y = 0.0
-                             , Qt::GlobalColor color = Qt::darkGreen );
-
+        // explicit Annotation( plot&
+        //                      , const std::wstring&
+        //                      , double x = 0.0
+        //                      , double y = 0.0
+        //                      , QwtPlot::Axis = QwtPlot::yLeft
+        //                      , Qt::GlobalColor color = Qt::darkGreen );
         explicit Annotation( plot&
                              , const QwtText&
                              , const QPointF&
+                             , QwtPlot::Axis
+                             , Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
+
+        explicit Annotation( plot&
+                             , QwtText&&
+                             , QPointF&&
+                             , QwtPlot::Axis
                              , Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
 
         ~Annotation();
@@ -62,11 +72,6 @@ namespace adplot {
     private:
         class impl;
         impl * impl_;
-        // plot * plot_;
-        // std::unique_ptr< QwtPlotMarker > marker_;
     };
 
 }
-
-
-

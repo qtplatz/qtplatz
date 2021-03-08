@@ -47,7 +47,7 @@
 
 using namespace quan;
 
-static int count;
+//static int count;
 
 QuanSvgPlot::QuanSvgPlot()
 {

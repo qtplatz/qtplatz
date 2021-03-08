@@ -588,7 +588,7 @@ ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
 		QwtText text( QString::fromStdString( a.text() ), QwtText::RichText );
         text.setColor( Qt::darkGreen );
         text.setFont( Annotation::font() );
-        w.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+        w.insert( a.x(), a.y(), QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
     }
 }
 

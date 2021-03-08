@@ -28,6 +28,7 @@
 #include <vector>
 #include <string>
 #include <qnamespace.h>
+#include <qwt_plot.h>
 class QwtText;
 class QPointF;
 class QRectF;
@@ -45,8 +46,9 @@ namespace adplot {
         Annotations( plot&, vector_type& );
         Annotations( const Annotations& );
 
-        Annotation& add( double x = 0.0, double y = 0.0, const std::wstring& title = L"" );
-        bool insert( double x, double y, const QwtText& label, Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
+        Annotation& add( double x = 0.0, double y = 0.0, const std::wstring& title = L"", QwtPlot::Axis yAxis = QwtPlot::yLeft );
+        bool insert( double x, double y, QwtPlot::Axis, const QwtText& label, Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
+        bool insert( double x, double y, QwtPlot::Axis, QwtText&& label, Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
 
         void clear();
         inline size_t size() const { return vec_.size(); }
@@ -65,5 +67,3 @@ namespace adplot {
     };
 
 }
-
-

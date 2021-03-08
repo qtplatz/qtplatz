@@ -144,7 +144,6 @@ namespace adplot {
                                             , focusedFcn_( t.focusedFcn_ )
                                             , alpha_( t.alpha_ )
                                             , rect_( t.rect_ )
-                                              // , yRight_( t.yRight_ )
                                             , color_( t.color_ )
                                             , yAxis_( t.yAxis_ )
                                             , curves_( t.curves_ )
@@ -163,6 +162,7 @@ namespace adplot {
             void setFocusedFcn( int fcn );
             std::pair<double, double> y_range( double left, double right, int fcn ) const;
             inline bool yRight() const { return yAxis_ == QwtPlot::yRight ; }
+            inline QwtPlot::Axis yAxis() const { return yAxis_; }
             void setAlpha( int alpha );
             void setColor( const QColor& );
             const QRectF& rect() const { return rect_; }
@@ -176,7 +176,6 @@ namespace adplot {
             int focusedFcn_;
             uint8_t alpha_;
             QRectF rect_;
-            // bool yRight_;
             QColor color_;
             QwtPlot::Axis yAxis_;
         public:
@@ -194,6 +193,7 @@ namespace adplot {
     public:
         impl() : autoAnnotation_( true )
                , isTimeAxis_( false )
+               , yAxisForAnnotation_( QwtPlot::yLeft )
                , keepZoomed_( true )
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
@@ -203,8 +203,10 @@ namespace adplot {
             {}
         bool autoAnnotation_;
         bool isTimeAxis_;
-        // std::weak_ptr< const adcontrols::MassSpectrum > centroid_;  // for annotation
-        std::weak_ptr< const adcontrols::MassSpectrum > ms_;  // for annotation
+
+        std::weak_ptr< const adcontrols::MassSpectrum > msForAnnotation_;  // for annotation
+        QwtPlot::Axis yAxisForAnnotation_;
+
         std::vector< Annotation > annotations_;
         std::vector< std::unique_ptr< spectrumwidget::TraceData > > traces_;
 
@@ -217,8 +219,7 @@ namespace adplot {
         bool hasYScale1_;
 
         void clear();
-        void update_annotations( plot&, const std::pair<double, double>& );
-        void set_annotations( const adcontrols::annotations& );
+        void update_annotations( plot&, const std::pair<double, double>&, QwtPlot::Axis );
 		void clear_annotations();
 
         void handleZoomRect( QRectF& );
@@ -278,7 +279,7 @@ void
 SpectrumWidget::update_annotation( bool bReplot )
 {
     QRectF rc = zoomRect();
-    impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ) );
+    impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ), impl_->yAxisForAnnotation_ );
     if ( bReplot )
         replot();
 }
@@ -360,12 +361,10 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, QwtPlot::Axis axisId ) const
 {
     using spectrumwidget::TraceData;
 
-    const bool yRight = axisId == QwtPlot::yRight;
-
     boost::optional< std::pair< double, double > > range{ boost::none };
 
     for ( const auto& trace: traces_ ) {
-        if ( trace && (trace->yRight() == yRight) ) {
+        if ( trace && (trace->yAxis() == axisId ) ) {
             auto y = trace->y_range( rc.left(), rc.right(), scaleFcn_ );
             range = range ? std::make_pair( std::min( y.first, range->first ), std::max( y.second, range->second ) ) : y;
         }
@@ -384,7 +383,7 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
     for ( const auto& trace: traces_ ) {
         if ( trace ) {
             std::pair<double, double> y = trace->y_range( rc.left(), rc.right(), scaleFcn_ );
-            if ( trace->yRight() ) {
+            if ( trace->yAxis() == QwtPlot::yRight ) {
                 hasYRight = true;
                 right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
             } else {
@@ -444,7 +443,7 @@ SpectrumWidget::setKeepZoomed( bool value )
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
-    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ), impl_->yAxisForAnnotation_ );
 }
 
 void
@@ -663,99 +662,16 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     }
 
     if ( ptr && ptr->isCentroid() && !ptr->isHistogram() ) {
-        impl_->ms_ = ptr;
+        impl_->msForAnnotation_ = ptr;
+        impl_->yAxisForAnnotation_ = axis;
         update_annotation( false );
     } else {
-        impl_->ms_ = ptr;
-        update_annotation( false );
-    }
-    replot();
-}
-
-#if 0
-void
-SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, bool yRight )
-{
-    setData( ptr, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
-    using spectrumwidget::TraceData;
-
-    impl_->scaleFcn_ = (-1);
-
-    if ( !ptr || ptr->size() == 0 ) {
-        removeData( idx );
-        return;
-    }
-
-    if ( ptr->isHistogram() ) {
-        setAxisTitle( yRight ? QwtPlot::yRight : QwtPlot::yLeft, QwtText( "Counts" ) );
-    } else {
-        auto label = ptr->isCentroid() ? QwtText( "Intensity" ) : QwtText( "Intensity (mV)" );
-        setAxisTitle( yRight ? QwtPlot::yRight : QwtPlot::yLeft, label );
-    }
-
-    if ( impl_->traces_.size() <= idx )
-        impl_->traces_.resize( idx + 1 );
-
-    if ( ! impl_->traces_[ idx ] )
-        impl_->traces_[ idx ] = std::make_unique< TraceData >( idx );
-
-    auto& trace = impl_->traces_[ idx ];
-
-    do {
-        QRectF rect;
-        trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
-    } while ( 0 );
-
-    QRectF baseRect;
-    impl_->baseScale( yRight, baseRect );
-
-    if ( impl_->hasYScale1_ ) {
-        baseRect.setTop( impl_->yScale1_.first );
-        baseRect.setBottom( impl_->yScale1_.second );
-    }
-
-    auto rectIndex = zoomer()->zoomRectIndex();
-
-    if ( ( yRight == false ) && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
-
-        setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
-        setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
-        zoomer()->setZoomBase();
-
-    } else {
-        QRectF z = zoomer()->zoomRect(); // current
-
-        std::pair<double, double> left, right;
-        auto hasAxis = impl_->scaleY( z, left, right );
-
-        if ( yRight && hasAxis.second ) {
-
-            setAxisScale( QwtPlot::yRight, right.first, right.second );
-
-        } else {
-            if ( hasAxis.first ) {
-                QStack< QRectF > zstack;
-                zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
-                if ( impl_->hasYScale1_ )
-                    zstack.push_back( QRectF( z.x(), impl_->yScale1_.second, z.width(), impl_->yScale1_.first - impl_->yScale1_.second ) );
-                else
-                    zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
-                QSignalBlocker block( zoomer() );
-                zoomer()->setZoomStack( zstack );
-            }
-        }
-    }
-
-    if ( ptr && ptr->isCentroid() && !ptr->isHistogram() ) {
-        impl_->ms_ = ptr;
-        update_annotation( false );
-    } else {
-        impl_->ms_ = ptr;
+        impl_->msForAnnotation_ = ptr;
+        impl_->yAxisForAnnotation_ = axis;
         update_annotation( false );
     }
     replot();
 }
-#endif
 
 void
 SpectrumWidget::setFocusedFcn( int fcn )
@@ -1130,7 +1046,7 @@ SpectrumWidget::impl::clear_annotations()
 }
 
 void
-SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, double>& range )
+SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, double>& range, QwtPlot::Axis axis )
 {
     using adportable::array_wrapper;
     using namespace adcontrols::metric;
@@ -1138,10 +1054,12 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
     // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "update_annotateion:";
     plot.setUpdatesEnabled( false );
 
+    yAxisForAnnotation_ = axis;
+
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
 
-    if ( auto ms = ms_.lock() ) {
+    if ( auto ms = msForAnnotation_.lock() ) {
 
         std::vector< peak > peaks;
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
@@ -1234,7 +1152,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
             QwtText text( QString::fromStdString(a.text()), QwtText::RichText);
             text.setColor( Qt::darkGreen );
             text.setFont( Annotation::font() );
-            bool added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+            bool added = annots.insert( a.x(), a.y(), yAxisForAnnotation_, text, Qt::AlignTop | Qt::AlignHCenter );
             (void)added;
         }
 
@@ -1249,7 +1167,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
             QwtText text( QString::fromStdString(a.text()), QwtText::RichText );
             text.setColor( color );
             text.setFont( font );
-			auto added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+			auto added = annots.insert( a.x(), a.y(), yAxisForAnnotation_, text, Qt::AlignTop | Qt::AlignHCenter );
             (void)added;
         }
     }
@@ -1259,7 +1177,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
 void
 SpectrumWidget::impl::clear()
 {
-    ms_.reset();
+    msForAnnotation_.reset();
     annotations_.clear();
     if ( ! traces_.empty() )
         traces_.clear();

@@ -105,7 +105,7 @@ QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std:
 void
 QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const std::wstring& dataSource )
 {
-    const adcontrols::MSChromatogramMethod * mchro = 0;
+    //const adcontrols::MSChromatogramMethod * mchro = 0;
     if ( auto p = d->parent ? d->parent.get() : nullptr ) {
         if ( p->procmethod && p->chromatogram ) {
             auto& ptree = p->chromatogram.get()->ptree();

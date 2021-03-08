@@ -397,7 +397,6 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     }
 
     pImpl_->profileSpectrum_->setData( profile, static_cast<int>(drawIdx1_++) );
-    // pImpl_->profileSpectrum_->setAlpha( drawIdx1_ - 1, 0x60 );
     pImpl_->profileSpectrum_->setData( hist, static_cast<int>(drawIdx1_++) );
     pImpl_->profileSpectrum_->setAxisTitle( QwtPlot::yLeft, QwtText( "Counts" ) );
 
@@ -452,25 +451,6 @@ MSProcessingWnd::draw1()
         pImpl_->processedSpectrum_->clear();
     }
 }
-
-#if 0
-void
-MSProcessingWnd::draw2( adutils::MassSpectrumPtr ptr )
-{
-    if ( ptr ) {
-        int idx = int( drawIdx2_++ );
-        if ( ptr->isCentroid() )
-            pImpl_->processedSpectrum_->setData( ptr, idx, false );
-        else {
-            pImpl_->processedSpectrum_->setData( ptr, idx, true );
-            pImpl_->processedSpectrum_->setAlpha( idx, 0x20 );
-        }
-    } else {
-        // clear all
-        pImpl_->processedSpectrum_->removeData( -1 );
-    }
-}
-#endif
 
 void
 MSProcessingWnd::draw( adutils::ChromatogramPtr ptr, int idx )

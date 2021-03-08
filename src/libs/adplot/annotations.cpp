@@ -47,12 +47,12 @@ Annotations::clear()
 }
 
 Annotation&
-Annotations::add( double x, double y, const std::wstring& text )
+Annotations::add( double x, double y, const std::wstring& text, QwtPlot::Axis yAxis )
 {
     QwtText label( QString::fromStdWString( text ), QwtText::RichText );
     label.setFont( Annotation::font() );
     label.setColor( Qt::darkGreen );
-    vec_.push_back( Annotation( plot_, label, QPointF( x, y ) ) );
+    vec_.emplace_back( plot_, label, QPointF( x, y ), yAxis );
     return vec_.back();
 }
 
@@ -75,12 +75,23 @@ Annotations::interference( double x, double y, const QwtText& label, Qt::Alignme
 }
 
 bool
-Annotations::insert( double x, double y, const QwtText& label, Qt::Alignment align )
+Annotations::insert( double x, double y, QwtPlot::Axis yAxis, QwtText&& label, Qt::Alignment align )
 {
 	if ( interference( x, y, label, align ) )
 		return false;
 
-    vec_.push_back( Annotation( plot_, label, QPointF( x, y ), align ) );
+    vec_.emplace_back( plot_, std::move( label ), QPointF( x, y ), yAxis, align );
+
+	return true;
+}
+
+bool
+Annotations::insert( double x, double y, QwtPlot::Axis yAxis, const QwtText& label, Qt::Alignment align )
+{
+	if ( interference( x, y, label, align ) )
+		return false;
+
+    vec_.emplace_back( plot_, label, QPointF( x, y ), yAxis, align );
 
 	return true;
 }
@@ -89,7 +100,7 @@ void
 Annotations::adjust( QRectF& rc, Qt::Alignment align ) const
 {
     int xoffs(0), yoffs(0);
-    
+
     if ( align & Qt::AlignLeft ) {
         xoffs = 0;
     } else if ( align & Qt::AlignHCenter ) {
@@ -119,7 +130,7 @@ QRectF
 Annotations::boundingRect( double x, double y, const QwtText& label, Qt::Alignment align ) const
 {
 	QSizeF sz = label.textSize();
-    
+
 	const QwtScaleMap xMap = plot_.canvasMap( QwtPlot::xBottom );
 	const QwtScaleMap yMap = plot_.canvasMap( QwtPlot::yLeft );
 #if 0
@@ -127,7 +138,7 @@ Annotations::boundingRect( double x, double y, const QwtText& label, Qt::Alignme
 	double p2 = xMap.p2(); // device right
 	double s1 = xMap.s1(); // axis left
 	double s2 = xMap.s2(); // axis right
-#endif	
+#endif
 	QPointF pt( QwtScaleMap::transform( xMap, yMap, QPointF( x, y ) ) );
 	QRectF rc( QwtScaleMap::transform( xMap, yMap, QRectF( pt, sz ) ) );
 
@@ -135,4 +146,3 @@ Annotations::boundingRect( double x, double y, const QwtText& label, Qt::Alignme
 
     return rc;
 }
-

@@ -140,7 +140,7 @@ MSSpectraWnd::init()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
                      , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
 
-            plot->enableAxis( QwtPlot::yRight );
+            // plot->enableAxis( QwtPlot::yRight );
             plot->setMinimumHeight( 80 );
             marker->attach( plot.get() );
             marker->visible( true );
@@ -340,6 +340,8 @@ MSSpectraWnd::draw( int which )
             impl_->plots_[ 1 ]->setColor( 0, color );
         }
         if ( auto ms = impl_->profile_.second.centroid.lock() ) {
+            //impl_->plots_[ 0 ]->enableAxis( QwtPlot::yRight );
+            //impl_->plots_[ 1 ]->enableAxis( QwtPlot::yRight );
             impl_->plots_[ 1 ]->setData( ms, 1, QwtPlot::yRight );
             impl_->plots_[ 1 ]->setColor( 1, color );
             impl_->plots_[ 1 ]->setAlpha( 1, 0x40 );
