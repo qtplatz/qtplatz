@@ -113,6 +113,10 @@ MolTableHelper::monoIsotopicMass( const QString& formula, const QString& adducts
 adportable::optional< std::pair< double, double > >
 MolTableHelper::logP( const QString& smiles )
 {
+#if HAVE_RDKIT
     auto mol = adchem::mol( smiles.toStdString() );
     return mol.logP();
+#else
+    return {};
+#endif
 }
