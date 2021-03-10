@@ -46,6 +46,7 @@
 #include <QSplitter>
 #include <QAbstractItemModel>
 #include <QStandardItemModel>
+#include <QItemSelectionModel>
 
 namespace {
 
@@ -126,6 +127,11 @@ MoleculesWidget::OnInitialUpdate()
         // connect( table, &adwidgets::MolTable::onContextMenu, this, &MoleculesWidget::handleContextMenu );
         if ( auto model = table->model() )
             connect( model, &QAbstractItemModel::dataChanged, this, &MoleculesWidget::handleDataChanged ); //
+
+        connect( table->selectionModel(), &QItemSelectionModel::currentChanged, this
+                 , []( const QModelIndex& curr, const QModelIndex &prev ){
+                     ADDEBUG() << "currentChanged " << std::make_pair( curr.row(), curr.column() );
+                 });
     }
 }
 
@@ -187,14 +193,12 @@ MoleculesWidget::setContents( boost::any&& a )
                         }
                     }
                 }
-                ADDEBUG() << " ----------> setContents ----------->";
                 table->setContents( mols );
+                return true;
             } else {
                 ADDEBUG() << "error: json.parse() : " << ec.message();
             }
         }
-    } else {
-        ADDEBUG() << "no model found";
     }
     return false;
 }
@@ -214,8 +218,6 @@ MoleculesWidget::setContents( boost::any&& a, const std::string& dataSource )
 void
 MoleculesWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles )
 {
-    ADDEBUG() << "-- handleDataChanged: " << std::make_pair( topLeft.row(), topLeft.column() );
-
     if ( ( std::find( roles.begin(), roles.end(), Qt::CheckStateRole ) != roles.end() ) ||
          ( topLeft.column() != adwidgets::MolTable::c_mass ) ) {
 
