@@ -591,9 +591,7 @@ document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, con
 {
     // make empty que
     while( auto sample = adacquire::task::instance()->deque() ) {
-        ADDEBUG() << "##### self use count: " << sample.use_count();
         sample->close( true ); // async (detach)
-        ADDEBUG() << "##### self use count: " << sample.use_count();
     }
 
     // push new sample
@@ -611,6 +609,8 @@ void
 document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
+
+    save_defaults();
 
     auto cm = MainWindow::instance()->getControlMethod();
 
@@ -746,8 +746,8 @@ document::initialSetup()
 
     if ( ! impl_->massSpectrometer_  ) {
 
-        if ( ( impl_->massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
-            ADDEBUG() << "==================== accutof massspectrometer has been installed.";
+        if ( ( impl_->massSpectrometer_
+               = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
             // todo: load mass calibration from settings
         } else {
             QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin", QString( tr( "No AccuTOF Spectrometer installed." ) ) );
@@ -809,63 +809,11 @@ document::finalClose()
 
     task::instance()->finalize();
 
-    save_defalts();
-
-    // boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-    // if ( !boost::filesystem::exists( dir ) ) {
-    //     if ( !boost::filesystem::create_directories( dir ) ) {
-    //         QMessageBox::information( 0, "accutof::document"
-    //                                   , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
-    //         return;
-    //     }
-    // }
-
-    // auto cm = MainWindow::instance()->getControlMethod();
-    // if ( cm ) {
-    //     boost::filesystem::path fname( dir / Constants::LAST_METHOD );
-    //     save( QString::fromStdWString( fname.wstring() ), *cm );
-    // }
-
-    // if ( auto run = sampleRun() ) {
-    //     boost::filesystem::path fname( dir / "samplerun.xml" );
-    //     std::wofstream outf( fname.string() );
-    //     adcontrols::SampleRun::xml_archive( outf, *run );
-    // }
-
-    // // for debugging convension
-    // for ( auto& mi : *cm ) {
-    //     if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
-    //         xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
-    //     } else if ( mi.clsid() == adcontrols::TimeDigitalMethod::clsid() ) {
-    //         xmlWriter< adcontrols::TimeDigitalMethod >()( mi, dir );
-    //     } else if ( mi.clsid() == adcontrols::threshold_method::clsid() ) {
-    //         xmlWriter< adcontrols::threshold_method >()( mi, dir );
-    //     } else if ( mi.clsid() == adcontrols::threshold_action::clsid() ) {
-    //         xmlWriter< adcontrols::threshold_action >()( mi, dir );
-    //     }
-    // }
-
-    // if ( auto settings = impl_->settings_ ) {
-    //     settings->beginGroup( Constants::THIS_GROUP );
-
-    //     settings->beginWriteArray( "ControlModule" );
-
-    //     int i = 0;
-    //     for ( auto& state : impl_->moduleStates_ ) {
-    //         settings->setArrayIndex( i++ );
-    //         settings->setValue( "module_name", state.first );
-    //         settings->setValue( "enable", state.second );
-    //     }
-
-    //     settings->endArray();
-    //     settings->endGroup();
-
-    //     settings->sync();
-    // }
+    save_defaults();
 }
 
 void
-document::save_defalts()
+document::save_defaults()
 {
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
@@ -876,8 +824,7 @@ document::save_defalts()
         }
     }
 
-    auto cm = MainWindow::instance()->getControlMethod();
-    if ( cm ) {
+    if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
         save( QString::fromStdWString( fname.wstring() ), *cm );
     }
@@ -889,6 +836,7 @@ document::save_defalts()
     }
 
     // for debugging convension
+#if 0
     for ( auto& mi : *cm ) {
         if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
             xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
@@ -900,24 +848,7 @@ document::save_defalts()
             xmlWriter< adcontrols::threshold_action >()( mi, dir );
         }
     }
-
-    if ( auto settings = impl_->settings_ ) {
-        settings->beginGroup( Constants::THIS_GROUP );
-
-        settings->beginWriteArray( "ControlModule" );
-
-        int i = 0;
-        for ( auto& state : impl_->moduleStates_ ) {
-            settings->setArrayIndex( i++ );
-            settings->setValue( "module_name", state.first );
-            settings->setValue( "enable", state.second );
-        }
-
-        settings->endArray();
-        settings->endGroup();
-
-        settings->sync();
-    }
+#endif
 }
 
 void

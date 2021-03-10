@@ -87,7 +87,7 @@ namespace accutof {
             void start_run();
             void stop();
 
-            void save_defalts();
+            void save_defaults();
 
             static bool appendOnFile( const boost::filesystem::path& path
                                       , const QString& title, const adcontrols::MassSpectrum&, QString& id );

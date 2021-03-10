@@ -163,19 +163,19 @@ WaveformWnd::init()
     hpw_->setMinimumHeight( 80 );
     spw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 72 );
     hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 72 );
-    spw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 72 );
-    hpw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 72 );
+    //spw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 72 );
+    //hpw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 72 );
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-    spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    spw_->enableAxis( QwtPlot::yRight, true );
+    //spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+    //spw_->enableAxis( QwtPlot::yRight, true );
 
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
     hpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
-    hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
-    hpw_->enableAxis( QwtPlot::yRight, true );
+    //hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
+    //hpw_->enableAxis( QwtPlot::yRight, true );
 
     hpw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     hpw_->setKeepZoomed( false );
@@ -494,16 +494,21 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
         closeup.enable = tofm->enable();
         closeup.formula = QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( tofm->formula() ) );
 
-        double width = tofm->timeWindow() * std::micro::den;
-        double time  = tofm->time() * std::micro::den;
-        double vwidth = width * widthFactor;
+        double width( 1 ), cx(0);
 
-        closeup.marker->setXValue( time - ( width / 2 ), time + width / 2 );
+        if ( closeup.sp->axis() == adplot::SpectrumWidget::HorizontalAxisTime ) {
+            cx = tofm->time() * std::micro::den;
+            width = ( tofm->timeWindow() * std::micro::den );
+        } else {
+            cx = tofm->mass();
+            width = tofm->massWindow();
+        }
+
+        closeup.marker->setXValue( cx - ( width / 2 ), cx + width / 2 );
 
         auto zoom = closeup.sp->zoomer()->zoomBase();
-        zoom.setLeft( time - vwidth / 2 );
-        zoom.setWidth( vwidth );
-
+        zoom.setLeft( cx - ( width * widthFactor ) / 2 );
+        zoom.setWidth( width * widthFactor );
         if ( closeup.enable ) {
             closeup.sp->show();
             closeup.sp->setZoomStack( zoom );
@@ -569,6 +574,8 @@ void
 WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
     std::lock_guard< std::mutex > lock( mutex_ );
+
+    ADDEBUG() << "setAxis(" << idView << ", " << axis << ")";
 
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 

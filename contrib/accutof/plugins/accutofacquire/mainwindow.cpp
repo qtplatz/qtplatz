@@ -164,7 +164,6 @@ MainWindow::createDockWidgets()
                 acqrscontrols::u5303a::method u;
                 if ( widget->get( u ) ) {
                     document::instance()->set_method( u );
-                    ADDEBUG() << "u5303a data changed";
                     if ( auto sform = findChild< adwidgets::findSlopeForm * >() ) {
                         // disable counting if pkd enabled && number of averages >= 2
                         bool disable = u._device_method().pkd_enabled ||

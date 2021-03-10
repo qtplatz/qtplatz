@@ -205,7 +205,6 @@ namespace adwidgets {
                 dir = QFileDialog::getExistingDirectory( this, "Data save in:", dir );
                 model_->setData( menuIndex, dir );
             }
-            // menuIndex_ = QModelIndex();
         }
 
         void setDefault() {
@@ -214,9 +213,7 @@ namespace adwidgets {
             boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
             path /= "data";
             path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-            model_->setData( model_->index( 2, 1 ), QString::fromStdWString( path.wstring() ) );
-
-            ADDEBUG() << "setDefault(" << path.string() << ")";
+            model_->setData( model_->index( r_directory, c_item_value ), QString::fromStdWString( path.wstring() ) );
         }
 
     };
@@ -300,8 +297,6 @@ SampleRunWidget::getContents( boost::any& a ) const
 bool
 SampleRunWidget::setContents( boost::any&& a )
 {
-    const char * t = a.type().name();
-
     if ( adportable::a_type< adcontrols::SampleRun >::is_const_pointer( a ) ) {
 
         auto p = boost::any_cast< const adcontrols::SampleRun * >( a );
