@@ -809,6 +809,64 @@ document::finalClose()
 
     task::instance()->finalize();
 
+    save_defalts();
+
+    // boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    // if ( !boost::filesystem::exists( dir ) ) {
+    //     if ( !boost::filesystem::create_directories( dir ) ) {
+    //         QMessageBox::information( 0, "accutof::document"
+    //                                   , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
+    //         return;
+    //     }
+    // }
+
+    // auto cm = MainWindow::instance()->getControlMethod();
+    // if ( cm ) {
+    //     boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+    //     save( QString::fromStdWString( fname.wstring() ), *cm );
+    // }
+
+    // if ( auto run = sampleRun() ) {
+    //     boost::filesystem::path fname( dir / "samplerun.xml" );
+    //     std::wofstream outf( fname.string() );
+    //     adcontrols::SampleRun::xml_archive( outf, *run );
+    // }
+
+    // // for debugging convension
+    // for ( auto& mi : *cm ) {
+    //     if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
+    //         xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
+    //     } else if ( mi.clsid() == adcontrols::TimeDigitalMethod::clsid() ) {
+    //         xmlWriter< adcontrols::TimeDigitalMethod >()( mi, dir );
+    //     } else if ( mi.clsid() == adcontrols::threshold_method::clsid() ) {
+    //         xmlWriter< adcontrols::threshold_method >()( mi, dir );
+    //     } else if ( mi.clsid() == adcontrols::threshold_action::clsid() ) {
+    //         xmlWriter< adcontrols::threshold_action >()( mi, dir );
+    //     }
+    // }
+
+    // if ( auto settings = impl_->settings_ ) {
+    //     settings->beginGroup( Constants::THIS_GROUP );
+
+    //     settings->beginWriteArray( "ControlModule" );
+
+    //     int i = 0;
+    //     for ( auto& state : impl_->moduleStates_ ) {
+    //         settings->setArrayIndex( i++ );
+    //         settings->setValue( "module_name", state.first );
+    //         settings->setValue( "enable", state.second );
+    //     }
+
+    //     settings->endArray();
+    //     settings->endGroup();
+
+    //     settings->sync();
+    // }
+}
+
+void
+document::save_defalts()
+{
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {

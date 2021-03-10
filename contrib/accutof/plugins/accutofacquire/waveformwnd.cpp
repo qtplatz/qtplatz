@@ -194,7 +194,7 @@ WaveformWnd::init()
         legend->setFont( font );
     }
 
-    QBoxLayout * layout = new QVBoxLayout();
+    QBoxLayout * layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
     layout->setSpacing( 2 );
     layout->addWidget( top_splitter );
@@ -482,7 +482,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 void
 WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-    ADDEBUG() << "--------------- setMethod ------------- <-- from Chrmatograms";
+    // ADDEBUG() << "--------------- setMethod ------------- <-- from Chrmatograms";
     std::lock_guard< std::mutex > lock( mutex_ );
 
     hpw_->setData( nullptr, 1, true ); // clear co-added pkd
@@ -519,7 +519,7 @@ WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    ADDEBUG() << "--------------- setSpanMarker ------------- <-- from Chrmatograms";
+    // ADDEBUG() << "--------------- setSpanMarker ------------- <-- from Chrmatograms";
 
     if ( row < closeups_.size() ) {
         auto& closeup = closeups_.at( row );
@@ -624,7 +624,7 @@ WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom 
     } else {
         for ( auto& closeup: closeups_ ) {
             if ( closeup.enable ) {
-                ADDEBUG() << "handleScaleY which=" << which << ", autoScale=" << autoScale << ", top:bottom=" << top << ", " << bottom;
+                // ADDEBUG() << "handleScaleY which=" << which << ", autoScale=" << autoScale << ", top:bottom=" << top << ", " << bottom;
                 if ( autoScale )
                     closeup.sp->setYScale(0, 0, false );
                 else
