@@ -60,13 +60,18 @@ namespace accutof {
         //
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
+        std::string readJson() const;
+
+    signals:
+        void valueChanged( const QString& json );
+
     private:
         // void handleContextMenu( QMenu&, const QPoint& );
 
     public slots:
 
     private slots:
-        void handleDataChanged( const QModelIndex&, const QModelIndex& );
+        void handleDataChanged( const QModelIndex&, const QModelIndex&, const QVector<int>& );
 
     private:
         class impl;

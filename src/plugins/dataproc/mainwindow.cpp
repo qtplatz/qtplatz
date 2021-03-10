@@ -912,12 +912,6 @@ MainWindow::handleProcess( const QString& origin )
                 stack_->setCurrentIndex( idSelElementalComp );
             }
         }
-        //     if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
-
-        //         wnd->simulate( *m );
-        //         stack_->setCurrentIndex( idSelElementalComp );
-        //     }
-        // }
     } else if ( origin == "MSCalibrateWidget" ) {
         // peak identification, and then compute calibration equation
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )

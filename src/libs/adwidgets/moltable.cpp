@@ -208,6 +208,7 @@ namespace adwidgets {
                        , const QString& description = QString()
                        , double mass = 0.0, double abundance = 1.0, bool enable = true, bool msref = false ) {
 
+            QSignalBlocker block( table.model() );
             auto model = qobject_cast< QStandardItemModel * >( table.model() );
 
             model->setData( model->index( row, c_svg ), svg );

@@ -181,6 +181,14 @@ MainWindow::createDockWidgets()
         createDockWidget( widget, tr( "Sample Run" ), "SampleRunWidget" );
     }
 
+    if ( auto widget = qtwrapper::make_widget< MoleculesWidget >( "Molecules" ) ) {
+        createDockWidget( widget, "Molecules", "MolList" );
+
+        connect( widget, &MoleculesWidget::valueChanged, this, []( auto& json ){
+            document::instance()->settings()->setValue( "molecules", QByteArray( json.toUtf8() ) );
+        });
+    }
+
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
 
         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
@@ -200,14 +208,6 @@ MainWindow::createDockWidgets()
                     document::instance()->setMethod( m );
                 } );
         }
-    }
-    if ( auto widget = qtwrapper::make_widget< MoleculesWidget >( "Molecules" ) ) {
-        createDockWidget( widget, "Molecules", "MolList" );
-        // connect( widget, &admtwidgets::MolTableWidget::valueChanged
-        //          , [](auto& json){
-        //              document::instance()->setTofCalculator( QJsonDocument::fromJson( json ) );
-        //              document::instance()->settings()->setValue( "TofCalculator", json ); // QByteArray
-        //          });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
@@ -348,8 +348,11 @@ MainWindow::OnInitialUpdate()
                     wnd->setAxis( i, axis );
             }
         }
-    }
 
+        if ( auto mw = findChild< MoleculesWidget * >() ) {
+            mw->setContents( settings->value( "molecules" ).toByteArray().toStdString() );
+        }
+    }
 
 #if ! defined Q_OS_MAC
     for ( auto dock: dockWidgets() )
