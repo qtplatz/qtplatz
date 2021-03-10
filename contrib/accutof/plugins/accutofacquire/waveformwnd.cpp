@@ -575,7 +575,7 @@ WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    ADDEBUG() << "setAxis(" << idView << ", " << axis << ")";
+    // ADDEBUG() << "setAxis(" << idView << ", " << axis << ")";
 
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 

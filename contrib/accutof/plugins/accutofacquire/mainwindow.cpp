@@ -27,10 +27,12 @@
 #include "document.hpp"
 #include "isequenceimpl.hpp"
 #include "iu5303afacade.hpp"
+#include "moleculeswidget.hpp"
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrswidgets/thresholdwidget.hpp>
 #include <acqrswidgets/u5303awidget.hpp>
+#include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
@@ -41,22 +43,21 @@
 #include <adextension/ireceiver.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
-#include <adacquire/constants.hpp>
 #include <adlog/logger.hpp>
+#include <adplugin/lifecycle.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
-#include <adplugin/lifecycle.hpp>
-#include <adwidgets/dgwidget.hpp>
 #include <adwidgets/cherrypicker.hpp>
 #include <adwidgets/countingwidget.hpp>
+#include <adwidgets/dgwidget.hpp>
 #include <adwidgets/findslopeform.hpp>
 #include <adwidgets/moltableview.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
-#include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/make_widget.hpp>
+#include <qtwrapper/trackingenabled.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -199,6 +200,14 @@ MainWindow::createDockWidgets()
                     document::instance()->setMethod( m );
                 } );
         }
+    }
+    if ( auto widget = qtwrapper::make_widget< MoleculesWidget >( "Molecules" ) ) {
+        createDockWidget( widget, "Molecules", "MolList" );
+        // connect( widget, &admtwidgets::MolTableWidget::valueChanged
+        //          , [](auto& json){
+        //              document::instance()->setTofCalculator( QJsonDocument::fromJson( json ) );
+        //              document::instance()->settings()->setValue( "TofCalculator", json ); // QByteArray
+        //          });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {

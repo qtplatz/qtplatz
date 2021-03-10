@@ -75,6 +75,8 @@ add_library(
   waveformwnd.hpp
   isequenceimpl.cpp
   isequenceimpl.hpp
+  moleculeswidget.cpp
+  moleculeswidget.hpp
   ${Resources}
   )
 

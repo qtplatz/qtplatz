@@ -29,6 +29,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adportable/is_type.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -80,8 +81,8 @@ u5303AWidget::onInitialUpdate()
                         emit dataChanged(); // give a chance to update UI-Complex (such as InfiTOF/U5303A combination)
                     }
                 } );
-            
-            
+
+
             table->onInitialUpdate();
             table->setContents( acqrscontrols::u5303a::device_method() );
 
@@ -125,7 +126,7 @@ u5303AWidget::getContents( boost::any& a ) const
         auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::clsid() );
 
         if ( it != ptr->end() )
-            it->get( *it, m ); // save threshold method 
+            it->get( *it, m ); // save threshold method
 
         get( m ); // override
 
@@ -145,12 +146,14 @@ u5303AWidget::setContents( boost::any&& a )
         acqrscontrols::u5303a::method m;
 		try {
 
-            if ( pi->get<>( *pi, m ) ) 
+            if ( pi->get<>( *pi, m ) )
                 return set( m );
 
 		} catch (boost::exception& ex) {
+            ADDEBUG() << boost::diagnostic_information(ex);
 			QMessageBox::warning(this, "U5303A Method", QString::fromStdString(boost::diagnostic_information(ex)));
 		} catch ( ... ) {
+            ADDEBUG() << boost::current_exception_diagnostic_information();
 			QMessageBox::warning(this, "U5303A Method", QString::fromStdString(boost::current_exception_diagnostic_information()));
 		}
     }

@@ -582,18 +582,19 @@ MolTableView::handleCopyToClipboard()
     if ( indices.size() < 1 )
         return;
 
+    int column_mass = impl_->findColumn( ColumnState::f_mass );
+
     QString selected_text;
     QModelIndex prev = indices.first();
     QModelIndex last = indices.last();
 
-    // QJsonArray ja;
-    // QJsonObject jobj;
     boost::json::array ja;
     boost::json::object jobj;
 
-    for( int i = 0; i < indices.size(); ++i ) {
+    for( int i = 1; i < indices.size(); ++i ) {
 
         QModelIndex index = indices.at( i );
+
         if ( !isRowHidden( prev.row() ) ) {
 
             if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != ColumnState::f_svg ) ) {
@@ -603,6 +604,7 @@ MolTableView::handleCopyToClipboard()
                 if ( index.row() == prev.row() )
                     selected_text.append( '\t' );
             }
+
             switch( impl_->field( prev.column() ) ) {
             case ColumnState::f_formula:     jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString();   break;
             case ColumnState::f_adducts:     jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString();   break;
@@ -616,28 +618,42 @@ MolTableView::handleCopyToClipboard()
                 break;
             default: break;
             }
+
+            // eol found
             if ( index.row() != prev.row() ) {
                 selected_text.append( '\n' );
-                if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
+
+                if ( !jobj.empty() && model()->index( prev.row(), column_mass ).data( Qt::EditRole ).toDouble() > 0.1 )
                     ja.push_back( jobj );
+
                 jobj.clear();
             }
         }
         prev = index;
     }
-    if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
-        ja.push_back( jobj );
 
-    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
+    if ( !jobj.empty() && model()->index( last.row(), column_mass ).data( Qt::EditRole ).toDouble() > 0.1 ) {
+        ja.push_back( jobj );
+    }
+
+    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) ) {
         selected_text.append( last.data( Qt::EditRole ).toString() );
+    }
 
     auto json = QString::fromStdString( boost::json::serialize( boost::json::value{{ "moltable", ja }} ) );
+
     if ( auto md = new QMimeData() ) {
         md->setData( QLatin1String( "application/json" ), json.toUtf8() );
+
+        // following 2 lines are workaaround for X11 clipboard
         if ( QApplication::keyboardModifiers() & ( Qt::ShiftModifier | Qt::ControlModifier ) )
             md->setText( json );
         else
             md->setText( selected_text );
+
+        // ADDEBUG() << "copied: " << selected_text.toStdString();
+        // ADDEBUG() << "json: " << json.toStdString();
+
         QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
     }
 }
