@@ -187,6 +187,9 @@ MainWindow::createDockWidgets()
         connect( widget, &MoleculesWidget::valueChanged, this, []( auto& json ){
             document::instance()->settings()->setValue( "molecules", QByteArray( json.toUtf8() ) );
         });
+        if ( auto wnd = findChild< WaveformWnd * >() ) {
+            connect( widget, &MoleculesWidget::valueChanged, wnd, &WaveformWnd::handleMolecules );
+        }
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
@@ -338,8 +341,8 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-    ///////// Restore AXIS /////////
     if ( auto settings = document::instance()->settings() ) {
+        ///////// Restore AXIS /////////
         for ( size_t i = 0; i < numAxes; ++i ) {
             auto axis = settings->value( QString( "mainwindow/axis_%1" ).arg( QString::number( i ) ) ).toInt();
             if ( auto choice = findChild< QComboBox * >( QString( "axis_%1" ).arg( QString::number( i ) ) ) ) {
@@ -349,8 +352,14 @@ MainWindow::OnInitialUpdate()
             }
         }
 
+        // Restore molecules
         if ( auto mw = findChild< MoleculesWidget * >() ) {
             mw->setContents( settings->value( "molecules" ).toByteArray().toStdString() );
+        }
+
+        // Set molecules
+        if ( auto wnd = findChild< WaveformWnd * >() ) {
+            wnd->handleMolecules( QString::fromStdString( settings->value( "molecules" ).toByteArray().toStdString() ) );
         }
     }
 

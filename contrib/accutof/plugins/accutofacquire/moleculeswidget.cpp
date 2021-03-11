@@ -159,9 +159,11 @@ MoleculesWidget::setContents( boost::any&& a )
     if ( auto table = findChild< adwidgets::MolTable * >() ) {
 
         if ( a.type() == typeid( std::string ) ) {
-            adcontrols::moltable mols;
+            // adcontrols::moltable mols;
             auto json = boost::any_cast< std::string >( a );
-
+            if ( auto mols = json_to_moltable( json ) )
+                table->setContents( *mols );
+#if 0
             boost::system::error_code ec;
             auto jv = boost::json::parse( json, ec );
             if ( !ec )  {
@@ -201,6 +203,7 @@ MoleculesWidget::setContents( boost::any&& a )
                 ADDEBUG() << "error: json.parse() : " << ec.message() << "\n"
                           << json;
             }
+#endif
         }
     }
     return false;
@@ -287,6 +290,48 @@ MoleculesWidget::readJson() const
             auto json = boost::json::serialize( boost::json::value{{ "molecules", ja }} );
             return json;
         }
+    }
+    return {};
+}
+
+boost::optional< adcontrols::moltable >
+MoleculesWidget::json_to_moltable( const std::string& json )
+{
+    adcontrols::moltable mols;
+
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( json, ec );
+    if ( !ec )  {
+        if ( jv.is_object() && jv.as_object().contains( "molecules" ) ) {
+
+            auto ja = jv.as_object()[ "molecules" ].as_array();
+
+            adcontrols::moltable::value_type mol;
+            for ( const auto& ji: ja ) {
+                for ( const auto& it: ji.as_object() ) {
+                    if ( it.key() == "smiles" ) {
+                        mol.smiles() = it.value().as_string().data();
+                    }
+                    if ( it.key() == "formula" ) {
+                        mol.formula() = it.value().as_string().data();
+                    }
+                    if ( it.key() == "adducts" ) {
+                        mol.adducts() = it.value().as_string().data();
+                    }
+                    if ( it.key() == "enable" ) {
+                        mol.enable() = it.value().as_bool();
+                    }
+                    if ( it.key() == "synonym" ) {
+                        mol.synonym() = it.value().as_string().data();
+                    }
+                    if ( it.key() == "mass" ) {
+                        mol.mass() = it.value().as_double();
+                    }
+                }
+                mols << mol;
+            }
+        }
+        return mols;
     }
     return {};
 }

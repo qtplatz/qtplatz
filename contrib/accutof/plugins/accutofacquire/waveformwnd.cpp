@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +26,7 @@
 #include "constants.hpp"
 #include "document.hpp"
 #include "mass_assignor.hpp"
+#include "moleculeswidget.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/tdcdoc.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
@@ -36,6 +37,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/scanlaw.hpp>
@@ -62,6 +64,7 @@
 #include <boost/format.hpp>
 #include <boost/locale.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/json.hpp>
 #include <chrono>
 #include <ratio>
 #include <sstream>
@@ -112,6 +115,7 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
 WaveformWnd::~WaveformWnd()
 {
     fini();
+    tof_markers_.clear();
     delete tpw_;
     delete hpw_;
     delete spw_;
@@ -638,5 +642,50 @@ WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom 
                     closeup.sp->setYScale(top, bottom, false );
             }
         }
+    }
+}
+
+void
+WaveformWnd::handleMolecules( const QString & json )
+{
+    if ( auto mols = MoleculesWidget::json_to_moltable( json.toStdString() ) ) {
+        for ( auto& mol: mols->data() ) {
+            ADDEBUG() << "mol.formula: " << mol.formula() << ", " << mol.mass();
+        }
+
+        while ( tof_markers_.size() < mols->data().size() ) {
+            tof_markers_.emplace_back( std::make_unique< QwtPlotMarker >() );
+            auto& marker = tof_markers_.back();
+            marker->attach( spw_ );
+            marker->setLineStyle( QwtPlotMarker::VLine );
+            marker->setLinePen( QColor( 0xdd, 0xa0, 0xdd ), 2.0, Qt::DotLine ); // plum
+            marker->setLabelOrientation( Qt::Vertical );
+            marker->setLabelAlignment( Qt::AlignRight );
+        }
+
+        size_t i(0);
+        for ( const auto& mol: mols->data() ) {
+            if ( spw_->axis() == adplot::SpectrumWidget::HorizontalAxisMass ) {
+                tof_markers_[i]->setXValue( mol.mass() );
+            } else {
+                if ( auto sp = document::instance()->massSpectrometer() ) {
+                    double time = sp->timeFromMass( mol.mass() );
+                    tof_markers_[i]->setXValue( time * std::micro::den );
+                }
+            }
+            QString label = QString::fromStdString( mol.synonym() );
+            if ( label.isEmpty() ) {
+                label = QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( mol.formula() ) );
+            }
+
+            tof_markers_[i]->setLabel( QwtText( label, QwtText::RichText ) );
+            tof_markers_[i]->setVisible( mol.enable() );
+            ++i;
+        }
+        if ( tof_markers_.size() > mols->data().size() ) {
+            std::for_each( tof_markers_.begin() + mols->data().size(), tof_markers_.end()
+                           , []( const auto& marker ){ marker->setVisible( false ); });
+        }
+        spw_->replot();
     }
 }

@@ -26,6 +26,7 @@
 
 #include <adwidgets/lifecycle.hpp>
 #include <QWidget>
+#include <boost/optional.hpp>
 
 class QMenu;
 
@@ -33,6 +34,7 @@ namespace adcontrols {
     class MassSpectrometer;
     class MassSpectrum;
     class MSSimulatorMethod;
+    class moltable;
 }
 
 namespace accutof {
@@ -61,6 +63,7 @@ namespace accutof {
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
         std::string readJson() const;
+        static boost::optional< adcontrols::moltable > json_to_moltable( const std::string& json );
 
     signals:
         void valueChanged( const QString& json );
