@@ -40,8 +40,10 @@
 #include <QJsonObject>
 #include <QMenu>
 #include <QMessageBox>
+#include <QSignalBlocker>
 #include <QSplitter>
 #include <QStandardItemModel>
+#include <boost/format.hpp>
 #include <ratio>
 #include <cmath>
 
@@ -77,9 +79,10 @@ namespace adwidgets {
 
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
             int row = _1.row();
+            QSignalBlocker block( model_.get() );
             if ( _1.column() == c_formula ) {
                 double exactMass = MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
-                if ( exactMass > 0.7 ) {
+                if ( exactMass > 0.7 && exactMass < 100000 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );
                     if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.0001 )
                         model_->setData( model_->index( row, c_masswindow ), 0.100 );
@@ -104,10 +107,13 @@ namespace adwidgets {
                     double dm = std::abs( sp->assignMass( t2 ) - sp->assignMass( t1 ) );
                     model_->setData( model_->index( row, c_masswindow ), dm );
                 }
-            } else if ( _1.column() == c_mass ) {
+            } else if ( _1.column() == c_mass && _1.isValid() ) {
                 if ( auto sp = spectrometer_.lock() ) {
-                    double time = sp->timeFromMass( _1.data( Qt::EditRole ).toDouble() );
-                    model_->setData( model_->index( row, c_time ), time * std::micro::den );
+                    double mass = _1.data( Qt::EditRole ).toDouble();
+                    if ( mass > 1.0 && mass < 100000 ) {
+                        double time = sp->timeFromMass( _1.data( Qt::EditRole ).toDouble() );
+                        model_->setData( model_->index( row, c_time ), time * std::micro::den );
+                    }
                 }
             } else if ( _1.column() == c_masswindow ) {
                 if ( auto sp = spectrometer_.lock() ) {

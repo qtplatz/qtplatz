@@ -458,6 +458,10 @@ double
 waveform::accumulate( double tof, double window ) const
 {
     double tic(0), dbase(0), rms(0);
+
+    if ( tof > 1.0 ) // workaround segfault protection: TOF = 1s is out of range (this may be a bug somewhere, such as negative intergar value etc.)
+        return 0;
+
     if ( ! hasTic_ ) {
         if ( meta_.channelMode == PKD ) {
             switch ( meta_.dataType ) {

@@ -249,8 +249,9 @@ MassSpectrometer::assignMass( double time, int mode ) const
 double
 MassSpectrometer::timeFromMass( double mass, int mode ) const
 {
-    if ( calibration_ )
-        return calibration_->compute_time( mass, 1.0e-9 );
+    // reverse calculation part seems be buggy
+    // if ( calibration_ )
+    //     return calibration_->compute_time( mass, 1.0e-9 );
     return scanLaw_->getTime( mass, mode );
 }
 
