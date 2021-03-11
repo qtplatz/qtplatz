@@ -107,7 +107,7 @@ namespace chemistry {
         , { "Cc1cc(nc(n1)NS(=O)(=O)c2ccc(cc2)N)C",   { "sulfadimidine" } }        // 278
         , { "Cc1nnc(s1)NS(=O)(=O)c2ccc(cc2)N",       { "sulfamethizole" } }       // 270
         , { "C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C", { "Cholesterol" } }
-        , { "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", { "caffine" } }
+        , { "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", { "caffeine" } }
         , { "C[C@H](CCC=C(C)C)[C@H]1CC[C@@]2([C@@]1(CC[C@]34[C@H]2CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "oryzanol A" } }
         , { "C[C@H](CCC(=C)C(C)C)[C@H]1CCC2[C@@]1(CC[C@]34[C@]2(CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "oryzanol B" } }
         , { "CC(C)C(C)CCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)OC(=O)C=CC5=CC(=C(C=C5)O)OC)C)C", { "campesteryl ferulate" } }

@@ -208,7 +208,6 @@ namespace adwidgets {
                        , const QString& description = QString()
                        , double mass = 0.0, double abundance = 1.0, bool enable = true, bool msref = false ) {
 
-            QSignalBlocker block( table.model() );
             auto model = qobject_cast< QStandardItemModel * >( table.model() );
 
             model->setData( model->index( row, c_svg ), svg );
@@ -338,21 +337,29 @@ MolTable::setContents( const adcontrols::moltable& mols )
 
     model.setRowCount( int( mols.data().size() + 1 ) ); // add one free line for add formula
 
-    int row = 0;
-    for ( auto& mol : mols.data() ) {
+    do {
+        QSignalBlocker block( model_ );
+        int row = 0;
+        for ( auto& mol : mols.data() ) {
 
-        impl_->setData( *this, row
-                        , QString::fromStdString( mol.formula() )
-                        , QString::fromStdString( mol.adducts() )
-                        , QString::fromStdString( mol.smiles() )
-                        , QByteArray()
-                        , QString::fromStdString( mol.synonym() )
-                        , QString::fromStdWString( mol.description() )
-                        , mol.mass()
-                        , mol.abundance()
-                        , mol.enable()
-                        , mol.isMSRef() );
-        ++row;
+            impl_->setData( *this, row
+                            , QString::fromStdString( mol.formula() )
+                            , QString::fromStdString( mol.adducts() )
+                            , QString::fromStdString( mol.smiles() )
+                            , QByteArray()
+                            , QString::fromStdString( mol.synonym() )
+                            , QString::fromStdWString( mol.description() )
+                            , mol.mass()
+                            , mol.abundance()
+                            , mol.enable()
+                            , mol.isMSRef() );
+            ++row;
+        }
+    } while ( 0 );
+
+    if ( ! mols.data().empty() ) {
+        emit dataChanged( model_->index( 0, 0 )
+                          , model_->index( mols.data().size() - 1, model_->columnCount() - 1 ) );
     }
     // resizeRowsToContents();
     // resizeColumnsToContents();
@@ -539,11 +546,14 @@ MolTable::dropEvent( QDropEvent * event )
 {
 	const QMimeData * mimeData = event->mimeData();
 
+    QModelIndex beg;
+
 	if ( mimeData->hasUrls() ) {
 
         QSignalBlocker block( this );
 
         int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
+        beg = model_->index( row, 0 );
 
         QList<QUrl> urlList = mimeData->urls();
         for ( auto& url : urlList ) {
@@ -563,6 +573,10 @@ MolTable::dropEvent( QDropEvent * event )
         }
         event->accept();
 	}
+
+    if ( beg.isValid() ) {
+        emit dataChanged( beg, model_->index( model_->rowCount() - 1, model_->columnCount() - 1 ) );
+    }
 }
 
 void

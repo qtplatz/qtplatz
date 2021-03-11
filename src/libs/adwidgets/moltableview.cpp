@@ -545,12 +545,15 @@ MolTableView::dropEvent( QDropEvent * event )
 {
 	const QMimeData * mimeData = event->mimeData();
 
+    QModelIndex beg, end;
+
 	if ( mimeData->hasUrls() ) {
 
         QSignalBlocker block( this );
         auto& model = *this->model();
 
         int row = model.rowCount() == 0 ? 0 : model.rowCount() - 1;
+        beg = model.index( row, 0 );
 
         QList<QUrl> urlList = mimeData->urls();
         for ( auto& url : urlList ) {
@@ -570,8 +573,11 @@ MolTableView::dropEvent( QDropEvent * event )
                 ++row;
             }
         }
+        end = model.index( row - 1, model.columnCount() - 1 );
         event->accept();
 	}
+    if ( beg.isValid() )
+        emit dataChanged( beg, end );
 }
 
 void

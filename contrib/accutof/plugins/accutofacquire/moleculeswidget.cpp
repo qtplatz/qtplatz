@@ -125,8 +125,10 @@ MoleculesWidget::OnInitialUpdate()
         table->setColumHide( hides );
 
         // connect( table, &adwidgets::MolTable::onContextMenu, this, &MoleculesWidget::handleContextMenu );
-        if ( auto model = table->model() )
+        if ( auto model = table->model() ) {
             connect( model, &QAbstractItemModel::dataChanged, this, &MoleculesWidget::handleDataChanged ); //
+            connect( model, &QAbstractItemModel::rowsRemoved, this, &MoleculesWidget::handleRowsRemoved );
+        }
 
         connect( table->selectionModel(), &QItemSelectionModel::currentChanged, this
                  , []( const QModelIndex& curr, const QModelIndex &prev ){
@@ -164,39 +166,40 @@ MoleculesWidget::setContents( boost::any&& a )
             auto jv = boost::json::parse( json, ec );
             if ( !ec )  {
                 if ( jv.is_object() && jv.as_object().contains( "molecules" ) ) {
+
                     auto ja = jv.as_object()[ "molecules" ].as_array();
 
-                    for ( int row = 0; row < ja.size(); ++row ) {
-                        adcontrols::moltable::value_type mol;
-                        for ( const auto& ji: ja ) {
-                            for ( const auto& it: ji.as_object() ) {
-                                if ( it.key() == "smiles" ) {
-                                    mol.smiles() = it.value().as_string().data();
-                                }
-                                if ( it.key() == "formula" ) {
-                                    mol.formula() = it.value().as_string().data();
-                                }
-                                if ( it.key() == "adducts" ) {
-                                    mol.adducts() = it.value().as_string().data();
-                                }
-                                if ( it.key() == "enable" ) {
-                                    mol.enable() = it.value().as_bool();
-                                }
-                                if ( it.key() == "synonym" ) {
-                                    mol.synonym() = it.value().as_string().data();
-                                }
-                                if ( it.key() == "mass" ) {
-                                    mol.mass() = it.value().as_double();
-                                }
+                    adcontrols::moltable::value_type mol;
+                    for ( const auto& ji: ja ) {
+                        for ( const auto& it: ji.as_object() ) {
+                            if ( it.key() == "smiles" ) {
+                                mol.smiles() = it.value().as_string().data();
                             }
-                            mols << mol;
+                            if ( it.key() == "formula" ) {
+                                mol.formula() = it.value().as_string().data();
+                            }
+                            if ( it.key() == "adducts" ) {
+                                mol.adducts() = it.value().as_string().data();
+                            }
+                            if ( it.key() == "enable" ) {
+                                mol.enable() = it.value().as_bool();
+                            }
+                            if ( it.key() == "synonym" ) {
+                                mol.synonym() = it.value().as_string().data();
+                            }
+                            if ( it.key() == "mass" ) {
+                                mol.mass() = it.value().as_double();
+                            }
                         }
+                        mols << mol;
                     }
                 }
+                ADDEBUG() << "----------- set " << mols.data().size() << " molecules";
                 table->setContents( mols );
                 return true;
             } else {
-                ADDEBUG() << "error: json.parse() : " << ec.message();
+                ADDEBUG() << "error: json.parse() : " << ec.message() << "\n"
+                          << json;
             }
         }
     }
@@ -208,21 +211,28 @@ MoleculesWidget::setContents( boost::any&& a )
 bool
 MoleculesWidget::setContents( boost::any&& a, const std::string& dataSource )
 {
-    boost::system::error_code ec;
-    auto jv = boost::json::parse( dataSource, ec );
-    if ( ec )
-        ADDEBUG() << ec.message();
-    return true;
+    return false;
 }
 
 void
-MoleculesWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles )
+MoleculesWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex& end, const QVector<int>& roles )
 {
+    ADDEBUG() << "handleDataChanged: "
+              << std::make_pair( topLeft.row(), topLeft.column() ) << " -- "  << std::make_pair( end.row(), end.column() );
+
     if ( ( std::find( roles.begin(), roles.end(), Qt::CheckStateRole ) != roles.end() ) ||
+
          ( topLeft.column() != adwidgets::MolTable::c_mass ) ) {
 
         emit valueChanged ( QString::fromStdString( readJson() ) );
     }
+}
+
+void
+MoleculesWidget::handleRowsRemoved(const QModelIndex&, int first, int last )
+{
+    ADDEBUG() << "handleRowsRemoved: " << std::make_pair( first, last );
+    emit valueChanged ( QString::fromStdString( readJson() ) );
 }
 
 void
