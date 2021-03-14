@@ -661,11 +661,8 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         }
     }
 
-    if ( ptr && ptr->isCentroid() && !ptr->isHistogram() ) {
-        impl_->msForAnnotation_ = ptr;
-        impl_->yAxisForAnnotation_ = axis;
-        update_annotation( false );
-    } else {
+    // take annotation on last drawn spectrum, which has annotations
+    if ( ! ptr->get_annotations().empty() ) {
         impl_->msForAnnotation_ = ptr;
         impl_->yAxisForAnnotation_ = axis;
         update_annotation( false );
@@ -1062,7 +1059,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
     if ( auto ms = msForAnnotation_.lock() ) {
 
         std::vector< peak > peaks;
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
+       adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
 
         adcontrols::annotations auto_annotations;
         adcontrols::annotations annotations;
@@ -1106,12 +1103,12 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
                     }
                 }
                 for ( auto& a : marge ) {
-                    // if more than two annotations attached to an index, formula is a priority on spectrum
+                    // if more than two annotations attached to an index, text is a priority on spectrum
                     auto it = std::find_if( a.second.begin(), a.second.end()
-                                            , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula; } );
+                                            , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText; } );
                     if ( it == a.second.end() )
                         it = std::find_if( a.second.begin(), a.second.end()
-                                           , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText; } );
+                                           , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula; } );
                     if ( it != a.second.end() )
                         annotations << *it;
                 }
@@ -1123,16 +1120,17 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
                                            , attached.end()
                                            , [idx]( const adcontrols::annotation& a ){ return a.index() == int(idx); } ) == attached.end() ) {
                             int pri = ms.getIntensity( idx ) / max_y * 1000;
-                            if ( colors )
-                                pri *= 100;
+                            (void)colors;
+                            // if ( colors && colors[ idx ] > 0 )
+                            //     pri *= 100;
                             if ( isTimeAxis_ ) {
                                 double microseconds = adcontrols::metric::scale_to_micro( ms.getTime( idx ) );
-                                adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % microseconds ).str()
+                                adcontrols::annotation annot( ( boost::wformat( L"%.3lf" ) % microseconds ).str()
                                                               , microseconds, ms.getIntensity( idx )
                                                               , int( fcn << 24 | idx ), pri );
                                 auto_annotations << annot;
                             } else {
-                                adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
+                                adcontrols::annotation annot( ( boost::wformat( L"%.2lf" ) % ms.getMass( idx ) ).str()
                                                               , ms.getMass( idx ), ms.getIntensity( idx ), int( fcn << 24 | idx ), pri );
                                 auto_annotations << annot;
                             }

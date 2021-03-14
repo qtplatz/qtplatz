@@ -24,31 +24,42 @@
 
 #include <string>
 #include <memory>
+#include <QString>
+#include <boost/uuid/uuid.hpp>
 
 namespace adcontrols { class MassSpectrum; class Chromatogram; }
+namespace adprocessor { class dataprocessor; }
 namespace portfolio { class Folium; }
 
 namespace dataproc {
 
+    class Dataprocessor;
+
     struct datafolder {
-        int idx;
-        std::wstring display_name; // fileneme::folium.name
-        std::wstring idFolium;
-        std::wstring idCentroid;
-        std::weak_ptr< adcontrols::MassSpectrum > profile;   // usually profile, TBD for histogram data
-        std::weak_ptr< adcontrols::MassSpectrum > centroid;  // centroid
-        std::weak_ptr< adcontrols::Chromatogram > chromatogram;
+        int idx_;
+        QString display_name_; // fileneme::folium.name
+        std::wstring idFolium_;
+        boost::uuids::uuid idfolium_;
+        std::wstring idCentroid_;
 
-        datafolder( int _0 = 0
-                    , const std::wstring& _1 = std::wstring()
-                    , const std::wstring& _2 = std::wstring()
-                    , const std::wstring& _3 = std::wstring() );
-        datafolder( int _idx
-                    , const std::wstring& _display_name
-                    , portfolio::Folium& folium );
+        std::weak_ptr< adcontrols::MassSpectrum > profile_;   // usually profile, TBD for histogram data
+        std::weak_ptr< adcontrols::MassSpectrum > profiledHistogram_;
+        std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // centroid
+        std::weak_ptr< adcontrols::Chromatogram > chromatogram_;
 
+        std::shared_ptr< adcontrols::MassSpectrum > overlaySpectrum_; // y-scale normalized
+
+        datafolder();
+        datafolder( int idx, const std::wstring& display_name, const portfolio::Folium& folium );
         datafolder( const datafolder& t );
 
+        QString display_name() const { return display_name_; }
+        boost::uuids::uuid id() const { return idfolium_; }
+        operator bool () const;
+        std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> get_profile() const;
+        std::shared_ptr< const adcontrols::Chromatogram > get_chromatogram() const;
+
+        static QString make_display_name( const std::wstring& fullpath, const portfolio::Folium& );
+        static QString make_display_name( Dataprocessor *, const portfolio::Folium& );
     };
 }
-

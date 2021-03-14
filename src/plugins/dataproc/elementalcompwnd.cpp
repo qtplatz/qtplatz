@@ -261,17 +261,17 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
 
         auto xit = impl_->dataIds_.find( folium.id() );
-        datafolder xdata = ( xit == impl_->dataIds_.end() ) ? datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() ) : xit->second;
+        datafolder xdata = ( xit == impl_->dataIds_.end() ) ? datafolder( int( impl_->dataIds_.size() ), display_name, folium ) : xit->second;
 
         if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
             impl_->idSpectrumFolium_ = folium.id();
-            xdata.profile = profile;
+            xdata.profile_ = profile;
 
             portfolio::Folio atts = folium.attachments();
             auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
             if ( itCentroid != atts.end() ) {
-                xdata.idCentroid = itCentroid->id();
-                xdata.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+                xdata.idCentroid_ = itCentroid->id();
+                xdata.centroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
             }
             impl_->dataIds_[ folium.id() ] = xdata;
         }
@@ -348,18 +348,18 @@ ElementalCompWnd::draw( int which )
     QString title;
 
     for ( auto& data: impl_->dataIds_ ) {
-        int idx = data.second.idx;
+        int idx = data.second.idx_;
         int traceid = idx * 2;
 
         if ( title.isEmpty() ) {
-            title = QString::fromStdWString( data.second.display_name );
+            title = data.second.display_name();
         } else {
             title += " .";
         }
 
         QColor color = impl_->plots_[ 0 ]->index_color( idx );
 
-        if ( auto profile = data.second.profile.lock() ) {
+        if ( auto profile = data.second.profile_.lock() ) {
             if ( auto plot = impl_->splot< impl::idProfile >() ) {
                 plot->setData( profile, traceid );
                 plot->setColor( traceid, color );
@@ -367,7 +367,7 @@ ElementalCompWnd::draw( int which )
             }
         }
 
-        if ( auto centroid = data.second.centroid.lock() ) {
+        if ( auto centroid = data.second.centroid_.lock() ) {
             if ( auto plot = impl_->splot< impl::idProcessed >() ) {
                 plot->setData( centroid, traceid + 1, true );
                 plot->setColor( traceid + 1, color );

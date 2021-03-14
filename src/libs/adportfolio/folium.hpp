@@ -142,4 +142,11 @@ namespace portfolio {
         return Folium();
     }
 
+    template<class Pred> Folium find_last_of( Folio folio, Pred pred ) {
+        auto it = std::find_if( folio.rbegin(), folio.rend(), pred );
+        if ( it != folio.rend() )
+            return *it;
+        return Folium();
+    }
+
 }

@@ -24,52 +24,94 @@
 
 #include "datafolder.hpp"
 #include "constants.hpp"
+#include "dataprocessor.hpp"
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace dataproc;
 
-datafolder::datafolder( int _0
-                        , const std::wstring& _1
-                        , const std::wstring& _2
-                        , const std::wstring& _3 ) : idx( _0 )
-                                                   , display_name( _1 )
-                                                   , idFolium( _2 )
-                                                   , idCentroid( _3 )
+datafolder::datafolder() : idx_(0)
 {
 }
 
-datafolder::datafolder( int _idx
-                        , const std::wstring& _display_name
-                        , portfolio::Folium& folium ) : idx( _idx )
-                                                      , display_name( _display_name )
-                                                      , idFolium( folium.id() )
+datafolder::datafolder( int idx
+                        , const std::wstring& fullpath
+                        , const portfolio::Folium& folium ) : idx_( idx )
+                                                            , display_name_( make_display_name( fullpath, folium ) )
+                                                            , idFolium_( folium.id() )
+                                                            , idfolium_( folium.uuid() )
 {
-    
-    if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-        profile = ms; // maybe profile or histogram
+    ADDEBUG() << "display_name: " << display_name_.toStdString();
+
+    if ( auto raw = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+        profile_ = raw; // maybe profile or histogram
+        if ( raw->isHistogram() ) {
+            if ( auto fi = portfolio::find_first_of( folium.attachments()
+                                                     , [](const auto& a){ return a.name() == Constants::F_PROFILED_HISTOGRAM; }) ) {
+                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) {
+                    profiledHistogram_ = ptr;
+                }
+            }
+        }
+        if ( auto fi = portfolio::find_last_of( folium.attachments()
+                                                , [](const auto& a){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+            if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) {
+                centroid_ = ptr;
+            }
+        }
+    } else if ( auto raw = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        chromatogram_ = raw;
     }
-    
-    portfolio::Folio atts = folium.attachments();
-    auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){
-            return f.name() == Constants::F_CENTROID_SPECTRUM;
-        } );
-
-    if ( itCentroid != atts.end() ) {
-        
-        idCentroid = itCentroid->id();
-        centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-        
-    }
 }
 
-datafolder::datafolder( const datafolder& t ) : idx( t.idx )
-                                              , idFolium( t.idFolium )
-                                              , idCentroid( t.idCentroid )
-                                              , display_name( t.display_name )
-                                              , profile( t.profile )
-                                              , centroid( t.centroid )
+datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
+                                              , display_name_( t.display_name_ )
+                                              , idFolium_( t.idFolium_ )
+                                              , idCentroid_( t.idCentroid_ )
+                                              , profile_( t.profile_ )
+                                              , profiledHistogram_( t.profiledHistogram_ )
+                                              , centroid_( t.centroid_ )
+                                              , chromatogram_( t.chromatogram_ )
+                                              , overlaySpectrum_( t.overlaySpectrum_ )
 {
 }
 
+//static
+QString
+datafolder::make_display_name( Dataprocessor * dp, const portfolio::Folium& folium )
+{
+    auto pfolio = dp->getPortfolio();
+    return make_display_name( pfolio.fullpath(), folium );
+}
+
+QString
+datafolder::make_display_name( const std::wstring& fullpath, const portfolio::Folium& folium )
+{
+    const char inserter = ';';
+
+    boost::filesystem::path path( fullpath );
+    auto rpath = boost::filesystem::relative( path, path / "../.." );
+    std::wstring name = rpath.wstring() + wchar_t( inserter ) + boost::algorithm::trim_copy( folium.name() );
+    return QString::fromStdWString( name );
+}
+
+datafolder::operator bool() const
+{
+    return ( profile_.lock() || chromatogram_.lock() );
+}
+
+std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */>
+datafolder::get_profile() const
+{
+    if ( auto hist = this->profiledHistogram_.lock() )
+        return { hist, true };
+    else if ( auto prof = this->profile_.lock() )
+        return { prof, false };
+    else
+        return { nullptr, false };
+}

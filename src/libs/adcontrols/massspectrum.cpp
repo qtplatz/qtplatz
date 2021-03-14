@@ -303,14 +303,17 @@ MassSpectrum::resize( size_t n )
 
 	impl_->intensityArray_.resize( n );
 
-    if ( ! impl_->massArray_.empty() )
+    if ( ! impl_->massArray_.empty() ) {
         impl_->massArray_.resize( n );
+    }
 
-	if ( ! impl_->tofArray_.empty() )
+	if ( ! impl_->tofArray_.empty() ) {
         impl_->tofArray_.resize( n );
+    }
 
-    if ( ! impl_->colArray_.empty() )
+    if ( ! impl_->colArray_.empty() ) {
         impl_->colArray_.resize( n );
+    }
 }
 
 bool
@@ -411,6 +414,8 @@ MassSpectrum::getIndexFromMass( double mass, bool closest ) const
     if ( impl_->massArray_.empty() )
         return 0;
     size_t idx = std::distance( impl_->massArray_.begin(), std::lower_bound( impl_->massArray_.begin(), impl_->massArray_.end(), mass ) );
+    if ( idx > 0 )
+        --idx;
     if ( closest && idx < impl_->massArray_.size() ) {
         if ( ( ( idx + 1 ) < impl_->size() )
              && ( std::abs( mass - getMass( idx ) ) > std::abs( mass - getMass( idx + 1 ) ) ) )
@@ -477,8 +482,9 @@ void
 MassSpectrum::setMassArray( const double * values, bool setRange )
 {
     // impl_->setMassArray( values, setRange );
-    if ( impl_->massArray_.size() != size() )
+    if ( impl_->massArray_.size() != size() ) {
         impl_->massArray_.resize( size() );
+    }
 
 	std::copy( values, values + size(), impl_->massArray_.begin() );
 
@@ -667,12 +673,6 @@ MassSpectrum::get_annotations()
 void
 MassSpectrum::addAnnotation( annotation&& a, bool uniq )
 {
-    // if ( uniq && a.index() >= 0 ) {
-    //     auto it = std::find_if( impl_->annotations_.begin(), impl_->annotations_.end()
-    //                             , [&]( const annotation& x ){ return x.index() == a.index() && x.dataFormat() == a.dataFormat(); } );
-    //     if ( it != impl_->annotations_.end() )
-    //          impl_->annotations_.erase( it );
-    // }
     impl_->annotations_ << std::move( a );
 }
 

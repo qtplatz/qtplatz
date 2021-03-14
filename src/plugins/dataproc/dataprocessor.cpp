@@ -564,7 +564,8 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
                                         if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
                                             double mass = processed->mass( a.index() );
                                             adcontrols::annotation anno( a );
-                                            anno.index( ms->getIndexFromMass( mass ) );
+                                            // ADDEBUG() << a.text();
+                                            anno.index( ms->getIndexFromMass( mass, true ) );
                                             anno.x( mass );
                                             anno.y( tms.intensity( anno.index() ) );
                                             tms.get_annotations() << anno;

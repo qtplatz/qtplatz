@@ -108,7 +108,7 @@ namespace dataproc {
         void handleZoomedOnSpectrum( const QRectF& );
 
     private:
-        size_t drawIdx1_;
+        int drawIdx1_;
         MSProcessingWndImpl * pImpl_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;

@@ -92,40 +92,41 @@ namespace chemistry {
 
     static struct { std::string smiles; std::vector< std::string > synonym; } inidb[] = {
         { "C(C(C(F)(F)F)(F)F)(C(N(C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F", { "PFTBA" } }
-        , { "[Cl-].[S+]1C2C=C(C=CC=2N=C2C=CC(=CC=12)N(C)C)N(C)C",                                         { "methylene blue" } }
-        , { "CN(C)C1C=CC(=CC=1)C(C1C=CC(=CC=1)N(C)C)=C1C=CC(C=C1)=[N+](C)C.[Cl-]",                        { "methyl violet", "crystal violet" } }
-        , { "CCN(CC)c1ccc2c(c1)oc-3cc(=[N+](CC)CC)ccc3c2c4ccccc4C(=O)O.[Cl-]",                            { "rhodamine B" } }
-        , { "O=C(Nc1ccc(OCC)cc1)C",                                                                       { "phenacetin" } }
-        , { "c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3",                                                            { "tacrine" } }
+        , { "[Cl-].[S+]1C2C=C(C=CC=2N=C2C=CC(=CC=12)N(C)C)N(C)C",                                         { "Methylene blue" } }
+        , { "CN(C)C1C=CC(=CC=1)C(C1C=CC(=CC=1)N(C)C)=C1C=CC(C=C1)=[N+](C)C.[Cl-]",                        { "Methyl violet", "crystal violet" } }
+        , { "CCN(CC)c1ccc2c(c1)oc-3cc(=[N+](CC)CC)ccc3c2c4ccccc4C(=O)O.[Cl-]",                            { "Rhodamine B" } }
+        , { "O=C(Nc1ccc(OCC)cc1)C",                                                                       { "Phenacetin" } }
+        , { "c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3",                                                            { "Tacrine" } }
         , { "O=C(N)c1ccc[n+](c1)[C@@H]2O[C@@H]([C@@H](O)[C@H]2O)COP([O-])(=O)OP(=O)([O-])OC[C@H]5O[C@@H](n4cnc3c(ncnc34)N)[C@H](O)[C@@H]5O", { "NAD+" } }
         , { "O=C(N)C1CC=C[N](C=1)[C@@H]2O[C@@H]([C@@H](O)[C@H]2O)COP([O-])(=O)OP(=O)([O-])OC[C@H]5O[C@@H](n4cnc3c(ncnc34)N)[C@H](O)[C@@H]5O", { "NADH" } }
         , { "O=C(N)c1ccc[n+](c1)[C@H]2[C@H](O)[C@H](O)[C@H](O2)COP([O-])(=O)OP(=O)(O)OC[C@H]3O[C@@H](n4cnc5c4ncnc5N)[C@@H]([C@@H]3O)OP(=O)(O)O", { "NADP" } }
-        , { "c1ccc2c(c1)ccc(=O)o2",                                                                       { "coumarin" } }
+        , { "c1ccc2c(c1)ccc(=O)o2",                                                                       { "Coumarin" } }
         , { "CCCCCCCCCCCCCC(=O)O[C@H](CCCCCCCCCCC)CC(=O)O[C@@H]1[C@H]([C@@H](O[C@@H]([C@H]1OP(=O)(O)O)CO)OC[C@@H]2[C@H]([C@@H]([C@H]([C@H](O2)OP(=O)(O)O)NC(=O)C[C@@H](CCCCCCCCCCC)O)OC(=O)C[C@@H](CCCCCCCCCCC)O)O)NC(=O)C[C@@H](CCCCCCCCCCC)OC(=O)CCCCCCCCCCC", { "Lipid A" } }
-        , { "c1cc(ccc1N)S(=O)(=O)Nc2ccc(nn2)Cl",     { "sulfachlorpyridazine" } } // 285
-        , { "COc1cc(nc(n1)OC)NS(=O)(=O)c2ccc(cc2)N", { "sulfadimethoxine" } }     // 310
-        , { "Cc1cc(nc(n1)NS(=O)(=O)c2ccc(cc2)N)C",   { "sulfadimidine" } }        // 278
-        , { "Cc1nnc(s1)NS(=O)(=O)c2ccc(cc2)N",       { "sulfamethizole" } }       // 270
+        , { "c1cc(ccc1N)S(=O)(=O)Nc2ccc(nn2)Cl",     { "Sulfachlorpyridazine" } } // 285
+        , { "COc1cc(nc(n1)OC)NS(=O)(=O)c2ccc(cc2)N", { "Sulfadimethoxine" } }     // 310
+        , { "Cc1cc(nc(n1)NS(=O)(=O)c2ccc(cc2)N)C",   { "Sulfadimidine" } }        // 278
+        , { "Cc1nnc(s1)NS(=O)(=O)c2ccc(cc2)N",       { "Sulfamethizole" } }       // 270
         , { "C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C", { "Cholesterol" } }
-        , { "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", { "caffeine" } }
-        , { "C[C@H](CCC=C(C)C)[C@H]1CC[C@@]2([C@@]1(CC[C@]34[C@H]2CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "oryzanol A" } }
-        , { "C[C@H](CCC(=C)C(C)C)[C@H]1CCC2[C@@]1(CC[C@]34[C@]2(CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "oryzanol B" } }
-        , { "CC(C)C(C)CCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)OC(=O)C=CC5=CC(=C(C=C5)O)OC)C)C", { "campesteryl ferulate" } }
-        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "tocopherol" } }
+        , { "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", { "Caffeine" } }
+        , { "C[C@H](CCC=C(C)C)[C@H]1CC[C@@]2([C@@]1(CC[C@]34[C@H]2CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "Oryzanol A" } }
+        , { "C[C@H](CCC(=C)C(C)C)[C@H]1CCC2[C@@]1(CC[C@]34[C@]2(CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "Oryzanol B" } }
+        , { "CC(C)C(C)CCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)OC(=O)C=CC5=CC(=C(C=C5)O)OC)C)C", { "Campesteryl ferulate" } }
+        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
         , { "Oc1cc(O)c2C(=O)C(O)= C(Oc2c1)c3ccc(O)c(O)c3", { "quercetin" } }
-        , { R"**(O=C(O)[C@]2(O)C[C@@H](O)[C@@H](O)[C@H](OC(=O)\C=C\c1ccc(O)c(O)c1)C2)**", { "chlorogenic acid" } }
-        , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "oleic acid" } }
-        , { "CCCCCCCCCCCCCCCC(=O)O",                  { "palmitic acid" } }
-        , { "C1=CC=C2C=C3C=CC=CC3=CC2=C1",            { "anthracene" } }
-        , { "c1=ccc2c3cc=ccc3ccc2c1",                 { "phenanthrene" } }
-        , { "c1cc2ccc3ccc4ccc5ccc6ccc1c7c2c3c4c5c67", { "coronene" } }
-        , { "c1ccc2c3ccccc3Cc2c1",                    { "fluorene" } }
-        , { "c1ccc-2c(c1)-c3cccc4c3c2ccc4",           { "fluoranthene" } }
-        , { "c1cc2cccc3ccc4cccc1c4c32",               { "pyrene" } }
-        , { "C1=CC=C2C=CC=CC2=C1",                    { "naphthalene" } }
-        , { "c1ccc2ccccc2c1",                         { "naphthalene" } }
-        , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "paracetamol" } }
-        , { "CC(=O)Nc1ccc(O)cc1",                     { "acetaminophen", "paracetamol" } }        //
+        , { R"**(O=C(O)[C@]2(O)C[C@@H](O)[C@@H](O)[C@H](OC(=O)\C=C\c1ccc(O)c(O)c1)C2)**", { "Chlorogenic acid" } }
+        , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
+        , { "CCCCCCCCCCCCCCCC(=O)O",                  { "Palmitic acid" } }
+        , { "C1=CC=C2C=C3C=CC=CC3=CC2=C1",            { "Anthracene" } }
+        , { "c1=ccc2c3cc=ccc3ccc2c1",                 { "Phenanthrene" } }
+        , { "c1cc2ccc3ccc4ccc5ccc6ccc1c7c2c3c4c5c67", { "Coronene" } }
+        , { "c1ccc2c3ccccc3Cc2c1",                    { "Fluorene" } }
+        , { "c1ccc-2c(c1)-c3cccc4c3c2ccc4",           { "Fluoranthene" } }
+        , { "c1cc2cccc3ccc4cccc1c4c32",               { "Pyrene" } }
+        , { "C1=CC=C2C=CC=CC2=C1",                    { "Naphthalene" } }
+        , { "c1ccc2ccccc2c1",                         { "Naphthalene" } }
+        , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
+        , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
+        , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
     };
 
 }

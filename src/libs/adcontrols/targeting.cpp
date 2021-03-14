@@ -314,21 +314,24 @@ Targeting::operator()( MassSpectrum& ms )
             } while(0);
 
             ///////////////////
-            // following annotation may be overwited from adwidgets::mspeaktable through annotation_updatore via setPeakInfo
+            // following annotation may be overwrote from adwidgets::mspeaktable through annotation_updatore via setPeakInfo
             if ( candidate.score >= 0 ) {
                 auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
                 tms.setColor( candidate.idx, 16 ); // dark orange
                 int pri = 1000 * (std::log10( tms.intensity( candidate.idx ) / tms.maxIntensity() ) + 15); // 0..15000
                 tms.get_annotations()
-                    << annotation( candidate.formula, tms.getMass( candidate.idx ), tms.getIntensity( candidate.idx ), candidate.idx, pri, annotation::dataFormula, annotation::flag_targeting );
+                    << annotation( candidate.formula, tms.mass( candidate.idx )
+                                   , tms.intensity( candidate.idx ), candidate.idx, pri, annotation::dataFormula, annotation::flag_targeting );
                 // annotate isotopes
                 std::string text = "*"; // ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
                 for ( const auto& i: candidate.isotopes ) {
-                    if ( i.idx >= 0 ) {
-                        tms.setColor( i.idx, 16 ); // dark orange
-                        int pri = 1000 * (std::log10( tms.intensity( i.idx ) / tms.maxIntensity() ) + 15); // 0..15000
-                        tms.get_annotations()
-                            << annotation( text, tms.getMass( i.idx ), tms.getIntensity( i.idx ), i.idx, pri, annotation::dataText, annotation::flag_targeting );
+                    if ( std::abs( i.abundance_ratio_error ) < 0.5 ) { // anotate if abunance error < 50%
+                        if ( i.idx >= 0 ) {
+                            tms.setColor( i.idx, 16 ); // dark orange
+                            int xpri = pri * i.exact_abundance;
+                            tms.get_annotations()
+                                << annotation( text, tms.getMass( i.idx ), tms.getIntensity( i.idx ), i.idx, xpri, annotation::dataText, annotation::flag_targeting );
+                        }
                     }
                 }
             }

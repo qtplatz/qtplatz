@@ -288,7 +288,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
         }
 
-        auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium; } );
+        auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium_; } );
 
         if ( it != impl_->overlays_.end() ) {
             if ( folium.attribute( L"isChecked" ) == L"false" )
@@ -298,8 +298,8 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         } else {
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
                 auto title = adcontrols::Chromatogram::make_folder_name( chr->getDescriptions() );
-                impl_->overlays_.emplace_front( 0, title, folium.id() );
-                impl_->overlays_.front().chromatogram = chr;
+                impl_->overlays_.emplace_front( 0, title, folium );
+                impl_->overlays_.front().chromatogram_ = chr;
             }
         }
     }
@@ -313,8 +313,8 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         size_t idx(1);
         QString titles;
         std::for_each( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& d ){
-                if ( auto pchr = d.chromatogram.lock() ) {
-                    titles += QString::fromStdWString( d.display_name ) + "; ";
+                if ( auto pchr = d.chromatogram_.lock() ) {
+                    titles += d.display_name() + "; ";
                     impl_->plots_[ 1 ]->setData( pchr, idx++ );
                 }
             });

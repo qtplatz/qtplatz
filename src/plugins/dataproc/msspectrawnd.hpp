@@ -41,7 +41,7 @@ namespace adcontrols {
     enum hor_axis: unsigned int;
 }
 
-namespace adwidgets { class MSQuanTable; }
+// namespace adwidgets { class MSQuanTable; }
 namespace adplot { class SpectrumWidget; class PeakMarker; }
 
 namespace dataproc {
@@ -65,18 +65,16 @@ namespace dataproc {
         void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( adcontrols::hor_axis );
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
-        
+
     private:
         void init();
         void handleDataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& );
         void handleCurrentChanged( const QString& dataGuid, int idx, int fcn );
         void handleSelected( const QRectF&, adplot::SpectrumWidget * );
-        void update_quantable();
-        void draw( int which = (-1) );
+        void redraw();
 
         class impl;
         impl * impl_;
 
     };
 }
-
