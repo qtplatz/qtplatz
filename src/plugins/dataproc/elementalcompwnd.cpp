@@ -86,7 +86,7 @@ namespace dataproc {
         ~impl() {
         }
 
-        std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
+        std::vector< datafolder > data_;
 
         // std::pair< std::wstring, datafolder > profile_;
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 3 > plots_; // profile,processed,reference
@@ -254,39 +254,35 @@ ElementalCompWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& 
 void
 ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
-    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-
+    // adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
     if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
-
-        auto xit = impl_->dataIds_.find( folium.id() );
-        datafolder xdata = ( xit == impl_->dataIds_.end() ) ? datafolder( int( impl_->dataIds_.size() ), display_name, folium ) : xit->second;
-
-        if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-            impl_->idSpectrumFolium_ = folium.id();
-            xdata.profile_ = profile;
-
-            portfolio::Folio atts = folium.attachments();
-            auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
-            if ( itCentroid != atts.end() ) {
-                xdata.idCentroid_ = itCentroid->id();
-                xdata.centroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
+        auto datum = datafolder( 0, processor->filename(), folium );
+        do {
+            auto& plot = impl_->plots_[ impl::idProfile ];
+            if ( auto profile = datum.get_profile() ) {
+                plot->clear();
+                plot->setData( profile->first, 0, QwtPlot::yLeft );
+                plot->setAxisTitle( QwtPlot::yLeft, profile->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
             }
-            impl_->dataIds_[ folium.id() ] = xdata;
-        }
+        } while ( 0 );
+        do {
+            auto& plot = impl_->plots_[ impl::idProcessed ];
+            if ( auto processed = datum.get_processed() ) {
+                plot->clear();
+                plot->setData( processed->first, 0, QwtPlot::yLeft );
+                plot->setAxisTitle( QwtPlot::yLeft, processed->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+            }
+        } while ( 0 );
 
-        if ( MainWindow::instance()->curPage() == MainWindow::idSelElementalComp )
-            draw( 0 );
-
+        auto it = datafolder::find( impl_->data_, datum.id() );
         if ( folium.attribute( L"isChecked" ) == L"false" ) {
-
-            auto it = impl_->dataIds_.find( folium.id() );
-            if ( it != impl_->dataIds_.end() )
-                impl_->dataIds_.erase( it );
-
+            if ( it != impl_->data_.end() )
+                impl_->data_.erase( it );
+        } else { // checked
+            if ( it == impl_->data_.end() )
+                impl_->data_.emplace_back( datum );
         }
-
     }
 }
 
@@ -337,47 +333,6 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
     renderer.render( impl_->splot< impl::idReference >(), &painter, rc );
     rc.moveTo( rc.left(), rc.bottom() );
     renderer.render( impl_->splot< impl::idProcessed >(), &painter, rc );
-}
-
-void
-ElementalCompWnd::draw( int which )
-{
-    impl_->plots_[ impl::idProfile ]->clear();  // profile
-    impl_->plots_[ impl::idProcessed ]->clear();  // centroid
-
-    QString title;
-
-    for ( auto& data: impl_->dataIds_ ) {
-        int idx = data.second.idx_;
-        int traceid = idx * 2;
-
-        if ( title.isEmpty() ) {
-            title = data.second.display_name();
-        } else {
-            title += " .";
-        }
-
-        QColor color = impl_->plots_[ 0 ]->index_color( idx );
-
-        if ( auto profile = data.second.profile_.lock() ) {
-            if ( auto plot = impl_->splot< impl::idProfile >() ) {
-                plot->setData( profile, traceid );
-                plot->setColor( traceid, color );
-                plot->show();
-            }
-        }
-
-        if ( auto centroid = data.second.centroid_.lock() ) {
-            if ( auto plot = impl_->splot< impl::idProcessed >() ) {
-                plot->setData( centroid, traceid + 1, true );
-                plot->setColor( traceid + 1, color );
-                plot->show();
-            }
-        }
-
-    }
-
-    impl_->plots_[ impl::idProfile ]->setTitle( title );
 }
 
 void

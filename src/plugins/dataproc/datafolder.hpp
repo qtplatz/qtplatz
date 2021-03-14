@@ -26,6 +26,7 @@
 #include <memory>
 #include <QString>
 #include <boost/uuid/uuid.hpp>
+#include <boost/optional.hpp>
 
 namespace adcontrols { class MassSpectrum; class Chromatogram; }
 namespace adprocessor { class dataprocessor; }
@@ -56,10 +57,16 @@ namespace dataproc {
         QString display_name() const { return display_name_; }
         boost::uuids::uuid id() const { return idfolium_; }
         operator bool () const;
-        std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> get_profile() const;
+        boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_profile() const;
+        boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_processed() const;
         std::shared_ptr< const adcontrols::Chromatogram > get_chromatogram() const;
 
         static QString make_display_name( const std::wstring& fullpath, const portfolio::Folium& );
         static QString make_display_name( Dataprocessor *, const portfolio::Folium& );
+
+        template< typename container > static
+        typename container::const_iterator find( const container& v, const boost::uuids::uuid& uuid ) {
+            return std::find_if( v.begin(), v.end(), [&]( const auto& a ){ return a.id() == uuid; } );
+        };
     };
 }

@@ -46,8 +46,6 @@ datafolder::datafolder( int idx
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
 {
-    ADDEBUG() << "display_name: " << display_name_.toStdString();
-
     if ( auto raw = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
         profile_ = raw; // maybe profile or histogram
         if ( raw->isHistogram() ) {
@@ -62,7 +60,9 @@ datafolder::datafolder( int idx
                                                 , [](const auto& a){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
             if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) {
                 centroid_ = ptr;
-            }
+                ADDEBUG() << "---- folder has centroid ------";
+            } else
+                ADDEBUG() << "---- folder has no centroid ------";
         }
     } else if ( auto raw = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
         chromatogram_ = raw;
@@ -105,13 +105,26 @@ datafolder::operator bool() const
     return ( profile_.lock() || chromatogram_.lock() );
 }
 
-std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */>
+boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> >
 datafolder::get_profile() const
 {
     if ( auto hist = this->profiledHistogram_.lock() )
-        return { hist, true };
+        return {{ hist, true }};
     else if ( auto prof = this->profile_.lock() )
-        return { prof, false };
+        return {{ prof, false }};
     else
-        return { nullptr, false };
+        return {};
+}
+
+boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> >
+datafolder::get_processed() const
+{
+    if ( auto ms = this->centroid_.lock() ) {
+        if ( auto hist = this->profiledHistogram_.lock() )
+            return {{ ms, true }};
+        else
+            return {{ ms, false }};
+    } else {
+        return {};
+    }
 }

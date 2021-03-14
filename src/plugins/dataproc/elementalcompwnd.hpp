@@ -72,8 +72,6 @@ namespace dataproc {
         void handlePrintCurrentView( const QString& outpdf );
 
     private:
-        void draw( int );
-
         class impl;
         impl * impl_;
 

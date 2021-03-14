@@ -198,10 +198,9 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         auto& plot = impl_->plots_[ 0 ];
         plot->clear();
         plot->setTitle( data.display_name() );
-        auto profile = data.get_profile();
-        if ( profile.first ) {
-            plot->setData( profile.first, 0, QwtPlot::yLeft );
-            plot->setAxisTitle( QwtPlot::yLeft, profile.second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+        if ( auto profile = data.get_profile() ) {
+            plot->setData( profile->first, 0, QwtPlot::yLeft );
+            plot->setAxisTitle( QwtPlot::yLeft, profile->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
         }
     } else {
         return;
@@ -216,11 +215,13 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         }
     } else {
         if ( it == impl_->data_.end() ) {
-            if (( data.overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *data.get_profile().first ) )) {
-                double yMax = adcontrols::segments_helper::max_intensity( *data.overlaySpectrum_ );
-                for ( auto& sp: adcontrols::segment_wrapper<>( *data.overlaySpectrum_ ) ) {
-                    for ( size_t i = 0; i < sp.size(); ++i )
-                        sp.setIntensity( i, 100 * sp.intensity( i ) / yMax );
+            if ( auto profile = data.get_profile() ) {
+                if (( data.overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *profile->first ) )) {
+                    double yMax = adcontrols::segments_helper::max_intensity( *data.overlaySpectrum_ );
+                    for ( auto& sp: adcontrols::segment_wrapper<>( *data.overlaySpectrum_ ) ) {
+                        for ( size_t i = 0; i < sp.size(); ++i )
+                            sp.setIntensity( i, 100 * sp.intensity( i ) / yMax );
+                    }
                 }
             }
             impl_->data_.emplace_back( data );
@@ -293,9 +294,13 @@ MSSpectraWnd::redraw()
         title += data.display_name();
 
         QColor color = impl_->plots_[ 1 ]->index_color( traceid );
-        std::shared_ptr< const adcontrols::MassSpectrum > ms; bool isCounts;
-        std::tie( ms, isCounts) = data.get_profile();
-        if ( ms ) {
+        if ( auto profile = data.get_profile() ) {
+#if __cplusplus >= 201703L
+            auto [ ms, isCounts ] = *profile;
+#else
+            std::shared_ptr< const adcontrols::MassSpectrum > ms; bool isCounts;
+            std::tie( ms, isCounts ) = *profile;
+#endif
             if ( impl_->data_.size() == 1 ) {
                 impl_->plots_[ 1 ]->setData( ms, traceid, QwtPlot::yLeft );
                 impl_->plots_[ 1 ]->setColor( traceid, color );
