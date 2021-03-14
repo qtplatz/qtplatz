@@ -60,9 +60,7 @@ datafolder::datafolder( int idx
                                                 , [](const auto& a){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
             if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) {
                 centroid_ = ptr;
-                ADDEBUG() << "---- folder has centroid ------";
-            } else
-                ADDEBUG() << "---- folder has no centroid ------";
+            }
         }
     } else if ( auto raw = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
         chromatogram_ = raw;
