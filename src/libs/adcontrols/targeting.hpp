@@ -86,7 +86,7 @@ namespace adcontrols {
         struct Candidate {
             uint32_t idx; // peak index on mass-spectrum
             uint32_t fcn; // protocol (aka segment) id
-            uint32_t charge;
+            int32_t charge;
             double mass;  // This used to an error from exact mass, change it to found mass at V2 (2019-AUG-15)
             std::string formula; // this is the exact formula matched with the peak (contains adducts)
             double exact_mass;               // V2
@@ -94,7 +94,7 @@ namespace adcontrols {
             std::vector< isotope > isotopes; // V2
             Candidate();
             Candidate( const Candidate& );
-            Candidate( uint32_t idx, uint32_t fcn, uint32_t charge, double mass, double exact_mass, const std::string& formula );
+            Candidate( uint32_t idx, uint32_t fcn, int32_t charge, double mass, double exact_mass, const std::string& formula );
         private:
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, unsigned int version ) {

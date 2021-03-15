@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -49,6 +49,7 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4503)
 #endif
+
 using namespace adcontrols;
 
 namespace adcontrols {
@@ -59,13 +60,21 @@ namespace adcontrols {
         // static const char * separators [] = { "+", "-" };
         using adportable::chem::atom_type;
 
-        typedef std::vector< std::pair< atom_type, size_t > > format_type;
-        typedef std::pair< format_type, int > iformat_type;
+        typedef std::vector< std::pair< atom_type, size_t > > format_type; // atom, num-atoms
+        typedef std::pair< format_type, int > iformat_type;                // formula, charge
+
+        static void debug_print( const iformat_type& m, int line, const char * file ) {
+            std::ostringstream o;
+            std::for_each( m.first.begin(), m.first.end()
+                           , [&](const auto& a){ o << "{" << a.first.first <<  a.first.second << ", " << a.second << "}"; });
+        }
+        //////////////
 
         struct formulaFormat {
             static void formula_add( iformat_type& m, const std::pair<const atom_type, std::size_t>& p ) {
                 m.first.emplace_back( p );
             }
+
             static void formula_join( iformat_type& m, iformat_type& a ) {
                 if ( a.second )
                     m.second += a.second; // charge-group
@@ -73,11 +82,12 @@ namespace adcontrols {
                     m.first.emplace_back( atom_type( 0, braces[0] ), 0 ); // repeat-group
                 for ( auto t: a.first )
                     m.first.emplace_back( t );
-
             }
+
             static void formula_repeat( iformat_type& m, std::size_t n ) {
                 m.first.emplace_back( atom_type( 0, braces[1] ), n );
             }
+
             static void charge_state( iformat_type& m, adportable::chem::charge_type& c ) {
                 m.second += ( c.second == '+' ? c.first : -c.first );
             }
@@ -102,18 +112,32 @@ namespace adcontrols {
                 if ( formula.empty() )
                     return false;
 
+                std::pair< int, int > charges{ 0, 0 };
+                bool add( true );
                 typename std::basic_string< char_type >::const_iterator it = formula.begin();
-
                 do {
+                    chem::debug_print( fmt, __LINE__, __FILE__ );
                     if ( *it == '+' ) {
+                        add = true;
                         fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put ' +' in the text
                         ++it;
                     } else if ( *it == '-' ) {
+                        add = false;
                         fmt.first.emplace_back( adportable::chem::atom_type( 0, " -"), 0 ); // put ' -' in the text
                         ++it;
                     }
+                    if ( add )
+                        charges.first += fmt.second;
+                    else
+                        charges.second -= fmt.second;
+                    fmt.second = 0;
                 } while ( parse< char_type >( it, formula.end(), fmt ) && it != formula.end() );
-
+                if ( add )
+                    charges.first += fmt.second;
+                else
+                    charges.second -= fmt.second;
+                fmt.second = charges.first + charges.second;
+                chem::debug_print( fmt, __LINE__, __FILE__ );
                 return true;
             }
 
@@ -239,6 +263,7 @@ namespace adcontrols {
 
             if ( boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) ) {
 
+                // comp := pair< atom_type, int >, charge; atom_type = iso + symbol
                 std::basic_ostringstream<char_type> o;
                 if ( !removeCharge && comp.second )
                     o << "[";
@@ -472,17 +497,18 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
     adportable::chem::icomp_type comp, lose;
 
     for ( auto& formula: formulae ) {
-        if ( formula.second == '-' ) {
+        if ( formula.second == '-' ) { // lose
             std::string::const_iterator it = formula.first.begin();
             boost::spirit::qi::parse( it, formula.first.end(), comp_parser, lose );
-        } else {
+        } else {                       // add
             std::string::const_iterator it = formula.first.begin();
             boost::spirit::qi::parse( it, formula.first.end(), comp_parser, comp );
         }
     }
 
-    if ( charge == 0 )
-        charge = comp.second + lose.second;
+    if ( charge == 0 ) {
+        charge = comp.second + (-lose.second);
+    }
 
     for ( auto l: lose.first ) {
         auto it = comp.first.find( l.first );
@@ -658,29 +684,41 @@ ChemicalFormula::neutralize( const std::string& formula )
 {
     chem::formatter formatter;
 
-    chem::iformat_type fmt;
+    chem::iformat_type fmt; // formula, charge
     std::string::const_iterator it = formula.begin();
-    int charge(0);
+
+    std::pair< int, int > charges{ 0, 0 };
+    bool add(true);
     do {
-        if ( *it == '+' ) {
-            fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put '+' in the text
+        // ADDEBUG() << "\tpos: " << std::distance( formula.begin(), it ) << ", charge = " << fmt.second;
+        if ( *it == '+' ) { // add formula
+            add = true;
+            fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put '+' (add) in the text
             ++it;
-        } else if ( *it == '-' ) {
-            fmt.first.emplace_back( adportable::chem::atom_type( 0, " -" ), 0 ); // put '-' in the text
+        } else if ( *it == '-' ) { // subtract formula
+            add = false;
+            fmt.first.emplace_back( adportable::chem::atom_type( 0, " -" ), 0 ); // put '-' (sub) in the text
             ++it;
         }
-        charge += fmt.second;
+        if ( add )
+            charges.first += fmt.second;
+        else
+            charges.second -= fmt.second;
+        fmt.second = 0;
     } while ( formatter.parse< char >( it, formula.end(), fmt ) && it != formula.end() );
-
-    // for ( auto f: fmt.first )
-    //     ADDEBUG() << "atom_type: " << f;
-
-    charge += fmt.second;
+    if ( add )
+        charges.first += fmt.second;
+    else
+        charges.second -= fmt.second;
+    fmt.second = charges.first + charges.second;
+    // chem::debug_print( fmt, __LINE__, __FILE__ );
+    // charge += fmt.second;
+    // ADDEBUG() << "------------------------------------ charge: " << charge << ", " << fmt.second;
 
     std::ostringstream o;
     formatter.print_text( o, fmt, false, true );
 
-    return { o.str(), charge };
+    return { o.str(), fmt.second };
 }
 
 //static
@@ -751,6 +789,7 @@ ChemicalFormula::formatFormulae( const std::string& formula, bool richText )
 
     std::ostringstream o;
     chem::formatter().print_text<char>( o, fmt, richText );
+
     return o.str();
 }
 
@@ -792,6 +831,7 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
     int charge;
     std::vector< mol::element > mol, loses;
     getComposition( mol, mformula, charge );
+    // ADDEBUG() << "mformula: " << mformula << ", charge: " << charge << ", lformula: " << lformula;
 
     if ( getComposition( loses, lformula, charge ) ) {
         for ( auto& lose : loses ) {
@@ -801,6 +841,7 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
             if ( it != mol.end() )
                 it->count( it->count() - lose.count() );
         }
+        charge = (-charge); // lose
     }
     std::sort( mol.begin(), mol.end(), [] ( const mol::element& a, const mol::element& b ) { return std::strcmp( a.symbol(), b.symbol() ) < 0; } );
 
@@ -849,7 +890,7 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
                         xit->second = xit->second - sub.second;
                 });
 
-            comp.second += lose.second; // update charge
+            comp.second += (-lose.second); // update charge
 
             formulae.emplace_back( chem::make_string< char >( comp ) );
         }
