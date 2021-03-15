@@ -117,7 +117,7 @@ namespace chemistry {
         , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
         , { "CCCCCCCCCCCCCCCC(=O)O",                  { "Palmitic acid" } }
         , { "C1=CC=C2C=C3C=CC=CC3=CC2=C1",            { "Anthracene" } }
-        , { "c1=ccc2c3cc=ccc3ccc2c1",                 { "Phenanthrene" } }
+        , { "c1ccc2c(c1)ccc3c2cccc3",                 { "Phenanthrene" } }
         , { "c1cc2ccc3ccc4ccc5ccc6ccc1c7c2c3c4c5c67", { "Coronene" } }
         , { "c1ccc2c3ccccc3Cc2c1",                    { "Fluorene" } }
         , { "c1ccc-2c(c1)-c3cccc4c3c2ccc4",           { "Fluoranthene" } }
