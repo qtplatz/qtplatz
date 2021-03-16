@@ -410,7 +410,12 @@ task::impl::worker_thread()
                 }
 
                 auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
+                if ( auto sp = document::instance()->massSpectrometer() ) {
+                    // todo: add mass_assignee -- workaround
+                    adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm, [&]( double t, int mode ){ return sp->massFromTime( t, *ms );} );
+                } else {
+                    adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
+                }
                 document::instance()->setData( acqrscontrols::u5303a::histogram_observer, ms, 0 );
             }
             status.tp_plot_handled_ = std::chrono::system_clock::now();
