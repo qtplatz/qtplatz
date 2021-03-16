@@ -414,6 +414,56 @@ ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot )
 }
 
 void
+ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int idx, QwtPlot::Axis yAxis )
+{
+    if ( c->size() < 2 )
+        return;
+
+    if ( impl_->traces_.size() <= size_t( idx ) )
+        impl_->traces_.resize( idx + 1 );
+
+    if ( ! boost::apply_visitor( isValid< TraceData< adcontrols::Trace > >(), impl_->traces_[ idx ] ) )
+        impl_->traces_[ idx ] = std::make_unique< TraceData< adcontrols::Trace > >( *this );
+
+    if ( auto& trace = boost::get< std::unique_ptr< TraceData< adcontrols::Trace > > >( impl_->traces_[ idx ] ) ) {
+
+        trace->plot_curve().setPen( QPen( color_table [ idx ] ) );
+        trace->plot_curve().setYAxis( yAxis );
+        trace->setData( c );
+
+        trace->plot_curve().setTitle( QString::fromStdString( c->legend() ) );
+
+        QRectF rc;
+        for ( auto& trace: impl_->traces_ ) {
+            if ( ( ! boost::apply_visitor( isNull(), trace ) ) && ( boost::apply_visitor( yAxis_visitor(), trace ) == yAxis ) ) {
+                QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
+                if ( rc.isEmpty() )
+                    rc = rect;
+                else
+                    rc |= rect;
+            }
+        }
+
+        for ( auto& trace: impl_->traces_ ) {
+            if ( ! boost::apply_visitor( isNull(), trace ) && ( boost::apply_visitor( yAxis_visitor(), trace ) != yAxis ) ) {
+                QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
+                rc = QRectF( QPointF( std::min( rc.left(), rect.left() ), rc.top() )
+                             , QPointF( std::max( rc.right(), rect.right() ), rc.bottom() ) );
+            }
+        }
+
+        if ( adportable::compare<double>::essentiallyEqual( rc.height(), 0.0 ) )
+            rc.setHeight( 1.0 );
+
+        setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
+
+        setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale
+
+        zoomer()->setZoomBase();
+    }
+}
+
+void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int idx, bool yRight )
 {
     if ( c->size() < 2 )
@@ -468,11 +518,11 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
 {
-    __setData( cp, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
+    setData( cp, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
 }
 
 void
-ChromatogramWidget::__setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, QwtPlot::Axis yAxis )
+ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, QwtPlot::Axis yAxis )
 {
     if ( cp->size() < 2 )
         return;

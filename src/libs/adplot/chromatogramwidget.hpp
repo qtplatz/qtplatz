@@ -54,11 +54,10 @@ namespace adplot {
         explicit ChromatogramWidget(QWidget *parent = 0);
 		~ChromatogramWidget();
 
-        void setData( std::shared_ptr< const adcontrols::Trace>, int idx = 0, bool yaxis2 = false );
-        void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx = 0, bool axisRight = false );
-    private:
-        void __setData( std::shared_ptr< const adcontrols::Trace>, int idx, QwtPlot::Axis );
-        void __setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx, QwtPlot::Axis );
+        [[deprecated]] void setData( std::shared_ptr< const adcontrols::Trace>, int idx = 0, bool yaxis2 = false );
+        [[deprecated]] void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx = 0, bool axisRight = false );
+        void setTrace( std::shared_ptr< const adcontrols::Trace>, int idx, QwtPlot::Axis );
+        void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx, QwtPlot::Axis );
 
     public:
         // void setData( std::shared_ptr< const adcontrols::Chromatogram >&&, int idx = 0, bool axisRight = false );
