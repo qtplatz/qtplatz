@@ -186,24 +186,23 @@ namespace adplot {
         class ChromatogramData {
         public:
             ~ChromatogramData() { }
-			ChromatogramData( plot& plot ) : curve_( plot ), y2_(false) { }
-            ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ), y2_( t.y2_ ) { }
+			ChromatogramData( plot& plot ) : curve_( plot ), yAxis_( QwtPlot::yLeft ) { }
+            ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ), yAxis_( t.yAxis_ ) { }
 
-            inline bool y2() const { return y2_; }
+            inline bool y2() const { return yAxis_ == QwtPlot::yRight; }
 
             void setData( std::shared_ptr< const adcontrols::Chromatogram>& cp, bool y2 ) {
                 grab_ = cp;
-                y2_ = y2;
+                yAxis_ = y2 ? QwtPlot::yRight : QwtPlot::yLeft;
                 auto range_x = cp->timeRange(); // adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
                 // // workaround for 'counting chromatogram', which can be complete flat signals
                 if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() )
-                     range_y.first = 0;
+                    range_y.first = 0;
 
                 rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
-                if ( y2 )
-                    curve_.p()->setYAxis( QwtPlot::yRight );
+                curve_.p()->setYAxis( yAxis_ );
                 curve_.p()->setData( new xSeriesData( cp, rect_ ) );
             }
 
@@ -232,7 +231,7 @@ namespace adplot {
             PlotCurve curve_;
             QRectF rect_;
             std::shared_ptr< const adcontrols::Chromatogram > grab_;
-            bool y2_;
+            QwtPlot::Axis yAxis_;
         };
 
         // typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
@@ -466,14 +465,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
 }
 
 void
-ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >&& cp, int idx, bool yRight )
-{
-    std::shared_ptr< const adcontrols::Chromatogram > xcp = std::move( cp );
-    setData( xcp, idx, yRight );
-}
-
-void
-ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& cp, int idx, bool yRight )
+ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
 {
     if ( cp->size() < 2 )
         return;
@@ -499,8 +491,8 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
 
     plotAnnotations( impl_->peak_annotations_ );
 
-    if ( auto value = cp->ptree().get_optional<std::string>( "trace.legend" ) )
-        trace->plot_curve().setTitle( QString::fromStdString( value.get() ) );
+    // if ( auto value = cp->ptree().get_optional<std::string>( "trace.legend" ) )
+    //     trace->plot_curve().setTitle( QString::fromStdString( value.get() ) );
 
     QRectF rect = trace->boundingRect();
     for ( const auto& v: impl_->traces_ ) {
@@ -784,8 +776,6 @@ ChromatogramWidget::setLegendEnabled( bool enable )
         if ( ! impl_->externalLegend_ )
             impl_->externalLegend_ = std::make_unique< QwtLegend >();
         impl_->externalLegend_->setWindowTitle("Legend");
-        //connect( this, SIGNAL( legendDataChanged( const QVariant &, const QList<QwtLegendData> & ) ),
-        //         impl_->externalLegend_, SLOT( updateLegend( const QVariant &, const QList<QwtLegendData> & ) ) );
     } else {
         impl_->externalLegend_.reset();
     }

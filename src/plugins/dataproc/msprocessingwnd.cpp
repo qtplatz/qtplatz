@@ -294,7 +294,7 @@ MSProcessingWnd::init()
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
             pImpl_->ticPlot_->register_tracker( [=]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
-            pImpl_->ticPlot_->setItemLegendEnabled( true );
+            pImpl_->ticPlot_->setItemLegendEnabled( false );
         }
 
         if ( ( pImpl_->profileSpectrum_ = new adplot::SpectrumWidget(this) ) ) {

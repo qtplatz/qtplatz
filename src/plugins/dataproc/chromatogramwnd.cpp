@@ -97,7 +97,7 @@ namespace dataproc {
             std::for_each( plots_.begin(), plots_.end(), [&]( auto& plot ){
                     plot = std::make_unique< adplot::ChromatogramWidget >();
                     plot->setMinimumHeight( 80 );
-                    plot->setItemLegendEnabled( true );
+                    plot->setItemLegendEnabled( false );
                     plot->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
                 });
 
