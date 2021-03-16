@@ -190,10 +190,11 @@ namespace adplot {
             ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ), yAxis_( t.yAxis_ ) { }
 
             inline bool y2() const { return yAxis_ == QwtPlot::yRight; }
+            inline QwtPlot::Axis yAxis() const { return yAxis_; }
 
-            void setData( std::shared_ptr< const adcontrols::Chromatogram>& cp, bool y2 ) {
+            void setData( std::shared_ptr< const adcontrols::Chromatogram>& cp, QwtPlot::Axis yAxis ) {
                 grab_ = cp;
-                yAxis_ = y2 ? QwtPlot::yRight : QwtPlot::yLeft;
+                yAxis_ = yAxis;
                 auto range_x = cp->timeRange(); // adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
@@ -467,6 +468,12 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
 {
+    __setData( cp, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
+}
+
+void
+ChromatogramWidget::__setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, QwtPlot::Axis yAxis )
+{
     if ( cp->size() < 2 )
         return;
 
@@ -481,7 +488,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
     auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
 
 	trace->plot_curve().setPen( QPen( color_table[idx] ) );
-    trace->setData( cp, yRight );
+    trace->setData( cp, yAxis );
     impl_->peak_annotations_.clear();
 
     for ( auto& pk: cp->peaks() )
@@ -498,15 +505,14 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
     for ( const auto& v: impl_->traces_ ) {
         if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
             auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
-            if ( trace->y2() == yRight ) {
+            if ( trace->yAxis() == yAxis ) {
                 rect |= trace->boundingRect();
             }
         }
     }
 
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft
-                  , rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );
+    setAxisScale( yAxis, rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );
 
     zoomer()->setZoomBase(); // zoom base set to data range
 
