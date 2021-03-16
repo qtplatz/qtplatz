@@ -149,7 +149,7 @@ QueryWidget::handleConnectionChanged()
     if ( auto conn = document::instance()->connection() ) {
         if ( auto form = findChild< QueryForm * >() ) {
             QStringList tables;
-            bool hasPeak( false ), hasTrigger( false );
+            bool hasPeak( false ), hasTrigger( false ), hasQuanTable( false );
             auto query = conn->sqlQuery( "SELECT name FROM sqlite_master WHERE type='table'" );
             while ( query.next() ) {
                 tables << query.value( 0 ).toString();
@@ -157,6 +157,8 @@ QueryWidget::handleConnectionChanged()
                     hasPeak = true;
                 else if ( query.value( 0 ).toString().compare( "trigger", Qt::CaseInsensitive ) )
                     hasTrigger = true;
+                else if ( query.value( 0 ).toString().compare( "QuanResponse", Qt::CaseInsensitive ) )
+                    hasQuanTable = true;
             }
             tables.insert( 0, "sqlite_master" );
 
@@ -167,8 +169,10 @@ QueryWidget::handleConnectionChanged()
                 tables.insert( 0, "{TOF/Intensities -- min(peak_time)}" );
                 tables.insert( 0, "{Peak Height}" );
             }
-            tables.insert( 0, "{CountRate}" );
-            tables.insert( 0, "{CountRatio}" );
+            if ( hasQuanTable ) {
+                tables.insert( 0, "{CountRate}" );
+                tables.insert( 0, "{CountRatio}" );
+            }
 
             tables.insert( 0, "" ); // empty on top of combobox
 
