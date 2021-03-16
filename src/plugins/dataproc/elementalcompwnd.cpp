@@ -166,9 +166,9 @@ ElementalCompWnd::onInitialUpdate()
                      impl_->scaleYAuto_ = autoScale;
                      impl_->scaleY_ = { base, height };
                      if ( autoScale )
-                         impl_->splot< impl::idProfile >()->setYScale( 0, 0, false );
+                         impl_->splot< impl::idProfile >()->setYScale( 0, 0, QwtPlot::yLeft );
                      else
-                         impl_->splot< impl::idProfile >()->setYScale( base + height, base, false );
+                         impl_->splot< impl::idProfile >()->setYScale( base + height, base, QwtPlot::yLeft );
                      impl_->splot< impl::idProfile >()->replotYScale();
                  });
     }

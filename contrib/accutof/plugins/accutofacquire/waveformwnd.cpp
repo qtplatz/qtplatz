@@ -629,17 +629,17 @@ WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom 
 
     if ( which == 0 ) {
         if ( autoScale )
-            spw_->setYScale( 0, 0, false );
+            spw_->setYScale( 0, 0, QwtPlot::yLeft );
         else
-            spw_->setYScale( top, bottom, false );
+            spw_->setYScale( top, bottom, QwtPlot::yLeft );
     } else {
         for ( auto& closeup: closeups_ ) {
             if ( closeup.enable ) {
                 // ADDEBUG() << "handleScaleY which=" << which << ", autoScale=" << autoScale << ", top:bottom=" << top << ", " << bottom;
                 if ( autoScale )
-                    closeup.sp->setYScale(0, 0, false );
+                    closeup.sp->setYScale(0, 0, QwtPlot::yLeft );
                 else
-                    closeup.sp->setYScale(top, bottom, false );
+                    closeup.sp->setYScale(top, bottom, QwtPlot::yLeft );
             }
         }
     }

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -198,8 +198,7 @@ namespace adplot {
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
                , scaleFcn_( -1 )
-               , yScale1_{0,0}
-               , hasYScale1_( false )
+               , yScale1_( boost::none )       // yLeft user specified
             {}
         bool autoAnnotation_;
         bool isTimeAxis_;
@@ -215,8 +214,7 @@ namespace adplot {
         std::atomic<int> focusedFcn_;
         int scaleFcn_;
         std::mutex mutex_;
-        std::pair< double, double > yScale1_;
-        bool hasYScale1_;
+        boost::optional< std::pair< double, double > > yScale1_;
 
         void clear();
         void update_annotations( plot&, const std::pair<double, double>&, QwtPlot::Axis );
@@ -624,9 +622,9 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     QRectF baseRect;
     impl_->baseScale( yRight, baseRect );
 
-    if ( impl_->hasYScale1_ ) {
-        baseRect.setTop( impl_->yScale1_.first );
-        baseRect.setBottom( impl_->yScale1_.second );
+    if ( impl_->yScale1_ ) {
+        baseRect.setTop( impl_->yScale1_->first );
+        baseRect.setBottom( impl_->yScale1_->second );
     }
 
     auto rectIndex = zoomer()->zoomRectIndex();
@@ -651,8 +649,8 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
             if ( hasAxes.first ) {
                 QStack< QRectF > zstack;
                 zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
-                if ( impl_->hasYScale1_ )
-                    zstack.push_back( QRectF( z.x(), impl_->yScale1_.second, z.width(), impl_->yScale1_.first - impl_->yScale1_.second ) );
+                if ( impl_->yScale1_ )
+                    zstack.push_back( QRectF( z.x(), impl_->yScale1_->second, z.width(), impl_->yScale1_->first - impl_->yScale1_->second ) );
                 else
                     zstack.push_back( QRectF( z.x(), left.first, z.width(), left.second - left.first ) );
                 QSignalBlocker block( zoomer() );
@@ -687,26 +685,31 @@ SpectrumWidget::rescaleY( int fcn )
     yZoom( z.x(), z.x() + z.width() );
 }
 
-std::tuple< bool, double, double >
-SpectrumWidget::yScale( bool axisRight ) const
+boost::optional< std::pair< double, double > >
+SpectrumWidget::yScale( QwtPlot::Axis yAxis ) const
 {
-    if ( axisRight ) {
-        return std::make_tuple( false, 0.0, 0.0 );
+    if ( yAxis == QwtPlot::yRight ) {
+        return boost::none;
     } else {
-        return std::make_tuple( impl_->hasYScale1_, impl_->yScale1_.first, impl_->yScale1_.second );
+        return impl_->yScale1_;
     }
 }
 
 void
-SpectrumWidget::setYScale( double top, double bottom, bool axisRight )
+SpectrumWidget::setYScale( double top, double bottom, QwtPlot::Axis yAxis )
 {
-    if ( axisRight == false ) {
-
-        impl_->yScale1_ = std::make_pair(top, bottom);
-        impl_->hasYScale1_ = !adportable::compare< double >::essentiallyEqual( top, bottom );
+    if ( yAxis == QwtPlot::yLeft ) {
+        bool yAuto(false);
+        if ( adportable::compare< double >::essentiallyEqual( top, bottom ) ) {
+            yAuto = true;
+            impl_->yScale1_ = boost::none;
+        } else {
+            yAuto = false;
+            impl_->yScale1_ = std::make_pair(top, bottom);
+        }
 
         if ( auto zoomer = plot::zoomer() )
-            zoomer->autoYScale( !impl_->hasYScale1_ );
+            zoomer->autoYScale( yAuto );
     }
 }
 
@@ -717,9 +720,9 @@ SpectrumWidget::replotYScale()
 
     QRectF baseRect;
     impl_->baseScale( false, baseRect ); // always get left-Y axis
-    if ( impl_->hasYScale1_ ) {
-        baseRect.setTop( impl_->yScale1_.first );
-        baseRect.setBottom( impl_->yScale1_.second );
+    if ( impl_->yScale1_ ) {
+        baseRect.setTop( impl_->yScale1_->first );
+        baseRect.setBottom( impl_->yScale1_->second );
     }
 
     if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
@@ -731,8 +734,8 @@ SpectrumWidget::replotYScale()
         // std::pair<double, double> left, right;
         QStack< QRectF > zstack;
         zstack.push_back( QRectF( baseRect.x(), baseRect.bottom(), baseRect.width(), -baseRect.height() ) ); // upside down
-        if ( impl_->hasYScale1_ ) {
-            zstack.push_back( QRectF( z.x(), impl_->yScale1_.second, z.width(), impl_->yScale1_.first - impl_->yScale1_.second ) );
+        if ( impl_->yScale1_ ) {
+            zstack.push_back( QRectF( z.x(), impl_->yScale1_->second, z.width(), impl_->yScale1_->first - impl_->yScale1_->second ) );
         } else {
             if ( auto yLeft = impl_->scaleY( z, QwtPlot::yLeft ) )
                 zstack.push_back( QRectF( z.x(), yLeft->first, z.width(), yLeft->second - yLeft->first ) );

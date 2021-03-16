@@ -27,6 +27,7 @@
 
 #include "plot.hpp"
 #include "adplot_global.hpp"
+#include <boost/optional.hpp>
 #include <functional>
 #include <memory>
 #include <tuple>
@@ -70,8 +71,8 @@ namespace adplot {
         void rescaleY( int fcn );
         void setViewId( uint32_t id );
         uint32_t viewId() const;
-        void setYScale( double top, double bottom, bool axisRight = false );
-        std::tuple< bool, double, double > yScale( bool ) const;
+        void setYScale( double top, double bottom, QwtPlot::Axis );
+        boost::optional< std::pair< double, double > > yScale( QwtPlot::Axis ) const;
         void replotYScale();
 
     private:

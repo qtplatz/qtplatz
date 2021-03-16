@@ -2005,9 +2005,9 @@ MSProcessingWnd::onInitialUpdate()
                      pImpl_->scaleY_ = std::make_pair( base, height );
 
                      if ( autoScale )
-                         pImpl_->profileSpectrum_->setYScale( 0, 0, false );
+                         pImpl_->profileSpectrum_->setYScale( 0, 0, QwtPlot::yLeft );
                      else
-                         pImpl_->profileSpectrum_->setYScale( base + height, base, false );
+                         pImpl_->profileSpectrum_->setYScale( base + height, base, QwtPlot::yLeft );
 
                      pImpl_->profileSpectrum_->replotYScale();
                  });
