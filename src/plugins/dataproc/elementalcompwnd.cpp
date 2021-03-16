@@ -162,7 +162,7 @@ ElementalCompWnd::onInitialUpdate()
     if ( auto w = MainWindow::instance() ) {
         connect( w, &MainWindow::onScaleYChanged, this
                  , [&]( bool autoScale, double base, double height ) {
-                     ADDEBUG() << "autoScale: " << autoScale << ", " << std::make_pair( base, height );
+                     // ADDEBUG() << "autoScale: " << autoScale << ", " << std::make_pair( base, height );
                      impl_->scaleYAuto_ = autoScale;
                      impl_->scaleY_ = { base, height };
                      if ( autoScale )
@@ -257,7 +257,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     // adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
     if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        auto datum = datafolder( 0, processor->filename(), folium );
+        auto datum = datafolder( processor->filename(), folium );
         do {
             auto& plot = impl_->plots_[ impl::idProfile ];
             if ( auto profile = datum.get_profile() ) {

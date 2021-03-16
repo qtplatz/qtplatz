@@ -339,7 +339,6 @@ MainWindow::createStyledBarTop()
 void
 MainWindow::handleDataprocessor( Dataprocessor * dp )
 {
-    ADDEBUG() << "handleDataprocessor";
     auto sp = ( dp ) ? dp->massSpectrometer() : nullptr;
     if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
         w->setMassSpectrometer( sp );

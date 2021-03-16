@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -87,7 +87,8 @@ namespace dataproc {
         impl( ChromatogramWnd * p ) : QObject( p )
                                     , this_( p )
                                     , peakTable_( new adwidgets::PeakTable )
-                                    , marker_( std::make_unique< adplot::PeakMarker >() ) {
+                                    , marker_( std::make_unique< adplot::PeakMarker >() )
+                                    , dirty_( false ) {
 
             using adwidgets::PeakTable;
 
@@ -103,8 +104,8 @@ namespace dataproc {
             auto shortcut = new QShortcut( QKeySequence::Copy, p );
             connect( shortcut, &QShortcut::activatedAmbiguously, this, &impl::copy );
             connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
-            connect( plots_[0].get(), static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram0 );
-            connect( plots_[1].get(), static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram1 );
+            connect( plots_[0].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram0 );
+            connect( plots_[1].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram1 );
 
             marker_->attach( plots_[ 0 ].get() );
             marker_->visible( true );
@@ -157,6 +158,8 @@ namespace dataproc {
         void selectedOnChromatogram0( const QRectF& );
         void selectedOnChromatogram1( const QRectF& );
 
+        void redraw();
+
         ChromatogramWnd * this_;
         std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > plots_;
         adwidgets::PeakTable * peakTable_;
@@ -164,7 +167,8 @@ namespace dataproc {
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
         std::wstring idActiveFolium_;
-        std::deque< datafolder > overlays_;
+        std::vector< datafolder > overlays_;
+        bool dirty_;
     public slots:
         void copy() {
             peakTable_->handleCopyToClipboard();
@@ -244,8 +248,29 @@ ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 }
 
 void
-ChromatogramWnd::handleSessionAdded( Dataprocessor * )
+ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 {
+    if ( auto folder = processor->portfolio().findFolder( L"Spectra" ) ) {
+        for ( auto& folium: folder.folio() ) {
+
+            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+
+                if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end()
+                                            , [&](const auto& a){ return a.id() == folium.uuid(); });
+                    if ( it == impl_->overlays_.end() ) {
+                        impl_->overlays_.emplace_back( datafolder( processor->filename(), folium ) );
+                        impl_->dirty_ = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if ( MainWindow::instance()->curPage() != MainWindow::idSelChromatogram )
+        return;
+
+    impl_->redraw();
 }
 
 void
@@ -274,52 +299,48 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
         return;
 
-    if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
+    auto datum = datafolder( processor->filename(), folium );
 
+    if ( auto chr = datum.get_chromatogram() ) {
+        // if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
         impl_->idActiveFolium_ = folium.id();
-        impl_->plots_[ 0 ]->setData( chr, 0 ); // draw current selection with attached data at id=0
+        auto& plot = impl_->plots_[ 0 ];
 
-        auto title = adcontrols::Chromatogram::make_folder_name( chr->getDescriptions() );
-        impl_->plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
+        plot->clear();
+        plot->setTitle( datum.display_name() );
+        plot->setData( chr, 0, QwtPlot::yLeft );
+        if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) ) {
+            plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
+        } else {
+            plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (a.u.)" ) );
+        }
 
         portfolio::Folio attachments = folium.attachments();
         for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
             adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
             boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
         }
+    } else {
+        return;
+    }
 
-        auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium_; } );
-
+    auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium_; } );
+    if ( folium.attribute( L"isChecked" ) == L"false" ) {
         if ( it != impl_->overlays_.end() ) {
-            if ( folium.attribute( L"isChecked" ) == L"false" )
-                impl_->overlays_.erase( it );
-            else
-                std::rotate( impl_->overlays_.begin(), it, it + 1 );
+            impl_->overlays_.erase( it );
+            impl_->dirty_ = true;
         } else {
-            if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                auto title = adcontrols::Chromatogram::make_folder_name( chr->getDescriptions() );
-                impl_->overlays_.emplace_front( 0, title, folium );
-                impl_->overlays_.front().chromatogram_ = chr;
+            if ( it == impl_->overlays_.end() ) {
+                if ( auto chr = datum.get_chromatogram() ) {
+                    impl_->overlays_.emplace_back( datum );
+                    impl_->dirty_ = true;
+                }
             }
         }
     }
 
-    impl_->plots_[ 1 ]->clear();
-
-    if ( impl_->overlays_.empty() ) {
-        impl_->plots_[ 1 ]->hide();
-    } else {
-        impl_->plots_[ 1 ]->show();
-        size_t idx(1);
-        QString titles;
-        std::for_each( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& d ){
-                if ( auto pchr = d.chromatogram_.lock() ) {
-                    titles += d.display_name() + "; ";
-                    impl_->plots_[ 1 ]->setData( pchr, idx++ );
-                }
-            });
-        impl_->plots_[ 1 ]->setTitle( titles );
-    }
+    if ( impl_->dirty_ )
+        impl_->redraw();
 }
 
 void
@@ -444,6 +465,42 @@ void
 ChromatogramWnd::impl::selectedOnChromatogram1( const QRectF& rect )
 {
     selectedOnChromatogram(rect, 1);
+}
+
+void
+ChromatogramWnd::impl::redraw()
+{
+    if ( overlays_.empty() ) {
+        plots_[ 1 ]->hide();
+    } else {
+        auto& plot = plots_[ 1 ];
+
+        plot->clear();
+        int idx(0);
+        for ( auto& datum: overlays_ ) {
+            if ( auto chr = datum.get_chromatogram() ) {
+                if ( overlays_.size() == 1 ) {
+                    plot->setData( chr, 0, QwtPlot::yLeft );
+                    if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )
+                        plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
+                } else {
+                    if ( ! datum.overlayChromatogram_ ) {
+                        if ((datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr ) ) ) {
+                            double yMax = chr->getMaxIntensity() - chr->getMinIntensity();
+                            for ( size_t i = 0; i < chr->size(); ++i ) {
+                                datum.overlayChromatogram_->setIntensity( i, ( 100. * ( chr->intensity( i ) - chr->getMinIntensity() ) / yMax ) );
+                            }
+                        }
+                    }
+                    plot->setData( datum.overlayChromatogram_, idx++, QwtPlot::yLeft );
+                    plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (R.A.)" ) );
+                }
+            }
+        }
+        dirty_ = false;
+        plot->show();
+    }
+
 }
 
 /////////

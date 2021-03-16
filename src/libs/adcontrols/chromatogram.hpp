@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,8 +26,10 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "constants.hpp"
 #include <boost/any.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
+#include <boost/optional.hpp>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -50,7 +52,6 @@ class portable_binary_oarchive;
 class portable_binary_iarchive;
 
 namespace adcontrols {
-
     namespace internal {
         class ChromatogramImpl;
     }
@@ -62,9 +63,6 @@ namespace adcontrols {
     class PeakResult;
     class Chromatogram_iterator;
     class moltable;
-
-    enum Chromaogram_HAxis : uint32_t { Minutes, Seconds, Hours, Litter };
-    enum Chromaogram_VAxis : uint32_t { Arbitrary, Counts, Volts, AU, RIU };
 
     class ADCONTROLSSHARED_EXPORT Chromatogram;  // workaround for emacs auto indent bug
 
@@ -172,28 +170,26 @@ namespace adcontrols {
         void addDescription( description&& );
         const descriptions& getDescriptions() const;
 
-        const std::wstring& axisLabelHorizontal() const;
-        const std::wstring& axisLabelVertical() const;
-        void axisLabelHorizontal( const std::wstring& );
-        void axisLabelVertical( const std::wstring& );
+        boost::optional< std::string > axisLabel( plot::axis ) const;
+        void setAxisLabel( plot::axis, const std::string& );
+
+        std::pair< plot::unit, size_t > axisUnit() const;
+        void setAxisUnit( plot::unit, size_t den = 0 );
 
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
 
-        void setGeneratorProperty( const boost::property_tree::ptree& );
-
         void setDataGuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataGuid() const;
+
+        void setGeneratorProperty( const boost::property_tree::ptree& );
 
         boost::property_tree::ptree& ptree();
         const boost::property_tree::ptree& ptree() const;
 
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
-        [[deprecated]] Peaks& peaks();
         const Peaks& peaks() const;
-
-        [[deprecated]] Baselines& baselines();
         const Baselines& baselines() const;
 
         void setBaselines( const Baselines& );

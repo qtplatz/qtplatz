@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -34,12 +34,14 @@
 #include <adportable/debug.hpp>
 #include <adportable/date_time.hpp>
 #include <adportable/iso8601.hpp>
+#include <adportable/utf.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ptree_serialization.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/map.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
@@ -95,14 +97,11 @@ namespace adcontrols {
             void addDescription( const description& );
             const descriptions& getDescriptions() const;
 
-            const std::wstring& axisLabelHorizontal() const { return axisLabelHorizontal_; }
-            const std::wstring& axisLabelVertical() const { return axisLabelVertical_; }
-            void axisLabelHorizontal( const std::wstring& v ) { axisLabelHorizontal_ = v; }
-            void axisLabelVertical( const std::wstring& v ) { axisLabelVertical_ = v; }
             void minTime( double v ) { timeRange_.first = v; }
             void maxTime( double v ) { timeRange_.second = v; }
             void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
             size_t dataDelayPoints() const { return dataDelayPoints_; }
+
 
             friend class Chromatogram;
             static std::wstring empty_string_;  // for error return as reference
@@ -119,8 +118,7 @@ namespace adcontrols {
             std::pair<double, double> timeRange_;
             size_t dataDelayPoints_;
             double samplingInterval_;
-            std::wstring axisLabelHorizontal_;
-            std::wstring axisLabelVertical_;
+            std::map< plot::axis, std::string > axisLabels_;
             int32_t proto_;
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
@@ -128,6 +126,7 @@ namespace adcontrols {
             std::vector< double > tofArray_;
             std::vector< double > massArray_;
             std::string time_of_injection_; // iso8601 extended
+            std::pair< plot::unit, size_t > yAxisUnit_;
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -137,10 +136,18 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(timeRange_.first)
                     & BOOST_SERIALIZATION_NVP(timeRange_.second)
                     & BOOST_SERIALIZATION_NVP(dataDelayPoints_)
-                    & BOOST_SERIALIZATION_NVP(descriptions_)
-                    & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
-                    & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
-                    & BOOST_SERIALIZATION_NVP(dataArray_)
+                    & BOOST_SERIALIZATION_NVP(descriptions_);
+                if ( version <- 7 ) {
+                    std::wstring axisLabelHorizontal, axisLabelVertical;
+                    ar  & BOOST_SERIALIZATION_NVP(axisLabelHorizontal)
+                        & BOOST_SERIALIZATION_NVP(axisLabelVertical);
+                    if ( !axisLabelHorizontal.empty() )
+                        axisLabels_[ plot::xAxis ] = adportable::utf::to_utf8( axisLabelHorizontal );
+                    if ( !axisLabelVertical.empty() )
+                        axisLabels_[ plot::yAxis ] = adportable::utf::to_utf8( axisLabelVertical );
+                }
+
+                ar  & BOOST_SERIALIZATION_NVP(dataArray_)
                     & BOOST_SERIALIZATION_NVP(timeArray_)
                     & BOOST_SERIALIZATION_NVP(evntVec_)
                     & BOOST_SERIALIZATION_NVP(peaks_)
@@ -163,12 +170,16 @@ namespace adcontrols {
                 if ( version >= 7 ) {
                     ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
                 }
+                if ( version >= 8 ) {
+                    ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
+                    ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
+                }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 7 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 8 )
 
 ///////////////////////////////////////////
 
@@ -190,7 +201,7 @@ Chromatogram::Chromatogram( const Chromatogram& c ) : pImpl_(0)
 Chromatogram&
 Chromatogram::operator =( const Chromatogram& t )
 {
-    if ( t.pImpl_ != pImpl_ ) { // can't assign
+    if ( t.pImpl_ != pImpl_ ) {
         delete pImpl_;
         pImpl_ = new ChromatogramImpl( *t.pImpl_ );
     }
@@ -254,22 +265,10 @@ Chromatogram::resize( size_t n )
     pImpl_->resize( n );
 }
 
-Peaks&
-Chromatogram::peaks()
-{
-    return pImpl_->peaks_;
-}
-
 const Peaks&
 Chromatogram::peaks() const
 {
     return pImpl_->peaks_;
-}
-
-Baselines&
-Chromatogram::baselines()
-{
-    return pImpl_->baselines_;
 }
 
 const Baselines&
@@ -505,29 +504,34 @@ Chromatogram::sampInterval( const seconds_t& v )
     pImpl_->samplingInterval_ = v;
 }
 
-const std::wstring&
-Chromatogram::axisLabelHorizontal() const
+boost::optional< std::string >
+Chromatogram::axisLabel( plot::axis axis ) const
 {
-    return pImpl_->axisLabelHorizontal();
-}
-
-const std::wstring&
-Chromatogram::axisLabelVertical() const
-{
-    return pImpl_->axisLabelVertical();
-}
-
-void
-Chromatogram::axisLabelHorizontal( const std::wstring& v )
-{
-    pImpl_->axisLabelHorizontal( v );
+    auto it = pImpl_->axisLabels_.find( axis );
+    if ( it != pImpl_->axisLabels_.end() ) {
+        return it->second;
+    }
+    return {};
 }
 
 void
-Chromatogram::axisLabelVertical( const std::wstring& v )
+Chromatogram::setAxisLabel( plot::axis axis, const std::string& value )
 {
-    pImpl_->axisLabelVertical( v );
+    pImpl_->axisLabels_[ axis ] = value;
 }
+
+std::pair< plot::unit, size_t >
+Chromatogram::axisUnit() const
+{
+    return pImpl_->yAxisUnit_;
+}
+
+void
+Chromatogram::setAxisUnit( plot::unit unit, size_t den )
+{
+    pImpl_->yAxisUnit_ = { unit, den };
+}
+
 
 void
 Chromatogram::minimumTime( const seconds_t& min )
@@ -646,29 +650,29 @@ namespace adcontrols {
     template<> void
     Chromatogram::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar << boost::serialization::make_nvp("Chromatogram", pImpl_);
+        (void)version;
+        ar << boost::serialization::make_nvp("Chromatogram", pImpl_ );
     }
 
     template<> void
     Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
+        (void)version;
+        ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
     }
 
     template<> void
     Chromatogram::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+        (void)version;
+        ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
     }
 
     template<> void
     Chromatogram::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+        (void)version;
+        ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
     }
 }; // namespace adcontrols
 
@@ -734,6 +738,7 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
                                      , proto_(0)
                                      , dataReaderUuid_( { {0} } )
                                      , dataGuid_( boost::uuids::random_generator()() ) // random generator
+                                     , yAxisUnit_( { plot::Arbitrary, 0 } )
 {
 }
 
@@ -747,12 +752,12 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , timeRange_( t.timeRange_)
                                                                 , dataDelayPoints_ ( t.dataDelayPoints_ )
                                                                 , samplingInterval_( t.samplingInterval_ )
-                                                                , axisLabelHorizontal_( t.axisLabelHorizontal_ )
-                                                                , axisLabelVertical_( t.axisLabelVertical_ )
+                                                                , axisLabels_( t.axisLabels_ )
                                                                 , proto_( t.proto_ )
                                                                 , dataReaderUuid_( t.dataReaderUuid_ )
                                                                 , dataGuid_( t.dataGuid_ )
                                                                 , ptree_( t.ptree_ )
+                                                                , yAxisUnit_( t.yAxisUnit_ )
 {
     descriptions_ = t.descriptions_;
 }

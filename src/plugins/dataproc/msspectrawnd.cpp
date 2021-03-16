@@ -173,7 +173,7 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
                     auto it = std::find_if( impl_->data_.begin(), impl_->data_.end()
                                             , [&](const auto& a){ return a.id() == folium.uuid(); });
                     if ( it == impl_->data_.end() ) {
-                        impl_->data_.emplace_back( datafolder( 0, processor->filename(), folium ) );
+                        impl_->data_.emplace_back( datafolder( processor->filename(), folium ) );
                     }
                 }
             }
@@ -192,7 +192,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
 
-    auto data = datafolder( 0, processor->filename(), folium );
+    auto data = datafolder( processor->filename(), folium );
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
         auto& plot = impl_->plots_[ 0 ];

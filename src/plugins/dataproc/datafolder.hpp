@@ -49,9 +49,10 @@ namespace dataproc {
         std::weak_ptr< adcontrols::Chromatogram > chromatogram_;
 
         std::shared_ptr< adcontrols::MassSpectrum > overlaySpectrum_; // y-scale normalized
+        std::shared_ptr< adcontrols::Chromatogram > overlayChromatogram_; // y-scale normalized
 
         datafolder();
-        datafolder( int idx, const std::wstring& display_name, const portfolio::Folium& folium );
+        datafolder( const std::wstring& filename, const portfolio::Folium& folium );
         datafolder( const datafolder& t );
 
         QString display_name() const { return display_name_; }

@@ -456,7 +456,12 @@ MSProcessingWnd::draw1()
 void
 MSProcessingWnd::draw( adutils::ChromatogramPtr ptr, int idx )
 {
-    pImpl_->ticPlot_->setData( ptr, idx );
+    pImpl_->ticPlot_->setData( ptr, idx, QwtPlot::yLeft );
+    if ( auto label = ptr->axisLabel( adcontrols::plot::yAxis ) ) {
+        pImpl_->ticPlot_->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
+    } else {
+        pImpl_->ticPlot_->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity" ) );
+    }
 }
 
 void

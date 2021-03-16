@@ -155,7 +155,7 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
         if ( rawfile->dataformat_version() < 3 )
             return;
 
-        ADDEBUG() << "################ " << json.toStdString();
+        // ADDEBUG() << "################ " << json.toStdString();
 
         adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
         dlg.setProtocolHidden( true );

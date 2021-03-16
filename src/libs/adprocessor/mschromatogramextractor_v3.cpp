@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -369,6 +369,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
     if ( impl_->raw_->dataformat_version() <= 2 )
         return false;
 
+    ADDEBUG() << "extract_by_mols";
+
     std::unique_ptr< adcontrols::CentroidProcess > peak_detector;
     std::unique_ptr< adcontrols::MSFinder > msfinder;
 
@@ -445,6 +447,13 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                         temp.back().pChr->setGeneratorProperty( pt );
                         temp.back().pChr->set_time_of_injection( std::move( time_of_injection ) );
+                        if ( sp->isHistogram() ) {
+                            temp.back().pChr->setAxisLabel( adcontrols::plot::yAxis, "Counts" );
+                            temp.back().pChr->setAxisUnit( adcontrols::plot::Counts );
+                        } else {
+                            temp.back().pChr->setAxisLabel( adcontrols::plot::yAxis, areaIntensity ? "Intensity (area)" : "Intensity" );
+                            temp.back().pChr->setAxisUnit( adcontrols::plot::Volts, 1000 ); // mV
+                        }
 #if !defined NDEBUG
                         ADDEBUG() << pt;
 #endif
@@ -504,6 +513,8 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     if ( impl_->raw_->dataformat_version() <= 2 )
         return false;
 
+    ADDEBUG() << "extract_by_peak_info";
+
     if ( loadSpectra( &pm, reader, -1, progress ) ) {
 
         for ( auto& ms : impl_->spectra_ ) {
@@ -520,7 +531,9 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
         for ( auto& r : impl_->results_ ) {
             r->pChr_->minimumTime( time_range.first );
             r->pChr_->maximumTime( time_range.second );
-            vec.push_back( r->pChr_ );
+            r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
+            r->pChr_->setAxisUnit( r->isCounting_ ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
+            vec.emplace_back( std::move( r->pChr_ ) );
         }
         return true;
     }
@@ -538,6 +551,8 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
                                                 , const std::pair< double, double >& range
                                                 , std::function<bool( size_t, size_t )> progress )
 {
+    ADDEBUG() << "extract_by_axis_range";
+
     if ( loadSpectra( &pm, reader, fcn, progress ) ) {
 
         for ( auto& ms : impl_->spectra_ ) {
@@ -552,6 +567,8 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
         for ( auto& r : impl_->results_ ) {
             r->pChr_->minimumTime( time_range.first );
             r->pChr_->maximumTime( time_range.second );
+            r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
+            r->pChr_->setAxisUnit( r->isCounting_ ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
             vec.emplace_back( std::move( r->pChr_ ) );
         }
         return true;
@@ -642,7 +659,6 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
             res->pChr_->addDescription(
                 adcontrols::description( { "Create", ( fmt % formula % centre % width % reader->display_name() % protocol ).str() } ) );
             res->pChr_->setIsCounting( res->isCounting_ );
-
             impl_->results_.emplace_back( res );
         }
 
@@ -671,11 +687,14 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
         for ( auto& r : impl_->results_ ) {
             r->pChr_->minimumTime( time_range.first );
             r->pChr_->maximumTime( time_range.second );
-            //r->pChr_->setIsCounting( isCounting );
-#ifndef NDEBUG
-            ADDEBUG() << "Is generaged chromatogram counting? : " << r->pChr_->isCounting();
-#endif
-            vec.emplace_back( r->pChr_ );
+            if ( r->isCounting_ ) {
+                r->pChr_->setAxisLabel( adcontrols::plot::yAxis, "Counts" );
+                r->pChr_->setAxisUnit( adcontrols::plot::Counts );
+            } else {
+                r->pChr_->setAxisLabel( adcontrols::plot::yAxis, "Intensity" );
+                r->pChr_->setAxisUnit( adcontrols::plot::Volts, 1000 );
+            }
+            vec.emplace_back( std::move( r->pChr_ ) );
         }
         return true;
     }

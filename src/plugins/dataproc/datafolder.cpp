@@ -39,9 +39,8 @@ datafolder::datafolder() : idx_(0)
 {
 }
 
-datafolder::datafolder( int idx
-                        , const std::wstring& fullpath
-                        , const portfolio::Folium& folium ) : idx_( idx )
+datafolder::datafolder( const std::wstring& fullpath
+                        , const portfolio::Folium& folium ) : idx_( 0 )
                                                             , display_name_( make_display_name( fullpath, folium ) )
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
@@ -125,4 +124,10 @@ datafolder::get_processed() const
     } else {
         return {};
     }
+}
+
+std::shared_ptr< const adcontrols::Chromatogram >
+datafolder::get_chromatogram() const
+{
+    return chromatogram_.lock();
 }
