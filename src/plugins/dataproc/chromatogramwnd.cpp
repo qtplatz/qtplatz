@@ -30,6 +30,8 @@
 #include "mainwindow.hpp"
 #include "qtwidgets_name.hpp"
 #include "sessionmanager.hpp"
+#include <adcontrols/baselines.hpp>
+#include <adcontrols/peaks.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/datafile.hpp>
@@ -167,7 +169,7 @@ namespace dataproc {
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
         std::wstring idActiveFolium_;
-        std::vector< datafolder > overlays_;
+        std::deque< datafolder > overlays_;
         bool dirty_;
     public slots:
         void copy() {
@@ -250,7 +252,7 @@ ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 void
 ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    if ( auto folder = processor->portfolio().findFolder( L"Spectra" ) ) {
+    if ( auto folder = processor->portfolio().findFolder( L"Chromatograms" ) ) {
         for ( auto& folium: folder.folio() ) {
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
@@ -270,7 +272,8 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
     if ( MainWindow::instance()->curPage() != MainWindow::idSelChromatogram )
         return;
 
-    impl_->redraw();
+    if ( impl_->dirty_ )
+        impl_->redraw();
 }
 
 void
@@ -325,16 +328,17 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium_; } );
+
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
         if ( it != impl_->overlays_.end() ) {
             impl_->overlays_.erase( it );
             impl_->dirty_ = true;
-        } else {
-            if ( it == impl_->overlays_.end() ) {
-                if ( auto chr = datum.get_chromatogram() ) {
-                    impl_->overlays_.emplace_back( datum );
-                    impl_->dirty_ = true;
-                }
+        }
+    } else {
+        if ( it == impl_->overlays_.end() ) {
+            if ( auto chr = datum.get_chromatogram() ) {
+                impl_->overlays_.emplace_front( datum );
+                impl_->dirty_ = true;
             }
         }
     }
@@ -486,14 +490,18 @@ ChromatogramWnd::impl::redraw()
                 } else {
                     if ( ! datum.overlayChromatogram_ ) {
                         if ((datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr ) ) ) {
+                            datum.overlayChromatogram_->setBaselines( adcontrols::Baselines() ); // clear baselines
+                            datum.overlayChromatogram_->setPeaks( adcontrols::Peaks() );         // clear peaks
                             double yMax = chr->getMaxIntensity() - chr->getMinIntensity();
                             for ( size_t i = 0; i < chr->size(); ++i ) {
                                 datum.overlayChromatogram_->setIntensity( i, ( 100. * ( chr->intensity( i ) - chr->getMinIntensity() ) / yMax ) );
                             }
                         }
                     }
-                    plot->setData( datum.overlayChromatogram_, idx++, QwtPlot::yLeft );
+                    plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
+                    // plot->setLegend( idx, QwtText( datum.display_name() ) );
                     plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (R.A.)" ) );
+                    ++idx;
                 }
             }
         }
