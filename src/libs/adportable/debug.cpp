@@ -37,6 +37,7 @@
 #include <boost/system/error_code.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace adportable;
 
@@ -85,6 +86,20 @@ template<> debug&
 debug::operator << ( const boost::property_tree::ptree& pt )
 {
     boost::property_tree::write_json( o_, pt, false );
+    return *this;
+}
+
+template<> debug&
+debug::operator << ( const std::exception& ex )
+{
+    o_ << ex.what();
+    return *this;
+}
+
+template<> debug&
+debug::operator << ( const boost::exception& ex )
+{
+    o_ << boost::diagnostic_information( ex );
     return *this;
 }
 

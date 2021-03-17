@@ -91,6 +91,7 @@ namespace portfolio {
 				} );
         }
 
+        // check type before any_cast, which is safe
         template<class T> static bool get( T& t, Folium& folium ) {
             boost::any& data = folium;
             if ( is_type<T>( data ) ) {
@@ -100,12 +101,14 @@ namespace portfolio {
             return false;
         }
 
+        // check type before any_cast, which is safe
         template< typename T > boost::optional<T> get() {
             if ( is_type<T>( this->data() ) )
                 return boost::any_cast<T>( this->data() );
             return boost::none;
         }
 
+        // check type before any_cast, which is safe
         template< typename T > boost::optional<T> get() const {
             if ( is_type<T>( this->data() ) )
                 return boost::any_cast<T>( this->data() );
@@ -120,19 +123,15 @@ namespace portfolio {
     typedef std::vector< Folium > Folio;
 
     template<class T> T get( Folium& folium ) {
-		try {
+        if ( is_type<T>( folium.data() ) )
 			return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
-		} catch ( boost::bad_any_cast& ) {
-            return T(0);
-		}
+        return {};
     }
 
     template<class T> T get( const Folium& folium ) {
-        try {
+        if ( is_type<T>( folium.data() ) )
             return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
-        } catch ( boost::bad_any_cast& ) {
-            return T(0);
-        }
+        return {};
     }
 
     template<class Pred> Folium find_first_of( Folio folio, Pred pred ) {

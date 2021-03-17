@@ -32,6 +32,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace dataproc;
 
@@ -45,12 +46,12 @@ datafolder::datafolder( const std::wstring& fullpath
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
 {
-    if ( auto raw = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-        profile_ = raw; // maybe profile or histogram
-        if ( raw->isHistogram() ) {
+    if ( auto raw = folium.get< adcontrols::MassSpectrumPtr >() ) {
+        profile_ = *raw; // maybe profile or histogram
+        if ( (*raw)->isHistogram() ) {
             if ( auto fi = portfolio::find_first_of( folium.attachments()
                                                      , [](const auto& a){ return a.name() == Constants::F_PROFILED_HISTOGRAM; }) ) {
-                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) {
+                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) { // no type check any_cast
                     profiledHistogram_ = ptr;
                 }
             }
@@ -61,8 +62,8 @@ datafolder::datafolder( const std::wstring& fullpath
                 centroid_ = ptr;
             }
         }
-    } else if ( auto raw = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-        chromatogram_ = raw;
+    } else if ( auto raw = folium.get< adcontrols::ChromatogramPtr >() ) {
+        chromatogram_ = (*raw);
     }
 }
 

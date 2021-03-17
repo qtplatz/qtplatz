@@ -26,6 +26,7 @@
 #pragma once
 
 #include <sstream>
+#include <exception>
 #include "adportable_global.h"
 
 namespace adportable {
@@ -33,6 +34,7 @@ namespace adportable {
 }
 
 namespace boost {
+    class exception;
     namespace system { class error_code; }
     namespace property_tree {
         template< class Key, class Data, class KeyCompare > class basic_ptree;
@@ -66,6 +68,8 @@ namespace adportable {
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::wstring& t );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::system::error_code& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::property_tree::ptree& );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::exception& );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::exception& );
 
     inline std::string where( const char * file, const int line ) {
         debug x( file, line );

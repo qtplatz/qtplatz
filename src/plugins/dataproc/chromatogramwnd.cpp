@@ -257,7 +257,7 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
 
-                if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                if ( auto chro = folium.get< adcontrols::ChromatogramPtr >() ) {
                     auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end()
                                             , [&](const auto& a){ return a.id() == folium.uuid(); });
                     if ( it == impl_->overlays_.end() ) {
@@ -284,8 +284,14 @@ ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, b
 void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
-    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), data );
+    if ( auto ptr = folium.get< adcontrols::ChromatogramPtr >() ) {
+    }
+    try {
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), data );  // draw data
+    } catch ( boost::exception& ex ) {
+        ADDEBUG() << ex;
+    }
 
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
@@ -297,10 +303,15 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-
-    if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
-        return;
+    try {
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) ) // draw data
+            return;
+    } catch ( boost::exception& ex ) {
+        ADDEBUG() << ex;
+        for( const auto& a: folium.attributes() )
+            ADDEBUG() << a;
+    }
 
     auto datum = datafolder( processor->filename(), folium );
 
