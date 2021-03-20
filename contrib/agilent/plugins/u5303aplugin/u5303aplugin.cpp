@@ -52,8 +52,8 @@
 using namespace u5303a::Internal;
 using namespace u5303a;
 
-u5303APlugin::u5303APlugin() : mainWindow_( new MainWindow() )
-                             , mode_( std::make_shared< u5303AMode >(this) )
+u5303APlugin::u5303APlugin() : mode_( std::make_shared< u5303AMode >(this) )
+                             , mainWindow_( new MainWindow() )
 {
 }
 
@@ -95,7 +95,7 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
         addObject( iExtension );
     }
 #endif
-    
+
     QAction *action = new QAction(tr("u5303A action"), this);
 
     Core::ActionManager * am = Core::ActionManager::instance();
@@ -128,7 +128,7 @@ u5303APlugin::aboutToShutdown()
 
     if ( auto iExtension = document::instance()->iSequence() )
         removeObject( iExtension );
-    
+
     if ( auto iExtension = document::instance()->iController() )
         removeObject( iExtension );
 
@@ -147,4 +147,3 @@ u5303APlugin::triggerAction()
 }
 
 Q_EXPORT_PLUGIN2(u5303a, u5303APlugin)
-
