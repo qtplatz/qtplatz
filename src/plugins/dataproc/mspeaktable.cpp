@@ -48,4 +48,3 @@ MSPeakTable::addContextMenu( QMenu& menu
         }
     }
 }
-

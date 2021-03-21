@@ -343,6 +343,9 @@ MainWindow::handleDataprocessor( Dataprocessor * dp )
     if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
         w->setMassSpectrometer( sp );
     }
+    if ( auto w = findChild< dataproc::MSPeakTable * >( "MSPeakTable" ) ) {
+        w->setMassSpectrometer( sp );
+    }
 }
 
 void

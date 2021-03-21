@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,13 +33,14 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/targeting.hpp>
-
+#include <adutils/constants.hpp> // clsid for massspectrometer
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
@@ -106,7 +107,7 @@ namespace adwidgets {
     }
 
     void
-    MSPeakTableDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    MSPeakTableDelegate::paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const
     {
         QStyleOptionViewItem op( option );
         op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
@@ -184,13 +185,11 @@ namespace adwidgets {
             MSPeakTable * pThis_;
             dataMayChanged( MSPeakTable * table ) : pThis_( table ) {}
             bool operator()( std::weak_ptr< adcontrols::MassSpectrum >& wptr ) const {
-                ADDEBUG() << "------------------> setMassSpectrum";
                 if ( auto ptr = wptr.lock() )
                     pThis_->setData( *ptr );
                 return true;
             }
             bool operator()( std::weak_ptr< adcontrols::MSPeakInfo >& pkinfo ) const {
-                ADDEBUG() << "------------------> setPeakInfo";
                 if ( auto ptr = pkinfo.lock() )
                     pThis_->setPeakInfo( *ptr );
                 return true;
@@ -236,9 +235,9 @@ namespace adwidgets {
                         , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
 
         std::weak_ptr< adcontrols::MSPeakInfo > pkinfo_;  // it is a pair of data_source_
-
         boost::signals2::signal< callback_t > callback_;
         bool inProgress_;
+        std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
     };
 }
 
@@ -287,19 +286,19 @@ MSPeakTable::onUpdate( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
         // lockMassHandled on MainWindow invoke this method
-
         auto ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( wptr.lock() == ptr )
             updateData( *ptr );
         else
             setData( *ptr );
-
+    } else if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
+        if ( auto ptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a ) ) {
+            setPeakInfo( *ptr );
+        }
     } else if ( a.type() == typeid(int) ) {
         // dataMayChanged on MainWindow invoke this method over applyCalibration()
-
         int id = boost::any_cast<int>( a );
-
         if ( id == 0 ) { // data may changed
             boost::apply_visitor( detail::dataMayChanged( this ), impl_->data_source_ );
         }
@@ -466,8 +465,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
     model.setRowCount( 0 );
     model.setRowCount( static_cast< int >( info.total_size() ) );
-
-    typedef adcontrols::MSPeakInfoItem MSPeakInfoItem;
 
     adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > segs( info ); // adcontrols::MSPeakInfo
 
@@ -876,6 +873,7 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
     } else if ( index.column() == c_mspeaktable_description ) {
         descriptionChanged( index );
     } else if ( index.column() == c_mspeaktable_mode ) {
+        ADDEBUG() << "------- mode changed to " << index.data( Qt::EditRole ).toInt();
         modeChanged( index );
     }
 }
@@ -1199,4 +1197,16 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
 void
 MSPeakTable::addContextMenu(QMenu &, const QPoint &, std::shared_ptr<const adcontrols::MassSpectrum>) const
 {
+}
+
+void
+MSPeakTable::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
+{
+    impl_->massSpectrometer_ = sp;
+    if ( sp ) {
+        ADDEBUG() << "######### setMassSpectrometer( " << sp->massSpectrometerName();
+        if ( sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
+            ADDEBUG() << "infiTOF spectrometer";
+        }
+    }
 }

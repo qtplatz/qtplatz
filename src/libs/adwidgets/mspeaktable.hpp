@@ -35,8 +35,15 @@
 class QStandardItemModel;
 class QPrinter;
 
-namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;
-    class MSPeaks; class MSPeak; }
+namespace adcontrols {
+    class MSPeakInfo;
+    class MassSpectrum;
+    class MassSpectrometer;
+    class ChemicalFormula;
+    class Targeting;
+    class MSPeaks;
+    class MSPeak;
+}
 
 namespace adwidgets {
 
@@ -74,8 +81,9 @@ namespace adwidgets {
         bool getMSPeaks( adcontrols::MSPeaks&, GETPEAKOPTS opt = AllPeaks ) const;
         bool getMSPeak( adcontrols::MSPeak&, int row ) const;
 
-        virtual int findColumn( const QString& name ) const;
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
+        virtual int findColumn( const QString& name ) const;
         virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
 
     protected:

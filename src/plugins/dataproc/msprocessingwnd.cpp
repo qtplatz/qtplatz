@@ -777,10 +777,11 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
                         pk->set_mode( boost::none );
                     else
                         pk->set_mode( mode );
-                    ADDEBUG() << "handleModeChanged: mass=" << pk->mass();
+                    ADDEBUG() << "handleModeChanged: mass=" << pk->mass() << ", mode: " << mode;
                 }
-                if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) )
+                if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
                     p->onUpdate( pkinfo );
+                }
             }
             if ( auto ms = pProcessedSpectrum_.second.lock() ) {
                 if ( ms->isCentroid() && !ms->isHistogram() ) {
@@ -788,10 +789,13 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
                     auto it = std::find_if( fms.get_annotations().begin(), fms.get_annotations().end()
                                             , [&]( const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
                     boost::property_tree::ptree pt;
-                    if ( auto opt = it->ptree() )
-                        pt = *opt;
+                    if ( it != fms.get_annotations().end() ) {
+                        if ( auto opt = it->ptree() )
+                            pt = *opt;
+                    }
                     pt.put( "peak.mode", mode );
                     pt.put( "peak.mass", sp->assignMass( fms.time( idx ), mode ) );
+                    ADDEBUG() << pt;
                     fms.get_annotations() << adcontrols::annotation( pt );
                 }
             } else {

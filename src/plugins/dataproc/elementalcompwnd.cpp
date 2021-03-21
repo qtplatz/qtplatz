@@ -81,6 +81,8 @@ namespace dataproc {
                 plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
                 markers_[ i ] = std::make_unique< adplot::PeakMarker >();
             }
+            // auto engine = new QwtLogScaleEngine();
+            // plots_[ 2 ]->setAxisScaleEngine( QwtPlot::yLeft, engine );
         }
 
         ~impl() {
