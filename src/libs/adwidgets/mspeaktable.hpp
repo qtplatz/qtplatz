@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,6 +29,7 @@
 #include "tableview.hpp"
 #include <QItemDelegate>
 #include <adwidgets/lifecycle.hpp>
+#include <boost/optional.hpp>
 #include <memory>
 #include <functional>
 
@@ -81,10 +82,14 @@ namespace adwidgets {
         bool getMSPeaks( adcontrols::MSPeaks&, GETPEAKOPTS opt = AllPeaks ) const;
         bool getMSPeak( adcontrols::MSPeak&, int row ) const;
 
+        std::shared_ptr< adcontrols::MSPeaks > getSelectedPeaks( GETPEAKOPTS opt = SelectedPeaks ) const;
+
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
+        std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const;
 
         virtual int findColumn( const QString& name ) const;
-        virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
+        // virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
+        virtual void addContextMenu( QMenu&, const QPoint&, const QTableView *, const QModelIndexList& ) const {};
 
     protected:
         // reimplement QTableView

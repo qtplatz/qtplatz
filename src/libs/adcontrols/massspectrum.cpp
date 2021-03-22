@@ -1370,3 +1370,9 @@ MassSpectrum::erase( const_iterator first, const_iterator last )
 {
     return impl_->vec_.erase( first, last );
 }
+
+std::pair< size_t, size_t >
+MassSpectrum::minmax_element() const
+{
+    return impl_->minmax_element();
+}

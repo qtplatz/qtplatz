@@ -850,11 +850,12 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );
 
         //-- add dataprocessor dependent menu --
-        if ( impl_->data_source_.which() == 1 ) {
-            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
-            addContextMenu( menu, pt, wptr.lock() );
-            menu.addSeparator();
-        }
+        addContextMenu( menu, pt, this, list );
+        //if ( impl_->data_source_.which() == 1 ) {
+        //    auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
+        //    addContextMenu( menu, pt, wptr.lock() );
+        //    menu.addSeparator();
+        //}
 
         //-- add base TableView's menu --
         addActionsToContextMenu( menu, pt );
@@ -1000,6 +1001,15 @@ MSPeakTable::getMSPeak( adcontrols::MSPeak& peak, int row ) const
     peak.spectrumIndex( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() );
 
     return true;
+}
+
+std::shared_ptr< adcontrols::MSPeaks >
+MSPeakTable::getSelectedPeaks( GETPEAKOPTS opt ) const
+{
+    auto pks = std::make_shared< adcontrols::MSPeaks>();
+    if ( getMSPeaks( *pks, opt ) )
+        return pks;
+    return {};
 }
 
 bool
@@ -1194,10 +1204,6 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
 
 }
 
-void
-MSPeakTable::addContextMenu(QMenu &, const QPoint &, std::shared_ptr<const adcontrols::MassSpectrum>) const
-{
-}
 
 void
 MSPeakTable::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
@@ -1209,4 +1215,10 @@ MSPeakTable::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectro
             ADDEBUG() << "infiTOF spectrometer";
         }
     }
+}
+
+std::shared_ptr< const adcontrols::MassSpectrometer >
+MSPeakTable::massSpectrometer() const
+{
+    return impl_->massSpectrometer_.lock();
 }
