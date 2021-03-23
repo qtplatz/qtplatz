@@ -25,6 +25,7 @@
 #include "mspeaktable.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
+#include "lapdeconvdlg.hpp"
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeak.hpp>
@@ -90,6 +91,8 @@ namespace {
                 if ( --limit == 0 )
                     break;
             }
+            dataproc::lapDeconvDlg dlg;
+            ADDEBUG() << dlg.exec();
         }
 
         void operator()( std::vector< std::pair< double, int > >& candidates ) const {

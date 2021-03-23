@@ -131,6 +131,8 @@ add_library( ${PROJECT_NAME} MODULE
   selchanged.hpp
   sessionmanager.cpp
   sessionmanager.hpp
+  lapdeconvdlg.cpp
+  lapdeconvdlg.hpp
   ${_source}
   ${Resources}
   )
