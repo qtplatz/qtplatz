@@ -45,7 +45,8 @@ namespace dataproc {
     public:
         explicit lapDeconvDlg(QWidget *parent = 0);
         ~lapDeconvDlg();
-        void setData( std::vector< std::tuple< double, int, double > >&& );
+        void setData( const std::vector< std::tuple< double, int, double > >& );
+        void setList( const std::vector< std::tuple< double, int > >& );
         boost::optional< std::tuple< double, int, double > > getSelection() const;
 
     public slots:

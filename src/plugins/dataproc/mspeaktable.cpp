@@ -37,6 +37,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <boost/format.hpp>
 #include <QMenu>
+#include <QStandardItemModel>
 #include <algorithm>
 #include <set>
 
@@ -50,19 +51,64 @@ namespace {
                          , std::shared_ptr< const adcontrols::MassSpectrometer > sp ) : ms_( ms ), sp_( sp ) {
         }
 
-        void find( std::vector< std::pair< double, int > >& candidates ) const {
+        template< bool nlapped > std::vector< std::tuple< double, int, double > >
+        find( std::vector< std::pair< double, int > >& candidates ) const;
 
-            std::vector< double > refms;
-            double threshold = ms_->getMaxIntensity() / 20;
-            for ( size_t i = 0; i < ms_->size(); ++i ) {
-                if ( ms_->intensity( i ) > threshold ) {
-                    refms.emplace_back( ms_->mass( i ) );
+        std::vector< std::tuple< double, int, double > >
+        operator()( std::vector< std::pair< double, int > >& candidates ) const;
+    };
+
+    template<>
+    std::vector< std::tuple< double, int, double > >
+    lap_mass_finder::find< false >( std::vector< std::pair< double, int > >& candidates ) const {
+
+        std::vector< double > refms;
+        double threshold = ms_->getMaxIntensity() / 20;
+        for ( size_t i = 0; i < ms_->size(); ++i ) {
+            if ( ms_->intensity( i ) > threshold ) {
+                refms.emplace_back( ms_->mass( i ) );
+            }
+        }
+        std::vector< std::tuple< double, int, double > > result_candidates;
+
+        for ( const auto& rmass: refms ) {
+            double delta( 0.1 );
+            auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass, [](const auto& a, const auto& b){ return a.first < b; });
+            if ( it != candidates.end() ) {
+                if ( it != candidates.begin() ) {
+                    if ( std::abs( ( it - 1 )->first - rmass ) < std::abs( it->first - rmass ) ) {
+                        --it;
+                    }
+                }
+                if ( std::abs( it->first - rmass ) < delta ) {
+                    delta = std::abs( it->first - rmass );
+                    auto cIt = std::lower_bound( result_candidates.begin()
+                                                 , result_candidates.end()
+                                                 , delta
+                                                 , [](const auto& a, const auto& b ){
+                                                     return std::get<2>(a) < b;
+                                                 });
+                    result_candidates.emplace( cIt, it->first, it->second, delta );
                 }
             }
-            std::vector< std::tuple< double, int, double > > result_candidates;
+        }
+        return result_candidates;
+    }
 
-            for ( const auto& rmass: refms ) {
-                double delta( 0.1 );
+    template<>
+    std::vector< std::tuple< double, int, double > >
+    lap_mass_finder::find< true >( std::vector< std::pair< double, int > >& candidates ) const {
+        // operator()( std::vector< std::pair< double, int > >& candidates ) const {
+
+        std::vector< std::tuple< double, int, double > > result_candidates;
+
+        for ( size_t i = 0; i < ms_->size(); ++i ) {
+            //for ( size_t i = idx; i < idx + 1; ++i ) {
+            double rtof = ms_->time( i );
+            int n = ms_->mode();
+            double rmass = sp_->scanLaw()->getMass( rtof, n );
+            double delta(0.1);
+            do {
                 auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass, [](const auto& a, const auto& b){ return a.first < b; });
                 if ( it != candidates.end() ) {
                     if ( it != candidates.begin() ) {
@@ -73,73 +119,29 @@ namespace {
                     if ( std::abs( it->first - rmass ) < delta ) {
                         delta = std::abs( it->first - rmass );
                         auto cIt = std::lower_bound( result_candidates.begin()
-                                                    , result_candidates.end()
-                                                    , delta
-                                                    , [](const auto& a, const auto& b ){
-                                                        return std::get<2>(a) < b;
-                                                    });
+                                                     , result_candidates.end()
+                                                     , delta
+                                                     , []( const auto& a, const auto& b ){
+                                                         return std::get<2>(a) < b;
+                                                     });
                         result_candidates.emplace( cIt, it->first, it->second, delta );
                     }
                 }
-            }
-            dataproc::lapDeconvDlg dlg;
-            dlg.setData( std::move( result_candidates ) );
-            if ( dlg.exec() ) {
-                if ( auto select = dlg.getSelection() ) {
-#if __cplusplus >= 201703L
-                    auto [ mass, lap, error ] = *select;
-#else
-                    double mass, error; int lap;
-                    std::tie( mass, lap, error ) = *select;
-#endif
-                    ADDEBUG() << "lap-deconvolution candidate:\t" << mass << ", " << lap << ", " << error;
-
-                }
-            }
+                rmass = sp_->scanLaw()->getMass( rtof, n++ );
+            } while ( rmass > 14.0 && n < ms_->mode() + 40 );
         }
+        return result_candidates;
+    }
+    //------------
 
-        void operator()( std::vector< std::pair< double, int > >& candidates ) const {
-
-            std::vector< std::tuple< double, int, double > > result_candidates;
-
-            for ( size_t i = 0; i < ms_->size(); ++i ) {
-                //for ( size_t i = idx; i < idx + 1; ++i ) {
-                double rtof = ms_->time( i );
-                int n = ms_->mode();
-                double rmass = sp_->scanLaw()->getMass( rtof, n );
-                double delta(0.1);
-                do {
-                    auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass, [](const auto& a, const auto& b){ return a.first < b; });
-                    if ( it != candidates.end() ) {
-                        if ( it != candidates.begin() ) {
-                            if ( std::abs( ( it - 1 )->first - rmass ) < std::abs( it->first - rmass ) ) {
-                                --it;
-                            }
-                        }
-                        if ( std::abs( it->first - rmass ) < delta ) {
-                            delta = std::abs( it->first - rmass );
-                            result_candidates.emplace_back( it->first, it->second, std::abs(it->first - rmass) );
-                            ADDEBUG() << "\tcandidate mass: " << *it << ", reference mass: " << std::make_pair( rmass, n )
-                                      << ", error: " << ( it->first - rmass );
-                        }
-                    }
-                    rmass = sp_->scanLaw()->getMass( rtof, n++ );
-                } while ( rmass > 14.0 && n < ms_->mode() + 40 );
-            }
-
-            std::sort( result_candidates.begin(), result_candidates.end()
-                       , []( const auto& a, const auto& b){ return std::get<2>(a) < std::get<2>(b); });
-
-            int limit(10);
-            for ( auto& r: result_candidates ) {
-                 auto [ mass, lap, error ] = r;
-                 ADDEBUG() << mass << ", " << lap << ", " << error;
-                 if ( --limit == 0 )
-                     break;
-            }
-        }
-    };
-
+    std::vector< std::tuple< double, int, double > >
+    lap_mass_finder::operator()( std::vector< std::pair< double, int > >& candidates ) const {
+        if ( ms_->mode() == 0 )
+            return find<false>( candidates );
+        else
+            return find<true>( candidates );
+    }
+    //------------
 }
 
 using namespace dataproc;
@@ -172,27 +174,13 @@ MSPeakTable::addContextMenu( QMenu& menu, const QPoint& pos, const QTableView *,
         menu.addSeparator();
         menu.addAction( QObject::tr( "lap deconvolution" )
                         , [=](){
-                            lap_deconvolution( getSelectedPeaks() );
+                            const_cast< MSPeakTable *>(this)->lap_deconvolution( getSelectedPeaks() );
                         });
 
         menu.addAction( QObject::tr( "list selected peaks" )
                         , [=](){
                             if ( auto pks = this->getSelectedPeaks() ) {
-                                if ( auto scanlaw = sp->scanLaw() ) {
-                                    for ( const auto& pk: *pks ) {
-                                        ADDEBUG() << "formula: " << pk.formula()
-                                                  << ", mass: " << pk.mass()
-                                                  << ", time: " << pk.time()
-                                                  << ", mode: " << pk.mode()
-                                                  << ", proto: " << pk.fcn();
-                                        double mass = pk.mass();
-                                        for ( int n = pk.mode(); n < pk.mode() + 40 && mass >= 10; ++n ) {
-                                            auto m = scanlaw->getMass( pk.time(), n );
-                                            ADDEBUG() << "n,mass:\t" << n << "\t" << boost::format( "%.4f" ) % m;
-                                            mass = m;
-                                        }
-                                    }
-                                }
+                                lap_list( pks );
                             }
                         });
         menu.addSeparator();
@@ -200,7 +188,7 @@ MSPeakTable::addContextMenu( QMenu& menu, const QPoint& pos, const QTableView *,
 }
 
 void
-MSPeakTable::lap_deconvolution( std::shared_ptr< adcontrols::MSPeaks > pks ) const
+MSPeakTable::lap_deconvolution( std::shared_ptr< adcontrols::MSPeaks > pks )
 {
     std::shared_ptr< adcontrols::MassSpectrum > ref;
 
@@ -232,21 +220,58 @@ MSPeakTable::lap_deconvolution( std::shared_ptr< adcontrols::MSPeaks > pks ) con
         return;
 
     if ( auto sp = this->massSpectrometer() ) {
-        auto scanlaw = sp->scanLaw();
         for ( const auto& pk: *pks ) {
             std::vector< std::pair< double, int > > candidates;
             double mass = pk.mass();
             for ( int n = pk.mode(); n < pk.mode() + 40 && mass >= 13.5; ++n ) {
-                mass = scanlaw->getMass( pk.time(), n );
+                mass = sp->assignMass( pk.time(), n );
                 candidates.emplace_back( mass, n );
             }
             std::reverse( candidates.begin(), candidates.end() );
-            if ( ref->mode() == 0 ) {
-                lap_mass_finder( ref, sp ).find( candidates );
-            } else {
-                lap_mass_finder( ref, sp )( candidates );
+            auto result_candidates = lap_mass_finder( ref, sp )( candidates );
+
+            if ( !result_candidates.empty() ) {
+                dataproc::lapDeconvDlg dlg;
+                dlg.setData( std::move( result_candidates ) );
+                if ( dlg.exec() ) {
+                    if ( auto select = dlg.getSelection() ) {
+#if __cplusplus >= 201703L
+                        auto [ mass, lap, error ] = *select;
+#else
+                        double mass, error; int lap;
+                        std::tie( mass, lap, error ) = *select;
+#endif
+                        auto pk2( pk );
+                        pk2.mode( lap );
+                        pk2.mass( mass );
+                        setMSPeak( std::move( pk2 ) );
+                    }
+                }
             }
         }
     }
 
+}
+
+void
+MSPeakTable::lap_list( std::shared_ptr< adcontrols::MSPeaks > pks ) const
+{
+    if ( auto sp = this->massSpectrometer() ) {
+        std::vector< std::tuple< double, int > > list;
+        for ( const auto& pk: *pks ) {
+            ADDEBUG() << "formula: " << pk.formula()
+                      << ", mass: " << pk.mass()
+                      << ", time: " << pk.time()
+                      << ", mode: " << pk.mode()
+                      << ", proto: " << pk.fcn();
+            double mass = pk.mass();
+            for ( int n = pk.mode(); n < pk.mode() + 40 && mass >= 10; ++n ) {
+                mass = sp->assignMass( pk.time(), n );
+                list.emplace_back( mass, n );
+            }
+        }
+        dataproc::lapDeconvDlg dlg;
+        dlg.setList( std::move( list ) );
+        dlg.exec();
+    }
 }

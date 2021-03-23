@@ -29,6 +29,7 @@
 #include <adportable/debug.hpp>
 #include <adwidgets/moltable.hpp>
 #include <qtwrapper/make_widget.hpp>
+#include <QAbstractItemModel>
 #include <QBoxLayout>
 #include <QDialogButtonBox>
 #include <QMenu>
@@ -82,7 +83,7 @@ lapDeconvDlg::lapDeconvDlg(QWidget *parent) : QDialog(parent)
             layout->addWidget( buttons );
         }
     }
-    resize( 640, 340 );
+    resize( 400, 340 );
 }
 
 lapDeconvDlg::~lapDeconvDlg()
@@ -90,9 +91,8 @@ lapDeconvDlg::~lapDeconvDlg()
 }
 
 void
-lapDeconvDlg::setData( std::vector< std::tuple< double, int, double > >&& candidates )
+lapDeconvDlg::setData( const std::vector< std::tuple< double, int, double > >& candidates )
 {
-    ADDEBUG() << "setData...";
     if ( auto table = findChild< adwidgets::TableView * >( "lapMolTable" ) ) {
         if ( auto model = qobject_cast< QStandardItemModel * >( table->model() ) ) {
             model->setRowCount( candidates.size() );
@@ -111,6 +111,21 @@ lapDeconvDlg::setData( std::vector< std::tuple< double, int, double > >&& candid
 
 }
 
+void
+lapDeconvDlg::setList( const std::vector< std::tuple< double, int > >& list )
+{
+    if ( auto table = findChild< adwidgets::TableView * >( "lapMolTable" ) ) {
+        if ( auto model = table->model() ) {
+            model->insertRows( 0, list.size() );
+            int row(0);
+            for ( const auto& i: list ) {
+                model->setData( model->index( row, c_mass ), std::get<0>( i ) );
+                model->setData( model->index( row, c_nlaps ), std::get<1>( i ) );
+                ++row;
+            }
+        }
+    }
+}
 
 boost::optional< std::tuple< double, int, double > >
 lapDeconvDlg::getSelection() const

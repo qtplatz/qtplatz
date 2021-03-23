@@ -390,12 +390,6 @@ MSPeakTable::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::f
     setPeakInfo( *ms );
 }
 
-QStandardItemModel&
-MSPeakTable::model()
-{
-    return *impl_->model_;
-}
-
 void
 MSPeakTable::onInitialUpdate()
 {
@@ -999,9 +993,11 @@ MSPeakTable::exactMass( std::string formula )
 {
     if ( formula.empty() )
         return 0;
-    auto neutral = adcontrols::ChemicalFormula::neutralize( formula );
-    ADDEBUG() << "exactMass(" << formula << ") neutral: " << neutral;
-    return adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( neutral.first ) ).first;
+    // auto neutral = adcontrols::ChemicalFormula::neutralize( formula );
+    // ADDEBUG() << "exactMass(" << formula << ") neutral: " << neutral;
+    // ADDEBUG() << adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) );
+    // ADDEBUG() << adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( neutral.first ) );
+    return adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) ).first;
 }
 
 bool
@@ -1071,6 +1067,18 @@ MSPeakTable::getMSPeaks( adcontrols::MSPeaks& peaks, GETPEAKOPTS opt ) const
         }
     }
     return true;
+}
+
+void
+MSPeakTable::setMSPeak( const adcontrols::MSPeak& pk ) // set peak via spectrumIndex
+{
+    for ( int row = 0; impl_->model_->rowCount(); ++row ) {
+        if ( impl_->model_->index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == pk.spectrumIndex() ) {
+            impl_->model_->setData ( impl_->model_->index( row, c_mspeaktable_mode ), pk.mode() );
+            impl_->model_->setData ( impl_->model_->index( row, c_mspeaktable_mass ), pk.mass() );
+            break;
+        }
+    }
 }
 
 int

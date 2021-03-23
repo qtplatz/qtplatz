@@ -59,7 +59,7 @@ namespace adwidgets {
         virtual ~MSPeakTable();
         explicit MSPeakTable(QWidget *parent = 0);
         void onInitialUpdate();
-        QStandardItemModel& model();
+        // QStandardItemModel& model();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
@@ -81,6 +81,7 @@ namespace adwidgets {
         enum GETPEAKOPTS { AllPeaks, AssignedPeaks, SelectedPeaks };
         bool getMSPeaks( adcontrols::MSPeaks&, GETPEAKOPTS opt = AllPeaks ) const;
         bool getMSPeak( adcontrols::MSPeak&, int row ) const;
+        void setMSPeak( const adcontrols::MSPeak& ); // set peak via spectrumIndex
 
         std::shared_ptr< adcontrols::MSPeaks > getSelectedPeaks( GETPEAKOPTS opt = SelectedPeaks ) const;
 

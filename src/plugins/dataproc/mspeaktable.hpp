@@ -41,7 +41,8 @@ namespace dataproc {
         void addContextMenu( QMenu&, const QPoint&, const QTableView *, const QModelIndexList& ) const override;
 
     private:
-        void lap_deconvolution( std::shared_ptr< adcontrols::MSPeaks > ) const;
+        void lap_deconvolution( std::shared_ptr< adcontrols::MSPeaks > );
+        void lap_list( std::shared_ptr< adcontrols::MSPeaks > ) const;
     };
 
 }
