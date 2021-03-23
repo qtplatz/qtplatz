@@ -43,25 +43,39 @@ namespace dataproc {
 
     class lapDeconvDlg::impl {
     public:
-        impl() {
+        impl() : selRow_( 0 ) {
         };
+        int selRow_;
     };
 
 }
 
 using namespace dataproc;
 
+namespace {
+    enum columns {
+        c_mass
+        , c_nlaps
+        , c_error
+    };
+}
+
 lapDeconvDlg::lapDeconvDlg(QWidget *parent) : QDialog(parent)
                                             , impl_( std::make_unique< impl >() )
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
-        if ( auto table = qtwrapper::make_widget< adwidgets::MolTable >( "lapMolTable" ) ) {
-            table->onInitialUpdate();
+        if ( auto table = qtwrapper::make_widget< adwidgets::TableView >( "lapMolTable" ) ) {
+            table->setSelectionBehavior( QAbstractItemView::SelectRows );
+            table->setSelectionMode( QAbstractItemView::SingleSelection );
+            auto model = new QStandardItemModel();
+            table->setModel( model );
+            model->setColumnCount( 3 );
+            model->setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "mass" ) );
+            model->setHeaderData( c_nlaps, Qt::Horizontal, QObject::tr( "lap#" ) );
+            model->setHeaderData( c_error, Qt::Horizontal, QObject::tr( "error (mDa)" ) );
             layout->addWidget( table );
         }
         if ( auto buttons = new QDialogButtonBox( QDialogButtonBox::Ok | QDialogButtonBox::Cancel ) ) {
-            // connect( buttons, &QDialogButtonBox::accepted, this, [&] () { QDialog::accept(); } );
-            // connect( buttons, &QDialogButtonBox::rejected, this, [&] () { QDialog::reject(); } );
             connect( buttons, &QDialogButtonBox::accepted, this, &QDialog::accept );
             connect( buttons, &QDialogButtonBox::rejected, this, &QDialog::reject );
 
@@ -73,6 +87,49 @@ lapDeconvDlg::lapDeconvDlg(QWidget *parent) : QDialog(parent)
 
 lapDeconvDlg::~lapDeconvDlg()
 {
+}
+
+void
+lapDeconvDlg::setData( std::vector< std::tuple< double, int, double > >&& candidates )
+{
+    ADDEBUG() << "setData...";
+    if ( auto table = findChild< adwidgets::TableView * >( "lapMolTable" ) ) {
+        if ( auto model = qobject_cast< QStandardItemModel * >( table->model() ) ) {
+            model->setRowCount( candidates.size() );
+            size_t row(0);
+            for ( const auto& c: candidates ) {
+                using adwidgets::MolTable;
+                double mass, error; int lap;
+                std::tie( mass, lap, error ) = c;
+                model->setData( model->index( row, c_mass ), mass );
+                model->setData( model->index( row, c_nlaps ), lap );
+                model->setData( model->index( row, c_error ), error * 1000 );
+                ++row;
+            }
+        }
+    }
+
+}
+
+
+boost::optional< std::tuple< double, int, double > >
+lapDeconvDlg::getSelection() const
+{
+    if ( auto table = findChild< adwidgets::TableView * >( "lapMolTable" ) ) {
+        auto select = table->selectionModel();
+        if ( select->hasSelection() ) {
+            auto rows = select->selectedRows();
+            if ( !rows.empty() ) {
+                int row = rows.front().row();
+                auto model = table->model();
+                double mass = model->index( row, c_mass ).data( Qt::EditRole ).toDouble();
+                int lap = model->index( row, c_nlaps ).data( Qt::EditRole ).toInt();
+                double error = model->index( row, c_error ).data( Qt::EditRole ).toDouble() / 1000;
+                return {{ mass, lap, error }};
+            }
+        }
+    }
+    return {};
 }
 
 //////////////

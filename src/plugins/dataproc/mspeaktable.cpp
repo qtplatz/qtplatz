@@ -61,8 +61,8 @@ namespace {
             }
             std::vector< std::tuple< double, int, double > > result_candidates;
 
-            double delta( 0.1 );
             for ( const auto& rmass: refms ) {
+                double delta( 0.1 );
                 auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass, [](const auto& a, const auto& b){ return a.first < b; });
                 if ( it != candidates.end() ) {
                     if ( it != candidates.begin() ) {
@@ -82,22 +82,24 @@ namespace {
                     }
                 }
             }
-
-            // ADDEBUG() << "result candidates size: " << result_candidates.size();
-            int limit(5);
-            for ( auto& r: result_candidates ) {
-                auto [ mass, lap, error ] = r;
-                ADDEBUG() << "lap-deconvolution candidate:\t" << mass << ", " << lap << ", " << error;
-                if ( --limit == 0 )
-                    break;
-            }
             dataproc::lapDeconvDlg dlg;
-            ADDEBUG() << dlg.exec();
+            dlg.setData( std::move( result_candidates ) );
+            if ( dlg.exec() ) {
+                if ( auto select = dlg.getSelection() ) {
+#if __cplusplus >= 201703L
+                    auto [ mass, lap, error ] = *select;
+#else
+                    double mass, error; int lap;
+                    std::tie( mass, lap, error ) = *select;
+#endif
+                    ADDEBUG() << "lap-deconvolution candidate:\t" << mass << ", " << lap << ", " << error;
+
+                }
+            }
         }
 
         void operator()( std::vector< std::pair< double, int > >& candidates ) const {
-            // size_t idx;
-            // std::tie( std::ignore, idx ) = ms_->minmax_element();
+
             std::vector< std::tuple< double, int, double > > result_candidates;
 
             for ( size_t i = 0; i < ms_->size(); ++i ) {

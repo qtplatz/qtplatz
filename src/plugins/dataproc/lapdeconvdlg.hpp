@@ -28,6 +28,7 @@
 #include <memory>
 #include <map>
 #include <set>
+#include <boost/optional.hpp>
 
 class QMenu;
 
@@ -44,6 +45,8 @@ namespace dataproc {
     public:
         explicit lapDeconvDlg(QWidget *parent = 0);
         ~lapDeconvDlg();
+        void setData( std::vector< std::tuple< double, int, double > >&& );
+        boost::optional< std::tuple< double, int, double > > getSelection() const;
 
     public slots:
 
