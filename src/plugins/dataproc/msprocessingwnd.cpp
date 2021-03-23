@@ -767,27 +767,14 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         if ( auto sp = dp->massSpectrometer() ) {
             if ( auto pkinfo = pkinfo_.second.lock() ) {
-                adcontrols::segment_wrapper< adcontrols::MSPeakInfo > fpks( *pkinfo );
-                if ( fpks[ fcn ].size() > idx ) {
-                    auto pk = fpks[ fcn ].begin() + idx;
-                    pk->set_mass( sp->assignMass( pk->time(), mode )
-                                  , sp->assignMass( pk->hh_left_time(), mode )
-                                  , sp->assignMass( pk->hh_right_time(), mode ) );
-                    if ( mode == fpks[ fcn ].mode() )
-                        pk->set_mode( boost::none );
-                    else
-                        pk->set_mode( mode );
-                    ADDEBUG() << "handleModeChanged: mass=" << pk->mass() << ", mode: " << mode;
-                }
-                if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
-                    p->onUpdate( pkinfo );
-                }
+                // nothing to be done
             }
             if ( auto ms = pProcessedSpectrum_.second.lock() ) {
                 if ( ms->isCentroid() && !ms->isHistogram() ) {
                     auto& fms = adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms )[ fcn ];
                     auto it = std::find_if( fms.get_annotations().begin(), fms.get_annotations().end()
-                                            , [&]( const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
+                                            , [&]( const auto& a ){
+                                                return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
                     boost::property_tree::ptree pt;
                     if ( it != fms.get_annotations().end() ) {
                         if ( auto opt = it->ptree() )

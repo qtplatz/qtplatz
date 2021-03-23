@@ -175,12 +175,6 @@ namespace adwidgets {
 
     namespace detail {
 
-        template<class T> struct lock_weak_pointer : public boost::static_visitor< std::shared_ptr<T> > {
-            std::shared_ptr< T > operator ()( std::weak_ptr<T>& wptr ) const {
-                return wptr.lock();
-            }
-        };
-
         struct dataMayChanged : public boost::static_visitor< bool > {
             MSPeakTable * pThis_;
             dataMayChanged( MSPeakTable * table ) : pThis_( table ) {}
@@ -210,7 +204,8 @@ namespace adwidgets {
                                                                         , 0
                                                                         , adcontrols::annotation::dataFormula );
                     } else {
-                        ms.get_annotations().erase_if( [&](const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
+                        ms.get_annotations().erase_if( [&](const auto& a ){
+                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
                     }
                     return true;
                 }
@@ -229,6 +224,26 @@ namespace adwidgets {
         impl() : model_( std::make_shared< QStandardItemModel >() )
                , delegate_( std::make_shared< MSPeakTableDelegate >() )
                , inProgress_( false ) {
+        }
+
+        std::shared_ptr< adcontrols::MassSpectrum > __getMassSpectrum() {
+            if ( data_source_.which() == 1 ) {
+                auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( data_source_ );
+                return wptr.lock();
+            }
+            return {};
+        }
+
+        std::shared_ptr< adcontrols::MSPeakInfo > __getMSPeakInfo() {
+            ADDEBUG() << "__getMSPeakInfo() which: " << data_source_.which();
+            if ( data_source_.which() == 0 ) {
+                auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
+                return wptr.lock();
+            }
+            if ( auto ptr = pkinfo_.lock() ) {
+                return ptr;
+            }
+            return {};
         }
 
         boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
@@ -438,18 +453,6 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             matchCount++;
         }
     }
-#if 0
-    if ( impl_->data_source_.which() == 1 ) {
-        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
-        if ( auto ptr = wptr.lock() ) {
-            std::for_each( candidates.begin(), candidates.end()
-                           , [&] ( const adcontrols::Targeting::Candidate& c ){
-                                 detail::annotation_updator()(ptr, c.idx, c.fcn, c.formula);
-                                 emit formulaChanged( c.idx, c.fcn );
-                             } );
-        }
-    }
-#endif
     if ( matchCount )
         hideRows();
 
@@ -962,12 +965,30 @@ MSPeakTable::modeChanged( const QModelIndex& index )
 {
 	QStandardItemModel& model = *impl_->model_;
 
-    if ( index.column() == c_mspeaktable_mode ) {
+    if ( index.column() != c_mspeaktable_mode )
+        return;
 
+    if ( auto sp = impl_->massSpectrometer_.lock() ) {
         int fcn = model.index( index.row(), c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
         int idx = model.index( index.row(), c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int mode = index.data( Qt::EditRole ).toInt();
 
+        double time = model.index( index.row(), c_mspeaktable_time ).data( Qt::EditRole ).toDouble();
+        double mass = sp->assignMass( time, mode );
+        model.setData( model.index( index.row(), c_mspeaktable_mass ), mass );
+
+        if ( auto pkInfo = impl_->__getMSPeakInfo() ) {
+            adcontrols::segment_wrapper< adcontrols::MSPeakInfo > fpks( *pkInfo );
+            if ( fpks[ fcn ].size() > idx ) {
+                auto pk = fpks[ fcn ].begin() + idx;
+                pk->set_mass( sp->assignMass( pk->time(), mode )
+                              , sp->assignMass( pk->hh_left_time(), mode )
+                              , sp->assignMass( pk->hh_right_time(), mode ) );
+                if ( mode != fpks[ fcn ].mode() ) {
+                    pk->set_mode( mode ); // mode can be boost::none
+                }
+            }
+        }
         emit modeChanged( idx, fcn, mode );
     }
 }

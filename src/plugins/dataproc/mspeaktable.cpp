@@ -56,7 +56,6 @@ namespace {
             for ( size_t i = 0; i < ms_->size(); ++i ) {
                 if ( ms_->intensity( i ) > threshold ) {
                     refms.emplace_back( ms_->mass( i ) );
-                    // ADDEBUG() << "lap0 ref: " << ms_->mass( i );
                 }
             }
             std::vector< std::tuple< double, int, double > > result_candidates;
@@ -79,8 +78,6 @@ namespace {
                                                         return std::get<2>(a) < b;
                                                     });
                         result_candidates.emplace( cIt, it->first, it->second, delta );
-                        // ADDEBUG() << "\tcandidate mass: " << *it << ", reference mass: " << rmass
-                        //           << ", error: " << ( it->first - rmass );
                     }
                 }
             }
