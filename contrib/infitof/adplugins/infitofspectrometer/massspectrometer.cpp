@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -33,6 +33,8 @@
 #include <adplugin/visitor.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/lapfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/mspeaks.hpp>
@@ -46,6 +48,10 @@
 #include "constants.hpp"
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <memory>
@@ -207,6 +213,36 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
                                                             , tDelay_
                                                             , L1, L2, L3, LG, L4, LT, LE );
 
+    do {
+        sql.prepare( "SELECT data from MetaData WHERE clsid = ?" );
+        sql.bind( 1 ) = adcontrols::ControlMethod::Method::clsid();
+        if ( sql.step() == adfs::sqlite_row ) {
+            auto blob = sql.get_column_value< adfs::blob >( 0 );
+            boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >(blob.data()), size_t( blob.size() ) );
+            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
+            auto m = std::make_unique< adcontrols::ControlMethod::Method >();
+            if ( adcontrols::ControlMethod::Method::restore( strm, *m ) ) {
+                method_ = std::move( m );
+                auto it = method_->find( method_->begin(), method_->end(), infitofcontrols::method::clsid() );
+                if ( it != method_->end() ) {
+                    infitofcontrols::method im;
+                    if ( adcontrols::ControlMethod::MethodItem::get<>( *it, im ) ) {
+                        protocols_ = im.tof().protocols;
+                        ADDEBUG() << "----------------- protocols ------------------- " << protocols_.size();
+                        for ( const auto& p: protocols_ ) {
+                            ADDEBUG() << std::make_pair( p.formulae(), p.nlaps() );
+                            // ADDEBUG() << p.avgr_delay;
+                            // ADDEBUG() << std::make_pair( p.exit.delay, p.exit.width );
+                            // ADDEBUG() << std::make_pair( p.exit2.delay, p.exit2.width );
+                            // ADDEBUG() << std::make_pair( p.gate.at(0).delay, p.gate.at(0).width ) << ", " << p.gate.at(0).enable;
+                            // ADDEBUG() << std::make_pair( p.gate.at(1).delay, p.gate.at(1).width ) << ", " << p.gate.at(1).enable;
+                        }
+                    }
+                }
+            }
+        }
+    } while (0);
+
     bool hasScanLawTimeCourse( false );
     do {
         sql.prepare( "SELECT name FROM sqlite_master WHERE type='table' AND name='ScanLawTimeCourse'" );
@@ -226,6 +262,17 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
     }
 }
 
+std::pair< int, double > // nlap, time
+MassSpectrometer::findLaps( double mass, int proto ) const
+{
+    if ( !protocols_.empty() && protocols_.size() > proto ) {
+        const auto& p = protocols_[ proto ];
+        double t_mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( p.formulae() ) ).first;
+        adcontrols::lapFinder finder( *this->scanLaw_, t_mass, p.nlaps() );
+        return finder( mass );
+    }
+    return {0,0};
+}
 
 bool
 MassSpectrometer::estimateScanLaw( const adcontrols::MSPeaks& peaks, double& va, double& t0 ) const

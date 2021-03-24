@@ -75,7 +75,8 @@ namespace adwidgets {
         enum Events { formula_changed, lockmass_triggered };
         typedef void( callback_t )( int event, const QVector< QPair<int, int> >& );
 
-		void setContents( std::shared_ptr< adcontrols::MassSpectrum >, std::function< callback_t > callback );
+        // this is for Spectrogram; selected centroid data review on MSPeakTable
+		void setCentroidSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, std::function< callback_t > callback );
 
         // interface for InfiTOF
         enum GETPEAKOPTS { AllPeaks, AssignedPeaks, SelectedPeaks };
@@ -91,6 +92,9 @@ namespace adwidgets {
         virtual int findColumn( const QString& name ) const;
         // virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
         virtual void addContextMenu( QMenu&, const QPoint&, const QTableView *, const QModelIndexList& ) const {};
+
+    private:
+        void setAnnotations( std::shared_ptr< const adcontrols::MassSpectrum > );
 
     protected:
         // reimplement QTableView

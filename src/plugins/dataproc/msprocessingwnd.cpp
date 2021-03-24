@@ -784,6 +784,7 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
                     pt.put( "peak.mass", sp->assignMass( fms.time( idx ), mode ) );
                     ADDEBUG() << pt;
                     fms.get_annotations() << adcontrols::annotation( pt );
+                    dp->setModified( true );
                 }
             } else {
                 ADDEBUG() << "------- no processing spectrum can be locked ---------";

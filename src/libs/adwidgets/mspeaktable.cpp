@@ -32,6 +32,7 @@
 #include <adcontrols/constants.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/lapfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/mspeakinfo.hpp>
@@ -67,7 +68,7 @@
 
 namespace adwidgets {
 
-    enum {
+    enum c_mspeaktable {
         c_mspeaktable_formula
         , c_mspeaktable_exact_mass
         , c_mspeaktable_mass
@@ -99,6 +100,21 @@ namespace adwidgets {
         , { QColor( 0xff, 0x66, 0x44, 0xa0 ) }
         , { QColor( 0xff, 0x66, 0x44, 0xb0 ) }
     };
+
+
+    struct index_finder {
+
+        QModelIndex operator()( QAbstractItemModel& model, c_mspeaktable column, int index, int fcn ) {
+            for ( int row = 0; model.rowCount(); ++row ) {
+                if ( ( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == index ) &&
+                     ( model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == fcn ) ) {
+                    return model.index( row, column );
+                }
+            }
+            return {};
+        }
+    };
+
 
 	using namespace adcontrols::metric;
 
@@ -346,14 +362,21 @@ MSPeakTable::setContents( boost::any&& a )
     typedef std::pair< adcontrols::MassSpectrumPtr, adcontrols::MSPeakInfoPtr > spectrum_peakinfo_type;
 
     if ( adportable::a_type< spectrum_peakinfo_type >::is_a( a ) ) {
+
         auto pair = boost::any_cast< spectrum_peakinfo_type >( a );
+        // ADDEBUG() << "setContents -- pair: first=" << pair.first.get() << ", second=" << pair.second.get();
+
         impl_->data_source_ = pair.first;
         impl_->pkinfo_ = pair.second;
         setPeakInfo( *pair.second );
+        if ( pair.first ) {
+            setAnnotations( pair.first );
+        }
         return true;
     }
 
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
+        // ADDEBUG() << "setContents -- peakinfo";
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
         impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
@@ -362,6 +385,7 @@ MSPeakTable::setContents( boost::any&& a )
     }
 
     if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
+        // ADDEBUG() << "setContents -- spectrum";
         std::weak_ptr< adcontrols::MassSpectrum > wptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
         impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
@@ -370,6 +394,7 @@ MSPeakTable::setContents( boost::any&& a )
     }
 
     if ( adportable::a_type< adcontrols::TargetingPtr >::is_a( a ) ) {
+        // ADDEBUG() << "setContents -- targeting";
         if ( auto tgt = boost::any_cast<adcontrols::TargetingPtr>(a) ) {
             setPeakInfo( *tgt );
         }
@@ -378,8 +403,9 @@ MSPeakTable::setContents( boost::any&& a )
     return false;
 }
 
+// this is for Spectrogram; selected centroid data review on MSPeakTable
 void
-MSPeakTable::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::function< callback_t > callback )
+MSPeakTable::setCentroidSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ms, std::function< callback_t > callback )
 {
     impl_->data_source_ = ms;
     impl_->callback_.disconnect_all_slots();
@@ -415,6 +441,8 @@ MSPeakTable::onInitialUpdate()
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
+    setColumnHidden( c_mspeaktable_delta_mass, true );
+    setColumnHidden( c_mspeaktable_relative_intensity, true );
     //horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents ); <-- performance killer
     //horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 }
@@ -468,11 +496,14 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     const bool is_area = info.isAreaIntensity();
 
     double iMax(0);
-    for ( auto& pkinfo: segs ) {
-        auto it = std::max_element( pkinfo.begin(), pkinfo.end()
-                                    , [&](const auto& a, const auto& b){ return is_area ? (a.area() < b.area()) : (a.height() < b.height()); });
-        if ( it != pkinfo.end() )
-            iMax = std::max( iMax, is_area ? it->area() : it->height() );
+    if ( !this->isColumnHidden( c_mspeaktable_relative_intensity ) ) {
+        for ( auto& pkinfo: segs ) {
+            auto it = std::max_element( pkinfo.begin(), pkinfo.end()
+                                        , [&](const auto& a, const auto& b){ return is_area ? (a.area() < b.area()) : (a.height() < b.height()); });
+            if ( it != pkinfo.end() ) {
+                iMax = std::max( iMax, is_area ? it->area() : it->height() );
+            }
+        }
     }
 
     int row = 0;
@@ -491,7 +522,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
             auto abundance = is_area ? pk.area() : pk.height();
             model.setData( model.index( row, c_mspeaktable_intensity ), abundance );
-            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (abundance * 100) / iMax );
+            if ( !this->isColumnHidden( c_mspeaktable_relative_intensity ) ) {
+                model.setData( model.index( row, c_mspeaktable_relative_intensity ), (abundance * 100) / iMax );
+            }
             if ( auto mode = pk.mode() ) { // if peak has modified mode value
                 model.setData( model.index( row, c_mspeaktable_mode ), *mode );
                 ADDEBUG() << "--------- local mode found: " << *mode << " <- " << pkinfo.mode() << "(" << pk.mass() << ")";
@@ -580,7 +613,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
             auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
-                ADDEBUG() << "##### " << it->text();
+                ADDEBUG() << "anno.text: " << it->text();
                 if ( auto json = it->json() ) {
                     auto obj = QJsonDocument::fromJson( QByteArray(json->c_str(), json->size() ) ).object();
                     ADDEBUG() << "########### find json annotation ###########";
@@ -613,6 +646,37 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     //resizeRowsToContents();
     this->resizeColumnToContents( c_mspeaktable_formula );
     setUpdatesEnabled( true );
+}
+
+void
+MSPeakTable::setAnnotations( std::shared_ptr< const adcontrols::MassSpectrum > ms )
+{
+    int proto(0);
+    for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
+        const adcontrols::annotations& annots = fms.get_annotations();
+        for ( auto anno: annots ) {
+            if ( anno.index() >= 0 ) {
+                if ( anno.dataFormat() == adcontrols::annotation::dataFormula ) {
+                    auto index = index_finder()( *impl_->model_, c_mspeaktable_formula, anno.index(), proto );
+                    if ( index.isValid() ) {
+                        impl_->model_->setData( index, QString::fromStdString( anno.text() ) );
+                        double mass = exactMass( anno.text() );
+                        impl_->model_->setData( impl_->model_->index( index.row(), c_mspeaktable_exact_mass ), mass );
+                        if ( auto sp = impl_->massSpectrometer_.lock() ) {
+                            int lap; double tof;
+                            std::tie( lap, tof ) = sp->findLaps( mass, proto );
+                            if ( lap > 0 ) {
+                                impl_->model_->setData( impl_->model_->index( index.row(), c_mspeaktable_mode ), lap );
+                            }
+                        }
+                    }
+                }
+            } else {
+                // ADDEBUG() << "index: " << anno.index() << ", text: " << anno.text();
+            }
+        }
+        ++proto;
+    }
 }
 
 void
@@ -1073,9 +1137,10 @@ void
 MSPeakTable::setMSPeak( const adcontrols::MSPeak& pk ) // set peak via spectrumIndex
 {
     for ( int row = 0; impl_->model_->rowCount(); ++row ) {
-        if ( impl_->model_->index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == pk.spectrumIndex() ) {
-            impl_->model_->setData ( impl_->model_->index( row, c_mspeaktable_mode ), pk.mode() );
-            impl_->model_->setData ( impl_->model_->index( row, c_mspeaktable_mass ), pk.mass() );
+        auto index = index_finder()( *impl_->model_, c_mspeaktable_mode, pk.spectrumIndex(), pk.fcn() );
+        if ( index != QModelIndex() ) {
+            impl_->model_->setData( index, pk.mode() );
+            impl_->model_->setData( impl_->model_->index( index.row(), c_mspeaktable_mass ), pk.mass() );
             break;
         }
     }
@@ -1239,9 +1304,7 @@ MSPeakTable::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectro
 {
     impl_->massSpectrometer_ = sp;
     if ( sp ) {
-        ADDEBUG() << "######### setMassSpectrometer( " << sp->massSpectrometerName();
         if ( sp->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
-            ADDEBUG() << "infiTOF spectrometer";
         }
     }
 }

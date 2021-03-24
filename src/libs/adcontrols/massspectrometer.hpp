@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -87,6 +87,7 @@ namespace adcontrols {
         virtual void setDataReader( adcontrols::DataReader * );
         virtual void setMSFractuation( adcontrols::MSFractuation * );
         virtual adcontrols::MSFractuation * msFractuation() const;
+        virtual std::pair<int, double> findLaps( double mass, int proto ) const { return {0,0}; } // nlap, tof (expected)
 
         //virtual const char * objtext() const = 0;
         //virtual const boost::uuids::uuid& objclsid() const = 0;

@@ -150,21 +150,6 @@ MSPeakTable::MSPeakTable(QWidget *parent) : adwidgets::MSPeakTable( parent )
 {
 }
 
-// void
-// MSPeakTable::addContextMenu( QMenu& menu
-//                              , const QPoint& pos
-//                              , std::shared_ptr< const adcontrols::MassSpectrum > ms ) const
-// {
-//     adwidgets::MSPeakTable::addActionsToContextMenu( menu, pos );
-//     menu.addSeparator();
-
-//     if ( ms ) {
-//         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-//             dp->addContextMenu( adprocessor::ContextMenuOnMSPeakTable, menu, ms, { 0, 0 }, false );
-//         }
-//     }
-// }
-
 void
 MSPeakTable::addContextMenu( QMenu& menu, const QPoint& pos, const QTableView *, const QModelIndexList& list ) const
 {
@@ -259,11 +244,6 @@ MSPeakTable::lap_list( std::shared_ptr< adcontrols::MSPeaks > pks ) const
     if ( auto sp = this->massSpectrometer() ) {
         std::vector< std::tuple< double, int > > list;
         for ( const auto& pk: *pks ) {
-            ADDEBUG() << "formula: " << pk.formula()
-                      << ", mass: " << pk.mass()
-                      << ", time: " << pk.time()
-                      << ", mode: " << pk.mode()
-                      << ", proto: " << pk.fcn();
             double mass = pk.mass();
             for ( int n = pk.mode(); n < pk.mode() + 40 && mass >= 10; ++n ) {
                 mass = sp->assignMass( pk.time(), n );

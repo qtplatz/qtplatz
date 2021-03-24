@@ -82,6 +82,7 @@ namespace infitofspectrometer {
         bool setMSProperty( adcontrols::MassSpectrum&, const adcontrols::ControlMethod::Method&, int ) const override;
         bool estimateScanLaw( const adcontrols::MSPeaks&, double& va, double& t0 ) const override;
 
+        std::pair<int, double> findLaps( double mass, int proto ) const override;
         //--------- local -----------
         const adcontrols::ScanLaw * scanLaw( int64_t ) const;
     private:

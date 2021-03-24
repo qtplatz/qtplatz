@@ -861,9 +861,9 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                         if ( pkinfo )
                             pLifeCycle->setContents( boost::any( pkinfo ) );
                     }
-                    if ( targeting )
+                    if ( targeting ) {
                         pLifeCycle->setContents( boost::any( targeting ) );
-
+                    }
                     pLifeCycle->setContents( boost::any( folium ) );
                 }
             }
@@ -888,7 +888,7 @@ MainWindow::selectionChanged( std::shared_ptr< adcontrols::MassSpectrum > centro
 {
     // this is for Spectrogram; selected centroid data review on MSPeakTable
     if ( auto pktable = findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
-        pktable->setContents( centroid, f );
+        pktable->setCentroidSpectrum( centroid, f );
     }
 }
 
