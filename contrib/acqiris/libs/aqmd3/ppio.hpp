@@ -25,6 +25,8 @@
 #include <cstdint>
 #include "aqmd3_global.hpp"
 
+class AQMD3SHARED_EXPORT ppio;
+
 class ppio {
 #if defined _MSC_VER
     static const uint16_t BASEPORT = 0x378;

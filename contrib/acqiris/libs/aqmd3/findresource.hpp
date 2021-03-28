@@ -7,7 +7,7 @@
 ** Commercial Usage
 **
 ** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** accordance with the MS-Cheminformatics Commercial License AgreeAQMD3SHARED_EXPORTment provided with the
 ** Software or, alternatively, in accordance with the terms contained in
 ** a written agreement between you and MS-Cheminformatics LLC.
 **
@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "aqmd3_global.hpp"
 #include <boost/optional.hpp>
 #include <string>
 #include <memory>
@@ -32,6 +33,8 @@
 namespace aqmd3 {
 
     class AqMD3;
+
+    struct AQMD3SHARED_EXPORT  findResource;
 
     struct findResource {
         const bool findConfig_;

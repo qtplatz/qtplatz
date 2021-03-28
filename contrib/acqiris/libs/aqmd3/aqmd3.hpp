@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2020-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2020-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -40,6 +40,8 @@ namespace aqmd3controls {
 
 namespace aqmd3 {
 
+    class AQMD3SHARED_EXPORT AqMD3;
+
     class AqMD3 {
         class impl;
 
@@ -58,10 +60,10 @@ namespace aqmd3 {
         // static bool log( ViStatus rcode, const char * const file, int line
         //                  , std::function< std::string()> details = std::function<std::string()>() );
         void syslog( ViStatus rcode, const char * const file, int line
-                     , std::function< std::string()> details = std::function<std::string()>() ) const;        
+                     , std::function< std::string()> details = std::function<std::string()>() ) const;
         bool clog( ViStatus rcode, const char * const file, int line
                    , std::function< std::string()> details = std::function<std::string()>() ) const;
-        
+
         //<------------------------  refactord code --------------------------
         ViStatus initWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
 
@@ -155,7 +157,7 @@ namespace aqmd3 {
     struct channel_data_inversion_enabled { static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_DATA_INVERSION_ENABLED; typedef bool value_type; };
     struct control_io_count               { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_COUNT;               typedef ViInt32 value_type; };
     struct control_io_signal              { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_SIGNAL;              typedef std::string value_type; };
-    struct control_io_available_signals   { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_AVAILABLE_SIGNALS;   typedef std::string value_type; };    
+    struct control_io_available_signals   { static constexpr ViAttr id = AQMD3_ATTR_CONTROL_IO_AVAILABLE_SIGNALS;   typedef std::string value_type; };
     struct instrument_info_nbr_adc_bits   { static constexpr ViAttr id = AQMD3_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS;   typedef ViInt32 value_type; };
     struct is_idle                        { static constexpr ViAttr id = AQMD3_ATTR_IS_IDLE;                        typedef ViInt32 value_type; };
     struct num_records_to_acquire         { static constexpr ViAttr id = AQMD3_ATTR_NUM_RECORDS_TO_ACQUIRE;         typedef ViInt64 value_type; };

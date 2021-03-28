@@ -560,7 +560,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
         ViInt32 flags[numRecords];
         void print( std::ostream& o, const char * heading ) const {
             std::cout << heading << ":\t"
-                      << boost::format( "actualAverages: %d\tactualPoints\%d\tfirstValidPoint%d" )
+                      << boost::format( "actualAverages: %d\tactualPoints\t%d\tfirstValidPoint%d" )
                 % actualAverages % actualPoints[0] % firstValidPoint[0]
                       << boost::format( "\tinitialXOffset: %d\tinitialXTime: %g" )
                 % initialXOffset % ( initialXTimeSeconds[0] + initialXTimeFraction[0] )

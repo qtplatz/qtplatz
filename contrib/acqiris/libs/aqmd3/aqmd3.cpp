@@ -505,14 +505,14 @@ namespace aqmd3 {
 
     //////////////////////////////////////////////////////////////////////////
     // ViReal64
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, ViReal64 value )
     {
         return AqMD3_SetAttributeViReal64( session_, _1, _2, value );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::getAttribute( ViConstString _1, ViAttr _2, ViReal64& result ) const
     {
@@ -521,14 +521,14 @@ namespace aqmd3 {
 
     //////////////////////////////////////////////////////////////////////////
     // ViInt64
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, ViInt64 value )
     {
         return AqMD3_SetAttributeViInt64( session_, _1, _2, value );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::getAttribute( ViConstString _1, ViAttr _2, ViInt64& value ) const
     {
@@ -537,14 +537,14 @@ namespace aqmd3 {
 
     //////////////////////////////////////////////////////////////////////////
     // ViInt32
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, ViInt32 value )
     {
         return AqMD3_SetAttributeViInt32( session_, _1, _2, value );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::getAttribute( ViConstString _1, ViAttr _2, ViInt32& result ) const
     {
@@ -553,28 +553,28 @@ namespace aqmd3 {
 
     //////////////////////////////////////////////////////////////////////////
     // bool
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, ViBoolean value )
     {
         return AqMD3_SetAttributeViBoolean( session_, _1, _2, value );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::getAttribute( ViConstString _1, ViAttr _2, ViBoolean& value ) const
     {
         return AqMD3_GetAttributeViBoolean( session_, _1, _2, &value );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, bool value )
     {
         return AqMD3_SetAttributeViBoolean( session_, _1, _2, value ? VI_TRUE : VI_FALSE );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::getAttribute( ViConstString _1, ViAttr _2, bool& value ) const
     {
@@ -586,14 +586,14 @@ namespace aqmd3 {
 
     //////////////////////////////////////////////////////////////////////////
     // std::string
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, const std::string& value )
     {
         return AqMD3_SetAttributeViString( session_, _1, _2, value.c_str() );
     }
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::setAttribute( ViConstString _1, ViAttr _2, std::string value )
     {
@@ -601,7 +601,7 @@ namespace aqmd3 {
     }
 
 
-    template<>
+    template<> AQMD3SHARED_EXPORT
     ViStatus
     AqMD3::getAttribute( ViConstString _1, ViAttr _2, std::string& result ) const
     {
