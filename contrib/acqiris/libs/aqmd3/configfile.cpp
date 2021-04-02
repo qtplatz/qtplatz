@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "configfile.hpp"
+#include <adlog/logger.hpp>
 #include <boost/filesystem.hpp>
 #include <adportable/profile.hpp>
 #include <boost/filesystem.hpp>
@@ -35,6 +36,16 @@ using namespace aqmd3;
 configFile::configFile()
     : inifile_( boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz/aqmd3.ini" )
 {
+    boost::system::error_code ec;
+    if ( boost::filesystem::is_directory( inifile_, ec ) && !ec ) {
+        ADTRACE() << "Wrong directory '" << inifile_ << "' found -- apply workaround.";
+        boost::filesystem::remove_all( inifile_, ec );
+        if ( !ec ) {
+            ADTRACE() << "Directory: " << inifile_ << " has been removed.";
+        } else {
+            ADTRACE() << ec.message();
+        }
+    }
 }
 
 configFile::~configFile()
@@ -46,7 +57,8 @@ configFile::saveResource( const std::string& res ) const
 {
     if ( ! boost::filesystem::exists( inifile_ ) ) {
         boost::system::error_code ec;
-        boost::filesystem::create_directories( inifile_, ec );
+        auto parent_path = inifile_.parent_path();
+        boost::filesystem::create_directories( parent_path, ec );
         if ( ec )
             return false; // error
     }
@@ -69,9 +81,10 @@ configFile::loadResource() const
         try {
             boost::property_tree::read_ini( inifile_.string(), pt );
         } catch ( std::exception& ex ) {
+            ADTRACE() << "exceptionr: " << ex.what();
             return boost::none;
         }
-        return pt.get_optional<std::string>( "AGMD3.resource" );
+        return pt.get_optional<std::string>( "AQMD3.resource" );
     }
     return boost::none;
 }

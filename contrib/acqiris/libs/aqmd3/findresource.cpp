@@ -46,12 +46,9 @@ boost::optional< std::string >
 findResource::operator()( std::shared_ptr< AqMD3 > md3 ) const
 {
     if ( findConfig_ ) {
-
         if ( auto res = configFile().loadResource() ) {
             if ( md3->clog( md3->initWithOptions( *res, VI_FALSE, VI_TRUE, initOptions_ ), __FILE__, __LINE__, [&]{ return *res; }) )
                 return res;
-        } else {
-            ADDEBUG() << "-- findResource load configuration failed";
         }
     }
 
@@ -59,7 +56,6 @@ findResource::operator()( std::shared_ptr< AqMD3 > md3 ) const
         std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
         if ( md3->clog( md3->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, initOptions_ ), __FILE__, __LINE__, [&]{ return res; } ) ) {
             if ( saveConfig_ ) {
-                ADDEBUG() << "saveResource(" << res << ")";
                 aqmd3::configFile().saveResource( res );
             }
             return res;
