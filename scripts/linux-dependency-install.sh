@@ -14,7 +14,9 @@ list_dependency+=('mesa-common-dev'
 		  'freeglut3-dev'
 		  'libxml2-dev'
 		  'libxslt1-dev'
-		  'libgstreamer-plugins-base0.10' )
+		  'libgstreamer-plugins-base0.10'
+		  'libxcb-xinerama0-dev'
+		)
 
 #boost
 list_dependency+=('libbz2-dev')
