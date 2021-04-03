@@ -274,7 +274,8 @@ main( int argc, char * argv [] )
             }
         }
 
-        if ( vm.count( "find" ) ) {
+        if ( vm.count( "find" ) && !success ) {
+            std::cout << "No digitizer has been found.";
             return 0;
         }
 
@@ -295,6 +296,10 @@ main( int argc, char * argv [] )
                       << "SerialNumber:     " << ident->SerialNumber() << std::endl
                       << "IOVersion:        " << ident->IOVersion() << std::endl
                       << "NbrADCBits:       " << ident->NbrADCBits() << std::endl;
+
+            if ( vm.count( "find" ) ) {
+                return 0;
+            }
 
             using aqmd3::AqMD3;
             using aqmd3::attribute;
