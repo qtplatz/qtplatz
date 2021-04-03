@@ -27,12 +27,15 @@
 #include <aqmd3/ppio.hpp>
 #include <aqmd3/aqmd3.hpp>
 #include <aqmd3/findresource.hpp>
+#include <aqmd3/configfile.hpp>
 #include <aqmd3/digitizer.hpp>
 #include <aqmd3/configfile.hpp>
 #include <aqmd3controls/identify.hpp>
 #include <aqmd3controls/method.hpp>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
@@ -140,6 +143,9 @@ main( int argc, char * argv [] )
             ( "rate",       po::value<double>()->default_value( 1.0 ),  "Expected trigger interval in millisecond (trigger drop/nodrop validation)" )
             ( "pxi",        po::value< std::string >(),                 "Resource name such as 'PXI8::0::0::INSTR'")
             ( "find",       "Find resource" )
+            ( "config",       "show config" )
+            ( "force-config", "Force create aqmd3.ini file (for debugging)" )
+            ( "reset-config", "clear config" )
             ( "verbose",    po::value<int>()->default_value( 5 ),       "Verbose 0..9" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
@@ -188,8 +194,6 @@ main( int argc, char * argv [] )
     uint32_t width = uint32_t( ( vm[ "width" ].as<double>() / std::micro::den ) * method.device_method().samp_rate + 0.5 );
     method.device_method().digitizer_nbr_of_s_to_acquire = method.device_method().nbr_of_s_to_acquire_ = width;
 
-    std::cout << "width=" << width << std::endl;
-
     // TSR
     method.device_method().TSR_enabled = vm.count( "tsr" );
 
@@ -203,8 +207,6 @@ main( int argc, char * argv [] )
         return 0;
     }
 
-    std::cout << "nbr_of_averages = " << method.device_method().nbr_of_averages << std::endl;
-
     const size_t replicates = vm[ "replicates" ].as<int>();
 
 #if defined __linux
@@ -214,6 +216,33 @@ main( int argc, char * argv [] )
     signal( SIGHUP, &sigint );
     signal( SIGKILL, &sigint );
 #endif
+
+    if ( vm.count( "config" ) ) {
+        aqmd3::configFile file;
+        std::cout << "\n"
+                  << "aqmd3::configFile: " << file.inifile_ << std::endl;
+        if ( auto res = file.loadResource() ) {
+            std::cout << *res << std::endl;
+        } else {
+            std::cout << "file '" << file.inifile_ << "' does not exists." << std::endl;
+        }
+        return 0;
+    }
+
+    if ( vm.count( "force-config" ) ) {
+        aqmd3::configFile file;
+        if ( auto res = file.loadResource() ) {
+            // do nothing -- it should be saved in findResource() operator
+        } else {
+            file.saveResource( "PXI40::0::0::INSTR" );
+        }
+        return 0;
+    }
+
+    if ( vm.count( "reset-config" ) ) {
+        aqmd3::configFile().remove_all();
+        return 0;
+    }
 
     execStatistics::instance().rate_ = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
 
@@ -243,6 +272,10 @@ main( int argc, char * argv [] )
                 if ( auto res = aqmd3::findResource()( md3 ) )
                     success = true;
             }
+        }
+
+        if ( vm.count( "find" ) ) {
+            return 0;
         }
 
         if ( success ) {

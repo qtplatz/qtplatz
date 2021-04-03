@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#pragma once
+
 #include <boost/filesystem/path.hpp>
 #include <boost/optional.hpp>
 
@@ -33,5 +35,6 @@ namespace aqmd3 {
         ~configFile();
         bool saveResource( const std::string& res ) const;
         boost::optional< std::string > loadResource() const;
+        void remove_all() const;
     };
 }

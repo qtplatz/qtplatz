@@ -91,3 +91,15 @@ configFile::loadResource() const
     }
     return boost::none;
 }
+
+void
+configFile::remove_all() const
+{
+    if ( boost::filesystem::exists( inifile_ ) ) {
+        boost::system::error_code ec;
+        boost::filesystem::remove( inifile_, ec );
+        if ( ec ) {
+            ADTRACE() << ec.message();
+        }
+    }
+}
