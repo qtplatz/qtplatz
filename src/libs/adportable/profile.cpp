@@ -50,6 +50,7 @@ namespace adportable { namespace detail {
         template<class char_type> static std::basic_string<char_type> user_login_id();
         template<class char_type> static std::basic_string<char_type> computer_name();
         template<class char_type> static std::basic_string<char_type> user_config_dir();
+        template<class char_type> static std::basic_string<char_type> user_local_config_dir();
 
         template<typename char_type> static std::basic_string<char_type> user_login_name_( EXTENDED_NAME_FORMAT format ) {
 
@@ -126,13 +127,33 @@ namespace adportable { namespace detail {
     {
 		char path[ MAX_PATH ];
 		HRESULT hr
-			= SHGetFolderPathA( 0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, path );
+			= SHGetFolderPathA( 0, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, path );
 		if ( hr == S_OK )
 			return path;
 		return std::string(); // return empty by means of error
 	}
 
     template<> std::wstring winapi::user_config_dir()
+	{
+		wchar_t path[ MAX_PATH ];
+		HRESULT hr
+			= SHGetFolderPathW( 0, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, path );
+		if ( hr == S_OK )
+			return path;
+		return std::wstring(); // return empty by means of error
+	}
+
+    template<> std::string winapi::user_local_config_dir()
+    {
+		char path[ MAX_PATH ];
+		HRESULT hr
+			= SHGetFolderPathA( 0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, path );
+		if ( hr == S_OK )
+			return path;
+		return std::string(); // return empty by means of error
+	}
+
+    template<> std::wstring winapi::user_local_config_dir()
 	{
 		wchar_t path[ MAX_PATH ];
 		HRESULT hr
@@ -149,6 +170,7 @@ namespace adportable { namespace detail {
         template<class char_type> static std::basic_string<char_type> user_login_id();
         template<class char_type> static std::basic_string<char_type> computer_name();
         template<class char_type> static std::basic_string<char_type> user_config_dir();
+        template<class char_type> static std::basic_string<char_type> user_local_config_dir();
 	};
 
     template<> std::string posixapi::user_data_dir()
@@ -215,6 +237,16 @@ namespace adportable { namespace detail {
     template<> std::wstring posixapi::user_config_dir()
 	{
         return adportable::string::convert( user_config_dir< char >() );
+	}
+
+    template<> std::string posixapi::user_local_config_dir()
+	{
+        return posixapi::user_config_dir<char>();
+	}
+
+    template<> std::wstring posixapi::user_local_config_dir()
+	{
+        return posixapi::user_config_dir<wchar_t>();
 	}
 #endif
 
@@ -285,6 +317,18 @@ namespace adportable {
     profile::user_config_dir()
     {
 		return impl::user_config_dir<wchar_t>();
+    }
+
+    template<> std::string
+    profile::user_local_config_dir()
+    {
+		return impl::user_local_config_dir<char>();
+    }
+
+    template<> std::wstring
+    profile::user_local_config_dir()
+    {
+		return impl::user_local_config_dir<wchar_t>();
     }
 
 }

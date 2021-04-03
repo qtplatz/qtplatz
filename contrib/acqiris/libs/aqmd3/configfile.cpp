@@ -33,8 +33,11 @@
 
 using namespace aqmd3;
 
+// aqmd3 resource will be stored on ~/AppData/Roaming/QtPlatz/aqmd3.ini on Windows
+// ~/.config/QtPlatz/aqmd3.ini on macOS and Linux
+
 configFile::configFile()
-    : inifile_( boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz/aqmd3.ini" )
+    : inifile_( boost::filesystem::path( adportable::profile::user_local_config_dir<char>() ) / "QtPlatz/aqmd3.ini" )
 {
     boost::system::error_code ec;
     if ( boost::filesystem::is_directory( inifile_, ec ) && !ec ) {

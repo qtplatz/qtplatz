@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -37,7 +37,12 @@ namespace adportable {
         template< class char_type > static std::basic_string<char_type> user_login_id();
         template< class char_type > static std::basic_string<char_type> user_data_dir();
         template< class char_type > static std::basic_string<char_type> computer_name();
+
+        // ~/.config on macOS and Linux; ~/AppData/Roaming on Windows
         template< class char_type > static std::basic_string<char_type> user_config_dir();
+
+        // ~/.config on macOS and Linux; ~/AppData/Local on Windows
+        template< class char_type > static std::basic_string<char_type> user_local_config_dir();
     };
 #if defined WIN32
     template<> ADPORTABLESHARED_EXPORT std::string profile::user_login_name<char>();
@@ -50,6 +55,9 @@ namespace adportable {
     template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_data_dir<wchar_t>();
     template<> ADPORTABLESHARED_EXPORT std::wstring profile::computer_name<wchar_t>();
     template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_config_dir<wchar_t>();
+
+    template<> ADPORTABLESHARED_EXPORT std::string profile::user_local_config_dir<char>();
+    template<> ADPORTABLESHARED_EXPORT std::wstring profile::user_local_config_dir<wchar_t>();
 #endif
 }
 
