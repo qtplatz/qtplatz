@@ -24,10 +24,13 @@
 
 #pragma once
 
+#include "aqmd3_global.hpp"
 #include <boost/filesystem/path.hpp>
 #include <boost/optional.hpp>
 
 namespace aqmd3 {
+
+    struct AQMD3SHARED_EXPORT configFile;
 
     struct configFile {
         const boost::filesystem::path inifile_;
