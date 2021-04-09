@@ -43,9 +43,10 @@ namespace aqmd3 {
         findResource( bool findConfig = true
                       , bool saveConfig = true
                       , const char * const options =
-                      "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false" );
+                      "Simulate=false, DriverSetup= Model=SA230" );
+                      // "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false" );
         ~findResource();
-        boost::optional< std::string > operator()( std::shared_ptr< AqMD3 > ) const;
+        boost::optional< std::string > operator()( std::shared_ptr< AqMD3 >, bool useConfigOnly = true ) const;
         bool operator()( std::shared_ptr< AqMD3 >, const std::string& res ) const;
     };
 

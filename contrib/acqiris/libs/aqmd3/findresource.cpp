@@ -43,22 +43,23 @@ findResource::findResource( bool findConfig
 }
 
 boost::optional< std::string >
-findResource::operator()( std::shared_ptr< AqMD3 > md3 ) const
+findResource::operator()( std::shared_ptr< AqMD3 > md3, bool configOnly ) const
 {
     if ( findConfig_ ) {
         if ( auto res = configFile().loadResource() ) {
-            if ( md3->clog( md3->initWithOptions( *res, VI_FALSE, VI_TRUE, initOptions_ ), __FILE__, __LINE__, [&]{ return *res; }) )
+            if ( md3->clog( md3->initWithOptions( *res, VI_FALSE, VI_FALSE, initOptions_ ), __FILE__, __LINE__, [&]{ return *res; }) )
                 return res;
         }
     }
-
-    for ( int num = 0; num < 200; ++num ) {
-        std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
-        if ( md3->clog( md3->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, initOptions_ ), __FILE__, __LINE__, [&]{ return res; } ) ) {
-            if ( saveConfig_ ) {
-                aqmd3::configFile().saveResource( res );
+    if ( !configOnly ) {
+        for ( int num = 0; num < 200; ++num ) {
+            std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
+            if ( md3->clog( md3->initWithOptions( res.c_str(), VI_FALSE, VI_FALSE, initOptions_ ), __FILE__, __LINE__, [&]{ return res; } ) ) {
+                if ( saveConfig_ ) {
+                    aqmd3::configFile().saveResource( res );
+                }
+                return res;
             }
-            return res;
         }
     }
     return boost::none;

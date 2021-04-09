@@ -24,6 +24,7 @@
 
 #include <libdgpio/pio.hpp>
 #include <adportable/float.hpp>
+#include <adportable/debug.hpp>
 #include <aqmd3/ppio.hpp>
 #include <aqmd3/aqmd3.hpp>
 #include <aqmd3/findresource.hpp>
@@ -245,6 +246,9 @@ main( int argc, char * argv [] )
     }
 
     execStatistics::instance().rate_ = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
+    std::string pxi;
+    if ( vm.count( "pxi" ) )
+        pxi = vm[ "pxi" ].as< std::string >();
 
     ppio pp;
     dgpio::pio dgpio;
@@ -252,17 +256,22 @@ main( int argc, char * argv [] )
     if ( ! dgpio.open() )
         std::cerr << "dgpio open failed -- ignored." << std::endl;
 
-    const char * strInitOptions =
-        "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false";
-
     if ( auto md3 = std::make_shared< aqmd3::AqMD3 >() ) {
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
             if ( p && std::strcmp( p, "simulate" ) == 0 ) {
-                strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
+                const char * strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
                 simulated = true;
                 success = ( md3->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             }
+        }
+        if ( vm.count( "find" ) ) {
+            if ( auto res = aqmd3::findResource()( md3 ) ) {
+                ADDEBUG() << "FOUND: " << *res;
+            } else {
+                ADDEBUG() << "device not found";
+            }
+            return 0;
         }
 
         if ( ! simulated ) {
@@ -272,11 +281,6 @@ main( int argc, char * argv [] )
                 if ( auto res = aqmd3::findResource()( md3 ) )
                     success = true;
             }
-        }
-
-        if ( vm.count( "find" ) && !success ) {
-            std::cout << "No digitizer has been found.";
-            return 0;
         }
 
         if ( success ) {
