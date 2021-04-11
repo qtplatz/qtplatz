@@ -61,7 +61,7 @@ namespace aqmd3 {
         //                  , std::function< std::string()> details = std::function<std::string()>() );
         void syslog( ViStatus rcode, const char * const file, int line
                      , std::function< std::string()> details = std::function<std::string()>() ) const;
-        bool clog( ViStatus rcode, const char * const file, int line
+        bool clog( ViStatus rcode, const char * const file = "", int line = 0
                    , std::function< std::string()> details = std::function<std::string()>() ) const;
 
         //<------------------------  refactord code --------------------------
@@ -71,7 +71,7 @@ namespace aqmd3 {
 
         uint32_t dataSerialNumber();
 
-        bool Identify( std::shared_ptr< aqmd3controls::identify >& );
+        bool Identify( std::shared_ptr< aqmd3controls::identify > );
 
         std::shared_ptr< aqmd3controls::identify > Identify();
 
@@ -79,6 +79,7 @@ namespace aqmd3 {
         bool GetAttributeViInt32( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result );
 
         bool ConfigureTimeInterleavedChannelList( const std::string& channelName, const std::string& channelList );
+        bool ConfigureChannel( const std::string& channelName, ViReal64 range, ViReal64 offset, ViInt32 coupling, ViBoolean enable );
 
         bool isSimulate() const;
 
@@ -112,7 +113,7 @@ namespace aqmd3 {
         bool setAcquisitionMode( int );
         int AcquisitionMode() const;
 
-        bool CalibrationSelfCalibrate();
+        bool SelfCalibrate();
 
         bool AcquisitionInitiate();
 
@@ -145,9 +146,19 @@ namespace aqmd3 {
         ViStatus setAttributeViInt64( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt64 AttributeValue );
         ViStatus setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID, ViBoolean AttributeValue );
         ViStatus getAttributeViString( ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result ) const ;
-
         template< typename T > ViStatus setAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T value );
         template< typename T > ViStatus getAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T& value ) const;
+    };
+
+    enum BASELINE_CORRECTION_PULSE_POLARITY : ViInt32 {
+        BASELINE_CORRECTION_PULSE_POLARITY_NEGATIVE = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_NEGATIVE
+        , BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE
+    };
+
+    enum BASELINE_CORRECTION_MODE : ViInt32 {
+        BASELINE_CORRECTION_MODE_DISABLED = AQMD3_VAL_BASELINE_CORRECTION_MODE_DISABLED
+        , BASELINE_CORRECTION_MODE_CONTINUOUS = AQMD3_VAL_BASELINE_CORRECTION_MODE_CONTINUOUS
+        , BASELINE_CORRECTION_MODE_BETWEEN_ACQUISITIONS = AQMD3_VAL_BASELINE_CORRECTION_MODE_BETWEEN_ACQUISITIONS
     };
 
     // AQMD3_ATTR_SAMPLE_RATE
@@ -177,6 +188,14 @@ namespace aqmd3 {
     struct tsr_is_acquisition_complete    { static constexpr ViAttr id = AQMD3_ATTR_TSR_IS_ACQUISITION_COMPLETE;    typedef bool value_type; };
     struct tsr_memory_overflow_occurred   { static constexpr ViAttr id = AQMD3_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED;   typedef bool value_type; };
     struct channel_connector_name         { static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_CONNECTOR_NAME;         typedef std::string value_type; };
+    struct channel_baseline_correction_mode {
+        static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_BASELINE_CORRECTION_MODE; typedef ViInt32 value_type; typedef BASELINE_CORRECTION_MODE enum_type; };
+    struct channel_baseline_correction_digital_offset  {
+        static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_BASELINE_CORRECTION_DIGITAL_OFFSET; typedef ViInt32 value_type; };
+    struct channel_baseline_correction_pulse_threshold  {
+        static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_BASELINE_CORRECTION_PULSE_THRESHOLD; typedef ViInt32 value_type; };
+    struct channel_baseline_correction_pulse_polarity  {
+        static constexpr ViAttr id = AQMD3_ATTR_CHANNEL_BASELINE_CORRECTION_PULSE_POLARITY; typedef ViInt32 value_type; };
 
     //////////////////////////////////////////////////////
     struct agmd2_exception : std::exception { ViStatus rcode; agmd2_exception( ViStatus t ) : rcode( t ) {} };
@@ -186,13 +205,12 @@ namespace aqmd3 {
         static ViStatus set( AqMD3& a, typename attribute_type::value_type const& value ) {
             return a.setAttribute( "", attribute_type::id, value );
         }
+        static ViStatus set( AqMD3& a, ViConstString RepCapIdentifier, typename attribute_type::value_type const& value ) {
+            return a.setAttribute( RepCapIdentifier, attribute_type::id, value );
+        }
 
         template< typename T > static ViStatus get( AqMD3& a, T& value ) {
             return a.getAttribute( "", attribute_type::id, value );
-        }
-
-        static ViStatus set( AqMD3& a, ViConstString RepCapIdentifier, typename attribute_type::value_type const& value ) {
-            return a.setAttribute( RepCapIdentifier, attribute_type::id, value );
         }
 
         static ViStatus get( AqMD3& a, ViConstString RepCapIdentifier, typename attribute_type::value_type& value ) {

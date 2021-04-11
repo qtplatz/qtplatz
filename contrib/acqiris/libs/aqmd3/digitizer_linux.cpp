@@ -1111,7 +1111,7 @@ device::initial_setup( task& task, const aqmd3controls::method& m, const std::st
 
     // ADTRACE() << "##### ACQUISITION_MODE : " << task.spDriver()->AcquisitionMode();
 
-    task.spDriver()->CalibrationSelfCalibrate();
+    task.spDriver()->SelfCalibrate();
 
 	return true;
 }

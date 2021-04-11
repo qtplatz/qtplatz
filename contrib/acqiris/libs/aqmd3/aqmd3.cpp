@@ -129,11 +129,8 @@ AqMD3::GetAttributeViInt32 ( ViStatus& rcode, ViConstString RepCapIdentifier, Vi
 }
 
 bool
-AqMD3::Identify( std::shared_ptr< aqmd3controls::identify >& ident )
+AqMD3::Identify( std::shared_ptr< aqmd3controls::identify > ident )
 {
-    if ( !ident )
-        ident = std::make_shared< aqmd3controls::identify >();
-
     ViStatus rcode(0);
     std::string str;
 
@@ -189,6 +186,12 @@ bool
 AqMD3::ConfigureTimeInterleavedChannelList( const std::string& channelName, const std::string& channelList )
 {
     return clog( AqMD3_ConfigureTimeInterleavedChannelList( session_, channelName.c_str(), channelList.c_str() ), __FILE__, __LINE__ );
+}
+
+bool
+AqMD3::ConfigureChannel( const std::string& channelName, ViReal64 range, ViReal64 offset, ViInt32 coupling, ViBoolean enable )
+{
+    return clog( AqMD3_ConfigureChannel( session_, channelName.c_str(), range, offset, coupling, enable ), __FILE__, __LINE__ );
 }
 
 bool
@@ -341,7 +344,7 @@ AqMD3::AcquisitionMode() const
 }
 
 bool
-AqMD3::CalibrationSelfCalibrate()
+AqMD3::SelfCalibrate()
 {
     return clog( AqMD3_SelfCalibrate( session_ ), __FILE__, __LINE__ );
 }

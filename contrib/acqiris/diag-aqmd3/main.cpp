@@ -413,7 +413,7 @@ main( int argc, char * argv [] )
             attribute< aqmd3::tsr_enabled >::set( *md3, method.device_method().TSR_enabled );
             // md3->setTSREnabled( method.device_method().TSR_enabled );
 
-            md3->CalibrationSelfCalibrate();
+            md3->SelfCalibrate();
 
             std::vector< std::shared_ptr< aqmd3controls::waveform > > vec;
 
@@ -510,7 +510,7 @@ main( int argc, char * argv [] )
     return 0;
 }
 
-constexpr ViInt64 const numRecords = 1;			// only record=1 is supported in PKD mode
+// constexpr ViInt64 const numRecords = 1;			// only record=1 is supported in PKD mode
 
 #if 0
 int
