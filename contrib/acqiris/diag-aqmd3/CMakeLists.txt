@@ -17,7 +17,7 @@ include_directories(
   ${AqMD3_INCLUDE_DIR}
   )
 
-add_executable( ${PROJECT_NAME} main.cpp )
+add_executable( ${PROJECT_NAME} main.cpp pkd.cpp )
 
 target_link_libraries( ${PROJECT_NAME}
   aqmd3

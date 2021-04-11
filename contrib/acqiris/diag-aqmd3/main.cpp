@@ -139,8 +139,8 @@ main( int argc, char * argv [] )
             ( "falling-delta", po::value<int>()->default_value( 20 ),   "PKD Falling delta" )
             ( "mode,m",     po::value<int>()->default_value( 0 ),       "=0 Normal(digitizer); =2 Averager" )
             ( "delay,d",    po::value<double>()->default_value( 0.0 ),  "Delay (us)" )
-            ( "width,w",    po::value<double>()->default_value( 50.0 ), "Waveform width (us)" )
-            ( "replicates", po::value<int>()->default_value( 1000 ),    "Number of triggers to acquire waveforms" )
+            ( "width,w",    po::value<double>()->default_value( 10.0 ), "Waveform width (us)" )
+            ( "replicates", po::value<int>()->default_value( 1 ),       "Number of triggers to acquire waveforms" )
             ( "rate",       po::value<double>()->default_value( 1.0 ),  "Expected trigger interval in millisecond (trigger drop/nodrop validation)" )
             ( "pxi",        po::value< std::string >(),                 "Resource name such as 'PXI8::0::0::INSTR'")
             ( "find",       "Find resource" )
@@ -348,7 +348,7 @@ main( int argc, char * argv [] )
                 md3->clog( rcode, __FILE__, __LINE__ );
 
             //-------------- dispatch pkd main -------------
-            if ( vm.count( "pkd" ) && ident->Options().find( "PKD" ) != std::string::npos )
+            if ( vm.count( "pkd" ) ) // && ident->Options().find( "PKD" ) != std::string::npos )
                 return pkd_main( md3, method, replicates );
 
             std::cout << "\t---------- DIGITIZER MODE ----------------" << std::endl;
@@ -512,6 +512,7 @@ main( int argc, char * argv [] )
 
 constexpr ViInt64 const numRecords = 1;			// only record=1 is supported in PKD mode
 
+#if 0
 int
 pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, size_t replicates )
 {
@@ -563,8 +564,13 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
                                 , AQMD3_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
                                 , m.device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE );
 
+#if 0
 	md3->setAttributeViInt32( "Channel1", AQMD3_ATTR_PEAK_DETECTION_RISING_DELTA, m.device_method().pkd_raising_delta );
     md3->setAttributeViInt32( "Channel1", AQMD3_ATTR_PEAK_DETECTION_FALLING_DELTA, m.device_method().pkd_falling_delta );
+#else
+    uint32_t value = m.device_method().pkd_raising_delta | (m.device_method().pkd_falling_delta << 16);
+    md3->clog(AqMD3_LogicDeviceWriteRegisterInt32( md3->session(), "DpuA", 0x33B8, value), __FILE__, __LINE__ ); // PKD Rising and Falling delta
+#endif
 
     // Configure the trigger.
     std::cout << "Configuring trigger\n";
@@ -580,6 +586,9 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
     // Perform the acquisition.
     std::cout << "Performing acquisition\n";
 
+	md3->clog( AqMD3_LogicDeviceWriteRegisterInt32(md3->session(), "DpuA", 0x33B4, 0x143515), __FILE__, __LINE__ ); // PKD - Count mode
+	md3->clog( AqMD3_LogicDeviceWriteRegisterInt32(md3->session(), "DpuA", 0x3350, 0x00000027), __FILE__, __LINE__ ); //PKD configuration
+
     md3->AcquisitionInitiate();
     md3->AcquisitionWaitForAcquisitionComplete( 3000 );
 
@@ -587,27 +596,28 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
     // Fetch the acquired data in array.
     ViInt64 arraySize = 0;
-    md3->clog( AqMD3_QueryMinWaveformMemory( md3->session(), 32, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, &arraySize ), __FILE__,__LINE__ );
+    md3->clog( AqMD3_QueryMinWaveformMemory( md3->session()
+                                             , 32, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, &arraySize ), __FILE__,__LINE__ );
+    ViInt64 const recordSize = m.device_method().nbr_of_s_to_acquire_;
+
+    ADDEBUG() << "arraySize: " << arraySize << ", recordSize: " << recordSize;
 
     struct data {
         ViInt32 actualAverages;
         ViInt64 actualRecords;
         ViInt64 waveformArrayActualSize;
-        ViInt64 actualPoints[numRecords];
-        ViInt64 firstValidPoint[numRecords];
+        ViInt64 actualPoints; // [numRecords];
+        ViInt64 firstValidPoint; // [numRecords];
         ViReal64 initialXOffset;
-        ViReal64 initialXTimeSeconds[numRecords];
-        ViReal64 initialXTimeFraction[numRecords];
+        ViReal64 initialXTimeSeconds; // [numRecords];
+        ViReal64 initialXTimeFraction; // [numRecords];
         ViReal64 xIncrement, scaleFactor, scaleOffset;
-        ViInt32 flags[numRecords];
+        ViInt32 flags; // [numRecords];
         void print( std::ostream& o, const char * heading ) const {
             std::cout << heading << ":\t"
-                      << boost::format( "actualAverages: %d\tactualPoints\t%d\tfirstValidPoint%d" )
-                % actualAverages % actualPoints[0] % firstValidPoint[0]
-                      << boost::format( "\tinitialXOffset: %d\tinitialXTime: %g" )
-                % initialXOffset % ( initialXTimeSeconds[0] + initialXTimeFraction[0] )
-                      << boost::format( "\txIncrement: %d\tscaleFactor: %g\tscaleOffset: %g\tflags: 0x%x" )
-                % xIncrement % scaleFactor % scaleOffset % flags[0]
+                      << boost::format( "actualAverages: %d\tactualPoints\t%d\tfirstValidPoint\t%d" ) % actualAverages % actualPoints % firstValidPoint
+                      << boost::format( "\tinitialXOffset: %d\tinitialXTime: %g" ) % initialXOffset % ( initialXTimeSeconds + initialXTimeFraction )
+                // << boost::format( "\txIncrement: %d\tscaleFactor: %g\tscaleOffset: %g\tflags: 0x%x" ) % xIncrement % scaleFactor % scaleOffset % flags
                       << std::endl;
         }
 
@@ -623,6 +633,48 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
     std::vector<ViInt32> dataArray1( arraySize ), dataArray2( arraySize );
 
     while ( replicates-- ) {
+        std::cout << "Read the Peak histogram\n";
+        ViInt64 addressLow = 0x00000000;
+        ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+
+        md3->clog(AqMD3_LogicDeviceReadIndirectInt32(md3->session()
+                                                     , "DpuA"
+                                                     , addressHigh_Ch1
+                                                     , addressLow
+                                                     , recordSize
+                                                     , arraySize
+                                                     , dataArray1.data()
+                                                     , &d1.actualPoints
+                                                     , &d1.firstValidPoint), __FILE__, __LINE__);
+
+        std::cout << "Read the accumulated RAW data\n";
+        ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
+
+        md3->clog(AqMD3_LogicDeviceReadIndirectInt32(md3->session()
+                                                     , "DpuA"
+                                                     , addressHigh_Ch2
+                                                     , addressLow
+                                                     , recordSize
+                                                     , arraySize
+                                                     , dataArray1.data()
+                                                     , &d2.actualPoints
+                                                     , &d2.firstValidPoint), __FILE__, __LINE__);
+
+        d1.print( std::cout, "Channel1(PKD)" );
+        d2.print( std::cout, "Channel2(AVG)" );
+
+        if ( d1.actualPoints == d2.actualPoints ) {
+            for ( size_t i = 0; i < std::max( d1.actualPoints, d2.actualPoints ); ++i ) {
+                std::cout << "\n" << i << "\t"
+                          << dataArray1[ d1.firstValidPoint + i ] << "\t"
+                          << dataArray2[ d2.firstValidPoint + i ] << "\t";
+                if ( i > 50 )
+                    break;
+            }
+            std::cout << "\n";
+        }
+
+#if 0
         // Read the peaks on Channel 1 in INT32.
         md3->clog( AqMD3_FetchAccumulatedWaveformInt32( md3->session(),  "Channel1",
                                                         0, numRecords, 0, m.device_method().nbr_of_s_to_acquire_, arraySize, dataArray1.data(),
@@ -659,7 +711,8 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
             std::cout << boost::format("%.7le\t%d\t%.5lf\t|\t%d\t%.5lf\n")
                 % d1.time( currentPoint ) % valuePKD % d1.toVolts( valuePKD ) % valueAVG % d2.toVolts( valueAVG );
         }
-    }
+#endif
+        }
     std::cout << "\nProcessing completed\n";
 
     /////////////////////////
@@ -669,3 +722,4 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
     return 0;
 }
+#endif
