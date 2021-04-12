@@ -28,8 +28,6 @@
 #include <fstream>
 
 // Channel 1 parameters
-//ViReal64 const range = 0.5;
-//ViReal64 const offset = 0.0;
 ViInt32 const coupling = AQMD3_VAL_VERTICAL_COUPLING_DC;
 ViBoolean dataInversion = false;
 
@@ -39,33 +37,13 @@ ViInt32 const blDigitalOffset = 0;
 ViInt32 const blPulseThreshold = 500;
 ViInt32 const blPulsePolarity = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE;
 
-// Acquisition parameters
-// ViReal64 const sampleRate = 2e9;	// only 2 GS/s supported
-// ViInt64 const recordSize = 20000;   // 10 us acquisition at 2 GS/s
-// ViInt32 const numAverages = 104;
-
-// PDK parameters
-//ViUInt16 const RisingDelta = 500;  // defines in ADC count the amount by which two consecutive samples must differ to be considered as rising edge in the peak detection algorithm
-                                       // it can be setup from 0 to 16383
-//ViUInt16 const FallingDelta = 500; // defines in ADC count the amount by which two consecutive samples must differ to be considered as falling edge in the peak detection algorithm
-                                       // it can be setup from 0 to 16383
-//ViInt32 const AmplitudeAccumulationEnabled = 1; // selects if the peak value is stored (0) or the peak value is forced to (1).
-
 // Trigger parameters
 ViConstString triggerSource = "External1";
-//ViReal64 const triggerLevel = 0.0;
 ViInt32 const triggerSlope = AQMD3_VAL_TRIGGER_SLOPE_POSITIVE;
-//ViReal64 const triggerDelay = 300e-6; // trigger delay in s
 
 // Compute the PKD Rising and Falling delta parameter
 	//bit 15:0 --> Rising Delta in ADC codes
 	//bit 31:16 --> Falling Delta in ADC codes
-// int32_t RisingFallingDelta(uint16_t rising, uint16_t falling)
-//  {
-// 	 uint32_t const low = uint32_t(rising);
-// 	 uint32_t const high = uint32_t(falling) << 16;
-// 	 return high | low;
-//  }
 
 struct data {
     ViInt32 actualAverages;
@@ -129,11 +107,8 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
     md3->ConfigureChannel( "Channel1", m.device_method().front_end_range, m.device_method().front_end_offset, coupling, VI_TRUE );
     md3->clog( aqmd3::attribute< aqmd3::sample_rate >::set( *md3, m.device_method().samp_rate ), __FILE__, __LINE__ );
-
     md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__, __LINE__ );
-
     md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__, __LINE__ );
-
     md3->clog( aqmd3::attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__, __LINE__ );
     md3->clog( aqmd3::attribute< aqmd3::channel_data_inversion_enabled >::set( *md3, "Channel1", m.device_method().invert_signal )
                ,  __FILE__, __LINE__ );
