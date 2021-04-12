@@ -53,19 +53,19 @@ ViInt32 const blPulsePolarity = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_POS
 
 // Trigger parameters
 ViConstString triggerSource = "External1";
-ViReal64 const triggerLevel = 0.0;
+//ViReal64 const triggerLevel = 0.0;
 ViInt32 const triggerSlope = AQMD3_VAL_TRIGGER_SLOPE_POSITIVE;
-ViReal64 const triggerDelay = 300e-6; // trigger delay in s
+//ViReal64 const triggerDelay = 300e-6; // trigger delay in s
 
 // Compute the PKD Rising and Falling delta parameter
 	//bit 15:0 --> Rising Delta in ADC codes
 	//bit 31:16 --> Falling Delta in ADC codes
-int32_t RisingFallingDelta(uint16_t rising, uint16_t falling)
- {
-	 uint32_t const low = uint32_t(rising);
-	 uint32_t const high = uint32_t(falling) << 16;
-	 return high | low;
- }
+// int32_t RisingFallingDelta(uint16_t rising, uint16_t falling)
+//  {
+// 	 uint32_t const low = uint32_t(rising);
+// 	 uint32_t const high = uint32_t(falling) << 16;
+// 	 return high | low;
+//  }
 
 struct data {
     ViInt32 actualAverages;
@@ -141,14 +141,14 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
     // Configure the trigger
     ADDEBUG() << "Configuring Trigger";
     ADDEBUG() << "  ActiveSource:       " << triggerSource;
-    ADDEBUG() << "  Level:              " << triggerLevel << ",\t" << m.device_method().ext_trigger_level;
+    ADDEBUG() << "  Level:              " << m.device_method().ext_trigger_level;
 	ADDEBUG() << "  Slope:              " << (triggerSlope ? "Positive" : "Negative");
-	ADDEBUG() << "  Delay:              " << triggerDelay << ",\t" << m.device_method().delay_to_first_sample_;
+	ADDEBUG() << "  Delay:              " << m.device_method().delay_to_first_sample_;
 
     md3->clog( aqmd3::attribute< aqmd3::active_trigger_source >::set( *md3, triggerSource ), __FILE__, __LINE__ );
-    md3->clog( aqmd3::attribute< aqmd3::trigger_level >::set( *md3, "External1", triggerLevel ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::trigger_level >::set( *md3, "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );
     md3->clog( aqmd3::attribute< aqmd3::trigger_slope >::set( *md3, "External1", triggerSlope ), __FILE__, __LINE__ );
-    md3->clog( aqmd3::attribute< aqmd3::trigger_delay >::set( *md3, triggerDelay ),  __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::trigger_delay >::set( *md3, m.device_method().delay_to_first_sample_ ),  __FILE__, __LINE__ );
 
 	// Configure Baseline Stabilisation.
 	ADDEBUG() << "Configuring Baseline Stabilisation";
