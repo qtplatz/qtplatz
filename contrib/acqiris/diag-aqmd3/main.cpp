@@ -311,6 +311,8 @@ main( int argc, char * argv [] )
                         adportable::compare<double>::is_equal(method.device_method().front_end_range, 2.5) ) )
                     method.device_method().front_end_range = 0.5;
                 method.device_method().samp_rate = 2.0e9; // PKD only works with 2GSPS
+                uint32_t width = uint32_t( ( vm[ "width" ].as<double>() / std::micro::den ) * method.device_method().samp_rate + 0.5 );
+                method.device_method().digitizer_nbr_of_s_to_acquire = method.device_method().nbr_of_s_to_acquire_ = width;
             } else {
                 ADDEBUG() << "No SAxxx model found: " << ident->InstrumentModel();
                 for ( auto& model: ModelSA )

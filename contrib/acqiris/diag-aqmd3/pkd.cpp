@@ -40,9 +40,9 @@ ViInt32 const blPulseThreshold = 500;
 ViInt32 const blPulsePolarity = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE;
 
 // Acquisition parameters
-ViReal64 const sampleRate = 2e9;	// only 2 GS/s supported
-ViInt64 const recordSize = 20000;   // 10 us acquisition at 2 GS/s
-ViInt32 const numAverages = 104;
+// ViReal64 const sampleRate = 2e9;	// only 2 GS/s supported
+// ViInt64 const recordSize = 20000;   // 10 us acquisition at 2 GS/s
+// ViInt32 const numAverages = 104;
 
 // PDK parameters
 ViUInt16 const RisingDelta = 500;  // defines in ADC count the amount by which two consecutive samples must differ to be considered as rising edge in the peak detection algorithm
@@ -125,23 +125,20 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
     md3->ConfigureChannel( "Channel1", range, offset, coupling, VI_TRUE );
 
-    ADDEBUG() << "  Sample rate:        " << sampleRate << ",\t" << m.device_method().samp_rate;
-	// md3->clog(AqMD3_SetAttributeViReal64(session, "", AQMD3_ATTR_SAMPLE_RATE, sampleRate));
-    md3->clog( aqmd3::attribute< aqmd3::sample_rate >::set( *md3, sampleRate ), __FILE__, __LINE__ );
+    ADDEBUG() << "  Sample rate:        " << m.device_method().samp_rate;
 
-    ADDEBUG() << "  Record size:        " << recordSize << ",\t" << m.device_method().nbr_of_s_to_acquire_;
-    // md3->clog( AqMD3_SetAttributeViInt64( session, "", AQMD3_ATTR_RECORD_SIZE, recordSize ) );
-    md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, recordSize ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::sample_rate >::set( *md3, m.device_method().samp_rate ), __FILE__, __LINE__ );
 
-    ADDEBUG() << "  Number of averages: " << numAverages << ",\t" << m.device_method().nbr_of_averages;
-    // md3->clog( AqMD3_SetAttributeViInt32( session, "", AQMD3_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, numAverages ) );
-    md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, numAverages ), __FILE__, __LINE__ );
+    ADDEBUG() << "  Record size:        " << m.device_method().nbr_of_s_to_acquire_;
+    // md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, recordSize ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__, __LINE__ );
 
-    // md3->clog( AqMD3_SetAttributeViInt32( session, "", AQMD3_ATTR_ACQUISITION_MODE, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ) );
+    ADDEBUG() << "  Number of averages: " << m.device_method().nbr_of_averages;
+    md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__, __LINE__ );
+
     md3->clog( aqmd3::attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__, __LINE__ );
 
     ADDEBUG() << "  Data Inversion:     " << dataInversion << ",\t" << m.device_method().invert_signal;
-	// md3->clog( AqMD3_SetAttributeViBoolean(session, "Channel1", AQMD3_ATTR_CHANNEL_DATA_INVERSION_ENABLED, dataInversion));
     md3->clog( aqmd3::attribute< aqmd3::channel_data_inversion_enabled >::set( *md3, "Channel1", dataInversion ),  __FILE__, __LINE__ );
 
     // Configure the trigger
@@ -197,7 +194,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
 	// Readout parameters
 	ViInt64 arraySize = 0;
-	if ( md3->QueryMinWaveformMemory( 32, 1, 0, recordSize, arraySize) ) {
+	if ( md3->QueryMinWaveformMemory( 32, 1, 0, m.device_method().nbr_of_s_to_acquire_, arraySize) ) {
         data d1 = {0}, d2 = {0};
         std::vector<ViInt32> pkd( arraySize ), avg( arraySize );
         ADDEBUG() << "Performing acquisition";
@@ -208,11 +205,13 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
         ADDEBUG() << "Read the Peak histogram";
         ViInt64 addressLow = 0x00000000;
         ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
-        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, recordSize, arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
+        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
+                                           , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
 
         ADDEBUG() << "Read the accumulated RAW data";
         ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
-        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, recordSize, arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
+        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
+                                           , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
 
         d1.print( std::cout, "PKD" );
         d2.print( std::cout, "AVG" );
