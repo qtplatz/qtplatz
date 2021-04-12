@@ -20,7 +20,7 @@
 #include <aqmd3controls/method.hpp>
 #include <aqmd3controls/identify.hpp>
 #include <adportable/debug.hpp>
-
+#include <boost/format.hpp>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -73,6 +73,25 @@ int32_t RisingFallingDelta(uint16_t rising, uint16_t falling)
 	 return high | low;
  }
 
+struct data {
+    ViInt32 actualAverages;
+    ViInt64 actualRecords;
+    ViInt64 waveformArrayActualSize;
+    ViInt64 actualPoints; // [numRecords];
+    ViInt64 firstValidPoint; // [numRecords];
+    ViReal64 initialXOffset;
+    ViReal64 initialXTimeSeconds; // [numRecords];
+    ViReal64 initialXTimeFraction; // [numRecords];
+    ViReal64 xIncrement, scaleFactor, scaleOffset;
+    ViInt32 flags; // [numRecords];
+    void print( std::ostream& o, const char * heading ) const {
+        std::cout << heading << ":\t"
+                  << boost::format( "actualAverages: %d\tactualPoints\t%d\tfirstValidPoint\t%d" ) % actualAverages % actualPoints % firstValidPoint
+                  << boost::format( "\tinitialXOffset: %d\tinitialXTime: %g" ) % initialXOffset % ( initialXTimeSeconds + initialXTimeFraction )
+            // << boost::format( "\txIncrement: %d\tscaleFactor: %g\tscaleOffset: %g\tflags: 0x%x" ) % xIncrement % scaleFactor % scaleOffset % flags
+                  << std::endl;
+    }
+};
 
 int
 pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, size_t replicates )
@@ -217,55 +236,55 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 	// Configure PKD Rising and Falling Delta
 	//bit 15:0 --> Rising Delta ADC codes
 	//bit 31:16 --> Falling Delta ADC codes
-	md3->clog(AqMD3_LogicDeviceWriteRegisterInt32(session, "DpuA", 0x33B8, RisingFallingDelta(RisingDelta,FallingDelta))); // PKD Rising and Falling delta
+	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x33B8, RisingFallingDelta(RisingDelta,FallingDelta) ); // PKD Rising and Falling delta
 
 	// Required to complete the PKD configuration
-	md3->clog(AqMD3_LogicDeviceWriteRegisterInt32(session, "DpuA", 0x3350, 0x00000027)); //PKD configuration
+	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
 
 	// Readout parameters
 	ViInt64 arraySize = 0;
-	md3->clog(AqMD3_QueryMinWaveformMemory(session, 32, 1, 0, recordSize, &arraySize));
-    std::vector<ViInt32> dataArray(arraySize);
-	ViInt64 actualPoints = 0, firstValidPoint = 0;
+	if ( md3->QueryMinWaveformMemory( 32, 1, 0, recordSize, arraySize) ) {
+        data d1 = {0}, d2 = {0};
+        std::vector<ViInt32> pkd( arraySize ), avg( arraySize );
+        // ViInt64 actualPoints = 0, firstValidPoint = 0;
+        // Perform the acquisition.
+        ADDEBUG() << "\nPerforming acquisition\n";
+        // ViInt32 timeoutInMs = 1000;
+        // std::ofstream outputFilech1("pkd_data.txt");
+        // std::ofstream outputFilech2("avg_data.txt");
 
-	// Perform the acquisition.
-	ADDEBUG() << "\nPerforming acquisition\n";
-	ViInt32 timeoutInMs = 1000;
-	std::ofstream outputFilech1("pkd_data.txt");
-	std::ofstream outputFilech2("avg_data.txt");
-
-        md3->clog( AqMD3_InitiateAcquisition( session ) );
-        md3->clog( AqMD3_WaitForAcquisitionComplete( session, timeoutInMs ) );
+        md3->AcquisitionInitiate();
+        md3->AcquisitionWaitForAcquisitionComplete( 3000 );
+        // md3->clog( AqMD3_InitiateAcquisition( session ) );
+        // md3->clog( AqMD3_WaitForAcquisitionComplete( session, timeoutInMs ) );
         ADDEBUG() << "Acquisition completed\n";
 
-	ADDEBUG() << "Read the Peak histogram\n";
-	ViInt64 addressLow = 0x00000000;
-	ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
-	md3->clog(AqMD3_LogicDeviceReadIndirectInt32(session, "DpuA", addressHigh_Ch1, addressLow, recordSize, arraySize, &dataArray[0], &actualPoints, &firstValidPoint));
+        ADDEBUG() << "Read the Peak histogram\n";
+        ViInt64 addressLow = 0x00000000;
+        ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, recordSize, arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
 
-	for (ViInt64 currentPoint = 0; currentPoint < actualPoints; ++currentPoint)	{
-		ViInt32 const valueRaw = dataArray[firstValidPoint + currentPoint];
-		outputFilech1 << valueRaw << "\n";
-	}
+        // for (ViInt64 currentPoint = 0; currentPoint < actualPoints; ++currentPoint)	{
+        //     ViInt32 const valueRaw = dataArray[firstValidPoint + currentPoint];
+        //     outputFilech1 << valueRaw << "\n";
+        // }
 
-	ADDEBUG() << "Read the accumulated RAW data\n";
-	ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
-	md3->clog(AqMD3_LogicDeviceReadIndirectInt32(session, "DpuA", addressHigh_Ch2, addressLow, recordSize, arraySize, &dataArray[0], &actualPoints, &firstValidPoint));
+        ADDEBUG() << "Read the accumulated RAW data\n";
+        ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
+        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, recordSize, arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
 
+        for ( size_t i = 0; i < d1.actualPoints && i < d2.actualPoints; ++i)	{
+            auto v1 = pkd[ d1.firstValidPoint + i ];
+            auto v2 = avg[ d2.firstValidPoint + i ];
+            std::cout << v1 << "\t" << v2 << std::endl;
+        }
 
-	for (ViInt64 currentPoint = 0; currentPoint < actualPoints; ++currentPoint)	{
-		ViInt32 const valueRaw = dataArray[firstValidPoint + currentPoint];
-		outputFilech2 << valueRaw << "\n";
-	}
-
-    ADDEBUG() << "\nProcessing completed\n";
-
-	outputFilech1.close();
-	outputFilech2.close();
-
-    // Close the driver.
-    md3->clog( AqMD3_close( session ) );
-    ADDEBUG() << "Driver closed \n";
-
+        ADDEBUG() << "\nProcessing completed\n";
+        // outputFilech1.close();
+        // outputFilech2.close();
+        // Close the driver.
+        md3.reset();
+        ADDEBUG() << "Driver closed \n";
+    }
     return 0;
 }

@@ -221,10 +221,37 @@ AqMD3::setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID
 }
 
 bool
+AqMD3::LogicDeviceWriteRegisterInt32( ViConstString logicDevice, ViInt64 offset, ViInt32 value )
+{
+    return clog( AqMD3_LogicDeviceWriteRegisterInt32( session_, logicDevice, offset, value ), __FILE__, __LINE__ );
+}
+
+bool
+AqMD3::LogicDeviceReadIndirectInt32( ViConstString logicDevice
+                                     , ViInt32 id
+                                     , ViInt64 startAddress
+                                     , ViInt64 numElements
+                                     , ViInt64 dataBufferSize
+                                     , ViInt32 * data
+                                     , ViInt64& actualElements
+                                     , ViInt64& firstValidElement ) const
+{
+    return clog( AqMD3_LogicDeviceReadIndirectInt32( session_, logicDevice, id, startAddress, numElements, dataBufferSize, data, &actualElements, &firstValidElement )
+                 , __FILE__, __LINE__ );
+}
+
+
+bool
 AqMD3::setSampleRate( double sampleRate )
 {
     return clog( AqMD3_SetAttributeViReal64( session_, "", AQMD3_ATTR_SAMPLE_RATE, sampleRate ), __FILE__, __LINE__
                 , [=](){ return (boost::format("setSampleRate( %g )") % sampleRate).str();} );
+}
+
+bool
+AqMD3::QueryMinWaveformMemory( ViInt32 dataWidth, ViInt64 numRecords, ViInt64 offsetWithinRecord, ViInt64 numPointsPerRecord, ViInt64& numSamples ) const
+{
+    return clog( AqMD3_QueryMinWaveformMemory( session_, dataWidth, numRecords, offsetWithinRecord, numPointsPerRecord, &numSamples ), __FILE__, __LINE__ );
 }
 
 double

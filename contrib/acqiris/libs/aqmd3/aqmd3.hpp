@@ -80,6 +80,7 @@ namespace aqmd3 {
 
         bool ConfigureTimeInterleavedChannelList( const std::string& channelName, const std::string& channelList );
         bool ConfigureChannel( const std::string& channelName, ViReal64 range, ViReal64 offset, ViInt32 coupling, ViBoolean enable );
+        bool QueryMinWaveformMemory( ViInt32 dataWidth, ViInt64 numRecords, ViInt64 offsetWithinRecord, ViInt64 numPointsPerRecord, ViInt64& numSamples ) const;
 
         bool isSimulate() const;
 
@@ -148,6 +149,15 @@ namespace aqmd3 {
         ViStatus getAttributeViString( ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result ) const ;
         template< typename T > ViStatus setAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T value );
         template< typename T > ViStatus getAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T& value ) const;
+        bool LogicDeviceWriteRegisterInt32( ViConstString logicDevice,	ViInt64 offset,	ViInt32 value );
+        bool LogicDeviceReadIndirectInt32(	ViConstString logicDevice
+                                            , ViInt32 id
+                                            , ViInt64 startAddress
+                                            , ViInt64 numElements
+                                            , ViInt64 dataBufferSize
+                                            , ViInt32 * data
+                                            , ViInt64& actualElements
+                                            , ViInt64& firstValidElement ) const;
     };
 
     enum BASELINE_CORRECTION_PULSE_POLARITY : ViInt32 {
