@@ -267,8 +267,9 @@ main( int argc, char * argv [] )
                 success = ( md3->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             }
         }
+        aqmd3::findResource findResource( true, true, "Simulate=false, DriverSetup= Model=SA230" );
         if ( vm.count( "find" ) ) {
-            if ( auto res = aqmd3::findResource()( md3 ) ) {
+            if ( auto res = findResource( md3 ) ) {
                 ADDEBUG() << "FOUND: " << *res;
             } else {
                 ADDEBUG() << "device not found";
@@ -278,9 +279,9 @@ main( int argc, char * argv [] )
 
         if ( ! simulated ) {
             if ( vm.count( "pxi" ) ) {
-                success = aqmd3::findResource()( md3, vm[ "pxi" ].as< std::string >() );
+                success = findResource( md3, vm[ "pxi" ].as< std::string >() );
             } else {
-                if ( auto res = aqmd3::findResource()( md3 ) )
+                if ( auto res = findResource( md3 ) )
                     success = true;
             }
         }
