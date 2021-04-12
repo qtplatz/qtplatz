@@ -28,8 +28,8 @@
 #include <fstream>
 
 // Channel 1 parameters
-ViReal64 const range = 0.5;
-ViReal64 const offset = 0.0;
+//ViReal64 const range = 0.5;
+//ViReal64 const offset = 0.0;
 ViInt32 const coupling = AQMD3_VAL_VERTICAL_COUPLING_DC;
 ViBoolean dataInversion = false;
 
@@ -45,11 +45,11 @@ ViInt32 const blPulsePolarity = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_POS
 // ViInt32 const numAverages = 104;
 
 // PDK parameters
-ViUInt16 const RisingDelta = 500;  // defines in ADC count the amount by which two consecutive samples must differ to be considered as rising edge in the peak detection algorithm
+//ViUInt16 const RisingDelta = 500;  // defines in ADC count the amount by which two consecutive samples must differ to be considered as rising edge in the peak detection algorithm
                                        // it can be setup from 0 to 16383
-ViUInt16 const FallingDelta = 500; // defines in ADC count the amount by which two consecutive samples must differ to be considered as falling edge in the peak detection algorithm
+//ViUInt16 const FallingDelta = 500; // defines in ADC count the amount by which two consecutive samples must differ to be considered as falling edge in the peak detection algorithm
                                        // it can be setup from 0 to 16383
-ViInt32 const AmplitudeAccumulationEnabled = 1; // selects if the peak value is stored (0) or the peak value is forced to (1).
+//ViInt32 const AmplitudeAccumulationEnabled = 1; // selects if the peak value is stored (0) or the peak value is forced to (1).
 
 // Trigger parameters
 ViConstString triggerSource = "External1";
@@ -119,27 +119,24 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
     // Configure the acquisition.
     ADDEBUG() << "Configuring Acquisition";
-    ADDEBUG() << "  Range:              " << range << ",\t" << m.device_method().front_end_range;
-    ADDEBUG() << "  Offset:             " << offset << ",\t" << m.device_method().front_end_offset;
+    ADDEBUG() << "  Range:              " << m.device_method().front_end_range;
+    ADDEBUG() << "  Offset:             " << m.device_method().front_end_offset;
     ADDEBUG() << "  Coupling:           " << ( coupling ? "DC" : "AC" );
-
-    md3->ConfigureChannel( "Channel1", range, offset, coupling, VI_TRUE );
-
     ADDEBUG() << "  Sample rate:        " << m.device_method().samp_rate;
+    ADDEBUG() << "  Record size:        " << m.device_method().nbr_of_s_to_acquire_;
+    ADDEBUG() << "  Number of averages: " << m.device_method().nbr_of_averages;
+    ADDEBUG() << "  Data Inversion:     " << m.device_method().invert_signal;
 
+    md3->ConfigureChannel( "Channel1", m.device_method().front_end_range, m.device_method().front_end_offset, coupling, VI_TRUE );
     md3->clog( aqmd3::attribute< aqmd3::sample_rate >::set( *md3, m.device_method().samp_rate ), __FILE__, __LINE__ );
 
-    ADDEBUG() << "  Record size:        " << m.device_method().nbr_of_s_to_acquire_;
-    // md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, recordSize ), __FILE__, __LINE__ );
     md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__, __LINE__ );
 
-    ADDEBUG() << "  Number of averages: " << m.device_method().nbr_of_averages;
     md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__, __LINE__ );
 
     md3->clog( aqmd3::attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__, __LINE__ );
-
-    ADDEBUG() << "  Data Inversion:     " << dataInversion << ",\t" << m.device_method().invert_signal;
-    md3->clog( aqmd3::attribute< aqmd3::channel_data_inversion_enabled >::set( *md3, "Channel1", dataInversion ),  __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::channel_data_inversion_enabled >::set( *md3, "Channel1", m.device_method().invert_signal )
+               ,  __FILE__, __LINE__ );
 
     // Configure the trigger
     ADDEBUG() << "Configuring Trigger";
@@ -161,10 +158,15 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
 	ADDEBUG() << "  Pulse Polarity:     " << blPulsePolarity;
 
-	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_mode >::set( *md3, "Channel1", aqmd3::BASELINE_CORRECTION_MODE_CONTINUOUS ), __FILE__, __LINE__ );
-	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_digital_offset >::set( *md3, "Channel1", blDigitalOffset), __FILE__, __LINE__ );
-	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_threshold >::set( *md3, "Channel1", blPulseThreshold), __FILE__, __LINE__ );
-	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1", aqmd3::BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE ), __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_mode >::set( *md3, "Channel1", aqmd3::BASELINE_CORRECTION_MODE_CONTINUOUS )
+               , __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_digital_offset >::set( *md3, "Channel1", blDigitalOffset)
+               , __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_threshold >::set( *md3, "Channel1", blPulseThreshold)
+               , __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1"
+                                                                                           , aqmd3::BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE )
+               , __FILE__, __LINE__ );
 
     // Calibrate the instrument.
     ADDEBUG() << "Performing self-calibration";
@@ -173,13 +175,12 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 	// Configure the PeakDetect
 	// It is important to Configure the PeakDetect parameters after the self - calibration in your application.
 	ADDEBUG() << "Configuring PeakDetect";
-	ADDEBUG() << "  RisingDelta:      " << RisingDelta;
-	ADDEBUG() << "  FallingDelta:     " << FallingDelta;
-	ADDEBUG() << "  PKD parameters:  "  << "0x" << std::hex << RisingFallingDelta(RisingDelta, FallingDelta);
-	ADDEBUG() << "  AmplitudeAccumulationEnabled: " << AmplitudeAccumulationEnabled;
+	ADDEBUG() << "  RisingDelta:      " << m.device_method().pkd_rising_delta;
+	ADDEBUG() << "  FallingDelta:     " << m.device_method().pkd_falling_delta;
+	ADDEBUG() << "  AmplitudeAccumulationEnabled: " << m.device_method().pkd_amplitude_accumulation_enabled;
 
 	// Configure PKD AmplitudeAccumulationEnabled
-	if (AmplitudeAccumulationEnabled==0)
+	if ( m.device_method().pkd_amplitude_accumulation_enabled ) // AmplitudeAccumulationEnabled==0)
 		md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143511 ); // PKD - Amplitude mode
 	else
         md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143515 ); // PKD - Count mode
@@ -187,7 +188,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 	// Configure PKD Rising and Falling Delta
 	//bit 15:0 --> Rising Delta ADC codes
 	//bit 31:16 --> Falling Delta ADC codes
-	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x33B8, RisingFallingDelta(RisingDelta,FallingDelta) ); // PKD Rising and Falling delta
+	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x33B8, m.device_method().pkd_rising_delta|(m.device_method().pkd_falling_delta << 16));
 
 	// Required to complete the PKD configuration
 	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
