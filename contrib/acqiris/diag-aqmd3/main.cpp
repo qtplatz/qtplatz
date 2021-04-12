@@ -135,7 +135,7 @@ main( int argc, char * argv [] )
             ( "records,r",  po::value<int>()->default_value( 1 ),       "Number of records" )
             ( "average,a",  po::value<int>()->default_value( 0 ),       "Number of average" )
             ( "invert-signal", po::value<bool>()->default_value( true ),"Invert signal {true/false}" )
-            ( "raising-delta", po::value<int>()->default_value( 20 ),   "PKD Raising delta" )
+            ( "rising-delta", po::value<int>()->default_value( 20 ),    "PKD Rising delta" )
             ( "falling-delta", po::value<int>()->default_value( 20 ),   "PKD Falling delta" )
             ( "mode,m",     po::value<int>()->default_value( 0 ),       "=0 Normal(digitizer); =2 Averager" )
             ( "delay,d",    po::value<double>()->default_value( 0.0 ),  "Delay (us)" )
@@ -200,7 +200,7 @@ main( int argc, char * argv [] )
 
     // PKD
     method.device_method().pkd_enabled = vm.count( "pkd" );
-    method.device_method().pkd_raising_delta = vm[ "raising-delta" ].as< int >();
+    method.device_method().pkd_rising_delta = vm[ "rising-delta" ].as< int >();
     method.device_method().pkd_falling_delta = vm[ "falling-delta" ].as< int >();
 
     if ( method.device_method().TSR_enabled && method.device_method().pkd_enabled ) {

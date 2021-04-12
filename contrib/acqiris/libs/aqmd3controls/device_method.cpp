@@ -58,7 +58,7 @@ namespace aqmd3controls {
             ar & BOOST_SERIALIZATION_NVP( _.TSR_enabled );
             ar & BOOST_SERIALIZATION_NVP( _.nsa_enabled );
             ar & BOOST_SERIALIZATION_NVP( _.pkd_enabled );
-            ar & BOOST_SERIALIZATION_NVP( _.pkd_raising_delta );
+            ar & BOOST_SERIALIZATION_NVP( _.pkd_rising_delta );
             ar & BOOST_SERIALIZATION_NVP( _.pkd_falling_delta );
             ar & BOOST_SERIALIZATION_NVP( _.pkd_amplitude_accumulation_enabled );
             _.nsa_enabled = _.nsa_threshold & 0x80000000;
@@ -105,8 +105,8 @@ device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
                                , TSR_enabled( false )
                                , nsa_enabled( false )
                                , pkd_enabled( false )
-                               , pkd_raising_delta( 0 )
-                               , pkd_falling_delta( 0 )
+                               , pkd_rising_delta( 500 )
+                               , pkd_falling_delta( 500 )
                                , pkd_amplitude_accumulation_enabled( false )
 {
 }
@@ -131,7 +131,7 @@ device_method::write_ptree( boost::property_tree::ptree& top, const device_metho
     pt.put( "TSR_enabled",           _.TSR_enabled );
     pt.put( "nsa_enabled",           _.nsa_enabled );
     pt.put( "pkd_enabled",           _.pkd_enabled );
-    pt.put( "pkd_raising_delta",     _.pkd_raising_delta );
+    pt.put( "pkd_rising_delta",      _.pkd_rising_delta );
     pt.put( "pkd_falling_delta",     _.pkd_falling_delta );
     pt.put( "pkd_amplitude_accumulation_enabled", _.pkd_amplitude_accumulation_enabled );
 

@@ -1077,7 +1077,7 @@ device::initial_setup( task& task, const aqmd3controls::method& m, const std::st
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
 
-            task.log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_raising_delta ), __FILE__,__LINE__ );
+            task.log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_rising_delta ), __FILE__,__LINE__ );
             task.log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_falling_delta ), __FILE__,__LINE__ );
 
             task.log( attribute< record_size >::set( *task.spDriver(), m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );

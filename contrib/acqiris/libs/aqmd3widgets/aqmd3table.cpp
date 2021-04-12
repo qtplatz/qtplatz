@@ -212,7 +212,7 @@ aqmd3Table::onInitialUpdate()
     model.setData( model.index( row, 2 ), "inversion" );
     ++row;
     model.setData( model.index( row, 0 ), "Rising Delta" );
-    model.setData( model.index( row, 1 ), m.pkd_raising_delta );
+    model.setData( model.index( row, 1 ), m.pkd_rising_delta );
     model.setData( model.index( row, 2 ), "PKD" );
     ++row;
     model.setData( model.index( row, 0 ), "Falling Delta" );
@@ -275,7 +275,7 @@ aqmd3Table::setContents( const aqmd3controls::device_method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     ++row;
-    model.setData( model.index( row, 1 ), m.pkd_raising_delta );
+    model.setData( model.index( row, 1 ), m.pkd_rising_delta );
     ++row;
     model.setData( model.index( row, 1 ), m.pkd_falling_delta );
     ++row;
@@ -317,7 +317,7 @@ aqmd3Table::getContents( aqmd3controls::device_method& m )
 
     // PKD
     ++row;
-    m.pkd_raising_delta = model.index( row, 1 ).data().toInt();
+    m.pkd_rising_delta = model.index( row, 1 ).data().toInt();
     ++row;
     m.pkd_falling_delta = model.index( row, 1 ).data().toInt();
     ++row;

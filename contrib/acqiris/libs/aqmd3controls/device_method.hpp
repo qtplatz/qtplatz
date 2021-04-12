@@ -60,7 +60,7 @@ namespace aqmd3controls {
 
         bool nsa_enabled;
         bool pkd_enabled;
-        int32_t pkd_raising_delta;
+        int32_t pkd_rising_delta;
         int32_t pkd_falling_delta;
         bool pkd_amplitude_accumulation_enabled;
         static bool write_ptree( boost::property_tree::ptree&, const device_method& );
