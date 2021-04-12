@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -305,37 +305,46 @@ main( int argc, char * argv [] )
                 return 0;
             }
 
+            ADDEBUG() << "## Constract device method ##";
+            if ( std::find( ModelSA.begin(), ModelSA.end(), ident->InstrumentModel() ) != ModelSA.end() ) {
+                if ( !( adportable::compare<double>::is_equal(method.device_method().front_end_range, 0.5) ||
+                        adportable::compare<double>::is_equal(method.device_method().front_end_range, 2.5) ) )
+                    method.device_method().front_end_range = 0.5;
+                method.device_method().samp_rate = 2.0e9; // PKD only works with 2GSPS
+            } else {
+                ADDEBUG() << "No SAxxx model found: " << ident->InstrumentModel();
+                for ( auto& model: ModelSA )
+                    ADDEBUG() << model;
+            }
+
             using aqmd3::AqMD3;
             using aqmd3::attribute;
 
             int32_t count(0);
             // md3->clog( aqmd3::attribute< aqmd3::control_io_count >::get(*md3, "ControlIO", count ), __FILE__,__LINE__ );
-
             if ( auto ccount = aqmd3::attribute< aqmd3::control_io_count >::value( *md3, "ControlIO" ) ) {
                 count = ccount.get();
                 std::cout << "Control IO Count: " << count << std::endl;
             }
 
-            ViStatus rcode;
-            ViChar name [ 256 ];
-            for ( int i = 1; i <= count; ++i ) {
-                if ( AqMD3_GetControlIOName( md3->session(), i, 256, name ) == 0 ) {
-                    std::cout << "\tControlIO Name: " << name << std::endl;
-                    if ( auto res = aqmd3::attribute< aqmd3::control_io_signal >::value( *md3, name ) )
-                        std::cout << "\tControlIO name: " << name << "\t" << res.get() << std::endl;
-                    if ( auto sig = aqmd3::attribute< aqmd3::control_io_available_signals >::value( *md3, name ) )
-                        std::cout << "\tAvilable Signals: " << sig.get() << std::endl;
+            if ( __verbose__ > 5 ) {
+                ViStatus rcode;
+                ViChar name [ 256 ];
+                for ( int i = 1; i <= count; ++i ) {
+                    if ( AqMD3_GetControlIOName( md3->session(), i, 256, name ) == 0 ) {
+                        std::cout << "\tControlIO Name: " << name << std::endl;
+                        if ( auto res = aqmd3::attribute< aqmd3::control_io_signal >::value( *md3, name ) )
+                            std::cout << "\tControlIO name: " << name << "\t" << res.get() << std::endl;
+                        if ( auto sig = aqmd3::attribute< aqmd3::control_io_available_signals >::value( *md3, name ) )
+                            std::cout << "\tAvilable Signals: " << sig.get() << std::endl;
+                    }
                 }
             }
 
             std::cout << "## External1" << std::endl;
             md3->clog( attribute< aqmd3::active_trigger_source >::set( *md3, std::string( "External1" ) ), __FILE__,__LINE__ );
-            // if ( auto value = attribute< aqmd3::active_trigger_source >::value( *md3, rcode, "External1" ) )
-            //     std::cout << "\tActive Trigger Source: " << value.get() << std::endl;
-            // else
-            //     md3->clog( rcode, __FILE__, __LINE__, []{return "--active trigger source--";});
-
             md3->clog( attribute< aqmd3::trigger_level >::set( *md3, "External1", method.device_method().ext_trigger_level ), __FILE__,__LINE__ );
+            ViStatus rcode;
             if ( auto value = attribute< aqmd3::trigger_level >::value( *md3, rcode, "External1" ) )
                 std::cout << "\ttrigger level: " << value.get() << std::endl;
             else
@@ -356,13 +365,6 @@ main( int argc, char * argv [] )
             if ( ident->Options().find( "INT" ) != std::string::npos ) { // Interleave ON
                 std::cout << "\t-------------- INTERLEAVE ON ----------------------" << std::endl;
                 md3->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
-            }
-
-            std::cerr << "## Configuring acquisition\n";
-            if ( std::find( ModelSA.begin(), ModelSA.end(), ident->InstrumentModel() ) != ModelSA.end() ) {
-                if ( !( adportable::compare<double>::is_equal(method.device_method().front_end_range, 0.5) ||
-                        adportable::compare<double>::is_equal(method.device_method().front_end_range, 2.5) ) )
-                    method.device_method().front_end_range = 0.5;
             }
 
             std::cerr << "Range:              " << method.device_method().front_end_range << '\n';
