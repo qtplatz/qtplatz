@@ -95,15 +95,10 @@ namespace aqmd3 {
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
             inline AqMD3 * spDriver() { return spDriver_.get(); }
-
             inline const aqmd3controls::method& method() const { return method_; }
-
             inline const aqmd3controls::identify& ident() const { return *ident_; }
-
             inline std::shared_ptr< aqmd3controls::identify > ident_ptr() { return ident_; }
-
             inline bool isSimulated() const { return simulated_; }
-
             inline const std::chrono::system_clock::time_point& tp_acquire() const { return tp_acquire_; }
 
             void error_reply( const std::string& emsg, const std::string& );
@@ -201,7 +196,7 @@ namespace aqmd3 {
                     for ( int i = 0; i < 8; ++i )
                         ADDEBUG() << mblk[i] << ", " << data.data()[i]
                                   << boost::format( ",\tA: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Averager >()( data.xmeta(), data.data()[i] )
-                                  << boost::format( ",\tD: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Digitizer >()( data.xmeta(), data.data()[i] )\
+                                  << boost::format( ",\tD: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Digitizer >()( data.xmeta(), data.data()[i] ) \
                             ;
                 }
             }
@@ -900,13 +895,15 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
 
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
-        pkd.set_epoch_time( std::chrono::system_clock::now().time_since_epoch().count() ); //pkd.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
+        pkd.set_epoch_time( std::chrono::system_clock::now().time_since_epoch().count() );
         avg.set_epoch_time( pkd.epoch_time() ); // timeSinceEpoch_ = pkd.timeSinceEpoch_;
 
         pkd.xmeta().channelMode = aqmd3controls::PKD;
         avg.xmeta().channelMode = aqmd3controls::AVG;
         return true;
     }
+
+    ADDEBUG() << "readDataPkdAvg";
 
     auto m( method_ );
     auto md3( spDriver_ );
@@ -924,15 +921,15 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             pkd.xmeta().actualAverages = m.device_method().nbr_of_averages;
             pkd.xmeta().actualPoints = actualPoints;
             pkd.xmeta().initialXTimeSeconds = 0; //initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
-            pkd.xmeta().xIncrement      = 1.0 / m.device_method().samp_rate;        // xIncrement;
+            pkd.xmeta().xIncrement      = 1.0 / m.device_method().samp_rate;
             pkd.xmeta().initialXOffset  = m.device_method().delay_to_first_sample_; //  initialXOffset;
-            pkd.xmeta().scaleFactor     = 1; // scaleFactor;
-            pkd.xmeta().scaleOffset     = 1; // scaleOffset;
+            pkd.xmeta().scaleFactor     = 3.72529e-9; // 7.45058e-9
+            pkd.xmeta().scaleOffset     = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
             pkd.xmeta().protocolIndex   = m.protocolIndex();
             pkd.xmeta().dataType        = 4;
             pkd.xmeta().firstValidPoint = firstValidPoint;
             pkd.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
-            pkd.setData( mblk, firstValidPoint, pkd.xmeta().actualPoints );
+            pkd.setData( mblk, firstValidPoint, actualPoints );
 
         } while ( 0 );
 
@@ -943,21 +940,17 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, mblk->data(), actualPoints, firstValidPoint );
             avg.set_method( m );
-            avg.xmeta().actualAverages = m.device_method().nbr_of_averages;
-            avg.xmeta().actualPoints = actualPoints;
-            avg.xmeta().initialXTimeSeconds = 0; //initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
-            avg.xmeta().xIncrement      = 1.0 / m.device_method().samp_rate;        // xIncrement;
-            avg.xmeta().initialXOffset  = m.device_method().delay_to_first_sample_; //  initialXOffset;
-            avg.xmeta().scaleFactor     = 1; // scaleFactor;
-            avg.xmeta().scaleOffset     = 1; // scaleOffset;
-            avg.xmeta().protocolIndex   = m.protocolIndex();
-            avg.xmeta().dataType        = 4;
-            avg.xmeta().firstValidPoint = firstValidPoint;
+            avg.xmeta() = pkd.xmeta();
+            avg.xmeta().actualPoints        = actualPoints;
+            avg.xmeta().protocolIndex       = m.protocolIndex();
+            avg.xmeta().dataType            = 4;
+            avg.xmeta().firstValidPoint     = firstValidPoint;
             avg.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
-            avg.setData( mblk, firstValidPoint, pkd.xmeta().actualPoints );
+            avg.setData( mblk, firstValidPoint, actualPoints );
 
         } while ( 0 );
     }
+    ADDEBUG() << std::make_pair( avg.xmeta().scaleFactor, avg.xmeta().scaleOffset )  << ", actualPoints: " << avg.xmeta().actualPoints;
     // digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
     // pkd.xmeta().channelMode = aqmd3controls::PKD;
 
@@ -1387,6 +1380,7 @@ digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
             data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             data.setData( mblk, firstValidPoint[0], data.xmeta().actualPoints );
 
+            ADDEBUG() << std::make_pair( data.xmeta().scaleFactor, data.xmeta().scaleOffset );
 #if !defined NDEBUG
             static waveform_print printer;
             printer( data, mblk->data() + firstValidPoint[0] );
