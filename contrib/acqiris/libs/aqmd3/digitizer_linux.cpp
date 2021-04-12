@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,6 +27,7 @@
 #include "aqmd3.hpp"
 #include "automaton.hpp"
 #include "configfile.hpp"
+#include <aqmd3/findresource.hpp>
 #include <aqmd3controls/method.hpp>
 #include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -176,10 +177,11 @@ namespace aqmd3 {
         };
 
         struct device {
-            static bool initial_setup( task&, const aqmd3controls::method&, const std::string& options );
-            static bool setup( task&, const aqmd3controls::method& );
-            static bool acquire( task& );
-            static bool waitForEndOfAcquisition( task&, int timeout );
+            static bool validate( std::shared_ptr< aqmd3::AqMD3>, aqmd3controls::method& );
+            static bool initial_setup( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method&, const std::string& options );
+            static bool setup( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method& );
+            static bool acquire( std::shared_ptr< aqmd3::AqMD3 > );
+            static bool waitForEndOfAcquisition( std::shared_ptr< aqmd3::AqMD3 >, int timeout );
         };
 
         const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
@@ -208,10 +210,6 @@ namespace aqmd3 {
         const static std::vector< std::string > ModelSA = { "SA220P", "SA220E", "SA217P", "SA217E" };
 
     }
-
-    struct findResource {
-
-    };
 
 }
 
@@ -582,13 +580,9 @@ task::handle_initial_setup()
     bool simulated = false;
     bool success = false;
 
-    const char * strInitOptions =
-        "Cache=true, InterchangeCheck=false, QueryInstrStatus=true, RangeCheck=true, RecordCoercions=false, Simulate=false";
-    // const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
-
     if ( auto p = getenv( "AcqirisOption" ) ) {
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
-            strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
+            const char * strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
             simulated = true;
             success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             ADDEBUG() << "################# AQMD3 SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
@@ -596,17 +590,9 @@ task::handle_initial_setup()
     }
 
     if ( !simulated ) {
-        if ( auto res = configFile().loadResource() )
-            success = spDriver_->initWithOptions( res.get(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS;
-        if ( !success ) {
-            for ( int num = 0; num < 199; num++ ) {
-                std::string res = ( boost::format("PXI%d::0::0::INSTR") % num ).str();
-                if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
-                    ADTRACE() << "Initialize resource: " << res;
-                    configFile().saveResource( res );
-                    break;
-                }
-            }
+        aqmd3::findResource findResource( true, true, "Simulate=false, DriverSetup= Model=SA230" );
+        if ( auto res = findResource( spDriver_, false ) ) {
+            success = true;
         }
     }
 
@@ -629,10 +615,11 @@ task::handle_initial_setup()
         for ( auto& reply : reply_handlers_ ) reply( "IOVersion", ident_->IOVersion() );
         for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
 
-        device::initial_setup( *this, method_, ident().Options() );
+        device::validate( spDriver_, method_ );
+        device::initial_setup( spDriver_, method_, ident().Options() );
 
         if ( ! spDriver_->abort() )
-            ADDEBUG() << "agmd2 abort failed";
+            ADDEBUG() << "agmd3 abort failed";
         fsm_.process_event( fsm::Stop() );
     } else {
         fsm_.process_event( fsm::Error() );
@@ -696,7 +683,7 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const aqmd3controls::method m )
+task::handle_prepare_for_run( const aqmd3controls::method t )
 {
 #ifndef NDEBUG
     ADDEBUG() << "=============== " << __FUNCTION__ << " ====================";
@@ -708,12 +695,14 @@ task::handle_prepare_for_run( const aqmd3controls::method m )
     c_injection_requested_ = false;
     u5303_inject_timepoint_ = 0;
 
-    device::initial_setup( *this, m, ident().Options() );
+    aqmd3controls::method m( t );
+
+    device::validate( spDriver_, m );
+    device::initial_setup( spDriver_, m, ident().Options() );
 
     if ( /* m.mode_ && */ simulated_ ) {
-        aqmd3controls::method a( m );
-        a.device_method().samp_rate = spDriver()->SampleRate();
-        simulator::instance()->setup( a );
+        m.device_method().samp_rate = spDriver()->SampleRate();
+        simulator::instance()->setup( m );
     }
 
     method_ = m;
@@ -729,7 +718,7 @@ task::handle_prepare_for_run( const aqmd3controls::method m )
 bool
 task::handle_protocol( const aqmd3controls::method m )
 {
-    device::setup( *this, m );
+    device::setup( spDriver_, m );
 
     if ( simulated_ )
         simulator::instance()->setup( m );
@@ -881,7 +870,7 @@ task::acquire()
         return simulator::instance()->acquire();
 
     tp_acquire_ = std::chrono::system_clock::now();
-    return device::acquire( *this );
+    return device::acquire( spDriver_ );
 }
 
 bool
@@ -898,7 +887,7 @@ task::waitForEndOfAcquisition( int timeout )
             return simulator::instance()->waitForEndOfAcquisition();
     }
 
-    return device::waitForEndOfAcquisition( *this, timeout );
+    return device::waitForEndOfAcquisition( spDriver_, timeout );
 }
 
 bool
@@ -919,11 +908,61 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
         return true;
     }
 
-    digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
-    pkd.xmeta().channelMode = aqmd3controls::PKD;
+    auto m( method_ );
+    auto md3( spDriver_ );
+    ViInt64 arraySize = 0;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
+	if ( md3->QueryMinWaveformMemory( 32, 1, 0, recordSize, arraySize) ) {
+        ViInt64 actualPoints = {0}, firstValidPoint;
+        do { // PKD
+            auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
+            ViInt64 addressLow = 0x00000000;
+            ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
+                                               , arraySize, mblk->data(), actualPoints, firstValidPoint );
+            pkd.set_method( m );
+            pkd.xmeta().actualAverages = m.device_method().nbr_of_averages;
+            pkd.xmeta().actualPoints = actualPoints;
+            pkd.xmeta().initialXTimeSeconds = 0; //initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
+            pkd.xmeta().xIncrement      = 1.0 / m.device_method().samp_rate;        // xIncrement;
+            pkd.xmeta().initialXOffset  = m.device_method().delay_to_first_sample_; //  initialXOffset;
+            pkd.xmeta().scaleFactor     = 1; // scaleFactor;
+            pkd.xmeta().scaleOffset     = 1; // scaleOffset;
+            pkd.xmeta().protocolIndex   = m.protocolIndex();
+            pkd.xmeta().dataType        = 4;
+            pkd.xmeta().firstValidPoint = firstValidPoint;
+            pkd.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
+            pkd.setData( mblk, firstValidPoint, pkd.xmeta().actualPoints );
 
-    digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
-    avg.xmeta().channelMode = aqmd3controls::AVG;
+        } while ( 0 );
+
+        do { // AVG
+            auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
+            ViInt64 addressLow = 0x00000000;
+            ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
+            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
+                                               , arraySize, mblk->data(), actualPoints, firstValidPoint );
+            avg.set_method( m );
+            avg.xmeta().actualAverages = m.device_method().nbr_of_averages;
+            avg.xmeta().actualPoints = actualPoints;
+            avg.xmeta().initialXTimeSeconds = 0; //initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
+            avg.xmeta().xIncrement      = 1.0 / m.device_method().samp_rate;        // xIncrement;
+            avg.xmeta().initialXOffset  = m.device_method().delay_to_first_sample_; //  initialXOffset;
+            avg.xmeta().scaleFactor     = 1; // scaleFactor;
+            avg.xmeta().scaleOffset     = 1; // scaleOffset;
+            avg.xmeta().protocolIndex   = m.protocolIndex();
+            avg.xmeta().dataType        = 4;
+            avg.xmeta().firstValidPoint = firstValidPoint;
+            avg.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
+            avg.setData( mblk, firstValidPoint, pkd.xmeta().actualPoints );
+
+        } while ( 0 );
+    }
+    // digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
+    // pkd.xmeta().channelMode = aqmd3controls::PKD;
+
+    // digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
+    // avg.xmeta().channelMode = aqmd3controls::AVG;
 
     return true;
 }
@@ -1002,144 +1041,152 @@ task::log( ViStatus rcode, const char * const file, int line, std::function< std
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
+bool
+device::validate( std::shared_ptr< aqmd3::AqMD3 > md3, aqmd3controls::method& m )
+{
+    if ( std::find( ModelSA.begin(), ModelSA.end(), md3->Identify()->InstrumentModel() ) != ModelSA.end() ) {
+        if ( !( adportable::compare<double>::is_equal( m.device_method().front_end_range, 0.5) ||
+                adportable::compare<double>::is_equal( m.device_method().front_end_range , 2.5) ) ) {
+            m.device_method().front_end_range  = 2.5; // 2.5V
+        }
+        m.device_method().samp_rate = 2.0e9;  // 2GSPS only
+        return true;
+    }
+    return false;
+}
 
 bool
-device::initial_setup( task& task, const aqmd3controls::method& m, const std::string& options )
+device::initial_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, const std::string& options )
 {
-    ADDEBUG() << "##### initial_setup for '" << task.ident().InstrumentModel() << "' #####";
+    ADDEBUG() << "##### initial_setup for '" << md3->Identify()->InstrumentModel() << "' #####";
     ADDEBUG() << "##### front_end_range: " << m.toJson();
 
-    auto front_end_range( m.device_method().front_end_range );
-
-    if ( std::find( ModelSA.begin(), ModelSA.end(), task.ident().InstrumentModel() ) != ModelSA.end() ) {
-        if ( !( adportable::compare<double>::is_equal(front_end_range, 0.5) ||
-                adportable::compare<double>::is_equal(front_end_range, 2.5) ) ) {
-            front_end_range = 0.5;
-            ADDEBUG() << "##### Model SA FIX front_end_range: --> range: " << front_end_range;
-        } else {
-            ADDEBUG() << "##### front_end_range validated OK #####";
-        }
+    if ( !md3->ConfigureChannel( "Channel1"
+                                , m.device_method().front_end_range
+                                , m.device_method().front_end_offset
+                                , AQMD3_VAL_VERTICAL_COUPLING_DC
+                                , VI_TRUE ) ) {
+        return false;
     }
-
-    auto rcode = AqMD3_ConfigureChannel( task.spDriver()->session()
-                                         , "Channel1"
-                                         , front_end_range
-                                         , m.device_method().front_end_offset
-                                         , AQMD3_VAL_VERTICAL_COUPLING_DC, VI_TRUE );
-    task.log( rcode, __FILE__, __LINE__ );
-#if ! defined NDEBUG //|| 1
-    ADDEBUG() << "##### ConfigureChannel DONE " << rcode << " #####";
-#endif
-
-    task.log( attribute< active_trigger_source >::set( *task.spDriver(), std::string( "External1" ) ), __FILE__, __LINE__ );
-    task.log( attribute< trigger_level >::set( *task.spDriver(), "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );
-    task.log( attribute< trigger_slope >::set( *task.spDriver(), "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__, __LINE__ );
-    task.log( attribute< trigger_coupling >::set( *task.spDriver(), "External1", AQMD3_VAL_TRIGGER_COUPLING_DC ), __FILE__, __LINE__ );
-    task.log( attribute< trigger_delay >::set( *task.spDriver(), m.device_method().delay_to_first_sample_ ), __FILE__, __LINE__ );
+    // trigger
+    md3->clog( attribute< active_trigger_source >::set( *md3, "External1"), __FILE__, __LINE__ );
+    md3->clog( attribute< trigger_level >::set( *md3, "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );
+    md3->clog( attribute< trigger_slope >::set( *md3, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__, __LINE__ );
+    md3->clog( attribute< trigger_coupling >::set( *md3, "External1", AQMD3_VAL_TRIGGER_COUPLING_DC ), __FILE__, __LINE__ );
+    md3->clog( attribute< trigger_delay >::set( *md3, m.device_method().delay_to_first_sample_ ), __FILE__, __LINE__ );
 
     if ( m.mode() == aqmd3controls::method::DigiMode::Digitizer ) { // Digitizer
 
         ADDEBUG() << "##### --> digitizer mode options: " << options;
         if ( options.find( "TSR" ) != options.npos )
-            attribute< tsr_enabled >::set( *task.spDriver(), m.device_method().TSR_enabled );
-            // task.spDriver()->setTSREnabled( m.device_method().TSR_enabled );
+            attribute< tsr_enabled >::set( *md3, m.device_method().TSR_enabled );
 
-        task.spDriver()->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL );
-        task.spDriver()->setAcquisitionRecordSize( m.device_method().nbr_of_s_to_acquire_ );
-        task.spDriver()->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
+        md3->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL );
+        md3->setAcquisitionRecordSize( m.device_method().nbr_of_s_to_acquire_ );
+        md3->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
 
     } else { // Averager
 
         ADDEBUG() << "##### --> averager mode options: " << options;
-
         if ( options.find( "TSR" ) != options.npos )
-            attribute< tsr_enabled >::set( *task.spDriver(), false );
-            // task.spDriver()->setTSREnabled( false );
+            attribute< tsr_enabled >::set( *md3, false );
+        if ( md3->Identify()->Options().find( "AVG" ) == std::string::npos )
+            return false;
 
+        md3->clog( aqmd3::attribute< aqmd3::sample_rate >::set( *md3, m.device_method().samp_rate ), __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::channel_data_inversion_enabled >::set( *md3, "Channel1", m.device_method().invert_signal )
+                   ,  __FILE__, __LINE__ );
+
+        ViInt32 const blDigitalOffset = 0;
+        ViInt32 const blPulseThreshold = 500;
+        md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_mode >::set( *md3, "Channel1", aqmd3::BASELINE_CORRECTION_MODE_CONTINUOUS )
+                   , __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_digital_offset >::set( *md3, "Channel1", blDigitalOffset)
+                   , __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_threshold >::set( *md3, "Channel1", blPulseThreshold)
+                   , __FILE__, __LINE__ );
+        md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1"
+                                                                                               , aqmd3::BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE )
+                   , __FILE__, __LINE__ );
+
+        if ( m.device_method().pkd_enabled ) {
+            if ( m.device_method().pkd_amplitude_accumulation_enabled ) // AmplitudeAccumulationEnabled==0)
+                md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143511 ); // PKD - Amplitude mode
+            else
+                md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143515 ); // PKD - Count mode
+
+            md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x33B8, m.device_method().pkd_rising_delta|(m.device_method().pkd_falling_delta << 16));
+
+            // Required to complete the PKD configuration
+            md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
+        }
+#if 0
         // PKD - POC
         if ( m.device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
             ADINFO() << "##### PKD ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" )
                      << "; Amplitude accum. " << (m.device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
-
-            task.log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
-            task.log( attribute< acquisition_mode >::set( *task.spDriver(), AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
-
+            md3->clog( attribute< num_records_to_acquire >::set( *md3, int64_t( 1 ) ), __FILE__,__LINE__ );
+            md3->clog( attribute< acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
             // Configure the data inversion mode - VI_FALSE (no data inversion) by default
-            task.log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
+            md3->clog( attribute< channel_data_inversion_enabled >::set( *md3
                                                                           , "Channel1"
                                                                           , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
-
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-            task.log( attribute< peak_detection_amplitude_accumulation_enabled >::set(
-                          *task.spDriver(), "Channel1", m.device_method().pkd_amplitude_accumulation_enabled )
-                      , __FILE__,__LINE__ );
-
+            md3->clog( attribute< peak_detection_amplitude_accumulation_enabled >::set(
+                           *md3, "Channel1", m.device_method().pkd_amplitude_accumulation_enabled )
+                       , __FILE__,__LINE__ );
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
-
-            task.log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_rising_delta ), __FILE__,__LINE__ );
-            task.log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m.device_method().pkd_falling_delta ), __FILE__,__LINE__ );
-
-            task.log( attribute< record_size >::set( *task.spDriver(), m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
-
-            task.log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
-
-            task.log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
-
+            md3->clog( attribute< peak_detection_rising_delta >::set( *md3, "Channel1", m.device_method().pkd_rising_delta ), __FILE__,__LINE__ );
+            md3->clog( attribute< peak_detection_falling_delta >::set( *md3, "Channel1", m.device_method().pkd_falling_delta ), __FILE__,__LINE__ );
+            md3->clog( attribute< record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+            md3->clog( attribute< num_records_to_acquire >::set( *md3, int64_t( 1 ) ), __FILE__,__LINE__ );
+            md3->clog( attribute< acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
         } else {
             ADINFO() << "##### AVG ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" );
-
-            //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-            task.log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
-
-            //task.spDriver()->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_AVERAGER );
-            task.log( attribute< acquisition_mode >::set( *task.spDriver(), AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
-
-            // task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
-            task.log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
-                                                                          , "Channel1"
-                                                                          , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
-
-            //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            task.log( attribute< record_size >::set( *task.spDriver(), m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
-
-            //It looks like this command should be issued at last
-            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
-            task.log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
+            md3->clog( attribute< num_records_to_acquire >::set( *md3, int64_t( 1 ) ), __FILE__,__LINE__ );
+            md3->clog( attribute< acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
+            md3->clog( attribute< channel_data_inversion_enabled >::set( *md3
+                                                                        , "Channel1"
+                                                                        , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
+            md3->clog( attribute< record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+            md3->clog( attribute< acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
         }
+#endif
     }
-
     // ADTRACE() << "##### ACQUISITION_MODE : " << task.spDriver()->AcquisitionMode();
-
-    task.spDriver()->SelfCalibrate();
+    md3->SelfCalibrate();
 
 	return true;
 }
 
 bool
-device::setup( task& task, const aqmd3controls::method& m )
+device::setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m )
 {
     // Don't forget environment variable: 'AQMD3_SKIP_CAL_REQUIRED_CHECKS=1'
 
-    task.spDriver()->setTriggerDelay( m.device_method().delay_to_first_sample_ );
-    task.spDriver()->setAcquisitionRecordSize( m.device_method().nbr_of_s_to_acquire_ );
-    task.spDriver()->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
+    md3->setTriggerDelay( m.device_method().delay_to_first_sample_ );
+    md3->setAcquisitionRecordSize( m.device_method().nbr_of_s_to_acquire_ );
+    md3->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
 
     return true;
 }
 
 bool
-device::acquire( task& task )
+device::acquire( std::shared_ptr< aqmd3::AqMD3 > md3 )
 {
-    return task.spDriver()->AcquisitionInitiate();
+    return md3->AcquisitionInitiate();
 }
 
 bool
-device::waitForEndOfAcquisition( task& task, int timeout )
+device::waitForEndOfAcquisition( std::shared_ptr< aqmd3::AqMD3 > md3, int timeout )
 {
     auto tp = std::chrono::system_clock::now() + std::chrono::milliseconds( timeout );
 
-    while( ! task.spDriver()->isAcquisitionIdle() ) {
+    while( ! md3->isAcquisitionIdle() ) {
         if ( tp < std::chrono::system_clock::now() )
             return false;
     }
