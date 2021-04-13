@@ -236,7 +236,15 @@ AqMD3::LogicDeviceReadIndirectInt32( ViConstString logicDevice
                                      , ViInt64& actualElements
                                      , ViInt64& firstValidElement ) const
 {
-    return clog( AqMD3_LogicDeviceReadIndirectInt32( session_, logicDevice, id, startAddress, numElements, dataBufferSize, data, &actualElements, &firstValidElement )
+    return clog( AqMD3_LogicDeviceReadIndirectInt32( session_
+                                                     , logicDevice
+                                                     , id
+                                                     , startAddress
+                                                     , numElements
+                                                     , dataBufferSize
+                                                     , data
+                                                     , &actualElements
+                                                     , &firstValidElement )
                  , __FILE__, __LINE__ );
 }
 
@@ -290,42 +298,6 @@ AqMD3::TriggerCoupling( const std::string& trigSource ) const
         return coupling;
     return (-1);
 }
-
-// bool
-// AqMD3::setTriggerLevel( const std::string& trigSource,  double level )
-// {
-//     return log( AqMD3_SetAttributeViReal64( session_, trigSource.c_str(), AQMD3_ATTR_TRIGGER_LEVEL, level ), __FILE__, __LINE__ );
-// }
-
-// double
-// AqMD3::TriggerLevel( const std::string& trigSource ) const
-// {
-//     double level(0);
-
-//     if ( log( AqMD3_GetAttributeViReal64( session_, trigSource.c_str(), AQMD3_ATTR_TRIGGER_LEVEL, &level ), __FILE__, __LINE__ ) )
-//         return level;
-
-//     return -9999;
-// }
-
-
-// bool
-// AqMD3::setTriggerSlope( const std::string& trigSource, int32_t slope )
-// {
-//     return log( AqMD3_SetAttributeViInt32( session_, trigSource.c_str(), AQMD3_ATTR_TRIGGER_SLOPE, slope ), __FILE__, __LINE__ );
-// }
-
-// int32_t
-// AqMD3::TriggerSlope( const std::string& trigSource ) const
-// {
-//     int32_t slope(0);  // NEGATIVE = 0, POSITIVE = 1
-
-//     if ( log( AqMD3_GetAttributeViInt32( session_, trigSource.c_str(), AQMD3_ATTR_TRIGGER_SLOPE, reinterpret_cast<ViInt32*>(&slope) ), __FILE__, __LINE__ ) )
-//         return slope;
-
-//     return 0;
-// }
-
 
 bool
 AqMD3::setDataInversionEnabled( const std::string& channel, bool enable )
@@ -398,21 +370,6 @@ AqMD3::isAcquisitionIdle() const
 
     return idle == AQMD3_VAL_ACQUISITION_STATUS_RESULT_TRUE;
 }
-
-// bool
-// AqMD3::setTSREnabled( bool enable )
-// {
-//     ViBoolean value = enable ? VI_TRUE : VI_FALSE;
-//     return log( AqMD3_SetAttributeViBoolean( session_, "", AQMD3_ATTR_TSR_ENABLED, value ), __FILE__, __LINE__ );
-// }
-
-// bool
-// AqMD3::TSREnabled()
-// {
-//     ViBoolean value( VI_FALSE );
-//     log( AqMD3_GetAttributeViBoolean( session_, "", AQMD3_ATTR_TSR_ENABLED, &value ), __FILE__, __LINE__ );
-//     return value == VI_FALSE ? false : true;
-// }
 
 boost::tribool
 AqMD3::isTSRAcquisitionComplete() const

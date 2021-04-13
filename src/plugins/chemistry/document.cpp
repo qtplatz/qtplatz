@@ -127,6 +127,7 @@ namespace chemistry {
         , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
         , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
+        , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC",      { "Hexamethoxyphosphazine" } }
     };
 
 }

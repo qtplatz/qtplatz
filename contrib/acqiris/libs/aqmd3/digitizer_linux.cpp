@@ -143,7 +143,7 @@ namespace aqmd3 {
             size_t darkCount_;
 
             std::atomic<double> u5303_inject_timepoint_;
-            std::vector< std::string > listResources_;
+            // std::vector< std::string > listResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< aqmd3controls::identify > ident_;
@@ -166,7 +166,7 @@ namespace aqmd3 {
             bool readData( aqmd3controls::waveform& );
 
             // PKD+AVG read Channel1+Channel2
-            bool readDataPkdAvg( aqmd3controls::waveform&, aqmd3controls::waveform& );
+            bool readDataPkdAvg( aqmd3controls::waveform&, aqmd3controls::waveform&, int64_t epoch_time );
 
             void set_time_since_inject( aqmd3controls::waveform& );
         };
@@ -195,14 +195,16 @@ namespace aqmd3 {
                     ADDEBUG() << std::make_pair( data.xmeta().scaleFactor, data.xmeta().scaleOffset );
                     for ( int i = 0; i < 8; ++i )
                         ADDEBUG() << mblk[i] << ", " << data.data()[i]
-                                  << boost::format( ",\tA: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Averager >()( data.xmeta(), data.data()[i] )
-                                  << boost::format( ",\tD: %.4f" ) % waveform::toVolts_< int32_t, method::DigiMode::Digitizer >()( data.xmeta(), data.data()[i] ) \
+                                  << boost::format( ",\tA: %.4f" ) % waveform::toVolts_< int32_t
+                                                                                         , method::DigiMode::Averager >()( data.xmeta(), data.data()[i] )
+                                  << boost::format( ",\tD: %.4f" ) % waveform::toVolts_< int32_t
+                                                                                         , method::DigiMode::Digitizer >()( data.xmeta(), data.data()[i] )
                             ;
                 }
             }
         };
 
-        const static std::vector< std::string > ModelSA = { "SA220P", "SA220E", "SA217P", "SA217E" };
+        const static std::vector< std::string > ModelSA = { "SA217E", "SA217P", "SA220P", "SA220E", "SA230P" "SA230E" };
 
     }
 
@@ -349,19 +351,18 @@ task::task() : exptr_( nullptr )
              , temperature_( 0 )
              , channel_temperature_{{ 0 }}
 {
-    listResources_ = {
-        "PXI59::0::0::INSTR"
-        , "PXI9::0::0::INSTR"
-        , "PXI7::0::0::INSTR"
-        , "PXI6::0::0::INSTR"
-        , "PXI5::0::0::INSTR"
-        , "PXI4::0::0::INSTR"
-        , "PXI3::0::0::INSTR"
-        , "PXI2::0::0::INSTR"
-        , "PXI1::0::0::INSTR"
-        , "PXI0::0::0::INSTR"
-    };
-
+    // listResources_ = {
+    //     "PXI59::0::0::INSTR"
+    //     , "PXI9::0::0::INSTR"
+    //     , "PXI7::0::0::INSTR"
+    //     , "PXI6::0::0::INSTR"
+    //     , "PXI5::0::0::INSTR"
+    //     , "PXI4::0::0::INSTR"
+    //     , "PXI3::0::0::INSTR"
+    //     , "PXI2::0::0::INSTR"
+    //     , "PXI1::0::0::INSTR"
+    //     , "PXI0::0::0::INSTR"
+    // };
     acquire_posted_.clear();
     pio_->open();
 
@@ -771,6 +772,9 @@ task::handle_acquire()
 
         using aqmd3controls::method;
         if ( waitForEndOfAcquisition( 3000 ) ) {
+
+            auto epoch_time = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
+
             if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
 
                 int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
@@ -805,7 +809,7 @@ task::handle_acquire()
                     // PKD+AVG
                     auto pkd = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     auto avg = std::make_shared< aqmd3controls::waveform >( ident_, events );
-                    if ( readDataPkdAvg( *pkd, *avg ) ) {
+                    if ( readDataPkdAvg( *pkd, *avg, epoch_time ) ) {
                         set_time_since_inject( *pkd );          // <---------- INJECTION event set ------------
                         set_time_since_inject( *avg );          // <---------- INJECTION event set ------------
                         aqmd3controls::method m;
@@ -813,6 +817,7 @@ task::handle_acquire()
                             if ( reply( avg.get(), pkd.get(), m ) )
                                 handle_protocol( m );
                         }
+#if 0 // ---------------------------------------------------------------------------------------
                         auto dark( darkWaveform_ );
                         if ( darkCount_ && --darkCount_ == 0 ) {
                             darkWaveform_ = avg;
@@ -822,6 +827,7 @@ task::handle_acquire()
                             assert(0);
                             // avg->darkSubtraction( *dark );
                         }
+#endif // ---------------------------------------------------------------------------------------
                     }
 
                 } else {
@@ -886,7 +892,7 @@ task::waitForEndOfAcquisition( int timeout )
 }
 
 bool
-task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg )
+task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg, int64_t epoch_time )
 {
     pkd.set_serialnumber( spDriver()->dataSerialNumber() );
     avg.set_serialnumber( spDriver()->dataSerialNumber() );
@@ -918,17 +924,18 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, mblk->data(), actualPoints, firstValidPoint );
             pkd.set_method( m );
-            pkd.xmeta().actualAverages = m.device_method().nbr_of_averages;
-            pkd.xmeta().actualPoints = actualPoints;
-            pkd.xmeta().initialXTimeSeconds = 0; //initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
-            pkd.xmeta().xIncrement      = 1.0 / m.device_method().samp_rate;
-            pkd.xmeta().initialXOffset  = m.device_method().delay_to_first_sample_; //  initialXOffset;
-            pkd.xmeta().scaleFactor     = 3.72529e-9; // 7.45058e-9
-            pkd.xmeta().scaleOffset     = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
-            pkd.xmeta().protocolIndex   = m.protocolIndex();
-            pkd.xmeta().dataType        = 4;
-            pkd.xmeta().firstValidPoint = firstValidPoint;
-            pkd.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
+            pkd.xmeta().actualAverages      = m.device_method().nbr_of_averages;
+            pkd.xmeta().actualPoints        = actualPoints;
+            pkd.xmeta().initialXTimeSeconds = double(epoch_time) / 1.0e-9; //initialXTimeSeconds[ 0 ] + initialXTimeFraction[ 0 ];
+            pkd.xmeta().xIncrement          = 1.0 / m.device_method().samp_rate;
+            pkd.xmeta().initialXOffset      = m.device_method().delay_to_first_sample_; //  initialXOffset;
+            pkd.xmeta().scaleFactor         = 1.0; // pkd
+            pkd.xmeta().scaleOffset         = 0.0; // pkd
+            pkd.xmeta().protocolIndex       = m.protocolIndex();
+            pkd.xmeta().dataType            = 4;
+            pkd.xmeta().firstValidPoint     = firstValidPoint;
+            pkd.set_epoch_time( epoch_time );
+            // pkd.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             pkd.setData( mblk, firstValidPoint, actualPoints );
 
         } while ( 0 );
@@ -940,17 +947,20 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, mblk->data(), actualPoints, firstValidPoint );
             avg.set_method( m );
-            avg.xmeta() = pkd.xmeta();
-            avg.xmeta().actualPoints        = actualPoints;
-            avg.xmeta().protocolIndex       = m.protocolIndex();
-            avg.xmeta().dataType            = 4;
-            avg.xmeta().firstValidPoint     = firstValidPoint;
-            avg.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
+            avg.xmeta() = pkd.xmeta(); // copy
+            avg.xmeta().actualPoints      = actualPoints;
+            avg.xmeta().protocolIndex     = m.protocolIndex();
+            avg.xmeta().dataType          = 4;
+            avg.xmeta().firstValidPoint   = firstValidPoint;
+            pkd.xmeta().scaleFactor       = 3.72529e-8; // 7.45058e-9
+            pkd.xmeta().scaleOffset       = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
             avg.setData( mblk, firstValidPoint, actualPoints );
 
         } while ( 0 );
     }
-    ADDEBUG() << std::make_pair( avg.xmeta().scaleFactor, avg.xmeta().scaleOffset )  << ", actualPoints: " << avg.xmeta().actualPoints;
+    ADDEBUG() << std::make_pair( avg.xmeta().scaleFactor, avg.xmeta().scaleOffset )
+              << ", actualPoints: " << avg.xmeta().actualPoints
+              << ", xInc: " << avg.xmeta().xIncrement;
     // digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
     // pkd.xmeta().channelMode = aqmd3controls::PKD;
 
