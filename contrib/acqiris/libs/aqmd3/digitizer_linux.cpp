@@ -817,17 +817,15 @@ task::handle_acquire()
                             if ( reply( avg.get(), pkd.get(), m ) )
                                 handle_protocol( m );
                         }
-#if 0 // ---------------------------------------------------------------------------------------
-                        auto dark( darkWaveform_ );
-                        if ( darkCount_ && --darkCount_ == 0 ) {
-                            darkWaveform_ = avg;
-                            for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
-                        }
-                        if ( dark ) {
-                            assert(0);
-                            // avg->darkSubtraction( *dark );
-                        }
-#endif // ---------------------------------------------------------------------------------------
+                        // auto dark( darkWaveform_ );
+                        // if ( darkCount_ && --darkCount_ == 0 ) {
+                        //     darkWaveform_ = avg;
+                        //     for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
+                        // }
+                        // if ( dark ) {
+                        //     assert(0);
+                        //     // avg->darkSubtraction( *dark );
+                        // }
                     }
 
                 } else {
@@ -845,10 +843,10 @@ task::handle_acquire()
                             darkWaveform_ = waveform;
                             for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
                         }
-                        if ( dark ) {
-                            assert(0);
-                            //waveform->darkSubtraction( *dark );
-                        }
+                        // if ( dark ) {
+                        //     assert(0);
+                        //     //waveform->darkSubtraction( *dark );
+                        // }
                     }
                 }
             }
@@ -901,8 +899,8 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
 
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
-        pkd.set_epoch_time( std::chrono::system_clock::now().time_since_epoch().count() );
-        avg.set_epoch_time( pkd.epoch_time() ); // timeSinceEpoch_ = pkd.timeSinceEpoch_;
+        pkd.set_epoch_time( epoch_time );
+        avg.set_epoch_time( epoch_time ); // timeSinceEpoch_ = pkd.timeSinceEpoch_;
 
         pkd.xmeta().channelMode = aqmd3controls::PKD;
         avg.xmeta().channelMode = aqmd3controls::AVG;
@@ -949,9 +947,8 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             avg.set_method( m );
             avg.xmeta() = pkd.xmeta(); // copy
             avg.xmeta().actualPoints      = actualPoints;
-            avg.xmeta().protocolIndex     = m.protocolIndex();
-            avg.xmeta().dataType          = 4;
             avg.xmeta().firstValidPoint   = firstValidPoint;
+            avg.xmeta().dataType          = 4;
             pkd.xmeta().scaleFactor       = 3.72529e-8; // 7.45058e-9
             pkd.xmeta().scaleOffset       = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
             avg.setData( mblk, firstValidPoint, actualPoints );
