@@ -26,19 +26,22 @@ elseif( APPLE )
   # no driver supported
 
 else() # Linux
+
   set( AqMD3_FOUND FALSE )
   find_path( AqMD3_INCLUDE_DIR NAMES AqMD3.h PATHS /usr/include )
+
   set ( AqMD3_LIBRARIES )
 
-  find_library( _lib NAMES AqMD3-C )
-  if ( _lib )
+  find_library( _md3 NAMES AqMD3 )
+  if ( _md3 )
     set( AqMD3_FOUND TRUE )
-    list( APPEND AqMD3_LIBRARIES ${_lib} )
+    list( APPEND AqMD3_LIBRARIES ${_md3} )
   endif()
 
-  find_library( _lib NAMES AqLio )
-  if ( _lib )
-    list( APPEND AqMD3_LIBRARIES ${_lib} )
+  find_library( _lio NAMES AqLio )
+  if ( _lio )
+    set( AqMD3_FOUND TRUE )
+    list( APPEND AqMD3_LIBRARIES ${_lio} )
   endif()
 
 endif()

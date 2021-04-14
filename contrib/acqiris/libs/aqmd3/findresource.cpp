@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +26,7 @@
 #include "configfile.hpp"
 #include "aqmd3.hpp"
 #include <adportable/debug.hpp>
+#include <visa.h>
 #include <boost/format.hpp>
 
 using namespace aqmd3;
@@ -74,4 +75,26 @@ findResource::operator()( std::shared_ptr< AqMD3 > md3, const std::string& res )
         return true;
     }
     return false;
+}
+
+
+std::vector< std::string >
+findResource::lspxi()
+{
+    std::vector< std::string > res;
+    ViSession rm( VI_NULL );
+    viOpenDefaultRM( &rm );
+    ViFindList find = VI_NULL;
+    ViUInt32 count = 0;
+    ViChar rsrc[256];
+    auto status = viFindRsrc( rm, "PXI?*::INSTR", &find, &count, rsrc );
+    if ( status == VI_SUCCESS && count > 0 ) {
+        do {
+            res.emplace_back( rsrc );
+            status = viFindNext( find, rsrc );
+        } while ( status == VI_SUCCESS );
+        viClose( find );
+    }
+    viClose( rm );
+    return res;
 }
