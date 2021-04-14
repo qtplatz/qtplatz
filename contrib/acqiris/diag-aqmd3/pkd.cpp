@@ -49,11 +49,11 @@ struct data {
     ViInt32 actualAverages;
     ViInt64 actualRecords;
     ViInt64 waveformArrayActualSize;
-    ViInt64 actualPoints; // [numRecords];
-    ViInt64 firstValidPoint; // [numRecords];
+    ViInt64 actualPoints;
+    ViInt64 firstValidPoint;
     ViReal64 initialXOffset;
-    ViReal64 initialXTimeSeconds; // [numRecords];
-    ViReal64 initialXTimeFraction; // [numRecords];
+    ViReal64 initialXTimeSeconds;
+    ViReal64 initialXTimeFraction;
     ViReal64 xIncrement, scaleFactor, scaleOffset;
     ViInt32 flags; // [numRecords];
     void print( std::ostream& o, const char * heading ) const {
@@ -63,6 +63,26 @@ struct data {
             // << boost::format( "\txIncrement: %d\tscaleFactor: %g\tscaleOffset: %g\tflags: 0x%x" ) % xIncrement % scaleFactor % scaleOffset % flags
                   << std::endl;
     }
+};
+
+struct timeStampReader {
+    ViInt64 markerArraySize;
+    ViInt64 const timestampSize = 16;
+    std::vector< ViInt32 > markerArray;
+    timeStampReader() : markerArraySize(0) {}
+    timeStampReader( std::shared_ptr< aqmd3::AqMD3 > md3 ) :  markerArraySize(0) {
+        md3->QueryMinWaveformMemory(session, 32, 1, 0, timestampSize, markerArraySize );
+        markerArray.resize( markerArraySize );
+    }
+
+    uint64_t operator()( std::shared_ptr< aqmd3::AqMD3 > md3 ) {
+        ViInt64 addressLow = 0xFF800000;
+        ViInt64 actualPoints, actualPoints;
+        md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, timestampSize
+                                           , markerArraySize, markerArray.data(), actualPoints, firstValidPoint);
+        return uint64_t( markerArray[ firstValidPoint + 1 ] ) + uint64_t( markerArray[ firstValidPoint + 2 ] << 32 );
+    }
+
 };
 
 extern int __verbose__;
@@ -171,6 +191,15 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 	// Readout parameters
 	ViInt64 arraySize = 0;
 	if ( md3->QueryMinWaveformMemory( 32, 1, 0, m.device_method().nbr_of_s_to_acquire_, arraySize) ) {
+
+        // timestamp
+        timeStampReader tsReader( md3 );
+        // ViInt64 markerArraySize (0);
+        // ViInt64 const timestampSize = 16;
+        // md3->QueryMinWaveformMemory(session, 32, 1, 0, timestampSize, markerArraySize);
+        // std::vector<ViInt32> markerArray(markerArraySize);
+        // timestamp
+
         data d1 = {0}, d2 = {0};
         std::vector<ViInt32> pkd( arraySize ), avg( arraySize );
         ADDEBUG() << "Performing acquisition";
@@ -179,7 +208,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
         ADDEBUG() << "Acquisition completed";
         ADDEBUG() << "Read the Peak histogram";
-        ViInt64 addressLow = 0x00000000;
+        ViInt64 addressLow      = 0x00000000;
         ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
         md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
                                            , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
@@ -188,6 +217,24 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
         ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
         md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
                                            , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
+
+        // timestamp
+        d1.initialXTimeSeconds = double( tsReader( md3 ) ) / std::den::pico;
+
+        // addressLow = 0xFF800000;
+        // md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, timestampSize
+        //                                    , markerArraySize, markerArray.data(), actualPoints, firstValidPoint);
+        // ViUInt64 valueRaw1 = markerArray[firstValidPoint + 1];
+        // ViUInt64 valueRaw2 = markerArray[firstValidPoint + 2];
+        // ViUInt64 timestamp = (valueRaw1 + (valueRaw2 << 32));
+        // outputFilech1MetaData << "Timestamp (in ps): " << timestamp << "\n";
+
+        // ViInt32 actualAverage = 0;
+        md3->LogicDeviceReadRegisterInt32( "DpuA", 0x3358, d1.actualAverages ); // actualAverage
+        // outputFilech1MetaData << "actualAverage: " << actualAverage << "\n";
+        // timestamp
+        d2.initialXTimeSeconds = d1.initialXTimeSeconds;
+        d2.actualAverages      = d1.actualAverages;
 
         d1.print( std::cout, "PKD" );
         d2.print( std::cout, "AVG" );
