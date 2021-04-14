@@ -314,27 +314,43 @@ task::impl::worker_thread()
             auto& status = data_status_[ waveform_observer ];
             status.plot_ready_ = false;
             status.tp_plot_handled_ = std::chrono::system_clock::now();
-            auto avgms = std::make_shared< adcontrols::MassSpectrum >();
-            auto pkdms = std::make_shared< adcontrols::MassSpectrum >();
             auto q(que_); // lock;
-            auto avg = q.first;
-            auto pkd = q.second;
 
             std::string device_data;
-            avg->serialize_xmeta( device_data );
             using aqmd3controls::waveform;
+            q.first->serialize_xmeta( device_data );
 
-            adcontrols::waveform_translator::translate< waveform >( *avgms
-                                                                    , *avg
-                                                                    , avg->xmeta().xIncrement
-                                                                    , avg->xmeta().initialXOffset
-                                                                    , avg->xmeta().actualAverages
-                                                                    , 0 // mode
-                                                                    , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
-                                                                    , device_data
-                                                                    , [&]( const int32_t& d ){ return 1000 * avg->toVolts( d ); } );
+            int channel(0);
+            if ( auto avg = q.first ) {
 
-            document::instance()->setData( waveform_observer, avgms, 0 );
+                auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                adcontrols::waveform_translator::translate< waveform >(
+                    *ms
+                    , *avg
+                    , avg->xmeta().xIncrement
+                    , avg->xmeta().initialXOffset
+                    , avg->xmeta().actualAverages
+                    , 0 // mode
+                    , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
+                    , device_data
+                    , [&]( const int32_t& d ){ return 1000 * avg->toVolts( d ); } );
+                document::instance()->setData( waveform_observer, ms, channel++ );
+            }
+
+            if ( auto pkd = q.second ) {
+                auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                adcontrols::waveform_translator::translate< waveform >(
+                    *ms
+                    , *pkd
+                    , pkd->xmeta().xIncrement
+                    , pkd->xmeta().initialXOffset
+                    , pkd->xmeta().actualAverages
+                    , 0 // mode
+                    , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
+                    , device_data
+                    );
+                document::instance()->setData( waveform_observer, ms, channel++ );
+            }
         }
 
         if ( data_status_[ waveform_observer ].data_ready_ ) {

@@ -262,13 +262,18 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             if ( uuid == aqmd3::waveform_observer ) {
                 // waveform (analog)
                 double seconds = sp->getMSProperty().timeSinceInjection();
-                QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
-                                                                                      , QString::number( sp->getMSProperty().trigNumber() ) );
-
-                spw_->setTitle( title );
-                spw_->setData( sp, idx, bool( idx ) );
-                spw_->setKeepZoomed( true );
-
+                QString title = QString( "SA217E Elapsed time: %1s, Trig# %2" ).arg(
+                    QString::number( seconds, 'f', 4 )
+                    , QString::number( sp->getMSProperty().trigNumber() ) );
+                if ( idx == 0 ) {
+                    spw_->setTitle( title );
+                    spw_->setData( sp, idx, false );
+                    spw_->setKeepZoomed( true );
+                } else {
+                    hpw_->setTitle( title );
+                    hpw_->setData( sp, idx, false );
+                    hpw_->setKeepZoomed( true );
+                }
             } else if ( uuid == aqmd3::histogram_observer ) {
                 // histogram
 

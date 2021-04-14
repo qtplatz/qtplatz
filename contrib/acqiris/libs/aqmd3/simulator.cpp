@@ -204,37 +204,40 @@ simulator::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform
         }
     } while(0);
 
-    // bool invert = method_->_device_method().invert_signal;
-    // int32_t offset = method_->_device_method().front_end_offset;
-    // (void)invert;
-    // (void)offset;
+    bool invert = method_->device_method().invert_signal;
+    int32_t offset = method_->device_method().front_end_offset;
+    (void)invert;
+    (void)offset;
 
+    // AVG
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
+
         auto dp = mblk->data();
-
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
-        //avg.method_ = *method_;
-        //avg.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
-        //avg.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
-        //avg.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        auto method = *method_;
 
-        //avg.xmeta().dataType = 4;
-        //avg.xmeta().initialXTimeSeconds = ptr->timestamp();
-        //avg.set_well_known_events( avg.well_known_events() | avg.wellKnownEvents_;
-        // ADDEBUG() << "avg.wellKnwonEvents: " << avg.wellKnownEvents_;
-        // avg.meta_.actualPoints = ptr->nbrSamples();
-        // avg.meta_.xIncrement = sampInterval_;
-        // avg.meta_.initialXOffset = startDelay_;
-        // avg.meta_.actualAverages = int32_t( nbrWaveforms_ );
-        // avg.meta_.scaleFactor = 1; // method_->_device_method().front_end_range / 4096 / method_->_device_method().nbr_of_averages;
-        // avg.meta_.scaleOffset = 0;
-        //pkd.xmeta().channelMode = aqmd3controls::AVG;
-        avg.setData( mblk, 0, ptr->nbrSamples() );
+        method.device_method().digitizer_delay_to_first_sample = startDelay_;
+        method.device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        method.device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        avg.set_method( method );
+
+        avg.xmeta().initialXTimeSeconds = ptr->timestamp();
+        // data.wellKnownEvents_ = 0;
+        avg.xmeta().actualPoints = ptr->nbrSamples();
+        avg.xmeta().xIncrement = sampInterval_;
+        avg.xmeta().initialXOffset = startDelay_;
+        avg.xmeta().actualAverages = int32_t( nbrWaveforms_ );
+        //avg.xmeta().scaleFactor = method.device_method().front_end_range / 0x3fff / method.device_method().nbr_of_averages;
+        avg.xmeta().scaleFactor = 1.0;
+        avg.xmeta().scaleOffset = method.device_method().front_end_offset;
+        avg.xmeta().dataType = 4; // int32_t
+        avg.setData( mblk, 0, avg.xmeta().actualPoints );
+        avg.xmeta().channelMode = aqmd3controls::AVG; //acqrscontrols::u5303a::AVG;
     }
 
+    // PKD
     if ( ptr ) {
-
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
         std::fill( dp, dp + ptr->nbrSamples(), 0 );
@@ -244,13 +247,19 @@ simulator::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform
             if ( idx < nbrSamples_ )
                 dp[ idx ] = peak.second * 10000 + __noise__();// + __counter__;
         }
+
+        for ( size_t i = 0; i < ptr->nbrSamples(); ++i ) {
+            double d = __noise__();
+            if ( d > 13.5 )
+                dp[ i ] += d;
+        }
+
         __counter__ ++;
 
         auto method = *method_;
         method.device_method().digitizer_delay_to_first_sample = startDelay_;
         method.device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
         method.device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
-        pkd.set_method( method );
 
         pkd.xmeta().dataType = 4;
         pkd.xmeta().initialXTimeSeconds = ptr->timestamp();
@@ -262,10 +271,9 @@ simulator::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform
         pkd.xmeta().scaleFactor = 1.0;
         pkd.xmeta().scaleOffset = 0.0;
         pkd.xmeta().channelMode = aqmd3controls::PKD;
-        pkd.setData( mblk, 0, pkd.xmeta().actualPoints );
-        return true;
+        pkd.setData( mblk, 0, ptr->nbrSamples() );
     }
-    return false;
+    return true;
 }
 
 bool
