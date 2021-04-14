@@ -150,6 +150,7 @@ namespace aqmd3 {
         template< typename T > ViStatus setAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T value );
         template< typename T > ViStatus getAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T& value ) const;
         bool LogicDeviceWriteRegisterInt32( ViConstString logicDevice,	ViInt64 offset,	ViInt32 value );
+        bool LogicDeviceReadRegisterInt32( ViConstString logicDevice,	ViInt64 offset,	ViInt32& value ) const;
         bool LogicDeviceReadIndirectInt32(	ViConstString logicDevice
                                             , ViInt32 id
                                             , ViInt64 startAddress

@@ -227,6 +227,13 @@ AqMD3::LogicDeviceWriteRegisterInt32( ViConstString logicDevice, ViInt64 offset,
 }
 
 bool
+AqMD3::LogicDeviceReadRegisterInt32( ViConstString logicDevice,	ViInt64 offset,	ViInt32& value ) const
+{
+    return clog( AqMD3_LogicDeviceReadRegisterInt32( session_, logicDevice, offset, &value ), __FILE__, __LINE__ );
+}
+
+
+bool
 AqMD3::LogicDeviceReadIndirectInt32( ViConstString logicDevice
                                      , ViInt32 id
                                      , ViInt64 startAddress

@@ -21,6 +21,7 @@
 #include <aqmd3controls/identify.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
+#include <ratio>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -71,16 +72,18 @@ struct timeStampReader {
     std::vector< ViInt32 > markerArray;
     timeStampReader() : markerArraySize(0) {}
     timeStampReader( std::shared_ptr< aqmd3::AqMD3 > md3 ) :  markerArraySize(0) {
-        md3->QueryMinWaveformMemory(session, 32, 1, 0, timestampSize, markerArraySize );
+        md3->QueryMinWaveformMemory(32, 1, 0, timestampSize, markerArraySize );
         markerArray.resize( markerArraySize );
     }
 
     uint64_t operator()( std::shared_ptr< aqmd3::AqMD3 > md3 ) {
         ViInt64 addressLow = 0xFF800000;
-        ViInt64 actualPoints, actualPoints;
+        ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+        ViInt64 actualPoints, firstValidPoint;
+
         md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, timestampSize
                                            , markerArraySize, markerArray.data(), actualPoints, firstValidPoint);
-        return uint64_t( markerArray[ firstValidPoint + 1 ] ) + uint64_t( markerArray[ firstValidPoint + 2 ] << 32 );
+        return uint64_t( markerArray[ firstValidPoint + 1 ] ) | ( uint64_t( markerArray[ firstValidPoint + 2 ] ) << 32 );
     }
 
 };
@@ -208,8 +211,8 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
         ADDEBUG() << "Acquisition completed";
         ADDEBUG() << "Read the Peak histogram";
-        ViInt64 addressLow      = 0x00000000;
-        ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+        const ViInt64 addressLow      = 0x00000000;
+        const ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
         md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
                                            , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
 
@@ -219,7 +222,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
                                            , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
 
         // timestamp
-        d1.initialXTimeSeconds = double( tsReader( md3 ) ) / std::den::pico;
+        d1.initialXTimeSeconds = double( tsReader( md3 ) ) / std::pico::den;
 
         // addressLow = 0xFF800000;
         // md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, timestampSize
