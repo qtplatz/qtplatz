@@ -149,6 +149,7 @@ main( int argc, char * argv [] )
             ( "force-config", "Force create aqmd3.ini file (for debugging)" )
             ( "reset-config", "clear config" )
             ( "verbose",    po::value<int>()->default_value( 5 ),       "Verbose 0..9" )
+            ( "lspxi",     "list pxi device on the system" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -178,6 +179,15 @@ main( int argc, char * argv [] )
     // MultiRecords or single record
     method.device_method().nbr_records = vm[ "records" ].as<int>();
     method.device_method().nbr_of_averages = vm[ "average" ].as<int>();    // 0 for digitizer
+
+    if ( vm.count( "lspxi" ) ) {
+        auto list = aqmd3::findResource::lspxi();
+        for ( auto res: list )
+            ADDEBUG() << res;
+        if ( list.empty() )
+            ADDEBUG() << "No PXI device found";
+        return 1;
+    }
 
     if ( vm.count( "pkd" ) && method.device_method().nbr_of_averages == 0 )
         method.device_method().nbr_of_averages = 2;
@@ -288,6 +298,8 @@ main( int argc, char * argv [] )
 
         if ( success ) {
 
+            md3->abort();
+
             method.device_method().TSR_enabled = TSR_enabled;
 
             auto ident = std::make_shared< aqmd3controls::identify >();
@@ -333,7 +345,7 @@ main( int argc, char * argv [] )
             }
 
             if ( __verbose__ > 5 ) {
-                ViStatus rcode;
+                // ViStatus rcode;
                 ViChar name [ 256 ];
                 for ( int i = 1; i <= count; ++i ) {
                     if ( AqMD3_GetControlIOName( md3->session(), i, 256, name ) == 0 ) {
