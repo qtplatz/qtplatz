@@ -94,14 +94,14 @@ namespace aqmd3controls {
 
 using namespace aqmd3controls;
 
-waveform::waveform()
+waveform::waveform() : flag_warned_( false )
 {
 }
 
 waveform::waveform( const waveform& t )
     : basic_waveform< waveform::value_type, waveform::meta_type >( t )
     , trigger_delay_( t.trigger_delay_ )
-    , is_pkd_( t.is_pkd_ )
+    , flag_warned_( false )
 {
 }
 
@@ -111,7 +111,7 @@ waveform::waveform( uint32_t pos
                     , uint32_t wellKnownEvents
                     , uint64_t timepoint
                     , uint64_t elapsed_time
-                    , uint64_t epoch_time )
+                    , uint64_t epoch_time ) : flag_warned_( false )
 {
     pos_ = pos;
     pn_ = fcn;
@@ -124,21 +124,14 @@ waveform::waveform( uint32_t pos
     trigger_delay_ = 0;
 }
 
-waveform::waveform( uint32_t pos, const meta_data& meta )
+waveform::waveform( uint32_t pos, const meta_data& meta ) : flag_warned_( false )
 {
     pos_ = pos;
     set_xmeta( meta );
-    // set_trigger_delay( meta.trigger_delay() );
 }
 
-waveform::waveform( std::shared_ptr< const identify > id
-                    , uint32_t pos, uint32_t events, uint64_t tp ) // , wellKnownEvents_( events )
-                                                                   // , timeSinceEpoch_( tp )
-                                                                   // , firstValidPoint_( 0 )
-                                                                   // , timeSinceInject_( 0.0 )
-                                                                   // , ident_( id )
-                                                                   // , hasTic_( false )
-                                                                   // , tic_( 0 )
+waveform::waveform( std::shared_ptr< const identify > /* ignore */
+                    , uint32_t pos, uint32_t events, uint64_t tp ) : flag_warned_( false )
 {
     set_pos( pos ); // sequential number
     set_serialnumber( pos ); // trigger number
@@ -152,16 +145,10 @@ waveform::set_xmeta( const meta_data& meta )
     xmeta_ = meta; // set to basic_waveform
 }
 
-void
-waveform::set_is_pkd( bool pkd )
-{
-    is_pkd_ = pkd;
-}
-
 bool
 waveform::is_pkd() const
 {
-    return is_pkd_;
+    return xmeta_.channelMode == aqmd3controls::ChannelMode::PKD;
 }
 
 void
@@ -181,13 +168,17 @@ waveform::time( size_t idx ) const
 {
     double ext_trig_delay( 0 );
 
-    assert( method_ );
-
-    if ( method_->protocols().size() > method_->protocolIndex() ) {
-        const auto& this_protocol = method_->protocols()[ method_->protocolIndex() ];
-        ext_trig_delay = this_protocol.delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+    if ( method_ ) {
+        if ( method_->protocols().size() > method_->protocolIndex() ) {
+            const auto& this_protocol = method_->protocols()[ method_->protocolIndex() ];
+            ext_trig_delay = this_protocol.delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+        }
+    } else {
+        if ( !flag_warned_ ) {
+            ADDEBUG() << "Warning: no method attached to waveform";
+            const_cast< waveform * >(this)->flag_warned_ = true;
+        }
     }
-
     return idx * xmeta().xIncrement + xmeta().initialXOffset + ext_trig_delay;
 }
 
@@ -266,9 +257,12 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     const adcontrols::TofProtocol * this_protocol( 0 );
     double ext_trig_delay( 0 );
-    if ( waveform.method_->protocols().size() > waveform.method_->protocolIndex() ) {
-        this_protocol = &waveform.method_->protocols() [ waveform.method_->protocolIndex() ];
-        ext_trig_delay = this_protocol->delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+    if ( waveform.method_ ) {
+        if ( waveform.method_->protocols().size() > waveform.method_->protocolIndex() ) {
+            this_protocol = &waveform.method_->protocols() [ waveform.method_->protocolIndex() ];
+            ext_trig_delay = this_protocol->delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+        }
+        sp.setProtocol( waveform.method_->protocolIndex(), waveform.method_->protocols().size() );
     }
 
     adcontrols::MSProperty prop = sp.getMSProperty();
@@ -294,29 +288,16 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     if ( this_protocol )
         prop.setTofProtocol( *this_protocol );
+
     // --- TODO --->
     //const device_data data( *waveform.ident_, waveform.meta_ );
     //std::string ar;
     //adportable::binary::serialize<>()( data, ar );
     //prop.setDeviceData( ar.data(), ar.size() );
 
-#if ! defined NDEBUG && 0
-    ADDEBUG() << "===== device_data =====\nIdentifier:\t " << waveform.ident_->Identifier()
-              << "\nRevision:\t" << waveform.ident_->Revision()
-              << "\nVendor:\t" << waveform.ident_->Vendor()
-              << "\nDescription:\t" << waveform.ident_->Description()
-              << "\nInstrumentModel:\t" << waveform.ident_->InstrumentModel()
-              << "\nFirmwareRevision:\t" << waveform.ident_->FirmwareRevision()
-              << "\nSerialNumber:\t" << waveform.ident_->SerialNumber()
-              << "\nOptions:\t" << waveform.ident_->Options()
-              << "\nIOVersion\t" << waveform.ident_->IOVersion()
-              << "\nNbrADCBits\t" << waveform.ident_->NbrADCBits();
-#endif
-
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
     sp.resize( waveform.size() );
-    sp.setProtocol( waveform.method().protocolIndex(), waveform.method().protocols().size() );
 
     // waveform_copy
     // normalize waveform to volts/millivolts scale with respect to actual number of average
@@ -351,18 +332,6 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
             double dbase(0), rms(0);
             std::tie( std::ignore, dbase, rms ) = adportable::spectrum_processor::tic< waveform::value_type >( waveform.size(), waveform.data() );
             waveform_copy< waveform::value_type >()( sp, waveform, scale, dbase );
-            // switch( waveform.xmeta().dataType ) {
-            // case 4:
-            //     adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-            //
-            //     break;
-            // case 8:
-            //     adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
-            //     waveform_copy<int64_t>()( sp, waveform, scale, dbase );
-            //     break;
-            // default:
-            //     ADDEBUG() << "ERROR: Unexpected data type in waveform";
-            // }
         }
     }
 	return true;

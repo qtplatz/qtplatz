@@ -89,7 +89,6 @@ namespace aqmd3controls {
         waveform( uint32_t pos, const meta_data& );
         waveform( std::shared_ptr< const aqmd3controls::identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
 
-        void set_is_pkd( bool );
         bool is_pkd() const;
 
         void set_xmeta( const meta_data& ) override;
@@ -150,7 +149,7 @@ namespace aqmd3controls {
 
     private:
         double trigger_delay_;
-        bool is_pkd_;
+        bool flag_warned_;
         std::unique_ptr< aqmd3controls::method > method_;
     };
 }

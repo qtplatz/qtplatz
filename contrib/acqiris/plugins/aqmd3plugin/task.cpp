@@ -322,7 +322,6 @@ task::impl::worker_thread()
 
             int channel(0);
             if ( auto avg = q.first ) {
-
                 auto ms = std::make_shared< adcontrols::MassSpectrum >();
                 adcontrols::waveform_translator::translate< waveform >(
                     *ms
@@ -339,6 +338,8 @@ task::impl::worker_thread()
 
             if ( auto pkd = q.second ) {
                 auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                aqmd3controls::waveform::translate( *ms, *pkd );
+#if 0
                 adcontrols::waveform_translator::translate< waveform >(
                     *ms
                     , *pkd
@@ -349,6 +350,7 @@ task::impl::worker_thread()
                     , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
                     , device_data
                     );
+#endif
                 document::instance()->setData( waveform_observer, ms, channel++ );
             }
         }
