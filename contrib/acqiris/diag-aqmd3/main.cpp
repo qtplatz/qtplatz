@@ -128,28 +128,28 @@ main( int argc, char * argv [] )
     po::options_description description( "diag_aqmd3" );
     {
         description.add_options()
-            ( "help,h",    "Display this help message" )
-            ( "tsr,t",     "TSR enable" )
-            ( "pkd",       "PKD enable" )
-            ( "avg",       "AVG enable" )
-            ( "pkd-amplitude",    "PKD amplitude accumulation enabled" )
-            ( "records,r",  po::value<int>()->default_value( 1 ),       "Number of records" )
-            ( "average,a",  po::value<int>()->default_value( 0 ),       "Number of average" )
-            ( "invert-signal", po::value<bool>()->default_value( true ),"Invert signal {true/false}" )
-            ( "rising-delta", po::value<int>()->default_value( 20 ),    "PKD Rising delta" )
-            ( "falling-delta", po::value<int>()->default_value( 20 ),   "PKD Falling delta" )
-            ( "mode,m",     po::value<int>()->default_value( 0 ),       "=0 Normal(digitizer); =2 Averager" )
-            ( "delay,d",    po::value<double>()->default_value( 0.0 ),  "Delay (us)" )
-            ( "width,w",    po::value<double>()->default_value( 10.0 ), "Waveform width (us)" )
-            ( "replicates", po::value<int>()->default_value( 1 ),       "Number of triggers to acquire waveforms" )
-            ( "rate",       po::value<double>()->default_value( 1.0 ),  "Expected trigger interval in millisecond (trigger drop/nodrop validation)" )
-            ( "pxi",        po::value< std::string >(),                 "Resource name such as 'PXI8::0::0::INSTR'")
-            ( "find",       "Find resource" )
-            ( "config",       "show config" )
-            ( "force-config", "Force create aqmd3.ini file (for debugging)" )
-            ( "reset-config", "clear config" )
-            ( "verbose",    po::value<int>()->default_value( 5 ),       "Verbose 0..9" )
-            ( "lspxi",     "list pxi device on the system" )
+            ( "help,h",        "Display this help message" )
+            ( "tsr,t",         "TSR enable" )
+            ( "pkd",           "PKD enable" )
+            ( "avg",           "AVG enable" )
+            ( "pkd-amplitude", "PKD amplitude accumulation enabled" )
+            ( "records,r",     po::value<int>()->default_value( 1 ),       "Number of records" )
+            ( "average,a",     po::value<int>()->default_value( 0 ),       "Number of average" )
+            ( "invert-signal", po::value<bool>()->default_value( true ),   "Invert signal {true/false}" )
+            ( "rising-delta",  po::value<int>()->default_value( 20 ),      "PKD Rising delta" )
+            ( "falling-delta", po::value<int>()->default_value( 20 ),      "PKD Falling delta" )
+            ( "delay,d",       po::value<double>()->default_value( 0.0 ),  "Delay (us)" )
+            ( "width,w",       po::value<double>()->default_value( 10.0 ), "Waveform width (us)" )
+            ( "replicates",    po::value<int>()->default_value( 1 ),       "Number of triggers to acquire waveforms" )
+            ( "rate",          po::value<double>()->default_value( 1.0 ),  "Expected trigger interval in millisecond (trigger drop/nodrop validation)" )
+            ( "fs",            po::value<double>()->default_value( 0.5 ),  "front end fullscale 0.5|2.5 for SA217E" )
+            ( "pxi",           po::value< std::string >(),                 "Resource name such as 'PXI8::0::0::INSTR'")
+            ( "find",          "Find resource" )
+            ( "config",        "show config" )
+            ( "force-config",  "Force create aqmd3.ini file (for debugging)" )
+            ( "reset-config",  "clear config" )
+            ( "verbose",       po::value<int>()->default_value( 5 ),       "Verbose 0..9" )
+            ( "lspxi",         "list pxi device on the system" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -169,7 +169,6 @@ main( int argc, char * argv [] )
 
     aqmd3controls::method method;
     method.setChannels( 0x01 );
-    method.setMode( static_cast<aqmd3controls::method::DigiMode>( vm[ "mode" ].as<int>() ) );
     method.device_method().front_end_range = 1.0;  // V
     method.device_method().front_end_offset = 0.0; // V
     method.device_method().ext_trigger_level = 1.0;
@@ -326,6 +325,8 @@ main( int argc, char * argv [] )
             }
 
             ADDEBUG() << "## Constract device method ##";
+            method.device_method().front_end_range = vm[ "fs" ].as<double>();
+
             if ( std::find( ModelSA.begin(), ModelSA.end(), ident->InstrumentModel() ) != ModelSA.end() ) {
                 if ( !( adportable::compare<double>::is_equal(method.device_method().front_end_range, 0.5) ||
                         adportable::compare<double>::is_equal(method.device_method().front_end_range, 2.5) ) )
@@ -415,7 +416,6 @@ main( int argc, char * argv [] )
 
             using aqmd3::attribute;
             md3->clog( attribute< aqmd3::sample_rate >::set( *md3, max_rate ), __FILE__,__LINE__ );
-            // md3->setSampleRate( max_rate );
 
             md3->clog( attribute< aqmd3::sample_rate >::get( *md3, method.device_method().samp_rate ), __FILE__,__LINE__ );
             //method.device_method().samp_rate = md3->SampleRate();
@@ -423,24 +423,16 @@ main( int argc, char * argv [] )
             std::cout << "SampleRate: " << method.device_method().samp_rate << std::endl;
 
             attribute< aqmd3::record_size >::set( *md3, method.device_method().nbr_of_s_to_acquire_ );
-            // md3->setAcquisitionRecordSize( method.device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
-
             attribute< aqmd3::trigger_delay >::set( *md3, method.device_method().delay_to_first_sample_ );
-            // md3->setTriggerDelay( method.device_method().digitizer_delay_to_first_sample );
-
             attribute< aqmd3::num_records_to_acquire >::set( *md3, int64_t( method.device_method().nbr_records ) );
-            // md3->setAcquisitionNumRecordsToAcquire( method.device_method().nbr_records );
 
             ///////////////
-            if ( method.mode() == aqmd3controls::method::DigiMode::Averager )
+            if ( method.mode() == aqmd3controls::method::DigiMode::Averager ) {
+                md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, method.device_method().nbr_of_averages ), __FILE__, __LINE__ );
                 attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER );
-            else
+            } else {
                 attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_NORMAL );
-
-            // md3->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
-
-            attribute< aqmd3::tsr_enabled >::set( *md3, method.device_method().TSR_enabled );
-            // md3->setTSREnabled( method.device_method().TSR_enabled );
+            }
 
             md3->SelfCalibrate();
 
@@ -509,32 +501,41 @@ main( int argc, char * argv [] )
 
                     pp << uint8_t( 0x02 );
 
-                    aqmd3::digitizer::readData( *md3, method, vec );
+                    if ( method.mode() == aqmd3controls::method::DigiMode::Digitizer ) {
+                        aqmd3::digitizer::readData( *md3, method, vec );
+                    } else {
+                        auto data = std::make_shared< aqmd3controls::waveform >();
+                        aqmd3::digitizer::readData32( *md3, method, *data );
+                        vec.emplace_back( data );
+                    }
                     auto ts = vec.at(0)->xmeta().initialXTimeSeconds;
 
                     int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
                     execStatistics::instance().dataCount_ += vec.size();
 
+                    auto wform = vec.at(0);
                     if ( __verbose__ >= 5 ) {
-                        auto wform = vec.at(0);
-                        std::cout << "aqmd3::digitizer::readData read " << vec.size() << " waveform(s), proto#"
-                                  << protocolIndex
-                                  << "\t(" << i << "/" << replicates << ")"
-                                  << "\t" << (ts - prev_ts)*1e6
-                                  << "\t" << execStatistics::instance().dataCount_
-                                  << "\tsize=" << wform->size()
-                                  << "\tscaleFactor=" << wform->xmeta().scaleFactor
-                                  << "\tAvgs=" << wform->xmeta().actualAverages
-                                  << std::endl;
-                        if ( replicates == 1 ) {
-                            for ( size_t i = 0; i < wform->xmeta().actualPoints; ++i ){
+                        if ( i == 0 ) {
+                            for ( size_t j = 0; i < wform->xmeta().actualPoints; ++j ){
                                 auto [x,y] = wform->xy(i);
-                                std::cout << i << "\t" << (x * 1.0e6) << "\t" << y << "\t" << wform->toVolts( y );
+                                std::cout << j << "\t"
+                                          << boost::format("%8.3f") % (x * 1.0e6)
+                                          << "\t" << boost::format("%-10d") % y
+                                          << "\t" << boost::format("%.5lf") % (wform->toVolts( y ) * 1000)
+                                          << std::endl;
                             }
                         }
                     }
+                    std::cout << "aqmd3::digitizer::readData read " << vec.size() << " waveform(s), proto#"
+                              << protocolIndex
+                              << "\t(" << i << "/" << replicates << ")"
+                              << "\t" << (ts - prev_ts)*1e6
+                              << "\t" << execStatistics::instance().dataCount_
+                              << "\tsize=" << wform->size()
+                              << "\tscaleFactor=" << wform->xmeta().scaleFactor
+                              << "\tAvgs=" << wform->xmeta().actualAverages
+                              << std::endl;
                     prev_ts = ts;
-
                     vec.clear();
                 }
             }

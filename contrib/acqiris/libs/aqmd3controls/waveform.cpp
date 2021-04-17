@@ -200,7 +200,7 @@ waveform::toVolts( int32_t d ) const
         return toVolts_<int32_t,method::DigiMode::Averager>()( xmeta_, d );
 }
 
-std::pair< double, uint64_t >
+std::pair< double, int64_t >
 waveform::xy( uint32_t idx ) const
 {
     return std::make_pair( time( idx ), d_[ idx ] );

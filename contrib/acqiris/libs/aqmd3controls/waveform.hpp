@@ -107,7 +107,7 @@ namespace aqmd3controls {
         void set_elapsed_time( uint64_t value );
 
         double time( size_t ) const;
-        std::pair< double, uint64_t > xy( uint32_t ) const;
+        std::pair< double, int64_t > xy( uint32_t ) const;
 
         bool operator += ( const waveform& );
 

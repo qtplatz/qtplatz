@@ -188,6 +188,8 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
             d1.ts = md3->pkdTimestamp();
             d1.initialXTimeSeconds = double( d1.ts ) * 1.0e-12; // ps -> s
             d1.actualAverages = md3->pkdActualAverages();
+            d1.scaleFactor = 1; // double(65536.)/m.device_method().front_end_range;
+            d1.scaleOffset = 0; // m.device_method().front_end_offset;
 
             // timestamp
             d2.initialXTimeSeconds = d1.initialXTimeSeconds;
@@ -202,6 +204,8 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
                                                , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
 
             ADDEBUG() << "Read the accumulated RAW data";
+            d2.scaleFactor = m.device_method().front_end_range / 65536 / d2.actualAverages;
+            d2.scaleOffset = m.device_method().front_end_offset;
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
 

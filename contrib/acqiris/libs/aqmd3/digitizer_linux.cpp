@@ -949,8 +949,8 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             avg.xmeta().actualPoints      = actualPoints;
             avg.xmeta().firstValidPoint   = firstValidPoint;
             avg.xmeta().dataType          = 4;
-            pkd.xmeta().scaleFactor       = 3.72529e-8; // 7.45058e-9
-            pkd.xmeta().scaleOffset       = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
+            avg.xmeta().scaleFactor       = m.device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
+            avg.xmeta().scaleOffset       = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
             avg.setData( mblk, firstValidPoint, actualPoints );
 
         } while ( 0 );
