@@ -935,7 +935,7 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             pkd.set_epoch_time( epoch_time );
             // pkd.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             pkd.setData( mblk, firstValidPoint, actualPoints );
-
+g
         } while ( 0 );
 
         do { // AVG
