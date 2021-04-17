@@ -67,38 +67,6 @@ struct data {
     }
 };
 
-struct timeStampReader {
-    ViInt64 markerArraySize;
-    ViInt64 const timestampSize = 16;
-    std::vector< ViInt32 > markerArray;
-    timeStampReader() : markerArraySize(0) {}
-
-    uint64_t operator()( std::shared_ptr< aqmd3::AqMD3 > md3 ) {
-        ViInt64 addressLow = 0xFF800000;
-        ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
-        ViInt64 actualPoints, firstValidPoint;
-
-        md3->QueryMinWaveformMemory(32, 1, 0, timestampSize, markerArraySize );
-        markerArray.resize( markerArraySize );
-
-        md3->LogicDeviceReadIndirectInt32( "DpuA"
-                                           , addressHigh_Ch1
-                                           , addressLow
-                                           , timestampSize
-                                           , markerArraySize
-                                           , markerArray.data()
-                                           , actualPoints
-                                           , firstValidPoint );
-        ADDEBUG() << "TS :" << markerArray[ firstValidPoint + 2 ] << ":" << markerArray[ firstValidPoint + 1 ] << ", firstValidPoint: " << firstValidPoint;
-
-        ViUInt64 valueRaw1 = markerArray[firstValidPoint + 1];
-        ViUInt64 valueRaw2 = markerArray[firstValidPoint + 2];
-        ViUInt64 timestamp = (valueRaw1 + (valueRaw2 << 32));
-        return timestamp;
-    }
-
-};
-
 extern int __verbose__;
 
 int
@@ -208,9 +176,6 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
         ViInt64 arraySize = 0;
         if ( md3->QueryMinWaveformMemory( 32, 1, 0, m.device_method().nbr_of_s_to_acquire_, arraySize) ) {
 
-            // timestamp
-            timeStampReader tsReader;
-
             data d1 = {0}, d2 = {0};
             std::vector<ViInt32> pkd( arraySize ), avg( arraySize );
             ADDEBUG() << "Performing acquisition";
@@ -220,12 +185,10 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
             ADDEBUG() << "Acquisition completed";
             ADDEBUG() << "Read the Peak histogram";
 
-            // timestamp
-            d1.ts = tsReader( md3 );
+            d1.ts = md3->pkdTimestamp();
             d1.initialXTimeSeconds = double( d1.ts ) * 1.0e-12; // ps -> s
+            d1.actualAverages = md3->pkdActualAverages();
 
-            md3->LogicDeviceReadRegisterInt32( "DpuA", 0x3358, d1.actualAverages ); // actualAverage
-            // outputFilech1MetaData << "actualAverage: " << actualAverage << "\n";
             // timestamp
             d2.initialXTimeSeconds = d1.initialXTimeSeconds;
             d2.actualAverages      = d1.actualAverages;
@@ -233,11 +196,12 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
             const ViInt64 addressLow      = 0x00000000;
             const ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+            const ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
+
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
 
             ADDEBUG() << "Read the accumulated RAW data";
-            ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
 
@@ -247,7 +211,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
                 for ( size_t i = 0; i < d1.actualPoints && i < d2.actualPoints; ++i)	{
                     auto v1 = pkd[ d1.firstValidPoint + i ];
                     auto v2 = avg[ d2.firstValidPoint + i ];
-                    std::cout << i << "\t" << v1 << "\t" << v2 << std::endl;
+                    std::cout << i << "\t" << v1 << "\t" << v2 << "\t" << d2.scaleOffset + (v2 * d2.scaleFactor) / d2.actualAverages << std::endl;
                 }
             }
         }

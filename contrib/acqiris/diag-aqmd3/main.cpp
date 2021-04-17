@@ -175,10 +175,15 @@ main( int argc, char * argv [] )
     method.device_method().ext_trigger_level = 1.0;
     method.device_method().samp_rate = vm.count( "pkd" ) ? 1.6e9 : 3.2e9;
     method.device_method().invert_signal = vm[ "invert-signal" ].as< bool >();
-
     // MultiRecords or single record
     method.device_method().nbr_records = vm[ "records" ].as<int>();
     method.device_method().nbr_of_averages = vm[ "average" ].as<int>();    // 0 for digitizer
+
+    if ( vm.count( "avg" ) ) {
+        if ( method.device_method().nbr_of_averages == 0 )
+            method.device_method().nbr_of_averages = 1;
+        method.setMode( aqmd3controls::method::DigiMode::Averager );
+    }
 
     if ( vm.count( "lspxi" ) ) {
         auto list = aqmd3::findResource::lspxi();
@@ -277,7 +282,7 @@ main( int argc, char * argv [] )
                 success = ( md3->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             }
         }
-        aqmd3::findResource findResource( true, true, "Simulate=false, DriverSetup= Model=SA230" );
+        aqmd3::findResource findResource( true, true, "Simulate=false, DriverSetup= Model=SA230P" );
         if ( vm.count( "find" ) ) {
             if ( auto res = findResource( md3 ) ) {
                 ADDEBUG() << "FOUND: " << *res;
@@ -426,7 +431,12 @@ main( int argc, char * argv [] )
             attribute< aqmd3::num_records_to_acquire >::set( *md3, int64_t( method.device_method().nbr_records ) );
             // md3->setAcquisitionNumRecordsToAcquire( method.device_method().nbr_records );
 
-            attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_NORMAL );
+            ///////////////
+            if ( method.mode() == aqmd3controls::method::DigiMode::Averager )
+                attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER );
+            else
+                attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_NORMAL );
+
             // md3->setAcquisitionMode( AQMD3_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
 
             attribute< aqmd3::tsr_enabled >::set( *md3, method.device_method().TSR_enabled );
@@ -514,7 +524,14 @@ main( int argc, char * argv [] )
                                   << "\t" << execStatistics::instance().dataCount_
                                   << "\tsize=" << wform->size()
                                   << "\tscaleFactor=" << wform->xmeta().scaleFactor
+                                  << "\tAvgs=" << wform->xmeta().actualAverages
                                   << std::endl;
+                        if ( replicates == 1 ) {
+                            for ( size_t i = 0; i < wform->xmeta().actualPoints; ++i ){
+                                auto [x,y] = wform->xy(i);
+                                std::cout << i << "\t" << (x * 1.0e6) << "\t" << y << "\t" << wform->toVolts( y );
+                            }
+                        }
                     }
                     prev_ts = ts;
 
