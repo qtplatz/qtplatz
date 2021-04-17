@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,14 +34,45 @@
 
 namespace aqmd3 {
 
+    struct timeStampReader {
+        ViInt64 markerArraySize;
+        ViInt64 const timestampSize = 16;
+        std::vector< ViInt32 > markerArray;
+        timeStampReader() : markerArraySize(0) {}
+
+        uint64_t operator()( aqmd3::AqMD3& md3 ) {
+            ViInt64 addressLow = 0xFF800000;
+            ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+            ViInt64 actualPoints, firstValidPoint;
+
+            md3.QueryMinWaveformMemory(32, 1, 0, timestampSize, markerArraySize );
+            markerArray.resize( markerArraySize );
+
+            md3.LogicDeviceReadIndirectInt32( "DpuA"
+                                               , addressHigh_Ch1
+                                               , addressLow
+                                               , timestampSize
+                                               , markerArraySize
+                                               , markerArray.data()
+                                               , actualPoints
+                                               , firstValidPoint );
+            // ADDEBUG() << "TS :" << markerArray[ firstValidPoint + 2 ] << ":" << markerArray[ firstValidPoint + 1 ] << ", firstValidPoint: " << firstValidPoint;
+            ViUInt64 value = uint64_t(markerArray[firstValidPoint + 1]) + (uint64_t(markerArray[firstValidPoint + 2]) << 32);
+            return value;
+        }
+    };
+
+
     class AqMD3::impl {
 
         std::atomic< uint32_t > dataSerialNumber_;
     public:
         std::shared_ptr< aqmd3controls::identify > ident_;
+        std::unique_ptr< timeStampReader > tsReader_;
 
     public:
-        impl() : dataSerialNumber_( 0 ) {
+        impl() : dataSerialNumber_( 0 )
+               , tsReader_( std::make_unique< timeStampReader >() ) {
         }
 
         inline uint32_t dataSerialNumber() {
@@ -253,6 +284,20 @@ AqMD3::LogicDeviceReadIndirectInt32( ViConstString logicDevice
                                                      , &actualElements
                                                      , &firstValidElement )
                  , __FILE__, __LINE__ );
+}
+
+uint64_t
+AqMD3::pkdTimestamp()
+{
+    return (*impl_->tsReader_)( *this );
+}
+
+uint32_t
+AqMD3::pkdActualAverages() const
+{
+    ViInt32 actualAverages(0);
+    LogicDeviceReadRegisterInt32( "DpuA", 0x3358, actualAverages ); // actualAverage
+    return actualAverages;
 }
 
 

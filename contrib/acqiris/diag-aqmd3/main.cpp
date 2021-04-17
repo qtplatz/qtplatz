@@ -513,6 +513,7 @@ main( int argc, char * argv [] )
                                   << "\t" << (ts - prev_ts)*1e6
                                   << "\t" << execStatistics::instance().dataCount_
                                   << "\tsize=" << wform->size()
+                                  << "\tscaleFactor=" << wform->xmeta().scaleFactor
                                   << std::endl;
                     }
                     prev_ts = ts;

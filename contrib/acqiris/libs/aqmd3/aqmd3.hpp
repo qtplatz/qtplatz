@@ -159,6 +159,9 @@ namespace aqmd3 {
                                             , ViInt32 * data
                                             , ViInt64& actualElements
                                             , ViInt64& firstValidElement ) const;
+
+        uint64_t pkdTimestamp();
+        uint32_t pkdActualAverages() const;
     };
 
     enum BASELINE_CORRECTION_PULSE_POLARITY : ViInt32 {
