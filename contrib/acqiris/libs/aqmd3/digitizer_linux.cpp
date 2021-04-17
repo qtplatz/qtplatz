@@ -95,7 +95,7 @@ namespace aqmd3 {
             void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr );
 
             inline AqMD3 * spDriver() { return spDriver_.get(); }
-            inline const aqmd3controls::method& method() const { return method_; }
+            inline std::shared_ptr< const aqmd3controls::method > method() const { return method_; }
             inline const aqmd3controls::identify& ident() const { return *ident_; }
             inline std::shared_ptr< aqmd3controls::identify > ident_ptr() { return ident_; }
             inline bool isSimulated() const { return simulated_; }
@@ -135,7 +135,7 @@ namespace aqmd3 {
             boost::asio::steady_timer timer_;
             bool simulated_;
             std::unique_ptr< dgpio::pio > pio_;
-            aqmd3controls::method method_;
+            std::shared_ptr< aqmd3controls::method > method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
 
             bool c_injection_requested_;
@@ -344,6 +344,7 @@ task::task() : exptr_( nullptr )
              , timer_( io_service_ )
              , simulated_( false )
              , pio_( std::make_unique< dgpio::pio >() )
+             , method_( std::make_shared< aqmd3controls::method >() )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
              , darkCount_( 0 )
@@ -351,18 +352,6 @@ task::task() : exptr_( nullptr )
              , temperature_( 0 )
              , channel_temperature_{{ 0 }}
 {
-    // listResources_ = {
-    //     "PXI59::0::0::INSTR"
-    //     , "PXI9::0::0::INSTR"
-    //     , "PXI7::0::0::INSTR"
-    //     , "PXI6::0::0::INSTR"
-    //     , "PXI5::0::0::INSTR"
-    //     , "PXI4::0::0::INSTR"
-    //     , "PXI3::0::0::INSTR"
-    //     , "PXI2::0::0::INSTR"
-    //     , "PXI1::0::0::INSTR"
-    //     , "PXI0::0::0::INSTR"
-    // };
     acquire_posted_.clear();
     pio_->open();
 
@@ -451,7 +440,7 @@ task::trigger_inject_out()
 bool
 task::dark( size_t waitCount )
 {
-    if ( method_.mode() == aqmd3controls::method::DigiMode::Digitizer )
+    if ( method_->mode() == aqmd3controls::method::DigiMode::Digitizer )
         return false;
     darkWaveform_.reset();
     darkCount_ = waitCount;
@@ -611,8 +600,9 @@ task::handle_initial_setup()
         for ( auto& reply : reply_handlers_ ) reply( "IOVersion", ident_->IOVersion() );
         for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
 
-        device::validate( spDriver_, method_ );
-        device::initial_setup( spDriver_, method_, ident().Options() );
+        auto m( method_ );
+        device::validate( spDriver_, *m );
+        device::initial_setup( spDriver_, *m, ident().Options() );
 
         if ( ! spDriver_->abort() )
             ADDEBUG() << "agmd3 abort failed";
@@ -691,19 +681,19 @@ task::handle_prepare_for_run( const aqmd3controls::method t )
     c_injection_requested_ = false;
     u5303_inject_timepoint_ = 0;
 
-    aqmd3controls::method m( t );
+    auto m = std::make_shared< aqmd3controls::method >( t );
 
-    device::validate( spDriver_, m );
-    device::initial_setup( spDriver_, m, ident().Options() );
+    device::validate( spDriver_, *m );
+    device::initial_setup( spDriver_, *m, ident().Options() );
 
     if ( /* m.mode_ && */ simulated_ ) {
-        m.device_method().samp_rate = spDriver()->SampleRate();
-        simulator::instance()->setup( m );
+        m->device_method().samp_rate = spDriver()->SampleRate();
+        simulator::instance()->setup( *m );
     }
 
     method_ = m;
 
-    if ( m.device_method().TSR_enabled ) {
+    if ( m->device_method().TSR_enabled ) {
         return fsm_.process_event( fsm::TSRInitiate() ) == boost::msm::back::HANDLED_TRUE;
     } else {
         return fsm_.process_event( fsm::Initiate() ) == boost::msm::back::HANDLED_TRUE;
@@ -714,12 +704,13 @@ task::handle_prepare_for_run( const aqmd3controls::method t )
 bool
 task::handle_protocol( const aqmd3controls::method m )
 {
-    device::setup( spDriver_, m );
+    auto t = std::make_shared< aqmd3controls::method >( m );
+    device::setup( spDriver_, *t );
 
     if ( simulated_ )
-        simulator::instance()->setup( m );
+        simulator::instance()->setup( *t );
 
-    method_ = m;
+    method_ = t;
     return true;
 }
 
@@ -727,6 +718,8 @@ task::handle_protocol( const aqmd3controls::method m )
 bool
 task::handle_TSR_acquire()
 {
+    auto m( method_ );
+
     acquire_posted_.clear();
     fsm_.process_event( fsm::Continue() );
 
@@ -745,7 +738,7 @@ task::handle_TSR_acquire()
 
     std::vector< std::shared_ptr< aqmd3controls::waveform > > vec;
 
-    digitizer::readData( *spDriver(), method_, vec );
+    digitizer::readData( *spDriver(), *m, vec );
     spDriver_->TSRContinue();
 
     for ( auto& waveform: vec ) {
@@ -768,6 +761,8 @@ task::handle_acquire()
 
     fsm_.process_event( fsm::Continue() );
 
+    auto m( method_ );
+
     if ( acquire() ) {
 
         using aqmd3controls::method;
@@ -775,7 +770,7 @@ task::handle_acquire()
 
             auto epoch_time = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
 
-            if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
+            if ( m->mode() == method::DigiMode::Digitizer ) { // digitizer
 
                 int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
 
@@ -783,15 +778,15 @@ task::handle_acquire()
                 	protocolIndex = simulator::instance()->protocol_number();
 
                 if ( protocolIndex >= 0 )
-                    method_.setProtocolIndex( protocolIndex & 03, false ); // 2bits
+                    m->setProtocolIndex( protocolIndex & 03, false ); // 2bits
 
                 std::vector< std::shared_ptr< aqmd3controls::waveform > > vec;
 
                 // read multiple waveform using mblock
-                digitizer::readData( *spDriver(), method_, vec );
+                digitizer::readData( *spDriver(), *m, vec );
 
                 if ( simulated_ )
-                    simulator::instance()->touchup( vec, method_ );
+                    simulator::instance()->touchup( vec, *m );
 
                 for ( auto& waveform: vec ) {
                     set_time_since_inject( *waveform );         // <---------- INJECTION event set ------------
@@ -805,17 +800,17 @@ task::handle_acquire()
             } else { // average
                 uint32_t events = darkCount_ ? adacquire::SignalObserver::wkEvent_DarkInProgress : 0;
 
-                if ( method_.device_method().pkd_enabled ) {
+                if ( m->device_method().pkd_enabled ) {
                     // PKD+AVG
                     auto pkd = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     auto avg = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     if ( readDataPkdAvg( *pkd, *avg, epoch_time ) ) {
                         set_time_since_inject( *pkd );          // <---------- INJECTION event set ------------
                         set_time_since_inject( *avg );          // <---------- INJECTION event set ------------
-                        aqmd3controls::method m;
+                        aqmd3controls::method t;
                         for ( auto& reply : waveform_handlers_ ) {
-                            if ( reply( avg.get(), pkd.get(), m ) )
-                                handle_protocol( m );
+                            if ( reply( avg.get(), pkd.get(), t ) )
+                                handle_protocol( t );
                         }
                         // auto dark( darkWaveform_ );
                         // if ( darkCount_ && --darkCount_ == 0 ) {
@@ -833,10 +828,10 @@ task::handle_acquire()
                     auto waveform = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     if ( readData( *waveform ) ) {
                         set_time_since_inject( *waveform );     // <---------- INJECTION event set ------------
-                        aqmd3controls::method m;
+                        aqmd3controls::method t;
                         for ( auto& reply : waveform_handlers_ ) {
-                            if ( reply( waveform.get(), nullptr, m ) )
-                                handle_protocol( m );
+                            if ( reply( waveform.get(), nullptr, t ) )
+                                handle_protocol( t );
                         }
                         auto dark( darkWaveform_ );
                         if ( darkCount_ && --darkCount_ == 0 ) {
@@ -865,7 +860,8 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    if ( (method_.mode() == aqmd3controls::method::DigiMode::Averager) && simulated_ )
+    auto m( method_ );
+    if ( (m->mode() == aqmd3controls::method::DigiMode::Averager) && simulated_ )
         return simulator::instance()->acquire();
 
     tp_acquire_ = std::chrono::system_clock::now();
@@ -882,7 +878,7 @@ task::waitForEndOfAcquisition( int timeout )
 #else
         std::this_thread::sleep_for( 10ms );
 #endif
-        if ( method_.mode() == aqmd3controls::method::DigiMode::Averager )
+        if ( method_->mode() == aqmd3controls::method::DigiMode::Averager )
             return simulator::instance()->waitForEndOfAcquisition();
     }
 
@@ -912,24 +908,24 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
     auto m( method_ );
     auto md3( spDriver_ );
     ViInt64 arraySize = 0;
-    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m->device_method().digitizer_nbr_of_s_to_acquire;
 	if ( md3->QueryMinWaveformMemory( 32, 1, 0, recordSize, arraySize) ) {
         ViInt64 actualPoints = {0}, firstValidPoint;
         do { // PKD
             auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
             ViInt64 addressLow = 0x00000000;
             ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
-            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
+            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m->device_method().nbr_of_s_to_acquire_
                                                , arraySize, mblk->data(), actualPoints, firstValidPoint );
-            pkd.set_method( m );
+            pkd.set_method( *m );
             pkd.xmeta().initialXTimeSeconds = md3->pkdTimestamp() * 1.0e-12; // ps -> s
             pkd.xmeta().actualAverages      = md3->pkdActualAverages();
             pkd.xmeta().actualPoints        = actualPoints;
-            pkd.xmeta().xIncrement          = 1.0 / m.device_method().samp_rate;
-            pkd.xmeta().initialXOffset      = m.device_method().delay_to_first_sample_; //  initialXOffset;
+            pkd.xmeta().xIncrement          = 1.0 / m->device_method().samp_rate;
+            pkd.xmeta().initialXOffset      = m->device_method().delay_to_first_sample_; //  initialXOffset;
             pkd.xmeta().scaleFactor         = 1.0; // pkd
             pkd.xmeta().scaleOffset         = 0.0; // pkd
-            pkd.xmeta().protocolIndex       = m.protocolIndex();
+            pkd.xmeta().protocolIndex       = m->protocolIndex();
             pkd.xmeta().dataType            = 4;
             pkd.xmeta().firstValidPoint     = firstValidPoint;
             pkd.set_epoch_time( epoch_time );
@@ -942,15 +938,15 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
             ViInt64 addressLow = 0x00000000;
             ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
-            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
+            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m->device_method().nbr_of_s_to_acquire_
                                                , arraySize, mblk->data(), actualPoints, firstValidPoint );
-            avg.set_method( m );
+            avg.set_method( *m );
             avg.xmeta()                   = pkd.xmeta(); // copy
             avg.xmeta().actualPoints      = actualPoints;
             avg.xmeta().firstValidPoint   = firstValidPoint;
             avg.xmeta().dataType          = 4;
-            avg.xmeta().scaleFactor       = m.device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
-            avg.xmeta().scaleOffset       = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
+            avg.xmeta().scaleFactor       = m->device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
+            avg.xmeta().scaleOffset       = m->device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
             avg.setData( mblk, firstValidPoint, actualPoints );
 
         } while ( 0 );
@@ -980,12 +976,12 @@ task::readData( aqmd3controls::waveform& data )
         }
     }
     //-------------------
-
+    auto m( method_ );
     bool result( false );
-    if ( method_.mode() == aqmd3controls::method::DigiMode::Digitizer ) {
-        result = digitizer::readData16( *spDriver(), method_, data );
+    if ( m->mode() == aqmd3controls::method::DigiMode::Digitizer ) {
+        result = digitizer::readData16( *spDriver(), *m, data );
     } else {
-        result = digitizer::readData32( *spDriver(), method_, data, "Channel1" );
+        result = digitizer::readData32( *spDriver(), *m, data, "Channel1" );
         data.xmeta().channelMode = aqmd3controls::AVG;
     }
     set_time_since_inject( data ); // ==> set elapsed time for debugging
