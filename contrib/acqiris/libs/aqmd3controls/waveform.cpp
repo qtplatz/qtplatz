@@ -40,32 +40,35 @@ namespace aqmd3controls {
 
         void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale ) const {
             int idx = 0;
-            if ( w.method().mode() == method::DigiMode::Digitizer ) {
-                for ( auto it = w.begin(); it != w.end(); ++it )
-                    sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), *it ) * scale ) : *it );
-            } else {
-                for ( auto it = w.begin(); it != w.end(); ++it )
-                    sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), *it ) * scale ) : *it );
+            if ( auto m = w.method() ) {
+                if ( m->mode() == method::DigiMode::Digitizer ) {
+                    for ( auto it = w.begin(); it != w.end(); ++it )
+                        sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), *it ) * scale ) : *it );
+                } else {
+                    for ( auto it = w.begin(); it != w.end(); ++it )
+                        sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), *it ) * scale ) : *it );
+                }
             }
         }
 
         void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale, double dbase ) const {
             int idx = 0;
-            if ( w.method().mode() == method::DigiMode::Digitizer ) {
-                double vb = toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), dbase );
-                for ( auto it = w.begin(); it != w.end(); ++it ) {
-                    double d = scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), *it ) - vb ) * scale : *it - dbase;
-                    sp.setIntensity( idx++, d );
-                }
-            } else {
-                double vb = toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), dbase );
-                for ( auto it = w.begin(); it != w.end(); ++it ) {
-                    double d = scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), *it ) - vb ) * scale : *it - dbase;
-                    sp.setIntensity( idx++, d );
+            if ( auto m = w.method() ) {
+                if ( m->mode() == method::DigiMode::Digitizer ) {
+                    double vb = toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), dbase );
+                    for ( auto it = w.begin(); it != w.end(); ++it ) {
+                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.xmeta(), *it ) - vb ) * scale : *it - dbase;
+                        sp.setIntensity( idx++, d );
+                    }
+                } else {
+                    double vb = toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), dbase );
+                    for ( auto it = w.begin(); it != w.end(); ++it ) {
+                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.xmeta(), *it ) - vb ) * scale : *it - dbase;
+                        sp.setIntensity( idx++, d );
+                    }
                 }
             }
         }
-
     };
 
     template< typename value_type >
@@ -436,8 +439,8 @@ waveform::set_method( const aqmd3controls::method& m )
     method_ = std::make_unique< aqmd3controls::method >(m);
 }
 
-const aqmd3controls::method&
+const aqmd3controls::method *
 waveform::method() const
 {
-    return *method_;
+    return method_.get();
 }

@@ -893,11 +893,14 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
     set_time_since_inject( pkd );
     set_time_since_inject( avg );
 
+    auto m( method_ );
+    pkd.set_method( *m );
+    avg.set_method( *m );
+
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
         pkd.set_epoch_time( epoch_time );
         avg.set_epoch_time( epoch_time ); // timeSinceEpoch_ = pkd.timeSinceEpoch_;
-
         pkd.xmeta().channelMode = aqmd3controls::PKD;
         avg.xmeta().channelMode = aqmd3controls::AVG;
         return true;
@@ -905,7 +908,6 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
 
     ADDEBUG() << "readDataPkdAvg";
 
-    auto m( method_ );
     auto md3( spDriver_ );
     ViInt64 arraySize = 0;
     const int64_t recordSize = m->device_method().digitizer_nbr_of_s_to_acquire;

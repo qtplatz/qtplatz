@@ -145,7 +145,7 @@ namespace aqmd3controls {
         void setData( const std::shared_ptr< adportable::mblock<int16_t> >, size_t firstValidPoint, size_t actualPoints );
 
         void set_method( const aqmd3controls::method& );
-        const aqmd3controls::method& method() const;
+        const aqmd3controls::method * method() const;
 
     private:
         double trigger_delay_;
