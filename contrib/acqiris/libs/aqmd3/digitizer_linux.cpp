@@ -42,6 +42,7 @@
 #include <adportable/string.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <libdgpio/pio.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
@@ -50,6 +51,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/logic/tribool.hpp>
+#include <boost/optional.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -208,6 +210,23 @@ namespace aqmd3 {
 
     }
 
+}
+
+namespace {
+    struct acqirisOption {
+        boost::optional< std::string > operator()() const {
+            if ( auto p = getenv( "AcqirisOption" ) ) {
+                auto env = std::string( p );
+                if ( auto simulate = boost::algorithm::contains( env, "simulate" ) ) {
+                    std::vector< std::string > options = {{ "Simulate=true" }, {"DriverSetup="}};
+                    if ( auto it = boost::algorithm::find_first( env, "Model=" ) ) {
+
+                    }
+                }
+            }
+            return {};
+        }
+    };
 }
 
 using namespace aqmd3;
@@ -567,7 +586,7 @@ task::handle_initial_setup()
 
     if ( auto p = getenv( "AcqirisOption" ) ) {
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
-            const char * strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
+            const char * strInitOptions = "Simulate=true, DriverSetup= Model=SA230P";
             simulated = true;
             success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             ADDEBUG() << "################# AQMD3 SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
