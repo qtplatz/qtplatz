@@ -9,15 +9,22 @@ if ( WIN32 )
 
   find_path( AqMD3_INCLUDE_DIR NAMES AqMD3.h PATHS "${IVIROOTDIR}/include" )
 
-  find_library( _lib NAMES AqMD3 HINTS "${IVIROOTDIR}/Lib_x64/msc"  )
-  set ( _dll "_dll-NOTFOUND" )
-  find_library( _dll NAMES AqMD3_64 HINTS "${IVIROOTDIR}/bin" )
+  find_library( _md3_lib NAMES AqMD3 HINTS    "${IVIROOTDIR}/Lib_x64/msc"  )
+  find_library( _md3_dll NAMES AqMD3_64 HINTS "${IVIROOTDIR}/bin" )
 
-  if ( _lib AND _dll )
+  if ( _md3_lib AND _md3_dll )
     set( AqMD3_FOUND TRUE )
     add_library( AqMD3 SHARED IMPORTED )
-    set_target_properties( AqMD3 PROPERTIES IMPORTED_IMPLIB "${_lib}" IMPORTED_LOCATION "${_dll}" )
+    set_target_properties( AqMD3 PROPERTIES IMPORTED_IMPLIB "${_md3_lib}" IMPORTED_LOCATION "${_md3_dll}" )
     set( AqMD3_LIBRARIES AqMD3 )
+  endif()
+
+  find_library( _lio_lib NAMES AqLio HINTS    "${IVIROOTDIR}/Lib_x64/msc"  )
+  find_library( _lio_dll NAMES AqLio_64 HINTS "${IVIROOTDIR}/bin" )
+  if ( _lio_lib AND _lio_dll )
+    add_library( AqLio SHARED IMPORTED )
+    set_target_properties( AqLio PROPERTIES IMPORTED_IMPLIB "${_lio_lib}" IMPORTED_LOCATION "${_lio_dll}" )
+    list ( APPEND AqMD3_LIBRARIES AqLio )
   endif()
 
 elseif( APPLE )
@@ -40,7 +47,6 @@ else() # Linux
 
   find_library( _lio NAMES AqLio )
   if ( _lio )
-    set( AqMD3_FOUND TRUE )
     list( APPEND AqMD3_LIBRARIES ${_lio} )
   endif()
 

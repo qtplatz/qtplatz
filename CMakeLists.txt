@@ -1,5 +1,10 @@
 #
-cmake_minimum_required ( VERSION 3.18.2 )  # for GREATER_EQUAL
+if ( WIN32 )
+  cmake_minimum_required ( VERSION 3.20.1 )
+else()
+  cmake_minimum_required ( VERSION 3.18.2 )  # for GREATER_EQUAL
+endif()
+
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
@@ -464,14 +469,15 @@ endif()
 
 if ( AqMD3_FOUND )
   message( STATUS "# AqMD3  INCLUDE_DIR    : "  ${AqMD3_INCLUDE_DIR} )
-  if ( WIN32 )
-    get_target_property( _value ${AqMD3_LIBRARIES} IMPORTED_LOCATION )
-    message( STATUS "# AqMD3  LIBRARIES      : "  ${_value} )
-    get_target_property( _value ${AqMD3_LIBRARIES} IMPORTED_IMPLIB )
-    message( STATUS "                        : "  ${_value} )
-  else()
-    message( STATUS "# AqMD3  LIBRARIES      : "  "${AqMD3_LIBRARIES}" )
-  endif()
+  foreach( _lib ${AqMD3_LIBRARIES} )
+    message( STATUS "# AqMD3  LIBRARIES      : "  "${_lib}" )
+    if ( WIN32 )
+      get_target_property( _value ${_lib} IMPORTED_LOCATION )
+      message( STATUS "\t# AqMD3  LIBRARIES      : "  ${_value} )
+      get_target_property( _value ${_lib} IMPORTED_IMPLIB )
+      message( STATUS "\t                        : "  ${_value} )
+    endif()
+  endforeach()
 else()
   if ( AgMD2_FOUND )
     message( STATUS "# AgMD2  INCLUDE_DIR    : "  ${AgMD2_INCLUDE_DIR} )

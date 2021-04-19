@@ -11,8 +11,6 @@ add_definitions( -DAQMD3_LIBRARY )
 
 if ( WIN32 )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
-  set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
-  set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
 endif()
 
 if ( WIN32 AND NOT DISABLE_IVI_COM )
@@ -38,10 +36,12 @@ include_directories(
   )
 
 if ( WIN32 )
+  set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
+  set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
+
   include_directories(
     ${IVIROOTDIR}/Bin
-    ${VXIPNPPATH}/WinNT/include
-    ${VXIPNPPATH}/WinNT/agvisa/include
+    ${VXIPNPPATH}/Win64/Include
     ${VXIPNPPATH}/VisaCom64
     )
 endif()
