@@ -211,7 +211,7 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
             const ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
             const ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
             do {
-                auto mpkd = std::make_shared< adportable::mblock< int32_t > >( arraySize );
+                auto mpkd = std::make_shared< adportable::mblock< ViInt32 > >( arraySize );
 
                 md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                    , arraySize, mpkd->data(), d1.actualPoints, d1.firstValidPoint );

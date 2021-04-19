@@ -919,7 +919,9 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             ViInt64 addressLow = 0x00000000;
             ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m->device_method().nbr_of_s_to_acquire_
-                                               , arraySize, mblk->data(), actualPoints, firstValidPoint );
+                                               , arraySize
+				                               , reinterpret_cast< ViInt32 *>(mblk->data())
+                                               , actualPoints, firstValidPoint);
             pkd.set_method( *m );
             pkd.xmeta().initialXTimeSeconds = md3->pkdTimestamp() * 1.0e-12; // ps -> s
             pkd.xmeta().actualAverages      = md3->pkdActualAverages();
@@ -942,7 +944,9 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             ViInt64 addressLow = 0x00000000;
             ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m->device_method().nbr_of_s_to_acquire_
-                                               , arraySize, mblk->data(), actualPoints, firstValidPoint );
+                                               , arraySize
+                                               , reinterpret_cast< ViInt32 *>(mblk->data())
+                                               , actualPoints, firstValidPoint );
             avg.set_method( *m );
             avg.xmeta()                   = pkd.xmeta(); // copy
             avg.xmeta().actualPoints      = actualPoints;
