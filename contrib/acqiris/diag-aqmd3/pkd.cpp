@@ -187,13 +187,16 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 
             d1.ts = md3->pkdTimestamp();
             d1.initialXTimeSeconds = double( d1.ts ) * 1.0e-12; // ps -> s
+            d1.initialXOffset = m.device_method().delay_to_first_sample_;
+            d1.xIncrement     = 1.0 / m.device_method().samp_rate;
             d1.actualAverages = md3->pkdActualAverages();
-            d1.scaleFactor = 1; // double(65536.)/m.device_method().front_end_range;
-            d1.scaleOffset = 0; // m.device_method().front_end_offset;
+            d1.scaleFactor = 1; // pkd
+            d1.scaleOffset = 0; // pkd
 
-            // timestamp
-            d2.initialXTimeSeconds = d1.initialXTimeSeconds;
-            d2.actualAverages      = d1.actualAverages;
+            d2 = d1;
+            d2.scaleFactor = m.device_method().front_end_range / 65536 / d2.actualAverages;
+            d2.scaleOffset = m.device_method().front_end_offset;
+
             ADDEBUG() << "############# ts: " << d1.ts << "\t" << d1.initialXTimeSeconds << ", nAvg: " << d1.actualAverages;
 
             const ViInt64 addressLow      = 0x00000000;
@@ -204,18 +207,17 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
                                                , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
 
             ADDEBUG() << "Read the accumulated RAW data";
-            d2.scaleFactor = m.device_method().front_end_range / 65536 / d2.actualAverages;
-            d2.scaleOffset = m.device_method().front_end_offset;
             md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
                                                , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
 
-            d1.print( std::cout, "PKD" );
-            d2.print( std::cout, "AVG" );
+            d1.print( std::cout, "# PKD" );
+            d2.print( std::cout, "# AVG" );
             if ( __verbose__ >= 5 ) {
                 for ( size_t i = 0; i < d1.actualPoints && i < d2.actualPoints; ++i)	{
                     auto v1 = pkd[ d1.firstValidPoint + i ];
                     auto v2 = avg[ d2.firstValidPoint + i ];
-                    std::cout << i << "\t" << v1 << "\t" << v2 << "\t" << d2.scaleOffset + (v2 * d2.scaleFactor) / d2.actualAverages << std::endl;
+                    auto t = d1.initialXOffset + i * d1.xIncrement;
+                    std::cout << boost::format("%.7e") % t << "\t" << v1 << "\t" << v2 << "\t" << d2.scaleOffset + (v2 * d2.scaleFactor) / d2.actualAverages << std::endl;
                 }
             }
         }

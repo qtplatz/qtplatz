@@ -309,16 +309,16 @@ main( int argc, char * argv [] )
             auto ident = std::make_shared< aqmd3controls::identify >();
             md3->Identify( ident );
 
-            std::cout << "Identifier:       " << ident->Identifier() << std::endl
-                      << "Revision:         " << ident->Revision() << std::endl
-                      << "Vendor:           " << ident->Vendor() << std::endl
-                      << "Description:      " << ident->Description() << std::endl
-                      << "InstrumentModel:  " << ident->InstrumentModel() << std::endl
-                      << "Options:          " << ident->Options() << std::endl
-                      << "FirmwareRevision: " << ident->FirmwareRevision() << std::endl
-                      << "SerialNumber:     " << ident->SerialNumber() << std::endl
-                      << "IOVersion:        " << ident->IOVersion() << std::endl
-                      << "NbrADCBits:       " << ident->NbrADCBits() << std::endl;
+            std::cout << "# Identifier:       " << ident->Identifier() << std::endl
+                      << "# Revision:         " << ident->Revision() << std::endl
+                      << "# Vendor:           " << ident->Vendor() << std::endl
+                      << "# Description:      " << ident->Description() << std::endl
+                      << "# InstrumentModel:  " << ident->InstrumentModel() << std::endl
+                      << "# Options:          " << ident->Options() << std::endl
+                      << "# FirmwareRevision: " << ident->FirmwareRevision() << std::endl
+                      << "# SerialNumber:     " << ident->SerialNumber() << std::endl
+                      << "# IOVersion:        " << ident->IOVersion() << std::endl
+                      << "# NbrADCBits:       " << ident->NbrADCBits() << std::endl;
 
             if ( vm.count( "find" ) ) {
                 return 0;
@@ -344,10 +344,9 @@ main( int argc, char * argv [] )
             using aqmd3::attribute;
 
             int32_t count(0);
-            // md3->clog( aqmd3::attribute< aqmd3::control_io_count >::get(*md3, "ControlIO", count ), __FILE__,__LINE__ );
             if ( auto ccount = aqmd3::attribute< aqmd3::control_io_count >::value( *md3, "ControlIO" ) ) {
                 count = ccount.get();
-                std::cout << "Control IO Count: " << count << std::endl;
+                std::cout << "# Control IO Count: " << count << std::endl;
             }
 
             if ( __verbose__ > 5 ) {
@@ -355,11 +354,11 @@ main( int argc, char * argv [] )
                 ViChar name [ 256 ];
                 for ( int i = 1; i <= count; ++i ) {
                     if ( AqMD3_GetControlIOName( md3->session(), i, 256, name ) == 0 ) {
-                        std::cout << "\tControlIO Name: " << name << std::endl;
+                        std::cout << "#\tControlIO Name: " << name << std::endl;
                         if ( auto res = aqmd3::attribute< aqmd3::control_io_signal >::value( *md3, name ) )
-                            std::cout << "\tControlIO name: " << name << "\t" << res.get() << std::endl;
+                            std::cout << "#\tControlIO name: " << name << "\t" << res.get() << std::endl;
                         if ( auto sig = aqmd3::attribute< aqmd3::control_io_available_signals >::value( *md3, name ) )
-                            std::cout << "\tAvilable Signals: " << sig.get() << std::endl;
+                            std::cout << "#\tAvilable Signals: " << sig.get() << std::endl;
                     }
                 }
             }
@@ -369,13 +368,13 @@ main( int argc, char * argv [] )
             md3->clog( attribute< aqmd3::trigger_level >::set( *md3, "External1", method.device_method().ext_trigger_level ), __FILE__,__LINE__ );
             ViStatus rcode;
             if ( auto value = attribute< aqmd3::trigger_level >::value( *md3, rcode, "External1" ) )
-                std::cout << "\ttrigger level: " << value.get() << std::endl;
+                std::cout << "#\ttrigger level: " << value.get() << std::endl;
             else
                 md3->clog( rcode, __FILE__, __LINE__ );
 
             md3->clog( attribute< aqmd3::trigger_slope >::set( *md3, "External1", AQMD3_VAL_TRIGGER_SLOPE_POSITIVE ), __FILE__,__LINE__ );
             if ( auto value = attribute< aqmd3::trigger_slope >::value( *md3, rcode, "External1" ) )
-                std::cout << "\ttrigger slope: " << value.get() << std::endl;
+                std::cout << "#\ttrigger slope: " << value.get() << std::endl;
             else
                 md3->clog( rcode, __FILE__, __LINE__ );
 
