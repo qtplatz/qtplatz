@@ -17,9 +17,12 @@
 #include "AqMD3.h"
 #include <aqmd3/aqmd3.hpp>
 #include <aqmd3/findresource.hpp>
-#include <aqmd3controls/method.hpp>
 #include <aqmd3controls/identify.hpp>
+#include <aqmd3controls/method.hpp>
+#include <aqmd3controls/waveform.hpp>
+#include <adcontrols/waveform_translator.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/mblock.hpp>
 #include <boost/format.hpp>
 #include <ratio>
 #include <iostream>
@@ -177,14 +180,18 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
         if ( md3->QueryMinWaveformMemory( 32, 1, 0, m.device_method().nbr_of_s_to_acquire_, arraySize) ) {
 
             data d1 = {0}, d2 = {0};
-            std::vector<ViInt32> pkd( arraySize ), avg( arraySize );
+            aqmd3controls::waveform pkd, avg;
+            pkd.set_method( m );
+            avg.set_method( m );
+
+            //std::vector<ViInt32> pkd( arraySize ), avg( arraySize );
             ADDEBUG() << "Performing acquisition";
             md3->AcquisitionInitiate();
             md3->AcquisitionWaitForAcquisitionComplete( 3000 );
 
             ADDEBUG() << "Acquisition completed";
             ADDEBUG() << "Read the Peak histogram";
-
+            // --- raw interface --
             d1.ts = md3->pkdTimestamp();
             d1.initialXTimeSeconds = double( d1.ts ) * 1.0e-12; // ps -> s
             d1.initialXOffset = m.device_method().delay_to_first_sample_;
@@ -196,30 +203,93 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
             d2 = d1;
             d2.scaleFactor = m.device_method().front_end_range / 65536 / d2.actualAverages;
             d2.scaleOffset = m.device_method().front_end_offset;
+            // -- end raw interface --
 
             ADDEBUG() << "############# ts: " << d1.ts << "\t" << d1.initialXTimeSeconds << ", nAvg: " << d1.actualAverages;
 
             const ViInt64 addressLow      = 0x00000000;
             const ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
             const ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
+            do {
+                auto mpkd = std::make_shared< adportable::mblock< int32_t > >( arraySize );
 
-            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
-                                               , arraySize, pkd.data(), d1.actualPoints, d1.firstValidPoint );
+                md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m.device_method().nbr_of_s_to_acquire_
+                                                   , arraySize, mpkd->data(), d1.actualPoints, d1.firstValidPoint );
 
-            ADDEBUG() << "Read the accumulated RAW data";
-            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
-                                               , arraySize, avg.data(), d2.actualPoints, d2.firstValidPoint );
+                pkd.xmeta().initialXTimeSeconds = md3->pkdTimestamp() * 1.0e-12; // ps -> s
+                pkd.xmeta().actualAverages      = md3->pkdActualAverages();
+                pkd.xmeta().actualPoints        = d1.actualPoints;
+                pkd.xmeta().xIncrement          = 1.0 / m.device_method().samp_rate;
+                pkd.xmeta().initialXOffset      = m.device_method().delay_to_first_sample_; //  initialXOffset;
+                pkd.xmeta().scaleFactor         = 1.0; // pkd
+                pkd.xmeta().scaleOffset         = 0.0; // pkd
+                pkd.xmeta().protocolIndex       = m.protocolIndex();
+                pkd.xmeta().dataType            = 4;
+                pkd.xmeta().firstValidPoint     = d1.firstValidPoint;
+                pkd.set_epoch_time( 0 );
+                pkd.setData( mpkd, d1.firstValidPoint, d1.actualPoints );
+            } while ( 0 );
+
+            //------------ AVG -------------
+            do {
+                auto mavg = std::make_shared< adportable::mblock< int32_t > >( arraySize );
+
+                md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m.device_method().nbr_of_s_to_acquire_
+                                                   , arraySize, mavg->data(), d2.actualPoints, d2.firstValidPoint );
+                avg.xmeta() = pkd.xmeta();
+                avg.xmeta().actualPoints      = d2.actualPoints;
+                avg.xmeta().firstValidPoint   = d2.firstValidPoint;
+                avg.xmeta().dataType          = 4;
+                avg.xmeta().scaleFactor       = m.device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
+                avg.xmeta().scaleOffset       = m.device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
+                avg.setData( mavg, d2.firstValidPoint, d2.actualPoints );
+            } while ( 0 );
 
             d1.print( std::cout, "# PKD" );
             d2.print( std::cout, "# AVG" );
+            // if ( __verbose__ == 5 ) {
+            //     for ( size_t i = 0; i < d1.actualPoints && i < d2.actualPoints; ++i)	{
+            //         auto v1 = pkd.xdata< int32_t >()[ i ];
+            //         auto v2 = avg.xdata< int32_t >()[ i ];
+            //         // auto v1 = mpkd->data()[ d1.firstValidPoint + i ];
+            //         // auto v2 = mavg->data()[ d2.firstValidPoint + i ];
+            //         auto t = avg.time( i ); // d1.initialXOffset + i * d1.xIncrement;
+            //         std::cout << boost::format("%.7e") % t << "\t" << v1 << "\t" << v2 << "\t" << (avg.toVolts( v2 ) * 1000) << std::endl;
+            //     }
+            // }
+
             if ( __verbose__ >= 5 ) {
-                for ( size_t i = 0; i < d1.actualPoints && i < d2.actualPoints; ++i)	{
-                    auto v1 = pkd[ d1.firstValidPoint + i ];
-                    auto v2 = avg[ d2.firstValidPoint + i ];
-                    auto t = d1.initialXOffset + i * d1.xIncrement;
-                    std::cout << boost::format("%.7e") % t << "\t" << v1 << "\t" << v2 << "\t" << d2.scaleOffset + (v2 * d2.scaleFactor) / d2.actualAverages << std::endl;
+                std::string device_data;
+                using aqmd3controls::waveform;
+                avg.serialize_xmeta( device_data );
+
+                auto ams = std::make_shared< adcontrols::MassSpectrum >();
+                adcontrols::waveform_translator::translate< aqmd3controls::waveform >(
+                    *ams
+                    , avg
+                    , avg.xmeta().xIncrement
+                    , avg.xmeta().initialXOffset
+                    , avg.xmeta().actualAverages
+                    , 0 // mode
+                    , "adplugins.datainterpreter.ms-cheminfo.com" // see datareader_factory.cpp
+                    , device_data
+                    , [&]( const int32_t& d ){ return 1000 * avg.toVolts( d ); } );
+
+                auto pms = std::make_shared< adcontrols::MassSpectrum >();
+                aqmd3controls::waveform::translate( *pms, pkd );
+
+                for ( size_t i = 0; i < ams->size(); ++i ) {
+                    auto v1 = pkd.xdata< int32_t >()[ i ];
+                    auto v2 = avg.xdata< int32_t >()[ i ];
+                    auto t = ams->getTime( i );
+                    std::cout << boost::format("%.7e") % t
+                              << "\t" << v1
+                              << "\t" << v2
+                              << "\t" << ams->getIntensity( i )
+                              << std::endl;
                 }
             }
+
         }
     }
     ADDEBUG() << "Processing completed";
