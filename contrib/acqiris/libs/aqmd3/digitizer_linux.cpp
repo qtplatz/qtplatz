@@ -575,7 +575,7 @@ task::handle_initial_setup()
     }
 
     if ( !simulated ) {
-        aqmd3::findResource findResource( true, true, "Simulate=false, DriverSetup= Model=SA230" );
+        aqmd3::findResource findResource( true, true, "Simulate=false, DriverSetup= Model=SA230P" );
         if ( auto res = findResource( spDriver_, false ) ) {
             success = true;
         }
@@ -583,6 +583,9 @@ task::handle_initial_setup()
 
     if ( success ) {
         simulated_ = simulated;
+
+        if ( ! spDriver_->abort() )
+            ADDEBUG() << "agmd3 abort failed";
 
         ident_ = std::make_shared< aqmd3controls::identify >();
         spDriver_->Identify( ident_ );
@@ -604,8 +607,6 @@ task::handle_initial_setup()
         device::validate( spDriver_, *m );
         device::initial_setup( spDriver_, *m, ident().Options() );
 
-        if ( ! spDriver_->abort() )
-            ADDEBUG() << "agmd3 abort failed";
         fsm_.process_event( fsm::Stop() );
     } else {
         fsm_.process_event( fsm::Error() );
@@ -945,7 +946,7 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             avg.xmeta().actualPoints      = actualPoints;
             avg.xmeta().firstValidPoint   = firstValidPoint;
             avg.xmeta().dataType          = 4;
-            avg.xmeta().scaleFactor       = m->device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
+            avg.xmeta().scaleFactor       = 1.0; // m->device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
             avg.xmeta().scaleOffset       = m->device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
             avg.setData( mblk, firstValidPoint, actualPoints );
 
