@@ -582,6 +582,7 @@ task::set_time_since_inject( aqmd3controls::waveform& waveform )
 bool
 task::handle_initial_setup()
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     spDriver_ = std::make_shared< AqMD3 >();     // spDriver creation in the thread
 
     ADDEBUG() << "----------- handle_initial_setup -----------";
@@ -1154,7 +1155,7 @@ device::initial_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls:
     }
 
     md3->SelfCalibrate();
-
+    ADDEBUG() << "============= SelfCalibrate done ==============";
 	return true;
 }
 
@@ -1173,6 +1174,7 @@ device::setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method&
 bool
 device::acquire( std::shared_ptr< aqmd3::AqMD3 > md3 )
 {
+    ADDEBUG() << "AcquisitionInitiate";
     return md3->AcquisitionInitiate();
 }
 
@@ -1180,6 +1182,7 @@ bool
 device::waitForEndOfAcquisition( std::shared_ptr< aqmd3::AqMD3 > md3, int timeout )
 {
     auto tp = std::chrono::system_clock::now() + std::chrono::milliseconds( timeout );
+    ADDEBUG() << "waitForEndOfAcquisition";
 
     while( ! md3->isAcquisitionIdle() ) {
         if ( tp < std::chrono::system_clock::now() )
