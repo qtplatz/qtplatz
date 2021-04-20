@@ -331,6 +331,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
             default:
                 ADDEBUG() << "ERROR: Unexpected data type in waveform";
             }
+            sp.setCentroid( adcontrols::CentroidNative );
         } else {
             double dbase(0), rms(0);
             std::tie( std::ignore, dbase, rms ) = adportable::spectrum_processor::tic< waveform::value_type >( waveform.size(), waveform.data() );

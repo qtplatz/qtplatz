@@ -169,7 +169,7 @@ namespace aqmd3 {
             bool readData( aqmd3controls::waveform& );
 
             // PKD+AVG read Channel1+Channel2
-            bool readDataPkdAvg( aqmd3controls::waveform&, aqmd3controls::waveform&, int64_t epoch_time );
+            bool readPkdAvg( aqmd3controls::waveform&, aqmd3controls::waveform&, int64_t epoch_time );
 
             void set_time_since_inject( aqmd3controls::waveform& );
         };
@@ -814,9 +814,7 @@ task::handle_acquire()
                     // PKD+AVG
                     auto pkd = std::make_shared< aqmd3controls::waveform >( ident_, events );
                     auto avg = std::make_shared< aqmd3controls::waveform >( ident_, events );
-                    if ( readDataPkdAvg( *pkd, *avg, epoch_time ) ) {
-                        set_time_since_inject( *pkd );          // <---------- INJECTION event set ------------
-                        set_time_since_inject( *avg );          // <---------- INJECTION event set ------------
+                    if ( readPkdAvg( *pkd, *avg, epoch_time ) ) {
                         aqmd3controls::method t;
                         for ( auto& reply : waveform_handlers_ ) {
                             if ( reply( avg.get(), pkd.get(), t ) )
@@ -896,7 +894,7 @@ task::waitForEndOfAcquisition( int timeout )
 }
 
 bool
-task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg, int64_t epoch_time )
+task::readPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg, int64_t epoch_time )
 {
     pkd.set_serialnumber( spDriver()->dataSerialNumber() );
     avg.set_serialnumber( spDriver()->dataSerialNumber() );
@@ -916,20 +914,24 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
         return true;
     }
 
-    ADDEBUG() << "readDataPkdAvg";
+    constexpr const ViInt64 addressLow = 0x00000000;
+    constexpr const ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
+    constexpr const ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
 
     auto md3( spDriver_ );
     ViInt64 arraySize = 0;
     const int64_t recordSize = m->device_method().digitizer_nbr_of_s_to_acquire;
 	if ( md3->QueryMinWaveformMemory( 32, 1, 0, recordSize, arraySize) ) {
         ViInt64 actualPoints = {0}, firstValidPoint;
+
         do { // PKD
             auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
-            ViInt64 addressLow = 0x00000000;
-            ViInt32 addressHigh_Ch1 = 0x00000080; // To read the Peak Histogram on CH1
-            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch1, addressLow, m->device_method().nbr_of_s_to_acquire_
+            md3->LogicDeviceReadIndirectInt32( "DpuA"
+                                               , addressHigh_Ch1
+                                               , addressLow
+                                               , m->device_method().nbr_of_s_to_acquire_
                                                , arraySize
-				                               , reinterpret_cast< ViInt32 *>(mblk->data())
+				                               , reinterpret_cast< ViInt32 *>(mblk->data()) // stupid OS (Windows) require cast to ViInt32*
                                                , actualPoints, firstValidPoint);
             pkd.set_method( *m );
             pkd.xmeta().initialXTimeSeconds = md3->pkdTimestamp() * 1.0e-12; // ps -> s
@@ -942,40 +944,31 @@ task::readDataPkdAvg( aqmd3controls::waveform& pkd, aqmd3controls::waveform& avg
             pkd.xmeta().protocolIndex       = m->protocolIndex();
             pkd.xmeta().dataType            = 4;
             pkd.xmeta().firstValidPoint     = firstValidPoint;
+            pkd.xmeta().channelMode         = aqmd3controls::ChannelMode::PKD;
             pkd.set_epoch_time( epoch_time );
-            // pkd.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
-            pkd.setData( mblk, firstValidPoint, actualPoints );
-
+            pkd.setData( mblk->data(), firstValidPoint, actualPoints );
         } while ( 0 );
 
         do { // AVG
             auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
-            ViInt64 addressLow = 0x00000000;
-            ViInt32 addressHigh_Ch2 = 0x00000090; // To read the accumulated raw data on CH2
-            md3->LogicDeviceReadIndirectInt32( "DpuA", addressHigh_Ch2, addressLow, m->device_method().nbr_of_s_to_acquire_
+            md3->LogicDeviceReadIndirectInt32( "DpuA"
+                                               , addressHigh_Ch2
+                                               , addressLow
+                                               , m->device_method().nbr_of_s_to_acquire_
                                                , arraySize
-                                               , reinterpret_cast< ViInt32 *>(mblk->data())
+                                               , reinterpret_cast< ViInt32 *>(mblk->data()) // stupid OS (Windows) require cast to ViInt32*
                                                , actualPoints, firstValidPoint );
             avg.set_method( *m );
             avg.xmeta()                   = pkd.xmeta(); // copy
             avg.xmeta().actualPoints      = actualPoints;
             avg.xmeta().firstValidPoint   = firstValidPoint;
             avg.xmeta().dataType          = 4;
-            avg.xmeta().scaleFactor       = 1.0; // m->device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
+            avg.xmeta().scaleFactor       = m->device_method().front_end_range / 65536 / pkd.xmeta().actualAverages;
             avg.xmeta().scaleOffset       = m->device_method().front_end_offset; // scaleOffset;  <-- offset direct 0.1 -> 0.1; -0.1 -> -0.2
-            avg.setData( mblk, firstValidPoint, actualPoints );
-
+            avg.xmeta().channelMode       = aqmd3controls::ChannelMode::AVG;
+            avg.setData( mblk->data(), firstValidPoint, actualPoints );
         } while ( 0 );
     }
-    ADDEBUG() << std::make_pair( avg.xmeta().scaleFactor, avg.xmeta().scaleOffset )
-              << ", actualPoints: " << avg.xmeta().actualPoints
-              << ", xInc: " << avg.xmeta().xIncrement;
-    // digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
-    // pkd.xmeta().channelMode = aqmd3controls::PKD;
-
-    // digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
-    // avg.xmeta().channelMode = aqmd3controls::AVG;
-
     return true;
 }
 
@@ -1150,11 +1143,11 @@ device::initial_pkd_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3contr
                ,  __FILE__, __LINE__ );
 
     // Configure the trigger
-    ADDEBUG() << "Configuring Trigger";
-    ADDEBUG() << "  ActiveSource:       " << triggerSource;
-    ADDEBUG() << "  Level:              " << m.device_method().ext_trigger_level;
-	ADDEBUG() << "  Slope:              " << (triggerSlope ? "Positive" : "Negative");
-	ADDEBUG() << "  Delay:              " << m.device_method().delay_to_first_sample_;
+    // ADDEBUG() << "Configuring Trigger";
+    // ADDEBUG() << "  ActiveSource:       " << triggerSource;
+    // ADDEBUG() << "  Level:              " << m.device_method().ext_trigger_level;
+	// ADDEBUG() << "  Slope:              " << (triggerSlope ? "Positive" : "Negative");
+	// ADDEBUG() << "  Delay:              " << m.device_method().delay_to_first_sample_;
 
     md3->clog( aqmd3::attribute< aqmd3::active_trigger_source >::set( *md3, triggerSource ), __FILE__, __LINE__ );
     md3->clog( aqmd3::attribute< aqmd3::trigger_level >::set( *md3, "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );
@@ -1162,30 +1155,28 @@ device::initial_pkd_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3contr
     md3->clog( aqmd3::attribute< aqmd3::trigger_delay >::set( *md3, m.device_method().delay_to_first_sample_ ),  __FILE__, __LINE__ );
 
 	// Configure Baseline Stabilisation.
-	ADDEBUG() << "Configuring Baseline Stabilisation";
-	ADDEBUG() << "  Mode:               " << blMode;
-	ADDEBUG() << "  Digital Offset:     " << blDigitalOffset;
-	ADDEBUG() << "  Pulse Threshold:    " << blPulseThreshold;
+	// ADDEBUG() << "Configuring Baseline Stabilisation";
+	// ADDEBUG() << "  Mode:               " << blMode;
+	// ADDEBUG() << "  Digital Offset:     " << blDigitalOffset;
+	// ADDEBUG() << "  Pulse Threshold:    " << blPulseThreshold;
+	// ADDEBUG() << "  Pulse Polarity:     " << blPulsePolarity;
 
-	ADDEBUG() << "  Pulse Polarity:     " << blPulsePolarity;
-
-	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_mode >::set( *md3, "Channel1", aqmd3::BASELINE_CORRECTION_MODE_CONTINUOUS )
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_mode >::set( *md3, "Channel1", blMode )
                , __FILE__, __LINE__ );
 	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_digital_offset >::set( *md3, "Channel1", blDigitalOffset)
                , __FILE__, __LINE__ );
 	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_threshold >::set( *md3, "Channel1", blPulseThreshold)
                , __FILE__, __LINE__ );
-	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1"
-                                                                                           , aqmd3::BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE )
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1", blPulsePolarity )
                , __FILE__, __LINE__ );
 
     ADDEBUG() << "Performing self-calibration";
     md3->SelfCalibrate();
 
-	ADDEBUG() << "Configuring PeakDetect";
-	ADDEBUG() << "  RisingDelta:      " << m.device_method().pkd_rising_delta;
-	ADDEBUG() << "  FallingDelta:     " << m.device_method().pkd_falling_delta;
-	ADDEBUG() << "  AmplitudeAccumulationEnabled: " << m.device_method().pkd_amplitude_accumulation_enabled;
+	// ADDEBUG() << "Configuring PeakDetect";
+	// ADDEBUG() << "  RisingDelta:      " << m.device_method().pkd_rising_delta;
+	// ADDEBUG() << "  FallingDelta:     " << m.device_method().pkd_falling_delta;
+	// ADDEBUG() << "  AmplitudeAccumulationEnabled: " << m.device_method().pkd_amplitude_accumulation_enabled;
 
 	// Configure PKD AmplitudeAccumulationEnabled
 	if ( m.device_method().pkd_amplitude_accumulation_enabled ) // AmplitudeAccumulationEnabled==0)
@@ -1220,7 +1211,6 @@ device::setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method&
 bool
 device::acquire( std::shared_ptr< aqmd3::AqMD3 > md3 )
 {
-    ADDEBUG() << "AcquisitionInitiate";
     return md3->AcquisitionInitiate();
 }
 
@@ -1228,7 +1218,6 @@ bool
 device::waitForEndOfAcquisition( std::shared_ptr< aqmd3::AqMD3 > md3, int timeout )
 {
     auto tp = std::chrono::system_clock::now() + std::chrono::milliseconds( timeout );
-    ADDEBUG() << "waitForEndOfAcquisition";
 
     while( ! md3->isAcquisitionIdle() ) {
         if ( tp < std::chrono::system_clock::now() )
