@@ -263,7 +263,7 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    ADDEBUG() << __FUNCTION__;
+    // ADDEBUG() << __FUNCTION__;
 
     adcontrols::ControlMethod::Method cm( m );
     cm.sort();
@@ -1420,7 +1420,7 @@ digitizer::readData32( AqMD3& md2, const aqmd3controls::method& m, aqmd3controls
             data.set_epoch_time( std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count() );
             data.setData( mblk, firstValidPoint[0], data.xmeta().actualPoints );
 
-            ADDEBUG() << std::make_pair( data.xmeta().scaleFactor, data.xmeta().scaleOffset );
+            // ADDEBUG() << std::make_pair( data.xmeta().scaleFactor, data.xmeta().scaleOffset );
 #if !defined NDEBUG
             static waveform_print printer;
             printer( data, mblk->data() + firstValidPoint[0] );

@@ -50,7 +50,7 @@
 
 namespace po = boost::program_options;
 
-int __verbose__ = 5;
+int __verbose__ = 0;
 
 class execStatistics {
     execStatistics( const execStatistics& ) = delete; // non copyable
@@ -148,7 +148,7 @@ main( int argc, char * argv [] )
             ( "config",        "show config" )
             ( "force-config",  "Force create aqmd3.ini file (for debugging)" )
             ( "reset-config",  "clear config" )
-            ( "verbose",       po::value<int>()->default_value( 5 ),       "Verbose 0..9" )
+            ( "verbose",       po::value<int>()->default_value( 0 ),       "Verbose 0..9" )
             ( "lspxi",         "list pxi device on the system" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
@@ -336,8 +336,6 @@ main( int argc, char * argv [] )
                 method.device_method().digitizer_nbr_of_s_to_acquire = method.device_method().nbr_of_s_to_acquire_ = width;
             } else {
                 ADDEBUG() << "No SAxxx model found: " << ident->InstrumentModel();
-                for ( auto& model: ModelSA )
-                    ADDEBUG() << model;
             }
 
             using aqmd3::AqMD3;
@@ -441,108 +439,56 @@ main( int argc, char * argv [] )
 
             execStatistics::instance().tp_ = std::chrono::system_clock::now();
 
-            bool tsrEnabled;
-            if ( md3->clog( attribute< aqmd3::tsr_enabled >::get( *md3, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
-                std::cout << "\t------------------ TSR enabled ------------------" << std::endl;
-                // if ( md3->TSREnabled() ) {
+            double prev_ts(0);
+
+            for ( int i = 0; i < replicates; ++i ) {
+
+                pp << uint8_t( 0x01 );
 
                 md3->AcquisitionInitiate();
+                md3->AcquisitionWaitForAcquisitionComplete( 3000 );
 
-                while ( replicates > execStatistics::instance().dataCount_ ) {
+                pp << uint8_t( 0x02 );
 
-                    do {
-                        boost::optional< aqmd3::tsr_memory_overflow_occurred::value_type > p;
-                        if ((p = attribute< aqmd3::tsr_memory_overflow_occurred >::value( *md3 ) && p.get() )) {
-                            std::cout << "***** Memory Overflow" << std::endl;
-                            (void)p;
-                            break;
-                        }
-                    } while ( 0 );
-                    do {
-                        boost::optional< aqmd3::tsr_is_acquisition_complete::value_type > p;
-                        while (( p = attribute< aqmd3::tsr_is_acquisition_complete >::value( *md3 ) && !p.get() ))
-                            std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
-                    } while ( 0 );
-
+                if ( method.mode() == aqmd3controls::method::DigiMode::Digitizer ) {
                     aqmd3::digitizer::readData( *md3, method, vec );
-                    md3->TSRContinue();
-
-                    for ( auto& waveform: vec ) {
-
-                        // report if trigger receive interval exceeded
-                        double seconds = waveform->xmeta().initialXTimeSeconds;
-
-                        if ( std::abs( execStatistics::instance().last_ ) >= std::numeric_limits<double>::epsilon() ) {
-
-                            double interval = execStatistics::instance().difference_from_last( seconds );
-                            if ( interval > execStatistics::instance().rate_ )
-                                execStatistics::instance().exceededTimings_.push_back( std::make_pair( seconds, interval ) );
-
-                        }
-                        execStatistics::instance().last_ = seconds;
-                    }
-
-                    execStatistics::instance().dataCount_ += vec.size();
-
-                    vec.clear();  // throw waveforms away.
+                } else {
+                    auto data = std::make_shared< aqmd3controls::waveform >();
+                    aqmd3::digitizer::readData32( *md3, method, *data );
+                    vec.emplace_back( data );
                 }
+                auto ts = vec.at(0)->xmeta().initialXTimeSeconds;
 
-            } else {
+                int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
+                execStatistics::instance().dataCount_ += vec.size();
 
-                double prev_ts(0);
-
-                for ( int i = 0; i < replicates; ++i ) {
-
-                    pp << uint8_t( 0x01 );
-
-                    md3->AcquisitionInitiate();
-                    md3->AcquisitionWaitForAcquisitionComplete( 3000 );
-
-                    pp << uint8_t( 0x02 );
-
-                    if ( method.mode() == aqmd3controls::method::DigiMode::Digitizer ) {
-                        aqmd3::digitizer::readData( *md3, method, vec );
-                    } else {
-                        auto data = std::make_shared< aqmd3controls::waveform >();
-                        aqmd3::digitizer::readData32( *md3, method, *data );
-                        vec.emplace_back( data );
-                    }
-                    auto ts = vec.at(0)->xmeta().initialXTimeSeconds;
-
-                    int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
-                    execStatistics::instance().dataCount_ += vec.size();
-
-                    auto wform = vec.at(0);
-                    if ( __verbose__ >= 5 ) {
-                        if ( i == 0 ) {
-                            for ( size_t j = 0; i < wform->xmeta().actualPoints; ++j ){
-                                auto [x,y] = wform->xy(i);
-                                std::cout << j << "\t"
-                                          << boost::format("%8.3f") % (x * 1.0e6)
-                                          << "\t" << boost::format("%-10d") % y
-                                          << "\t" << boost::format("%.5lf") % (wform->toVolts( y ) * 1000)
-                                          << std::endl;
-                            }
+                auto wform = vec.at(0);
+                if ( __verbose__ >= 5 ) {
+                    if ( i == 0 ) {
+                        for ( size_t j = 0; j < wform->xmeta().actualPoints; ++j ){
+                            auto [x,y] = wform->xy(j);
+                            std::cout << j << "\t"
+                                      << boost::format("%8.3f") % (x * 1.0e6)
+                                      << "\t" << boost::format("%-10d") % y
+                                      << "\t" << boost::format("%.5lf") % (wform->toVolts( y ) * 1000)
+                                      << std::endl;
                         }
                     }
-                    std::cout << "aqmd3::digitizer::readData read " << vec.size() << " waveform(s), proto#"
-                              << protocolIndex
-                              << "\t(" << i << "/" << replicates << ")"
-                              << "\t" << (ts - prev_ts)*1e6
-                              << "\t" << execStatistics::instance().dataCount_
-                              << "\tsize=" << wform->size()
-                              << "\tscaleFactor=" << wform->xmeta().scaleFactor
-                              << "\tAvgs=" << wform->xmeta().actualAverages
-                              << std::endl;
-                    prev_ts = ts;
-                    vec.clear();
                 }
+                std::cout << "aqmd3::digitizer::readData read " << vec.size() << " waveform(s), proto#"
+                          << protocolIndex
+                          << "\t(" << i << "/" << replicates << ")"
+                          << "\t" << (ts - prev_ts)*1e6
+                          << "\t" << execStatistics::instance().dataCount_
+                          << "\tsize=" << wform->size()
+                          << "\tscaleFactor=" << wform->xmeta().scaleFactor
+                          << "\tAvgs=" << wform->xmeta().actualAverages
+                          << std::endl;
+                prev_ts = ts;
+                vec.clear();
             }
-
-            std::cout << execStatistics::instance();
-
         }
+        std::cout << execStatistics::instance();
     }
-
     return 0;
 }
