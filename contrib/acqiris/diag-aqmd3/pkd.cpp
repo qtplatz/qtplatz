@@ -173,7 +173,6 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
 	// Required to complete the PKD configuration
 	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
 
-
     for ( size_t ii = 0; ii < replicates; ++ii ) {
         // Readout parameters
         ViInt64 arraySize = 0;

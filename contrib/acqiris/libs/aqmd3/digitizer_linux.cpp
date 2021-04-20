@@ -85,7 +85,7 @@ namespace aqmd3 {
             void terminate();
             bool initialize();
             bool prepare_for_run( const adcontrols::ControlMethod::Method& );
-            bool prepare_for_run( const aqmd3controls::method& );
+            bool prepare_for_run( std::shared_ptr< const aqmd3controls::method > );
             bool run();
             bool stop();
             bool trigger_inject_out();
@@ -161,7 +161,7 @@ namespace aqmd3 {
             bool handle_temperature();
             bool handle_acquire();
             bool handle_TSR_acquire();
-            bool handle_prepare_for_run( const aqmd3controls::method );
+            bool handle_prepare_for_run( std::shared_ptr< const aqmd3controls::method > );
             bool handle_protocol( const aqmd3controls::method );
             bool handle_timer( const boost::system::error_code& );
             bool acquire();
@@ -177,6 +177,7 @@ namespace aqmd3 {
         struct device {
             static bool validate( std::shared_ptr< aqmd3::AqMD3>, aqmd3controls::method& );
             static bool initial_setup( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method&, const std::string& options );
+            static bool initial_pkd_setup( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method&, const std::string& options );
             static bool setup( std::shared_ptr< aqmd3::AqMD3 >, const aqmd3controls::method& );
             static bool acquire( std::shared_ptr< aqmd3::AqMD3 > );
             static bool waitForEndOfAcquisition( std::shared_ptr< aqmd3::AqMD3 >, int timeout );
@@ -267,20 +268,11 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
     adcontrols::ControlMethod::Method cm( m );
     cm.sort();
 
-#ifndef NDEBUG
-    ADDEBUG() << "###################################################################";
-    for ( auto mi: cm ) {
-        ADDEBUG() << __FUNCTION__ << "------------- modelname: " << mi.modelname();
-    }
-#endif
-
     auto it = std::find_if( cm.begin(), cm.end(), [] ( const MethodItem& mi ){ return mi.modelname() == "u5303a"; } );
     if ( it != cm.end() ) {
-        ADDEBUG() << __FUNCTION__ << " -- u5303a method found.";
-        aqmd3controls::method m;
-
-        if ( it->get( *it, m ) )
-            return task::instance()->prepare_for_run( m );
+        auto t = std::make_shared< aqmd3controls::method >();
+        if ( it->get( *it, *t ) )
+            return task::instance()->prepare_for_run( t );
     } else {
         ADDEBUG() << __FUNCTION__ << " -- no u5303a method found. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
     }
@@ -291,7 +283,8 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 bool
 digitizer::peripheral_prepare_for_run( const aqmd3controls::method& m )
 {
-    return task::instance()->prepare_for_run( m );
+    auto t = std::make_shared< aqmd3controls::method >( m );
+    return task::instance()->prepare_for_run( t );
 }
 
 bool
@@ -414,26 +407,9 @@ task::initialize()
 }
 
 bool
-task::prepare_for_run( const aqmd3controls::method& method )
+task::prepare_for_run( std::shared_ptr< const aqmd3controls::method > method )
 {
-#if !defined NDEBUG
-    auto& m = method.device_method();
-
-    ADDEBUG() << "aqmd3::digitizer_linux::task::prepare_for_run"
-              << "\n\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
-              << "\n\text_trigger_level: " << m.ext_trigger_level
-              << "\n\tsamp_rate: " << m.samp_rate
-              << "\n\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
-              << "\n\tnbr_of_average: " << m.nbr_of_averages
-              << "\n\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
-              << "\n\tinvert_signal: " << m.invert_signal;
-        // << "\tnsa: " << m.nsa;
-
-    ADDEBUG() << "##### aqmd3::digitizer_linux::task::prepare_for_run - protocol size: " << method.protocols().size();
-#endif
-
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
-
     return true;
 }
 
@@ -630,7 +606,7 @@ task::handle_initial_setup()
 
         auto m( method_ );
         device::validate( spDriver_, *m );
-        device::initial_setup( spDriver_, *m, ident().Options() );
+        // device::initial_setup( spDriver_, *m, ident().Options() );
 
         fsm_.process_event( fsm::Stop() );
     } else {
@@ -695,7 +671,7 @@ task::handle_terminating()
 }
 
 bool
-task::handle_prepare_for_run( const aqmd3controls::method t )
+task::handle_prepare_for_run( std::shared_ptr< const aqmd3controls::method > t )
 {
 #ifndef NDEBUG
     ADDEBUG() << "=============== " << __FUNCTION__ << " ====================";
@@ -707,17 +683,25 @@ task::handle_prepare_for_run( const aqmd3controls::method t )
     c_injection_requested_ = false;
     u5303_inject_timepoint_ = 0;
 
-    auto m = std::make_shared< aqmd3controls::method >( t );
-
+    auto m = std::make_shared< aqmd3controls::method >( *t );
     device::validate( spDriver_, *m );
-    device::initial_setup( spDriver_, *m, ident().Options() );
 
-    if ( /* m.mode_ && */ simulated_ ) {
-        m->device_method().samp_rate = spDriver()->SampleRate();
-        simulator::instance()->setup( *m );
-    }
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( m->device_method().pkd_enabled ) {
+            device::initial_pkd_setup( spDriver_, *m, ident().Options() );
+        } else {
+            device::initial_setup( spDriver_, *m, ident().Options() );
+        }
 
-    method_ = m;
+        if ( simulated_ ) {
+            m->device_method().samp_rate = spDriver()->SampleRate();
+            simulator::instance()->setup( *m );
+        }
+
+        method_ = m;
+
+    } while ( 0 );
 
     if ( m->device_method().TSR_enabled ) {
         return fsm_.process_event( fsm::TSRInitiate() ) == boost::msm::back::HANDLED_TRUE;
@@ -1139,25 +1123,87 @@ device::initial_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls:
         md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1"
                                                                                                , aqmd3::BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE )
                    , __FILE__, __LINE__ );
-
-        if ( m.device_method().pkd_enabled ) {
-            ADDEBUG() << "============= PKD+AVG parameters ==============";
-            if ( m.device_method().pkd_amplitude_accumulation_enabled ) // AmplitudeAccumulationEnabled==0)
-                md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143511 ); // PKD - Amplitude mode
-            else
-                md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143515 ); // PKD - Count mode
-
-            md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x33B8, m.device_method().pkd_rising_delta|(m.device_method().pkd_falling_delta << 16));
-
-            // Required to complete the PKD configuration
-            md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
-        }
     }
 
     md3->SelfCalibrate();
     ADDEBUG() << "============= SelfCalibrate done ==============";
 	return true;
 }
+
+bool
+device::initial_pkd_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, const std::string& options )
+{
+    ViInt32 const coupling = AQMD3_VAL_VERTICAL_COUPLING_DC;
+    ViConstString triggerSource = "External1";
+    ViInt32 const triggerSlope = AQMD3_VAL_TRIGGER_SLOPE_POSITIVE;
+    ViInt32 const blMode = AQMD3_VAL_BASELINE_CORRECTION_MODE_CONTINUOUS; // set blMode to AQMD3_VAL_BASELINE_CORRECTION_MODE_DISABLED to disable it
+    ViInt32 const blDigitalOffset = 0;
+    ViInt32 const blPulseThreshold = 500;
+    ViInt32 const blPulsePolarity = AQMD3_VAL_BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE;
+
+    md3->ConfigureChannel( "Channel1", m.device_method().front_end_range, m.device_method().front_end_offset, coupling, VI_TRUE );
+    md3->clog( aqmd3::attribute< aqmd3::sample_rate >::set( *md3, m.device_method().samp_rate ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::channel_data_inversion_enabled >::set( *md3, "Channel1", m.device_method().invert_signal )
+               ,  __FILE__, __LINE__ );
+
+    // Configure the trigger
+    ADDEBUG() << "Configuring Trigger";
+    ADDEBUG() << "  ActiveSource:       " << triggerSource;
+    ADDEBUG() << "  Level:              " << m.device_method().ext_trigger_level;
+	ADDEBUG() << "  Slope:              " << (triggerSlope ? "Positive" : "Negative");
+	ADDEBUG() << "  Delay:              " << m.device_method().delay_to_first_sample_;
+
+    md3->clog( aqmd3::attribute< aqmd3::active_trigger_source >::set( *md3, triggerSource ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::trigger_level >::set( *md3, "External1", m.device_method().ext_trigger_level ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::trigger_slope >::set( *md3, "External1", triggerSlope ), __FILE__, __LINE__ );
+    md3->clog( aqmd3::attribute< aqmd3::trigger_delay >::set( *md3, m.device_method().delay_to_first_sample_ ),  __FILE__, __LINE__ );
+
+	// Configure Baseline Stabilisation.
+	ADDEBUG() << "Configuring Baseline Stabilisation";
+	ADDEBUG() << "  Mode:               " << blMode;
+	ADDEBUG() << "  Digital Offset:     " << blDigitalOffset;
+	ADDEBUG() << "  Pulse Threshold:    " << blPulseThreshold;
+
+	ADDEBUG() << "  Pulse Polarity:     " << blPulsePolarity;
+
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_mode >::set( *md3, "Channel1", aqmd3::BASELINE_CORRECTION_MODE_CONTINUOUS )
+               , __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_digital_offset >::set( *md3, "Channel1", blDigitalOffset)
+               , __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_threshold >::set( *md3, "Channel1", blPulseThreshold)
+               , __FILE__, __LINE__ );
+	md3->clog( aqmd3::attribute< aqmd3::channel_baseline_correction_pulse_polarity >::set( *md3, "Channel1"
+                                                                                           , aqmd3::BASELINE_CORRECTION_PULSE_POLARITY_POSITIVE )
+               , __FILE__, __LINE__ );
+
+    ADDEBUG() << "Performing self-calibration";
+    md3->SelfCalibrate();
+
+	ADDEBUG() << "Configuring PeakDetect";
+	ADDEBUG() << "  RisingDelta:      " << m.device_method().pkd_rising_delta;
+	ADDEBUG() << "  FallingDelta:     " << m.device_method().pkd_falling_delta;
+	ADDEBUG() << "  AmplitudeAccumulationEnabled: " << m.device_method().pkd_amplitude_accumulation_enabled;
+
+	// Configure PKD AmplitudeAccumulationEnabled
+	if ( m.device_method().pkd_amplitude_accumulation_enabled ) // AmplitudeAccumulationEnabled==0)
+		md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143511 ); // PKD - Amplitude mode
+	else
+        md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143515 ); // PKD - Count mode
+
+	// Configure PKD Rising and Falling Delta
+	//bit 15:0 --> Rising Delta ADC codes
+	//bit 31:16 --> Falling Delta ADC codes
+	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x33B8, m.device_method().pkd_rising_delta|(m.device_method().pkd_falling_delta << 16));
+
+	// Required to complete the PKD configuration
+	md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
+
+	return true;
+}
+
 
 bool
 device::setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m )

@@ -40,8 +40,6 @@ using namespace std::literals::chrono_literals;
 
 using adportable::semaphore;
 
-static uint16_t datamover_tag;
-
 singleton::singleton() : sema_( std::make_unique< semaphore >() )
                        , sequence_number_( 0x100 )
                        , masterObserver_( std::make_shared< adacquire::MasterObserver >( "aqmd3.master.observer.ms-cheminfo.com" ) )
@@ -64,9 +62,6 @@ singleton::singleton() : sema_( std::make_unique< semaphore >() )
 
 singleton::~singleton()
 {
-#if ! defined NDEBUG // || 1
-    ADDEBUG() << "\t##### singleton dtor #####";
-#endif
 }
 
 singleton *
@@ -81,16 +76,12 @@ singleton::finalize()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    // for ( auto c: connections_ )
-    //     c->shutdown();
     io_service_.stop();
     for ( auto& t: threads_ )
         t.join();
 
     connections_.clear();
-#if ! defined NDEBUG
-    ADDEBUG() << "##### singleton finalize gracefully #####";
-#endif
+
     return true;
 }
 
@@ -176,18 +167,6 @@ adacquire::SignalObserver::Observer *
 singleton::getObserver()
 {
     return masterObserver_.get();
-}
-
-bool
-singleton::post( std::pair< std::shared_ptr< const waveform >, std::shared_ptr< const waveform > >&& avgpkd )
-{
-    // if ( masterObserver_ && waveformObserver_ ) {
-    //     auto pos = avgpkd.first->pos();
-    //     //waveformObserver_->emplace_back( std::move( avgpkd ) );
-    //     masterObserver_->dataChanged( waveformObserver_.get(), pos );
-    // }
-    return true;
-    //return handle_waveform( std::move( avgpkd.first ) );
 }
 
 void

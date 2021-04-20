@@ -92,8 +92,6 @@ namespace aqmd3 {
 
         adacquire::SignalObserver::Observer * getObserver();
 
-        bool post( std::pair< std::shared_ptr< const waveform >, std::shared_ptr< const waveform > >&& );
-
         void set_inject_trigger_in( bool set = true );
         bool inject_trigger() const;
 
