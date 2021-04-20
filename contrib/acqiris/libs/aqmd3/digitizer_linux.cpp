@@ -52,6 +52,7 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/logic/tribool.hpp>
 #include <boost/optional.hpp>
+#include <boost/regex.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -205,24 +206,26 @@ namespace aqmd3 {
                 }
             }
         };
-
         const static std::vector< std::string > ModelSA = { "SA217E", "SA217P", "SA220P", "SA220E", "SA230P" "SA230E" };
-
     }
 
 }
 
 namespace {
     struct acqirisOption {
-        boost::optional< std::string > operator()() const {
+        boost::optional< std::pair< bool, std::string > > operator()() const {
             if ( auto p = getenv( "AcqirisOption" ) ) {
-                auto env = std::string( p );
-                if ( auto simulate = boost::algorithm::contains( env, "simulate" ) ) {
-                    std::vector< std::string > options = {{ "Simulate=true" }, {"DriverSetup="}};
-                    if ( auto it = boost::algorithm::find_first( env, "Model=" ) ) {
-
+                if ( std::strcmp( p, "simulate" ) == 0 )
+                    return {{ true, std::string{ "Simulate=true, DriverSetup= Model=SA230P" } }};
+                if ( boost::algorithm::contains( p, "simulate=true", boost::is_iequal() ) ) {
+                    std::vector< std::string > opts;
+                    if ( ! boost::algorithm::contains( p, "model=", boost::is_iequal() ) ) {
+                        boost::algorithm::split( opts, p, boost::is_any_of(" ,") );
+                        opts.emplace_back( "Model=SA230P" );
                     }
+                    return {{ true, boost::algorithm::join( opts, " ") }};
                 }
+                return {{ false, std::string( p ) }};
             }
             return {};
         }
@@ -581,13 +584,15 @@ task::handle_initial_setup()
 {
     spDriver_ = std::make_shared< AqMD3 >();     // spDriver creation in the thread
 
+    ADDEBUG() << "----------- handle_initial_setup -----------";
+
     bool simulated = false;
     bool success = false;
 
-    if ( auto p = getenv( "AcqirisOption" ) ) {
-        if ( p && std::strcmp( p, "simulate" ) == 0 ) {
-            const char * strInitOptions = "Simulate=true, DriverSetup= Model=SA230P";
-            simulated = true;
+    if ( auto env = acqirisOption()() ) {
+        std::string strInitOptions;
+        std::tie( simulated, strInitOptions ) = *env;
+        if ( simulated ) {
             success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             ADDEBUG() << "################# AQMD3 SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
         }
@@ -1081,7 +1086,7 @@ bool
 device::initial_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, const std::string& options )
 {
     ADDEBUG() << "##### initial_setup for '" << md3->Identify()->InstrumentModel() << "' #####";
-    ADDEBUG() << "##### front_end_range: " << m.toJson();
+    // ADDEBUG() << "##### front_end_range: " << m.toJson();
 
     if ( !md3->ConfigureChannel( "Channel1"
                                 , m.device_method().front_end_range
@@ -1135,6 +1140,7 @@ device::initial_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls:
                    , __FILE__, __LINE__ );
 
         if ( m.device_method().pkd_enabled ) {
+            ADDEBUG() << "============= PKD+AVG parameters ==============";
             if ( m.device_method().pkd_amplitude_accumulation_enabled ) // AmplitudeAccumulationEnabled==0)
                 md3->LogicDeviceWriteRegisterInt32("DpuA", 0x33B4, 0x143511 ); // PKD - Amplitude mode
             else
@@ -1145,41 +1151,8 @@ device::initial_setup( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls:
             // Required to complete the PKD configuration
             md3->LogicDeviceWriteRegisterInt32( "DpuA", 0x3350, 0x00000027 ); //PKD configuration
         }
-#if 0
-        // PKD - POC
-        if ( m.device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
-            ADINFO() << "##### PKD ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" )
-                     << "; Amplitude accum. " << (m.device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
-            md3->clog( attribute< num_records_to_acquire >::set( *md3, int64_t( 1 ) ), __FILE__,__LINE__ );
-            md3->clog( attribute< acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
-            // Configure the data inversion mode - VI_FALSE (no data inversion) by default
-            md3->clog( attribute< channel_data_inversion_enabled >::set( *md3
-                                                                          , "Channel1"
-                                                                          , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
-            // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-            md3->clog( attribute< peak_detection_amplitude_accumulation_enabled >::set(
-                           *md3, "Channel1", m.device_method().pkd_amplitude_accumulation_enabled )
-                       , __FILE__,__LINE__ );
-            // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
-            // considered as rising/falling edge in the peak detection algorithm.
-            md3->clog( attribute< peak_detection_rising_delta >::set( *md3, "Channel1", m.device_method().pkd_rising_delta ), __FILE__,__LINE__ );
-            md3->clog( attribute< peak_detection_falling_delta >::set( *md3, "Channel1", m.device_method().pkd_falling_delta ), __FILE__,__LINE__ );
-            md3->clog( attribute< record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
-            md3->clog( attribute< num_records_to_acquire >::set( *md3, int64_t( 1 ) ), __FILE__,__LINE__ );
-            md3->clog( attribute< acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
-        } else {
-            ADINFO() << "##### AVG ON; Invert signal " << ( m.device_method().invert_signal ? "true" : "false" );
-            md3->clog( attribute< num_records_to_acquire >::set( *md3, int64_t( 1 ) ), __FILE__,__LINE__ );
-            md3->clog( attribute< acquisition_mode >::set( *md3, AQMD3_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
-            md3->clog( attribute< channel_data_inversion_enabled >::set( *md3
-                                                                        , "Channel1"
-                                                                        , bool( m.device_method().invert_signal ) ), __FILE__,__LINE__ );
-            md3->clog( attribute< record_size >::set( *md3, m.device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
-            md3->clog( attribute< acquisition_number_of_averages >::set( *md3, m.device_method().nbr_of_averages ), __FILE__,__LINE__ );
-        }
-#endif
     }
-    // ADTRACE() << "##### ACQUISITION_MODE : " << task.spDriver()->AcquisitionMode();
+
     md3->SelfCalibrate();
 
 	return true;

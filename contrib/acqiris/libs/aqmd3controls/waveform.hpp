@@ -139,10 +139,11 @@ namespace aqmd3controls {
 
         ////////////////////////////
         // 32bit interface
-        void setData( const std::shared_ptr< adportable::mblock<int32_t> >, size_t firstValidPoint, size_t actualPoints );
+        void setData( std::shared_ptr< const adportable::mblock<int32_t> >, size_t firstValidPoint, size_t actualPoints );
+        void setData( const int32_t *, size_t firstValidPoint, size_t actualPoints );
 
         // 16bit interface
-        void setData( const std::shared_ptr< adportable::mblock<int16_t> >, size_t firstValidPoint, size_t actualPoints );
+        void setData( std::shared_ptr< const adportable::mblock<int16_t> >, size_t firstValidPoint, size_t actualPoints );
 
         void set_method( const aqmd3controls::method& );
         const aqmd3controls::method * method() const;

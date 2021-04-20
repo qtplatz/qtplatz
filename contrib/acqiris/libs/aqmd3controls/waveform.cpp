@@ -413,19 +413,26 @@ waveform::deserialize_xdata( const char * data, size_t size )
 
 ///////////////////////
 void
-waveform::setData( const std::shared_ptr< adportable::mblock<int32_t> > mblk, size_t firstValidPoint, size_t actualPoints )
+waveform::setData( const int32_t * data, size_t firstValidPoint, size_t actualPoints )
 {
-    xmeta().firstValidPoint = 0; // override, firstValidPoint;
-    d_.resize( xmeta_.actualPoints );
-    std::copy( mblk->data() + firstValidPoint, mblk->data() + firstValidPoint + actualPoints, d_.begin() );
+    xmeta_.firstValidPoint = 0; // override, firstValidPoint;
+    xmeta_.actualPoints = actualPoints;
+    d_.resize( actualPoints );
+    std::copy( data + firstValidPoint, data + firstValidPoint + actualPoints, d_.begin() );
+}
+void
+waveform::setData( std::shared_ptr< const adportable::mblock<int32_t> > mblk, size_t firstValidPoint, size_t actualPoints )
+{
+    setData( mblk->data(), firstValidPoint, actualPoints );
 }
 
+
 void
-waveform::setData( const std::shared_ptr< adportable::mblock<int16_t> > mblk, size_t firstValidPoint, size_t actualPoints )
+waveform::setData( std::shared_ptr< const adportable::mblock<int16_t> > mblk, size_t firstValidPoint, size_t actualPoints )
 {
-    ADDEBUG() << "setData int16_t " << xmeta_.actualPoints;
-    xmeta().firstValidPoint = 0; // firstValidPoint;
-    d_.resize( xmeta_.actualPoints );
+    xmeta_.firstValidPoint = 0; // firstValidPoint;
+    xmeta_.actualPoints = actualPoints;
+    d_.resize( actualPoints );
     std::copy( mblk->data() + firstValidPoint, mblk->data() + firstValidPoint + actualPoints, d_.begin() );
 }
 
