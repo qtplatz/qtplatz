@@ -80,7 +80,7 @@ namespace adwidgets {
         void valueChanged( const QModelIndex&, double ); // Editor 'QDoubleSpinBox' value changed
         void stateChanged( const QModelIndex&, Qt::CheckState );
 
-    private slots:
+    public slots:
         void handleCopyToClipboard() override;
         void handlePaste() override;
     };

@@ -114,7 +114,6 @@ namespace chemistry {
         , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
         , { "Oc1cc(O)c2C(=O)C(O)= C(Oc2c1)c3ccc(O)c(O)c3", { "quercetin" } }
         , { R"**(O=C(O)[C@]2(O)C[C@@H](O)[C@@H](O)[C@H](OC(=O)\C=C\c1ccc(O)c(O)c1)C2)**", { "Chlorogenic acid" } }
-        , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
         , { "CCCCCCCCCCCCCCCC(=O)O",                  { "Palmitic acid" } }
         , { "C1=CC=C2C=C3C=CC=CC3=CC2=C1",            { "Anthracene" } }
         , { "c1ccc2c(c1)ccc3c2cccc3",                 { "Phenanthrene" } }
@@ -124,10 +123,16 @@ namespace chemistry {
         , { "c1cc2cccc3ccc4cccc1c4c32",               { "Pyrene" } }
         , { "C1=CC=C2C=CC=CC2=C1",                    { "Naphthalene" } }
         , { "c1ccc2ccccc2c1",                         { "Naphthalene" } }
+        , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
         , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
-        , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
+        , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC",      { "Hexamethoxyphosphazine" } }
+        , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK-1", "PHYLLOQUINONE OXIDE" } }
+        , { "CCCCCCCCCCCCCCCCCCCCCCCC(=O)O",          { "Tetracosanoic acid", "Lignoceric acid" } }
+        , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
+        , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
+        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
     };
 
 }

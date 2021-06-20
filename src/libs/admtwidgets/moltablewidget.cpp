@@ -114,7 +114,7 @@ namespace admtwidgets {
                                    , enable_( true ) {
             model_->setColumnCount( ncols );
             model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "formula" ) );
-            model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "adducts" ) );
+            // model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "adducts" ) );
             model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
             model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "time(&mu;s)" ) );
             model_->setHeaderData( c_laps,       Qt::Horizontal, QObject::tr( "lap#" ) );
@@ -137,6 +137,7 @@ namespace admtwidgets {
                 actions.emplace_back( menu.addAction( "set as target ion" ), [&](){ setTargetIon(); } );
                 actions.emplace_back( menu.addAction( "add line" ), [&](){ addLine(); } );
                 actions.emplace_back( menu.addAction( "find laps" ), [&](){ findLaps(); } );
+                actions.emplace_back( menu.addAction( "Copy" ), [=](){ table->handleCopyToClipboard(); } );
                 if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
                     auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){ return t.first == selected; });
                     if ( it != actions.end() )
