@@ -58,7 +58,9 @@ namespace adcontrols {
 
     class description;
     class descriptions;
+    class Peak;
     class Peaks;
+    class Baseline;
     class Baselines;
     class PeakResult;
     class Chromatogram_iterator;
@@ -188,6 +190,10 @@ namespace adcontrols {
         const boost::property_tree::ptree& ptree() const;
 
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
+
+        // find peak from given range (t0, t1), and find peak left and right
+        std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >
+        find_single_peak( double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
         const Peaks& peaks() const;
         const Baselines& baselines() const;

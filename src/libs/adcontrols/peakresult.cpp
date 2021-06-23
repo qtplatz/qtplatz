@@ -27,6 +27,7 @@
 #include "baselines.hpp"
 #include "peak.hpp"
 #include "peaks.hpp"
+#include <adportable/debug.hpp>
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -171,6 +172,37 @@ void
 PeakResult::setPeaks( const Peaks& t )
 {
     *peaks_ = t;
+}
+
+PeakResult&
+PeakResult::operator << ( std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >&& t )
+{
+    std::shared_ptr< Peak > pk;
+    std::shared_ptr< Baseline > bs;
+    std::tie( pk, bs ) = std::move( t );
+
+    if ( pk && bs ) {
+        ADDEBUG() << pk->json();
+#if 0
+        peaks_->erase( std::remove_if( peaks_->begin()
+                                       , peaks_->end()
+                                       , [&](const auto& a){
+                                           return a.peakTime() > pk->startTime() && a.peakTime() < pk->startTime();})
+                       , peaks_->end() );
+
+        baselines_->erase( std::remove_if( baselines_->begin()
+                                           , baselines_->end()
+                                           , [&](const auto& a){
+                                               return a.startTime() >= t.second->startTime() && a.stopTime() <= t.second->stopTime(); })
+                           , baselines_->end() );
+#else
+        peaks_ = std::make_shared< Peaks >();
+        baselines_ = std::make_shared< Baselines >();
+#endif
+        pk->setBaseId( baselines_->add( *bs ) );
+        peaks_->add( *pk );
+    }
+    return *this;
 }
 
 // ----- static -----

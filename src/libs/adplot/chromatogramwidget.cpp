@@ -228,6 +228,8 @@ namespace adplot {
                 }
             }
 
+            std::shared_ptr< const adcontrols::Chromatogram > get() const { return grab_; }
+
         private:
             PlotCurve curve_;
             QRectF rect_;
@@ -315,8 +317,8 @@ namespace adplot {
         std::vector< Annotation > annotation_markers_;
 
         std::vector< chromatogram_widget::trace_variant > traces_;
-        std::vector< Peak > peaks_;
-        std::vector< Baseline > baselines_;
+        std::vector< adplot::Peak > plot_peaks_;
+        std::vector< adplot::Baseline > plot_baselines_;
         std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
         std::vector< std::shared_ptr< QwtPlotCurve > > peak_params_curves_; // peak parameter curves
         ChromatogramWidget::HorizontalAxis axis_;
@@ -515,6 +517,18 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
     }
 }
 
+std::shared_ptr< const adcontrols::Chromatogram >
+ChromatogramWidget::getData( int idx ) const
+{
+    if ( impl_->traces_.size() > size_t( idx ) ) {
+        if ( ! boost::apply_visitor( isValid< ChromatogramData >(), impl_->traces_[ idx ] ) ) {
+            auto& data = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_[ idx ] );
+            return data->get();
+        }
+    }
+    return {};
+}
+
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
 {
@@ -584,19 +598,17 @@ ChromatogramWidget::setZoomed( const QRectF& rect, bool keepY )
 void
 ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 {
-	using adcontrols::Peaks;
-	using adcontrols::Baselines;
-
-    impl_->peaks_.clear();
-    impl_->baselines_.clear();
+    impl_->plot_peaks_.clear();
+    impl_->plot_baselines_.clear();
     impl_->peak_params_curves_.clear();
 
-	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
-		setBaseline( *it );
+    for ( const auto& bs: r.baselines() )
+		setBaseline( bs );
 
     impl_->peak_annotations_.clear();
-	for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
-		setPeak( *it, impl_->peak_annotations_ );
+	//for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
+    for ( const auto& pk:  r.peaks() )
+		setPeak( pk, impl_->peak_annotations_ );
 
     plotAnnotations( impl_->peak_annotations_ );
 }
@@ -616,13 +628,13 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotatio
 
     vec << adcontrols::annotation( label, tR, peak.topHeight(), (-1), pri );
 
-    impl_->peaks_.emplace_back( *this, peak );
+    impl_->plot_peaks_.emplace_back( *this, peak );
 }
 
 void
 ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 {
-    impl_->baselines_.emplace_back( *this, bs );
+    impl_->plot_baselines_.emplace_back( *this, bs );
 }
 
 void
@@ -713,8 +725,8 @@ ChromatogramWidget::getPlotItem( int idx )
 void
 ChromatogramWidget::impl::clear()
 {
-    peaks_.clear();
-    baselines_.clear();
+    plot_peaks_.clear();
+    plot_baselines_.clear();
 	annotation_markers_.clear();
     traces_.clear();
 }
@@ -723,8 +735,8 @@ void
 ChromatogramWidget::impl::removeData( int idx )
 {
     if ( traces_.size() > size_t(idx) ) {
-        peaks_.clear();
-        baselines_.clear();
+        plot_peaks_.clear();
+        plot_baselines_.clear();
         annotation_markers_.clear();
     }
 }

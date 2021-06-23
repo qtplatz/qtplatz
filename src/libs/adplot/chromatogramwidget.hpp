@@ -58,6 +58,7 @@ namespace adplot {
         [[deprecated]] void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx = 0, bool axisRight = false );
         void setTrace( std::shared_ptr< const adcontrols::Trace>, int idx, QwtPlot::Axis );
         void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx, QwtPlot::Axis );
+        std::shared_ptr< const adcontrols::Chromatogram > getData( int idx ) const;
 
     public:
         // void setData( std::shared_ptr< const adcontrols::Chromatogram >&&, int idx = 0, bool axisRight = false );

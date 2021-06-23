@@ -32,6 +32,8 @@
 
 namespace adcontrols {
 
+    class Peak;
+    class Baseline;
     class Peaks;
 	class Baselines;
 
@@ -57,6 +59,7 @@ namespace adcontrols {
         void clear();
         bool isCounting() const;
         void setIsCounting( bool );
+        PeakResult& operator << ( std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > > && );
 
 	private:
         std::shared_ptr< Baselines > baselines_;

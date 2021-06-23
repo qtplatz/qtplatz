@@ -37,6 +37,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <cstdint>
+#include <tuple>
 
 namespace adcontrols {
 
@@ -49,10 +50,10 @@ namespace adcontrols {
     public:
         std::int32_t parentId() const;
         void setParentId(std::int32_t id);
-        
+
         std::int32_t baseId() const;
         void setBaseId(std::int32_t id);
-        
+
         std::int32_t peakId() const;
         void setPeakId(std::int32_t id);
 
@@ -64,24 +65,28 @@ namespace adcontrols {
 
         const char * formula() const;
         void  setFormula(const char * );
-           
+
         std::int32_t  appliedFunctions() const;
         void  setAppliedFunctions( std::int32_t );
-        
+
         std::int32_t  startPos() const;
         std::int32_t  topPos() const;
         std::int32_t  endPos() const;
 
-        void  setStartPos(std::int32_t pos, peakheight_t h);
-        void  setTopPos(std::int32_t pos,   peakheight_t h);
-        void  setEndPos(std::int32_t pos,   peakheight_t h);
+        void setStartData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& );
+        void setEndData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& );
+        void setTopData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& );
+
+        [[deprecated]] void  setStartPos(std::int32_t pos, peakheight_t h);
+        [[deprecated]] void  setTopPos(std::int32_t pos,   peakheight_t h);
+        [[deprecated]] void  setEndPos(std::int32_t pos,   peakheight_t h);
 
         seconds_t startTime() const;
         void   setStartTime( seconds_t newTime);
 
         seconds_t peakTime() const;
         void   setPeakTime( seconds_t newTime );
-        
+
         seconds_t endTime() const;
         void   setEndTime( seconds_t newTime);
 
@@ -128,6 +133,7 @@ namespace adcontrols {
 
         void userData( uint64_t );
         uint64_t userData() const;
+        std::string json() const;
 
     private:
 #if defined _MSC_VER
@@ -147,9 +153,9 @@ namespace adcontrols {
         seconds_t startTime_;
         seconds_t peakTime_;
         seconds_t endTime_;
-        seconds_t startHeight_;
-        seconds_t topHeight_;
-        seconds_t endHeight_;
+        double  startHeight_;
+        double  topHeight_;
+        double  endHeight_;
         double peakArea_;
         double peakHeight_;
         adcontrols::PeakAsymmetry asymmetry_;

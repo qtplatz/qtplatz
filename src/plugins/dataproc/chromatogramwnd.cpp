@@ -56,6 +56,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
+#include <boost/format.hpp>
 
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
@@ -117,6 +118,7 @@ namespace dataproc {
 
         void setData( adcontrols::ChromatogramPtr& ptr ) {
             data_ = ptr;
+            ADDEBUG() << "########################### set data : " << data_.get();
             plots_[ 0 ]->clear();
             plots_[ 0 ]->setData( ptr );
             auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
@@ -146,15 +148,30 @@ namespace dataproc {
             }
         }
 
-        void addPeak( double t1, double t2 ) {
+        void addPeak( double t1, double t2, bool horBase = false ) {
+            auto data = data_ ? data_ : plots_[ 0 ]->getData( 0 );
+            if ( data ) {
+                if ( !peakResult_ )
+                    peakResult_ = std::make_shared< adcontrols::PeakResult >();
+                if ( data->add_manual_peak( *peakResult_, t1, t2, horBase, 0.0 ) ) {
+                    setData( peakResult_ );
+                    plots_[ 0 ]->update();
+                }
+            }
+        }
+
+        void addFIPeak( double t1, double t2 ) {
+            auto data = data_ ? data_ : plots_[ 0 ]->getData( 0 );
             if ( !peakResult_ )
                 peakResult_ = std::make_shared< adcontrols::PeakResult >();
-
-            if ( data_ && data_->add_manual_peak( *peakResult_, t1, t2 ) ) {
+            if ( data ) {
+                auto res = data->find_single_peak( t1, t2, true, 0.0 );
+                *peakResult_ << std::move( res );
                 setData( peakResult_ );
                 plots_[ 0 ]->update();
             }
         }
+
 
         void selectedOnChromatogram( const QRectF&, int );
         void selectedOnChromatogram0( const QRectF& );
@@ -316,6 +333,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     auto datum = datafolder( processor->filename(), folium );
 
     if ( auto chr = datum.get_chromatogram() ) {
+
         // if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
         impl_->idActiveFolium_ = folium.id();
         auto& plot = impl_->plots_[ 0 ];
@@ -442,28 +460,38 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
     std::vector < action_type > actions;
 
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
+        auto rstr = QString::fromStdString( ( boost::format("%.2f - %2f") % rect.left() % rect.right() ).str() );
 
-        actions.emplace_back( menu.addAction( QString( "Area in range %1 - %2" ).arg( QString::number( rect.left() ), QString::number( rect.right() ) ) )
-                           , [=]() { addPeak( adcontrols::Chromatogram::toSeconds( rect.left() ), adcontrols::Chromatogram::toSeconds( rect.right() ) ); } );
+        actions.emplace_back( menu.addAction( QString( "Find flow injection peak in %1" ).arg( rstr ) )
+                              , [=]() { addFIPeak( rect.left(), rect.right() );  } );
 
+        actions.emplace_back( menu.addAction( QString( "Area in range %1 - %2" ).arg( rstr ) )
+                              , [=]() { addPeak( rect.left(), rect.right() );  } );
+    } else {
+        auto rc = plots_[ index ]->zoomRect();
+        actions.emplace_back( menu.addAction( "Find flow injection peak" )
+                              , [=]() { addFIPeak( rc.left(), rc.right() );  } );
     }
 
-    actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [&] () {
-                adplot::plot::copyToClipboard( this->plots_[ index ].get() );
-            } ) );
+    actions.emplace_back( menu.addAction( tr("Copy image to clipboard") )
+                          , [&] () {
+                              adplot::plot::copyToClipboard( this->plots_[ index ].get() );
+                          } );
 
-    actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
-                QString name = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                             , "Save SVG File"
-                                                             , MainWindow::makePrintFilename( idActiveFolium_, L"_" )
-                                                             , tr( "SVG (*.svg)" ) );
-                if ( ! name.isEmpty() )
-                    adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
-            }) );
-
+    actions.emplace_back( menu.addAction( tr( "Save SVG File" ) )
+                          , [&] () {
+                              QString name
+                                  = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                                  , "Save SVG File"
+                                                                  , MainWindow::makePrintFilename( idActiveFolium_, L"_" )
+                                                                  , tr( "SVG (*.svg)" ) );
+                              if ( ! name.isEmpty() )
+                                  adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
+                          } );
 
     if ( auto selected = menu.exec( QCursor::pos() ) ) {
-        auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
+        auto it = std::find_if( actions.begin(), actions.end()
+                                , [selected] ( const action_type& a ){ return a.first == selected; } );
         if ( it != actions.end() )
             (it->second)();
     }

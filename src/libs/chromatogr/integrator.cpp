@@ -874,13 +874,15 @@ peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak
 
     // left boundary
     long left_bound = pk.topPos() - 1;
-    while ( ( c.getIntensity( left_bound - 1 ) > l_threshold ) && ( ( left_bound - 1 ) > pk.startPos() ) )
+    while ( ( c.getIntensity( left_bound - 1 ) > l_threshold ) && ( ( left_bound - 1 ) > pk.startPos() ) ) {
         left_bound--;
+    }
 
     // right boundary
     long right_bound = pk.topPos() + 1;
-    while ( ( c.getIntensity( right_bound + 1 ) > r_threshold ) && ( ( right_bound + 1 ) < pk.endPos() ) )
+    while ( ( c.getIntensity( right_bound + 1 ) > r_threshold ) && ( ( right_bound + 1 ) < pk.endPos() ) ) {
         right_bound++;
+    }
 
 	if ( ( right_bound - left_bound + 1 ) < 5 ) {
 		left_bound--;

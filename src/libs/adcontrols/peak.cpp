@@ -24,6 +24,7 @@
 
 #include "peak.hpp"
 #include <adportable/debug.hpp>
+#include <boost/json.hpp>
 
 using namespace adcontrols;
 
@@ -207,6 +208,24 @@ int32_t
 Peak::endPos() const
 {
     return endPos_;
+}
+
+void
+Peak::setStartData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& t )
+{
+    std::tie( startPos_, startTime_, startHeight_ ) = t;
+}
+
+void
+Peak::setEndData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& t )
+{
+    std::tie( endPos_, endTime_, endHeight_ ) = t;
+}
+
+void
+Peak::setTopData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& t )
+{
+    std::tie( topPos_, peakTime_, topHeight_ ) = t;
 }
 
 void
@@ -438,4 +457,39 @@ void
 Peak::setRetentionTime( const RetentionTime& tr )
 {
     tr_ = tr;
+}
+
+std::string
+Peak::json() const
+{
+    boost::json::object jv{
+        { "Peak"
+          , {
+                { "name", name_ }
+                , { "formula", formula_ }
+                , { "peakId", peakid_ }
+                , { "baseId", baseid_ }
+                , { "startPos", startPos_ }
+                , { "topPos", topPos_ }
+                , { "endPos", endPos_ }
+                , { "startTime", double( startTime_ ) }
+                , { "peakTime",  double(peakTime_) }
+                , { "endTime",   double(endTime_) }
+                , { "peakFlags",  peak_flags_  }
+                , { "startHeight", startHeight_ }
+                , { "topHeight", topHeight_ }
+                , { "endHeight", endHeight_ }
+                , { "peakArea", peakArea_ }
+                , { "peakHeight", peakHeight_ }
+                , { "peakWidth", peakWidth_ }
+                , { "peakAmount", peakAmount_ }
+                , { "mannuallyModified", manuallyModified_ }
+                //, { "parentId", parentId_ }
+                //, { "appliedFunctions", appliedFunctions_ }
+
+            }
+        }
+    };
+    return boost::json::serialize( jv );
+    // return jv;
 }

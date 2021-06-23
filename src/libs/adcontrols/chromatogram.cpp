@@ -34,6 +34,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/date_time.hpp>
 #include <adportable/iso8601.hpp>
+#include <adportable/sgfilter.hpp>
 #include <adportable/utf.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -180,6 +181,43 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 8 )
+
+namespace {
+
+    struct find_first_cross_up {
+        std::pair< size_t, bool > operator()( double th
+                                              , const double * values
+                                              , size_t size
+                                              , size_t begin = 0 ) const {
+            adportable::SGFilter filter( 5 );
+            for ( size_t i = begin + 2; i < size - 2; ++i ) {
+                if ( filter( values + i ) < th && filter( values + i + 1 ) >= th ) {
+                    return {i, true};
+                }
+            }
+            return { begin, false };
+        };
+    };
+
+    struct find_last_cross_down {
+        std::pair< size_t, bool > operator()( double th
+                                              , const double * values
+                                              , size_t size
+                                              , size_t begin = 0 ) const {
+            adportable::SGFilter filter( 5 );
+            for ( size_t i = size - 3; i > begin + 1; --i ) {
+                if ( filter( values + i ) > th && filter( values + i + 1 ) >= th )
+                    return {i, true};
+            }
+            if ( filter( values + size - 3 ) > th ) { // last data is higher than th
+                return { size - 1, false };
+            }
+            return { begin, false };
+        }
+    };
+
+
+}
 
 ///////////////////////////////////////////
 
@@ -922,6 +960,75 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     result.peaks().add( pk );
 
     return true;
+}
+
+std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >
+Chromatogram::find_single_peak( double t0, double t1, bool horizontalBaseline, double baseLevel ) const
+{
+    auto it0 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t0 );
+    if ( it0 == pImpl_->timeArray_.end() )
+        return {};
+
+    auto it1 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t1 );
+
+    size_t pos0 = std::distance( pImpl_->timeArray_.begin(), it0 );
+    size_t pos1 = std::distance( pImpl_->timeArray_.begin(), it1 );
+
+    auto apex = std::distance( pImpl_->dataArray_.begin()
+                               , std::max_element( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1 ) );
+
+    // ADDEBUG() << "---------- find_single_peak ------------- apex: " << apex << ", " << std::make_pair( pos0, pos1 );
+
+    if ( auto pk = std::make_shared< Peak >() ) {
+        pk->setTopData( { apex, pImpl_->timeArray_[ apex ], pImpl_->dataArray_[ apex ] } );
+
+        pk->setPeakTime( pImpl_->timeArray_[ apex ] );
+        pk->setPeakHeight( pImpl_->dataArray_[ apex ] - baseLevel );
+
+        double h2 = ( pk->peakHeight() - baseLevel ) / 2.0;
+        // double h5 = ( pk->peakHeight() - baseLevel ) / 20.0;
+
+        auto [spos, sfound] = find_first_cross_up()( h2, pImpl_->dataArray_.data(), pk->topPos() );
+        if ( sfound ) {
+            double ha = pImpl_->dataArray_[ spos ];
+            double hb = pImpl_->dataArray_[ spos + 1 ];
+            double ta = pImpl_->timeArray_[ spos ];
+            double tb = pImpl_->timeArray_[ spos + 1 ];
+            double tt = ta + std::fabs( h2 - ha ) / ( hb - ha ) * ( tb - ta );
+            pk->setStartData( { spos, tt, h2 } );
+        } else {
+            pk->setStartData( { spos, pImpl_->timeArray_[ spos ], h2 } );
+        }
+
+        auto [epos, efound] = find_last_cross_down()( h2, pImpl_->dataArray_.data(), pImpl_->dataArray_.size(), pk->topPos() );
+        if ( efound ) {
+            double ha = pImpl_->dataArray_[ epos ];
+            double hb = pImpl_->dataArray_[ epos + 1 ];
+            double ta = pImpl_->timeArray_[ epos ];
+            double tb = pImpl_->timeArray_[ epos + 1 ];
+            double tt = ta + std::fabs( ha - h2 ) / ( ha - hb ) * ( tb - ta );
+            pk->setEndData( { epos, tt, h2 } );
+        } else {
+            pk->setEndData( { epos, pImpl_->timeArray_[ epos ], h2 } );
+        }
+
+        double area = std::accumulate( pImpl_->dataArray_.begin() + pk->startPos(), pImpl_->dataArray_.begin() + pk->endPos(), 0.0 );
+        pk->setPeakArea( area );
+        pk->setName( "single peak" );
+        pk->setPeakWidth( pk->endTime() - pk->startTime() );
+
+        if ( auto bs = std::make_shared< Baseline >() ) {
+            bs->setStartHeight( 0 );
+            bs->setStopHeight( 0 );
+            bs->setStartPos( pk->startPos() );
+            bs->setStopPos( pk->endPos() );
+            bs->setStartTime( pk->startTime() );
+            bs->setStopTime( pk->endTime() );
+            bs->setManuallyModified( true );
+            return { pk, bs };
+        }
+    }
+    return {};
 }
 
 Chromatogram::iterator

@@ -43,13 +43,15 @@ Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
     curve_->setItemAttribute( QwtPlotItem::Legend, false );
     curve_->attach( plot_ );
 
-    QRectF rc = plot.zoomRect();
+    // QRectF rc = plot.zoomRect();
 
     double x[2], y[2];
-    x [ 0 ] = peak.startTime(); // adcontrols::timeutil::toMinutes( peak.startTime() );
-    x [ 1 ] = peak.endTime(); // adcontrols::timeutil::toMinutes( peak.endTime() );
-    y [ 0 ] = y [ 1 ] = std::min( peak.startHeight(), peak.endHeight() ) - ( rc.height() / 20 );
-
+    x [ 0 ] = peak.startTime();
+    x [ 1 ] = peak.endTime();
+    //y [ 0 ] = peak.startHeight();
+    //y [ 1 ] = peak.endHeight();
+    // force horizontal
+    y [ 0 ] = y [ 1 ] = std::min( peak.startHeight(), peak.endHeight() ); // - ( rc.height() / 20 ); // <-- 5% offsset
 
     curve_->setSamples(  x, y, 2 );
 }
