@@ -189,6 +189,7 @@ namespace {
                                               , const double * values
                                               , size_t size
                                               , size_t begin = 0 ) const {
+            ADDEBUG() << "---------- find_first_cross_up ------------- ";
             adportable::SGFilter filter( 5 );
             for ( size_t i = begin + 2; i < size - 2; ++i ) {
                 if ( filter( values + i ) < th && filter( values + i + 1 ) >= th ) {
@@ -977,6 +978,13 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
 std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >
 Chromatogram::find_single_peak( double t0, double t1, bool horizontalBaseline, double baseLevel ) const
 {
+    // ADDEBUG() << "---------- find_single_peak ------------- : " << std::make_pair( t0, t1 );
+    if ( t0 < pImpl_->timeArray_.front() )
+        t0 = pImpl_->timeArray_.front();
+
+    if ( t1 < t0 || t1 > pImpl_->timeArray_.back() )
+        t1 = pImpl_->timeArray_.back();
+
     auto it0 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t0 );
     if ( it0 == pImpl_->timeArray_.end() )
         return {};

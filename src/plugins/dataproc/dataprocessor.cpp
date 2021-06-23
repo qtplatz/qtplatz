@@ -1049,12 +1049,13 @@ Dataprocessor::addContourClusters( std::shared_ptr< adcontrols::SpectrogramClust
 void
 Dataprocessor::findSinglePeak( portfolio::Folium& folium, std::pair< double, double > trange )
 {
+    // ADDEBUG() << "#################### " << __FUNCTION__ << trange;
     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-        if ( trange.first < 0 )
-            trange.first = chro->minimumTime();
-        if ( trange.second < 0 )
-            trange.first = chro->maximumTime();
+
+        // ADDEBUG() << "#################### " << __FUNCTION__ << " has chro: " << trange;
         auto res = chro->find_single_peak( trange.first, trange.second );
+
+        // ADDEBUG() << "#################### " << __FUNCTION__ << " find_single_peak";
         if ( res.first && res.second ) {
             if ( auto pkres = std::make_shared< adcontrols::PeakResult >() ) {
                 *pkres << std::move( res );
