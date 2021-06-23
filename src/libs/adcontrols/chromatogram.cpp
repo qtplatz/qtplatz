@@ -327,6 +327,18 @@ Chromatogram::setPeaks( const Peaks& peaks )
     pImpl_->peaks_ = peaks;
 }
 
+void
+Chromatogram::setSinglePeak( std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >&& t )
+{
+    auto [ pk, bs ] = t;
+    if ( pk && bs ) {
+        pImpl_->baselines_ = {};
+        pImpl_->peaks_ = {};
+        pImpl_->baselines_.add( *bs );
+        pImpl_->peaks_.add( *pk );
+    }
+}
+
 bool
 Chromatogram::isConstantSampledData() const
 {

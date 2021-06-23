@@ -778,6 +778,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
 
+                    menu.addAction( tr( "Find single peak (FI; DI-PTR)" ), [&] () { processor->findSinglePeak( folium ); } );
                     menu.addAction( tr( "Create Contour" ), [processor] () { processor->createContour(); } );
                     menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) );
                     menu.addSeparator();

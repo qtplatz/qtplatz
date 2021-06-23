@@ -1068,6 +1068,13 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
             }
         });
 
+        menu.addAction( tr( "Find single peak (FI; DI-PTR)" ), [&]() {
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                dp->findSinglePeak( folium );
+            }
+        });
+
         menu.exec( QCursor::pos() );
 
     } else {
@@ -1739,6 +1746,12 @@ MSProcessingWnd::compute_count( double s, double e )
         QApplication::clipboard()->setText( clipboard );
     }
 	return 0;
+}
+
+bool
+MSProcessingWnd::find_single_peak( const adcontrols::Chromatogram& chr )
+{
+    return true;
 }
 
 bool

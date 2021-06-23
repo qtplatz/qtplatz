@@ -200,6 +200,7 @@ namespace adcontrols {
 
         void setBaselines( const Baselines& );
         void setPeaks( const Peaks& );
+        void setSinglePeak( std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >&& );
 
         void setIsCounting( bool );
         bool isCounting() const;

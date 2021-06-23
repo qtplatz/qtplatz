@@ -129,6 +129,7 @@ namespace dataproc {
         bool compute_rms( double, double );
         bool compute_rms( const adcontrols::Chromatogram&, const std::pair<double, double>&, const std::string& name );
         std::pair<double, double> compute_minmax( double, double );
+        bool find_single_peak( const adcontrols::Chromatogram& );
         bool power_spectrum( const adcontrols::MassSpectrum&, const std::pair<size_t, size_t>& );
         void power_spectrum( const adcontrols::Chromatogram& );
         void estimateScanLaw( const boost::uuids::uuid& spectrometer_uuid );

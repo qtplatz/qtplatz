@@ -1047,6 +1047,28 @@ Dataprocessor::addContourClusters( std::shared_ptr< adcontrols::SpectrogramClust
 }
 
 void
+Dataprocessor::findSinglePeak( portfolio::Folium& folium, std::pair< double, double > trange )
+{
+    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        if ( trange.first < 0 )
+            trange.first = chro->minimumTime();
+        if ( trange.second < 0 )
+            trange.first = chro->maximumTime();
+        auto res = chro->find_single_peak( trange.first, trange.second );
+        if ( res.first && res.second ) {
+            if ( auto pkres = std::make_shared< adcontrols::PeakResult >() ) {
+                *pkres << std::move( res );
+                portfolio::Folium att = folium.addAttachment( L"Peak Result" ); // unique by default
+                att.assign( pkres, pkres->dataClass() );
+
+                SessionManager::instance()->updateDataprocessor( this, folium );
+                setModified( true );
+            }
+        }
+    }
+}
+
+void
 Dataprocessor::createContour()
 {
 	DataprocessWorker::instance()->createContour( this );
@@ -1370,7 +1392,7 @@ DataprocessorImpl::applyMethod( Dataprocessor * dataprocessor
     return false;
 }
 
-
+// FindPeak -- chromatographic peak find
 // static
 bool
 DataprocessorImpl::applyMethod( Dataprocessor *

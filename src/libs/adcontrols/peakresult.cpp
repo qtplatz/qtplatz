@@ -182,23 +182,9 @@ PeakResult::operator << ( std::pair< std::shared_ptr< Peak >, std::shared_ptr< B
     std::tie( pk, bs ) = std::move( t );
 
     if ( pk && bs ) {
-        ADDEBUG() << pk->json();
-#if 0
-        peaks_->erase( std::remove_if( peaks_->begin()
-                                       , peaks_->end()
-                                       , [&](const auto& a){
-                                           return a.peakTime() > pk->startTime() && a.peakTime() < pk->startTime();})
-                       , peaks_->end() );
-
-        baselines_->erase( std::remove_if( baselines_->begin()
-                                           , baselines_->end()
-                                           , [&](const auto& a){
-                                               return a.startTime() >= t.second->startTime() && a.stopTime() <= t.second->stopTime(); })
-                           , baselines_->end() );
-#else
         peaks_ = std::make_shared< Peaks >();
         baselines_ = std::make_shared< Baselines >();
-#endif
+
         pk->setBaseId( baselines_->add( *bs ) );
         peaks_->add( *pk );
     }
