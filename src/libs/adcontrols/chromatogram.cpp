@@ -331,7 +331,13 @@ Chromatogram::setPeaks( const Peaks& peaks )
 void
 Chromatogram::setSinglePeak( std::pair< std::shared_ptr< Peak >, std::shared_ptr< Baseline > >&& t )
 {
+#if __cplusplus >= 201703L
     auto [ pk, bs ] = t;
+#else
+    std::shared_ptr< Peak > pk;
+    std::shared_ptr< Baseline > bs;
+    std::tie( pk, bs ) = t;
+#endif
     if ( pk && bs ) {
         pImpl_->baselines_ = {};
         pImpl_->peaks_ = {};
@@ -1007,8 +1013,13 @@ Chromatogram::find_single_peak( double t0, double t1, bool horizontalBaseline, d
 
         double h2 = ( pk->peakHeight() - baseLevel ) / 2.0;
         // double h5 = ( pk->peakHeight() - baseLevel ) / 20.0;
-
+#if __cplusplus >= 201703L
         auto [spos, sfound] = find_first_cross_up()( h2, pImpl_->dataArray_.data(), pk->topPos() );
+#else
+        uint32_t spos;
+        bool sfound;
+        std::tie( spos, sfound ) = find_first_cross_up()( h2, pImpl_->dataArray_.data(), pk->topPos() );
+#endif
         if ( sfound ) {
             double ha = pImpl_->dataArray_[ spos ];
             double hb = pImpl_->dataArray_[ spos + 1 ];
@@ -1019,8 +1030,13 @@ Chromatogram::find_single_peak( double t0, double t1, bool horizontalBaseline, d
         } else {
             pk->setStartData( { spos, pImpl_->timeArray_[ spos ], h2 } );
         }
-
+#if __cplusplus >= 201703L
         auto [epos, efound] = find_last_cross_down()( h2, pImpl_->dataArray_.data(), pImpl_->dataArray_.size(), pk->topPos() );
+#else
+        uint32_t epos;
+        bool efound;
+        std::tie( epos, efound ) = find_last_cross_down()( h2, pImpl_->dataArray_.data(), pImpl_->dataArray_.size(), pk->topPos() );
+#endif
         if ( efound ) {
             double ha = pImpl_->dataArray_[ epos ];
             double hb = pImpl_->dataArray_[ epos + 1 ];
