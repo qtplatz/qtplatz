@@ -133,6 +133,19 @@ namespace chemistry {
         , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
         , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
         , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
+        , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC", { "Hexamethoxyphosphazene", "CAS NO: 957-13-1" } }
+        , { "C(C(F)F)OP1(=NP(=NP(=N1)(OCC(F)F)OCC(F)F)(OCC(F)F)OCC(F)F)OCC(F)F", { "Hexakis(2,2-Difluoroethoxy)Phosphazene", "CAS NO: 186817-57-2" } }
+        , { "C(C(C(F)F)(F)F)OP1(=NP(=NP(=N1)(OCC(C(F)F)(F)F)OCC(C(F)F)(F)F)(OCC(C(F)F)(F)F)OCC(C(F)F)(F)F)OCC(C(F)F)(F)F"
+            , { "Hexakis(1H, 1H, 3H-Tetrafluoropropoxy)Phosphazene" }}
+        , { "C(C(C(C(C(F)F)(F)F)(F)F)(F)F)OP1(=NP(=NP(=N1)(OCC(C(C(C(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(F)F)(F)F)(F)F)(F)F)(OCC(C(C(C(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(F)F)(F)F)(F)F)(F)F", { "Hexakis(1H, 1H, 5H-Octafluoropentoxy)Phosphazene" }}
+        , { "C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OP1(=NP(=NP(=N1)(OCC(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(OCC(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F"
+                    , { "Hexakis(1H, 1H, 7H-Dodecafluoroheptoxy)Phosphazene" }}
+        , { "C(C(C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OP1(=NP(=NP(=N1)(OCC(C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(OCC(C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)OCC(C(C(C(C(C(C(C(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F"
+            , { "Hexakis(1H, 1H, 9H-Perfluorononyloxy)Phosphazene" }}
+        , { "c1(nc(nc(n1)C(C(C(F)(F)F)(F)F)(F)F)C(C(C(F)(F)F)(F)F)(F)F)C(C(C(F)(F)F)(F)F)(F)F"
+            , { "Tris(Heptafluoropropyl)-S-Triazine" }}
+        , { "[H][C@]26C[C@@H](OC(=O)c1cc(OC)c(OC)c(OC)c1)[C@H](OC)[C@@H](C(=O)OC)[C@@]2([H])C[C@]5([H])c4[nH]c3cc(OC)ccc3c4CCN5C6"
+            , { "Reserpine" }}
     };
 
 }
