@@ -128,7 +128,8 @@ namespace chemistry {
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
         , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC",      { "Hexamethoxyphosphazine" } }
-        , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK-1", "PHYLLOQUINONE OXIDE" } }
+        , { "CC1=C(C(=O)C2=CC=CC=C2C1=O)CC=C(C)CCCC(C)CCCC(C)CCCC(C)C", { "VK-1" } }
+        , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK1 oxide", "PHYLLOQUINONE OXIDE" } }
         , { "CCCCCCCCCCCCCCCCCCCCCCCC(=O)O",          { "Tetracosanoic acid", "Lignoceric acid" } }
         , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
         , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
