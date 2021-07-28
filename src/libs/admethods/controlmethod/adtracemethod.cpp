@@ -29,11 +29,12 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#if HAVE_Qt5
 #include <QByteArray>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-
+#endif
 #include <string>
 #include <map>
 #include <vector>
@@ -102,6 +103,7 @@ ADTraceMethod::restore( std::istream& is, ADTraceMethod& t )
 std::string
 ADTraceMethod::toJson( bool pritty ) const
 {
+#if HAVE_Qt5
     QJsonArray a;
 
     for ( const auto& t: data_ ) {
@@ -111,11 +113,15 @@ ADTraceMethod::toJson( bool pritty ) const
     QJsonObject jobj{ {"clsid", __clsid_str}, { "modelClass", __modelClass__ }, { "data", a } };
 
     return QJsonDocument( jobj ).toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ).toStdString();
+#else
+    return {};
+#endif
 }
 
 void
 ADTraceMethod::fromJson( const std::string& json )
 {
+#if HAVE_Qt5
     auto jobj = QJsonDocument::fromJson( QByteArray( json.data(), json.size() ) ).object();
     if ( jobj[ "clsid" ].toString() != __clsid_str )
         assert(0);
@@ -132,6 +138,9 @@ ADTraceMethod::fromJson( const std::string& json )
         }
         ++it;
     }
+#else
+    assert(0);
+#endif
 }
 
 ///////////////////////////
