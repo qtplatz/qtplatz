@@ -41,6 +41,9 @@ namespace adlog {
 		logger& operator << ( const wchar_t *);
         std::string string() const;
 
+        enum logsink { logging_syslog, logging_file };
+        static void enable( logsink );
+
     private:
         int pri_;
         int line_;

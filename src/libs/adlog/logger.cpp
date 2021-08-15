@@ -24,14 +24,21 @@
 
 #include "logger.hpp"
 #include "logging_handler.hpp"
+#include "logging_debug.hpp"
+#include "logging_file.hpp"
+#include "logging_syslog.hpp"
 #include <adportable/string.hpp>
 #include <boost/system/error_code.hpp>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
+
 
 using namespace adlog;
+
+static std::once_flag __once_flag;
 
 logger::logger( const char * file
                 , int line
@@ -40,6 +47,22 @@ logger::logger( const char * file
                             , file_(file == 0 ? "" : file)
                             , tp_( std::chrono::system_clock::now() )
 {
+    std::call_once( __once_flag, [](){
+        logging_debug::instance()->initialize();
+    });
+}
+
+void
+logger::enable( logsink sink )
+{
+    switch( sink ) {
+    case logging_syslog:
+        logging_syslog::instance()->initialize();
+        break;
+    case logging_file:
+        logging_file::instance()->initialize();
+        break;
+    };
 }
 
 logger::~logger()

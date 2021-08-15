@@ -99,8 +99,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
 	(void)error_message;
 
-    adlog::logging_handler::instance()->setpid( ::getpid() );
-
     if ( ( outputWindow_ = new OutputWindow ) ) {
         addAutoReleasedObject( outputWindow_ );
 

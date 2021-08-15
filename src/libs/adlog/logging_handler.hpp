@@ -51,26 +51,31 @@ namespace adlog {
         // static void log( int pri, const std::string& msg, const std::string& file, int line );
 
         // actual handler type
-        typedef boost::signals2::signal<void(int /* pri */
-                                             , const std::string& /* text */
-                                             , const std::string& /* file */
-                                             , int /* line */
-                                             , const std::chrono::system_clock::time_point& ) > handler_type;
+        typedef boost::signals2::signal< void ( int /* pri */
+                                                , const std::string& /* text */
+                                                , const std::string& /* file */
+                                                , int /* line */
+                                                , const std::chrono::system_clock::time_point& ) > handler_type;
 
         boost::signals2::connection register_handler( handler_type::slot_type );
+
 		typedef std::vector< handler_type >::iterator iterator;
 
-        void appendLog( int pri, const std::string& msg, const std::string& file, int line, const std::chrono::system_clock::time_point& );
+        void appendLog( int pri
+                        , const std::string& msg
+                        , const std::string& file
+                        , int line
+                        , const std::chrono::system_clock::time_point& );
 		void close();
 
-        void setpid( uint64_t id );
-        void setlogfile( const std::string& );
-        const std::string& logfile() const;
+        inline uint64_t pid() const { return pid_; }
+        inline handler_type& loggers() { return logger_; }
 
     private:
         static std::mutex mutex_;
         std::string logfile_;
         handler_type logger_;
+        uint64_t pid_;
     };
 
 }

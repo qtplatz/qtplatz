@@ -23,42 +23,27 @@
 **************************************************************************/
 
 #include "logging_handler.hpp"
+#include "logging_syslog.hpp"
+#include "logging_debug.hpp"
 #include "logger.hpp"
-#include <adportable/profile.hpp>
-#include <adportable/date_string.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/debug_core.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <fstream>
 #if defined WIN32
 #include <process.h>
 #endif
-#if defined __linux__
-# include <syslog.h>
-#endif
+#include <adportable/debug.hpp>
 
 using namespace adlog;
 
 std::mutex logging_handler::mutex_;
 
-static std::once_flag __flag;
-static uint64_t __pid;
-
 logging_handler::logging_handler()
 {
-    boost::filesystem::path logfile( adportable::profile::user_data_dir<char>() );
-    logfile /= "adlog.log";
-    logfile_ = logfile.string();
 #if defined WIN32
-	__pid = ::_getpid();
+	pid_ = ::_getpid();
 #else
-    __pid = ::getpid();
+    pid_ = ::getpid();
 #endif
-#ifdef __linux__
-    openlog( "adlog", LOG_CONS | LOG_PID,  LOG_USER );
-#endif
-    // adportable::core::debug_core::instance()->open( std::string() );  // disable file logging
 }
 
 logging_handler *
@@ -68,27 +53,10 @@ logging_handler::instance()
     return &__instance;
 }
 
-const std::string&
-logging_handler::logfile() const
-{
-    return logfile_;
-}
-
-void
-logging_handler::setlogfile( const std::string& logfile )
-{
-    logfile_ = logfile;
-}
-
-void
-logging_handler::setpid( uint64_t pid )
-{
-    std::call_once( __flag, [&](){ __pid = pid; } );
-}
-
 boost::signals2::connection
 logging_handler::register_handler( handler_type::slot_type subscriber )
 {
+    ADDEBUG() << "######################## register_handler ####################";
     return logger_.connect( subscriber );
 }
 
@@ -99,22 +67,8 @@ logging_handler::appendLog( int pri
                             , int line
                             , const std::chrono::system_clock::time_point& tp  )
 {
-    // forward (for graphical logging display on qtplatz)
+    ADDEBUG() << "############### fire appendLog";
     logger_( pri, msg, file, line, tp );
-
-#ifdef __linux__
-    if ( file.empty() || pri == LOG_INFO ) {
-        syslog( pri, "%s", msg.c_str() );        
-    } else {
-        syslog( pri, "%s", ( boost::format( "%s; at %s(%d)" ) % msg % file % line ).str().c_str() );
-    }
-#else
-    if ( !logfile_.empty() ) {
-        std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
-        of << adportable::date_string::logformat( tp ) << ":[" << __pid << "]\t" << msg << std::endl;
-    }
-    adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
-#endif
 }
 
 void
