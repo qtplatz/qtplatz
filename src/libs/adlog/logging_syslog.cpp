@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,54 +22,62 @@
 **
 **************************************************************************/
 
-#include "logging_handler.hpp"
 #include "logging_syslog.hpp"
-#include "logging_debug.hpp"
-#include "logger.hpp"
+#include "logging_handler.hpp"
 #include <boost/format.hpp>
-#include <fstream>
-#if defined WIN32
-#include <process.h>
+#ifdef __linux__
+# include <syslog.h>
 #endif
 #include <adportable/debug.hpp>
 
 using namespace adlog;
 
-std::mutex logging_handler::mutex_;
-
-logging_handler::logging_handler()
+logging_syslog *
+logging_syslog::instance()
 {
-#if defined WIN32
-	pid_ = ::_getpid();
-#else
-    pid_ = ::getpid();
-#endif
-}
-
-logging_handler *
-logging_handler::instance()
-{
-    static logging_handler __instance;
+    static logging_syslog __instance;
     return &__instance;
 }
 
-boost::signals2::connection
-logging_handler::register_handler( handler_type::slot_type subscriber )
+logging_syslog::logging_syslog()
 {
-    return logger_.connect( subscriber );
+#ifdef __linux__
+    // openlog( boost::log::attributes::current_process_name().get().c_str(), LOG_CONS | LOG_PID,  LOG_USER );
+    openlog( nullptr, LOG_CONS | LOG_PID,  LOG_USER );
+#endif
+}
+
+logging_syslog::~logging_syslog()
+{
+#ifdef __linux__
+    closelog();
+    terminate();
+#endif
 }
 
 void
-logging_handler::appendLog( int pri
+logging_syslog::operator()( int pri
                             , const std::string& msg
                             , const std::string& file
                             , int line
-                            , const std::chrono::system_clock::time_point& tp  )
+                            , const std::chrono::system_clock::time_point& ) const
 {
-    logger_( pri, msg, file, line, tp );
+#ifdef __linux__
+    syslog( pri, "%s", ( boost::format( "%s; at %s(%d)" ) % msg % file % line ).str().c_str() );
+#endif
+}
+
+bool
+logging_syslog::initialize()
+{
+    if ( ! connection_.connected() ) {
+        connection_ = logging_handler::instance()->register_handler( *this );
+    }
+    return connection_.connected();
 }
 
 void
-logging_handler::close()
+logging_syslog::terminate()
 {
+    connection_.disconnect();
 }

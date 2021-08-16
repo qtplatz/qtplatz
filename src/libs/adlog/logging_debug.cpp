@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,54 +22,51 @@
 **
 **************************************************************************/
 
-#include "logging_handler.hpp"
-#include "logging_syslog.hpp"
 #include "logging_debug.hpp"
-#include "logger.hpp"
-#include <boost/format.hpp>
-#include <fstream>
-#if defined WIN32
-#include <process.h>
-#endif
+#include "logging_handler.hpp"
+#include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/debug_core.hpp>
 
 using namespace adlog;
 
-std::mutex logging_handler::mutex_;
-
-logging_handler::logging_handler()
+logging_debug *
+logging_debug::instance()
 {
-#if defined WIN32
-	pid_ = ::_getpid();
-#else
-    pid_ = ::getpid();
-#endif
-}
-
-logging_handler *
-logging_handler::instance()
-{
-    static logging_handler __instance;
+    static logging_debug __instance;
     return &__instance;
 }
 
-boost::signals2::connection
-logging_handler::register_handler( handler_type::slot_type subscriber )
+logging_debug::logging_debug()
 {
-    return logger_.connect( subscriber );
+}
+
+logging_debug::~logging_debug()
+{
+    terminate();
 }
 
 void
-logging_handler::appendLog( int pri
+logging_debug::operator()( int pri
                             , const std::string& msg
                             , const std::string& file
                             , int line
-                            , const std::chrono::system_clock::time_point& tp  )
+                            , const std::chrono::system_clock::time_point& tp ) const
 {
-    logger_( pri, msg, file, line, tp );
+    adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
+}
+
+bool
+logging_debug::initialize()
+{
+    if ( ! connection_.connected() ) {
+        connection_ = logging_handler::instance()->loggers().connect( *this );
+    }
+    return connection_.connected();
 }
 
 void
-logging_handler::close()
+logging_debug::terminate()
 {
+    connection_.disconnect();
 }
