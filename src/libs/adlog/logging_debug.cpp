@@ -53,7 +53,7 @@ logging_debug::operator()( int pri
                             , int line
                             , const std::chrono::system_clock::time_point& tp ) const
 {
-    adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
+    adportable::debug(file.c_str(),line) << /* adportable::date_string::logformat( tp ) << */ "\t" << msg;
 }
 
 bool
