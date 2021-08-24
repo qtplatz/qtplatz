@@ -70,6 +70,7 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
+  adportable_global.h
   debug.hpp
   float.hpp
   fft.hpp
