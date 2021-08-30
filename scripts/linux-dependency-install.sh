@@ -8,7 +8,10 @@ PYTHON_VERSION=$(python3 -c "import sys; print('{}.{}'.format(*sys.version_info)
 
 echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 
-#qt5
+# u-boot
+list_dependency+=('bison' 'flex')
+
+# qt5
 list_dependency+=('mesa-common-dev'
 		  'libglu1-mesa-dev'
 		  'freeglut3-dev'
@@ -18,28 +21,28 @@ list_dependency+=('mesa-common-dev'
 		  'libxcb-xinerama0-dev'
 		)
 
-#boost
+# boost
 list_dependency+=('libbz2-dev')
 
-#python3
+# python3
 list_dependency+=("python${PYTHON_VERSION}-dev" 'python3-pip')
 
-#rtags
+# rtags
 list_dependency+=('clang-3.9'
 		  'lldb-3.9'
 		  'libclang-3.9-dev')
 
-#qt5 from source build
+# qt5 from source build
 #list_dependency+=('libclang-3.8-dev')
 
-#rdkit
+# rdkit
 list_dependency+=('libeigen3-dev' ) # 'libschroedinger-maeparser-dev' <-- something wrong
 
-#cmake+opencv
+# cmake+opencv
 list_dependency+=('libcurl4-openssl-dev'
 		  'libhdf5-dev')
 
-#jpeg
+# jpeg
 list_dependency+=('nasm'
 		  'libass-dev'
 		  'libfdk-aac-dev')

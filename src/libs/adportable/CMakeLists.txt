@@ -71,15 +71,89 @@ install( TARGETS ${PROJECT_NAME}
 
 install( FILES
   adportable_global.h
-  debug.hpp
-  float.hpp
-  fft.hpp
-  formula_parser.hpp
-  graycode.hpp
   base64.hpp
   base85.hpp
   binary_search.hpp
   binary_serializer.hpp
+  date_time.hpp
+  debug.hpp
+  fft.hpp
+  float.hpp
+  formula_parser.hpp
+  graycode.hpp
+  iso8601.hpp
   serializer.hpp
   DESTINATION include/adportable COMPONENT headers
   )
+
+#[[
+adconv.hpp
+advance.hpp
+array_wrapper.hpp
+average.hpp
+base64.hpp
+base85.hpp
+basic_waveform.hpp
+binary_search.hpp
+binary_serializer.hpp
+bzip2.hpp
+combination.hpp
+configloader.hpp
+configuration.hpp
+constants.hpp
+countrate_calculator.hpp
+date_string.hpp
+date_time.hpp
+debug.hpp
+debug_core.hpp
+fft.hpp
+find_threshold_peaks.hpp
+find_threshold_timepoints.hpp
+float.hpp
+for_each_combination.hpp
+formula_parser.hpp
+gdiostate.hpp
+graycode.hpp
+histogram_processor.hpp
+http_client.hpp
+is_equal.hpp
+is_same.hpp
+is_type.hpp
+lifecycleframe.hpp
+mass_assign_t.hpp
+mblock.hpp
+moment.hpp
+mslockref.hpp
+optional.hpp
+pkfinder.hpp
+polfit.hpp
+profile.hpp
+protocollifecycle.hpp
+safearray.hpp
+scanlaw_solver.hpp
+scope_timer.hpp
+scoped_debug.hpp
+scoped_flag.hpp
+semaphore.hpp
+serialization_shared_ptr.hpp
+serializer.hpp
+serialport.hpp
+sgfilter.hpp
+singleton.hpp
+spectrum_processor.hpp
+split_filename.hpp
+string.hpp
+textfile.hpp
+time_format.hpp
+timer.hpp
+timesquaredscanlaw.hpp
+unique_ptr.hpp
+utf.hpp
+uuid.hpp
+waveform_averager.hpp
+waveform_peakfinder.hpp
+waveform_processor.hpp
+waveform_simulator.hpp
+waveform_wrapper.hpp
+xml_serializer.hpp
+]]
