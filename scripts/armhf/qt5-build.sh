@@ -19,5 +19,9 @@ cd ~/src/build-armhf/qt5-build
 
 /opt/Qt/$QTVER/Src/configure -nomake examples -nomake tests -skip qtandroidextras -release -xplatform linux-arm-gnueabihf-g++ -prefix $prefix -opensource -confirm-license
 
-make -j8 module-qtbase module-qtlocation
-make -j8 module-qtbase module-qtlocation install
+if make -j8 module-qtbase module-qtlocation; then
+	echo "build success. going to install..."
+	sudo make -j8 module-qtbase module-qtlocation install
+else
+	echo "build qt5 failed."
+fi
