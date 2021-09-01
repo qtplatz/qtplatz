@@ -37,7 +37,7 @@ struct sqlite3_blob;
 namespace adfs {
 
     enum flags { readonly, readwrite, opencreate };
-    enum sqlite_state { sqlite_ok, sqlite_done, sqlite_row, sqlite_error, sqlite_constraint, sqlite_locked };
+    enum sqlite_state { sqlite_ok, sqlite_done, sqlite_row, sqlite_error, sqlite_constraint, sqlite_locked, sqlite_misuse };
     enum uuid_format { uuid_text, uuid_binary };
 
     class blob;
@@ -105,6 +105,7 @@ namespace adfs {
         bool prepare( const std::wstring& );
         bool reset();
         int errcode() const;
+        int extended_errcode() const;
         std::string errmsg() const;
 
         sqlite_state step();

@@ -15,7 +15,8 @@ if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4669 )
 endif()
 
-add_definitions(-DSQLITE_THREADSAFE)
+add_definitions( -DSQLITE_THREADSAFE )
+add_definitions( -DLOG_ADLOG=1 )
 
 if ( WIN32 )
   set( adfs_SOURCE apiwin32.cpp apiwin32.hpp )
@@ -46,6 +47,7 @@ add_library( ${PROJECT_NAME} SHARED
   )
 
 target_link_libraries( adfs LINK_PUBLIC
+  adlog
   adportable
   adportable_serializer
   ${oslibs}
