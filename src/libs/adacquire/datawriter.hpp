@@ -100,8 +100,11 @@ namespace adacquire {
             virtual bool write( adfs::filesystem&, const boost::uuids::uuid& ) const;
             virtual uint32_t myId() const { return myId_; }
             const DataAccess * accessor() const { return accessor_.get(); }
+            void setIdent( const std::string& t ) { ident_ = t; }
+            const std::string& ident() const { return ident_; }
         protected:
             std::shared_ptr< DataAccess > accessor_;
+            std::string ident_;
             const uint32_t myId_;
             static uint32_t idCounter_;
         };

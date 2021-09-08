@@ -213,7 +213,6 @@ SampleProcessor::storage_name() const
 void
 SampleProcessor::writer_thread()
 {
-    size_t total_octets(0);
     do {
         sema_.wait();
 
@@ -231,7 +230,7 @@ SampleProcessor::writer_thread()
                 return; // end of thread
         } while (0);
 
-        auto wc = __write( objId, writer );
+        __write( objId, writer );
 
         if ( c_acquisition_active_ && closed_flag_ ) {
             auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();

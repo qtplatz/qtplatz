@@ -274,7 +274,7 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 }
 
 void
-task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& dw, const std::string& ident )
+task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& dw )
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
 
@@ -283,11 +283,9 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
 
 #ifndef NDEBUG
     if ( auto p = dw->accessor()->pos_range() ) {
-        ADDEBUG() << "\t\t##### task::handle_write myId = " << dw->myId() << ", range: " << *p << " ##### " << ident
-                  << ", " << uuid;
+        ADDEBUG() << "\t\t##### task::handle_write myId = " << dw->myId() << ", range: " << *p << " ##### "
+                  << dw->ident()  << ", " << uuid;
     }
-    // else if ( uuid == acqrscontrols::u5303a::timecount_observer )
-    //     ADDEBUG() << "\t\t##### task::handle_writer myId = " << dw->myId() << ", range: " << "none" << " #####";
 #endif
 
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
