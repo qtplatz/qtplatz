@@ -279,10 +279,6 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
     if ( impl_->sequence_->size() == 0 && impl_->sequence_warning_count_++ == 0 )
         ADDEBUG() << "handle_write -- no sample processor in sample sequence";
 
-#if ! defined NDEBUG && 0
-    ADDEBUG() << "handle_write(" << uuid << ")";
-#endif
-
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
 
         sampleprocessor->write( uuid, dw );

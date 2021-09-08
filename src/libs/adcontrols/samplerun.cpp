@@ -306,8 +306,9 @@ size_t
 SampleRun::operator ++ ()
 {
     uint32_t prev = impl_->runNumber_++;
+#if !defined NDEBUG && 0
     ADDEBUG() << "##### increment sample run number : " << prev << " --> " << impl_->runNumber_ << " ####################";
-
+#endif
     boost::filesystem::path dir( impl_->dataDirectory_ );
 
     bool exists( false );

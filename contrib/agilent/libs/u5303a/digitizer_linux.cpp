@@ -262,9 +262,6 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_trigger_inject()
 {
-#ifndef NDEBUG
-    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
-#endif
     return task::instance()->trigger_inject_out();
 }
 
@@ -350,8 +347,9 @@ task::instance()
 bool
 task::initialize()
 {
+#if !defined NDEBUG
     ADDEBUG() << "####################### task::initialize #########################";
-
+#endif
 	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
@@ -416,7 +414,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "##### task::" << __FUNCTION__ << " #####";
 #endif
     c_injection_requested_ = true;
@@ -531,8 +529,9 @@ task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
         waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
-
-        ADDEBUG() << "## INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
+#if !defined NDEBUG
+        ADDEBUG() << "### INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
+#endif
     }
 
     waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;

@@ -31,10 +31,10 @@ namespace acqrscontrols {
 
     class ACQRSCONTROLSSHARED_EXPORT counting_data_writer : public adacquire::SignalObserver::DataWriter {
     public:
-        counting_data_writer( std::shared_ptr< threshold_result_accessor > a ) : DataWriter( a ) {
-        }
-        
-        bool write( adfs::filesystem& fs ) const override;
+        ~counting_data_writer();
+        counting_data_writer( std::shared_ptr< threshold_result_accessor >&& );
+
+        bool write( adfs::filesystem& fs, const boost::uuids::uuid& selfId ) const override;
         static bool prepare_storage( adfs::filesystem& fs );
     };
 
@@ -47,9 +47,8 @@ namespace acqrscontrols {
         typedef threshold_result_accessor_< T > threshold_result_accessor_type;
         counting_data_writer_( std::shared_ptr< threshold_result_accessor_type > a ) : DataWriter( a ) {
         }
-        
-        bool write( adfs::filesystem& fs ) const override;
+
+        bool write( adfs::filesystem& fs, const boost::uuids::uuid& ) const override;
     };
 
 }
-

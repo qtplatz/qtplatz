@@ -86,8 +86,7 @@ namespace adacquire {
 
         void writer_thread();
 
-        std::pair<uint32_t, size_t>
-        __write( const boost::uuids::uuid& objId, std::shared_ptr< adacquire::SignalObserver::DataWriter > );
+        uint32_t __write( const boost::uuids::uuid& objId, std::shared_ptr< adacquire::SignalObserver::DataWriter > );
         void __close();
 
         static void populate_descriptions( SignalObserver::Observer *, adfs::sqlite& );

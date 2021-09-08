@@ -32,7 +32,7 @@ namespace acqrscontrols {
     class pkd_counting_data_writer : public adacquire::SignalObserver::DataWriter {
     public:
         pkd_counting_data_writer( std::shared_ptr< acqrscontrols::waveform_accessor_< acqrscontrols::u5303a::waveform > > a );
-        bool write( adfs::filesystem& fs ) const override;
+        bool write( adfs::filesystem& fs, const boost::uuids::uuid& ) const override;
 
         //
         static bool prepare_storage( adfs::filesystem& fs );
@@ -41,4 +41,3 @@ namespace acqrscontrols {
     };
 
 }
-

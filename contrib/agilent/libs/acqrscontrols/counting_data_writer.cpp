@@ -27,7 +27,9 @@
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adlog/logger.hpp>
-// #include <adportable/debug.hpp>
+#if ! defined NDEBUG
+# include <adportable/debug.hpp>
+#endif
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 
@@ -63,14 +65,30 @@ namespace acqrscontrols {
         return true;
     }
 
+    counting_data_writer::counting_data_writer( std::shared_ptr< threshold_result_accessor >&& a ) : DataWriter( a )
+    {
+    }
+
+    counting_data_writer::~counting_data_writer()
+    {
+    }
 
     bool
-    counting_data_writer::write( adfs::filesystem& fs ) const
+    counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& ) const
     {
         if ( auto accessor = dynamic_cast< threshold_result_accessor * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
 
                 auto wp = rp->data();  // waveform
+#if ! defined NDEBUG
+                // -----> debug
+                uint32_t tid ( 0 );
+                adfs::stmt sql2( fs.db() );
+                sql2.prepare( "SELECT MAX(id),timeSinceEpoch FROM trigger" );
+                if ( sql2.step() == adfs::sqlite_row )
+                    tid = sql2.get_column_value< uint64_t >( 0 );
+#endif
+                // <----
 
                 do {
                     adfs::stmt sql( fs.db() );
@@ -85,7 +103,18 @@ namespace acqrscontrols {
                     sql.bind( id++ ) = rp->threshold_level();  // V
                     sql.bind( id++ ) = int( rp->algo() );
                     if ( sql.step() != adfs::sqlite_done ) {
-                        ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
+                        if ( sql.extended_errcode() == 1555 ) {
+                            ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg()
+                                      << "\tpos=" << wp->serialnumber_ << ", max.id=" << tid
+                                      << "\tmyId=" << this->myId();
+                        } else {
+                            ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
+                        }
+                        return true;
+                    } else {
+#if ! defined NDEBUG
+                        ADTRACE() << "ok: pos=" << wp->serialnumber_ << ", max trig.id=" << tid << "\tmyId=" << this->myId();
+#endif
                     }
                 } while ( 0 );
 
@@ -120,7 +149,7 @@ namespace acqrscontrols {
 
     template<> ACQRSCONTROLSSHARED_EXPORT
     bool
-    counting_data_writer_< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::write( adfs::filesystem& fs ) const
+    counting_data_writer_< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::write( adfs::filesystem& fs, const boost::uuids::uuid& ) const
     {
         if ( auto accessor = dynamic_cast< threshold_result_accessor_type * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
@@ -141,6 +170,7 @@ namespace acqrscontrols {
                     sql.bind( id++ ) = int( rp->algo() );
                     if ( sql.step() != adfs::sqlite_done ) {
                         ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
+                        return true;
                     }
                 } while ( 0 );
 

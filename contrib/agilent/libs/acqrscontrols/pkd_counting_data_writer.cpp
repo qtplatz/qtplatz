@@ -40,7 +40,7 @@ namespace acqrscontrols {
     // This should be called from SampleProcessor::write within a loop of do { } while ( writer.next() )
     // so that here we should write data only for the current single waveform
     bool
-    pkd_counting_data_writer::write( adfs::filesystem& fs ) const
+    pkd_counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& ) const
     {
         if ( auto accessor = dynamic_cast< acqrscontrols::waveform_accessor_< acqrscontrols::u5303a::waveform > * >( accessor_.get() ) ) {
 
@@ -72,7 +72,7 @@ namespace acqrscontrols {
                   << ", " << w.method_._device_method().pkd_falling_delta
                   << ", navg: " << w.method_._device_method().nbr_of_averages;
 #endif
-        
+
         tp = w.timeSinceEpoch_;
 
         do {
@@ -121,12 +121,12 @@ namespace acqrscontrols {
                     sql.bind( 3 ) = count;
                     if ( sql.step() != adfs::sqlite_done ) {
                         ADDEBUG() << "sql error";
-                        return true;                                
+                        return true;
                     }
                 }
                 idx++;
             }
-            
+
         } while ( 0 );
 
         return true;
@@ -137,7 +137,7 @@ namespace acqrscontrols {
     pkd_counting_data_writer::prepare_storage( adfs::filesystem& fs )
     {
         adfs::stmt sql( fs.db() );
-        
+
         sql.exec(
             "CREATE TABLE trigger ("
             " id INTEGER PRIMARY KEY"
@@ -162,7 +162,7 @@ namespace acqrscontrols {
             ", FOREIGN KEY( idTrigger ) REFERENCES trigger( id ))" );
 
         // CAUTION: duplicated with infitof/src/plubins/infitofs/document.cpp
-        // table for threshold counting 
+        // table for threshold counting
         sql.exec(
             "CREATE TABLE peak ("
             " idTrigger INTEGER"
