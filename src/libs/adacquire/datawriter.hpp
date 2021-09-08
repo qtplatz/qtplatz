@@ -98,7 +98,7 @@ namespace adacquire {
 
             // specific data write method
             virtual bool write( adfs::filesystem&, const boost::uuids::uuid& ) const;
-            uint32_t myId() const { return myId_; }
+            virtual uint32_t myId() const { return myId_; }
             const DataAccess * accessor() const { return accessor_.get(); }
         protected:
             std::shared_ptr< DataAccess > accessor_;

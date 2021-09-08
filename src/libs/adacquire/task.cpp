@@ -25,10 +25,12 @@
 #include "task.hpp"
 #include "automaton.hpp"
 #include "constants.hpp"
+#include "datawriter.hpp"
 #include "masterobserver.hpp"
 #include "sampleprocessor.hpp"
 #include "samplesequence.hpp"
 #include "time_event_processor.hpp"
+#include "../../../contrib/agilent/libs/acqrscontrols/constants.hpp"
 #include <acewrapper/udpeventreceiver.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -272,12 +274,21 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 }
 
 void
-task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& dw )
+task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::SignalObserver::DataWriter >&& dw, const std::string& ident )
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
 
     if ( impl_->sequence_->size() == 0 && impl_->sequence_warning_count_++ == 0 )
         ADDEBUG() << "handle_write -- no sample processor in sample sequence";
+
+#ifndef NDEBUG
+    if ( auto p = dw->accessor()->pos_range() ) {
+        ADDEBUG() << "\t\t##### task::handle_write myId = " << dw->myId() << ", range: " << *p << " ##### " << ident
+                  << ", " << uuid;
+    }
+    // else if ( uuid == acqrscontrols::u5303a::timecount_observer )
+    //     ADDEBUG() << "\t\t##### task::handle_writer myId = " << dw->myId() << ", range: " << "none" << " #####";
+#endif
 
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
 

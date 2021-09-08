@@ -24,6 +24,7 @@
 
 #include "counting_data_writer.hpp"
 #include "threshold_result_accessor.hpp"
+#include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adlog/logger.hpp>
@@ -74,8 +75,12 @@ namespace acqrscontrols {
     }
 
     bool
-    counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& ) const
+    counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& objId ) const
     {
+        if ( acqrscontrols::u5303a::timecount_observer != objId ) {
+            ADDEBUG() << "############### objid does not match !!!! INTERNAL ERROR ###################";
+        }
+
         if ( auto accessor = dynamic_cast< threshold_result_accessor * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
 

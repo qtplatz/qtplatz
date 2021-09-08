@@ -264,10 +264,10 @@ SampleProcessor::__write( const boost::uuids::uuid& objId
     uint32_t wcount(0);
 
     writer->rewind();
-#if !defined NDEBUG
+#if !defined NDEBUG && 0
     if ( acqrscontrols::u5303a::timecount_observer == objId )
         if ( auto p = writer->accessor()->pos_range() )
-            ADDEBUG() << "========================== writer rewind ===========================: " << writer->myId()
+            ADDEBUG() << "========================== writer rewind ===============: " << writer->myId()
                       << ", " << *p;
 #endif
     do {
@@ -275,8 +275,7 @@ SampleProcessor::__write( const boost::uuids::uuid& objId
         if ( ! c_acquisition_active_ ) {
 
             if ( writer->events() & SignalObserver::wkEvent_INJECT ) {
-                ADINFO() << boost::format ( "INJECT TRIGGERD [%s] EVENT: 0x%x OBJECT: " )
-                    % fs_->filename() % writer->events() << objId;
+                // ADINFO() << boost::format ( "INJECT TRIGGERD [%s] EVENT: 0x%x OBJECT: " ) % fs_->filename() % writer->events() << objId;
                 if ( !c_acquisition_active_ ) { // protect from chattering
                     ts_inject_trigger_ = writer->epoch_time(); // uptime;
                     c_acquisition_active_ = true;
