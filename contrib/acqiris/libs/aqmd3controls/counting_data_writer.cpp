@@ -63,7 +63,7 @@ namespace aqmd3controls {
 
 
     bool
-    counting_data_writer::write( adfs::filesystem& fs ) const
+    counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& ) const
     {
         if ( auto accessor = dynamic_cast< pkd_result_accessor * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const aqmd3::pkd_result >

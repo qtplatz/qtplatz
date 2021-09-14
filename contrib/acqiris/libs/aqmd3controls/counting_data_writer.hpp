@@ -35,7 +35,7 @@ namespace aqmd3controls {
         counting_data_writer( std::shared_ptr< pkd_result_accessor > a ) : DataWriter( a ) {
         }
 
-        bool write( adfs::filesystem& fs ) const override;
+        bool write( adfs::filesystem& fs, const boost::uuids::uuid& ) const override;
         static bool prepare_storage( adfs::filesystem& fs );
     };
 

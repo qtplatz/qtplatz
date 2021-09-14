@@ -398,7 +398,12 @@ task::impl::handle_trace_data( data_status& status, std::shared_ptr<adacquire::S
         auto accessor = std::make_shared< socfpga::dgmod::data_accessor >( data );
         io_service_.post( [=](){
             adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__
-                                                       , std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) ); } );
+                                                       , std::make_shared< adacquire::SignalObserver::DataWriter >( accessor )
+#if ! defined NDEBUG
+                                                       , __FILE__, __LINE__
+#endif
+                );
+        } );
     } while ( 0 );
     // ============================================================================
 }

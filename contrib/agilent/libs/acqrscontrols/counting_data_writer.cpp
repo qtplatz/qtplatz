@@ -78,7 +78,9 @@ namespace acqrscontrols {
     counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& objId ) const
     {
         if ( acqrscontrols::u5303a::timecount_observer != objId ) {
+#ifndef NDEBUG
             ADDEBUG() << "############### objid does not match !!!! INTERNAL ERROR ###################";
+#endif
         }
 
         if ( auto accessor = dynamic_cast< threshold_result_accessor * >( accessor_.get() ) ) {
@@ -110,7 +112,10 @@ namespace acqrscontrols {
                     if ( sql.step() != adfs::sqlite_done ) {
                         if ( sql.extended_errcode() == 1555 ) {
                             ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg()
-                                      << "\tpos=" << wp->serialnumber_ << ", max.id=" << tid
+                                      << "\tpos=" << wp->serialnumber_
+#if ! defined NDEBUG
+                                      << ", max.id=" << tid
+#endif
                                       << "\tmyId=" << this->myId();
                         } else {
                             ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();

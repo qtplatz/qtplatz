@@ -110,10 +110,14 @@ namespace adacquire {
 
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
-
+#if ! defined NDEBUG
+        void handle_write( const boost::uuids::uuid&
+                           , std::shared_ptr< adacquire::SignalObserver::DataWriter >&&
+                           , const std::string& caller, int line);
+#else
         void handle_write( const boost::uuids::uuid&
                            , std::shared_ptr< adacquire::SignalObserver::DataWriter >&& );
-
+#endif
         //
         void handle_so_event( SignalObserver::wkEvent );
 

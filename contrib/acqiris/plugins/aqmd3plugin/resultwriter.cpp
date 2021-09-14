@@ -93,7 +93,13 @@ ResultWriter::commitData()
     if ( !accessor->list.empty() ) {
         //==== threshold count data to trigger/peak table  ===========================
         auto dataWriter = std::make_shared< aqmd3controls::counting_data_writer >( accessor );
-        adacquire::task::instance()->handle_write( aqmd3::tdc_observer, dataWriter );
+        adacquire::task::instance()->handle_write( aqmd3::tdc_observer
+                                                   , dataWriter
+#if ! defined NDEBUG
+                                                   , __FILE__
+                                                   , __LINE__
+#endif
+            );
         //<==============================================================================================
     }
 }
