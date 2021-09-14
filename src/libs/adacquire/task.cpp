@@ -291,8 +291,7 @@ task::handle_write( const boost::uuids::uuid& uuid
     if ( auto p = dw->accessor()->pos_range() ) {
         if ( uuid == acqrscontrols::u5303a::timecount_observer ) {
             ADDEBUG() << "\t\t##### task::handle_write myId = " << dw->myId() << ", range: " << *p << " ##### "
-                      << dw->ident()  << ", " << uuid
-                      << file << ", line: " << line;
+                      << dw->ident()  << ", " << file << ", line: " << line;
         }
     }
 #endif

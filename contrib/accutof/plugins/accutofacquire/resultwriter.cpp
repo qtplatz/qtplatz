@@ -110,7 +110,12 @@ namespace accutof { namespace acquire {
             if ( !accessor->list.empty() ) {
                 //==== ap240 threshold count (digitizer) data to trigger/peak table  ===========================
                 auto dataWriter = std::make_shared< acqrscontrols::counting_data_writer_< acqrscontrols::ap240_threshold_result > >( accessor );
-                adacquire::task::instance()->handle_write( acqrscontrols::ap240::timecount_observer, dataWriter );
+                adacquire::task::instance()->handle_write( acqrscontrols::ap240::timecount_observer
+                                                           , dataWriter
+#ifndef NDEBUG
+                                                           , __FILE__, __LINE__
+#endif
+                    );
                 //<==============================================================================================
             }
 
@@ -137,7 +142,12 @@ namespace accutof { namespace acquire {
             if ( !accessor->list.empty() ) {
                 //==== u5303a threshold count (digitizer) data to trigger/peak table  ===========================
                 auto dataWriter = std::make_shared< acqrscontrols::counting_data_writer >( std::move( accessor ) );
-                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::timecount_observer, dataWriter );
+                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::timecount_observer
+                                                           , dataWriter
+#ifndef NDEBUG
+                                                           , __FILE__, __LINE__
+#endif
+                    );
                 //<==============================================================================================
             }
         }

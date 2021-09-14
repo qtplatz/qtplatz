@@ -463,10 +463,12 @@ task::impl::handle_softaveraged_waveforms()
         // ================== write averaged waveform to datafile ======================
         do {
             if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) )
-                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer, std::move( tmp ) );
-            // boost::asio::post( strand_
-            //                    , [tmp](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer
-            // io_service_.post( strand_.wrap ( [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer, tmp ); } ) );
+                adacquire::task::instance()->handle_write( acqrscontrols::u5303a::softavgr_observer
+                                                           , std::move( tmp )
+#ifndef NDEBUG
+                                                           , __FILE__, __LINE__
+#endif
+                    );
         } while (0 );
         // <============================================================================
     }
@@ -665,13 +667,15 @@ task::impl::handle_histograms()
             // ================== write Time digital countgram to datafile ======================
             do {
                 if ( auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor ) )
-                    adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, std::move( tmp ) );
-                // boost::asio::post( io_service_
-                //                    , [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, std::move( tmp ) ); } );
-                //io_service_.post( [=](){ adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer, tmp ); } );
+                    adacquire::task::instance()->handle_write( acqrscontrols::u5303a::histogram_observer
+                                                               , std::move( tmp )
+#ifndef NDEBUG
+                                                               , __FILE__, __LINE__
+#endif
+                        );
             } while (0 );
-            // <============================================================================
 
+// <============================================================================
             if ( auto cm = tdc->tofChromatogramsMethod() )
                 document::instance()->addCountingChromatogramPoints( *cm, accessor->vec );
 
