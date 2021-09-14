@@ -110,7 +110,9 @@ time_event_processor::action_inject( const this_clock::time_point& tp )
 {
     tp_inject_ = tp;
     exec_steps();
+#if !defined NDEBUG && 0
     ADINFO() << "### INJECT Triggered";
+#endif
 }
 
 bool

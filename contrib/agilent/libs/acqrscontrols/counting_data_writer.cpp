@@ -24,11 +24,15 @@
 
 #include "counting_data_writer.hpp"
 #include "threshold_result_accessor.hpp"
+#include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
+#include <adlog/logger.hpp>
+#if ! defined NDEBUG
+# include <adportable/debug.hpp>
+#endif
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
-#include <adportable/debug.hpp>
 
 namespace acqrscontrols {
 
@@ -37,7 +41,7 @@ namespace acqrscontrols {
     counting_data_writer::prepare_storage( adfs::filesystem& fs )
     {
         adfs::stmt sql( fs.db() );
-        
+
         sql.exec(
             "CREATE TABLE trigger ("
             " id INTEGER PRIMARY KEY"
@@ -47,7 +51,7 @@ namespace acqrscontrols {
             ", events INTEGER"
             ", threshold REAL"
             ", algo INTEGER )" );
-        
+
         sql.exec(
             "CREATE TABLE peak ("
             " idTrigger INTEGER"
@@ -58,22 +62,42 @@ namespace acqrscontrols {
             ", back_offset INTEGER"
             ", back_intensity REAL"
             ", FOREIGN KEY( idTrigger ) REFERENCES trigger( id ))" );
-        
+
         return true;
     }
-    
+
+    counting_data_writer::counting_data_writer( std::shared_ptr< threshold_result_accessor >&& a ) : DataWriter( a )
+    {
+    }
+
+    counting_data_writer::~counting_data_writer()
+    {
+    }
 
     bool
-    counting_data_writer::write( adfs::filesystem& fs ) const
+    counting_data_writer::write( adfs::filesystem& fs, const boost::uuids::uuid& objId ) const
     {
+        if ( acqrscontrols::u5303a::timecount_observer != objId ) {
+            ADDEBUG() << "############### objid does not match !!!! INTERNAL ERROR ###################";
+        }
+
         if ( auto accessor = dynamic_cast< threshold_result_accessor * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
 
                 auto wp = rp->data();  // waveform
-                
+#if ! defined NDEBUG
+                // -----> debug
+                uint32_t tid ( 0 );
+                adfs::stmt sql2( fs.db() );
+                sql2.prepare( "SELECT MAX(id),timeSinceEpoch FROM trigger" );
+                if ( sql2.step() == adfs::sqlite_row )
+                    tid = sql2.get_column_value< uint64_t >( 0 );
+#endif
+                // <----
+
                 do {
                     adfs::stmt sql( fs.db() );
-                    
+
                     sql.prepare( "INSERT INTO trigger ( id,protocol,timeSinceEpoch,elapsedTime,events,threshold,algo ) VALUES (?,?,?,?,?,?,?)" );
                     int id(1);
                     sql.bind( id++ ) = wp->serialnumber_;
@@ -84,8 +108,18 @@ namespace acqrscontrols {
                     sql.bind( id++ ) = rp->threshold_level();  // V
                     sql.bind( id++ ) = int( rp->algo() );
                     if ( sql.step() != adfs::sqlite_done ) {
-                        ADDEBUG() << "sql error";
+                        if ( sql.extended_errcode() == 1555 ) {
+                            ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg()
+                                      << "\tpos=" << wp->serialnumber_ << ", max.id=" << tid
+                                      << "\tmyId=" << this->myId();
+                        } else {
+                            ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
+                        }
                         return true;
+                    } else {
+#if ! defined NDEBUG
+                        ADTRACE() << "ok: pos=" << wp->serialnumber_ << ", max trig.id=" << tid << "\tmyId=" << this->myId();
+#endif
                     }
                 } while ( 0 );
 
@@ -97,7 +131,7 @@ namespace acqrscontrols {
                                      " (idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )"
                                      " VALUES (?,?,?,?,?,?,?)" );
                         int id = 1;
-                        auto apex  = wp->xy( idx.apex );                        
+                        auto apex  = wp->xy( idx.apex );
                         sql.bind( id++ ) = wp->serialnumber_;                                   // idTrigger
                         sql.bind( id++ ) = apex.first;                                          // peak_time
                         sql.bind( id++ ) = wp->toVolts( apex.second ) * std::milli::den;        // peak_intensity, mV
@@ -106,30 +140,30 @@ namespace acqrscontrols {
                         sql.bind( id++ ) = idx.second - idx.apex;                               // distance between apex and back
                         sql.bind( id++ ) = wp->toVolts( (*wp)[ idx.second ] ) * std::milli::den;// front mV
                         if ( sql.step() != adfs::sqlite_done ) {
-                            ADDEBUG() << "sql error";
-                            return true;                                
-                        }     
+                            ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
+                            return true;
+                        }
                     }
                 } while ( 0 );
             }
         }
-        return true; 
+        return true;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     template<> ACQRSCONTROLSSHARED_EXPORT
     bool
-    counting_data_writer_< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::write( adfs::filesystem& fs ) const
+    counting_data_writer_< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::write( adfs::filesystem& fs, const boost::uuids::uuid& ) const
     {
         if ( auto accessor = dynamic_cast< threshold_result_accessor_type * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
-                
+
                 auto wp = rp->data();  // waveform
-                
+
                 do {
                     adfs::stmt sql( fs.db() );
-                    
+
                     sql.prepare( "INSERT INTO trigger ( id,protocol,timeSinceEpoch,elapsedTime,events,threshold,algo ) VALUES (?,?,?,?,?,?,?)" );
                     int id(1);
                     sql.bind( id++ ) = wp->serialnumber_;
@@ -140,7 +174,7 @@ namespace acqrscontrols {
                     sql.bind( id++ ) = rp->threshold_level();  // V
                     sql.bind( id++ ) = int( rp->algo() );
                     if ( sql.step() != adfs::sqlite_done ) {
-                        ADDEBUG() << "sql error";
+                        ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
                         return true;
                     }
                 } while ( 0 );
@@ -153,7 +187,7 @@ namespace acqrscontrols {
                                      " (idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )"
                                      " VALUES (?,?,?,?,?,?,?)" );
                         int id = 1;
-                        auto apex  = wp->xy( idx.apex );                        
+                        auto apex  = wp->xy( idx.apex );
                         sql.bind( id++ ) = wp->serialnumber_;                                   // idTrigger
                         sql.bind( id++ ) = apex.first;                                          // peak_time
                         sql.bind( id++ ) = wp->toVolts( apex.second ) * std::milli::den;        // peak_intensity, mV
@@ -162,14 +196,13 @@ namespace acqrscontrols {
                         sql.bind( id++ ) = idx.second - idx.apex;                               // distance between apex and back
                         sql.bind( id++ ) = wp->toVolts( (*wp)[ idx.second ] ) * std::milli::den;// front mV
                         if ( sql.step() != adfs::sqlite_done ) {
-                            ADDEBUG() << "sql error";
-                            return true;                                
-                        }     
+                            ADERROR() << "sql error extended code: " << sql.extended_errcode() << "\t" << sql.errmsg();
+                        }
                     }
                 } while ( 0 );
             }
         }
-        return true; 
+        return true;
     }
 
 }

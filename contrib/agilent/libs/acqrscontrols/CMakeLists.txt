@@ -39,7 +39,7 @@ add_library( ${PROJECT_NAME} SHARED
   ap240/method.cpp
   ap240/method.hpp
   ap240/tdcdoc.cpp
-  ap240/tdcdoc.hpp  
+  ap240/tdcdoc.hpp
   ap240/threshold_result.cpp
   ap240/threshold_result.hpp
   ap240/threshold_result_accessor.cpp
@@ -52,7 +52,7 @@ add_library( ${PROJECT_NAME} SHARED
   counting_data_writer.hpp
   find_threshold_peaks.hpp
   find_threshold_timepoints.hpp
-  pkd_counting_data_writer.cpp  
+  pkd_counting_data_writer.cpp
   pkd_counting_data_writer.hpp
   processthreshold.cpp
   processthreshold.hpp
@@ -92,6 +92,7 @@ add_library( ${PROJECT_NAME} SHARED
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adacquire
+  adlog
   adplugin
   adportable
   adcontrols
@@ -99,7 +100,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install(
@@ -125,7 +126,7 @@ install(
   threshold_result_accessor.hpp
   threshold_result.hpp
   waveform_accessor.hpp
-  waveform_horizontal.hpp  
+  waveform_horizontal.hpp
   DESTINATION include/acqrscontrols COMPONENT headers
   )
 
@@ -136,7 +137,7 @@ install(
   ap240/histogram.hpp
   ap240/metadata.hpp
   ap240/method.hpp
-  ap240/tdcdoc.hpp  
+  ap240/tdcdoc.hpp
   ap240/threshold_result.hpp
   ap240/threshold_result_accessor.hpp
   ap240/waveform.hpp

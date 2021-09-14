@@ -21,7 +21,7 @@ all:
 
 install:
 	-mkdir /lib/modules/${REVISION}/extra
-	cp -p dgpio.ko /lib/modules/${REVISION}/extra/
+	-cp -p dgpio.ko /lib/modules/${REVISION}/extra/
 	/sbin/depmod -a
 
 install-init.d:

@@ -24,9 +24,15 @@
 
 #include "datawriter.hpp"
 #include "signalobserver.hpp"
+#include <adfs/file.hpp>
+#include <adfs/filesystem.hpp>
+#include <adportable/debug.hpp>
+#include <adutils/acquiredconf_v3.hpp>
+#include <adutils/acquireddata_v3.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <atomic>
 #include <algorithm>
 #include <chrono>
@@ -34,7 +40,10 @@
 
 using namespace adacquire::SignalObserver;
 
-DataWriter::DataWriter( std::shared_ptr< DataAccess > accessor ) : accessor_( accessor )
+uint32_t DataWriter::idCounter_ = 0;
+
+DataWriter::DataWriter( std::shared_ptr< DataAccess >&& accessor ) : accessor_( accessor )
+                                                                   , myId_( ++idCounter_ )
 {
     accessor_->rewind();
 }
@@ -42,7 +51,7 @@ DataWriter::DataWriter( std::shared_ptr< DataAccess > accessor ) : accessor_( ac
 DataWriter::~DataWriter()
 {
 }
-        
+
 void
 DataWriter::rewind()
 {
@@ -71,25 +80,25 @@ uint64_t
 DataWriter::pos() const
 {
     return accessor_->pos();
-}       
+}
 
 uint32_t
 DataWriter::fcn() const
 {
     return accessor_->fcn();
-}       
+}
 
 uint32_t
 DataWriter::ndata() const
 {
     return uint32_t ( accessor_->ndata() );
-}     
+}
 
 uint32_t
 DataWriter::events() const
 {
     return accessor_->events();
-}    
+}
 
 size_t
 DataWriter::xdata( std::string& data ) const
@@ -103,7 +112,35 @@ DataWriter::xmeta( std::string& data ) const
     return accessor_->xmeta( data );
 }
 
+// virtual
+bool
+DataWriter::write( adfs::filesystem& fs, const boost::uuids::uuid& objId ) const
+{
+#if !defined NDEBUG && 0
+    ADDEBUG() << "#### DataWriter BASE WRITER ##### " << objId;
+#endif
+    std::string xdata, xmeta;
+    this->xdata ( xdata );
+    this->xmeta ( xmeta );
+    if ( ! adutils::v3::AcquiredData::insert ( fs.db(), objId
+                                               , this->elapsed_time()
+                                               , this->epoch_time()
+                                               , this->pos()
+                                               , this->fcn()
+                                               , this->ndata()
+                                               , this->events()
+                                               , xdata
+                                               , xmeta )  ) {
+        ADDEBUG() << "AcquiredData::insert failed";
+    }
+    return true;
+}
+
 //////////////////
+DataAccess::~DataAccess()
+{
+}
+
 DataAccess::DataAccess()
 {
 }
@@ -135,7 +172,7 @@ uint64_t
 DataAccess::epoch_time() const
 {
     return 0;
-}                       
+}
 
 uint64_t
 DataAccess::pos() const
@@ -166,4 +203,3 @@ DataAccess::xmeta( std::string& ) const
 {
     return 0;
 }
-

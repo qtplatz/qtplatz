@@ -28,3 +28,13 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES
+  adlog_global.hpp
+  logger.hpp
+  logging_handler.hpp
+  logging_debug.hpp
+  logging_file.hpp
+  logging_syslog.hpp
+  DESTINATION include/adlog COMPONENT headers
+  )

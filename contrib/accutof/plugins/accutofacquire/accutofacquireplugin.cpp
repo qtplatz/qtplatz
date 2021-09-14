@@ -140,7 +140,7 @@ acquirePlugin::aboutToShutdown()
     if ( mode_ )
         removeObject( mode_.get() );
 
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 0
     ADDEBUG() << "## Shutdown "
               << boost::dll::this_line_location().stem()  << "\n\t" << boost::dll::this_line_location();
 #endif

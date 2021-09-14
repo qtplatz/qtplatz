@@ -6,5 +6,6 @@
     },
     "files.associations": {
         "*.ipp": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

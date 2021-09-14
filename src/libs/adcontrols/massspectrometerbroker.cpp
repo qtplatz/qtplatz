@@ -61,10 +61,12 @@ namespace adcontrols {
 
         void clear() {
 #ifndef NDEBUG
-            adportable::debug dbg( __FILE__, __LINE__ );
-            size_t count(0);
-            for ( const auto& a: factories_ )
-                dbg << ( count++ == 0 ? "deleting factories: " : ", ") << a.second.first;
+            {
+                std::ostringstream o;
+                for ( const auto& a: factories_ )
+                    o << a.second.first << ", ";
+                ADDEBUG() << "deleting factories: " << o.str();
+            }
 #endif
             for ( auto& a: factories_ )
                 a.second.second.reset();

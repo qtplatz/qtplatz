@@ -502,7 +502,7 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
              this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first
              , t.this_protocol().delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first ) ) {
         *this = t;
-#if !defined NDEBUG
+#if !defined NDEBUG && 0
         ADDEBUG() << "########################### " << __FUNCTION__ << " ### just clear it, trigger_count_=" << trigger_count_
                   << ", " << t.trigger_count_
                   << ", " << this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first

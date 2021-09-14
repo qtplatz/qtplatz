@@ -36,10 +36,14 @@
 
 using namespace acqrscontrols;
 
-threshold_result_accessor::threshold_result_accessor()
+
+threshold_result_accessor::~threshold_result_accessor()
 {
 }
 
+threshold_result_accessor::threshold_result_accessor()
+{
+}
 
 size_t
 threshold_result_accessor::ndata() const
@@ -54,7 +58,8 @@ threshold_result_accessor::rewind()
 }
 
 bool
-threshold_result_accessor::next()  {
+threshold_result_accessor::next()
+{
     return ++it_ != list.end();
 }
 
@@ -109,6 +114,12 @@ size_t
 threshold_result_accessor::xmeta( std::string& ar ) const
 {
     return ( *it_ )->data()->serialize_xmeta( ar );
+}
+
+optional_type< std::pair< uint64_t, uint64_t > >
+threshold_result_accessor::pos_range() const
+{
+    return std::make_pair( uint64_t( list.front()->data()->serialnumber() ), uint64_t( list.back()->data()->serialnumber() ) );
 }
 
 ///////////////////////////////////////////////////////////

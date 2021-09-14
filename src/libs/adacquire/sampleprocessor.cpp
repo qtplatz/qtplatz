@@ -27,6 +27,9 @@
 #include "signalobserver.hpp"
 #include "task.hpp"
 #include "mscalibio_v3.hpp"
+#ifndef NDEBUG
+#include "../../../contrib/agilent/libs/acqrscontrols/constants.hpp"
+#endif
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -129,7 +132,6 @@ SampleProcessor::__close()
             boost::asio::post( task::instance()->io_service(), [=]{ close_future_->get(); } );
         }
         auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
-        ADDEBUG() << boost::format( "SampleProcessor: %s\tclosed. Took %.1f seconds to complete." ) % storage_name_.stem().string() % duration;
         ADINFO() << boost::format( "SampleProcessor: %s\tclosed. Took %.1f seconds to complete." ) % storage_name_.stem().string() % duration;
 
     } catch ( std::exception& e ) {
@@ -211,7 +213,6 @@ SampleProcessor::storage_name() const
 void
 SampleProcessor::writer_thread()
 {
-    size_t total_octets(0);
     do {
         sema_.wait();
 
@@ -229,16 +230,14 @@ SampleProcessor::writer_thread()
                 return; // end of thread
         } while (0);
 
-        uint32_t wc; size_t octets;
-
-        std::tie( wc, octets ) = __write( objId, writer );
+        __write( objId, writer );
 
         if ( c_acquisition_active_ && closed_flag_ ) {
-            total_octets += octets;
             auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
+
             ADDEBUG() << "SampleProcessor: " << boost::filesystem::path( fs_->filename() ).stem().string()
                       << "\tremains: "
-                      << boost::format("%2d\t%.1f Mo;\ttook %.1f s") % sema_.count() % (double(total_octets)/(1024*1024)) % duration;
+                      << boost::format("%2d;\ttook %.1f s") % sema_.count() % duration;
         }
     } while ( true );
 }
@@ -257,21 +256,25 @@ SampleProcessor::write( const boost::uuids::uuid& objId
     sema_.signal();
 }
 
-std::pair<uint32_t, size_t>
+uint32_t
 SampleProcessor::__write( const boost::uuids::uuid& objId
-                        , std::shared_ptr< SignalObserver::DataWriter > writer )
+                          , std::shared_ptr< SignalObserver::DataWriter > writer )
 {
     uint32_t wcount(0);
-    size_t octets(0);
 
     writer->rewind();
+#if !defined NDEBUG && 0
+    if ( acqrscontrols::u5303a::timecount_observer == objId )
+        if ( auto p = writer->accessor()->pos_range() )
+            ADDEBUG() << "========================== writer rewind ===============: " << writer->myId()
+                      << ", " << *p;
+#endif
     do {
 
         if ( ! c_acquisition_active_ ) {
 
             if ( writer->events() & SignalObserver::wkEvent_INJECT ) {
-                ADINFO() << boost::format ( "INJECT TRIGGERD [%s] EVENT: 0x%x OBJECT: " )
-                    % fs_->filename() % writer->events() << objId;
+                // ADINFO() << boost::format ( "INJECT TRIGGERD [%s] EVENT: 0x%x OBJECT: " ) % fs_->filename() % writer->events() << objId;
                 if ( !c_acquisition_active_ ) { // protect from chattering
                     ts_inject_trigger_ = writer->epoch_time(); // uptime;
                     c_acquisition_active_ = true;
@@ -281,29 +284,17 @@ SampleProcessor::__write( const boost::uuids::uuid& objId
 
         if ( c_acquisition_active_ ) {
             wcount++;
-            if ( ! writer->write ( *fs_ ) ) { // check if specific data writer implemented
-                // in case no specific data writer handled, write data into AcqruidData table
-                std::string xdata, xmeta;
-                writer->xdata ( xdata );
-                writer->xmeta ( xmeta );
-                octets += ( xdata.size() + xmeta.size() );
-                if ( ! adutils::v3::AcquiredData::insert ( fs_->db(), objId
-                                                           , writer->elapsed_time()
-                                                           , writer->epoch_time()
-                                                           , writer->pos()
-                                                           , writer->fcn()
-                                                           , writer->ndata()
-                                                           , writer->events()
-                                                           , xdata
-                                                           , xmeta )  ) {
-                    ADDEBUG() << "AcquiredData::insert failed";
-                }
+
+            if ( ! writer->write ( *fs_, objId ) ) { // check if specific data writer implemented
+
+                ADDEBUG() << "############## SampleProcessor DATA WRITE ERROR ############# " << wcount << ", pos=" << writer->pos();
+
             }
         }
 
     } while( writer->next() );
 
-    return std::make_pair(wcount,octets);
+    return wcount;
 }
 
 void

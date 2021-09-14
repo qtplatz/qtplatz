@@ -119,7 +119,8 @@ namespace accutof { namespace acquire {
         /////////////////////////// U5303A ///////////////////////////
         template<>
         void
-        ResultWriter::commitData_< acqrscontrols::u5303a::threshold_result >( std::vector< std::shared_ptr< const acqrscontrols::u5303a::threshold_result > >& )
+        ResultWriter::commitData_< acqrscontrols::u5303a::threshold_result >(
+            std::vector< std::shared_ptr< const acqrscontrols::u5303a::threshold_result > >& )
         {
             auto accessor = std::make_shared< acqrscontrols::threshold_result_accessor >();
             do {
@@ -135,7 +136,7 @@ namespace accutof { namespace acquire {
 
             if ( !accessor->list.empty() ) {
                 //==== u5303a threshold count (digitizer) data to trigger/peak table  ===========================
-                auto dataWriter = std::make_shared< acqrscontrols::counting_data_writer >( accessor );
+                auto dataWriter = std::make_shared< acqrscontrols::counting_data_writer >( std::move( accessor ) );
                 adacquire::task::instance()->handle_write( acqrscontrols::u5303a::timecount_observer, dataWriter );
                 //<==============================================================================================
             }

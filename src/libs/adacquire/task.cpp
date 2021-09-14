@@ -25,10 +25,12 @@
 #include "task.hpp"
 #include "automaton.hpp"
 #include "constants.hpp"
+#include "datawriter.hpp"
 #include "masterobserver.hpp"
 #include "sampleprocessor.hpp"
 #include "samplesequence.hpp"
 #include "time_event_processor.hpp"
+#include "../../../contrib/agilent/libs/acqrscontrols/constants.hpp"
 #include <acewrapper/udpeventreceiver.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -279,8 +281,11 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
     if ( impl_->sequence_->size() == 0 && impl_->sequence_warning_count_++ == 0 )
         ADDEBUG() << "handle_write -- no sample processor in sample sequence";
 
-#if ! defined NDEBUG && 0
-    ADDEBUG() << "handle_write(" << uuid << ")";
+#ifndef NDEBUG
+    if ( auto p = dw->accessor()->pos_range() ) {
+        ADDEBUG() << "\t\t##### task::handle_write myId = " << dw->myId() << ", range: " << *p << " ##### "
+                  << dw->ident()  << ", " << uuid;
+    }
 #endif
 
     for ( auto& sampleprocessor : *impl_->sequence_ ) {

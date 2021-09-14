@@ -262,9 +262,6 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_trigger_inject()
 {
-#ifndef NDEBUG
-    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
-#endif
     return task::instance()->trigger_inject_out();
 }
 
@@ -350,8 +347,9 @@ task::instance()
 bool
 task::initialize()
 {
+#if !defined NDEBUG && 0
     ADDEBUG() << "####################### task::initialize #########################";
-
+#endif
 	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
@@ -380,7 +378,7 @@ task::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
 bool
 task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 {
-#if !defined NDEBUG
+#if !defined NDEBUG && 0
     auto& m = method._device_method();
 
     ADDEBUG() << "u5303a::task::prepare_for_run";
@@ -416,7 +414,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "##### task::" << __FUNCTION__ << " #####";
 #endif
     c_injection_requested_ = true;
@@ -531,8 +529,9 @@ task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
         waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
-
-        ADDEBUG() << "## INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
+#if !defined NDEBUG && 0
+        ADDEBUG() << "### INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
+#endif
     }
 
     waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;
@@ -968,10 +967,10 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         interleave = false;  // force disable interleaving
 
     double max_rate = interleave ? input_rate * 2 : input_rate;
-
+#if !defined NDEBUG && 0
     ADINFO() << "##### Supported max. sample rate: " << max_rate << "\tChannel rate: " << input_rate;
     ADINFO() << "##### User specified sample rate: " << m._device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
-
+#endif
     if ( interleave ) {
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
     } else {
@@ -997,8 +996,9 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
 
     if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer
-
+#if !defined NDEBUG && 0
         ADINFO() << "##### --> digitizer mode";
+#endif
         task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
         task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );

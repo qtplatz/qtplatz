@@ -26,7 +26,11 @@
 #include "adfs.hpp"
 #include "sqlite.hpp"
 #include "sqlite3.h"
+#if LOG_ADLOG
+#include <adlog/logger.hpp>
+#else
 #include <adportable/debug.hpp>
+#endif
 #include <adportable/string.hpp>
 #include <adportable/utf.hpp>
 #include <boost/exception/all.hpp>
@@ -53,12 +57,13 @@ namespace adfs {
 
     namespace {
         struct error_log {
-            static void log( const std::string& sql, const char * msg, const char * file, int line ) {
+            template< typename T >
+            static void log( const /* std::string& */ T& sql, const char * msg, const char * file, int line ) {
+#if LOG_ADLOG
+                adlog::logger( file, line ) << sql << "\terror : " << (msg ? msg : "nullstr");
+#else
                 adportable::debug( file, line ) << sql << "\terror : " << (msg ? msg : "nullstr");
-            }
-            static void log( const std::wstring& sql, const char * msg, const char * file, int line ) {
-                if ( msg )
-                    adportable::debug( file, line ) << sql << "\terror : " << ( msg ? msg : "nullstr" );
+#endif
             }
 
             std::string operator()( std::tuple< int, std::string, std::string, std::string > t, const char * __file, int __line ) {
@@ -71,7 +76,11 @@ namespace adfs {
                     o << "\n\t--\tfile:\t" << file;
                 if ( ! sql.empty() )
                     o << "\n\t--\tsql:\t" << sql;
+#if LOG_ADLOG
+                adlog::logger( __file, __line ) << o.str();
+#else
                 adportable::debug( __file, __line ) << "***** " << o.str();
+#endif
                 return o.str();
             }
 
@@ -178,7 +187,6 @@ sqlite::close()
 		db_ = 0;
 		return true;
 	}
-    ADDEBUG() << "sqlite::close failed: " << errc;
 	return false;
 }
 
@@ -306,6 +314,12 @@ stmt::errcode() const
     return sqlite3_errcode( sqlite_ );
 }
 
+int
+stmt::extended_errcode() const
+{
+    return sqlite3_extended_errcode( sqlite_ );
+}
+
 std::string
 stmt::errmsg() const
 {
@@ -322,7 +336,7 @@ stmt::step()
     case SQLITE_DONE:  return sqlite_done;
     case SQLITE_CONSTRAINT: return sqlite_constraint;
     case SQLITE_LOCKED: return sqlite_locked;
-    case SQLITE_MISUSE: return sqlite_error; // not an error
+    case SQLITE_MISUSE: return sqlite_misuse; // not an error
     default: break;
     }
 
@@ -395,7 +409,7 @@ stmt::error_details( int rcode ) const
 {
     std::string emsg, query, file;
 
-    int errc = sqlite3_errcode( sqlite_ );
+    int errc = sqlite3_errcode( sqlite_ );    (void)errc;
     assert( rcode == errc );
 
     if ( auto p = sqlite3_sql( stmt_ ) )

@@ -26,13 +26,19 @@
 
 #include "constants.hpp"
 #include "adacquire_global.hpp"
-//#include <boost/any.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
 #include <compiler/pragma_warning.hpp>
+#if __cplusplus >= 201703L
+# include <optional>
+template< typename T > using optional_type = std::optional<T>;
+#else
+# include <boost/optional.hpp>
+template< typename T > using optional_type = boost::optional<T>;
+#endif
 
 namespace boost { namespace uuids { struct uuid; } }
 namespace adfs { class filesystem; }
@@ -52,6 +58,7 @@ namespace adacquire {
             DataAccess( const DataAccess& ) = delete;
             DataAccess& operator = ( const DataAccess& ) = delete;
         public:
+            virtual ~DataAccess();
             DataAccess();
             virtual void rewind();
             virtual bool next();
@@ -63,24 +70,25 @@ namespace adacquire {
             virtual uint32_t events() const;    // well known events
             virtual size_t xdata( std::string& ) const;
             virtual size_t xmeta( std::string& ) const;
+            virtual optional_type< std::pair< uint64_t, uint64_t > > pos_range() const { return {}; }
         };
-        
+
         class ADACQUIRESHARED_EXPORT DataWriter : public std::enable_shared_from_this< DataWriter > {
 
             DataWriter( const DataWriter& ) = delete;
             void operator = ( const DataWriter& ) = delete;
-            
+
         public:
             virtual ~DataWriter();
 
             DataWriter();
-            DataWriter( std::shared_ptr< DataAccess > );
+            DataWriter( std::shared_ptr< DataAccess >&& );
 
             void rewind();
             bool next();
-            
+
             uint64_t elapsed_time() const;
-            uint64_t epoch_time() const;                        
+            uint64_t epoch_time() const;
             uint64_t pos() const;       // data address (sequencial number for first data in this frame)
             uint32_t fcn() const;       // function number for spectrum
             uint32_t ndata() const;     // number of data in the buffer
@@ -88,13 +96,17 @@ namespace adacquire {
             size_t xdata( std::string& ) const;
             size_t xmeta( std::string& ) const;
 
-            // specific data write method -- if write returns true, skip xdata/xmada data write
-            virtual bool write( adfs::filesystem& ) const { return false; }
-            
+            // specific data write method
+            virtual bool write( adfs::filesystem&, const boost::uuids::uuid& ) const;
+            virtual uint32_t myId() const { return myId_; }
+            const DataAccess * accessor() const { return accessor_.get(); }
+            void setIdent( const std::string& t ) { ident_ = t; }
+            const std::string& ident() const { return ident_; }
         protected:
-            pragma_msvc_warning_push_disable_4251
             std::shared_ptr< DataAccess > accessor_;
-            pragma_msvc_warning_pop
+            std::string ident_;
+            const uint32_t myId_;
+            static uint32_t idCounter_;
         };
 
     }
