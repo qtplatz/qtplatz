@@ -129,8 +129,10 @@ namespace chemistry {
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
         , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC",      { "Hexamethoxyphosphazine" } }
-        , { "CC1=C(C(=O)C2=CC=CC=C2C1=O)CC=C(C)CCCC(C)CCCC(C)CCCC(C)C", { "VK-1" } }
-        , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK1 oxide", "PHYLLOQUINONE OXIDE" } }
+        , { "CC1=C(C(=O)C2=CC=CC=C2C1=O)CC=C(C)CCCC(C)CCCC(C)CCCC(C)C", { "VK-1", "Phylloquinone" } }
+        , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK1-oxide", "PHYLLOQUINONE OXIDE" } }
+        , { R"(CC1=C(C(=O)c2ccccc2C1=O)C/C=C(\C)/CC/C=C(\C)/CC/C=C(\C)/CCC=C(C)C)", { "VK-2", "Menatetrenone" } }
+        , { "CC1=CC(=O)c2ccccc2C1=O",                 { "VK-3", "Menadione" } }
         , { "CCCCCCCCCCCCCCCCCCCCCCCC(=O)O",          { "Tetracosanoic acid", "Lignoceric acid" } }
         , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
         , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
@@ -148,9 +150,12 @@ namespace chemistry {
             , { "Tris(Heptafluoropropyl)-S-Triazine" }}
         , { "[H][C@]26C[C@@H](OC(=O)c1cc(OC)c(OC)c(OC)c1)[C@H](OC)[C@@H](C(=O)OC)[C@@]2([H])C[C@]5([H])c4[nH]c3cc(OC)ccc3c4CCN5C6"
             , { "Reserpine" }}
+        , { R"(CC[C@H](C)[C@@H]1[C@H](CC[C@@]2(O1)C[C@@H]3C[C@H](O2)C/C=C(/[C@H]([C@H](/C=C/C=C/4\CO[C@H]5[C@@]4([C@@H](C=C([C@H]5O)C)C(=O)O3)O)C)O[C@H]6C[C@@H]([C@H]([C@@H](O6)C)O[C@H]7C[C@@H]([C@H]([C@@H](O7)C)O)OC)OC)\C)C)", { "Ivermectin B1a" }}
+        , { R"(C[C@H]1CC[C@]2(C[C@@H]3C[C@H](O2)C/C=C(/[C@H]([C@H](/C=C/C=C/4\CO[C@H]5[C@@]4([C@@H](C=C([C@H]5O)C)C(=O)O3)O)C)O[C@H]6C[C@@H]([C@H]([C@@H](O6)C)O[C@H]7C[C@@H]([C@H]([C@@H](O7)C)O)OC)OC)\C)O[C@@H]1C(C)C)", { "Ivermectin B1b" } }
     };
 
 }
+
 
 using namespace chemistry;
 
