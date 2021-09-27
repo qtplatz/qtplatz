@@ -136,6 +136,7 @@ namespace chemistry {
         , { "CCCCCCCCCCCCCCCCCCCCCCCC(=O)O",          { "Tetracosanoic acid", "Lignoceric acid" } }
         , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
         , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
+        , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)", { "Arachidonic acid" } }
         , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC", { "Hexamethoxyphosphazene", "CAS NO: 957-13-1" } }
         , { "C(C(F)F)OP1(=NP(=NP(=N1)(OCC(F)F)OCC(F)F)(OCC(F)F)OCC(F)F)OCC(F)F", { "Hexakis(2,2-Difluoroethoxy)Phosphazene", "CAS NO: 186817-57-2" } }
@@ -152,6 +153,8 @@ namespace chemistry {
             , { "Reserpine" }}
         , { R"(CC[C@H](C)[C@@H]1[C@H](CC[C@@]2(O1)C[C@@H]3C[C@H](O2)C/C=C(/[C@H]([C@H](/C=C/C=C/4\CO[C@H]5[C@@]4([C@@H](C=C([C@H]5O)C)C(=O)O3)O)C)O[C@H]6C[C@@H]([C@H]([C@@H](O6)C)O[C@H]7C[C@@H]([C@H]([C@@H](O7)C)O)OC)OC)\C)C)", { "Ivermectin B1a" }}
         , { R"(C[C@H]1CC[C@]2(C[C@@H]3C[C@H](O2)C/C=C(/[C@H]([C@H](/C=C/C=C/4\CO[C@H]5[C@@]4([C@@H](C=C([C@H]5O)C)C(=O)O3)O)C)O[C@H]6C[C@@H]([C@H]([C@@H](O6)C)O[C@H]7C[C@@H]([C@H]([C@@H](O7)C)O)OC)OC)\C)O[C@@H]1C(C)C)", { "Ivermectin B1b" } }
+        , { R"([C@H]1(/C=C/[C@@H](O)CCCCC)C(=O)C[C@H](O)[C@@H]1C/C=C\CCCC(=O)O)", { "PGD2", "Prostaglandin D2" } }
+        , { R"([C@H]1(/C=C/[C@@H](O)CCCCC)[C@H](O)CC(=O)[C@@H]1C/C=C\CCCC(=O)O)", { "PGE2", "Prostaglandin E2" } }
     };
 
 }
