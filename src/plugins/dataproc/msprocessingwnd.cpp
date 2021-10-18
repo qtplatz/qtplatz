@@ -611,6 +611,9 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
 
+                    pImpl_->processedSpectrum_->clear();
+                    pImpl_->processedSpectrum_->replot();
+
                     if ( !ptr->isCentroid() )
                         draw_profile( folium.id(), ptr );
                     else if ( ptr->isHistogram() )
@@ -630,8 +633,6 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
                             pImpl_->processedSpectrum_->setData( centroid, 0, QwtPlot::yLeft );
                             pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
-                        } else {
-                            pImpl_->processedSpectrum_->clear();
                         }
 
                         if ( auto fmethod = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
