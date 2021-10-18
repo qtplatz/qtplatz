@@ -27,6 +27,9 @@
 #include "serializer.hpp"
 #include <adportable/waveform_peakfinder.hpp>
 #include <cstring>
+#if BOOST_VERSION >= 107500
+# include <boost/json.hpp>
+#endif
 
 using namespace adcontrols;
 
@@ -61,26 +64,26 @@ MSPeakInfoItem::MSPeakInfoItem(void)
 
 MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t )
     : peak_index_( t.peak_index_)
-    , peak_start_index_( t.peak_start_index_)        
-    , peak_end_index_( t.peak_end_index_)          
-    , base_height_( t.base_height_)             
-    , mass_( t.mass_)                    
-    , area_( t.area_)                    
-    , height_( t.height_)                  
-    , time_from_mass_( t.time_from_mass_)          
-    , time_from_time_( t.time_from_time_)          
-    , HH_left_mass_( t.HH_left_mass_)            
-    , HH_right_mass_( t.HH_right_mass_)           
-    , HH_left_time_( t.HH_left_time_)            
-    , HH_right_time_( t.HH_right_time_)           
-    , centroid_left_mass_( t.centroid_left_mass_)      
-    , centroid_right_mass_( t.centroid_right_mass_)     
-    , centroid_left_time_( t.centroid_left_time_)      
-    , centroid_right_time_( t.centroid_right_time_)     
-    , centroid_threshold_( t.centroid_threshold_)      
-    , is_visible_( t.is_visible_)         
-    , is_reference_( t.is_reference_)      
-    , formula_( t.formula_ )      
+    , peak_start_index_( t.peak_start_index_)
+    , peak_end_index_( t.peak_end_index_)
+    , base_height_( t.base_height_)
+    , mass_( t.mass_)
+    , area_( t.area_)
+    , height_( t.height_)
+    , time_from_mass_( t.time_from_mass_)
+    , time_from_time_( t.time_from_time_)
+    , HH_left_mass_( t.HH_left_mass_)
+    , HH_right_mass_( t.HH_right_mass_)
+    , HH_left_time_( t.HH_left_time_)
+    , HH_right_time_( t.HH_right_time_)
+    , centroid_left_mass_( t.centroid_left_mass_)
+    , centroid_right_mass_( t.centroid_right_mass_)
+    , centroid_left_time_( t.centroid_left_time_)
+    , centroid_right_time_( t.centroid_right_time_)
+    , centroid_threshold_( t.centroid_threshold_)
+    , is_visible_( t.is_visible_)
+    , is_reference_( t.is_reference_)
+    , formula_( t.formula_ )
     , annotation_( t.annotation_ )
     , mode_( t.mode_ )
 {
@@ -114,12 +117,12 @@ MSPeakInfoItem::MSPeakInfoItem( const adportable::waveform_peakfinder::peakinfo&
     , mode_( boost::none )
 {
     set_centroid_threshold( pk.height / 2 + dbase );
-    
+
     if  ( isTime ) {
         set_time( pk.centreX, pk.xleft, pk.xright, true );  // time compute from time
         set_time( pk.centreX, pk.xleft, pk.xright, false ); // workaround, copy same value
 
-        if ( mass_assignee ) 
+        if ( mass_assignee )
             set_mass( mass_assignee( pk.centreX ), mass_assignee( pk.xleft ), mass_assignee( pk.xright ) );
 
         set_width_hh_lr( centroid_left(), centroid_right(), false ); // m/z
@@ -165,7 +168,7 @@ MSPeakInfoItem::set_peak_end_index( unsigned int idx )
     peak_end_index_ = idx;
 }
 
-double 
+double
 MSPeakInfoItem::base_height() const
 {
     return base_height_;
@@ -314,7 +317,7 @@ MSPeakInfoItem::set_time( double time, double left, double right, bool from_time
         time_from_mass_ = time;
 
     centroid_left_time_ = left;
-    centroid_right_time_ = right;    
+    centroid_right_time_ = right;
 }
 
 void
@@ -325,7 +328,7 @@ MSPeakInfoItem::set_width_hh_lr( double left, double right, bool time )
         HH_right_time_ = right;
     } else {
         HH_left_mass_ = left;
-        HH_right_mass_ = right;        
+        HH_right_mass_ = right;
     }
 }
 
@@ -349,7 +352,7 @@ MSPeakInfoItem::mode() const
     // return mode_ ? std::optional<int>(*mode_) : std::nullopt;
 }
 
-void 
+void
 MSPeakInfoItem::set_mode( boost::optional< int >&& mode )
 {
     mode_ = mode;
@@ -368,4 +371,38 @@ bool
 MSPeakInfoItem::xml_restore( std::wistream& is, MSPeakInfoItem& t )
 {
     return internal::xmlSerializer("MSPeakInfoItem").restore( is, t );
+}
+
+std::string
+MSPeakInfoItem::toJson() const
+{
+#if BOOST_VERSION >= 107500
+    boost::json::object obj = {
+        { "peak_index",             peak_index_         }
+        , { "mass",                 mass_               }
+        , { "area",                 area_               }
+        , { "height",               height_             }
+        , { "peak_start_index",     peak_start_index_   }
+        , { "peak_end_index",       peak_end_index_     }
+        , { "base_height",          base_height_        }
+        , { "time_from_mass",       time_from_mass_     }
+        , { "time_from_time",       time_from_time_     }
+        , { "HH_left_mass",         HH_left_mass_       }
+        , { "HH_right_mass",        HH_right_mass_      }
+        , { "HH_left_time",         HH_left_time_       }
+        , { "HH_right_time",        HH_right_time_      }
+        , { "centroid_left_mass",   centroid_left_mass_ }
+        , { "centroid_right_mass",  centroid_right_mass_}
+        , { "centroid_left_time",   centroid_left_time_ }
+        , { "centroid_right_time",  centroid_right_time_}
+        , { "centroid_threshold",   centroid_threshold_ }
+        , { "is_visible",           is_visible_         }
+        , { "is_reference",         is_reference_       }
+    };
+    if ( mode_ )
+        obj[ "mode" ] = *mode_;
+    return boost::json::serialize( obj );
+#else
+    return {};
+#endif
 }

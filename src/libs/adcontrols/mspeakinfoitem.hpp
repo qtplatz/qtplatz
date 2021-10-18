@@ -105,6 +105,7 @@ namespace adcontrols {
 
         static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
         static bool xml_restore( std::wistream&, MSPeakInfoItem& );
+        std::string toJson() const;
 
     private:
         uint32_t peak_index_;

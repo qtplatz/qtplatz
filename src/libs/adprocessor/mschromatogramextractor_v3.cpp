@@ -519,8 +519,9 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
 
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
-                if ( info.protocolId() == ms.second->protocolId() )
+                if ( info.protocolId() == ms.second->protocolId() ) {
                     impl_->append_to_chromatogram( ms.first, *ms.second, info, reader->display_name() );
+                }
             }
         }
 

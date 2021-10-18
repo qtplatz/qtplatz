@@ -1899,26 +1899,35 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                 adcontrols::MSPeakInfo xInfo;
 
                 auto beg = std::lower_bound( pkseg.begin(), pkseg.end(), left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
-                        return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
+                    return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
 
                 if ( beg != pkseg.end() ) {
                     auto end = std::lower_bound( beg, pkseg.end(), right, [&]( const adcontrols::MSPeakInfoItem& a, const double& right ) {
-                            return ( axis == adcontrols::hor_axis_mass ) ? right < a.mass() : right < a.time(); });
+                        return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < right : a.time() < right; });
+
+                    auto bp = std::max_element( beg, end, []( const auto a, const auto b ){ return a.area() < b.area();} );
+
+                    // for ( auto it = beg; it != end; ++it )
+                    //     ADDEBUG() << it->mass() << ", " << it->height() << " base: " << bp->mass() << ", " << bp->height();
 
                     xInfo.setMode( pkseg.mode() );
                     xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
-                    std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){ xInfo << a; } );
-                    if ( ! xpkinfo )
-                        xpkinfo = std::make_shared< adcontrols::MSPeakInfo >( xInfo );
-                    else
-                        xpkinfo->addSegment( xInfo );
+
+                    std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){
+                        if ( a.area() > bp->area() / 10 ) // 10% or above for base peak
+                            xInfo << a;
+                    });
+                    if ( xInfo.size() > 0 ) {
+                        if ( !xpkinfo )
+                            xpkinfo = std::make_shared< adcontrols::MSPeakInfo >( xInfo );
+                        else
+                            xpkinfo->addSegment( xInfo );
+                    }
                 }
             }
         }
 
         if ( xpkinfo ) {
-
-
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto file = processor->rawdata() ) {
                     if ( file->dataformat_version() >= 3 ) {
@@ -1928,7 +1937,7 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                             DataprocessWorker::instance()->createChromatogramsByPeakInfo3( processor, pm, axis, xpkinfo, reader );
                         }
                     } else {
-                        // DataprocessWorker::instance()->createChromatograms( processor, axis_, ranges, ptr->dataReaderUuid() );
+                        ADDEBUG() << "unsupported data file format (too old)";
                     }
                 }
             }
