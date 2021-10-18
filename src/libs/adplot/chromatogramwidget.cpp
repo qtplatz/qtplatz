@@ -92,11 +92,13 @@ namespace adplot {
             xSeriesData& operator = ( const xSeriesData ) = delete;
             std::weak_ptr< const adcontrols::Chromatogram > cptr_;
             QRectF rect_;
+            bool yNormalize_;
         public:
             virtual ~xSeriesData() {}
-            xSeriesData( std::shared_ptr< const adcontrols::Chromatogram >& chro, const QRectF& rc )
+            xSeriesData( std::shared_ptr< const adcontrols::Chromatogram >& chro, const QRectF& rc, bool yNormalize )
                 : cptr_( chro )
-                , rect_( rc ) {
+                , rect_( rc )
+                , yNormalize_( yNormalize ) {
             }
 
             size_t size() const override {
@@ -109,12 +111,16 @@ namespace adplot {
                 if ( auto ptr = cptr_.lock() ) {
                     if ( ptr->size() > idx ) {
                         using adcontrols::Chromatogram;
-                        const double * times = ptr->getTimeArray();
-                        const double * intens = ptr->getIntensityArray();
-                        return QPointF( times[ idx ], intens[ idx ] );
+                        if ( yNormalize_ ) {
+                            double yMax = ptr->getMaxIntensity() - ptr->getMinIntensity();
+                            double y = 100. * ( ptr->intensity( idx ) - ptr->getMinIntensity() ) / yMax;
+                            return QPointF( ptr->time( idx ), y );
+                        } else {
+                            return QPointF( ptr->time( idx ), ptr->intensity( idx ) );
+                        }
                     }
                 }
-                return QPointF();
+                return {};
             }
 
             QRectF boundingRect() const override { return rect_; }
@@ -160,6 +166,8 @@ namespace adplot {
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
 			const QwtPlotCurve& plot_curve() const { return *curve_.p(); }
             void drawMarkers( QwtPlot *, const std::pair< double, double >& ) {}
+            void setAlpha( int ) {};
+            void setColor( const QColor& ) {};
 
         private:
             PlotCurve curve_;
@@ -186,25 +194,34 @@ namespace adplot {
         class ChromatogramData {
         public:
             ~ChromatogramData() { }
-			ChromatogramData( plot& plot ) : curve_( plot ), yAxis_( QwtPlot::yLeft ) { }
+			ChromatogramData( plot& plot ) : curve_( plot )
+                                           , yAxis_( QwtPlot::yLeft )
+                                           , yNormalize_( false ) {}
             ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ), yAxis_( t.yAxis_ ) { }
 
             inline bool y2() const { return yAxis_ == QwtPlot::yRight; }
             inline QwtPlot::Axis yAxis() const { return yAxis_; }
 
+            void setNormalizedY( bool normalize ) {
+                yNormalize_ = normalize;
+            };
+
             void setData( std::shared_ptr< const adcontrols::Chromatogram>& cp, QwtPlot::Axis yAxis ) {
                 grab_ = cp;
                 yAxis_ = yAxis;
-                auto range_x = cp->timeRange(); // adcontrols::Chromatogram::toMinutes( cp->timeRange() );
+                auto range_x = cp->timeRange();
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
                 // // workaround for 'counting chromatogram', which can be complete flat signals
                 if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() )
                     range_y.first = 0;
+                if ( yNormalize_ )
+                    rect_.setCoords( range_x.first, 105.0, range_x.second, -5.0 );
+                else
+                    rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
 
-                rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
                 curve_.p()->setYAxis( yAxis_ );
-                curve_.p()->setData( new xSeriesData( cp, rect_ ) );
+                curve_.p()->setData( new xSeriesData( cp, rect_, yNormalize_ ) );
             }
 
 			const QRectF& boundingRect() const { return rect_; };
@@ -228,6 +245,16 @@ namespace adplot {
                 }
             }
 
+            void setAlpha( int alpha ) {
+                QColor color( curve_.p()->pen().color() );
+                color.setAlpha( alpha );
+                curve_.p()->setPen( QPen( color ) );
+            }
+
+            void setColor( const QColor& color ) {
+                curve_.p()->setPen( QPen( color ) );
+            }
+
             std::shared_ptr< const adcontrols::Chromatogram > get() const { return grab_; }
 
         private:
@@ -235,6 +262,7 @@ namespace adplot {
             QRectF rect_;
             std::shared_ptr< const adcontrols::Chromatogram > grab_;
             QwtPlot::Axis yAxis_;
+            bool yNormalize_;
         };
 
         // typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
@@ -311,7 +339,8 @@ namespace adplot {
         impl( const impl& ) = delete;
         impl& operator = ( const impl& ) = delete;
     public:
-        impl() : axis_( HorizontalAxisSeconds ) {}
+        impl() : axis_( HorizontalAxisSeconds )
+               , normalizedY_{ false } {}
 
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
@@ -324,6 +353,7 @@ namespace adplot {
         ChromatogramWidget::HorizontalAxis axis_;
         std::unique_ptr< QwtPlotLegendItem > legendItem_;
         std::unique_ptr< QwtLegend > externalLegend_;
+        std::array< bool, QwtPlot::axisCnt > normalizedY_;
 
         void clear();
         void removeData( int );
@@ -413,6 +443,13 @@ ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot )
     impl_->axis_ = axis;
     if ( replot )
         impl_->redraw();
+}
+
+void
+ChromatogramWidget::setNormalizedY( QwtPlot::Axis axis, bool normalized )
+{
+    if ( QwtPlot::axisValid( axis ) )
+        impl_->normalizedY_[ axis ] = normalized;
 }
 
 void
@@ -529,6 +566,7 @@ ChromatogramWidget::getData( int idx ) const
     return {};
 }
 
+// deprecated
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
 {
@@ -550,6 +588,8 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
         impl_->traces_[ idx ] = std::make_unique< ChromatogramData >( *this );
 
     auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
+    if ( QwtPlot::axisValid( yAxis ) )
+        trace->setNormalizedY( impl_->normalizedY_[ yAxis ] );
 
 	trace->plot_curve().setPen( QPen( color_table[idx] ) );
     trace->setData( cp, yAxis );
@@ -580,6 +620,24 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
 
     zoomer()->setZoomBase(); // zoom base set to data range
 
+}
+
+void
+ChromatogramWidget::setAlpha( int idx, int alpha )
+{
+    if ( impl_->traces_.size() > idx ) {
+        if ( const auto& p = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_.at( idx ) ) )
+            p->setAlpha( alpha );
+    }
+}
+
+void
+ChromatogramWidget::setColor( int idx, const QColor& color )
+{
+    if ( impl_->traces_.size() > idx ) {
+        if ( const auto& p = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_.at( idx ) ) )
+            p->setColor( color );
+    }
 }
 
 void

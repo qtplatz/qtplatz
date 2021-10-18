@@ -63,6 +63,9 @@ namespace adplot {
     public:
         // void setData( std::shared_ptr< const adcontrols::Chromatogram >&&, int idx = 0, bool axisRight = false );
 		void setData( const adcontrols::PeakResult& );
+        void setAlpha( int idx, int alpha );
+        void setColor( int idx, const QColor& color );
+        void setNormalizedY( QwtPlot::Axis, bool );
         void clear();
         void removeData( int idx, bool report = true );
         void register_tracker( std::function< bool( const QPointF&, QwtText& ) > );

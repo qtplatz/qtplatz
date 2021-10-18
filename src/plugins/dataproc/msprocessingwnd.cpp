@@ -247,7 +247,7 @@ namespace dataproc {
             return false;
         }
 
-        void clearChromatograms() {
+        void clearCheckedChromatograms() {
             checkedChromatograms_.clear();
         }
 
@@ -668,30 +668,35 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
             }
         }
         else if ( folder.name() == L"Chromatograms" ) {
+            int idx = 0;
             pImpl_->ticPlot_->clear();
+            pImpl_->ticPlot_->replot();
             if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
                 if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
+                    idx = std::max( idx, ptr->protocol() );
                     draw( ptr, ptr->protocol() );
                     idActiveFolium_ = folium.id();
                     idChromatogramFolium( folium.id() );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
-                                return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
+                        return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
                         draw( pkresults );
                     }
                 }
+                pImpl_->ticPlot_->setNormalizedY( QwtPlot::yRight, true );
+                pImpl_->clearCheckedChromatograms();
                 // redraw all chromatograms with check marked
                 auto folio = folder.folio();
-                int idx = 0;
-                for ( auto& folium: folio ) {
-                    if ( folium.attribute( L"isChecked" ) == L"true" ) {
-						processor->fetch(folium);
-                        if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                for ( auto& f: folio ) {
+                    if ( ( f.uuid() != folium.uuid() ) && ( f.attribute( L"isChecked" ) == L"true" ))  {
+                        processor->fetch(f);
+                        if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( f ) ) {
+                            ++idx;
                             pImpl_->setCheckedChromatogram( cptr, idx );
-                            pImpl_->ticPlot_->setData( cptr, cptr->protocol() );
+                            pImpl_->ticPlot_->setData( cptr, idx, true );
+                            pImpl_->ticPlot_->setAlpha( idx, 0x40 );
                         }
                     }
-                    ++idx;
                 }
             }
         }
@@ -965,8 +970,9 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
     portfolio::Folder folder = folium.parentFolder();
 	if ( !folder )
 		return;
+
     if ( folder.name() == L"Chromatograms" ) {
-        pImpl_->clearChromatograms();
+        pImpl_->clearCheckedChromatograms();
         pImpl_->ticPlot_->clear();
         auto folio = folder.folio();
         int idx = 0;
