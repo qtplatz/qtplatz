@@ -260,7 +260,7 @@ WaveformWnd::traceDataChanged( int )
                 footer += QString( "  Elapsed time: %1min [%2]" ).arg( QString::number( time / 60, 'f', 3 ), timeString );
                 tpw->setFooter( footer );
             }
-            tpw->setData( trace, idx, false );
+            tpw->setTrace( trace, idx, QwtPlot::yLeft );
         }
         ++idx;
     }

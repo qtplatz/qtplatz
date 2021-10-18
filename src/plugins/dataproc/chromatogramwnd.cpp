@@ -119,7 +119,7 @@ namespace dataproc {
         void setData( adcontrols::ChromatogramPtr& ptr ) {
             data_ = ptr;
             plots_[ 0 ]->clear();
-            plots_[ 0 ]->setData( ptr );
+            plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
             auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
             plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
             peakResult_.reset();
@@ -129,7 +129,7 @@ namespace dataproc {
 
         void setData( adcontrols::PeakResultPtr& ptr ) {
             peakResult_ = ptr;
-            plots_[ 0 ]->setData( *ptr );
+            plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
             peakTable_->setData( *ptr );
         }
 

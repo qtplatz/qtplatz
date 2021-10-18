@@ -502,8 +502,9 @@ ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int i
     }
 }
 
+#if 0
 void
-ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int idx, bool yRight )
+ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int idx, QwtPlot::Axis yAxis )
 {
     if ( c->size() < 2 )
         return;
@@ -522,7 +523,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
 
         trace->plot_curve().setTitle( QString::fromStdString( c->legend() ) );
 
-        auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
+        // auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
 
         QRectF rc;
         for ( auto& trace: impl_->traces_ ) {
@@ -553,6 +554,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
         zoomer()->setZoomBase();
     }
 }
+#endif
 
 std::shared_ptr< const adcontrols::Chromatogram >
 ChromatogramWidget::getData( int idx ) const
@@ -567,11 +569,11 @@ ChromatogramWidget::getData( int idx ) const
 }
 
 // deprecated
-void
-ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
-{
-    setData( cp, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
-}
+// void
+// ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
+// {
+//     setData( cp, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
+// }
 
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, QwtPlot::Axis yAxis )
@@ -588,22 +590,13 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
         impl_->traces_[ idx ] = std::make_unique< ChromatogramData >( *this );
 
     auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
-    if ( QwtPlot::axisValid( yAxis ) )
+    if ( QwtPlot::axisValid( yAxis ) ) {
         trace->setNormalizedY( impl_->normalizedY_[ yAxis ] );
+    }
 
 	trace->plot_curve().setPen( QPen( color_table[idx] ) );
     trace->setData( cp, yAxis );
     impl_->peak_annotations_.clear();
-
-    for ( auto& pk: cp->peaks() )
-        setPeak( pk, impl_->peak_annotations_ );
-
-    impl_->peak_annotations_.sort();
-
-    plotAnnotations( impl_->peak_annotations_ );
-
-    // if ( auto value = cp->ptree().get_optional<std::string>( "trace.legend" ) )
-    //     trace->plot_curve().setTitle( QString::fromStdString( value.get() ) );
 
     QRectF rect = trace->boundingRect();
     for ( const auto& v: impl_->traces_ ) {
@@ -654,7 +647,7 @@ ChromatogramWidget::setZoomed( const QRectF& rect, bool keepY )
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::PeakResult& r )
+ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, QwtPlot::Axis axis )
 {
     impl_->plot_peaks_.clear();
     impl_->plot_baselines_.clear();
@@ -665,6 +658,7 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 
     impl_->peak_annotations_.clear();
 	//for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
+
     for ( const auto& pk:  r.peaks() )
 		setPeak( pk, impl_->peak_annotations_ );
 
@@ -674,7 +668,6 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 void
 ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotations& vec )
 {
-    //double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
     double tR = peak.peakTime();
 
     int pri = 0;

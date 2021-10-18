@@ -283,11 +283,11 @@ VideoProcWnd::handleData()
     }
 
     if ( auto tic = processor->time_profile_tic() ) {
-        impl_->tplot_->setData( std::move( tic ), 2, true );
+        impl_->tplot_->setData( std::move( tic ), 2, QwtPlot::yRight );
     }
 
     if ( auto counts = processor->time_profile_counts() ) {
-        impl_->tplot_->setData( std::move( counts ), 1, false );
+        impl_->tplot_->setData( std::move( counts ), 1, QwtPlot::yLeft );
     }
 
     // if ( auto bp = processor->time_profile_bp() )

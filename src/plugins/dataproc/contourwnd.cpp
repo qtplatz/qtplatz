@@ -276,7 +276,7 @@ ContourWnd::handleSelected( const QRectF& rect )
             }
             cp->setIntensity( idx++, y );
         }
-        chromatogr_->setData( cp, 0 );
+        chromatogr_->setData( cp, 0, QwtPlot::yLeft );
         chromatogr_->setTitle( (boost::format( "Chromatogram @ <i>m/z</i>=%.4f -- %.4f" ) % m1 % m2).str() );
 
         //if ( w < 2 )

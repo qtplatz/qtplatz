@@ -464,11 +464,11 @@ MSProcessingWnd::draw( adutils::ChromatogramPtr ptr, int idx )
     }
 }
 
-void
-MSProcessingWnd::draw( adutils::PeakResultPtr ptr )
-{
-    pImpl_->ticPlot_->setData( *ptr );
-}
+// void
+// MSProcessingWnd::draw( adutils::PeakResultPtr ptr )
+// {
+//     pImpl_->ticPlot_->setPeakResult( *ptr, QwtPlot::yLeft );
+// }
 
 void
 MSProcessingWnd::idSpectrumFolium( const std::wstring& id )
@@ -680,7 +680,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                         return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
-                        draw( pkresults );
+                        pImpl_->ticPlot_->setPeakResult( *pkresults, QwtPlot::yLeft );
                     }
                 }
                 pImpl_->ticPlot_->setNormalizedY( QwtPlot::yRight, true );
@@ -693,7 +693,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( f ) ) {
                             ++idx;
                             pImpl_->setCheckedChromatogram( cptr, idx );
-                            pImpl_->ticPlot_->setData( cptr, idx, true );
+                            pImpl_->ticPlot_->setData( cptr, idx, QwtPlot::yRight );
                             pImpl_->ticPlot_->setAlpha( idx, 0x40 );
                         }
                     }
@@ -964,29 +964,8 @@ MSProcessingWnd::handleFoliumDataChanged( const QString& id )
 void
 MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )
 {
-    (void)processor;
-    (void)isChecked;
-
-    portfolio::Folder folder = folium.parentFolder();
-	if ( !folder )
-		return;
-
-    if ( folder.name() == L"Chromatograms" ) {
-        pImpl_->clearCheckedChromatograms();
-        pImpl_->ticPlot_->clear();
-        auto folio = folder.folio();
-        int idx = 0;
-        for ( auto& folium: folio ) {
-            if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                if ( folium.empty() )
-                    processor->fetch( folium );
-                if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) )
-					pImpl_->setCheckedChromatogram( cptr, idx );
-                //pImpl_->ticPlot_->setData( cptr, idx );
-            }
-            ++idx;
-        }
-    }
+    // nothing to do
+    // check state change will be handled on handleSelectionchanged method
 }
 
 void
