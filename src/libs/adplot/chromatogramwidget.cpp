@@ -57,7 +57,7 @@
 #include <boost/variant.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional.hpp>
-// #include <QDebug>
+#include <array>
 #include <queue>
 #include <memory>
 

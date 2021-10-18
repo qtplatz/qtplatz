@@ -36,7 +36,7 @@ if ( WIN32 )
 
   if ( Boost_USE_STATIC_LIBS )
     add_definitions(
-      -DBOOST_LOG_DYN_LINK
+      #-DBOOST_LOG_DYN_LINK
       -DBOOST_ATOMIC_DYN_LINK
       -DBOOST_BZIP2_DYN_LINK
       -DBOOST_CHRONO_DYN_LINK
