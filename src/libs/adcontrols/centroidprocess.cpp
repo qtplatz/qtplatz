@@ -357,7 +357,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.set_peak_start_index( uint32_t(pk.first) );
                 item.set_peak_end_index( uint32_t(pk.second) );
 
-				// if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth() )
+                item.set_index( info_.size() );
                 info_ << item;
             }
         } while(0);

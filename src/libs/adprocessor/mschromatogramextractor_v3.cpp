@@ -56,9 +56,12 @@
 #include <adportable/unique_ptr.hpp>
 #include <adportable/utf.hpp>
 #include <adutils/acquiredconf.hpp>
+#include <boost/json.hpp>
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <numeric>
 #include <ratio>
@@ -427,7 +430,39 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         double tof = t.getTime( t.getIndexFromMass( mol.mass() ) );
 
                         auto time_of_injection = this->time_of_injection();
+#if BOOST_VERSION >= 107500
+                        boost::json::object obj = {
+                            { "generator"
+                              , {{ "time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) }
+                                  , { "extract_by_mols"
+                                     , { "wform_type", (sp->isCentroid() ? "centroid" : "profile") }
+                                     , { "moltable"
+                                          , { { "protocol", proto.get() }
+                                             , { "mass", mol.mass() }
+                                             , { "width", width }
+                                             , { "formula", mol.formula() }
+                                             , { "msref",   mol.isMSRef() }
+                                            }
+                                        } // moltable
+                                     , { "tof", tof }
+                                     , { "centroid", areaIntensity ? "area" : "height" }
+                                    }}
+                            }
+                        };
+                        auto tobj = obj.at( "generator" ).at( "extract_by_mols" ).as_object();
+                        if ( auto molid = mol.property< boost::uuids::uuid >( "molid" ) )
+                            tobj[ "molid" ] = boost::uuids::to_string( *molid );
 
+                        std::string prop = boost::json::serialize( obj );
+                        // if ( cm->lockmass() ) {
+                        //     pt.put( "generator.extract_by_mols.moltable.msref", mol.isMSRef() );
+                        // }
+                        // pt.put( "generator.extract_by_mols.tof", tof );
+
+                        // if ( peak_detector )
+                        //     pt.put( "generator.extract_by_mols.centroid", ( areaIntensity ? "area" : "height" ) );
+                        // };
+#else
                         boost::property_tree::ptree pt;
                         pt.put( "generator.time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) );
                         if ( auto molid = mol.property< boost::uuids::uuid >( "molid" ) )
@@ -443,9 +478,12 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                         if ( peak_detector )
                             pt.put( "generator.extract_by_mols.centroid", ( areaIntensity ? "area" : "height" ) );
-
+                        std::ostringstream o;
+                        boost::property_tree::write_json( o, pt );
+                        std::string prop = o.str();
+#endif
                         temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
-                        temp.back().pChr->setGeneratorProperty( pt );
+                        temp.back().pChr->setGeneratorProperty( prop );
                         temp.back().pChr->set_time_of_injection( std::move( time_of_injection ) );
                         if ( sp->isHistogram() ) {
                             temp.back().pChr->setAxisLabel( adcontrols::plot::yAxis, "Counts" );
@@ -454,9 +492,6 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                             temp.back().pChr->setAxisLabel( adcontrols::plot::yAxis, areaIntensity ? "Intensity (area)" : "Intensity" );
                             temp.back().pChr->setAxisUnit( adcontrols::plot::Volts, 1000 ); // mV
                         }
-#if !defined NDEBUG
-                        ADDEBUG() << pt;
-#endif
                     }
                 }
             }
@@ -513,10 +548,9 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     if ( impl_->raw_->dataformat_version() <= 2 )
         return false;
 
-    ADDEBUG() << "extract_by_peak_info";
-
     if ( loadSpectra( &pm, reader, -1, progress ) ) {
 
+        // generate an array of chromatogram
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
                 if ( info.protocolId() == ms.second->protocolId() ) {
@@ -534,6 +568,7 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
             r->pChr_->maximumTime( time_range.second );
             r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
             r->pChr_->setAxisUnit( r->isCounting_ ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
+
             vec.emplace_back( std::move( r->pChr_ ) );
         }
         return true;
@@ -843,6 +878,24 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                         L"Create"
                         , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
                             % utf::to_wstring( display_name ) % pk.mass() % pk.widthHH() % protocol ).str() ) );
+                //--------- add property ---------
+                boost::system::error_code ec;
+                auto jv = boost::json::parse( pk.toJson(), ec );
+                if ( !ec ) {
+                    boost::json::object obj = {
+                        { "generator", { "extract_by_peak_info", { "pkinfo", jv } } }
+                    };
+                    ( *it )->pChr_->setGeneratorProperty( boost::json::serialize( obj ) );
+                }
+                // boost::property_tree::ptree pt;
+                // {
+                //     boost::property_tree::ptree child;
+                //     std::istringstream is( pk.toJson() );
+                //     boost::property_tree::read_json( is, child );
+                //     pt.add_child( "generator.extract_by_peak_info.pkinfo", child );
+                // }
+                // // pt.put( "generator.time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( this->time_of_injection() ) );
+                // ( *it )->pChr_->setGeneratorProperty( pt );
             }
             ( *it )->append( uint32_t( pos ), time, y.get() );
         }

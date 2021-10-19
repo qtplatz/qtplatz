@@ -33,6 +33,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/fsio2.hpp>
 #include <adlog/logger.hpp>
@@ -55,6 +56,8 @@
 #include <QVBoxLayout>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 #include <iomanip>
 #include <array>
 
@@ -639,6 +642,45 @@ namespace dataproc {
         }
     };
 
+    struct ListMassList {
+        QStandardItemModel& model;
+        QModelIndex index;
+        Dataprocessor * processor;
+        ListMassList( QStandardItemModel& m, QModelIndex& idx, Dataprocessor * p ) : model( m ), index( idx ), processor( p )  {}
+        void operator()() {
+            auto parent = model.itemFromIndex( index );
+            for ( int row = 0; row < parent->rowCount(); ++row ) {
+                if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
+                    if ( item->checkState() == Qt::Checked ) {
+                        QVariant data = item->data( Qt::UserRole );
+                        if ( data.canConvert< portfolio::Folium >() ) {
+                            auto folium = data.value< portfolio::Folium >();
+                            if ( processor )
+                                processor->fetch( folium );
+                            if ( portfolio::is_type< adutils::ChromatogramPtr >( folium ) ) {
+                                if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+                                    if ( auto prop = chro->generatorProperty( "generator.extract_by_peak_info.pkinfo" ) ) {
+                                        ADDEBUG() << *prop << "\n-------------------";
+                                        if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( *prop ) ) {
+                                            ADDEBUG() << pk->toJson();
+                                            ADDEBUG() << "----- " << pk->mass() << ", " << pk->area();
+                                        }
+                                        // boost::system::error_code ec;
+                                        // auto jv = boost::json::parse( *prop, ec );
+                                        // if ( !ec ) {
+                                        //     ADDEBUG() << *prop;
+                                        // }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+
     struct SaveChromatogramAs {
         portfolio::Folium folium;
         Dataprocessor * processor;
@@ -728,6 +770,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 if ( auto folder = data.value< portfolio::Folder >() ) {
                     menu.addAction( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( false, *pModel_, index ) );
                     menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( true, *pModel_, index ) );
+                    if ( folder.name() == L"Chromatograms" ) {
+                        menu.addAction( QString( tr("List m/z list for %1") ).arg( index.data( Qt::EditRole ).toString() ), ListMassList( *pModel_, index, processor ) );
+                    }
                 }
 
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected

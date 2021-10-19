@@ -30,6 +30,9 @@
 #include <boost/any.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/optional.hpp>
+#if BOOST_VERSION >= 107500
+# include <boost/json.hpp>
+#endif
 #include <chrono>
 #include <memory>
 #include <string>
@@ -184,10 +187,13 @@ namespace adcontrols {
         void setDataGuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataGuid() const;
 
-        void setGeneratorProperty( const boost::property_tree::ptree& );
-
-        boost::property_tree::ptree& ptree();
-        const boost::property_tree::ptree& ptree() const;
+        // void setGeneratorProperty( const boost::property_tree::ptree& );
+        void setGeneratorProperty( const std::string& json );
+#if BOOST_VERSION >= 107500
+        void setGeneratorProperty( const boost::json::object& );
+#endif
+        boost::optional< std::string > generatorProperty( const std::string& node = {} ) const;
+        template< typename T > boost::optional< T > findProperty( const std::string& ) const;
 
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
@@ -218,6 +224,8 @@ namespace adcontrols {
 
     template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
+    template<> boost::optional< bool > Chromatogram::findProperty( const std::string& ) const;
+    template<> boost::optional< boost::json::value > Chromatogram::findProperty( const std::string& ) const;
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
