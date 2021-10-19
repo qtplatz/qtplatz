@@ -108,7 +108,7 @@ namespace quan {
 
                 auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
                 pk->formula( compound.formula() ); // assign formula to peak
-                pk->set_index( std::distance( xpkinfo.begin(), pk ) );
+                pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
                 return pk;
             }
             return xpkinfo.end();
@@ -145,7 +145,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                         resp.uuid_cmpd( compound.uuid() );
                         resp.uuid_cmpd_table( compounds_.uuid() );
                         resp.formula( compound.formula() );
-                        resp.setPeakIndex( pk->index() );
+                        resp.setPeakIndex( pk->peak_index() );
                         resp.setFcn( fcn );
                         resp.setMass( pk->mass() );
 
@@ -171,7 +171,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                         << annotation( compound.formula()
                                        , pk->mass()
                                        , pk->area()
-                                       , pk->index()
+                                       , pk->peak_index()
                                        , 1000
                                        , annotation::dataFormula );
                 } else {

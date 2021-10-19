@@ -67,9 +67,8 @@ namespace adcontrols {
         void set_height( double );
         double time( bool from_time = false ) const;
         void set_time( double, double left, double right, bool from_time = false );
-        unsigned int index() const;
-        void set_index( unsigned int );
-
+        unsigned int peak_index() const;
+        void set_peak_index( unsigned int );
         unsigned int peak_start_index() const;
         void set_peak_start_index( unsigned int );
         unsigned int peak_end_index() const;
@@ -106,11 +105,10 @@ namespace adcontrols {
 
         static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
         static bool xml_restore( std::wistream&, MSPeakInfoItem& );
-        static boost::optional< MSPeakInfoItem > fromJson( const std::string& json );
         std::string toJson() const;
 
     private:
-        uint32_t index_;
+        uint32_t peak_index_;
         uint32_t peak_start_index_;
         uint32_t peak_end_index_;
         double base_height_;
@@ -140,7 +138,7 @@ namespace adcontrols {
         friend class internal::CentroidProcessImpl;
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
-            ar  & BOOST_SERIALIZATION_NVP( index_ )
+            ar  & BOOST_SERIALIZATION_NVP( peak_index_ )
                 & BOOST_SERIALIZATION_NVP( peak_start_index_ )
                 & BOOST_SERIALIZATION_NVP( peak_end_index_ )
                 & BOOST_SERIALIZATION_NVP( base_height_ )

@@ -40,7 +40,6 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree_serialization.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/map.hpp>
@@ -124,8 +123,7 @@ namespace adcontrols {
             int32_t proto_;
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
-            boost::optional< boost::property_tree::ptree > ptree_;
-            std::string generator_property_; // json
+            boost::property_tree::ptree ptree_;
             std::vector< double > tofArray_;
             std::vector< double > massArray_;
             std::string time_of_injection_; // iso8601 extended
@@ -140,8 +138,7 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(timeRange_.second)
                     & BOOST_SERIALIZATION_NVP(dataDelayPoints_)
                     & BOOST_SERIALIZATION_NVP(descriptions_);
-
-                if ( version <= 7 ) {
+                if ( version <- 7 ) {
                     std::wstring axisLabelHorizontal, axisLabelVertical;
                     ar  & BOOST_SERIALIZATION_NVP(axisLabelHorizontal)
                         & BOOST_SERIALIZATION_NVP(axisLabelVertical);
@@ -156,47 +153,34 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(evntVec_)
                     & BOOST_SERIALIZATION_NVP(peaks_)
                     ;
-
                 if ( version >= 2 )
                     ar & BOOST_SERIALIZATION_NVP( proto_ );
                 if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
-                if ( version < 9 ) {
-                    if ( version >= 4 ) {
-                        ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
-                        ptree_ = boost::property_tree::ptree();
-                        ar & BOOST_SERIALIZATION_NVP( *ptree_ );
-                    }
-                    if ( version >= 5 ) {
-                        ar & BOOST_SERIALIZATION_NVP( tofArray_ );
-                        ar & BOOST_SERIALIZATION_NVP( massArray_ );
-                    }
-                    if ( version >= 6 ) {
-                        ar & BOOST_SERIALIZATION_NVP( isCounting_ );
-                    }
-                    if ( version >= 7 ) {
-                        ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
-                    }
-                    if ( version >= 8 ) {
-                        ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
-                        ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
-                    }
-                } else if ( version >= 9 ) {
+                if ( version >= 4 ) {
                     ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
+                    ar & BOOST_SERIALIZATION_NVP( ptree_ );
+                }
+                if ( version >= 5 ) {
                     ar & BOOST_SERIALIZATION_NVP( tofArray_ );
                     ar & BOOST_SERIALIZATION_NVP( massArray_ );
+                }
+                if ( version >= 6 ) {
                     ar & BOOST_SERIALIZATION_NVP( isCounting_ );
+                }
+                if ( version >= 7 ) {
                     ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
+                }
+                if ( version >= 8 ) {
                     ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                     ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
-                    ar & BOOST_SERIALIZATION_NVP( generator_property_ );
                 }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 9 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 8 )
 
 namespace {
 
@@ -923,11 +907,11 @@ Chromatogram::dataReaderUuid() const
     return pImpl_->dataReaderUuid_;
 }
 
-// void
-// Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
-// {
-//     pImpl_->ptree_ = pt;
-// }
+void
+Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
+{
+    pImpl_->ptree_ = pt;
+}
 
 void
 Chromatogram::setDataGuid( const boost::uuids::uuid& uuid )
@@ -941,64 +925,16 @@ Chromatogram::dataGuid() const
     return pImpl_->dataGuid_;
 }
 
-// boost::optional< boost::property_tree::ptree& >
-// Chromatogram::ptree()
-// {
-//     return pImpl_->ptree_;
-// }
-
-// boost::optional< const boost::property_tree::ptree& >
-// Chromatogram::ptree() const
-// {
-//     return pImpl_->ptree_;
-// }
-
-void
-Chromatogram::setGeneratorProperty( const std::string& prop )
+boost::property_tree::ptree&
+Chromatogram::ptree()
 {
-    pImpl_->generator_property_ = prop;
+    return pImpl_->ptree_;
 }
 
-boost::optional< std::string >
-Chromatogram::generatorProperty( const std::string& node ) const
+const boost::property_tree::ptree&
+Chromatogram::ptree() const
 {
-    if ( ! pImpl_->generator_property_.empty() )
-        if ( node.empty() ) {
-            return generator_property_;
-        } else {
-        }
-    }
-    // std::ostringstream o;
-    // if ( node.empty() ) {
-    //     boost::property_tree::write_json( o, pImpl_->ptree_, false );
-    //     return o.str();
-    // } else if ( auto p = pImpl_->ptree_.get_child_optional( node ) ) {
-    //     boost::property_tree::write_json( o, *p, false );
-    //     return o.str();
-    // }
-    return {};
-}
-
-template<> boost::optional< bool >
-Chromatogram::findProperty( const std::string& keys ) const
-{
-    return {};
-}
-
-template<> boost::optional< boost::json::value >
-Chromatogram::findProperty( const std::string& keys ) const
-{
-    std::string::npos pos;
-    const std::string delimiter = ".";
-    std::string tokens( keys );
-
-    while ( (pos = tokens.find(delimiter)) != std::string::npos ) {
-        auto key = tokens.substr(0, pos);
-        tokens.erase( 0, pos + delimiter.length() );
-        std::cout << token << std::endl;
-        ADDEBUG() << "key: " << token;
-    }
-    return {};
+    return pImpl_->ptree_;
 }
 
 bool
