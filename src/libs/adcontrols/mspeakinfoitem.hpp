@@ -31,6 +31,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/optional.hpp>
 #include <boost/optional.hpp>
+#include <boost/json/fwd.hpp>
 #if __cplusplus >= 201703L
 #include <optional>
 #endif
@@ -105,6 +106,8 @@ namespace adcontrols {
 
         static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
         static bool xml_restore( std::wistream&, MSPeakInfoItem& );
+        static boost::optional< MSPeakInfoItem > fromJson( const std::string& json );
+        static boost::optional< MSPeakInfoItem > fromJson( const boost::json::value& );
         std::string toJson() const;
 
     private:

@@ -29,6 +29,8 @@
 #include "constants.hpp"
 #include <boost/any.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value.hpp>
 #include <boost/optional.hpp>
 #include <chrono>
 #include <memory>
@@ -184,7 +186,11 @@ namespace adcontrols {
         void setDataGuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataGuid() const;
 
-        void setGeneratorProperty( const boost::property_tree::ptree& );
+        [[deprecated("use std::string version")]] void setGeneratorProperty( const boost::property_tree::ptree& );
+        void setGeneratorProperty( const std::string& );
+        boost::optional< std::string > generatorProperty() const;
+
+        template< typename T > boost::optional< T > findProperty( const std::string& key ) const;
 
         boost::property_tree::ptree& ptree();
         const boost::property_tree::ptree& ptree() const;
@@ -218,6 +224,8 @@ namespace adcontrols {
 
     template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
+
+    // template<> boost::optional< boost::json::value > Chromatogram::findProperty( const std::string& key ) const;
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 

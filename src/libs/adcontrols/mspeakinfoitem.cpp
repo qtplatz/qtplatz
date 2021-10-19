@@ -378,7 +378,7 @@ MSPeakInfoItem::toJson() const
 {
 #if BOOST_VERSION >= 107500
     boost::json::object obj = {
-        { "peak_index",             peak_index_         }
+        { "index",                  peak_index_         }
         , { "mass",                 mass_               }
         , { "area",                 area_               }
         , { "height",               height_             }
@@ -405,4 +405,61 @@ MSPeakInfoItem::toJson() const
 #else
     return {};
 #endif
+}
+
+namespace {
+    template<class T>
+    void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
+        try {
+            t = boost::json::value_to<T>( obj.at( key ) );
+        } catch ( std::exception& ex ) {
+            ADDEBUG() << "exception: extracting key '" << key << "'\t" << ex.what();
+        }
+    }
+}
+
+// static
+boost::optional< MSPeakInfoItem >
+MSPeakInfoItem::fromJson( const std::string& json )
+{
+#if BOOST_VERSION >= 107500
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( json, ec );
+    if ( ! ec )
+        return fromJson( jv );
+#endif
+    return {};
+}
+
+boost::optional< MSPeakInfoItem >
+MSPeakInfoItem::fromJson( const boost::json::value& jv )
+{
+#if BOOST_VERSION >= 107500
+    if ( jv.kind() == boost::json::kind::object ) {
+        MSPeakInfoItem t;
+        auto obj = jv.as_object();
+        extract( obj, t.peak_index_         , "index"               );
+        extract( obj, t.mass_               , "mass"                );
+        extract( obj, t.area_               , "area"                );
+        extract( obj, t.height_             , "height"              );
+        extract( obj, t.peak_start_index_   , "peak_start_index"    );
+        extract( obj, t.peak_end_index_     , "peak_end_index"      );
+        extract( obj, t.base_height_        , "base_height"         );
+        extract( obj, t.time_from_mass_     , "time_from_mass"      );
+        extract( obj, t.time_from_time_     , "time_from_time"      );
+        extract( obj, t.HH_left_mass_       , "HH_left_mass"        );
+        extract( obj, t.HH_right_mass_      , "HH_right_mass"       );
+        extract( obj, t.HH_left_time_       , "HH_left_time"        );
+        extract( obj, t.HH_right_time_      , "HH_right_time"       );
+        extract( obj, t.centroid_left_mass_ , "centroid_left_mass"  );
+        extract( obj, t.centroid_right_mass_, "centroid_right_mass" );
+        extract( obj, t.centroid_left_time_ , "centroid_left_time"  );
+        extract( obj, t.centroid_right_time_, "centroid_right_time" );
+        extract( obj, t.centroid_threshold_ , "centroid_threshold"  );
+        extract( obj, t.is_visible_         , "is_visible"          );
+        extract( obj, t.is_reference_       , "is_reference"        );
+        return t;
+    }
+#endif
+    return {};
 }

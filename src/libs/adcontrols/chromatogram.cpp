@@ -39,14 +39,18 @@
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
+#include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ptree_serialization.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/optional.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -103,7 +107,6 @@ namespace adcontrols {
             void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
             size_t dataDelayPoints() const { return dataDelayPoints_; }
 
-
             friend class Chromatogram;
             static std::wstring empty_string_;  // for error return as reference
             bool isConstantSampling_;
@@ -124,6 +127,7 @@ namespace adcontrols {
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
             boost::property_tree::ptree ptree_;
+            boost::optional< std::string > generator_property_;
             std::vector< double > tofArray_;
             std::vector< double > massArray_;
             std::string time_of_injection_; // iso8601 extended
@@ -138,7 +142,8 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(timeRange_.second)
                     & BOOST_SERIALIZATION_NVP(dataDelayPoints_)
                     & BOOST_SERIALIZATION_NVP(descriptions_);
-                if ( version <- 7 ) {
+
+                if ( version <= 7 ) {
                     std::wstring axisLabelHorizontal, axisLabelVertical;
                     ar  & BOOST_SERIALIZATION_NVP(axisLabelHorizontal)
                         & BOOST_SERIALIZATION_NVP(axisLabelVertical);
@@ -153,34 +158,48 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(evntVec_)
                     & BOOST_SERIALIZATION_NVP(peaks_)
                     ;
-                if ( version >= 2 )
+                if ( version <= 8 ) {
+                    if ( version >= 2 )
+                        ar & BOOST_SERIALIZATION_NVP( proto_ );
+                    if ( version >= 3 )
+                        ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+                    if ( version >= 4 ) {
+                        ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
+                        ar & BOOST_SERIALIZATION_NVP( ptree_ );
+                    }
+                    if ( version >= 5 ) {
+                        ar & BOOST_SERIALIZATION_NVP( tofArray_ );
+                        ar & BOOST_SERIALIZATION_NVP( massArray_ );
+                    }
+                    if ( version >= 6 ) {
+                        ar & BOOST_SERIALIZATION_NVP( isCounting_ );
+                    }
+                    if ( version >= 7 ) {
+                        ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
+                    }
+                    if ( version >= 8 ) {
+                        ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
+                        ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
+                    }
+                } else if ( version >= 9 ) {
                     ar & BOOST_SERIALIZATION_NVP( proto_ );
-                if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
-                if ( version >= 4 ) {
                     ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
-                    ar & BOOST_SERIALIZATION_NVP( ptree_ );
-                }
-                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( ptree_ ); // deprecated
                     ar & BOOST_SERIALIZATION_NVP( tofArray_ );
                     ar & BOOST_SERIALIZATION_NVP( massArray_ );
-                }
-                if ( version >= 6 ) {
                     ar & BOOST_SERIALIZATION_NVP( isCounting_ );
-                }
-                if ( version >= 7 ) {
                     ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
-                }
-                if ( version >= 8 ) {
                     ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                     ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
+                    ar & BOOST_SERIALIZATION_NVP( generator_property_ );
                 }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 8 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 9 )
 
 namespace {
 
@@ -801,6 +820,7 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
 
 ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSampling_( t.isConstantSampling_ )
                                                                 , isCounting_( t.isCounting_ )
+                                                                  // , descriptions_( t.descriptions_ )
                                                                 , peaks_( t.peaks_ )
                                                                 , baselines_( t.baselines_ )
                                                                 , dataArray_( t.dataArray_ )
@@ -814,6 +834,10 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , dataReaderUuid_( t.dataReaderUuid_ )
                                                                 , dataGuid_( t.dataGuid_ )
                                                                 , ptree_( t.ptree_ )
+                                                                , generator_property_( t.generator_property_ )
+                                                                , tofArray_( t.tofArray_ )
+                                                                , massArray_( t.massArray_ )
+                                                                , time_of_injection_( t.time_of_injection_ )
                                                                 , yAxisUnit_( t.yAxisUnit_ )
 {
     descriptions_ = t.descriptions_;
@@ -907,10 +931,82 @@ Chromatogram::dataReaderUuid() const
     return pImpl_->dataReaderUuid_;
 }
 
+// deprecated
 void
 Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
 {
     pImpl_->ptree_ = pt;
+    std::ostringstream o;
+    boost::property_tree::write_json( o, pt );
+    pImpl_->generator_property_ = o.str();
+}
+
+void
+Chromatogram::setGeneratorProperty( const std::string& prop )
+{
+    ADDEBUG() << prop;
+    pImpl_->generator_property_ = prop;
+}
+
+boost::optional< std::string >
+Chromatogram::generatorProperty() const
+{
+    return pImpl_->generator_property_;
+}
+
+namespace {
+
+    struct tokenizer {
+        std::vector< std::string > tokens_;
+        tokenizer( std::string s ) {
+            size_t pos(0);
+            while ( ( pos = s.find( "." ) ) != std::string::npos ) {
+                tokens_.emplace_back( s.substr( 0, pos ) );
+                s.erase( 0, pos + 1 );
+            }
+            if ( !s.empty() )
+                tokens_.emplace_back( s );
+        }
+        std::vector< std::string >::const_iterator begin() const { return tokens_.begin(); }
+        std::vector< std::string >::const_iterator end() const { return tokens_.end(); }
+    };
+
+    struct json_helper {
+        static boost::optional< boost::json::value > find( const boost::json::object& obj, const std::string& key ) {
+            if ( auto jv = obj.if_contains( key ) )
+                return *jv;
+            return {};
+        }
+    };
+
+}
+
+template<>
+boost::optional< boost::json::value >
+Chromatogram::findProperty( const std::string& keys ) const
+{
+    if ( pImpl_->generator_property_ ) {
+        boost::system::error_code ec;
+        auto jv = boost::json::parse( *pImpl_->generator_property_, ec );
+        if ( !ec ) {
+            if ( keys.empty() )
+                return jv;
+
+            tokenizer tok( keys );
+
+            boost::json::value value = jv;
+            for ( const auto& key: tok ) {
+                if ( value.kind() != boost::json::kind::object ) {
+                    return {};
+                }
+                if ( auto v = json_helper::find( value.as_object(), key ) ) {
+                    value = *v;
+                }
+            }
+            return value;
+        }
+    }
+    return {};
 }
 
 void

@@ -59,6 +59,7 @@
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 #include <numeric>
 #include <ratio>
@@ -843,6 +844,20 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                         L"Create"
                         , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
                             % utf::to_wstring( display_name ) % pk.mass() % pk.widthHH() % protocol ).str() ) );
+
+                //--------- add property ---------
+                boost::system::error_code ec;
+                auto jv = boost::json::parse( pk.toJson(), ec );
+                if ( !ec ) {
+                    boost::json::object obj = {
+                        { "generator"
+                          , {{ "extract_by_peak_info"
+                                  , {{ "pkinfo", jv }}
+                                }} }
+                    };
+                    ( *it )->pChr_->setGeneratorProperty( boost::json::serialize( obj ) );
+                }
+
             }
             ( *it )->append( uint32_t( pos ), time, y.get() );
         }
