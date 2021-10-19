@@ -126,7 +126,7 @@ namespace adcontrols {
             int32_t proto_;
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
-            boost::property_tree::ptree ptree_;
+            boost::property_tree::ptree ptree_; // deprecated, not archived
             boost::optional< std::string > generator_property_;
             std::vector< double > tofArray_;
             std::vector< double > massArray_;
@@ -135,30 +135,23 @@ namespace adcontrols {
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-
-                ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
-                    & BOOST_SERIALIZATION_NVP(isConstantSampling_)
-                    & BOOST_SERIALIZATION_NVP(timeRange_.first)
-                    & BOOST_SERIALIZATION_NVP(timeRange_.second)
-                    & BOOST_SERIALIZATION_NVP(dataDelayPoints_)
-                    & BOOST_SERIALIZATION_NVP(descriptions_);
-
-                if ( version <= 7 ) {
+                ADDEBUG() << "-------- version: " << version << ", is_loading: " << Archive::is_loading::value;
+                if ( version < 9 ) {
+                    ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
+                        & BOOST_SERIALIZATION_NVP(isConstantSampling_)
+                        & BOOST_SERIALIZATION_NVP(timeRange_.first)
+                        & BOOST_SERIALIZATION_NVP(timeRange_.second)
+                        & BOOST_SERIALIZATION_NVP(dataDelayPoints_)
+                        & BOOST_SERIALIZATION_NVP(descriptions_);
                     std::wstring axisLabelHorizontal, axisLabelVertical;
                     ar  & BOOST_SERIALIZATION_NVP(axisLabelHorizontal)
                         & BOOST_SERIALIZATION_NVP(axisLabelVertical);
-                    if ( !axisLabelHorizontal.empty() )
-                        axisLabels_[ plot::xAxis ] = adportable::utf::to_utf8( axisLabelHorizontal );
-                    if ( !axisLabelVertical.empty() )
-                        axisLabels_[ plot::yAxis ] = adportable::utf::to_utf8( axisLabelVertical );
-                }
 
-                ar  & BOOST_SERIALIZATION_NVP(dataArray_)
-                    & BOOST_SERIALIZATION_NVP(timeArray_)
-                    & BOOST_SERIALIZATION_NVP(evntVec_)
-                    & BOOST_SERIALIZATION_NVP(peaks_)
-                    ;
-                if ( version <= 8 ) {
+                    ar  & BOOST_SERIALIZATION_NVP(dataArray_)
+                        & BOOST_SERIALIZATION_NVP(timeArray_)
+                        & BOOST_SERIALIZATION_NVP(evntVec_)
+                        & BOOST_SERIALIZATION_NVP(peaks_)
+                        ;
                     if ( version >= 2 )
                         ar & BOOST_SERIALIZATION_NVP( proto_ );
                     if ( version >= 3 )
@@ -181,11 +174,27 @@ namespace adcontrols {
                         ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                         ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
                     }
+                    if ( Archive::is_loading::value ) {
+                        if ( ! (ptree_.empty() && ptree_.data().empty() )) {
+                            std::ostringstream o;
+                            boost::property_tree::write_json( o, ptree_ );
+                            ADDEBUG() << "-------- imported from ptree: " << o.str();
+                            generator_property_ = o.str();
+                        }
+                    }
                 } else if ( version >= 9 ) {
-                    ar & BOOST_SERIALIZATION_NVP( proto_ );
+                    ar & BOOST_SERIALIZATION_NVP( samplingInterval_ );
+                    ar & BOOST_SERIALIZATION_NVP( isConstantSampling_ );
+                    ar & BOOST_SERIALIZATION_NVP( timeRange_ );
+                    ar & BOOST_SERIALIZATION_NVP( dataDelayPoints_ );
+                    ar & BOOST_SERIALIZATION_NVP( descriptions_ );
+                    ar & BOOST_SERIALIZATION_NVP( dataArray_ );
+                    ar & BOOST_SERIALIZATION_NVP( timeArray_ );
+                    ar & BOOST_SERIALIZATION_NVP( evntVec_ );
+                    ar & BOOST_SERIALIZATION_NVP( peaks_ );
                     ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
                     ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
-                    ar & BOOST_SERIALIZATION_NVP( ptree_ ); // deprecated
+                    ar & BOOST_SERIALIZATION_NVP( ptree_ );
                     ar & BOOST_SERIALIZATION_NVP( tofArray_ );
                     ar & BOOST_SERIALIZATION_NVP( massArray_ );
                     ar & BOOST_SERIALIZATION_NVP( isCounting_ );
@@ -944,7 +953,6 @@ Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
 void
 Chromatogram::setGeneratorProperty( const std::string& prop )
 {
-    ADDEBUG() << prop;
     pImpl_->generator_property_ = prop;
 }
 

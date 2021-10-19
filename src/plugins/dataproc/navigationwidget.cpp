@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2021 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -646,6 +646,21 @@ namespace dataproc {
         Dataprocessor * processor;
         ListMassList( QStandardItemModel& m, QModelIndex& idx, Dataprocessor * p ) : model( m ), index( idx ), processor( p )  {}
         void operator()() {
+            boost::filesystem::path path( processor->file()->filename() );
+            std::string defaultname = path.stem().string() + ".csv";
+            while ( !boost::filesystem::is_directory( path ) )
+                path = path.branch_path();
+            QString fSel;
+            QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
+                                                                        , QObject::tr( "Save mass peak list" )
+                                                                        , QString::fromStdString( path.string() )
+                                                                        , QString::fromStdString( defaultname )
+                                                                        , QObject::tr( "Text files (*.cxv)" )
+                                                                        , &fSel );
+            auto outfile = boost::filesystem::path( filename.toStdString() );
+            outfile.replace_extension( "csv" );
+            std::ofstream of( outfile );
+
             auto parent = model.itemFromIndex( index );
             for ( int row = 0; row < parent->rowCount(); ++row ) {
                 if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
@@ -659,7 +674,8 @@ namespace dataproc {
                                 if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
                                     if ( auto pkinfo = chro->findProperty< boost::json::value >( "generator.extract_by_peak_info.pkinfo" ) ) {
                                         if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( *pkinfo ) ) {
-                                            ADDEBUG() << "\tpeak: m/z=" << pk->mass() << ", area=" << pk->area();
+                                            ADDEBUG() << "\t" << pk->mass() << "\t" << pk->area() << "\t" << pk->height();
+                                            of << pk->mass() << "\t" << pk->area() << "\t" << pk->height() << std::endl;
                                         }
                                     } else {
                                         ADDEBUG() << "no property";
