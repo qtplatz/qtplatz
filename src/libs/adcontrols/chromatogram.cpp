@@ -135,7 +135,6 @@ namespace adcontrols {
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-                ADDEBUG() << "-------- version: " << version << ", is_loading: " << Archive::is_loading::value;
                 if ( version < 9 ) {
                     ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
                         & BOOST_SERIALIZATION_NVP(isConstantSampling_)
@@ -146,7 +145,6 @@ namespace adcontrols {
                     std::wstring axisLabelHorizontal, axisLabelVertical;
                     ar  & BOOST_SERIALIZATION_NVP(axisLabelHorizontal)
                         & BOOST_SERIALIZATION_NVP(axisLabelVertical);
-
                     ar  & BOOST_SERIALIZATION_NVP(dataArray_)
                         & BOOST_SERIALIZATION_NVP(timeArray_)
                         & BOOST_SERIALIZATION_NVP(evntVec_)
@@ -164,12 +162,10 @@ namespace adcontrols {
                         ar & BOOST_SERIALIZATION_NVP( tofArray_ );
                         ar & BOOST_SERIALIZATION_NVP( massArray_ );
                     }
-                    if ( version >= 6 ) {
+                    if ( version >= 6 )
                         ar & BOOST_SERIALIZATION_NVP( isCounting_ );
-                    }
-                    if ( version >= 7 ) {
+                    if ( version >= 7 )
                         ar & BOOST_SERIALIZATION_NVP( time_of_injection_ );
-                    }
                     if ( version >= 8 ) {
                         ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                         ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
@@ -178,7 +174,6 @@ namespace adcontrols {
                         if ( ! (ptree_.empty() && ptree_.data().empty() )) {
                             std::ostringstream o;
                             boost::property_tree::write_json( o, ptree_ );
-                            ADDEBUG() << "-------- imported from ptree: " << o.str();
                             generator_property_ = o.str();
                         }
                     }
@@ -194,7 +189,6 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( peaks_ );
                     ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
                     ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
-                    ar & BOOST_SERIALIZATION_NVP( ptree_ );
                     ar & BOOST_SERIALIZATION_NVP( tofArray_ );
                     ar & BOOST_SERIALIZATION_NVP( massArray_ );
                     ar & BOOST_SERIALIZATION_NVP( isCounting_ );
