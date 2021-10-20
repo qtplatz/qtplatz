@@ -334,7 +334,7 @@ WaveformWnd::pkdAvgTraceChanged()
         }
 
         if ( trace->enable() ) {
-            tpw_->setData( trace, idx, false  );
+            tpw_->setTrace( trace, idx, QwtPlot::yLeft );
             if ( auto plotItem = tpw_->getPlotItem( idx ) ) {
                 plotItem->setTitle( QwtText( QString::fromStdString( trace->legend() ) ) );
             }
@@ -370,7 +370,7 @@ WaveformWnd::thresholdTraceChanged()
         }
 
         if ( trace->enable() ) {
-            tpw_->setData( trace, idx, false  );
+            tpw_->setTrace( trace, idx, QwtPlot::yLeft );
             if ( auto plotItem = tpw_->getPlotItem( idx ) ) {
                 plotItem->setTitle( QwtText( QString::fromStdString( trace->legend() ) ) );
             }

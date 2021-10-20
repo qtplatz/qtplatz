@@ -97,25 +97,25 @@ WaveformWnd::init()
     spw_->setMinimumHeight( 80 );
     hpw_->setMinimumHeight( 80 );
     spw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
-    hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );    
+    hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
     spw_->enableAxis( QwtPlot::yRight, true );
-    
+
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
     hpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
     hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
     hpw_->enableAxis( QwtPlot::yRight, true );
-    
+
     hpw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     hpw_->setKeepZoomed( false );
     hpw_->setAutoAnnotation( false );
-    
+
     spw_->link( hpw_ );
-    
+
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
     tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
     tpw_->enableAxis( QwtPlot::yRight, true );
@@ -216,7 +216,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
         std::vector< std::shared_ptr< adcontrols::Trace > > traces;
 
         document::instance()->getTraces( traces );
-        
+
         QString footer = QString( "#Method: %1, #Traces: %2" ).arg( QString::number( method->size() ), QString::number( traces.size() ) );
         auto item = method->begin();
         QVector< QwtText > titles;
@@ -230,7 +230,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             }
 
             bool yRight = trace->isCountingTrace();
-            tpw_->setData( trace, fcn, yRight );
+            tpw_->setTrace( trace, fcn, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
 
             // title for legends
             char c = item->intensityAlgorithm() == item->eCounting ? 'C' : item->intensityAlgorithm() == item->ePeakAreaOnProfile ? 'A' : 'H';
@@ -250,8 +250,8 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             else
                 curve->setTitle( QwtText() );
         }
-        
-    } else {    
+
+    } else {
         if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
 
             if ( uuid == u5303a_observer ) {
@@ -259,7 +259,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                 double seconds = sp->getMSProperty().timeSinceInjection();
                 QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
                                                                                       , QString::number( sp->getMSProperty().trigNumber() ) );
-            
+
                 spw_->setTitle( title );
                 spw_->setData( sp, idx, bool( idx ) );
                 spw_->setKeepZoomed( true );
@@ -268,7 +268,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                 // histogram
 
                 double rate = document::instance()->triggers_per_second();
-            
+
                 QString title = QString( "U5303A: %1 samples since trig# %2, at rate %3/s" ).arg(
                     QString::number( sp->getMSProperty().numAverage() )
                     , QString::number( sp->getMSProperty().trigNumber() )
@@ -283,27 +283,27 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                 double seconds = sp->getMSProperty().timeSinceInjection();
                 QString title = QString( "AP240: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
                                                                                      , QString::number( sp->getMSProperty().trigNumber() ) );
-            
+
                 spw_->setTitle( title );
                 spw_->setData( sp, idx, bool( idx ) );
 
             } else {
                 ADDEBUG() << "Unhandled observer";
             }
-        
+
         } else {
 
             // clear spectrum
             static auto empty = std::make_shared< adcontrols::MassSpectrum >();
-        
+
             if ( uuid == u5303a_observer ) {
-            
+
                 spw_->setData( empty, idx, bool( idx ) );
 
             } else if ( uuid == histogram_observer ) {
 
                 hpw_->setData( empty, idx, bool( idx ) );
-                                                                      
+
             }
 
         }
@@ -319,15 +319,15 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
         if ( idx < histogram_window_markers_[0].size() ) {
 
             if ( item.formula() == "TIC" || ( item.time() < 1.0e-9 ) ) {
-                
+
                 for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
                     auto& marker = histogram_window_markers_[ i ][ idx ];
                     marker->visible( false );
                 }
-                
+
             } else {
                 using adcontrols::metric::scale_to_micro;
-                
+
                 double lower = item.time() - item.timeWindow() / 2;
                 double upper = item.time() + item.timeWindow() / 2;
 
