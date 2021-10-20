@@ -76,7 +76,7 @@ namespace adplot {
             , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
             , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
             , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
-            , QColor( 0xff, 0xff, 0xff )  //15  white
+            , QColor( 0xff, 0x00, 0xff )  //15  magenta
             , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
             , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
         };

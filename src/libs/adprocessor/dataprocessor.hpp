@@ -126,6 +126,10 @@ namespace adprocessor {
                                , int proto
                                , std::function< bool(size_t, size_t) > progress ) const;
 
+        // mass peaks selected by chromatograms
+        virtual void xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info );
+        virtual void markupMassesFromChromatograms( portfolio::Folium&& folium ) {};
+
     private:
         std::unique_ptr< adfs::filesystem > fs_;
         std::unique_ptr< adcontrols::datafile > file_;

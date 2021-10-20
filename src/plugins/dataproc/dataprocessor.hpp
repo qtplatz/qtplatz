@@ -96,6 +96,10 @@ namespace dataproc {
         IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
 
         // Dataprocessor
+        void xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info ) override;
+        void markupMassesFromChromatograms( portfolio::Folium&& folium ) override;
+        void clearMarkup( portfolio::Folium&& folium );
+
         void setModified( bool ) override;
         bool create( const QString& token );
         bool open( const QString&, QString& errmsg );

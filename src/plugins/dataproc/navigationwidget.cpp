@@ -33,6 +33,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/fsio2.hpp>
@@ -640,27 +641,13 @@ namespace dataproc {
         }
     };
 
-    struct ListMassList {
+    struct xicMassList {
         QStandardItemModel& model;
         QModelIndex index;
         Dataprocessor * processor;
-        ListMassList( QStandardItemModel& m, QModelIndex& idx, Dataprocessor * p ) : model( m ), index( idx ), processor( p )  {}
+        xicMassList( QStandardItemModel& m, QModelIndex& idx, Dataprocessor * p ) : model( m ), index( idx ), processor( p )  {}
         void operator()() {
-            boost::filesystem::path path( processor->file()->filename() );
-            std::string defaultname = path.stem().string() + ".csv";
-            while ( !boost::filesystem::is_directory( path ) )
-                path = path.branch_path();
-            QString fSel;
-            QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
-                                                                        , QObject::tr( "Save mass peak list" )
-                                                                        , QString::fromStdString( path.string() )
-                                                                        , QString::fromStdString( defaultname )
-                                                                        , QObject::tr( "Text files (*.cxv)" )
-                                                                        , &fSel );
-            auto outfile = boost::filesystem::path( filename.toStdString() );
-            outfile.replace_extension( "csv" );
-            std::ofstream of( outfile );
-
+            adcontrols::MSPeakInfo info;
             auto parent = model.itemFromIndex( index );
             for ( int row = 0; row < parent->rowCount(); ++row ) {
                 if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
@@ -674,8 +661,7 @@ namespace dataproc {
                                 if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
                                     if ( auto pkinfo = chro->findProperty< boost::json::value >( "generator.extract_by_peak_info.pkinfo" ) ) {
                                         if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( *pkinfo ) ) {
-                                            ADDEBUG() << "\t" << pk->mass() << "\t" << pk->area() << "\t" << pk->height();
-                                            of << pk->mass() << "\t" << pk->area() << "\t" << pk->height() << std::endl;
+                                            info << *pk;
                                         }
                                     } else {
                                         ADDEBUG() << "no property";
@@ -683,6 +669,26 @@ namespace dataproc {
                                 }
                             }
                         }
+                    }
+                }
+            }
+            processor->xicSelectedMassPeaks( std::move( info ) );
+        }
+    };
+
+    struct XIC2MS {
+        QStandardItemModel& model;
+        QModelIndex index;
+        Dataprocessor * processor;
+        XIC2MS( QStandardItemModel& m, QModelIndex& idx, Dataprocessor * p ) : model( m ), index( idx ), processor( p )  {}
+        void operator()() {
+            QVariant data = model.data( index, Qt::UserRole ); // must be spectrum
+            if ( data.canConvert< portfolio::Folium >() ) {
+                auto folium = data.value< portfolio::Folium >();
+                if ( processor ) {
+                    processor->fetch( folium );
+                    if ( portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
+                        processor->markupMassesFromChromatograms( std::move( folium ) );
                     }
                 }
             }
@@ -742,7 +748,8 @@ namespace dataproc {
         portfolio::Folium background;
         portfolio::Folium foreground;
         Dataprocessor * processor;
-        BackgroundSubtraction( portfolio::Folium& back, portfolio::Folium& fore, Dataprocessor * p ) : background( back ), foreground( fore ), processor( p ) {}
+        BackgroundSubtraction( portfolio::Folium& back, portfolio::Folium& fore, Dataprocessor * p )
+            : background( back ), foreground( fore ), processor( p ) {}
         void operator()() {
             processor->subtract( foreground, background );
         }
@@ -776,10 +783,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             if ( data.canConvert< portfolio::Folder >() ) {
 
                 if ( auto folder = data.value< portfolio::Folder >() ) {
-                    menu.addAction( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( false, *pModel_, index ) );
-                    menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( true, *pModel_, index ) );
+                    menu.addAction( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                    , CheckAllFunctor( false, *pModel_, index ) );
+                    menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                    , CheckAllFunctor( true, *pModel_, index ) );
                     if ( folder.name() == L"Chromatograms" ) {
-                        menu.addAction( QString( tr("List m/z list for %1") ).arg( index.data( Qt::EditRole ).toString() ), ListMassList( *pModel_, index, processor ) );
+                        menu.addAction( QString( tr("List m/z list for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                        , xicMassList( *pModel_, index, processor ) );
                     }
                 }
 
@@ -820,6 +830,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             a->setEnabled( hasFilterd );
 
                         menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( processor ) );
+                        menu.addAction( tr("Mark masses from checked chromatograms"), XIC2MS( *pModel_, index, processor ) );
 
                         menu.addSeparator();
 

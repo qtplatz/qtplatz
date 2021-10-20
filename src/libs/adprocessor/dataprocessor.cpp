@@ -577,3 +577,9 @@ dataprocessor::createSpectrogram( std::shared_ptr< const adcontrols::ProcessMeth
     }
     return nullptr;
 }
+
+void
+dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
+{
+    // virtual --> dataproc::Dataprocessor
+}

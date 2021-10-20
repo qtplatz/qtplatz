@@ -1535,3 +1535,105 @@ Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > s
 {
     DataprocessWorker::instance()->exportMatchedMasses( this, spectra, foliumId );
 }
+
+void
+Dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
+{
+#if 0
+    boost::filesystem::path path( this->file()->filename() );
+    std::string defaultname = path.stem().string() + ".csv";
+
+    while ( !boost::filesystem::is_directory( path ) )
+        path = path.branch_path();
+
+    QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
+                                                                , QObject::tr( "Save mass peak list" )
+                                                                , QString::fromStdString( path.string() )
+                                                                , QString::fromStdString( defaultname )
+                                                                , QObject::tr( "Text files (*.cxv)" ) );
+    auto outfile = boost::filesystem::path( filename.toStdString() );
+    outfile.replace_extension( "csv" );
+    std::ofstream of( outfile.string() );
+#endif
+    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+    ms->resize( info.size() );
+    ms->setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
+    bool is_area = true;
+
+    size_t idx = 0;
+    for ( const auto& pk: info ) {
+        ADDEBUG() << "mass: " << pk.mass() << ", " << pk.area();
+        ms->setIntensity( idx, is_area ? pk.area() : pk.height() );
+        ms->setMass( idx, pk.mass() );
+        ms->setTime( idx, pk.time() );
+        idx++;
+    }
+    ms->setAcquisitionMassRange( 0, 1000 );
+    auto prop = ms->getMSProperty();
+    prop.setInstMassRange( std::make_pair( 0, 1000 ) );
+    ms->setMSProperty( prop );
+
+    auto folder = portfolio_->addFolder( L"Spectra" );
+    std::wstring name = L"XIC";
+
+    auto folium = folder.addFolium( name );
+    folium.assign( ms, ms->dataClass() );
+    SessionManager::instance()->updateDataprocessor( this, folium );
+}
+
+void
+Dataprocessor::markupMassesFromChromatograms( portfolio::Folium&& folium )
+{
+    if ( auto ms = portfolio::get< std::shared_ptr< adcontrols::MassSpectrum > >( folium ) ) {
+
+        adcontrols::MSPeakInfo info;
+        if ( auto folder = portfolio_->findFolder( L"Chromatograms" ) ) {
+            for ( auto& f: folder.folio() ) {
+                if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                    fetch( f );
+                    if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( f ) ) {
+                        if ( auto pkinfo = chro->findProperty< boost::json::value >( "generator.extract_by_peak_info.pkinfo" ) ) {
+                            if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( *pkinfo ) ) {
+                                info << *pk;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if ( info.size() ) {
+            if ( auto att = portfolio::find_first_of( folium.attachments()
+                                                      , []( const portfolio::Folium& a ){
+                                                          return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( att ) ) {
+                    for ( const auto& pk: info ) {
+                        size_t idx(0);
+                        if ( ( idx = centroid->find( pk.mass(), pk.widthHH() ) ) != adcontrols::MassSpectrum::npos ) {
+                            centroid->setColor( idx, 15 ); // magenta
+                        } else {
+                            ADDEBUG() << "missed idx: " << idx << ", mass: " << pk.mass() << ", " << centroid->mass( idx );
+                        }
+                    }
+                }
+            }
+        }
+        setModified( true );
+        SessionManager::instance()->updateDataprocessor( this, folium );
+    }
+}
+
+void
+Dataprocessor::clearMarkup( portfolio::Folium&& folium )
+{
+    if ( portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
+        if ( auto att = portfolio::find_first_of( folium.attachments()
+                                                  , []( const portfolio::Folium& a ){
+                                                      return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+            if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( att ) ) {
+                centroid->setColorArray( {} ); // clear
+            }
+        }
+        setModified( true );
+        SessionManager::instance()->updateDataprocessor( this, folium );
+    }
+}

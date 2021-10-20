@@ -1307,6 +1307,8 @@ MainWindow::handleImportChecked()
                                                      , tr( "QtPlatz files(*.adfs)" ) );
     if ( filename.isEmpty() )
         return;
+    boost::filesystem::path path( filename.toStdString() );
+    path.replace_extension( "adfs" );
 
     bool handled(false);
     do {
@@ -1328,7 +1330,7 @@ MainWindow::handleImportChecked()
     } while ( 0 );
 
     if ( handled )
-        document::instance()->handle_portfolio_created( filename );
+        document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
 }
 
 void

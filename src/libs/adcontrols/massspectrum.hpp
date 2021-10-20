@@ -116,7 +116,7 @@ namespace adcontrols {
         void setMassArray( const double *, bool setRange = false );
         void setIntensityArray( const double * );
         void setTimeArray( const double * );
-		void setColorArray( const uint8_t * );
+		// void setColorArray( const uint8_t * );
         bool isCentroid() const;
         bool isHistogram() const;
         void setCentroid( CentroidAlgorithm );

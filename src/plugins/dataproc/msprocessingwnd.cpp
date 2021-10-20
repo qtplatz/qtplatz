@@ -310,8 +310,8 @@ MSProcessingWnd::init()
         if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
             using adplot::SpectrumWidget;
-            connect( pImpl_->processedSpectrum_, static_cast< void(SpectrumWidget::*)(const QRectF&) >(&SpectrumWidget::onSelected)
-                     , this, &MSProcessingWnd::selectedOnProcessed );
+            connect( pImpl_->processedSpectrum_, qOverload<const QRectF&>(&SpectrumWidget::onSelected)
+                     , this, qOverload<const QRectF&>(&MSProcessingWnd::selectedOnProcessed) );
             adplot::Zoomer * zoomer = pImpl_->processedSpectrum_->zoomer();
             connect( zoomer, &adplot::Zoomer::zoomed, this, &MSProcessingWnd::handleZoomedOnSpectrum );
 
@@ -1219,21 +1219,30 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
     QMenu menu;
 
+    // [0]
     menu.addAction( tr( "y-zoom" ), [&](){ pImpl_->processedSpectrum_->yZoom( rect.left(), rect.right() ); } );
-
+    // [1]
     menu.addAction( tr( "Make mass chromatograms" )
                     , [&]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
 
     bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
     auto ptr = pProcessedSpectrum_.second.lock();
-    auto actions = menu.actions();
-    if ( actions.size() >= 2 ) {
-        actions[ 0 ]->setEnabled( hasRange );
-        actions[ 1 ]->setEnabled( hasRange && ptr && ptr->isCentroid() );
-    }
 
+    // [2]
+    menu.addAction( tr( "Mark masses with checked chromatograms" )
+                    , [&]{
+                        auto dp = SessionManager::instance()->getActiveDataprocessor();
+                        dp->markupMassesFromChromatograms( dp->getPortfolio().findFolium( idSpectrumFolium_ ) );
+                    });
+    // [3]
+    menu.addAction( tr( "Clear color on masses" )
+                    , [&]{
+                        auto dp = SessionManager::instance()->getActiveDataprocessor();
+                        dp->clearMarkup( dp->getPortfolio().findFolium( idSpectrumFolium_ ) );
+                    });
+    // [4]
     menu.addAction( tr( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
-
+    // [5]
     menu.addAction( tr( "Save as SVG File..." ), [&]{
         QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                          , MainWindow::makePrintFilename( idSpectrumFolium_, L",processed;" )
@@ -1243,6 +1252,14 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                 MainWindow::addPrintFileToSettings( name );
             }
         });
+
+    auto actions = menu.actions();
+    if ( actions.size() >= 4 ) {
+        actions[ 0 ]->setEnabled( hasRange );
+        actions[ 1 ]->setEnabled( hasRange && ptr && ptr->isCentroid() );
+        actions[ 2 ]->setEnabled( !hasRange && ptr && ptr->isCentroid() );
+        actions[ 3 ]->setEnabled( !hasRange && ptr && ptr->isCentroid() );
+    }
 
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         dp->addContextMenu( adprocessor::ContextMenuOnProcessedMS, menu, ptr

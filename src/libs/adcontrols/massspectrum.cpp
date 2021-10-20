@@ -545,6 +545,10 @@ MassSpectrum::setTimeArray( const double * values )
 const uint8_t *
 MassSpectrum::getColorArray() const
 {
+    if ( impl_->colArray_.empty() ) {
+        impl_->colArray_.resize( this->size() );
+        std::fill( impl_->colArray_.begin(), impl_->colArray_.end(), 0 );
+    }
     return impl_->colArray_.data();
 }
 
@@ -557,10 +561,10 @@ MassSpectrum::setColorArray( std::vector< uint8_t >&& a )
         impl_->colArray_ = std::move( a ); // a can be an empty vector for clear data
 }
 
+#if 0 // deprecated
 void
 MassSpectrum::setColorArray( const uint8_t * values )
 {
-    // impl_->setColorArray( values );
     if ( values ) {
         if ( impl_->colArray_.size() != size() )
             impl_->colArray_.resize( size() );
@@ -569,6 +573,7 @@ MassSpectrum::setColorArray( const uint8_t * values )
         impl_->colArray_.clear();
     }
 }
+#endif
 
 void
 MassSpectrum::setColor( size_t idx, uint8_t color )
@@ -1279,8 +1284,9 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
     if ( const double * p = getTimeArray() )
         ms.setTimeArray( p + idx );
 
-    if ( auto * p = getColorArray() )
-        ms.setColorArray( p + idx );
+    if ( auto * p = getColorArray() ) {
+        ms.setColorArray( std::vector< uint8_t >( p + idx, p + idx + ms.size() ) );
+    }
 
     adcontrols::annotations annots;
 
