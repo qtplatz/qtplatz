@@ -1589,7 +1589,8 @@ Dataprocessor::markupMassesFromChromatograms( portfolio::Folium&& folium )
         adcontrols::MSPeakInfo info;
         if ( auto folder = portfolio_->findFolder( L"Chromatograms" ) ) {
             for ( auto& f: folder.folio() ) {
-                if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                // ADDEBUG() << "Chromatogram: " << f.attribute( L"isChecked" ) << ", " << f.name();
+                if ( f.attribute( L"isChecked" ) == L"true" ) {
                     fetch( f );
                     if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( f ) ) {
                         if ( auto pkinfo = chro->findProperty< boost::json::value >( "generator.extract_by_peak_info.pkinfo" ) ) {

@@ -602,8 +602,14 @@ namespace dataproc {
             auto parent = model.itemFromIndex( index ); // ex. Spectra
             for ( int row = 0; row < parent->rowCount(); ++row ) {
                 if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
-                    if ( item->isCheckable() )
+                    if ( item->isCheckable() ) {
                         item->setCheckState( check ? Qt::Checked : Qt::Unchecked );
+                        QVariant data = item->data( Qt::UserRole );
+                        if ( data.canConvert< portfolio::Folium >() ) {
+                            auto folium = data.value< portfolio::Folium >();
+                            folium.setAttribute( "isChecked", check ? "true" : "false" );
+                        }
+                    }
                 }
             }
         }
