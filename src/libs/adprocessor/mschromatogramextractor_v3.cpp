@@ -842,9 +842,8 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 ( *it )->pChr_->addDescription(
                     adcontrols::description(
                         L"Create"
-                        , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
-                            % utf::to_wstring( display_name ) % pk.mass() % pk.widthHH() % protocol ).str() ) );
-
+                        , ( boost::wformat( L"m/z %.3lf(W %.1fmDa),%s_%d" )
+                            % pk.mass() % (pk.widthHH() * 1000) % utf::to_wstring( display_name ) % protocol ).str() ) );
                 //--------- add property ---------
                 boost::system::error_code ec;
                 auto jv = boost::json::parse( pk.toJson(), ec );
