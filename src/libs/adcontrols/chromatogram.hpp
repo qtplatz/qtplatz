@@ -224,8 +224,7 @@ namespace adcontrols {
 
     template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
-
-    // template<> boost::optional< boost::json::value > Chromatogram::findProperty( const std::string& key ) const;
+    template<> boost::optional< boost::json::value > Chromatogram::findProperty( const std::string& key ) const;
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
