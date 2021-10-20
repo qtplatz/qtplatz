@@ -1917,7 +1917,7 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                     xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
 
                     std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){
-                        if ( a.area() > bp->area() / 10 ) // 10% or above for base peak
+                        if ( a.area() > bp->area() / 100 ) // 1% or above for base peak
                             xInfo << a;
                     });
                     if ( xInfo.size() > 0 ) {
