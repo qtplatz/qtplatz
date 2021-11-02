@@ -1510,7 +1510,7 @@ MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& inser
         if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
             std::wstring name = folium.name();
             std::replace( name.begin(), name.end(), '/', '_' );
-            boost::algorithm::trim( name );
+            boost::algorithm::trim( name ); // remove leading and trailing spaces
             path += ( insertor + name );
 
             boost::filesystem::path tpath = path;

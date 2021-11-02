@@ -242,8 +242,9 @@ void BaseFileWizardFactory::runWizard(const QString &path, QWidget *parent, cons
             }
         }
         if (firstExtensionPageHit)
-            foreach (IFileWizardExtension *ex, extensionList)
+            foreach (IFileWizardExtension *ex, extensionList) {
                 ex->firstExtensionPageShown(files, extraValues);
+            }
         if (accepted)
             break;
     }

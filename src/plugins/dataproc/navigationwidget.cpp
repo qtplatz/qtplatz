@@ -560,7 +560,11 @@ namespace dataproc {
 				for ( size_t n = 0; n < ms.size(); ++n ) {
 					o << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
                       << std::fixed << std::setprecision( 15 ) << ms.getMass( n ) << ",\t"
-                      << std::scientific << std::setprecision(15) << ms.getIntensity( n ) << std::endl;
+                      << std::scientific << std::setprecision(15) << ms.getIntensity( n );
+                    if ( ms.isCentroid() ) {
+                        o << ",\t" << ms.getColor( n );
+                    }
+                    o << std::endl;
 				}
 			}
 			return true;

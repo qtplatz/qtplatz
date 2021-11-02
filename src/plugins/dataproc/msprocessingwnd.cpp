@@ -1248,7 +1248,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                                                          , MainWindow::makePrintFilename( idSpectrumFolium_, L",processed;" )
                                                          , tr("SVG (*.svg)") );
             if ( ! name.isEmpty() ) {
-                adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
+                adplot::plot::copyImageToFile( pImpl_->processedSpectrum_, name, "svg" );
                 MainWindow::addPrintFileToSettings( name );
             }
         });
