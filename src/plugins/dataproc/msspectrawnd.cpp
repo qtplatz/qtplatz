@@ -43,7 +43,9 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
+#include <adportable/array_wrapper.hpp> // std::span
 #include <adportable/configuration.hpp>
+#include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -54,12 +56,16 @@
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <adportable/unique_ptr.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_marker.h>
 #include <qwt_symbol.h>
+#include <algorithm>
+#include <cmath>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -74,7 +80,8 @@ namespace dataproc {
     public:
         impl( MSSpectraWnd * p ) : pThis_( p )
                                  , isTimeAxis_( false )
-                                 , dirty_( false ) {
+                                 , dirty_( false )
+                                 , selProcessed_( false ) {
 
             for ( size_t i = 0; i < plots_.size(); ++i ) {
 
@@ -93,18 +100,97 @@ namespace dataproc {
 
         MSSpectraWnd * pThis_;
 
-        std::vector< datafolder > data_;
-        // std::map< boost::uuids::uuid, datafolder  > dataIds_;
+        std::vector< datafolder > data_; // reference spectra on plot[0]
+        datafolder currData_;
 
         std::pair< std::wstring, datafolder > profile_;
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > plots_;
         std::array< std::unique_ptr< adplot::PeakMarker >, 2 > markers_;
         bool isTimeAxis_;
         bool dirty_;
+        bool selProcessed_;
 
     };
 
 }
+
+namespace dataproc {
+
+    struct massExtractor {
+        std::vector< double > operator()( adcontrols::MassSpectrum ms ) const {
+            double th = ms.maxIntensity() * 0.001; // 1% base peak
+            std::vector< double > a;
+            for ( size_t idx = 0; idx < ms.size(); ++idx ) {
+                if ( ms.getColor( idx ) || ( ms.intensity( idx ) > th ) ) {
+                    a.emplace_back( ms.mass( idx ) );
+                    ADDEBUG() << "reference mass: " << ms.mass( idx ) << ms.intensity( idx ) << ", th=" << th;
+                }
+            }
+            return a;
+        }
+    };
+
+    // --------------------------------
+    // -------------------------------
+    struct findCentroid {
+        std::shared_ptr< adcontrols::MassSpectrum > operator()( portfolio::Folium&& folium ) const {
+            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
+                if ( auto fi = portfolio::find_last_of( folium.attachments()
+                                                        , [](const auto& a){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( fi ) ) {
+                        return ptr;
+                    }
+                }
+            }
+            return nullptr;
+        }
+    };
+
+    // -------------------------------
+    struct globalSetIntersection {
+        portfolio::Folium find( const boost::uuids::uuid& uuid ) const {
+            for ( auto session: *dataproc::SessionManager::instance() ) {
+                if ( auto dp = session.processor() ) {
+                    return dp->getPortfolio().findFolium( uuid );
+                }
+            }
+            return {};
+        }
+
+        void foliumChanged( const boost::uuids::uuid& uuid ) const {
+            for ( auto session: *dataproc::SessionManager::instance() ) {
+                if ( auto dp = session.processor() ) {
+                    auto folium = dp->getPortfolio().findFolium( uuid );
+                    dp->setModified( true );
+                    emit SessionManager::instance()->foliumChanged( dp, folium );
+                }
+            }
+        }
+
+        void operator()( const boost::uuids::uuid& idfolium, std::vector< double >&& reference ) const {
+            if ( auto ptr = findCentroid()( find( idfolium ) ) ) {
+                qtwrapper::waitCursor wait;
+                adportable::array_wrapper a( ptr->getMassArray(), ptr->size() );
+                auto it = a.begin();
+                for ( auto m: reference ) {
+                    it = std::lower_bound( it, a.end(), m, [](const auto& a, const auto& b){ return a < b; });
+                    if ( it != a.end() ) {
+                        auto beg = it != a.begin() ? it - 1 : it;
+                        auto end = (it + 1) != a.end() ? it + 1 : it;
+                        auto tIt = std::min_element( beg, end, [&](auto a, auto b){ return std::abs( a - m ) < std::abs( b - m );} );
+                        // ADDEBUG() << "found: " << m << ", " << *tIt << "\tdm=" << ((*tIt - m) * 1000) << "mDa";
+                        if ( std::abs( *tIt - m ) < 0.005 ) // 5 mDa
+                            ptr->setColor( std::distance( a.begin(), tIt ), 10 ); // dark gray
+                    }
+                }
+                foliumChanged( idfolium );
+            } else {
+                ADDEBUG() << "specified folium: '" << idfolium << "' does not holds spectrum";
+            }
+        }
+    };
+}
+
 
 using namespace dataproc;
 
@@ -161,80 +247,75 @@ MSSpectraWnd::init()
 void
 MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
-        return;
-
-    if ( auto folder = processor->portfolio().findFolder( L"Spectra" ) ) {
-        for ( auto& folium: folder.folio() ) {
-
-            if ( folium.attribute( L"isChecked" ) == L"true" ) {
-
-                if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-                    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end()
-                                            , [&](const auto& a){ return a.id() == folium.uuid(); });
-                    if ( it == impl_->data_.end() ) {
-                        impl_->data_.emplace_back( datafolder( processor->filename(), folium ) );
-                    }
-                }
-            }
-        }
-    }
-
-    if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
-        return;
-
-    redraw();
+    // if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
+    //     return;
 }
 
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
+    // if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
+    //     return;
     if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
 
     auto data = datafolder( processor->filename(), folium );
 
+    bool isChecked = folium.attribute( L"isChecked" ) == L"true";
+    if ( isChecked )
+        impl_->selProcessed_ = false;
+    if ( auto pf = folium.parentFolium() ) {
+        isChecked = pf.attribute( L"isChecked" ) == L"true";
+        data = datafolder( processor->filename(), pf );
+        impl_->selProcessed_ = folium.name() == Constants::F_CENTROID_SPECTRUM; // focus on centroid
+    }
+
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-        auto& plot = impl_->plots_[ 0 ];
+        auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
         plot->clear();
         plot->setTitle( data.display_name() );
-        if ( auto profile = data.get_profile() ) {
-            plot->setData( profile->first, 0, QwtPlot::yLeft );
-            plot->setAxisTitle( QwtPlot::yLeft, profile->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
+            plot->setData( ms->first, 0, QwtPlot::yLeft );
+            plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
         }
+    }
+    if ( isChecked ) {
+        impl_->data_.clear();
+        impl_->data_.emplace_back( data );
+        impl_->plots_[ 0 ]->clear();
+        impl_->plots_[ 0 ]->replot();
+        impl_->currData_ = {};
     } else {
-        return;
+        impl_->currData_ = data;
     }
 
-    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end(), [&]( const auto& a ){ return a.id() == folium.uuid(); } );
+    // temporary disable for overlay spectra
+    // --> this maybe revoke if selection is not processed (centroid) spectra
+    // auto it = std::find_if( impl_->data_.begin(), impl_->data_.end(), [&]( const auto& a ){ return a.id() == folium.uuid(); } );
 
-    if ( folium.attribute( L"isChecked" ) == L"false" ) {
-        if ( it != impl_->data_.end() ) {
-            impl_->data_.erase( it );
-            impl_->dirty_ = true;
-        }
-    } else {
-        if ( it == impl_->data_.end() ) {
-            if ( auto profile = data.get_profile() ) {
-                if (( data.overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *profile->first ) )) {
-                    double yMax = adcontrols::segments_helper::max_intensity( *data.overlaySpectrum_ );
-                    for ( auto& sp: adcontrols::segment_wrapper<>( *data.overlaySpectrum_ ) ) {
-                        for ( size_t i = 0; i < sp.size(); ++i )
-                            sp.setIntensity( i, 100 * sp.intensity( i ) / yMax );
-                    }
-                }
-            }
-            impl_->data_.emplace_back( data );
-            impl_->dirty_ = true;
-        }
-    }
-
-    if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
-        return;
-
-    if ( impl_->dirty_ ) {
-        redraw();
-    }
+    // if ( folium.attribute( L"isChecked" ) == L"false" ) {
+    //     if ( it != impl_->data_.end() ) {
+    //         impl_->data_.erase( it );
+    //         impl_->dirty_ = true;
+    //     }
+    // } else {
+    //     if ( it == impl_->data_.end() ) {
+    //         if ( auto profile = data.get_profile() ) {
+    //             if (( data.overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *profile->first ) )) {
+    //                 double yMax = adcontrols::segments_helper::max_intensity( *data.overlaySpectrum_ );
+    //                 for ( auto& sp: adcontrols::segment_wrapper<>( *data.overlaySpectrum_ ) ) {
+    //                     for ( size_t i = 0; i < sp.size(); ++i )
+    //                         sp.setIntensity( i, 100 * sp.intensity( i ) / yMax );
+    //                 }
+    //             }
+    //         }
+    //         impl_->data_.emplace_back( data );
+    //         impl_->dirty_ = true;
+    //     }
+    // }
+    // if ( impl_->dirty_ ) {
+    //     redraw();
+    // }
 }
 
 void
@@ -257,7 +338,7 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
             if ( ! name.isEmpty() )
                 adplot::plot::copyImageToFile( plot, name, "svg" );
         });
-
+#if 0
         actions.emplace_back( menu.addAction( tr("setAxisScale(0,100)") ), [=](){
             plot->setAxisScale( QwtPlot::yRight, 0, 100 );
             plot->replot();
@@ -266,6 +347,18 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
         actions.emplace_back( menu.addAction( tr("replot") ), [=](){
             plot->replot();
         });
+#endif
+        actions.emplace_back( menu.addAction( tr("set intersection") ), [&]() {
+            if ( impl_->currData_ && !impl_->data_.empty() ) {
+                if ( auto const ms1 = impl_->data_.at( 0 ).get_processed() ) { // reference
+                    if ( auto const ms2 = impl_->currData_.get_processed() ) {
+                        globalSetIntersection()( impl_->currData_.idfolium_, massExtractor()( *ms1->first ) );
+                    }
+                }
+            }
+        });
+
+        actions.back().first->setEnabled( impl_->selProcessed_ && !impl_->data_.empty() );
 
         QAction * selected = menu.exec( QCursor::pos() );
         if ( selected ) {

@@ -55,6 +55,7 @@ namespace portfolio {
         std::vector<Folder> folders();
         const std::vector<Folder> folders() const;
         Folium findFolium( const std::wstring& id );
+        Folium findFolium( const boost::uuids::uuid& id );
         Folder findFolder( const std::wstring& name );
 
         // create new from scratch
@@ -74,7 +75,7 @@ namespace portfolio {
 
         static boost::uuids::uuid uuidFromString( const std::string& );
         static boost::uuids::uuid uuidFromString( const std::wstring& );
-     
+
     private:
         std::shared_ptr< internal::PortfolioImpl > impl_;
   };

@@ -110,7 +110,8 @@ DataInterpreterBroker::find_factory( const boost::uuids::uuid& uuid )
         if ( auto ptr = it->second.second )
             return ptr.get();
     }
-    ADDEBUG() << "## find_factory(" << uuid << ") has no result.";
+    if ( uuid != boost::uuids::uuid{} )
+        ADDEBUG() << "## find_factory(" << uuid << ") has no result.";
     return nullptr;
 }
 

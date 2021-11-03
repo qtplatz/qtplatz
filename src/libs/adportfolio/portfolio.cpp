@@ -26,6 +26,8 @@
 #include "portfolioimpl.hpp"
 #include "folder.hpp"
 #include "folium.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <sstream>
 
 using namespace portfolio;
@@ -72,6 +74,14 @@ Folium
 Portfolio::findFolium( const std::wstring& id )
 {
     return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
+}
+
+Folium
+Portfolio::findFolium( const boost::uuids::uuid& id )
+{
+    std::wostringstream o;
+    o << L"//folium[@dataId='" << id << L"']";
+    return impl_->selectFolium( o.str() );
 }
 
 attributes_type
