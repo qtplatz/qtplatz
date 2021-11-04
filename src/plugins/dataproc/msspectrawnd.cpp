@@ -170,7 +170,7 @@ namespace dataproc {
         void operator()( const boost::uuids::uuid& idfolium, std::vector< double >&& reference ) const {
             if ( auto ptr = findCentroid()( find( idfolium ) ) ) {
                 qtwrapper::waitCursor wait;
-                adportable::array_wrapper a( ptr->getMassArray(), ptr->size() );
+                adportable::array_wrapper<const double> a( ptr->getMassArray(), ptr->size() );
                 auto it = a.begin();
                 for ( auto m: reference ) {
                     it = std::lower_bound( it, a.end(), m, [](const auto& a, const auto& b){ return a < b; });
