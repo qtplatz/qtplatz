@@ -662,8 +662,20 @@ MolTable::handlePaste()
         auto data = md->data( "application/json" );
         if ( data.isEmpty() ) {
             auto text = md->data( "text/plain" );
-            if ( text.at( 0 ) == '{' )
+            if ( text.at( 0 ) == '{' ) { // check if json
                 jv = boost::json::parse( text.toStdString(), ec );
+            } else {
+                std::istringstream in( text.toStdString() );
+                std::string line;
+                boost::json::array ja;
+                while ( std::getline( in, line ) ) {
+                    ADDEBUG() << row << "\t" << line;
+                    if ( adcontrols::ChemicalFormula().getMonoIsotopicMass( line ) > 0.1 ) {
+                        ja.push_back( {{ "formula", line }, {"enable", true}, {"abundance", 1.0}} );
+                    }
+                }
+                jv = {{ "moltable", ja }};
+            }
         } else {
             jv = boost::json::parse( data.toStdString(), ec );
         }

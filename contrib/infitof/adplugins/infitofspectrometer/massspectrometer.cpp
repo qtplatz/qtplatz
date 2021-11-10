@@ -228,15 +228,15 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
                     infitofcontrols::method im;
                     if ( adcontrols::ControlMethod::MethodItem::get<>( *it, im ) ) {
                         protocols_ = im.tof().protocols;
-                        ADDEBUG() << "----------------- protocols ------------------- " << protocols_.size();
-                        for ( const auto& p: protocols_ ) {
-                            ADDEBUG() << std::make_pair( p.formulae(), p.nlaps() );
+                        // ADDEBUG() << "----------------- protocols ------------------- " << protocols_.size();
+                        // for ( const auto& p: protocols_ ) {
+                            // ADDEBUG() << "--- protocol: " << std::make_pair( p.formulae(), p.nlaps() );
                             // ADDEBUG() << p.avgr_delay;
                             // ADDEBUG() << std::make_pair( p.exit.delay, p.exit.width );
                             // ADDEBUG() << std::make_pair( p.exit2.delay, p.exit2.width );
                             // ADDEBUG() << std::make_pair( p.gate.at(0).delay, p.gate.at(0).width ) << ", " << p.gate.at(0).enable;
                             // ADDEBUG() << std::make_pair( p.gate.at(1).delay, p.gate.at(1).width ) << ", " << p.gate.at(1).enable;
-                        }
+                        //}
                     }
                 }
             }

@@ -35,7 +35,7 @@ namespace acqrscontrols {
         counting_data_writer( std::shared_ptr< threshold_result_accessor >&& );
 
         bool write( adfs::filesystem& fs, const boost::uuids::uuid& selfId ) const override;
-        uint32_t myId() const { return myId_ + 1000; };
+        uint32_t myId() const override { return myId_ + 1000; };
         static bool prepare_storage( adfs::filesystem& fs );
     };
 

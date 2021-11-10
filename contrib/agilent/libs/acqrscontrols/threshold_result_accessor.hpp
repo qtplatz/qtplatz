@@ -48,7 +48,7 @@ namespace acqrscontrols {
         uint32_t events() const override;
         size_t xdata( std::string& ) const override;
         size_t xmeta( std::string& ) const override;
-        optional_type< std::pair< uint64_t, uint64_t > > pos_range() const;
+        optional_type< std::pair< uint64_t, uint64_t > > pos_range() const override;
 
         // local impl
         std::shared_ptr< const acqrscontrols::u5303a::threshold_result > data() { return *it_; }

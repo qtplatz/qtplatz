@@ -35,6 +35,9 @@ namespace adcontrols { class TargetingMethod; class MSChromatogramMethod; }
 
 namespace adwidgets {
 
+    // will be deprecated
+    // this class is only crated in peptidewidget -- to be replaced with MOLTable class
+
     class TargetingTable : public TableView  {
         Q_OBJECT
     public:
@@ -53,7 +56,7 @@ namespace adwidgets {
         void setContents( const adcontrols::MSChromatogramMethod& );
         void getContents( adcontrols::MSChromatogramMethod& );
         void enableLockMass( bool );
-        
+
         QStandardItemModel& model();
 
     private:
@@ -66,9 +69,9 @@ namespace adwidgets {
 
     signals:
         void onContextMenu( QMenu&, const QPoint& );
-                                           
+
     public slots:
-    
+
     };
 
 }
