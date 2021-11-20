@@ -465,19 +465,21 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
     if ( cm.enableAutoTargeting() ) {
-        ADDEBUG() << __FUNCTION__ << " auto targeting is on";
         adcontrols::ProcessMethod tmp;
         adcontrols::TargetingMethod tgtm;
         if ( auto cm = pm->find< adcontrols::CentroidMethod >() )
             tmp.appendMethod( *cm );
         if ( auto tm = pm->find< adcontrols::TargetingMethod >() )
             tgtm = *tm;
+        ADDEBUG() << __FUNCTION__ << " auto targeting is on";
+        ADDEBUG() << "targeting tolerance: " << tgtm.tolerance( tgtm.toleranceMethod() );
 
         QJsonArray a;
         for ( auto mol: cm.molecules().data() ) {
             if ( mol.tR() && mol.enable() ) {
-                // ADDEBUG() << "-----------> " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
                 double tR = mol.tR().get();
+                ADDEBUG() << "-----------> " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable()
+                          << ", tR=" << tR;
                 adcontrols::moltable mtab;
                 mtab << mol;
                 tgtm.setMolecules( mtab, mol.adducts() );

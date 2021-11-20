@@ -56,8 +56,8 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QSignalBlocker>
-#include <QStyledItemDelegate>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include <QSvgRenderer>
 #include <QUrl>
 #include <sstream>
@@ -238,6 +238,18 @@ namespace adwidgets {
             auto& state = impl_->state( index.column() );
             auto field = impl_->field( index.column() );
 
+            if ( state.isCheckable ) { // workaround
+                if ( auto pmodel = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
+                    if ( auto item = pmodel->item( index.row(), index.column() )) {
+                        if ( !( item->flags() & Qt::ItemIsUserCheckable ) ) {
+                            item->setEditable( true );
+                            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                            item->setData( Qt::Checked, Qt::CheckStateRole );
+                        }
+                    }
+                }
+            }
+
             if ( state.isChoice() ) {
 
                 int idx = index.data().toInt();
@@ -308,6 +320,17 @@ namespace adwidgets {
                 }
             } else {
                 QStyledItemDelegate::setModelData( editor, model, index );
+            }
+            if ( state.isCheckable ) {
+                if ( auto pmodel = qobject_cast< QStandardItemModel * >( model ) ) {
+                    if ( auto item = pmodel->item( index.row(), index.column() )) {
+                        if ( !( item->flags() & Qt::ItemIsUserCheckable ) ) {
+                            item->setEditable( true );
+                            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                            model->setData( model->index( index.row(), index.column() ), Qt::Checked, Qt::CheckStateRole );
+                        }
+                    }
+                }
             }
 
             // impl_->onValueChanged( index );
@@ -402,6 +425,7 @@ namespace {
                 int col; ColumnState state;
                 std::tie( col, state ) = *res;
 #endif
+                ADDEBUG() << "##### SetData()() " << row << ", " << col << ", state.isCheckable=" << state.isCheckable;
                 if ( row >= model.rowCount() ) {
                     model.insertRow( model.rowCount() );
                     row = model.rowCount() - 1;

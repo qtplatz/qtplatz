@@ -940,8 +940,8 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
 
-    if ( auto folium = folder.findFoliumByName( name ) )
-        return folium; // already exists
+    // if ( auto folium = folder.findFoliumByName( name ) )
+    //     return folium; // already exists
 
     portfolio::Folium folium = folder.addFolium( name );
     folium.assign( ptr, ptr->dataClass() );
