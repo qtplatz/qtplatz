@@ -876,13 +876,18 @@ Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
               << " for " << calibration.calibration().massSpectrometerClsid()
               << " to file: " << this->filename();
 
-	if ( file()->applyCalibration( std::wstring(), calibration ) ) {
-        setModified( true );
-        if ( auto spectrometer = this->massSpectrometer() )
-            spectrometer->initialSetup( *db(), {{0}} );
-    } else {
+    if ( !adprocessor::dataprocessor::applyCalibration( calibration ) ) {
         ADDEBUG() << "applyCalibration faild";
     }
+
+    // move to parent class
+	// if ( file()->applyCalibration( std::wstring(), calibration ) ) {
+    //     setModified( true );
+    //     if ( auto spectrometer = this->massSpectrometer() )
+    //         spectrometer->initialSetup( *db(), {{0}} );
+    // } else {
+    //     ADDEBUG() << "applyCalibration faild";
+    // }
 }
 
 void

@@ -583,3 +583,22 @@ dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
 {
     // virtual --> dataproc::Dataprocessor
 }
+
+bool
+dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibration )
+{
+	if ( file()->applyCalibration( std::wstring(), calibration ) ) {
+        setModified( true );
+        if ( auto spectrometer = this->massSpectrometer() ) {
+            spectrometer->initialSetup( *db(), {{0}} );
+            if ( auto raw = this->rawdata() ) {
+                for ( auto reader: raw->dataReaders( true ) )
+                    reader->handleCalibrateResultAltered(); // reload massSpectrometer on each datareader instance
+            }
+        }
+        return true;
+    } else {
+        ADDEBUG() << "applyCalibration faild";
+        return false;
+    }
+}

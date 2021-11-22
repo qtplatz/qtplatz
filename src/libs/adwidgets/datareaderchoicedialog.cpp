@@ -109,7 +109,7 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( QWidget *parent ) : QDialog( par
     }
 }
 
-DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< const adcontrols::DataReader > >&& readers
+DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< adcontrols::DataReader > >&& readers
                                                 , QWidget * parent ) : QDialog( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {

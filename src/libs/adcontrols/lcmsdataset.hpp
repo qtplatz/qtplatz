@@ -81,10 +81,8 @@ namespace adcontrols {
         virtual size_t dataReaderCount() const { return 0; }
         virtual const adcontrols::DataReader * dataReader( size_t idx ) const { return nullptr; }
         virtual const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const { return nullptr; }
-        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible = false ) const;
+        virtual std::vector < std::shared_ptr< adcontrols::DataReader > > dataReaders( bool allPossible = false ) const;
         virtual adcontrols::MSFractuation * msFractuation() const;
 	};
 
 }
-
-

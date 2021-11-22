@@ -1148,3 +1148,10 @@ DataReader::dataInterpreter() const
 {
     return interpreter_.get();
 }
+
+void
+DataReader::handleCalibrateResultAltered() const
+{
+    if ( auto db = db_.lock() )
+        spectrometer_->initialSetup( *db, {{ 0 }} );
+}

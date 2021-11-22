@@ -81,6 +81,7 @@ namespace acqrsinterpreter {
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const override;
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
         adcontrols::DataInterpreter * dataInterpreter() const override;
+        void handleCalibrateResultAltered() const override;
 
     private:
         void make_indices();

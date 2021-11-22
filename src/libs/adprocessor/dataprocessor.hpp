@@ -27,6 +27,7 @@
 
 #include "adprocessor_global.hpp"
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
 #include <boost/optional.hpp>
 #include <functional>
 #include <memory>
@@ -48,6 +49,7 @@ namespace adcontrols {
     class MassSpectrum;
     class MassSpectrometer;
     class MSPeakInfo;
+    class MSCalibrationResult;
 }
 
 namespace portfolio { class Portfolio; class Folder; class Folium; }
@@ -129,6 +131,8 @@ namespace adprocessor {
         // mass peaks selected by chromatograms
         virtual void xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info );
         virtual void markupMassesFromChromatograms( portfolio::Folium&& folium ) {};
+
+        bool applyCalibration( const adcontrols::MSCalibrateResult& );
 
     private:
         std::unique_ptr< adfs::filesystem > fs_;

@@ -29,10 +29,10 @@
 
 using namespace adcontrols;
 
-std::vector < std::shared_ptr< const adcontrols::DataReader > >
+std::vector < std::shared_ptr< adcontrols::DataReader > >
 LCMSDataset::dataReaders( bool allPossible ) const
 {
-    return std::vector < std::shared_ptr< const adcontrols::DataReader > >();
+    return {}; // std::vector < std::shared_ptr< adcontrols::DataReader > >();
 }
 
 adcontrols::MSFractuation *
@@ -43,4 +43,3 @@ LCMSDataset::msFractuation() const
             return spectrometer->msFractuation();
     return nullptr;
 }
-

@@ -186,15 +186,15 @@ rawdata::dataReader( const boost::uuids::uuid& uuid ) const
     return nullptr;
 }
 
-std::vector < std::shared_ptr< const adcontrols::DataReader > >
+std::vector < std::shared_ptr< adcontrols::DataReader > >
 rawdata::dataReaders( bool allPossible ) const
 {
-    std::vector < std::shared_ptr< const adcontrols::DataReader > > v;
+    std::vector < std::shared_ptr< adcontrols::DataReader > > v;
     v.reserve( readers_.size() );
 
     if ( allPossible ) {
         for ( auto& reader : readers_ )
-            v.push_back( reader.first );
+            v.emplace_back( reader.first );
     } else {
         for ( auto& reader : readers_ )
             if ( reader.first->fcnCount() > 0 || reader.first->trace_method() == adacquire::SignalObserver::eTRACE_TRACE )

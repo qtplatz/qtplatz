@@ -178,7 +178,7 @@ Node::attributes() const
     using pugi::as_wide;
 
     for ( pugi::xml_attribute_iterator it = node_.attributes_begin(); it != node_.attributes_end(); ++it )
-        attrs.push_back( std::make_pair<std::wstring, std::wstring>( as_wide( it->name() ), as_wide( it->value() ) ) );
+        attrs.emplace_back( as_wide( it->name() ), as_wide( it->value() ) );
 
     return attrs;
 }

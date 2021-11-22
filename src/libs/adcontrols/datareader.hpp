@@ -163,6 +163,7 @@ namespace adcontrols {
         virtual std::shared_ptr< adcontrols::MassSpectrum >  coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const { return nullptr; }
 
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
+        virtual void handleCalibrateResultAltered() const {};
 
         /**
          * @brief Return a chromatogram from a eTRACE_TRACE data
