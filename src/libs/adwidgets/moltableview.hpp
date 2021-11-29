@@ -34,6 +34,9 @@ class QMenu;
 
 namespace adcontrols { class moltable; }
 
+// this class is deplicated
+// so far it has been inherit from mschromatogramwidget, tofchromatogramswidget, adtracewidget, countingwidget and chemistry/moltablewnd
+
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT MolTableView : public TableView  {

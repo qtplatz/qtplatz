@@ -114,6 +114,7 @@ MSChromatogramWidget::OnCreate( const adportable::Configuration& )
 void
 MSChromatogramWidget::OnInitialUpdate()
 {
+    ADDEBUG() << "############## " << __FUNCTION__;
     if ( auto form = findChild< MSChromatogramForm * >() )
         form->OnInitialUpdate();
 
@@ -161,14 +162,17 @@ MSChromatogramWidget::setContents( boost::any&& a )
 void
 MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
 {
-    if ( auto form = findChild< MSChromatogramForm * >() )
+    if ( auto form = findChild< MSChromatogramForm * >() ) {
         form->setContents( m );
+    }
 
-    if ( auto table = findChild< MolTableView * >() )
+    if ( auto table = findChild< MolTableView * >() ) {
         table->setColumnHidden( c_lockmass, !m.lockmass() );
+    }
 
     size_t size = m.molecules().data().size();
 
+    ADDEBUG() << "############## " << __FUNCTION__ << ", size=" << size;
     if ( size > model_->rowCount() )
         model_->setRowCount( m.molecules().data().size() );
     else
@@ -289,22 +293,6 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
                 if ( auto item = model_->item( row, c_formula ) )
                     item->setEditable( false );
             }
-            // adchem::mol mol( smiles, adchem::mol::SMILES );
-            // if ( smiles.empty() ) {
-            //     if ( auto item = model_->item( row, c_formula ) )
-            //         item->setEditable( true );
-            //     model_->setData( model_->index( row, c_svg ), QByteArray() );
-            // } else {
-            //     std::string svg = adchem::drawing::toSVG( *static_cast< RDKit::ROMol *>(mol) );
-            //     QString formula = QString::fromStdString( mol.formula() );
-            //     double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
-
-            //     model_->setData( model_->index( row, c_svg ), QByteArray( svg.data(), svg.size() ));
-            //     model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
-            //     model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
-            //     if ( auto item = model_->item( row, c_formula ) )
-            //         item->setEditable( false );
-            // }
         }
 
     }
@@ -349,14 +337,15 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
         if ( row <= model.rowCount() )
             model.setRowCount( row + 1 );
 
+        if ( auto item = new QStandardItem() ) {
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            item->setEditable( true );
+            item->setCheckState( mol.enable() ? Qt::Checked : Qt::Unchecked );
+            model.setItem ( row, c_formula, item );
+        }
+
         if ( !QString::fromStdString( mol.formula() ).isEmpty() && QString::fromStdString( mol.smiles() ).isEmpty() )
             model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
-
-        if ( auto item = model.item( row, c_formula ) ) {
-            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            model.setData( model.index( row, c_formula ), mol.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-            item->setEditable( true );
-        }
 
         model.setData( model.index( row, c_adducts ), QString::fromStdString( mol.adducts() ) );
         model.setData( model.index( row, c_mass ), mol.mass() );
@@ -365,8 +354,9 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
             item->setEditable( false );
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             model.setData( model.index( row, c_lockmass ), mol.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        } else {
+            ADDEBUG() << "--------- empty item (c_lockmass) ------------- " << mol.formula();
         }
-
         model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
         model.setData( model.index( row, c_tR ), mol.tR() ? mol.tR().get() : 0.0 );
         model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );

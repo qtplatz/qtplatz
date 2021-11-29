@@ -72,6 +72,7 @@
 #include <boost/json.hpp>
 
 #include <functional>
+#include <optional>
 
 using namespace adwidgets;
 
@@ -107,6 +108,15 @@ namespace adwidgets {
             if ( it != columnStates_.end() )
                 return it->first;
             return (-1);
+        }
+
+        inline std::optional< std::vector< int > > findCheckable() const {
+            std::vector< int > v;
+            std::for_each( columnStates_.begin(), columnStates_.end(), [&](const auto& state){
+                if ( state.second.isCheckable )
+                    v.emplace_back( state.first );
+            });
+            return v;
         }
 
         adportable::optional< std::pair< int, ColumnState > > findColumnState( ColumnState::fields field ) const {
@@ -237,7 +247,7 @@ namespace adwidgets {
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
             auto& state = impl_->state( index.column() );
             auto field = impl_->field( index.column() );
-
+#if 0
             if ( state.isCheckable ) { // workaround
                 if ( auto pmodel = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
                     if ( auto item = pmodel->item( index.row(), index.column() )) {
@@ -249,7 +259,7 @@ namespace adwidgets {
                     }
                 }
             }
-
+#endif
             if ( state.isChoice() ) {
 
                 int idx = index.data().toInt();
@@ -321,6 +331,8 @@ namespace adwidgets {
             } else {
                 QStyledItemDelegate::setModelData( editor, model, index );
             }
+            // workaround
+#if 0
             if ( state.isCheckable ) {
                 if ( auto pmodel = qobject_cast< QStandardItemModel * >( model ) ) {
                     if ( auto item = pmodel->item( index.row(), index.column() )) {
@@ -332,7 +344,7 @@ namespace adwidgets {
                     }
                 }
             }
-
+#endif
             // impl_->onValueChanged( index );
         }
 
@@ -473,9 +485,38 @@ MolTableView::~MolTableView()
 void
 MolTableView::onInitialUpdate()
 {
-    //horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
     horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
     horizontalHeader()->setStretchLastSection( true );
+    if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
+        connect( model, &QStandardItemModel::itemChanged, this, [&](QStandardItem * item){
+            if ( impl_->columnStates_[ item->column() ].isCheckable ) {
+                ADDEBUG() << "\tcheckable item changed " << item->row() << ", " << item->column() << ", " << item->text().toStdString();
+                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            }
+        });
+    }
+
+    if ( auto model = this->model() ) {
+#if 0
+        connect( model, &QAbstractItemModel::rowsInserted, this, [&](const QModelIndex& parent, int first, int last){
+            if ( auto v = impl_->findCheckable() ) {
+                if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
+                    for ( int row = first; row <= last; ++row ) {
+                        for ( int col: *v ){
+                            if ( auto item = model->item( row, col ) ) { // ? model->item( row, col ) : new QStandardItem();
+                                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                            } else if ( auto item = new QStandardItem() ) {
+                                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                                item->setCheckState( Qt::Unchecked );
+                                model->setItem( row, col, item );
+                            }
+                        }
+                    }
+                }
+            }
+        });
+#endif
+    }
 }
 
 void
@@ -837,11 +878,13 @@ MolTableView::json() const
 void
 MolTableView::setContents( const std::string& json )
 {
+    ADDEBUG() << "####### " << __FUNCTION__;
 }
 
 bool
 MolTableView::setContents( const adcontrols::moltable& mols )
 {
+    ADDEBUG() << "####### " << __FUNCTION__;
     size_t row = std::numeric_limits<int>::max();
     SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
 
