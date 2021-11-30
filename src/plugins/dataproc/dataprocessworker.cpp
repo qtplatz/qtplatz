@@ -70,6 +70,7 @@
 #include <QMessageBox>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/json.hpp>
 #include <chrono>
 #include <fstream>
 #include <functional>
@@ -193,8 +194,19 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
 
 // [0]
 void
-DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::shared_ptr< const adcontrols::ProcessMethod > pm, const QString& origin )
+DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
+                                                , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                                , const QString& origin )
 {
+    // ADDEBUG() << "----------------------- " << __FUNCTION__ << " ------------------------";
+    // if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+    //     for ( const auto& value: cm->molecules().data() ) {
+    //         ADDEBUG() << boost::json::object{ { "formula", value.formula() }
+    //                 , { "enable", value.enable() }, {"adducts", value.adducts() }, { "mass", value.mass() } };
+    //     }
+    // }
+    // ADDEBUG() << "----------------------- " << __FUNCTION__ << " ------------------------";
+
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
     if ( auto rawfile = processor->rawdata() ) {
@@ -409,14 +421,16 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
         adprocessor::v2::MSChromatogramExtractor extract( dset );
 
         extract( vec, *pm, [progress] ( size_t curr, size_t total ) {
-                if ( curr == 0 )
-                    progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) );
-            } );
+            if ( curr == 0 )
+                progress->setRange( 0, int( total ) );
+            return ( *progress )( int( curr ) );
+        } );
     }
 
     portfolio::Folium folium;
-    for ( auto c: vec )
+    for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *pm );
+    }
 
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -438,13 +452,15 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
         adprocessor::v2::MSChromatogramExtractor extract( dset );
         extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) {
                 if ( curr == 0 )
-                    progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) );
+                    progress->setRange( 0, int( total ) );
+                return ( *progress )( int( curr ) );
             } );
     }
 
     portfolio::Folium folium;
-    for ( auto c: vec )
+    for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *method );
+    }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
@@ -460,10 +476,6 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
-    ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name();
-
-    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
     if ( cm.enableAutoTargeting() ) {
         adcontrols::ProcessMethod tmp;
         adcontrols::TargetingMethod tgtm;
@@ -471,15 +483,13 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
             tmp.appendMethod( *cm );
         if ( auto tm = pm->find< adcontrols::TargetingMethod >() )
             tgtm = *tm;
-        ADDEBUG() << __FUNCTION__ << " auto targeting is on";
-        ADDEBUG() << "targeting tolerance: " << tgtm.tolerance( tgtm.toleranceMethod() );
 
-        QJsonArray a;
+        // ADDEBUG() << boost::json::object{ { "auto_targeting", true }, { "tolerance", tgtm.tolerance( tgtm.toleranceMethod() ) } };
+
+        boost::json::array jArray;
         for ( auto mol: cm.molecules().data() ) {
             if ( mol.tR() && mol.enable() ) {
-                double tR = mol.tR().get();
-                ADDEBUG() << "-----------> " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable()
-                          << ", tR=" << tR;
+                double tR = *mol.tR();
                 adcontrols::moltable mtab;
                 mtab << mol;
                 tgtm.setMolecules( mtab, mol.adducts() );
@@ -492,41 +502,43 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                     portfolio::Folium folium = processor->addSpectrum( ms, adcontrols::ProcessMethod() );
                     processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
                     bool found( false );
-                    if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
-                        if ( auto f = portfolio::find_first_of( fCentroid.attachments(), []( const auto& a ) { return a.name() == Constants::F_TARGETING; } ) ) {
+                    if ( auto fCentroid = portfolio::find_first_of( folium.attachments()
+                                                                    , []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
+                        if ( auto f = portfolio::find_first_of( fCentroid.attachments()
+                                                                , []( const auto& a ) { return a.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
                                 found = true;
                                 for ( const auto& c : targeting->candidates() ) {
-                                    QJsonObject obj{ { "formula", QString::fromStdString( c.formula ) }
-                                                     , { "exact_mass", c.exact_mass }
-                                                     , { "exact_abundance", 100 }
-                                                     , { "mass", c.mass }
-                                                     , { "time", -1 }
-                                                     , { "index", static_cast< int >(c.idx) }
-                                                     , { "proto", static_cast< int >(c.fcn) }
-                                                     , { "selected", true } };
-                                    a.push_back( obj );
-                                    ADDEBUG() << "====> found candidate: " << c.formula << ", " << c.mass << ", " << (c.mass - c.exact_mass);
+                                    jArray.emplace_back( boost::json::object{
+                                            { "formula", c.formula }
+                                            , { "exact_mass", c.exact_mass }
+                                            , { "exact_abundance", 100 }
+                                            , { "mass", c.mass }
+                                            , { "time", -1 }
+                                            , { "index", static_cast< int >(c.idx) }
+                                            , { "proto", static_cast< int >(c.fcn) }
+                                            , { "selected", true } } );
                                 }
                             }
                         }
                     }
                     if ( !found ) {
-                        ADDEBUG() << "###### no candidate found " << mol.formula() << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
+                        ADDEBUG() << "###### no candidate found " << mol.formula()
+                                  << ", " << mol.adducts() << ", " << mol.mass() << ", enable=" << mol.enable();
                     }
                 }
             }
         }
-        QJsonObject top{ { "formulae", a } };
-        auto json = QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
-        // ADDEBUG() << json;
-        double width = cm.width( cm.widthMethod() );
+        auto json = boost::json::serialize( boost::json::object{ { "formulae", jArray } } );
+        ADDEBUG() << json;
 
+        double width = cm.width( cm.widthMethod() );
         if ( auto dset = processor->rawdata() ) {
             adprocessor::v3::MSChromatogramExtractor extract( dset );
-            extract.extract_by_json( vec, *pm, reader, json, width, adcontrols::hor_axis_mass, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+            extract.extract_by_json( vec, *pm, reader, json, width
+                                     , adcontrols::hor_axis_mass, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
         }
-    } else {
+    } else { // !autoTargeting
         if ( auto dset = processor->rawdata() ) {
             adprocessor::v3::MSChromatogramExtractor extract( dset );
             extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
@@ -534,8 +546,9 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
     }
 
     portfolio::Folium folium;
-    for ( auto c: vec )
+    for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *pm );
+    }
 
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -561,9 +574,9 @@ DataprocessWorker::handleChromatogramByAxisRange3( Dataprocessor * processor
     }
 
     portfolio::Folium folium;
-    for ( auto c: vec )
+    for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *pm );
-
+    }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
@@ -589,9 +602,9 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
     }
 
     portfolio::Folium folium;
-    for ( auto c: vec )
+    for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *pm );
-
+    }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
@@ -616,9 +629,9 @@ DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
     }
 
     portfolio::Folium folium;
-    for ( auto c: vec )
+    for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *pm );
-
+    }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );

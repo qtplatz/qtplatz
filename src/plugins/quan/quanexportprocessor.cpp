@@ -85,6 +85,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -124,7 +125,14 @@ namespace quan {
             auto title = make_title( dataSource, chromatogram->ptree() );
             if ( adfs::file file = writer->write( *chromatogram, title ) ) {
                 auto fGuid = boost::uuids::string_generator()( file.name() );
-                chromatogram->ptree().put( "folder.dataGuid", fGuid );
+                boost::json::object jobj;
+                if ( auto prop = chromatogram->generatorProperty() ) {
+                    auto jv = boost::json::parse( *prop );
+                    jobj = jv.as_object();
+                }
+                jobj[ "folder" ] = boost::json::object{{ "dataGuid", boost::uuids::to_string( fGuid ) }};
+                // chromatogram->ptree().put( "folder.dataGuid", fGuid );
+                chromatogram->setGeneratorProperty( boost::json::serialize( jobj ));
                 return fGuid;
             }
             return {{ 0 }};

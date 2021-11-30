@@ -92,11 +92,12 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
 #include <algorithm>
 
 namespace quan {
@@ -173,7 +174,16 @@ namespace quan {
             auto title = make_title( dataSource, pair.first->ptree() );
             if ( adfs::file file = writer->write( *pair.first, title ) ) {
                 auto fGuid = boost::uuids::string_generator()( file.name() );
-                pair.first->ptree().put( "folder.dataGuid", fGuid );
+                // pair.first->ptree().put( "folder.dataGuid", fGuid );
+                boost::json::object jobj;
+                if ( auto prop = pair.first->generatorProperty() ) {
+                    auto jv = boost::json::parse( *prop );
+                    jobj = jv.as_object();
+                }
+                jobj[ "folder" ] = boost::json::object{{ "dataGuid", boost::uuids::to_string( fGuid ) }};
+                pair.first->setGeneratorProperty( boost::json::serialize( jobj ));
+                //----
+
                 auto afile = writer->attach< adcontrols::PeakResult >( file, *pair.second, pair.second->dataClass() );
                 writer->attach< adcontrols::ProcessMethod >( file, procm, L"Process Method" );
                 return fGuid;
@@ -200,8 +210,7 @@ namespace quan {
               , const std::wstring& title
               , std::shared_ptr< const adcontrols::ProcessMethod > procm
               , const std::string& formula
-              , int32_t proto
-              , boost::property_tree::ptree& ptree )  {
+              , int32_t proto ) {
 
             if ( auto file = writer->write( *ms, title ) ) {
                 if ( auto att = writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO ) ) {
@@ -232,12 +241,17 @@ namespace quan {
                          , const std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> >& pair
                          , const adcontrols::QuanCompounds& compounds ) {
 
-            auto& ptree = pair.first->ptree();
+            auto ptree = pair.first->ptree();
+            boost::json::object jobj;
+            if ( auto prop = pair.first->generatorProperty() ) {
+                auto jv = boost::json::parse( *pair.first->generatorProperty() );
+                jobj = jv.as_object();
+            }
 
             auto matchedMass = ptree.get_optional< double >( "targeting.matchedMass" );
             auto dataGuid = ptree.get_optional< boost::uuids::uuid >( "folder.dataGuid" );
 
-            if ( auto child = pair.first->ptree().get_child_optional( "generator.extract_by_mols" ) ) {
+            if ( auto child = ptree.get_child_optional( "generator.extract_by_mols" ) ) {
 
                 if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
 
@@ -269,6 +283,18 @@ namespace quan {
                             }
                             sample << resp;
 
+                            jobj[ "resp" ] = boost::json::object{
+                                { "uuid_cmpd", boost::uuids::to_string( resp.uuid_cmpd() ) }
+                                , { "uuid_cmpd_table", boost::uuids::to_string( resp.uuid_cmpd_table() ) }
+                                , { "dataGuid", boost::uuids::to_string( dataGuid.get() ) }
+                                , { "mass", resp.mass() }
+                                , { "idx", resp.peakIndex() }
+                                , { "fcn", resp.fcn() }
+                                , { "intensity", resp.intensity() }
+                                , { "tR", resp.tR() }
+                            };
+                            pair.first->setGeneratorProperty( boost::json::serialize( jobj ) );
+                            // ------- deprecated
                             ptree.put( "resp.uuid_cmpd", resp.uuid_cmpd() );
                             ptree.put( "resp.uuid_cmpd_table", resp.uuid_cmpd_table() );
                             ptree.put( "resp.dataGuid", dataGuid.get() );
@@ -277,6 +303,7 @@ namespace quan {
                             ptree.put( "resp.fcn", resp.fcn() );
                             ptree.put( "resp.intensity", resp.intensity() );
                             ptree.put( "resp.tR", resp.tR() );
+                            // --- end deprecated
                         } else {
                             assert( 0 );
                         }
@@ -285,8 +312,9 @@ namespace quan {
                     ADERROR() << "No Compound ID found -- internal error";
                 }
             }
-#if ! defined NDEBUG
-            ADDEBUG() << pair.first->ptree();
+#if ! defined NDEBUG || 1
+            ADDEBUG() << ptree;
+            ADDEBUG() << jobj;
 #endif
         }
     };
@@ -425,7 +453,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                 for ( auto& pair: rlist ) {
                     boost::uuids::uuid msGuid{{ 0 }}, dataGuid{{ 0 }};
                     auto& chr = pair.first;
-                    auto& ptree = chr->ptree();
+                    auto ptree = chr->ptree();
                     for ( auto& pk: pair.second->peaks() ) {
                         if ( !pk.name().empty() ) {
                             if ( auto ms = extractor->getMassSpectrum( pk.peakTime() ) ) {
@@ -458,8 +486,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                                               , title
                                                               , procm_
                                                               , pk.formula()
-                                                              , chr->protocol()
-                                                              , chr->ptree() );
+                                                              , chr->protocol() );
                             }
                         }
                     }

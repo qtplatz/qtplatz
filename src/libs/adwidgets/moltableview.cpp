@@ -487,36 +487,6 @@ MolTableView::onInitialUpdate()
 {
     horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
     horizontalHeader()->setStretchLastSection( true );
-    if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
-        connect( model, &QStandardItemModel::itemChanged, this, [&](QStandardItem * item){
-            if ( impl_->columnStates_[ item->column() ].isCheckable ) {
-                ADDEBUG() << "\tcheckable item changed " << item->row() << ", " << item->column() << ", " << item->text().toStdString();
-                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            }
-        });
-    }
-
-    if ( auto model = this->model() ) {
-#if 0
-        connect( model, &QAbstractItemModel::rowsInserted, this, [&](const QModelIndex& parent, int first, int last){
-            if ( auto v = impl_->findCheckable() ) {
-                if ( auto model = qobject_cast< QStandardItemModel * >( this->model() ) ) {
-                    for ( int row = first; row <= last; ++row ) {
-                        for ( int col: *v ){
-                            if ( auto item = model->item( row, col ) ) { // ? model->item( row, col ) : new QStandardItem();
-                                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                            } else if ( auto item = new QStandardItem() ) {
-                                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                                item->setCheckState( Qt::Unchecked );
-                                model->setItem( row, col, item );
-                            }
-                        }
-                    }
-                }
-            }
-        });
-#endif
-    }
 }
 
 void

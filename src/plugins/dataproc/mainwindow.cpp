@@ -137,7 +137,7 @@
 #include <QtGui/QIcon>
 #include <qdebug.h>
 #include <qstackedwidget.h>
-
+#include <boost/json.hpp>
 #include <functional>
 #include <fstream>
 
@@ -902,9 +902,19 @@ MainWindow::handleProcess( const QString& origin )
     if ( origin == "MSChromatogramWidget" ) {
         // generate chromatograms
         if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+            if ( cm->enableAutoTargeting() ) { // check tR & protocol
+                for ( const auto& mol: cm->molecules().data() ) {
+                    if ( mol.mass() > 0 && !mol.tR() ) {
+                        QMessageBox::critical(0, QLatin1String("MS Chromatograms"), "Set tR and protocol# for auto-targeting" );
+                        return;
+                    }
+                }
+            }
             if ( ! cm->molecules().data().empty() ) {
                 if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
                     DataprocessWorker::instance()->createChromatogramsByMethod( processor, pm, origin );
+            } else {
+                QMessageBox::critical(0, QLatin1String("MS Chromatograms"), "No molecule" );
             }
         }
     } else if ( origin == "MSSimulatorWidget" ) {

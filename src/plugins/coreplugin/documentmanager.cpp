@@ -881,15 +881,15 @@ QStringList DocumentManager::getOpenFileNames(const QString &filters,
         if (path.isEmpty() && useProjectsDirectory())
             path = projectsDirectory();
     }
-    ADDEBUG() << "----------->";
+    // ADDEBUG() << "----------->";
 
     const QStringList files = QFileDialog::getOpenFileNames( ICore::dialogParent()
                                                              , tr("Open File")
                                                              , path
                                                              , filters
                                                              , selectedFilter );
-    for ( const auto& file: files )
-        ADDEBUG() << "<-----------" << file.toStdString();
+    // for ( const auto& file: files )
+    //     ADDEBUG() << "<-----------" << file.toStdString();
 
     if (!files.isEmpty())
         setFileDialogLastVisitedDirectory(QFileInfo(files.front()).absolutePath());

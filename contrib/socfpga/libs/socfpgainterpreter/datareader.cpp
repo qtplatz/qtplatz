@@ -48,7 +48,8 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 #include <atomic>
 #include <cassert>
 #include <limits>
@@ -367,11 +368,15 @@ DataReader::getChromatogram( int idx ) const
     double vOffs = 0;
     if ( impl_->traceMethod_ ) {
         vOffs = (*impl_->traceMethod_)[ idx ].vOffset();
-        boost::property_tree::ptree pt;
-        pt.put( "trace.legend", (*impl_->traceMethod_)[ idx ].legend() );
-        pt.put( "trace.enable", (*impl_->traceMethod_)[ idx ].enable() );
-        pt.put( "trace.vOffset", (*impl_->traceMethod_)[ idx ].vOffset() );
-        ptr->setGeneratorProperty( pt );
+
+        boost::json::object trace{{ "trace"
+                , {
+                    { "legend", (*impl_->traceMethod_)[ idx ].legend() }
+                    , { "enable", (*impl_->traceMethod_)[ idx ].enable() }
+                    , { "vOffset", (*impl_->traceMethod_)[ idx ].vOffset() }
+                }
+            }};
+        ptr->setGeneratorProperty( boost::json::serialize( trace ) );
     }
 
     for ( const auto& item: impl_->data_ ) {

@@ -186,13 +186,12 @@ namespace adcontrols {
         void setDataGuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataGuid() const;
 
-        [[deprecated("use std::string version")]] void setGeneratorProperty( const boost::property_tree::ptree& );
+        // [[deprecated("use std::string version")]] void setGeneratorProperty( const boost::property_tree::ptree& );
         void setGeneratorProperty( const std::string& );
         boost::optional< std::string > generatorProperty() const;
         template< typename T > boost::optional< T > findProperty( const std::string& key ) const;
 
-        boost::property_tree::ptree& ptree();
-        const boost::property_tree::ptree& ptree() const;
+        boost::property_tree::ptree const ptree() const;
 
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 

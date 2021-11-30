@@ -935,14 +935,14 @@ Chromatogram::dataReaderUuid() const
 }
 
 // deprecated
-void
-Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
-{
-    pImpl_->ptree_ = pt;
-    std::ostringstream o;
-    boost::property_tree::write_json( o, pt );
-    pImpl_->generator_property_ = o.str();
-}
+// void
+// Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
+// {
+//     pImpl_->ptree_ = pt;
+//     std::ostringstream o;
+//     boost::property_tree::write_json( o, pt );
+//     pImpl_->generator_property_ = o.str();
+// }
 
 void
 Chromatogram::setGeneratorProperty( const std::string& prop )
@@ -1023,16 +1023,16 @@ Chromatogram::dataGuid() const
     return pImpl_->dataGuid_;
 }
 
-boost::property_tree::ptree&
-Chromatogram::ptree()
-{
-    return pImpl_->ptree_;
-}
-
-const boost::property_tree::ptree&
+boost::property_tree::ptree const
 Chromatogram::ptree() const
 {
-    return pImpl_->ptree_;
+    if ( pImpl_->generator_property_ ) {
+        boost::property_tree::ptree pt;
+        std::istringstream is( *pImpl_->generator_property_ );
+        boost::property_tree::read_json( is, pt );
+        return pt;
+    }
+    return {};
 }
 
 bool

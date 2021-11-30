@@ -108,7 +108,7 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
     //const adcontrols::MSChromatogramMethod * mchro = 0;
     if ( auto p = d->parent ? d->parent.get() : nullptr ) {
         if ( p->procmethod && p->chromatogram ) {
-            auto& ptree = p->chromatogram.get()->ptree();
+            auto ptree = p->chromatogram.get()->ptree();
             auto mass = ptree.get_optional< double >( "generator.extract_by_mols.moltable.mass" );
             auto width = ptree.get_optional< double >( "generator.extract_by_mols.moltable.width" );
             if ( range_ && mass && width ) {

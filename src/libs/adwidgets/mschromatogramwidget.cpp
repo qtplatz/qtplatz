@@ -41,6 +41,7 @@
 #include <QStandardItemModel>
 #include <QBoxLayout>
 #include <QMenu>
+#include <boost/json.hpp>
 #include <fstream>
 
 namespace adwidgets {
@@ -114,7 +115,6 @@ MSChromatogramWidget::OnCreate( const adportable::Configuration& )
 void
 MSChromatogramWidget::OnInitialUpdate()
 {
-    ADDEBUG() << "############## " << __FUNCTION__;
     if ( auto form = findChild< MSChromatogramForm * >() )
         form->OnInitialUpdate();
 
@@ -172,7 +172,6 @@ MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
 
     size_t size = m.molecules().data().size();
 
-    ADDEBUG() << "############## " << __FUNCTION__ << ", size=" << size;
     if ( size > model_->rowCount() )
         model_->setRowCount( m.molecules().data().size() );
     else
@@ -196,9 +195,20 @@ MSChromatogramWidget::getContents( adcontrols::MSChromatogramMethod& m ) const
     for ( int row = 0; row < model_->rowCount(); ++row ) {
         adcontrols::moltable::value_type value;
         helper::readRow( row, value, *model_ );
-        if ( !value.formula().empty() )
+        if ( !value.formula().empty() && value.mass() > 0 ) {
+            // ADDEBUG() << boost::json::object{ { "row", row }, { "formula", value.formula() }
+            //         , { "enable", value.enable() }, {"adducts", value.adducts() }, { "mass", value.mass() } };
             m.molecules() << value;
+        }
     }
+
+#if ! defined NDEBUG // || 1
+    int cnt = 0;
+    for ( const auto& value: m.molecules().data() ) {
+        ADDEBUG() << boost::json::object{ { "row", cnt++}, { "formula", value.formula() }
+                , { "enable", value.enable() }, {"adducts", value.adducts() }, { "mass", value.mass() } };
+    }
+#endif
 
     return true;
 }

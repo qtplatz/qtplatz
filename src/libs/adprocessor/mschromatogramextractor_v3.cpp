@@ -57,9 +57,9 @@
 #include <adportable/utf.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <boost/format.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/json.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <algorithm>
 #include <numeric>
 #include <ratio>
@@ -370,7 +370,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
     if ( impl_->raw_->dataformat_version() <= 2 )
         return false;
 
-    ADDEBUG() << "extract_by_mols";
+    ADDEBUG() << "################ " << __FUNCTION__ << " ###################";
 
     std::unique_ptr< adcontrols::CentroidProcess > peak_detector;
     std::unique_ptr< adcontrols::MSFinder > msfinder;
@@ -426,27 +426,34 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                         auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                         double tof = t.getTime( t.getIndexFromMass( mol.mass() ) );
-
                         auto time_of_injection = this->time_of_injection();
 
-                        boost::property_tree::ptree pt;
-                        pt.put( "generator.time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) );
-                        if ( auto molid = mol.property< boost::uuids::uuid >( "molid" ) )
-                            pt.put( "generator.extract_by_mols.molid", molid.get() );
-                        pt.put( "generator.extract_by_mols.wform_type", (sp->isCentroid() ? "centroid" : "profile") );
-                        pt.put( "generator.extract_by_mols.moltable.protocol", proto.get() );
-                        pt.put( "generator.extract_by_mols.moltable.mass", mol.mass() );
-                        pt.put( "generator.extract_by_mols.moltable.width", width );
-                        pt.put( "generator.extract_by_mols.moltable.formula", mol.formula() );
-                        if ( cm->lockmass() )
-                            pt.put( "generator.extract_by_mols.moltable.msref", mol.isMSRef() );
-                        pt.put( "generator.extract_by_mols.tof", tof );
-
-                        if ( peak_detector )
-                            pt.put( "generator.extract_by_mols.centroid", ( areaIntensity ? "area" : "height" ) );
+                        auto molid = mol.property< boost::uuids::uuid >( "molid" ); // optional
+                        boost::json::object top = {
+                            { "generator"
+                              , {   { "time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) }
+                                  , { "extract_by_mols",
+                                      {{ "molid", boost::uuids::to_string( molid ? *molid : boost::uuids::uuid{} ) } // only if quan
+                                      , { "wform_type", (sp->isCentroid() ? "centroid" : "profile") }
+                                      , { "moltable", {{ "protocol", proto.get() }
+                                              , { "mass", mol.mass() }
+                                              , { "width", width }
+                                              , { "formula", mol.formula() }
+                                              , { "tof", tof }}
+                                          }}
+                                    }
+                                }}};
+                        if ( cm->lockmass() ) {
+                            top[ "generator" ].as_object()[ "extract_by_mols" ].as_object()[ "msref" ] = mol.isMSRef();
+                        }
+                        if ( peak_detector ) {
+                            top[ "generator" ].as_object()[ "extract_by_mols" ].as_object()[ "centroid" ]
+                                = areaIntensity ? "area" : "height";
+                        }
 
                         temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
-                        temp.back().pChr->setGeneratorProperty( pt );
+                        temp.back().pChr->setGeneratorProperty( boost::json::serialize( top ) );
+                        //
                         temp.back().pChr->set_time_of_injection( std::move( time_of_injection ) );
                         if ( sp->isHistogram() ) {
                             temp.back().pChr->setAxisLabel( adcontrols::plot::yAxis, "Counts" );
@@ -455,8 +462,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                             temp.back().pChr->setAxisLabel( adcontrols::plot::yAxis, areaIntensity ? "Intensity (area)" : "Intensity" );
                             temp.back().pChr->setAxisUnit( adcontrols::plot::Volts, 1000 ); // mV
                         }
-#if !defined NDEBUG
-                        ADDEBUG() << pt;
+#if !defined NDEBUG || 1
+                        ADDEBUG() << top;
 #endif
                     }
                 }
@@ -589,48 +596,48 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                                           , adcontrols::hor_axis axis
                                           , std::function<bool( size_t, size_t )> progress )
 {
-    boost::property_tree::ptree pt;
+    auto obj = boost::json::parse( json ).as_object();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\n" << obj;
 
-    {
-        std::istringstream in( json );
-        boost::property_tree::read_json( in, pt );
-    }
-    const char * const wkey = (axis == adcontrols::hor_axis_mass) ? "mass" : "time";
+    const std::string wkey = (axis == adcontrols::hor_axis_mass) ? "mass" : "time";
 
     std::vector< std::pair< std::pair< double, double >, int > > list;  // pair< range >, fcn
     std::vector< std::string > mols;
 
-    if ( auto formulae = pt.get_child_optional( "formulae" ) ) {
-        for ( auto& formula: formulae.get() ) {
-            if ( auto selected = formula.second.get_optional< bool >( "selected" ) ) {
-                if ( selected.get() ) {
+    if ( auto formulae = obj.if_contains( "formulae" ) ) {
+        for ( auto line: formulae->as_array() ) {
+            if ( auto selected = line.as_object().if_contains( "selected" ) ) {
+                if ( selected->as_bool() ) {
                     int proto = 0;
-                    if ( auto pno = formula.second.get_optional< int >( "protocol" ) ) {
-                        proto = pno.get();
-                    } else if ( auto pno = formula.second.get_optional< int >( "proto" ) ) {
-                        proto = pno.get();
+                    if ( auto item = line.as_object().if_contains( "protocol" ) ) {
+                        proto = item->as_int64();
+                    } else if ( auto item = line.as_object().if_contains( "proto" ) ) {
+                        proto = item->as_int64();
                     }
-                    if ( auto centre = formula.second.get_optional< double >( wkey ) ) {
-                        list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
-                        auto mol = formula.second.get_optional< std::string >( "formula" );
-                        mols.emplace_back( mol ? mol.get() : "no-formula" );
+                    if ( auto item = line.as_object().if_contains( wkey ) ) {
+                        double centre = item->as_double();
+                        if ( auto formula = line.as_object().if_contains( "formula" ) ) {
+                            list.emplace_back( std::make_pair( centre - width / 2, centre + width / 2 ), proto );
+                            mols.emplace_back( formula->as_string().data() );
+                        }
                     }
                 }
             }
-
-            if ( auto children = formula.second.get_child_optional("children") ) {
-                for ( auto child: children.get() ) {
-                    if ( auto selected = child.second.get_optional< bool >( "selected" ) ) {
+            if ( auto children = line.as_object().if_contains("children") ) {
+                for ( auto child: children->as_array() ) {
+                    if ( auto selected = child.as_object().if_contains( "selected" ) ) {
                         int proto = 0;
-                        if ( auto pno = child.second.get_optional< int > ( "protocol" ) ) {
-                            proto = pno.get();
-                        } else if ( auto pno = formula.second.get_optional< int >( "proto" ) ) {
-                            proto = pno.get();
+                        if ( auto pno = child.as_object().if_contains( "protocol" ) ) {
+                            proto = pno->as_int64();
+                        } else if ( auto pno = child.as_object().if_contains( "proto" ) ) {
+                            proto = pno->as_int64();
                         }
-                        if ( auto centre = child.second.get_optional< double >( wkey ) ) {
-                            list.emplace_back( std::make_pair( centre.get() - width / 2, centre.get() + width / 2 ), proto );
-                            auto mol = formula.second.get_optional< std::string >( "formula" );
-                            mols.emplace_back( mol ? mol.get() : "no-formula" );
+                        if ( auto item = child.as_object().if_contains( wkey ) ) {
+                            double centre = item->as_double();
+                            if ( auto formula = line.as_object().if_contains( "formula" ) ) {
+                                list.emplace_back( std::make_pair( centre - width / 2, centre + width / 2 ), proto );
+                                mols.emplace_back( formula->as_string().data() );
+                            }
                         }
                     }
                 }
@@ -641,8 +648,7 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
     if ( loadSpectra( &pm, reader, -1, progress ) ) {
 
         const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
-
-        ADDEBUG() << "########## isCounting: " << isCounting;
+        ADDEBUG() << "########## isCounting: " << isCounting << ", list.size = " << list.size();
 
         auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s p%d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s p%d" );
 
@@ -658,6 +664,13 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                 centre *= std::micro::den; // --> us
                 width *= std::nano::den;   // --> ns
             }
+            // // debug
+            // boost::json::object obj{
+            //     { { "idx", idx }, { "formula", formula }, { "width", width }, { "centre", centre }, { "isCounting", isCounting } }
+            // };
+            // ADDEBUG() << boost::json::serialize( obj );
+            // // end debug
+
             res->pChr_->addDescription(
                 adcontrols::description( { "Create", ( fmt % formula % centre % width % reader->display_name() % protocol ).str() } ) );
             res->pChr_->setIsCounting( res->isCounting_ );
