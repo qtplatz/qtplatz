@@ -31,6 +31,7 @@
 #include <adportable/uuid.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/json.hpp>
 
 #if defined _MSC_VER
 # pragma warning (default:4996)
@@ -229,4 +230,17 @@ QuanCompounds::convert_if( moltable& mols, std::function< bool( const value_type
             mols << value;
         }
     }
+}
+
+QuanCompounds::operator boost::json::object () const
+{
+    boost::json::array jv;
+    for ( const auto& c: impl_->compounds_ )
+        jv.emplace_back( c );
+
+    return
+        boost::json::object{
+        { "ident", static_cast< boost::json::object >( impl_->ident_ ) }
+        , { "compounds", jv }
+    };
 }

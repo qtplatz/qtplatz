@@ -78,6 +78,7 @@
 #include <chromatogr/chromatography.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 
 using namespace quan;
@@ -94,9 +95,9 @@ QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
     , procmethod_( processor->procmethod() )
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
+    , progress_( p )
     , progress_current_( 0 )
     , progress_total_( 0 )
-    , progress_( p )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
@@ -146,22 +147,17 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
     dryrun();
 
     for ( auto& sample : samples_ ) {
-
         path_ = sample.dataSource();
         open();
 
         switch ( sample.dataGeneration() ) {
-
         case adcontrols::QuanSample::GenerateChromatogram:
-
+            ADDEBUG() << "data generation for chromatogram";
             if ( raw_ ) {
-
                 if ( raw_->dataformat_version() >= 3 ) {
-
                     auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
                     (*chromatogram_processor)( *this, sample, writer, progress_ );
                     writer->insert_table( sample ); // once per sample
-
                 } else {
                     ADDEBUG() << "data file version 2 or earlier versions not supported";
                 }

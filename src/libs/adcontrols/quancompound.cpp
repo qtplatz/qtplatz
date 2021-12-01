@@ -29,6 +29,7 @@
 #include "serializer.hpp"
 #include <adportable/uuid.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/json.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
@@ -37,17 +38,19 @@
 #include <boost/uuid/uuid_serialize.hpp>
 
 #include <array>
+#include <codecvt>
 #include <cstdint>
+#include <locale>
 #include <string>
 #include <vector>
 
 namespace adcontrols {
-    
+
     class QuanCompound::impl {
     public:
         ~impl() {
         }
-  
+
         impl() : uuid_( adportable::uuid()() )
                , row_( 0 )
                , amounts_( 1 )
@@ -108,7 +111,7 @@ namespace adcontrols {
         int32_t idISTD_;  // index for internal standad (referenced from non-istd
         std::pair< double, double > criteria_;  // pass/fail criteria
         bool isCounting_; // use counting data channel if true
-        int32_t protocol_;  // a.k.a. data channel 
+        int32_t protocol_;  // a.k.a. data channel
 
     //private:
         friend class boost::serialization::access;
@@ -135,7 +138,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( protocol_ );
             }
         }
-        
+
     };
 }
 
@@ -398,4 +401,28 @@ int32_t
 QuanCompound::protocol() const
 {
     return impl_->protocol_;
+}
+
+QuanCompound::operator boost::json::object () const
+{
+    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+
+    return boost::json::object{
+        { "uuid", boost::uuids::to_string( impl_->uuid_ ) }
+        , { "row",          impl_->row_ }
+        , { "display_name",	cvt.to_bytes( impl_->display_name_ ) }
+        , { "formula",      impl_->formula_ }
+        , { "amounts",      impl_->amounts_ }
+        , { "description",	cvt.to_bytes( impl_->description_ ) }
+        , { "tR",           impl_->tR_ }
+        , { "mass",         impl_->mass_ }
+        , { "isISTD",       impl_->isISTD_ }
+        , { "isLKMSRef",	impl_->isLKMSRef_ }
+        , { "isTimeRef",	impl_->isTimeRef_ }
+        , { "idISTD",       impl_->idISTD_ }
+        , { "criteria",     { impl_->criteria_.first, impl_->criteria_.second } }
+        , { "isCounting",	impl_->isCounting_ }
+        , { "protocol",     impl_->protocol_ }
+    };
+
 }

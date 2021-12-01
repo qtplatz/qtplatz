@@ -40,6 +40,8 @@
 #include <vector>
 #include <functional>
 
+namespace boost { namespace json { class object; } }
+
 namespace adcontrols {
 
 #if defined _MSC_VER
@@ -76,6 +78,8 @@ namespace adcontrols {
 
         void convert( moltable& ) const;
         void convert_if( moltable&, std::function<bool( const value_type& )> ) const;
+
+        operator boost::json::object () const;
 
     private:
 

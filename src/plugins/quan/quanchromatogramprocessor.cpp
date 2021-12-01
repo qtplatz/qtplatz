@@ -98,6 +98,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 
 namespace quan {
@@ -397,26 +398,35 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                        , std::shared_ptr< QuanDataWriter > writer
                                        , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
-
     if ( auto raw = processor.getLCMSDataset() ) {
 
         if ( raw->dataformat_version() < 3 )  // no support for old (before 2014) data
             return false;
 
         auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw );
-
         std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers;
 
         for ( auto reader: raw->dataReaders() ) {
-            if ( reader->objtext().find( "waveform" ) != std::string::npos )
+            ADDEBUG() << "\tdata reader: " << reader->objtext();
+            if ( reader->objtext().find( "waveform" ) != std::string::npos ) // soft average
                 readers[ 0 ] = reader;
-            if ( reader->objtext().find( "histogram" ) != std::string::npos )
+            else if ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) // hard average
+                readers[ 0 ] = reader;
+
+            if ( reader->objtext().find( "histogram" ) != std::string::npos ) // soft counting
                 readers[ 1 ] = reader;
+            else if ( reader->objtext().find( "pkd.1.u5303a.ms-cheminfo.com" ) != std::string::npos )  // PKD (hard counting)
+                readers[ 1 ] = reader;
+        }
+        if ( !readers[ 0 ] || !readers[ 1 ] ) {
+            ADDEBUG() << "no data readers found";
+            return false;
         }
 
         auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
-        if ( !pCompounds )
+        if ( !pCompounds ) {
             return false;
+        }
 
         sample.set_time_of_injection( extractor->time_of_injection() );
 
@@ -432,9 +442,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                 // ADDEBUG() << "----------- extract_by_mols ------------";
                 do {
                     std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
-
                     extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ return (*progress)(); } );
-
                     std::transform( clist.begin(), clist.end(), std::back_inserter( rlist )
                                     , []( auto p ){ return std::make_pair( std::move( p ), std::make_shared< adcontrols::PeakResult >() ); });
                 } while (0);

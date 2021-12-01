@@ -325,14 +325,9 @@ document::publisher( std::shared_ptr< QuanPublisher >& ptr )
 void
 document::run()
 {
-    ADDEBUG() << "########## " << __FUNCTION__ << " ########## " << postCount_
-              << ", quanSequence.size: " << quanSequence_->size();
-    ADDEBUG() << static_cast< boost::json::object >( *quanSequence_ );
-
     if ( postCount_ ) { // must be zero
         return;
     }
-
     qtwrapper::waitCursor wait;
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {

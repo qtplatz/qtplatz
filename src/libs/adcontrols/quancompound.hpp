@@ -30,9 +30,10 @@
 #include <cstdint>
 #include <memory>
 
-namespace boost { 
+namespace boost {
     namespace uuids { struct uuid; }
     namespace serialization { class access; }
+    namespace json { class object; }
 }
 
 namespace adcontrols {
@@ -50,22 +51,22 @@ namespace adcontrols {
         const boost::uuids::uuid& uuid() const;
         uint32_t row() const;
         void setRow( uint32_t );
-        
+
         const wchar_t * display_name() const;
         void setDisplay_name( const wchar_t * );
-        
+
         const char * formula() const;
         void setFormula( const char * );
 
         void setIsLKMSRef( bool );
         bool isLKMSRef() const;
-        
+
         void setIsTimeRef( bool );
         bool isTimeRef() const;
-        
+
         void setIsISTD( bool );
         bool isISTD() const;
-        
+
         void setIdISTD( int32_t );
         int32_t idISTD() const;
 
@@ -86,12 +87,14 @@ namespace adcontrols {
 
         double criteria( bool second = false ) const;
         void setCriteria( double v, bool second = false );
-        
+
         void setIsCounting( bool );
         bool isCounting() const;
 
         void setProtocol( int );
         int32_t protocol() const;
+
+        operator boost::json::object () const;
 
     private:
 
