@@ -34,6 +34,8 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <string>
 
+namespace boost {  namespace json { class object; } }
+
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT idAudit  {
@@ -56,6 +58,8 @@ namespace adcontrols {
 
         static bool xml_archive( std::wostream&, const idAudit& );
         static bool xml_restore( std::wistream&, idAudit& );
+
+        operator boost::json::object () const;
 
     private:
         boost::uuids::uuid uuid_;

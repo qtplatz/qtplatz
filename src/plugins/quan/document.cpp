@@ -66,6 +66,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/json.hpp>
 #include <app/app_version.h>
 #include <QApplication>
 #include <QMessageBox>
@@ -122,13 +123,14 @@ document::~document()
 {
 }
 
-document::document() : settings_( std::make_shared< QSettings >(QSettings::IniFormat, QSettings::UserScope
-                                                                        , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                                        , QLatin1String( "Quan" ) ) )
-                             , procm_( std::make_unique< adcontrols::ProcessMethod >())
-                             , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
-                             , postCount_( 0 )
-                             , semaphore_( 16 )
+document::document()
+    : settings_( std::make_shared< QSettings >(QSettings::IniFormat, QSettings::UserScope
+                                               , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                               , QLatin1String( "Quan" ) ) )
+    , procm_( std::make_unique< adcontrols::ProcessMethod >())
+    , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
+    , postCount_( 0 )
+    , semaphore_( 16 )
 {
     method_list::create( *procm_ );
 
@@ -177,7 +179,8 @@ document::save_default_methods()
 
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "document"
+            QMessageBox::information( 0
+                                      , "document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return false;
         }
@@ -256,7 +259,7 @@ document::load_default_methods()
         }
     } while ( 0 );
 
-    return !(dirty_flags_[ idQuanSequence ] | dirty_flags_[ idMethodComplex ]);
+    return !(dirty_flags_[ idQuanSequence ] || dirty_flags_[ idMethodComplex ]);
 }
 
 void
@@ -322,8 +325,13 @@ document::publisher( std::shared_ptr< QuanPublisher >& ptr )
 void
 document::run()
 {
-    if ( postCount_ )
+    ADDEBUG() << "########## " << __FUNCTION__ << " ########## " << postCount_
+              << ", quanSequence.size: " << quanSequence_->size();
+    ADDEBUG() << static_cast< boost::json::object >( *quanSequence_ );
+
+    if ( postCount_ ) { // must be zero
         return;
+    }
 
     qtwrapper::waitCursor wait;
 
@@ -369,6 +377,7 @@ document::run()
 void
 document::execute_counting()
 {
+    ADDEBUG() << "############## " << __FUNCTION__ << " #######";
     qtwrapper::waitCursor wait;
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {

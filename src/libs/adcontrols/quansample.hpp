@@ -35,6 +35,8 @@
 #include <memory>
 #include <vector>
 
+namespace boost { namespace json { class object; } }
+
 namespace adcontrols {
 
     class QuanResponse;
@@ -150,6 +152,8 @@ namespace adcontrols {
         static bool restore( std::istream&, QuanSample& );
         static bool xml_archive( std::wostream&, const QuanSample& );
         static bool xml_restore( std::wistream&, QuanSample& );
+
+        operator boost::json::object () const;
 
     private:
 

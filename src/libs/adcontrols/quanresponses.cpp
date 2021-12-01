@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "quanresponses.hpp"
+#include <boost/json.hpp>
 
 using namespace adcontrols;
 
@@ -75,4 +76,12 @@ std::vector< QuanResponse >::const_iterator
 QuanResponses::end() const
 {
     return values_.end();
+}
+
+QuanResponses::operator boost::json::value () const
+{
+    boost::json::array a;
+    for ( const auto& value: values_ )
+        a.emplace_back( value );
+    return a;
 }

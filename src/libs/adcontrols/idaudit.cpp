@@ -35,7 +35,12 @@
 #include <adportable/uuid.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
+#include <boost/json.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <chrono>
+#include <codecvt>
+#include <locale>
 
 using namespace adcontrols;
 
@@ -141,4 +146,21 @@ bool
 idAudit::xml_restore( std::wistream& is, idAudit& t )
 {
     return internal::xmlSerializer("idAudit").restore( is, t );
+}
+
+idAudit::operator boost::json::object () const
+{
+    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+
+    return
+        boost::json::object{ { "idAudit"
+            , {
+                { "uuid", boost::uuids::to_string( uuid_ ) }
+                , { "dateCreated", dateCreated_ }
+                , { "idComputer", cvt.to_bytes( idComputer_ ) }
+                , { "idCreatedBy", cvt.to_bytes( idCreatedBy_ ) }
+                , { "nameCreatedBy", cvt.to_bytes( nameCreatedBy_ ) }
+                , { "digest", digest_ }
+            }
+        }};
 }

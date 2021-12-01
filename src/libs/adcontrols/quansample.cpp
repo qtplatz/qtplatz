@@ -34,7 +34,10 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
+#include <codecvt>
+#include <locale>
 
 namespace adcontrols {
 
@@ -467,4 +470,35 @@ bool
 QuanSample::xml_restore( std::wistream& is, QuanSample& t )
 {
     return internal::xmlSerializer("QuanSample").restore( is, t );
+}
+
+QuanSample::operator boost::json::object () const
+{
+    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+
+    boost::json::array istds;
+
+    for ( const auto& istd: impl_->istd_ ) {
+        istds.emplace_back( boost::json::object{{ "id", istd.id_ }, { "amounts", istd.amounts_ }} );
+    }
+    return
+        boost::json::object{
+        { "uuid", boost::uuids::to_string( impl_->uuid_ ) }
+        , { "sequence_uuid", boost::uuids::to_string( impl_->sequence_uuid_ ) }
+        , { "rowid",          impl_->rowid_ }
+        , { "name",           cvt.to_bytes( impl_->name_ ) }
+        , { "dataType",       cvt.to_bytes( impl_->dataType_ ) }
+        , { "dataSource",     cvt.to_bytes( impl_->dataSource_ ) }
+        , { "sampleType",     int64_t( impl_->sampleType_ ) }
+        , { "inletType",      int64_t( impl_->inletType_ ) }
+        , { "level",          impl_->level_ }
+        , { "istdId",         impl_->istdId_ }
+        , { "injVol",         impl_->injVol_ }
+        , { "amountsAdded",   impl_->amountsAdded_ }
+        , { "istd",           istds }
+        , { "dataGeneration", int64_t( impl_->dataGeneration_ ) }
+        , { "results",        static_cast< boost::json::value >( impl_->results_ ).as_array() }
+        , { "scan_range",     { impl_->scan_range_.first, impl_->scan_range_.second } } // array
+        , { "channel",        impl_->channel_ }
+    };
 }

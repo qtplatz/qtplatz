@@ -30,6 +30,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 
+namespace boost { namespace json { class value; } }
+
 namespace adcontrols {
 
 #if defined _MSC_VER
@@ -49,6 +51,7 @@ namespace adcontrols {
         std::vector< QuanResponse >::iterator end();
         std::vector< QuanResponse >::const_iterator begin() const;
         std::vector< QuanResponse >::const_iterator end() const;
+        operator boost::json::value () const;
 
     private:
         std::vector< QuanResponse > values_;

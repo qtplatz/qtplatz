@@ -35,6 +35,8 @@
 #include <vector>
 #include <string>
 
+namespace boost { namespace json { class object; } }
+
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT QuanResponse {
@@ -51,6 +53,9 @@ namespace adcontrols {
 
         void uuid_cmpd( const boost::uuids::uuid& u ) { idCompound_ = u; }
         const boost::uuids::uuid& uuid_cmpd() const { return idCompound_; }
+
+        operator boost::json::object () const;
+
     private:
 
         int32_t idx_;                    // index on centroid spectrum

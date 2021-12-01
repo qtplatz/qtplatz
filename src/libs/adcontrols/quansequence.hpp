@@ -31,9 +31,10 @@
 #include <memory>
 #include <vector>
 
-namespace boost { 
+namespace boost {
     namespace uuids { struct uuid; }
     namespace serialization { class access; }
+    namespace json { class object; }
 }
 
 
@@ -54,7 +55,7 @@ namespace adcontrols {
         typedef std::vector< value_type > vector_type;
         typedef std::vector< QuanSample >::iterator iterator;
         typedef std::vector< QuanSample >::const_iterator const_iterator;
-        
+
         iterator begin();
         iterator end();
         const_iterator begin() const;
@@ -77,6 +78,8 @@ namespace adcontrols {
         static bool xml_archive( std::wostream&, const QuanSequence& );
         static bool xml_restore( std::wistream&, QuanSequence& );
 
+        operator boost::json::object () const;
+
     private:
 
 #   if  defined _MSC_VER
@@ -89,7 +92,7 @@ namespace adcontrols {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
 
-    typedef std::shared_ptr<QuanSequence> QuanSequencePtr;   
+    typedef std::shared_ptr<QuanSequence> QuanSequencePtr;
 
 }
 

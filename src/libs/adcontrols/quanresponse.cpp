@@ -24,6 +24,7 @@
 
 #include "quanresponse.hpp"
 #include <boost/uuid/string_generator.hpp>
+#include <boost/json.hpp>
 
 using namespace adcontrols;
 
@@ -292,4 +293,30 @@ void
 QuanResponse::setResolution( double t )
 {
     resolution_ = t;
+}
+
+QuanResponse::operator boost::json::object () const
+{
+    return boost::json::object{
+        { "idx",            idx_ }
+        , { "idTable_",     idTable_ }
+        , { "idCompound",   idCompound_ }
+        , { "dataGuid",     dataGuid_ }
+        , { "fcn",          fcn_ }
+        , { "intensity",	intensity_ }
+        , { "amounts",      amounts_ }
+        , { "mass",         mass_ }
+        , { "tR",           tR_ }
+        , { "formula",      formula_ }
+        , { "countTimeCounts",	 countTimeCounts_ }
+        , { "countTriggers",	 countTriggers_ }
+        , { "pkarea",       pkarea_ }
+        , { "pkheight",     pkheight_ }
+        , { "pkwidth",      pkwidth_ }
+        , { "theoreticalPlate",	 theoreticalPlate_ }
+        , { "capacityFactor",	 capacityFactor_ }
+        , { "asymmetry",	asymmetry_ }
+        , { "resolution",	resolution_ }
+    };
+
 }
