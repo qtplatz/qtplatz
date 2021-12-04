@@ -363,33 +363,6 @@ dataprocessor::readSpectrumFromTimeCount()
     return hist;
 }
 
-#if 0
-std::shared_ptr< adcontrols::MassSpectrum >
-dataprocessor::readSpectrum( bool histogram, uint32_t pos, int proto )
-{
-    const std::string traceid = histogram ? "histogram.timecount.1.%" : "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
-
-    adfs::stmt sql( *this->db() );
-
-    sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like ? LIMIT 1" );
-    sql.bind( 1 ) = traceid;
-
-    if ( sql.step() == adfs::sqlite_row ) {
-
-        auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
-
-        if ( auto raw = this->rawdata() ) {
-            if ( auto reader = raw->dataReader( objuuid ) ) {
-                auto it = reader->begin();
-                auto ms = reader->readSpectrum( it );
-                return ms;
-            }
-        }
-    }
-    return nullptr;
-}
-#endif
-
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readCoAddedSpectrum( bool histogram, int proto )
 {

@@ -32,6 +32,10 @@ add_library( ${PROJECT_NAME} SHARED
   processmediator.cpp
   scanlawextractor.cpp
   scanlawextractor.hpp
+  autotargeting.cpp
+  autotargeting.hpp
+  mslocker.cpp
+  mslocker.hpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

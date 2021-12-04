@@ -100,6 +100,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/json.hpp>
 #include <algorithm>
+#include <regex>
 
 namespace quan {
 
@@ -408,15 +409,15 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
 
         for ( auto reader: raw->dataReaders() ) {
             ADDEBUG() << "\tdata reader: " << reader->objtext();
-            if ( reader->objtext().find( "waveform" ) != std::string::npos ) // soft average
+            if ( ( reader->objtext().find( "waveform" ) != std::string::npos ) ||  // soft average
+                 std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) ) ) {  // hard average
                 readers[ 0 ] = reader;
-            else if ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) // hard average
-                readers[ 0 ] = reader;
+            }
 
-            if ( reader->objtext().find( "histogram" ) != std::string::npos ) // soft counting
+            if ( ( reader->objtext().find( "histogram" ) != std::string::npos ) ||  // soft counting
+                 std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ) ) { // hard counting
                 readers[ 1 ] = reader;
-            else if ( reader->objtext().find( "pkd.1.u5303a.ms-cheminfo.com" ) != std::string::npos )  // PKD (hard counting)
-                readers[ 1 ] = reader;
+            }
         }
         if ( !readers[ 0 ] || !readers[ 1 ] ) {
             ADDEBUG() << "no data readers found";
@@ -427,7 +428,10 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
         if ( !pCompounds ) {
             return false;
         }
-
+        bool autoTargeting( false );
+        if ( auto cm = procm_->find< adcontrols::MSChromatogramMethod >() ) {
+            autoTargeting = cm->enableAutoTargeting();
+        }
         sample.set_time_of_injection( extractor->time_of_injection() );
 
         size_t idx = 0;
@@ -439,7 +443,11 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                 adcontrols::ProcessMethod pm( *procm_ );
                 pm *= (*cXmethods_[ idx ]);
 
-                // ADDEBUG() << "----------- extract_by_mols ------------";
+                // if ( autoTargeting ) {
+                //     auto res = extractor->doAutoTargeting();
+                // }
+
+                ADDEBUG() << "----------- extract_by_mols ------------ autoTargeting: " << autoTargeting;
                 do {
                     std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
                     extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ return (*progress)(); } );

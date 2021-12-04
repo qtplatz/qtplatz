@@ -66,6 +66,9 @@
 #include <regex>
 #include <set>
 
+#include "autotargeting.hpp"
+#include "mslocker.hpp"
+
 namespace adprocessor {
 
     struct msLocker;
@@ -89,7 +92,6 @@ namespace adprocessor {
         // [2]
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis, const std::pair<double, double>& range, const std::string& );
 
-        // bool doMSLock( adcontrols::lockmass::mslock& mslock, const adcontrols::MassSpectrum& centroid );
         bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
 
         std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram > > results_; // vector<chromatogram>
@@ -121,9 +123,7 @@ namespace adprocessor {
 
                 for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
                     auto range = sp.getMSProperty().instMassRange(); // don't use getAcquisitionmassrange() that is full acq. range
-                    //ADDEBUG() << "find poto: " << range << ", " << mol.formula() << " proto=" << sp.protocolId();
                     if (  range.first < lMass && uMass < range.second ) {
-                        //ADDEBUG() << "\tfound: " << sp.protocolId();
                         return sp.protocolId();
                     }
                 }
@@ -161,99 +161,6 @@ namespace adprocessor {
         }
         inline void append( uint32_t pos, double time, double y, double tof, double mass ) {
             (*pChr) << std::make_tuple( time, y, tof, mass );
-        }
-    };
-
-    struct msLocker {
-
-        std::vector< adcontrols::moltable::value_type > refs_;
-        adcontrols::MSLockMethod lockm_;
-        msLocker( const adcontrols::MSChromatogramMethod& cm, const adcontrols::ProcessMethod& pm ) {
-            if ( auto lockm = pm.find< adcontrols::MSLockMethod >() ) {
-                lockm_ = *lockm;
-                if ( cm.lockmass() ) {
-                    std::copy_if( cm.molecules().data().begin(), cm.molecules().data().end()
-                                  , std::back_inserter( refs_ ), []( const auto& a ){ return a.flags() & adcontrols::moltable::isMSRef; } );
-                }
-            }
-        }
-
-        boost::optional< adcontrols::lockmass::mslock >
-        operator()( const adcontrols::MassSpectrum& centroid ) {
-            adcontrols::lockmass::mslock mslock;
-            adcontrols::MSFinder find( lockm_.tolerance( lockm_.toleranceMethod() ), lockm_.algorithm(), lockm_.toleranceMethod() );
-            for ( auto& ref : refs_ ) {
-                if ( auto proto = ref.protocol() ) {
-                    if ( auto fms = centroid.findProtocol( *proto ) )  {
-                        size_t idx = find( *fms, ref.mass() );
-                        if ( idx != adcontrols::MSFinder::npos )
-                            mslock << adcontrols::lockmass::reference( ref.formula(), ref.mass(), fms->mass( idx ), fms->time( idx ) );
-                    }
-                } else {
-                    for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( centroid ) ) {
-                        size_t idx = find( fms, ref.mass() );
-                        if ( idx != adcontrols::MSFinder::npos )
-                            mslock << adcontrols::lockmass::reference( ref.formula(), ref.mass(), fms.mass( idx ), fms.time( idx ) );
-                    }
-                }
-            }
-            if ( mslock && mslock.fit() )
-                return mslock;
-            return boost::none;
-        }
-    };
-
-
-    struct AutoTargeting {
-        adcontrols::ProcessMethod localm;
-        boost::optional< double > find( int proto
-                                        , const adcontrols::moltable::value_type& mol
-                                        , const adcontrols::ProcessMethod& pm
-                                        , std::shared_ptr< const adcontrols::DataReader > reader
-                                        , std::function< void( const adcontrols::lockmass::mslock& )> callback ) {
-
-            // cross check line 485, dataporocessworker.cpp in dataproc project
-            auto cxm = pm.find< adcontrols::MSChromatogramMethod >();
-            double pkw = cxm->peakWidthForChromatogram();
-
-            if ( mol.tR() && *mol.tR() > 0 ) {
-
-                double tR = *mol.tR();
-
-                if ( auto cm = pm.find< adcontrols::CentroidMethod >() )
-                    localm.appendMethod( *cm );
-
-                if ( auto tm = pm.find< adcontrols::TargetingMethod >() ) {
-                    auto it = std::find_if( tm->molecules().data().begin(), tm->molecules().data().end()
-                                            , [&]( const auto& a ){ return a.protocol() == proto; } );
-                    if ( it != tm->molecules().data().end() ) {
-                        if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
-                            if ( auto res = dataprocessor::doCentroid( *ms, localm ) ) { // pkinfo, spectrum
-                                if ( cxm->lockmass() ) {
-                                    msLocker locker( *cxm, pm );
-                                    if ( auto lock = locker( res->second ) ) {
-                                        (*lock)( res->second );  // caution -- res-first (pkinfo) not locked here.
-                                        callback( *lock );
-                                    }
-                                }
-                                auto targeting = adcontrols::Targeting( *tm );
-                                if ( targeting.force_find( res->second, it->formula(), proto ) ) {
-                                    // --> debug
-                                    for ( const auto& c: targeting.candidates() )
-                                        ADDEBUG() << "candidata: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
-                                                  << ", error: " << ( c.mass - c.exact_mass ) * 1000 << "mDa";
-                                    // <--
-                                    return targeting.candidates().at(0).mass;
-                                } else {
-                                    ADDEBUG() << "no target found";
-                                    return boost::none;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return boost::none;
         }
     };
 }
@@ -352,6 +259,19 @@ MSChromatogramExtractor::time_of_injection() const
             ADDEBUG() << "SQL Error : " << sql.errmsg();
     }
     return {}; // return epoch
+}
+
+
+std::vector< std::pair< std::shared_ptr< adcontrols::MassSpectrum >, boost::json::object > >
+MSChromatogramExtractor::doAutoTargeting( const adcontrols::ProcessMethod& pm
+                                          , std::shared_ptr< const adcontrols::DataReader > reader )
+{
+    std::unique_ptr< adcontrols::CentroidProcess > peak_detector;
+    std::unique_ptr< adcontrols::MSFinder > msfinder;
+
+
+    std::vector< std::pair< std::shared_ptr< adcontrols::MassSpectrum >, boost::json::object > > res;
+    return res;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -939,15 +859,13 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
                 mslock = *lock;
                 if ( *lock ) {
                     (*lock)( *profile );
-                    // ADDEBUG() << "lock with internal reference";
                     return true;
                 } else {
-                    // ADDEBUG() << "internal reference not found";
+                    ADDEBUG() << "## " << __FUNCTION__ << " ##\tinternal reference not found";
                 }
             }
         }
     }
-
     return false;
 }
 
@@ -970,7 +888,6 @@ MSChromatogramExtractor::impl::doCentroid(adcontrols::MassSpectrum& centroid
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
             auto temp = std::make_shared< adcontrols::MassSpectrum >();
             result |= peak_detector( profile.getSegment( fcn ) );
-            // pkInfo.addSegment( peak_detector.getPeakInfo() );
             peak_detector.getCentroidSpectrum( *temp );
             centroid <<  std::move( temp );
         }
@@ -983,44 +900,3 @@ MSChromatogramExtractor::lkms() const
 {
     return impl_->lkms_;
 }
-
-// bool
-// MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass::mslock& mslock
-//                                          , const adcontrols::MassSpectrum& centroid )
-// {
-//     if ( msLocker_ ) {
-//         if ( auto lock = (*msLocker_)( centroid ) ) {
-//             mslock = *lock;
-//             return true;
-//         }
-//     }
-// #if 0
-//     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
-
-//     int mode = (-1);  // TODO: lock mass does not support rapid protocol
-
-//     for ( auto& msref : msrefs_ ) {
-//         size_t proto = 0;
-//         for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( centroid ) ) {
-//             size_t idx = find( fms, msref.second );
-//             if ( idx != adcontrols::MSFinder::npos ) {
-//                 if ( mode < 0 )
-//                     mode = fms.mode();
-//                 if ( mode == fms.mode() ) {
-//                     mslock << adcontrols::lockmass::reference( msref.first, msref.second, fms.getMass( idx ), fms.getTime( idx ) );
-//                     // ADDEBUG() << "found ref: " << msref << "@ mode=" << mode << " proto=" << proto;
-//                 } else {
-//                     ADDEBUG() << "found ref: " << msref << " but mode does not match.";
-//                 }
-//             } else {
-//                 // ADDEBUG() << "msref " << msref << " not found.";
-//             }
-//             ++proto;
-//         }
-//     }
-
-//     if ( mslock.fit() )
-//         return true;
-// #endif
-//     return false;
-// }
