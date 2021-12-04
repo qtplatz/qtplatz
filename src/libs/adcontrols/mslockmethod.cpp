@@ -35,12 +35,14 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
+#include <codecvt>
 
 namespace adcontrols {
 
@@ -228,9 +230,44 @@ MSLockMethod::setMolecules( const moltable& mols )
     molecules_ = std::make_unique< moltable >( mols );
 }
 
+MSLockMethod::operator boost::json::object () const
+{
+    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+
+    boost::json::array mols;
+    for ( const auto& mol: molecules_->data() ) {
+        mols.emplace_back( boost::json::object{
+                { "enable", mol.enable() }
+                , { "flags",  mol.flags() }
+                , { "mass", mol.mass() }
+                , { "abundance", mol.abundance() }
+                , { "formula", mol.formula() }
+                , { "adducts", mol.adducts() }
+                , { "synonym", mol.synonym() }
+                , { "smiles",  mol.smiles() }
+                , { "description",  cvt.to_bytes( mol.description() ) }
+                , { "isMSRef",  mol.isMSRef() } // equivalent to ( mol.flags() & moltable::isMSRef )
+            } );
+    }
+
+    return boost::json::object{
+        { "clsid", "adcontrols::MSLockMethod" }
+        , { "enabled", enabled_ }
+        , { "enablePeakThreshold", enablePeakThreshold_ }
+        , { "algorithm", int64_t( algorithm_ ) }
+        , { "toleranceMethod", int64_t( toleranceMethod_ ) }
+        , { "toleranceDa", toleranceDa_ }
+        , { "tolerancePpm", tolerancePpm_ }
+        , { "molecules", std::move( mols ) }
+    };
+}
+
+
 std::string
 MSLockMethod::toJson() const
 {
+    return boost::json::serialize( static_cast< const boost::json::object& >(*this) );
+#if 0
     boost::property_tree::ptree pt;
     pt.put( "clsid", "adcontrols::MSLockMethod");
     pt.put( "enabled", enabled_ );
@@ -262,4 +299,5 @@ MSLockMethod::toJson() const
     boost::property_tree::write_json( o, pt );
 
     return o.str();
+#endif
 }
