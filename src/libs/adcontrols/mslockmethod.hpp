@@ -35,6 +35,7 @@
 
 namespace boost {
     namespace serialization { class access; }
+    namespace json { class object; }
 }
 
 namespace adcontrols {
@@ -75,6 +76,7 @@ namespace adcontrols {
         void setMolecules( const moltable& );
 
         std::string toJson() const;
+        operator boost::json::object () const;
 
     private:
         bool enabled_;
