@@ -35,6 +35,8 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
+#include <boost/optional.hpp>
+#include <boost/optional/optional_io.hpp>
 
 #include <array>
 #include <adportable/float.hpp>
@@ -62,7 +64,7 @@ namespace boost {
             if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( p.tR_ );
             }
-            
+
         }
     }
 }
@@ -72,7 +74,7 @@ namespace adcontrols {
     class moltable::impl {
     public:
         std::vector< value_type > data_;
-        
+
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
@@ -83,7 +85,7 @@ namespace adcontrols {
                 BOOST_THROW_EXCEPTION( serializer_error() << info( std::string( typeid(Archive).name() ) ) );
             }
         }
-        
+
         impl() {
         }
 
@@ -121,6 +123,22 @@ namespace adcontrols {
 BOOST_CLASS_VERSION( adcontrols::moltable::impl, 2 )
 
 using namespace adcontrols;
+
+bool
+moltable::value_type::operator == ( const value_type& t ) const
+{
+#if 0
+    ADDEBUG() << "== enable:" << std::make_pair( enable_, t.enable_ )
+              << ", flags:" << std::make_pair( flags_, t.flags_ )
+              << ", formula:" << std::make_pair( formula_, t.formula_ )
+              << ", adducts:" << std::make_pair( adducts_, t.adducts_ )
+              << ", tR:" << std::make_pair( tR_, t.tR_ );
+#endif
+    return
+        formula_ == t.formula_ &&
+        adducts_ == t.adducts_ &&
+        protocol_ == t.protocol_;
+}
 
 bool
 moltable::value_type::isMSRef() const

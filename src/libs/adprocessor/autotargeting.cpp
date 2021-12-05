@@ -23,10 +23,13 @@
 **************************************************************************/
 
 #include "autotargeting.hpp"
+#include "autotargetingcandidates.hpp"
 #include "mslocker.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/datareader.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -67,16 +70,16 @@ AutoTargeting::find( int proto
                     if ( auto res = dataprocessor::doCentroid( *ms, localm ) ) { // pkinfo, spectrum
                         if ( cxm->lockmass() ) {
                             msLocker locker( *cxm, pm );
-                            if ( auto lock = locker( res->second ) ) {
-                                (*lock)( res->second );  // caution -- res-first (pkinfo) not locked here.
+                            if ( auto lock = locker( *res->second ) ) {
+                                (*lock)( *res->second );  // caution -- res-first (pkinfo) not locked here.
                                 callback( *lock );
                             }
                         }
                         auto targeting = adcontrols::Targeting( *tm );
-                        if ( targeting.force_find( res->second, it->formula(), proto ) ) {
+                        if ( targeting.force_find( *res->second, it->formula(), proto ) ) {
                             // --> debug
                             for ( const auto& c: targeting.candidates() )
-                                ADDEBUG() << "candidata: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
+                                ADDEBUG() << "candidate: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
                                           << ", error: " << ( c.mass - c.exact_mass ) * 1000 << "mDa";
                             // <--
                             return targeting.candidates().at(0).mass;
@@ -90,4 +93,57 @@ AutoTargeting::find( int proto
         }
     }
     return boost::none;
+}
+
+AutoTargetingCandidates
+AutoTargeting::doit( int proto
+                     , const adcontrols::moltable::value_type& mol
+                     , const adcontrols::ProcessMethod& pm
+                     , std::shared_ptr< const adcontrols::DataReader > reader
+                     , std::function< void( const adcontrols::lockmass::mslock& )> callback )
+{
+    // cross check line 485, dataporocessworker.cpp in dataproc project
+    if ( auto cxm = pm.find< adcontrols::MSChromatogramMethod >() ) {
+        double pkw = cxm->peakWidthForChromatogram();
+        if ( mol.tR() ) {
+            double tR = *mol.tR();
+
+            adcontrols::ProcessMethod localm;
+            if ( auto cm = pm.find< adcontrols::CentroidMethod >() )
+                localm.appendMethod( *cm );
+
+            if ( auto tm = pm.find< adcontrols::TargetingMethod >() ) {
+                auto it = std::find_if( tm->molecules().data().begin(), tm->molecules().data().end(), [&]( const auto& a ){ return a.protocol() == proto; } );
+                if ( it != tm->molecules().data().end() ) {
+
+                    if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
+                        if ( auto res = dataprocessor::doCentroid( *ms, localm ) ) { // pkinfo, spectrum
+
+                            if ( cxm->lockmass() ) {
+                                msLocker locker( *cxm, pm );
+                                if ( auto lock = locker( *res->second ) ) {
+                                    (*lock)( *res->second );  // caution -- res-first (pkinfo) not locked here.
+                                    callback( *lock );
+                                }
+                            }
+                            AutoTargetingCandidates candidates( proto, *it, ms, res->second );
+
+                            auto targeting = adcontrols::Targeting( *tm );
+                            if ( targeting.force_find( *res->second, it->formula(), proto ) ) {
+                                candidates.set_candidates( targeting.candidates() );
+                                // --> debug
+                                for ( const auto& c: targeting.candidates() )
+                                    ADDEBUG() << "candidate: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
+                                              << ", error: " << ( c.mass - c.exact_mass ) * 1000 << "mDa";
+                            } else {
+                                ADDEBUG() << "no target found";
+                            }
+                            return candidates;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return {};
 }

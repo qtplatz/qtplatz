@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,7 +26,6 @@
 
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/moltable.hpp>
-#include <adcontrols/mslockmethod.hpp>
 #include <boost/optional.hpp>
 
 namespace adcontrols {
@@ -34,13 +33,15 @@ namespace adcontrols {
     class MSLockMethod;
     class MassSpectrum;
     class ProcessMethod;
+    class MSLockMethod;
 }
 
 namespace adprocessor {
 
-    struct msLocker {
+    class msLocker {
         std::vector< adcontrols::moltable::value_type > refs_;
-        adcontrols::MSLockMethod lockm_;
+        std::unique_ptr< adcontrols::MSLockMethod > lockm_;
+    public:
         msLocker( const adcontrols::MSChromatogramMethod& cm, const adcontrols::ProcessMethod& pm );
         boost::optional< adcontrols::lockmass::mslock >  operator()( const adcontrols::MassSpectrum& centroid );
     };

@@ -31,8 +31,13 @@ namespace adcontrols {
     class ProcessMethod; class MSFinder;
     class PeakMethod;    class MSChromatogramMethod;
     namespace lockmass { class mslock; }
+    class DataReader;
 }
 namespace adwidgets { class ProgressInterface; }
+
+namespace adprocessor {
+    namespace v3 { class MSChromatogramExtractor; }
+}
 
 namespace quan {
 
@@ -53,20 +58,35 @@ namespace quan {
         //                           , std::shared_ptr< adwidgets::ProgressInterface > );
 
         bool operator()( QuanSampleProcessor&, adcontrols::QuanSample&, std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::ProgressInterface > );
-        
+
         enum { idFormula, idExactMass };
         typedef std::tuple< std::string, double > target_type;
-        
+
         static bool findPeaks( adcontrols::PeakResult& res, const adcontrols::Chromatogram&, const adcontrols::PeakMethod& );
         static bool identify( adcontrols::PeakResult&, const adcontrols::QuanCompounds&, const adcontrols::Chromatogram& );
 
     private:
-        //////////////  2018-MAY ///////
-        // void save_chromatograms( std::shared_ptr< QuanDataWriter > writer
-        //                          , const wchar_t * dataSource
-        //                          , const std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> > >&
-        //                          , const wchar_t * title_trailer = L"" );
-        ///////////
+        static
+        void extract_chromatograms_via_auto_target( QuanSampleProcessor& processor
+                                                    , adcontrols::QuanSample& sample
+                                                    , std::shared_ptr< QuanDataWriter > writer
+                                                    , size_t idx
+                                                    , const adcontrols::ProcessMethod& pm
+                                                    , const adcontrols::QuanCompounds& cmpds
+                                                    , adprocessor::v3::MSChromatogramExtractor& extractor
+                                                    , std::shared_ptr< const adcontrols::DataReader > reader
+                                                    , std::shared_ptr< adwidgets::ProgressInterface > progress );
+
+        static
+        void extract_chromatograms_via_mols( QuanSampleProcessor& processor
+                                             , adcontrols::QuanSample& sample
+                                             , std::shared_ptr< QuanDataWriter > writer
+                                             , size_t idx
+                                             , const adcontrols::ProcessMethod& pm
+                                             , const adcontrols::QuanCompounds& cmpds
+                                             , adprocessor::v3::MSChromatogramExtractor& extractor
+                                             , std::shared_ptr< const adcontrols::DataReader > reader
+                                             , std::shared_ptr< adwidgets::ProgressInterface > progress );
 
         bool doMSLock( adcontrols::MassSpectrum& profile );
         void correct_baseline( adcontrols::MassSpectrum& profile );
@@ -78,14 +98,14 @@ namespace quan {
                                           , double tolerance = 0.010 );
 
         static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, int fcn, double error, const wchar_t * trailer = L"" );
-        static std::wstring make_title( const wchar_t * dataSource, const QuanCandidate&, const wchar_t * trailer = L"" );        
+        static std::wstring make_title( const wchar_t * dataSource, const QuanCandidate&, const wchar_t * trailer = L"" );
 
         static bool doCentroid( const adcontrols::MassSpectrum& profile
                                 , const adcontrols::ProcessMethod& pm
                                 , std::shared_ptr< adcontrols::MSPeakInfo >& pkInfo
                                 , std::shared_ptr< adcontrols::MassSpectrum >& centroid
                                 , std::shared_ptr< adcontrols::MassSpectrum >& filtered );
-        
+
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
                                            , std::shared_ptr< const QuanChromatograms >
@@ -100,11 +120,6 @@ namespace quan {
                                      , const std::string& reader_objtext
                                      , std::shared_ptr< adwidgets::ProgressInterface > );
 
-        // void doProfileChromatogram( QuanSampleProcessor&, adcontrols::QuanSample&
-        //                             , std::shared_ptr< QuanDataWriter >
-        //                             , const std::string& reader_objtext
-        //                             , std::shared_ptr< adwidgets::Progress > );
-
         int debug_level_;
         bool save_on_datasource_;
         std::shared_ptr< adcontrols::ProcessMethod > procm_; // copy for average process
@@ -115,6 +130,5 @@ namespace quan {
         std::vector< double > references_;
         std::vector< std::shared_ptr< QuanTarget > > targets_;
 	};
-    
-}
 
+}

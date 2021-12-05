@@ -34,6 +34,8 @@ add_library( ${PROJECT_NAME} SHARED
   scanlawextractor.hpp
   autotargeting.cpp
   autotargeting.hpp
+  autotargetingcandidates.cpp
+  autotargetingcandidates.hpp
   mslocker.cpp
   mslocker.hpp
   )

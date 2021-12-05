@@ -102,7 +102,9 @@ namespace adprocessor {
                                 , const adcontrols::MassSpectrum& profile
                                 , const adcontrols::CentroidMethod& m );
 
-        static boost::optional< std::pair< adcontrols::MSPeakInfo, adcontrols::MassSpectrum > >
+        static
+        boost::optional< std::pair< std::shared_ptr< adcontrols::MSPeakInfo >
+                                    , std::shared_ptr< adcontrols::MassSpectrum > > >
             doCentroid( const adcontrols::MassSpectrum& profile
                         , const adcontrols::ProcessMethod& procm );
 

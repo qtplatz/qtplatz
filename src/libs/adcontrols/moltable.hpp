@@ -37,15 +37,15 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT moltable;    
+    class ADCONTROLSSHARED_EXPORT moltable;
 
     class moltable {
     public:
         enum molflags { isMSRef = 0x80000000 };
-    
+
         typedef boost::variant< bool, uint32_t, double, std::string, boost::uuids::uuid > custom_type;
         class ADCONTROLSSHARED_EXPORT value_type;
-        
+
         class value_type {
         public:
             bool enable_;
@@ -83,12 +83,14 @@ namespace adcontrols {
             bool isMSRef() const;
             void setIsMSRef( bool on );
 
+            bool operator == ( const value_type& ) const;
+
             boost::optional< int32_t > protocol() const;
             void setProtocol( boost::optional< int32_t >&& proto );
 
             boost::optional< double > tR() const;
             void set_tR( boost::optional< double >&& );
-            
+
             template< typename T > void setProperty( const std::string& key, const T& value ) {
                 auto it = std::find_if( properties_.begin(),  properties_.end(), [&]( auto& t ){ return t.first == key; } );
                 if ( it != properties_.end() )
@@ -106,12 +108,12 @@ namespace adcontrols {
             }
 
             std::vector< std::pair< std::string, custom_type > >& properties() { return properties_; }
-            
+
             const std::vector< std::pair< std::string, custom_type > >& properties() const  { return properties_; }
-            
-            value_type() : enable_( true ), flags_( 0 ), protocol_( boost::none ), mass_( 0 ), abundance_( 1.0 ), tR_( boost::none ) {
+
+            value_type() : enable_( true ), flags_( 0 ), mass_( 0 ), abundance_( 1.0 ), protocol_( boost::none ), tR_( boost::none ) {
             }
-            
+
             value_type( const value_type& t ) : enable_( t.enable_ )
                                               , flags_( t.flags_ )
                                               , mass_( t.mass_ )
@@ -127,12 +129,12 @@ namespace adcontrols {
             }
         };
 
-        ~moltable();        
+        ~moltable();
         moltable();
         moltable( const moltable& );
         moltable& operator = ( const moltable& );
         moltable& operator += ( const moltable& );
-        
+
         const std::vector< value_type >& data() const;
         std::vector< value_type >& data();
 
@@ -142,9 +144,9 @@ namespace adcontrols {
 
         static bool xml_archive( std::wostream&, const moltable& );
         static bool xml_restore( std::wistream&, moltable& );
-        
+
     private:
-        class delegate;        
+        class delegate;
         class impl;
         impl * impl_;
 
@@ -154,7 +156,7 @@ namespace adcontrols {
 
 #if defined _MSC_VER
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::moltable::value_type > ;
-#endif    
+#endif
 
 }
 

@@ -425,15 +425,16 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     return result;
 }
 
-boost::optional< std::pair< adcontrols::MSPeakInfo, adcontrols::MassSpectrum > >
+boost::optional< std::pair< std::shared_ptr< adcontrols::MSPeakInfo >
+                            , std::shared_ptr< adcontrols::MassSpectrum > > >
 dataprocessor::doCentroid( const adcontrols::MassSpectrum& profile
                            , const adcontrols::ProcessMethod& procm )
 {
     if ( auto cm = procm.find< adcontrols::CentroidMethod >() ) {
-        adcontrols::MSPeakInfo pkinfo;
-        adcontrols::MassSpectrum centroid;
+        auto pkinfo = std::make_shared< adcontrols::MSPeakInfo >();
+        auto centroid = std::make_shared< adcontrols::MassSpectrum >();
 
-        if ( doCentroid( pkinfo, centroid, profile, *cm ) )
+        if ( doCentroid( *pkinfo, *centroid, profile, *cm ) )
             return {{ pkinfo, centroid }};
     }
     return boost::none;

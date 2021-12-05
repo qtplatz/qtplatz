@@ -50,6 +50,9 @@ namespace adcontrols {
 namespace boost { namespace json { class object; } }
 
 namespace adprocessor {
+
+    class AutoTargetingCandidates;
+
     namespace v3 {
 
         class ADPROCESSORSHARED_EXPORT MSChromatogramExtractor {
@@ -65,6 +68,12 @@ namespace adprocessor {
             bool extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
                                   , const adcontrols::ProcessMethod&
                                   , std::shared_ptr< const adcontrols::DataReader >
+                                  , std::function<bool( size_t, size_t )> progress );
+
+            bool extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
+                                  , const adcontrols::ProcessMethod&
+                                  , std::shared_ptr< const adcontrols::DataReader >
+                                  , const std::vector< AutoTargetingCandidates >&
                                   , std::function<bool( size_t, size_t )> progress );
 
             // [1] Chromatograms from centroid result

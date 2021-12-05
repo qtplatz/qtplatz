@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,24 +25,34 @@
 #pragma once
 
 #include <adcontrols/moltable.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/lockmass.hpp>
 #include <boost/optional.hpp>
 #include <memory>
 
 namespace adcontrols {
     class DataReader;
+    class ProcessMethod;
+    class MassSpectrum;
+    namespace lockmass { class mslock; }
 }
 
 namespace adprocessor {
 
-    struct msLocker;
+    class AutoTargetingCandidates;
 
-    struct AutoTargeting {
+    class AutoTargeting {
+    public:
+        // original implementation
         boost::optional< double > find( int proto
                                         , const adcontrols::moltable::value_type& mol
                                         , const adcontrols::ProcessMethod& pm
                                         , std::shared_ptr< const adcontrols::DataReader > reader
                                         , std::function< void( const adcontrols::lockmass::mslock& )> callback );
+
+        // refactord implementation
+        AutoTargetingCandidates doit( int proto
+                                      , const adcontrols::moltable::value_type& mol
+                                      , const adcontrols::ProcessMethod& pm
+                                      , std::shared_ptr< const adcontrols::DataReader > reader
+                                      , std::function< void( const adcontrols::lockmass::mslock& )> callback );
     };
 }

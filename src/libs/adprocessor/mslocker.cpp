@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,7 +33,7 @@ using namespace adprocessor;
 msLocker::msLocker( const adcontrols::MSChromatogramMethod& cm, const adcontrols::ProcessMethod& pm )
 {
     if ( auto lockm = pm.find< adcontrols::MSLockMethod >() ) {
-        lockm_ = *lockm;
+        lockm_ = std::make_unique< adcontrols::MSLockMethod >( *lockm );
         if ( cm.lockmass() ) {
             std::copy_if( cm.molecules().data().begin(), cm.molecules().data().end()
                           , std::back_inserter( refs_ ), []( const auto& a ){ return a.flags() & adcontrols::moltable::isMSRef; } );
@@ -45,7 +45,7 @@ boost::optional< adcontrols::lockmass::mslock >
 msLocker::operator()( const adcontrols::MassSpectrum& centroid )
 {
     adcontrols::lockmass::mslock mslock;
-    adcontrols::MSFinder find( lockm_.tolerance( lockm_.toleranceMethod() ), lockm_.algorithm(), lockm_.toleranceMethod() );
+    adcontrols::MSFinder find( lockm_->tolerance( lockm_->toleranceMethod() ), lockm_->algorithm(), lockm_->toleranceMethod() );
     for ( auto& ref : refs_ ) {
         if ( auto proto = ref.protocol() ) {
             if ( auto fms = centroid.findProtocol( *proto ) )  {
