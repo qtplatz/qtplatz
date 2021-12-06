@@ -43,13 +43,16 @@ namespace adportable {
         static boost::json::value find( const std::string& json, const std::string& keys ); // parse & find
         static boost::json::value find( const boost::optional< std::string >&, const std::string& keys ); // parse & find
 
-        template< typename T > static boost::optional< T > value( const boost::json::value& jv, const std::string& keys ) {
+        template< typename T > static boost::optional< T > value_to( const boost::json::value& jv, const std::string& keys ) {
             auto t = find( jv, keys );
             if ( !t.is_null() )
                 return boost::json::value_to< T >( t );
             return {};
         }
     };
+
+    // workaround for boost::uuids::uuid since boost::json::value_to< uuid > does not work on boost_1.75
+    template<> boost::optional< boost::uuids::uuid > json_helper::value_to( const boost::json::value& jv, const std::string& keys );
 
 // ADPORTABLESHARED_EXPORT
 // void tag_invoke( boost::json::value_from_tag, boost::json::value&, const boost::uuids::uuid& );

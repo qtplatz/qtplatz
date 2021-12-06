@@ -249,69 +249,67 @@ namespace quan {
                          , const std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> >& pair
                          , const adcontrols::QuanCompounds& compounds ) {
 
-            auto ptree = pair.first->ptree();
+            using namespace adportable;
+
             boost::json::object jobj;
-            if ( auto prop = pair.first->generatorProperty() ) {
-                auto jv = boost::json::parse( *pair.first->generatorProperty() );
-                jobj = jv.as_object();
+            jobj = json_helper::parse( pair.first->generatorProperty() ).as_object();
+
+            auto targeting = adportable::json_helper::find( jobj, "targeting" );
+            if ( targeting.is_null() ) {
+                targeting = adportable::json_helper::find( jobj, "generator.extract_by_mols.auto_target_candidate" );
             }
 
-            auto matchedMass = ptree.get_optional< double >( "targeting.matchedMass" );
-            auto dataGuid = ptree.get_optional< boost::uuids::uuid >( "folder.dataGuid" );
-
-            if ( auto child = ptree.get_child_optional( "generator.extract_by_mols" ) ) {
-
-                if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
-
-                    if ( auto mol = child.get().get_child_optional( "moltable" ) ) {               // "generator.extract_by_mols.moltable"
-
-                        // lookup c-peak
-                        if ( auto formula = mol.get().get_optional< std::string >( "formula" ) ) {
-                            adcontrols::QuanResponse resp;
-                            resp.uuid_cmpd( cmpdGuid.get() );  // compound id (uuid) identify each molecule(formula) and protocol
-                            resp.uuid_cmpd_table( compounds.uuid() );
-                            if ( dataGuid )
-                                resp.setDataGuid( dataGuid.get() );   // corresponding chromatogram data on output adfs file
-                            resp.setMass( matchedMass ? matchedMass.get() : 0 );
-                            resp.setPeakIndex( -1 );
-                            auto it = std::find_if( pair.second->peaks().begin()
-                                                    , pair.second->peaks().end()
-                                                    , [&](auto& p){ return p.formula() == formula.get(); } );
-                            if ( it != pair.second->peaks().end() ) {
-                                resp.formula( formula.get().c_str() );
-                                resp.setPeakIndex( it->peakId() );
-                                resp.setFcn( pair.first->protocol() );
-                                resp.setIntensity( it->peakArea() );
-                                resp.setAmounts( 0 );
-                                resp.set_tR( it->peakTime() );
-                                resp.setPkArea( it->peakArea() );
-                                resp.setPkHeight( it->peakHeight() );
-                                resp.setPkWidth( it->peakWidth() );
-                                resp.setTheoreticalPlate( it->theoreticalPlate().ntp() );
-                                resp.setAsymmetry( it->asymmetry().asymmetry() );
-                                resp.setResolution( it->resolution().resolution() );
-                            }
-                            sample << resp;
-
-                            jobj[ "resp" ] = boost::json::object{
-                                { "uuid_cmpd", boost::uuids::to_string( resp.uuid_cmpd() ) }
-                                , { "uuid_cmpd_table", boost::uuids::to_string( resp.uuid_cmpd_table() ) }
-                                , { "dataGuid", boost::uuids::to_string( dataGuid.get() ) }
-                                , { "mass", resp.mass() }
-                                , { "idx", resp.peakIndex() }
-                                , { "fcn", resp.fcn() }
-                                , { "intensity", resp.intensity() }
-                                , { "tR", resp.tR() }
-                            };
-                            pair.first->setGeneratorProperty( boost::json::serialize( jobj ) );
-                        } else {
-                            assert( 0 );
-                        }
+            auto matchedMass = json_helper::value_to< double >( targeting, "matchedMass" );
+            auto dataGuid = json_helper::value_to< boost::uuids::uuid >( jobj, "folder.dataGuid" );
+            auto extract_by_mols = json_helper::find( jobj, "generator.extract_by_mols" );
+            auto cmpdGuid = json_helper::value_to< boost::uuids::uuid >( extract_by_mols, "molid" );
+            auto mol = json_helper::find( extract_by_mols, "moltable" );
+            if ( mol.is_object() ) {
+                if ( auto formula = json_helper::value_to< std::string >( mol, "formula" ) ) {
+                    adcontrols::QuanResponse resp;
+                    resp.uuid_cmpd( cmpdGuid.get() );  // compound id (uuid) identify each molecule(formula) and protocol
+                    resp.uuid_cmpd_table( compounds.uuid() );
+                    if ( dataGuid )
+                        resp.setDataGuid( dataGuid.get() );   // corresponding chromatogram data on output adfs file
+                    resp.setMass( *matchedMass );
+                    resp.setPeakIndex( -1 );
+                    auto it = std::find_if( pair.second->peaks().begin()
+                                            , pair.second->peaks().end()
+                                            , [&](auto& p){ return p.formula() == formula.get(); } );
+                    if ( it != pair.second->peaks().end() ) {
+                        resp.formula( formula.get().c_str() );
+                        resp.setPeakIndex( it->peakId() );
+                        resp.setFcn( pair.first->protocol() );
+                        resp.setIntensity( it->peakArea() );
+                        resp.setAmounts( 0 );
+                        resp.set_tR( it->peakTime() );
+                        resp.setPkArea( it->peakArea() );
+                        resp.setPkHeight( it->peakHeight() );
+                        resp.setPkWidth( it->peakWidth() );
+                        resp.setTheoreticalPlate( it->theoreticalPlate().ntp() );
+                        resp.setAsymmetry( it->asymmetry().asymmetry() );
+                        resp.setResolution( it->resolution().resolution() );
                     }
+                    sample << resp;
+
+                    jobj[ "resp" ] = boost::json::object{
+                        { "uuid_cmpd", boost::uuids::to_string( resp.uuid_cmpd() ) }
+                        , { "uuid_cmpd_table", boost::uuids::to_string( resp.uuid_cmpd_table() ) }
+                        , { "dataGuid", boost::uuids::to_string( dataGuid.get() ) }
+                        , { "mass", resp.mass() }
+                        , { "idx", resp.peakIndex() }
+                        , { "fcn", resp.fcn() }
+                        , { "intensity", resp.intensity() }
+                        , { "tR", resp.tR() }
+                    };
+                    pair.first->setGeneratorProperty( boost::json::serialize( jobj ) );
                 } else {
-                    ADERROR() << "No Compound ID found -- internal error";
+                    ADDEBUG() << "### no formula found ###";
                 }
+            } else {
+                ADDEBUG() << "### no moltable found ###";
             }
+
 #if ! defined NDEBUG // || 1
             ADDEBUG() << jobj;
 #endif
@@ -462,15 +460,16 @@ QuanChromatogramProcessor::findPeaks( adcontrols::PeakResult& res, const adcontr
 bool
 QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontrols::QuanCompounds& compounds, const adcontrols::Chromatogram& chr )
 {
-    if ( auto child = chr.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
-        auto uuid = child.get().get_optional< boost::uuids::uuid >( "molid" );
-        if ( auto mol = child.get().get_child_optional( "moltable" ) ) {
-            auto formula = mol.get().get_optional< std::string >( "formula" );
+    auto extract_by_mols = adportable::json_helper::find( chr.generatorProperty(), "generator.extract_by_mols" );
+    if ( extract_by_mols.is_object() ) {
+        if ( auto molid = adportable::json_helper::value_to< boost::uuids::uuid >( extract_by_mols, "molid" ) ) {
+            auto mol = adportable::json_helper::find( extract_by_mols, "moltable" );
+            auto formula = adportable::json_helper::value_to< std::string >( mol, "formula" );
 
-            auto cmpd = std::find_if( compounds.begin(), compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
+            auto cmpd = std::find_if( compounds.begin(), compounds.end(), [&]( auto& a ) { return a.uuid() == *molid; } );
             while ( cmpd != compounds.end() ) {
-
-                auto pk = std::find_if( res.peaks().begin(), res.peaks().end(), [&]( const auto& p ){ return p.startTime() < cmpd->tR() && cmpd->tR() < p.endTime(); } );
+                auto pk = std::find_if( res.peaks().begin(), res.peaks().end()
+                                        , [&]( const auto& p ){ return p.startTime() < cmpd->tR() && cmpd->tR() < p.endTime(); } );
                 if ( pk != res.peaks().end() ) {
                     pk->setFormula( formula.get().c_str() );
                     pk->setName( adcontrols::ChemicalFormula::formatFormula( pk->formula() ) );
@@ -478,10 +477,10 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
 
                 // next candidate
                 std::advance( cmpd, 1 );
-                cmpd = std::find_if( cmpd, compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
+                cmpd = std::find_if( cmpd, compounds.end(), [&]( auto& a ) { return a.uuid() == *molid; } );
             }
         }
-		return true;
+        return true;
     }
 	return false;
 }
@@ -498,8 +497,6 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
                                                                   , std::shared_ptr< const adcontrols::DataReader > reader
                                                                   , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## " << reader->objtext();
-
     std::vector< adprocessor::AutoTargetingCandidates > candidates;
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
         for ( auto& mol: cm->molecules().data() ) {
@@ -565,7 +562,6 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
                 // molid = boost::json::value_to< boost::uuids::uuid >( jv );
                 molid = boost::lexical_cast< boost::uuids::uuid >( jv.as_string().data() );
             }
-            ADDEBUG() << "############## value_to< boost::uuids::uuid > = " << molid;
         }
 
         auto dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, pm, idx );
@@ -574,7 +570,7 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
         size_t index = indices[ molid ];
         auto jv = adportable::json_helper::find( chr->generatorProperty(), "generator.extract_by_mols.auto_target_candidate" );
         if ( jv.is_object() ) {
-            if ( auto idx = adportable::json_helper::value< size_t >( jv, "idx" ) ) {
+            if ( auto idx = adportable::json_helper::value_to< size_t >( jv, "idx" ) ) {
                 assert( index == *idx );
             }
         }
@@ -594,8 +590,7 @@ QuanChromatogramProcessor::extract_chromatograms_via_mols( QuanSampleProcessor& 
                                                            , std::shared_ptr< const adcontrols::DataReader > reader
                                                            , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## " << reader->objtext();
-
+    // ADDEBUG() << "## " << __FUNCTION__ << " ## " << reader->objtext();
     std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >
                             , std::shared_ptr< adcontrols::PeakResult > > > rlist;
 
@@ -625,7 +620,10 @@ QuanChromatogramProcessor::extract_chromatograms_via_mols( QuanSampleProcessor& 
             if ( !pk.name().empty() ) {
                 if ( auto ms = extractor.getMassSpectrum( pk.peakTime() ) ) {
                     // save corresponding spectrum
-                    auto title = save_spectrum::make_title( sample.dataSource(), pk.formula(), pk.peakTime(), (idx == 0 ? L" (profile)" : L" (histogram)" ) );
+                    auto title = save_spectrum::make_title( sample.dataSource()
+                                                            , pk.formula()
+                                                            , pk.peakTime()
+                                                            , (idx == 0 ? L" (avg)" : L" (pkd)" ) );
 
                     std::shared_ptr< adcontrols::MassSpectrum > centroid;
                     std::shared_ptr< adcontrols::MSPeakInfo > pkinfo;
