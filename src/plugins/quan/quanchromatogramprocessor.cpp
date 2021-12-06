@@ -561,9 +561,10 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
         boost::uuids::uuid molid;
         {
             auto jv = adportable::json_helper::find( chr->generatorProperty(), "generator.extract_by_mols.molid" );
-            // if ( !jv.is_null() )
-            //     molid = boost::json::value_to< boost::uuids::uuid >( jv );
-            molid = boost::lexical_cast< boost::uuids::uuid >( jv.as_string().data() );
+            if ( !jv.is_null() ) {
+                // molid = boost::json::value_to< boost::uuids::uuid >( jv );
+                molid = boost::lexical_cast< boost::uuids::uuid >( jv.as_string().data() );
+            }
             ADDEBUG() << "############## value_to< boost::uuids::uuid > = " << molid;
         }
 

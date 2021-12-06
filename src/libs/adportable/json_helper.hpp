@@ -51,10 +51,9 @@ namespace adportable {
         }
     };
 
-    ADPORTABLESHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const boost::uuids::uuid& );
+// ADPORTABLESHARED_EXPORT
+// void tag_invoke( boost::json::value_from_tag, boost::json::value&, const boost::uuids::uuid& );
 
-    ADPORTABLESHARED_EXPORT
-    boost::uuids::uuid tag_invoke( boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv );
-
+// ADPORTABLESHARED_EXPORT
+// boost::uuids::uuid tag_invoke( boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv );
 }
