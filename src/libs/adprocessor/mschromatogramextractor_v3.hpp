@@ -101,11 +101,6 @@ namespace adprocessor {
                                   , adcontrols::hor_axis axis
                                   , std::function<bool( size_t, size_t )> progress );
 
-
-            std::vector< std::pair< std::shared_ptr< adcontrols::MassSpectrum >, boost::json::object > >
-            doAutoTargeting( const adcontrols::ProcessMethod&
-                             , std::shared_ptr< const adcontrols::DataReader > );
-
             static boost::optional< double > computeIntensity( const adcontrols::MassSpectrum&, adcontrols::hor_axis, const std::pair< double, double >& );
 
             std::shared_ptr< const adcontrols::MassSpectrum > getMassSpectrum( double tR ) const;

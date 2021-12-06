@@ -80,6 +80,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/date_time.hpp>
 #include <adportable/float.hpp>
+#include <adportable/json_helper.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/folder.hpp>
@@ -105,6 +106,7 @@
 #include <boost/json.hpp>
 #include <algorithm>
 #include <regex>
+#include <map>
 
 namespace quan {
 
@@ -212,7 +214,7 @@ namespace quan {
               , std::shared_ptr< const adcontrols::MassSpectrum > ms
               , const adcontrols::MassSpectrum& centroid // added 2020-11-01
               , const adcontrols::MSPeakInfo& pkinfo  // added 2020-11-01
-              , std::unique_ptr< const adcontrols::Targeting >&& targeting  // added 2020-11-01
+              , std::shared_ptr< const adcontrols::Targeting > targeting  // added 2020-11-01
               , const std::wstring& title
               , const adcontrols::ProcessMethod& procm
               , const std::string& formula
@@ -484,6 +486,7 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
 	return false;
 }
 
+// static
 void
 QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProcessor& processor
                                                                   , adcontrols::QuanSample& sample
@@ -502,14 +505,10 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
         for ( auto& mol: cm->molecules().data() ) {
             if ( mol.enable() && mol.tR() ) {
                 int proto = mol.protocol() ? *mol.protocol() : 0;
-                ADDEBUG() << "---------- mol: " << mol.formula() << "+" << mol.adducts() << ", enable: " << mol.enable() << ", tR:" << mol.tR()
-                          << ", proto: " << proto;
                 candidates.emplace_back( adprocessor::AutoTargeting().doit( proto, mol, pm, reader, []( auto& lock ){} ) );
             }
         }
     }
-
-    ADDEBUG() << "========== candidates: " << candidates.size();
 
     std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >
                             , std::shared_ptr< adcontrols::PeakResult > > > rlist;
@@ -532,51 +531,53 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
     }
 
     // load spectrum corresponding to chromatographic peak
+    // rlist.size() == mols.size()
+    std::map< boost::uuids::uuid, boost::uuids::uuid > msGuids;
+    std::map< boost::uuids::uuid, int > indices;
+
+    for ( auto& c: candidates ) {
+        double tR = c.mol().tR() ? *c.mol().tR() : 0;
+        auto title = save_spectrum::make_title( sample.dataSource(), c.mol().formula(), tR, (idx ? L" (histogram)" : L" (profile)" ) );
+        auto molid = c.mol().property< boost::uuids::uuid >( "molid" );
+        auto msGuid = save_spectrum::save( writer
+                                           , sample.dataSource()
+                                           , c.refms()
+                                           , *c.refms_processed()
+                                           , *c.refms_pkinfo()
+                                           , c.targeting()
+                                           , title
+                                           , pm
+                                           , c.mol().formula()
+                                           , c.mol().protocol() ? c.mol().protocol().get() : 0 );
+        if ( molid ) {
+            msGuids[ *molid ] = msGuid;
+            if ( c.size() )
+                indices[ *molid ] = c[0]->idx;
+        }
+    }
+
     for ( auto& pair: rlist ) {
-        boost::uuids::uuid msGuid{{ 0 }}, dataGuid{{ 0 }};
         auto& chr = pair.first;
-        auto ptree = chr->ptree();
-        for ( auto& pk: pair.second->peaks() ) {
-            if ( !pk.name().empty() ) {
-                if ( auto ms = extractor.getMassSpectrum( pk.peakTime() ) ) {
-                    // save corresponding spectrum
-                    auto title = save_spectrum::make_title( sample.dataSource(), pk.formula(), pk.peakTime(), (idx == 0 ? L" (profile)" : L" (histogram)" ) );
+        boost::uuids::uuid molid;
+        {
+            auto jv = adportable::json_helper::find( chr->generatorProperty(), "generator.extract_by_mols.molid" );
+            // if ( !jv.is_null() )
+            //     molid = boost::json::value_to< boost::uuids::uuid >( jv );
+            molid = boost::lexical_cast< boost::uuids::uuid >( jv.as_string().data() );
+            ADDEBUG() << "############## value_to< boost::uuids::uuid > = " << molid;
+        }
 
-                    std::shared_ptr< adcontrols::MassSpectrum > centroid;
-                    std::shared_ptr< adcontrols::MSPeakInfo > pkinfo;
-                    std::unique_ptr< adcontrols::Targeting > targeting;
+        auto dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, pm, idx );
+        response_builder::add( processor, sample, pair, cmpds );
 
-                    if ( auto pkd = adprocessor::dataprocessor::doCentroid( *ms, pm ) ) {
-                        std::tie( pkinfo, centroid ) = *pkd;
-                        centroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
-
-                        if ( auto tm = pm.find< adcontrols::TargetingMethod >() ) {
-                            targeting = std::make_unique< adcontrols::Targeting > ( *tm );
-                            if ( targeting->force_find( *centroid, pk.formula(), chr->protocol() ) ) {
-                                if ( target_result_finder::find( *targeting, pk.formula(), chr->protocol(), *centroid, ptree ) )
-                                    annotation::add( *centroid, ptree.get_optional< int >("targeting.idx").get(), chr->protocol(), pk.formula() );
-                            }
-                        }
-                    }
-
-                    msGuid = save_spectrum::save( writer
-                                                  , sample.dataSource()
-                                                  , ms
-                                                  , *centroid
-                                                  , *pkinfo
-                                                  , std::move( targeting )
-                                                  , title
-                                                  , pm
-                                                  , pk.formula()
-                                                  , chr->protocol() );
-                }
+        size_t index = indices[ molid ];
+        auto jv = adportable::json_helper::find( chr->generatorProperty(), "generator.extract_by_mols.auto_target_candidate" );
+        if ( jv.is_object() ) {
+            if ( auto idx = adportable::json_helper::value< size_t >( jv, "idx" ) ) {
+                assert( index == *idx );
             }
         }
-        dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, pm, idx );
-        // ADDEBUG() << "----------- add --------------\n" << pair.first->ptree();
-        response_builder::add( processor, sample, pair, cmpds );
-        auto index = ptree.get_optional< int32_t >( "targeting.idx" );
-        writer->insert_reference( dataGuid, msGuid, index ? index.get() : (-1), chr->protocol() );
+        writer->insert_reference( dataGuid, msGuids[ molid ], index, chr->protocol() );
     }
 }
 

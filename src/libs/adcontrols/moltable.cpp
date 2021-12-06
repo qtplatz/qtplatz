@@ -129,7 +129,7 @@ moltable::value_type::operator == ( const value_type& t ) const
 {
 #if 0
     ADDEBUG() << "== enable:" << std::make_pair( enable_, t.enable_ )
-              << ", flags:" << std::make_pair( flags_, t.flags_ )
+              << ", protocol:" << std::make_pair( protocol_, t.protocol_ )
               << ", formula:" << std::make_pair( formula_, t.formula_ )
               << ", adducts:" << std::make_pair( adducts_, t.adducts_ )
               << ", tR:" << std::make_pair( tR_, t.tR_ );

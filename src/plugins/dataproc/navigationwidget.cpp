@@ -39,6 +39,7 @@
 #include <adutils/fsio2.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -57,6 +58,7 @@
 #include <QVBoxLayout>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/json.hpp>
 #include <iomanip>
 #include <array>
 
@@ -669,13 +671,13 @@ namespace dataproc {
                                 processor->fetch( folium );
                             if ( portfolio::is_type< adutils::ChromatogramPtr >( folium ) ) {
                                 if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
-                                    if ( auto pkinfo = chro->findProperty< boost::json::value >( "generator.extract_by_peak_info.pkinfo" ) ) {
-                                        if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( *pkinfo ) ) {
-                                            info << *pk;
-                                        }
-                                    } else {
-                                        ADDEBUG() << "no property";
+                                    auto jv = adportable::json_helper::find( chro->generatorProperty(), "generator.extract_by_peak_info.pkinfo" );
+                                    if ( ! jv.is_null() ) {
+                                        auto pk = boost::json::value_to< adcontrols::MSPeakInfoItem >( jv );
+                                        info << pk;
                                     }
+                                } else {
+                                    ADDEBUG() << "no property";
                                 }
                             }
                         }

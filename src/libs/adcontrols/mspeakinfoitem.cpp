@@ -377,31 +377,8 @@ std::string
 MSPeakInfoItem::toJson() const
 {
 #if BOOST_VERSION >= 107500
-    boost::json::object obj = {
-        { "index",                  peak_index_         }
-        , { "mass",                 mass_               }
-        , { "area",                 area_               }
-        , { "height",               height_             }
-        , { "peak_start_index",     peak_start_index_   }
-        , { "peak_end_index",       peak_end_index_     }
-        , { "base_height",          base_height_        }
-        , { "time_from_mass",       time_from_mass_     }
-        , { "time_from_time",       time_from_time_     }
-        , { "HH_left_mass",         HH_left_mass_       }
-        , { "HH_right_mass",        HH_right_mass_      }
-        , { "HH_left_time",         HH_left_time_       }
-        , { "HH_right_time",        HH_right_time_      }
-        , { "centroid_left_mass",   centroid_left_mass_ }
-        , { "centroid_right_mass",  centroid_right_mass_}
-        , { "centroid_left_time",   centroid_left_time_ }
-        , { "centroid_right_time",  centroid_right_time_}
-        , { "centroid_threshold",   centroid_threshold_ }
-        , { "is_visible",           is_visible_         }
-        , { "is_reference",         is_reference_       }
-    };
-    if ( mode_ )
-        obj[ "mode" ] = *mode_;
-    return boost::json::serialize( obj );
+    auto jv = boost::json::value_from( *this );
+    return boost::json::serialize( jv );
 #else
     return {};
 #endif
@@ -434,7 +411,12 @@ MSPeakInfoItem::fromJson( const std::string& json )
 boost::optional< MSPeakInfoItem >
 MSPeakInfoItem::fromJson( const boost::json::value& jv )
 {
-#if BOOST_VERSION >= 107500
+    return boost::json::value_to< MSPeakInfoItem >( jv );
+}
+
+MSPeakInfoItem
+MSPeakInfoItem::tag_invoke( boost::json::value const& jv )
+{
     if ( jv.kind() == boost::json::kind::object ) {
         MSPeakInfoItem t;
         auto obj = jv.as_object();
@@ -460,6 +442,58 @@ MSPeakInfoItem::fromJson( const boost::json::value& jv )
         extract( obj, t.is_reference_       , "is_reference"        );
         return t;
     }
-#endif
     return {};
 }
+
+void
+MSPeakInfoItem::tag_invoke( boost::json::value& jv, adcontrols::MSPeakInfoItem const& t )
+{
+    jv = {
+        { "index",                  t.peak_index_         }
+        , { "mass",                 t.mass_               }
+        , { "area",                 t.area_               }
+        , { "height",               t.height_             }
+        , { "peak_start_index",     t.peak_start_index_   }
+        , { "peak_end_index",       t.peak_end_index_     }
+        , { "base_height",          t.base_height_        }
+        , { "time_from_mass",       t.time_from_mass_     }
+        , { "time_from_time",       t.time_from_time_     }
+        , { "HH_left_mass",         t.HH_left_mass_       }
+        , { "HH_right_mass",        t.HH_right_mass_      }
+        , { "HH_left_time",         t.HH_left_time_       }
+        , { "HH_right_time",        t.HH_right_time_      }
+        , { "centroid_left_mass",   t.centroid_left_mass_ }
+        , { "centroid_right_mass",  t.centroid_right_mass_}
+        , { "centroid_left_time",   t.centroid_left_time_ }
+        , { "centroid_right_time",  t.centroid_right_time_}
+        , { "centroid_threshold",   t.centroid_threshold_ }
+        , { "is_visible",           t.is_visible_         }
+        , { "is_reference",         t.is_reference_       }
+        , { "mode",                 t.mode() ? *t.mode() : -1 }
+    };
+}
+
+namespace adcontrols {
+    void tag_invoke( boost::json::value_from_tag
+                     , boost::json::value& jv, const adcontrols::MSPeakInfoItem& t )
+    {
+        MSPeakInfoItem::tag_invoke( jv, t );
+    }
+
+    adcontrols::MSPeakInfoItem tag_invoke( boost::json::value_to_tag< adcontrols::MSPeakInfoItem>&, const boost::json::value& jv )
+    {
+        return MSPeakInfoItem::tag_invoke( jv );
+    }
+}
+
+// void
+// tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const adcontrols::MSPeakInfoItem& t )
+// {
+//     MSPeakInfoItem::tag_invoke( jv, t );
+// }
+
+// MSPeakInfoItem
+// tag_invoke( boost::json::value_to_tag< MSPeakInfoItem>& tag, const boost::json::value& jv )
+// {
+//     return MSPeakInfoItem::tag_invoke( jv );
+// }

@@ -31,8 +31,10 @@
 
 namespace adcontrols {
     class DataReader;
-    class ProcessMethod;
+    class MSPeakInfo;
     class MassSpectrum;
+    class ProcessMethod;
+    class Targeting;
     namespace lockmass { class mslock; }
 }
 
@@ -43,25 +45,33 @@ namespace adprocessor {
         adcontrols::moltable::value_type mol_;
         std::shared_ptr< adcontrols::MassSpectrum > refms_;
         std::shared_ptr< adcontrols::MassSpectrum > refms_processed_;
-        std::vector< adcontrols::Targeting::Candidate > candidates_;
+        std::shared_ptr< adcontrols::MSPeakInfo > refms_pkinfo_;
+        std::shared_ptr< adcontrols::Targeting > targeting_;
     public:
         AutoTargetingCandidates();
         AutoTargetingCandidates( const AutoTargetingCandidates& );
         AutoTargetingCandidates( int proto
                                  , const adcontrols::moltable::value_type& mol
                                  , std::shared_ptr< adcontrols::MassSpectrum > profile
-                                 , std::shared_ptr< adcontrols::MassSpectrum > centroid );
+                                 , std::shared_ptr< adcontrols::MassSpectrum > centroid
+                                 , std::shared_ptr< adcontrols::MSPeakInfo > pkinfo );
 
         size_t size() const;
         boost::optional< adcontrols::Targeting::Candidate > operator []( size_t index ) const;
 
         void set_refms( std::shared_ptr< adcontrols::MassSpectrum > profile, std::shared_ptr< adcontrols::MassSpectrum > centroid );
-        void set_candidates( const std::vector< adcontrols::Targeting::Candidate >& );
         void set_mol( const adcontrols::moltable::value_type& );
+        void set_mol( adcontrols::moltable::value_type&& );
+        void set_targeting( std::shared_ptr< adcontrols::Targeting > );
+        void set_targeting( std::shared_ptr< adcontrols::Targeting >&& );
+        void set_pkinfo( std::shared_ptr< adcontrols::MSPeakInfo > );
+        void set_pkinfo( std::shared_ptr< adcontrols::MSPeakInfo >&& );
 
-        const adcontrols::moltable::value_type& mol() const { return mol_; }
-        std::shared_ptr< adcontrols::MassSpectrum > refms() const { return refms_; }
-        std::shared_ptr< adcontrols::MassSpectrum > refms_processed() const { return refms_processed_; }
+        inline const adcontrols::moltable::value_type& mol() const { return mol_; }
+        inline std::shared_ptr< adcontrols::MassSpectrum > refms() const { return refms_; }
+        inline std::shared_ptr< adcontrols::MassSpectrum > refms_processed() const { return refms_processed_; }
+        inline std::shared_ptr< adcontrols::MSPeakInfo > refms_pkinfo() const { return refms_pkinfo_; }
+        inline std::shared_ptr< adcontrols::Targeting > targeting() const { return targeting_; }
     };
 
 }

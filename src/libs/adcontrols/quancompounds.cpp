@@ -191,20 +191,7 @@ void
 QuanCompounds::convert( moltable& mols ) const
 {
     mols.data().clear();
-    for ( auto& comp: impl_->compounds_ ) {
-        moltable::value_type value;
-        value.formula() = comp.formula();
-        value.enable() = true;
-        value.setIsMSRef( comp.isLKMSRef() );
-        value.mass() = comp.mass();
-
-        if ( comp.protocol() >= 0 )
-            value.setProtocol( comp.protocol() );
-
-        value.setProperty( "molid", comp.uuid() );
-
-        mols << value;
-    }
+    convert_if( mols, [](auto& )->bool{ return true; } );
 }
 
 void
@@ -219,7 +206,7 @@ QuanCompounds::convert_if( moltable& mols, std::function< bool( const value_type
             value.setIsMSRef( comp.isLKMSRef() );
             value.mass() = comp.mass();
 
-            if ( comp.tR() > 0 )
+            if ( comp.tR() >= 0 )
                 value.set_tR( comp.tR() );  // double -> optional<double>
 
             if ( comp.protocol() >= 0 )

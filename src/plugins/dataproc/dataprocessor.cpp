@@ -77,6 +77,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/is_same.hpp>
+#include <adportable/json_helper.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
@@ -1567,7 +1568,6 @@ Dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
 
     size_t idx = 0;
     for ( const auto& pk: info ) {
-        ADDEBUG() << "mass: " << pk.mass() << ", " << pk.area();
         ms->setIntensity( idx, is_area ? pk.area() : pk.height() );
         ms->setMass( idx, pk.mass() );
         ms->setTime( idx, pk.time() );
@@ -1598,8 +1598,9 @@ Dataprocessor::markupMassesFromChromatograms( portfolio::Folium&& folium )
                 if ( f.attribute( L"isChecked" ) == L"true" ) {
                     fetch( f );
                     if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( f ) ) {
-                        if ( auto pkinfo = chro->findProperty< boost::json::value >( "generator.extract_by_peak_info.pkinfo" ) ) {
-                            if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( *pkinfo ) ) {
+                        auto jv = adportable::json_helper::find( chro->generatorProperty(), "generator.extract_by_peak_info.pkinfo" );
+                        if ( jv.is_object() ) {
+                            if ( auto pk = adcontrols::MSPeakInfoItem::fromJson( jv ) ) {
                                 info << *pk;
                             }
                         }

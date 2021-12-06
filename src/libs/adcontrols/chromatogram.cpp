@@ -973,43 +973,43 @@ namespace {
         std::vector< std::string >::const_iterator end() const { return tokens_.end(); }
     };
 
-    struct json_helper {
-        static boost::optional< boost::json::value > find( const boost::json::object& obj, const std::string& key ) {
-            if ( auto jv = obj.if_contains( key ) )
-                return *jv;
-            return {};
-        }
-    };
+    // struct json_helper {
+    //     static boost::optional< boost::json::value > find( const boost::json::object& obj, const std::string& key ) {
+    //         if ( auto jv = obj.if_contains( key ) )
+    //             return *jv;
+    //         return {};
+    //     }
+    // };
 
 }
 
-template<>
-boost::optional< boost::json::value >
-Chromatogram::findProperty( const std::string& keys ) const
-{
-    if ( pImpl_->generator_property_ ) {
-        boost::system::error_code ec;
-        auto jv = boost::json::parse( *pImpl_->generator_property_, ec );
-        if ( !ec ) {
-            if ( keys.empty() )
-                return jv;
+// template<>
+// boost::optional< boost::json::value >
+// Chromatogram::findProperty( const std::string& keys ) const
+// {
+//     if ( pImpl_->generator_property_ ) {
+//         boost::system::error_code ec;
+//         auto jv = boost::json::parse( *pImpl_->generator_property_, ec );
+//         if ( !ec ) {
+//             if ( keys.empty() )
+//                 return jv;
 
-            tokenizer tok( keys );
+//             tokenizer tok( keys );
 
-            boost::json::value value = jv;
-            for ( const auto& key: tok ) {
-                if ( value.kind() != boost::json::kind::object ) {
-                    return {};
-                }
-                if ( auto v = json_helper::find( value.as_object(), key ) ) {
-                    value = *v;
-                }
-            }
-            return value;
-        }
-    }
-    return {};
-}
+//             boost::json::value value = jv;
+//             for ( const auto& key: tok ) {
+//                 if ( value.kind() != boost::json::kind::object ) {
+//                     return {};
+//                 }
+//                 if ( auto v = json_helper::find( value.as_object(), key ) ) {
+//                     value = *v;
+//                 }
+//             }
+//             return value;
+//         }
+//     }
+//     return {};
+// }
 
 void
 Chromatogram::setDataGuid( const boost::uuids::uuid& uuid )

@@ -78,9 +78,9 @@ AutoTargeting::find( int proto
                         auto targeting = adcontrols::Targeting( *tm );
                         if ( targeting.force_find( *res->second, it->formula(), proto ) ) {
                             // --> debug
-                            for ( const auto& c: targeting.candidates() )
-                                ADDEBUG() << "candidate: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
-                                          << ", error: " << ( c.mass - c.exact_mass ) * 1000 << "mDa";
+                            // for ( const auto& c: targeting.candidates() )
+                            //     ADDEBUG() << "candidate: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
+                            //               << ", error: " << ( c.mass - c.exact_mass ) * 1000 << "mDa";
                             // <--
                             return targeting.candidates().at(0).mass;
                         } else {
@@ -113,33 +113,25 @@ AutoTargeting::doit( int proto
                 localm.appendMethod( *cm );
 
             if ( auto tm = pm.find< adcontrols::TargetingMethod >() ) {
-                auto it = std::find_if( tm->molecules().data().begin(), tm->molecules().data().end(), [&]( const auto& a ){ return a.protocol() == proto; } );
-                if ( it != tm->molecules().data().end() ) {
 
-                    if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
-                        if ( auto res = dataprocessor::doCentroid( *ms, localm ) ) { // pkinfo, spectrum
-
-                            if ( cxm->lockmass() ) {
-                                msLocker locker( *cxm, pm );
-                                if ( auto lock = locker( *res->second ) ) {
-                                    (*lock)( *res->second );  // caution -- res-first (pkinfo) not locked here.
-                                    callback( *lock );
-                                }
+                if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
+                    if ( auto res = dataprocessor::doCentroid( *ms, localm ) ) { // pkimnfo, spectrum
+                        if ( cxm->lockmass() ) {
+                            msLocker locker( *cxm, pm );
+                            if ( auto lock = locker( *res->second ) ) {
+                                (*lock)( *res->second );  // caution -- res-first (pkinfo) not locked here.
+                                callback( *lock );
                             }
-                            AutoTargetingCandidates candidates( proto, *it, ms, res->second );
-
-                            auto targeting = adcontrols::Targeting( *tm );
-                            if ( targeting.force_find( *res->second, it->formula(), proto ) ) {
-                                candidates.set_candidates( targeting.candidates() );
-                                // --> debug
-                                for ( const auto& c: targeting.candidates() )
-                                    ADDEBUG() << "candidate: " << c.formula << ", idx: " << c.idx << ", mass: " << c.mass << ", proto: " << c.fcn
-                                              << ", error: " << ( c.mass - c.exact_mass ) * 1000 << "mDa";
-                            } else {
-                                ADDEBUG() << "no target found";
-                            }
-                            return candidates;
                         }
+                        AutoTargetingCandidates candidates( proto, mol, ms, res->second, res->first );
+
+                        auto targeting = std::make_shared< adcontrols::Targeting>( *tm );
+                        if ( targeting->force_find( *res->second, mol.formula(), proto ) ) {
+                            candidates.set_targeting( targeting );
+                        } else {
+                            ADDEBUG() << "no target found";
+                        }
+                        return candidates;
                     }
                 }
             }

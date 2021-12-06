@@ -52,6 +52,8 @@ add_library( ${PROJECT_NAME} SHARED
   waveform_simulator.hpp
   waveform_simulator.cpp
   waveform_wrapper.hpp
+  json_helper.cpp
+  json_helper.hpp
   )
 
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

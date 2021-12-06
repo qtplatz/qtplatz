@@ -32,6 +32,7 @@
 #include <boost/serialization/optional.hpp>
 #include <boost/optional.hpp>
 #include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #if __cplusplus >= 201703L
 #include <optional>
 #endif
@@ -110,6 +111,9 @@ namespace adcontrols {
         static boost::optional< MSPeakInfoItem > fromJson( const boost::json::value& );
         std::string toJson() const;
 
+        static void tag_invoke( boost::json::value& jv, const MSPeakInfoItem& );
+        static MSPeakInfoItem tag_invoke( const boost::json::value& jv );
+
     private:
         uint32_t peak_index_;
         uint32_t peak_start_index_;
@@ -171,9 +175,13 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( mode_ );
             }
         }
-
     };
 
+    ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag
+                                             , boost::json::value&, const adcontrols::MSPeakInfoItem& );
+    ADCONTROLSSHARED_EXPORT adcontrols::MSPeakInfoItem tag_invoke( boost::json::value_to_tag< adcontrols::MSPeakInfoItem>&
+                                                                   , const boost::json::value& jv );
 }
+
 
 BOOST_CLASS_VERSION( adcontrols::MSPeakInfoItem, 3 )

@@ -41,11 +41,14 @@ AutoTargetingCandidates::AutoTargetingCandidates() : proto_( 0 )
 AutoTargetingCandidates::AutoTargetingCandidates( int proto
                                                   , const adcontrols::moltable::value_type& mol
                                                   , std::shared_ptr< adcontrols::MassSpectrum > refms
-                                                  , std::shared_ptr< adcontrols::MassSpectrum > refms_centroid )
+                                                  , std::shared_ptr< adcontrols::MassSpectrum > refms_centroid
+                                                  , std::shared_ptr< adcontrols::MSPeakInfo > pkinfo )
+
     : proto_( proto )
     , mol_( mol )
     , refms_( refms )
     , refms_processed_( refms_centroid )
+    , refms_pkinfo_( pkinfo )
 {
 }
 
@@ -54,32 +57,45 @@ AutoTargetingCandidates::AutoTargetingCandidates( const AutoTargetingCandidates&
     , mol_( t.mol_ )
     , refms_( t.refms_  )
     , refms_processed_( t.refms_processed_ )
-    , candidates_( t.candidates_ )
+    , refms_pkinfo_( t.refms_pkinfo_ )
+    , targeting_( t.targeting_ )
 {
 }
 
 size_t
 AutoTargetingCandidates::size() const
 {
-    return candidates_.size();
+    return targeting_ ? targeting_->candidates().size() : 0;
 }
 
 boost::optional< adcontrols::Targeting::Candidate >
 AutoTargetingCandidates::operator []( size_t index ) const
 {
-    if ( candidates_.size() > index )
-        return candidates_[ index ];
+    if ( targeting_ && targeting_->candidates().size() > index )
+        return targeting_->candidates().at( index );
     return {};
-}
-
-void
-AutoTargetingCandidates::set_candidates( const std::vector< adcontrols::Targeting::Candidate >& v )
-{
-    candidates_ = v;
 }
 
 void
 AutoTargetingCandidates::set_mol( const adcontrols::moltable::value_type& t )
 {
     mol_ = t;
+}
+
+void
+AutoTargetingCandidates::set_mol( adcontrols::moltable::value_type&& t )
+{
+    mol_ = t;
+}
+
+void
+AutoTargetingCandidates::set_targeting( std::shared_ptr< adcontrols::Targeting > t )
+{
+    targeting_ = t;
+}
+
+void
+AutoTargetingCandidates::set_targeting( std::shared_ptr< adcontrols::Targeting >&& t )
+{
+    targeting_ = t;
 }
