@@ -326,7 +326,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                           % adportable::utf::to_wstring( reader->display_name() )
                                           % proto.get() ).str();
 
-                    boost::json::object auto_target_candidate;
+                    adcontrols::quan::extract_by_mols extract_by_mols;
+                    // boost::json::object auto_target_candidate;
                     if ( ! targets.empty() ) {
                         auto it = std::find_if( targets.begin(), targets.end(), [&]( const auto& t ){ return t.mol() == mol; });
                         if ( it != targets.end() ) {
@@ -339,13 +340,13 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                          % ( width * 1000 )
                                          % adportable::utf::to_wstring( reader->display_name() )
                                          % proto.get() ).str();
-                                adcontrols::quan::targeting_candidate atc( candidate->mass
+                                extract_by_mols.auto_target_candidate =
+                                    adcontrols::quan::targeting_candidate( candidate->mass
                                                                            , candidate->mass - it->mol().mass()
                                                                            , candidate->idx
                                                                            , candidate->fcn
                                                                            , candidate->charge
                                                                            , candidate->formula );
-                                auto_target_candidate = boost::json::value_from( std::move( atc ) ).as_object();
                             }
                         } else {
                             ADDEBUG() << "=================== target NOT FOUND ===================";
@@ -354,39 +355,24 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                     auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                     double tof = t.getTime( t.getIndexFromMass( mol.mass() ) );
+                    auto molid = mol.property< boost::uuids::uuid >( "molid" );
                     auto time_of_injection = this->time_of_injection();
 
-                    auto molid = mol.property< boost::uuids::uuid >( "molid" ); // optional
-                    adcontrols::quan::moltable moltable( *proto, mol.mass(), width, mol.formula(), tof );
+                    extract_by_mols.moltable_  = { *proto, mol.mass(), width, mol.formula(), tof };
+                    extract_by_mols.molid      = molid ? *molid : boost::uuids::uuid{};
+                    extract_by_mols.wform_type = (sp->isCentroid() ? "centroid" : "profile");
+                    extract_by_mols.msref      = ( cm->lockmass() ? boost::optional<bool>( mol.isMSRef() ) : boost::none );
+                    extract_by_mols.centroid   = ( peak_detector ? boost::optional<std::string>( areaIntensity ? "area" : "height" ) : boost::none );
+
+                    // adcontrols::quan::moltable moltable( *proto, mol.mass(), width, mol.formula(), tof );
 
                     boost::json::object top = {
                         { "generator"
                           , {   { "time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) }
-                              , { "extract_by_mols",
-                                  {  { "molid", boost::uuids::to_string( molid ? *molid : boost::uuids::uuid{} ) } // only if quan
-                                   , { "wform_type", (sp->isCentroid() ? "centroid" : "profile") }
-                                   , { "moltable", boost::json::value_from( moltable ) }
-                                   , { "auto_target_candidate", auto_target_candidate }
-                                   , { "msref", ( cm->lockmass() ? mol.isMSRef() : boost::json::value{} ) }
-                                   , { "centroid", ( peak_detector ? (areaIntensity ? "area" : "height") : boost::json::value{} ) }
-                                  }
-                                }
-                            }}};
-
-                    ADDEBUG() << "---------------------------------------------------------\n" << top;
-                    {
-                        auto temp = boost::json::value_to< adcontrols::quan::extract_by_mols >( adportable::json_helper::find( top, "generator.extract_by_mols" ) );
-                        ADDEBUG() << "\nmolid: " << temp.molid;
-                        ADDEBUG() << "wform_type: " << temp.wform_type;
-                        ADDEBUG() << "moltable: " << boost::json::value_from( temp.moltable_ );
-                        ADDEBUG() << "auto_target_candidate: " << (temp.auto_target_candidate ? "exist" : "not exist");
-                        ADDEBUG() << "msref: " << temp.msref;
-                        ADDEBUG() << "centroid: " << temp.centroid;
-                        ADDEBUG() << "---------------------------------------------------------\n";
-
-                        auto jv = boost::json::value_from( temp );
-                        ADDEBUG() << "------------ verify ---------------------------------------------\n" << jv;
-                    }
+                              , { "extract_by_mols", boost::json::value_from( extract_by_mols ) }
+                            }
+                        }
+                    };
 
                     temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                     temp.back().pChr->setGeneratorProperty( boost::json::serialize( top ) );
