@@ -257,6 +257,10 @@ add_library( adcontrols SHARED
   surface.hpp
   waveform_filter.cpp
   waveform_filter.hpp
+  quan/extract_by_mols.cpp
+  quan/extract_by_mols.hpp
+  quan/targeting_candidate.cpp
+  quan/targeting_candidate.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

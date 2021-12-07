@@ -37,6 +37,7 @@
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adcontrols/quan/extract_by_mols.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
@@ -49,6 +50,8 @@
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/uuid.hpp>
 #include <adportable/utf.hpp>
@@ -807,8 +810,34 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
     if ( chro.size() > 1 )
         variance = std::accumulate( chro.getIntensityArray(), chro.getIntensityArray() + N, 0.0
                                     , [&](const auto& a, const auto& v){ return a + (v - mean) * (v - mean); }) / (N - 1);
+    // todo --->
+    auto jv = adportable::json_helper::parse( chro.generatorProperty() );
+    if ( jv.is_object() ) {
+        using namespace adportable;
 
-    if ( auto child = chro.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
+        auto extract_by_mols = json_helper::find( jv, "generator.extract_by_mols" );
+        adcontrols::quan::extract_by_mols tv = boost::json::value_to< adcontrols::quan::extract_by_mols >( extract_by_mols );
+
+        ADDEBUG() << "molid: " << tv.molid;
+        ADDEBUG() << "formula: " << tv.moltable_.formula;
+        ADDEBUG() << "protocol: " << tv.moltable_.protocol;
+        ADDEBUG() << "msref: " << tv.msref;
+        ADDEBUG() << "centroid: " << tv.centroid;
+        ADDEBUG() << "auto_target_candidate: " << (tv.auto_target_candidate ? "exist" : "null");
+
+        // auto extract_by_mols = json_helper::find( jv, "generator.extract_by_mols" );
+        // auto cmpdGuid = json_helper::value_to< boost::uuids::uuid >( extract_by_mols, "molid" );
+        // auto mol =json_helper::find( extract_by_mols, "moltable" );
+        // auto formula = json_helper::value_to< std::string >( mol, "formula" );
+        // auto proto = json_helper::value_to< int32_t >( mol, "protocol" );
+        // if ( formula && proto ) {
+        //     auto tof = json_helper::value_to< double >( extract_by_mols, "tof" );
+        //     auto centroid = json_helper::value_to< std::string >( extract_by_mols, "centroid" );
+        // }
+    }
+    // <-----
+
+     if ( auto child = chro.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
         if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
             if ( auto mol = child.get().get_child_optional( "moltable" ) ) {               // "generator.extract_by_mols.moltable"
                 auto formula = mol.get().get_optional< std::string >( "formula" );
