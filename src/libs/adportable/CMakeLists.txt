@@ -54,6 +54,8 @@ add_library( ${PROJECT_NAME} SHARED
   waveform_wrapper.hpp
   json_helper.cpp
   json_helper.hpp
+  json/extract.cpp
+  json/extract.hpp
   )
 
 target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

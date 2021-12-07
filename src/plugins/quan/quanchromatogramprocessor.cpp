@@ -78,6 +78,7 @@
 #include <adfs/folder.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json/extract.hpp>
 #include <adportable/date_time.hpp>
 #include <adportable/float.hpp>
 #include <adportable/json_helper.hpp>
@@ -99,39 +100,65 @@
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/json.hpp>
 #include <algorithm>
 #include <regex>
 #include <map>
 
 namespace quan {
 
+    struct targeting_value {
+        double matchedMass;
+        double mass_error;
+        int32_t idx;
+        targeting_value()
+            : matchedMass( 0 ), mass_error( 0 ), idx( 0 ) {
+        }
+        targeting_value( double mass, double error, int32_t i )
+            : matchedMass( mass ), mass_error( error ), idx( i ) {
+        }
+    };
+
+    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const targeting_value& t ) {
+        jv = {{ "matchedMass", t.matchedMass }
+            , { "mass_error", t.mass_error }
+            , { "idx", t.idx }
+        };
+    }
+
+    targeting_value tag_invoke( boost::json::value_to_tag< targeting_value >&, const boost::json::value& jv ) {
+        if ( jv.kind() == boost::json::kind::object ) {
+            targeting_value t;
+            using namespace adportable::json;
+            auto obj = jv.as_object();
+            extract( obj, t.matchedMass , "matchedMass" );
+            extract( obj, t.mass_error  , "mass_error"  );
+            extract( obj, t.idx         , "idx"         );
+            return t;
+        }
+        return {};
+    }
+
+
     struct target_result_finder {
 
-        static bool find( const adcontrols::Targeting& t, const std::string& formula, int32_t proto
-                          , const adcontrols::MassSpectrum& centroid, boost::property_tree::ptree& ptree ) {
+        static bool find( const adcontrols::Targeting& t
+                          , const std::string& formula
+                          , int32_t proto
+                          , const adcontrols::MassSpectrum& centroid
+                          , targeting_value& tv ) {
 
             assert( centroid.isCentroid() );
 
-#if !defined NDEBUG
-            for ( auto& c : t.candidates() )
-                ADDEBUG() << "target_finder: " << c.formula << " == " << formula << ", " << ( c.formula == formula ) << ", mass: " << c.mass;
-#endif
             auto it = std::find_if( t.candidates().begin(), t.candidates().end()
                                     , [&](const auto& c){ return c.fcn == proto && c.formula == formula; });
 
             if ( it != t.candidates().end() ) {
                 try {
                     auto& tms = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( centroid )[ proto ];
-                    ptree.put( "targeting.matchedMass", tms.mass( it->idx ) );
-                    ptree.put( "targeting.mass_error", (it->mass - it->exact_mass) );
-                    ptree.put( "targeting.idx", it->idx );
+                    tv = targeting_value( tms.mass( it->idx ), (it->mass - it->exact_mass), it->idx );
                     return true;
-
                 } catch ( std::exception& ex ) {
                     ADDEBUG() << "Exception: " << ex.what();
                 }
@@ -145,7 +172,10 @@ namespace quan {
         static void add( adcontrols::MassSpectrum& centroid, int idx, int proto, const std::string& formula ) {
             if ( auto tms = centroid.findProtocol( proto ) ) {
                 // todo: erase if peak already has the annotation
-                tms->get_annotations() << adcontrols::annotation( formula, tms->getMass( idx ), tms->getIntensity( idx ), idx, 0, adcontrols::annotation::dataFormula );
+                tms->get_annotations() << adcontrols::annotation( formula
+                                                                  , tms->getMass( idx )
+                                                                  , tms->getIntensity( idx )
+                                                                  , idx, 0, adcontrols::annotation::dataFormula );
             }
         }
     };
@@ -615,7 +645,7 @@ QuanChromatogramProcessor::extract_chromatograms_via_mols( QuanSampleProcessor& 
     for ( auto& pair: rlist ) {
         boost::uuids::uuid msGuid{{ 0 }}, dataGuid{{ 0 }};
         auto& chr = pair.first;
-        auto ptree = chr->ptree();
+        // auto ptree = chr->ptree();
         for ( auto& pk: pair.second->peaks() ) {
             if ( !pk.name().empty() ) {
                 if ( auto ms = extractor.getMassSpectrum( pk.peakTime() ) ) {
@@ -636,8 +666,17 @@ QuanChromatogramProcessor::extract_chromatograms_via_mols( QuanSampleProcessor& 
                         if ( auto tm = pm.find< adcontrols::TargetingMethod >() ) {
                             targeting = std::make_unique< adcontrols::Targeting > ( *tm );
                             if ( targeting->force_find( *centroid, pk.formula(), chr->protocol() ) ) {
-                                if ( target_result_finder::find( *targeting, pk.formula(), chr->protocol(), *centroid, ptree ) )
-                                    annotation::add( *centroid, ptree.get_optional< int >("targeting.idx").get(), chr->protocol(), pk.formula() );
+                                targeting_value tv;
+                                if ( target_result_finder::find( *targeting, pk.formula(), chr->protocol(), *centroid, tv /* ptree */ ) ) {
+                                    annotation::add( *centroid, tv.idx, chr->protocol(), pk.formula() );
+                                    auto jv = boost::json::value_from( tv );
+                                    auto prop = adportable::json_helper::parse( chr->generatorProperty() );
+                                    if ( prop.is_object() )
+                                        prop.as_object()[ "targeting" ] = jv;
+                                    else
+                                        prop = {{ "targeting", jv }};
+                                    chr->setGeneratorProperty( boost::json::serialize( prop ) );
+                                }
                             }
                         }
                     }
@@ -658,7 +697,7 @@ QuanChromatogramProcessor::extract_chromatograms_via_mols( QuanSampleProcessor& 
         dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, pm, idx );
         // ADDEBUG() << "----------- add --------------\n" << pair.first->ptree();
         response_builder::add( processor, sample, pair, cmpds );
-        auto index = ptree.get_optional< int32_t >( "targeting.idx" );
-        writer->insert_reference( dataGuid, msGuid, index ? index.get() : (-1), chr->protocol() );
+        auto idx = adportable::json_helper::value_to< int32_t >( adportable::json_helper::parse( chr->generatorProperty() ), "targeting.idx" );
+        writer->insert_reference( dataGuid, msGuid, idx ? *idx : -1, chr->protocol() );
     }
 }

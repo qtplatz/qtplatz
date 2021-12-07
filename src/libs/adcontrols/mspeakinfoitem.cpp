@@ -26,6 +26,7 @@
 #include "mspeakinfoitem.hpp"
 #include "serializer.hpp"
 #include <adportable/waveform_peakfinder.hpp>
+#include <adportable/json/extract.hpp>
 #include <cstring>
 #if BOOST_VERSION >= 107500
 # include <boost/json.hpp>
@@ -376,24 +377,20 @@ MSPeakInfoItem::xml_restore( std::wistream& is, MSPeakInfoItem& t )
 std::string
 MSPeakInfoItem::toJson() const
 {
-#if BOOST_VERSION >= 107500
     auto jv = boost::json::value_from( *this );
     return boost::json::serialize( jv );
-#else
-    return {};
-#endif
 }
 
-namespace {
-    template<class T>
-    void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
-        try {
-            t = boost::json::value_to<T>( obj.at( key ) );
-        } catch ( std::exception& ex ) {
-            ADDEBUG() << "exception: extracting key '" << key << "'\t" << ex.what();
-        }
-    }
-}
+// namespace {
+//     template<class T>
+//     void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
+//         try {
+//             t = boost::json::value_to<T>( obj.at( key ) );
+//         } catch ( std::exception& ex ) {
+//             ADDEBUG() << "exception: extracting key '" << key << "'\t" << ex.what();
+//         }
+//     }
+// }
 
 // static
 boost::optional< MSPeakInfoItem >
@@ -419,6 +416,7 @@ MSPeakInfoItem::tag_invoke( boost::json::value const& jv )
 {
     if ( jv.kind() == boost::json::kind::object ) {
         MSPeakInfoItem t;
+        using namespace adportable::json;
         auto obj = jv.as_object();
         extract( obj, t.peak_index_         , "index"               );
         extract( obj, t.mass_               , "mass"                );
