@@ -215,30 +215,25 @@ main()
     {
         std::ofstream of( "ptree.json" );
         of << json_parser< boost_ptree >::stringify( global_data );
-        //of << json_parser< boost_json >().stringify( json_string );
     }
     {
         std::ofstream of( "qt5.json" );
         of << json_parser< qt5_json >::stringify( global_data );
-        //of << json_parser< qt5_json >().stringify( json_string );
     }
     {
         std::ofstream of( "boost.json" );
         of << json_parser< boost_json >::stringify( global_data );
-        //of << json_parser< qt5_json >().stringify( json_string );
     }
 #if HAVE_NLOHMANN_JSON
     {
         std::ofstream of( "nlohman.json" );
         of << json_parser< nlohmann_json >::stringify( global_data );
-        //of << json_parser< nlohmann_json >().stringify( json_string );
     }
 #endif
 #if HAVE_RAPIDJSON_JSON
     {
         std::ofstream of( "rapidjson.json" );
         of << json_parser< rapidjson_json >::stringify( global_data );
-        //of << json_parser< rapidjson_json >().stringify( json_string );
     }
 #endif
 }
