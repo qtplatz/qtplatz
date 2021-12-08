@@ -58,6 +58,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <numeric>
 
 using namespace quan;
@@ -817,14 +818,6 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
 
         auto extract_by_mols = json_helper::find( jv, "generator.extract_by_mols" );
         adcontrols::quan::extract_by_mols tv = boost::json::value_to< adcontrols::quan::extract_by_mols >( extract_by_mols );
-
-        ADDEBUG() << "molid: " << tv.molid;
-        ADDEBUG() << "formula: " << tv.moltable_.formula;
-        ADDEBUG() << "protocol: " << tv.moltable_.protocol;
-        ADDEBUG() << "msref: " << tv.msref;
-        ADDEBUG() << "centroid: " << tv.centroid;
-        ADDEBUG() << "auto_target_candidate: " << (tv.auto_target_candidate ? "exist" : "null");
-
         // auto extract_by_mols = json_helper::find( jv, "generator.extract_by_mols" );
         // auto cmpdGuid = json_helper::value_to< boost::uuids::uuid >( extract_by_mols, "molid" );
         // auto mol =json_helper::find( extract_by_mols, "moltable" );
@@ -834,10 +827,16 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
         //     auto tof = json_helper::value_to< double >( extract_by_mols, "tof" );
         //     auto centroid = json_helper::value_to< std::string >( extract_by_mols, "centroid" );
         // }
+
     }
     // <-----
+    boost::property_tree::ptree ptree;
+    if ( auto json = chro.generatorProperty() ) {
+        std::istringstream is( *json );
+        boost::property_tree::read_json( is, ptree );
+    }
 
-     if ( auto child = chro.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
+    if ( auto child = ptree.get_child_optional( "generator.extract_by_mols" ) ) {
         if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
             if ( auto mol = child.get().get_child_optional( "moltable" ) ) {               // "generator.extract_by_mols.moltable"
                 auto formula = mol.get().get_optional< std::string >( "formula" );

@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC
+** Copyright (C) 2016-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,11 +25,13 @@
 
 #pragma once
 
+#include "adio_global.h"
+#include <boost/property_tree/ptree_fwd.hpp>
+#include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <boost/property_tree/ptree_fwd.hpp>
-#include "adio_global.h"
 
 namespace adio {
     namespace io {
@@ -63,11 +65,11 @@ namespace adio {
         public:
             configuration();
             configuration( const configuration& );
-            
+
             static bool read_json( std::istream&, configuration& );
             static bool read_json( std::istream&, ioConfig& );
             static bool write_json( std::ostream&, const configuration& );
-            
+
             typedef typename std::vector< ioConfig >::const_iterator const_iterator;
             typedef typename std::vector< ioConfig >::iterator iterator;
 
@@ -81,10 +83,15 @@ namespace adio {
             inline std::vector< ioConfig >& config() { return config_; }
         private:
             static bool read_json( const boost::property_tree::ptree&, ioConfig& );
-            
+
             std::vector< ioConfig > config_;
         };
 
+        ADIOSHARED_EXPORT
+        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const ioConfig& );
+
+        ADIOSHARED_EXPORT
+        ioConfig tag_invoke( boost::json::value_to_tag< ioConfig >&, const boost::json::value& jv );
+
     }
 }
-

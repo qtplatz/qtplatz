@@ -28,7 +28,6 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <boost/property_tree/ptree_fwd.hpp>
 
 namespace adportable {
     namespace dg {

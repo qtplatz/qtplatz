@@ -1023,6 +1023,7 @@ Chromatogram::dataGuid() const
     return pImpl_->dataGuid_;
 }
 
+#if 0
 boost::property_tree::ptree const
 Chromatogram::ptree() const
 {
@@ -1034,6 +1035,7 @@ Chromatogram::ptree() const
     }
     return {};
 }
+#endif
 
 bool
 Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool horizontalBaseline, double baseLevel ) const

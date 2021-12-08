@@ -70,6 +70,7 @@
 #include <adportable/fft.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/float.hpp>
+#include <adportable/json_helper.hpp>
 #include <adpublisher/printer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/filedialog.hpp>
@@ -115,6 +116,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
+#include <boost/json.hpp>
 #include "selchanged.hpp"
 #include <algorithm>
 #include <array>
@@ -517,17 +519,21 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                 if ( reader->trace_method() == adacquire::SignalObserver::eTRACE_TRACE ) {
                     for ( size_t idx = 0; idx < 8; ++idx ) {
                         if ( auto pChro = reader->getChromatogram( idx ) ) {
-                            bool enable(true);
                             std::string legend;
-                            if ( auto value = pChro->ptree().get_optional< bool >("trace.enable") )
-                                enable = value.get();
-                            if ( enable ) {
-                                pChro->addDescription( adcontrols::description({"acquire.title", ( boost::format( "ADC.%1%" ) % ( idx + 1 ) ).str()}) );
-                                std::wstring name = adcontrols::Chromatogram::make_folder_name( pChro->getDescriptions() );
-                                auto folium = folder.findFoliumByName( name );
-                                if ( folium.nil() ) {
-                                    folium = processor->addChromatogram( *pChro, m, true );
-                                    processor->setCurrentSelection( folium );
+
+                            auto trace = adportable::json_helper::find( pChro->generatorProperty(), "trace" );
+                            if ( trace.is_object() ) {
+                                auto enable = boost::json::value_to< bool >( trace.at( "enable" ) );
+
+                                if ( enable ) {
+                                    pChro->addDescription( adcontrols::description({"acquire.title"
+                                                , ( boost::format( "ADC.%1%" ) % ( idx + 1 ) ).str()}) );
+                                    std::wstring name = adcontrols::Chromatogram::make_folder_name( pChro->getDescriptions() );
+                                    auto folium = folder.findFoliumByName( name );
+                                    if ( folium.nil() ) {
+                                        folium = processor->addChromatogram( *pChro, m, true );
+                                        processor->setCurrentSelection( folium );
+                                    }
                                 }
                             }
                         }
@@ -719,15 +725,17 @@ MSProcessingWnd::handleAxisChanged( adcontrols::hor_axis axis )
 
     pImpl_->processedSpectrum_->setAxis( plot_axis, true );
 
-    pImpl_->profileSpectrum_->setAxis( plot_axis, true, [&](const QRectF& z, const adcontrols::MassSpectrum& ms, adplot::SpectrumWidget::HorizontalAxis axis ){
-            if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
-                auto range = spectrometer->timeFromMass( std::make_pair( z.left(), z.right() ), ms );
-                return QRectF( range.first * std::micro::den, z.bottom(), ( range.second - range.first ) * std::micro::den, z.height() );
-            } else { // time --> mass
-                auto range = spectrometer->massFromTime( std::make_pair( z.left() / std::micro::den, z.right() / std::micro::den ), ms );
-                return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
-            }
-        });
+    pImpl_->profileSpectrum_->setAxis( plot_axis, true, [&](const QRectF& z
+                                                            , const adcontrols::MassSpectrum& ms
+                                                            , adplot::SpectrumWidget::HorizontalAxis axis ){
+        if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
+            auto range = spectrometer->timeFromMass( std::make_pair( z.left(), z.right() ), ms );
+            return QRectF( range.first * std::micro::den, z.bottom(), ( range.second - range.first ) * std::micro::den, z.height() );
+        } else { // time --> mass
+            auto range = spectrometer->massFromTime( std::make_pair( z.left() / std::micro::den, z.right() / std::micro::den ), ms );
+            return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
+        }
+    });
 }
 
 void

@@ -37,6 +37,7 @@
 #include <adcontrols/peak.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quan/extract_by_mols.hpp>
 
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/peakmarker.hpp>
@@ -44,11 +45,13 @@
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/zoomer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
 
 #include <qwt_plot_marker.h>
 #include <QBoxLayout>
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 
 using namespace quan;
 
@@ -108,12 +111,14 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
     //const adcontrols::MSChromatogramMethod * mchro = 0;
     if ( auto p = d->parent ? d->parent.get() : nullptr ) {
         if ( p->procmethod && p->chromatogram ) {
-            auto ptree = p->chromatogram.get()->ptree();
-            auto mass = ptree.get_optional< double >( "generator.extract_by_mols.moltable.mass" );
-            auto width = ptree.get_optional< double >( "generator.extract_by_mols.moltable.width" );
+
+            auto moltable = boost::json::value_to< adcontrols::quan::moltable >(
+                adportable::json_helper::find( (*p->chromatogram)->generatorProperty(), "generator.extract_by_mols.moltable" ) );
+            auto mass = moltable.mass;
+            auto width = moltable.width;
             if ( range_ && mass && width ) {
-                double lMass = mass.get() - ( width.get() / 2 );
-                double uMass = mass.get() + ( width.get() / 2 );
+                double lMass = mass - ( width / 2 );
+                double uMass = mass + ( width / 2 );
                 range_->setValue( lMass, uMass );
                 range_->setVisible( true );
             } else {

@@ -1,11 +1,6 @@
 
 project( adio )
 
-if ( Qt5_FOUND )
-  add_definitions( -DHAVE_Qt5=1 )  # this may inprove json read/write performance
-  include_directories( ${Qt5Core_INCLUDES} )
-endif()
-
 add_definitions(-DADIO_LIBRARY)
 
 add_library(
@@ -22,6 +17,10 @@ add_library(
   )
 
 target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+
+target_link_libraries( ${PROJECT_NAME}
+  ${Boost_LIBRARIES}
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

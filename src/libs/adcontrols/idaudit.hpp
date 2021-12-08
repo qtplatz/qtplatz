@@ -32,6 +32,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <string>
 
 namespace boost {  namespace json { class object; } }
@@ -80,7 +82,15 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( nameCreatedBy_ )
                 ;
         };
+        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const idAudit& );
+        friend idAudit tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv );
     };
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const idAudit& );
+
+    ADCONTROLSSHARED_EXPORT
+    idAudit tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv );
 
 }
 

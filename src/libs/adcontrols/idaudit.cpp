@@ -32,9 +32,11 @@
 #if defined _MSC_VER
 #  pragma warning (default:4996)
 #endif
-#include <adportable/uuid.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/uuid.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -151,16 +153,47 @@ idAudit::xml_restore( std::wistream& is, idAudit& t )
 idAudit::operator boost::json::object () const
 {
     std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+    return boost::json::value_from( *this ).as_object();
+}
 
-    return
-        boost::json::object{ { "idAudit"
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const idAudit& t )
+    {
+        std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+
+        jv = boost::json::object{ { "idAudit"
             , {
-                { "uuid", boost::uuids::to_string( uuid_ ) }
-                , { "dateCreated", dateCreated_ }
-                , { "idComputer", cvt.to_bytes( idComputer_ ) }
-                , { "idCreatedBy", cvt.to_bytes( idCreatedBy_ ) }
-                , { "nameCreatedBy", cvt.to_bytes( nameCreatedBy_ ) }
-                , { "digest", digest_ }
+                { "uuid", boost::uuids::to_string( t.uuid_ ) }
+                , { "dateCreated", t.dateCreated_ }
+                , { "idComputer", cvt.to_bytes( t.idComputer_ ) }
+                , { "idCreatedBy", cvt.to_bytes( t.idCreatedBy_ ) }
+                , { "nameCreatedBy", cvt.to_bytes( t.nameCreatedBy_ ) }
+                , { "digest", t.digest_ }
             }
         }};
+    }
+
+
+    idAudit
+    tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv )
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
+
+        idAudit t;
+        using namespace adportable::json;
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            extract( obj, t.uuid_, "uuid" );
+            extract( obj, t.dateCreated_, "dateCreated" );
+            std::string idComputer, idCreatedBy, nameCreatedBy;
+            extract( obj, idComputer, "idComputer" );
+            extract( obj, idCreatedBy, "idCreatedBy" );
+            extract( obj, nameCreatedBy, "nameCreatedBy" );
+            extract( obj, t.digest_, "digest" );
+        }
+        return t;
+    }
+
 }

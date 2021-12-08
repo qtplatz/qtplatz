@@ -44,20 +44,21 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
-#include <adcontrols/msfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adcontrols/msfinder.hpp>
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/peak.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
-#include <adcontrols/peak.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quan/extract_by_mols.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quanresponse.hpp>
 #include <adcontrols/quanresponsemethod.hpp>
 #include <adcontrols/quansample.hpp>
@@ -71,16 +72,17 @@
 #include <adfs/folder.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adprocessor/mschromatogramextractor.hpp>
 #include <adutils/cpio.hpp>
 #include <adwidgets/progressinterface.hpp>
-#include <adportfolio/portfolio.hpp>
-#include <adportfolio/folder.hpp>
-#include <adportfolio/folium.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
@@ -88,32 +90,45 @@
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/ptree.hpp>
 #include <set>
 
 namespace quan {
 
     struct save_chromatogram {
 
-        static std::wstring make_title( const wchar_t * dataSource, const boost::property_tree::ptree& pt )  {
+        static std::wstring make_title( const wchar_t * dataSource, const adcontrols::Chromatogram& c )  {
             boost::filesystem::path path( dataSource );
 
-            auto wform = pt.get_optional< std::string >( "generator.extract_by_mols.wform_type" );
+            auto extract_by_mols = boost::json::value_to< adcontrols::quan::extract_by_mols >(
+                adportable::json_helper::find( c.generatorProperty(), "generator.extract_by_mols" ) );
 
-            if ( auto mol = pt.get_child_optional( "generator.extract_by_mols.moltable" ) ) {
-                auto formula = mol.get().get_optional< std::string >( "formula" );
-                auto width = mol.get().get_optional< double >( "width" );
-                auto proto = mol.get().get_optional< int32_t >( "protocol" );
+            std::string wform = extract_by_mols.wform_type;
+            const auto& mol = extract_by_mols.moltable_;
 
-                return ( boost::wformat( L"%s #%d W(%.1fmDa) {%s}-%s" )
-                         % ( formula ? adportable::utf::to_wstring( formula.get() ) : L"" )
-                         % ( proto ? proto.get() : (-1) )
-                         % ( width ? width.get() *1000 : 0.0 )
-                         % path.stem().wstring()
-                         % ( wform ? adportable::utf::to_wstring( wform.get() ) : L"n/a" ) ).str();
-            } else {
-                return ( boost::wformat( L"{%s}" ) % path.stem().wstring() ).str();
-            }
+            return ( boost::wformat( L"%s #%d W(%.1fmDa) {%s}-%s" )
+                     % adportable::utf::to_wstring( mol.formula )
+                     % mol.protocol
+                     % ( mol.width * 1000 )
+                     % path.stem().wstring()
+                     % adportable::utf::to_wstring( wform ) ).str();
+
+            // auto wform = pt.get_optional< std::string >( "generator.extract_by_mols.wform_type" );
+
+            // if ( auto mol = pt.get_child_optional( "generator.extract_by_mols.moltable" ) ) {
+            //     auto formula = mol.get().get_optional< std::string >( "formula" );
+            //     auto width = mol.get().get_optional< double >( "width" );
+            //     auto proto = mol.get().get_optional< int32_t >( "protocol" );
+
+            //     return ( boost::wformat( L"%s #%d W(%.1fmDa) {%s}-%s" )
+            //              % ( formula ? adportable::utf::to_wstring( formula.get() ) : L"" )
+            //              % ( proto ? proto.get() : (-1) )
+            //              % ( width ? width.get() *1000 : 0.0 )
+            //              % path.stem().wstring()
+            //              % ( wform ? adportable::utf::to_wstring( wform.get() ) : L"n/a" ) ).str();
+            // } else {
+            //     return ( boost::wformat( L"{%s}" ) % path.stem().wstring() ).str();
+            // }
         }
 
         static boost::uuids::uuid
@@ -122,7 +137,7 @@ namespace quan {
               , std::shared_ptr< adcontrols::Chromatogram > chromatogram
               , const adcontrols::ProcessMethod& procm, size_t idx )   {
 
-            auto title = make_title( dataSource, chromatogram->ptree() );
+            auto title = make_title( dataSource, *chromatogram );
             if ( adfs::file file = writer->write( *chromatogram, title ) ) {
                 auto fGuid = boost::uuids::string_generator()( file.name() );
                 // chromatogram->ptree().put( "folder.dataGuid", fGuid );

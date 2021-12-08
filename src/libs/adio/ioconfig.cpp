@@ -24,23 +24,13 @@
 **************************************************************************/
 
 #include "ioconfig.hpp"
+#include <adportable/json/extract.hpp>
+#include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <iostream>
-
-static void
-print( const boost::property_tree::ptree& pt )
-{
-    using boost::property_tree::ptree;
-
-    ptree::const_iterator end = pt.end();
-    for (ptree::const_iterator it = pt.begin(); it != end; ++it) {
-        std::cout << it->first << ": " << it->second.get_value<std::string>() << std::endl;
-        print(it->second);
-    }    
-}
 
 using namespace adio::io;
 
@@ -65,7 +55,6 @@ ioConfig::ioConfig( const ioConfig& t ) : enable_( t.enable_ )
 ioConfig::ioConfig( bool enable
                     , uint32_t id
                     , ioMode mode
-                    
                     , uint32_t trig
                     , ioState initState
                     , const std::string& name
@@ -83,7 +72,7 @@ ioConfig::ioConfig( bool enable
 configuration::configuration()
 {
     uint32_t id(1);
-    
+
     config_.emplace_back( true, id++, IN, Edge | Negative, High, "START-IN" );   // DE0 SW-0
     config_.emplace_back( true, id++, IN, Edge | Negative, High, "INJECT-IN" );  // DE0 SW-1
     config_.emplace_back( true, id++, IN,  Level, Low, "IN"  );                  // DE0 DIPSW(0)
@@ -116,7 +105,7 @@ configuration::read_json( const boost::property_tree::ptree& item, ioConfig& c )
 
     if ( boost::optional< bool > value = item.get_optional<bool>( "enable" ) )
         c.enable_ = value.get();
-    
+
     if ( boost::optional< int > value = item.get_optional<int>( "mode" ) )
         c.mode_  = ioMode( value.get() );
 
@@ -139,12 +128,12 @@ bool
 configuration::read_json( std::istream& json, ioConfig& io )
 {
     boost::property_tree::ptree pt;
-    
+
     try {
 
         boost::property_tree::read_json( json, pt );
         return read_json( pt, io );
-        
+
     } catch ( std::exception& e ) {
 
         std::cerr << boost::diagnostic_information( e );
@@ -157,9 +146,9 @@ bool
 configuration::read_json( std::istream& json, configuration& config )
 {
     config.clear();
-    
+
     boost::property_tree::ptree pt;
-    
+
     try {
         boost::property_tree::read_json( json, pt );
 
@@ -175,7 +164,7 @@ configuration::read_json( std::istream& json, configuration& config )
             return true;
 
         } else if ( auto id = pt.get_child_optional( "id" ) ) {
-            ioConfig c;            
+            ioConfig c;
             if ( read_json( pt, c ) )
                 config.config().emplace_back( c );
             return true;
@@ -204,18 +193,59 @@ configuration::write_json( std::ostream& json, const configuration& config )
         xitem.put( "initState",  item.initState_ );
         xitem.put( "name",       item.name_ );
         xitem.put( "note",       item.note_ );
-        
+
         pv.push_back( std::make_pair( "", xitem ) );
     }
 
     boost::property_tree::ptree pt;
-    
+
     pt.add_child( "ioConfig", pv );
 
     boost::property_tree::write_json( json, pt );
-    
+
     return true;
 }
 
 ////////////////////////////////////////
 
+namespace adio {
+    namespace io {
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const ioConfig& t )
+        {
+            // xitem.put( "enable",     item.enable_ );
+            // xitem.put( "id",         item.id_ );
+            // xitem.put( "mode",       item.mode_ );
+            // xitem.put( "trigConfig", item.trigConfig_ );
+            // xitem.put( "initState",  item.initState_ );
+            // xitem.put( "name",       item.name_ );
+            // xitem.put( "note",       item.note_ );
+            jv = {{ "enable",     t.enable_ }      // bool
+                , { "id",         t.id_ }          // uint32_t
+                , { "mode",       int32_t( t.mode_ ) }        // ioMode
+                , { "trigConfig", int32_t( t.trigConfig_ ) }  // trigConfig
+                , { "initState",  int32_t( t.initState_ ) }   // ioState
+                , { "name",       t.name_ }        // std::string
+                , { "note",       t.note_ } };     // std::string
+        }
+
+        ioConfig
+        tag_invoke( boost::json::value_to_tag< ioConfig >&, const boost::json::value& jv )
+        {
+            using namespace adportable::json;
+            ioConfig t;
+            if ( jv.is_object() ) {
+                auto obj = jv.as_object();
+                extract( obj, t.enable_    , "enable" );
+                extract( obj, t.id_        , "id" );
+                t.mode_       = ioMode( boost::json::value_to< int >( obj.at( "mode" ) ) );
+                t.trigConfig_ = trigConfig( boost::json::value_to< int >( obj.at( "trigConfig" ) ) );
+                t.initState_  = ioState( boost::json::value_to< int >( obj.at( "initState" ) ) );
+                extract( obj, t.name_      , "name" );
+                extract( obj, t.note_      , "note" );
+            }
+            return t;
+        }
+    }
+}

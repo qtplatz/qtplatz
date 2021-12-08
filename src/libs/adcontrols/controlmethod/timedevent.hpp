@@ -89,10 +89,6 @@ namespace adcontrols {
             const boost::property_tree::ptree * ptree() const;
             std::string json() const;
 
-            // template< typename T > boost::optional<T> data() const {
-            //     return ptree_->get_optional< T >( "data.value" );
-            // }
-
             operator bool () const; // is valid for json
 
         private:
