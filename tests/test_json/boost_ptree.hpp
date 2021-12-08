@@ -23,21 +23,20 @@
 **************************************************************************/
 
 #pragma once
-
 #include <memory>
-#include <boost/json/fwd.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 struct data;
 
-class boost_json {
+class boost_ptree {
 public:
-    boost_json();
-    ~boost_json();
+    boost_ptree();
+    ~boost_ptree();
     bool parse( const std::string& );
     std::string stringify( bool pritty = false ) const;
-    static std::string stringify( const boost::json::value&, bool pritty = false );
+    static std::string stringify( const boost::property_tree::ptree&, bool pritty = false );
     bool map( data& );
     static std::string make_json( const data& );
 
-    std::unique_ptr< boost::json::value > jtop_;
+    std::unique_ptr< boost::property_tree::ptree > ptree;
 };

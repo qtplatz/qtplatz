@@ -24,16 +24,94 @@
 
 #include "boost_json.hpp"
 #include "data.hpp"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/iostreams/device/array.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/foreach.hpp>
-#include <iostream>
+#include <boost/json.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/uuid/uuid.hpp>
 
-boost_json::boost_json() : ptree( std::make_unique< boost::property_tree::ptree >() )
+namespace {
+    template<class T>
+    void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
+        try {
+            t = boost::json::value_to<T>( obj.at( key ) );
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION(std::runtime_error("exception"));
+        }
+    }
+    template<> void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
+}
+
+namespace tick {
+    namespace hv {
+        void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const value& t )
+        {
+            jv = {{ "id", t.id }
+                , { "name", t.name }
+                , { "sn",   t.sn }
+                , { "set",  t.set }
+                , { "act",  t.act }
+                , { "unit",  t.unit }
+            };
+        }
+
+        value tag_invoke( boost::json::value_to_tag< value >&, const boost::json::value& jv )
+        {
+            value t;
+            auto obj = jv.as_object();
+            extract( obj, t.id, "id" );
+            extract( obj, t.name, "name" );
+            extract( obj, t.sn,   "sn" );
+            extract( obj, t.set,  "set" );
+            extract( obj, t.act,  "act" );
+            extract( obj, t.unit, "unit" );
+            return t;
+        }
+    }
+
+    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const adc& t )
+    {
+        jv = {{ "tp", t.tp }
+            , { "nacc", t.nacc }
+            , { "values", t.values }
+        };
+    }
+
+    adc tag_invoke( boost::json::value_to_tag< adc >&, const boost::json::value& jv )
+    {
+        adc t;
+        auto obj = jv.as_object();
+        extract( obj, t.tp, "tp" );
+        extract( obj, t.nacc, "nacc" );
+        extract( obj, t.values, "values" );
+        return t;
+    }
+}
+
+void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const data& t )
+{
+    jv = { { "tick", t.tick }
+        ,  { "time", t.time }
+        ,  { "nsec", t.nsec }
+        ,  { "values", t.values }
+        ,  { "alarm", t.alarm }
+        ,  { "adc", t.adc }
+    };
+}
+
+data
+tag_invoke( boost::json::value_to_tag< data >&, const boost::json::value& jv )
+{
+    data t;
+    auto obj = jv.as_object();
+    extract( obj, t.tick, "tick" );
+    extract( obj, t.time, "time" );
+    extract( obj, t.nsec, "nsec" );
+    extract( obj, t.values, "values" );
+    extract( obj, t.alarm, "alarm" );
+    extract( obj, t.adc, "adc" );
+    return t;
+}
+
+boost_json::boost_json() : jtop_( std::make_unique< boost::json::value >() )
 {
 }
 
@@ -44,117 +122,33 @@ boost_json::~boost_json()
 bool
 boost_json::parse( const std::string& json_string )
 {
-    boost::iostreams::basic_array_source< char > device( json_string.data(), json_string.size() );
-    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
-    try {
-        boost::property_tree::read_json( in, *ptree );
-    } catch ( std::exception& ex ) {
-        std::cerr << ex.what() << std::endl;
-        return false;
-    }
+    boost::system::error_code ec;
+    *jtop_ = boost::json::parse( json_string, ec );
     return true;
 }
 
 std::string
-boost_json::stringify( bool pritty ) const
+boost_json::stringify( const boost::json::value& d, bool pritty )
 {
-    std::ostringstream o;
-    boost::property_tree::write_json( o, *ptree, pritty );
-    if ( !pritty )
-        return o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
-    return o.str();
+    return boost::json::serialize( d );
 }
 
 std::string
-boost_json::stringify( const boost::property_tree::ptree& pt, bool pritty )
+boost_json::stringify( bool ) const
 {
-    std::ostringstream o;
-    boost::property_tree::write_json( o, pt, pritty );
-    if ( !pritty )
-        return o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
-    return o.str();
+    return boost::json::serialize( *jtop_ );
 }
 
 bool
 boost_json::map( data& d )
 {
-    if ( auto tick = ptree->get_child_optional( "tick" ) ) {
-        if ( auto value = tick->get_optional< uint32_t >( "tick" ) )
-            d.tick = value.get();
-        if ( auto value = tick->get_optional< uint64_t >( "time" ) )
-            d.time = value.get();
-        if ( auto value = tick->get_optional< uint32_t >( "nsec" ) )
-            d.nsec = value.get();
-        if ( auto hv = tick->get_child_optional( "hv" ) ) {
-            BOOST_FOREACH( const boost::property_tree::ptree::value_type& v, hv->get_child( "values" ) ) {
-                tick::hv::value x;
-                if ( auto value = v.second.get_optional< uint32_t >( "id" ) )
-                    x.id = value.get();
-                if ( auto value = v.second.get_optional< std::string >( "name" ) )
-                    x.name = value.get();
-                if ( auto value = v.second.get_optional< uint32_t >( "sn" ) )
-                    x.sn = value.get();
-                if ( auto value = v.second.get_optional< double >( "set" ) )
-                    x.set = value.get();
-                if ( auto value = v.second.get_optional< double >( "act" ) )
-                    x.act = value.get();                
-                if ( auto value = v.second.get_optional< std::string >( "unit" ) )
-                    x.unit = value.get();
-                d.values.emplace_back( x );
-            }            
-        }
-        if ( auto alarm = tick->get_child_optional( "alarms.alarm" ) ) {
-            if ( auto value = alarm->get_optional< std::string >( "text" ) )
-                d.alarm = value.get();
-        }
-        
-        if ( auto adc = tick->get_child_optional( "adc" ) ) {
-            if ( auto value = adc->get_optional< uint64_t >( "tp" ) )
-                d.adc.tp = value.get();
-            if ( auto value = adc->get_optional< uint32_t >( "nacc" ) )
-                d.adc.nacc = value.get();
-            BOOST_FOREACH( const boost::property_tree::ptree::value_type& v, adc->get_child( "values" ) ) {
-                d.adc.values.emplace_back( v.second.get_value< double >() );
-            }
-        }        
-    }
+    d = boost::json::value_to< data >( *jtop_ );
+    return true;
 }
 
 std::string
 boost_json::make_json( const data& d )
 {
-    boost::property_tree::ptree pt, hv, alarms, adc;
-    pt.put( "tick.tick", d.tick );
-    pt.put( "tick.time", d.time );
-    pt.put( "tick.nsec", d.nsec );
-
-    for ( const auto& value: d.values ) {
-        boost::property_tree::ptree child;
-        child.put( "id", value.id );
-        child.put( "name", value.name );
-        child.put( "sn", value.sn );
-        child.put( "set", value.set );
-        child.put( "act", value.act );
-        child.put( "unit", value.unit );
-        hv.push_back( std::make_pair( "", child ) );
-    }
-
-    alarms.put( "alarm.text", d.alarm );
-
-    adc.put( "tp", d.adc.tp );
-    adc.put( "nacc", d.adc.nacc );
-
-    boost::property_tree::ptree child;
-    for ( const auto& value: d.adc.values ) {
-        boost::property_tree::ptree item;
-        item.put( "", value );
-        child.push_back( std::make_pair( "", item ) );
-    }
-    adc.add_child( "values", child ); // adc
-
-    pt.add_child( "tick.hv", hv );
-    pt.add_child( "tick.alarms", alarms );
-    pt.add_child( "tick.adc", adc );
-
-    return stringify( pt );
+    auto jv = boost::json::value_from( d );
+    return boost::json::serialize( jv );
 }

@@ -10,6 +10,7 @@ endif()
 
 find_package( Boost 1.62 REQUIRED COMPONENTS
   unit_test_framework
+  json
   )
 
 #add_subdirectory( filename_splitter )
@@ -20,7 +21,7 @@ add_subdirectory( test_serializer )
 add_subdirectory( test_formula )
 add_subdirectory( test_adfs )
 add_subdirectory( test_date )
-#add_subdirectory( test_json )
+add_subdirectory( test_json )
 add_subdirectory( test_pkarea )
 
 if ( NOT CMAKE_CROSSCOMPILING )

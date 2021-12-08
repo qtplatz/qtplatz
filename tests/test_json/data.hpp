@@ -37,7 +37,9 @@ namespace tick {
             double set;
             double act;
             std::string unit;
-            value() : id(0), sn(0), name(""), set(0), act(0), unit("") {}
+            value() : id(0), name(""), sn(0), set(0), act(0), unit("") {}
+            value( uint32_t _id, const std::string _name, uint32_t _sn, double _set, double _act, const std::string& _unit )
+                : id(_id), name(_name), sn(_sn), set(_set), act(_act), unit(_unit) {}
         };
     }
     struct adc {
@@ -58,4 +60,3 @@ public:
     tick::adc adc;
     data() : tick(0), time(0), nsec(0),values(0), alarm("") {}
 };
-

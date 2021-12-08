@@ -532,6 +532,11 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
             }
         }
     }
+    // validation
+    for ( const auto& candidate: candidates ) {
+        ADDEBUG() << "candidate: " << candidate.mol().formula() << ", size: " << candidate.size();
+    }
+    // <--
 
     std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >
                             , std::shared_ptr< adcontrols::PeakResult > > > rlist;

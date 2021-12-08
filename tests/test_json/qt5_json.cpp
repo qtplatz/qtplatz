@@ -43,6 +43,7 @@ qt5_json::parse( const std::string& json_string )
 {
     QByteArray data( json_string.data(), json_string.size() );
     *doc = QJsonDocument::fromJson( data );
+    return true;
 }
 
 std::string
@@ -53,7 +54,7 @@ qt5_json::stringify( bool pritty ) const
 }
 
 std::string
-qt5_json::stringify( const QJsonObject& obj, bool pritty ) 
+qt5_json::stringify( const QJsonObject& obj, bool pritty )
 {
     QJsonDocument doc( obj );
     QByteArray xdata( doc.toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ) );
@@ -65,7 +66,7 @@ qt5_json::map( data& d )
 {
     const auto& jobj = doc->object();
     const auto& top = jobj[ "tick" ].toObject();
-    
+
     d.tick = top[ "tick" ].toInt();
     d.time = top[ "time" ].toString().toULongLong();
     d.nsec = top[ "nsec" ].toInt();
@@ -87,7 +88,7 @@ qt5_json::map( data& d )
     }
 
     d.alarm = top["alarms"].toObject()["alarm"].toObject()["text"].toString().toStdString();
-    
+
     const auto& adc = top["adc"].toObject();
     d.adc.tp = adc["tp"].toString().toULongLong();
     d.adc.nacc = adc["nacc"].toString().toInt();
@@ -97,13 +98,14 @@ qt5_json::map( data& d )
             d.adc.values.emplace_back( value.toDouble() );
         }
     }
+    return true;
 }
 
 std::string
 qt5_json::make_json( const data& d )
 {
     QJsonObject jobj, top;
- 
+
     top["tick"] = qint32( d.tick );
     top["time"] = std::to_string( d.time ).c_str();
     top["nsec"] = qint32( d.nsec );
@@ -144,5 +146,3 @@ qt5_json::make_json( const data& d )
 
     return stringify( jobj );
 }
-
-
