@@ -186,12 +186,8 @@ namespace adcontrols {
         void setDataGuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataGuid() const;
 
-        // [[deprecated("use std::string version")]] void setGeneratorProperty( const boost::property_tree::ptree& );
         void setGeneratorProperty( const std::string& );
         boost::optional< std::string > generatorProperty() const;
-        //template< typename T > boost::optional< T > findProperty( const std::string& key ) const;
-
-        // boost::property_tree::ptree const ptree() const;
 
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
@@ -223,9 +219,6 @@ namespace adcontrols {
     template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
 
-    // template<> boost::optional< boost::json::value > ADCONTROLSSHARED_EXPORT
-    // Chromatogram::findProperty( const std::string& key ) const;
-
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
     class ADCONTROLSSHARED_EXPORT Chromatogram_iterator : public std::iterator< std::forward_iterator_tag, Chromatogram_iterator > {
@@ -240,7 +233,6 @@ namespace adcontrols {
         const Chromatogram_iterator operator ++ ( int );
         inline bool operator == ( const Chromatogram_iterator& rhs ) const { return idx_ == rhs.idx_; }
         inline bool operator != ( const Chromatogram_iterator& rhs ) const { return idx_ != rhs.idx_; }
-        //inline operator bool() const { return idx_ != ( -1 ); }
         inline double time() const { return chromatogram_->time( idx_ ); }
         inline double intensity() const { return chromatogram_->intensity( idx_ ); };
     };
