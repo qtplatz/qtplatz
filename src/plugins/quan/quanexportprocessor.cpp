@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2020-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -90,7 +90,6 @@
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-// #include <boost/property_tree/ptree.hpp>
 #include <set>
 
 namespace quan {
