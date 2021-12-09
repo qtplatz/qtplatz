@@ -6,6 +6,19 @@ project( test_json )
 
 find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
 
+find_file ( RAPIDJSON_DIR rapidjson "/usr/local/include" )
+message( STATUS "RAPIDJSON", ${RAPIDJSON_DIR} )
+
+include_directories( "/usr/local/include" )
+if ( RAPIDJSON_DIR )
+#  add_definitions( -DHAVE_RAPIDJSON_JSON=1 )
+endif()
+
+find_file ( NLOHMANN_DIR nlohmann "/usr/local/include" )
+if ( NLOHMANN_DIR )
+  add_definitions( -DHAVE_NLOHMANN_JSON=1 )
+endif()
+
 add_definitions( -DDATAFILE="${CMAKE_CURRENT_SOURCE_DIR}/data.json" )
 
 include_directories(
@@ -20,10 +33,10 @@ add_executable( ${PROJECT_NAME}
   boost_json.hpp
   qt5_json.cpp
   qt5_json.hpp
-#  nlohmann_json.cpp
-#  nlohmann_json.hpp
-#  rapidjson_json.cpp
-#  rapidjson_json.hpp
+  nlohmann_json.cpp
+  nlohmann_json.hpp
+  rapidjson_json.cpp
+  rapidjson_json.hpp
   main.cpp
   )
 

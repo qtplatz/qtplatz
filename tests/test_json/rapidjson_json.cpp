@@ -29,12 +29,6 @@
 #include <rapidjson/stringbuffer.h>
 #include <iostream>
 
-#if 0
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <sstream>
-#endif
-
 rapidjson_json::rapidjson_json() : doc( std::make_unique< rapidjson::Document >() )
 {
 }
@@ -46,7 +40,13 @@ rapidjson_json::~rapidjson_json()
 bool
 rapidjson_json::parse( const std::string& json_string )
 {
-    doc->Parse( json_string.data() );
+    std::cout << "line: " << __LINE__ << " " << __FUNCTION__ << ", " << json_string << std::endl;
+    try { 
+        doc->Parse( json_string.data() );
+    } catch ( std::exception &ex ) {
+        std::cout << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        return false;
+    }
     return true;
 }
 
@@ -70,36 +70,39 @@ bool
 rapidjson_json::map( data& d )
 {
     const auto& top = (*doc)["tick"];
+    try {
+        d.tick = std::stoul( top["tick"].GetString() );
+        d.time = std::stoull( top["time"].GetString() );
+        d.tick = std::stoul( top["time"].GetString() );
 
-    d.tick = std::stoul( top["tick"].GetString() );
-    d.time = std::stoull( top["time"].GetString() );
-    d.tick = std::stoul( top["time"].GetString() );
-
-    {
-        auto& values = top[ "hv" ][ "values" ];
-        for ( auto it = values.Begin(); it != values.End(); ++it ) {
-            tick::hv::value x;
-            x.id   = std::stoul( (*it)[ "id" ].GetString() );
-            x.name = (*it)[ "name" ].GetString();
-            x.sn   = std::stoul( (*it)[ "sn" ].GetString() );
-            std::string setpt = (*it)[ "set" ].GetString();
-            x.set  = ( setpt == "n/a" ) ? 0 : std::stod( setpt );
-            x.act  = std::stod( (*it)[ "act" ].GetString() );
-            x.unit = (*it)[ "unit" ].GetString();
-            d.values.emplace_back( x );
+        {
+            auto& values = top[ "hv" ][ "values" ];
+            for ( auto it = values.Begin(); it != values.End(); ++it ) {
+                tick::hv::value x;
+                x.id   = std::stoul( (*it)[ "id" ].GetString() );
+                x.name = (*it)[ "name" ].GetString();
+                x.sn   = std::stoul( (*it)[ "sn" ].GetString() );
+                std::string setpt = (*it)[ "set" ].GetString();
+                x.set  = ( setpt == "n/a" ) ? 0 : std::stod( setpt );
+                x.act  = std::stod( (*it)[ "act" ].GetString() );
+                x.unit = (*it)[ "unit" ].GetString();
+                d.values.emplace_back( x );
+            }
         }
-    }
     
-    d.alarm = top["alarms"]["alarm"]["text"].GetString();
+        d.alarm = top["alarms"]["alarm"]["text"].GetString();
 
-    {
-        auto& adc = top[ "adc" ];
-        d.adc.tp = std::stoul( adc["tp"].GetString() );
-        d.adc.nacc = std::stoul( adc["nacc"].GetString() );
-        for ( auto it = adc["values"].Begin(); it != adc["values"].End(); ++it )
-            d.adc.values.emplace_back( std::stod( it->GetString() ) );
+        {
+            auto& adc = top[ "adc" ];
+            d.adc.tp = std::stoul( adc["tp"].GetString() );
+            d.adc.nacc = std::stoul( adc["nacc"].GetString() );
+            for ( auto it = adc["values"].Begin(); it != adc["values"].End(); ++it )
+                d.adc.values.emplace_back( std::stod( it->GetString() ) );
+        }
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << " exception: " << ex.what() << std::endl;
+        return false;
     }
-
     return true;
 }
 
@@ -163,14 +166,6 @@ rapidjson_json::make_json( const data& d )
     }
 
     rj.AddMember( "tick", top, rj.GetAllocator() );
-
-#if 0
-    std::istringstream in( stringify( rj ) );
-    boost::property_tree::ptree pt;
-    boost::property_tree::read_json( in, pt );
-    boost::property_tree::write_json( std::cerr, pt );
-    // std::cerr << stringify( rj ) << std::endl;
-#endif
 
     return stringify( rj );
 }

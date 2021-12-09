@@ -52,6 +52,9 @@ load_data()
     pt.map( global_data );
     auto json = boost_json().make_json( global_data ); // make conformed json string
 
+    std::ofstream o("global.json");
+    o << json;
+
     return json;
 }
 
@@ -125,6 +128,7 @@ main()
 #if HAVE_RAPIDJSON_JSON
         {   data data;
             durations[ 4 ] += json_parser< rapidjson_json >::parse( data, json_string );
+            std::cerr << "rapidjson_json parse ok" << std::endl;
         }
 #endif
     }
@@ -152,8 +156,10 @@ main()
         durations[ 0 ] += json_parser< boost_ptree >::json_write( global_data );
         durations[ 1 ] += json_parser< qt5_json >::json_write( global_data );
         durations[ 2 ] += json_parser< boost_json >::json_write( global_data );
-#if 0
+#if HAVE_NLOHMANN_JSON
         durations[ 3 ] += json_parser< nlohmann_json >::json_write( global_data );
+#endif
+#if HAVE_RAPIDJSON_JSON        
         durations[ 4 ] += json_parser< rapidjson_json >::json_write( global_data );
 #endif
     }

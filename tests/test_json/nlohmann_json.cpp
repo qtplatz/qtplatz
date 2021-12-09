@@ -58,36 +58,51 @@ nlohmann_json::stringify( bool ) const
 bool
 nlohmann_json::map( data& d )
 {
-    auto top = json.at( "tick" );
+    const auto& top = json; //.at( "tick" );
 
-    d.tick = std::stol( top[ "tick" ].get< std::string >() );
-    d.time = std::stoull( top[ "time" ].get< std::string >() );
-    d.nsec = std::stol( top[ "tick" ].get< std::string >() );
+    try {
+        top.at( "tick" ).get_to( d.tick );
+        top.at( "time" ).get_to( d.time );
+        top.at( "nsec" ).get_to( d.nsec );
+    } catch ( std::exception& ex ) {
+        std::cerr << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        return false;
+    }    
 
-    {
-        auto& values = top[ "hv" ][ "values" ];
-        for ( const auto& value: values ) {
-            tick::hv::value x;
-            x.id   = std::stol( value.at( "id" ).get< std::string >() );
-            x.name = value.at( "name" ).get< std::string >();
-            x.sn   = std::stoul( value.at( "sn" ).get< std::string >() );
-            auto set = value.at( "set" ).get< std::string >();
-            x.set = ( set == "n/a" ) ? 0 : std::stod( set );
-            x.act  = std::stod( value.at( "act" ).get< std::string >() );
-            x.unit = value.at( "unit" ).get< std::string >();
-            d.values.emplace_back( x );
+    try {
+        {
+            auto& values = top[ "hv" ][ "values" ];
+            for ( const auto& value: values ) {
+                tick::hv::value x;
+                x.id   = value.at( "id" ).get< decltype( x.id ) >();
+                x.name = value.at( "name" ).get< std::string >();
+                x.sn   = value.at( "sn" ).get< decltype( x.sn ) >();
+                x.set = value.at( "set" ).get< decltype( x.set ) >();
+                x.act  = value.at( "act" ).get< decltype( x.act ) >();
+                x.unit = value.at( "unit" ).get< std::string >();
+                d.values.emplace_back( x );
+            }
         }
+    } catch ( std::exception& ex ) {
+        std::cout << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        return false;
+    }    
+        
+    try {        
+        d.alarm = top["alarms"]["alarm"]["text"].get< std::string >();
+        
+        {
+            auto& adc = top.at( "adc" );
+            d.adc.tp = adc["tp"].get< decltype( d.adc.tp ) >();
+            d.adc.nacc = adc["nacc"].get< decltype( d.adc.nacc ) >();
+            for ( auto& value: adc["values"] )
+                d.adc.values.emplace_back( value.get< double >() );
+        }
+    } catch ( std::exception& ex ) {
+        std::cout << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        return false;
     }
-    
-    d.alarm = top["alarms"]["alarm"]["text"].get< std::string >();
-
-    {
-        auto& adc = top.at( "adc" );
-        d.adc.tp = std::stoull( adc["tp"].get< std::string >() );
-        d.adc.nacc = std::stoul( adc["nacc"].get< std::string >() );
-        for ( auto& value: adc["values"] )
-            d.adc.values.emplace_back( std::stod( value.get< std::string >() ) );
-    }
+    return true;
 }
 
 std::string
@@ -137,4 +152,5 @@ nlohmann_json::make_json( const data& d )
     o << j;
     return o.str();
 }
+
 
