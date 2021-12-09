@@ -88,12 +88,16 @@ namespace tick {
 
 void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const data& t )
 {
-    jv = { { "tick", t.tick }
-        ,  { "time", t.time }
-        ,  { "nsec", t.nsec }
-        ,  { "values", t.values }
-        ,  { "alarm", t.alarm }
-        ,  { "adc", t.adc }
+    jv = { { "tick" , {{ "tick", t.tick }
+                ,      { "time", t.time }
+                ,      { "nsec", t.nsec }
+                ,      { "hv", {{ "values", t.values }
+                               ,{ "alarms"
+                                    , {{ "alarm", {{ "text", t.alarm }} }}
+                        }}}
+                ,{ "adc", t.adc }
+            }
+        }
     };
 }
 
