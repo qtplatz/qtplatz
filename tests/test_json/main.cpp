@@ -49,13 +49,19 @@ load_data()
     boost_ptree pt;
     pt.parse( ptree_str );
 
-    pt.map( global_data );
-    auto json = boost_json().make_json( global_data ); // make conformed json string
+    try { 
+        pt.map( global_data );
+        auto json = boost_json().make_json( global_data ); // make conformed json string
 
-    std::ofstream o("global.json");
-    o << json;
+        std::ofstream o("global.json");
+        o << json;
 
-    return json;
+        return json;        
+        
+    } catch ( std::exception& ex ) {
+        std::cerr << "exception: " << ex.what() << std::endl;
+    }
+    return {};
 }
 
 template< typename T >
@@ -110,27 +116,31 @@ main()
 
     std::array< double, 5 > durations = { 0 };
 
-    for ( size_t i = 0; i < 100; ++i ) {
-        {   data data;
-            durations[ 0 ] += json_parser< boost_ptree >::parse( data, json_string );
-        }
-        {   data data;
-            durations[ 1 ] += json_parser< qt5_json >::parse( data, json_string );
-        }
-        {   data data;
-            durations[ 2 ] += json_parser< boost_json >::parse( data, json_string );
-        }
+    try {
+        for ( size_t i = 0; i < 100; ++i ) {
+            {   data data;
+                durations[ 0 ] += json_parser< boost_ptree >::parse( data, json_string );
+            }
+            {   data data;
+                durations[ 1 ] += json_parser< qt5_json >::parse( data, json_string );
+            }
+            {   data data;
+                durations[ 2 ] += json_parser< boost_json >::parse( data, json_string );
+            }
 #if HAVE_NLOHMANN_JSON
-        {   data data;
-            durations[ 3 ] += json_parser< nlohmann_json >::parse( data, json_string );
-        }
+            {   data data;
+                durations[ 3 ] += json_parser< nlohmann_json >::parse( data, json_string );
+            }
 #endif
 #if HAVE_RAPIDJSON_JSON
-        {   data data;
-            durations[ 4 ] += json_parser< rapidjson_json >::parse( data, json_string );
-            std::cerr << "rapidjson_json parse ok" << std::endl;
-        }
+            {   data data;
+                durations[ 4 ] += json_parser< rapidjson_json >::parse( data, json_string );
+                std::cerr << "rapidjson_json parse ok" << std::endl;
+            }
 #endif
+        }
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
@@ -151,18 +161,23 @@ main()
 
     std::fill( durations.begin(), durations.end(), 0 );
 
-    // c++ -> json(string)
-    for ( size_t i = 0; i < 100; ++i ) {
-        durations[ 0 ] += json_parser< boost_ptree >::json_write( global_data );
-        durations[ 1 ] += json_parser< qt5_json >::json_write( global_data );
-        durations[ 2 ] += json_parser< boost_json >::json_write( global_data );
+    try {
+        // c++ -> json(string)
+        for ( size_t i = 0; i < 100; ++i ) {
+            durations[ 0 ] += json_parser< boost_ptree >::json_write( global_data );
+            durations[ 1 ] += json_parser< qt5_json >::json_write( global_data );
+            durations[ 2 ] += json_parser< boost_json >::json_write( global_data );
 #if HAVE_NLOHMANN_JSON
-        durations[ 3 ] += json_parser< nlohmann_json >::json_write( global_data );
+            durations[ 3 ] += json_parser< nlohmann_json >::json_write( global_data );
 #endif
 #if HAVE_RAPIDJSON_JSON        
-        durations[ 4 ] += json_parser< rapidjson_json >::json_write( global_data );
+            durations[ 4 ] += json_parser< rapidjson_json >::json_write( global_data );
 #endif
+        }
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
+    
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
     std::cout << "json_write\t"
@@ -180,27 +195,31 @@ main()
 
     std::fill( durations.begin(), durations.end(), 0 );
 
-    // json(string) -> c++ class
-    for ( size_t i = 0; i < 100; ++i ) {
-        { data data;
-            durations[ 0 ] += json_parser< boost_ptree >::json_read( data, json_string );
-        }
-        { data data;
-            durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
-        }
-        { data data;
-            durations[ 2 ] += json_parser< boost_json >::json_read( data, json_string );
-        }
+    try {
+        // json(string) -> c++ class
+        for ( size_t i = 0; i < 100; ++i ) {
+            { data data;
+                durations[ 0 ] += json_parser< boost_ptree >::json_read( data, json_string );
+            }
+            { data data;
+                durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
+            }
+            { data data;
+                durations[ 2 ] += json_parser< boost_json >::json_read( data, json_string );
+            }
 #if HAVE_NLOHMANN_JSON
-        { data data;
-            durations[ 3 ] += json_parser< nlohmann_json >::json_read( data, json_string );
-        }
+            { data data;
+                durations[ 3 ] += json_parser< nlohmann_json >::json_read( data, json_string );
+            }
 #endif
 #if HAVE_RAPIDJSON_JSON
-        { data data;
-            durations[ 4 ] += json_parser< rapidjson_json >::json_read( data, json_string );
-        }
+            { data data;
+                durations[ 4 ] += json_parser< rapidjson_json >::json_read( data, json_string );
+            }
 #endif
+        }
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
@@ -218,28 +237,32 @@ main()
               << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[reference])
               << "\t" << boost::format( "%8.3f" ) % (durations[4]/durations[reference]) << std::endl;
 
-    {
-        std::ofstream of( "ptree.json" );
-        of << json_parser< boost_ptree >::stringify( global_data );
-    }
-    {
-        std::ofstream of( "qt5.json" );
-        of << json_parser< qt5_json >::stringify( global_data );
-    }
-    {
-        std::ofstream of( "boost.json" );
-        of << json_parser< boost_json >::stringify( global_data );
-    }
+    try {
+        {
+            std::ofstream of( "ptree.json" );
+            of << json_parser< boost_ptree >::stringify( global_data );
+        }
+        {
+            std::ofstream of( "qt5.json" );
+            of << json_parser< qt5_json >::stringify( global_data );
+        }
+        {
+            std::ofstream of( "boost.json" );
+            of << json_parser< boost_json >::stringify( global_data );
+        }
 #if HAVE_NLOHMANN_JSON
-    {
-        std::ofstream of( "nlohman.json" );
-        of << json_parser< nlohmann_json >::stringify( global_data );
-    }
+        {
+            std::ofstream of( "nlohman.json" );
+            of << json_parser< nlohmann_json >::stringify( global_data );
+        }
 #endif
 #if HAVE_RAPIDJSON_JSON
-    {
-        std::ofstream of( "rapidjson.json" );
-        of << json_parser< rapidjson_json >::stringify( global_data );
-    }
+        {
+            std::ofstream of( "rapidjson.json" );
+            of << json_parser< rapidjson_json >::stringify( global_data );
+        }
 #endif
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
+    }
 }
