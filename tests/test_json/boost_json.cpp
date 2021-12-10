@@ -88,14 +88,16 @@ namespace tick {
 
 void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const data& t )
 {
-    jv = { { "tick" , {{ "tick", t.tick }
-                ,      { "time", t.time }
-                ,      { "nsec", t.nsec }
-                ,      { "hv", {{ "values", t.values }
-                               ,{ "alarms"
-                                    , {{ "alarm", {{ "text", t.alarm }} }}
+    jv = { { "tick"
+            , {    { "tick", t.tick }
+                 , { "time", t.time }
+                 , { "nsec", t.nsec }
+                 , { "hv"
+                       , {{ "values", t.values }
+                         ,{ "alarms"
+                              , {{ "alarm", {{ "text", t.alarm }} }}
                         }}}
-                ,{ "adc", t.adc }
+                 , { "adc", t.adc }
             }
         }
     };
@@ -105,13 +107,23 @@ data
 tag_invoke( boost::json::value_to_tag< data >&, const boost::json::value& jv )
 {
     data t;
-    auto obj = jv.as_object();
-    extract( obj, t.tick, "tick" );
-    extract( obj, t.time, "time" );
-    extract( obj, t.nsec, "nsec" );
-    extract( obj, t.values, "values" );
-    extract( obj, t.alarm, "alarm" );
-    extract( obj, t.adc, "adc" );
+    if ( jv.is_object() ) {
+        if ( auto tick = jv.as_object().if_contains( "tick" ) ) {
+            auto obj = tick->as_object();
+            extract( obj, t.tick, "tick" );
+            extract( obj, t.time, "time" );
+            extract( obj, t.nsec, "nsec" );
+            if ( auto values = obj.if_contains( "values" ) ) {
+                extract( values->as_object(), t.values, "values" );
+            }
+            if ( auto alarms = obj.if_contains( "alarms" ) ) {
+                extract( alarms->as_object(), t.alarm, "alarm" );
+            }
+            if ( auto adc = obj.if_contains( "adc" ) ) {
+                extract( adc->as_object(), t.adc, "adc" );
+            }
+        }
+    }
     return t;
 }
 

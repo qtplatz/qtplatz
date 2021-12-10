@@ -35,8 +35,8 @@ add_executable( ${PROJECT_NAME}
   qt5_json.hpp
   nlohmann_json.cpp
   nlohmann_json.hpp
-  rapidjson_json.cpp
-  rapidjson_json.hpp
+#  rapidjson_json.cpp
+#  rapidjson_json.hpp
   main.cpp
   )
 
