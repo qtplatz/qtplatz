@@ -38,7 +38,7 @@ namespace {
             BOOST_THROW_EXCEPTION(std::runtime_error("exception"));
         }
     }
-    template<> void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
+    // template<> void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
 }
 
 namespace tick {
@@ -58,16 +58,12 @@ namespace tick {
         {
             value t;
             auto obj = jv.as_object();
-            try {
-                extract( obj, t.id, "id" );
-                extract( obj, t.name, "name" );
-                extract( obj, t.sn,   "sn" );
-                extract( obj, t.set,  "set" );
-                extract( obj, t.act,  "act" );
-                extract( obj, t.unit, "unit" );
-            } catch ( std::exception& ex ) {
-                std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl  << boost::json::serialize( jv ) << std::endl;
-            }
+            extract( obj, t.id, "id" );
+            extract( obj, t.name, "name" );
+            extract( obj, t.sn,   "sn" );
+            extract( obj, t.set,  "set" );
+            extract( obj, t.act,  "act" );
+            extract( obj, t.unit, "unit" );
             return t;
         }
     }
@@ -83,15 +79,11 @@ namespace tick {
     adc tag_invoke( boost::json::value_to_tag< adc >&, const boost::json::value& jv )
     {
         adc t;
-        
+
         auto obj = jv.as_object();
-        try {
-            extract( obj, t.tp, "tp" );
-            extract( obj, t.nacc, "nacc" );
-            extract( obj, t.values, "values" );
-        } catch ( std::exception& ex ) {
-            std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl  << boost::json::serialize( jv ) << std::endl;
-        }
+        extract( obj, t.tp, "tp" );
+        extract( obj, t.nacc, "nacc" );
+        extract( obj, t.values, "values" );
         return t;
     }
 }
@@ -120,22 +112,18 @@ tag_invoke( boost::json::value_to_tag< data >&, const boost::json::value& jv )
     if ( jv.is_object() ) {
         if ( auto tick = jv.as_object().if_contains( "tick" ) ) {
             auto obj = tick->as_object();
-            try {
-                extract( obj, t.tick, "tick" );
-                extract( obj, t.time, "time" );
-                extract( obj, t.nsec, "nsec" );
-            } catch ( std::runtime_error& ex ) {
-                std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl  << boost::json::serialize( jv ) << std::endl;                
-            }            
-            if ( auto values = obj.if_contains( "values" ) ) {
-                extract( values->as_object(), t.values, "values" );
+            extract( obj, t.tick, "tick" );
+            extract( obj, t.time, "time" );
+            extract( obj, t.nsec, "nsec" );
+            if ( auto hv = obj.if_contains( "hv" ) ) {
+                extract( hv->as_object(), t.values, "values" );
+                if ( auto alarms = hv->as_object().if_contains( "alarms" ) ) {
+                    if ( auto alarm = alarms->as_object().if_contains( "alarm" ) ) {
+                        extract( alarm->as_object(), t.alarm, "text" );
+                    }
+                }
             }
-            if ( auto alarms = obj.if_contains( "alarms" ) ) {
-                extract( alarms->as_object(), t.alarm, "alarm" );
-            }
-            if ( auto adc = obj.if_contains( "adc" ) ) {
-                extract( adc->as_object(), t.adc, "adc" );
-            }
+            extract( obj, t.adc, "adc" );
         }
     }
     return t;
@@ -154,7 +142,7 @@ boost_json::parse( const std::string& json_string )
 {
     boost::system::error_code ec;
     *jtop_ = boost::json::parse( json_string, ec );
-    return static_cast< bool >(ec);
+    return !ec;
 }
 
 std::string

@@ -29,6 +29,33 @@
 #include <rapidjson/stringbuffer.h>
 #include <iostream>
 
+namespace {
+    template<class T>
+    void extract( const rapidjson::Value& obj, T& t );
+
+    template<> void extract( const rapidjson::Value& obj, double& t )  {
+        t = obj.GetDouble();
+    }
+    template<> void extract( const rapidjson::Value& obj, int64_t& t )  {
+        t = obj.GetInt64();
+    }
+    template<> void extract( const rapidjson::Value& obj, uint64_t& t )  {
+        t = obj.GetUint64();
+    }
+    template<> void extract( const rapidjson::Value& obj, int& t )  {
+        t = obj.GetInt();
+    }
+    template<> void extract( const rapidjson::Value& obj, unsigned int& t )  {
+        t = obj.GetUint();
+    }
+    template<> void extract( const rapidjson::Value& obj, bool& t )  {
+        t = obj.GetBool();
+    }
+    template<> void extract( const rapidjson::Value& obj, std::string& t )  {
+        t = obj.GetString();
+    }
+}
+
 rapidjson_json::rapidjson_json() : doc( std::make_unique< rapidjson::Document >() )
 {
 }
@@ -40,8 +67,7 @@ rapidjson_json::~rapidjson_json()
 bool
 rapidjson_json::parse( const std::string& json_string )
 {
-    std::cout << "line: " << __LINE__ << " " << __FUNCTION__ << ", " << json_string << std::endl;
-    try { 
+    try {
         doc->Parse( json_string.data() );
     } catch ( std::exception &ex ) {
         std::cout << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
@@ -71,34 +97,29 @@ rapidjson_json::map( data& d )
 {
     const auto& top = (*doc)["tick"];
     try {
-        d.tick = std::stoul( top["tick"].GetString() );
-        d.time = std::stoull( top["time"].GetString() );
-        d.tick = std::stoul( top["time"].GetString() );
+        extract( top[ "tick" ], d.tick );
+        extract( top[ "time" ], d.time );
+        extract( top[ "nsec" ], d.nsec );
 
-        {
-            auto& values = top[ "hv" ][ "values" ];
-            for ( auto it = values.Begin(); it != values.End(); ++it ) {
-                tick::hv::value x;
-                x.id   = std::stoul( (*it)[ "id" ].GetString() );
-                x.name = (*it)[ "name" ].GetString();
-                x.sn   = std::stoul( (*it)[ "sn" ].GetString() );
-                std::string setpt = (*it)[ "set" ].GetString();
-                x.set  = ( setpt == "n/a" ) ? 0 : std::stod( setpt );
-                x.act  = std::stod( (*it)[ "act" ].GetString() );
-                x.unit = (*it)[ "unit" ].GetString();
-                d.values.emplace_back( x );
-            }
+        auto& values = top[ "hv" ][ "values" ];
+        for ( auto it = values.Begin(); it != values.End(); ++it ) {
+            tick::hv::value x;
+            extract( (*it)[ "id" ], x.id );
+            extract( (*it)[ "name" ], x.name );
+            extract( (*it)[ "sn" ], x.sn );
+            extract( (*it)[ "set" ], x.set );
+            extract( (*it)[ "act" ], x.act );
+            extract( (*it)[ "unit" ], x.unit );
+            d.values.emplace_back( x );
         }
-    
-        d.alarm = top["alarms"]["alarm"]["text"].GetString();
 
-        {
-            auto& adc = top[ "adc" ];
-            d.adc.tp = std::stoul( adc["tp"].GetString() );
-            d.adc.nacc = std::stoul( adc["nacc"].GetString() );
-            for ( auto it = adc["values"].Begin(); it != adc["values"].End(); ++it )
-                d.adc.values.emplace_back( std::stod( it->GetString() ) );
-        }
+        d.alarm = top[ "hv" ]["alarms"]["alarm"]["text"].GetString();
+
+        auto& adc = top[ "adc" ];
+        extract( adc[ "tp" ], d.adc.tp );
+        extract( adc[ "nacc" ], d.adc.nacc );
+        for ( auto it = adc["values"].Begin(); it != adc["values"].End(); ++it )
+            d.adc.values.emplace_back( it->GetDouble() );
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << " exception: " << ex.what() << std::endl;
         return false;
@@ -111,7 +132,7 @@ rapidjson_json::make_json( const data& d )
 {
     rapidjson::Document rj;
     rj.SetObject();
-    
+
     rapidjson::Value top;
     top.SetObject();
 
@@ -150,10 +171,10 @@ rapidjson_json::make_json( const data& d )
     {
         rapidjson::Value adc;
         adc.SetObject();
-        
+
         adc.AddMember( "tp", d.adc.tp, rj.GetAllocator() );
         adc.AddMember( "nacc", d.adc.nacc, rj.GetAllocator() );
-        
+
         rapidjson::Value values( rapidjson::kArrayType );
 
         for ( auto& value:  d.adc.values ) {
@@ -169,5 +190,3 @@ rapidjson_json::make_json( const data& d )
 
     return stringify( rj );
 }
-
-

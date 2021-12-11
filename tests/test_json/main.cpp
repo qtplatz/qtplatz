@@ -49,17 +49,17 @@ load_data()
     boost_ptree pt;
     pt.parse( ptree_str );
 
-    try { 
+    try {
         pt.map( global_data );
         auto json = boost_json().make_json( global_data ); // make conformed json string
 
         std::ofstream o("global.json");
         o << json;
 
-        return json;        
-        
+        return json;
+
     } catch ( std::exception& ex ) {
-        std::cerr << "exception: " << ex.what() << std::endl;
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
     }
     return {};
 }
@@ -121,9 +121,11 @@ main()
             {   data data;
                 durations[ 0 ] += json_parser< boost_ptree >::parse( data, json_string );
             }
+#if HAVE_Qt5
             {   data data;
                 durations[ 1 ] += json_parser< qt5_json >::parse( data, json_string );
             }
+#endif
             {   data data;
                 durations[ 2 ] += json_parser< boost_json >::parse( data, json_string );
             }
@@ -135,7 +137,6 @@ main()
 #if HAVE_RAPIDJSON_JSON
             {   data data;
                 durations[ 4 ] += json_parser< rapidjson_json >::parse( data, json_string );
-                std::cerr << "rapidjson_json parse ok" << std::endl;
             }
 #endif
         }
@@ -170,14 +171,14 @@ main()
 #if HAVE_NLOHMANN_JSON
             durations[ 3 ] += json_parser< nlohmann_json >::json_write( global_data );
 #endif
-#if HAVE_RAPIDJSON_JSON        
+#if HAVE_RAPIDJSON_JSON
             durations[ 4 ] += json_parser< rapidjson_json >::json_write( global_data );
 #endif
         }
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
-    
+
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
     std::cout << "json_write\t"
@@ -201,9 +202,11 @@ main()
             { data data;
                 durations[ 0 ] += json_parser< boost_ptree >::json_read( data, json_string );
             }
+#if HAVE_Qt5
             { data data;
                 durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
             }
+#endif
             { data data;
                 durations[ 2 ] += json_parser< boost_json >::json_read( data, json_string );
             }
@@ -219,7 +222,7 @@ main()
 #endif
         }
     } catch ( std::exception& ex ) {
-        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
     }
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );

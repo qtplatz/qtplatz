@@ -5,13 +5,16 @@ cmake_policy( SET CMP0042 NEW )
 project( test_json )
 
 find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
+if ( Qt5_FOUND )
+  add_definitions( -DHAVE_Qt5=1 )
+endif()
 
 find_file ( RAPIDJSON_DIR rapidjson "/usr/local/include" )
 message( STATUS "RAPIDJSON", ${RAPIDJSON_DIR} )
 
 include_directories( "/usr/local/include" )
 if ( RAPIDJSON_DIR )
-#  add_definitions( -DHAVE_RAPIDJSON_JSON=1 )
+  add_definitions( -DHAVE_RAPIDJSON_JSON=1 )
 endif()
 
 find_file ( NLOHMANN_DIR nlohmann "/usr/local/include" )
@@ -35,8 +38,8 @@ add_executable( ${PROJECT_NAME}
   qt5_json.hpp
   nlohmann_json.cpp
   nlohmann_json.hpp
-#  rapidjson_json.cpp
-#  rapidjson_json.hpp
+  rapidjson_json.cpp
+  rapidjson_json.hpp
   main.cpp
   )
 

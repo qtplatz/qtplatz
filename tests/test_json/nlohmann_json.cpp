@@ -58,16 +58,16 @@ nlohmann_json::stringify( bool ) const
 bool
 nlohmann_json::map( data& d )
 {
-    const auto& top = json; //.at( "tick" );
+    const auto& top = json.at( "tick" );
 
     try {
-        top.at( "tick" ).get_to( d.tick );
-        top.at( "time" ).get_to( d.time );
-        top.at( "nsec" ).get_to( d.nsec );
+        d.tick = top.at( "tick" ).get< decltype( d.tick ) >();
+        d.time = top.at( "time" ).get< decltype( d.time ) >();
+        d.nsec = top.at( "nsec" ).get< decltype( d.nsec ) >();
     } catch ( std::exception& ex ) {
-        std::cerr << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
         return false;
-    }    
+    }
 
     try {
         {
@@ -84,22 +84,26 @@ nlohmann_json::map( data& d )
             }
         }
     } catch ( std::exception& ex ) {
-        std::cout << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
         return false;
-    }    
-        
-    try {        
-        d.alarm = top["alarms"]["alarm"]["text"].get< std::string >();
-        
-        {
-            auto& adc = top.at( "adc" );
-            d.adc.tp = adc["tp"].get< decltype( d.adc.tp ) >();
-            d.adc.nacc = adc["nacc"].get< decltype( d.adc.nacc ) >();
-            for ( auto& value: adc["values"] )
-                d.adc.values.emplace_back( value.get< double >() );
-        }
+    }
+#if 0
+    try {
+        auto alarm = top["alarms"]["alarm"];
+        std::cerr << alarm.dump() << std::endl;
+        d.alarm = alarm.at( "text" ).get< std::string >();
     } catch ( std::exception& ex ) {
-        std::cout << "line: " << __LINE__ << " exception: " << ex.what() << std::endl;
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
+    }
+#endif
+    try {
+        auto& adc = top.at( "adc" );
+        d.adc.tp = adc["tp"].get< decltype( d.adc.tp ) >();
+        d.adc.nacc = adc["nacc"].get< decltype( d.adc.nacc ) >();
+        for ( auto& value: adc["values"] )
+            d.adc.values.emplace_back( value.get< double >() );
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
         return false;
     }
     return true;
@@ -109,7 +113,7 @@ std::string
 nlohmann_json::make_json( const data& d )
 {
     using json = nlohmann::json;
-    
+
     json j =
         { { "tick"
             , { { "tick", d.tick }
@@ -132,7 +136,7 @@ nlohmann_json::make_json( const data& d )
         };
 
     json j_values;
-    
+
     for ( const auto& value: d.values ) {
         json j_value =
         {
@@ -152,5 +156,3 @@ nlohmann_json::make_json( const data& d )
     o << j;
     return o.str();
 }
-
-
