@@ -129,7 +129,16 @@ tag_invoke( boost::json::value_to_tag< data >&, const boost::json::value& jv )
     return t;
 }
 
-boost_json::boost_json() : jtop_( std::make_unique< boost::json::value >() )
+
+struct boost_json::impl {
+    boost::json::value jtop_;
+    unsigned char temp[8192 * 8];
+    boost::json::static_resource mr_;
+    impl() : mr_( temp, sizeof(temp) ) {}
+};
+
+
+boost_json::boost_json() : impl_( std::make_unique< impl >() )
 {
 }
 
@@ -141,8 +150,10 @@ bool
 boost_json::parse( const std::string& json_string )
 {
     boost::system::error_code ec;
-    *jtop_ = boost::json::parse( json_string, ec );
-    return !ec;
+    // boost::json::monotonic_resource mr( impl_->temp );
+    // impl_->jtop_ = boost::json::parse( json_string, ec, &impl_->mr_ );
+    impl_->jtop_ = boost::json::parse( json_string, ec );
+     return !ec;
 }
 
 std::string
@@ -154,13 +165,13 @@ boost_json::stringify( const boost::json::value& d, bool pritty )
 std::string
 boost_json::stringify( bool ) const
 {
-    return boost::json::serialize( *jtop_ );
+    return boost::json::serialize( impl_->jtop_ );
 }
 
 bool
 boost_json::map( data& d )
 {
-    d = boost::json::value_to< data >( *jtop_ );
+    d = boost::json::value_to< data >( impl_->jtop_ );
     return true;
 }
 

@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+bool is_equal( double a, double b );
+
 namespace tick {
     namespace hv {
         struct value {
@@ -40,6 +42,14 @@ namespace tick {
             value() : id(0), name(""), sn(0), set(0), act(0), unit("") {}
             value( uint32_t _id, const std::string _name, uint32_t _sn, double _set, double _act, const std::string& _unit )
                 : id(_id), name(_name), sn(_sn), set(_set), act(_act), unit(_unit) {}
+            bool operator == ( const value& t ) const {
+                return
+                    id == t.id &&
+                    name == t.name &&
+                    sn == t.sn &&
+                    is_equal( set, t.set ) &&
+                    is_equal( act, t.act );
+            }
         };
     }
     struct adc {
@@ -47,6 +57,11 @@ namespace tick {
         uint32_t nacc;
         std::vector< double > values;
         adc() : tp(0), nacc(0), values(0) {}
+        bool operator == ( const adc& t ) const {
+            return tp == t.tp &&
+                nacc == t.nacc &&
+                values == t.values;
+        }
     };
 }
 
@@ -59,4 +74,14 @@ public:
     std::string alarm;
     tick::adc adc;
     data() : tick(0), time(0), nsec(0),values(0), alarm("") {}
+    bool operator == ( const data& t ) {
+        return
+            tick == t.tick &&
+            time == t.time &&
+            nsec == t.nsec &&
+            values == t.values &&
+            alarm == t.alarm &&
+            adc == t.adc;
+        return false;
+    }
 };

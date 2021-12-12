@@ -38,6 +38,6 @@ public:
     static std::string stringify( const boost::json::value&, bool pritty = false );
     bool map( data& );
     static std::string make_json( const data& );
-
-    std::unique_ptr< boost::json::value > jtop_;
+    struct impl;
+    std::unique_ptr< impl > impl_;
 };

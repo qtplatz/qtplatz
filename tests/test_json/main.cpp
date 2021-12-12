@@ -40,6 +40,12 @@
 constexpr const int reference = 2;
 data global_data;
 
+bool
+is_equal( double a, double b ) {
+    return std::abs(a - b) <= ( (std::abs(a) < std::abs(b) ? std::abs(b)
+                                 : std::abs(a)) * std::numeric_limits< double >::epsilon() );
+}
+
 std::string
 load_data()
 {
@@ -66,12 +72,11 @@ load_data()
 
 template< typename T >
 struct json_parser {
-    double static parse( data& data, const std::string& json_string ) {
+    double static parse( const std::string& json_string ) {
         T parser;
         auto tp0 = std::chrono::steady_clock::now();
         if ( parser.parse( json_string ) ) {
             double dur = double( std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count() ) / 1e3;
-            parser.map( data );
             return dur;
         }
         return 0;
@@ -87,8 +92,8 @@ struct json_parser {
     // json read ( json string -> c++ class )
     double static json_read( data& data, const std::string& json_string ) {
         T parser;
-        auto tp0 = std::chrono::steady_clock::now();
         if ( parser.parse( json_string ) ) {
+            auto tp0 = std::chrono::steady_clock::now();
             parser.map( data );
             return double( std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count() ) / 1e3;
         }
@@ -118,25 +123,25 @@ main()
 
     try {
         for ( size_t i = 0; i < 100; ++i ) {
-            {   data data;
-                durations[ 0 ] += json_parser< boost_ptree >::parse( data, json_string );
+            {
+                durations[ 0 ] += json_parser< boost_ptree >::parse( json_string );
             }
 #if HAVE_Qt5
-            {   data data;
-                durations[ 1 ] += json_parser< qt5_json >::parse( data, json_string );
+            {
+                durations[ 1 ] += json_parser< qt5_json >::parse( json_string );
             }
 #endif
-            {   data data;
-                durations[ 2 ] += json_parser< boost_json >::parse( data, json_string );
+            {
+                durations[ 2 ] += json_parser< boost_json >::parse( json_string );
             }
 #if HAVE_NLOHMANN_JSON
-            {   data data;
-                durations[ 3 ] += json_parser< nlohmann_json >::parse( data, json_string );
+            {
+                durations[ 3 ] += json_parser< nlohmann_json >::parse( json_string );
             }
 #endif
 #if HAVE_RAPIDJSON_JSON
-            {   data data;
-                durations[ 4 ] += json_parser< rapidjson_json >::parse( data, json_string );
+            {
+                durations[ 4 ] += json_parser< rapidjson_json >::parse( json_string );
             }
 #endif
         }
@@ -147,7 +152,7 @@ main()
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
 
     std::cout << "\t\tptree\t\tQt\t\tboost\t\tnlohman\t\trapidjson\t|\tptree\t\tQt\t\tboost\t\tnlohman\t\trapidjson\n"
-              << "read/write\t"
+              << "json parse\t"
               << boost::format( "%8.3f" ) % durations[ 0 ]
               << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
               << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
@@ -201,23 +206,28 @@ main()
         for ( size_t i = 0; i < 100; ++i ) {
             { data data;
                 durations[ 0 ] += json_parser< boost_ptree >::json_read( data, json_string );
+                assert( data == global_data );
             }
 #if HAVE_Qt5
             { data data;
                 durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
+                assert( data == global_data );
             }
 #endif
             { data data;
                 durations[ 2 ] += json_parser< boost_json >::json_read( data, json_string );
+                assert( data == global_data );
             }
 #if HAVE_NLOHMANN_JSON
             { data data;
                 durations[ 3 ] += json_parser< nlohmann_json >::json_read( data, json_string );
+                assert( data == global_data );
             }
 #endif
 #if HAVE_RAPIDJSON_JSON
             { data data;
                 durations[ 4 ] += json_parser< rapidjson_json >::json_read( data, json_string );
+                assert( data == global_data );
             }
 #endif
         }
