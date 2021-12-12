@@ -104,45 +104,38 @@ qt5_json::map( data& d )
 std::string
 qt5_json::make_json( const data& d )
 {
-    QJsonObject jobj, top;
-
-    top["tick"] = qint32( d.tick );
-    top["time"] = std::to_string( d.time ).c_str();
-    top["nsec"] = qint32( d.nsec );
-
-    { // hv
-        QJsonArray values;
-        for ( const auto& value: d.values ) {
-            QJsonObject child;
-            child[ "id" ] = qint32( value.id );
-            child[ "name" ] = QString::fromStdString( value.name );
-            child[ "sn" ] = qint32( value.sn );
-            child[ "set" ] = value.set;
-            child[ "act" ] = value.act;
-            child[ "unit" ] =  QString::fromStdString( value.unit );
-            values.append( child );
-        }
-        top[ "values" ] = values;
+    // QJsonObject jobj;//, top;
+    QJsonArray values;
+    for ( const auto& value: d.values ) {
+        QJsonObject child{
+            { "id", qint32( value.id ) }
+            , { "name", QString::fromStdString( value.name ) }
+            , { "sn", qint32( value.sn ) }
+            , { "set", value.set }
+            , { "act", value.act }
+            , { "unit", QString::fromStdString( value.unit ) }
+        };
+        values.append( child );
     }
 
-    QJsonObject alarms, alarm;
-    alarm["text"] = QString::fromStdString( d.alarm );
-    alarms["alarm"] = alarm;
-    top["alarms"] = alarms;
-
-    {
-        QJsonObject adc;
-        adc["tp"] = qint64( d.adc.tp );
-        adc["nacc"] = qint32( d.adc.nacc );
-        QJsonArray values;
-        for ( const auto& value: d.adc.values ) {
-            values.append( value );
+    QJsonObject jobj{
+        { "tick", QJsonObject{
+                { "tick", qint32( d.tick ) }
+                , { "time", std::to_string( d.time ).c_str() }
+                , { "nsec", qint32( d.nsec ) }
+                , { "hv", QJsonObject{
+                        { "values", values }
+                        , { "alarms", QJsonObject{
+                                { "alarm", QJsonObject{
+                                        { "text", QString::fromStdString( d.alarm ) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        adc["values"] = values;
-        top[ "adc" ] = adc;
-    }
-
-    jobj[ "tick" ] = top;
-
+    };
     return stringify( jobj );
 }
