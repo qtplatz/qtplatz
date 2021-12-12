@@ -72,7 +72,11 @@
 #include <boost/json.hpp>
 
 #include <functional>
-#include <optional>
+#if __cplusplus >= 201703L
+# include <optional>
+#else
+# include <boost/optional.hpp>
+#endif
 
 using namespace adwidgets;
 
@@ -110,7 +114,11 @@ namespace adwidgets {
             return (-1);
         }
 
+#if __cplusplus >= 201703L
         inline std::optional< std::vector< int > > findCheckable() const {
+#else
+        inline boost::optional< std::vector< int > > findCheckable() const {
+#endif
             std::vector< int > v;
             std::for_each( columnStates_.begin(), columnStates_.end(), [&](const auto& state){
                 if ( state.second.isCheckable )

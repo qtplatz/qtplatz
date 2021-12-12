@@ -36,6 +36,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 constexpr const int reference = 2;
 data global_data;

@@ -26,6 +26,7 @@
 #define MSSIMULATORFORM_HPP
 
 #include <QWidget>
+#include <memory>
 
 namespace adcontrols { class MSSimulatorMethod; class MassSpectrometer; class MassSpectrum; }
 

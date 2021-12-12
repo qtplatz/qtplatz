@@ -27,6 +27,7 @@
 #include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <boost/optional.hpp>
+#include <memory>
 
 class QMenu;
 
