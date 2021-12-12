@@ -8,7 +8,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #find_package( Qt5 CONFIG REQUIRED Core )
 #find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
 find_package( Qt5 CONFIG REQUIRED Core Widgets )
-
 if ( Qt5_FOUND )
   add_definitions( -DHAVE_Qt5_JSON=1 )
   set ( Qt5_JSON_SOURCES   qt5_json.cpp  qt5_json.hpp )
