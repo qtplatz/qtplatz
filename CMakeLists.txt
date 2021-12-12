@@ -313,6 +313,7 @@ add_definitions(-DUNICODE -D_UNICODE)
 add_subdirectory ( src )
 add_subdirectory ( contrib )
 if ( Qt5_FOUND )
+  add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
   add_subdirectory ( share )
 endif()
 

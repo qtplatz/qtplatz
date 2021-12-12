@@ -1,6 +1,5 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
-
 project( video )
 set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )

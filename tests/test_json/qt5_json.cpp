@@ -24,13 +24,18 @@
 
 #include "qt5_json.hpp"
 #include "data.hpp"
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QByteArray>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <iostream>
 
+struct qt5_json::impl {
+    QJsonDocument doc;
+};
 
-qt5_json::qt5_json() : doc( std::make_unique< QJsonDocument >() )
+
+qt5_json::qt5_json() : impl_( std::make_unique< impl >() )
 {
 }
 
@@ -42,14 +47,14 @@ bool
 qt5_json::parse( const std::string& json_string )
 {
     QByteArray data( json_string.data(), json_string.size() );
-    *doc = QJsonDocument::fromJson( data );
+    impl_->doc = QJsonDocument::fromJson( data );
     return true;
 }
 
 std::string
 qt5_json::stringify( bool pritty ) const
 {
-    QByteArray xdata( doc->toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ) );
+    QByteArray xdata( impl_->doc.toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ) );
     return std::string( xdata.data() );
 }
 
@@ -64,7 +69,7 @@ qt5_json::stringify( const QJsonObject& obj, bool pritty )
 bool
 qt5_json::map( data& d )
 {
-    const auto& jobj = doc->object();
+    const auto& jobj = impl_->doc.object();
     const auto& top = jobj[ "tick" ].toObject();
 
     d.tick = top[ "tick" ].toInt();
@@ -104,7 +109,6 @@ qt5_json::map( data& d )
 std::string
 qt5_json::make_json( const data& d )
 {
-    // QJsonObject jobj;//, top;
     QJsonArray values;
     for ( const auto& value: d.values ) {
         QJsonObject child{

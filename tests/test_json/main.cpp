@@ -23,8 +23,10 @@
 **************************************************************************/
 
 #include "boost_ptree.hpp"
-#include "qt5_json.hpp"
 #include "boost_json.hpp"
+#if HAVE_Qt5_JSON
+#include "qt5_json.hpp"
+#endif
 #if HAVE_NLOHMANN_JSON
 #include "nlohmann_json.hpp"
 #endif
@@ -127,7 +129,7 @@ main()
             {
                 durations[ 0 ] += json_parser< boost_ptree >::parse( json_string );
             }
-#if HAVE_Qt5
+#if HAVE_Qt5_JSON
             {
                 durations[ 1 ] += json_parser< qt5_json >::parse( json_string );
             }
@@ -172,7 +174,9 @@ main()
         // c++ -> json(string)
         for ( size_t i = 0; i < 100; ++i ) {
             durations[ 0 ] += json_parser< boost_ptree >::json_write( global_data );
+#if HAVE_Qt5_JSON
             durations[ 1 ] += json_parser< qt5_json >::json_write( global_data );
+#endif
             durations[ 2 ] += json_parser< boost_json >::json_write( global_data );
 #if HAVE_NLOHMANN_JSON
             durations[ 3 ] += json_parser< nlohmann_json >::json_write( global_data );
@@ -209,7 +213,7 @@ main()
                 durations[ 0 ] += json_parser< boost_ptree >::json_read( data, json_string );
                 assert( data == global_data );
             }
-#if HAVE_Qt5
+#if HAVE_Qt5_JSON
             { data data;
                 durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
                 assert( data == global_data );
@@ -256,10 +260,12 @@ main()
             std::ofstream of( "ptree.json" );
             of << json_parser< boost_ptree >::stringify( global_data );
         }
+#if HAVE_Qt5_JSON
         {
             std::ofstream of( "qt5.json" );
             of << json_parser< qt5_json >::stringify( global_data );
         }
+#endif
         {
             std::ofstream of( "boost.json" );
             of << json_parser< boost_json >::stringify( global_data );

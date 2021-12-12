@@ -25,9 +25,11 @@
 #pragma once
 
 #include <memory>
-#include <QJsonDocument>
 
 struct data;
+
+class QJsonDocument;
+class QJsonObject;
 
 class qt5_json {
 public:
@@ -39,7 +41,7 @@ public:
 
     bool map( data& );
     static std::string make_json( const data& );
-    
-    std::unique_ptr< QJsonDocument > doc;
+private:
+    struct impl;
+    std::unique_ptr< impl > impl_;
 };
-

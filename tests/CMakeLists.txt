@@ -3,11 +3,7 @@ cmake_policy( SET CMP0042 NEW )
 
 project( tests )
 
-if ( Boost_USE_STATIC_LIBS)
-  add_definitions( -DBoost_USE_STATIC_LIBS=1 )
-endif()
-
-find_package( Boost 1.62 REQUIRED COMPONENTS
+find_package( Boost 1.75 REQUIRED COMPONENTS
   unit_test_framework
   json
   )
