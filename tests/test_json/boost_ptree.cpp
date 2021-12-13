@@ -103,9 +103,10 @@ boost_ptree::map( data& d )
                 d.values.emplace_back( x );
             }
         }
-        if ( auto alarm = tick->get_child_optional( "alarms.alarm" ) ) {
-            if ( auto value = alarm->get_optional< std::string >( "text" ) )
-                d.alarm = value.get();
+        if ( auto alarm = tick->get_child_optional( "hv.alarms.alarm" ) ) {
+            if ( auto value = alarm->get_optional< std::string >( "text" ) ) {
+                d.alarm = *value;
+            }
         }
 
         if ( auto adc = tick->get_child_optional( "adc" ) ) {

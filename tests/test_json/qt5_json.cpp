@@ -24,11 +24,37 @@
 
 #include "qt5_json.hpp"
 #include "data.hpp"
+#include <QDebug>
 #include <QByteArray>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <iostream>
+#include <boost/exception/all.hpp>
+
+namespace {
+    template<class T> void extract( const QJsonObject& obj, T& t, const QString& key );
+
+    template<> void extract( const QJsonObject& obj, std::string& t, const QString& key )  {
+        t = obj[ key ].toString().toStdString();
+    }
+    template<> void extract( const QJsonObject& obj, QString& t, const QString& key )  {
+        t = obj[ key ].toString();
+    }
+    template<> void extract( const QJsonObject& obj, double& t, const QString& key )  {
+        t = obj[ key ].toDouble();
+    }
+    template<> void extract( const QJsonObject& obj, int32_t& t, const QString& key )  {
+        t = obj[ key ].toInt();
+    }
+    template<> void extract( const QJsonObject& obj, uint32_t& t, const QString& key )  {
+        t = obj[ key ].toInt();
+    }
+    template<> void extract( const QJsonObject& obj, uint64_t& t, const QString& key )  {
+        t = obj[ key ].toDouble();
+    }
+}
+
 
 struct qt5_json::impl {
     QJsonDocument doc;
@@ -72,9 +98,13 @@ qt5_json::map( data& d )
     const auto& jobj = impl_->doc.object();
     const auto& top = jobj[ "tick" ].toObject();
 
-    d.tick = top[ "tick" ].toInt();
-    d.time = top[ "time" ].toString().toULongLong();
-    d.nsec = top[ "nsec" ].toInt();
+    extract( top, d.tick, "tick" );
+    extract( top, d.time, "time" );
+    extract( top, d.nsec, "nsec" );
+
+    // d.tick = top[ "tick" ].toInt();
+    // d.time = top[ "time" ].toString().toULongLong();
+    // d.nsec = top[ "nsec" ].toInt();
 
     const auto& hv = top[ "hv" ].toObject();
     {
@@ -82,12 +112,18 @@ qt5_json::map( data& d )
         for ( const auto& value: values ) {
             auto obj = value.toObject();
             tick::hv::value x;
-            x.id = obj[ "id" ].toInt();
-            x.name = obj[ "name" ].toString().toStdString();
-            x.sn   = obj[ "sn" ].toInt();
-            x.set  = obj[ "set" ].toDouble();
-            x.act  = obj[ "act" ].toDouble();
-            x.unit = obj[ "unit" ].toString().toStdString();
+            extract( obj, x.id, "id" );
+            extract( obj, x.name,  "name" );
+            extract( obj, x.sn, "sn" );
+            extract( obj, x.set, "set" );
+            extract( obj, x.act, "act" );
+            extract( obj, x.unit, "unit" );
+            // x.id = obj[ "id" ].toInt();
+            // x.name = obj[ "name" ].toString().toStdString();
+            // x.sn   = obj[ "sn" ].toInt();
+            // x.set  = obj[ "set" ].toDouble();
+            // x.act  = obj[ "act" ].toDouble();
+            // x.unit = obj[ "unit" ].toString().toStdString();
             d.values.emplace_back( x );
         }
     }
@@ -95,8 +131,10 @@ qt5_json::map( data& d )
     d.alarm = top["alarms"].toObject()["alarm"].toObject()["text"].toString().toStdString();
 
     const auto& adc = top["adc"].toObject();
-    d.adc.tp = adc["tp"].toString().toULongLong();
-    d.adc.nacc = adc["nacc"].toString().toInt();
+    extract( adc, d.adc.tp, "tp" );
+    extract( adc, d.adc.nacc, "nacc" );
+    // d.adc.tp = adc["tp"].toString().toULongLong();
+    // d.adc.nacc = adc["nacc"].toString().toInt();
     {
         const auto& values = adc["values"].toArray();
         for ( const auto& value: values ) {

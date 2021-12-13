@@ -36,11 +36,12 @@
 #include "data.hpp"
 #include <boost/format.hpp>
 #include <chrono>
-#include <iostream>
-#include <fstream>
 #include <cmath>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
-constexpr const int reference = 2;
+constexpr const int reference = 0;
 data global_data;
 
 bool
@@ -48,6 +49,20 @@ is_equal( double a, double b ) {
     return std::abs(a - b) <= ( (std::abs(a) < std::abs(b) ? std::abs(b)
                                  : std::abs(a)) * std::numeric_limits< double >::epsilon() );
 }
+
+bool
+is_equal( const std::vector< double>& v1, const std::vector< double >& v2 )
+{
+    if ( v1.size() == v2.size() ) {
+        for ( size_t i = 0; i < v1.size(); ++i ) {
+            if ( ! is_equal( v1[ i ], v2[ i ] ) )
+                return false;
+        }
+        return true;
+    }
+    return false;
+}
+
 
 std::string
 load_data()
@@ -114,175 +129,201 @@ struct json_parser {
     }
 };
 
+template< typename... Types> struct parser_list {};
+
+struct null_parser {};
+
+using parsers = parser_list<
+    boost_json
+    , boost_ptree
+#if HAVE_Qt5_JSON
+    , qt5_json
+#endif
+#if HAVE_NLOHMANN_JSON
+    , nlohmann_json
+#endif
+#if HAVE_RAPIDJSON_JSON
+    , rapidjson_json
+#endif
+    , null_parser
+    >;
+
+enum parser_id {
+    id_boost_json
+    , id_boost_ptree
+#if HAVE_Qt5_JSON
+    , id_qt5_json
+#endif
+#if HAVE_NLOHMANN_JSON
+    , id_nlohmann_json
+#endif
+#if HAVE_RAPIDJSON_JSON
+    , id_rapidjson_json
+#endif
+    , id_null_parser
+};
+
+const std::vector< std::string > parser_names = {
+    "boost_json"
+    , "boost_ptree"
+#if HAVE_Qt5_JSON
+    , "qt5_json"
+#endif
+#if HAVE_NLOHMANN_JSON
+    , "nlohmann"
+#endif
+#if HAVE_RAPIDJSON_JSON
+    , "rapidjson"
+#endif
+};
+
+template< typename last_t> struct parser_list< last_t > {
+    void print( size_t ) const {}
+
+    std::vector< double > parser( const std::string&, std::vector< double >&& d ) const { return d; }
+
+    std::vector< double > json_write( const data& data, std::vector< double >&& d ) const { return d; }
+
+    std::vector< std::pair< double, data > > json_read( const std::string& json_string
+                                                        , std::vector< std::pair< double, data > >&& d ) const { return d; }
+
+    void json_read_verify( const std::string& json_string, const data& reference, size_t ) const {}
+
+    void json_serialize( const data& data, size_t idx = 0 ) const {}
+};
+
+template< typename first_t, typename... args> struct parser_list< first_t, args ...> {
+    void print( size_t idx = 0 ) const {
+        std::cout << parser_names[ idx ] << "\t";
+        parser_list< args ... >().print( idx + 1 );
+    }
+
+    std::vector< double >
+    parser( const std::string& json_string, std::vector< double >&& d ) const {
+        d.emplace_back( json_parser< first_t >::parse( json_string ) );
+        return parser_list< args ... >().parser( json_string, std::move( d  ));
+    }
+
+    std::vector< double >
+    json_write( const data& data, std::vector< double >&& d ) const {
+        d.emplace_back( json_parser< first_t >::json_write( data ) );
+        return parser_list< args ... >().json_write( data, std::move( d  ));
+    }
+
+    std::vector< std::pair< double, data > >
+    json_read( const std::string& json_string, std::vector< std::pair< double, data > >&& d ) const {
+        data t;
+        d.emplace_back( json_parser< first_t >::json_read( t, json_string ), std::move( t ) );
+        return parser_list< args ... >().json_read( json_string, std::move( d  ) );
+    }
+
+    void
+    json_read_verify( const std::string& json_string, const data& reference, size_t idx = 0 ) const {
+        data t;
+        json_parser< first_t >::json_read( t, json_string );
+        if ( !( t == reference ) ) {
+            auto where = t.compare( reference );
+            std::cout << "bad data in " << parser_names[ idx ] << " at " << where << std::endl;
+        }
+        return parser_list< args ... >().json_read_verify( json_string, reference, idx + 1 );
+    }
+
+    void
+    json_serialize( const data& data, size_t idx = 0 ) const {
+        std::ofstream of( parser_names[ idx ] + ".json" );
+        of << json_parser< first_t >::stringify( data );
+
+        parser_list< args ... >().json_serialize( data, idx + 1 );
+    }
+
+};
+
+void
+report( const std::string& title, const std::array< double, id_null_parser >& durations, bool heading = false )
+{
+    // head line
+    if ( heading ) {
+        parsers parsers;
+        std::cout << "\t\t";
+        parsers.print();
+        std::cout << "|\t";
+        parsers.print();
+        std::cout << std::endl;
+    }
+    //
+    std::cout << title << "\t";
+    for ( const auto& dur: durations )
+        std::cout << boost::format( "%8.3f" ) % dur << "\t";
+    std::cout << "|\t";
+    for ( const auto& dur: durations )
+        std::cout << boost::format( "%8.3f" ) % (dur/durations[reference]) << "\t";
+    std::cout << std::endl;
+}
 
 int
 main()
 {
     const std::string json_string = load_data();
 
-    std::ofstream null( "/dev/null" );
+    std::array< double, id_null_parser > durations = { 0 };
 
-    std::array< double, 5 > durations = { 0 };
+    parsers parsers;
 
     try {
         for ( size_t i = 0; i < 100; ++i ) {
-            {
-                durations[ 0 ] += json_parser< boost_ptree >::parse( json_string );
-            }
-#if HAVE_Qt5_JSON
-            {
-                durations[ 1 ] += json_parser< qt5_json >::parse( json_string );
-            }
-#endif
-            {
-                durations[ 2 ] += json_parser< boost_json >::parse( json_string );
-            }
-#if HAVE_NLOHMANN_JSON
-            {
-                durations[ 3 ] += json_parser< nlohmann_json >::parse( json_string );
-            }
-#endif
-#if HAVE_RAPIDJSON_JSON
-            {
-                durations[ 4 ] += json_parser< rapidjson_json >::parse( json_string );
-            }
-#endif
+            auto dur = parsers.parser( json_string, std::vector<double>{} );
+            transform( dur.begin(), dur.end(), durations.begin(), durations.begin()
+                       , [](const double& a, const double& b){ return a+b; });
+
         }
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
-
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
-
-    std::cout << "\t\tptree\t\tQt\t\tboost\t\tnlohman\t\trapidjson\t|\tptree\t\tQt\t\tboost\t\tnlohman\t\trapidjson\n"
-              << "json parse\t"
-              << boost::format( "%8.3f" ) % durations[ 0 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 3 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 4 ]
-              << "\t|"
-              << "\t" << boost::format( "%8.3f" ) % (durations[0]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[4]/durations[reference]) << std::endl;
+    report( "json parse", durations, true );
 
     std::fill( durations.begin(), durations.end(), 0 );
-
     try {
-        // c++ -> json(string)
         for ( size_t i = 0; i < 100; ++i ) {
-            durations[ 0 ] += json_parser< boost_ptree >::json_write( global_data );
-#if HAVE_Qt5_JSON
-            durations[ 1 ] += json_parser< qt5_json >::json_write( global_data );
-#endif
-            durations[ 2 ] += json_parser< boost_json >::json_write( global_data );
-#if HAVE_NLOHMANN_JSON
-            durations[ 3 ] += json_parser< nlohmann_json >::json_write( global_data );
-#endif
-#if HAVE_RAPIDJSON_JSON
-            durations[ 4 ] += json_parser< rapidjson_json >::json_write( global_data );
-#endif
+            auto dur = parsers.json_write( global_data, std::vector<double>{} );
+            transform( dur.begin(), dur.end(), durations.begin(), durations.begin(), [](const double& a, const double& b){ return a+b; });
         }
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
-
-
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
-    std::cout << "json_write\t"
-              << boost::format( "%8.3f" ) % durations[ 0 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 3 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 4 ]
-              << "\t|"
-              << "\t" << boost::format( "%8.3f" ) % (durations[0]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[4]/durations[reference]) << std::endl;
-
-    std::fill( durations.begin(), durations.end(), 0 );
+    report( "json write", durations );
 
     try {
+        std::fill( durations.begin(), durations.end(), 0 );
         // json(string) -> c++ class
         for ( size_t i = 0; i < 100; ++i ) {
-            { data data;
-                durations[ 0 ] += json_parser< boost_ptree >::json_read( data, json_string );
-                assert( data == global_data );
-            }
-#if HAVE_Qt5_JSON
-            { data data;
-                durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
-                assert( data == global_data );
-            }
-#endif
-            { data data;
-                durations[ 2 ] += json_parser< boost_json >::json_read( data, json_string );
-                assert( data == global_data );
-            }
-#if HAVE_NLOHMANN_JSON
-            { data data;
-                durations[ 3 ] += json_parser< nlohmann_json >::json_read( data, json_string );
-                assert( data == global_data );
-            }
-#endif
-#if HAVE_RAPIDJSON_JSON
-            { data data;
-                durations[ 4 ] += json_parser< rapidjson_json >::json_read( data, json_string );
-                assert( data == global_data );
-            }
-#endif
+            auto r = parsers.json_read( json_string, std::vector< std::pair< double, data > >{} );
+            transform( r.begin(), r.end(), durations.begin(), durations.begin(), [](const auto& a, const auto& b){ return a.first + b; });
         }
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
     }
-
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
-
-    std::cout << "json_read\t"
-              << boost::format( "%8.3f" ) % durations[ 0 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 3 ]
-              << "\t " << boost::format( "%8.3f" ) % durations[ 4 ]
-              << "\t|"
-              << "\t" << boost::format( "%8.3f" ) % (durations[0]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[reference])
-              << "\t" << boost::format( "%8.3f" ) % (durations[4]/durations[reference]) << std::endl;
+    report( "json read", durations );
 
     try {
-        {
-            std::ofstream of( "ptree.json" );
-            of << json_parser< boost_ptree >::stringify( global_data );
-        }
-#if HAVE_Qt5_JSON
-        {
-            std::ofstream of( "qt5.json" );
-            of << json_parser< qt5_json >::stringify( global_data );
-        }
-#endif
-        {
-            std::ofstream of( "boost.json" );
-            of << json_parser< boost_json >::stringify( global_data );
-        }
-#if HAVE_NLOHMANN_JSON
-        {
-            std::ofstream of( "nlohman.json" );
-            of << json_parser< nlohmann_json >::stringify( global_data );
-        }
-#endif
-#if HAVE_RAPIDJSON_JSON
-        {
-            std::ofstream of( "rapidjson.json" );
-            of << json_parser< rapidjson_json >::stringify( global_data );
-        }
-#endif
+        parsers.json_serialize( global_data );
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
+    }
+
+    ////////////
+    // data validation
+    try {
+        parsers.json_read_verify( json_string, global_data );
+    } catch ( std::exception& ex ) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
+    }
+
+    data t;
+    json_parser< qt5_json >::json_read( t, json_string );
+    if ( !( t == global_data )) {
+        std::cerr << t.time << ", " << global_data.time;
     }
 }
