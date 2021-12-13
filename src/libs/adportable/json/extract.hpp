@@ -27,18 +27,36 @@
 
 #include <boost/json/value_to.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/lexical_cast.hpp>
+#include <type_traits>
 
 namespace boost { namespace uuids { class uuid; } };
 
 namespace adportable {
     namespace json {
 
+        template<bool = true >
+        struct workaround {
+            template< typename T > void assign( T& t, boost::json::string_view value ) {
+                t = boost::lexical_cast< T >( value );
+            }
+        };
+
+        template<>
+        struct workaround< false > { template< typename T > void assign( T& t, boost::json::string_view value ) {} };
+
+        ////////////////
+
         template<class T>
         void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
             try {
                 t = boost::json::value_to<T>( obj.at( key ) );
             } catch ( std::exception& ex ) {
-                BOOST_THROW_EXCEPTION(std::runtime_error("adportab;e/json/extract<> exception"));
+                if ( obj.at( key ).is_string() && std::is_arithmetic< T >::value ) {
+                    workaround< std::is_arithmetic< T >::value >().assign( t, obj.at( key ).as_string() );
+                } else {
+                    BOOST_THROW_EXCEPTION(std::runtime_error("adportab;e/json/extract<> exception"));
+                }
             }
         }
         template<> void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );

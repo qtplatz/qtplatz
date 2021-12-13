@@ -28,7 +28,10 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/optional.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 #include <string>
 
 namespace adcontrols {
@@ -53,19 +56,25 @@ namespace adcontrols {
             , flag_manually_assigned = 0x80000000
         };
 
+        struct peak {
+            int mode;
+            double mass;
+            peak() : mode(0), mass(0) {}
+        };
+
         ~annotation();
         annotation();
         annotation( const annotation& );
         annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
         annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
-        annotation( const boost::property_tree::ptree& pt, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFlag flag = flag_auto );
+        annotation( boost::json::object&&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFlag flag = flag_auto );
 
         const std::string& text() const;
         void text( const std::wstring& text, DataFormat f = dataText );
         void text( const std::string& text, DataFormat f = dataText );
-        void setJson( const boost::property_tree::ptree& );
+        // void setJson( std::string&& );
         boost::optional< std::string > json() const;
-        boost::optional< boost::property_tree::ptree > ptree() const;
+        // boost::optional< boost::property_tree::ptree > ptree() const;
 
         int index() const;
         void index( int );
@@ -124,6 +133,11 @@ namespace adcontrols {
         }
     };
 
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const annotation::peak& );
+
+    ADCONTROLSSHARED_EXPORT
+    annotation::peak tag_invoke( boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv );
 }
 
 BOOST_CLASS_VERSION( adcontrols::annotation, 3 )

@@ -45,6 +45,8 @@
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -62,6 +64,7 @@
 #include <boost/format.hpp>
 #include <boost/signals2.hpp>
 #include <boost/variant.hpp>
+#include <boost/json.hpp>
 #include <sstream>
 #include <set>
 #include <ratio>
@@ -615,12 +618,10 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             while ( it != annots.end() ) {
                 ADDEBUG() << "anno.text: " << it->text();
                 if ( auto json = it->json() ) {
-                    auto obj = QJsonDocument::fromJson( QByteArray(json->c_str(), json->size() ) ).object();
-                    ADDEBUG() << "########### find json annotation ###########";
-                    qDebug() << obj;
-                    auto pt = it->ptree();
-                    if ( auto mode = pt->get_optional< int >( "peak.mode" ) )
-                        model.setData( model.index( row, c_mspeaktable_mode ), *mode );
+                    auto jv = adportable::json_helper::parse( json );
+                    ADDEBUG() << "########### find json annotation ###########\n" << jv;
+                    auto t = boost::json::value_to< adcontrols::annotation::peak >( jv );
+                    model.setData( model.index( row, c_mspeaktable_mode ), t.mode );
                 }
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
                     model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );

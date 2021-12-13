@@ -190,7 +190,7 @@ template< typename last_t> struct parser_list< last_t > {
 };
 
 template< typename first_t, typename... args> struct parser_list< first_t, args ...> {
-    std::string print( std::ostringstream&& o, size_t idx = 0 ) const {
+    std::string print( std::ostringstream&& o = std::ostringstream(), size_t idx = 0 ) const {
         o << parser_names[ idx ] << "\t";
         return parser_list< args ... >().print( std::move( o ), idx + 1 );
     }
@@ -240,7 +240,7 @@ report( const std::string& title, const std::array< double, id_null_parser >& du
     // head line
     if ( heading ) {
         parsers parsers;
-        std::cout << "\t\t" << parsers.print( {} ) << "|\t" <<  parsers.print( {} ) << std::endl;
+        std::cout << "\t\t" << parsers.print() << "|\t" <<  parsers.print() << std::endl;
     }
     //
     std::cout << title << "\t";
@@ -256,9 +256,7 @@ int
 main()
 {
     const std::string json_string = load_data();
-
     std::array< double, id_null_parser > durations = { 0 };
-
     parsers parsers;
 
     try {

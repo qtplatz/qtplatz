@@ -81,7 +81,9 @@ namespace adplot {
             , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
         };
 
-        class xSeriesData : public QwtSeriesData<QPointF>, boost::noncopyable {
+        class xSeriesData : public QwtSeriesData<QPointF> { //, boost::noncopyable {
+            xSeriesData( const xSeriesData& ) = delete;
+            xSeriesData& operator = ( const xSeriesData& ) = delete;
         public:
             virtual ~xSeriesData() {
             }

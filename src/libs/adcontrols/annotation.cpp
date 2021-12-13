@@ -24,7 +24,9 @@
 
 #include "annotation.hpp"
 #include <adportable/utf.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <adportable/json/extract.hpp>
+// #include <boost/property_tree/json_parser.hpp>
+#include <boost/json.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
@@ -91,7 +93,7 @@ annotation::annotation( const std::string& text
 {
 }
 
-annotation::annotation( const boost::property_tree::ptree& pt
+annotation::annotation( boost::json::object&& jobj
                         , double x
                         , double y
                         , int idx
@@ -104,17 +106,7 @@ annotation::annotation( const boost::property_tree::ptree& pt
                                          , h_( 0 )
                                          , flags_( flg )
 {
-    boost::iostreams::back_insert_device< std::string > inserter( text_ );
-    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > json( inserter );
-    boost::property_tree::write_json( json, pt );
-}
-
-void
-annotation::setJson( const boost::property_tree::ptree& pt )
-{
-    boost::iostreams::back_insert_device< std::string > inserter( text_ );
-    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > json( inserter );
-    boost::property_tree::write_json( json, pt );
+    text_ = boost::json::serialize( jobj );
     format_ = dataJSON;
 }
 
@@ -123,18 +115,6 @@ annotation::json() const
 {
     if ( !text_.empty() && format_ == dataJSON )
         return text_;
-    return boost::none;
-}
-
-boost::optional< boost::property_tree::ptree >
-annotation::ptree() const
-{
-    if ( !text_.empty() && format_ == dataJSON ) {
-        boost::property_tree::ptree pt;
-        std::istringstream in( text_ );
-        boost::property_tree::read_json( in, pt );
-        return pt;
-    }
     return boost::none;
 }
 
@@ -251,4 +231,28 @@ void
 annotation::setFlags( uint32_t f )
 {
     flags_ = f;
+}
+
+namespace adcontrols {
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const annotation::peak& t )
+    {
+        jv = {{ "peak"
+                , {{ "mode", t.mode }
+                    , { "mass", t.mass }}
+            }};
+    }
+
+    annotation::peak tag_invoke( boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv )
+    {
+        annotation::peak t;
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            auto sobj = obj.at( "peak" ).as_object();
+            adportable::json::extract( sobj, t.mode, "mode" );
+            adportable::json::extract( sobj, t.mass, "mass" );
+        }
+        return t;
+    }
+
 }

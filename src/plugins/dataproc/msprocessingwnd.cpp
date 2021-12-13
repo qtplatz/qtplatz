@@ -80,6 +80,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
+#include <adportable/json_helper.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -789,15 +790,15 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
                     auto it = std::find_if( fms.get_annotations().begin(), fms.get_annotations().end()
                                             , [&]( const auto& a ){
                                                 return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
-                    boost::property_tree::ptree pt;
+                    // boost::property_tree::ptree pt;
+                    boost::json::object jobj;
                     if ( it != fms.get_annotations().end() ) {
-                        if ( auto opt = it->ptree() )
-                            pt = *opt;
+                        auto jv = adportable::json_helper::parse( it->json() );
+                        if ( jv.is_object() )
+                            jobj = jv.as_object();
                     }
-                    pt.put( "peak.mode", mode );
-                    pt.put( "peak.mass", sp->assignMass( fms.time( idx ), mode ) );
-                    ADDEBUG() << pt;
-                    fms.get_annotations() << adcontrols::annotation( pt );
+                    jobj[ "peak" ] = boost::json::object{{ "peak", {{ "mode", mode }, {"mass", sp->assignMass( fms.time( idx ), mode ) }}}};
+                    fms.get_annotations() << adcontrols::annotation( std::move( jobj ) );
                     dp->setModified( true );
                 }
             } else {

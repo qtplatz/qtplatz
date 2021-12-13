@@ -36,10 +36,6 @@ namespace adportable {
 namespace boost {
     class exception;
     namespace system { class error_code; }
-    namespace property_tree {
-        template< class Key, class Data, class KeyCompare > class basic_ptree;
-        typedef basic_ptree< std::string, std::string, std::less< std::string > > ptree;
-    }
 }
 
 namespace adportable {
@@ -67,7 +63,6 @@ namespace adportable {
 
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::wstring& t );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::system::error_code& );
-    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::property_tree::ptree& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::exception& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::exception& );
 
