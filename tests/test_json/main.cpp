@@ -180,7 +180,7 @@ const std::vector< std::string > parser_names = {
 };
 
 template< typename last_t> struct parser_list< last_t > {
-    void print( size_t ) const {}
+    std::string print( std::ostringstream&& o, size_t ) const { return o.str(); }
     std::vector< double > parser( const std::string&, std::vector< double >&& d ) const { return d; }
     std::vector< double > json_write( const data& data, std::vector< double >&& d ) const { return d; }
     std::vector< std::pair< double, data > > json_read( const std::string& json_string
@@ -190,9 +190,9 @@ template< typename last_t> struct parser_list< last_t > {
 };
 
 template< typename first_t, typename... args> struct parser_list< first_t, args ...> {
-    void print( size_t idx = 0 ) const {
-        std::cout << parser_names[ idx ] << "\t";
-        parser_list< args ... >().print( idx + 1 );
+    std::string print( std::ostringstream&& o, size_t idx = 0 ) const {
+        o << parser_names[ idx ] << "\t";
+        return parser_list< args ... >().print( std::move( o ), idx + 1 );
     }
 
     std::vector< double >
@@ -240,11 +240,7 @@ report( const std::string& title, const std::array< double, id_null_parser >& du
     // head line
     if ( heading ) {
         parsers parsers;
-        std::cout << "\t\t";
-        parsers.print();
-        std::cout << "|\t";
-        parsers.print();
-        std::cout << std::endl;
+        std::cout << "\t\t" << parsers.print( {} ) << "|\t" <<  parsers.print( {} ) << std::endl;
     }
     //
     std::cout << title << "\t";
@@ -329,24 +325,16 @@ main()
         reference_parser parser;
         try {
             parser.parse( json_str );
-        } catch ( std::exception& ex ) {
-            if ( name == "boost_ptree" )
-                std::cerr << "parse\t" << name << ".json" << "\t" << ex.what() << "\t(expected)" << std::endl;
-            else
-                std::cerr << "parse\t" << name << ".json" << "\t" << ex.what() << std::endl;
-        }
-        try {
             parser.map( dt );
             if ( !( dt == global_data ) ) {
                 auto where = dt.compare( global_data );
                 std::cout << "\tbad data in " << name << " at " << where << std::endl;
             } else {
-                std::cout << "\t" << name << ".json\t\t" << "ok\n";
+                std::cout << "\t" << name << ".json\t" << "ok";
             }
         } catch ( std::exception& ex ) {
             std::cerr << boost::diagnostic_information( ex ) << std::endl;
-            std::cerr << "\tmap\t" << name << ".json" << "\t" << ex.what() << std::endl;
         }
     }
-
+    std::cout << std::endl;
 }
