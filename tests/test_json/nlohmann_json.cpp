@@ -87,15 +87,6 @@ nlohmann_json::map( data& d )
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
         return false;
     }
-#if 0
-    try {
-        auto alarm = top["alarms"]["alarm"];
-        std::cerr << alarm.dump() << std::endl;
-        d.alarm = alarm.at( "text" ).get< std::string >();
-    } catch ( std::exception& ex ) {
-        std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
-    }
-#endif
     try {
         auto& adc = top.at( "adc" );
         d.adc.tp = adc["tp"].get< decltype( d.adc.tp ) >();
@@ -114,32 +105,10 @@ nlohmann_json::make_json( const data& d )
 {
     using json = nlohmann::json;
 
-    json j =
-        { { "tick"
-            , { { "tick", d.tick }
-                , {"time", d.time }
-                , {"nsec", d.nsec }
-                , {"hv"
-                   , { {"values", json::array({}) } }
-                    }
-                , { "alarms"
-                    , { { "alarm", { { "text", d.alarm } } } }
-                    }
-                , { "adc"
-                    , { { "tp", d.adc.tp }
-                        , { "nacc", d.adc.nacc }
-                        , { "values", d.adc.values }
-                        }
-                    }
-                }
-            }
-        };
-
     json j_values;
 
     for ( const auto& value: d.values ) {
-        json j_value =
-        {
+        json j_value =  {
             { "id", value.id }
             , { "name", value.name }
             , { "sn", value.sn }
@@ -150,7 +119,25 @@ nlohmann_json::make_json( const data& d )
         j_values.push_back( j_value );
     }
 
-    j["tick"]["hv"]["values"] = j_values;
+    json j =
+        { { "tick"
+            , { { "tick", d.tick }
+                , {"time", d.time }
+                , {"nsec", d.nsec }
+                , {"hv"
+                    ,  { {"values", j_values }
+                       , { "alarms"
+                             , {{ "alarm", {{ "text", d.alarm }} }}
+                            }}}
+                , { "adc"
+                    , {{ "tp", d.adc.tp }
+                        , { "nacc", d.adc.nacc }
+                        , { "values", d.adc.values }
+                        }
+                    }
+                }
+            }
+        };
 
     std::ostringstream o;
     o << j;

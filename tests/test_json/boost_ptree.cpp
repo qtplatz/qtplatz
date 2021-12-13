@@ -125,7 +125,7 @@ boost_ptree::map( data& d )
 std::string
 boost_ptree::make_json( const data& d )
 {
-    boost::property_tree::ptree pt, hv, alarms, adc;
+    boost::property_tree::ptree pt, hv_values, alarms, adc;
     pt.put( "tick.tick", d.tick );
     pt.put( "tick.time", d.time );
     pt.put( "tick.nsec", d.nsec );
@@ -138,10 +138,11 @@ boost_ptree::make_json( const data& d )
         child.put( "set", value.set );
         child.put( "act", value.act );
         child.put( "unit", value.unit );
-        hv.push_back( std::make_pair( "", child ) );
+        hv_values.push_back( std::make_pair( "", child ) );
     }
 
-    alarms.put( "alarm.text", d.alarm );
+    alarms.put ( "alarm.text", d.alarm );
+
 
     adc.put( "tp", d.adc.tp );
     adc.put( "nacc", d.adc.nacc );
@@ -154,8 +155,8 @@ boost_ptree::make_json( const data& d )
     }
     adc.add_child( "values", child ); // adc
 
-    pt.add_child( "tick.hv", hv );
-    pt.add_child( "tick.alarms", alarms );
+    pt.add_child( "tick.hv.values", hv_values );
+    pt.add_child( "tick.hv.alarms", alarms );
     pt.add_child( "tick.adc", adc );
 
     return stringify( pt );

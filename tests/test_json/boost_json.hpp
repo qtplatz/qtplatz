@@ -39,5 +39,4 @@ public:
     bool map( data& );
     static std::string make_json( const data& );
     struct impl;
-    std::unique_ptr< impl > impl_;
 };

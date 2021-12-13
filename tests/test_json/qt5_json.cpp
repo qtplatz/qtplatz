@@ -160,10 +160,14 @@ qt5_json::make_json( const data& d )
         values.append( child );
     }
 
+    QJsonArray adc_values;
+    for ( const auto& adc_value: d.adc.values )
+        adc_values.push_back( adc_value );
+
     QJsonObject jobj{
         { "tick", QJsonObject{
                 { "tick", qint32( d.tick ) }
-                , { "time", std::to_string( d.time ).c_str() }
+                , { "time", qint64( d.time ) }
                 , { "nsec", qint32( d.nsec ) }
                 , { "hv", QJsonObject{
                         { "values", values }
@@ -174,6 +178,12 @@ qt5_json::make_json( const data& d )
                                 }
                             }
                         }
+                    }
+                }
+                , { "adc", QJsonObject{
+                        { "tp", qint64( d.adc.tp ) }
+                        , { "nacc", qint32( d.adc.nacc ) }
+                        , { "values", adc_values }
                     }
                 }
             }

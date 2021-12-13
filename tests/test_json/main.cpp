@@ -35,6 +35,7 @@
 #endif
 #include "data.hpp"
 #include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -42,6 +43,7 @@
 #include <vector>
 
 constexpr const int reference = 0;
+constexpr const size_t replicates = 250;
 data global_data;
 
 bool
@@ -179,16 +181,11 @@ const std::vector< std::string > parser_names = {
 
 template< typename last_t> struct parser_list< last_t > {
     void print( size_t ) const {}
-
     std::vector< double > parser( const std::string&, std::vector< double >&& d ) const { return d; }
-
     std::vector< double > json_write( const data& data, std::vector< double >&& d ) const { return d; }
-
     std::vector< std::pair< double, data > > json_read( const std::string& json_string
                                                         , std::vector< std::pair< double, data > >&& d ) const { return d; }
-
     void json_read_verify( const std::string& json_string, const data& reference, size_t ) const {}
-
     void json_serialize( const data& data, size_t idx = 0 ) const {}
 };
 
@@ -235,7 +232,6 @@ template< typename first_t, typename... args> struct parser_list< first_t, args 
 
         parser_list< args ... >().json_serialize( data, idx + 1 );
     }
-
 };
 
 void
@@ -270,7 +266,7 @@ main()
     parsers parsers;
 
     try {
-        for ( size_t i = 0; i < 100; ++i ) {
+        for ( size_t i = 0; i < replicates; ++i ) {
             auto dur = parsers.parser( json_string, std::vector<double>{} );
             transform( dur.begin(), dur.end(), durations.begin(), durations.begin()
                        , [](const double& a, const double& b){ return a+b; });
@@ -279,32 +275,32 @@ main()
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
-    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
+    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/replicates; } );
     report( "json parse", durations, true );
 
     std::fill( durations.begin(), durations.end(), 0 );
     try {
-        for ( size_t i = 0; i < 100; ++i ) {
+        for ( size_t i = 0; i < replicates; ++i ) {
             auto dur = parsers.json_write( global_data, std::vector<double>{} );
             transform( dur.begin(), dur.end(), durations.begin(), durations.begin(), [](const double& a, const double& b){ return a+b; });
         }
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
-    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
+    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/replicates; } );
     report( "json write", durations );
 
     try {
         std::fill( durations.begin(), durations.end(), 0 );
         // json(string) -> c++ class
-        for ( size_t i = 0; i < 100; ++i ) {
+        for ( size_t i = 0; i < replicates; ++i ) {
             auto r = parsers.json_read( json_string, std::vector< std::pair< double, data > >{} );
             transform( r.begin(), r.end(), durations.begin(), durations.begin(), [](const auto& a, const auto& b){ return a.first + b; });
         }
     } catch ( std::exception& ex ) {
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what() << std::endl;
     }
-    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
+    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/replicates; } );
     report( "json read", durations );
 
     try {
@@ -321,9 +317,36 @@ main()
         std::cerr << __FILE__ << ":" << __LINE__ << " exception: " << ex.what();
     }
 
-    data t;
-    json_parser< qt5_json >::json_read( t, json_string );
-    if ( !( t == global_data )) {
-        std::cerr << t.time << ", " << global_data.time;
+    std::cout << "\n\tjson read test\n";
+
+    typedef boost_json reference_parser;
+
+    for ( const auto& name: parser_names ) {
+
+        std::ifstream inf( name + ".json" );
+        auto json_str = std::string((std::istreambuf_iterator<char>(inf)),  (std::istreambuf_iterator<char>()));
+        data dt;
+        reference_parser parser;
+        try {
+            parser.parse( json_str );
+        } catch ( std::exception& ex ) {
+            if ( name == "boost_ptree" )
+                std::cerr << "parse\t" << name << ".json" << "\t" << ex.what() << "\t(expected)" << std::endl;
+            else
+                std::cerr << "parse\t" << name << ".json" << "\t" << ex.what() << std::endl;
+        }
+        try {
+            parser.map( dt );
+            if ( !( dt == global_data ) ) {
+                auto where = dt.compare( global_data );
+                std::cout << "\tbad data in " << name << " at " << where << std::endl;
+            } else {
+                std::cout << "\t" << name << ".json\t\t" << "ok\n";
+            }
+        } catch ( std::exception& ex ) {
+            std::cerr << boost::diagnostic_information( ex ) << std::endl;
+            std::cerr << "\tmap\t" << name << ".json" << "\t" << ex.what() << std::endl;
+        }
     }
+
 }
