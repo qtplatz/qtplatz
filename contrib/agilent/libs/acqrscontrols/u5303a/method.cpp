@@ -242,36 +242,3 @@ method::setProtocolIndex( uint32_t value , bool modifyDeviceMethod )
     }
     return dirty;
 }
-
-bool
-method::import( const boost::property_tree::ptree& pt )
-{
-    bool success( true );
-
-    if ( auto pa = pt.get_child_optional( "protocols.protocol" ) ) {
-        protocols_.resize( pa->size() );
-        std::transform( pa->begin(), pa->end(), protocols_.begin(), [&]( auto& p ){
-                if ( auto tof = adcontrols::TofProtocol::fromJson( p.second ) )
-                    return *tof;
-                success = false;
-                return adcontrols::TofProtocol{};
-            });
-    }
-    if ( success )
-        setProtocolIndex( 0, true );
-    return success;
-}
-
-boost::property_tree::ptree
-method::toJson() const
-{
-    boost::property_tree::ptree pt, protocols;
-
-    int index(0);
-    for ( auto& p: this->protocols_ )
-        protocols.push_back( { "", p.toJson( index++ ) } );
-
-    pt.add_child( "protocols", protocols );
-
-    return pt;
-}

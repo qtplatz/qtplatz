@@ -74,7 +74,6 @@ namespace adcontrols {
         void text( const std::string& text, DataFormat f = dataText );
         // void setJson( std::string&& );
         boost::optional< std::string > json() const;
-        // boost::optional< boost::property_tree::ptree > ptree() const;
 
         int index() const;
         void index( int );

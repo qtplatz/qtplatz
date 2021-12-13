@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -25,9 +25,10 @@
 
 #include "adcontrols/adcontrols_global.h"
 #include <boost/optional.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
+#include <boost/json/value_to.hpp>
+#include <boost/json/value_from.hpp>
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -73,6 +74,8 @@ namespace adcontrols {
 
         void setDigitizerDelayWidth( std::pair< double, double >&& );
         const std::pair<double, double>& digitizerDelayWidth() const;  // actual tof start will be "delay_pulse()[EXT_ADC_TRIG].first + digitizerRange().first"
+        void setIndex( int );
+        int index() const;
 
     private:
         double lower_mass_;
@@ -85,14 +88,10 @@ namespace adcontrols {
         uint32_t reference_;                    // lock mass reference (bit position indicate which formula in formulae
         std::vector< std::string > formulae_;   // formula list, separate with ';'
         std::string devicedata_;                // device specific data
-
+        int index_;
     public:
         TofProtocol();
         TofProtocol( const TofProtocol& t );
-
-        static boost::optional< TofProtocol > fromJson( const boost::property_tree::ptree& );
-        boost::property_tree::ptree toJson( int index ) const;
-
     private:
         friend class boost::serialization::access;
         template< class Archive >
@@ -100,8 +99,15 @@ namespace adcontrols {
 
         friend class TofProtocol_archive < TofProtocol > ;
         friend class TofProtocol_archive < const TofProtocol > ;
+        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
+        friend TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
     };
 
+    // TofProtocol
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
+    ADCONTROLSSHARED_EXPORT
+    TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
 };
 
 BOOST_CLASS_VERSION( adcontrols::TofProtocol, 2 )

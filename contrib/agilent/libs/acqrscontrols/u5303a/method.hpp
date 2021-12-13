@@ -30,7 +30,6 @@
 #include <adcontrols/threshold_action.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <cstdint>
 #include <memory>
 #include <iostream>
@@ -79,9 +78,6 @@ namespace acqrscontrols {
             static bool restore( std::istream&, method& );
             static bool xml_archive( std::wostream&, const method& );
             static bool xml_restore( std::wistream&, method& );
-
-            bool import( const boost::property_tree::ptree& );
-            boost::property_tree::ptree toJson() const;
 
         private:
             uint32_t channels_;

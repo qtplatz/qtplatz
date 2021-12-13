@@ -24,6 +24,8 @@
 
 #include "tofprotocol.hpp"
 #include <adcontrols/metric/prefix.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/variant.hpp>
@@ -34,7 +36,8 @@
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 
 namespace adcontrols {
 
@@ -93,6 +96,7 @@ TofProtocol::TofProtocol() : lower_mass_( 0 )
                                    , { 0,0 }            // exit
                                    , { 0,0 }, { 0,0 }   // gate0, gate1
                                    , { 0,0 } }  )       // ext. trig delay (helio -> digitizer trig.)
+                           , index_( 0 )
 {
 }
 
@@ -106,6 +110,7 @@ TofProtocol::TofProtocol( const TofProtocol& t ) : lower_mass_( t.lower_mass_ )
                                                  , reference_( t.reference_ )
                                                  , formulae_( t.formulae_ )
                                                  , devicedata_( t.devicedata_ )
+                                                 , index_( t.index_ )
 {
 }
 
@@ -213,77 +218,147 @@ TofProtocol::digitizerDelayWidth() const
 
 ///////////////////
 // static
-boost::optional< TofProtocol >
-TofProtocol::fromJson( const boost::property_tree::ptree& pt )
+// boost::optional< TofProtocol >
+// TofProtocol::fromJson( const boost::property_tree::ptree& pt )
+// {
+//     TofProtocol atof;
+
+//     auto avgr_delay = pt.get_optional< double >( "avgr_delay" );
+//     auto avgr_duration = pt.get_optional< double >( "avgr_duration" );
+//     if ( avgr_delay && avgr_duration )
+//         atof.setDigitizerDelayWidth( { *avgr_delay, *avgr_duration } );
+
+//     auto formulae = pt.get_optional< std::string >( "formulae" );
+//     auto mode = pt.get_optional< int >( "mode" );
+//     auto navg = pt.get_optional< int >( "number_of_triggers" );
+//     if ( !( formulae && navg && mode ) )
+//         return boost::none;
+
+//     atof.setNumber_of_triggers( *navg );
+//     atof.setMode( *mode );
+//     atof.formulae().emplace_back( *formulae );
+//     if ( auto ref = pt.get_optional< int >( "reference" ) )
+//         atof.setReference( *ref );
+
+//     if ( auto pulses = pt.get_child_optional( "pulses" ) ) {
+//         std::vector< TofProtocol::delay_pulse_type > delay_pulses;
+//         for ( auto pulse: *pulses ) {
+//             if ( auto enable = pulse.second.get_optional< bool >( "enable" ) )
+//                 delay_pulses.emplace_back(
+//                     pulse.second.get< double >( "delay" )
+//                     , *enable ? pulse.second.get< double >( "width" ) : 0.0 );
+//             else
+//                 delay_pulses.emplace_back(
+//                     pulse.second.get< double >( "delay" )
+//                     , pulse.second.get< double >( "width" ) );
+//         }
+//         atof.set_delay_pulses( std::move( delay_pulses ) );
+//     }
+//     return atof;
+// }
+
+void
+TofProtocol::setIndex( int index )
 {
-    TofProtocol atof;
-
-    auto avgr_delay = pt.get_optional< double >( "avgr_delay" );
-    auto avgr_duration = pt.get_optional< double >( "avgr_duration" );
-    if ( avgr_delay && avgr_duration )
-        atof.setDigitizerDelayWidth( { *avgr_delay, *avgr_duration } );
-
-    auto formulae = pt.get_optional< std::string >( "formulae" );
-    auto mode = pt.get_optional< int >( "mode" );
-    auto navg = pt.get_optional< int >( "number_of_triggers" );
-    if ( !( formulae && navg && mode ) )
-        return boost::none;
-
-    atof.setNumber_of_triggers( *navg );
-    atof.setMode( *mode );
-    atof.formulae().emplace_back( *formulae );
-    if ( auto ref = pt.get_optional< int >( "reference" ) )
-        atof.setReference( *ref );
-
-    if ( auto pulses = pt.get_child_optional( "pulses" ) ) {
-        std::vector< TofProtocol::delay_pulse_type > delay_pulses;
-        for ( auto pulse: *pulses ) {
-            if ( auto enable = pulse.second.get_optional< bool >( "enable" ) )
-                delay_pulses.emplace_back(
-                    pulse.second.get< double >( "delay" )
-                    , *enable ? pulse.second.get< double >( "width" ) : 0.0 );
-            else
-                delay_pulses.emplace_back(
-                    pulse.second.get< double >( "delay" )
-                    , pulse.second.get< double >( "width" ) );
-        }
-        atof.set_delay_pulses( std::move( delay_pulses ) );
-    }
-    return atof;
+    index_ = index;
 }
 
-boost::property_tree::ptree
-TofProtocol::toJson( int index ) const
+int
+TofProtocol::index() const
 {
-    boost::property_tree::ptree pt, pulses;
+    return index_;
+}
 
-    int id(0);
-    for ( auto& p: delay_pulses_ ) {
-        boost::property_tree::ptree pulse;
-        pulse.put( "delay", p.first );
-        pulse.put( "width", p.second );
-        pulse.put( "id", id++ );
-        pulses.push_back( { "", pulse } );
+// boost::property_tree::ptree
+// TofProtocol::toJson( int index ) const
+// {
+//     boost::property_tree::ptree pt, pulses;
+
+//     int id(0);
+//     for ( auto& p: delay_pulses_ ) {
+//         boost::property_tree::ptree pulse;
+//         pulse.put( "delay", p.first );
+//         pulse.put( "width", p.second );
+//         pulse.put( "id", id++ );
+//         pulses.push_back( { "", pulse } );
+//     }
+
+//     pt.put( "index", index );
+
+//     pt.put( "lower_mass", lower_mass_ );
+//     pt.put( "upper_mass", upper_mass_ );
+//     pt.put( "mode", mode_ );
+//     pt.put( "number_of_triggers", number_of_triggers_ );
+//     pt.put( "avgr_delay",  digitizer_delay_width_.first );
+//     pt.put( "avgr_duration",  digitizer_delay_width_.second );
+//     pt.add_child( "pulses", pulses );
+//     pt.put( "reference", reference_ );
+//     //
+//     std::string formulae;
+//     std::for_each( formulae_.begin(), formulae_.end(),  [&]( const auto& formula ) {
+//         formulae += formulae.empty() ? formula : (std::string(";") + formula);
+//     });
+
+//     if ( ! formulae.empty() )
+//         pt.put( "formulae", formulae );
+//     // todo: device_data
+//     return pt;
+// }
+
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofProtocol& t )
+    {
+        boost::json::array delay_pulses;
+        int id(0);
+        for ( auto& p: t.delay_pulses_ ) {
+            delay_pulses.emplace_back(
+                boost::json::object{{ "delay", p.first}, { "width", p.second }, { "id", id++}} );
+        }
+        jv = boost::json::object{
+            { "index", t.index_ }
+            , { "lower_mass", t.lower_mass_ }
+            , { "upper_mass", t.upper_mass_ }
+            , { "mode", t.mode_ }
+            , { "number_of_triggers", t.number_of_triggers_ }
+            , { "avgr_delay",         t.digitizer_delay_width_.first }
+            , { "avgr_duration",      t.digitizer_delay_width_.second }
+            , { "pulses",             delay_pulses }
+            , { "reference",          t.reference_ }
+            , { "formulae",           t.formulae_ } //boost::json::value_from( t.formulae_ ) }
+        };
     }
 
-    pt.put( "index", index );
+    TofProtocol
+    tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv )
+    {
+        using namespace adportable::json;
+        TofProtocol t;
+        if ( jv.is_object() ) {
+            const auto& jobj = jv.as_object();
 
-    pt.put( "lower_mass", lower_mass_ );
-    pt.put( "upper_mass", upper_mass_ );
-    pt.put( "mode", mode_ );
-    pt.put( "number_of_triggers", number_of_triggers_ );
-    pt.put( "avgr_delay",  digitizer_delay_width_.first );
-    pt.put( "avgr_duration",  digitizer_delay_width_.second );
-    pt.add_child( "pulses", pulses );
-    pt.put( "reference", reference_ );
-    //
-    std::string formulae;
-    std::for_each( formulae_.begin(), formulae_.end(),  [&]( const auto& formula ) {
-        formulae += formulae.empty() ? formula : (std::string(";") + formula);
-    });
+            extract( jobj,     t.index_,                         "index" );
+            extract( jobj,     t.lower_mass_ ,                   "lower_mass");
+            extract( jobj,     t.upper_mass_ ,                   "upper_mass");
+            extract( jobj,     t.mode_ ,                         "mode");
+            extract( jobj,     t.number_of_triggers_ ,           "number_of_triggers");
+            extract( jobj,     t.digitizer_delay_width_.first ,  "avgr_delay");
+            extract( jobj,     t.digitizer_delay_width_.second , "avgr_duration");
+            // extract( jobj,     t.delay_pulses_ ,                 "pulses");
+            extract( jobj,     t.reference_ ,                    "reference");
+            extract( jobj,     t.formulae_ ,                     "formulae");
 
-    if ( ! formulae.empty() )
-        pt.put( "formulae", formulae );
-    // todo: device_data
-    return pt;
+            auto delay_pulses = adportable::json_helper::find( jv, "pulses" );
+            if ( delay_pulses.is_array() ) {
+                for ( const auto& pulse: delay_pulses.as_array() ) {
+                    TofProtocol::delay_pulse_type a;
+                    extract( pulse.as_object(), a.first, "delay" );
+                    extract( pulse.as_object(), a.second, "width" );
+                    t.delay_pulses_.emplace_back( a );
+                }
+            }
+        }
+        return t;
+    }
 }
