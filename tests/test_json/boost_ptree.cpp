@@ -102,14 +102,16 @@ boost_ptree::map( data& d )
                     x.unit = value.get();
                 d.values.emplace_back( x );
             }
+            // boost::property_tree::write_json( std::cerr, *hv, false );
         }
-        if ( auto alarm = tick->get_child_optional( "hv.alarms.alarm" ) ) {
+        if ( auto alarm = tick->get_child_optional( "alarms.alarm" ) ) {
             if ( auto value = alarm->get_optional< std::string >( "text" ) ) {
-                d.alarm = *value;
+                d.alarm = value.get();
             }
         }
 
         if ( auto adc = tick->get_child_optional( "adc" ) ) {
+            // boost::property_tree::write_json( std::cerr, *adc, false );
             if ( auto value = adc->get_optional< uint64_t >( "tp" ) )
                 d.adc.tp = value.get();
             if ( auto value = adc->get_optional< uint32_t >( "nacc" ) )
