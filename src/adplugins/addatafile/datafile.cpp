@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -59,8 +59,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/json.hpp>
 #include <algorithm>
 #include <iostream>
@@ -273,36 +271,29 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 
             boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
 
-            boost::property_tree::ptree ptop;
+            boost::json::object ptop;
             auto undefined_dataReaders = boost::apply_visitor( detail::undefined_data_readers(), rawdata_ );
             if ( ! undefined_dataReaders.empty() ) {
-                boost::property_tree::ptree pt;
+                boost::json::array ja;
                 std::for_each( undefined_dataReaders.begin(), undefined_dataReaders.end()
                                , [&](auto& a){
-                                   boost::property_tree::ptree item;
-                                   item.put( "objtext", a.first );
-                                   item.put( "objid", a.second );
-                                   pt.push_back( std::make_pair("", item ) );
+                                   ja.emplace_back( boost::json::object{{ "objtext", a.first }, {"objid", a.second }} );
                                });
-                ptop.add_child( "dataReader", pt );
+                ptop[ "dataReader" ] = ja;
             }
 
             auto undefined_spectrometers = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
             if ( ! undefined_spectrometers.empty() ) {
-                boost::property_tree::ptree pt;
+                boost::json::array ja;
                 std::for_each( undefined_spectrometers.begin(), undefined_spectrometers.end()
                                , [&](auto& a){
-                                   boost::property_tree::ptree item;
-                                   item.put( "spectrometer", a );
-                                   pt.push_back( std::make_pair( "", item ) );
+                                   ja.emplace_back( boost::json::object{{"spectrometer", a }} );
                                });
-                ptop.add_child( "spectrometer", pt );
+                ptop[ "spectrometer" ] = ja;
             }
 
             if ( !ptop.empty() ) {
-                std::ostringstream json;
-                boost::property_tree::write_json( json, ptop );
-                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, json.str() );
+                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, boost::json::serialize( ptop ) );
             }
         }
 

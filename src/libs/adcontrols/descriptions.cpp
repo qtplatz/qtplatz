@@ -1,3 +1,4 @@
+
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
@@ -42,11 +43,10 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
+
+#include <boost/json.hpp>
 
 using namespace adcontrols;
 
@@ -197,15 +197,13 @@ descriptions::make_folder_name( const std::wstring& regex ) const
 std::string
 descriptions::toJson() const
 {
-    boost::property_tree::ptree pt;
+    boost::json::array ja;
     for ( const auto& desc: *this ) {
         std::string key, value;
         std::tie(key, value) = desc.keyValue();
-        pt.put( key, value );
+        ja.emplace_back( boost::json::object{{ key, value }} );
     }
-    std::ostringstream o;
-    boost::property_tree::write_json( o, pt );
-    return o.str();
+    return boost::json::serialize( ja );
 }
 
 namespace adcontrols {

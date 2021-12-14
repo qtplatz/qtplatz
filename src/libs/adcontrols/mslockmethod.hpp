@@ -32,6 +32,7 @@
 #include <boost/serialization/version.hpp>
 #include <string>
 #include <memory>
+#include <boost/json/value_from.hpp>
 
 namespace boost {
     namespace serialization { class access; }
@@ -75,9 +76,6 @@ namespace adcontrols {
         moltable& molecules();
         void setMolecules( const moltable& );
 
-        std::string toJson() const;
-        operator boost::json::object () const;
-
     private:
         bool enabled_;
         bool enablePeakThreshold_;
@@ -92,7 +90,14 @@ namespace adcontrols {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
         friend class MSLockMethod_archive< MSLockMethod >;
         friend class MSLockMethod_archive< const MSLockMethod >;
+        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const MSLockMethod& );
     };
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const MSLockMethod& );
+
+    // ADCONTROLSSHARED_EXPORT
+    // MSLockMethod tag_invoke( boost::json::value_to_tag< MSLockMethod >&, const boost::json::value& jv );
 
 }
 

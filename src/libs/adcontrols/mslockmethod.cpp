@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -36,8 +36,6 @@
 #include <boost/archive/archive_exception.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/json.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/utility.hpp>
@@ -230,74 +228,39 @@ MSLockMethod::setMolecules( const moltable& mols )
     molecules_ = std::make_unique< moltable >( mols );
 }
 
-MSLockMethod::operator boost::json::object () const
-{
-    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+namespace adcontrols {
 
-    boost::json::array mols;
-    for ( const auto& mol: molecules_->data() ) {
-        mols.emplace_back( boost::json::object{
-                { "enable", mol.enable() }
-                , { "flags",  mol.flags() }
-                , { "mass", mol.mass() }
-                , { "abundance", mol.abundance() }
-                , { "formula", mol.formula() }
-                , { "adducts", mol.adducts() }
-                , { "synonym", mol.synonym() }
-                , { "smiles",  mol.smiles() }
-                , { "description",  cvt.to_bytes( mol.description() ) }
-                , { "isMSRef",  mol.isMSRef() } // equivalent to ( mol.flags() & moltable::isMSRef )
-            } );
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MSLockMethod& t )
+    {
+        std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+
+        boost::json::array mols;
+        for ( const auto& mol: t.molecules_->data() ) {
+            mols.emplace_back( boost::json::object{
+                    { "enable", mol.enable() }
+                    , { "flags",  mol.flags() }
+                    , { "mass", mol.mass() }
+                    , { "abundance", mol.abundance() }
+                    , { "formula", mol.formula() }
+                    , { "adducts", mol.adducts() }
+                    , { "synonym", mol.synonym() }
+                    , { "smiles",  mol.smiles() }
+                    , { "description",  cvt.to_bytes( mol.description() ) }
+                    , { "isMSRef",  mol.isMSRef() } // equivalent to ( mol.flags() & moltable::isMSRef )
+                } );
+        }
+
+        jv = boost::json::object{
+            { "clsid", "adcontrols::MSLockMethod" }
+            , { "enabled", t.enabled_ }
+            , { "enablePeakThreshold", t.enablePeakThreshold_ }
+            , { "algorithm", int64_t( t.algorithm_ ) }
+            , { "toleranceMethod", int64_t( t.toleranceMethod_ ) }
+            , { "toleranceDa", t.toleranceDa_ }
+            , { "tolerancePpm", t.tolerancePpm_ }
+            , { "molecules", std::move( mols ) }
+        };
     }
 
-    return boost::json::object{
-        { "clsid", "adcontrols::MSLockMethod" }
-        , { "enabled", enabled_ }
-        , { "enablePeakThreshold", enablePeakThreshold_ }
-        , { "algorithm", int64_t( algorithm_ ) }
-        , { "toleranceMethod", int64_t( toleranceMethod_ ) }
-        , { "toleranceDa", toleranceDa_ }
-        , { "tolerancePpm", tolerancePpm_ }
-        , { "molecules", std::move( mols ) }
-    };
-}
-
-
-std::string
-MSLockMethod::toJson() const
-{
-    return boost::json::serialize( static_cast< const boost::json::object& >(*this) );
-#if 0
-    boost::property_tree::ptree pt;
-    pt.put( "clsid", "adcontrols::MSLockMethod");
-    pt.put( "enabled", enabled_ );
-    pt.put( "enablePeakThreshold", enablePeakThreshold_ );
-    pt.put( "algorithm", algorithm_ );
-    pt.put( "toleranceMethod", toleranceMethod_ );
-    pt.put( "toleranceDa", toleranceDa_ );
-    pt.put( "tolerancePpm", tolerancePpm_ );
-
-    boost::property_tree::ptree jmols;
-    for ( const auto& mol: molecules_->data() ) {
-        boost::property_tree::ptree jmol;
-        jmol.put( "enable", mol.enable() );
-        jmol.put( "flags", mol.flags() );
-        jmol.put( "mass", mol.mass() );
-        jmol.put( "abundance", mol.abundance() );
-        jmol.put( "formula", mol.formula() );
-        jmol.put( "adducts", mol.adducts() );
-        jmol.put( "synonym", mol.synonym() );
-        jmol.put( "smiles",  mol.smiles() );
-        jmol.put( "description",  mol.description() );
-        jmol.put( "isMSRef",  mol.isMSRef() ); // equivalent to ( mol.flags() & moltable::isMSRef )
-        jmols.push_back( { "", jmol } );
-    }
-
-    pt.add_child( "molecules", jmols );
-
-    std::ostringstream o;
-    boost::property_tree::write_json( o, pt );
-
-    return o.str();
-#endif
 }
