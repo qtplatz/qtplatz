@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2019-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2019-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,6 +28,7 @@
 #include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/json/value_from.hpp>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -63,8 +64,8 @@ namespace adcontrols {
         idIntensity intensityMethod() const;
         void setIntensityMethod( idIntensity );
 
-        std::string toJson() const;
-        void fromJson( const std::string& );
+        // std::string toJson() const;
+        // void fromJson( const std::string& );
 
         bool enableAutoTargeting() const;
         void setEnableAutoTargeting( bool );
@@ -97,8 +98,16 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( enableAutoTargeting_ );
                 ar & BOOST_SERIALIZATION_NVP( peakWidthForChromatogram_ );
             }
-        };
+        }
+
+        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const QuanResponseMethod& );
+        friend QuanResponseMethod tag_invoke( boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv );
     };
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const QuanResponseMethod& );
+    ADCONTROLSSHARED_EXPORT
+    QuanResponseMethod tag_invoke( boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv );
 
 }
 

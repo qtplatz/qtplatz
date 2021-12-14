@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2019-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2019-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,9 +23,9 @@
 **************************************************************************/
 
 #include "quanresponsemethod.hpp"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include "msfinder.hpp"
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
 
 using namespace adcontrols;
 
@@ -145,40 +145,41 @@ QuanResponseMethod::setPeakWidthForChromatogram( double value )
     peakWidthForChromatogram_ = value;
 }
 
+namespace adcontrols {
 
-std::string
-QuanResponseMethod::toJson() const
-{
-    boost::property_tree::ptree pt;
-    pt.put( "clsid", "adcontrols::QuanResponseMethod" );
-    pt.put( "width.widthMethod", widthMethod_ );
-    pt.put( "width.widthPpm", widthPpm_ );
-    pt.put( "width.widthDaltons", widthDaltons_ );
-    pt.put( "data.dataSelectionMethod", dataSelect_ );
-    pt.put( "data.intensity", intensityMethod_ );  // doCentroid or Area
-    pt.put( "data.findAlgo", findAlgo_ );          // Most intens peak/Closest
-    pt.put( "autoTargeting.enable", enableAutoTargeting_ );
-    pt.put( "autoTargeting.peakwidth", peakWidthForChromatogram_ );
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const QuanResponseMethod& t )
+    {
+        jv = {
+            { "clsid",                     "adcontrols::QuanResponseMethod" }
+            , { "width.widthMethod",        uint32_t( t.widthMethod_ ) } // enum
+            , { "width.widthPpm",           t.widthPpm_ }
+            , { "width.widthDaltons",       t.widthDaltons_ }
+            , { "data.dataSelectionMethod", uint32_t( t.dataSelect_ ) } // enum
+            , { "data.intensity",           uint32_t( t.intensityMethod_ ) } // enum  // doCentroid or Area
+            , { "data.findAlgo",            uint32_t( t.findAlgo_ ) }     // enum     // Most intens peak/Closest
+            , { "autoTargeting.enable",     t.enableAutoTargeting_ }      // bool
+            , { "autoTargeting.peakwidth",  t.peakWidthForChromatogram_ } // double
+        };
+    }
 
-    std::ostringstream o;
-    boost::property_tree::write_json( o, pt );
-
-    return o.str();
-}
-
-void
-QuanResponseMethod::fromJson( const std::string& json )
-{
-    boost::property_tree::ptree pt;
-
-    std::istringstream in( json );
-    boost::property_tree::read_json( in, pt );
-    // if ( auto widthMethod = pt.get_optional< int >( "width.widthMethod" ) )
-    //     widthMethod_ = static_cast< idWidthMethod >( widthMethod.get() );
-    // if ( auto widthPpm = pt.get_optional< double >( "width.widthPpm" ) )
-    //     widthPpm_ = widthPpm.get();
-    // if ( auto widthDaltons = pt.get_optional< double >( "width.widthDaltons" ) )
-    //     widthDaltons_ = widthDaltons.get();
-    // if ( auto dataMethod = pt.get_optional< int >( "data.dataMethod" ) )
-    //     dataMethod_ = static_cast< idData >( dataMethod.get() );
+    QuanResponseMethod
+    tag_invoke( boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv )
+    {
+        using namespace adportable::json;
+        QuanResponseMethod t;
+        if ( jv.is_object() ) {
+            const auto& obj = jv.as_object();
+            uint32_t x;
+            extract( obj, x, "width.widthMethod" );  t.widthMethod_ = QuanResponseMethod::idWidthMethod( x );
+            extract( obj, t.widthPpm_, "width.widthPpm" );
+            extract( obj, t.widthDaltons_, "width.widthDaltons" );
+            extract( obj, x, "data.dataSelectionMethod" ); t.dataSelect_ = QuanResponseMethod::idDataSelect( x );
+            extract( obj, x, "data.intensity" ); t.intensityMethod_ = QuanResponseMethod::idIntensity(x);
+            extract( obj, x, "data.findAlgo" ); t.findAlgo_ = idFindAlgorithm( x );
+            extract( obj, t.enableAutoTargeting_, "autoTargeting.enable" );
+            extract( obj, t.peakWidthForChromatogram_, "autoTargeting.peakwidth" );
+        }
+        return t;
+    }
 }

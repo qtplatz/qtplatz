@@ -126,7 +126,6 @@ namespace adcontrols {
             int32_t proto_;
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
-            boost::property_tree::ptree ptree_; // deprecated, not archived
             boost::optional< std::string > generator_property_;
             std::vector< double > tofArray_;
             std::vector< double > massArray_;
@@ -155,8 +154,16 @@ namespace adcontrols {
                     if ( version >= 3 )
                         ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
                     if ( version >= 4 ) {
+                        boost::property_tree::ptree ptree;
                         ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
-                        ar & BOOST_SERIALIZATION_NVP( ptree_ );
+                        ar & BOOST_SERIALIZATION_NVP( ptree );
+                        if ( Archive::is_loading::value ) {
+                            if ( ! (ptree.empty() && ptree.data().empty() )) {
+                                std::ostringstream o;
+                                boost::property_tree::write_json( o, ptree );
+                                generator_property_ = o.str();
+                            }
+                        }
                     }
                     if ( version >= 5 ) {
                         ar & BOOST_SERIALIZATION_NVP( tofArray_ );
@@ -169,13 +176,6 @@ namespace adcontrols {
                     if ( version >= 8 ) {
                         ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                         ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
-                    }
-                    if ( Archive::is_loading::value ) {
-                        if ( ! (ptree_.empty() && ptree_.data().empty() )) {
-                            std::ostringstream o;
-                            boost::property_tree::write_json( o, ptree_ );
-                            generator_property_ = o.str();
-                        }
                     }
                 } else if ( version >= 9 ) {
                     ar & BOOST_SERIALIZATION_NVP( samplingInterval_ );
@@ -836,7 +836,6 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , proto_( t.proto_ )
                                                                 , dataReaderUuid_( t.dataReaderUuid_ )
                                                                 , dataGuid_( t.dataGuid_ )
-                                                                , ptree_( t.ptree_ )
                                                                 , generator_property_( t.generator_property_ )
                                                                 , tofArray_( t.tofArray_ )
                                                                 , massArray_( t.massArray_ )
@@ -934,16 +933,6 @@ Chromatogram::dataReaderUuid() const
     return pImpl_->dataReaderUuid_;
 }
 
-// deprecated
-// void
-// Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
-// {
-//     pImpl_->ptree_ = pt;
-//     std::ostringstream o;
-//     boost::property_tree::write_json( o, pt );
-//     pImpl_->generator_property_ = o.str();
-// }
-
 void
 Chromatogram::setGeneratorProperty( const std::string& prop )
 {
@@ -1022,20 +1011,6 @@ Chromatogram::dataGuid() const
 {
     return pImpl_->dataGuid_;
 }
-
-#if 0
-boost::property_tree::ptree const
-Chromatogram::ptree() const
-{
-    if ( pImpl_->generator_property_ ) {
-        boost::property_tree::ptree pt;
-        std::istringstream is( *pImpl_->generator_property_ );
-        boost::property_tree::read_json( is, pt );
-        return pt;
-    }
-    return {};
-}
-#endif
 
 bool
 Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool horizontalBaseline, double baseLevel ) const

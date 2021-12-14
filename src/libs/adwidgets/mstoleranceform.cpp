@@ -30,6 +30,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <boost/json.hpp>
 
 using namespace adwidgets;
 
@@ -136,13 +137,12 @@ MSToleranceForm::toJson( bool pritty ) const
 {
     adcontrols::QuanResponseMethod m;
     getContents( m );
-    return m.toJson();
+    return boost::json::serialize( boost::json::value_from( m ) ); //m.toJson();
 }
 
 void
 MSToleranceForm::fromJson( const std::string& json )
 {
-    adcontrols::QuanResponseMethod m;
-    m.fromJson( json );
+    auto m = boost::json::value_to< adcontrols::QuanResponseMethod >( boost::json::parse( json ) );
     setContents( m );
 }
