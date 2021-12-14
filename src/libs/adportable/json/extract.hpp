@@ -29,6 +29,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/lexical_cast.hpp>
 #include <type_traits>
+#include <iostream>
 
 namespace boost { namespace uuids { class uuid; } };
 
@@ -39,6 +40,8 @@ namespace adportable {
         struct workaround {
             template< typename T > void assign( T& t, boost::json::string_view value ) {
                 t = boost::lexical_cast< T >( value );
+                std::cerr << __FILE__ << ":" << __LINE__ << "\t## workaround assign type to " << std::string( typeid(t).name() )
+                          << std::endl;
             }
         };
 

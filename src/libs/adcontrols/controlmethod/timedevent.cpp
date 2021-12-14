@@ -55,7 +55,10 @@ namespace adcontrols {
 
         struct null_type {};
         template< typename... Types> struct value_type_list {};
-        using value_types = value_type_list< duration_type, voltage_type, switch_type, choice_type, delay_width_type, any_type, null_type >;
+        using value_types = value_type_list< duration_type, voltage_type
+                                             , switch_type, choice_type
+                                             , delay_width_type, any_type
+                                             , null_type >;
 
         template< typename last_t > struct value_type_list< last_t > {
         };
@@ -228,9 +231,14 @@ namespace adcontrols {
             template<class Archive> void serialize( Archive& ar, T& _, const unsigned int version )
             {
                 using namespace boost::serialization;
-                if ( version >= 1 ) {
+                if ( version == 1 && Archive::is_loading::value ) {
                     boost::property_tree::ptree ptree;
                     ar & BOOST_SERIALIZATION_NVP( ptree );
+                    std::ostringstream o;
+                    boost::property_tree::write_json( o, ptree );
+                    auto jv = boost::json::parse( o.str() );
+                    ADDEBUG() << jv;
+                    _ = boost::json::value_to< TimedEvent >( jv );
                 }
                 if ( version == 0 || version >= 2 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.modelClsid_ );
@@ -434,9 +442,24 @@ namespace adcontrols {
                 extract( obj, t.name_, "name" );
                 extract( obj, t.displayName_, "displayName" );
                 extract( obj, t.time_, "time" );
-                // , { "data", boost::apply_visitor( toValue(), t.value_ ) }
+                auto data = adportable::json_helper::find( obj, "data" );
+                if ( data.is_object() ) {
+                    auto type_name = boost::json::value_to< std::string >( data.as_object().at( "type" ) );
+                    if ( type_name == value_name()( duration_type() ) ) {
+                        t.value_ = boost::json::value_to< duration_type >( data );
+                    } else if ( type_name == value_name()( voltage_type() ) ) {
+                        t.value_ = boost::json::value_to< voltage_type >( data );
+                    } else if ( type_name == value_name()( switch_type() ) ) {
+                        t.value_ = boost::json::value_to< switch_type >( data );
+                    } else if ( type_name == value_name()( choice_type() ) ) {
+                        t.value_ = boost::json::value_to< choice_type >( data );
+                    } else if ( type_name == value_name()( delay_width_type() ) ) {
+                        t.value_ = boost::json::value_to< delay_width_type >( data );
+                    } else if ( type_name == value_name()( any_type() ) ) {
+                        t.value_ = boost::json::value_to< any_type >( data );
+                    }
+                }
             }
-
             return t;
         }
     }
