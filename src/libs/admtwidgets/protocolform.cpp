@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,6 +28,8 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <QCheckBox>
 #include <QComboBox>
@@ -463,25 +465,29 @@ protocolForm::setJson( const QJsonObject& jobj )
 }
 
 void
-protocolForm::setJson( const boost::property_tree::ptree& pt )
+protocolForm::setJson( const boost::json::value& pt )
 {
-    if ( auto replicates = pt.get_optional< int >( "replicates" ) ) {
+    if ( pt.is_object() ) {
+        const auto& obj = pt.as_object();
+
+        int replicates = boost::json::value_to< int >( obj.at( "replicates" ) );
         if ( auto gBox = findChild< QGroupBox * >( "topGroupBox" ) )
-            gBox->setChecked( replicates.get() != 0 );
+            gBox->setChecked( replicates != 0 );
     }
 
     size_t idx(0);
-    for ( const auto& pulse: pt.get_child( "pulses" ) ) {
-
-        auto delay = pulse.second.get_optional< double >( "delay" );
-        auto width = pulse.second.get_optional< double >( "width" );
-        if ( delay && width ) {
+    auto pulses = adportable::json_helper::find( pt, "pulses" );
+    if ( pulses.is_array() ) {
+        for ( const auto& pulse: pulses.as_array() ) {
+            double delay(0), width(0);
+            adportable::json::extract( pulse.as_object(), delay, "delay" );
+            adportable::json::extract( pulse.as_object(), width, "width" );
             auto name = itemlist[ idx ];
             if ( auto spin = findChild< QDoubleSpinBox * >( QString( "%1_delay" ).arg( name ) ) )
-                spin->setValue( delay.get() );
+                spin->setValue( delay );
             if ( auto spin = findChild< QDoubleSpinBox * >( QString( "%1_width" ).arg( name ) ) )
-                spin->setValue( width.get() );
+                spin->setValue( width );
+            ++idx;
         }
-        ++idx;
     }
 }

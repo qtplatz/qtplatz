@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -34,8 +34,9 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
+//#include <boost/property_tree/json_parser.hpp>
+//#include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 #include <adportable/debug.hpp>
 
 namespace adurl {
@@ -117,14 +118,19 @@ ajax::status_message() const
 }
 
 bool
-ajax::get_response( boost::property_tree::ptree& pt ) const
+ajax::get_response( boost::json::value& jv ) const
 {
     if ( status_code_ == 200 && response_ ) {
         try {
-            std::istream is( response_.get() );
-            boost::property_tree::read_json( is, pt );
+            // std::istream is( response_.get() );
+            // boost::property_tree::read_json( is, pt );
+
+            // std::string s( (std::istreambuf_iterator<char>(response_.get())), std::istreambuf_iterator<char>() );
+            std::string s( boost::asio::buffer_cast< const char * >(response_->data()), response_->size() );
+            jv = boost::json::parse( s );
+
             return true;
-        } catch ( boost::property_tree::json_parser::json_parser_error& ) {
+        } catch ( std::exception& ex ) {
         }
      }
     return false;

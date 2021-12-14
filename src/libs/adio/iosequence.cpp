@@ -38,7 +38,7 @@ print( const boost::property_tree::ptree& pt )
     for (ptree::const_iterator it = pt.begin(); it != end; ++it) {
         std::cout << it->first << ": " << it->second.get_value<std::string>() << std::endl;
         print(it->second);
-    }    
+    }
 }
 
 using namespace adio::io;
@@ -66,7 +66,8 @@ sequence::sequence( const sequence& t ) : samples_( t.samples_ )
                                         , replicates_( t.replicates_ )
 {
 }
-            
+
+#if 0
 bool
 sequence::read_json( std::istream& is, sequence& t )
 {
@@ -83,7 +84,7 @@ sequence::read_json( std::istream& is, sequence& t )
         if ( auto child = pt.get_child_optional( "sequence.samples" ) ) {
 
             t.samples().clear();
-            
+
             for ( const auto& item: child.get() ) {
                 sample s;
                 read_json( item.second, s );
@@ -100,7 +101,9 @@ sequence::read_json( std::istream& is, sequence& t )
     }
     return false;
 }
+#endif
 
+#if 0
 bool
 sequence::write_json( std::ostream& os, const sequence& t )
 {
@@ -119,12 +122,14 @@ sequence::write_json( std::ostream& os, const sequence& t )
 
     return true;
 }
+#endif
 
+#if 0
 bool
 sequence::read_json( const boost::property_tree::ptree& pt, sample& t )
 {
     if ( auto value = pt.get_optional< uint32_t >( "id" ) )
-        t.id_ = value.get();    
+        t.id_ = value.get();
     if ( auto value = pt.get_optional< double >( "runlength" ) )
         t.runLength_ = value.get();
     if ( auto value = pt.get_optional< double >( "injvolume" ) )
@@ -152,3 +157,4 @@ sequence::write_json( boost::property_tree::ptree& pt, const sample& t )
     return true;
 }
 
+#endif

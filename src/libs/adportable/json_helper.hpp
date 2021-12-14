@@ -54,8 +54,8 @@ namespace adportable {
     // workaround for boost::uuids::uuid since boost::json::value_to< uuid > does not work on boost_1.75
     template<> boost::optional< boost::uuids::uuid > json_helper::value_to( const boost::json::value& jv, const std::string& keys );
 
-// ADPORTABLESHARED_EXPORT
-// void tag_invoke( boost::json::value_from_tag, boost::json::value&, const boost::uuids::uuid& );
+    ADPORTABLESHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const boost::uuids::uuid& );
 
 // ADPORTABLESHARED_EXPORT
 // boost::uuids::uuid tag_invoke( boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv );

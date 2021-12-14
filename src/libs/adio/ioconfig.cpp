@@ -95,6 +95,7 @@ configuration::clear()
     config_.clear();
 }
 
+#if 0
 bool
 configuration::read_json( const boost::property_tree::ptree& item, ioConfig& c )
 {
@@ -123,7 +124,9 @@ configuration::read_json( const boost::property_tree::ptree& item, ioConfig& c )
 
     return true;
 }
+#endif
 
+#if 0
 bool
 configuration::read_json( std::istream& json, ioConfig& io )
 {
@@ -141,7 +144,9 @@ configuration::read_json( std::istream& json, ioConfig& io )
 
     }
 }
+#endif
 
+#if 0
 bool
 configuration::read_json( std::istream& json, configuration& config )
 {
@@ -176,7 +181,9 @@ configuration::read_json( std::istream& json, configuration& config )
     }
     return false;
 }
+#endif
 
+#if 0
 bool
 configuration::write_json( std::ostream& json, const configuration& config )
 {
@@ -205,6 +212,7 @@ configuration::write_json( std::ostream& json, const configuration& config )
 
     return true;
 }
+#endif
 
 ////////////////////////////////////////
 

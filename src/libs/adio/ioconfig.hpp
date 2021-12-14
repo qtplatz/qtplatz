@@ -26,7 +26,6 @@
 #pragma once
 
 #include "adio_global.h"
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/json/value_from.hpp>
 #include <boost/json/value_to.hpp>
 #include <string>
@@ -66,9 +65,9 @@ namespace adio {
             configuration();
             configuration( const configuration& );
 
-            static bool read_json( std::istream&, configuration& );
-            static bool read_json( std::istream&, ioConfig& );
-            static bool write_json( std::ostream&, const configuration& );
+            // static bool read_json( std::istream&, configuration& );
+            // static bool read_json( std::istream&, ioConfig& );
+            // static bool write_json( std::ostream&, const configuration& );
 
             typedef typename std::vector< ioConfig >::const_iterator const_iterator;
             typedef typename std::vector< ioConfig >::iterator iterator;
@@ -82,7 +81,6 @@ namespace adio {
 
             inline std::vector< ioConfig >& config() { return config_; }
         private:
-            static bool read_json( const boost::property_tree::ptree&, ioConfig& );
 
             std::vector< ioConfig > config_;
         };

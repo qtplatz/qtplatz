@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -37,6 +37,7 @@
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
 #include <adwidgets/delegatehelper.hpp>
 #include <adwidgets/htmlheaderview.hpp>
 #include <adwidgets/tableview.hpp>
@@ -65,6 +66,7 @@
 #include <QTextDocument>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <functional>
@@ -292,16 +294,27 @@ protocolWidget::fromJson( const QByteArray& ba )
 
     if ( obj.contains( "protocols" ) ) { // fetched
         // dgmod server json format -- from ajax
-        boost::property_tree::ptree pt;
-        std::istringstream in( ba.toStdString() );
-        boost::property_tree::read_json( in, pt );
-        for ( const auto& v: pt.get_child( "protocols.protocol" ) ) {
-            if ( auto index = v.second.get_optional< int >( "index" ) ) {
-                if ( auto w = findChild< admtwidgets::protocolForm * >( QString("p.%1").arg( index.get() ) ) ) {
-                    w->setJson( v.second );
+        auto jv = boost::json::parse( ba.toStdString() );
+        // boost::property_tree::ptree pt;
+        // std::istringstream in( ba.toStdString() );
+        // boost::property_tree::read_json( in, pt );
+        auto jproto = adportable::json_helper::find( jv, "protocols.protocol" );
+        if ( jproto.is_array() ) {
+            for ( const auto& v: jproto.as_array() ) {
+                auto index = boost::json::value_to< int >( v.as_object().at( "index" ) );
+                if ( auto w = findChild< admtwidgets::protocolForm * >( QString("p.%1").arg( index ) ) ) {
+                    w->setJson( v );
                 }
             }
         }
+
+        // for ( const auto& v: pt.get_child( "protocols.protocol" ) ) {
+        //     if ( auto index = v.second.get_optional< int >( "index" ) ) {
+        //         if ( auto w = findChild< admtwidgets::protocolForm * >( QString("p.%1").arg( index.get() ) ) ) {
+        //             w->setJson( v.second );
+        //         }
+        //     }
+        // }
 
     } else {
         // local json format -- from ads54jplugin::document

@@ -27,11 +27,11 @@
 
 #include "adurl_global.h"
 #include <boost/asio/io_service.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-//#include <array>
+#include <boost/json/fwd.hpp>
+
 #include <memory>
 #include <string>
 
@@ -55,7 +55,7 @@ namespace adurl {
                     , std::string&& body
                     , const std::string& mimeType );
 
-        bool get_response( boost::property_tree::ptree& ) const;
+        bool get_response( boost::json::value& ) const;
         const char * get_response( size_t& ) const;
         const char * response() const;
         std::string response_header() const;

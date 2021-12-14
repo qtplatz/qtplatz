@@ -29,8 +29,9 @@
 #include "eventcap.hpp"
 #include <boost/variant.hpp>
 #include <boost/uuid/uuid.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -58,9 +59,6 @@ namespace adcontrols {
             TimedEvent( const TimedEvent& );
             TimedEvent( const ModuleCap&, const EventCap&, double time, const value_type& ); // to be deprecated
 
-            // new json based implementation
-            TimedEvent( const boost::property_tree::ptree& );
-            TimedEvent( boost::property_tree::ptree&& );
             TimedEvent( const std::string& json );
             TimedEvent& operator = ( const TimedEvent& t );
 
@@ -85,10 +83,6 @@ namespace adcontrols {
 
             std::string data_type() const;
 
-            boost::property_tree::ptree * ptree();
-            const boost::property_tree::ptree * ptree() const;
-            std::string json() const;
-
             operator bool () const; // is valid for json
 
         private:
@@ -100,7 +94,14 @@ namespace adcontrols {
             double time_;
             value_type value_;
 #endif
-            std::unique_ptr< boost::property_tree::ptree > ptree_;
+            boost::uuids::uuid modelClsid_;
+            std::string modelDisplayName_;
+            std::string name_; // item_name_
+            std::string displayName_; // item_display_name_
+            double time_;
+            value_type value_;
+
+            //
             // {
             //     "modelClsid": "522a83e8-b1b9-4341-8b0f-cac66d6d1e67",
             //     "modelDisplayName": "InfiTOF,HV",
@@ -120,8 +121,16 @@ namespace adcontrols {
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
             friend class TimedEvent_archive< TimedEvent >;
             friend class TimedEvent_archive< const TimedEvent >;
+            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
+            friend TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
         };
+
+        ADCONTROLSSHARED_EXPORT
+        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
+
+        ADCONTROLSSHARED_EXPORT
+        TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::ControlMethod::TimedEvent, 1 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod::TimedEvent, 2 )

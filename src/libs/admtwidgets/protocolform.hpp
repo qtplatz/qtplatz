@@ -26,7 +26,7 @@
 
 #include <QWidget>
 #include "admtwidgets_global.hpp"
-#include <boost/property_tree/ptree_fwd.hpp>
+#include <boost/json/fwd.hpp>
 
 class QJsonObject;
 
@@ -57,7 +57,7 @@ namespace admtwidgets {
 
         QJsonObject json() const;
         void setJson( const QJsonObject& );
-        void setJson( const boost::property_tree::ptree& );
+        void setJson( const boost::json::value& );
 
         // const multumcontrols::ScanLaw * scanLaw() const;
         // const multumcontrols::OrbitProtocol& protocol() const;

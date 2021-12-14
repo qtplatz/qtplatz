@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -33,7 +32,7 @@
 
 namespace adio {
     namespace io {
-    
+
         class ADIOSHARED_EXPORT sample {
         public:
             sample();
@@ -50,7 +49,7 @@ namespace adio {
         public:
             sequence();
             sequence( const sequence& );
-            
+
             static bool read_json( std::istream&, sequence& );
             static bool write_json( std::ostream&, const sequence& );
 
@@ -59,13 +58,11 @@ namespace adio {
 
             inline std::vector< sample >& samples() { return samples_; }
             inline const std::vector< sample >& samples() const { return samples_; }
-            
+
         private:
             std::vector< sample > samples_;
             size_t replicates_;
-            static bool read_json( const boost::property_tree::ptree&, sample& );
-            static bool write_json( boost::property_tree::ptree&, const sample& );
         };
-        
+
     }
 }
