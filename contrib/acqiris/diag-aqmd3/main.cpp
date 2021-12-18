@@ -411,7 +411,7 @@ main( int argc, char * argv [] )
                 }
             }
 
-            using aqmd3::attribute;
+            // using aqmd3::attribute;
             md3->clog( attribute< aqmd3::sample_rate >::set( *md3, max_rate ), __FILE__,__LINE__ );
 
             md3->clog( attribute< aqmd3::sample_rate >::get( *md3, method.device_method().samp_rate ), __FILE__,__LINE__ );

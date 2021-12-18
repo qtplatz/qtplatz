@@ -11,8 +11,9 @@
 #include <ostream>
 //#include <boost/detail/endian.hpp>
 #include "portable_binary_oarchive.hpp"
-#include "../adportable/utf.hpp"
 #include <iostream>
+#include <codecvt>
+#include <locale>
 
 void
 portable_binary_oarchive::save_impl(
@@ -83,7 +84,8 @@ portable_binary_oarchive::init(unsigned int flags) {
 std::string
 portable_binary_oarchive::utf8( const std::wstring& t )
 {
-    return adportable::utf::to_utf8( t );
+    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+    return cvt.to_bytes( t );
 }
 
 #include <boost/archive/impl/archive_serializer_map.ipp>

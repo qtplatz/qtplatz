@@ -57,7 +57,7 @@ default_debian_10:
 	@echo "make boost-armhf"
 	@echo "make qt5-armhf"
 	@echo "make gnuplot"
-	@echo "make rtags -- run 'apt install rtags' after install llvm; see https://apt.llvm.org/"
+	@echo "make rtags -- in emacs, M-x 'rtags-install' after install clang-11 and libclang-11-dev"
 	@echo "make code"
 	@echo "make emacs"
 
@@ -82,7 +82,7 @@ default:
 	@echo "make boost-armhf"
 	@echo "make qt5-armhf"
 	@echo "make gnuplot"
-	@echo "make rtags"
+	@echo "make rtags -- in emacs, M-x 'rtags-install' after install clang-11 and libclang-11-dev"
 	@echo "make code"
 	@echo "make Emacs"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
