@@ -54,8 +54,8 @@ target_link_libraries( adfs LINK_PUBLIC
   ${Boost_LIBRARIES}
   )
 
-
 add_library( sqlitefunctions SHARED extension-functions.c )
+
 add_executable( sqlite3 sqlite-amalgamation-3370000/sqlite3.c sqlite-amalgamation-3370000/shell.c )
 
 find_package( Threads REQUIRED )
