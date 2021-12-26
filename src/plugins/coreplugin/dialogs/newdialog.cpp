@@ -303,10 +303,11 @@ void NewDialog::showDialog()
 {
     QModelIndex idx;
 
-    if (!m_lastCategory.isEmpty())
+    if (!m_lastCategory.isEmpty()) {
         foreach (QStandardItem* item, m_categoryItems) {
             if (item->data(Qt::UserRole) == m_lastCategory)
                 idx = m_twoLevelProxyModel->mapToSource(m_model->indexFromItem(item));
+        }
     }
     if (!idx.isValid())
         idx = m_twoLevelProxyModel->index(0,0, m_twoLevelProxyModel->index(0,0));

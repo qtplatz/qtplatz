@@ -33,7 +33,7 @@ add_library( ${PROJECT_NAME} SHARED
   folder.cpp
   file.cpp
   sqlite.cpp
-  sqlite3.c
+  sqlite-amalgamation-3370000/sqlite3.c
   adfs.hpp
   attributes.hpp
   cpio.hpp
@@ -54,7 +54,9 @@ target_link_libraries( adfs LINK_PUBLIC
   ${Boost_LIBRARIES}
   )
 
-add_executable( sqlite3  shell.c sqlite3.c )
+
+add_library( sqlitefunctions SHARED extension-functions.c )
+add_executable( sqlite3 sqlite-amalgamation-3370000/sqlite3.c sqlite-amalgamation-3370000/shell.c )
 
 find_package( Threads REQUIRED )
 target_link_libraries( sqlite3 Threads::Threads ${CMAKE_DL_LIBS} )

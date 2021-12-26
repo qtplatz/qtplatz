@@ -8,6 +8,7 @@ find_package( arch )
 set( Boost_NO_SYSTEM_PATHS ON )
 
 set ( __boost_versions
+  "boost-1_78"        # V19
   "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
   "boost-1_73"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
   "boost-1_69"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)

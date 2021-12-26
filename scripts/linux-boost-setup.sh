@@ -26,8 +26,10 @@ function boost_download {
     if [ ! -f ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 ]; then
 		echo "=============================="
 		VERSION=$(echo $BOOST_VERSION | tr _ .)
-		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/$VERSION/source/boost_$BOOST_VERSION.tar.bz2
-		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/$VERSION/source/boost_$BOOST_VERSION.tar.bz2
+		#echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/$VERSION/source/boost_$BOOST_VERSION.tar.bz2
+		#curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://dl.bintray.com/boostorg/release/$VERSION/source/boost_$BOOST_VERSION.tar.bz2
+		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.bz2
+		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.bz2
 	fi
 
 	if [ ! -d ${BOOST_BUILD_DIR} ]; then
