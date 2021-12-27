@@ -12,7 +12,7 @@ pushd "${RDKIT_BINARY_DIR}"
 
 echo "***************************************************"
 echo "  If you get build failed by 'zlib.h' file not found error"
-echo "  delete a line '#include zlib.h' in Code/GraphMol/FileParsers/PGNParser.cpp, which never used"
+echo "  delete a line '#include <zlib.h>' in Code/GraphMol/FileParsers/PNGParser.cpp, which never used"
 echo "***************************************************"
 echo
 pause
