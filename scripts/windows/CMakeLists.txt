@@ -13,6 +13,8 @@ get_filename_component( SRCDIR "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
 set ( BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR} )
 set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
+find_program (TAR "tar" HINTS "C:/msys64/usr/bin/")
+
 #----------------- eigen ---------------
 set ( EIGEN_SOURCE_DIR ${SRCDIR}/eigen )
 set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
@@ -308,6 +310,7 @@ configure_file(
   )
 
 ###########################################################
+message( STATUS "TAR                 = " ${TAR} )
 message( STATUS "SRCDIR              = " ${SRCDIR} )
 message( STATUS "BUILD_ROOT          = " ${BUILD_ROOT} )
 message( STATUS "EIGEN_SOURCE_DIR    = " ${EIGEN_SOURCE_DIR} )

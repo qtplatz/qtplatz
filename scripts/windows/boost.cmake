@@ -25,7 +25,9 @@ string ( REGEX REPLACE "([0-9]+)_([0-9]+)_([0-9]+)" "\\1" BOOST_Major ${BOOST_VE
 string ( REGEX REPLACE "([0-9]+)_([0-9]+)_([0-9]+)" "\\2" BOOST_Minor ${BOOST_VERSION} )
 string ( REGEX REPLACE "([0-9]+)_([0-9]+)_([0-9]+)" "\\3" BOOST_Micro ${BOOST_VERSION} )
 
-message( STATUS "boost version (parsed) : " ${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro} )
+set ( BOOST_DOT_VERSION "${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro}" )
+
+message( STATUS "boost version (parsed) : " ${BOOST_DOT_VERSION} )
 message( STATUS "BOOST_SOURCE_DIR       : " ${BOOST_SOURCE_DIR} )
 message( STATUS "BZIP2_SOURCE_DIR       : " ${BZIP2_SOURCE_DIR} )
 
@@ -33,7 +35,8 @@ file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH ) # use in boost-bui
 file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build.bat.in
 
 set ( BOOST_TARBALL "boost_${BOOST_VERSION}.tar.bz2" )
-set ( BOOST_DOWNLOAD_URL "https://dl.bintray.com/boostorg/release/${BOOST_Major}.${BOOST_Minor}.${BOOST_Micro}/${BOOST_TARBALL}" )
+set ( BOOST_DOWNLOAD_URL "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_DOT_VERSION}/source/${BOOST_TARBALL}" )
+#                        "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
 
 set ( BZIP2_TARBALL bzip2-1.0.6.tar.gz )
 set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" )
@@ -46,7 +49,11 @@ get_filename_component( __bzip2_parent ${BZIP2_SOURCE_DIR} DIRECTORY )
 get_filename_component( __zlib_parent ${ZLIB_SOURCE_DIR} DIRECTORY )
 
 if ( NOT EXISTS ${DOWNLOADS}/${BOOST_TARBALL} )
-  file( DOWNLOAD ${BOOST_DOWNLOAD_URL} ${DOWNLOADS}/${BOOST_TARBALL} SHOW_PROGRESS )
+  message( STATUS "------- DOWNLOAD ${BOOST_DOWNLOAD_URL} ${DOWNLOADS}/${BOOST_TARBALL}" )
+  file( DOWNLOAD ${BOOST_DOWNLOAD_URL} ${DOWNLOADS}/${BOOST_TARBALL} SHOW_PROGRESS STATUS BOOST_DL_STATUS)
+  message( STATUS "##### BOOST_DL_STATUS: " ${BOOST_DL_STATUS} )
+else()
+  message( STATUS "------- ${DOWNLOADS}/${BOOST_TARBALL} --- exists." )
 endif()
 
 if ( NOT EXISTS ${DOWNLOADS}/${BZIP2_TARBALL} )
@@ -57,6 +64,7 @@ if ( NOT EXISTS ${DOWNLOADS}/${ZLIB_TARBALL} )
   file( DOWNLOAD ${ZLIB_DOWNLOAD_URL} ${DOWNLOADS}/${ZLIB_TARBALL} SHOW_PROGRESS )
 endif()
 
+#find_program (TAR "tar" HINTS "C:/msys64/usr/bin/")
 if ( NOT TAR )
   message( STATUS "================= No tar command specified --> " ${TAR})
   set ( TAR tar )
