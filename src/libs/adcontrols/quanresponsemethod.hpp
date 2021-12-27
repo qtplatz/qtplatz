@@ -100,8 +100,8 @@ namespace adcontrols {
             }
         }
 
-        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const QuanResponseMethod& );
-        friend QuanResponseMethod tag_invoke( boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const QuanResponseMethod& );
+        friend ADCONTROLSSHARED_EXPORT QuanResponseMethod tag_invoke( boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv );
     };
 
     ADCONTROLSSHARED_EXPORT

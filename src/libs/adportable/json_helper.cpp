@@ -111,18 +111,19 @@ json_helper::find( const boost::optional< std::string >& s, const std::string& k
     return s ? find( *s, keys ) : boost::json::value{};
 }
 
-template<> boost::optional< boost::uuids::uuid >
-json_helper::value_to( const boost::json::value& jv, const std::string& keys )
-{
-    auto t = find( jv, keys );
-    if ( !t.is_null() )
-        return boost::lexical_cast< boost::uuids::uuid >( boost::json::value_to< std::string >( t ) );
-    return {};
-
-}
-
-
 namespace adportable {
+
+    template<> ADPORTABLESHARED_EXPORT boost::optional< boost::uuids::uuid >
+    json_helper::value_to( const boost::json::value& jv, const std::string& keys )
+    {
+        auto t = find( jv, keys );
+        if ( !t.is_null() )
+            return boost::lexical_cast< boost::uuids::uuid >( boost::json::value_to< std::string >( t ) );
+        return {};
+    }
+
+    //---------------------
+
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const boost::uuids::uuid& t )
     {

@@ -30,10 +30,12 @@
 #include <boost/system/error_code.hpp>
 #include <boost/json/value.hpp>
 #include <boost/json/value_to.hpp>
-
-namespace boost { namespace uuids { class uuid; } };
+#include <boost/uuid/uuid.hpp> // <-- this is essential for win32 dllexport
+// namespace boost { namespace uuids { class uuid; } };
 
 namespace adportable {
+
+    class ADPORTABLESHARED_EXPORT json_helper;
 
     class json_helper {
     public:
@@ -57,6 +59,6 @@ namespace adportable {
     ADPORTABLESHARED_EXPORT
     void tag_invoke( boost::json::value_from_tag, boost::json::value&, const boost::uuids::uuid& );
 
-// ADPORTABLESHARED_EXPORT
-// boost::uuids::uuid tag_invoke( boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv );
+    ADPORTABLESHARED_EXPORT
+    boost::uuids::uuid tag_invoke( boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv );
 }

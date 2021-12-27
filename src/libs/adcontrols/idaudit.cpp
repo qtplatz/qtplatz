@@ -175,7 +175,6 @@ namespace adcontrols {
         }};
     }
 
-
     idAudit
     tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv )
     {

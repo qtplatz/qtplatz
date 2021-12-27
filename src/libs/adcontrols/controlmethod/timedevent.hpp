@@ -121,8 +121,8 @@ namespace adcontrols {
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
             friend class TimedEvent_archive< TimedEvent >;
             friend class TimedEvent_archive< const TimedEvent >;
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
-            friend TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
+            friend ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
         };
 
         ADCONTROLSSHARED_EXPORT

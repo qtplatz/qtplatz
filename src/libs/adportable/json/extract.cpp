@@ -34,6 +34,7 @@ namespace adportable {
     namespace json {
 
         template<>
+        ADPORTABLESHARED_EXPORT
         void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key )  {
             try {
                 t = boost::lexical_cast< boost::uuids::uuid >( boost::json::value_to<std::string>( obj.at( key ) ) );

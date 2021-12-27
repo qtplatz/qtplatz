@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "../adportable_global.h"
 #include <boost/json/value_to.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/lexical_cast.hpp>
@@ -62,7 +63,7 @@ namespace adportable {
                 }
             }
         }
-        template<> void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
+        template<> ADPORTABLESHARED_EXPORT void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
     }
 
 }

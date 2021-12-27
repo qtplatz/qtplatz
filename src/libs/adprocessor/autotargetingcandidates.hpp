@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adprocessor_global.hpp"
 #include <adcontrols/moltable.hpp>
 #include <adcontrols/targeting.hpp>
 #include <boost/optional.hpp>
@@ -39,6 +39,8 @@ namespace adcontrols {
 }
 
 namespace adprocessor {
+
+    class ADPROCESSORSHARED_EXPORT AutoTargetingCandidates;
 
     class AutoTargetingCandidates {
         int proto_;

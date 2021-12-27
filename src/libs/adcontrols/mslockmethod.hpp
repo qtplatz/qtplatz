@@ -90,7 +90,7 @@ namespace adcontrols {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
         friend class MSLockMethod_archive< MSLockMethod >;
         friend class MSLockMethod_archive< const MSLockMethod >;
-        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const MSLockMethod& );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const MSLockMethod& );
     };
 
     ADCONTROLSSHARED_EXPORT

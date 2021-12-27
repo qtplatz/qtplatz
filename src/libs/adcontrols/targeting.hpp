@@ -44,7 +44,7 @@ namespace adcontrols {
 
     class Targeting {
     public:
-        struct Candidate;
+        struct ADCONTROLSSHARED_EXPORT Candidate;
 
         static const wchar_t * dataClass() { return L"adcontrols::Targeting"; }
 

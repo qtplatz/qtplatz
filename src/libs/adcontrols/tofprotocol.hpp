@@ -99,8 +99,8 @@ namespace adcontrols {
 
         friend class TofProtocol_archive < TofProtocol > ;
         friend class TofProtocol_archive < const TofProtocol > ;
-        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
-        friend TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
+        friend ADCONTROLSSHARED_EXPORT TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
     };
 
     // TofProtocol

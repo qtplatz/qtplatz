@@ -155,8 +155,8 @@ target_link_libraries(
   adutils
   adextension
   adfs
-  adprot
   adportable
+  adprot
   adprocessor
   adpublisher
   adwidgets
