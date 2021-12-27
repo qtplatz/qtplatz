@@ -27,6 +27,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <QString>
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
