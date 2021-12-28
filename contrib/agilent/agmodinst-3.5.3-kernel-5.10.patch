@@ -1,0 +1,89 @@
+diff -Naur ../agmodinst-3.5.3.orig/agmodinst-dma.c ./agmodinst-dma.c
+--- ../agmodinst-3.5.3.orig/agmodinst-dma.c	2016-12-23 20:56:52.000000000 +0900
++++ ./agmodinst-dma.c	2021-12-28 16:50:29.820055591 +0900
+@@ -97,14 +97,23 @@
+ 
+     dma->addr = addr;
+     dma->size = size;
+-
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+     down_read(&current->mm->mmap_sem);
++#else
++    mmap_read_lock(current->mm);
++#endif
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,1)
+     dma->nbr_pages = get_user_pages(current, current->mm, addr, nbr_pages_needed, 1, 0, dma->pages, NULL);
+-#else
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+     dma->nbr_pages = get_user_pages(addr, nbr_pages_needed, 1, 0, dma->pages, NULL);
++#else
++    dma->nbr_pages = get_user_pages(addr, nbr_pages_needed, 0, dma->pages, NULL);
+ #endif
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+     up_read(&current->mm->mmap_sem);
++#else
++    mmap_read_unlock(current->mm);
++#endif
+ 
+     if (dma->nbr_pages < 0)
+     {
+@@ -1645,4 +1654,3 @@
+ 
+     return result;
+ }
+-
+diff -Naur ../agmodinst-3.5.3.orig/agmodinst.h ./agmodinst.h
+--- ../agmodinst-3.5.3.orig/agmodinst.h	2016-12-23 20:56:52.000000000 +0900
++++ ./agmodinst.h	2021-12-28 16:54:44.157185866 +0900
+@@ -292,6 +292,14 @@
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////
+ //  Definition of Global Function Prototypes
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0) // kernel 4.19 has those macros in fs.h
++# ifndef HAVE_UNLOCKED_IOCTL
++#  define HAVE_UNLOCKED_IOCTL 1
++# endif
++# ifndef HAVE_COMPAT_IOCTL
++#  define HAVE_COMPAT_IOCTL 1
++# endif
++#endif
+ 
+ #if HAVE_UNLOCKED_IOCTL
+ long agmodinst_ioctl_unlocked(struct file* fileP, unsigned int code, unsigned long args);
+@@ -349,4 +357,3 @@
+ 
+ 
+ #endif // sentry
+-
+diff -Naur ../agmodinst-3.5.3.orig/agmodinst-init.c ./agmodinst-init.c
+--- ../agmodinst-3.5.3.orig/agmodinst-init.c	2016-12-23 20:56:52.000000000 +0900
++++ ./agmodinst-init.c	2021-12-28 16:41:46.001840391 +0900
+@@ -526,7 +526,11 @@
+     if (aq_dev->res.controlPhys != 0)
+     {
+         request_mem_region(aq_dev->res.controlPhys, aq_dev->res.controlSize, MOD_NAME);
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
++        aq_dev->res.controlVirt = (unsigned long)ioremap(aq_dev->res.controlPhys, aq_dev->res.controlSize);
++#else
+         aq_dev->res.controlVirt = (unsigned long)ioremap_nocache(aq_dev->res.controlPhys, aq_dev->res.controlSize);
++#endif
+     }
+ 
+     if (dbgl&DINIT) printk(ACQRS_INFO "  Control addresses (BAR0) %p %p (%p).\n",
+@@ -552,7 +556,11 @@
+         if (aq_dev->res.directPhys != 0)
+         {
+             request_mem_region(aq_dev->res.directPhys, aq_dev->res.directSize, MOD_NAME);
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
++            aq_dev->res.directVirt = (unsigned long)ioremap(aq_dev->res.directPhys, aq_dev->res.directSize);
++#else
+             aq_dev->res.directVirt = (unsigned long)ioremap_nocache(aq_dev->res.directPhys, aq_dev->res.directSize);
++#endif
+         }
+ 
+         if (dbgl&DINIT) printk(ACQRS_INFO "  Direct addresses (BAR%d) %p %p (%p).\n", index_to_direct,
+@@ -760,4 +768,3 @@
+ 
+     return 0;
+ }
+-
