@@ -1,6 +1,6 @@
 #!/bin/bash
-
-source ./constants.sh
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/config.sh
 source ./prompt.sh
 
 cwd=$(pwd)

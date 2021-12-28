@@ -1,6 +1,6 @@
 #!/bin/bash
-
-source ./constants.sh
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/config.sh
 source ./prompt.sh
 VERSION=1.5.2
 
@@ -11,7 +11,7 @@ if [ ! -d $SRC/libjpeg-turbo-$VERSION ]; then
     if [ ! -d $SRC ]; then
 	mkdir $SRC
     fi
-              
+
     if [ ! -f ~/Downloads/libjpeg-turbo-$VERSION.tar.gz ]; then
 	( cd ~/Downloads;
 	  wget https://sourceforge.net/projects/libjpeg-turbo/files/$VERSION/libjpeg-turbo-$VERSION.tar.gz/download \

@@ -1,5 +1,6 @@
 #!/bin/bash
-source ./constants.sh
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/config.sh
 source ./prompt.sh
 
 sudo mkdir -p /usr/share/fonts/ttc-osaka

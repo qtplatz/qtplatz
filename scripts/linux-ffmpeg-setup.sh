@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source ./constants.sh
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/config.sh
 source ./prompt.sh
 VERSION=3.3.3
 
@@ -43,4 +44,3 @@ sed -i 's/-lflite"/-lflite -lasound"/' configure &&
 make -j $(nproc --all) &&
 gcc tools/qt-faststart.c -o tools/qt-faststart &&
 sudo make install
-
