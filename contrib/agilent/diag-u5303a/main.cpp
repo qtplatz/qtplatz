@@ -304,7 +304,7 @@ main( int argc, char * argv [] )
                 max_rate = ( ident->Options().find( "INT" ) != std::string::npos ) ? 3.2e9 : 1.6e9;
             }
 
-            using u5303a::attribute;
+            using namespace u5303a;
             AgMD2::log( attribute< u5303a::sample_rate >::set( *md2, max_rate ), __FILE__,__LINE__ );
             // md2->setSampleRate( max_rate );
 

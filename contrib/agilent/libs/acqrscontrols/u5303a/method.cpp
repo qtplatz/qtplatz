@@ -242,3 +242,10 @@ method::setProtocolIndex( uint32_t value , bool modifyDeviceMethod )
     }
     return dirty;
 }
+
+void
+method::import( std::vector< adcontrols::TofProtocol >&& protocols )
+{
+    protocols_ = protocols;
+    setProtocolIndex( 0, true );
+}

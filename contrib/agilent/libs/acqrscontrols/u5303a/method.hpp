@@ -74,6 +74,8 @@ namespace acqrscontrols {
             std::vector< adcontrols::TofProtocol >& protocols();
             const std::vector< adcontrols::TofProtocol >& protocols() const;
 
+            void import( std::vector< adcontrols::TofProtocol >&& );
+
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );
             static bool xml_archive( std::wostream&, const method& );

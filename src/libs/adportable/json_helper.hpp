@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2022 MS-Cheminformatics LLC
+** Copyright (C) 2021-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2021-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **

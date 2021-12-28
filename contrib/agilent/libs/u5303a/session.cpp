@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,22 +25,24 @@
 #include "session.hpp"
 #include "waveformobserver.hpp"
 #include <u5303a/digitizer.hpp>
-#include <adcontrols/controlmethod.hpp>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/receiver.hpp>
-#include <adlog/logger.hpp>
-#include <adportable/asio/thread.hpp>
-#include <adportable/utf.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/semaphore.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/timedevent.hpp>
 #include <adcontrols/controlmethod/timedevents.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/asio/thread.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/semaphore.hpp>
+#include <adportable/utf.hpp>
 #include <socfpga/constants.hpp>
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
+#include <boost/json.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -338,21 +340,20 @@ Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::T
     std::for_each( begin, end, [&]( const auto& e ){
         if ( e.modelClsid() == socfpga::infitof::dgmod_protocol && e.data_type() == "application/json" ) {
             // see infitof/src/plugins/infitof2/document.cpp
-            if ( auto pt = e.ptree()->template get_child_optional( "data.value" ) ) {
+            auto jv = boost::json::value_from( e );
+            auto dv = adportable::json_helper::find( jv, "data.value" );
+            if ( dv.is_object() ) {
+                auto protocols = boost::json::value_to< std::vector< adcontrols::TofProtocol > >( dv );
                 auto method = impl_->digitizer_->method();
-                if ( method.import( *pt ) ) {
-                    ADDEBUG() << "------------------------------>\n" <<
-                        method.toJson();
-                    try {
-                        return impl_->digitizer_->peripheral_prepare_for_run( method );
-                    } catch ( std::exception& ) {
-                        ADDEBUG() << boost::current_exception_diagnostic_information();
-                    }
+                method.import( std::move( protocols ) );
+                try {
+                    impl_->digitizer_->peripheral_prepare_for_run( method );
+                } catch ( std::exception& ) {
+                    ADDEBUG() << boost::current_exception_diagnostic_information();
                 }
             }
         }
     });
-    ADDEBUG() << "<------------------------------";
     return true;
 }
 
