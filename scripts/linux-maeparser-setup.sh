@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cwd="$(cd "$(dirname "$0")" && pwd)"
-source ${cwd}/constants.sh
+source ${cwd}/config.sh
 source ${cwd}/prompt.sh
 source ${cwd}/nproc.sh
 
