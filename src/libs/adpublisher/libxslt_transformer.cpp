@@ -24,7 +24,7 @@
 
 #include "libxslt_transformer.hpp"
 #include <adportable/debug.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <libxslt/transform.h>
 #include <libxslt/xslt.h>
 #include <libxslt/xsltutils.h>
@@ -58,7 +58,7 @@ transformer::apply_template( const boost::filesystem::path& xslfile
     if ( auto cur = xsltParseStylesheetFile( reinterpret_cast< const xmlChar *>( xslfile.string().c_str() ) ) ) {
 
         if ( auto doc = xmlParseFile( xmlfile.string().c_str() ) ) {
-            
+
             if ( auto res = xsltApplyStylesheet( cur, doc, params ) ) {
 
                 if ( FILE *ofile = fopen( outfile.string().c_str(), "w" ) ) {
@@ -166,8 +166,7 @@ transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
     static constexpr auto xsltdir = "Resources/xslt";
 #else
     static constexpr auto xsltdir = "share/qtplatz/xslt";
-#endif    
+#endif
 
     path = dir / xsltdir / boost::filesystem::path( xsltfile );
 }
-

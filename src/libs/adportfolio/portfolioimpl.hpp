@@ -28,7 +28,7 @@
 #include <boost/any.hpp>
 #include <set>
 #include <map>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include "node.hpp"
 
 namespace portfolio {
@@ -66,7 +66,7 @@ namespace portfolio {
 
         private:
             friend class portfolio::Portfolio;
-            
+
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;
             pugi::xml_document doc_;
@@ -74,5 +74,3 @@ namespace portfolio {
         };
     }
 }
-
-

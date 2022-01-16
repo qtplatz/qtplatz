@@ -26,10 +26,11 @@
 #pragma once
 
 #include "xmlparser_global.h"
-#include "pugixml.hpp"
 #include <string>
 
 namespace pugi {
+
+    class xml_node;
 
     class XMLPARSERSHARED_EXPORT helper;
 

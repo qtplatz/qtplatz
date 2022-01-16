@@ -27,8 +27,8 @@
 #include <adportable/string.hpp>
 #include "configloader.hpp"
 #include <adportable/configuration.hpp>
-// #include <xmlparser/pugiwrapper.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <xmlparser/pugiwrapper.hpp>
+#include <pugixml.hpp>
 #include <fstream>
 #include <iostream>
 #include <boost/filesystem.hpp>
@@ -64,17 +64,17 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
         dbg << "adportable::ConfigLoader::loadConfigFile(\"" << file << "\")" << result.description();
         return false;
     }
-    
+
     pugi::xpath_node_set list = dom.select_nodes( pugi::as_utf8( query ).c_str() );
     if ( list.size() == 0 )
         return false;
-    
+
     if ( list.size() == 1 ) {
         if ( ConfigLoaderImpl::load( config, list[0].node() ) )
             ConfigLoaderImpl::populate( config, list[0].node() );
         return true;
     }
-    
+
     for ( size_t i = 0; i < list.size(); ++i ) {
         Configuration& child = config.append( Configuration() );
         if ( ConfigLoaderImpl::load( child, list[i].node() ) )
@@ -131,18 +131,18 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
         // copy name="my_name"
         config.name( node.attribute( "name" ).value() );
 
-        // config.xml( pugi::helper::to_string( node ) ); 
+        // config.xml( pugi::helper::to_string( node ) );
         pugi::xml_document dom;
         dom.append_copy( node );
         std::ostringstream o;
         dom.save( o );
         config.xml( o.str() );
-        
+
         // populate all attributes
         // pugi::xpath_node_set attrs = node.select_nodes( "attribute::*" );
         for ( pugi::xml_attribute_iterator it = node.attributes_begin(); it != node.attributes_end(); ++it )
             config.attribute( it->name(), it->value() );
-        
+
         pugi::xpath_node title_node = node.select_single_node( "./title[@lang='jp']" );
         if ( title_node ) {
             config.title( pugi::as_wide( title_node.node().child_value() ) );
@@ -163,5 +163,3 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
     }
     return false;
 }
-
-

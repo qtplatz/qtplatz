@@ -24,17 +24,17 @@
 
 #include "doctree.hpp"
 #include "document.hpp"
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMessageBox>
 
 namespace adpublisher {
     namespace detail {
-        
+
         class docItemDelegate : public QStyledItemDelegate {
         public:
-            
+
         };
 
         // static const char* node_types[] = {
@@ -87,7 +87,7 @@ docTree::setDocument( std::shared_ptr< adpublisher::document >& t )
     repaint( *(doc_->xml_document()) );
 }
 
-std::shared_ptr< adpublisher::document > 
+std::shared_ptr< adpublisher::document >
 docTree::document()
 {
     return doc_;

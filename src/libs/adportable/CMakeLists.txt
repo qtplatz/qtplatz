@@ -58,7 +58,10 @@ add_library( ${PROJECT_NAME} SHARED
   json/extract.hpp
   )
 
-target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories( adportable PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  "${CMAKE_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
+  )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   xmlparser

@@ -53,7 +53,7 @@
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <app/app_version.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>

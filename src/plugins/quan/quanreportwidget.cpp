@@ -37,7 +37,7 @@
 #include <adpublisher/transformer.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
 #include <xmlparser/xmlencode.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>

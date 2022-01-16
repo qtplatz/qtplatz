@@ -74,7 +74,7 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>

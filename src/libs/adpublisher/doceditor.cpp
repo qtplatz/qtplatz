@@ -28,7 +28,7 @@
 #include "document.hpp"
 #include "transformer.hpp"
 #include <qtwrapper/waitcursor.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
@@ -185,10 +185,10 @@ docEditor::setOutput( const QUrl& url )
     stacked_->setCurrentIndex( 1 );
 }
 
-std::shared_ptr< adpublisher::document > 
+std::shared_ptr< adpublisher::document >
 docEditor::document()
 {
-    
+
     return doc_;
 }
 
@@ -257,7 +257,7 @@ docEditor::setupTextActions( QMenu * menu )
     tb->addAction( actions_[ idActionTextBold ]);
     menu->addAction( actions_[ idActionTextBold ] );
     actions_[ idActionTextBold ]->setCheckable( true );
-    
+
     actions_[ idActionTextItalic ] = new QAction( QIcon::fromTheme( "format-text-italic", QIcon( qrcpath + "/textitalic.png" ) ), tr( "&Italic" ), this );
     actions_[ idActionTextItalic ]->setPriority( QAction::LowPriority );
     actions_[ idActionTextItalic ]->setShortcut( Qt::CTRL + Qt::Key_I );
@@ -296,7 +296,7 @@ docEditor::setupTextActions( QMenu * menu )
         actions_[ idActionAlignLeft ] = new QAction( QIcon::fromTheme( "format-justify-left", QIcon( qrcpath + "/textleft.png" ) ), tr( "&Left" ), grp );
     }
     actions_[ idActionAlignJustify ] = new QAction( QIcon::fromTheme( "format-justify-fill", QIcon( qrcpath + "/textjustify.png" ) ), tr( "&Justify" ), grp );
-    
+
     actions_[ idActionAlignLeft ]->setShortcut( Qt::CTRL + Qt::Key_L );
     actions_[ idActionAlignLeft ]->setCheckable( true );
     actions_[ idActionAlignLeft ]->setPriority( QAction::LowPriority );
@@ -335,7 +335,7 @@ docEditor::setupTextActions( QMenu * menu )
         xslt->addItems( list );
         tb->addWidget( xslt );
     }
-    
+
     if ( auto cbox = new QComboBox( tb ) ) {
         cbox->setObjectName( "browserCombo" );
         cbox->addItems( QStringList() << tr("Template") << tr("Browser") );
@@ -474,7 +474,7 @@ bool
 docEditor::fileSaveAs()
 {
     QString value = recentFile( "Publisher", "Files" );
-    
+
     QString fn = QFileDialog::getSaveFileName( this
                                                , tr( "Save report template as..." )
                                                , value
@@ -490,7 +490,7 @@ docEditor::fileSaveAs()
 */
     std::string fname = fn.toStdString();
 	this->doc_->save( fname );
-    	
+
 	setCurrentFileName(fn);
     return fileSave();
 }
@@ -755,7 +755,7 @@ void
 docEditor::addRecentFiles( const QString& group, const QString& key, const QString& value )
 {
     if ( settings_ ) {
-        
+
         std::vector< QString > list;
         getRecentFiles( group, key, list );
 
@@ -804,16 +804,16 @@ docEditor::recentFile( const QString& group, const QString& key ) const
     QString value;
 
     if ( settings_ ) {
-        
+
         settings_->beginGroup( group );
-    
+
         if ( int size = settings_->beginReadArray( key ) ) {
             (void)size;
             settings_->setArrayIndex( 0 );
             value = settings_->value( "File" ).toString();
         }
         settings_->endArray();
-    
+
         settings_->endGroup();
     }
 

@@ -26,13 +26,13 @@
 
 #if defined Q_OS_WIN32
 #  include "msxml_transformer.hpp"
-#else 
+#else
 # if defined Q_OS_MAC || defined Q_OS_LINUX
 #  include "libxslt_transformer.hpp"
 # endif
 #endif
 #include <adportable/profile.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -70,7 +70,7 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
                 title.append_attribute( "lang" ) = "en-us";
                 title.text().set( "Introduction" );
             }
-            
+
             if ( auto para = sec.append_child( "paragraph" ) ) {
                 para.append_attribute( "lang" ) = "en-us";
                 para.text().set( "Introduction to be added..." );
@@ -98,7 +98,7 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
                 title.text().set( "Results" );
                 title.append_attribute( "lang" ) = "en-us";
             }
-            
+
             if ( auto sec = article.append_child( "results" ) ) {
                 (void)sec;
             }
@@ -179,4 +179,3 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
     }
     return transformer::apply_template( xmlfile, xslt.string().c_str(), output );
 }
-

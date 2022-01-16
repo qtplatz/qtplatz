@@ -25,7 +25,7 @@
 #include "docedit.hpp"
 #include "document.hpp"
 #include <adportable/debug.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <QAbstractItemView>
 #include <QCompleter>
 #include <QContextMenuEvent>
@@ -52,7 +52,7 @@ namespace adpublisher {
 
         class docItemDelegate : public QStyledItemDelegate {
         public:
-            
+
         };
 
         //static const char* node_types[] = {
@@ -93,7 +93,7 @@ namespace adpublisher {
                 tagFormat = plainFormat;
                 tagFormat.setForeground( QColor( "#990000" ) );
                 tagFormat.setFontUnderline( true );
-                
+
                 underlineFormat = plainFormat;
                 underlineFormat.setFontUnderline( true );
 
@@ -107,7 +107,7 @@ namespace adpublisher {
                 QString tag = QString( "<%1" ).arg( node.node().name() );
                 for ( auto a : node.node().attributes() )
                     tag.append( QString( " %1=\"%2\"" ).arg( a.name(), a.value() ) );
-                tag.append( ">" );                
+                tag.append( ">" );
                 return tag;
             }
 
@@ -121,7 +121,7 @@ namespace adpublisher {
 
                 auto frame = cursor.insertFrame( frameFormat );    // <-------------- insert frame
                 QObject::connect( frame, &QTextFrame::destroyed, &edit, &docEdit::handleBlockDeleted );
-                
+
                 // body
                 if ( std::strcmp( node.node().name(), "title" ) == 0 ) {
 
@@ -136,7 +136,7 @@ namespace adpublisher {
                     cursor.insertText( QString::fromStdString( node.node().text().get() ), plainFormat );
                 }
 
-                // process childlen 
+                // process childlen
                 for ( auto& child : node.node().select_nodes( "./*" ) ) {
                     (*this)(child, frame, level + 1);
                 }
@@ -181,7 +181,7 @@ namespace adpublisher {
                 tagFormat = plainFormat;
                 tagFormat.setForeground( QColor( "#990000" ) );
                 tagFormat.setFontUnderline( true );
-                
+
                 underlineFormat = plainFormat;
                 underlineFormat.setFontUnderline( true );
 
@@ -444,7 +444,7 @@ docEdit::fetch( pugi::xml_document& xml )
 
         cursor = document()->find( "<section", cursor ); // next
     }
-    
+
     auto doc = xml.document_element();
     if ( auto node = doc.select_single_node( "/article/title" ) ) {
         node.node().text() = static_cast<const char *>( article_title.toUtf8() );

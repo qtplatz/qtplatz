@@ -25,14 +25,14 @@
 #include "printer.hpp"
 #if defined Q_OS_WIN32
 #  include "msxml_transformer.hpp"
-#else 
+#else
 # if defined Q_OS_MAC || defined Q_OS_LINUX
 #  include "libxslt_transformer.hpp"
 # endif
 #endif
 
 #include <adportable/debug.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <QPrinter>
 #include <QPainter>
 #include <QTextDocument>
@@ -82,7 +82,7 @@ printer::print( QPrinter& printer
         QFont font;
         font.setPointSize( 8 );
         doc.setDefaultFont( font );
-        
+
         painter.translate( drawRect.topLeft() );
         doc.drawContents( &painter );
         painter.restore();

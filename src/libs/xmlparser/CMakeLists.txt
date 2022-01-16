@@ -8,7 +8,13 @@ if ( WIN32 )
 endif()
 
 add_library( ${PROJECT_NAME} SHARED
-  pugiwrapper.cpp pugixml-1.11/src/pugixml.cpp )
+  pugiwrapper.cpp
+  pugixml-1.11/src/pugixml.cpp )
+
+target_include_directories( ${PROJECT_NAME} PUBLIC
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/pugixml-1.11/src"
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

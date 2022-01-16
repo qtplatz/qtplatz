@@ -212,7 +212,10 @@ else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
+include_directories(
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/libs"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
+  )
 
 if ( WITH_QWT )
   find_package( qwt )

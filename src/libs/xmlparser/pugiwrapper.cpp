@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "pugiwrapper.hpp"
+#include <pugixml.hpp>
 #include <sstream>
 
 using namespace pugi;

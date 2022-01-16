@@ -47,7 +47,7 @@
 #include <adpublisher/document.hpp>
 #include <adfs/sqlite3.h>
 #include <adwidgets/progressinterface.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>

@@ -27,7 +27,7 @@
 
 #include <QtCore>
 #include <coreplugin/mimedatabase.h>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 
 namespace dataproc {
 

@@ -85,7 +85,7 @@
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qtwrapper/xmlformatter.hpp>
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>

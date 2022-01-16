@@ -26,7 +26,7 @@
 #pragma once
 
 #include "portfolio_global.h"
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <string>
 #include <vector>
 #include <boost/uuid/uuid.hpp>
