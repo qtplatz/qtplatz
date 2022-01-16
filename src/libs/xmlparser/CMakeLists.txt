@@ -8,7 +8,7 @@ if ( WIN32 )
 endif()
 
 add_library( ${PROJECT_NAME} SHARED
-  pugiwrapper.cpp pugixml.cpp )
+  pugiwrapper.cpp pugixml-1.11/src/pugixml.cpp )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
