@@ -248,11 +248,13 @@ MainWindow::setSimpleDockWidgetArrangement()
 QDockWidget *
 MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& objname )
 {
-    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
+    if ( widget->windowTitle().isEmpty() ) {
         widget->setWindowTitle( title );
+    }
 
-    if ( widget->objectName().isEmpty() )
+    if ( widget->objectName().isEmpty() ) {
         widget->setObjectName( objname );
+    }
 
 	QDockWidget * dockWidget = addDockForWidget( widget );
 	dockWidget->setObjectName( widget->objectName() );

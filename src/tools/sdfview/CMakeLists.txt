@@ -19,26 +19,25 @@ set ( USING_CHARTS OFF )
 
 if ( STANDALONE )
   include( "standalone.cmake" )
-  find_package( AqDrv4 )
-else()
-  set( acqirisd_libraries  acqrscontrols )
 endif()
 
 include( version )
 set ( VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
 
-add_definitions( -D_LINUX -D_ACQIRIS -DVERSION="${VERSION}")
-
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
-find_package( Threads REQUIRED )
 
 add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
+  ${RDKit_INCLUDE_DIRS}
+  ${Qt5Core_INCLUDE_DIRS}
+  ${Qt5Svg_INCLUDE_DIRS}
+  ${Qt5Sql_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
+  ${CMAKE_SOURCE_DIR}/src/app           # app_version.h
   )
 
 add_executable( ${PROJECT_NAME}
@@ -47,20 +46,30 @@ add_executable( ${PROJECT_NAME}
   manhattanstyle.hpp
   mainwindow.cpp
   mainwindow.hpp
+  document.cpp
+  document.hpp
   outputwidget.cpp
   outputwidget.hpp
   styleanimator.cpp
   styleanimator.hpp
+  moltablewnd.cpp
+  moltablewnd.hpp
   ${Resources}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
+  adwidgets
+  adcontrols
+  adchem
+  adfs
   utils
-  ${Boost_LIBRARIES}
+  Core
   Qt5::Widgets
   Qt5::Svg
-  Threads::Threads
+  Qt5::Sql
+  ${Boost_LIBRARIES}
+  ${RDKit_LIBRARIES}
   ${CMAKE_DL_LIBS}
   )
 
@@ -69,50 +78,3 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
-
-if ( AqDrv4_FOUND )
-
-  add_executable( ${PROJECT_NAME}d
-    daemon.cpp
-    daemon.hpp
-    digitizer.cpp
-    digitizer.hpp
-    log.cpp
-    log.hpp
-    main.cpp
-    mediator.cpp
-    mediator.hpp
-    task.cpp
-    task.hpp
-    tcp_connection.cpp
-    tcp_connection.hpp
-    tcp_connection_manager.cpp
-    tcp_connection_manager.hpp
-    tcp_server.cpp
-    tcp_server.hpp
-    request_handler.cpp
-    request_handler.hpp
-    ${standalone_additional_sources}
-    ${proto_sources}           # disable
-    ${proto_headers}           # disable
-    )
-  target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DACQIRIS_DAEMON=1 )
-
-  target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
-    adportable
-    AqDrv4
-    ${acqirisd_libraries}
-    ${PROTOBUF_LIBRARIES}
-    ${Boost_LIBRARIES}
-    Qt5::Core
-    Threads::Threads
-    dl
-    )
-
-  install( TARGETS ${PROJECT_NAME}d
-    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
-    LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
-    ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
-    )
-
-endif()

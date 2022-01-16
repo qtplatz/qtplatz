@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,7 +22,9 @@
 **
 **************************************************************************/
 #include "mainwindow.hpp"
+#include "document.hpp"
 #include "manhattanstyle.hpp"
+#include "moltablewnd.hpp"
 #include "outputwidget.hpp"
 #include <adportable/debug.hpp>
 #include <QAbstractButton>
@@ -40,11 +42,13 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QStatusBar>
 #include <QTextEdit>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolButton>
 #include <QtDebug>
 #include <functional>
 #include <iostream>
@@ -55,14 +59,21 @@ const QString rsrcPath = ":/resources/images/mac";
 const QString rsrcPath = ":/resources/images/win";
 #endif
 
+using namespace sdfview;
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , timer_(new QTimer(this))
 {
     auto baseName = QApplication::style()->objectName();
     qApp->setStyle( new ManhattanStyle( baseName ) );
+
     setDockNestingEnabled( true );
     setCorner( Qt::BottomLeftCorner, Qt::LeftDockWidgetArea );
     setCorner( Qt::BottomRightCorner, Qt::BottomDockWidgetArea );
+
+    // setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
+    setDocumentMode( true );
+    // setDockNestingEnabled( true );
 
     statusBar()->setProperty( "p_styled", true );
     statusBar()->addWidget( new QLabel );
@@ -80,6 +91,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         helpMenu->addAction(tr("About &Qt"), qApp, SLOT(aboutQt()));
     }
     setCentralWidget( new QWidget );
+    auto layout = new QVBoxLayout( centralWidget() );
+    layout->addWidget( new sdfview::MolTableWnd() );
+    layout->setMargin( 0 );
+    layout->setSpacing( 0 );
 
     grabGesture( Qt::PanGesture );
     grabGesture( Qt::PinchGesture );
@@ -286,6 +301,8 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 void
 MainWindow::onInitialUpdate()
 {
+    connect( document::instance(), &document::onConnectionChanged, [this]{ handleConnectionChanged(); } );
+    document::instance()->initialSetup();
 }
 
 QDockWidget *
@@ -301,4 +318,14 @@ MainWindow::addDockForWidget( QWidget * widget )
 void
 MainWindow::handleUpdateData()
 {
+}
+
+void
+MainWindow::handleConnectionChanged()
+{
+    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
+    if ( auto table = findChild< MolTableWnd * >() ) {
+        table->setQuery(
+            "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
+    }
 }

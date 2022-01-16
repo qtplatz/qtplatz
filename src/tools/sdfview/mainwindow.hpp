@@ -44,10 +44,6 @@ QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class QStackedWidget;
 
-namespace eventool {
-    class document;
-}
-
 
 class MainWindow : public QMainWindow
 {
@@ -85,7 +81,7 @@ private slots:
     void printPreview(QPrinter *);
 
     void handleUpdateData();
-
+    void handleConnectionChanged();
  private:
     QAction *actionSave;
     QToolBar *tb_;
