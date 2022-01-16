@@ -6,12 +6,13 @@ if ( NOT CMAKE_CROSSCOMPILING )
 
   add_subdirectory (adfile)
   add_subdirectory (adimport)
-  add_subdirectory (adexport)  
-#  add_subdirectory (adhist)
+  add_subdirectory (adexport)
+  #  add_subdirectory (adhist)
 
   if ( Qt5_FOUND )
 
     add_subdirectory (eventtool)
+    add_subdirectory (sdfview)
 
     if ( HDF5_FOUND )
       add_subdirectory (counting)

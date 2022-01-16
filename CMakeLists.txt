@@ -202,7 +202,7 @@ if ( Boost_FOUND )
   if ( WIN32 )
     add_definitions( -DBOOST_UUID_FORCE_AUTO_LINK=1 )
   endif()
-
+  add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 )
   add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )

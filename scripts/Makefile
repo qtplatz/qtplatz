@@ -12,8 +12,8 @@ DETECTED_OS = ${OS}_${VER}
 
 ifeq (${OS},Darwin)
 all: default_darwin
-else ifeq (${DETECTED_OS}, Debian_10)
-all: default_debian_10
+else ifeq (${OS}, Debian)
+all: default_debian
 else
 all: default
 endif
@@ -33,13 +33,12 @@ default_darwin:
 	@echo "make qwt"
 	@echo "make rdkit"
 	@echo "make opencv"
-	@echo "make bower"
 	@echo "You can install"
 	@echo "	brew cask install emacs; brew install gnuplot"
 
-default_debian_10:
+default_debian:
 	@echo "====================================="
-	@echo "We detect debian 10 (Buster)"
+	@echo "We detect debian ${VER}"
 	@echo "Check user-config.jam for python version"
 	@echo "Check access permission for /usr/local -- You shoud have write permission"
 	@echo "====================================="
@@ -51,7 +50,6 @@ default_debian_10:
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make fonts"
 	@echo "make mozc"
-	@echo "make bower"
 	@echo "make qemu"
 	@echo "make cross-tools"
 	@echo "make boost-armhf"
