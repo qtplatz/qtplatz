@@ -31,8 +31,11 @@
 #define MANHATTANSTYLE_H
 
 #include <QProxyStyle>
+#include "adui_global.hpp"
 
 class ManhattanStylePrivate;
+
+namespace adui {
 
 class ManhattanStyle : public QProxyStyle
 {
@@ -76,5 +79,7 @@ private:
 
     ManhattanStylePrivate *d;
 };
+
+} // namespace adui
 
 #endif // MANHATTANSTYLE_H

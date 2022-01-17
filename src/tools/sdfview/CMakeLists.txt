@@ -42,27 +42,24 @@ include_directories(
 
 add_executable( ${PROJECT_NAME}
   main.cpp
-  manhattanstyle.cpp
-  manhattanstyle.hpp
   mainwindow.cpp
   mainwindow.hpp
   document.cpp
   document.hpp
   outputwidget.cpp
   outputwidget.hpp
-  styleanimator.cpp
-  styleanimator.hpp
   moltablewnd.cpp
   moltablewnd.hpp
   ${Resources}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  adportable
-  adwidgets
-  adcontrols
   adchem
+  adcontrols
   adfs
+  adportable
+  adui
+  adwidgets
   utils
   Core
   Qt5::Widgets

@@ -23,7 +23,7 @@
 **************************************************************************/
 #include "mainwindow.hpp"
 #include "document.hpp"
-#include "manhattanstyle.hpp"
+#include <adui/manhattanstyle.hpp>
 #include "moltablewnd.hpp"
 #include "outputwidget.hpp"
 #include <adportable/debug.hpp>
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , timer_(new QTimer(this))
 {
     auto baseName = QApplication::style()->objectName();
-    qApp->setStyle( new ManhattanStyle( baseName ) );
+    qApp->setStyle( new adui::ManhattanStyle( baseName ) );
 
     setDockNestingEnabled( true );
     setCorner( Qt::BottomLeftCorner, Qt::LeftDockWidgetArea );
