@@ -17,12 +17,15 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
+qt_add_resources(RC_SRC "adui.qrc")
+
 add_library( ${PROJECT_NAME} SHARED
   manhattanstyle.cpp
   manhattanstyle.hpp
   styleanimator.cpp
   styleanimator.hpp
-)
+  ${RC_SRC}
+  )
 
 target_link_libraries( ${PROJECT_NAME}
   utils

@@ -50,13 +50,14 @@
 #include <QToolBar>
 #include <QToolButton>
 #include <QtDebug>
+#include <QDirIterator>
 #include <functional>
 #include <iostream>
 
 #ifdef Q_WS_MAC
-const QString rsrcPath = ":/resources/images/mac";
+const QString rsrcPath = ":/adui/images/mac";
 #else
-const QString rsrcPath = ":/resources/images/win";
+const QString rsrcPath = ":/adui/images/win";
 #endif
 
 using namespace sdfview;
@@ -114,6 +115,15 @@ MainWindow::closeEvent( QCloseEvent *e )
 void
 MainWindow::setupFileActions()
 {
+    Q_INIT_RESOURCE( adui );
+    if ( ! QFile::exists( rsrcPath ) ) {
+        ADDEBUG() << "############# Resource path does not exists ###############";
+        QDirIterator it(":", QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            qDebug() << it.next();
+        }
+    }
+
     QToolBar *tb = new QToolBar(this);
     tb->setWindowTitle(tr("File Actions"));
     addToolBar(tb);

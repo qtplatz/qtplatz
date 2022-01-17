@@ -49,6 +49,8 @@
 #include <QStyleOption>
 #include <QToolBar>
 #include <QToolButton>
+#include <QDirIterator>
+#include <QDebug>
 
 using namespace adui;
 
@@ -138,9 +140,13 @@ ManhattanStylePrivate::ManhattanStylePrivate() :
 }
 
 ManhattanStyle::ManhattanStyle(const QString &baseStyleName)
-    : QProxyStyle(QStyleFactory::create(baseStyleName)),
-    d(new ManhattanStylePrivate())
+    : QProxyStyle(QStyleFactory::create(baseStyleName))
+    , d(new ManhattanStylePrivate())
 {
+    // QDirIterator it(":", QDirIterator::Subdirectories);
+    // while (it.hasNext()) {
+    //     qDebug() << it.next();
+    // }
 }
 
 ManhattanStyle::~ManhattanStyle()
