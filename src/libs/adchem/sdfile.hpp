@@ -26,9 +26,11 @@
 #define SDFILE_HPP
 
 #include "adchem_global.hpp"
-#include <string>
+#include <iterator>
 #include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace RDKit {
     class SDMolSupplier;
@@ -37,13 +39,8 @@ namespace RDKit {
 
 namespace adchem {
 
-#ifdef _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
-
     class sdfile_iterator;
-    
+
     class ADCHEMSHARED_EXPORT SDFile {
     public:
         typedef sdfile_iterator iterator;
@@ -53,7 +50,7 @@ namespace adchem {
 
         SDFile( const std::string& filename, bool sanitize = false, bool removeHs = false, bool strictParsing = false );
         operator bool() const { return molSupplier_ != 0; }
-        
+
         std::shared_ptr< RDKit::SDMolSupplier >& molSupplier() { return molSupplier_; }
 
         size_type size() const;
@@ -63,7 +60,10 @@ namespace adchem {
         const_iterator end() const;
         //value_type operator [] ( size_type idx ) const;
 
+        std::string itemText( const sdfile_iterator& );
+
         static bool parseItemText( const std::string&, std::map< std::string, std::string >& );
+        static std::vector< std::pair< std::string, std::string > > parseItemText( const std::string& );
 
     private:
         std::shared_ptr< RDKit::SDMolSupplier > molSupplier_;
@@ -71,23 +71,34 @@ namespace adchem {
     };
 
     class ADCHEMSHARED_EXPORT sdfile_iterator {
+    public:
+        using value_type        = RDKit::ROMol;
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = value_type*;  // or also value_type*
+        using reference         = RDKit::ROMol&;
+    private:
         RDKit::SDMolSupplier& supplier_;
-        std::unique_ptr< RDKit::ROMol > mol_;
         uint32_t idx_;
-        bool fetch();
+
     public:
         sdfile_iterator( RDKit::SDMolSupplier& supplier, size_t idx );
         sdfile_iterator( const sdfile_iterator& );
-        bool operator != ( const sdfile_iterator& ) const;
-        operator SDFile::value_type * () const;
-        const sdfile_iterator& operator ++ ();
-        sdfile_iterator operator + ( int ) const;
+
+        reference operator*() const;
+        pointer operator->();
+
+        // Prefix increment
+        sdfile_iterator& operator++() { idx_++; return *this; }
+
+        // Postfix increment
+        sdfile_iterator operator++(int) { sdfile_iterator tmp = *this; ++(*this); return tmp; }
+
+        friend bool operator== (const sdfile_iterator& a, const sdfile_iterator& b) { return a.idx_ == b.idx_; };
+        friend bool operator!= (const sdfile_iterator& a, const sdfile_iterator& b) { return a.idx_ != b.idx_; };
+
         std::string itemText() const;
     };
-
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 }
 
 #endif // SDFILE_HPP

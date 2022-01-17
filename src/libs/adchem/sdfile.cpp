@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -43,12 +43,15 @@
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <RDGeneral/RDLog.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/map.hpp>
-
+#include <codecvt>
 #include <fstream>
+#include <locale>
+#include <regex>
 
 using namespace adchem;
 
@@ -88,39 +91,37 @@ SDFile::size() const
     return molSupplier_->length();
 }
 
-// static
-bool
-SDFile::parseItemText( const std::string& text, std::map< std::string, std::string >& data )
+std::vector< std::pair< std::string, std::string > >
+SDFile::parseItemText( const std::string& text )
 {
-    std::string::size_type pos = text.find_first_of( ">" );
+    std::vector< std::pair< std::string, std::string > > data;
 
+    std::string::size_type pos = text.find_first_of( ">" );
     if ( pos != std::string::npos ) {
 
-        std::string xstr;
-
-        for ( std::string::const_iterator it = text.begin() + pos; it < text.end(); ++it ) {
-            // if ( std::isprint( unsigned(*it) ) ) // formula contains 128> char that cause an assersion error on VS2012
-            xstr += *it;
-        }
-        
-        // std::ofstream of( "text.txt" );
-        // of << xstr;
-
+        // auto xstr = text.substr( pos ); //cvt.from_bytes( text.substr( pos ) );
         sdfile_parser< std::string::const_iterator > parser;
         nodes_type nodes;
-        
-        std::string::const_iterator it = xstr.begin();
-        std::string::const_iterator end = xstr.end();
+
+        std::string::const_iterator it = text.begin() + pos;
+        std::string::const_iterator end = text.end();
 
         if ( boost::spirit::qi::parse( it, end, parser, nodes ) ) {
-            for ( const auto& node: nodes )
-                data[ node.first ] = node.second;
+            for ( auto& node: nodes ) {
+                boost::trim( node.second );
+                data.emplace_back( node );
+            }
         } else {
             adportable::debug(__FILE__, __LINE__) << "associatedData parse failed";
         }
-
     }
-	return true;
+	return data;
+}
+
+std::string
+SDFile::itemText( const sdfile_iterator& it )
+{
+    return it.itemText();
 }
 
 sdfile_iterator::sdfile_iterator( RDKit::SDMolSupplier& supplier
@@ -134,44 +135,22 @@ sdfile_iterator::sdfile_iterator( const sdfile_iterator& t ) : supplier_( t.supp
 {
 }
 
-const sdfile_iterator&
-sdfile_iterator::operator ++ ()
-{
-    ++idx_;
-    return *this;
-}
-
-sdfile_iterator
-sdfile_iterator::operator + ( int distance ) const
-{
-    return sdfile_iterator( supplier_, idx_ + distance );
-}
-
-bool
-sdfile_iterator::operator != ( const sdfile_iterator& rhs ) const
-{
-    return idx_ != rhs.idx_;
-}
-
-sdfile_iterator::operator RDKit::ROMol * () const
-{
-    const_cast< sdfile_iterator *>(this)->fetch();
-    return mol_.get();
-}
-
 std::string
 sdfile_iterator::itemText() const
 {
     return supplier_.getItemText( idx_ );
 }
 
-bool
-sdfile_iterator::fetch()
-{
-    if ( idx_ < size_t( supplier_.length() ) ) {
-        mol_.reset( supplier_[ idx_ ] );
-        return true;
+namespace adchem {
+
+    sdfile_iterator::reference sdfile_iterator::operator* () const
+    {
+        return *const_cast< sdfile_iterator *>(this)->supplier_[ idx_ ];
     }
-    mol_.reset();
-    return false;
+
+    sdfile_iterator::pointer sdfile_iterator::operator->()
+    {
+        return const_cast< sdfile_iterator *>(this)->supplier_[ idx_ ];
+    }
+
 }

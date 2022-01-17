@@ -27,6 +27,7 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adlog/logger.hpp>
+#include <adchem/sdfile.hpp>
 #include <qtwrapper/settings.hpp>
 #include <QMessageBox>
 #include <QSettings>
@@ -134,4 +135,29 @@ QSqlDatabase
 document::sqlDatabase()
 {
     return impl::instance().db_;
+}
+
+bool
+document::load( const QString& file )
+{
+    ADDEBUG() << file.toStdString();
+
+    adchem::SDFile sdfile( file.toStdString() );
+    if ( sdfile ) {
+        ADDEBUG() << sdfile.size();
+        size_t n = 0;
+        for ( auto it = sdfile.begin(); it != sdfile.end(); ++it ) {
+            auto text = sdfile.itemText( it );
+            ADDEBUG() << "----------------------------------";
+            auto data = sdfile.parseItemText( text );
+            for ( const auto& item: data ) {
+                ADDEBUG() << item;
+            }
+
+            if ( ++n >= 4 )
+                break;
+        }
+    }
+
+    return sdfile;
 }

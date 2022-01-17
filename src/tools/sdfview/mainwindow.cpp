@@ -65,6 +65,8 @@ using namespace sdfview;
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , timer_(new QTimer(this))
 {
+    Q_INIT_RESOURCE( adui );
+
     auto baseName = QApplication::style()->objectName();
     qApp->setStyle( new adui::ManhattanStyle( baseName ) );
 
@@ -115,7 +117,6 @@ MainWindow::closeEvent( QCloseEvent *e )
 void
 MainWindow::setupFileActions()
 {
-    Q_INIT_RESOURCE( adui );
     if ( ! QFile::exists( rsrcPath ) ) {
         ADDEBUG() << "############# Resource path does not exists ###############";
         QDirIterator it(":", QDirIterator::Subdirectories);
@@ -132,14 +133,6 @@ MainWindow::setupFileActions()
     menuBar()->addMenu(menu);
 
     QAction *a;
-
-    QIcon newIcon = QIcon::fromTheme("document-new", QIcon(rsrcPath + "/filenew.png"));
-    a = new QAction( newIcon, tr("&New"), this);
-    a->setPriority(QAction::LowPriority);
-    a->setShortcut(QKeySequence::New);
-    connect(a, SIGNAL(triggered()), this, SLOT(fileNew()));
-    tb->addAction(a);
-    menu->addAction(a);
 
     a = new QAction(QIcon::fromTheme("document-open", QIcon(rsrcPath + "/fileopen.png")), tr("&Open..."), this);
     a->setShortcut(QKeySequence::Open);
@@ -215,6 +208,7 @@ bool
 MainWindow::load(const QString &f)
 {
     setCurrentFileName( f );
+    document::instance()->load( f );
     return true;
 }
 
@@ -230,8 +224,10 @@ MainWindow::fileNew()
 
 void MainWindow::fileOpen()
 {
-    QString fn = QFileDialog::getOpenFileName(this, tr("Open File..."),
-                                              QString(), tr("HTML-Files (*.htm *.html);;All Files (*)"));
+    QString fn = QFileDialog::getOpenFileName(this
+                                              , tr("Open File...")
+                                              , "/home/toshi/lipids.sdf" // QString()
+                                              , tr("SDF Files (*.sdf);;All Files (*)"));
     if ( !fn.isEmpty() )
         load(fn);
 }

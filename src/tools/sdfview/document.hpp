@@ -40,6 +40,7 @@ namespace sdfview {
         static document * instance();
 
         QSqlDatabase sqlDatabase();
+        bool load( const QString& file );
 
         void initialSetup();
         void finalClose();
