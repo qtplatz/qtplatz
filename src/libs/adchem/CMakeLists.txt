@@ -5,7 +5,13 @@ cmake_policy( SET CMP0022 NEW )
 project( adchem )
 
 add_definitions( -DADCHEM_LIBRARY )
-find_package(TBB REQUIRED)
+find_package(TBB)
+
+message( STATUS "TBB ${TBB} ${TBB_FOUND}" )
+
+if ( TBB_FOUND )
+  add_definitions( -DHAVE_TBB=1 )
+endif()
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
 
