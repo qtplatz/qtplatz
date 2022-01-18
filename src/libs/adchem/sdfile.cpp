@@ -57,7 +57,6 @@
 #include <fstream>
 #include <locale>
 #include <mutex>
-#include <regex>
 
 using namespace adchem;
 
@@ -136,18 +135,18 @@ SDFile::toData( std::function< bool(size_t) > progress )
     std::vector< SDFileData > d;
     std::vector< size_t > indices( this->size() );
     std::iota( indices.begin(), indices.end(), 0 );
-#if 1
+#if __APPLE__  || ! HAVE_TBB // Xcode clang-13 does not support execution::parallel
+    std::for_each( indices.begin()
+                   , indices.end(), [&]( auto idx ){
+                       d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
+                       progress( d.size() );
+                   });
+#else
     std::mutex mutex;
     std::for_each( std::execution::par
                    , indices.begin()
                    , indices.end(), [&]( auto idx ){
                        std::lock_guard<std::mutex> guard(mutex);
-                       d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
-                       progress( d.size() );
-                   });
-#else
-    std::for_each( indices.begin()
-                   , indices.end(), [&]( auto idx ){
                        d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
                        progress( d.size() );
                    });
