@@ -30,14 +30,16 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adprot/aminoacid.hpp>
+#include <adportable/debug.hpp>
 #include <adwidgets/moltableview.hpp>
+#include <adwidgets/progresswnd.hpp>
 
-#include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/Descriptors/MolDescriptors.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/SmilesParse/SmilesWrite.h>
-#include <GraphMol/Descriptors/MolDescriptors.h>
-#include <GraphMol/FileParsers/MolSupplier.h>
+#include <GraphMol/inchi.h>
 
 #include <adchem/drawing.hpp>
 #include <QApplication>
@@ -57,6 +59,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlTableModel>
+#include <QStandardItemModel>
 #include <QTextDocument>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -64,16 +67,17 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/exception/all.hpp>
+#include <future>
+#include <thread>
 
 using namespace sdfview;
 
 MolTableWnd::~MolTableWnd()
 {
-    delete model_;
 }
 
 MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
-                                          , model_( new QSqlQueryModel )
+                                          , model_( std::make_unique< QSqlQueryModel >() )
                                           , table_( new adwidgets::MolTableView )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
@@ -90,15 +94,12 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     // table_->setModel( model_ );
     if ( auto m = new QSortFilterProxyModel() ) {
         m->setDynamicSortFilter( true );
-        m->setSourceModel( model_ );
+        m->setSourceModel( model_.get() );
         table_->setModel( m );
         table_->setSortingEnabled( true );
     }
 
-    for ( auto& cname : { "id", "uuid" } )
-        hideColumns_.insert( cname );
-
-    table_->verticalHeader()->setDefaultSectionSize( 80 );
+    table_->verticalHeader()->setDefaultSectionSize( 200 );
     table_->horizontalHeader()->setDefaultSectionSize( 200 );
 
     table_->setContextMenuHandler( [this]( const QPoint& pt ){ handleContextMenu( pt ); } );
@@ -109,14 +110,12 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     connect( table_, &QTableView::activated, [&]( const QModelIndex& current ){
             emit activated( current );
         });
-
-    // connect( document::instance(), &document::updateQuery, this, [&](){ model_->select(); } );
 }
 
 QAbstractItemModel *
 MolTableWnd::model()
 {
-    return model_;
+    return model_.get();
 }
 
 void
@@ -124,33 +123,30 @@ MolTableWnd::setQuery( const QString& sqlstmt )
 {
     ADTRACE() << "setQuery: " << sqlstmt.toStdString();
 
-    QSqlQuery query( sqlstmt, document::instance()->sqlDatabase() );
+    if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
 
-    if ( query.exec() ) {
-        auto rec = query.record();
+        QSqlQuery query( sqlstmt, document::instance()->sqlDatabase() );
 
-        for ( int col = 0; col < rec.count(); ++col ) {
+        if ( query.exec() ) {
+            auto rec = query.record();
 
-            auto column = rec.fieldName(col);
+            for ( int col = 0; col < rec.count(); ++col ) {
 
-            if ( column == "svg" )
-                table_->setColumnField( col, adwidgets::ColumnState::f_svg, false, false );
-            else if ( column == "mass" )
-                table_->setColumnField( col, adwidgets::ColumnState::f_mass, false, false );
-            else if ( column == "formula" )
-                table_->setColumnField( col, adwidgets::ColumnState::f_formula, false, true );
-            else if ( column == "smiles" )
-                table_->setColumnField( col, adwidgets::ColumnState::f_smiles, false, true );
-            else
-                table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
-        }
+                auto column = rec.fieldName(col);
 
-        model_->setQuery( query );
+                if ( column == "svg" )
+                    table_->setColumnField( col, adwidgets::ColumnState::f_svg, false, false );
+                else if ( column == "mass" )
+                    table_->setColumnField( col, adwidgets::ColumnState::f_mass, false, false );
+                else if ( column == "formula" )
+                    table_->setColumnField( col, adwidgets::ColumnState::f_formula, false, true );
+                else if ( column == "smiles" )
+                    table_->setColumnField( col, adwidgets::ColumnState::f_smiles, false, true );
+                else
+                    table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
+            }
 
-        for ( auto& hidden: hideColumns_ ) {
-            int col;
-            if ( ( col = rec.indexOf( hidden ) ) >= 0 )
-                table_->setColumnHidden( col, true );
+            model->setQuery( query );
         }
     }
 
@@ -216,17 +212,15 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
     std::vector< action_type > actions;
 
     QModelIndex index = table_->currentIndex();
-    auto rec = model_->query().record();
-    auto vCSID = model_->data( model_->index( index.row(), rec.indexOf( "csid" ) ) );
-
-    if ( ! vCSID.isNull() ) {
-        QString url = QString( tr( "http://www.chemspider.com/Chemical-Structure.%1.html" ) ).arg( vCSID.toInt() );
-        actions.emplace_back( menu.addAction( url ), [=](){ QDesktopServices::openUrl( QUrl( url ) ); } );
-    } else {
-        auto vInChI = model_->data( model_->index( index.row(), rec.indexOf( "InChI" ) ) );
-        // if ( !vInChI.isNull() )
-        //     actions.emplace_back( menu.addAction( tr("Get CSID") ), [=](){ document::instance()->findCSIDFromInChI( vInChI.toString() ); } )
-                ;
+    if ( auto model = qobject_cast< QSqlQueryModel *>( model_.get() ) ) {
+        auto rec = model->query().record();
+        auto vCSID = model->data( model_->index( index.row(), rec.indexOf( "csid" ) ) );
+        if ( ! vCSID.isNull() ) {
+            QString url = QString( tr( "http://www.chemspider.com/Chemical-Structure.%1.html" ) ).arg( vCSID.toInt() );
+            actions.emplace_back( menu.addAction( url ), [=](){ QDesktopServices::openUrl( QUrl( url ) ); } );
+        } else {
+            auto vInChI = model_->data( model_->index( index.row(), rec.indexOf( "InChI" ) ) );
+        }
     }
 
     if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
@@ -241,13 +235,80 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
 QVariant
 MolTableWnd::data( int row, const QString& column )
 {
-    auto rec = model_->record(row);
-    auto field = rec.field( column );
-    return field.value();
+    if ( auto model = qobject_cast< QSqlQueryModel *>( model_.get() ) ) {
+        auto rec = model->record(row);
+        auto field = rec.field( column );
+        return field.value();
+    }
+    return {};
 }
 
 void
 MolTableWnd::handleDataChaged( const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector< int >& roles )
 {
+}
 
+void
+MolTableWnd::handleSDFileChanged()
+{
+    auto tp = std::chrono::steady_clock::now();
+    emit onProgressInitiated( document::instance()->sdfile()->size() );
+    std::atomic< uint32_t > progressCount(0);
+    auto future = std::async( std::launch::async, [&](){
+        return document::instance()->sdfile()->toData( [&](auto c){ progressCount = c; return false; } );
+    });
+    using namespace std::chrono_literals;
+    while ( std::future_status::ready != future.wait_for( 200ms ) ) {
+        emit onProgress( progressCount );
+        QCoreApplication::instance()->processEvents();
+    }
+    future.wait();
+
+    ADDEBUG() << "elapsed time: "
+              << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - tp ).count() ) / 1000.0
+              << " s";
+
+    document::instance()->setSDData( future.get() );
+    const auto& sddata = document::instance()->sddata();
+
+    emit onProgressFinished();
+
+    auto model = std::make_unique< QStandardItemModel >();
+    std::vector< std::string > keys{ "svg", "formula", "mass", "smiles" };
+    for ( auto it = sddata.begin(); it != sddata.end(); ++it ) {
+        for ( const auto& item: it->dataItems() ) {
+            if ( std::find( keys.begin(), keys.end(), item.first ) == keys.end() )
+                keys.emplace_back( item.first );
+        }
+    }
+    table_->setColumnField( 0, adwidgets::ColumnState::f_svg, false, false );
+    table_->setColumnField( 1, adwidgets::ColumnState::f_formula, false, true );
+    table_->setColumnField( 2, adwidgets::ColumnState::f_mass, false, false );
+    table_->setColumnField( 3, adwidgets::ColumnState::f_smiles, false, true );
+    // table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
+
+    model->setColumnCount( keys.size() );
+    model->setRowCount( sddata.size() );
+    for ( auto it = keys.begin(); it != keys.end(); ++it ) {
+        model->setHeaderData( std::distance( keys.begin(), it ), Qt::Horizontal, QString::fromStdString( *it ) );
+    }
+
+    size_t row(0);
+    for ( auto it = sddata.begin(); it != sddata.end(); ++it, ++row ) {
+        model->setData( model->index( row, 0 ), QByteArray( it->svg().data(), it->svg().size() ) );
+        model->setData( model->index( row, 1 ), QString::fromStdString( it->formula() ) );
+        model->setData( model->index( row, 2 ), adcontrols::ChemicalFormula().getMonoIsotopicMass( it->formula() ) );
+        model->setData( model->index( row, 3 ), QString::fromStdString( it->smiles() ) );
+
+        for ( const auto& item: it->dataItems() ) {
+            auto col = std::distance( keys.begin(), std::find( keys.begin(), keys.end(), item.first ) );
+            model->setData( model->index( row, col ), QString::fromStdString( item.second ) );
+        }
+    }
+
+    table_->setModel( model.get() );
+    table_->setSortingEnabled( true );
+    model_ = std::move( model ); // replace model_ should be later than table model replace
+    table_->verticalHeader()->setFixedWidth( 40 );
+    table_->verticalHeader()->setSizeAdjustPolicy( QHeaderView::AdjustToContents );
 }

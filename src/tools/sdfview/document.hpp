@@ -29,6 +29,13 @@
 
 class QSettings;
 class QSqlDatabase;
+class QAbstractItemModel;
+class MainWindow;
+
+namespace adchem {
+    class SDFile;
+    class SDFileData;
+}
 
 namespace sdfview {
 
@@ -45,8 +52,12 @@ namespace sdfview {
         void initialSetup();
         void finalClose();
         QSettings * settings();
+        std::shared_ptr< adchem::SDFile > sdfile();
+        void setSDData( std::vector< adchem::SDFileData >&& );
+        const std::vector< adchem::SDFileData >& sddata() const;
     signals:
         void onConnectionChanged();
+        void onSDFileChanged();
     };
 
 }

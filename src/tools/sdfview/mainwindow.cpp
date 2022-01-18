@@ -23,16 +23,18 @@
 **************************************************************************/
 #include "mainwindow.hpp"
 #include "document.hpp"
-#include <adui/manhattanstyle.hpp>
 #include "moltablewnd.hpp"
 #include "outputwidget.hpp"
+#include <adui/manhattanstyle.hpp>
 #include <adportable/debug.hpp>
+#include <qtwrapper/settings.hpp>
 #include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCloseEvent>
 #include <QComboBox>
+#include <QDirIterator>
 #include <QDockWidget>
 #include <QFile>
 #include <QFileDialog>
@@ -42,6 +44,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QProgressBar>
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QStatusBar>
@@ -50,7 +53,6 @@
 #include <QToolBar>
 #include <QToolButton>
 #include <QtDebug>
-#include <QDirIterator>
 #include <functional>
 #include <iostream>
 
@@ -83,6 +85,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     if ( auto p = statusBar()->findChild<QLabel *>() ) {
         p->setText( "STATUS:" );
+    }
+
+    if ( ( progressBar_ = new QProgressBar( this ) ) ) {
+        progressBar_->setTextVisible(false);
+        statusBar()->addPermanentWidget( progressBar_ );
+        // progressBar_->hide();
     }
 
     setupFileActions();
@@ -181,11 +189,11 @@ MainWindow::setupFileActions()
 
     a = new QAction(tr("&Quit"), this);
     a->setShortcut(Qt::CTRL + Qt::Key_Q);
-    //connect(a, SIGNAL(triggered()), this, SLOT(close()));
+
     connect(a, &QAction::triggered, this, [&](){
-            ADDEBUG() << "close...";
-            close();
-        });
+        ADDEBUG() << "close...";
+        close();
+    });
     menu->addAction(a);
 }
 
@@ -226,10 +234,13 @@ void MainWindow::fileOpen()
 {
     QString fn = QFileDialog::getOpenFileName(this
                                               , tr("Open File...")
-                                              , "/home/toshi/lipids.sdf" // QString()
+                                              , qtwrapper::settings( *document::instance()->settings() ).recentFile( "SDF", "Files" )
                                               , tr("SDF Files (*.sdf);;All Files (*)"));
-    if ( !fn.isEmpty() )
-        load(fn);
+    if ( !fn.isEmpty() ) {
+        if ( load(fn) ) {
+            qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( "SDF", "Files", fn );
+        }
+    }
 }
 
 bool
@@ -309,6 +320,12 @@ MainWindow::onInitialUpdate()
 {
     connect( document::instance(), &document::onConnectionChanged, [this]{ handleConnectionChanged(); } );
     document::instance()->initialSetup();
+    if ( auto table = findChild< sdfview::MolTableWnd * >() ) {
+        connect( document::instance(), &document::onSDFileChanged, table, &sdfview::MolTableWnd::handleSDFileChanged );
+        connect( table, &sdfview::MolTableWnd::onProgressInitiated, this, &MainWindow::handleProgressInitated );
+        connect( table, &sdfview::MolTableWnd::onProgressFinished, this, &MainWindow::handleProgressFinished );
+        connect( table, &sdfview::MolTableWnd::onProgress, this, &MainWindow::handleProgress );
+    }
 }
 
 QDockWidget *
@@ -329,9 +346,32 @@ MainWindow::handleUpdateData()
 void
 MainWindow::handleConnectionChanged()
 {
-    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
-    if ( auto table = findChild< MolTableWnd * >() ) {
+    if ( auto table = findChild< sdfview::MolTableWnd * >() ) {
+        ADDEBUG() << "##### " << __FUNCTION__ << " #####";
         table->setQuery(
             "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
+    } else {
+        ADDEBUG() << "##### " << __FUNCTION__ << " ##### " << "MolTableWnd not found";
     }
+}
+
+void
+MainWindow::handleProgressInitated( int total )
+{
+    progressBar_->show();
+    progressBar_->reset();
+    progressBar_->setMinimum( 0 );
+    progressBar_->setMaximum( total );
+}
+
+void
+MainWindow::handleProgressFinished()
+{
+    progressBar_->hide();
+}
+
+void
+MainWindow::handleProgress( int current )
+{
+    progressBar_->setValue( current );
 }

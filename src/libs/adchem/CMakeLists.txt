@@ -5,6 +5,7 @@ cmake_policy( SET CMP0022 NEW )
 project( adchem )
 
 add_definitions( -DADCHEM_LIBRARY )
+find_package(TBB REQUIRED)
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
 
@@ -32,6 +33,7 @@ add_library( adchem SHARED
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable
+  TBB::tbb
   ${Boost_LIBRARIES}
   ${RDKit_LIBRARIES}
   )

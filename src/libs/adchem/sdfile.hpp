@@ -26,6 +26,7 @@
 #define SDFILE_HPP
 
 #include "adchem_global.hpp"
+#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -41,6 +42,25 @@ namespace adchem {
 
     class sdfile_iterator;
 
+    class ADCHEMSHARED_EXPORT SDFileData;
+
+    class SDFileData {
+        std::vector< std::pair< std::string, std::string > > dataItems_;
+        std::string svg_;
+        std::string smiles_;
+        std::string formula_;
+        size_t index_;
+    public:
+        SDFileData();
+        SDFileData( const SDFileData& );
+        SDFileData( const sdfile_iterator& );
+        const std::string& svg() const { return svg_; }
+        const std::string& smiles() const { return smiles_; }
+        const std::string& formula() const { return formula_; }
+        const std::vector< std::pair< std::string, std::string > > dataItems() const { return dataItems_; }
+        size_t index() const { return index_; }
+    };
+
     class ADCHEMSHARED_EXPORT SDFile {
     public:
         typedef sdfile_iterator iterator;
@@ -48,7 +68,7 @@ namespace adchem {
         typedef size_t size_type;
         typedef RDKit::ROMol value_type;
 
-        SDFile( const std::string& filename, bool sanitize = false, bool removeHs = false, bool strictParsing = false );
+        SDFile( const std::string& filename, bool sanitize = true, bool removeHs = true, bool strictParsing = true );
         operator bool() const { return molSupplier_ != 0; }
 
         std::shared_ptr< RDKit::SDMolSupplier >& molSupplier() { return molSupplier_; }
@@ -58,12 +78,11 @@ namespace adchem {
         const_iterator begin() const;
         iterator end();
         const_iterator end() const;
-        //value_type operator [] ( size_type idx ) const;
-
         std::string itemText( const sdfile_iterator& );
-
         static bool parseItemText( const std::string&, std::map< std::string, std::string >& );
         static std::vector< std::pair< std::string, std::string > > parseItemText( const std::string& );
+
+        std::vector< SDFileData > toData( std::function< bool(size_t) > progress = [](size_t){ return false; } );
 
     private:
         std::shared_ptr< RDKit::SDMolSupplier > molSupplier_;
@@ -98,6 +117,7 @@ namespace adchem {
         friend bool operator!= (const sdfile_iterator& a, const sdfile_iterator& b) { return a.idx_ != b.idx_; };
 
         std::string itemText() const;
+        uint32_t index() const { return idx_; }
     };
 }
 

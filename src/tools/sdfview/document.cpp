@@ -24,16 +24,21 @@
 
 #include "document.hpp"
 #include "app_version.h"
-#include <adfs/sqlite.hpp>
-#include <adportable/debug.hpp>
-#include <adlog/logger.hpp>
+#include "mainwindow.hpp"
+#include "moltablewnd.hpp"
 #include <adchem/sdfile.hpp>
+#include <adfs/sqlite.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <qtwrapper/settings.hpp>
+#include <QApplication>
+#include <QDebug>
 #include <QMessageBox>
 #include <QSettings>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlDatabase>
+#include <QStandardItemModel>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <GraphMol/RDKitBase.h>
@@ -46,6 +51,9 @@ namespace {
     struct impl {
         QSettings settings_;
         QSqlDatabase db_;
+        std::shared_ptr< QStandardItemModel > model_;
+        std::shared_ptr< adchem::SDFile > sdfile_;
+        std::vector< adchem::SDFileData > sddata_;
 
         static impl& instance() {
             static impl impl_;
@@ -55,7 +63,7 @@ namespace {
         impl() : settings_(
             QSettings::IniFormat, QSettings::UserScope
             , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR ) // "QtPlatz"
-            , QLatin1String( "sdfview" ) ){
+            , QLatin1String( "sdfview" ) )   {
         }
     };
 
@@ -140,24 +148,32 @@ document::sqlDatabase()
 bool
 document::load( const QString& file )
 {
-    ADDEBUG() << file.toStdString();
+    impl::instance().sddata_.clear();
 
-    adchem::SDFile sdfile( file.toStdString() );
-    if ( sdfile ) {
-        ADDEBUG() << sdfile.size();
-        size_t n = 0;
-        for ( auto it = sdfile.begin(); it != sdfile.end(); ++it ) {
-            auto text = sdfile.itemText( it );
-            ADDEBUG() << "----------------------------------";
-            auto data = sdfile.parseItemText( text );
-            for ( const auto& item: data ) {
-                ADDEBUG() << item;
-            }
-
-            if ( ++n >= 4 )
-                break;
-        }
+    auto sdfile = std::make_shared< adchem::SDFile >( file.toStdString() );
+    if ( sdfile && *sdfile ) {
+        impl::instance().sdfile_ = std::move( sdfile );
+        emit onSDFileChanged();
+        return true;
     }
+    return false;
+}
 
-    return sdfile;
+std::shared_ptr< adchem::SDFile >
+document::sdfile()
+{
+    return impl::instance().sdfile_;
+}
+
+
+void
+document::setSDData( std::vector< adchem::SDFileData >&& t )
+{
+    impl::instance().sddata_ = std::move( t );
+}
+
+const std::vector< adchem::SDFileData >&
+document::sddata() const
+{
+    return impl::instance().sddata_;
 }

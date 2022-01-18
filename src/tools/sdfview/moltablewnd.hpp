@@ -48,6 +48,8 @@ namespace sdfview {
         ~MolTableWnd();
 
         void setQuery( const QString& sqlstmt );
+        void setModel( QAbstractItemModel * );
+        void setModel( std::unique_ptr< QAbstractItemModel >&& );
 
         QAbstractItemModel * model();
         QVariant data( int row, const QString& column );
@@ -55,8 +57,12 @@ namespace sdfview {
     signals:
         void dropped( const QList< QUrl >& );
         void activated( const QModelIndex& );
+        void onProgressInitiated( int );
+        void onProgressFinished();
+        void onProgress( int );
 
     public slots:
+        void handleSDFileChanged();
 
     private:
         void handleContextMenu( const QPoint& );
@@ -66,9 +72,8 @@ namespace sdfview {
         void dragLeaveEvent( QDragLeaveEvent * ); // override;
         void dropEvent( QDropEvent * );           // override;
 
-        QSqlQueryModel * model_;
+        std::unique_ptr< QAbstractItemModel > model_;
         adwidgets::MolTableView * table_;
-        std::set< QString > hideColumns_;
 
     private slots:
         // void handleCopyToClipboard(); // override;

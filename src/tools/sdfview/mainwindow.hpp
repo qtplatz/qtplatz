@@ -43,7 +43,8 @@ QT_FORWARD_DECLARE_CLASS(QStyledBar)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class QStackedWidget;
-
+class QAbstractItemModel;
+class QProgressBar;
 
 class MainWindow : public QMainWindow
 {
@@ -82,10 +83,15 @@ private slots:
 
     void handleUpdateData();
     void handleConnectionChanged();
- private:
+
+    void handleProgressInitated( int );
+    void handleProgressFinished();
+    void handleProgress( int );
+private:
     QAction *actionSave;
     QToolBar *tb_;
     QTimer * timer_;
+    QProgressBar * progressBar_;
 };
 
 #endif // MAINWINDOW_HPP

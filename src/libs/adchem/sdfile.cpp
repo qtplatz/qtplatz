@@ -29,18 +29,22 @@
 # pragma warning(disable:4267) // convesrion from size_t to unsigned int
 #endif
 
+#include <adcontrols/chemicalformula.hpp>
+#include "drawing.hpp"
 #include "sdfile.hpp"
 #include "sdfile_parser.hpp"
 #include <adportable/debug.hpp>
 
-#include <RDGeneral/Invariant.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+#include <GraphMol/Descriptors/MolDescriptors.h>
+#include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Substruct/SubstructMatch.h>
-#include <GraphMol/Depictor/RDDepictor.h>
-#include <GraphMol/FileParsers/FileParsers.h>
-#include <GraphMol/FileParsers/MolSupplier.h>
+#include <GraphMol/inchi.h>
+#include <RDGeneral/Invariant.h>
 #include <RDGeneral/RDLog.h>
 
 #include <boost/algorithm/string.hpp>
@@ -49,8 +53,10 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/map.hpp>
 #include <codecvt>
+#include <execution>
 #include <fstream>
 #include <locale>
+#include <mutex>
 #include <regex>
 
 using namespace adchem;
@@ -124,6 +130,32 @@ SDFile::itemText( const sdfile_iterator& it )
     return it.itemText();
 }
 
+std::vector< SDFileData >
+SDFile::toData( std::function< bool(size_t) > progress )
+{
+    std::vector< SDFileData > d;
+    std::vector< size_t > indices( this->size() );
+    std::iota( indices.begin(), indices.end(), 0 );
+#if 1
+    std::mutex mutex;
+    std::for_each( std::execution::par
+                   , indices.begin()
+                   , indices.end(), [&]( auto idx ){
+                       std::lock_guard<std::mutex> guard(mutex);
+                       d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
+                       progress( d.size() );
+                   });
+#else
+    std::for_each( indices.begin()
+                   , indices.end(), [&]( auto idx ){
+                       d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
+                       progress( d.size() );
+                   });
+#endif
+    return d;
+}
+
+
 sdfile_iterator::sdfile_iterator( RDKit::SDMolSupplier& supplier
                                   , size_t idx ) : supplier_( supplier )
                                                  , idx_( idx )
@@ -141,6 +173,7 @@ sdfile_iterator::itemText() const
     return supplier_.getItemText( idx_ );
 }
 
+
 namespace adchem {
 
     sdfile_iterator::reference sdfile_iterator::operator* () const
@@ -153,4 +186,25 @@ namespace adchem {
         return const_cast< sdfile_iterator *>(this)->supplier_[ idx_ ];
     }
 
+}
+
+///////////////////////////////////////
+
+SDFileData::SDFileData()
+{
+}
+
+SDFileData::SDFileData( const SDFileData& t ) : dataItems_( t.dataItems_ )
+                                              , svg_( t.svg_ )
+                                              , smiles_( t.smiles_ )
+                                              , formula_( t.formula_ )
+{
+}
+
+SDFileData::SDFileData( const sdfile_iterator& it ) : index_( it.index() )
+{
+    dataItems_ = SDFile::parseItemText( it.itemText() );
+    formula_   = RDKit::Descriptors::calcMolFormula( *it, true, false );
+    smiles_    = RDKit::MolToSmiles( *it );
+    svg_       = adchem::drawing::toSVG( *it );
 }
