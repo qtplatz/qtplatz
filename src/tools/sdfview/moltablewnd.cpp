@@ -306,23 +306,16 @@ MolTableWnd::handleSDFileChanged()
     for ( auto it = sdmols.begin(); it != sdmols.end(); ++it, ++row ) {
         emit onProgress( row );
         QCoreApplication::instance()->processEvents();
-        // following data will be loaded on demand
-        // model->setData( model->index( row, 0 ), QByteArray( it->svg().data(), it->svg().size() ) );
         model->setData( model->index( row, 1 ), QString::fromStdString( it->formula() ) );
         model->setData( model->index( row, 2 ), adcontrols::ChemicalFormula().getMonoIsotopicMass( it->formula() ) );
+        // svg & smiles data will be loaded on demand
+        // model->setData( model->index( row, 0 ), QByteArray( it->svg().data(), it->svg().size() ) );
         // model->setData( model->index( row, 3 ), QString::fromStdString( it->smiles() ) );
         for ( const auto& item: it->dataItems() ) {
             auto col = std::distance( keys.begin(), std::find( keys.begin(), keys.end(), item.first ) );
             model->setData( model->index( row, col ), QString::fromStdString( item.second ) );
         }
     }
-
-    // if ( auto m = new QSortFilterProxyModel() ) {
-    //     m->setDynamicSortFilter( true );
-    //     m->setSourceModel( model.get() );
-    //     table_->setModel( m );
-    //     table_->setSortingEnabled( false );
-    // }
     auto temp = std::move( model_ ); // hold scope until return;
     model_ = std::move( model ); // replace model_ should be later than table model replace    
     table_->setModel( model_.get() );
@@ -332,6 +325,7 @@ MolTableWnd::handleSDFileChanged()
     ADDEBUG() << "total elapsed time: "
               << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - tp ).count() ) / 1000.0
               << " s";
+
     emit onProgressFinished();
     QCoreApplication::instance()->processEvents();
 }
@@ -339,11 +333,10 @@ MolTableWnd::handleSDFileChanged()
 void
 MolTableWnd::handleNullData( const QModelIndex& index )
 {
-    // demand data loadgin
+    // on-demand data loading
     auto sdmol = document::instance()->sdmols().at( index.row() );
-
-    table_->model()->setData( table_->model()->index( index.row(), 0 ), QByteArray( sdmol.svg().data(), sdmol.svg().size() ) );
     // table_->model()->setData( table_->model()->index( index.row(), 1 ), QString::fromStdString( sdmol.formula() ) );
     // table_->model()->setData( table_->model()->index( index.row(), 2 ), adcontrols::ChemicalFormula().getMonoIsotopicMass( sdmol.formula() ) );
+    table_->model()->setData( table_->model()->index( index.row(), 0 ), QByteArray( sdmol.svg().data(), sdmol.svg().size() ) );
     table_->model()->setData( table_->model()->index( index.row(), 3 ), QString::fromStdString( sdmol.smiles() ) );
 }
