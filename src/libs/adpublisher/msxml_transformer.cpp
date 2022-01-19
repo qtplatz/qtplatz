@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "msxml_transformer.hpp"
-#include <xmlparser/pugixml.hpp>
+#include <pugixml.hpp>
 #include <atlbase.h>
 #include <atlcom.h>
 #include <comdef.h>
@@ -79,10 +79,10 @@ transformer::apply_template( const boost::filesystem::path& xslfile
     (void)p;
 
     MSXML2::IXMLDOMDocument3Ptr xml, xsl;
-    
+
     if ( CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xml ) != S_OK )
         return false;
-    
+
     if ( CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xsl ) != S_OK )
         return false;
 
@@ -97,7 +97,7 @@ transformer::apply_template( const boost::filesystem::path& xslfile
 
             oxml->loadXML( out );
             oxml->save( _bstr_t( outfile.string().c_str() ) );
-            
+
             return true;
 
         }
@@ -112,11 +112,11 @@ transformer::apply_template( const boost::filesystem::path& xmlfile, const boost
     (void)p;
 
     MSXML2::IXMLDOMDocument3Ptr xml, xsl;
-    
+
     auto hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xml );
     if ( hr != S_OK )
         return false;
-    
+
     hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xsl );
     if ( hr != S_OK )
         return false;
@@ -148,11 +148,11 @@ transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi
     (void)p;
 
     MSXML2::IXMLDOMDocument3Ptr xml, xsl;
-    
+
     auto hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xml );
     if ( hr != S_OK )
         return false;
-    
+
     hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xsl );
     if ( hr != S_OK )
         return false;
@@ -182,7 +182,7 @@ transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi
 void
 transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
 {
-    static const boost::filesystem::path dir = 
+    static const boost::filesystem::path dir =
         boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() )
         /= boost::filesystem::path( "/../share/qtplatz/xslt" );
 
