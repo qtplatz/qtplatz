@@ -54,7 +54,9 @@
 #include <boost/fusion/include/map.hpp>
 #include <atomic>
 #include <codecvt>
-#include <execution>
+#if __cplusplus__ >= 201703L
+# include <execution>
+#endif
 #include <fstream>
 #include <locale>
 #include <mutex>
