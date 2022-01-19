@@ -32,6 +32,7 @@
 
 class QSqlQueryModel;
 class QProgressBar;
+class QStyledItemDelegate;
 
 namespace adchem { class SDFile; }
 namespace adwidgets { class MolTableView; }
@@ -74,11 +75,13 @@ namespace sdfview {
 
         std::unique_ptr< QAbstractItemModel > model_;
         adwidgets::MolTableView * table_;
+        QAbstractItemDelegate * backup_;
 
     private slots:
         // void handleCopyToClipboard(); // override;
         void handlePaste(); // override;
         void handleDataChaged( const QModelIndex&, const QModelIndex&, const QVector<int>& );
+        void handleNullData( const QModelIndex& );
     };
 
 }

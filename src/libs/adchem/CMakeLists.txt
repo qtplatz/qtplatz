@@ -20,6 +20,8 @@ if ( rdkit_FOUND )
   set( rdkit_SOURCES
     sdfile.cpp
     sdfile.hpp
+    sdmol.cpp
+    sdmol.hpp
     mol.cpp
     mol.hpp
     drawing.cpp

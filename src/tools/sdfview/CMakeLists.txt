@@ -50,6 +50,8 @@ add_executable( ${PROJECT_NAME}
   outputwidget.hpp
   moltablewnd.cpp
   moltablewnd.hpp
+  moltabledelegate.cpp
+  moltabledelegate.hpp
   ${Resources}
   )
 

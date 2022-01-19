@@ -53,7 +53,7 @@ namespace {
         QSqlDatabase db_;
         std::shared_ptr< QStandardItemModel > model_;
         std::shared_ptr< adchem::SDFile > sdfile_;
-        std::vector< adchem::SDFileData > sddata_;
+        std::vector< adchem::SDMol > sdmols_;
 
         static impl& instance() {
             static impl impl_;
@@ -148,9 +148,9 @@ document::sqlDatabase()
 bool
 document::load( const QString& file )
 {
-    impl::instance().sddata_.clear();
+    impl::instance().sdmols_.clear();
 
-    auto sdfile = std::make_shared< adchem::SDFile >( file.toStdString() );
+    auto sdfile = adchem::SDFile::create( file.toStdString() );
     if ( sdfile && *sdfile ) {
         impl::instance().sdfile_ = std::move( sdfile );
         emit onSDFileChanged();
@@ -165,15 +165,14 @@ document::sdfile()
     return impl::instance().sdfile_;
 }
 
-
-void
-document::setSDData( std::vector< adchem::SDFileData >&& t )
+std::vector< adchem::SDMol >
+document::sdmols()
 {
-    impl::instance().sddata_ = std::move( t );
+    return impl::instance().sdmols_;
 }
 
-const std::vector< adchem::SDFileData >&
-document::sddata() const
+void
+document::set_sdmols( std::vector< adchem::SDMol >&& t )
 {
-    return impl::instance().sddata_;
+    impl::instance().sdmols_ = std::move( t );
 }

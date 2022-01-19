@@ -335,9 +335,7 @@ MainWindow::handleDropped( const QList< QUrl >& urls )
     if ( auto wnd = findChild< MolTableWnd * >() ) {
         for ( auto& url: urls ) {
             boost::filesystem::path path( url.toLocalFile().toStdWString() );
-            //topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
-            adchem::SDFile file( path.string() );
-            // wnd->setMol( file, *progressBar_ );
+            // todo
         }
     }
 }

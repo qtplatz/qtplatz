@@ -34,7 +34,7 @@ class MainWindow;
 
 namespace adchem {
     class SDFile;
-    class SDFileData;
+    class SDMol;
 }
 
 namespace sdfview {
@@ -53,8 +53,9 @@ namespace sdfview {
         void finalClose();
         QSettings * settings();
         std::shared_ptr< adchem::SDFile > sdfile();
-        void setSDData( std::vector< adchem::SDFileData >&& );
-        const std::vector< adchem::SDFileData >& sddata() const;
+        std::vector< adchem::SDMol > sdmols();
+        void set_sdmols( std::vector< adchem::SDMol >&& );
+
     signals:
         void onConnectionChanged();
         void onSDFileChanged();

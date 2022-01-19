@@ -52,6 +52,7 @@
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/map.hpp>
+#include <atomic>
 #include <codecvt>
 #include <execution>
 #include <fstream>
@@ -61,39 +62,44 @@
 using namespace adchem;
 
 SDFile::SDFile( const std::string& filename, bool sanitize, bool removeHs, bool strictParsing )
-    : molSupplier_( std::make_shared< RDKit::SDMolSupplier >( filename, sanitize, removeHs, strictParsing ) )
+    : molSupplier_( std::make_unique< RDKit::SDMolSupplier >( filename, sanitize, removeHs, strictParsing ) )
     , filename_( filename )
 {
 }
 
-SDFile::iterator
-SDFile::begin()
-{
-    return sdfile_iterator( *molSupplier_, 0 );
-}
-
-SDFile::const_iterator
-SDFile::begin() const
-{
-    return sdfile_iterator( *molSupplier_, 0 );
-}
-
-SDFile::iterator
-SDFile::end()
-{
-    return sdfile_iterator( *molSupplier_, size() );
-}
-
-SDFile::const_iterator
-SDFile::end() const
-{
-    return sdfile_iterator( *molSupplier_, size() );
-}
-
-SDFile::size_type
+size_t
 SDFile::size() const
 {
     return molSupplier_->length();
+}
+
+SDFile::operator bool() const
+{
+    return molSupplier_ != nullptr;
+}
+
+RDKit::SDMolSupplier&
+SDFile::molSupplier()
+{
+    return *molSupplier_;
+}
+
+adchem::SDMol
+SDFile::at( size_t index )
+{
+    return SDMol( this, index );
+}
+
+std::vector< SDMol >
+SDFile::populate( std::function< void(size_t) > progress )
+{
+    std::vector< size_t > indices( this->size() );
+    std::iota( indices.begin(), indices.end(), 0 );
+    std::vector< SDMol > d;
+    d.reserve( size() );
+    // std::for_each( std::execution::par
+    std::for_each( indices.begin(), indices.end(), [&]( auto idx ){ d.emplace_back( at( idx ) ); progress( d.size() ); });
+    return d;
 }
 
 std::vector< std::pair< std::string, std::string > >
@@ -123,87 +129,29 @@ SDFile::parseItemText( const std::string& text )
 	return data;
 }
 
-std::string
-SDFile::itemText( const sdfile_iterator& it )
-{
-    return it.itemText();
-}
-
-std::vector< SDFileData >
-SDFile::toData( std::function< bool(size_t) > progress )
-{
-    std::vector< SDFileData > d;
-    std::vector< size_t > indices( this->size() );
-    std::iota( indices.begin(), indices.end(), 0 );
-#if __APPLE__  || ! HAVE_TBB // Xcode clang-13 does not support execution::parallel
-    std::for_each( indices.begin()
-                   , indices.end(), [&]( auto idx ){
-                       d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
-                       progress( d.size() );
-                   });
-#else
-    std::mutex mutex;
-    std::for_each( std::execution::par
-                   , indices.begin()
-                   , indices.end(), [&]( auto idx ){
-                       std::lock_guard<std::mutex> guard(mutex);
-                       d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
-                       progress( d.size() );
-                   });
-#endif
-    return d;
-}
-
-
-sdfile_iterator::sdfile_iterator( RDKit::SDMolSupplier& supplier
-                                  , size_t idx ) : supplier_( supplier )
-                                                 , idx_( idx )
-{
-}
-
-sdfile_iterator::sdfile_iterator( const sdfile_iterator& t ) : supplier_( t.supplier_ )
-                                                             , idx_( t.idx_ )
-{
-}
-
-std::string
-sdfile_iterator::itemText() const
-{
-    return supplier_.getItemText( idx_ );
-}
-
-
-namespace adchem {
-
-    sdfile_iterator::reference sdfile_iterator::operator* () const
-    {
-        return *const_cast< sdfile_iterator *>(this)->supplier_[ idx_ ];
-    }
-
-    sdfile_iterator::pointer sdfile_iterator::operator->()
-    {
-        return const_cast< sdfile_iterator *>(this)->supplier_[ idx_ ];
-    }
-
-}
+// std::vector< SDFileData >
+// SDFile::toData( std::function< bool(size_t) > progress )
+// {
+//     std::vector< SDFileData > d;
+//     std::vector< size_t > indices( this->size() );
+//     std::iota( indices.begin(), indices.end(), 0 );
+// #if __APPLE__  || ! HAVE_TBB // Xcode clang-13 does not support execution::parallel
+//     std::for_each( indices.begin()
+//                    , indices.end(), [&]( auto idx ){
+//                        d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
+//                        progress( d.size() );
+//                    });
+// #else
+//     std::mutex mutex;
+//     std::for_each( std::execution::par
+//                    , indices.begin()
+//                    , indices.end(), [&]( auto idx ){
+//                        std::lock_guard<std::mutex> guard(mutex);
+//                        d.emplace_back( SDFileData( sdfile_iterator( *molSupplier_, idx ) ) );
+//                        progress( d.size() );
+//                    });
+// #endif
+//     return {};
+// }
 
 ///////////////////////////////////////
-
-SDFileData::SDFileData()
-{
-}
-
-SDFileData::SDFileData( const SDFileData& t ) : dataItems_( t.dataItems_ )
-                                              , svg_( t.svg_ )
-                                              , smiles_( t.smiles_ )
-                                              , formula_( t.formula_ )
-{
-}
-
-SDFileData::SDFileData( const sdfile_iterator& it ) : index_( it.index() )
-{
-    dataItems_ = SDFile::parseItemText( it.itemText() );
-    formula_   = RDKit::Descriptors::calcMolFormula( *it, true, false );
-    smiles_    = RDKit::MolToSmiles( *it );
-    svg_       = adchem::drawing::toSVG( *it );
-}
