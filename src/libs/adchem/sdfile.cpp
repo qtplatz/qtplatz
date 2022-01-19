@@ -100,7 +100,7 @@ SDFile::populate( std::function< void(size_t) > progress )
     std::vector< SDMol > d;
     d.reserve( size() );
     // std::for_each( std::execution::par
-    std::for_each( indices.begin(), indices.end(), [&]( auto idx ){ d.emplace_back( at( idx ) ); progress( d.size() ); });
+    std::for_each( indices.begin(), indices.end(), [&]( auto idx ){ d.emplace_back( this->at( idx ) ); progress( d.size() ); });
     return d;
 }
 
