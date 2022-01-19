@@ -67,8 +67,9 @@ using namespace sdfview;
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
                                         , timer_(new QTimer(this))
 {
+#ifndef WIN32
     Q_INIT_RESOURCE( adui );
-
+#endif
     auto baseName = QApplication::style()->objectName();
     qApp->setStyle( new adui::ManhattanStyle( baseName ) );
 

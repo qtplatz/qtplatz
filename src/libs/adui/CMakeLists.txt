@@ -27,7 +27,7 @@ add_library( ${PROJECT_NAME} SHARED
   ${RC_SRC}
   )
 
-target_link_libraries( ${PROJECT_NAME}
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   utils
   Qt5::Core
   Qt5::Widgets

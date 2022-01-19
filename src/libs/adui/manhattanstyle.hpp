@@ -37,6 +37,8 @@ class ManhattanStylePrivate;
 
 namespace adui {
 
+class ADUISHARED_EXPORT ManhattanStyle;
+
 class ManhattanStyle : public QProxyStyle
 {
     Q_OBJECT
