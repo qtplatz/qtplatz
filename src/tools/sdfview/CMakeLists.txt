@@ -72,8 +72,4 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${CMAKE_DL_LIBS}
   )
 
-install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
-  )
+install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin COMPONENT applications )

@@ -26,6 +26,7 @@ release:
 package:
         cmake --build . --config Release --target package -- /m
 #	$(MSBUILD) /m /p:Configuration=$(CONFIG_RELEASE) PACKAGE.vcxproj
+#       cpack -C Release --config ./CPackConfig.cmake
 
 install:
         cmake --build . --config Release --target install -- /m
