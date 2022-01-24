@@ -449,6 +449,17 @@ static QString compilerString()
 #elif defined(Q_CC_GNU)
     return QLatin1String("GCC " ) + QLatin1String(__VERSION__);
 #elif defined(Q_CC_MSVC)
+    // _MSC_VER => 1931 --> 2014  (19 + 2008
+    if ( _MSC_VER >= 1900 ) {
+        uint32_t minor = (_MSC_VER % 100)/10;
+        static const QString vs[] = { "VS2015", "VS2015", "VS2017", "VS2019", "VS2022" };
+        if ( minor <= 3 ) // 193x
+            return QString("MSVC %1.%2 (%3)").arg( QString::number((_MSC_VER-500)/100)
+                                                   , QString::number((_MSC_VER-500) % 100), vs[minor] );
+        else
+            return QString("MSVC %1.%2").arg( QString::number((_MSC_VER-500)/100)
+                                                   , QString::number((_MSC_VER-500) % 100) );
+    }
     if (_MSC_VER >= 1800) // 1800: MSVC 2013 (yearly release cycle)
         return QLatin1String("MSVC ") + QString::number(2008 + ((_MSC_VER / 100) - 13));
     if (_MSC_VER >= 1500) // 1500: MSVC 2008, 1600: MSVC 2010, ... (2-year release cycle)
