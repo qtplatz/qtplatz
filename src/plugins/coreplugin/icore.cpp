@@ -452,7 +452,7 @@ static QString compilerString()
     // _MSC_VER => 1931 --> 2014  (19 + 2008
     if ( _MSC_VER >= 1900 ) {
         uint32_t minor = (_MSC_VER % 100)/10;
-        static const QString vs[] = { "VS2015", "VS2015", "VS2017", "VS2019", "VS2022" };
+        static const QString vs[] = { "VS2015", "VS2017", "VS2019", "VS2022" };
         if ( minor <= 3 ) // 193x
             return QString("MSVC %1.%2 (%3)").arg( QString::number((_MSC_VER-500)/100)
                                                    , QString::number((_MSC_VER-500) % 100), vs[minor] );
