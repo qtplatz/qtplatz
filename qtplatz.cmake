@@ -44,6 +44,8 @@ if ( WIN32 )
       -DBOOST_RANDOM_DYN_LINK
       -DBOOST_SYSTEM_DYN_LINK
       -DBOOST_TIMER_DYN_LINK
+      -DBOOST_PYTHON_DYN_LINK
+      -DBOOST_NUMPY_DYN_LINK
       )
   else()
     add_definitions( -DBOOST_ALL_DYN_LINK )
