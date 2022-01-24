@@ -10,13 +10,6 @@ set( Boost_NO_SYSTEM_PATHS ON )
 set ( __boost_versions
   "boost-1_78"        # V19
   "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
-  "boost-1_73"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
-  "boost-1_69"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
-  "boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
-  "boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 (debian9 default)
-  "boost-1_59"        # V13
-  "boost-1_58"        # V12
-  "boost-1_57"
   )
 
 if ( WIN32 )
@@ -30,7 +23,7 @@ if ( WIN32 )
   set( BOOST_INCLUDEDIR ${_boost} )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
-  # add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
+  add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
 
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )

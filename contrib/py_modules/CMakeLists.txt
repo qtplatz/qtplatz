@@ -4,7 +4,11 @@ if ( NOT Python3_FOUND )
 endif()
 
 if ( NOT Boost_PYTHON_FOUND )
-  message( FATAL_ERROR "##### Boost_PYTHON requred #####")
+  if ( WIN32 )
+    message( STATUS "##### Boost_PYTHON requred #####")
+  else()
+    message( FATAL_ERROR "##### Boost_PYTHON requred #####")
+  endif()
 endif()
 
 if ( APPLE )
@@ -37,7 +41,9 @@ configure_file(
   COPYONLY
   )
 
-add_subdirectory( world )
+if ( NOT WIN32 )
+  add_subdirectory( world )
+endif()
 
 if ( VERBOSE )
   message( STATUS "------------> contrib/py_modules/adControls")

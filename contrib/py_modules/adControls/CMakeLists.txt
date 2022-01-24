@@ -1,6 +1,6 @@
 cmake_minimum_required ( VERSION 3.18.2 )
 
-project ( adControls )
+project ( py_adControls )
 
 if ( NOT Python3_FOUND )
   message( FATAL_ERROR "##### Python3 requred #####")
