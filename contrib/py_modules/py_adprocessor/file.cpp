@@ -22,7 +22,7 @@
 **************************************************************************/
 
 #include "file.hpp"
-#include "../adControls/peakresult.hpp"
+#include "../py_adcontrols/peakresult.hpp"
 #include <adcontrols/typelist.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>

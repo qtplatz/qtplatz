@@ -41,19 +41,19 @@ configure_file(
   COPYONLY
   )
 
-if ( NOT WIN32 )
-  add_subdirectory( world )
-endif()
+add_subdirectory( world )
 
 if ( VERBOSE )
-  message( STATUS "------------> contrib/py_modules/adControls")
+  message( STATUS "------------> contrib/py_modules/py_adcontrols")
 endif()
-add_subdirectory( adControls )
+
+add_subdirectory( py_adcontrols )
 
 if ( VERBOSE )
-  message( STATUS "------------> contrib/py_modules/adProcessor")
+  message( STATUS "------------> contrib/py_modules/py_adprocessor")
 endif()
-add_subdirectory( adProcessor )
+
+add_subdirectory( py_adprocessor )
 
 install( FILES  __init__.py DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules )
 install( FILES jupyter-run.sh DESTINATION bin COMPONENT modules )
