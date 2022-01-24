@@ -6,9 +6,9 @@ elseif( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "19.00" )
   set( CRTDIR "$ENV{VCTOOLSREDISTDIR}/x64/Microsoft.VC140.CRT" )
 endif()
 
-message( STATUS "###################################################################" )
-message( STATUS "## CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
-message( STATUS "## CRTDIR: " ${CRTDIR} )
+#message( STATUS "###################################################################" )
+#message( STATUS "## CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
+#message( STATUS "## CRTDIR: " ${CRTDIR} )
 
 file( GLOB files "${CRTDIR}/*.dll" )
 foreach( file ${files} )
@@ -17,8 +17,7 @@ foreach( file ${files} )
   install ( PROGRAMS "${cmake_file}" DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT applications )
 endforeach()
 
-message( STATUS "###################################################################" )
-
+# message( STATUS "###################################################################" )
 set ( REDIST "$ENV{VCTOOLSREDISTDIR}vc_redist.x64.exe" )
 message( STATUS ${REDIST} )
 
