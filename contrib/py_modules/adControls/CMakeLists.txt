@@ -2,14 +2,11 @@ cmake_minimum_required ( VERSION 3.18.2 )
 
 project ( adControls )
 
-find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
-if ( Boost_FOUND )
-  include_directories( ${Boost_INCLUDE_DIRS} )
+if ( NOT Python3_FOUND )
+  message( FATAL_ERROR "##### Python3 requred #####")
 endif()
 
-if ( Python3_FOUND )
-  include_directories( ${Python3_INCLUDE_DIRS} )
-endif()
+include_directories( ${Python3_INCLUDE_DIRS} )
 
 add_library( ${PROJECT_NAME} MODULE
   adcontrols.cpp

@@ -46,11 +46,7 @@ if ( CMAKE_CROSSCOMPILING )
   option( WITH_PYTHON3     "Python3 modules"          OFF )
 else()
   option( WITH_CUDA        "CUDA"                     ON )
-  if ( WIN32 )
-    option( WITH_PYTHON3     "Python3 modules"        OFF )
-  else()
-    option( WITH_PYTHON3     "Python3 modules"        ON )
-  endif()
+  option( WITH_PYTHON3     "Python3 modules"          ON )
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
@@ -147,9 +143,9 @@ endif()
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
   set( boost_libs "bzip2" )
-  if ( Python3_FOUND )
-    list( APPEND boost_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
-  endif()
+#  if ( Python3_FOUND )
+#    list( APPEND boost_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
+#  endif()
 endif()
 if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
@@ -177,6 +173,8 @@ endif()
 ### find boost
 ##############################################
 ## boost-1.75 required boost::json, which uses in libadcv and libvideo
+set( Boost_NO_WARN_NEW_VERSIONS ON )
+
 find_package( Boost 1.75 REQUIRED COMPONENTS
   atomic
   ${boost_libs} # windows
@@ -195,6 +193,8 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   thread
   timer
   wserialization
+  OPTIONAL_COMPONENTS
+  python
   )
 
 if ( Boost_FOUND )
