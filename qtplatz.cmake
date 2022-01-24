@@ -23,7 +23,7 @@ if ( WIN32 )
   set( BOOST_INCLUDEDIR ${_boost} )
   set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
-  add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
+  # add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
 
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )
@@ -37,8 +37,6 @@ if ( WIN32 )
       -DBOOST_RANDOM_DYN_LINK
       -DBOOST_SYSTEM_DYN_LINK
       -DBOOST_TIMER_DYN_LINK
-      -DBOOST_PYTHON_DYN_LINK
-      -DBOOST_NUMPY_DYN_LINK
       )
   else()
     add_definitions( -DBOOST_ALL_DYN_LINK )

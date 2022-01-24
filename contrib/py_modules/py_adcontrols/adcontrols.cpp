@@ -29,7 +29,9 @@
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/baselines.hpp>
+#if ! defined WIN32
 #include <adcontrols/chromatogram.hpp>
+#endif
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -45,6 +47,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <compiler/decl_export.h>
 
 using namespace boost::python;
 
@@ -53,7 +56,7 @@ void exportUUID();
 namespace py_module {
 
     template< typename T >
-    std::wstring to_xml( const T& self )
+    std::wstring DECL_EXPORT to_xml( const T& self )
     {
         std::wostringstream xml;
         if ( adportable::xml::serialize<>()( self, xml ) )
@@ -81,7 +84,7 @@ namespace py_module {
         PyErr_SetString(PyExc_IndexError, "index out of range");
         throw boost::python::error_already_set();;
     }
-
+#ifndef WIN32
     boost::python::tuple Chromatogram_getitem( const adcontrols::Chromatogram& self, int index )
     {
         if ( index >= 0 && index < self.size() ) {
@@ -90,6 +93,7 @@ namespace py_module {
         PyErr_SetString(PyExc_IndexError, "index out of range");
         throw boost::python::error_already_set();;
     }
+#endif
 
     boost::python::tuple MSProperty_massRange( const adcontrols::MSProperty& self )
     {
@@ -138,18 +142,18 @@ namespace py_module {
             return adcontrols::MassSpectrometer::create( clsid );
         return {}; // adcontrols::MassSpectrometer::create( str );
     }
-    
+
     std::vector< boost::python::tuple > MassSpectrometer_installed_models() {
         std::vector< boost::python::tuple > a;
         for ( const auto& t: adcontrols::MassSpectrometer::installed_models() )
             a.emplace_back( make_tuple( t.first, t.second ) );
         return a;
-    }    
+    }
 
 }
 
 
-BOOST_PYTHON_MODULE( adControls )
+BOOST_PYTHON_MODULE( py_adcontrols )
 {
     exportUUID();
 
@@ -164,10 +168,10 @@ BOOST_PYTHON_MODULE( adControls )
 
     register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
-
+#ifndef WIN32
     register_ptr_to_python< std::shared_ptr< adcontrols::PeakResult > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::PeakResult > >();
-
+#endif
     register_ptr_to_python< std::shared_ptr< adcontrols::ProcessMethod > >();
     register_ptr_to_python< std::shared_ptr< const adcontrols::ProcessMethod > >();
 
@@ -193,7 +197,7 @@ BOOST_PYTHON_MODULE( adControls )
     def( "str_to_uuid",                     py_module::string_to_uuid );
     def( "MassSpectrometer_create",         py_module::MassSpectrometer_create );
     def( "MassSpectrometer_list",           py_module::MassSpectrometer_installed_models );
-    
+
     class_< std::vector< boost::python::tuple > >("std_vector_tuple")
         .def( vector_indexing_suite< std::vector< boost::python::tuple >,true >() )
         ;
@@ -282,7 +286,7 @@ BOOST_PYTHON_MODULE( adControls )
             "property",             &adcontrols::MassSpectrum::getMSProperty, return_internal_reference<>() )
         .def( "xml",                &py_module::to_xml< adcontrols::MassSpectrum > )
         ;
-
+#ifndef WIN32
     class_< adcontrols::Chromatogram >( "Chromatogram" )
         .def( "__len__",            &adcontrols::Chromatogram::size )
         .def( "__getitem__",        &py_module::Chromatogram_getitem )
@@ -291,7 +295,7 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "protocol",           &adcontrols::Chromatogram::protocol )
         .def( "xml",                &py_module::to_xml< adcontrols::Chromatogram > )
         ;
-
+#endif
     class_< adcontrols::Baselines >( "Baselines" )
         .def( "__len__",            &adcontrols::Baselines::size )
         .def( "__getitem__",        &py_module::baselines_getitem )
@@ -301,7 +305,7 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "__len__",            &adcontrols::Peaks::size )
         .def( "__getitem__",        &py_module::peaks_getitem )
         ;
-
+#ifndef WIN32
     class_< adcontrols::PeakResult >( "PeakResult" )
         .def( "xml",                &py_module::to_xml< adcontrols::PeakResult > )
         .def< const adcontrols::Baselines& (adcontrols::PeakResult::*)() const>(
@@ -309,7 +313,7 @@ BOOST_PYTHON_MODULE( adControls )
         .def< const adcontrols::Peaks& (adcontrols::PeakResult::*)() const>(
             "peaks", &adcontrols::PeakResult::peaks, return_internal_reference<>() )
         ;
-
+#endif
     class_< adcontrols::ProcessMethod >( "ProcessMethod" )
         .def( "xml",                &py_module::to_xml< adcontrols::ProcessMethod > )
         ;

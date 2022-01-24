@@ -75,7 +75,7 @@ my_tuples()
     return a;
 }
 
-BOOST_PYTHON_MODULE( adProcessor )
+BOOST_PYTHON_MODULE( py_adprocessor )
 {
     // exportUUID();
 

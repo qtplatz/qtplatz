@@ -138,19 +138,27 @@ endif()
 
 if ( WITH_PYTHON3 )
   find_package( Python3 COMPONENTS Interpreter Development )
+
+  if ( Python3_FOUND )
+    if ( WIN32 )
+      # workaround: boost_pythonXXYY is the canonical name on windows
+      set ( python_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
+    else()
+      set ( python_libs python )
+    endif()
+  endif()
 endif()
 
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
   set( boost_libs "bzip2" )
-#  if ( Python3_FOUND )
-#    list( APPEND boost_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
-#  endif()
 endif()
+
 if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
 else()
 endif()
+
 
 ##############################################
 ### find rdkit will include rdkit-config.cmake that removes Boost_LIBRARIES,
@@ -193,8 +201,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   thread
   timer
   wserialization
-  OPTIONAL_COMPONENTS
-  python
+  OPTIONAL_COMPONENTS ${python_libs}
   )
 
 if ( Boost_FOUND )

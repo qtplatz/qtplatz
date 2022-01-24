@@ -6,6 +6,11 @@ if ( NOT Python3_FOUND )
   message( FATAL_ERROR "##### Python3 requred #####")
 endif()
 
+if ( WIN32 AND NOT Boost_PYTHON_FOUND )
+  message( STATUS  "##### boost_python was not found -- expecting auto link #####")
+  add_definitions( -DBOOST_PYTHON_STATIC_LIB )
+endif()
+
 include_directories( ${Python3_INCLUDE_DIRS} )
 
 add_library( ${PROJECT_NAME} MODULE
@@ -25,6 +30,8 @@ link_directories(
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
+  adportable
+  adportable_serializer
   ${Python3_LIBRARIES}
   ${Boost_LIBRARIES}
   )
