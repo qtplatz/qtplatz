@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.18.2 )
+cmake_minimum_required( VERSION 3.22.1 ) # for VS2022
 
 project( qtplatz-windows-dependency )
 
@@ -76,6 +76,9 @@ elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "15.0" )
 elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "16.0" )
   set ( GENERATOR "Visual Studio 16 2019" )
   set ( BJAM_TOOLSET "msvc-14.2" )
+elseif ( $ENV{VisualStudioVersion} VERSION_EQUAL "17.0" )
+  set ( GENERATOR "Visual Studio 17 2022" )
+  set ( BJAM_TOOLSET "msvc-14.3" )
 else()
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} not supported" )
 endif()

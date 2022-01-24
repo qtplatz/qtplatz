@@ -26,6 +26,8 @@ if %VisualStudioVersion% EQU 15.0 (
    set GENERATOR="Visual Studio 15 2017 Win64"
 ) else if %VisualStudioVersion% EQU 16.0 (
    set GENERATOR="Visual Studio 16 2019"
+) else if %VisualStudioVersion% EQU 17.0 (
+   set GENERATOR="Visual Studio 17 2022"
 ) else (
   echo "Not supported compiler version"
   goto end
@@ -38,7 +40,7 @@ for %%i in (%*) do (
        set debug_symbol="OFF"
     ) else if %%i==clean (
        set build_clean=yes
-    )      
+    )
 )
 
 set "build_dir=%build_root%\build-%build_arch%\%build_target%"
