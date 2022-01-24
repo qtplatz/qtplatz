@@ -19,7 +19,8 @@ else()
 endif()
 
 if ( WIN32 )
-  set( PYTHON_DIST_PACKAGES "C:/Python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
+  #  set( PYTHON_DIST_PACKAGES "C:/Python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
+  set( PYTHON_DIST_PACKAGES "python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
 elseif( APPLE )
   set( PYTHON_DIST_PACKAGES "${CMAKE_INSTALL_PREFIX}/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
 else()
@@ -45,7 +46,7 @@ configure_file(
 add_subdirectory( world )
 
 if ( VERBOSE )
-  message( STATUS "------------> contrib/py_modules/py_adcontrols")
+  message( STATUS "------------> cib/py_modules/py_adcontrols")
 endif()
 
 add_subdirectory( py_adcontrols )
@@ -56,6 +57,6 @@ endif()
 
 add_subdirectory( py_adprocessor )
 
-install( FILES  __init__.py DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules )
-install( FILES jupyter-run.sh DESTINATION bin COMPONENT modules )
-install( DIRECTORY "../jupyter-notebook" DESTINATION share COMPONENT modules )
+install( FILES "__init__.py"    DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT py_modules )
+install( FILES "jupyter-run.sh" DESTINATION bin COMPONENT py_modules )
+install( DIRECTORY "../jupyter-notebook" DESTINATION share COMPONENT py_modules )
