@@ -64,7 +64,7 @@ target_link_libraries( sqlite3 Threads::Threads ${CMAKE_DL_LIBS} )
 install( TARGETS ${PROJECT_NAME} sqlite3
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
   adfs_global.h

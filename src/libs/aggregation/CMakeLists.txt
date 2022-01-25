@@ -12,7 +12,7 @@ find_package( Qt5 REQUIRED Core )
 include_directories( ${Qt5Core_INCLUDE_DIRS} )
 
 add_library(
-  ${PROJECT_NAME} SHARED 
+  ${PROJECT_NAME} SHARED
   aggregate.h
   aggregation_global.h
   aggregate.cpp
@@ -26,4 +26,4 @@ target_link_libraries(
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries )

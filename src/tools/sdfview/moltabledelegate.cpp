@@ -109,6 +109,12 @@ MolTableDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option,
     if ( index.data().isNull() ) {
         emit onNullData( index );
     }
+    if ( index.column() == 0 ) {
+        ADDEBUG() << "paint(" << index.row() << ")"
+                  << "\t" << index.model()->data( index.model()->index( index.row(), 1 ) ).toString().toStdString()
+                  << "\t" << index.model()->data( index.model()->index( index.row(), 2 ) ).toString().toDouble()
+                  << "\t" << index.model()->data( index.model()->index( index.row(), 3 ) ).toString().toStdString();
+    }
 
     switch( field ) {
     case ColumnState::f_formula:

@@ -23,7 +23,7 @@ set( adextension_SOURCES
   idataproc.hpp
   ieditorfactory.cpp
   ieditorfactory.hpp
-  ieditorfactory_t.hpp    
+  ieditorfactory_t.hpp
   ilogger.cpp
   ilogger.hpp
   imonitorfactory.cpp
@@ -49,7 +49,7 @@ set( adextension_SOURCES
 
 add_library( adextension SHARED ${adextension_SOURCES} )
 
-target_link_libraries( adextension LINK_PUBLIC 
+target_link_libraries( adextension LINK_PUBLIC
   Qt5::Core
   adacquire
   adportable
@@ -59,4 +59,4 @@ target_link_libraries( adextension LINK_PUBLIC
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries )

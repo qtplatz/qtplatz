@@ -12,7 +12,7 @@ set(CMAKE_AUTORCC ON)
 find_package( Qt5 REQUIRED Network Widgets Core Gui PrintSupport )
 
 add_definitions(
-  -DEXTENSIONSYSTEM_LIBRARY 
+  -DEXTENSIONSYSTEM_LIBRARY
   -DIDE_TEST_DIR="${CMAKE_SOURCE_DIR}"
   -DCMAKE_AUTOMOC
   -DQT_DISABLE_DEPRECATED_BEFORE=0x040900
@@ -66,8 +66,8 @@ set( ${PROJECT_NAME}_RESOURCES pluginview.qrc )
 
 add_library(
   ${PROJECT_NAME} SHARED
-  ${${PROJECT_NAME}_SOURCES} 
-  ${${PROJECT_NAME}_HEADERS} 
+  ${${PROJECT_NAME}_SOURCES}
+  ${${PROJECT_NAME}_HEADERS}
   ${${PROJECT_NAME}_RESOURCES}
   )
 
@@ -82,4 +82,4 @@ target_link_libraries(
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT runtime_libraries )
+  ARCHIVE DESTINATION lib COMPONENT runtime_libraries )

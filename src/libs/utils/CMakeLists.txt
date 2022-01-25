@@ -36,7 +36,7 @@ else()
   SET( utils_lib_SOURCES ${utils_lib_SOURCES} consoleprocess_unix.cpp )
 endif()
 
-set( utils_SOURCES 
+set( utils_SOURCES
      styledbar.cpp           #--
      stylehelper.cpp         #--
      fancymainwindow.cpp     #--
@@ -139,4 +139,4 @@ target_link_libraries(
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT runtime_libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries )

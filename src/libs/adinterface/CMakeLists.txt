@@ -45,7 +45,7 @@ ADD_CORBA_SERVERS(GENERATED_CPP GENERATED_H ${IDLFILES})
 # ADD_CUSTOM_TARGET( CompiledIDL ALL DEPENDS ${GENERATED_CPP} ${GENERATED_H} )
 SOURCE_GROUP("GENERATED" FILES ${GENERATED_CPP})
 
-add_library( adinterface  
+add_library( adinterface
   interface.cpp
   eventlog_helper.cpp
   controlmethodhelper.cpp
@@ -59,4 +59,4 @@ add_library( adinterface
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries )
