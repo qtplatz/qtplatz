@@ -11,7 +11,7 @@ cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
 
-if (NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 endif()
 
@@ -26,7 +26,6 @@ set ( Boost_NO_BOOST_CMAKE OFF )
 if ( APPLE )
   set( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # Catalina
 endif()
-
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
