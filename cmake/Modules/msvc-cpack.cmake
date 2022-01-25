@@ -1,4 +1,8 @@
-if ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "19.27" )
+# CPack
+
+if ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "19.30" )
+  set( CRTDIR "$ENV{VCTOOLSREDISTDIR}/x64/Microsoft.VC143.CRT" )
+elseif ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "19.27" )
   set( CRTDIR "$ENV{VCTOOLSREDISTDIR}/x64/Microsoft.VC142.CRT" )
 elseif ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "19.11" )
   set( CRTDIR "$ENV{VCTOOLSREDISTDIR}/x64/Microsoft.VC141.CRT" )
@@ -6,9 +10,9 @@ elseif( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL "19.00" )
   set( CRTDIR "$ENV{VCTOOLSREDISTDIR}/x64/Microsoft.VC140.CRT" )
 endif()
 
-#message( STATUS "###################################################################" )
-#message( STATUS "## CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
-#message( STATUS "## CRTDIR: " ${CRTDIR} )
+message( STATUS "################## msvc-cpack.cmake ##################" )
+message( STATUS "## CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION} )
+message( STATUS "## CRTDIR: " ${CRTDIR} )
 
 file( GLOB files "${CRTDIR}/*.dll" )
 foreach( file ${files} )

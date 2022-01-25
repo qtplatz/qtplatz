@@ -78,7 +78,6 @@ if ( APPLE )
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/Frameworks )
-  #  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin ) #/qtplatz.app/Contents/MacOS )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin ) #/qtplatz.app/Contents/MacOS )
@@ -115,41 +114,49 @@ endif()
 
 if( WIN32 )
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
-  set( CPACK_WIX_UPGRADE_GUID "F51A5CFA-AB54-4FAE-BBDC-32C42F4C039A" )
-  set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
+  set( CPACK_WIX_UPGRADE_GUID           "F51A5CFA-AB54-4FAE-BBDC-32C42F4C039A" )
+  set( CPACK_WIX_PROGRAM_MENU_FOLDER    "QtPlatz Mass Spectrometry" )
   set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" ) # HLM\Software\Kitware\CMake\Packages\QtPlatz
-  set( CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_INSTALL_PREFIX}" )
+  set( CPACK_PACKAGE_INSTALL_DIRECTORY  "${CMAKE_INSTALL_PREFIX}" )
   set( CPACK_WIX_SKIP_PROGRAM_FOLDER ON )
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "bin" )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "bin" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "bin" )
 elseif ( APPLE )
   set( CPACK_SET_DESTDIR ON )
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib/qtplatz" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
   #  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.14" )
   #  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib" )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
 endif()
 
 if ( WITH_PYTHON3 )
   find_package( Python3 COMPONENTS Interpreter Development )
+
+  if ( Python3_FOUND )
+    if ( WIN32 )
+      # workaround: boost_pythonXXYY is the canonical name on windows
+      set ( python_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
+    else()
+      set ( python_libs python )
+    endif()
+  endif()
 endif()
 
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
   set( boost_libs "bzip2" )
-#  if ( Python3_FOUND )
-#    list( APPEND boost_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
-#  endif()
 endif()
+
 if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
 else()
 endif()
+
 
 ##############################################
 ### find rdkit will include rdkit-config.cmake that removes Boost_LIBRARIES,
@@ -192,8 +199,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   thread
   timer
   wserialization
-  OPTIONAL_COMPONENTS
-  python
+  OPTIONAL_COMPONENTS ${python_libs}
   )
 
 if ( Boost_FOUND )
@@ -473,9 +479,9 @@ if ( AqMD3_FOUND )
     message( STATUS "# AqMD3  LIBRARIES      : "  "${_lib}" )
     if ( WIN32 )
       get_target_property( _value ${_lib} IMPORTED_LOCATION )
-      message( STATUS "\t# AqMD3  LIBRARIES      : "  ${_value} )
+      message( STATUS "\t# AqMD3  LIBRARIES : "  ${_value} )
       get_target_property( _value ${_lib} IMPORTED_IMPLIB )
-      message( STATUS "\t                        : "  ${_value} )
+      message( STATUS "\t                   : "  ${_value} )
     endif()
   endforeach()
 else()

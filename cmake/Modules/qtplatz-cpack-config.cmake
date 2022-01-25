@@ -13,17 +13,18 @@ include( CPackComponent )
 cpack_add_component( applications      DISPLAY_NAME "Applications" GROUP Runtime )
 cpack_add_component( translations      DIAPLAY_NAME "Translation files" GROUP Runtime )
 cpack_add_component( runtime_libraries DISPLAY_NAME "Runtime libraries" DESCRIPTION "libraries" GROUP Runtime )
-cpack_add_component( plugins           DISPLAY_NAME "Plugins" GROUP Runtime )
-cpack_add_component( modules           DISPLAY_NAME "Modules" GROUP Runtime )
+cpack_add_component( plugins           DISPLAY_NAME "Plugins"   GROUP Runtime )
+cpack_add_component( modules           DISPLAY_NAME "Modules"   GROUP Runtime )
+cpack_add_component( py_modules        DISPLAY_NAME "PyModules" GROUP Runtime )
 
-cpack_add_component( libraries       DISPLAY_NAME "Development libraries"
+cpack_add_component( libraries         DISPLAY_NAME "Development libraries"
   DESCRIPTION "Static and import libraries" GROUP Development )
 
-cpack_add_component( headers         DISPLAY_NAME "C++ Headers"
+cpack_add_component( headers           DISPLAY_NAME "C++ Headers"
   DESCRIPTION "C++ header files for use with QtPlatz Toolkit" GROUP Development )
 
 cpack_add_component_group( Runtime )
-
+cpack_add_component_group( PyModules )
 cpack_add_component_group( Development )
 
 set( CPACK_ALL_INSTALL_TYPES Full Developer)
@@ -33,4 +34,3 @@ set( CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full )
 
 set( CPACK_PACKAGE_EXECUTABLES qtplatz "qtplatz" )
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
-
