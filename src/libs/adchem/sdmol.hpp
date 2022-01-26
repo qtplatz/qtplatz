@@ -49,16 +49,21 @@ namespace adchem {
         std::string svg_;
         std::string smiles_;
         std::string formula_;
+        double mass_;
     public:
         SDMol();
         SDMol( const SDMol& );
+        SDMol& operator = ( const SDMol& );
         SDMol( SDFile *, size_t idx );
         const std::string& svg();
         const std::string& smiles();
-        const std::string& formula();
+
+        const std::string& formula() const;
+        double mass() const;
         const std::vector< std::pair< std::string, std::string > > dataItems() const;
         size_t index() const { return index_; }
         RDKit::ROMol& mol();
+        const RDKit::ROMol& mol() const;
     };
 
 }

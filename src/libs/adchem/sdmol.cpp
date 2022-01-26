@@ -53,28 +53,43 @@ SDMol::SDMol( const SDMol& t ) : index_    ( t.index_ )
                                , formula_  ( t.formula_ )
 
 {
-    if ( t.mol_ )
-        mol_ = std::make_unique< RDKit::ROMol >( *t.mol_ );
-
+    mol_ = std::make_unique< RDKit::ROMol >( *t.mol_ );
 }
 
-SDMol::SDMol( SDFile * sdfile, size_t idx ) : index_( idx )
-                                            , sdfile_( sdfile->shared_from_this() )
-                                              // , mol_( std::make_unique< RDKit::ROMol>(*sdfile->molSupplier()[ idx ]) )
-                                            , dataItems_( SDFile::parseItemText( sdfile->molSupplier().getItemText( index_ ) ) )
+SDMol&
+SDMol::operator = ( const SDMol& t )
+{
+    index_     = t.index_;
+    sdfile_    = t.sdfile_;
+    dataItems_ = t.dataItems_;
+    svg_       = t.svg_;
+    smiles_    = t.smiles_;
+    formula_   = t.formula_;
+    mass_      = t.mass_;
+    mol_       = std::make_unique< RDKit::ROMol >( *t.mol_ );
+    return *this;
+}
+
+
+SDMol::SDMol( SDFile * sdfile, size_t idx )
+    : index_( idx )
+    , sdfile_( sdfile->shared_from_this() )
+    , mol_( std::make_unique< RDKit::ROMol >( *sdfile->molSupplier()[ index_ ] ) )
+    , dataItems_( SDFile::parseItemText( sdfile->molSupplier().getItemText( index_ ) ) )
+    , formula_( RDKit::Descriptors::calcMolFormula( mol(), true, false ) )
+    , mass_( RDKit::Descriptors::calcExactMW( *mol_ ) )
 {
 }
 
 RDKit::ROMol&
 SDMol::mol()
 {
-    if ( ! mol_ ){
-        if ( auto sdfile = sdfile_.lock() ) {
-            mol_ = std::make_unique< RDKit::ROMol >( *sdfile->molSupplier()[ index_ ] );
-        } else {
-            mol_ = std::make_unique< RDKit::ROMol >();
-        }
-    }
+    return *mol_;
+}
+
+const RDKit::ROMol&
+SDMol::mol() const
+{
     return *mol_;
 }
 
@@ -97,12 +112,15 @@ SDMol::smiles()
 }
 
 const std::string&
-SDMol::formula()
+SDMol::formula() const
 {
-    if ( formula_.empty() ) {
-        formula_   = RDKit::Descriptors::calcMolFormula( mol(), true, false );
-    }
     return formula_;
+}
+
+double
+SDMol::mass() const
+{
+    return mass_;
 }
 
 const std::vector< std::pair< std::string, std::string > >
