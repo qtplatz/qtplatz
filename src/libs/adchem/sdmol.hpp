@@ -58,8 +58,8 @@ namespace adchem {
         const std::string& svg();
         const std::string& smiles();
 
-        const std::string& formula() const;
-        double mass() const;
+        const std::string& formula();
+        double mass();
         const std::vector< std::pair< std::string, std::string > > dataItems() const;
         size_t index() const { return index_; }
         RDKit::ROMol& mol();

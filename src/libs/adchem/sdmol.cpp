@@ -42,6 +42,7 @@
 using namespace adchem;
 
 SDMol::SDMol() : index_( 0 )
+               , mass_( 0 )
 {
 }
 
@@ -53,7 +54,7 @@ SDMol::SDMol( const SDMol& t ) : index_    ( t.index_ )
                                , formula_  ( t.formula_ )
 
 {
-    mol_ = std::make_unique< RDKit::ROMol >( *t.mol_ );
+    mol_       = t.mol_ ? std::make_unique< RDKit::ROMol >( *t.mol_ ) : nullptr;
 }
 
 SDMol&
@@ -66,7 +67,7 @@ SDMol::operator = ( const SDMol& t )
     smiles_    = t.smiles_;
     formula_   = t.formula_;
     mass_      = t.mass_;
-    mol_       = std::make_unique< RDKit::ROMol >( *t.mol_ );
+    mol_       = t.mol_ ? std::make_unique< RDKit::ROMol >( *t.mol_ ) : nullptr;
     return *this;
 }
 
@@ -74,16 +75,22 @@ SDMol::operator = ( const SDMol& t )
 SDMol::SDMol( SDFile * sdfile, size_t idx )
     : index_( idx )
     , sdfile_( sdfile->shared_from_this() )
-    , mol_( std::make_unique< RDKit::ROMol >( *sdfile->molSupplier()[ index_ ] ) )
     , dataItems_( SDFile::parseItemText( sdfile->molSupplier().getItemText( index_ ) ) )
-    , formula_( RDKit::Descriptors::calcMolFormula( mol(), true, false ) )
-    , mass_( RDKit::Descriptors::calcExactMW( *mol_ ) )
 {
 }
 
 RDKit::ROMol&
 SDMol::mol()
 {
+    if ( !mol_ ) {
+        if ( auto sdfile = sdfile_.lock() ) {
+            mol_ = std::make_unique< RDKit::ROMol >( *sdfile->molSupplier()[ index_ ] );
+            formula_ = RDKit::Descriptors::calcMolFormula( *mol_, true, false );
+            mass_    = RDKit::Descriptors::calcExactMW( *mol_ );
+        } else {
+            mol_ = std::make_unique< RDKit::ROMol >();
+        }
+    }
     return *mol_;
 }
 
@@ -112,14 +119,20 @@ SDMol::smiles()
 }
 
 const std::string&
-SDMol::formula() const
+SDMol::formula()
 {
+    if ( formula_.empty() ) {
+        formula_ = RDKit::Descriptors::calcMolFormula( mol(), true, false );
+    }
     return formula_;
 }
 
 double
-SDMol::mass() const
+SDMol::mass()
 {
+    if ( mass_ == 0 ) {
+        mass_    = RDKit::Descriptors::calcExactMW( mol() );
+    }
     return mass_;
 }
 
