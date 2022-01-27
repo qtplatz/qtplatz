@@ -45,7 +45,11 @@ if ( CMAKE_CROSSCOMPILING )
   option( WITH_PYTHON3     "Python3 modules"          OFF )
 else()
   option( WITH_CUDA        "CUDA"                     ON )
-  option( WITH_PYTHON3     "Python3 modules"          ON )
+  if ( APPLE )
+    option( WITH_PYTHON3     "Python3 modules"          OFF )  # workaround for https://github.com/qtplatz/qtplatz/issues/5
+  else()
+    option( WITH_PYTHON3     "Python3 modules"          ON )
+  endif()
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
