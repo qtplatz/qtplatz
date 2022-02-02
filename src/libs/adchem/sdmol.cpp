@@ -25,7 +25,7 @@
 #include "sdmol.hpp"
 #include "sdfile.hpp"
 #include "drawing.hpp"
-#include <adportable/debug.hpp>
+// #include <adportable/debug.hpp>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/FileParsers.h>
@@ -42,7 +42,7 @@
 using namespace adchem;
 
 SDMol::SDMol() : index_( 0 )
-               , mass_( 0 )
+               , mass_( -1 )
 {
 }
 
@@ -52,7 +52,7 @@ SDMol::SDMol( const SDMol& t ) : index_    ( t.index_ )
                                , svg_      ( t.svg_ )
                                , smiles_   ( t.smiles_ )
                                , formula_  ( t.formula_ )
-
+                               , mass_     ( t.mass_ )
 {
     mol_       = t.mol_ ? std::make_unique< RDKit::ROMol >( *t.mol_ ) : nullptr;
 }
@@ -76,6 +76,7 @@ SDMol::SDMol( SDFile * sdfile, size_t idx )
     : index_( idx )
     , sdfile_( sdfile->shared_from_this() )
     , dataItems_( SDFile::parseItemText( sdfile->molSupplier().getItemText( index_ ) ) )
+    , mass_( -1 )
 {
 }
 
@@ -130,7 +131,7 @@ SDMol::formula()
 double
 SDMol::mass()
 {
-    if ( mass_ == 0 ) {
+    if ( mass_ <= 0 ) {
         mass_    = RDKit::Descriptors::calcExactMW( mol() );
     }
     return mass_;
