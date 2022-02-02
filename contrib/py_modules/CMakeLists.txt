@@ -8,6 +8,8 @@ if ( NOT Boost_PYTHON_FOUND )
     message( STATUS  "##### boost_python was not found -- expecting auto link #####")
     add_definitions( -DBOOST_PYTHON_STATIC_LIB )
   else()
+    # following line will erase existing boost libraries
+    find_package( Boost 1.75 REQUIRED COMPONENTS python )
     message( FATAL_ERROR "##### Boost_PYTHON requred #####")
   endif()
 endif()
