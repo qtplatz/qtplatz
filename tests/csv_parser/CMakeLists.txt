@@ -38,5 +38,3 @@ include_directories(
 add_executable( ${PROJECT_NAME}  main.cpp )
 
 add_executable( ${PROJECT_NAME}2  main2.cpp )
-
-add_executable( ${PROJECT_NAME}3  main3.cpp )
