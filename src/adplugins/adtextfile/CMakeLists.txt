@@ -27,7 +27,7 @@ include_directories(
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
 
-add_library( adtextfile MODULE 
+add_library( adtextfile MODULE
   adtextfile.cpp
   adtextfile.hpp
   datafile.cpp

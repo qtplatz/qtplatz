@@ -38,9 +38,8 @@ namespace adtextfile {
     class TXTSpectrum {
     public:
         TXTSpectrum();
-    public:
-
         bool load( const std::wstring&, const Dialog& );
+
         double minValue_;
         double maxValue_;
 
