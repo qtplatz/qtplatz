@@ -40,3 +40,7 @@ include_directories(
 add_executable( ${PROJECT_NAME}  main.cpp )
 
 add_executable( ${PROJECT_NAME}2  main2.cpp )
+
+target_link_libraries( ${PROJECT_NAME}2
+  ${Boost_LIBRARIES}
+  )
