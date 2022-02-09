@@ -5,6 +5,8 @@ project( csv_parser )
 
 if ( NOT Boost_FOUND ) # -- standalone
   cmake_minimum_required(VERSION 3.22)
+  set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
   if ( WIN32 )
     list( APPEND CMAKE_MODULE_PATH "C:/qtplatz"    "C:/opt/Eigen3/share/eigen3/cmake/")
     list( APPEND CMAKE_PREFIX_PATH "C:/opt/Eigen3" "C:/opt/RDKit/lib/cmakec/rdkit")

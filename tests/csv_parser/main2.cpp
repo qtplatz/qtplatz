@@ -8,58 +8,49 @@
 
 namespace x3 = boost::spirit::x3;
 
-typedef boost::variant< std::string, int, double, boost::spirit::x3::unused_type > variant_type;
+typedef boost::variant< boost::spirit::x3::unused_type, std::string, double, int > variant_type;
+typedef std::vector< variant_type > list_type;
 
 namespace CSV {
-    struct text    {};
+
     struct integer {};
     struct real    {};
-    struct skip    {};
-    struct number  {};
+    struct null    {};
+    static inline auto as_parser(integer) { return x3::int_    ;  }
+    static inline auto as_parser(real)    { return x3::double_ ;  }
 
-    struct visitor : boost::static_visitor< void > {
-        template< typename T > void operator()( T&& t ) const {
-            std::cout << "\t" << typeid( t ).name() << ":\t" << t << std::endl;
+    template < typename... specs > struct type_parser_list {};
+
+    template < typename last_t > struct type_parser_list< last_t > {
+        template< typename value_t >
+        bool operator()( const std::string& s, value_t& v ) {
+            return false;
         }
-        void operator()( double&& t ) const {
-            std::cout << "\tdouble:\t" << t << std::endl;
-        }
-        void operator()( int&& t ) const {
-            std::cout << "\tint:\t" << t << std::endl;
-        }
-        void operator()( std::string&& t ) const {
-            std::cout << "\tstring:\t'" << t << "'" << std::endl;
-            if ( t.empty() ) {
-                static int counter = 3;
-                assert( counter-- );
+    };
+
+    template< typename first_t, typename... specs > struct type_parser_list< first_t, specs ... > {
+        template< typename value_t >
+        bool operator()( const std::string& s, value_t& v ) const {
+            auto f = std::begin( s ), l = std::end( s );
+            if ( x3::parse( f, l, as_parser( first_t{} ), v ) && f == l ) {
+                return true;
             }
+            return type_parser_list< specs ... >()( s, v );
         }
     };
 
-    struct handler {
-        template< typename T > void operator()( T& ctx ) const {
-            auto value = _attr(ctx);
-            // std::cout << typeid( value ).name() << "\t" << value << std::endl;
-            boost::apply_visitor( visitor(), variant_type( value ) );
-        }
-    };
-    struct debug_handler {
-        const std::string m_;
-        debug_handler( const std::string& m ) : m_( m ) {}
-        template< typename T > void operator()( T& ctx ) const {
-            std::cout << m_ << std::endl;
-        }
-    };
-
-    auto const unquoted_text_field = *~x3::char_(",\n");
-    static inline auto as_parser(text)    { return ( unquoted_text_field | x3::attr(0) ); }
+    /////////// input line to string array parser
+    auto const quoted_string = x3::lexeme['"' >> +(x3::char_ - '"') >> '"'];
+    auto const unquoted_string = *~x3::char_(",\n\t");
 
     static inline auto csv_parser() {
-        auto delim = x3::char_(",\t ") >> *(x3::char_("\t "));
+        auto delim = ( x3::char_(",\t ") >> *(x3::char_("\t ")) );
         return
-            ( unquoted_text_field | x3::attr(0) ) [ handler() ]
-            % delim [ debug_handler( "delim" ) ]
-            >> x3::eoi | x3::eol
+            ( quoted_string
+              | unquoted_string
+            )
+            % delim
+            >> (x3::eoi | x3::eol)
             ;
     }
 }
@@ -70,19 +61,27 @@ int
 main()
 {
     //std::string const input = "Hello,1,13.7,XXX\nWorld,2,1e3,YYY";
-    std::string const input = "Hello\t,\t1,13.7,\"XXX\""; //\n\"World\",2,1e3,YYY\n,,,YYY";
-    auto f = begin(input), l = end(input);
+    std::string const input = "Hello\tabc,,,\t999,13.7,,888abc,\t\"Hello\tWorld!\""; // \"World\",2,1e3,YYY\n,,,YYY";
+    auto first = begin(input), last = end(input);
 
-    //auto p = csv_parser( text{}, integer{}, real{}, skip{} );
-    auto p = csv_parser(); // text{} ); //, text{}, text{}, text{} );
-
-    if (parse(f, l, p)) {
+    auto p = csv_parser();
+    list_type list;
+    if ( x3::parse( first, last, p, list ) ) {
         std::cout << "Parsed\n";
+
+        size_t n(0);
+        for ( auto& value: list ) {
+            std::cout << "[" << n++ << "] " << value.which() << ", '" << value << "'" << std::endl;
+            if ( value.type() == typeid( std::string ) ) {
+                auto a = boost::get< std::string >( value );
+                if ( type_parser_list< integer, real, null >()( a, value ) )
+                    std::cout << "\treplace type: " << value.type().name() << "\t" << value << std::endl;
+            }
+        }
     } else {
         std::cout << "Failed\n";
     }
-
-    if (f!=l) {
-        std::cout << "Remaining: " << std::quoted(std::string(f,l)) << "\n";
+    if ( first != last) {
+        std::cout << "Remaining: " << std::quoted(std::string(first,last)) << "\n";
     }
 }
