@@ -49,7 +49,7 @@ namespace CSV {
 
     template <typename... Spec>
     static inline auto line_parser(Spec... spec) {
-        auto delim = x3::char_(",\t ") >> *x3::char_("\t ") | &(x3::eoi | x3::eol); // this ignores continuous comma ,,,
+        auto delim = x3::char_(",\t ") >> *x3::char_("\t ") | &(x3::eoi | x3::eol); // assume zero for continuous comma ,,,
         return ((as_parser(spec) [ handler() ] >> delim) >> ... >> x3::eps);
     }
 
