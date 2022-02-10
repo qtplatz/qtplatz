@@ -50,13 +50,37 @@ namespace adportable {
             csv_reader( const std::string& file );
             csv_reader( std::ifstream&& );
             void rewind();
+            bool skip( size_t nlines );
+            bool skip( std::istream&, size_t nlines );
             bool read( list_type& );
             bool read( std::istream&, list_type& );
-
         private:
             class impl;
             std::unique_ptr< impl > impl_;
         };
 
+        //////////////////
+        // convert list_type to fully typed tuple
+        // type T must be POD type (no class such as std::string allows)
+        template< typename T >
+        struct value_to : boost::static_visitor < T > {
+            template<typename V> T operator()( V& v ) const { return v;  }
+            T operator()( const boost::spirit::x3::unused_type& v ) const { return {}; }
+            T operator()( const std::string& v ) const { return {}; }
+        };
+
+        template< typename Tuple, std::size_t... Is>
+        Tuple to_tuple_impl( const list_type& list, Tuple&& t, std::index_sequence<Is...> )
+        {
+            (( std::get<Is>(t) = boost::apply_visitor( value_to< std::tuple_element_t<Is, Tuple> >(), list[Is] ) ), ...);
+            return t;
+        }
+
+        template<class... Args>
+        std::tuple<Args...>
+        to_tuple( const list_type& list )
+        {
+            return to_tuple_impl( list, std::tuple<Args...>{}, std::index_sequence_for<Args...>{});
+        }
     }
 }

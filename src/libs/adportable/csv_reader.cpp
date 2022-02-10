@@ -146,3 +146,21 @@ csv_reader::read( std::istream& istrm, list_type& list )
     }
     return false;
 }
+
+bool
+csv_reader::skip( size_t nlines )
+{
+    return impl_ && skip( impl_->istrm_, nlines );
+}
+
+bool
+csv_reader::skip( std::istream& istrm, size_t nlines )
+{
+    std::string line;
+    while ( nlines ) {
+        if ( ! std::getline( istrm, line ) )
+            return false;
+        --nlines;
+    }
+    return true;
+}
