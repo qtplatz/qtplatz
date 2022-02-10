@@ -60,6 +60,7 @@ namespace adtextfile {
                                 , size_t fcn );
 
         int find_mode( size_t idx ) const;
+        bool csv_read_tokenizer();
     };
 
 }

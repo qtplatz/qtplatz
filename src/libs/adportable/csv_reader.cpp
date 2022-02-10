@@ -40,6 +40,8 @@ namespace adportable {
         std::ifstream istrm_;
         impl( const std::string& file ) : istrm_( file ) {
         }
+        impl( std::ifstream&& inf ) : istrm_( std::move( inf ) ) {
+        }
     };
 
     namespace csv {
@@ -86,7 +88,14 @@ namespace adportable {
             return type_parser_list< specs ... >()( s, v );
         }
     };
+}
 
+csv_reader::~csv_reader()
+{
+}
+
+csv_reader::csv_reader()
+{
 }
 
 csv_reader::csv_reader( const std::string& file )
@@ -94,23 +103,41 @@ csv_reader::csv_reader( const std::string& file )
 {
 }
 
+csv_reader::csv_reader( std::ifstream&& ins )
+    : impl_( std::make_unique< impl >( std::move( ins ) ) )
+{
+}
+
+void
+csv_reader::rewind()
+{
+    impl_ && impl_->istrm_.seekg( 0 );
+}
+
 bool
 csv_reader::read( list_type& list )
 {
+    return impl_ && read( impl_->istrm_, list );
+}
+
+bool
+csv_reader::read( std::istream& istrm, list_type& list )
+{
     list = {};
     std::string line;
-    if ( std::getline( impl_->istrm_, line ) ) {
+    if ( std::getline( istrm, line ) ) {
         namespace x3 = boost::spirit::x3;
         auto first( std::begin( line ) ), last( std::end( line ) );
 
         if ( x3::parse( first, last, csv::csv_parser(), list ) ) {
             if ( first == last ) {
                 for ( auto& value: list ) {
-                    if ( value.type() == typeid( std::string() ) ) {
+                    if ( value.type() == typeid( std::string ) ) {
                         const auto& a = boost::get< std::string >( value );
-                        csv::variant_type t;
-                        if ( type_parser_list< integer, real, null >()( a, t ) )
+                        variant_type t;
+                        if ( type_parser_list< integer, real, null >()( a, t ) ) {
                             value = std::move( t );
+                        }
                     }
                 }
                 return true;

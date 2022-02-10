@@ -33,6 +33,7 @@
 
 namespace adportable {
     namespace csv {
+
         namespace x3 = boost::spirit::x3;
 
         typedef boost::variant< x3::unused_type, std::string, double, int > variant_type;
@@ -45,8 +46,12 @@ namespace adportable {
             csv_reader& operator = ( const csv_reader& ) = delete;
         public:
             ~csv_reader();
+            csv_reader();
             csv_reader( const std::string& file );
+            csv_reader( std::ifstream&& );
+            void rewind();
             bool read( list_type& );
+            bool read( std::istream&, list_type& );
 
         private:
             class impl;
