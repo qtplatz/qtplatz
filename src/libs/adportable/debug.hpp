@@ -59,15 +59,13 @@ namespace adportable {
         template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
 
         template<typename F, typename S> debug& operator << ( const std::pair<F,S>& t ){
-            (*this) << "{" << t.first << ", " << t.second << "}";
-            return *this;
+            return (*this) << "{" << t.first << ", " << t.second << "}";
         }
 
         template<typename... Args> debug& operator << ( const std::tuple< Args...>& t ) {
             (*this) << "{";
             debug_tuple_impl( t, std::index_sequence_for<Args...>{});
-            (*this) << "}";
-            return *this;
+            return (*this) << "}";
         }
 
 		debug& operator << ( const wchar_t *);
