@@ -42,6 +42,8 @@ add_library( adtextfile MODULE
   txtchromatogram.hpp
   dialog.cpp
   dialog.hpp
+  txt_reader.cpp
+  txt_reader.hpp
   )
 
 target_link_libraries( adtextfile LINK_PUBLIC

@@ -25,6 +25,7 @@
 
 #include "dialog.hpp"
 #include "txtspectrum.hpp"
+#include "txt_reader.hpp"
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/description.hpp>
@@ -34,7 +35,6 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/csv_reader.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/string.hpp>
@@ -45,7 +45,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/interval.hpp>
 #include <boost/tokenizer.hpp>
-
 #include <algorithm>
 #include <fstream>
 
@@ -62,9 +61,30 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 {
 	//bool hasMass( false );
 	boost::filesystem::path path( name );
+
 	boost::filesystem::ifstream in( path );
     if ( in.fail() )
         return false;
+
+    bool isCentroid = dlg.isCentroid();
+    bool hasTime = dlg.isTimeIntensity();
+    bool hasMass = dlg.isMassIntensity();
+
+    data_type data;
+    auto xdata = txt_reader().load( in
+                                   , data
+                                   , dlg.skipLines()
+                                   , std::vector< size_t >()
+                                   , hasTime
+                                   , hasMass
+                                   , isCentroid );
+
+    typedef boost::char_separator<char> separator;
+    typedef boost::tokenizer< separator > tokenizer;
+
+    separator sep( ", \t", "", boost::drop_empty_tokens );
+
+    std::array< std::vector<double>, 3 > cols; // (time, mass, intens) | ((time|mass), intensity)
 
     if ( dlg.hasDataInterpreter() ) {
         auto model = dlg.dataInterpreterClsid().toStdString();
@@ -76,40 +96,18 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         }
     }
 
-    size_t skipLines = dlg.skipLines();
-    bool isCentroid = dlg.isCentroid();
-    size_t ncols = ( dlg.isTimeIntensity() || dlg.isMassIntensity() ) ? 2 : 3;
-
-    while( skipLines ) {
-        --skipLines;
-        std::string line;
-        textfile::getline( in, line );
-    }
     auto ignCols = dlg.ignoreColumns();
-
-    adportable::csv::csv_reader reader( std::move( in ) );
-
-    adportable::csv::list_type list;
-    while ( reader.read( list ) ) {
-        size_t col(0);
-        for ( const auto& value: list ) {
-            if ( ! ignCols.contains ( col + 1 ) ) {
-            }
-            ++col;
-        }
-    }
-
-    std::array< std::vector<double>, 3 > cols; // (time, mass, intens) | ((time|mass), intensity)
-
-    typedef boost::char_separator<char> separator;
-    typedef boost::tokenizer< separator > tokenizer;
-
-    separator sep( ", \t", "", boost::drop_empty_tokens );
+    auto skipLines = dlg.skipLines();
 
     do {
-
         std::string line;
         if ( textfile::getline( in, line ) ) {
+
+            if ( skipLines ) {
+                --skipLines;
+                continue;
+            }
+
             tokenizer tokens( line, sep );
             double values[3] = {0};
             int i(0);
@@ -119,10 +117,14 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                 if ( ! ignCols.contains ( col + 1 ) )
                     values[i++] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
             }
-            if ( i == 2 ) { // has two columns
+            if ( i == 2 ) {
+#if !defined NDEBUG && 0
+                if ( cols[0].size() < 10 )
+                    ADDEBUG() << line << "\t[" << cols[0].size() << "]\tvalues:" << values[0] << ", " << values[1];
+#endif
                 cols[0].push_back( values[0] ); // (time|mass)
                 cols[1].push_back( values[1] * 1000 ); // intens
-            } else if ( i == 3 ) { // has three columns
+            } else if ( i == 3 ) {
                 cols[0].push_back( values[0] ); // time
                 cols[1].push_back( values[1] ); // mass
                 cols[2].push_back( values[2] ); // intens
