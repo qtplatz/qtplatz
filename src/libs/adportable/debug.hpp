@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,10 +24,10 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adportable_global.h"
 #include <sstream>
 #include <exception>
-#include "adportable_global.h"
+#include <utility>
 
 namespace adportable {
     class ADPORTABLESHARED_EXPORT debug;
@@ -44,6 +44,11 @@ namespace adportable {
         std::ostringstream o_;
         std::string file_;
         int line_;
+
+        template<class Tuple, std::size_t... Is>
+        void debug_tuple_impl(const Tuple& t, std::index_sequence<Is...>){
+            (((*this) << (Is == 0 ? "" : ", ") << std::get<Is>(t)), ...);
+        }
     public:
         debug(const char * file = 0, const int line = 0);
         ~debug(void);
@@ -57,6 +62,14 @@ namespace adportable {
             (*this) << "{" << t.first << ", " << t.second << "}";
             return *this;
         }
+
+        template<typename... Args> debug& operator << ( const std::tuple< Args...>& t ) {
+            (*this) << "{";
+            debug_tuple_impl( t, std::index_sequence_for<Args...>{});
+            (*this) << "}";
+            return *this;
+        }
+
 		debug& operator << ( const wchar_t *);
 		debug& operator << ( const std::wstring& t );
     };
