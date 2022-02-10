@@ -45,6 +45,12 @@ auto& operator<<(std::basic_ostream<Ch, Tr>& os, const std::tuple<Args...>& t)
 
 namespace csv {
 
+    struct to_zero {
+        template< typename T > T operator()( const std::string& ){
+            return {};
+        }
+    };
+
     template< typename T >
     struct value_to : boost::static_visitor < T > {
         template<typename V> T operator()( V& v ) const {
@@ -56,7 +62,8 @@ namespace csv {
         }
 
         T operator()( const std::string& v ) const {
-            return {};
+            using return_type = std::conditional_t< std::is_same< T, std::string >::value, std::string, to_zero >;
+            return return_type( v );
         }
     };
 
@@ -104,4 +111,20 @@ main( int argc, const char * const argv[] )
             ++row;
         }
     }
+
+    std::istringstream in( "Hello\tabc,,,\t999,13.7,,888abc,\t\"Hello\tWorld!\"" );
+
+    adportable::csv::csv_reader reader;
+    adportable::csv::list_type list;
+
+    while ( reader.read( in, list ) ) {
+        for ( const auto& value: list ) {
+            boost::apply_visitor( print_visitor(), value );
+            std::cout << std::endl;
+        }
+
+        auto data = adportable::csv::to_tuple< std::string, int, double, int, int >( list );
+        std::cout << data << std::endl;
+    }
+
 }

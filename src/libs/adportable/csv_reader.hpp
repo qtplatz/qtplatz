@@ -61,12 +61,20 @@ namespace adportable {
 
         //////////////////
         // convert list_type to fully typed tuple
-        // type T must be POD type (no class such as std::string allows)
+        // type T must be POD type (std::string is not a POD type though, it is supported)
+
+        template< typename A >
+        struct to_zero { to_zero( const A& ){}; template< typename T > operator T (){ return {}; } };
+
         template< typename T >
         struct value_to : boost::static_visitor < T > {
-            template<typename V> T operator()( V& v ) const { return v;  }
             T operator()( const boost::spirit::x3::unused_type& v ) const { return {}; }
-            T operator()( const std::string& v ) const { return {}; }
+            template<typename V> T operator()( V& v ) const {
+                return std::conditional_t< std::is_same< T, std::string >::value, to_zero<V>, T >( v );
+            }
+            T operator()( const std::string& v ) const { // if requested type is string, and value is string too
+                return std::conditional_t< std::is_same< T, std::string >::value, std::string, to_zero<std::string> >( v );
+            }
         };
 
         template< typename Tuple, std::size_t... Is>
