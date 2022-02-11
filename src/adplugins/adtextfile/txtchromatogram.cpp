@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include "debug_link.hpp"
 #include "txtchromatogram.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/textfile.hpp>
@@ -45,7 +46,7 @@ TXTChromatogram::load( const std::wstring& name )
 	boost::filesystem::path path( name );
 
 	boost::filesystem::ifstream in( path );
-    if ( in.fail() ) 
+    if ( in.fail() )
         return false;
 
     typedef boost::char_separator<char> separator;
@@ -56,7 +57,7 @@ TXTChromatogram::load( const std::wstring& name )
     std::vector<double> timeArray, intensArray;
 
 	if ( path.extension() == ".csv" ) {
-        
+
         auto chr = std::make_shared< adcontrols::Chromatogram >();
         if ( compile_header( in ) ) {
 
@@ -65,7 +66,7 @@ TXTChromatogram::load( const std::wstring& name )
                 std::string line;
                 if ( adportable::textfile::getline( in, line ) ) {
                     tokenizer tokens( line, sep );
-                    
+
                     int i = 0;
                     for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 3; ++it, ++i ) {
                         const std::string& s = *it;
@@ -115,4 +116,3 @@ TXTChromatogram::compile_header( std::ifstream& in )
     in.seekg( pos );
     return false;
 }
-

@@ -26,6 +26,7 @@
 #include "dialog.hpp"
 #include "txtspectrum.hpp"
 #include "txt_reader.hpp"
+#include "txt_tokenizer.hpp"
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/description.hpp>
@@ -69,16 +70,25 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     bool isCentroid = dlg.isCentroid();
     bool hasTime = dlg.isTimeIntensity();
     bool hasMass = dlg.isMassIntensity();
+#if 0
+    txt_reader::data_type tuples_data;
+    auto flags = txt_reader().load( in
+                                    , tuples_data
+                                    , dlg.skipLines()
+                                    , std::vector< size_t >()
+                                    , hasTime
+                                    , hasMass
+                                    , isCentroid );
 
-    data_type data;
-    auto xdata = txt_reader().load( in
-                                   , data
-                                   , dlg.skipLines()
-                                   , std::vector< size_t >()
-                                   , hasTime
-                                   , hasMass
-                                   , isCentroid );
-
+    txt_tokenizer::data_type data;
+    flags = txt_tokenizer().load( in
+                                  , data
+                                  , dlg.skipLines()
+                                  , std::vector< size_t >()
+                                  , hasTime
+                                  , hasMass
+                                  , isCentroid );
+#endif
     typedef boost::char_separator<char> separator;
     typedef boost::tokenizer< separator > tokenizer;
 

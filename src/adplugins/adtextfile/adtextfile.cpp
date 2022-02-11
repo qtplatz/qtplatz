@@ -26,6 +26,7 @@
 #include "adtextfile.hpp"
 #include "datafile_factory.hpp"
 #include <boost/filesystem.hpp>
+#include "debug_link.hpp"
 
 namespace adcontrols {
     class datafile_factory;
@@ -42,6 +43,6 @@ adplugin_plugin_instance()
     // Workaround for boost/VC bug #6320 according to following artcile
     // https://svn.boost.org/trac/boost/ticket/6320
     boost::filesystem::path p("dummy");
-#endif   
+#endif
     return adtextfile::datafile_factory::instance();
 }

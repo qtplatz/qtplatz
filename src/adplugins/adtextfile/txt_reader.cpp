@@ -25,12 +25,7 @@
 
 #include "txt_reader.hpp"
 
-#include <adportable/csv_reader.hpp>
-#include <memory>
-#include <vector>
-#include <tuple>
-
-using namespace adtextfile;
+using adtextfile::txt_reader;
 
 txt_reader::~txt_reader()
 {
@@ -51,8 +46,6 @@ txt_reader::load( std::ifstream& istrm
 {
     adportable::csv::csv_reader reader( std::move( istrm ) );
     // reader.skip( skipLines );
-
-    std::sort( ignColumns.begin(), ignColumns.end(), [](const auto& a, const auto& b){ return a > b; } );
 
     bool hasColor( false );
     size_t ncols = 1;

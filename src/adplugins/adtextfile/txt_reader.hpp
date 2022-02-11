@@ -32,20 +32,20 @@
 
 namespace adtextfile {
 
-    typedef std::tuple< double, double, double, int > datum_type;
-    typedef std::vector< datum_type > data_type;
-
-    namespace datum {
-        inline double time( const datum_type& datum )      { return std::get< 0 >( datum ); };
-        inline double mass( const datum_type& datum )      { return std::get< 1 >( datum ); };
-        inline double intensity( const datum_type& datum ) { return std::get< 2 >( datum ); };
-        inline int color( const datum_type& datum )        { return std::get< 3 >( datum ); };
-    }
+    enum {
+        flag_time        // 0
+        , flag_mass      // 1
+        , flag_intensity // 2
+        , flag_color     // 3
+    } flag_pos;
 
     class txt_reader {
     public:
+        typedef std::tuple< double, double, double, int > datum_type;
+        typedef std::vector< datum_type > data_type;
         ~txt_reader();
         txt_reader();
+
         std::array< bool, 4 > load( std::ifstream&
                                     , data_type&
                                     , size_t skipLines
@@ -53,6 +53,7 @@ namespace adtextfile {
                                     , bool hasTime
                                     , bool hasMass
                                     , bool isCentroid ) const;
+
         template< size_t index >
         std::vector< double > to_vector( const data_type& data ) const {
             std::vector< double > t( data.size() );
@@ -61,5 +62,12 @@ namespace adtextfile {
             return t;
         }
     };
+
+    namespace datum {
+        inline double time( const txt_reader::datum_type& datum )      { return std::get< 0 >( datum ); };
+        inline double mass( const txt_reader::datum_type& datum )      { return std::get< 1 >( datum ); };
+        inline double intensity( const txt_reader::datum_type& datum ) { return std::get< 2 >( datum ); };
+        inline int color( const txt_reader::datum_type& datum )        { return std::get< 3 >( datum ); };
+    }
 
 }

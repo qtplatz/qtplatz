@@ -2,8 +2,8 @@ cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
 project( adtextfile )
-set( PROVIDER MS-Cheminformatics )
 
+set( PROVIDER MS-Cheminformatics )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -26,8 +26,9 @@ include_directories(
   )
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
+#add_definitions(-DSTRANGE_THINGS_DEBUG)
 
-add_library( adtextfile MODULE
+add_library( ${PROJECT_NAME} MODULE
   adtextfile.cpp
   adtextfile.hpp
   datafile.cpp
@@ -43,7 +44,7 @@ add_library( adtextfile MODULE
   dialog.cpp
   dialog.hpp
   txt_reader.cpp
-  txt_reader.hpp
+  txt_tokenizer.cpp
   )
 
 target_link_libraries( adtextfile LINK_PUBLIC

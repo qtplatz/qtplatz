@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,26 +25,29 @@
 
 #pragma once
 
-#include <adcontrols/chromatogram.hpp>
 #include <memory>
 #include <vector>
+#include <tuple>
 
 namespace adtextfile {
 
-    class TXTChromatogram {
+    class txt_tokenizer {
     public:
-        TXTChromatogram();
+        typedef std::tuple< std::vector< double >    // time
+                            , std::vector< double >  // mass
+                            , std::vector< double >  // intensity
+                            , std::vector< int >     // color
+                            > data_type;
 
-    public:
-
-        bool load( const std::wstring& );
-        double minValue_;
-        double maxValue_;
-
-        std::vector< std::shared_ptr< adcontrols::Chromatogram > > chromatograms_;
-
-    private:
-        bool compile_header( std::ifstream& );
+        ~txt_tokenizer();
+        txt_tokenizer();
+        std::array< bool, 4 > load( std::ifstream&
+                                    , data_type&
+                                    , size_t skipLines
+                                    , std::vector< size_t >&& ignColumns
+                                    , bool hasTime
+                                    , bool hasMass
+                                    , bool isCentroid ) const;
     };
 
 }
