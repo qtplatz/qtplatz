@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -47,6 +47,7 @@
 #include <boost/numeric/interval.hpp>
 #include <boost/tokenizer.hpp>
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 
 using namespace adportable;
@@ -62,7 +63,6 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 {
 	//bool hasMass( false );
 	boost::filesystem::path path( name );
-
 	boost::filesystem::ifstream in( path );
     if ( in.fail() )
         return false;
@@ -70,18 +70,26 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     bool isCentroid = dlg.isCentroid();
     bool hasTime = dlg.isTimeIntensity();
     bool hasMass = dlg.isMassIntensity();
-#if 0
-    txt_reader::data_type tuples_data;
+    if ( dlg.isTimeMassIntensity() ) {
+        hasTime = true;
+        hasMass = true;
+    }
+
+    ADDEBUG() << "dialog flags: " << hasTime << ", " << hasMass << ", " << isCentroid;
+
+    auto tp0 = std::chrono::steady_clock::now();
+#if 1
+    txt_reader::data_type tdata;
     auto flags = txt_reader().load( in
-                                    , tuples_data
+                                    , tdata
                                     , dlg.skipLines()
                                     , std::vector< size_t >()
                                     , hasTime
                                     , hasMass
                                     , isCentroid );
-
+#else
     txt_tokenizer::data_type data;
-    flags = txt_tokenizer().load( in
+    auto flags = txt_tokenizer().load( in
                                   , data
                                   , dlg.skipLines()
                                   , std::vector< size_t >()
@@ -89,12 +97,20 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                   , hasMass
                                   , isCentroid );
 #endif
-    typedef boost::char_separator<char> separator;
-    typedef boost::tokenizer< separator > tokenizer;
+    auto dur = ( std::chrono::steady_clock::now() - tp0 );
+    ADDEBUG() << double( std::chrono::duration_cast< std::chrono::microseconds >( dur ).count() ) / 1000.0 << "ms";
+#if 1
+    ADDEBUG() << "total " << tdata.size() << " rows processed.";
+    auto data = txt_reader().make_legacy( tdata, flags );
+    ADDEBUG() << "data size: " << tdata.size();
+#endif
+    for ( auto flag: flags )
+        ADDEBUG() << "flag: " << flag;
 
-    separator sep( ", \t", "", boost::drop_empty_tokens );
-
-    std::array< std::vector<double>, 3 > cols; // (time, mass, intens) | ((time|mass), intensity)
+    ADDEBUG() << "data<0> size: " << std::get< 0 >( data ).size();
+    ADDEBUG() << "data<1> size: " << std::get< 1 >( data ).size();
+    ADDEBUG() << "data<2> size: " << std::get< 2 >( data ).size();
+    ADDEBUG() << "data<3> size: " << std::get< 3 >( data ).size();
 
     if ( dlg.hasDataInterpreter() ) {
         auto model = dlg.dataInterpreterClsid().toStdString();
@@ -106,53 +122,14 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         }
     }
 
-    auto ignCols = dlg.ignoreColumns();
-    auto skipLines = dlg.skipLines();
-
-    do {
-        std::string line;
-        if ( textfile::getline( in, line ) ) {
-
-            if ( skipLines ) {
-                --skipLines;
-                continue;
-            }
-
-            tokenizer tokens( line, sep );
-            double values[3] = {0};
-            int i(0);
-            int col(0);
-            for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 3; ++it, ++col ) {
-                const std::string& s = *it;
-                if ( ! ignCols.contains ( col + 1 ) )
-                    values[i++] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
-            }
-            if ( i == 2 ) {
-#if !defined NDEBUG && 0
-                if ( cols[0].size() < 10 )
-                    ADDEBUG() << line << "\t[" << cols[0].size() << "]\tvalues:" << values[0] << ", " << values[1];
-#endif
-                cols[0].push_back( values[0] ); // (time|mass)
-                cols[1].push_back( values[1] * 1000 ); // intens
-            } else if ( i == 3 ) {
-                cols[0].push_back( values[0] ); // time
-                cols[1].push_back( values[1] ); // mass
-                cols[2].push_back( values[2] ); // intens
-            }
-        }
-
-    } while( ! in.eof() );
-
-    const size_t nCols = ( cols[2].size() == cols[0].size() ) ? 3 : 2;
-    const size_t nSamples = cols[0].size();
-
-    const std::vector<double>& iArray = ( nCols == 2 ) ? cols[1] : cols[2];
-
+    const size_t nSamples = flags[ flag_time ] ? std::get< flag_time >( data ).size() : std::get< flag_mass >( data ).size();
     if ( nSamples == 0 )
         return false;
 
+    const std::vector<double>& iArray = std::get< flag_intensity >( data );
+
     if ( compiled_ ) {
-        const auto& tArray = cols[0];
+        const auto& tArray = std::get< flag_time >( data );
 
         std::vector<SamplingInfo> segments;
         if ( analyze_segments( segments, tArray, compiled_.get() ) )
@@ -162,13 +139,13 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         size_t fcn = 0;
         for ( auto s: segments ) {
             std::shared_ptr< adcontrols::MassSpectrum > ptr( new adcontrols::MassSpectrum );
-            if ( nCols == 2 ) { // no mass array
+            if ( !flags[ flag_mass ] ) {
                 ptr->setAcquisitionMassRange( 100, 1000 );
                 std::vector<double> empty;
                 idx += create_spectrum( *ptr, idx, s, tArray, empty, iArray, fcn++ );
             } else {
-                ptr->setAcquisitionMassRange( cols[1].front(), cols[1].back() ); // mass
-                idx += create_spectrum( *ptr, idx, s, tArray, cols[1], iArray, fcn++ );
+                ptr->setAcquisitionMassRange( std::get< flag_mass >( data ).front(), std::get< flag_mass >( data ).back() );
+                idx += create_spectrum( *ptr, idx, s, tArray, std::get< flag_mass >( data ), iArray, fcn++ );
             }
             spectra_.push_back( ptr );
         }
@@ -178,19 +155,19 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         ptr->resize( nSamples );
         MSProperty prop;
 
-        auto& iArray = ( nCols == 3 ) ? cols[2] : cols[1];
+        auto& iArray = std::get< flag_intensity >( data ); //( nCols == 3 ) ? cols[2] : cols[1];
 
-        if ( nCols == 3 || ( nCols == 2 && dlg.isTimeIntensity() ) ) {
+        if ( flags[ flag_time ] ) {
             // convert 1st column to seconds
-            auto& tArray = cols[0];
+            auto& tArray = std::get< flag_time >( data ); // cols[0];
             adcontrols::metric::prefix source_prefix = dlg.dataPrefix();
             std::transform( tArray.begin(), tArray.end(), tArray.begin()
                             , [source_prefix] ( double t ) { return adcontrols::metric::scale_to_base<double>( t, source_prefix ); } );
 
             ptr->setTimeArray( tArray.data() );
 
-            if ( nCols == 3 )
-                ptr->setMassArray( cols[1].data() );
+            if ( flags[ flag_mass ] ) // nCols == 3 )
+                ptr->setMassArray( std::get< flag_mass >( data ).data() ); // cols[1].data() );
 
             double interval = ( tArray.back() - tArray.front() ) / ( tArray.size() - 1 );
             double delay = tArray[ 0 ];
@@ -201,14 +178,14 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             info.setDelayTime( tArray[0] );
             prop.setSamplingInfo( info );
 
-            if ( nCols == 2 ) {
+            if ( ! flags[ flag_mass ] /* nCols == 2 */ ) {
                 adportable::TimeSquaredScanLaw scanlaw( dlg.acceleratorVoltage(), 0.0, dlg.length() );
                 for ( size_t i = 0; i < nSamples; ++i )
                     ptr->setMass( i, scanlaw.getMass( tArray[ i ], 0 ) );
             }
 
         } else {
-            ptr->setMassArray( cols[0].data() );
+            ptr->setMassArray( std::get< flag_mass >( data ).data() ); // cols[0].data() );
         }
 
         if ( dlg.invertSignal() )

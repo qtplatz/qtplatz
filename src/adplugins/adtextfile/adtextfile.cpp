@@ -26,7 +26,6 @@
 #include "adtextfile.hpp"
 #include "datafile_factory.hpp"
 #include <boost/filesystem.hpp>
-#include "debug_link.hpp"
 
 namespace adcontrols {
     class datafile_factory;

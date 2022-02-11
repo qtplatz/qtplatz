@@ -24,8 +24,11 @@
 **************************************************************************/
 
 #include "txt_reader.hpp"
+#include <adportable/csv_reader.hpp>
+#include <adportable/debug.hpp>
 
-using adtextfile::txt_reader;
+
+using namespace adtextfile;
 
 txt_reader::~txt_reader()
 {
@@ -53,6 +56,7 @@ txt_reader::load( std::ifstream& istrm
         ++ncols;
     if ( hasMass )
         ++ncols;
+    assert( ncols > 1 );
 
     data.clear();
     adportable::csv::list_type list;
@@ -70,21 +74,80 @@ txt_reader::load( std::ifstream& istrm
         switch( ncols ) {
         case 2: {
             auto datum = adportable::csv::to_tuple< double, double >( list );
-            if ( hasTime )
+            if ( hasTime ) {
                 data.emplace_back( std::get<0>(datum),    0, std::get<1>(datum), 0 ); // time, intensity
-            else // hasMass
+            } else {
                 data.emplace_back( 0,    std::get<0>(datum), std::get<1>(datum), 0 ); // mass, intensity
-           }
+            }
+        }
             break;
         case 3:  {
             auto datum = adportable::csv::to_tuple< double, double, double >( list ); // time, mass, intensity
             data.emplace_back( std::get<0>(datum), std::get<1>(datum), std::get<2>( datum ), 0 );
-            }
-            break;
-        case 4:
-            data.emplace_back( adportable::csv::to_tuple< double, double, double, int >( list ) ); // time, mass, intensity, color
-            break;
         }
+            break;
+        case 4:  {
+            auto datum = adportable::csv::to_tuple< double, double, double, int >( list );
+            data.emplace_back( datum );
+        }
+            break;
+        } // switch
     }
     return { hasTime, hasMass, true, hasColor };
+}
+
+namespace adtextfile {
+#if defined __cpp_fold_expressions
+    template<class Tuple, std::size_t... Is>
+    void to_legacy_impl( Tuple& dst
+                         , const txt_reader::data_type& src
+                         , const txt_reader::flags_type& flags
+                         , std::index_sequence<Is...>)
+    {
+        ((
+            std::get<Is>(dst).resize( flags[Is] ? src.size() : 0 )
+            , std::transform( src.begin(), flags[Is] ? src.end() : src.begin(), std::get< Is >( dst ).begin(), [](const auto& t){ return std::get< Is >(t); } )
+            ), ...);
+    }
+
+    template<typename... Args> void to_legacy( std::tuple< Args... >& dst
+                                               , const txt_reader::data_type& src
+                                               , const std::array< bool, 4 >& flags )
+    {
+        to_legacy_impl( dst, src, flags, std::index_sequence_for<Args...>{} );
+    }
+#endif
+}
+
+legacy::data_type
+txt_reader::make_legacy( const data_type& src, const txt_reader::flags_type& flags ) const
+{
+#if defined __cpp_fold_expressions
+    legacy::data_type dst;
+    adtextfile::to_legacy( dst, src, flags );
+#else
+# if 0
+    if ( flags[ 0 ] ) {
+        constexpr int id = 0;
+        std::get< id >( dst ).resize( src.size() );
+        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
+    }
+    if ( flags[ 1 ] ) {
+        constexpr int id = 1;
+        std::get< id >( dst ).resize( src.size() );
+        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
+    }
+    if ( flags[ 2 ] ) {
+        constexpr int id = 2;
+        std::get< id >( dst ).resize( src.size() );
+        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
+    }
+    if ( flags[ 3 ] ) {
+        constexpr int id = 0;
+        std::get< id >( dst ).resize( src.size() );
+        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
+    }
+# endif
+#endif
+    return dst;
 }

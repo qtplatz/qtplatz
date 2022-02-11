@@ -24,6 +24,8 @@ add_executable( ${PROJECT_NAME}
   document.hpp
   resultwriter.cpp
   resultwriter.hpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txt_reader.cpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txt_tokenizer.cpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txtspectrum.cpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txtspectrum.hpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/dialog.cpp

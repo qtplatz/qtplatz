@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include <adportable/csv_reader.hpp>
 #include <memory>
 #include <vector>
 #include <tuple>
@@ -39,28 +38,31 @@ namespace adtextfile {
         , flag_color     // 3
     } flag_pos;
 
+    namespace legacy {
+        typedef std::tuple< std::vector< double >    // time
+                            , std::vector< double >  // mass
+                            , std::vector< double >  // intensity
+                            , std::vector< int >     // color
+                            > data_type;
+    }
+
     class txt_reader {
     public:
         typedef std::tuple< double, double, double, int > datum_type;
         typedef std::vector< datum_type > data_type;
+        typedef std::array< bool, 4 > flags_type;
         ~txt_reader();
         txt_reader();
 
-        std::array< bool, 4 > load( std::ifstream&
-                                    , data_type&
-                                    , size_t skipLines
-                                    , std::vector< size_t >&& ignColumns
-                                    , bool hasTime
-                                    , bool hasMass
-                                    , bool isCentroid ) const;
+        flags_type load( std::ifstream&
+                         , data_type&
+                         , size_t skipLines
+                         , std::vector< size_t >&& ignColumns
+                         , bool hasTime
+                         , bool hasMass
+                         , bool isCentroid ) const;
 
-        template< size_t index >
-        std::vector< double > to_vector( const data_type& data ) const {
-            std::vector< double > t( data.size() );
-            std::transform( data.begin(), data.end(), t.begin()
-                            , [](const auto& d){ return std::get< index >( d ); });
-            return t;
-        }
+        legacy::data_type make_legacy( const data_type& data, const std::array< bool, 4 >& flags ) const;
     };
 
     namespace datum {

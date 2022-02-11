@@ -26,7 +26,9 @@ include_directories(
   )
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
-#add_definitions(-DSTRANGE_THINGS_DEBUG)
+
+# An issue need to be resolved
+# several .cpp files are refered from adimport project
 
 add_library( ${PROJECT_NAME} MODULE
   adtextfile.cpp
@@ -44,7 +46,9 @@ add_library( ${PROJECT_NAME} MODULE
   dialog.cpp
   dialog.hpp
   txt_reader.cpp
+  txt_reader.hpp
   txt_tokenizer.cpp
+  txt_tokenizer.hpp
   )
 
 target_link_libraries( adtextfile LINK_PUBLIC
