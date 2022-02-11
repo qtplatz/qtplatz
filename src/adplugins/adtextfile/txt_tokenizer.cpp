@@ -61,7 +61,7 @@ txt_tokenizer::load( std::ifstream& in
                 continue;
             }
             tokenizer tokens( line, sep );
-            double values[3] = {0};
+            double values[4] = {0};
             int i(0);
             int col(0);
             for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 4; ++it, ++col ) {

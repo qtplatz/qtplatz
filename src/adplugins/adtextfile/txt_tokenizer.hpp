@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 #include <tuple>
@@ -38,16 +39,17 @@ namespace adtextfile {
                             , std::vector< double >  // intensity
                             , std::vector< int >     // color
                             > data_type;
+        typedef std::array< bool, 4 > flags_type;
 
         ~txt_tokenizer();
         txt_tokenizer();
-        std::array< bool, 4 > load( std::ifstream&
-                                    , data_type&
-                                    , size_t skipLines
-                                    , std::vector< size_t >&& ignColumns
-                                    , bool hasTime
-                                    , bool hasMass
-                                    , bool isCentroid ) const;
+        flags_type load( std::ifstream&
+                         , data_type&
+                         , size_t skipLines
+                         , std::vector< size_t >&& ignColumns
+                         , bool hasTime
+                         , bool hasMass
+                         , bool isCentroid ) const;
     };
 
 }
