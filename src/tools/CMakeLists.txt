@@ -5,7 +5,9 @@ add_subdirectory (eventbroker)
 if ( NOT CMAKE_CROSSCOMPILING )
 
   add_subdirectory (adfile)
-  add_subdirectory (adimport) #-- issue (direct liniing with adtextfiles .cpp files) need to be resolved
+  if ( NOT WIN32 )
+    add_subdirectory (adimport) #-- issue (direct liniing with adtextfiles .cpp files) need to be resolved
+  endif()
   add_subdirectory (adexport)
   #  add_subdirectory (adhist)
 

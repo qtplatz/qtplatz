@@ -25,18 +25,19 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 #include <tuple>
 
 namespace adtextfile {
 
-    enum {
+    enum flag_pos {
         flag_time        // 0
         , flag_mass      // 1
         , flag_intensity // 2
         , flag_color     // 3
-    } flag_pos;
+    };
 
     namespace legacy {
         typedef std::tuple< std::vector< double >    // time

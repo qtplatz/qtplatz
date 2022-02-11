@@ -38,7 +38,7 @@ txt_reader::txt_reader()
 {
 }
 
-std::array< bool, 4 >
+txt_reader::flags_type
 txt_reader::load( std::ifstream& istrm
                   , data_type& data
                   , size_t skipLines
