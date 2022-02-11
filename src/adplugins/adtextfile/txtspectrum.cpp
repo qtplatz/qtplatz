@@ -75,10 +75,9 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         hasMass = true;
     }
 
-    ADDEBUG() << "dialog flags: " << hasTime << ", " << hasMass << ", " << isCentroid;
-
     auto tp0 = std::chrono::steady_clock::now();
 #if 1
+    // x3 parser load duration 20.5ms for 11478 lines on core i7 linux
     txt_reader::data_type tdata;
     auto flags = txt_reader().load( in
                                     , tdata
@@ -87,7 +86,10 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                     , hasTime
                                     , hasMass
                                     , isCentroid );
+    auto data = txt_reader().make_legacy( tdata, flags );
+    const size_t nSamples = tdata.size();
 #else
+    // tokenizer load duration 75.2ms for 11478 lines on core i7 linux
     txt_tokenizer::data_type data;
     auto flags = txt_tokenizer().load( in
                                   , data
@@ -96,21 +98,13 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                   , hasTime
                                   , hasMass
                                   , isCentroid );
+    const size_t nSamples = flags[ flag_time ] ? std::get< flag_time >( data ).size() : std::get< flag_mass >( data ).size();
 #endif
     auto dur = ( std::chrono::steady_clock::now() - tp0 );
     ADDEBUG() << double( std::chrono::duration_cast< std::chrono::microseconds >( dur ).count() ) / 1000.0 << "ms";
-#if 1
-    ADDEBUG() << "total " << tdata.size() << " rows processed.";
-    auto data = txt_reader().make_legacy( tdata, flags );
-    ADDEBUG() << "data size: " << tdata.size();
-#endif
-    for ( auto flag: flags )
-        ADDEBUG() << "flag: " << flag;
 
-    ADDEBUG() << "data<0> size: " << std::get< 0 >( data ).size();
-    ADDEBUG() << "data<1> size: " << std::get< 1 >( data ).size();
-    ADDEBUG() << "data<2> size: " << std::get< 2 >( data ).size();
-    ADDEBUG() << "data<3> size: " << std::get< 3 >( data ).size();
+    if ( nSamples == 0 )
+        return false;
 
     if ( dlg.hasDataInterpreter() ) {
         auto model = dlg.dataInterpreterClsid().toStdString();
@@ -120,20 +114,13 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                 compiled_ = ms;
             }
         }
+        ADDEBUG() << "model: " << model << ", compiled: " << compiled_.get();
     }
 
-    const size_t nSamples = flags[ flag_time ] ? std::get< flag_time >( data ).size() : std::get< flag_mass >( data ).size();
-    if ( nSamples == 0 )
-        return false;
-
-    const std::vector<double>& iArray = std::get< flag_intensity >( data );
-
     if ( compiled_ ) {
-        const auto& tArray = std::get< flag_time >( data );
-
         std::vector<SamplingInfo> segments;
-        if ( analyze_segments( segments, tArray, compiled_.get() ) )
-            validate_segments( segments, tArray );
+        if ( analyze_segments( segments, std::get< flag_time >( data ), compiled_.get() ) )
+            validate_segments( segments, std::get< flag_time >( data ) );
 
         size_t idx = 0;
         size_t fcn = 0;
@@ -142,65 +129,67 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             if ( !flags[ flag_mass ] ) {
                 ptr->setAcquisitionMassRange( 100, 1000 );
                 std::vector<double> empty;
-                idx += create_spectrum( *ptr, idx, s, tArray, empty, iArray, fcn++ );
+                idx += create_spectrum( *ptr, idx, s, std::get< flag_time >( data ), empty, std::get< flag_intensity >( data ), fcn++ );
             } else {
                 ptr->setAcquisitionMassRange( std::get< flag_mass >( data ).front(), std::get< flag_mass >( data ).back() );
-                idx += create_spectrum( *ptr, idx, s, tArray, std::get< flag_mass >( data ), iArray, fcn++ );
+                idx += create_spectrum( *ptr, idx, s, std::get< flag_time >( data )
+                                        , std::get< flag_mass >( data ), std::get< flag_intensity >( data ), fcn++ );
             }
-            spectra_.push_back( ptr );
+            spectra_.emplace_back( ptr );
         }
     } else {
-
         auto ptr = std::make_shared< adcontrols::MassSpectrum >();
         ptr->resize( nSamples );
         MSProperty prop;
 
-        auto& iArray = std::get< flag_intensity >( data ); //( nCols == 3 ) ? cols[2] : cols[1];
-
         if ( flags[ flag_time ] ) {
-            // convert 1st column to seconds
-            auto& tArray = std::get< flag_time >( data ); // cols[0];
             adcontrols::metric::prefix source_prefix = dlg.dataPrefix();
-            std::transform( tArray.begin(), tArray.end(), tArray.begin()
+            std::transform( std::get< flag_time >( data ).begin()
+                            , std::get< flag_time >( data ).end()
+                            , std::get< flag_time >( data ).begin()
                             , [source_prefix] ( double t ) { return adcontrols::metric::scale_to_base<double>( t, source_prefix ); } );
 
-            ptr->setTimeArray( tArray.data() );
-
-            if ( flags[ flag_mass ] ) // nCols == 3 )
-                ptr->setMassArray( std::get< flag_mass >( data ).data() ); // cols[1].data() );
-
-            double interval = ( tArray.back() - tArray.front() ) / ( tArray.size() - 1 );
-            double delay = tArray[ 0 ];
+            ptr->setTimeArray( std::move( std::get< flag_time >( data ) ) );
+            double delay = ptr->time( 0 );
+            double interval = ( ptr->time( ptr->size() - 1 ) - delay ) / ( ptr->size() - 1 );
             double zhalf = delay < 0 ? (-0.5) : 0.5;
-            int32_t nDelay = uint32_t( tArray [ 0 ] / interval + zhalf );
-
+            int32_t nDelay = uint32_t( delay / interval + zhalf );
             adcontrols::SamplingInfo info( interval, delay, nDelay, uint32_t( nSamples ), /* number of average */ 1, /*mode*/ 0 );
-            info.setDelayTime( tArray[0] );
+            info.setDelayTime( delay );
             prop.setSamplingInfo( info );
-
-            if ( ! flags[ flag_mass ] /* nCols == 2 */ ) {
-                adportable::TimeSquaredScanLaw scanlaw( dlg.acceleratorVoltage(), 0.0, dlg.length() );
-                for ( size_t i = 0; i < nSamples; ++i )
-                    ptr->setMass( i, scanlaw.getMass( tArray[ i ], 0 ) );
-            }
-
+        }
+        if ( flags[ flag_mass ] ) {
+            ptr->setMassArray( std::get< flag_mass >( data ).data() );
         } else {
-            ptr->setMassArray( std::get< flag_mass >( data ).data() ); // cols[0].data() );
+            adportable::TimeSquaredScanLaw scanlaw( dlg.acceleratorVoltage(), 0.0, dlg.length() );
+            for ( size_t i = 0; i < nSamples; ++i )
+                ptr->setMass( i, scanlaw.getMass( ptr->time( i ), 0 ) );
         }
 
-        if ( dlg.invertSignal() )
-            std::transform( iArray.begin(), iArray.end(), iArray.begin(), []( double i ){ return -i; } );
+        if ( !isCentroid ) {
+            if ( dlg.invertSignal() )
+                std::transform( std::get< flag_intensity >( data ).begin()
+                                , std::get< flag_intensity >( data ).end()
+                                , std::get< flag_intensity >( data ).begin(), []( double i ){ return -i; } );
 
-        if ( dlg.correctBaseline() ) {
-            double base, rms;
-            adportable::spectrum_processor::tic( iArray.size(), iArray.data(), base, rms );
-            std::transform( iArray.begin(), iArray.end(), iArray.begin(), [base]( double i ){ return i - base; } );
+            if ( dlg.correctBaseline() ) {
+                double base, rms;
+                adportable::spectrum_processor::tic( std::get< flag_intensity >( data ).size()
+                                                     , std::get< flag_intensity >( data ).data(), base, rms );
+                std::transform( std::get< flag_intensity >( data ).begin()
+                                , std::get< flag_intensity >( data ).end()
+                                , std::get< flag_intensity >( data ).begin(), [base]( double i ){ return i - base; } );
+            }
         }
-        ptr->setIntensityArray( iArray.data() );
+        ptr->setIntensityArray( std::move( std::get< flag_intensity >( data ) ) );
+        if ( isCentroid && flags[ flag_color ] ) {
+            ptr->setColorArray( std::move( std::get< flag_color >( data ) ) );
+        }
         ptr->setMSProperty( prop );
         ptr->setAcquisitionMassRange( ptr->getMass( 0 ), ptr->getMass( nSamples - 1 ) );
-
-        spectra_.push_back( ptr );
+        if ( isCentroid )
+            ptr->setCentroid( adcontrols::CentroidNative );
+        spectra_.emplace_back( ptr );
     }
     return true;
 }

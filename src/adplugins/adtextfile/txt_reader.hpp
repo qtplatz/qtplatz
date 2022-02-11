@@ -42,13 +42,13 @@ namespace adtextfile {
         typedef std::tuple< std::vector< double >    // time
                             , std::vector< double >  // mass
                             , std::vector< double >  // intensity
-                            , std::vector< int >     // color
+                            , std::vector< uint8_t > // color
                             > data_type;
     }
 
     class txt_reader {
     public:
-        typedef std::tuple< double, double, double, int > datum_type;
+        typedef std::tuple< double, double, double, uint8_t > datum_type;
         typedef std::vector< datum_type > data_type;
         typedef std::array< bool, 4 > flags_type;
         ~txt_reader();

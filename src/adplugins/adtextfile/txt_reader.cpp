@@ -106,7 +106,8 @@ namespace adtextfile {
     {
         ((
             std::get<Is>(dst).resize( flags[Is] ? src.size() : 0 )
-            , std::transform( src.begin(), flags[Is] ? src.end() : src.begin(), std::get< Is >( dst ).begin(), [](const auto& t){ return std::get< Is >(t); } )
+            , std::transform( src.begin(), flags[Is] ? src.end() : src.begin(), std::get<Is>( dst ).begin()
+                              , [](const auto& t){ return std::get<Is>(t); } )
             ), ...);
     }
 
@@ -122,32 +123,9 @@ namespace adtextfile {
 legacy::data_type
 txt_reader::make_legacy( const data_type& src, const txt_reader::flags_type& flags ) const
 {
-#if defined __cpp_fold_expressions
     legacy::data_type dst;
+#if defined __cpp_fold_expressions
     adtextfile::to_legacy( dst, src, flags );
-#else
-# if 0
-    if ( flags[ 0 ] ) {
-        constexpr int id = 0;
-        std::get< id >( dst ).resize( src.size() );
-        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
-    }
-    if ( flags[ 1 ] ) {
-        constexpr int id = 1;
-        std::get< id >( dst ).resize( src.size() );
-        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
-    }
-    if ( flags[ 2 ] ) {
-        constexpr int id = 2;
-        std::get< id >( dst ).resize( src.size() );
-        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
-    }
-    if ( flags[ 3 ] ) {
-        constexpr int id = 0;
-        std::get< id >( dst ).resize( src.size() );
-        std::transform( src.begin(), src.end(), std::get< id >( dst ).begin(), [](const auto& s){ return std::get< id >(s); } );
-    }
-# endif
 #endif
     return dst;
 }
