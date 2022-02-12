@@ -188,15 +188,21 @@ MainWindow::createContents( Core::IMode * mode )
     QWidget * centralWidget = new QWidget;
     setCentralWidget( centralWidget );
 
-    // std::vector< QWidget * > wnd;
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
 
         impl_->stackWidget_ = new QStackedWidget;
         splitter3->addWidget( impl_->stackWidget_ );
 
-        connect( impl_->stackWidget_, &QStackedWidget::currentChanged, this, []( int idx ){
-                ADDEBUG() << "stack page changed to: " << idx;
+        connect( impl_->stackWidget_, &QStackedWidget::currentChanged, this, [&]( int idx ){
+                auto list = findChildren<QToolButton *>( QRegExp( "wnd\\.[0-9]+" ) );
+                for ( auto btn : list ) {
+                    if ( btn->objectName() == QString( "wnd.%1" ).arg( QString::number( idx ) ) ) {
+                        btn->setStyleSheet( QString( "color: ivory; border: 2px; border-color: darkGray; border-style: inset;" ) );
+                    } else {
+                        btn->setStyleSheet( QString( "color: lightGray; border: 2px; border-color: gray; border-style: groove" ) );
+                    }
+                }
             });
 
         if ( auto pWnd = new MSSpectraWnd ) {
