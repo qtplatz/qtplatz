@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/lipidid">
+        <file>image/cell.png</file> <!-- <a href="https://www.flaticon.com/free-icons/cell" title="cell icons">Cell icons created by Freepik - Flaticon</a> -->
+        <file>mimetype.xml</file>
+    </qresource>
+</RCC>
