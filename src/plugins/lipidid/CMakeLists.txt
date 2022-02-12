@@ -55,6 +55,10 @@ add_library( ${PROJECT_NAME} MODULE
   mainwindow.hpp
   mode.cpp
   mode.hpp
+  moltablewnd.cpp
+  moltablewnd.hpp
+  msspectrawnd.cpp
+  msspectrawnd.hpp
   ${Resources}
   )
 

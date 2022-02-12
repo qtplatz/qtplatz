@@ -153,7 +153,6 @@ void
 LipididPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
-    document::instance()->initialSetup();
     Core::ModeManager::activateMode( mode_->id() );
 }
 

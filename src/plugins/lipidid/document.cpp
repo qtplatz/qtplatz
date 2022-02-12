@@ -24,9 +24,14 @@
 
 #include "document.hpp"
 #include <adportable/debug.hpp>
+#include <adfs/sqlite.hpp>
+#include <qtwrapper/settings.hpp>
 #include <app/app_version.h> // <-- for Core::Constants::IDE_SETTINGSVARIANT_STR
-#include <QSettings>
 #include <QMessageBox>
+#include <QSettings>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <boost/filesystem.hpp>
 
 namespace lipidid {
@@ -49,6 +54,7 @@ namespace lipidid {
                                                            , QLatin1String( "lipidid" ) ) )   {
         }
         std::unique_ptr< QSettings > settings_;
+        QSqlDatabase db_;
     };
 
 
@@ -76,17 +82,66 @@ document::instance()
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "lipidid::document"
-                                      , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
-        }
+    static std::atomic_int counts = 0;
+    if ( counts++ ) {
+        ADDEBUG() << "## " << __FUNCTION__ << " ## " << counts;
+        return;
     }
+    do {
+        boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+        if ( !boost::filesystem::exists( dir ) ) {
+            if ( !boost::filesystem::create_directories( dir ) ) {
+                QMessageBox::information( 0, "lipidid::document"
+                                          , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
+            }
+        }
+    } while ( 0 );
+
+    do {
+        auto path = boost::filesystem::path( impl_->settings_->fileName().toStdString() );
+        auto dir = path.remove_filename() / "lipidid";
+        boost::filesystem::path fpath = qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdWString();
+        if ( fpath.empty() ) {
+            fpath = dir / "lipid_maps.db";
+        }
+        if ( boost::filesystem::exists( fpath ) ) {
+            ADDEBUG() << fpath << " found";
+            if ( fpath.extension() == "adfs" || fpath.extension() == "db" ) {
+                auto db = std::make_shared< adfs::sqlite >();
+                db->open( fpath.string().c_str(), adfs::readonly );
+                adfs::stmt sql(*db);
+                if ( sql.prepare( "SELECT name FROM sqlite_master WHERE type='table' AND name='mols'" ) ) {
+                    if ( sql.step() != adfs::sqlite_row ) {
+                        ADDEBUG() << "empty database";
+                    }
+                }
+            }
+            QSqlDatabase db = QSqlDatabase::addDatabase( "QSQLITE", "LIPID_MAPS" );
+            db.setDatabaseName( QString::fromStdString( fpath.string() ) );
+            if ( db.open() ) {
+                impl_->db_ = std::move( db );
+                emit onConnectionChanged();
+            } else {
+                QMessageBox::critical(0
+                                      , QObject::tr("Cannot open database")
+                                      , QObject::tr("Unable to establish a database connection.\nClick Cancel to exit.")
+                                      , QMessageBox::Cancel );
+            }
+        } else {
+            ADDEBUG() << fpath << " not exists";
+            return;
+        }
+    } while ( 0 );
+
 }
 
 void
 document::finalClose()
 {
+}
+
+QSqlDatabase
+document::sqlDatabase()
+{
+    return impl_->db_;
 }

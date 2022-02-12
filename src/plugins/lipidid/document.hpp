@@ -28,6 +28,7 @@
 #include <memory>
 
 class QSettings;
+class QSqlDatabase;
 
 namespace lipidid {
 
@@ -43,12 +44,15 @@ namespace lipidid {
         void initialSetup();
         void finalClose();
 
+        QSqlDatabase sqlDatabase();
+        bool load( const QString& file );
+
     public slots:
 
     private:
 
     signals:
-
+        void onConnectionChanged();
     private:
         class impl;
         std::unique_ptr< impl > impl_;

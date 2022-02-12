@@ -24,6 +24,8 @@
 
 #include "mainwindow.hpp"
 #include "document.hpp"
+#include "msspectrawnd.hpp"
+#include "moltablewnd.hpp"
 #include <adwidgets/mspeaktree.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/configuration.hpp>
@@ -67,7 +69,6 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QResizeEvent>
-#include <QStandardPaths>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -75,8 +76,7 @@
 #include <QVBoxLayout>
 #include <QVariant>
 #include <QtGui/QIcon>
-#include <qdebug.h>
-#include <qstackedwidget.h>
+#include <QStackedWidget>
 #include <boost/json.hpp>
 #include <boost/filesystem.hpp>
 #include <functional>
@@ -84,10 +84,9 @@
 
 namespace lipidid {
 
-    struct wnd_set_title : public boost::static_visitor < QWidget * > {
-        const QString& text_;
-        wnd_set_title( const QString& t ) : text_( t ) {}
-        template<class T> QWidget * operator () ( T* wnd ) const { wnd->setWindowTitle( text_ ); return wnd; }
+    enum {
+        idSelSpectra
+        , idSelMols
     };
 
     class MainWindow::impl {
@@ -95,19 +94,22 @@ namespace lipidid {
     public:
         ~impl() {}
         impl( MainWindow * p ) : this_( p )
-                               , topBar_(0)
-                               , midBar_(0) {
+                               , stackWidget_( 0 ) {
         }
-        Utils::StyledBar * topBar_;
-        Utils::StyledBar * midBar_;
-        static Utils::StyledBar * createTopStyledToolbar();
-        static Utils::StyledBar * createMidStyledToolbar();
+        QStackedWidget * stackWidget_;
+        Utils::StyledBar * createTopStyledToolbar();
+        Utils::StyledBar * createMidStyledToolbar();
 
-        static QToolButton * toolButton( QAction * action )  {
-            QToolButton * button = new QToolButton;
-            if ( button )
+        static QToolButton * toolButton( QAction * action, const QString& objectName = {})  {
+            if ( QToolButton * button = new QToolButton() ) {
                 button->setDefaultAction( action );
-            return button;
+                if ( !objectName.isEmpty() ) {
+                    button->setObjectName( objectName );
+                    button->setCheckable( true );
+                }
+                return button;
+            }
+            return nullptr;
         }
 
         static QToolButton *
@@ -145,11 +147,20 @@ MainWindow::activateLayout()
 void
 MainWindow::OnInitialUpdate()
 {
+    connect( document::instance(), &document::onConnectionChanged, [this]{
+        if ( auto table = findChild< MolTableWnd * >() ) {
+            table->setQuery(
+                "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName"
+                " FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
+        }
+    } );
+    document::instance()->initialSetup();
 }
 
 void
 MainWindow::OnFinalClose()
 {
+    document::instance()->finalClose();
 }
 
 void
@@ -166,66 +177,66 @@ MainWindow::hideDock( bool hide )
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
-    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
+    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
-    QBoxLayout * editorHolderLayout = new QVBoxLayout;
-	editorHolderLayout->setMargin( 0 );
-	editorHolderLayout->setSpacing( 0 );
+    Utils::StyledBar * toolBar1 = impl_->createTopStyledToolbar();
+    Utils::StyledBar * toolBar2 = impl_->createMidStyledToolbar();
 
-    if ( QWidget * editorWidget = new QWidget ) {
+    //---------- central widget ------------
+    QWidget * centralWidget = new QWidget;
+    setCentralWidget( centralWidget );
 
-        editorWidget->setLayout( editorHolderLayout );
+    // std::vector< QWidget * > wnd;
+    Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
+    if ( splitter3 ) {
 
-        editorHolderLayout->addWidget( impl_->createTopStyledToolbar() );
-        if ( auto wnd = new QWidget() ) { // WaveformWnd() ) {
-            editorHolderLayout->addWidget( wnd );
+        impl_->stackWidget_ = new QStackedWidget;
+        splitter3->addWidget( impl_->stackWidget_ );
+
+        connect( impl_->stackWidget_, &QStackedWidget::currentChanged, this, []( int idx ){
+                ADDEBUG() << "stack page changed to: " << idx;
+            });
+
+        if ( auto pWnd = new MSSpectraWnd ) {
+            pWnd->setWindowTitle( "Spectra" );
+            impl_->stackWidget_->addWidget( pWnd );
         }
-
-        //---------- central widget ------------
-        if ( QWidget * centralWidget = new QWidget ) {
-            setCentralWidget( centralWidget );
-
-            QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-            centralWidget->setLayout( centralLayout );
-            centralLayout->setMargin( 0 );
-            centralLayout->setSpacing( 0 );
-            // ----------------------------------------------------
-            centralLayout->addWidget( editorWidget ); // [ToolBar + WaveformWnd]
-            // ----------------------------------------------------
-            ADDEBUG() << "## " << __FUNCTION__ << " ##"; // ok
-            //centralLayout->setStretch( 0, 1 );
-            //centralLayout->setStretch( 1, 0 );
-            // ----------------- mid tool bar -------------------
-            centralLayout->addWidget( impl_->createMidStyledToolbar() );      // [Middle toolbar]
-            ADDEBUG() << "## " << __FUNCTION__ << " ##"; // ok
+        if ( auto pWnd = new MolTableWnd ) { // to be replaced with structure grid
+            pWnd->setWindowTitle( "Mols" );
+            impl_->stackWidget_->addWidget( pWnd );
         }
     }
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
-    if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
 
-        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-        outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
+    QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
+    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setSpacing(0);
+    toolBarAddingLayout->addWidget( toolBar1 );  // top most toolbar
+    toolBarAddingLayout->addWidget( splitter3 ); // Spectra|chrmatogram pane
+    toolBarAddingLayout->addWidget( toolBar2 );  // middle toolbar
 
-        mainWindowSplitter->addWidget( this );        // [Central Window]
-        mainWindowSplitter->addWidget( outputPane );  // [Output (log) Window]
+    // Right-side window with editor, output etc.
+    Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
+    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+    outputPane->setObjectName( QLatin1String( "OutputPanePlaceHolder" ) );
+    mainWindowSplitter->addWidget( this );
+    mainWindowSplitter->addWidget( outputPane );
+    mainWindowSplitter->setStretchFactor( 0, 10 );
+    mainWindowSplitter->setStretchFactor( 1, 0 );
+    mainWindowSplitter->setOrientation( Qt::Vertical );
 
-        mainWindowSplitter->setStretchFactor( 0, 9 );
-        mainWindowSplitter->setStretchFactor( 1, 1 );
-        mainWindowSplitter->setOrientation( Qt::Vertical );
-
-        // Split Navigation and Application window
-        Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
-        if ( splitter ) {
-            splitter->addWidget( mainWindowSplitter );                            // *this + ontput
-            splitter->setOrientation( Qt::Horizontal );
-            splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
-        }
-        // createDockWidgets();
-        return splitter;
-    }
-    return 0;
+#if 0
+    // Navigation and right-side window
+    Core::MiniSplitter * splitter = new Core::MiniSplitter;
+    splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
+    splitter->addWidget( mainWindowSplitter );
+    splitter->setStretchFactor( 0, 0 );
+    splitter->setStretchFactor( 1, 1 );
+    splitter->setObjectName( QLatin1String( "ModeWidget" ) );
+	return splitter;
+#endif
+    return mainWindowSplitter;
 }
 
 Utils::StyledBar *
@@ -238,6 +249,19 @@ MainWindow::impl::createTopStyledToolbar()
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
+            Core::Context context( ( Core::Id( "lipidid.MainWindow" ) ) );
+
+            if ( auto p = new QAction( tr("Spectra"), this_ ) ) {
+                connect( p, &QAction::triggered, [=](){ stackWidget_->setCurrentIndex( idSelSpectra ); } );
+                am->registerAction( p, "lipidid.selSpectra", context );
+                toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelSpectra ) ) );
+            }
+            if ( auto p = new QAction( tr("Mols"), this_ ) ) {
+                connect( p, &QAction::triggered, [=](){ stackWidget_->setCurrentIndex( idSelMols ); } );
+                am->registerAction( p, "lipidid.selMols", context );
+                toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMols ) ) );
+            }
+
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //---
@@ -252,7 +276,6 @@ MainWindow::impl::createTopStyledToolbar()
 Utils::StyledBar *
 MainWindow::impl::createMidStyledToolbar()
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
     if ( Utils::StyledBar * toolBar = new Utils::StyledBar ) {
 
         toolBar->setProperty( "topBorder", true );
@@ -260,7 +283,6 @@ MainWindow::impl::createMidStyledToolbar()
         toolBarLayout->setMargin(0);
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ActionManager::instance();
-        ADDEBUG() << "## " << __FUNCTION__ << " ## am=" << am;
         if ( am ) {
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
