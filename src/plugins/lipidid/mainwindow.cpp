@@ -208,7 +208,9 @@ MainWindow::createContents( Core::IMode * mode )
         if ( auto pWnd = new MSSpectraWnd ) {
             pWnd->setWindowTitle( "Spectra" );
             impl_->stackWidget_->addWidget( pWnd );
+            connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
         }
+
         if ( auto pWnd = new MolTableWnd ) { // to be replaced with structure grid
             pWnd->setWindowTitle( "Mols" );
             impl_->stackWidget_->addWidget( pWnd );

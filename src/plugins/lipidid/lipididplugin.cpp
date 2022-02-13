@@ -153,6 +153,14 @@ void
 LipididPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
+    auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSessionManager >();
+    for ( auto mgr: vec ) {
+        using adextension::iSessionManager;
+        connect( mgr, &iSessionManager::addProcessor, document::instance(), &document::handleAddProcessor );
+        connect( mgr, &iSessionManager::onSelectionChanged, document::instance(), &document::handleSelectionChanged );
+        connect( mgr, &iSessionManager::onProcessed, document::instance(), &document::handleProcessed );
+        connect( mgr, &iSessionManager::onCheckStateChanged, document::instance(), &document::handleCheckStateChanged );
+    }
     Core::ModeManager::activateMode( mode_->id() );
 }
 

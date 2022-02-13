@@ -29,14 +29,10 @@
 #include <memory>
 #include <tuple>
 
-namespace portfolio {
-    class Folium;
-}
+namespace portfolio { class Folium; }
 
 namespace adcontrols {
     class MassSpectrum;
-    class Chromatogram;
-	class PeakResult;
     class ProcessMethod;
     enum hor_axis: unsigned int;
 }
@@ -66,6 +62,8 @@ namespace lipidid {
         void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( adcontrols::hor_axis );
         void handleCheckStateChanged( adprocessor::dataprocessor *, portfolio::Folium&, bool isChecked );
+
+        void handleDataChanged( const portfolio::Folium& );
 
     private:
         void init();

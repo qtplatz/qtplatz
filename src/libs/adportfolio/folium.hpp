@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -40,21 +40,21 @@ namespace portfolio {
     class Folder;
 
     template<class T> inline bool is_type( boost::any& a ) {
-        // see issue on boost, https://svn.boost.org/trac/boost/ticket/754
-#if defined __GNUC__
-        return std::string( a.type().name() ) == typeid( T ).name();
-#else
+        // see issue on boost, https://svn.boost.org/trac/boost/ticket/754, if any issue on shared object boundary
         return a.type() == typeid( T );
-#endif
     }
 
     template<class T> inline bool is_type( const boost::any& a ) {
-        // see issue on boost, https://svn.boost.org/trac/boost/ticket/754
-#if defined __GNUC__
-        return std::string( a.type().name() ) == typeid( T ).name();
-#else
+        // see issue on boost, https://svn.boost.org/trac/boost/ticket/754, if any issue on shared object boundary
         return a.type() == typeid( T );
-#endif
+    }
+
+    template< typename... Args > bool is_any_of( const boost::any& a ) {
+        return ( ( is_type<Args>( a ) ) || ... );
+    }
+
+    template< typename... Args > bool is_any_shared_of( const boost::any& a ) {
+        return ( is_any_of< std::shared_ptr< Args >... >( a ) );
     }
 
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {

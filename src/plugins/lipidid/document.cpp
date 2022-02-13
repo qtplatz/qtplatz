@@ -23,7 +23,10 @@
 **************************************************************************/
 
 #include "document.hpp"
+#include <adcontrols/massspectrum.hpp>
 #include <adportable/debug.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <adfs/sqlite.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h> // <-- for Core::Constants::IDE_SETTINGSVARIANT_STR
@@ -33,8 +36,30 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <boost/filesystem.hpp>
+#include <tuple>
+
+Q_DECLARE_METATYPE( portfolio::Folium )
 
 namespace lipidid {
+
+    template< typename T > bool is_same( const boost::any& a ) {
+        return a.type() == typeid( T );
+     }
+
+    template< typename... Args > bool contains( const boost::any& a ) {
+        return ( ( is_same<Args>( a ) ) || ... );
+     }
+
+    template< typename... Args > bool is_any_shared_of( const boost::any& a ) {
+        using portfolio::is_any_of;
+        return ( is_any_of< std::shared_ptr< Args >... >( a ) );
+     }
+
+    template< typename... Args >
+    typename std::tuple_element< 0, std::tuple< Args... > >::type get_shared( const boost::any& a ) {
+        if ( is_same< std::shared_ptr< Args >... >( a ) ) {
+        }
+    }
 
     struct user_preference {
         static boost::filesystem::path path( QSettings * settings ) {
@@ -144,4 +169,44 @@ QSqlDatabase
 document::sqlDatabase()
 {
     return impl_->db_;
+}
+
+void
+document::handleAddProcessor( adextension::iSessionManager *, const QString& file )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+}
+
+// change node (folium) selection
+void
+document::handleSelectionChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium& folium )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
+              << folium.fullpath();
+    using portfolio::is_any_of;
+    if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
+        auto ms = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() );
+        if ( ms ) {
+            ADDEBUG() << "size: " << ms->size() << ", isCentroid: " << ms->isCentroid();
+        }
+        emit dataChanged( folium );
+    }
+}
+
+// data contents changed
+void
+document::handleProcessed( adextension::iSessionManager *, const QString& file, const portfolio::Folium& folium )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
+              << folium.fullpath();
+}
+
+void
+document::handleCheckStateChanged( adextension::iSessionManager *
+                                   , const QString& file
+                                   , const portfolio::Folium& folium
+                                   , bool checked )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
+              << folium.fullpath();
 }

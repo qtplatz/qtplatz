@@ -64,6 +64,7 @@ add_library( ${PROJECT_NAME} MODULE
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
+  adextension
   adfs
   adlog
   adplot

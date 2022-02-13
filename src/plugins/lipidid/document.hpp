@@ -30,6 +30,9 @@
 class QSettings;
 class QSqlDatabase;
 
+namespace adextension  { class iSessionManager; }
+namespace portfolio    { class Folium; }
+
 namespace lipidid {
 
     class document : public QObject    {
@@ -48,11 +51,23 @@ namespace lipidid {
         bool load( const QString& file );
 
     public slots:
+        void handleAddProcessor( adextension::iSessionManager *, const QString& file );
+
+        // change node (folium) selection
+        void handleSelectionChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium& );
+
+        // data contents changed
+        void handleProcessed( adextension::iSessionManager *, const QString& file, const portfolio::Folium& );
+
+        void handleCheckStateChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium&, bool );
 
     private:
 
     signals:
         void onConnectionChanged();
+
+        // souce iSessionManager
+        void dataChanged( const portfolio::Folium& );
     private:
         class impl;
         std::unique_ptr< impl > impl_;
