@@ -42,25 +42,6 @@ Q_DECLARE_METATYPE( portfolio::Folium )
 
 namespace lipidid {
 
-    template< typename T > bool is_same( const boost::any& a ) {
-        return a.type() == typeid( T );
-     }
-
-    template< typename... Args > bool contains( const boost::any& a ) {
-        return ( ( is_same<Args>( a ) ) || ... );
-     }
-
-    template< typename... Args > bool is_any_shared_of( const boost::any& a ) {
-        using portfolio::is_any_of;
-        return ( is_any_of< std::shared_ptr< Args >... >( a ) );
-     }
-
-    template< typename... Args >
-    typename std::tuple_element< 0, std::tuple< Args... > >::type get_shared( const boost::any& a ) {
-        if ( is_same< std::shared_ptr< Args >... >( a ) ) {
-        }
-    }
-
     struct user_preference {
         static boost::filesystem::path path( QSettings * settings ) {
             boost::filesystem::path dir( settings->fileName().toStdWString() );
@@ -181,13 +162,12 @@ document::handleAddProcessor( adextension::iSessionManager *, const QString& fil
 void
 document::handleSelectionChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium& folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
-              << folium.fullpath();
-    using portfolio::is_any_of;
+    using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
-        auto ms = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() );
-        if ( ms ) {
-            ADDEBUG() << "size: " << ms->size() << ", isCentroid: " << ms->isCentroid();
+        ADDEBUG() << "------------------------------------";
+        using portfolio::get_shared_of;
+        if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
+            ADDEBUG() << "found ptr size: " << ptr->size() << ", isCentroid: " << ptr->isCentroid();
         }
         emit dataChanged( folium );
     }

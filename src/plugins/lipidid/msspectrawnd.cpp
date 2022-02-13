@@ -198,18 +198,15 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
 void
 MSSpectraWnd::handleDataChanged( const portfolio::Folium& folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << folium.fullpath();
-
-    // std::shared_ptr< const adcontrols::MassSpectrum > ms;
-    // if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
-    //     ms = portfolio::get< std::shared_ptr< const adcontrols::MassSpectrum > >( folium );
-    // } else if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
-    //     ms = portfolio::get< std::shared_ptr< adcontrols::MassSpectrum > >( folium );
-    // }
-    // if ( ms ) {
-    //     ADDEBUG() << "handleDataChanged: " << ms->size() << ", " << ms->isCentroid();
-    //     impl_->plots_[ 0 ]->setData( ms, 0 );
-    // }
+    using portfolio::is_any_shared_of;
+    if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
+        using portfolio::get_shared_of;
+        if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
+            if ( ptr->isCentroid() ) {
+                impl_->plots_[ 0 ]->setData( ptr, 0 );
+            }
+        }
+    }
 }
 
 void
@@ -235,6 +232,7 @@ void
 MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, int idx, int fcn )
 {
     // data changed on MSPeakTable via MSProcessingWnd
+
 }
 
 void

@@ -30,6 +30,7 @@
 #include <boost/any.hpp>
 #include <boost/optional.hpp>
 #include <algorithm>
+#include <memory>
 
 namespace portfolio {
 
@@ -56,6 +57,28 @@ namespace portfolio {
     template< typename... Args > bool is_any_shared_of( const boost::any& a ) {
         return ( is_any_of< std::shared_ptr< Args >... >( a ) );
     }
+
+    //---
+    template < typename... Args > struct get_shared_of {};
+
+    template < typename last_t > struct get_shared_of< last_t > {
+        auto operator()( const boost::any& a ) const {
+            if ( a.type() == typeid( std::shared_ptr< last_t  > ) ) {
+                return boost::any_cast< std::shared_ptr< last_t > >( a );
+            }
+            return std::shared_ptr< last_t >{};
+        }
+    };
+
+    template< typename first_t, typename... Args > struct get_shared_of< first_t, Args ... > {
+        std::shared_ptr< first_t > operator()( const boost::any& a ) const {
+            if ( a.type() == typeid( std::shared_ptr< first_t  > ) ) {
+                return boost::any_cast< std::shared_ptr< first_t > >( a );
+            }
+            return get_shared_of< Args ... >()( a );
+        }
+    };
+    //---
 
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
     public:
