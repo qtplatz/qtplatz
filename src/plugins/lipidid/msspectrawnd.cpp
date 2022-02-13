@@ -232,7 +232,6 @@ void
 MSSpectraWnd::onDataChanged( const QString& foliumGuid, const QString& attGuid, int idx, int fcn )
 {
     // data changed on MSPeakTable via MSProcessingWnd
-
 }
 
 void

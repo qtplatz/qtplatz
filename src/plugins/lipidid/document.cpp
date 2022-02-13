@@ -61,6 +61,7 @@ namespace lipidid {
         }
         std::unique_ptr< QSettings > settings_;
         QSqlDatabase db_;
+        std::shared_ptr< const adcontrols::MassSpectrum > ms_;
     };
 
 
@@ -111,7 +112,6 @@ document::initialSetup()
             fpath = dir / "lipid_maps.db";
         }
         if ( boost::filesystem::exists( fpath ) ) {
-            ADDEBUG() << fpath << " found";
             if ( fpath.extension() == "adfs" || fpath.extension() == "db" ) {
                 auto db = std::make_shared< adfs::sqlite >();
                 db->open( fpath.string().c_str(), adfs::readonly );
@@ -160,25 +160,27 @@ document::handleAddProcessor( adextension::iSessionManager *, const QString& fil
 
 // change node (folium) selection
 void
-document::handleSelectionChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium& folium )
+document::handleSelectionChanged( adextension::iSessionManager *
+                                  , const QString& file, const portfolio::Folium& folium )
 {
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
-        ADDEBUG() << "------------------------------------";
         using portfolio::get_shared_of;
         if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
-            ADDEBUG() << "found ptr size: " << ptr->size() << ", isCentroid: " << ptr->isCentroid();
+            if ( ptr->isCentroid() ) {
+                impl_->ms_ = ptr;
+                emit dataChanged( folium );
+            }
         }
-        emit dataChanged( folium );
     }
 }
 
 // data contents changed
 void
-document::handleProcessed( adextension::iSessionManager *, const QString& file, const portfolio::Folium& folium )
+document::handleProcessed( adextension::iSessionManager *
+                           , const QString& file, const portfolio::Folium& folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
-              << folium.fullpath();
+    // this may call togather with handleSelectionChanged;
 }
 
 void
