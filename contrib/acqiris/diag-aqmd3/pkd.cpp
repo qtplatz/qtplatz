@@ -290,11 +290,11 @@ pkd_main( std::shared_ptr< aqmd3::AqMD3 > md3, const aqmd3controls::method& m, s
                 for ( size_t i = 0; i < ams->size(); ++i ) {
                     auto v1 = pkd.xdata< int32_t >()[ i ];
                     auto v2 = avg.xdata< int32_t >()[ i ];
-                    auto t = ams->getTime( i );
+                    auto t = ams->time( i );
                     std::cout << boost::format("%.7e") % t
                               << "\t" << v1
                               << "\t" << v2
-                              << "\t" << ams->getIntensity( i )
+                              << "\t" << ams->intensity( i )
                               << std::endl;
                 }
             }

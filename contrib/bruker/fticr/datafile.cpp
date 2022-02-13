@@ -112,7 +112,7 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
         double mz = tof2mass( tof, acqu_.ml1, acqu_.ml2, acqu_.ml3 );
 		pMS->setMass( idx, mz );
 	}
-    pMS->setAcquisitionMassRange( pMS->getMass( 0 ), pMS->getMass( pMS->size() - 1 ) );
+    pMS->setAcquisitionMassRange( pMS->mass( 0 ), pMS->mass( pMS->size() - 1 ) );
 	//pMS->setAcquisitionMassRange( acqu_.mlow, acqu_.mhigh );
 	any = pMS;     
 	return any;
