@@ -121,9 +121,23 @@ namespace lipidid {
         }
 
         static void createDockWidgets( MainWindow * );
-        static QDockWidget * createDockWidget( MainWindow *, QWidget *, const QString&, const QString& );
     };
+
 }
+
+namespace {
+
+    using lipidid::MainWindow;
+
+    QDockWidget * createDockWidget( MainWindow *, QWidget *, const QString&, const QString& );
+
+    template< typename T > auto dock_create( MainWindow * p, const QString& name, const QString& page ) {
+        auto w = new T( p );
+        createDockWidget( p, w, name, page );
+        return w;
+    }
+}
+
 
 using lipidid::MainWindow;
 
@@ -318,14 +332,6 @@ MainWindow::impl::createMidStyledToolbar()
     return 0;
 }
 
-namespace {
-    template< typename T > auto dock_create( MainWindow * p, const QString& name, const QString& page ) {
-        auto w = new T( p );
-        MainWindow::impl::createDockWidget( p, w, name, page );
-        return w;
-    }
-};
-
 void
 MainWindow::impl::createDockWidgets( MainWindow * pThis )
 {
@@ -336,27 +342,31 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
     }
 }
 
-QDockWidget *
-MainWindow::impl::createDockWidget( MainWindow * pThis
-                                    , QWidget * widget
-                                    , const QString& title
-                                    , const QString& pageName )
-{
-    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
-        widget->setWindowTitle( title );
+namespace {
 
-    if ( widget->objectName().isEmpty() )
-        widget->setObjectName( pageName );
+    QDockWidget *
+    createDockWidget( MainWindow * pThis
+                      , QWidget * widget
+                      , const QString& title
+                      , const QString& pageName )
+    {
+        if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
+            widget->setWindowTitle( title );
 
-    QDockWidget * dockWidget = pThis->addDockForWidget( widget );
-    dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
+        if ( widget->objectName().isEmpty() )
+            widget->setObjectName( pageName );
 
-    if ( title.isEmpty() )
-        dockWidget->setWindowTitle( widget->objectName() );
-    else
-        dockWidget->setWindowTitle( title );
+        QDockWidget * dockWidget = pThis->addDockForWidget( widget );
+        dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
 
-    pThis->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+        if ( title.isEmpty() )
+            dockWidget->setWindowTitle( widget->objectName() );
+        else
+            dockWidget->setWindowTitle( title );
 
-    return dockWidget;
+        pThis->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+
+        return dockWidget;
+    }
+
 }
