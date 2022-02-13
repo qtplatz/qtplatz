@@ -303,15 +303,15 @@ MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int
         model.setData( model.index( row, c_index ), idx.second );
 
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode() ); // nTurns
-        model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
-        model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
+        model.setData( model.index( row, c_mass ),  ms.mass( idx.second ) );
+        model.setData( model.index( row, c_time ),  ms.time( idx.second ) );
 
         // this will be deprecated.
         //model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
 
-        model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
+        model.setData( model.index( row, c_intensity ), ms.intensity( idx.second ) );
 
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( idx.second ) ) ); // ms.getNormalizedTime( idx.second ) ) );
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.time( idx.second ) ) ); // ms.getNormalizedTime( idx.second ) ) );
 
         try {
             setAssignedData( row, idx.first, idx.second, pCalibResult_->assignedMasses() );
@@ -362,14 +362,14 @@ MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int
         adcontrols::MassSpectrum& ms = segments[ it->first ];
 
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode() ); // nTurns
-        model.setData( model.index( row, c_mass ),  ms.getMass( it->second ) );
+        model.setData( model.index( row, c_mass ),  ms.mass( it->second ) );
 
-        model.setData( model.index( row, c_time ),  ms.getTime( it->second ) );
+        model.setData( model.index( row, c_time ),  ms.time( it->second ) );
         //model.setData( model.index( row, c_time_normalized ),  ms.getNormalizedTime( it->second ) );
-        model.setData( model.index( row, c_intensity ), ms.getIntensity( it->second ) );
+        model.setData( model.index( row, c_intensity ), ms.intensity( it->second ) );
 
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( it->second ) ) );
-        // ms.getNormalizedTime( it->second ) ) );
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.time( it->second ) ) );
+
         try {
             setAssignedData( row, it->first, it->second, pCalibResult_->assignedMasses() );
         } catch ( boost::exception& e ) {
@@ -399,7 +399,7 @@ MSCalibrateSummaryTable::setData( const adcontrols::MSCalibrateResult& res, cons
     for ( int fcn = 0; fcn < signed(segments.size()); ++fcn ) {
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
 		for ( int idx = 0; idx < signed(fms.size()); ++idx ) {
-			if ( fms.getIntensity( idx ) > threshold )
+			if ( fms.intensity( idx ) > threshold )
 				indices.push_back( std::make_pair( fcn, idx ) );
 		}
 	}

@@ -83,7 +83,7 @@ resultwriter::insert( std::shared_ptr< const adcontrols::MassSpectrum > ms
         sql.bind( id++ ) = t.serialnumber;
         sql.bind( id++ ) = t.protocolIndex;
         sql.bind( id++ ) = t.timeSinceEpoch;
-        sql.bind( id++ ) = ms->getTime( 0 );
+        sql.bind( id++ ) = ms->time( 0 );
         sql.bind( id++ ) = t.wellKnownEvents;
         sql.bind( id++ ) = t.thresholdLevel;
         sql.bind( id++ ) = t.algo;
@@ -102,12 +102,12 @@ resultwriter::insert( std::shared_ptr< const adcontrols::MassSpectrum > ms
                          " VALUES (?,?,?,?,?,?,?)" );
             int id = 1;
             sql.bind( id++ ) = t.serialnumber;                                      // idTrigger
-            sql.bind( id++ ) = ms->getTime( idx.apex );                             // peak_time
-            sql.bind( id++ ) = ms->getIntensity( idx.apex );                        // peak_intensity, mV
+            sql.bind( id++ ) = ms->time( idx.apex );                             // peak_time
+            sql.bind( id++ ) = ms->intensity( idx.apex );                        // peak_intensity, mV
             sql.bind( id++ ) = idx.first - idx.apex;                                // distance between front and apex
-            sql.bind( id++ ) = ms->getIntensity( idx.first );                       // front mV
+            sql.bind( id++ ) = ms->intensity( idx.first );                       // front mV
             sql.bind( id++ ) = idx.second - idx.apex;                               // distance between apex and back
-            sql.bind( id++ ) = ms->getIntensity( idx.second );                      // front mV
+            sql.bind( id++ ) = ms->intensity( idx.second );                      // front mV
             if ( sql.step() != adfs::sqlite_done ) {
                 ADDEBUG() << "sql error";
                 return false;

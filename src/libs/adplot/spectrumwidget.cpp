@@ -106,9 +106,9 @@ namespace adplot {
                     idx = indices_[ idx ];
                 using namespace adcontrols::metric;
                 if ( axisTime_ )
-                    return QPointF( scale_to<double, micro>( ms_.getTime( idx  )), ms_.getIntensity( idx ) );
+                    return QPointF( scale_to<double, micro>( ms_.time( idx  )), ms_.intensity( idx ) );
                 else
-                    return QPointF( ms_.getMass( idx ), ms_.getIntensity( idx ) );
+                    return QPointF( ms_.mass( idx ), ms_.intensity( idx ) );
             }
 
             QRectF boundingRect() const override {
@@ -901,8 +901,8 @@ TraceData::__set( plot& plot
 
         // check if zero width
         if ( adportable::compare<double>::approximatelyEqual( time_range.first, time_range.second ) && ms->size() ) {
-            time_range.first = ms->getTime( 0 );
-            time_range.second = ms->getTime( ms->size() - 1 );
+            time_range.first = ms->time( 0 );
+            time_range.second = ms->time( ms->size() - 1 );
             if ( ms->isCentroid() || ms->size() == 0 ) {
                 time_range.first = double( int( time_range.first * 10000 ) ) / 10000.0;  // round to 0.1us
                 time_range.second = double( int( time_range.second * 10000 + 1 ) ) / 10000.0;
@@ -918,8 +918,8 @@ TraceData::__set( plot& plot
         std::pair< double, double > mass_range = ms->getAcquisitionMassRange();
         // check if zero width
         if ( adportable::compare<double>::approximatelyEqual( mass_range.first, mass_range.second ) && ms->size() ) {
-            mass_range.first = double( int( ms->getMass(0) * 10 ) ) / 10.0;  // round to 0.1Da
-            mass_range.second = double( int( ms->getMass( ms->size() - 1 ) * 10 + 1 ) ) / 10.0;
+            mass_range.first = double( int( ms->mass(0) * 10 ) ) / 10.0;  // round to 0.1Da
+            mass_range.second = double( int( ms->mass( ms->size() - 1 ) * 10 + 1 ) ) / 10.0;
         }
         rect.setCoords( mass_range.first, top, mass_range.second, bottom );
     }
@@ -990,8 +990,8 @@ TraceData::y_range( double left, double right, int fcn ) const
             if ( seg.size() == 0 )
                 continue;
             std::pair<double, double> range = isTimeAxis_ ?
-                std::make_pair( seg.getTime( 0 ), seg.getTime( seg.size() - 1 ) ) :
-                std::make_pair( seg.getMass( 0 ), seg.getMass( seg.size() - 1 ) );
+                std::make_pair( seg.time( 0 ), seg.time( seg.size() - 1 ) ) :
+                std::make_pair( seg.mass( 0 ), seg.mass( seg.size() - 1 ) );
 
             if ( xright < range.first || range.second < xleft )
                 continue;
@@ -1095,11 +1095,11 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                         if ( a.index() >= 0 ) {
 							if ( isTimeAxis_ ) {
-								a.x( scale_to_micro( ms.getTime( a.index() ) ) );
+								a.x( scale_to_micro( ms.time( a.index() ) ) );
 							} else {
-								a.x( ms.getMass( a.index() ) );
+								a.x( ms.mass( a.index() ) );
 							}
-							a.y( ms.getIntensity( a.index() ) );
+							a.y( ms.intensity( a.index() ) );
 						}
 						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
 							a.text( adcontrols::ChemicalFormula::formatFormulae( a.text () ), adcontrols::annotation::dataFormula );
@@ -1124,19 +1124,19 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
                         if ( std::find_if( attached.begin()
                                            , attached.end()
                                            , [idx]( const adcontrols::annotation& a ){ return a.index() == int(idx); } ) == attached.end() ) {
-                            int pri = ms.getIntensity( idx ) / max_y * 1000;
+                            int pri = ms.intensity( idx ) / max_y * 1000;
                             (void)colors;
                             // if ( colors && colors[ idx ] > 0 )
                             //     pri *= 100;
                             if ( isTimeAxis_ ) {
-                                double microseconds = adcontrols::metric::scale_to_micro( ms.getTime( idx ) );
+                                double microseconds = adcontrols::metric::scale_to_micro( ms.time( idx ) );
                                 adcontrols::annotation annot( ( boost::wformat( L"%.3lf" ) % microseconds ).str()
-                                                              , microseconds, ms.getIntensity( idx )
+                                                              , microseconds, ms.intensity( idx )
                                                               , int( fcn << 24 | idx ), pri );
                                 auto_annotations << annot;
                             } else {
-                                adcontrols::annotation annot( ( boost::wformat( L"%.2lf" ) % ms.getMass( idx ) ).str()
-                                                              , ms.getMass( idx ), ms.getIntensity( idx ), int( fcn << 24 | idx ), pri );
+                                adcontrols::annotation annot( ( boost::wformat( L"%.2lf" ) % ms.mass( idx ) ).str()
+                                                              , ms.mass( idx ), ms.intensity( idx ), int( fcn << 24 | idx ), pri );
                                 auto_annotations << annot;
                             }
                         }

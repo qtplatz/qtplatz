@@ -570,7 +570,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
                     double lMass = std::get<1>( t );
                     double uMass = std::get<2>( t );
 
-                    if ( fms.getMass( 0 ) < lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
+                    if ( fms.mass( 0 ) < lMass && uMass < fms.mass( fms.size() - 1 ) ) {
                         auto idChro = std::get<3>( t );
 
                         adportable::spectrum_processor::areaFraction fraction;

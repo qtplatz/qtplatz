@@ -133,7 +133,7 @@ histogram::histogram_to_profile( MassSpectrum& ms, std::function< double(double,
 
     for ( size_t i = 1; i < ms.size(); ++i ) {
 
-        double tc = ms.getTime( i );
+        double tc = ms.time( i );
         if ( ( tc - tp ) >= td * 1.05 ) {
             // insert zero after the peak cluster
             counts.emplace_back( 0 );

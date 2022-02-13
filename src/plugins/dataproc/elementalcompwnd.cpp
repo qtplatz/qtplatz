@@ -196,7 +196,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name )
 
     std::vector< std::pair< double, double > > time_mass_array;
     for ( auto& id : ids ) {
-        double time = ptr->getTime( id.first );
+        double time = ptr->time( id.first );
         auto sformula = adcontrols::ChemicalFormula::split( id.second );
         double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( sformula ).first;
         time_mass_array.push_back( std::make_pair( time, exactMass ) );

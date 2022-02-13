@@ -121,7 +121,7 @@ namespace dataproc {
             double th = ms.maxIntensity() * 0.001; // 1% base peak
             std::vector< double > a;
             for ( size_t idx = 0; idx < ms.size(); ++idx ) {
-                if ( ms.getColor( idx ) || ( ms.intensity( idx ) > th ) ) {
+                if ( ms.color( idx ) || ( ms.intensity( idx ) > th ) ) {
                     a.emplace_back( ms.mass( idx ) );
                     ADDEBUG() << "reference mass: " << ms.mass( idx ) << ms.intensity( idx ) << ", th=" << th;
                 }

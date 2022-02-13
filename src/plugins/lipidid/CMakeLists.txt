@@ -59,6 +59,10 @@ add_library( ${PROJECT_NAME} MODULE
   moltablewnd.hpp
   msspectrawnd.cpp
   msspectrawnd.hpp
+  peaklist.cpp
+  peaklist.hpp
+  lipididwidget.cpp
+  lipididwidget.hpp
   ${Resources}
   )
 

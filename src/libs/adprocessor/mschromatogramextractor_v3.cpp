@@ -354,7 +354,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     }
 
                     auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
-                    double tof = t.getTime( t.getIndexFromMass( mol.mass() ) );
+                    double tof = t.time( t.getIndexFromMass( mol.mass() ) );
                     auto molid = mol.property< boost::uuids::uuid >( "molid" );
                     auto time_of_injection = this->time_of_injection();
 
@@ -645,7 +645,7 @@ MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, a
 
         if ( acqMrange.first < lMass && uMass < acqMrange.second ) {
 
-            if ( ms.getMass( 0 ) <= lMass && uMass < ms.getMass( ms.size() - 1 ) ) {
+            if ( ms.mass( 0 ) <= lMass && uMass < ms.mass( ms.size() - 1 ) ) {
                 if ( ms.isCentroid() ) {
                     using mschromatogramextractor::accumulate;
                     y = accumulate<const double *>( ms.getMassArray(), ms.getIntensityArray(), ms.size() )( lMass, uMass );
@@ -674,14 +674,14 @@ MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, a
                 fraction.lPos = ms.getIndexFromTime( lTime, false );
                 fraction.uPos = ms.getIndexFromTime( uTime, false );
                 {
-                    double t0 = ms.getTime( fraction.lPos );
-                    double t1 = ms.getTime( fraction.lPos + 1 );
+                    double t0 = ms.time( fraction.lPos );
+                    double t1 = ms.time( fraction.lPos + 1 );
                     assert( t0 < lTime && lTime < t1 );
                     fraction.lFrac = ( t1 - lTime ) / ( t1 - t0 );
                 }
                 {
-                    double t0 = ms.getTime( fraction.uPos );
-                    double t1 = ms.getTime( fraction.uPos + 1 );
+                    double t0 = ms.time( fraction.uPos );
+                    double t1 = ms.time( fraction.uPos + 1 );
                     assert( t0 < uTime && uTime < t1 );
                     fraction.uFrac = ( uTime - t0 ) / ( t1 - t0 );
                 }

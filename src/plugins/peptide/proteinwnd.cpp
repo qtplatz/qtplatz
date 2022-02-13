@@ -146,8 +146,8 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
     spectrum_->setCentroid( adcontrols::CentroidNative );
     adcontrols::annotations& annots = spectrum_->get_annotations();
     annots.clear();
-	double lMass = spectrum_->getMass( 0 );
-	double hMass = spectrum_->getMass( spectrum_->size() - 1 );
+	double lMass = spectrum_->mass( 0 );
+	double hMass = spectrum_->mass( spectrum_->size() - 1 );
     spectrum_->setAcquisitionMassRange( double( int( lMass / 10 ) * 10 ), double( int( ( hMass + 10 ) / 10 ) * 10 ) );
 	spectrumWidget_->setAutoAnnotation( true );
     spectrumWidget_->setData( spectrum_, 0, QwtPlot::yLeft );

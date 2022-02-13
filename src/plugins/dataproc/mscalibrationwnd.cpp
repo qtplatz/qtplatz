@@ -123,7 +123,7 @@ namespace dataproc {
                 centroid_marker_->setPeak( pk, timeAxis_, adcontrols::metric::micro );
             } else {
                 adcontrols::segment_wrapper<> segments( centroid );
-                double mass = segments[ fcn ].getMass( idx );
+                double mass = segments[ fcn ].mass( idx );
                 centroid_marker_->setValue( adplot::PeakMarker::idPeakCenter, mass, 0 );
             }
         }
@@ -437,7 +437,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                     for ( auto& ms: segments ) {
 						ms.setCalibration( calib );
                         for ( size_t i = 0; i < ms.size(); ++i )
-                            ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) ); //getNormalizedTime( i ) ) );
+                            ms.setMass( i, calib.compute_mass( ms.time( i ) ) ); //getNormalizedTime( i ) ) );
                     }
                 }
                 pImpl_->processedSpectrum_->setData( profile, idx_profile, true );
@@ -447,7 +447,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                 for ( auto& ms: segments ) {
 					ms.setCalibration( calib );
                     for ( size_t i = 0; i < ms.size(); ++i )
-						ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) ); //ms.getNormalizedTime( i ) ) );
+						ms.setMass( i, calib.compute_mass( ms.time( i ) ) ); //ms.getNormalizedTime( i ) ) );
                 }
                 if ( std::shared_ptr< adcontrols::MSPeakInfo > pkInfo = pImpl_->peakInfo_.lock() ) {
                     adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segments( *pkInfo );

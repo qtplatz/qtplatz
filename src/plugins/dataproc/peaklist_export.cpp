@@ -79,9 +79,9 @@ peaklist_export::text_export( const boost::filesystem::path& path )
                                 const adcontrols::annotations& annots = ms.get_annotations();
                                 for ( size_t n = 0; n < ms.size(); ++n ) {
                                     outf << fcn << ",\t" << n << ",\t"
-                                         << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
-                                         << std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
-                                         << std::scientific << std::setprecision(7) << ms.getIntensity( n );
+                                         << std::scientific << std::setprecision( 15 ) << ms.time( n ) << ",\t"
+                                         << std::fixed << std::setprecision( 13 ) << ms.mass( n ) << ",\t"
+                                         << std::scientific << std::setprecision(7) << ms.intensity( n );
 
                                     auto it = std::find_if( annots.begin(), annots.end()
                                                             , [=]( const adcontrols::annotation& a ){ return a.index() == int(n); } );
@@ -131,7 +131,7 @@ namespace {
                       ",fileid INTEGER"
                       ",spname TEXT"
                       ",sptype TEXT"
-                      ",UNIQUE( spname )"                                            
+                      ",UNIQUE( spname )"
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 

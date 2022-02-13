@@ -187,8 +187,8 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms )
             if ( a.dataFormat() == annotation::dataFormula && a.index() >= 0 ) {
                 const std::string& formula = a.text();
                 double exactMass = formulaParser.getMonoIsotopicMass( formula );
-                double matchedMass = fms.getMass( a.index() );
-                double time = fms.getTime( a.index() );
+                double matchedMass = fms.mass( a.index() );
+                double time = fms.time( a.index() );
                 lk << reference( formula, exactMass, matchedMass, time );
             }
         }
@@ -216,8 +216,8 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
         const std::string& formula = it->text();
         auto list = adcontrols::ChemicalFormula::split( formula );
         double exactMass = formulaParser.getMonoIsotopicMass( list ).first;
-        double matchedMass = segs[ fcn ].getMass( it->index() );
-        double time        = segs[ fcn ].getTime( it->index() );
+        double matchedMass = segs[ fcn ].mass( it->index() );
+        double time        = segs[ fcn ].time( it->index() );
         lk << reference( formula, exactMass, matchedMass, time );
 
         return true;
@@ -261,8 +261,8 @@ mslock::operator()( MassSpectrum& ms, bool applyToAll ) const
 
         for ( auto& fms : adcontrols::segment_wrapper<>( ms ) ) {
             fitter_( fms );
-            range.first = std::min( fms.getMass( 0 ), range.first );
-            range.second = std::max( fms.getMass( fms.size() - 1 ), range.second );
+            range.first = std::min( fms.mass( 0 ), range.first );
+            range.second = std::max( fms.mass( fms.size() - 1 ), range.second );
         }
 
         range.first = range.first - ( range.second - range.first ) / 100;

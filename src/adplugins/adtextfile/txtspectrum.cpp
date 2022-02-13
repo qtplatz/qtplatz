@@ -186,7 +186,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             ptr->setColorArray( std::move( std::get< flag_color >( data ) ) );
         }
         ptr->setMSProperty( prop );
-        ptr->setAcquisitionMassRange( ptr->getMass( 0 ), ptr->getMass( nSamples - 1 ) );
+        ptr->setAcquisitionMassRange( ptr->mass( 0 ), ptr->mass( nSamples - 1 ) );
         if ( isCentroid )
             ptr->setCentroid( adcontrols::CentroidNative );
         spectra_.emplace_back( ptr );

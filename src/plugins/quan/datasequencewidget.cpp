@@ -362,7 +362,7 @@ DataSequenceWidget::handlePlot( const QString& file )
                     for ( auto& t: adcontrols::segment_wrapper<>( *hist ) ) {
                         unsigned int count_trig = t.getMSProperty().numAverage();
                         for ( size_t i = 0; i < t.size(); ++i )
-                            t.setIntensity( i, t.getIntensity( i ) * 1000 / count_trig );
+                            t.setIntensity( i, t.intensity( i ) * 1000 / count_trig );
                     }
                     spw->setData( hist, 1, true );
                 }

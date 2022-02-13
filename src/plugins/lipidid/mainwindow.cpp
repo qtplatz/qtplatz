@@ -22,11 +22,12 @@
 **
 **************************************************************************/
 
-#include "mainwindow.hpp"
 #include "document.hpp"
-#include "msspectrawnd.hpp"
+#include "mainwindow.hpp"
 #include "moltablewnd.hpp"
-#include <adwidgets/mspeaktree.hpp>
+#include "msspectrawnd.hpp"
+#include "peaklist.hpp"
+#include "lipididwidget.hpp"
 #include <adlog/logger.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -81,6 +82,8 @@
 #include <boost/filesystem.hpp>
 #include <functional>
 #include <fstream>
+#include <utility>
+#include <tuple>
 
 namespace lipidid {
 
@@ -116,6 +119,9 @@ namespace lipidid {
         toolButton( const char * id ) {
             return toolButton( Core::ActionManager::instance()->command( id )->action() );
         }
+
+        static void createDockWidgets( MainWindow * );
+        static QDockWidget * createDockWidget( MainWindow *, QWidget *, const QString&, const QString& );
     };
 }
 
@@ -147,6 +153,8 @@ MainWindow::activateLayout()
 void
 MainWindow::OnInitialUpdate()
 {
+    impl::createDockWidgets( this );
+
     connect( document::instance(), &document::onConnectionChanged, [this]{
         if ( auto table = findChild< MolTableWnd * >() ) {
             table->setQuery(
@@ -211,7 +219,7 @@ MainWindow::createContents( Core::IMode * mode )
             connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
         }
 
-        if ( auto pWnd = new MolTableWnd ) { // to be replaced with structure grid
+        if ( auto pWnd = new MolTableWnd ) {
             pWnd->setWindowTitle( "Mols" );
             impl_->stackWidget_->addWidget( pWnd );
         }
@@ -264,6 +272,7 @@ MainWindow::impl::createTopStyledToolbar()
                 am->registerAction( p, "lipidid.selSpectra", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelSpectra ) ) );
             }
+
             if ( auto p = new QAction( tr("Mols"), this_ ) ) {
                 connect( p, &QAction::triggered, [=](){ stackWidget_->setCurrentIndex( idSelMols ); } );
                 am->registerAction( p, "lipidid.selMols", context );
@@ -307,4 +316,47 @@ MainWindow::impl::createMidStyledToolbar()
 		return toolBar;
     }
     return 0;
+}
+
+namespace {
+    template< typename T > auto dock_create( MainWindow * p, const QString& name, const QString& page ) {
+        auto w = new T( p );
+        MainWindow::impl::createDockWidget( p, w, name, page );
+        return w;
+    }
+};
+
+void
+MainWindow::impl::createDockWidgets( MainWindow * pThis )
+{
+    if ( auto widget = dock_create< PeakList >( pThis, "MS Peaks", "MS_Peaks" ) ) {
+        QObject::connect( document::instance(), &document::dataChanged, widget, &PeakList::handleDataChanged );
+    }
+    if ( auto widget = dock_create< LipidIdWidget >( pThis, "Lipids", "Lipids" ) ) {
+    }
+}
+
+QDockWidget *
+MainWindow::impl::createDockWidget( MainWindow * pThis
+                                    , QWidget * widget
+                                    , const QString& title
+                                    , const QString& pageName )
+{
+    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
+        widget->setWindowTitle( title );
+
+    if ( widget->objectName().isEmpty() )
+        widget->setObjectName( pageName );
+
+    QDockWidget * dockWidget = pThis->addDockForWidget( widget );
+    dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
+
+    if ( title.isEmpty() )
+        dockWidget->setWindowTitle( widget->objectName() );
+    else
+        dockWidget->setWindowTitle( title );
+
+    pThis->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+
+    return dockWidget;
 }

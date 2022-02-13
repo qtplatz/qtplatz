@@ -146,7 +146,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 
             auto prev = impl_->spectra_.begin()->second;
             for ( auto& ms : impl_->spectra_ ) {
-                if ( ms.second->size() != prev->size() || ms.second->getTime( 0 ) != prev->getTime( 0 ) ) {
+                if ( ms.second->size() != prev->size() || ms.second->time( 0 ) != prev->time( 0 ) ) {
                     prev = ms.second;
                     // skip first spectrum after change condition; this elminates big artifact peak.
                 } else {
@@ -277,7 +277,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
             double lMass = m.mass() - width / 2;
             double uMass = m.mass() + width / 2;
 
-            if ( fms.getMass( 0 ) <= lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
+            if ( fms.mass( 0 ) <= lMass && uMass < fms.mass( fms.size() - 1 ) ) {
                 double y( 0 );
                 if ( fms.isCentroid() ) {
 
@@ -337,7 +337,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             double time = fms.getMSProperty().timeSinceInjection();
 
             if ( ( fcn == rfcn ) &&
-                 ( fms.getMass( 0 ) <= lMass && uMass < fms.getMass( fms.size() - 1 ) ) ) {
+                 ( fms.mass( 0 ) <= lMass && uMass < fms.mass( fms.size() - 1 ) ) ) {
 
                 double y( 0 );
                 if ( fms.isCentroid() ) {
@@ -468,7 +468,7 @@ MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass::mslock& mslock
     for ( auto& msref : msrefs_ ) {
         size_t idx = find( centroid, msref.second );
         if ( idx != adcontrols::MSFinder::npos )
-            mslock << adcontrols::lockmass::reference( msref.first, msref.second, centroid.getMass( idx ), centroid.getTime( idx ) );
+            mslock << adcontrols::lockmass::reference( msref.first, msref.second, centroid.mass( idx ), centroid.time( idx ) );
     }
 
     if ( mslock.fit() ) {

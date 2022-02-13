@@ -560,11 +560,11 @@ namespace dataproc {
 			for ( auto& ms : segments ) { // size_t n = 0; n < segments.size(); ++n ) {
 				//const adcontrols::MassSpectrum& ms = segments[ n ];
 				for ( size_t n = 0; n < ms.size(); ++n ) {
-					o << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
-                      << std::fixed << std::setprecision( 15 ) << ms.getMass( n ) << ",\t"
-                      << std::scientific << std::setprecision(15) << ms.getIntensity( n );
+					o << std::scientific << std::setprecision( 15 ) << ms.time( n ) << ",\t"
+                      << std::fixed << std::setprecision( 15 ) << ms.mass( n ) << ",\t"
+                      << std::scientific << std::setprecision(15) << ms.intensity( n );
                     if ( ms.isCentroid() ) {
-                        o << ",\t" << ms.getColor( n );
+                        o << ",\t" << ms.color( n );
                     }
                     o << std::endl;
 				}

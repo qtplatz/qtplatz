@@ -68,7 +68,7 @@ namespace py_module {
     {
         if ( index >= 0 && index < self.size() ) {
             if ( self.getColorArray() ) {
-                return boost::python::make_tuple( self.time( index ), self.mass( index ), self.intensity( index ), self.getColor( index ) );
+                return boost::python::make_tuple( self.time( index ), self.mass( index ), self.intensity( index ), self.color( index ) );
             } else {
                 return boost::python::make_tuple( self.time( index ), self.mass( index ), self.intensity( index ) );
             }

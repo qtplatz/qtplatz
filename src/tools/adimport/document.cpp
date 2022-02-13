@@ -83,9 +83,9 @@ document::histogram( std::vector< size_t >& hist, const adcontrols::MassSpectrum
         std::fill( hist.begin(), hist.end(), 0 );
     }
 
-    auto prev = ms.getIntensity( 0 );
+    auto prev = ms.intensity( 0 );
     for ( size_t i = 1; i < ms.size(); ++i ) {
-        auto d = ms.getIntensity( i );
+        auto d = ms.intensity( i );
         if ( prev < v_th && v_th < d )
             hist[i]++;
         prev = d;
@@ -94,10 +94,9 @@ document::histogram( std::vector< size_t >& hist, const adcontrols::MassSpectrum
     std::vector< double > times, masses, intens;
     for ( size_t i = 0; i < hist.size(); ++i ) {
         if ( hist[ i ] ) {
-            times.emplace_back( ms.getTime( i ) );
-            masses.emplace_back( ms.getMass( i ) );
+            times.emplace_back( ms.time( i ) );
+            masses.emplace_back( ms.mass( i ) );
             intens.emplace_back( hist[ i ] );
-            //ADDEBUG() << "[" << i << "]\t" << ms.getTime( i ) << ", " << ms.getMass( i ) << ", " << hist[i];
         }
     }
 

@@ -174,8 +174,8 @@ namespace quan {
             if ( auto tms = centroid.findProtocol( proto ) ) {
                 // todo: erase if peak already has the annotation
                 tms->get_annotations() << adcontrols::annotation( formula
-                                                                  , tms->getMass( idx )
-                                                                  , tms->getIntensity( idx )
+                                                                  , tms->mass( idx )
+                                                                  , tms->intensity( idx )
                                                                   , idx, 0, adcontrols::annotation::dataFormula );
             }
         }

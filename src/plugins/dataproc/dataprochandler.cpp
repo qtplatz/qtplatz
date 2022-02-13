@@ -193,7 +193,7 @@ DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
 		else
 			ms.setColor( idx, 6 ); // dark red
         std::wstring text = adcontrols::ChemicalFormula::formatFormula( assigned.formula() );
-        adcontrols::annotation anno( text, ms.getMass( idx ),  ms.getIntensity( idx ), static_cast< int >(idx) );
+        adcontrols::annotation anno( text, ms.mass( idx ),  ms.intensity( idx ), static_cast< int >(idx) );
         ms.get_annotations() << anno;
     }
 	return true;
@@ -261,7 +261,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     using adcontrols::MSProperty;
 
     const double tolerance = m.massToleranceDa();
-    const double threshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    const double threshold = centroid.maxIntensity() * m.minimumRAPercent() / 100;
     res.tolerance( tolerance );  // set tolerance in result
     res.threshold( threshold );  // set threshold in result
 
@@ -345,7 +345,7 @@ DataprocHandler::reverse_copy( adcontrols::MSPeakInfo& pkinfo, const adcontrols:
 
         for ( size_t i = 0; i < fms.size(); ++i ) {
             auto pk = fpk.begin() + i;
-            pk->assign_mass( fms.getMass( i ) );
+            pk->assign_mass( fms.mass( i ) );
         }
     }
 	return true;

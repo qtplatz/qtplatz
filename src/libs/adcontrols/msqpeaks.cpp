@@ -178,9 +178,9 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
 
                 MSQPeak pk( dataGuid, idx, fcn, this );
 
-                pk.time( fms.getTime(idx) );
-                pk.mass( fms.getMass(idx) );
-                pk.intensity( fms.getIntensity(idx) );
+                pk.time( fms.time(idx) );
+                pk.mass( fms.mass(idx) );
+                pk.intensity( fms.intensity(idx) );
                 pk.mode( prop.mode() );
 
                 auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == int(idx); });
@@ -190,7 +190,7 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
                     } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                         pk.formula( it->text() );
                     }
-                    it = std::find_if( it + 1, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == int(idx); });                    
+                    it = std::find_if( it + 1, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == int(idx); });
                 }
                 vec_.push_back( pk );
             }
@@ -198,4 +198,3 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
         }
     }
 }
-

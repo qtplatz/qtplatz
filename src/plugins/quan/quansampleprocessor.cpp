@@ -497,7 +497,7 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
             size_t idx = find( centroid, exactMass );
             if ( idx != adcontrols::MSFinder::npos ) {
                 // add found peaks into mslock
-                mslock << adcontrols::lockmass::reference( compound.formula(), exactMass, centroid.getMass( idx ), centroid.getTime( idx ) );
+                mslock << adcontrols::lockmass::reference( compound.formula(), exactMass, centroid.mass( idx ), centroid.time( idx ) );
             }
         }
     }
@@ -547,8 +547,8 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
                 resp.formula( compound.formula() );
                 resp.setPeakIndex( int32_t(idx) );
                 resp.setFcn( fcn );
-                resp.setMass( fms.getMass( idx ) );
-                resp.setIntensity( fms.getIntensity( idx ) );
+                resp.setMass( fms.mass( idx ) );
+                resp.setIntensity( fms.intensity( idx ) );
                 resp.setAmounts( 0 );
                 resp.set_tR( 0 );
 

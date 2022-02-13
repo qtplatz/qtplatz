@@ -94,8 +94,8 @@ namespace adcontrols {
             double operator ()( const MassSpectrum& hist ) const {
                 const double fSampInterval = hist.getMSProperty().samplingInfo().fSampInterval();
                 for ( int i = 0; i < hist.size() - 1; ++i ) {
-                    if ( ( ( 0.5 + hist.getTime( i + 1 ) - hist.getTime( i ) ) / fSampInterval ) == 1 ) {
-                        return hist.getMass( i + 1 ) - hist.getMass( i );
+                    if ( ( ( 0.5 + hist.time( i + 1 ) - hist.time( i ) ) / fSampInterval ) == 1 ) {
+                        return hist.mass( i + 1 ) - hist.mass( i );
                     }
                 }
                 return 0;
@@ -314,7 +314,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
                 // assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
 
-                double t0 = profile.getTime( index );
+                double t0 = profile.time( index );
 				double td = profile.getMSProperty().samplingInfo().fSampInterval();
                 item.time_from_mass_ = t0 + td * ( mass - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
 

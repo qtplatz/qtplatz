@@ -130,7 +130,7 @@ Spectrogram::ClusterFinder::operator()( const MassSpectra& spectra, SpectrogramC
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
         for ( auto& fms: segs ) {
             for ( size_t i = 0; i < fms.size(); ++i )
-                peaks.push_back( peak_type( idx, fms.getMass( i ), fms.getIntensity( i ) ) );
+                peaks.push_back( peak_type( idx, fms.mass( i ), fms.intensity( i ) ) );
         }
         ++idx;
         progress_( idx, int(spectra.size() ) );
@@ -213,7 +213,7 @@ Spectrogram::ChromatogramExtractor::operator () ( Chromatogram& c, double lMass,
             adportable::array_wrapper< const double > masses( fms.getMassArray(), fms.size() );
             auto it = std::lower_bound( masses.begin(), masses.end(), lMass );
             while ( *it++ <= hMass )
-                y += fms.getIntensity( std::distance( masses.begin(), it ) );
+                y += fms.intensity( std::distance( masses.begin(), it ) );
         }
         c.setIntensity( idx++, y );
     }

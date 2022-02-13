@@ -215,7 +215,7 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positi
         double exact_mass = formula.second; // search 'M'
         size_t pos = finder( ms, exact_mass );
         if ( pos != MassSpectrum::npos ) {
-            double mass = ms.getMass( pos );
+            double mass = ms.mass( pos );
             auto neutral = adcontrols::ChemicalFormula::neutralize( formula.first );
             candidates_.emplace_back( uint32_t( pos /*idx*/ ), fcn, neutral.second/*charge*/, mass, exact_mass, formula.first /*formula*/ );
         }
@@ -271,7 +271,7 @@ Targeting::operator()( MassSpectrum& ms )
 
                 auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
 
-                double error = tms.getMass( candidate.idx ) - bp->mass;
+                double error = tms.mass( candidate.idx ) - bp->mass;
                 size_t nCarbons = ChemicalFormula::number_of_atoms( neutral.first, "C" );
 
                 std::vector< isotope > isotopes( v_peak.size() );
@@ -331,7 +331,7 @@ Targeting::operator()( MassSpectrum& ms )
                             tms.setColor( i.idx, 16 ); // dark orange
                             int xpri = pri * i.exact_abundance;
                             tms.get_annotations()
-                                << annotation( text, tms.getMass( i.idx ), tms.getIntensity( i.idx ), i.idx, xpri, annotation::dataText, annotation::flag_targeting );
+                                << annotation( text, tms.mass( i.idx ), tms.intensity( i.idx ), i.idx, xpri, annotation::dataText, annotation::flag_targeting );
                         }
                     }
                 }

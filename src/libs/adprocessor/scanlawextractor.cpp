@@ -76,19 +76,19 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
                                , int proto
                                , std::function<bool( size_t, size_t )> progress )
 {
-    // auto it = reader->begin( proto ); 
+    // auto it = reader->begin( proto );
     size_t nSpectra = reader->size( proto );
-    
+
     if ( nSpectra == 0 )
         return false;
 
     progress( 0, nSpectra * 2 );
     size_t n( 0 );
-    
+
     auto cm = pm->find< adcontrols::CentroidMethod >();
     if ( !cm )
         return false;
-    
+
     auto lockm = pm->find< const adcontrols::MSLockMethod >();
     if ( !lockm )
         return false;
@@ -119,7 +119,7 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
 
     sql.exec( "DELETE FROM MassReference" );
     sql.exec( "DELETE FROM ReferenceTof" );
-    
+
     sql.prepare( "INSERT OR REPLACE INTO MassReference ( id, formula, exactMass ) VALUES ( ?,?,? )" );
     int molId(0);
     for ( auto& mol: lockm->molecules().data() ) {
@@ -136,7 +136,7 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
     std::vector< record_type > results;
 
     for ( auto it = reader->begin( proto ); it != reader->end(); ++it ) {
-        
+
         auto ms = reader->getSpectrum( it->rowid() );
         // auto ms = reader->readSpectrum( it );
         adcontrols::MassSpectrum centroid;
@@ -155,13 +155,13 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
                                           , molId
                                           , protocolId
                                           , mode
-                                          , centroid.getMass( idx )
-                                          , centroid.getTime( idx ) );
+                                          , centroid.mass( idx )
+                                          , centroid.time( idx ) );
                 }
                 ++molId;
             }
         }
-        
+
         if ( progress( ++n, nSpectra ) )
             return false;
     }
@@ -169,7 +169,7 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
     std::sort( results.begin(), results.end(), [](const auto& a, const auto& b){ return std::get<0>(a) < std::get<0>(b); } );
 
     sql.prepare( "INSERT INTO ReferenceTof (rowid,refid,protocol,mode,mass,time) VALUES (?,?,?,?,?,?)" );
-    
+
     for ( auto& rec: results ) {
 
         sql.reset();
@@ -195,8 +195,8 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
             break;
     }
     // SELECT min(rowid),* FROM ReferenceTof WHERE rowid > ? GROUP BY protocol
-    
-    
+
+
     return true; //! impl_->spectra_.empty();
 }
 
@@ -211,7 +211,7 @@ ScanLawExtractor::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
                               , std::function<bool( size_t, size_t )> progress )
 {
     auto raw = dp->rawdata();
-    
+
     if ( raw == nullptr || raw->dataformat_version() <= 2 )
         return false;
 
@@ -221,7 +221,7 @@ ScanLawExtractor::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
         if ( t->objtext() == objtext )
             reader = t;
     }
-    
+
     if ( ! reader )
         return false;
 
@@ -238,12 +238,12 @@ ScanLawExtractor::doCentroid(adcontrols::MassSpectrum& centroid
 {
     adcontrols::CentroidProcess peak_detector;
     bool result = false;
-    
+
     centroid.clone( profile, false );
-    
+
     if ( peak_detector( m, profile ) )
         result = peak_detector.getCentroidSpectrum( centroid );
-    
+
     if ( profile.numSegments() > 0 ) {
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
             auto temp = std::make_shared< adcontrols::MassSpectrum >();
@@ -255,4 +255,3 @@ ScanLawExtractor::doCentroid(adcontrols::MassSpectrum& centroid
     }
     return result;
 }
-

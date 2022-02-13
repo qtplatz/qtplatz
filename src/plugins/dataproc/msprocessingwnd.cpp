@@ -393,7 +393,7 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
 
     if ( axis_ == adcontrols::hor_axis_mass ) {
         if ( hist->size() > 0
-             && adportable::compare<double>::approximatelyEqual( hist->getMass( hist->size() - 1 ), hist->getMass( 0 ) ) ) {
+             && adportable::compare<double>::approximatelyEqual( hist->mass( hist->size() - 1 ), hist->mass( 0 ) ) ) {
             // Spectrum has no mass assigned
             MainWindow::instance()->setSpectrumAxisChoice( adcontrols::hor_axis_time );
         }
@@ -425,7 +425,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
 
     if ( axis_ == adcontrols::hor_axis_mass ) {
         if ( ptr->size() > 0
-             && adportable::compare<double>::approximatelyEqual( ptr->getMass( ptr->size() - 1 ), ptr->getMass( 0 ) ) ) {
+             && adportable::compare<double>::approximatelyEqual( ptr->mass( ptr->size() - 1 ), ptr->mass( 0 ) ) ) {
                 // Spectrum has no mass assigned
                 MainWindow::instance()->setSpectrumAxisChoice( adcontrols::hor_axis_time );
         }
@@ -848,8 +848,8 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
                 if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
                     dlg.addPeak( a.index()
                                  , QString::fromStdString( a.text() )
-                                 , fms.getTime( a.index() )    // observed time-of-flight
-                                 , fms.getMass( a.index() )    // matched mass
+                                 , fms.time( a.index() )    // observed time-of-flight
+                                 , fms.mass( a.index() )    // matched mass
                                  , mode );
                 }
             }
@@ -1487,7 +1487,7 @@ MSProcessingWnd::assign_masses_to_profile()
 
         for ( auto& ms: segments ) {
             for ( size_t idx = 0; idx < ms.size(); ++idx ) {
-                double m = law.getMass( ms.getTime( idx ), 0 );
+                double m = law.getMass( ms.time( idx ), 0 );
                 ms.setMass( idx, m );
                 if ( idx == 0 )
                     mass_range.first = std::min( mass_range.first, m );
@@ -1710,7 +1710,7 @@ MSProcessingWnd::compute_count( double s, double e )
 
                 s = scale_to_base( s, micro );
                 e = scale_to_base( e, micro );
-                if ( ms.getTime( 0 ) <= e && ms.getTime( ms.size() - 1 ) >= s ) {
+                if ( ms.time( 0 ) <= e && ms.time( ms.size() - 1 ) >= s ) {
                 	if ( const double * times = ms.getTimeArray() ) {
                 		range.first = std::distance( times, std::lower_bound( times, times + ms.size(), s));
                 		range.second = std::distance( times, std::lower_bound( times, times + ms.size(), e));
@@ -1719,7 +1719,7 @@ MSProcessingWnd::compute_count( double s, double e )
                 }
 
             } else {
-            	if ( ms.getMass( 0 ) <= e && ms.getMass( ms.size() - 1 ) >= s ) {
+            	if ( ms.mass( 0 ) <= e && ms.mass( ms.size() - 1 ) >= s ) {
             		if ( const double * masses = ms.getMassArray() ) {
             			range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
             			range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
@@ -1737,8 +1737,8 @@ MSProcessingWnd::compute_count( double s, double e )
 
                 auto maxIdx = std::distance( data, std::max_element( data + range.first, data + range.second ) );
 
-                double apex = ( pImpl_->is_time_axis_ ) ? ms.getTime( maxIdx ) : ms.getMass( maxIdx );
-                double height = ms.getIntensity( maxIdx );
+                double apex = ( pImpl_->is_time_axis_ ) ? ms.time( maxIdx ) : ms.mass( maxIdx );
+                double height = ms.intensity( maxIdx );
 
                 char fmt = ( pImpl_->is_time_axis_ ) ? 'e' : 'f';
 

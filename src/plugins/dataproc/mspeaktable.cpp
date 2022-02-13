@@ -63,7 +63,7 @@ namespace {
     lap_mass_finder::find< false >( std::vector< std::pair< double, int > >& candidates ) const {
 
         std::vector< double > refms;
-        double threshold = ms_->getMaxIntensity() / 20;
+        double threshold = ms_->maxIntensity() / 20;
         for ( size_t i = 0; i < ms_->size(); ++i ) {
             if ( ms_->intensity( i ) > threshold ) {
                 refms.emplace_back( ms_->mass( i ) );

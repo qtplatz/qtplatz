@@ -39,7 +39,7 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     // <a href="https://www.flaticon.com/free-icons/cell" title="cell icons">Cell icons created by Freepik - Flaticon</a>
     setIcon(QIcon(":/lipidid/image/cell.png"));
 
-    setPriority( 40 );
+    setPriority( 60 );
 
     setId( Constants::C_LIPIDID );
     setContextHelpId( QLatin1String( "QtPlatz Manual " ) );

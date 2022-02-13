@@ -418,7 +418,7 @@ MassSpectrum::getIndexFromMass( double mass, bool closest ) const
         --idx;
     if ( closest && idx < impl_->massArray_.size() ) {
         if ( ( ( idx + 1 ) < impl_->size() )
-             && ( std::abs( mass - getMass( idx ) ) > std::abs( mass - getMass( idx + 1 ) ) ) )
+             && ( std::abs( mass - this->mass( idx ) ) > std::abs( mass - this->mass( idx + 1 ) ) ) )
             ++idx;
     }
     return idx;
@@ -441,7 +441,7 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
 
     if ( closest && idx < impl_->size() ) {
         if ( ( ( idx + 1 ) < impl_->size() )
-             && ( std::abs( seconds - time( idx ) ) > std::abs( seconds - getTime( idx + 1 ) ) ) )
+             && ( std::abs( seconds - time( idx ) ) > std::abs( seconds - time( idx + 1 ) ) ) )
             ++idx;
     }
     return idx; // will return size() when 'seconds' does not exist
@@ -561,20 +561,6 @@ MassSpectrum::setColorArray( std::vector< uint8_t >&& a )
         impl_->colArray_ = std::move( a ); // a can be an empty vector for clear data
 }
 
-#if 0 // deprecated
-void
-MassSpectrum::setColorArray( const uint8_t * values )
-{
-    if ( values ) {
-        if ( impl_->colArray_.size() != size() )
-            impl_->colArray_.resize( size() );
-		std::copy( values, values + impl_->colArray_.size(), impl_->colArray_.begin() );
-    } else {
-        impl_->colArray_.clear();
-    }
-}
-#endif
-
 void
 MassSpectrum::setColor( size_t idx, uint8_t color )
 {
@@ -588,11 +574,54 @@ MassSpectrum::setColor( size_t idx, uint8_t color )
 }
 
 int
-MassSpectrum::getColor( size_t idx ) const
+MassSpectrum::color( size_t idx ) const
 {
     if ( idx < impl_->colArray_.size() )
         return impl_->colArray_.at( idx );
     return -1;
+}
+
+const std::vector< double >&
+MassSpectrum::intensityArray() const
+{
+    return impl_->intensityArray_;
+}
+
+const std::vector< double >&
+MassSpectrum::timeArray() const
+{
+    return impl_->tofArray_;
+}
+
+const std::vector< double >&
+MassSpectrum::massArray() const
+{
+    return impl_->massArray_;
+}
+
+const std::vector< uint8_t >&
+MassSpectrum::colorArray() const
+{
+    return impl_->colArray_;
+}
+
+std::tuple< double, double, double, int >
+MassSpectrum::value( size_t idx ) const
+{
+    if ( idx < impl_->size() ) {
+        if ( impl_->tofArray_.empty() ) {
+            return std::make_tuple( time( idx )
+                                    , impl_->massArray_[ idx ]
+                                    , impl_->intensityArray_[ idx ]
+                                    , impl_->colArray_.empty() ? 0 : impl_->colArray_[ idx ] );
+        } else {
+            return std::make_tuple( time( idx )
+                                    , impl_->massArray_[ idx ]
+                                    , impl_->intensityArray_[ idx ]
+                                    , impl_->colArray_.empty() ? 0 : impl_->colArray_[ idx ] );
+        }
+    }
+    return {};
 }
 
 void
@@ -631,7 +660,7 @@ MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
         if ( impl_->tofArray_.empty() ) {
             size_t idx(0);
             std::transform( impl_->massArray_.begin(), impl_->massArray_.end(), impl_->massArray_.begin()
-                            , [&]( const double& ){ return calib.compute_mass( getTime( idx++ ) ); } );
+                            , [&]( const double& ){ return calib.compute_mass( this->time( idx++ ) ); } );
         } else {
             std::transform( impl_->tofArray_.begin(), impl_->tofArray_.end(), impl_->massArray_.begin()
                             , [&]( const double& t ){ return calib.compute_mass( t ); } );
@@ -739,11 +768,11 @@ MassSpectrum::mass( size_t idx ) const
 }
 
 // deprecated
-double
-MassSpectrum::getMass( size_t idx ) const
-{
-    return mass( idx );
-}
+// double
+// MassSpectrum::getMass( size_t idx ) const
+// {
+//     return mass( idx );
+// }
 
 
 double
@@ -755,11 +784,11 @@ MassSpectrum::intensity( size_t idx ) const
 }
 
 // deprecated
-double
-MassSpectrum::getIntensity( size_t idx ) const
-{
-    return intensity( idx );
-}
+// double
+// MassSpectrum::getIntensity( size_t idx ) const
+// {
+//     return intensity( idx );
+// }
 
 double
 MassSpectrum::time( size_t idx ) const
@@ -770,25 +799,25 @@ MassSpectrum::time( size_t idx ) const
 }
 
 // deprecated
-double
-MassSpectrum::getTime( size_t idx ) const
-{
-    return time( idx );
-}
+// double
+// MassSpectrum::getTime( size_t idx ) const
+// {
+//     return time( idx );
+// }
 
 // deprecated
-double
-MassSpectrum::getMinIntensity() const
-{
-    return minIntensity();
-}
+// double
+// MassSpectrum::getMinIntensity() const
+// {
+//     return minIntensity();
+// }
 
 // deprecated
-double
-MassSpectrum::getMaxIntensity() const
-{
-    return maxIntensity();
-}
+// double
+// MassSpectrum::getMaxIntensity() const
+// {
+//     return maxIntensity();
+// }
 
 int32_t
 MassSpectrum::protocolId() const
@@ -1017,11 +1046,11 @@ MassSpectrum::find( double mass, double tolerance ) const
 
     if ( pos != npos ) {
         if ( pos != 0 ) {
-            if ( std::abs( getMass( pos ) - mass ) > std::abs( getMass( pos - 1 ) - mass ) )
+            if ( std::abs( this->mass( pos ) - mass ) > std::abs( this->mass( pos - 1 ) - mass ) )
                 --pos;
         }
 
-        double error = getMass( pos ) - mass;
+        double error = this->mass( pos ) - mass;
 
         if ( std::abs( error ) > tolerance )
             return npos;
@@ -1100,7 +1129,7 @@ segments_helper::max_intensity( const MassSpectrum& ms )
 {
     double y = ms.maxIntensity();
     for ( size_t i = 0; i < ms.numSegments(); ++i ) {
-        double t = ms.getSegment( i ).getMaxIntensity();
+        double t = ms.getSegment( i ).maxIntensity();
         if ( y < t )
             y = t;
     }
@@ -1115,7 +1144,7 @@ segments_helper::min_intensity( const MassSpectrum& ms )
 
     double y = ms.minIntensity();
     for ( size_t i = 0; i < ms.numSegments(); ++i ) {
-        double t = ms.getSegment( i ).getMinIntensity();
+        double t = ms.getSegment( i ).minIntensity();
         if ( y < t )
             y = t;
     }
@@ -1134,8 +1163,8 @@ int
 segments_helper::get_color( const MassSpectrum& ms, size_t fcn, size_t idx )
 {
     if ( fcn == 0 )
-        return ms.getColor( idx );
-    return ms.getSegment( fcn - 1 ).getColor( idx );
+        return ms.color( idx );
+    return ms.getSegment( fcn - 1 ).color( idx );
 }
 
 //static
@@ -1145,8 +1174,8 @@ segments_helper::get_mass( const MassSpectrum& ms, const std::pair< int, int >& 
     if ( idx.first < 0 )
         return 0;
     if ( idx.second == 0 )
-        return ms.getMass( idx.first );
-    return ms.getSegment( idx.second - 1 ).getMass( idx.first );
+        return ms.mass( idx.first );
+    return ms.getSegment( idx.second - 1 ).mass( idx.first );
 }
 
 //static
@@ -1156,8 +1185,8 @@ segments_helper::get_intensity( const MassSpectrum& ms, const std::pair< int, in
     if ( idx.first < 0 )
         return 0;
     if ( idx.second == 0 )
-        return ms.getIntensity( idx.first );
-    return ms.getSegment( idx.second - 1 ).getIntensity( idx.first );
+        return ms.intensity( idx.first );
+    return ms.getSegment( idx.second - 1 ).intensity( idx.first );
 }
 
 //static

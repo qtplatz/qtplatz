@@ -103,9 +103,11 @@ namespace adcontrols {
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
         const uint8_t * getColorArray() const;
+        const std::vector< double >& intensityArray() const;
+        const std::vector< double >& timeArray() const;
+        const std::vector< double >& massArray() const;
+        const std::vector< uint8_t >& colorArray() const;
 
-        //double compute_mass( double time ) const;
-        //size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
 
         void setMass( size_t idx, double mass );
@@ -163,16 +165,19 @@ namespace adcontrols {
         double intensity( size_t idx ) const;
         double time( size_t idx ) const;
 
-        [[deprecated]] double getMinIntensity() const;
-        [[deprecated]] double getMaxIntensity() const;
-        [[deprecated]] double getMass( size_t idx ) const;
-        [[deprecated]] double getIntensity( size_t idx ) const;
-        [[deprecated]] double getTime( size_t idx ) const;
+        // [[deprecated]] double getMinIntensity() const;
+        // [[deprecated]] double getMaxIntensity() const;
+        // [[deprecated]] double getMass( size_t idx ) const;
+        // [[deprecated]] double getIntensity( size_t idx ) const;
+        // [[deprecated]] double getTime( size_t idx ) const;
 
         size_t getIndexFromMass( double, bool closest = false ) const;
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 
-		int getColor( size_t idx ) const;
+        int color( size_t idx ) const;
+
+        // time, mass, intensity, color
+        std::tuple< double, double, double, int > value( size_t idx ) const;
 
         void addDescription( const description& );
         void addDescription( description&& );

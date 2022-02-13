@@ -159,8 +159,8 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
             if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
                 dlg.addPeak( a.index()
                              , QString::fromStdString( a.text() )
-                             , fms.getTime( a.index() )    // observed time-of-flight
-                             , fms.getMass( a.index() )    // matched mass
+                             , fms.time( a.index() )    // observed time-of-flight
+                             , fms.mass( a.index() )    // matched mass
                              , mode );
             }
         }

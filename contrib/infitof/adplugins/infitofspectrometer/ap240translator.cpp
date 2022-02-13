@@ -137,7 +137,7 @@ ap240translator::translate( adcontrols::MassSpectrum& ms
         fgms.setIntensity( i, y );
     }
 
-    ms.setAcquisitionMassRange( ms.getMass( 0 ), fgms.getMass( fgms.size() - 1 ) );
+    ms.setAcquisitionMassRange( ms.mass( 0 ), fgms.mass( fgms.size() - 1 ) );
 
     if ( avgr.nProtocols == 0 || avgr.protocolId == ( avgr.nProtocols - 1 ) )
         return adcontrols::translate_complete;

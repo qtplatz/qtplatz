@@ -223,8 +223,8 @@ namespace adwidgets {
                     auto& ms = segs[fcn];
                     if ( !formula.empty() ) {
                         ms.get_annotations() << adcontrols::annotation( formula
-                                                                        , ms.getMass( idx )
-                                                                        , ms.getIntensity( idx )
+                                                                        , ms.mass( idx )
+                                                                        , ms.intensity( idx )
                                                                         , idx
                                                                         , 0
                                                                         , adcontrols::annotation::dataFormula );

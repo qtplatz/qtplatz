@@ -729,8 +729,8 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
 
 		adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
 		const adcontrols::MassSpectrum& tail = ms->numSegments() == 0 ? *ms : ms->getSegment( ms->numSegments() - 1 );
-		double lMass = ms->getMass( 0 );
-		double hMass = tail.getMass( tail.size() - 1 );
+		double lMass = ms->mass( 0 );
+		double hMass = tail.mass( tail.size() - 1 );
 		// workaround for unsure acquired mass range (before calibration)
 		range.first = std::min( range.first, lMass );
 		range.second = std::max( range.second, hMass );
@@ -1108,7 +1108,7 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
             auto xms = std::make_shared< adcontrols::MassSpectrum >( *profile );
             // adcontrols::MassSpectrum xms( *profile );
             for ( size_t i = 0; i < xms->size(); ++i )
-                xms->setIntensity( i, xms->getIntensity( i ) - background->getIntensity( i ) );
+                xms->setIntensity( i, xms->intensity( i ) - background->intensity( i ) );
 
 			xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod() );
@@ -1270,7 +1270,7 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
 			// threshold color filter
 			for ( auto& ms: segs ) {
 				for ( size_t i = 0; i < ms.size(); ++i ) {
-					if ( ms.getIntensity( i ) < y_threshold )
+					if ( ms.intensity( i ) < y_threshold )
 						ms.setColor( i, 16 ); // transparent
 				}
 			}

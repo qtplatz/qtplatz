@@ -271,7 +271,7 @@ ContourWnd::handleSelected( const QRectF& rect )
                 if ( masses && segs.size() ) {
                     auto it = std::lower_bound( masses, masses + seg.size(), m1 );
                     while ( *it++ <= m2 )
-                        y += seg.getIntensity( std::distance( masses, it ) );
+                        y += seg.intensity( std::distance( masses, it ) );
                 }
             }
             cp->setIntensity( idx++, y );

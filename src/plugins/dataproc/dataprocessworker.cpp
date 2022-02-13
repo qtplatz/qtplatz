@@ -685,8 +685,8 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
             for ( const auto& mol: mols.data() ) {
                 auto idx = finder( *ms, mol.mass() );
                 if ( idx != adcontrols::MSFinder::npos ) {
-                    lkms << adcontrols::lockmass::reference( mol.formula(), mol.mass(), ms->getMass( idx ), ms->getTime( idx ) );
-                    ms->addAnnotation( adcontrols::annotation( mol.formula(), mol.mass(), ms->getIntensity( idx )
+                    lkms << adcontrols::lockmass::reference( mol.formula(), mol.mass(), ms->mass( idx ), ms->time( idx ) );
+                    ms->addAnnotation( adcontrols::annotation( mol.formula(), mol.mass(), ms->intensity( idx )
                                                                , int(idx), 999, adcontrols::annotation::dataFormula ) );
                 }
             }
@@ -736,7 +736,7 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
                 size_t idx = finder( *ms, mol.mass() );
                 if ( idx != adcontrols::MSFinder::npos ) {
                     times.push_back( ms->getMSProperty().timeSinceInjection() - t0 );
-                    masses.push_back( ms->getMass( idx ) );
+                    masses.push_back( ms->mass( idx ) );
                 }
             }
 

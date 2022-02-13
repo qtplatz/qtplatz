@@ -207,8 +207,8 @@ FindCompounds::doMSLock( const adcontrols::MSLockMethod& m, bool isCounting )
                 // add found peaks into mslock
                 *mslock << adcontrols::lockmass::reference( compound.formula()
                                                             , exactMass
-                                                            , centroid_[ index ]->getMass( idx )
-                                                            , centroid_[ index ]->getTime( idx ) );
+                                                            , centroid_[ index ]->mass( idx )
+                                                            , centroid_[ index ]->time( idx ) );
             }
         }
     }

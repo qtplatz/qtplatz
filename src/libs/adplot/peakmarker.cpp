@@ -42,7 +42,7 @@ PeakMarker::PeakMarker()
 
     markers_[ idPeakLeft ]->setLineStyle( QwtPlotMarker::VLine );
     markers_[ idPeakLeft ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-    
+
     markers_[ idPeakRight ]->setLineStyle( QwtPlotMarker::VLine );
     markers_[ idPeakRight ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
 
@@ -117,9 +117,9 @@ PeakMarker::setPeak( const adcontrols::MassSpectrum& ms, int idx, bool isTime, a
 {
     if ( ms.size() > unsigned(idx) ) {
         if ( isTime ) {
-            markers_[ idPeakCenter ]->setValue( adcontrols::metric::scale_to( pfx, ms.getTime( idx ) ), 0 );
+            markers_[ idPeakCenter ]->setValue( adcontrols::metric::scale_to( pfx, ms.time( idx ) ), 0 );
         } else {
-            markers_[ idPeakCenter ]->setValue( ms.getMass( idx ), 0 );
+            markers_[ idPeakCenter ]->setValue( ms.mass( idx ), 0 );
         }
     }
     markers_[ idPeakLeft ]->setValue( 0, 0 );

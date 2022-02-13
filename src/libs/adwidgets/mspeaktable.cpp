@@ -217,8 +217,8 @@ namespace adwidgets {
                     auto& ms = segs[fcn];
                     if ( !formula.empty() ) {
                         ms.get_annotations() << adcontrols::annotation( formula
-                                                                        , ms.getMass( idx )
-                                                                        , ms.getIntensity( idx )
+                                                                        , ms.mass( idx )
+                                                                        , ms.intensity( idx )
                                                                         , idx
                                                                         , 0
                                                                         , adcontrols::annotation::dataFormula );
@@ -575,7 +575,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     double maxIntensity = 0;
     for ( auto& ms: segs )
-        maxIntensity = std::max( ms.getMaxIntensity(), maxIntensity );
+        maxIntensity = std::max( ms.maxIntensity(), maxIntensity );
 
     bool hasFormula( false );
     int row = 0;
@@ -599,12 +599,12 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_index ), idx ); // hidden
             model.setData( model.index( row, c_mspeaktable_protocol ), protlabel );
 
-            double mass = fms.getMass( idx );
-            model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
+            double mass = fms.mass( idx );
+            model.setData( model.index( row, c_mspeaktable_time ), fms.time( idx ) );
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
-            model.setData( model.index( row, c_mspeaktable_intensity ), fms.getIntensity( idx ) );
+            model.setData( model.index( row, c_mspeaktable_intensity ), fms.intensity( idx ) );
 
-            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (fms.getIntensity( idx ) * 100 ) / maxIntensity );
+            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (fms.intensity( idx ) * 100 ) / maxIntensity );
 
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
@@ -719,10 +719,10 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
         if ( fcn < signed(segs.size()) ) {
             auto& fms = segs[ fcn ];
 
-            double mass = fms.getMass( idx );
-            model.setData( model.index( row, c_mspeaktable_time ), fms.getTime( idx ) );
+            double mass = fms.mass( idx );
+            model.setData( model.index( row, c_mspeaktable_time ), fms.time( idx ) );
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
-            model.setData( model.index( row, c_mspeaktable_intensity ), fms.getIntensity( idx ) );
+            model.setData( model.index( row, c_mspeaktable_intensity ), fms.intensity( idx ) );
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
             model.setData( model.index( row, c_mspeaktable_description ), QString() );
@@ -1007,8 +1007,8 @@ MSPeakTable::descriptionChanged( const QModelIndex& index )
                         ms.get_annotations().erase_if( [&](const auto& a){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataText; });
                     else
                         ms.get_annotations() << adcontrols::annotation( description
-                                                                        , ms.getMass( idx )
-                                                                        , ms.getIntensity( idx )
+                                                                        , ms.mass( idx )
+                                                                        , ms.intensity( idx )
                                                                         , idx
                                                                         , 0
                                                                         , adcontrols::annotation::dataText );
