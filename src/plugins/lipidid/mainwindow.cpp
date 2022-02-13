@@ -27,7 +27,7 @@
 #include "moltablewnd.hpp"
 #include "msspectrawnd.hpp"
 #include "peaklist.hpp"
-#include "lipididwidget.hpp"
+#include "metidwidget.hpp"
 #include <adlog/logger.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -163,6 +163,19 @@ MainWindow::activateLayout()
 {
 }
 
+namespace {
+    template<typename T> struct dockBroker {
+        static void onInitialUpdate(MainWindow * p) {
+            if ( auto w = p->findChild<T *>() ) {
+                w->onInitialUpdate();
+            }
+        }
+    };
+
+    template<typename... Args> void onInitialUpdate( MainWindow * p ){
+        (( dockBroker<Args>::onInitialUpdate( p )), ...);
+    }
+}
 
 void
 MainWindow::OnInitialUpdate()
@@ -176,6 +189,9 @@ MainWindow::OnInitialUpdate()
                 " FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
         }
     } );
+
+    onInitialUpdate< MetIdWidget >( this );
+
     document::instance()->initialSetup();
 }
 
@@ -338,7 +354,7 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
     if ( auto widget = dock_create< PeakList >( pThis, "MS Peaks", "MS_Peaks" ) ) {
         QObject::connect( document::instance(), &document::dataChanged, widget, &PeakList::handleDataChanged );
     }
-    if ( auto widget = dock_create< LipidIdWidget >( pThis, "Lipids", "Lipids" ) ) {
+    if ( auto widget = dock_create< MetIdWidget >( pThis, "Lipids", "Lipids" ) ) {
     }
 }
 

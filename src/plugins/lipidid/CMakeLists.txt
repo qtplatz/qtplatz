@@ -61,8 +61,8 @@ add_library( ${PROJECT_NAME} MODULE
   msspectrawnd.hpp
   peaklist.cpp
   peaklist.hpp
-  lipididwidget.cpp
-  lipididwidget.hpp
+  metidwidget.cpp
+  metidwidget.hpp
   ${Resources}
   )
 

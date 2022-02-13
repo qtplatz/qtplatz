@@ -24,7 +24,8 @@
 
 #pragma once
 
-#include <adwidgets/targetingwidget.hpp>
+#include <adwidgets/lifecycle.hpp>
+#include <QWidget>
 #include <memory>
 
 namespace adcontrols { class MassSpectrum; }
@@ -32,17 +33,20 @@ namespace portfolio  { class Foliium; }
 
 namespace lipidid {
 
-    class LipidIdWidget : public adwidgets::TargetingWidget {
-        // Q_OBJECT
+    class MetIdWidget : public QWidget {
+        Q_OBJECT
     public:
-        explicit LipidIdWidget( QWidget *parent = 0 );
+        ~MetIdWidget();
+        explicit MetIdWidget( QWidget *parent = 0 );
 
-        // adwidgets::MSPeakTable
-        // void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const override;
+        void onInitialUpdate();
+
     public slots:
         // void handleDataChanged( const portfolio::Folium& );
 
     private:
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }
