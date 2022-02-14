@@ -52,6 +52,7 @@ namespace adcontrols {
         bool isPositiveMode() const;
         void setPositiveMode( bool );
 
+        MetIdMethod& operator << ( std::pair< bool, std::string >&& );
         void setAdducts( const std::vector< std::pair< bool, std::string > >& );
         const std::vector< std::pair< bool, std::string > >& adducts() const;
 

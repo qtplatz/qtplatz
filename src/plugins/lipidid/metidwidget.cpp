@@ -43,13 +43,50 @@ namespace lipidid {
 
     class MetIdWidget::impl {
     public:
-        impl() {}
-        adcontrols::MetIdMethod method_;
+        impl() : model_(0)
+               , dirty_( true ) {}
+        QStandardItemModel * model_;
+        mutable adcontrols::MetIdMethod method_;
+        bool dirty_;
+
+        void handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight ) {
+            if ( topLeft.column() == 0 ) {
+                dirty_ = true;
+                auto  model = topLeft.model();
+                for ( int row = topLeft.row(); row <= bottomRight.row(); ++row ) {
+                    auto adduct = model->index( row, 0 ).data().toString().toStdString();
+                    model_->setData( model->index( row, 1 ), compute_mass( adduct ) );
+                    if ( auto item = model_->item( row, 0 ) ) {
+                        if ( !(item->flags() & Qt::ItemIsUserCheckable ) ) {
+                            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                            item->setData( Qt::Checked, Qt::CheckStateRole );
+                        }
+                    }
+                }
+                if ( ( topLeft.row() == ( model->rowCount() - 1 ) ) &&
+                     ( ! model->index( model->rowCount() - 1, 0 ).data().toString().isEmpty() ) ) {
+                    model_->setRowCount( model->rowCount() + 1 );
+                }
+            }
+        }
+
+        double compute_mass( const std::string& adducts ) const {
+            using adcontrols::ChemicalFormula;
+            auto alist = ChemicalFormula::split( adducts );
+            return std::accumulate( alist.begin()
+                                    , alist.end()
+                                    , 0.0
+                                    , [&](const auto& a, const auto& b){
+                                        int sign = b.second == '-' ? -1 : 1;
+                                        return a + sign * ChemicalFormula().getMonoIsotopicMass( b.first, true );
+                                    });
+        }
     };
 
 }
 
 namespace {
+
     class delegate : public QStyledItemDelegate {
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             QStyleOptionViewItem opt(option);
@@ -58,7 +95,6 @@ namespace {
             if ( index.column() == 0 ) {
                 using adcontrols::ChemicalFormula;
                 std::string formula = ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
-                ADDEBUG() << formula;
                 adwidgets::DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
@@ -107,32 +143,90 @@ MetIdWidget::onInitialUpdate()
 
     if ( auto table = findChild< TableView *>() ) {
         auto model = new QStandardItemModel();
+        impl_->model_ = model;
+        QSignalBlocker block( impl_->model_ );
+        connect( model, &QAbstractItemModel::dataChanged
+                 , [&](const QModelIndex &topLeft, const QModelIndex &bottomRight){
+                     impl_->handleDataChanged( topLeft, bottomRight );
+                 });
         const auto& adducts = impl_->method_.adducts();
-        model->setColumnCount( 1 );
-        model->setRowCount( adducts.size() );
+        model->setColumnCount( 2 );
+        model->setRowCount( adducts.size() + 1 );
         model->setHeaderData( 0, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
+        model->setHeaderData( 1, Qt::Horizontal, QObject::tr( "+/- mass" ) );
 
         table->setModel( model );
         table->setItemDelegate( new delegate() );
 
         table->setHorizontalHeader( new HtmlHeaderView );
         table->setSortingEnabled( true );
+
         for ( size_t row = 0; row < adducts.size(); ++row ) {
             model->setData( model->index( row, 0 ), QString::fromStdString( adducts.at( row ).second ) );
+
+            auto adduct = adducts.at( row ).second; // first := enable
+            auto mass = impl_->compute_mass( adduct );
+
             if ( auto item = model->item( row, 0 ) ) {
-                ADDEBUG() << "has item: " << row;
                 model->setData( model->index( row, 0 ), adducts.at( row ).first ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+                model->setData( model->index( row, 1 ), mass );
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             } else {
                 ADDEBUG() << "has no item: " << row;
             }
         }
-
-        // table->onInitialUpdate();
-        // table->setContents( m.molecules() );
-        // table->setColumnHidden( MolTable::c_abundance, true );
     }
+
     if ( auto form = findChild< TargetingForm *>() ) {
         form->setContents( impl_->method_ );
     }
+    impl_->dirty_ = false;
+}
+
+MetIdWidget::value_type
+MetIdWidget::getContents() const
+{
+    if ( impl_->dirty_ ) {
+        adcontrols::MetIdMethod t;
+        if ( auto form = findChild< adwidgets::TargetingForm *>() ) {
+            form->getContents( t );
+        }
+        const auto model = impl_->model_;
+        for ( size_t row = 0; row < model->rowCount(); ++row ) {
+            auto adducts = model->data( model->index( row, 0 ), Qt::EditRole ).toString().toStdString();
+            auto enable = model->data( model->index( row, 0 ), Qt::CheckStateRole ).toBool();
+            if ( !adducts.empty() ) {
+                t << std::make_pair( enable, adducts );
+            }
+        }
+        impl_->method_ = t;
+        impl_->dirty_ = false;
+    }
+    return impl_->method_;
+}
+
+bool
+MetIdWidget::setContents( const MetIdWidget::value_type& t )
+{
+    impl_->method_ = t;
+    if ( auto form = findChild< adwidgets::TargetingForm *>() ) {
+        form->setContents( impl_->method_ );
+    }
+    QSignalBlocker block( impl_->model_ );
+    const auto& adducts = impl_->method_.adducts();
+    auto model = impl_->model_;
+    for ( size_t row = 0; row < adducts.size(); ++row ) {
+        model->setData( model->index( row, 0 ), QString::fromStdString( adducts.at( row ).second ) );
+
+        auto adduct = adducts.at( row ).second; // first := enable
+        auto mass = impl_->compute_mass( adduct );
+
+        if ( auto item = model->item( row, 0 ) ) {
+            model->setData( model->index( row, 0 ), adducts.at( row ).first ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model->setData( model->index( row, 1 ), mass );
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+        }
+    }
+    impl_->dirty_ = false;
+    return true;
 }

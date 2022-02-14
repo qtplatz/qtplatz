@@ -906,7 +906,8 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
         }
         charge = (-charge); // lose
     }
-    std::sort( mol.begin(), mol.end(), [] ( const mol::element& a, const mol::element& b ) { return std::strcmp( a.symbol(), b.symbol() ) < 0; } );
+    std::sort( mol.begin(), mol.end()
+               , [] ( const mol::element& a, const mol::element& b ) { return std::strcmp( a.symbol(), b.symbol() ) < 0; } );
 
     std::ostringstream o;
     for ( auto& a : mol ) {

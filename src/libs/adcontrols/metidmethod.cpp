@@ -90,6 +90,14 @@ MetIdMethod::setPositiveMode( bool flag )
     impl_->positiveMode_ = flag;
 }
 
+MetIdMethod&
+MetIdMethod::operator << ( std::pair< bool, std::string >&& d )
+{
+    impl_->adducts_.emplace_back( std::move( d ) );
+    return *this;
+}
+
+
 void
 MetIdMethod::setAdducts( const std::vector< std::pair< bool, std::string > >& t )
 {

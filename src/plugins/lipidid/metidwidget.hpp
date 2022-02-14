@@ -28,7 +28,7 @@
 #include <QWidget>
 #include <memory>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class MetIdMethod; }
 namespace portfolio  { class Foliium; }
 
 namespace lipidid {
@@ -38,11 +38,14 @@ namespace lipidid {
     public:
         ~MetIdWidget();
         explicit MetIdWidget( QWidget *parent = 0 );
+        typedef adcontrols::MetIdMethod value_type;
 
         void onInitialUpdate();
 
+        value_type getContents() const;
+        bool setContents( const value_type& );
+
     public slots:
-        // void handleDataChanged( const portfolio::Folium& );
 
     private:
         class impl;
