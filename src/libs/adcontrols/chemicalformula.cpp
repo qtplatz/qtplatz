@@ -28,7 +28,7 @@
 #include "ctable.hpp"
 #include "element.hpp"
 #include "molecule.hpp"
-#include <adportable/debug.hpp>
+// #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/formula_parser.hpp>
 #include <boost/bind.hpp>
@@ -56,18 +56,17 @@ namespace adcontrols {
 
     namespace chem {
 
-        static const char * braces [] = { "(", ")" };
+        static const char * braces [] = { "(", ")", "[", "]" };
         // static const char * separators [] = { "+", "-" };
         using adportable::chem::atom_type;
 
         typedef std::vector< std::pair< atom_type, size_t > > format_type; // atom, num-atoms
         typedef std::pair< format_type, int > iformat_type;                // formula, charge
 
-        static void debug_print( const iformat_type& m, int line, const char * file ) {
-            adportable::debug o( file, line );
-            std::for_each( m.first.begin(), m.first.end()
-                           , [&](const auto& a){ o << a; }); // "{" << a.first.first <<  a.first.second << ", " << a.second << "}"; });
-        }
+        // static void DEBUG_PRINT( const iformat_type& m, int line, const char * file = __FILE__ ) {
+        //     adportable::debug o( file, line );
+        //     std::for_each( m.first.begin(), m.first.end(), [&](const auto& a){ o << a; });
+        // }
         //////////////
 
         struct formulaFormat {
@@ -75,13 +74,18 @@ namespace adcontrols {
                 m.first.emplace_back( p );
             }
 
-            static void formula_join( iformat_type& m, iformat_type& a ) {
-                if ( a.second )
-                    m.second += a.second; // charge-group
-                else
-                    m.first.emplace_back( atom_type( 0, braces[0] ), 0 ); // repeat-group
+            static void formula_join( iformat_type& m, iformat_type& a ) { // '(' >> molecule >> ')'
+                m.second += a.second; // charge-group -- a.second should be zero, though.
+                m.first.emplace_back( atom_type( 0, braces[0] ), 0 ); // repeat-group
                 for ( auto t: a.first )
                     m.first.emplace_back( t );
+            }
+            static void formula_join2( iformat_type& m, iformat_type& a ) { // '[' >> molecule >> ']'
+                m.second += a.second; // charge-group
+                // m.first.emplace_back( atom_type( 0, braces[2] ), 0 ); // repeat-group
+                for ( auto t: a.first )
+                    m.first.emplace_back( t );
+                // m.first.emplace_back( atom_type( 0, braces[3] ), 0 ); // repeat-group
             }
 
             static void formula_repeat( iformat_type& m, std::size_t n ) {
@@ -108,17 +112,12 @@ namespace adcontrols {
             }
 
             template<typename char_type> bool formulae( iformat_type& fmt, const std::basic_string<char_type>& formula ) const {
-
                 if ( formula.empty() )
                     return false;
-
-                ADDEBUG() << formula;
-
                 std::pair< int, int > charges{ 0, 0 };
                 bool add( true );
-                typename std::basic_string< char_type >::const_iterator it = formula.begin();
+                auto it = formula.begin();
                 do {
-                    chem::debug_print( fmt, __LINE__, __FILE__ );
                     if ( *it == '+' ) {
                         add = true;
                         fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put ' +' in the text
@@ -139,14 +138,34 @@ namespace adcontrols {
                 else
                     charges.second -= fmt.second;
                 fmt.second = charges.first + charges.second;
-                chem::debug_print( fmt, __LINE__, __FILE__ );
                 return true;
             }
 
-            template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type& fmt, bool richText, bool neutral = false ) {
+            // atom_type := std::pair< int, const char * > 13C
+            char is_sign( const std::pair< atom_type, size_t >& a ) {
+                auto p = a.first.second;
+                while ( p && *p ) {
+                    if ( *p == '+' || *p == '-' ) {
+                        return *p;
+                    }
+                    ++p;
+                }
+                return 0;
+            }
+
+            template< typename char_type > void print_text( std::basic_ostream< char_type >& o
+                                                            , const iformat_type& fmt, bool richText, bool neutral = false ) {
+                if ( fmt.first.empty() )
+                    return;
+                auto it = fmt.first.begin();
+                if ( auto sign = is_sign( *it ) ) { // adduct
+                    ++it;
+                    o << sign;
+                }
                 if ( fmt.second && !neutral ) // has charge
                     o << "[";
-                for ( auto e: fmt.first ) {
+                for ( ; it != fmt.first.end(); ++it ) { // for ( auto e: fmt.first ) {
+                    const auto& e = *it;
                     if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
                         o << "(";
                     } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
@@ -157,9 +176,9 @@ namespace adcontrols {
                     } else {
                         if ( e.first.first ) {
                             if ( richText )
-                                o << "<sup>" << e.first.first << "</sup>"; // boost::format( "<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
+                                o << "<sup>" << e.first.first << "</sup>";
                             else
-                                o << e.first.first; // element's atomic weight // boost::format( "%1%" ) % e.first.first; // element's atomic weight
+                                o << e.first.first;
                         }
 
                         o << e.first.second; // boost::format( "%s" ) % e.first.second; // element name
@@ -338,10 +357,13 @@ namespace adcontrols {
         struct addlose_splitter {
 
             template< typename char_type >
-            std::vector< std::pair< std::basic_string< char_type >, char_type > > operator()( const std::basic_string< char_type >& formula ) const {
+            std::vector< std::pair< std::basic_string< char_type >, char_type > >
+            operator()( const std::basic_string< char_type >& formula ) const {
 
                 typedef typename std::basic_string< char_type >::const_iterator iterator_type;
-                adportable::chem::chemical_formula_parser< iterator_type, adportable::chem::formulaComposition, adportable::chem::icomp_type > comp_parser;
+                adportable::chem::chemical_formula_parser< iterator_type
+                                                           , adportable::chem::formulaComposition
+                                                           , adportable::chem::icomp_type > comp_parser;
 
                 std::vector< std::pair<std::basic_string< char_type >, char_type> > list;
 
@@ -459,6 +481,49 @@ namespace adcontrols {
     } // namespace chem
 } // namespace adcontrols
 
+namespace {
+
+    class format_formulae {
+        template< typename char_t > void
+        format_as_adducts( std::basic_ostringstream< char_t >& o
+                           , char_t sign
+                           , const std::basic_string< char_t >& formula, bool richText ) const {
+            chem::iformat_type fmt;
+            chem::formatter().formulae<char>( fmt, formula );
+            o << sign;
+            chem::formatter().print_text<char>( o, fmt, richText );
+        }
+
+        template< typename char_t > void
+        format_as_formuae( std::basic_ostringstream< char_t >& o
+                           , const std::basic_string< char_t >& formulae, bool richText ) const {
+            chem::iformat_type fmt;
+            chem::formatter().formulae<char>( fmt, formulae );
+            chem::formatter().print_text<char>( o, fmt, richText );
+        }
+    public:
+        template< typename char_t > std::basic_string< char_t >
+        operator()( const std::basic_string< char_t >& formulae, bool richText ) const {
+            std::basic_ostringstream< char_t > o;
+            auto it = formulae.begin();
+            if ( *it == '+' || *it == '-' ) { // adducts
+                size_t counts(0);
+                auto alist = chem::addlose_splitter()( formulae );
+                for ( const auto& adduct: alist ) {
+                    if ( counts++ )
+                        o << std::basic_string< char_t >(" ");
+                    format_as_adducts( o, adduct.second , adduct.first, richText );
+                }
+            } else {
+                format_as_formuae( o, formulae, richText );
+            }
+            return o.str();
+        }
+    };
+
+}
+
+
 
 ChemicalFormula::~ChemicalFormula(void)
 {
@@ -519,7 +584,6 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
     }
 
     // ADDEBUG() << "\tfinal comp: " << chem::make_string< char >( comp ) << ", charge: " << charge;
-
     // compute mass for neutral form
     double mass = chem::monoIsotopicMass( comp, false );
 
@@ -713,9 +777,6 @@ ChemicalFormula::neutralize( const std::string& formula )
     else
         charges.second -= fmt.second;
     fmt.second = charges.first + charges.second;
-    // chem::debug_print( fmt, __LINE__, __FILE__ );
-    // charge += fmt.second;
-    // ADDEBUG() << "------------------------------------ charge: " << charge << ", " << fmt.second;
 
     std::ostringstream o;
     formatter.print_text( o, fmt, false, true );
@@ -786,13 +847,13 @@ ChemicalFormula::split( const std::string& formula )
 std::string
 ChemicalFormula::formatFormulae( const std::string& formula, bool richText )
 {
-    chem::iformat_type fmt;
-    chem::formatter().formulae<char>( fmt, formula );
+    return format_formulae()( formula, richText );
+    // chem::iformat_type fmt;
+    // chem::formatter().formulae<char>( fmt, formula );
 
-    std::ostringstream o;
-    chem::formatter().print_text<char>( o, fmt, richText );
-
-    return o.str();
+    // std::ostringstream o;
+    // chem::formatter().print_text<char>( o, fmt, richText );
+    //return o.str();
 }
 
 std::wstring

@@ -41,14 +41,15 @@ namespace adcontrols {
         idFindAlgorithm findAlgorithm_;
         double tolerancePpm_;
         double toleranceDaltons_;
-        double tolerance_;
         impl() : positiveMode_( true )
-               , adducts_{ {true, "+[H]+"}, {true, "-[H] +[H]+"}, {true, "-[H2O] +[H]+"}
-            , {false, "-[H]+" }, {false, "+[OH]-"}, {false, "+[Cl]-" } }
+               , adducts_{
+                { true, "+[H]+"}, {true, "-H +[H]+"}, {true, "-H2O +[H]+"}
+                , {false, "-[H]+" }, {false, "+[OH]-"}, {false, "+[Cl]-" } }
                , chargeState_{ 1, 1 }
                , toleranceMethod_( idToleranceDaltons )
                , findAlgorithm_( idFindClosest )
-               , tolerance_( 0.010 ) {
+               , tolerancePpm_( 5 )
+               , toleranceDaltons_( 0.010 ) { // Da (not mDa)
         }
     };
 
@@ -158,7 +159,6 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MetIdMethod& t )
     {
-        ADDEBUG() << __FUNCTION__ << ", " << (void*)(&t);
         jv = boost::json::object{{ "metIdMethod"
                 , {
                     { "positiveMode", t.impl_->positiveMode_ }
@@ -168,7 +168,6 @@ namespace adcontrols {
                     , { "findAlgorithm",      int(t.impl_->findAlgorithm_) }
                     , { "tolerancePpm",       t.impl_->tolerancePpm_ }
                     , { "toleranceDaltons",   t.impl_->toleranceDaltons_ }
-                    , { "tolerance",          t.impl_->tolerance_ }
                 }
             }};
     }
@@ -178,8 +177,6 @@ namespace adcontrols {
     {
         MetIdMethod t;
         using namespace adportable::json;
-
-        ADDEBUG() << __FUNCTION__;
 
         if ( jv.is_object() ) {
             auto obj = jv.as_object();
@@ -193,7 +190,6 @@ namespace adcontrols {
              t.impl_->findAlgorithm_   = static_cast< idFindAlgorithm> ( tmp );
              extract( obj, t.impl_->tolerancePpm_    , "tolerancePpm" );
              extract( obj, t.impl_->toleranceDaltons_, "toleranceDaltons" );
-             extract( obj, t.impl_->tolerance_       , "tolerance" );
         }
         return t;
     }

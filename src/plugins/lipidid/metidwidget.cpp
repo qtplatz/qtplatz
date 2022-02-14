@@ -58,6 +58,7 @@ namespace {
             if ( index.column() == 0 ) {
                 using adcontrols::ChemicalFormula;
                 std::string formula = ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
+                ADDEBUG() << formula;
                 adwidgets::DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );

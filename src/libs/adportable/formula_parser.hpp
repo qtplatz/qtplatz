@@ -49,10 +49,10 @@ namespace adportable {
         const char * element_table [] = {
             "C", // this makes carbon put to the first symbol
             "H",                                                                                                              "He",
-            "Li", "Be",                                                                         "B",/*"C",*/"N",  "O",  "F",  "Ne", 
+            "Li", "Be",                                                                         "B",/*"C",*/"N",  "O",  "F",  "Ne",
             "Na", "Mg",                                                                         "Al", "Si", "P",  "S",  "Cl", "Ar",
-            "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",  
-            "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",  
+            "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
+            "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",
             "Cs", "Ba", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
             "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
             // Lanthanoids
@@ -63,7 +63,7 @@ namespace adportable {
 
         typedef std::pair< int, const char * > atom_type; // [isotope#]symbol; e.g. 13C
         typedef std::map< atom_type, int > comp_type;     // number of atoms; e.g. C6
-        typedef std::pair< int, char > charge_type;       
+        typedef std::pair< int, char > charge_type;       // charge count, +|-
         typedef std::pair< comp_type, int > icomp_type;
 
         struct formulaComposition {
@@ -76,7 +76,10 @@ namespace adportable {
                 std::for_each( a.first.begin(), a.first.end(), [&]( comp_type::value_type& p ){ m.first[ p.first ] += p.second; });
                 m.second += a.second;
             }
-        
+            static void formula_join2( icomp_type& m, icomp_type& a ) {
+                formula_join( m, a );
+            }
+
             static void formula_repeat( icomp_type& m, int n ) {
                 std::for_each( m.first.begin(), m.first.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
             }
@@ -88,14 +91,14 @@ namespace adportable {
 
         template< typename Iterator, typename handler = formulaComposition, typename startType = icomp_type >
         struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
-            
+
             chemical_formula_parser() : chemical_formula_parser::base_type( molecule )
                                       , element( element_table, element_table )  {
                 molecule =
                     + (
                         atoms            [ boost::phoenix::bind( &handler::formula_add, _val, qi::_1 ) ]
                         | repeated_group [ boost::phoenix::bind( &handler::formula_join, _val, qi::_1 ) ]
-                        | charged_group  [ boost::phoenix::bind( &handler::formula_join, _val, qi::_1 ) ]                        
+                        | charged_group  [ boost::phoenix::bind( &handler::formula_join2, _val, qi::_1 ) ]
                         | space
                         )
                     ;
@@ -106,7 +109,7 @@ namespace adportable {
                 charge_state =
                     ( qi::uint_ | qi::attr(1u) ) >> ( qi::char_( '+' ) | qi::char_( '-' ) )
                     ;
-                atoms = 
+                atoms =
                     atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
                     ;
                 atom =
@@ -127,4 +130,3 @@ namespace adportable {
 
     }
 }
-
