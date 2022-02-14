@@ -119,8 +119,8 @@ namespace lipidid {
         toolButton( const char * id ) {
             return toolButton( Core::ActionManager::instance()->command( id )->action() );
         }
-
         static void createDockWidgets( MainWindow * );
+        void setup_menu_actions();
     };
 
 }
@@ -204,12 +204,19 @@ MainWindow::OnFinalClose()
 void
 MainWindow::hideDock( bool hide )
 {
+    ADDEBUG() << "-------------- hideDock -----------------";
     for ( auto& w :  dockWidgets() ) {
         if ( hide )
             w->hide();
         else
             w->show();
     }
+}
+
+void
+MainWindow::importSDFile( bool flag )
+{
+    ADDEBUG() << "-------------- importSDFile -----------------" << flag;
 }
 
 QWidget *
@@ -341,7 +348,7 @@ MainWindow::impl::createMidStyledToolbar()
                 toolBarLayout->addWidget( label );
             }
             toolBarLayout->addItem( new QSpacerItem(16, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-            // toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
         }
 		return toolBar;
     }
@@ -385,4 +392,42 @@ namespace {
         return dockWidget;
     }
 
+}
+
+void
+MainWindow::initializeActions( Core::IMode * mode )
+{
+    if ( auto am = Core::ActionManager::instance() ) {
+        QIcon icon;
+        icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
+        icon.addPixmap( QPixmap( Constants::ICON_DOCKSHOW ), QIcon::Normal, QIcon::On );
+        auto * action = new QAction( icon, QObject::tr( "Hide dock" ), this );
+        action->setCheckable( true );
+        am->registerAction( action, Constants::HIDE_DOCK, mode->context() );
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
+    }
+    if ( auto am = Core::ActionManager::instance() ) {
+        auto * action = new QAction( QObject::tr( "Import SDFile" ), this );
+        am->registerAction( action, Constants::SDF_IMPORT, mode->context() );
+        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::importSDFile );
+    }
+    impl_->setup_menu_actions();
+}
+
+void
+MainWindow::impl::setup_menu_actions()
+{
+	if ( auto * am = Core::ActionManager::instance() ) {
+        if ( Core::ActionContainer * menu = am->createMenu( "lipidid.window.menu" ) ) {
+            menu->menu()->setTitle( tr("LipidId") );
+            menu->addAction( am->command( Constants::HIDE_DOCK ) );
+            am->actionContainer( Core::Constants::M_WINDOW )->addMenu( menu );
+        }
+
+        if ( Core::ActionContainer * menu = am->createMenu( "lipidid.file.menu" ) ) {
+            menu->menu()->setTitle( tr("LipidId") );
+            menu->addAction( am->command( Constants::SDF_IMPORT ) );
+            am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+        }
+    }
 }

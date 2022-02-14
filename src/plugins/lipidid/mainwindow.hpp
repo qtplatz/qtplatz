@@ -65,10 +65,14 @@ namespace lipidid {
         void OnInitialUpdate();
         void OnFinalClose();
 
+        // call from lipididplugin
+        void initializeActions( Core::IMode * );
+
     private:
 
     public slots:
         void hideDock( bool );
+        void importSDFile( bool );
 
     private slots:
 

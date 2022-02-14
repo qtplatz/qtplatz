@@ -27,6 +27,7 @@ namespace Constants {
     const char * const EXPORT_ALL_CHECKED   = "lipidid.ExportAllChecked";
     const char * const EXPORT_RMS_CHECKED   = "lipidid.ExportRMSAllChecked";
     const char * const HIDE_DOCK            = "lipidid.HideDock";
+    const char * const SDF_IMPORT           = "lipidid.SDFImport";
 
     const char * const CREATE_SPECTROGRAM   = "lipidid.Spectrogram";
     const char * const CLUSTER_SPECTROGRAM  = "lipidid.ClusterSpectrogram";
