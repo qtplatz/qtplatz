@@ -64,9 +64,9 @@ namespace adcontrols {
         typedef std::pair< format_type, int > iformat_type;                // formula, charge
 
         static void debug_print( const iformat_type& m, int line, const char * file ) {
-            std::ostringstream o;
+            adportable::debug o( file, line );
             std::for_each( m.first.begin(), m.first.end()
-                           , [&](const auto& a){ o << "{" << a.first.first <<  a.first.second << ", " << a.second << "}"; });
+                           , [&](const auto& a){ o << a; }); // "{" << a.first.first <<  a.first.second << ", " << a.second << "}"; });
         }
         //////////////
 
@@ -111,6 +111,8 @@ namespace adcontrols {
 
                 if ( formula.empty() )
                     return false;
+
+                ADDEBUG() << formula;
 
                 std::pair< int, int > charges{ 0, 0 };
                 bool add( true );

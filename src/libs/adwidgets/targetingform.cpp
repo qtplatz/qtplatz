@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +26,7 @@
 #include "ui_targetingform.h"
 #include "spin_t.hpp"
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/metidmethod.hpp>
 
 using namespace adwidgets;
 
@@ -35,7 +36,7 @@ TargetingForm::TargetingForm(QWidget *parent) :  QWidget(parent)
     ui->setupUi(this);
 
     ui->radioButtonRP->setChecked( false );
-    ui->radioButtonWidth->setChecked( true );    
+    ui->radioButtonWidth->setChecked( true );
     spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxRP, 1000.0, 100000.0, 10000.0 );
     spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxWidth, 0.1, 500.0, 1.0 );
     spin_t<QSpinBox, int >::init( ui->spinBoxChargeMin, 1, 50, 1 );
@@ -111,4 +112,43 @@ TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 	ui->doubleSpinBoxHighMassLimit->setValue( m.highMassLimit() );
 
     ui->checkBox->setChecked( m.findAlgorithm() == adcontrols::idFindClosest );
+}
+
+void
+TargetingForm::getContents( adcontrols::MetIdMethod& m )
+{
+    m.setTolerance( adcontrols::idTolerancePpm, ui->doubleSpinBoxRP->value() );
+
+    m.setTolerance( adcontrols::idToleranceDaltons, ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
+    m.setToleranceMethod( ui->radioButtonRP->isChecked() ? adcontrols::idTolerancePpm : adcontrols::idToleranceDaltons );
+
+    m.chargeState( { ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() } );
+
+    if ( ui->checkBox->isChecked() )
+        m.setFindAlgorithm( adcontrols::idFindClosest );
+    else
+        m.setFindAlgorithm( adcontrols::idFindLargest );
+}
+
+void
+TargetingForm::setContents( const adcontrols::MetIdMethod& m )
+{
+    ui->doubleSpinBoxRP->setValue( m.tolerance( adcontrols::idTolerancePpm ) );
+    ui->doubleSpinBoxWidth->setValue( m.tolerance( adcontrols::idToleranceDaltons ) * 1000.0 );
+    ui->radioButtonRP->setChecked( m.toleranceMethod() == adcontrols::idTolerancePpm );
+    auto [chargeMin, chargeMax] = m.chargeState();
+    ui->spinBoxChargeMin->setValue( chargeMin );
+    ui->spinBoxChargeMax->setValue( chargeMax );
+    ui->checkBox->setChecked( m.findAlgorithm() == adcontrols::idFindClosest );
+
+    ui->cbxLowMass->setEnabled( false );
+    ui->cbxHighMass->setEnabled( false );
+
+    ui->cbxLowMass->setCheckState( Qt::Unchecked );
+    ui->cbxHighMass->setCheckState( Qt::Unchecked );
+
+	ui->doubleSpinBoxLowMassLimit->setValue( 0.0 );
+	ui->doubleSpinBoxHighMassLimit->setValue( 4000.0 );
+    ui->doubleSpinBoxLowMassLimit->setEnabled( false );
+	ui->doubleSpinBoxHighMassLimit->setEnabled( false );
 }

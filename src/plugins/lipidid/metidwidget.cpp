@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "metidwidget.hpp"
+#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/metidmethod.hpp>
 #include <adwidgets/delegatehelper.hpp>
 #include <adwidgets/htmlheaderview.hpp>
 #include <adwidgets/targetingform.hpp>
@@ -31,17 +33,37 @@
 #include <adprot/digestedpeptides.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <boost/json.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 
 namespace lipidid {
 
     class MetIdWidget::impl {
     public:
         impl() {}
+        adcontrols::MetIdMethod method_;
     };
 
+}
+
+namespace {
+    class delegate : public QStyledItemDelegate {
+        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            QStyleOptionViewItem opt(option);
+            initStyleOption( &opt, index );
+            opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+            if ( index.column() == 0 ) {
+                using adcontrols::ChemicalFormula;
+                std::string formula = ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
+                adwidgets::DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
+            } else {
+                QStyledItemDelegate::paint( painter, opt, index );
+            }
+        }
+    };
 }
 
 using lipidid::MetIdWidget;
@@ -51,6 +73,7 @@ MetIdWidget::~MetIdWidget()
 }
 
 MetIdWidget::MetIdWidget( QWidget * parent ) : QWidget( parent )
+                                             , impl_( std::make_unique< MetIdWidget::impl >() )
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
@@ -74,7 +97,8 @@ MetIdWidget::MetIdWidget( QWidget * parent ) : QWidget( parent )
 void
 MetIdWidget::onInitialUpdate()
 {
-    adcontrols::TargetingMethod m; // default
+    auto jv = boost::json::value_from( impl_->method_ );
+    ADDEBUG() << jv;
 
     using adwidgets::TableView;
     using adwidgets::HtmlHeaderView;
@@ -82,19 +106,21 @@ MetIdWidget::onInitialUpdate()
 
     if ( auto table = findChild< TableView *>() ) {
         auto model = new QStandardItemModel();
-        model->setColumnCount( 2 );
-        model->setRowCount( 8 );
+        const auto& adducts = impl_->method_.adducts();
+        model->setColumnCount( 1 );
+        model->setRowCount( adducts.size() );
         model->setHeaderData( 0, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
-        model->setHeaderData( 1, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
+
         table->setModel( model );
+        table->setItemDelegate( new delegate() );
+
         table->setHorizontalHeader( new HtmlHeaderView );
         table->setSortingEnabled( true );
-        for ( size_t row = 0; row < model->rowCount(); ++row ) {
-            model->setData( model->index( row, 0 ), "+[H]+" );
-            model->setData( model->index( row, 1 ), "+[H]+" );
+        for ( size_t row = 0; row < adducts.size(); ++row ) {
+            model->setData( model->index( row, 0 ), QString::fromStdString( adducts.at( row ).second ) );
             if ( auto item = model->item( row, 0 ) ) {
                 ADDEBUG() << "has item: " << row;
-                model->setData( model->index( row, 0 ), Qt::Unchecked, Qt::CheckStateRole );
+                model->setData( model->index( row, 0 ), adducts.at( row ).first ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             } else {
                 ADDEBUG() << "has no item: " << row;
@@ -106,6 +132,6 @@ MetIdWidget::onInitialUpdate()
         // table->setColumnHidden( MolTable::c_abundance, true );
     }
     if ( auto form = findChild< TargetingForm *>() ) {
-        form->setContents( m );
+        form->setContents( impl_->method_ );
     }
 }

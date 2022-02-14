@@ -127,6 +127,8 @@ add_library( adcontrols SHARED
   massspectra.hpp
   massspectrum.cpp
   massspectrum.hpp
+  metidmethod.cpp
+  metidmethod.hpp
   molecule.cpp
   molecule.hpp
   msassignedmass.cpp
@@ -323,6 +325,7 @@ install( FILES
   massspectrometer_factory.hpp
   massspectra.hpp
   massspectrum.hpp
+  metidmethod.hpp
   molecule.hpp
   msassignedmass.hpp
   mscalibratemethod.hpp

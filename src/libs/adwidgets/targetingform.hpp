@@ -32,7 +32,7 @@ namespace Ui {
 class TargetingForm;
 }
 
-namespace adcontrols { class TargetingMethod; }
+namespace adcontrols { class TargetingMethod; class MetIdMethod; }
 
 namespace adwidgets {
 
@@ -46,10 +46,12 @@ namespace adwidgets {
         explicit TargetingForm(QWidget *parent = 0);
         ~TargetingForm();
 
-        void setTitle( const QString&, bool enableCharge = false, bool enableLimits = false  ); 
+        void setTitle( const QString&, bool enableCharge = false, bool enableLimits = false  );
 
         void getContents( adcontrols::TargetingMethod& );
         void setContents( const adcontrols::TargetingMethod& );
+        void getContents( adcontrols::MetIdMethod& );
+        void setContents( const adcontrols::MetIdMethod& );
 
     private:
         ::Ui::TargetingForm *ui;
