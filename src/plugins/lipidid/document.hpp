@@ -43,6 +43,7 @@ namespace lipidid {
         ~document();
 
         static document * instance();
+        static QSettings * settings();
 
         void initialSetup();
         void finalClose();

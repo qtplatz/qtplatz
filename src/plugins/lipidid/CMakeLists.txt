@@ -63,6 +63,8 @@ add_library( ${PROJECT_NAME} MODULE
   peaklist.hpp
   metidwidget.cpp
   metidwidget.hpp
+  sdfimport.cpp
+  sdfimport.hpp
   ${Resources}
   )
 

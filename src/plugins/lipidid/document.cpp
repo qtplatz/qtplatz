@@ -86,6 +86,12 @@ document::instance()
     return &__instance;
 }
 
+QSettings *
+document::settings()
+{
+    return instance()->impl_->settings_.get();
+}
+
 void
 document::initialSetup()
 {

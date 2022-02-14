@@ -24,10 +24,11 @@
 
 #include "document.hpp"
 #include "mainwindow.hpp"
+#include "metidwidget.hpp"
 #include "moltablewnd.hpp"
 #include "msspectrawnd.hpp"
 #include "peaklist.hpp"
-#include "metidwidget.hpp"
+#include "sdfimport.hpp"
 #include <adlog/logger.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -61,8 +62,8 @@
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
-#include <QJsonObject>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -70,6 +71,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QResizeEvent>
+#include <QStackedWidget>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -77,13 +79,12 @@
 #include <QVBoxLayout>
 #include <QVariant>
 #include <QtGui/QIcon>
-#include <QStackedWidget>
-#include <boost/json.hpp>
 #include <boost/filesystem.hpp>
-#include <functional>
+#include <boost/json.hpp>
 #include <fstream>
-#include <utility>
+#include <functional>
 #include <tuple>
+#include <utility>
 
 namespace lipidid {
 
@@ -216,7 +217,7 @@ MainWindow::hideDock( bool hide )
 void
 MainWindow::importSDFile( bool flag )
 {
-    ADDEBUG() << "-------------- importSDFile -----------------" << flag;
+    SDFileImport( this ).import();
 }
 
 QWidget *
