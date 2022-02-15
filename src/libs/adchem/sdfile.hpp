@@ -58,6 +58,7 @@ namespace adchem {
         operator bool() const;
         size_t size() const;
         RDKit::SDMolSupplier& molSupplier();
+        inline const std::string& filename() const { return filename_; }
 
         SDMol at( size_t );
         std::vector< SDMol > populate( std::function<void(size_t)> progrss = [](size_t){} );

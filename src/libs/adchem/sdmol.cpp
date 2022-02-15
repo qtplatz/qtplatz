@@ -25,7 +25,7 @@
 #include "sdmol.hpp"
 #include "sdfile.hpp"
 #include "drawing.hpp"
-// #include <adportable/debug.hpp>
+#include <adportable/debug.hpp>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/FileParsers.h>
@@ -141,4 +141,19 @@ const std::vector< std::pair< std::string, std::string > >
 SDMol::dataItems() const
 {
     return dataItems_;
+}
+
+std::pair< double, double >
+SDMol::logP() const
+{
+    if ( mol_ ) {
+        double logp, mr;
+        try {
+            RDKit::Descriptors::calcCrippenDescriptors(*mol_, logp, mr );
+            return { logp, mr };
+        } catch ( std::exception& ex ) {
+            ADDEBUG() << "Exception: " << ex.what();
+        }
+    }
+    return {};
 }

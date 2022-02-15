@@ -70,5 +70,8 @@ namespace Constants {
     // QObject names
     const char * const EDIT_PROCMETHOD    = "lipidid.MainWindow.procmethodname";
 
+    const char * const LIPIDID_TASK_SDFIMPORT = "lipidid.task.sdfimport";
+
+
 } // Constants
 } // namespace lipidid

@@ -185,9 +185,10 @@ MainWindow::OnInitialUpdate()
 
     connect( document::instance(), &document::onConnectionChanged, [this]{
         if ( auto table = findChild< MolTableWnd * >() ) {
-            table->setQuery(
-                "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName"
-                " FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
+            table->setQuery("SELECT * from mols");
+            // table->setQuery(
+            //     "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName"
+            //     " FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
         }
     } );
 
@@ -217,7 +218,10 @@ MainWindow::hideDock( bool hide )
 void
 MainWindow::importSDFile( bool flag )
 {
-    SDFileImport( this ).import();
+    ADDEBUG() << "-------------- import sdfile -----------------";
+    if ( auto sdfimport = std::make_shared< SDFileImport >( this ) )
+        sdfimport->import();
+    ADDEBUG() << "-------------- import sdfile done -----------------";
 }
 
 QWidget *

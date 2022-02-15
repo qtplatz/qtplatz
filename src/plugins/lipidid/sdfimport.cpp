@@ -21,13 +21,18 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#include "constants.hpp"
 #include "document.hpp"
 #include "sdfimport.hpp"
 #include <adchem/sdfile.hpp>
 #include <adchem/sdmol.hpp>
 #include <adchem/sdmolsupplier.hpp>
+#include <adcontrols/chemicalformula.hpp>
+#include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/settings.hpp>
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
@@ -38,8 +43,15 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <GraphMol/inchi.h>
-#include <boost/filesystem.hpp>
+#include <QCoreApplication>
 #include <QFileDialog>
+#include <boost/filesystem.hpp>
+#include <boost/json.hpp>
+#include <chrono>
+#include <cstdlib>
+#include <filesystem>
+#include <future>
+#include <thread>
 
 using lipidid::SDFileImport;
 
@@ -47,30 +59,96 @@ namespace lipidid {
 
     class SDFileImport::impl {
     public:
-        std::shared_ptr< adchem::SDFile > sdfile_;
-        std::vector< adchem::SDMol > sdmols_;
+        typedef std::tuple< RDKit::ROMol
+                            , std::string // inchi
+                            , std::vector< std::pair< std::string, std::string > > // dataItems
+                            > value_type;
+
+        std::vector< value_type > values_;
+        std::shared_ptr< adchem::SDFile > sdfile_; // keep it
+
+        void populate( std::shared_ptr< adchem::SDFile > sdfile
+                       , std::shared_ptr< adfs::sqlite > sqlite
+                       , std::shared_ptr< adwidgets::ProgressInterface > p );
+
+        static impl& instance() {
+            static impl __instance;
+            return __instance;
+        }
+    private:
+        void task(  std::shared_ptr< adchem::SDFile > sdfile
+                    , std::shared_ptr< adfs::sqlite > sqlite
+                    , std::shared_ptr< adwidgets::ProgressInterface > p );
+    };
+
+    struct SlogP {
+        std::optional< double > operator()( const std::vector< std::pair< std::string, std::string > >& itemData ) const {
+            auto it = std::find_if( itemData.begin(), itemData.end()
+                                    , [](const auto& a){ return a.first == "SlogP"; });
+            if ( it == itemData.end() )
+                return {};
+            else {
+                char * end;
+                return std::strtod( it->second.c_str(), &end );
+            }
+        }
+    };
+    struct itemSelector {
+        std::string operator()( const std::vector< std::pair< std::string, std::string > >& list ) const {
+            const static std::vector< std::string > select = {
+                "ABBREVIATION"
+                //, "Abbreviation"
+                , "CATEGORY"
+                //, "CLASS_LEVEL4"
+                //, "Compound name"
+                //, "EXACT_MASS"
+                //, "Exact Mass"
+                //, "ExactMW"
+                //, "FORMULA=Formula"
+                , "LM_ID"
+                , "MAIN_CLASS"
+                //, "MRM transition"
+                , "NAME"
+                //, "Precursor-ion"
+                //, "Product-ion"
+                //, "SMILES"
+                //, "SUB_CLASS"
+                , "SWISSLIPIDS_ID"
+                , "SYNONYMS"
+                //, "SYSTEMATIC_NAME"
+                //, "SlogP"
+                //, "The number of lipid species"
+                //, "各脂質分子の量 (pmol/mg-protein)"
+            };
+            std::vector< std::pair< std::string, std::string > > filterd;
+            std::copy_if( list.begin(), list.end(), std::back_inserter( filterd )
+                          , [&](const auto& a){
+                              return
+                                  std::find_if( select.begin(), select.end(), [&](const auto& t){ return t == a.first; }) != select.end();
+                          });
+            return boost::json::serialize( boost::json::value{{"dataItem", filterd}} );
+        }
     };
 
 }
 
 SDFileImport::~SDFileImport()
 {
+    ADDEBUG() << "### SDFileImport DTOR ###";
 }
 
 SDFileImport::SDFileImport( QWidget * parent ) : QWidget( parent )
-                                               , impl_( std::make_unique< impl >() )
 {
 }
-
 
 bool
 SDFileImport::import()
 {
     QString fn = QFileDialog::getOpenFileName(
-        this
-        , tr("Open File...")
+        nullptr
+        , QObject::tr("Open File...")
         , qtwrapper::settings( *document::settings() ).recentFile( "SDF", "Files" )
-        , tr("SDF Files (*.sdf);;All Files (*)"));
+        , QObject::tr("SDF Files (*.sdf);;All Files (*)"));
 
     if ( !fn.isEmpty() ) {
         auto path = boost::filesystem::path( fn.toStdString() );
@@ -78,21 +156,161 @@ SDFileImport::import()
         if ( boost::filesystem::exists( path, ec ) ) {
             qtwrapper::settings( *document::settings() ).addRecentFiles( "SDF", "Files", fn );
             auto sdfile = adchem::SDFile::create( path.string() ); // std::shared_ptr< SDFile >
-            if ( *sdfile ) {
-                impl_->sdfile_ = std::move( sdfile );
+
+            if ( auto sqlite = create_tables( path.stem().string() ) ) {
+                if ( *sdfile ) {
+                    auto p = std::make_shared< adwidgets::ProgressInterface >();
+                    impl::instance().populate( sdfile, sqlite, p );
+                }
             }
         }
     }
     return false;
 }
 
-void
-SDFileImport::populate()
+std::shared_ptr< adfs::sqlite >
+SDFileImport::create_tables( const std::string& stem )
 {
-    auto progress = [&](size_t count){ if ( count % 1000 == 0 ) std::cerr << "\r" << count; };
-
-    if ( impl_->sdmols_.empty() && impl_->sdfile_->size() ) {
-        impl_->sdmols_ = impl_->sdfile_->populate( progress );
-        std::cerr << "\r" << impl_->sdmols_.size() << std::endl;
+    boost::filesystem::path fpath( qtwrapper::settings( *document::settings() ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
+    if ( fpath.empty() ) {
+        auto path = boost::filesystem::path( document::settings()->fileName().toStdString() );
+        auto dir = path.remove_filename() / "lipidid";
+        fpath = (dir / stem).replace_extension( ".db" );
+    } else {
+        auto dir = fpath.remove_filename();
+        fpath = (dir / stem).replace_extension( ".db" );
     }
+
+    QString fn = QFileDialog::getSaveFileName(
+        nullptr
+        , QObject::tr("Save File...")
+        , QString::fromStdString( fpath.string() )
+        , QObject::tr("SQLite Files (*.db *.sqlite);;All Files (*)") );
+
+    if ( !fn.isEmpty() ) {
+        auto file = std::filesystem::path( fn.toStdString() );
+        if ( std::filesystem::exists( file ) ) {
+            auto ofile = file.string() + std::string( ".bak" );
+            if ( std::filesystem::exists( ofile ) )
+                std::filesystem::remove( ofile );
+            std::filesystem::rename( file, ofile );
+        }
+        if ( auto sqlite = std::make_shared< adfs::sqlite >() ) {
+            if ( sqlite->open( file.string().c_str(), adfs::opencreate ) ) {
+                auto sql = adfs::stmt( *sqlite );
+                sql.exec(
+                    "CREATE TABLE IF NOT EXISTS mols ("
+                    "id INTEGER PRIMARY KEY"
+                    ",svg              TEXT"
+                    ",smiles           TEXT"
+                    ",formula          TEXT"
+                    ",mass             REAL"
+                    ",SlogP            REAL"
+                    ",inchiKey         TEXT"
+                    ",itemData         TEXT" //  JSON
+                    ",UNIQUE(inchiKey)"
+                    ")"
+                    );
+                qtwrapper::settings( *document::settings() ).addRecentFiles( "LIPID_MAPS", "Files", fn );
+            }
+            return sqlite;
+        }
+    }
+    return {};
 }
+
+void
+SDFileImport::impl::populate( std::shared_ptr< adchem::SDFile > sdfile
+                              , std::shared_ptr< adfs::sqlite > sqlite
+                              , std::shared_ptr< adwidgets::ProgressInterface > p )
+{
+    sdfile_ = sdfile;
+    Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::LIPIDID_TASK_SDFIMPORT );
+
+    (*p)( 0, sdfile->size() );
+
+    auto future = std::async( std::launch::async, [=](){ task( sdfile, sqlite, p ); } );
+
+    while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+        QCoreApplication::instance()->processEvents();
+    future.wait();
+}
+
+void
+SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
+                          , std::shared_ptr< adfs::sqlite > sqlite
+                          , std::shared_ptr< adwidgets::ProgressInterface > p )
+{
+    // std::set< std::string > dataKeys;
+    adfs::stmt sql( *sqlite );
+    if ( sql.prepare("INSERT INTO mols (id, svg, smiles, formula, mass, SlogP, inchiKey, itemData) VALUES (?,?,?,?,?,?,?,?)") ) {
+
+        for ( size_t i = 0; i < sdfile->size(); ++i ) {
+            auto sdmol     = sdfile->at( i );
+            auto inchikey  = RDKit::MolToInchiKey( sdmol.mol() );
+            auto svg       = sdmol.svg();
+            auto smiles    = sdmol.smiles();
+            auto formula   = sdmol.formula();
+            double mass    = sdmol.mass();
+            double logP(0);
+            if ( auto a = SlogP()( sdmol.dataItems() ) )
+                logP  = *a;
+            else
+                std::tie(logP, std::ignore) = sdmol.logP();
+            auto json = itemSelector()( sdmol.dataItems() );
+
+            int col(1);
+            sql.bind( col++ ) = sdmol.index();
+            sql.bind( col++ ) = svg;
+            sql.bind( col++ ) = smiles;
+            sql.bind( col++ ) = formula;
+            sql.bind( col++ ) = mass;
+            sql.bind( col++ ) = logP;
+            sql.bind( col++ ) = inchikey;
+            sql.bind( col++ ) = json;
+
+            if ( sql.step() != adfs::sqlite_done ) {
+                ADDEBUG() << "sql error: " << sql.errmsg();
+            }
+            sql.reset();
+            // -- for initial schema code preparation ->
+            // for ( const auto& item: sdmol.dataItems() )
+            //     dataKeys.insert( item.first );
+            (*p)(i);
+            qApp->processEvents();
+        }
+    } else {
+        ADDEBUG() << "sql error: " << sql.errmsg();
+    }
+
+    // -- for initial schema code preparation ->
+    // for ( const auto& key: dataKeys )
+    //     ADDEBUG() << key;
+    // <- for initial schema code preparation --
+}
+
+/*
+ABBREVIATION
+ Abbreviation
+ CATEGORY
+ CLASS_LEVEL4
+ Compound name
+ EXACT_MASS
+ Exact Mass
+ ExactMW
+ FORMULA=Formula
+ LM_ID
+ MAIN_CLASS
+ MRM transition
+ NAME
+ Precursor-ion
+ Product-ion
+ SMILES
+ SUB_CLASS
+ SWISSLIPIDS_ID
+ SYNONYMS
+ SYSTEMATIC_NAME
+ SlogP
+ The number of lipid species
+ 各脂質分子の量 (pmol/mg-protein)
+ */

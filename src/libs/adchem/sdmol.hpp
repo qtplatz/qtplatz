@@ -60,6 +60,7 @@ namespace adchem {
 
         const std::string& formula();
         double mass();
+        std::pair< double, double > logP() const;
         const std::vector< std::pair< std::string, std::string > > dataItems() const;
         size_t index() const { return index_; }
         RDKit::ROMol& mol();

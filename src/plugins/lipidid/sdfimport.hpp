@@ -27,22 +27,28 @@
 #include <QWidget>
 #include <memory>
 
+namespace adchem { class SDFile; }
+namespace adfs { class sqlite; }
+
 namespace lipidid {
 
+    //class SDFileImport : public std::enable_shared_from_this< SDFileImport > {
     class SDFileImport : public QWidget {
         Q_OBJECT
+
+        SDFileImport( const SDFileImport& ) = delete;
+        SDFileImport& operator = ( const SDFileImport& ) = delete;
     public:
+        explicit SDFileImport( QWidget * parent );
         ~SDFileImport();
-        explicit SDFileImport( QWidget *parent = 0 );
 
         bool import();
-        void populate();
+        std::shared_ptr< adfs::sqlite > create_tables( const std::string& stem );
 
     public slots:
 
     private:
         class impl;
-        std::unique_ptr< impl > impl_;
     };
 
 }
