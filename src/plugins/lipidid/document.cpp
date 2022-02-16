@@ -31,6 +31,7 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
@@ -60,11 +61,11 @@ namespace lipidid {
 
     struct reference_mass {
         typedef std::tuple< double, int, std::string, std::string > value_type;
-        const value_type& t_;
-        reference_mass( value_type& t ) : t_( t ) {}
-
+        value_type t_;
+        reference_mass( value_type&& t ) : t_( std::move( t ) ) {}
+        reference_mass( const reference_mass& t ) : t_( t.t_ ) {}
         double mass() const { return std::get< 0 >( t_ ); }
-        double charge() const { return std::get< 1 >( t_ ); }
+        int charge() const { return std::get< 1 >( t_ ); }
         std::string formula() const { return std::get< 2 >( t_ ); }
         std::string adducts() const { return std::get< 3 >( t_ ); }
     };
@@ -104,7 +105,7 @@ namespace lipidid {
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
-        std::vector< reference_mass::value_type > reference_list_;
+        std::vector< reference_mass > reference_list_;
     };
 
 }
@@ -280,18 +281,27 @@ document::find_all( adcontrols::MetIdMethod&& t )
             impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey ) );
         }
     }
+    ADDEBUG() << impl_->mols_.size() << " formulae loaded from " << counts << " total molecules";
+    ADDEBUG() << "generating reference mass list...";
 
-#if 0
-    size_t idx(0);
-    for ( auto sdmol: impl_->sdmols_ ) {
-        if ( sdmol.mass() >= impl_->mass_range_.first && sdmol.mass() <= impl_->mass_range_.second ) {
-            impl_->mols_[ sdmol.formula() ].emplace_back( std::move( sdmol ) );
+    for ( auto it = impl_->mols_.begin(); it != impl_->mols_.end(); ++it ) {
+        const auto& stdformula = it->first;
+        for ( auto adduct: method.adducts() ) {
+            if ( adduct.first ) { // enable
+                auto formulae = adcontrols::ChemicalFormula::split( stdformula + " " + adduct.second );
+                auto [mass, charge] = adcontrols::ChemicalFormula().getMonoIsotopicMass( formulae );
+                impl_->reference_list_.emplace_back( std::make_tuple( mass, charge, stdformula, adduct.second ) );
+            }
         }
-        if ( ( idx % 1000 ) == 0 )
-            std::cerr << "\rloading mols: " << idx;
-        idx++;
     }
 
+    ADDEBUG() << impl_->reference_list_.size() << " total number of masses.";
+
+    // make it ascending order
+    std::sort( impl_->reference_list_.begin(), impl_->reference_list_.end()
+               , [](const auto& a, const auto& b){ return a.mass() < b.mass(); } );
+
+#if 0
     std::cerr << "\rtotal number of structures: " << idx << std::endl;
     std::cerr << "total number of formulae: " << impl_->mols_.size() << std::endl;
 
