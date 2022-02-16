@@ -301,6 +301,48 @@ document::find_all( adcontrols::MetIdMethod&& t )
     std::sort( impl_->reference_list_.begin(), impl_->reference_list_.end()
                , [](const auto& a, const auto& b){ return a.mass() < b.mass(); } );
 
+    // iterate observed peaks in the simple_mass_spectrum
+    for ( auto mIt = tms->begin(); mIt != tms->end(); ++mIt ) {
+        auto observed_mass = mass_value_t::mass( *mIt );
+        auto lit = std::lower_bound( impl_->reference_list_.begin()
+                                     , impl_->reference_list_.end()
+                                     , observed_mass - mass_tolerance / 2.0
+                                     , []( const auto& a, double b ){ return a.mass() < b; });
+
+        std::vector< std::vector< reference_mass >::const_iterator > tmp;
+        if ( lit != impl_->reference_list_.end() ) {
+            while ( lit->mass() < (observed_mass + mass_tolerance / 2.0) )
+                tmp.emplace_back( lit++ );
+        }
+        // sort gathered references in abs(mass error) ascending order
+        std::sort( tmp.begin(), tmp.end()
+                   , [&](const auto& a, const auto& b){
+                       return std::abs( observed_mass - a->mass() ) < std::abs( observed_mass - b->mass() );
+                   });
+        const size_t index = std::distance( tms->begin(), mIt ); // peak index
+
+        for ( const auto& t: tmp ) {
+            // isotope cluster
+            double mass         = t->mass();
+            std::string formula = t->formula();
+            std::string adducts = t->adducts();
+
+            auto cluster = isoCluster::compute( formula // ion_mass( *tIstd::get< 1 >( *tIt )->first // formula
+                                                , adducts     // *std::get< 2 >( *cIt )     // adduct
+                                                , 1.0e-4      // abundance low limit
+                                                , 4000 );     // R.P.
+
+            candidate x( mass               // exact mass
+                         , formula          // formula := map[string, mol]
+                         , adducts          // adduct
+                         , mass - mass_value_t::mass( (*tms)[ index ] ) // mass error
+                         , tms->find_cluster( index, cluster )
+                         , impl_->getInChIKeys( formula )
+                );
+            tms->add_a_candidate( index, std::move( x ) );
+        }
+    }
+
 #if 0
     std::cerr << "\rtotal number of structures: " << idx << std::endl;
     std::cerr << "total number of formulae: " << impl_->mols_.size() << std::endl;
