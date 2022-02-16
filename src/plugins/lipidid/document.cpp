@@ -103,6 +103,7 @@ namespace lipidid {
         QSqlDatabase db_;
         std::shared_ptr< adfs::sqlite > sqlite_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
+        std::shared_ptr< simple_mass_spectrum > assigned_ms_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
         std::vector< reference_mass > reference_list_;
@@ -342,78 +343,6 @@ document::find_all( adcontrols::MetIdMethod&& t )
             tms->add_a_candidate( index, std::move( x ) );
         }
     }
-
-#if 0
-    std::cerr << "\rtotal number of structures: " << idx << std::endl;
-    std::cerr << "total number of formulae: " << impl_->mols_.size() << std::endl;
-
-    std::cerr << "generating mass list..." << std::endl;
-    impl_->mass_list_.clear();
-    for ( auto mit = impl_->mols_.begin(); mit != impl_->mols_.end(); ++mit ) {
-        if ( impl_->debug_mode_ ) {
-            std::cout << "# mols:\t"
-                      << std::distance( impl_->mols_.begin(), mit )
-                      << "\t" << mit->first << "\t" << mit->second.size() << "\t" << mit->second.at( 0 ).mass();
-            for ( auto& mol: mit->second ) {
-                auto key = RDKit::MolToInchiKey( mol.sdmol()->mol() );
-                std::cout << ",{" << key << "}";
-            }
-            std::cout << std::endl;
-        }
-        for ( auto ait = impl_->adducts_.begin(); ait != impl_->adducts_.end(); ++ait ) {
-            auto formulae = adcontrols::ChemicalFormula::split( mit->first + " " + *ait );
-            auto [mass, charge] = adcontrols::ChemicalFormula().getMonoIsotopicMass( formulae );
-            impl_->mass_list_.emplace_back( mass, mit, ait );
-        }
-    }
-    std::sort( impl_->mass_list_.begin(), impl_->mass_list_.end()
-               , [](const auto& a, const auto& b){ return std::get<0>(a) < std::get<0>(b); } );
-
-    ////////////////////////
-    if ( impl_->debug_mode_ ) {
-        std::cout << "## -- listing all masses" << std::endl;
-        for ( const auto& a: impl_->mass_list_ ) {
-            std::cout << "# adducts:"
-                      << "\t" << std::setprecision( 5 ) << std::get<0>( a ) // mass
-                       << "\t" << std::get<1>( a )->first // formula
-                       << "\t" << *std::get<2>( a )       // adducts
-                       << std::endl;
-        }
-        std::cout << std::endl; // add blank line
-    }
-
-    for ( auto mIt = impl_->ms_->begin(); mIt != impl_->ms_->end(); ++mIt ) {
-        auto observed_mass = simple_mass_spectrum::mass( *mIt );
-        auto lit = std::lower_bound( impl_->mass_list_.begin(), impl_->mass_list_.end()
-                                     , observed_mass - impl_->mass_tolerance_ / 2.0
-                                     , []( const auto& a, double b ){ return std::get<0>(a) < b; });
-        std::vector< std::vector< impl::ion_mass_type >::const_iterator > candidates;
-        if ( lit != impl_->mass_list_.end() ) {
-            while ( std::get< 0 >(*lit) < (observed_mass + impl_->mass_tolerance_ / 2.0) )
-                candidates.emplace_back( lit++ );
-        }
-        std::sort( candidates.begin(), candidates.end()
-                   , [&](const auto& a, const auto& b){
-                       return std::abs( observed_mass - std::get< 0 >( *a ) ) < std::abs( observed_mass - std::get< 0 >( *b ) );
-                   });
-        const size_t index = std::distance( impl_->ms_->begin(), mIt );
-        for ( const auto& c: candidates ) {
-            // isotope cluster
-            auto cluster = isoCluster::compute( std::get< 1 >( *c )->first // formula
-                                                , *std::get< 2 >( *c )     // adduct
-                                                , 1.0e-4   // abundance low limit
-                                                , 4000 );  // R.P.
-            candidate t( std::get< 0 >( *c )         // exact mass
-                         , std::get< 1 >( *c )->first  // formula := map[string, mol]
-                         , *std::get< 2 >( *c )        // adduct
-                         , std::get< 0 >( *c ) - simple_mass_spectrum::mass( (*impl_->ms_)[ index ] ) // mass error
-                         , impl_->ms_->find_cluster( index, cluster )
-                         , this->inchiKeys( std::get< 1 >( *c )->first )
-                         , this->dataItems( std::get< 1 >( *c )->first )
-                );
-            impl_->ms_->add_a_candidate( index, std::move( t ) );
-        }
-    }
-#endif
+    impl_->assigned_ms_ = std::move( tms );
     return true;
 }

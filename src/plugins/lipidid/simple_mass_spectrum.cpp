@@ -122,9 +122,6 @@ simple_mass_spectrum::end() const
     return impl_->data_.end();
 }
 
-// void
-// simple_mass_spectrum::add_a_candidate( size_t idx, double exact_mass, const std::string& formula
-//                                        , const std::string& adduct, std::vector< isoPeak >&& isotope )
 void
 simple_mass_spectrum::add_a_candidate( size_t idx, candidate&& t )
 {
@@ -206,4 +203,28 @@ simple_mass_spectrum::cluster_match_result( size_t idx ) const
     if ( it != impl_->isotope_match_result_.end() )
         return it->second;
     return {};
+}
+
+namespace lipidid {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value&, const simple_mass_spectrum& ms )
+    {
+        using lipidid::mass_value_t;
+        for ( size_t i = 0; i < ms.size(); ++i ) {
+            boost::json::array ja;
+            for ( size_t i = 0; i < ms.size(); ++i ) {
+                const auto& value = ms[ i ];
+                boost::json::object jobj = {
+                    { "idx", i }
+                    , { "mass", mass_value_t::mass( value ) }
+                    , { "intensity", mass_value_t::intensity( value ) }
+                    , { "color", mass_value_t::color( value ) }
+                    , { "candidates", ms.candidates( i ) }
+                };
+                ja.emplace_back( jobj );
+            }
+        }
+    }
+
 }
