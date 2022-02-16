@@ -208,23 +208,23 @@ simple_mass_spectrum::cluster_match_result( size_t idx ) const
 namespace lipidid {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value&, const simple_mass_spectrum& ms )
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const simple_mass_spectrum& ms )
     {
         using lipidid::mass_value_t;
+        boost::json::array ja;
         for ( size_t i = 0; i < ms.size(); ++i ) {
-            boost::json::array ja;
-            for ( size_t i = 0; i < ms.size(); ++i ) {
-                const auto& value = ms[ i ];
-                boost::json::object jobj = {
-                    { "idx", i }
-                    , { "mass", mass_value_t::mass( value ) }
-                    , { "intensity", mass_value_t::intensity( value ) }
-                    , { "color", mass_value_t::color( value ) }
-                    , { "candidates", ms.candidates( i ) }
-                };
-                ja.emplace_back( jobj );
-            }
+            const auto& value = ms[ i ];
+            // ADDEBUG() << "value: " << value;
+            boost::json::object jobj = {
+                { "idx", i }
+                , { "mass", mass_value_t::mass( value ) }
+                , { "intensity", mass_value_t::intensity( value ) }
+                , { "color", mass_value_t::color( value ) }
+                , { "candidates", ms.candidates( i ) }
+            };
+            ja.emplace_back( jobj );
         }
+        jv = boost::json::object{{ "peaks", ja }};
     }
 
 }

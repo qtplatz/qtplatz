@@ -45,6 +45,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <boost/filesystem.hpp>
+#include <boost/json.hpp>
 #include <tuple>
 
 Q_DECLARE_METATYPE( portfolio::Folium )
@@ -344,5 +345,6 @@ document::find_all( adcontrols::MetIdMethod&& t )
         }
     }
     impl_->assigned_ms_ = std::move( tms );
+    ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->assigned_ms_ }};
     return true;
 }
