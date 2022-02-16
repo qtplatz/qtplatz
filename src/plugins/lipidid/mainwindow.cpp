@@ -59,7 +59,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QCompleter>
 #include <QDir>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
@@ -75,7 +74,6 @@
 #include <QPushButton>
 #include <QResizeEvent>
 #include <QStackedWidget>
-#include <QStringListModel>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -374,24 +372,6 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
     if ( auto widget = dock_create< MetIdWidget >( pThis, "Adducts/Losses", "Adducts" ) ) {
     }
     if ( auto widget = dock_create< SqlEditForm >( pThis, "SQL", "SqlEditForm" ) ) {
-        QStringList words ( "mols" );
-        if ( QCompleter * completer = new QCompleter( pThis ) ) {
-            QFile file( ":/query/wordlist.txt" );
-            if ( file.open( QFile::ReadOnly ) ) {
-                while ( !file.atEnd() ) {
-                    QByteArray line = file.readLine();
-                    if ( ! line.isEmpty() )
-                        words << line.trimmed();
-                }
-            }
-            words.sort( Qt::CaseInsensitive );
-            words.removeDuplicates();
-            completer->setModel( new QStringListModel( words, completer ) );
-            completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
-            completer->setCaseSensitivity( Qt::CaseInsensitive );
-            completer->setWrapAround( false );
-            widget->setCompleter( completer );
-        }
         if ( auto table = pThis->findChild< MolTableWnd * >() ) {
             QObject::connect( widget, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
         }

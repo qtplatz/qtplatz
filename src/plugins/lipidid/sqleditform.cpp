@@ -26,13 +26,43 @@
 #include "sqledit.hpp"
 #include <utils/styledbar.h>
 #include <adportable/debug.hpp>
+#include <QCompleter>
 #include <QBoxLayout>
 #include <QPushButton>
+#include <QStringListModel>
 
 using lipidid::SqlEditForm;
 
+namespace {
+    using lipidid::SqlEdit;
+    struct SqlCompleter {
+        QWidget * pThis_;
+        SqlCompleter( QWidget * p ) : pThis_( p ) {}
+        void operator()( SqlEdit * editor ) const  {
+            if ( auto completer = new QCompleter( pThis_ ) ) {
+                QStringList words ( "mols" );
+                QFile file( ":/query/wordlist.txt" );
+                if ( file.open( QFile::ReadOnly ) ) {
+                    while ( !file.atEnd() ) {
+                        QByteArray line = file.readLine();
+                        if ( ! line.isEmpty() )
+                            words << line.trimmed();
+                    }
+                }
+                words.sort( Qt::CaseInsensitive );
+                words.removeDuplicates();
+                completer->setModel( new QStringListModel( words, completer ) );
+                completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
+                completer->setCaseSensitivity( Qt::CaseInsensitive );
+                completer->setWrapAround( false );
+                editor->setCompleter( completer );
+            }
+        }
+    };
+}
+
 SqlEditForm::SqlEditForm(QWidget *parent) : QWidget(parent)
-                                      , semiColonCaptured_( false )
+                                          , semiColonCaptured_( false )
 {
     auto vLayout = new QVBoxLayout( this );
 
@@ -59,6 +89,7 @@ SqlEditForm::SqlEditForm(QWidget *parent) : QWidget(parent)
             }
             vLayout->addWidget( toolBar );
         }
+        SqlCompleter(this)( editor );
     }
 }
 

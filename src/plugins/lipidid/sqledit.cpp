@@ -83,7 +83,7 @@ SqlEdit::insertCompletion(const QString& completion)
     if (completer_->widget() != this)
         return;
     QTextCursor tc = textCursor();
-    int extra = completion.length() - completer_->completionPrefix().length();
+    // int extra = completion.length() - completer_->completionPrefix().length();
     tc.movePosition(QTextCursor::StartOfWord, QTextCursor::MoveAnchor );
     tc.movePosition(QTextCursor::EndOfWord, QTextCursor::KeepAnchor );
     tc.insertText(completion);
