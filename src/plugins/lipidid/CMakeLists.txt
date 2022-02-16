@@ -69,6 +69,16 @@ add_library( ${PROJECT_NAME} MODULE
   sqleditform.hpp
   sqledit.cpp
   sqledit.hpp
+  candidate.cpp
+  candidate.hpp
+  isocluster.cpp
+  isocluster.hpp
+  isopeak.cpp
+  isopeak.hpp
+  mol.cpp
+  mol.hpp
+  simple_mass_spectrum.cpp
+  simple_mass_spectrum.hpp
   ${Resources}
   )
 

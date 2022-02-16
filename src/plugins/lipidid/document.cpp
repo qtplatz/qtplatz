@@ -23,6 +23,12 @@
 **************************************************************************/
 
 #include "document.hpp"
+#include "mol.hpp"
+#include "simple_mass_spectrum.hpp"
+#include "candidate.hpp"
+#include "isocluster.hpp"
+#include "isopeak.hpp"
+#include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adportable/debug.hpp>
@@ -51,6 +57,18 @@ namespace lipidid {
         }
     };
 
+
+    struct reference_mass {
+        typedef std::tuple< double, int, std::string, std::string > value_type;
+        const value_type& t_;
+        reference_mass( value_type& t ) : t_( t ) {}
+
+        double mass() const { return std::get< 0 >( t_ ); }
+        double charge() const { return std::get< 1 >( t_ ); }
+        std::string formula() const { return std::get< 2 >( t_ ); }
+        std::string adducts() const { return std::get< 3 >( t_ ); }
+    };
+
     class document::impl {
     public:
         ~impl() {
@@ -69,14 +87,25 @@ namespace lipidid {
                 }
             }
         }
+        std::vector< std::string >
+        getInChIKeys( const std::string& formula ) const {
+            std::vector< std::string > t;
+            auto it = mols_.find( formula );
+            if ( it != mols_.end() ) {
+                for ( const auto& mol: it->second )
+                    t.emplace_back( mol.inchikey() );
+            }
+            return t;
+        }
 
         std::unique_ptr< QSettings > settings_;
         QSqlDatabase db_;
         std::shared_ptr< adfs::sqlite > sqlite_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         adcontrols::MetIdMethod method_;
+        std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
+        std::vector< reference_mass::value_type > reference_list_;
     };
-
 
 }
 
@@ -213,33 +242,42 @@ document::handleCheckStateChanged( adextension::iSessionManager *
               << folium.fullpath();
 }
 
-// namespace {
-//     template<typename Tuple, std::size_t... Is> Tuple get_column_values_impl( Tuple& t, adfs::stmt& sql, std::index_sequence<Is...> ) {
-//         ((std::get<Is>(t) = sql.get_column_value< std::tuple_element_t<Is, Tuple> >( Is )), ...);
-//         return t;
-//     }
-
-//     template<typename... Args> std::tuple< Args... > get_column_values( adfs::stmt& sql ) {
-//         std::tuple<Args...> t;
-//         return get_column_values_impl( t, sql, std::index_sequence_for< Args... >{} );
-//     }
-// }
-
 bool
 document::find_all( adcontrols::MetIdMethod&& t )
 {
+    impl_->mols_.clear();
+    impl_->reference_list_.clear();
     impl_->method_ = std::move( t );
+    const auto& method = impl_->method_;
+
+    double mass_tolerance = impl_->method_.tolerance( method.toleranceMethod() );
+    ADDEBUG() << "mass tolerance: " << mass_tolerance * 1000 << "mDa";
+
+    auto ms( impl_->ms_ );
+    if ( !ms ) {
+        ADDEBUG() << "no spectrum to be processed.";
+        return false;
+    }
+
+    using lipidid::simple_mass_spectrum;
+    using lipidid::mass_value_t;
+    auto tms = std::make_shared< lipidid::simple_mass_spectrum >();
+    tms->populate( *ms, [](auto value){ return mass_value_t::color( value ) == 15; });
+    if ( tms->size() == 0 ) {
+        ADDEBUG() << "no colored peak.";
+        return false;
+    }
+    qtwrapper::waitCursor waitCursor;
+
+    ADDEBUG() << "populating mols from database...";
+    size_t counts(0);
     if ( impl_->sqlite_ ) {
-        // make_list_of_possible_ions( *impl_->sqlite_ );
         adfs::stmt sql( *impl_->sqlite_ );
-        sql.prepare( "SELECT id,formula,smiles,inchiKey FROM mols WHERE mass < 200 ORDER BY mass" );
+        sql.prepare( "SELECT id,formula,smiles,inchiKey FROM mols WHERE mass < 1200 ORDER BY mass" );
         while ( sql.step() == adfs::sqlite_row ) {
-            auto t = adfs::get_column_values< int64_t, std::string, std::string, std::string >( sql );
-            ADDEBUG() << t;
-            // size_t id            = sql.get_column_value< int64_t >( 0 );
-            // std::string formula  = sql.get_column_value< std::string >( 1 );
-            // std::string smiles   = sql.get_column_value< std::string >( 2 );
-            // std::string inchiKey = sql.get_column_value< std::string >( 3 );
+            ++counts;
+            auto [ id, formula, smiles, inchikey ] = adfs::get_column_values< int64_t, std::string, std::string, std::string >( sql );
+            impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey ) );
         }
     }
 
