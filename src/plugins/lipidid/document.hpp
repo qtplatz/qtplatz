@@ -30,6 +30,7 @@
 class QSettings;
 class QSqlDatabase;
 
+namespace adcontrols   { class MetIdMethod; }
 namespace adextension  { class iSessionManager; }
 namespace portfolio    { class Folium; }
 
@@ -50,7 +51,7 @@ namespace lipidid {
 
         QSqlDatabase sqlDatabase();
         bool load( const QString& file );
-        bool find_all();
+        bool find_all( adcontrols::MetIdMethod&& );
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );

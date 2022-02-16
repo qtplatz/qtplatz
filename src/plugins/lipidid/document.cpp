@@ -24,10 +24,12 @@
 
 #include "document.hpp"
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/metidmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
 #include <adfs/sqlite.hpp>
+#include <adfs/get_column_values.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h> // <-- for Core::Constants::IDE_SETTINGSVARIANT_STR
 #include <QMessageBox>
@@ -59,9 +61,20 @@ namespace lipidid {
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "lipidid" ) ) )   {
         }
+
+        void handleConnectionChanged( const std::string& fpath ) {
+            if ( auto sqlite = std::make_shared< adfs::sqlite >() ) {
+                if ( sqlite->open( fpath.c_str(), adfs::readonly ) ) {
+                    sqlite_ = std::move( sqlite );
+                }
+            }
+        }
+
         std::unique_ptr< QSettings > settings_;
         QSqlDatabase db_;
+        std::shared_ptr< adfs::sqlite > sqlite_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
+        adcontrols::MetIdMethod method_;
     };
 
 
@@ -132,6 +145,7 @@ document::initialSetup()
             db.setDatabaseName( QString::fromStdString( fpath.string() ) );
             if ( db.open() ) {
                 impl_->db_ = std::move( db );
+                impl_->handleConnectionChanged( fpath.string() );
                 emit onConnectionChanged();
             } else {
                 QMessageBox::critical(0
@@ -199,9 +213,36 @@ document::handleCheckStateChanged( adextension::iSessionManager *
               << folium.fullpath();
 }
 
+// namespace {
+//     template<typename Tuple, std::size_t... Is> Tuple get_column_values_impl( Tuple& t, adfs::stmt& sql, std::index_sequence<Is...> ) {
+//         ((std::get<Is>(t) = sql.get_column_value< std::tuple_element_t<Is, Tuple> >( Is )), ...);
+//         return t;
+//     }
+
+//     template<typename... Args> std::tuple< Args... > get_column_values( adfs::stmt& sql ) {
+//         std::tuple<Args...> t;
+//         return get_column_values_impl( t, sql, std::index_sequence_for< Args... >{} );
+//     }
+// }
+
 bool
-document::find_all()
+document::find_all( adcontrols::MetIdMethod&& t )
 {
+    impl_->method_ = std::move( t );
+    if ( impl_->sqlite_ ) {
+        // make_list_of_possible_ions( *impl_->sqlite_ );
+        adfs::stmt sql( *impl_->sqlite_ );
+        sql.prepare( "SELECT id,formula,smiles,inchiKey FROM mols WHERE mass < 200 ORDER BY mass" );
+        while ( sql.step() == adfs::sqlite_row ) {
+            auto t = adfs::get_column_values< int64_t, std::string, std::string, std::string >( sql );
+            ADDEBUG() << t;
+            // size_t id            = sql.get_column_value< int64_t >( 0 );
+            // std::string formula  = sql.get_column_value< std::string >( 1 );
+            // std::string smiles   = sql.get_column_value< std::string >( 2 );
+            // std::string inchiKey = sql.get_column_value< std::string >( 3 );
+        }
+    }
+
 #if 0
     size_t idx(0);
     for ( auto sdmol: impl_->sdmols_ ) {
@@ -212,7 +253,6 @@ document::find_all()
             std::cerr << "\rloading mols: " << idx;
         idx++;
     }
-
 
     std::cerr << "\rtotal number of structures: " << idx << std::endl;
     std::cerr << "total number of formulae: " << impl_->mols_.size() << std::endl;

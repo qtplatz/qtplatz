@@ -126,9 +126,9 @@ MetIdWidget::MetIdWidget( QWidget * parent ) : QWidget( parent )
             layout->addWidget( splitter );
         }
     }
-    // if ( auto widget = findChild< TargetingAdducts * >() )
-    //     connect( widget, &TargetingAdducts::resetAdducts, this, &TargetingWidget::handleResetAdducts );
-    // connect( form_, &TargetingForm::triggerProcess, [this] { emit triggerProcess( "TargetingWidget" ); } );
+    if ( auto form = findChild< adwidgets::TargetingForm * >() ) {
+        connect( form, &adwidgets::TargetingForm::triggerProcess, [&] { emit triggered(); } );
+    }
 }
 
 void

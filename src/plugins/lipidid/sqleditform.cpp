@@ -91,6 +91,7 @@ SqlEditForm::SqlEditForm(QWidget *parent) : QWidget(parent)
         }
         SqlCompleter(this)( editor );
     }
+    setSQL( "SELECT * FROM mols WHERE mass > 100 AND mass < 1200 ORDER BY mass DESC" );
 }
 
 SqlEditForm::~SqlEditForm()

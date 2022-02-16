@@ -46,6 +46,9 @@ namespace lipidid {
 
     public slots:
 
+    signals:
+        void triggered();
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;

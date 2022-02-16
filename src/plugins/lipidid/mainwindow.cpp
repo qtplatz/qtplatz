@@ -31,6 +31,7 @@
 #include "peaklist.hpp"
 #include "sdfimport.hpp"
 #include <adlog/logger.hpp>
+#include <adcontrols/metidmethod.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
@@ -370,6 +371,7 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
         QObject::connect( document::instance(), &document::dataChanged, widget, &PeakList::handleDataChanged );
     }
     if ( auto widget = dock_create< MetIdWidget >( pThis, "Adducts/Losses", "Adducts" ) ) {
+        QObject::connect( widget, &MetIdWidget::triggered, [=]{ document::instance()->find_all( widget->getContents() ); } );
     }
     if ( auto widget = dock_create< SqlEditForm >( pThis, "SQL", "SqlEditForm" ) ) {
         if ( auto table = pThis->findChild< MolTableWnd * >() ) {
