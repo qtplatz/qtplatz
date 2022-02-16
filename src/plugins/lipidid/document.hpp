@@ -50,6 +50,7 @@ namespace lipidid {
 
         QSqlDatabase sqlDatabase();
         bool load( const QString& file );
+        bool find_all();
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );

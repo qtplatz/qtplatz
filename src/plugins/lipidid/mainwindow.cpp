@@ -27,6 +27,7 @@
 #include "metidwidget.hpp"
 #include "moltablewnd.hpp"
 #include "msspectrawnd.hpp"
+#include "sqleditform.hpp"
 #include "peaklist.hpp"
 #include "sdfimport.hpp"
 #include <adlog/logger.hpp>
@@ -39,6 +40,7 @@
 #include <adprot/peptide.hpp>
 #include <adprot/peptides.hpp>
 #include <adutils/adfile.hpp>
+#include <qtwrapper/trackingenabled.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -57,6 +59,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCompleter>
 #include <QDir>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
@@ -72,6 +75,7 @@
 #include <QPushButton>
 #include <QResizeEvent>
 #include <QStackedWidget>
+#include <QStringListModel>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -182,6 +186,7 @@ void
 MainWindow::OnInitialUpdate()
 {
     impl::createDockWidgets( this );
+    MainWindow::setSimpleDockWidgetArrangement();
 
     connect( document::instance(), &document::onConnectionChanged, [this]{
         if ( auto table = findChild< MolTableWnd * >() ) {
@@ -366,7 +371,30 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
     if ( auto widget = dock_create< PeakList >( pThis, "MS Peaks", "MS_Peaks" ) ) {
         QObject::connect( document::instance(), &document::dataChanged, widget, &PeakList::handleDataChanged );
     }
-    if ( auto widget = dock_create< MetIdWidget >( pThis, "Lipids", "Lipids" ) ) {
+    if ( auto widget = dock_create< MetIdWidget >( pThis, "Adducts/Losses", "Adducts" ) ) {
+    }
+    if ( auto widget = dock_create< SqlEditForm >( pThis, "SQL", "SqlEditForm" ) ) {
+        QStringList words ( "mols" );
+        if ( QCompleter * completer = new QCompleter( pThis ) ) {
+            QFile file( ":/query/wordlist.txt" );
+            if ( file.open( QFile::ReadOnly ) ) {
+                while ( !file.atEnd() ) {
+                    QByteArray line = file.readLine();
+                    if ( ! line.isEmpty() )
+                        words << line.trimmed();
+                }
+            }
+            words.sort( Qt::CaseInsensitive );
+            words.removeDuplicates();
+            completer->setModel( new QStringListModel( words, completer ) );
+            completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
+            completer->setCaseSensitivity( Qt::CaseInsensitive );
+            completer->setWrapAround( false );
+            widget->setCompleter( completer );
+        }
+        if ( auto table = pThis->findChild< MolTableWnd * >() ) {
+            QObject::connect( widget, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
+        }
     }
 }
 
@@ -435,4 +463,28 @@ MainWindow::impl::setup_menu_actions()
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
         }
     }
+}
+
+void
+MainWindow::setSimpleDockWidgetArrangement()
+{
+    qtwrapper::TrackingEnabled<Utils::FancyMainWindow> x( *this );
+
+    QList< QDockWidget *> widgets = dockWidgets();
+
+    for ( auto widget: widgets ) {
+        widget->setFloating( false );
+        removeDockWidget( widget );
+    }
+
+    size_t npos = 0;
+    for ( auto widget: widgets ) {
+        addDockWidget( Qt::BottomDockWidgetArea, widget );
+        widget->show();
+        if ( npos++ >= 2 )
+            tabifyDockWidget( widgets[1], widget );
+    }
+	widgets[1]->raise();
+
+    update();
 }

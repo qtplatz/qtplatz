@@ -65,6 +65,10 @@ add_library( ${PROJECT_NAME} MODULE
   metidwidget.hpp
   sdfimport.cpp
   sdfimport.hpp
+  sqleditform.cpp
+  sqleditform.hpp
+  sqledit.cpp
+  sqledit.hpp
   ${Resources}
   )
 

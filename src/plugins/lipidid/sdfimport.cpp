@@ -171,7 +171,8 @@ SDFileImport::import()
 std::shared_ptr< adfs::sqlite >
 SDFileImport::create_tables( const std::string& stem )
 {
-    boost::filesystem::path fpath( qtwrapper::settings( *document::settings() ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
+    using qtwrapper::settings;
+    boost::filesystem::path fpath( settings( *document::settings() ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
     if ( fpath.empty() ) {
         auto path = boost::filesystem::path( document::settings()->fileName().toStdString() );
         auto dir = path.remove_filename() / "lipidid";
@@ -202,11 +203,11 @@ SDFileImport::create_tables( const std::string& stem )
                     "CREATE TABLE IF NOT EXISTS mols ("
                     "id INTEGER PRIMARY KEY"
                     ",svg              TEXT"
-                    ",smiles           TEXT"
                     ",formula          TEXT"
                     ",mass             REAL"
                     ",SlogP            REAL"
                     ",inchiKey         TEXT"
+                    ",smiles           TEXT"
                     ",itemData         TEXT" //  JSON
                     ",UNIQUE(inchiKey)"
                     ")"
@@ -239,11 +240,13 @@ SDFileImport::impl::populate( std::shared_ptr< adchem::SDFile > sdfile
 void
 SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
                           , std::shared_ptr< adfs::sqlite > sqlite
-                          , std::shared_ptr< adwidgets::ProgressInterface > p )
+                          , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
-    // std::set< std::string > dataKeys;
     adfs::stmt sql( *sqlite );
-    if ( sql.prepare("INSERT INTO mols (id, svg, smiles, formula, mass, SlogP, inchiKey, itemData) VALUES (?,?,?,?,?,?,?,?)") ) {
+
+    if ( sql.prepare("INSERT INTO mols (id,svg,formula,mass,SlogP,inchiKey,smiles,itemData) VALUES (?,?,?,?,?,?,?,?)") ) {
+
+        std::vector< std::tuple< size_t, std::string, double, std::string > > dbg;
 
         for ( size_t i = 0; i < sdfile->size(); ++i ) {
             auto sdmol     = sdfile->at( i );
@@ -259,24 +262,28 @@ SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
                 std::tie(logP, std::ignore) = sdmol.logP();
             auto json = itemSelector()( sdmol.dataItems() );
 
+            if ( ( i % 1000 ) == 0 ) {
+                ADDEBUG() << i << "/" << sdfile->size() << "\t" << std::make_tuple( i, formula, mass, inchikey );
+            }
+
             int col(1);
             sql.bind( col++ ) = sdmol.index();
             sql.bind( col++ ) = svg;
-            sql.bind( col++ ) = smiles;
             sql.bind( col++ ) = formula;
             sql.bind( col++ ) = mass;
             sql.bind( col++ ) = logP;
             sql.bind( col++ ) = inchikey;
+            sql.bind( col++ ) = smiles;
             sql.bind( col++ ) = json;
 
             if ( sql.step() != adfs::sqlite_done ) {
-                ADDEBUG() << "sql error: " << sql.errmsg();
+                dbg.emplace_back( i, formula, mass, inchikey );
+                ADDEBUG() << "sql error: " << sql.errmsg()
+                          << "\t" << dbg.back()
+                          << "\terror count: " << dbg.size();
             }
             sql.reset();
-            // -- for initial schema code preparation ->
-            // for ( const auto& item: sdmol.dataItems() )
-            //     dataKeys.insert( item.first );
-            (*p)(i);
+            (*progress)(i);
             qApp->processEvents();
         }
     } else {
