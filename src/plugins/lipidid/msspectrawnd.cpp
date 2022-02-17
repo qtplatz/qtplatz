@@ -210,6 +210,14 @@ MSSpectraWnd::handleDataChanged( const portfolio::Folium& folium )
 }
 
 void
+MSSpectraWnd::handleIdCompleted()
+{
+    if ( auto refms = document::instance()->reference_mass_spectrum() ) {
+        impl_->plots_[ 1 ]->setData( refms, 0 );
+    }
+}
+
+void
 MSSpectraWnd::onPageSelected()
 {
     if ( impl_->dirty_ ) {

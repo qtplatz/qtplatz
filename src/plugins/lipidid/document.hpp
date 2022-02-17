@@ -30,7 +30,7 @@
 class QSettings;
 class QSqlDatabase;
 
-namespace adcontrols   { class MetIdMethod; }
+namespace adcontrols   { class MetIdMethod; class MassSpectrum; }
 namespace adextension  { class iSessionManager; }
 namespace portfolio    { class Folium; }
 
@@ -53,6 +53,8 @@ namespace lipidid {
         bool load( const QString& file );
         bool find_all( adcontrols::MetIdMethod&& );
 
+        std::shared_ptr< const adcontrols::MassSpectrum > reference_mass_spectrum() const;
+
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );
 
@@ -68,6 +70,7 @@ namespace lipidid {
 
     signals:
         void onConnectionChanged();
+        void idCompleted();
 
         // souce iSessionManager
         void dataChanged( const portfolio::Folium& );

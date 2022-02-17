@@ -64,6 +64,7 @@ namespace lipidid {
         void handleCheckStateChanged( adprocessor::dataprocessor *, portfolio::Folium&, bool isChecked );
 
         void handleDataChanged( const portfolio::Folium& );
+        void handleIdCompleted();
 
     private:
         void init();

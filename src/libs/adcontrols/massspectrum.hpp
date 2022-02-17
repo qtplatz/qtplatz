@@ -165,12 +165,6 @@ namespace adcontrols {
         double intensity( size_t idx ) const;
         double time( size_t idx ) const;
 
-        // [[deprecated]] double getMinIntensity() const;
-        // [[deprecated]] double getMaxIntensity() const;
-        // [[deprecated]] double getMass( size_t idx ) const;
-        // [[deprecated]] double getIntensity( size_t idx ) const;
-        // [[deprecated]] double getTime( size_t idx ) const;
-
         size_t getIndexFromMass( double, bool closest = false ) const;
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 

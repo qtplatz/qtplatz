@@ -263,6 +263,7 @@ MainWindow::createContents( Core::IMode * mode )
             pWnd->setWindowTitle( "Spectra" );
             impl_->stackWidget_->addWidget( pWnd );
             connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
+            connect( document::instance(), &document::idCompleted, pWnd, &MSSpectraWnd::handleIdCompleted );
         }
 
         if ( auto pWnd = new MolTableWnd ) {

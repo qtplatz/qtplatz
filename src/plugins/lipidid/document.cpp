@@ -29,6 +29,8 @@
 #include "isocluster.hpp"
 #include "isopeak.hpp"
 #include <qtwrapper/waitcursor.hpp>
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -104,7 +106,8 @@ namespace lipidid {
         QSqlDatabase db_;
         std::shared_ptr< adfs::sqlite > sqlite_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
-        std::shared_ptr< simple_mass_spectrum > assigned_ms_;
+        std::shared_ptr< const adcontrols::MassSpectrum > refms_;
+        std::shared_ptr< simple_mass_spectrum > simple_mass_spectrum_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
         std::vector< reference_mass > reference_list_;
@@ -344,7 +347,46 @@ document::find_all( adcontrols::MetIdMethod&& t )
             tms->add_a_candidate( index, std::move( x ) );
         }
     }
-    impl_->assigned_ms_ = std::move( tms );
-    ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->assigned_ms_ }};
+    impl_->simple_mass_spectrum_ = std::move( tms );
+    ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+
+    if ( auto refMs = std::make_shared< adcontrols::MassSpectrum >() ) {
+        std::vector< double > masses, intensities;
+        refMs->clone( *ms, false );
+        auto simple_ms( impl_->simple_mass_spectrum_ );
+        for ( size_t idx = 0; idx < simple_ms->size(); ++idx ) {
+            auto [ tof, mass, intensity, color ] = (*simple_ms)[ idx ];
+
+            auto candidates = simple_ms->candidates( idx );
+            if ( ! candidates.empty() ) {
+                const auto& candidate = candidates.at( 0 );
+                auto cluster = isoCluster::compute( candidate.formula, candidate.adduct );
+                refMs->get_annotations()
+                    << adcontrols::annotation( candidate.formula + " " + candidate.adduct
+                                               , cluster.at(0).first // mass
+                                               , cluster.at(0).second * intensity
+                                               , masses.size() // index
+                                               , cluster.at(0).second * intensity
+                                               , adcontrols::annotation::dataFormula
+                                               , adcontrols::annotation::flag_targeting );
+                for ( const auto& ipk: cluster ) {
+                    masses.emplace_back( ipk.first );
+                    intensities.emplace_back( ipk.second * intensity );
+                }
+            }
+        }
+        refMs->setMassArray( std::move( masses ) );
+        refMs->setIntensityArray( std::move( intensities ) );
+        impl_->refms_ = std::move( refMs );
+    }
+
+    emit idCompleted();
+
     return true;
+}
+
+std::shared_ptr< const adcontrols::MassSpectrum >
+document::reference_mass_spectrum() const
+{
+    return impl_->refms_;
 }
