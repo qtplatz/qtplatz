@@ -23,27 +23,67 @@
 **************************************************************************/
 
 #include "metidprocessor.hpp"
+#include "candidate.hpp"
 #include "mol.hpp"
 #include "simple_mass_spectrum.hpp"
-#include <adwidgets/progressinterface.hpp>
+#include "isocluster.hpp"
+#include "isopeak.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
-#include <adfs/sqlite.hpp>
-
 #include <adfs/get_column_values.hpp>
 #include <adportable/debug.hpp>
+#include <adwidgets/progressinterface.hpp>
 
 using lipidid::MetIdProcessor;
 
 namespace lipidid {
+
+    struct reference_mass {
+        typedef std::tuple< double, int, std::string, std::string > value_type;
+        value_type t_;
+        reference_mass( value_type&& t ) : t_( std::move( t ) ) {}
+        reference_mass( const reference_mass& t ) : t_( t.t_ ) {}
+        double mass() const { return std::get< 0 >( t_ ); }
+        int charge() const { return std::get< 1 >( t_ ); }
+        std::string formula() const { return std::get< 2 >( t_ ); }
+        std::string adducts() const { return std::get< 3 >( t_ ); }
+    };
+
+    struct make_reference_spectrum {
+        const std::map< std::string, std::vector< lipidid::mol > >& mols_;
+        make_reference_spectrum( std::map< std::string, std::vector< lipidid::mol > >& mols ) : mols_( mols ) {}
+        std::shared_ptr< adcontrols::MassSpectrum > operator()(const adcontrols::MassSpectrum&
+                                                               , const simple_mass_spectrum& );
+        //, const simple_mass_spectrum& ) const;
+    };
+
     class MetIdProcessor::impl {
     public:
         impl() {}
         impl( const adcontrols::MetIdMethod& m ) : method_( m ) {}
 
+        std::vector< std::string >
+        getInChIKeys( const std::string& formula ) const {
+            std::vector< std::string > t;
+            auto it = mols_.find( formula );
+            if ( it != mols_.end() ) {
+                for ( const auto& mol: it->second )
+                    t.emplace_back( mol.inchikey() );
+            }
+            return t;
+        }
+
+        void make_reference_spectrum();
+
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
+        std::shared_ptr< const adcontrols::MassSpectrum > ms_;
+        // std::shared_ptr< const adcontrols::MassSpectrum > refms_;
+        // std::shared_ptr< lipidid::simple_mass_spectrum > simple_mass_spectrum_;
+        std::vector< reference_mass > reference_list_;
     };
 }
 
@@ -68,6 +108,7 @@ MetIdProcessor::find_all( adfs::sqlite& db
                           , std::shared_ptr< const adcontrols::MassSpectrum > ms
                           , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
+    auto self( shared_from_this() ); // protecting
     const auto& method = impl_->method_;
     double mass_tolerance = method.tolerance( method.toleranceMethod() );
     ADDEBUG() << "mass tolerance: " << mass_tolerance * 1000 << "mDa";
@@ -99,8 +140,6 @@ MetIdProcessor::find_all( adfs::sqlite& db
             impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey ) );
         }
     }
-
-    size_t total_size = impl_->mols_.size() * method.adducts().size();
 
     ADDEBUG() << impl_->mols_.size() << " formulae loaded from " << counts << " total molecules";
     ADDEBUG() << "generating reference mass list...";
@@ -164,17 +203,30 @@ MetIdProcessor::find_all( adfs::sqlite& db
             tms->add_a_candidate( index, std::move( x ) );
         }
     }
-    impl_->simple_mass_spectrum_ = std::move( tms );
+    // impl_->simple_mass_spectrum_ = std::move( tms );
+    auto refms = make_reference_spectrum( impl_->mols_ )( *ms, *tms );
+    return { ms, refms, tms };
     // ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+}
 
-    if ( auto refMs = std::make_shared< adcontrols::MassSpectrum >() ) {
+
+namespace lipidid {
+
+    std::shared_ptr< adcontrols::MassSpectrum >
+    make_reference_spectrum::operator()(const adcontrols::MassSpectrum& ms
+                                        , const simple_mass_spectrum& simple_ms )
+    {
+        auto refMs = std::make_shared< adcontrols::MassSpectrum >();
         std::vector< double > masses, intensities;
-        refMs->clone( *ms, false );
-        auto simple_ms( impl_->simple_mass_spectrum_ );
-        for ( size_t idx = 0; idx < simple_ms->size(); ++idx ) {
-            auto [ tof, mass, intensity, color ] = (*simple_ms)[ idx ];
+        std::vector< uint8_t > colors;
+        refMs->clone( ms, false );
+        int cid(0);
 
-            auto candidates = simple_ms->candidates( idx );
+        for ( size_t idx = 0; idx < simple_ms.size(); ++idx ) {
+            auto [ tof, mass, intensity, color ] = simple_ms[ idx ];
+
+            auto candidates = simple_ms.candidates( idx );
+
             if ( ! candidates.empty() ) {
                 const auto& candidate = candidates.at( 0 );
                 auto cluster = isoCluster::compute( candidate.formula, candidate.adduct );
@@ -189,15 +241,15 @@ MetIdProcessor::find_all( adfs::sqlite& db
                 for ( const auto& ipk: cluster ) {
                     masses.emplace_back( ipk.first );
                     intensities.emplace_back( ipk.second * intensity );
+                    colors.emplace_back( cid );
                 }
+                cid = ++cid > 8 ? 0 : cid;
             }
         }
         refMs->setMassArray( std::move( masses ) );
         refMs->setIntensityArray( std::move( intensities ) );
-        impl_->refms_ = std::move( refMs );
+        refMs->setColorArray( std::move( colors ) );
+        return refMs;
     }
 
-    return tms;
-
-    return {};
 }
