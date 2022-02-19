@@ -77,8 +77,12 @@ add_library( ${PROJECT_NAME} MODULE
   isopeak.hpp
   mol.cpp
   mol.hpp
+  mspeaktree.cpp
+  mspeaktree.hpp
   simple_mass_spectrum.cpp
   simple_mass_spectrum.hpp
+  metidprocessor.cpp
+  metidprocessor.hpp
   ${Resources}
   )
 

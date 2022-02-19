@@ -26,8 +26,11 @@
 #include "mol.hpp"
 #include "simple_mass_spectrum.hpp"
 #include "candidate.hpp"
+#include "constants.hpp"
 #include "isocluster.hpp"
 #include "isopeak.hpp"
+#include "metidprocessor.hpp"
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -39,8 +42,10 @@
 #include <adportfolio/folder.hpp>
 #include <adfs/sqlite.hpp>
 #include <adfs/get_column_values.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h> // <-- for Core::Constants::IDE_SETTINGSVARIANT_STR
+#include <QCoreApplication>
 #include <QMessageBox>
 #include <QSettings>
 #include <QSqlDatabase>
@@ -49,6 +54,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/json.hpp>
 #include <tuple>
+#include <future>
+#include <mutex>
 
 Q_DECLARE_METATYPE( portfolio::Folium )
 
@@ -91,6 +98,7 @@ namespace lipidid {
                 }
             }
         }
+
         std::vector< std::string >
         getInChIKeys( const std::string& formula ) const {
             std::vector< std::string > t;
@@ -102,12 +110,15 @@ namespace lipidid {
             return t;
         }
 
+        std::shared_ptr< lipidid::simple_mass_spectrum > find_all( std::shared_ptr< const adcontrols::MassSpectrum >
+                                                                   , std::shared_ptr< adwidgets::ProgressInterface > ) const;
+
         std::unique_ptr< QSettings > settings_;
         QSqlDatabase db_;
         std::shared_ptr< adfs::sqlite > sqlite_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         std::shared_ptr< const adcontrols::MassSpectrum > refms_;
-        std::shared_ptr< simple_mass_spectrum > simple_mass_spectrum_;
+        std::shared_ptr< lipidid::simple_mass_spectrum > simple_mass_spectrum_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
         std::vector< reference_mass > reference_list_;
@@ -148,6 +159,7 @@ document::initialSetup()
         ADDEBUG() << "## " << __FUNCTION__ << " ## " << counts;
         return;
     }
+
     do {
         boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
         if ( !boost::filesystem::exists( dir ) ) {
@@ -248,22 +260,58 @@ document::handleCheckStateChanged( adextension::iSessionManager *
               << folium.fullpath();
 }
 
+std::shared_ptr< const adcontrols::MassSpectrum >
+document::reference_mass_spectrum() const
+{
+    return impl_->refms_;
+}
+
+std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum
+            , std::shared_ptr< const adcontrols::MassSpectrum > // reference (calculated) spectrum
+            , std::shared_ptr< const lipidid::simple_mass_spectrum > // reference (calculated) spectrum
+            >
+document::getResultSet() const
+{
+    return { impl_->ms_, impl_->refms_, impl_->simple_mass_spectrum_ };
+}
+
 bool
 document::find_all( adcontrols::MetIdMethod&& t )
 {
-    impl_->mols_.clear();
+    qtwrapper::waitCursor waitCursor;
+
     impl_->reference_list_.clear();
     impl_->method_ = std::move( t );
-    const auto& method = impl_->method_;
-
-    double mass_tolerance = impl_->method_.tolerance( method.toleranceMethod() );
-    ADDEBUG() << "mass tolerance: " << mass_tolerance * 1000 << "mDa";
-
-    auto ms( impl_->ms_ );
-    if ( !ms ) {
+    if ( ! impl_->ms_ ) {
         ADDEBUG() << "no spectrum to be processed.";
         return false;
     }
+    if ( impl_->ms_ ) {
+        auto p = std::make_shared< adwidgets::ProgressInterface >();
+        Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::LIPIDID_TASK_FIND_ALL );
+
+        auto metid = lipidid::MetIdProcessor::create( impl_->method_ );
+        auto future = std::async( std::launch::async, [=](){ return metid->find_all( *impl_->sqlite_, impl_->ms_, p );} );
+
+        while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+            QCoreApplication::instance()->processEvents();
+        future.wait();
+
+        std::tie( impl_->ms_, impl_->refms_, impl_->simple_mass_spectrum_ ) = future.get();
+
+        emit idCompleted();
+    }
+
+    return true;
+}
+
+#if 0
+std::shared_ptr< lipidid::simple_mass_spectrum >
+document::impl::find_all( std::shared_ptr< const adcontrols::MassSpectrum > ms
+                          , std::shared_ptr< adwidgets::ProgressInterface > progress ) const
+{
+    double mass_tolerance = method_.tolerance( method_.toleranceMethod() );
+    ADDEBUG() << "mass tolerance: " << mass_tolerance * 1000 << "mDa";
 
     using lipidid::simple_mass_spectrum;
     using lipidid::mass_value_t;
@@ -271,9 +319,10 @@ document::find_all( adcontrols::MetIdMethod&& t )
     tms->populate( *ms, [](auto value){ return mass_value_t::color( value ) == 15; });
     if ( tms->size() == 0 ) {
         ADDEBUG() << "no colored peak.";
-        return false;
+        return {};
     }
-    qtwrapper::waitCursor waitCursor;
+
+    (*progress)( 0, tms->size() );
 
     ADDEBUG() << "populating mols from database...";
     size_t counts(0);
@@ -286,6 +335,9 @@ document::find_all( adcontrols::MetIdMethod&& t )
             impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey ) );
         }
     }
+
+    (*progress)( 0, tms->size() );
+
     ADDEBUG() << impl_->mols_.size() << " formulae loaded from " << counts << " total molecules";
     ADDEBUG() << "generating reference mass list...";
 
@@ -348,7 +400,7 @@ document::find_all( adcontrols::MetIdMethod&& t )
         }
     }
     impl_->simple_mass_spectrum_ = std::move( tms );
-    ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+    // ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
 
     if ( auto refMs = std::make_shared< adcontrols::MassSpectrum >() ) {
         std::vector< double > masses, intensities;
@@ -380,13 +432,6 @@ document::find_all( adcontrols::MetIdMethod&& t )
         impl_->refms_ = std::move( refMs );
     }
 
-    emit idCompleted();
-
-    return true;
+    return tms;
 }
-
-std::shared_ptr< const adcontrols::MassSpectrum >
-document::reference_mass_spectrum() const
-{
-    return impl_->refms_;
-}
+#endif

@@ -26,6 +26,7 @@
 
 #include <QObject>
 #include <memory>
+#include <tuple>
 
 class QSettings;
 class QSqlDatabase;
@@ -35,6 +36,8 @@ namespace adextension  { class iSessionManager; }
 namespace portfolio    { class Folium; }
 
 namespace lipidid {
+
+    class simple_mass_spectrum;
 
     class document : public QObject    {
         Q_OBJECT
@@ -54,6 +57,12 @@ namespace lipidid {
         bool find_all( adcontrols::MetIdMethod&& );
 
         std::shared_ptr< const adcontrols::MassSpectrum > reference_mass_spectrum() const;
+
+        std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum
+                    , std::shared_ptr< const adcontrols::MassSpectrum > // reference (calculated) spectrum
+                    , std::shared_ptr< const lipidid::simple_mass_spectrum > // reference (calculated) spectrum
+                    > getResultSet() const;
+
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );

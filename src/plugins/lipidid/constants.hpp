@@ -71,6 +71,7 @@ namespace Constants {
     const char * const EDIT_PROCMETHOD    = "lipidid.MainWindow.procmethodname";
 
     const char * const LIPIDID_TASK_SDFIMPORT = "lipidid.task.sdfimport";
+    const char * const LIPIDID_TASK_FIND_ALL  = "lipidid.task.find_all";
 
 
 } // Constants

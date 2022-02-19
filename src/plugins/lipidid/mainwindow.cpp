@@ -27,6 +27,7 @@
 #include "metidwidget.hpp"
 #include "moltablewnd.hpp"
 #include "msspectrawnd.hpp"
+#include "mspeaktree.hpp"
 #include "sqleditform.hpp"
 #include "peaklist.hpp"
 #include "sdfimport.hpp"
@@ -197,6 +198,7 @@ MainWindow::OnInitialUpdate()
     } );
 
     onInitialUpdate< MetIdWidget >( this );
+    onInitialUpdate< MSPeakTree >( this );
 
     document::instance()->initialSetup();
 }
@@ -378,6 +380,10 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
         if ( auto table = pThis->findChild< MolTableWnd * >() ) {
             QObject::connect( widget, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
         }
+    }
+    if ( auto widget = dock_create< MSPeakTree >( pThis, "Peaks", "Peaks" ) ) {
+        QObject::connect( document::instance(), &document::dataChanged, widget, &MSPeakTree::handleDataChanged );
+        QObject::connect( document::instance(), &document::idCompleted, widget, &MSPeakTree::handleIdCompleted );
     }
 }
 
