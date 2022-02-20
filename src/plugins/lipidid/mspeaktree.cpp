@@ -409,19 +409,19 @@ MSPeakTree::handleIdCompleted()
         if ( ! candidates.empty() ) {
             if ( candidates.size() == 1 ) {
                 const auto& candidate = candidates.at( 0 );
-                const auto& inchikey  = candidate.inchiKeys[ 0 ];
+                const auto& inchikey  = candidate.inchiKeys()[ 0 ];
                 //const auto& mols = candidate.mols();
-                model->setData( model->index( i, c_formula ), QString::fromStdString( candidate.formula + candidate.adduct ) );
-                model->setData( model->index( i, c_exact_mass ), candidate.exact_mass );
-                model->setData( model->index( i, c_mass_error ), candidate.mass_error * 1000 );
+                model->setData( model->index( i, c_formula ), QString::fromStdString( candidate.formula() + candidate.adduct() ) );
+                model->setData( model->index( i, c_exact_mass ), candidate.exact_mass() );
+                model->setData( model->index( i, c_mass_error ), candidate.mass_error() * 1000 );
                 model->setData( model->index( i, c_inchikey ), QString::fromStdString( inchikey ) );
                 model->setData( model->index( i, c_logP ), document::instance()->logP( inchikey ) );
-                if ( candidate.inchiKeys.size() > 1 ) {
+                if ( candidate.inchiKeys().size() > 1 ) {
                     auto p = model->itemFromIndex( model->index( i, 0 ) );
                     p->setColumnCount( 6 );
-                    p->setRowCount( candidate.inchiKeys.size() - 1 );
-                    for ( size_t j = 1; j < candidate.inchiKeys.size(); ++j ) {
-                        const auto& inchikey = candidate.inchiKeys[j];
+                    p->setRowCount( candidate.inchiKeys().size() - 1 );
+                    for ( size_t j = 1; j < candidate.inchiKeys().size(); ++j ) {
+                        const auto& inchikey = candidate.inchiKeys()[j];
                         model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( inchikey ) );
                         model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( inchikey ) );
                     }
@@ -432,20 +432,20 @@ MSPeakTree::handleIdCompleted()
                 parent->setRowCount( candidates.size() );
                 size_t k(0);
                 for ( const auto& candidate: candidates ) { // for ( size_t k = 0; k < candidates.size(); ++k ) {
-                    const auto& inchikey = candidate.inchiKeys[0];
+                    const auto& inchikey = candidate.inchiKeys()[0];
                     ADDEBUG() << boost::json::object{{ "x", candidate }};
-                    model->setData( model->index( k, c_formula, parent->index() ), QString::fromStdString( candidate.formula ) );
-                    model->setData( model->index( k, c_exact_mass, parent->index() ), candidate.exact_mass );
-                    model->setData( model->index( k, c_mass_error, parent->index() ), candidate.mass_error * 1000 );
+                    model->setData( model->index( k, c_formula, parent->index() ), QString::fromStdString( candidate.formula() ) );
+                    model->setData( model->index( k, c_exact_mass, parent->index() ), candidate.exact_mass() );
+                    model->setData( model->index( k, c_mass_error, parent->index() ), candidate.mass_error() * 1000 );
                     model->setData( model->index( k, c_inchikey, parent->index() ), QString::fromStdString( inchikey ) );
                     model->setData( model->index( k, c_logP ), document::instance()->logP( inchikey ) );
-                    if ( candidate.inchiKeys.size() > 1 ) {
+                    if ( candidate.inchiKeys().size() > 1 ) {
                         auto p = model->itemFromIndex( model->index( k, 0, parent->index() ) );
                         p->setColumnCount( c_num_columns );
-                        p->setRowCount( candidate.inchiKeys.size() - 1 );
-                        for ( size_t j = 1; j < candidate.inchiKeys.size(); ++j ) {
-                            model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( candidate.inchiKeys[j] ) );
-                            model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( candidate.inchiKeys[j] ) );
+                        p->setRowCount( candidate.inchiKeys().size() - 1 );
+                        for ( size_t j = 1; j < candidate.inchiKeys().size(); ++j ) {
+                            model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( candidate.inchiKeys()[j] ) );
+                            model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( candidate.inchiKeys()[j] ) );
                         }
                     }
                     ++k;

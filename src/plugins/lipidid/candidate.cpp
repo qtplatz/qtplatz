@@ -30,12 +30,12 @@ namespace lipidid {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const candidate& t )
     {
-        jv = {{ "exact_mass", t.exact_mass }
-            , { "formula",    t.formula }
-            , { "adduct",     t.adduct }
-            , { "mass_error", t.mass_error }
-            , { "isotope",    t.isotope }
-            , { "inchi-key",  t.inchiKeys } // document::instance()->inchKeys( candidate.formula ) }};
+        jv = {{ "exact_mass", t.exact_mass_ }
+            , { "formula",    t.formula_ }
+            , { "adduct",     t.adduct_ }
+            , { "mass_error", t.mass_error_ }
+            , { "isotope",    t.isotope_ }
+            , { "inchi-key",  t.inchiKeys_ } // document::instance()->inchKeys( candidate.formula ) }};
         };
     }
 
@@ -49,20 +49,20 @@ candidate::candidate( double m
                       , double e                             // mass_error
                       , std::vector< lipidid::isoPeak > i    // isotope match
                       , std::vector< std::string >&& keys )  // list of inchikey
-    : exact_mass( m )
-    , formula( f )
-    , adduct( a )
-    , mass_error( e )
-    , isotope( i )
-    , inchiKeys( keys )
+    : exact_mass_( m )
+    , formula_( f )
+    , adduct_( a )
+    , mass_error_( e )
+    , isotope_( i )
+    , inchiKeys_( keys )
 {
 }
 
-candidate::candidate( const candidate& t ) : exact_mass( t.exact_mass )
-                                , formula( t.formula )
-                                , adduct( t.adduct )
-                                , mass_error( t.mass_error )
-                                , isotope( t.isotope )
-                                , inchiKeys( t.inchiKeys )
+candidate::candidate( const candidate& t ) : exact_mass_( t.exact_mass_ )
+                                           , formula_( t.formula_ )
+                                           , adduct_( t.adduct_ )
+                                           , mass_error_( t.mass_error_ )
+                                           , isotope_( t.isotope_ )
+                                           , inchiKeys_( t.inchiKeys_ )
 {
 }

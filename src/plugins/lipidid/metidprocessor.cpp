@@ -54,11 +54,10 @@ namespace lipidid {
     };
 
     struct make_reference_spectrum {
-        const std::map< std::string, std::vector< lipidid::mol > >& mols_;
-        make_reference_spectrum( std::map< std::string, std::vector< lipidid::mol > >& mols ) : mols_( mols ) {}
+        const std::map< std::string, std::vector< std::shared_ptr< lipidid::mol > > >& mols_;
+        make_reference_spectrum( std::map< std::string, std::vector< std::shared_ptr< lipidid::mol > > >& mols ) : mols_( mols ) {}
         std::shared_ptr< adcontrols::MassSpectrum > operator()(const adcontrols::MassSpectrum&
                                                                , const simple_mass_spectrum& );
-        //, const simple_mass_spectrum& ) const;
     };
 
     class MetIdProcessor::impl {
@@ -72,7 +71,7 @@ namespace lipidid {
             auto it = mols_.find( formula );
             if ( it != mols_.end() ) {
                 for ( const auto& mol: it->second )
-                    t.emplace_back( mol.inchikey() );
+                    t.emplace_back( mol->inchikey() );
             }
             return t;
         }
@@ -80,7 +79,7 @@ namespace lipidid {
         void make_reference_spectrum();
 
         adcontrols::MetIdMethod method_;
-        std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
+        std::map< std::string, std::vector< std::shared_ptr< lipidid::mol > > > mols_; // stdformula, vector< mol >
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         std::vector< reference_mass > reference_list_;
     };
@@ -136,7 +135,7 @@ MetIdProcessor::find_all( adfs::sqlite& db
             (*progress)();
             ++counts;
             auto [ id, formula, smiles, inchikey, SlogP ] = adfs::get_column_values< int64_t, std::string, std::string, std::string, double >( sql );
-            impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey, SlogP ) );
+            impl_->mols_[ formula ].emplace_back( std::make_shared< mol >( std::make_tuple( id, formula, smiles, inchikey, SlogP ) ) );
             document::instance()->setLogP( inchikey, SlogP );
         }
     }
@@ -229,9 +228,9 @@ namespace lipidid {
 
             if ( ! candidates.empty() ) {
                 const auto& candidate = candidates.at( 0 );
-                auto cluster = isoCluster::compute( candidate.formula, candidate.adduct );
+                auto cluster = isoCluster::compute( candidate.formula(), candidate.adduct() );
                 refMs->get_annotations()
-                    << adcontrols::annotation( candidate.formula + " " + candidate.adduct
+                    << adcontrols::annotation( candidate.formula() + " " + candidate.adduct()
                                                , cluster.at(0).first // mass
                                                , cluster.at(0).second * intensity
                                                , masses.size() // index
