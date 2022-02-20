@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "isopeak.hpp"
 #include <boost/json/value_from.hpp>
 #include <functional>
 #include <memory>
@@ -35,8 +36,6 @@
 namespace adcontrols { class MassSpectrum; }
 
 namespace lipidid {
-
-    struct isoPeak;
 
     struct candidate {
         double exact_mass;

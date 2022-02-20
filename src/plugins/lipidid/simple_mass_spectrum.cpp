@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "simple_mass_spectrum.hpp"
-#include "isopeak.hpp"
 #include "candidate.hpp"
+#include "isopeak.hpp"
+#include "simple_mass_spectrum.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/debug.hpp>
 #include <vector>
@@ -48,21 +48,6 @@ namespace lipidid {
         std::map< size_t, std::vector< isoPeak > > isotope_match_result_;
     };
 
-
-    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const candidate& t )
-    {
-        // auto dataItems = boost::json::array();
-        // for ( const auto& list: t.dataItems ) {
-        //     boost::json::object obj;
-        //     for ( const auto& d: list ) {
-        //         if ( std::find_if( exclude.begin(), exclude.end(), [&](const auto& a){ return d.first == a; }) == exclude.end() )
-        //             obj[ d.first ] = d.second;
-        //     }
-        //     dataItems.emplace_back( std::move( obj ) );
-        // }
-
-        //     , { "dataItems",  dataItems } };
-    }
 }
 
 simple_mass_spectrum::~simple_mass_spectrum()
@@ -153,26 +138,24 @@ simple_mass_spectrum::find_cluster( size_t idx, const std::vector< std::pair< do
     double abundance     = mass_value_t::intensity( impl_->data_[ idx ] );
     auto delta_m = cluster[ 0 ].first - observed_mass;
 
-    std::vector< isoPeak > indices( cluster.size() );
+    std::vector< isoPeak > indices;
+    std::transform( cluster.begin(), cluster.end(), std::back_inserter( indices ), [](const auto& a){ return a; } );
 
-    bool found( false );
+    size_t nmatch(0);//bool found( false );
 
     if ( auto base_index = find_peak( cluster[ 0 ].first - delta_m, 0.002 ) ) {
-        for ( size_t i = 0; i < cluster.size(); ++i ) {
-            if ( auto it = find_peak( cluster[ i ].first - delta_m, 0.003 ) ) {
-                double dm  = mass_value_t::mass( impl_->data_[ *it ] ) - (cluster[ i ].first - delta_m);
-                double ra  = mass_value_t::intensity( impl_->data_[ *it ] ) / abundance;
-                indices[ i ] = isoPeak{*it, ra / cluster[ i ].second, dm };
-                if ( i > 0 )
-                    found = true;
+        for ( size_t i = 0; i < indices.size(); ++i ) {
+            auto& isotope = indices[ i ].computed_isotope();
+            if ( auto idx = find_peak( isotope.first - delta_m, 0.003 ) ) {
+                ++nmatch;
+                double mass_error = mass_value_t::mass( impl_->data_[ *idx ] ) - (isotope.first - delta_m);
+                double ra_error   = mass_value_t::intensity( impl_->data_[ *idx ] ) / abundance;
+                indices[ i ] = { true, *idx, mass_error, ra_error };
             }
         }
     }
 
-    if ( found )
-        return indices; // impl_->isotope_match_result_[ idx ] = indices;
-
-    return {};
+    return indices; // impl_->isotope_match_result_[ idx ] = indices;
 }
 
 std::optional< size_t >

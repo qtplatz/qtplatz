@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2022 MS-Cheminformatics LLC
+** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -470,8 +470,8 @@ MainWindow::setSimpleDockWidgetArrangement()
     for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
-        if ( npos++ >= 2 )
-            tabifyDockWidget( widgets[1], widget );
+        if ( npos++ >= 1 )
+            tabifyDockWidget( widgets[0], widget );
     }
 	widgets[1]->raise();
 

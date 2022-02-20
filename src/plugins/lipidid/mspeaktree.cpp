@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,6 +24,7 @@
 
 #include "mspeaktree.hpp"
 #include "document.hpp"
+#include "candidate.hpp"
 #include "simple_mass_spectrum.hpp"
 #include <adwidgets/htmlheaderview.hpp>
 #include <adwidgets/delegatehelper.hpp>
@@ -77,35 +78,15 @@ namespace lipidid {
     namespace {
 
         enum {
-            c_index
-            , c_mass
+            c_mass
             , c_intensity
-            , c_color
             , c_formula
-            , c_exact_mass
             , c_inchikey
+            , c_logP
+            , c_exact_mass
             , c_mass_error
-            , c_delta_mass
-            , c_relative_intensity
-            , c_exact_abundance
-            , c_abundance_error
-            , c_time
-            , c_mode
+            , c_index
             , c_num_columns
-        };
-
-        static QColor colors[] = {
-            { QColor( 0xff, 0x66, 0x44, 0x20 ) }   // 1
-            , { QColor( 0x6d, 0x79, 0x93, 0x20 ) } // 2 Lavendar
-            , { QColor( 0x99, 0x09, 0xa2, 0x20 ) } // 3 Overcast
-            , { QColor( 0xd5, 0xd5, 0xd5, 0x20 ) } // 4
-            , { QColor( 0xca, 0xeb, 0xf2, 0x40 ) }
-            , { QColor( 0xa9, 0xa9, 0xa9, 0x40 ) }
-            , { QColor( 0xff, 0x38, 0x3f, 0x40 ) } // watermelon
-            , { QColor( 0xef, 0xef, 0xef, 0x40 ) }
-            , { QColor( 0xff, 0x66, 0x44, 0x90 ) }
-            , { QColor( 0xff, 0x66, 0x44, 0xa0 ) }
-            , { QColor( 0xff, 0x66, 0x44, 0xb0 ) }
         };
 
         class delegate : public QItemDelegate {
@@ -118,46 +99,24 @@ namespace lipidid {
                 QStyleOptionViewItem op( option );
                 op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
-                bool valid = index.model()->data( index.model()->index( index.row(), c_index, index.parent() ), Qt::EditRole ).toInt() >= 0;
-                if ( !valid ) {
-                    painter->save();
-                    painter->fillRect( option.rect, QColor{ 0x6d, 0x6d, 0x6d, 0x40 } );
-                    painter->restore();
-                }
-
                 switch( index.column() ) {
-                case c_time:
-                    if ( valid ) {
-                        op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
-                        drawDisplay( painter, op, option.rect
-                                     , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
+                case c_exact_mass:
+                case c_mass:
+                    if ( index.data( Qt::EditRole ).toDouble() > 0.1 ) {
+                        drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 7 ) );
+                    } else {
+                        drawDisplay( painter, op, option.rect, "" );
                     }
                     break;
-                case c_exact_mass:
-                    drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 7 ) );
-                    break;
-                case c_mass:
-                    if ( valid )
-                        drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 7 ) );
-                    else
-                        drawDisplay( painter, op, option.rect, "-------" );
-                    break;
                 case c_mass_error:
-                    if ( valid )
-                        drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 5 ) );
+                    drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 4 ) );
                     break;
                 case c_intensity:
-                    if ( valid )
+                    if ( index.data( Qt::EditRole ).toDouble() > 0 ) {
                         drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
-                    break;
-                case c_relative_intensity:
-                case c_exact_abundance:
-                    if ( valid )
-                        drawDisplay( painter, op, option.rect, (boost::format( "%.4lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
-                    break;
-                case c_abundance_error:
-                    if ( valid )
-                        drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 5 ) );
+                    } else {
+                        drawDisplay( painter, op, option.rect, "" );
+                    }
                     break;
                 case c_formula:
                     do {
@@ -166,17 +125,10 @@ namespace lipidid {
                         DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
                     } while(0);
                     break;
-                case c_mode:
-                case c_num_columns:
                 default:
                     QItemDelegate::paint( painter, option, index );
                     break;
                 }
-            }
-
-            void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
-                QItemDelegate::setModelData( editor, model, index );
-                emit valueChanged( index );
             }
 
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
@@ -185,9 +137,6 @@ namespace lipidid {
                     size.setHeight(20);
                 return size;
             }
-
-        signals:
-            void valueChanged( const QModelIndex& ) const;
 
         public slots:
 
@@ -269,18 +218,17 @@ MSPeakTree::onInitialUpdate()
     model.setHeaderData( c_index,       Qt::Horizontal, QObject::tr( "index" ) ); //time(&mu;s)" ) );
     model.setHeaderData( c_mass,        Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
     model.setHeaderData( c_intensity,   Qt::Horizontal, QObject::tr( "Abundance" ) );
-    model.setHeaderData( c_color,       Qt::Horizontal, QObject::tr( "Color" ) );
     model.setHeaderData( c_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_inchikey,    Qt::Horizontal, QObject::tr( "InChIkey" ) );
     model.setHeaderData( c_exact_mass,  Qt::Horizontal, QObject::tr( "Exact <i>m/z</i>" ) );
     model.setHeaderData( c_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
-    model.setHeaderData( c_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
+    model.setHeaderData( c_logP,        Qt::Horizontal, QObject::tr( "logP" ) );
+    // model.setHeaderData( c_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
 
-    model.setHeaderData( c_relative_intensity, Qt::Horizontal, QObject::tr( "R. A. (%)" ) );
-    model.setHeaderData( c_exact_abundance,    Qt::Horizontal, QObject::tr( "R. A. (exact,%)" ) );
-    model.setHeaderData( c_abundance_error,    Qt::Horizontal, QObject::tr( "R. A. Error (%)" ) );
-    model.setHeaderData( c_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
-
+    // model.setHeaderData( c_relative_intensity, Qt::Horizontal, QObject::tr( "R.A. (%)" ) );
+    // model.setHeaderData( c_exact_abundance,    Qt::Horizontal, QObject::tr( "R.A. (exact,%)" ) );
+    // model.setHeaderData( c_abundance_error,    Qt::Horizontal, QObject::tr( "R.A. Error (%)" ) );
+    // model.setHeaderData( c_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
     setColumnHidden( c_index, true );
 }
 
@@ -288,33 +236,12 @@ MSPeakTree::onInitialUpdate()
 void
 MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 {
-    QStandardItemModel& model = *impl_->model_;
-    (void)prev;
-
+    // QStandardItemModel& model = *impl_->model_;
+    // (void)prev;
     scrollTo( index, QAbstractItemView::EnsureVisible );
-
-	int row = index.row();
-
-    setUpdatesEnabled( false );
-
-    double mass = model.index( index.row(), c_mass, index.parent() ).data( Qt::EditRole ).toDouble();
-
-    for ( int r = 0; r < model.rowCount(); ++r ) {
-        double d = std::abs( model.index( r, c_mass ).data( Qt::EditRole ).toDouble() - mass );
-        model.setData( model.index( r, c_delta_mass ), int( d + 0.7 ) );
-
-        if ( auto parent = model.itemFromIndex( model.index( r, 0 ) ) ) {
-            for ( auto i = 0; i < parent->rowCount(); ++i ) {
-                double d = std::abs( model.index( i, c_exact_mass, parent->index() ).data( Qt::EditRole ).toDouble() - mass );
-                model.setData( model.index( i, c_delta_mass, parent->index() ), int( d + 0.7 ) );
-            }
-        }
-    }
-
-    setUpdatesEnabled( true );
-
-    int idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
-    emit currentChanged( idx );
+    emit currentChanged( index.data( Qt::EditRole ).toString() );
+    // int idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
+    // emit currentChanged( idx );
 }
 
 
@@ -418,9 +345,7 @@ MSPeakTree::handleCopyToClipboard()
     for ( auto idx: list ) {
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
-        if ( idx.column() == c_time )
-            copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
-		else if ( model.data( idx ).type() == QVariant::Double )
+		if ( model.data( idx ).type() == QVariant::Double )
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
         else
             copy_table.append( model.data( idx ).toString() );
@@ -464,8 +389,73 @@ MSPeakTree::addContextMenu(QMenu &, const QPoint &, std::shared_ptr<const adcont
 void
 MSPeakTree::handleIdCompleted()
 {
-    auto [ ms, refms, res ] = document::instance()->getResultSet();
-    // ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *res }};
+    auto [ ms, refms, simple_mass_spectrum ] = document::instance()->getResultSet();
+
+    auto obj = boost::json::object{{ "simple_mass_spectrum", *simple_mass_spectrum }};
+
+    auto model = impl_->model_.get();
+    model->setRowCount( simple_mass_spectrum->size() );
+
+    for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
+        auto [ time, mass, abundance, color ] = (*simple_mass_spectrum)[ i ];
+        (void)time;
+
+        model->setData( model->index( i, c_index ), int( i ) );
+        model->setData( model->index( i, c_mass ), mass );
+        model->setData( model->index( i, c_intensity ), abundance );
+
+        auto candidates = simple_mass_spectrum->candidates( i );
+        setRowHidden( i, QModelIndex(), candidates.empty() );
+        if ( ! candidates.empty() ) {
+            if ( candidates.size() == 1 ) {
+                const auto& candidate = candidates.at( 0 );
+                const auto& inchikey  = candidate.inchiKeys[ 0 ];
+                //const auto& mols = candidate.mols();
+                model->setData( model->index( i, c_formula ), QString::fromStdString( candidate.formula + candidate.adduct ) );
+                model->setData( model->index( i, c_exact_mass ), candidate.exact_mass );
+                model->setData( model->index( i, c_mass_error ), candidate.mass_error * 1000 );
+                model->setData( model->index( i, c_inchikey ), QString::fromStdString( inchikey ) );
+                model->setData( model->index( i, c_logP ), document::instance()->logP( inchikey ) );
+                if ( candidate.inchiKeys.size() > 1 ) {
+                    auto p = model->itemFromIndex( model->index( i, 0 ) );
+                    p->setColumnCount( 6 );
+                    p->setRowCount( candidate.inchiKeys.size() - 1 );
+                    for ( size_t j = 1; j < candidate.inchiKeys.size(); ++j ) {
+                        const auto& inchikey = candidate.inchiKeys[j];
+                        model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( inchikey ) );
+                        model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( inchikey ) );
+                    }
+                }
+            } else {
+                auto parent = model->itemFromIndex( model->index( i, 0 ) );
+                parent->setColumnCount( c_num_columns );
+                parent->setRowCount( candidates.size() );
+                size_t k(0);
+                for ( const auto& candidate: candidates ) { // for ( size_t k = 0; k < candidates.size(); ++k ) {
+                    const auto& inchikey = candidate.inchiKeys[0];
+                    ADDEBUG() << boost::json::object{{ "x", candidate }};
+                    model->setData( model->index( k, c_formula, parent->index() ), QString::fromStdString( candidate.formula ) );
+                    model->setData( model->index( k, c_exact_mass, parent->index() ), candidate.exact_mass );
+                    model->setData( model->index( k, c_mass_error, parent->index() ), candidate.mass_error * 1000 );
+                    model->setData( model->index( k, c_inchikey, parent->index() ), QString::fromStdString( inchikey ) );
+                    model->setData( model->index( k, c_logP ), document::instance()->logP( inchikey ) );
+                    if ( candidate.inchiKeys.size() > 1 ) {
+                        auto p = model->itemFromIndex( model->index( k, 0, parent->index() ) );
+                        p->setColumnCount( c_num_columns );
+                        p->setRowCount( candidate.inchiKeys.size() - 1 );
+                        for ( size_t j = 1; j < candidate.inchiKeys.size(); ++j ) {
+                            model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( candidate.inchiKeys[j] ) );
+                            model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( candidate.inchiKeys[j] ) );
+                        }
+                    }
+                    ++k;
+                }
+            }
+        }
+    }
+    ADDEBUG() << "tree updated";
+    resizeColumnToContents( c_formula );
+    resizeColumnToContents( c_inchikey );
 }
 
 void
@@ -485,10 +475,7 @@ MSPeakTree::handleDataChanged( const portfolio::Folium& folium )
                     model->setData( model->index( i, c_index ), int( i ) );
                     model->setData( model->index( i, c_mass ), mass );
                     model->setData( model->index( i, c_intensity ), abundance );
-                    model->setData( model->index( i, c_color ), color );
-                    if ( color != 15 ) {
-                        setRowHidden( i, QModelIndex(), true );
-                    }
+                    setRowHidden( i, QModelIndex(), color != 15 );
                 }
             }
         }

@@ -56,22 +56,16 @@ namespace adcontrols {
                          , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
                          , double resolving_power );
 
-        // for multi-turn
-        // bool operator()( adcontrols::MassSpectrum&
-        //                  , const std::vector< std::tuple< std::string, double, int > >& formula_mass_charge
-        //                  , double resolving_power
-        //                  , std::shared_ptr< const adcontrols::MassSpectrometer >
-        //                  , int lap );
+        /*
+         * This function returns relative abundance that base peak abundance as 1.0
+         */
+        std::vector< isopeak > operator()( const std::vector< std::pair< std::string, char > >& formulae, int charge, int index = (-1) );
 
         static  std::shared_ptr< adcontrols::MassSpectrum >
         toMassSpectrum( const std::vector< adcontrols::mol::molecule >&
                         , std::shared_ptr< const adcontrols::MassSpectrum >
                         , std::shared_ptr< const adcontrols::MassSpectrometer >
                         , int lap );
-        /*
-         * This function returns relative abundance that base peak abundance as 1.0
-         */
-        std::vector< isopeak > operator()( const std::vector< std::pair< std::string, char > >& formulae, int charge, int index = (-1) );
 
         // bool compute( mol::molecule&, int charge ) const;
 

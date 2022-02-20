@@ -27,17 +27,33 @@
 
 namespace lipidid {
 
-    isoPeak::isoPeak( size_t _0, double _1, double _2 ) : idx(_0), rel_ra(_1), mass_error(_2)
+    isoPeak::isoPeak( const std::pair< double, double >& t
+                      , bool found
+                      , size_t peak_index
+                      , double mass_error
+                      , double ra_error ) : computed_isotope_( t )
+                                          , matched_isotope_( { found, peak_index, mass_error, ra_error } )
     {
     }
 
-    isoPeak::isoPeak( const isoPeak& t ) : idx(t.idx), rel_ra(t.rel_ra), mass_error(t.mass_error)
+    isoPeak::isoPeak( const isoPeak& t ) : computed_isotope_( t.computed_isotope_ )
+                                         , matched_isotope_( t.matched_isotope_ )
     {
+    }
+
+    isoPeak&
+    isoPeak::operator = ( std::tuple< bool, size_t, double, double >&& t)
+    {
+        matched_isotope_ = std::move( t );
+        return *this;
     }
 
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const isoPeak& t )
     {
-        jv = boost::json::object{{ "idx", t.idx }, { "rel_ra", t.rel_ra }, { "mass_error", t.mass_error }};
+        jv = boost::json::object{
+            {"computed_isotope", t.computed_isotope_ }
+            , { "matched_isotope", t.matched_isotope_ }
+        };
     }
 }

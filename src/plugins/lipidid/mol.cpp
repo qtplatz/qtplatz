@@ -40,7 +40,7 @@ mol::mol( const mol& t ) : mol_( t.mol_ )
 {
 }
 
-mol::mol( std::tuple< size_t, std::string, std::string, std::string >&& t )
+mol::mol( std::tuple< size_t, std::string, std::string, std::string, double >&& t )
     : mol_( t )
     , mass_( adcontrols::ChemicalFormula().getMonoIsotopicMass( std::get< 1 >( t ) ) )
 {

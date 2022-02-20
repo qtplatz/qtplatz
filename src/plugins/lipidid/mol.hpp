@@ -33,21 +33,24 @@ namespace lipidid {
 
     class mol {
     public:
+        typedef std::tuple< size_t          // id
+                            , std::string   // formula
+                            , std::string   // smiles
+                            , std::string   // inchikey
+                            , double        // logP
+                            > value_type;
         ~mol();
         mol();
         mol( const mol& );
-        mol( std::tuple< size_t, std::string, std::string, std::string >&& ); // id, formula, smiles, inchicky
+        mol( value_type&& ); // id, formula, smiles, inchicky
         inline size_t index() const { return std::get<0>( mol_ ); }
         inline const std::string& formula() const { return std::get<1>( mol_ ); }
         inline const std::string& smiles() const { return std::get<2>( mol_ ); }
         inline const std::string& inchikey() const { return std::get<3>( mol_ ); }
         inline double mass() const { return mass_; }
+        inline double logP() const { return std::get< 4 >( mol_ ); }
     private:
-        std::tuple< size_t
-                    , std::string
-                    , std::string
-                    , std::string
-                    > mol_;
+        value_type mol_;
         const double mass_;
     };
 

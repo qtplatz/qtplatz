@@ -44,7 +44,7 @@ isoCluster::compute( const std::string& formula
     adcontrols::isotopeCluster isoCalc( abundance_llimit, resolving_power );
     auto cluster = isoCalc( adcontrols::ChemicalFormula::split( formula + " " + adduct), 0 );
     std::vector< value_type > v;
-    for ( const auto iso: cluster )
+    for ( const auto& iso: cluster )
         v.emplace_back( iso.mass, iso.abundance );
     return v;
 }

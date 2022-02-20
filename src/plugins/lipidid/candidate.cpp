@@ -25,6 +25,22 @@
 #include "candidate.hpp"
 #include "isopeak.hpp"
 
+namespace lipidid {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const candidate& t )
+    {
+        jv = {{ "exact_mass", t.exact_mass }
+            , { "formula",    t.formula }
+            , { "adduct",     t.adduct }
+            , { "mass_error", t.mass_error }
+            , { "isotope",    t.isotope }
+            , { "inchi-key",  t.inchiKeys } // document::instance()->inchKeys( candidate.formula ) }};
+        };
+    }
+
+}
+
 using namespace lipidid;
 
 candidate::candidate( double m
@@ -49,16 +65,4 @@ candidate::candidate( const candidate& t ) : exact_mass( t.exact_mass )
                                 , isotope( t.isotope )
                                 , inchiKeys( t.inchiKeys )
 {
-}
-
-void
-tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const candidate& t )
-{
-     jv = {{ "exact_mass", t.exact_mass }
-         , { "formula",    t.formula }
-         , { "adduct",     t.adduct }
-         , { "mass_error", t.mass_error }
-         , { "isotope",    t.isotope }
-         , { "inchi-key",  t.inchiKeys } // document::instance()->inchKeys( candidate.formula ) }};
-     };
 }

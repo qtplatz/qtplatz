@@ -24,6 +24,7 @@
 
 #include "metidprocessor.hpp"
 #include "candidate.hpp"
+#include "document.hpp"
 #include "mol.hpp"
 #include "simple_mass_spectrum.hpp"
 #include "isocluster.hpp"
@@ -81,8 +82,6 @@ namespace lipidid {
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< lipidid::mol > > mols_; // stdformula, vector< mol >
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
-        // std::shared_ptr< const adcontrols::MassSpectrum > refms_;
-        // std::shared_ptr< lipidid::simple_mass_spectrum > simple_mass_spectrum_;
         std::vector< reference_mass > reference_list_;
     };
 }
@@ -132,12 +131,13 @@ MetIdProcessor::find_all( adfs::sqlite& db
         }
 
         ADDEBUG() << "populating mols from database...";
-        sql.prepare( "SELECT id,formula,smiles,inchiKey FROM mols WHERE mass < 1200 ORDER BY mass" );
+        sql.prepare( "SELECT id,formula,smiles,inchiKey,SlogP FROM mols WHERE mass < 1200 ORDER BY mass" );
         while ( sql.step() == adfs::sqlite_row ) {
             (*progress)();
             ++counts;
-            auto [ id, formula, smiles, inchikey ] = adfs::get_column_values< int64_t, std::string, std::string, std::string >( sql );
-            impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey ) );
+            auto [ id, formula, smiles, inchikey, SlogP ] = adfs::get_column_values< int64_t, std::string, std::string, std::string, double >( sql );
+            impl_->mols_[ formula ].emplace_back( std::make_tuple( id, formula, smiles, inchikey, SlogP ) );
+            document::instance()->setLogP( inchikey, SlogP );
         }
     }
 

@@ -62,7 +62,8 @@ namespace lipidid {
                     , std::shared_ptr< const adcontrols::MassSpectrum > // reference (calculated) spectrum
                     , std::shared_ptr< const lipidid::simple_mass_spectrum > // reference (calculated) spectrum
                     > getResultSet() const;
-
+        double logP( const std::string& InChIKey ) const;
+        void setLogP( const std::string& InChIKkey, double );
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );
