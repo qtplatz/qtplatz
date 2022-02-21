@@ -37,26 +37,26 @@ namespace adcontrols { class MassSpectrum; }
 
 namespace lipidid {
 
-    struct candidate {
+    class candidate {
         double exact_mass_;
         std::string formula_;
         std::string adduct_;
         double mass_error_;
         std::vector< isoPeak > isotope_;
         std::vector< std::string > inchiKeys_;
-
+    public:
         inline double exact_mass() const { return exact_mass_; }
         inline const std::string& formula() const { return formula_; }
         inline const std::string& adduct() const { return adduct_; }
         inline double mass_error() const { return mass_error_; }
         inline const std::vector< isoPeak >&  isotope() const { return isotope_; }
         inline const std::vector< std::string >& inchiKeys() const { return inchiKeys_; }
-
+        ~candidate();
         candidate( double m = 0
                    , const std::string& f = {}        // formula
                    , const std::string& a = {}        // adduct/lose
                    , double e = 0                     // mass_error
-                   , std::vector< isoPeak > i = {}     // isotope match
+                   , std::vector< isoPeak >&& i = {}     // isotope match
                    , std::vector< std::string >&& keys = {} );
 
         candidate( const candidate& t );

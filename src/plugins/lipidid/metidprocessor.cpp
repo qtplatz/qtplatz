@@ -135,8 +135,9 @@ MetIdProcessor::find_all( adfs::sqlite& db
             (*progress)();
             ++counts;
             auto [ id, formula, smiles, inchikey, SlogP ] = adfs::get_column_values< int64_t, std::string, std::string, std::string, double >( sql );
-            impl_->mols_[ formula ].emplace_back( std::make_shared< mol >( std::make_tuple( id, formula, smiles, inchikey, SlogP ) ) );
-            document::instance()->setLogP( inchikey, SlogP );
+            auto mol = std::make_shared< lipidid::mol >( std::make_tuple( id, formula, smiles, inchikey, SlogP ) );
+            moldb::instance() << mol;
+            impl_->mols_[ formula ].emplace_back( mol );
         }
     }
 

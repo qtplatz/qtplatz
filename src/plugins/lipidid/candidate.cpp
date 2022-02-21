@@ -30,12 +30,12 @@ namespace lipidid {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const candidate& t )
     {
-        jv = {{ "exact_mass", t.exact_mass_ }
-            , { "formula",    t.formula_ }
-            , { "adduct",     t.adduct_ }
-            , { "mass_error", t.mass_error_ }
-            , { "isotope",    t.isotope_ }
-            , { "inchi-key",  t.inchiKeys_ } // document::instance()->inchKeys( candidate.formula ) }};
+        jv = {{ "exact_mass", t.exact_mass() }
+            , { "formula",    t.formula() }
+            , { "adduct",     t.adduct() }
+            , { "mass_error", t.mass_error() }
+            , { "isotope",    t.isotope() }
+            , { "InChIKey",   t.inchiKeys() } // document::instance()->inchKeys( candidate.formula ) }};
         };
     }
 
@@ -43,12 +43,16 @@ namespace lipidid {
 
 using namespace lipidid;
 
+candidate::~candidate()
+{
+}
+
 candidate::candidate( double m
                       , const std::string& f                 // formula
                       , const std::string& a                 // adduct/lose
                       , double e                             // mass_error
-                      , std::vector< lipidid::isoPeak > i    // isotope match
-                      , std::vector< std::string >&& keys )  // list of inchikey
+                      , std::vector< lipidid::isoPeak >&& i    // isotope match
+                      , std::vector< std::string >&& keys )   // list of inchikey
     : exact_mass_( m )
     , formula_( f )
     , adduct_( a )

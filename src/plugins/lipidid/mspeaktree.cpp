@@ -22,9 +22,10 @@
 **
 **************************************************************************/
 
-#include "mspeaktree.hpp"
-#include "document.hpp"
 #include "candidate.hpp"
+#include "document.hpp"
+#include "mol.hpp"
+#include "mspeaktree.hpp"
 #include "simple_mass_spectrum.hpp"
 #include <adwidgets/htmlheaderview.hpp>
 #include <adwidgets/delegatehelper.hpp>
@@ -415,7 +416,7 @@ MSPeakTree::handleIdCompleted()
                 model->setData( model->index( i, c_exact_mass ), candidate.exact_mass() );
                 model->setData( model->index( i, c_mass_error ), candidate.mass_error() * 1000 );
                 model->setData( model->index( i, c_inchikey ), QString::fromStdString( inchikey ) );
-                model->setData( model->index( i, c_logP ), document::instance()->logP( inchikey ) );
+                model->setData( model->index( i, c_logP ), moldb::logP( inchikey ) );
                 if ( candidate.inchiKeys().size() > 1 ) {
                     auto p = model->itemFromIndex( model->index( i, 0 ) );
                     p->setColumnCount( 6 );
@@ -423,7 +424,7 @@ MSPeakTree::handleIdCompleted()
                     for ( size_t j = 1; j < candidate.inchiKeys().size(); ++j ) {
                         const auto& inchikey = candidate.inchiKeys()[j];
                         model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( inchikey ) );
-                        model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( inchikey ) );
+                        model->setData( model->index( j - 1, c_logP, p->index() ), moldb::logP( inchikey ) );
                     }
                 }
             } else {
@@ -438,14 +439,14 @@ MSPeakTree::handleIdCompleted()
                     model->setData( model->index( k, c_exact_mass, parent->index() ), candidate.exact_mass() );
                     model->setData( model->index( k, c_mass_error, parent->index() ), candidate.mass_error() * 1000 );
                     model->setData( model->index( k, c_inchikey, parent->index() ), QString::fromStdString( inchikey ) );
-                    model->setData( model->index( k, c_logP ), document::instance()->logP( inchikey ) );
+                    model->setData( model->index( k, c_logP ), moldb::logP( inchikey ) );
                     if ( candidate.inchiKeys().size() > 1 ) {
                         auto p = model->itemFromIndex( model->index( k, 0, parent->index() ) );
                         p->setColumnCount( c_num_columns );
                         p->setRowCount( candidate.inchiKeys().size() - 1 );
                         for ( size_t j = 1; j < candidate.inchiKeys().size(); ++j ) {
                             model->setData( model->index( j - 1, c_inchikey, p->index() ), QString::fromStdString( candidate.inchiKeys()[j] ) );
-                            model->setData( model->index( j - 1, c_logP, p->index() ), document::instance()->logP( candidate.inchiKeys()[j] ) );
+                            model->setData( model->index( j - 1, c_logP, p->index() ), moldb::logP( candidate.inchiKeys()[j] ) );
                         }
                     }
                     ++k;

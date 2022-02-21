@@ -26,6 +26,7 @@
 
 #include <tuple>
 #include <string>
+#include <map>
 
 namespace adchem { class SDMol; }
 
@@ -52,6 +53,15 @@ namespace lipidid {
     private:
         value_type mol_;
         const double mass_;
+    };
+
+    class moldb {
+        std::map< std::string, std::shared_ptr< const mol > > mols_;
+    public:
+        static moldb& instance();
+        std::shared_ptr< const mol > find( const std::string& InChIKey ) const;
+        static double logP( const std::string& InChIKey );
+        moldb& operator << ( std::shared_ptr< const mol > );
     };
 
 }

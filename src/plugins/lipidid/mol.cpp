@@ -26,6 +26,7 @@
 #include <adcontrols/chemicalformula.hpp>
 
 using lipidid::mol;
+using lipidid::moldb;
 
 mol::~mol()
 {
@@ -44,4 +45,37 @@ mol::mol( std::tuple< size_t, std::string, std::string, std::string, double >&& 
     : mol_( t )
     , mass_( adcontrols::ChemicalFormula().getMonoIsotopicMass( std::get< 1 >( t ) ) )
 {
+}
+
+/////
+
+moldb&
+moldb::instance()
+{
+    static moldb __instance;
+    return __instance;
+}
+
+std::shared_ptr< const mol >
+moldb::find( const std::string& InChIKey ) const
+{
+    auto it = mols_.find( InChIKey );
+    if ( it != mols_.end() )
+        return it->second;
+    return {};
+}
+
+moldb&
+moldb::operator << ( std::shared_ptr< const mol > mol )
+{
+    mols_[ mol->inchikey() ] = mol;
+    return *this;
+}
+
+double
+moldb::logP( const std::string& InChIKey )
+{
+    if ( auto mol = instance().find( InChIKey ) )
+        return mol->logP();
+    return 0;
 }

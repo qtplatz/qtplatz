@@ -279,27 +279,3 @@ document::find_all( adcontrols::MetIdMethod&& t )
 
     return true;
 }
-
-void
-document::setLogP( const std::string& InChIKey, double value )
-{
-    impl_->logP_[ InChIKey ] = value;
-}
-
-double
-document::logP( const std::string& InChIKey ) const
-{
-    auto it = impl_->logP_.find( InChIKey );
-    if ( it != impl_->logP_.end() )
-        return it->second;
-
-    adfs::stmt sql( *impl_->sqlite_ );
-    sql.prepare( "SELECT SlogP FROM mols WHERE inchiKey like ?" );
-    sql.bind( 0 ) = InChIKey;
-    if ( sql.step() == adfs::sqlite_row ) {
-        auto [ value ] = adfs::get_column_values< double >( sql );
-        impl_->logP_[ InChIKey ] = value;
-        return value;
-    }
-    return 0;
-}
