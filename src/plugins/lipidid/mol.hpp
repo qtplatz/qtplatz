@@ -28,6 +28,7 @@
 #include <string>
 #include <map>
 #include <optional>
+#include <memory>
 
 namespace adchem { class SDMol; }
 
