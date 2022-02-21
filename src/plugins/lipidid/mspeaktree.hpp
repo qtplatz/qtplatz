@@ -69,6 +69,7 @@ namespace lipidid {
     public slots:
         void handleCopyToClipboard();
         void handleCopyAllToClipboard();
+        void handleCopyCheckedToClipboard();
         void handleZoomedOnSpectrum( const QRectF&, int axis );   // zoomer zoomed
 
         //
