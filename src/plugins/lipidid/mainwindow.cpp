@@ -28,6 +28,7 @@
 #include "moltablewnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspeaktree.hpp"
+#include "mspeakwidget.hpp"
 #include "sqleditform.hpp"
 #include "peaklist.hpp"
 #include "sdfimport.hpp"
@@ -291,6 +292,9 @@ MainWindow::createContents( Core::IMode * mode )
     mainWindowSplitter->setStretchFactor( 1, 0 );
     mainWindowSplitter->setOrientation( Qt::Vertical );
 
+    connect( document::instance(), &document::idCompleted, [&]{ dockWidgets()[3]->raise(); update(); });
+    connect( document::instance(), &document::dataChanged, [&]{ dockWidgets()[1]->raise(); update(); });
+
 #if 0
     // Navigation and right-side window
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
@@ -381,9 +385,10 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
             QObject::connect( widget, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
         }
     }
-    if ( auto widget = dock_create< MSPeakTree >( pThis, "Peaks", "Peaks" ) ) {
-        QObject::connect( document::instance(), &document::dataChanged, widget, &MSPeakTree::handleDataChanged );
-        QObject::connect( document::instance(), &document::idCompleted, widget, &MSPeakTree::handleIdCompleted );
+    if ( auto widget = dock_create< MSPeakWidget >( pThis, "Peaks", "Peaks" ) ) {
+        auto tree = widget->treeView();
+        QObject::connect( document::instance(), &document::dataChanged, tree, &MSPeakTree::handleDataChanged );
+        QObject::connect( document::instance(), &document::idCompleted, tree, &MSPeakTree::handleIdCompleted );
     }
 }
 

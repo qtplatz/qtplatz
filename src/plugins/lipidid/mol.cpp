@@ -79,3 +79,18 @@ moldb::logP( const std::string& InChIKey )
         return mol->logP();
     return 0;
 }
+
+std::optional< std::string >
+moldb::svg( const std::string& InChiKey ) const
+{
+    auto it = svg_.find( InChiKey );
+    if ( it != svg_.end() )
+        return it->second;
+    return {};
+}
+
+void
+moldb::addSVG( const std::string& InChIKey, std::string&& svg )
+{
+    svg_[ InChIKey ] = std::move( svg );
+}

@@ -79,6 +79,8 @@ add_library( ${PROJECT_NAME} MODULE
   mol.hpp
   mspeaktree.cpp
   mspeaktree.hpp
+  mspeakwidget.cpp
+  mspeakwidget.hpp
   simple_mass_spectrum.cpp
   simple_mass_spectrum.hpp
   metidprocessor.cpp

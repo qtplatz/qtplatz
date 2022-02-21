@@ -63,6 +63,7 @@
 #include <QPainter>
 #include <QPair>
 #include <QtPrintSupport/QPrinter>
+#include <QDebug>
 #include <boost/format.hpp>
 #include <boost/signals2.hpp>
 #include <boost/variant.hpp>
@@ -226,12 +227,6 @@ MSPeakTree::onInitialUpdate()
     model.setHeaderData( c_exact_mass,  Qt::Horizontal, QObject::tr( "Exact <i>m/z</i>" ) );
     model.setHeaderData( c_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_logP,        Qt::Horizontal, QObject::tr( "logP" ) );
-    // model.setHeaderData( c_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
-
-    // model.setHeaderData( c_relative_intensity, Qt::Horizontal, QObject::tr( "R.A. (%)" ) );
-    // model.setHeaderData( c_exact_abundance,    Qt::Horizontal, QObject::tr( "R.A. (exact,%)" ) );
-    // model.setHeaderData( c_abundance_error,    Qt::Horizontal, QObject::tr( "R.A. Error (%)" ) );
-    // model.setHeaderData( c_mode,        Qt::Horizontal, QObject::tr( "mode" ) );
     setColumnHidden( c_index, true );
 }
 
@@ -239,12 +234,13 @@ MSPeakTree::onInitialUpdate()
 void
 MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 {
-    // QStandardItemModel& model = *impl_->model_;
-    // (void)prev;
     scrollTo( index, QAbstractItemView::EnsureVisible );
-    emit currentChanged( index.data( Qt::EditRole ).toString() );
-    // int idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
-    // emit currentChanged( idx );
+    emit currentChanged( index );
+    if ( index.column() == c_inchikey ) {
+        auto key = index.data( Qt::EditRole ).toString();
+        if ( ! key.isEmpty() )
+            emit inChIKeySelected( key );
+    }
 }
 
 

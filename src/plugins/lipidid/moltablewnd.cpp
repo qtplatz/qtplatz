@@ -24,7 +24,6 @@
 #include "document.hpp"
 #include "moltabledelegate.hpp"
 #include "moltablewnd.hpp"
-#include <adchem/sdfile.hpp>
 #include <adlog/logger.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>

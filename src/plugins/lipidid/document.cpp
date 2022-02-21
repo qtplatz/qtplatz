@@ -276,6 +276,22 @@ document::find_all( adcontrols::MetIdMethod&& t )
 
         emit idCompleted();
     }
-
     return true;
+}
+
+std::optional< std::string >
+document::find_svg( const std::string& InChIKey ) const
+{
+    if ( auto svg = lipidid::moldb::instance().svg( InChIKey ) )
+        return svg;
+    adfs::stmt sql( *impl_->sqlite_ );
+    sql.prepare( "SELECT svg FROM mols WHERE inchiKey = ?" );
+    sql.bind( 1 ) = InChIKey;
+    if ( sql.step() != adfs::sqlite_row ) {
+        ADDEBUG() << "sql.error: " << sql.errmsg();
+        return {};
+    }
+    auto [ svg ] = adfs::get_column_values< std::string >( sql );
+    lipidid::moldb::instance().addSVG( InChIKey, std::move( svg ) );
+    return lipidid::moldb::instance().svg( InChIKey );
 }

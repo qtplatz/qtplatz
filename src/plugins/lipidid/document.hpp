@@ -27,6 +27,7 @@
 #include <QObject>
 #include <memory>
 #include <tuple>
+#include <optional>
 
 class QSettings;
 class QSqlDatabase;
@@ -62,6 +63,8 @@ namespace lipidid {
                     , std::shared_ptr< const adcontrols::MassSpectrum > // reference (calculated) spectrum
                     , std::shared_ptr< const lipidid::simple_mass_spectrum > // reference (calculated) spectrum
                     > getResultSet() const;
+
+        std::optional< std::string > find_svg( const std::string& InChIKey ) const;
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );

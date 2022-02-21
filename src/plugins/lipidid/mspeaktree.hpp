@@ -64,7 +64,8 @@ namespace lipidid {
         virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
 
     signals:
-        void currentChanged( QString inchiKey );
+        void currentChanged( const QModelIndex& );
+        void inChIKeySelected( const QString& );
 
     public slots:
         void handleCopyToClipboard();
