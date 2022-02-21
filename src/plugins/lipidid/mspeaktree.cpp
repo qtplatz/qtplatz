@@ -317,7 +317,6 @@ MSPeakTree::handleCopyAllToClipboard()
 
             if ( auto parent = model.itemFromIndex( model.index( row, 0 ) ) ) {
                 for ( auto i = 0; i < parent->rowCount(); ++i ) {
-                    selected_text.append( '\t' ); // empty for mass (parent)
                     for ( int col = 0; col < model.columnCount(); ++col ) {
                         selected_text.append( model.index( i, col, parent->index() ).data( Qt::EditRole ).toString() );
                         if ( col != model.columnCount() - 1 )
@@ -355,7 +354,6 @@ MSPeakTree::handleCopyCheckedToClipboard()
 
             if ( auto parent = model.item( row, 0 ) ) {
                 for ( auto i = 0; i < parent->rowCount(); ++i ) {
-                    selected_text.append( '\t' ); // empty for formula
                     for ( int col = 0; col < model.columnCount(); ++col ) {
                         selected_text.append( model.index( i, col, parent->index() ).data( Qt::EditRole ).toString() );
                         if ( col != model.columnCount() - 1 )

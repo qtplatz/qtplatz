@@ -293,7 +293,7 @@ MainWindow::createContents( Core::IMode * mode )
     mainWindowSplitter->setOrientation( Qt::Vertical );
 
     connect( document::instance(), &document::idCompleted, [&]{ dockWidgets()[3]->raise(); update(); });
-    connect( document::instance(), &document::dataChanged, [&]{ dockWidgets()[1]->raise(); update(); });
+    connect( document::instance(), &document::dataChanged, [&]{ dockWidgets()[0]->raise(); update(); });
 
 #if 0
     // Navigation and right-side window
@@ -467,6 +467,7 @@ MainWindow::setSimpleDockWidgetArrangement()
     QList< QDockWidget *> widgets = dockWidgets();
 
     for ( auto widget: widgets ) {
+        widget->setContextMenuPolicy( Qt::PreventContextMenu );
         widget->setFloating( false );
         removeDockWidget( widget );
     }
