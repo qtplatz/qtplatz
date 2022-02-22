@@ -12,10 +12,6 @@ message( STATUS "####### mac installer #########" )
 message( STATUS "####### Boost_LIBRARY_DIRS : " ${Boost_LIBRARY_DIRS} )
 message( STATUS "####### Python3_VERSION : " ${Python3_VERSION} )
 
-#foreach( _rdlib ${RDKit_LIBRARIES} )
-#  set( RDKIT_LIBRARIES "${RDKIT_LIBRARIES} ${_rdlib}" )
-#endforeach( _rdlib )
-
 set( QTPLATZ_SOURCE_DIR "${CMAKE_SOURCE_DIR}" )
 set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}" )
 
