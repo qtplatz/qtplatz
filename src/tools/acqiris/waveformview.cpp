@@ -32,6 +32,9 @@
 #include <qwt_plot_zoomer.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_draw.h>
+#include <QColor>
+#include <QBrush>
+#include <QPen>
 #include <boost/format.hpp>
 #include <ratio>
 #include <memory>
@@ -46,7 +49,7 @@ public:
     QwtText trackerTextF( const QPointF &pos ) const {
         QColor bg( Qt::white );
         bg.setAlpha( 200 );
-        
+
         QwtText text = QwtPlotZoomer::trackerTextF( pos );
         text.setBackgroundBrush( QBrush( bg ) );
         return text;
@@ -59,12 +62,12 @@ WaveformView::WaveformView( QWidget * parent ) : QwtPlot( parent )
     // void setupPalette()
     {
         QPalette pal = palette();
-        
+
         QLinearGradient gradient;
         gradient.setCoordinateMode( QGradient::StretchToDeviceMode );
         gradient.setColorAt( 0.0, QColor( 0, 49, 110 ) );
         gradient.setColorAt( 1.0, QColor( 0, 87, 174 ) );
-        
+
         pal.setBrush( QPalette::Window, QBrush( gradient ) );
 
         // QPalette::WindowText is used for the curve color
@@ -72,7 +75,7 @@ WaveformView::WaveformView( QWidget * parent ) : QwtPlot( parent )
 
         setPalette( pal );
     }
-    
+
     // setCanvasBackground( QColor( "#d0d0d0" ) );
     curve_->setStyle( QwtPlotCurve::Lines );
     curve_->setPen( canvas()->palette().color( QPalette::WindowText ) );
@@ -88,13 +91,13 @@ WaveformView::WaveformView( QWidget * parent ) : QwtPlot( parent )
     grid->enableY( true );
     grid->enableYMin( false );
     grid->attach( this );
-    
+
     //auto zoomer = new Zoomer( this );
     auto zoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft, this->canvas() );
 
     // Shift+LeftButton: zoom out to full size
     // Ctrl+LeftButton: zoom out by 1
-    // in addition to this, double click for zoom out by 1 via override widgetMouseDoubleClickEvent    
+    // in addition to this, double click for zoom out by 1 via override widgetMouseDoubleClickEvent
     zoomer->setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton, Qt::ShiftModifier );
     zoomer->setMousePattern( QwtEventPattern::MouseSelect3, Qt::LeftButton, Qt::ControlModifier );
 
@@ -139,7 +142,7 @@ WaveformView::setData( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > 
     curve_->setSamples( data );
 
     auto rect = data->boundingRect();
-    
+
     uint64_t ts = d->timeStamp();
     // if ( ts == 0 ) {
     //     static uint64_t counter = 0;
@@ -151,11 +154,11 @@ WaveformView::setData( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > 
                                          % rect.top()
                                          % ( d->xIncrement() * std::nano::den )
                                          % d->vOffset() ).str() ) );
-    
+
     setTitle( ( boost::format( "Time: %.4f" ) % (double(ts) / std::pico::den) ).str().c_str() );
 
     setAxisScale( QwtPlot::yLeft, rect.top(), rect.bottom() );
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    
+
     replot();
 }

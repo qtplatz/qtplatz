@@ -64,6 +64,7 @@
 #include <QBoxLayout>
 #include <QFileDialog>
 #include <QMenu>
+#include <QPainter>
 #include <QPrinter>
 
 namespace dataproc {

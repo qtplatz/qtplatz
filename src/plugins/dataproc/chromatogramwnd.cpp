@@ -68,10 +68,11 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QFileDialog>
-#include <QShortcut>
-#include <QMessageBox>
 #include <QMenu>
+#include <QMessageBox>
+#include <QPainter>
 #include <QPrinter>
+#include <QShortcut>
 #include <QSvgGenerator>
 #include <deque>
 #include <memory>

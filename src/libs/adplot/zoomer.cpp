@@ -28,10 +28,12 @@
 #include <QMouseEvent>
 #include <qwt_painter.h>
 #include <qwt_picker_machine.h>
+#include <qwt_text.h>
 #include <QDebug>
 #include <QList>
 #include <QTimer>
 #include <QWidget>
+#include <QPainterPath>
 #include <boost/format.hpp>
 
 using namespace adplot;

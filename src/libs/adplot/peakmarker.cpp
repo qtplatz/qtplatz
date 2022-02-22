@@ -27,6 +27,7 @@
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/peak.hpp>
+#include <QColor>
 
 // enum { idPeakLeft, idPeakCenter, idPeakRight, idPeakBottom, idPeakThreshold, idPeakTop, numMarkers };
 
@@ -42,7 +43,7 @@ PeakMarker::PeakMarker()
 
     markers_[ idPeakLeft ]->setLineStyle( QwtPlotMarker::VLine );
     markers_[ idPeakLeft ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-    
+
     markers_[ idPeakRight ]->setLineStyle( QwtPlotMarker::VLine );
     markers_[ idPeakRight ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
 

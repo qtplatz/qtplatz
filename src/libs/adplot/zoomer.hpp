@@ -29,6 +29,7 @@
 #include "adplot_global.hpp"
 #include <qwt_plot_zoomer.h>
 #include <functional>
+#include <QPoint>
 
 class QwtPlotCanvas;
 

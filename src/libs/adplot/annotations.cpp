@@ -27,6 +27,8 @@
 #include "annotation.hpp"
 #include "plot.hpp"
 #include <qwt_plot_marker.h>
+#include <qwt_text.h>
+#include <qwt_scale_map.h>
 #include <QFontMetrics>
 
 

@@ -27,6 +27,7 @@
 #include "plot.hpp"
 #include <qwt_plot_curve.h>
 #include <adcontrols/peak.hpp>
+#include <QPen>
 
 using namespace adplot;
 

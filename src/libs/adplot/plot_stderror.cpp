@@ -28,6 +28,7 @@
 #include <qwt_plot_marker.h>
 #include <qwt_plot_curve.h>
 #include <qwt_symbol.h>
+#include <qwt_text.h>
 #include <tuple>
 
 using namespace adplot;
@@ -58,7 +59,7 @@ plot_stderror::operator()( const QVector< QPointF >& data, QwtPlot& plot )
             return std::abs(a.y()) < std::abs(b.y()); } );
     double dfs = std::abs(dmax.y()) * 1.5;
     plot.setAxisScale( QwtPlot::yRight, -dfs, dfs );
-    
+
     std::vector< std::tuple< int, double, double > > bars;
     for ( auto& datum: data ) {
         std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
@@ -82,7 +83,7 @@ plot_stderror::operator()( const QVector< QPointF >& data, QwtPlot& plot )
         if ( std::get<0>(t) > 0 )
             bar.push_back( QPointF( std::get<1>(t), std::get<2>(t) / std::get<0>(t) ) ); // x, avg(y)
     }
-    
+
     std::shared_ptr< QwtPlotCurve > curve = std::make_shared< QwtPlotCurve >( QwtText(title_.c_str(), QwtText::RichText) );
     curves_.push_back( curve );
     curve->setPen( QColor( 0x00, 0x00, 0x20, 0x40 ), 3.0 );
@@ -90,7 +91,7 @@ plot_stderror::operator()( const QVector< QPointF >& data, QwtPlot& plot )
     curve->setSamples( bar );
     curve->setStyle( QwtPlotCurve::Sticks );
     curve->attach( &plot );
-    
+
     // horizontal center line for deviation plot
     std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
     markers_.push_back( marker );

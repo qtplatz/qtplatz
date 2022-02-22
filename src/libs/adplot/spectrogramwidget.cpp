@@ -31,9 +31,11 @@
 #include <qtwrapper/font.hpp>
 #include <qwt_plot_spectrogram.h>
 #include <qwt_color_map.h>
+#include <qwt_interval.h>
 #include <qwt_plot_spectrogram.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_draw.h>
+#include <qwt_scale_map.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_layout.h>
@@ -53,7 +55,7 @@
 
 namespace adplot {
     namespace spectrogram {
-        
+
         class ColorMap: public QwtLinearColorMap {
         public:
             ColorMap(): QwtLinearColorMap( QColor(24,0,0), Qt::red ) {
@@ -87,10 +89,10 @@ namespace adplot {
 							, cluster.time_interval().second, cluster.mass_interval().second );
 						QRectF xrc = QwtScaleMap::transform( xMap, yMap, rc );
 						if ( canvasRect.contains( xrc ) )
-							painter->drawRect( xrc ); 
+							painter->drawRect( xrc );
 					}
                     painter->restore();
-                    
+
                 }
             }
             std::weak_ptr< adcontrols::SpectrogramClusters > clusters_;
@@ -146,7 +148,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     axisWidget( QwtPlot::xBottom )->setTitle( QwtText( tr("Time[s]"), QwtText::RichText ) );
     axisWidget( QwtPlot::yLeft )->setTitle( QwtText( tr("<i>m/z</i>"), QwtText::RichText ) );
 
-    QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );    
+    QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );
     yAxis->setTitle( "m/z" );
 
     auto font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
@@ -279,4 +281,3 @@ SpectrogramWidget::handleSelected( const QRectF& rect )
     else
         emit onSelected( rect );
 }
-

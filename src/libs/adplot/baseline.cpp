@@ -27,6 +27,7 @@
 #include "plot.hpp"
 #include <qwt_plot_curve.h>
 #include <adcontrols/baseline.hpp>
+#include <QPen>
 
 using namespace adplot;
 

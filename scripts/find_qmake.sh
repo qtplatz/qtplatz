@@ -28,6 +28,7 @@ function find_qmake() {
 	    for hint in "${hints[@]}"; do
 			__dirs+=("$home$hint/clang_64")
 			__dirs+=("/opt$hint/clang_64")
+			__dirs+=("/opt$hint")
 	    done
 	    ;;
 	*)

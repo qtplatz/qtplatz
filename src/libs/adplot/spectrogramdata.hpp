@@ -29,7 +29,8 @@
 
 #include "adplot_global.hpp"
 #include <qwt_raster_data.h>
-#include <memory>
+#include <qwt_interval.h>
+#include <tuple>
 
 class QRectF;
 
@@ -42,6 +43,11 @@ namespace adplot {
         double value( double x, double y ) const override;
         virtual QRectF boundingRect() const;
         virtual bool zoomed( const QRectF& ) { return false; }
+        QwtInterval interval( Qt::Axis ) const override; // 6.2.0
+
+        void setInterval( Qt::Axis, QwtInterval&& );
+    private:
+        std::tuple< QwtInterval, QwtInterval, QwtInterval > interval_;
     };
 
 }

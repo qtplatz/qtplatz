@@ -32,13 +32,16 @@
 #include "baseline.hpp"
 #include "plotcurve.hpp"
 #include "seriesdata.hpp"
+#include <qwt_plot.h>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_marker.h>
+#include <qwt_plot_legenditem.h>
 #include <qwt_picker_machine.h>
 #include <qwt_plot_legenditem.h>
 #include <qwt_legend.h>
 #include <qwt_symbol.h>
+#include <qwt_text.h>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/peakresult.hpp>
@@ -448,7 +451,7 @@ ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot )
 void
 ChromatogramWidget::setNormalizedY( QwtPlot::Axis axis, bool normalized )
 {
-    if ( QwtPlot::axisValid( axis ) )
+    if ( QwtPlot::isAxisValid( axis ) )
         impl_->normalizedY_[ axis ] = normalized;
 }
 
@@ -590,7 +593,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
         impl_->traces_[ idx ] = std::make_unique< ChromatogramData >( *this );
 
     auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
-    if ( QwtPlot::axisValid( yAxis ) ) {
+    if ( QwtPlot::isAxisValid( yAxis ) ) {
         trace->setNormalizedY( impl_->normalizedY_[ yAxis ] );
     }
 
@@ -875,7 +878,7 @@ ChromatogramWidget::setItemLegendEnabled( bool enable )
         font.setPointSize( 10 );
         impl_->legendItem_->setFont( font );
 
-        impl_->legendItem_->setAlignment( Qt::AlignTop | Qt::AlignRight );
+        impl_->legendItem_->setAlignmentInCanvas( Qt::AlignTop | Qt::AlignRight );
 
     } else {
         impl_->legendItem_.reset();

@@ -28,6 +28,7 @@
 #include <qwt_plot_item.h>
 #include <memory>
 #include <array>
+#include <QColor>
 
 class QwtPlotMarker;
 class QwtPlot;
@@ -48,14 +49,13 @@ namespace adplot {
 
         void setColor( const QColor& );
         const QColor& color() const;
- 
+
     protected:
         virtual void draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &, const QRectF &canvasRect ) const override;
-        
+
     private:
         std::pair< double, double > range_;
         QColor color_;
     };
 
 }
-

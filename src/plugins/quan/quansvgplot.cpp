@@ -43,6 +43,7 @@
 #include <QSvgGenerator>
 #include <QIODevice>
 #include <QBuffer>
+#include <QPainter>
 #include <boost/format.hpp>
 
 using namespace quan;

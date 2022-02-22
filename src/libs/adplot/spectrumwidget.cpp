@@ -48,6 +48,7 @@
 #include <qwt_picker_machine.h>
 #include <qwt_text.h>
 #include <QDebug>
+#include <QPen>
 #include <QSignalBlocker>
 #include <boost/format.hpp>
 #include <atomic>

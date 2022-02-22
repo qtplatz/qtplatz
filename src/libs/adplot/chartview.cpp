@@ -50,6 +50,7 @@
 #include <QMouseEvent>
 #include <QSvgGenerator>
 #include <QDebug>
+#include <QPainter>
 #include <boost/format.hpp>
 #include <ratio>
 #include <memory>

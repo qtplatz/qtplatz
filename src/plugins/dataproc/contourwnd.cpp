@@ -52,8 +52,9 @@
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QMenu>
-#include <QPrinter>
+#include <QPainter>
 #include <QPrintDialog>
+#include <QPrinter>
 #include <QSplitter>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/format.hpp>
