@@ -24,7 +24,7 @@ Prerequisite
 	* Qt 5.12.2 does not work on Debian based linux -- use Qt 5.12.1 instead.
 	* Qt 6 is not supported yet.
 
-Mac macOS 10 and 11
+Mac macOS 10, 11 and 12 (x86_64)
 ====================
 
 Prerequisite
@@ -32,7 +32,7 @@ Prerequisite
 1. Xcode Version 12.3 (12C33)
 1. Download the respective qt5 installer from [download](https://www.qt.io/download) page, and follow the instructions.
 
-Install dependencies for Mac
+Install dependencies for macOS (x86_64)
 ----------------------------
 
 Go to `<qtplatz-source-dir>/scripts` directory; there are script files for install dependency software modules.
@@ -45,6 +45,9 @@ make boost
 make qwt
 make rdkit
 ```
+
+* Boost 1.75 (1.78 preferred) is required for the needs of the boost::json library.
+* Qwt 6.2.0 is required since QtPlatz Version 5.2.11 and onward.
 
 Build qtplatz
 -------------
@@ -59,13 +62,65 @@ make
 QtPlatz binary to be built under `~src/build-Darwin-i386/bin` (`~/src/build-Linux-x86_64/bin`) directory.
 Install for Linux is essentially the same step with macOS.
 
+Mac macOS 10, 11 and 12 (arm64) a.k.a. M1 Mac
+====================
+
+First of all, if you got a new M1 Mac computer migrated from your old Intel Mac, it may contain x86_64 binaries under `/usr/local` etc.
+Especially, installed libraries for QtPlatz build such as boost, rdkit, and dependencies will be detected by the cmake configuration phase but may fail at the link phase because arm64 and x86_64 binary cannot link.  Fortunately, homebrew on M1 Mac installs all files under `/opt/homebrew/` instead of `/usr/local/,` which is less problematic.  However, we also need to use MacPort to install maeparser (rdkit depends on it) and llvm.
+
+
+Prerequisite
+--------------
+1. Xcode Version 13.2.1 13C100
+1. Download the qt5 source code (either download from [download](https://www.qt.io/download) or git.
+
+Build Qt5 package for arm64 arch
+--------------------------------
+
+This step is straightforward but expects one error during the compiling phase.
+
+```
+$ cd ~/src
+$ git clone git://code.qt.io/qt/qt5.git
+$ cd qt5
+$ git checkout 5.15.2
+$ mkdir ~/src/build-Darwin-arm64/qt5-build
+$ cd ~/src/build-Darwin-arm64/qt5-build
+$ ~/src/qt5/configure -prefix /opt/Qt/5.15.2 QMAKE_APPLE_DEVICE_ARCHS=arm64 -opensource -confirm-license
+$ make -j10
+```
+
+The above command set may hit a compile error described [here](https://github.com/microsoft/vcpkg/issues/21055)
+In such a case, quick fix is apply qtplatz/scripts/qt5-5.15.2.patch (or simply add `#include #include <CoreGraphics/CGColorSpace.h>` int `src/plugins/platforms/cocoa/qiosurfacegraphicsbuffer.h` file.  You should be able to build qt5 development files after make and make install.
+
+Install dependencies for macOS (arm64) a.k.a. M1 Mac
+----------------------------------------------------
+
+qwt-6.2.0 can be installed as follows;
+
+```bash
+/opt/Qt/5.15.2/bin/qmake -r qwt.pro QMAKE_APPLE_DEVICE_ARCHS=arm64
+make
+sudo make install
+```
+
+The rest of the dependent modules can be installed as follows:
+
+```bash
+cd ~/src/qtplarz/scripts
+make dependency
+make boost
+port install maeparser
+port install llvm
+make rdkit
+```
 
 Windows 10 (x64)
 ===============
 
 Prerequisite for Windows
 ------------------------
-1. Visual Studio 2019
+1. Visual Studio 2022
 1. [WiX toolset](wixtool.org)
 1. [Python](https://www.python.org/downloads/windows/) 3.7 (optional)
 
@@ -85,7 +140,7 @@ nmake rdkit
 nmake opencv
 ```
 
-Build qtplatz 
+Build qtplatz
 --------------
 ```
 cd %USERPROFILE%\src\qtplatz
