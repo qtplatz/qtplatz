@@ -69,6 +69,7 @@
 #include <QBoxLayout>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPrinter>
 #include <QStandardPaths>
 

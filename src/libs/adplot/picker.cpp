@@ -26,6 +26,8 @@
 #include <qwt_plot_canvas.h>
 #include <qwt_picker_machine.h>
 #include <QMouseEvent>
+#include <QPen>
+#include <QColor>
 
 using namespace adplot;
 

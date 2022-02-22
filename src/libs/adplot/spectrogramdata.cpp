@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "spectrogramdata.hpp"
+#include <QRectF>
 
 using namespace adplot;
 
@@ -30,11 +31,14 @@ SpectrogramData::~SpectrogramData()
 {
 }
 
-SpectrogramData::SpectrogramData()
+SpectrogramData::SpectrogramData() : interval_{
+        QwtInterval( 0, 100.0, QwtInterval::ExcludeMaximum )
+        , QwtInterval( 0, 1000.0, QwtInterval::ExcludeMaximum )
+        , QwtInterval( 0.0, 100.0 ) }
 {
-    setInterval( Qt::XAxis, QwtInterval( 0, 100.0, QwtInterval::ExcludeMaximum ) );   // time
-    setInterval( Qt::YAxis, QwtInterval( 0, 1000.0, QwtInterval::ExcludeMaximum ) ); // m/z
-    setInterval( Qt::ZAxis, QwtInterval( 0.0, 100.0 ) );
+    // setInterval( Qt::XAxis, QwtInterval( 0, 100.0, QwtInterval::ExcludeMaximum ) );   // time
+    // setInterval( Qt::YAxis, QwtInterval( 0, 1000.0, QwtInterval::ExcludeMaximum ) ); // m/z
+    // setInterval( Qt::ZAxis, QwtInterval( 0.0, 100.0 ) );
 }
 
 double
@@ -49,3 +53,23 @@ SpectrogramData::boundingRect() const
     return QRectF( 0.0, 0.0, 10.0, 1000.0 ); // x, y, w, h
 }
 
+QwtInterval
+SpectrogramData::interval( Qt::Axis axis ) const
+{
+    switch ( axis ) {
+    case Qt::XAxis: return std::get< 0 >( interval_ );
+    case Qt::YAxis: return std::get< 1 >( interval_ );
+    case Qt::ZAxis: return std::get< 2 >( interval_ );
+    }
+    return {};
+}
+
+void
+SpectrogramData::setInterval( Qt::Axis axis, QwtInterval && interval )
+{
+    switch ( axis ) {
+    case Qt::XAxis: std::get< 0 >( interval_ ) = std::move( interval ); break;
+    case Qt::YAxis: std::get< 1 >( interval_ ) = std::move( interval ); break;
+    case Qt::ZAxis: std::get< 2 >( interval_ ) = std::move( interval ); break;
+    }
+}

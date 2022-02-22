@@ -61,44 +61,44 @@ namespace adplot {
     public:
         Polygon compress( const QwtScaleMap& xMap, const QwtScaleMap& yMap
                           , const QwtSeriesData< QPointF > * series, int from, int to, const size_t width ) {
-            
+
 
             const double pw = (xMap.transform( series->sample( to ).x() ) - xMap.transform( series->sample( from ).x() )) / width;
 
             int px = std::round( xMap.transform( series->sample( from ).x() ) / pw ) - 1;
-            
+
             for ( int i = from; i <= to; ++i ) {
-                
+
                 const Point& p = series->sample( i );
-                
+
                 double dx = xMap.transform( p.x() );
                 double dy = yMap.transform( p.y() );
-                
+
                 int ix = (std::round( dx / pw ));
-                
+
                 if ( px != ix ) {
-                    
+
                     x.push_back( std::make_pair( 1, dx ) );
                     y.push_back( std::make_pair( dy, dy ) );
                     px = ix;
-                    
+
                 } else {
-                    
+
                     auto& xx = x.back();
                     xx.first++;
                     xx.second += dx;
-                    
+
                     auto& yy = y.back();
                     yy.first = std::min( yy.first, dy );
                     yy.second = std::max( yy.second, dy );
                 }
             }
-            
+
             Polygon polyline( int( x.size() * 2 ) );
             int pos = 0;
-            
+
             for ( size_t i = 0; i < x.size(); ++i ) {
-                
+
                 double dx = x[ i ].second / x[ i ].first;
                 if ( i & 1 ) {
                     polyline[ pos++ ] = Point( dx, y[ i ].second ); // max (near bottom)
@@ -110,11 +110,11 @@ namespace adplot {
                     if ( !adportable::compare<double>::approximatelyEqual( y[ i ].second, y[ i ].first ) )
                         polyline[ pos++ ] = Point( dx, y[ i ].second );  // min (near top)
                 }
-                
+
             }
 
             qDebug() << "drawLine data compress: " << pos << "/" << (to - from) + 1;
-            
+
             polyline.resize( pos );
             return polyline;
         }
@@ -169,13 +169,13 @@ adPlotCurve::drawLines( QPainter *painter,
         --ix1;
 
     if ( !compress_ || ( (ix1 - ix0 + 1) < width ) ) {
-        
+
         QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
 
     } else {
 
         QRectF clipRect;
-        
+
         if ( testPaintAttribute( ClipPolygons ) )  {
 
             qreal pw = qMax( qreal( 1.0 ), painter->pen().widthF() );
@@ -186,17 +186,16 @@ adPlotCurve::drawLines( QPainter *painter,
         QPolygonF polyline = profile_compressor<QPolygonF, QPointF>().compress( xMap, yMap, data(), ix0, ix1, width );
 
         if ( testPaintAttribute( ClipPolygons ) )  {
-            
-            const QPolygonF clipped = QwtClipper::clipPolygonF( clipRect, polyline, false );
+
+            const QPolygonF clipped = QwtClipper::clippedPolygonF( clipRect, polyline, false );
             QwtPainter::drawPolyline( painter, clipped );
-            
+
         }
         else {
-            
+
             QwtPainter::drawPolyline( painter, polyline );
-            
+
         }
 
     }
 }
-

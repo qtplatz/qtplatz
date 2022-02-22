@@ -36,6 +36,8 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
+#include <qwt_text.h>
+#include <QPen>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <functional>
@@ -75,7 +77,7 @@ namespace adplot {
             SeriesDataImpl( const SeriesDataImpl& t )
                 : x_( t.x_ )
                 , y_( t.y_ ) {
-            } 
+            }
 
             void setData( size_t size, const double * x, const double * y ) {
                 x_.resize( size );
@@ -95,7 +97,7 @@ namespace adplot {
             double maximum_value( size_t left, size_t right ) const { return *std::max_element( y_.begin() + left, y_.begin() + right ); }
             double minimum_value( size_t left, size_t right ) const { return *std::min_element( y_.begin() + left, y_.begin() + right ); }
         };
-		
+
         class SeriesData : public QwtSeriesData<QPointF> {
         public:
             virtual ~SeriesData() {   }
@@ -109,7 +111,7 @@ namespace adplot {
             QRectF rect_;
             SeriesDataImpl impl_;
         };
-	
+
 
         class TraceData {
         public:
@@ -146,7 +148,7 @@ TraceWidget::~TraceWidget()
 
 TraceWidget::TraceWidget(QWidget *parent) : plot(parent)
                                                 , impl_( new TraceWidgetImpl )
-                                                , autoYZoom_( true ) 
+                                                , autoYZoom_( true )
 {
 
     setAxisTitle(QwtPlot::xBottom, "Time(microsecond)");
@@ -239,7 +241,7 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
 
     bool addedTrace = impl_->traces_.size() <= size_t( idx );
 
-    while ( int( impl_->traces_.size() ) <= idx ) 
+    while ( int( impl_->traces_.size() ) <= idx )
         impl_->traces_.push_back( TraceData() );
 
     TraceData& trace = impl_->traces_[ idx ];
@@ -252,7 +254,7 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
     setAxisScale( QwtPlot::xBottom, px[ 0 ], px[ n - 1 ] );
     if ( axisRight )
         setAxisScale( QwtPlot::yRight, minimum, maximum );
-    else 
+    else
         setAxisScale( QwtPlot::yLeft, minimum, maximum );
 
     QRectF z = zoomer()->zoomRect();
@@ -280,7 +282,7 @@ TraceData::setData( plot& plot, std::size_t size, const double * x, const double
 {
     curves_.clear();
     data_.clear();
- 
+
     QRectF rect;
 
     curves_.push_back( PlotCurve( plot ) );

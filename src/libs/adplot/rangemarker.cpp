@@ -24,16 +24,17 @@
 
 #include "rangemarker.hpp"
 #include <qwt_scale_map.h>
+#include <QPainter>
 
 using namespace adplot;
 
-RangeMarker::RangeMarker() : color_( 128, 0, 0, 0x80 )
-                           , range_( 0.0, 100.0 )
+RangeMarker::RangeMarker() : range_( 0.0, 100.0 )
+                           , color_( 128, 0, 0, 0x80 )
 {
 }
 
-RangeMarker::RangeMarker( const QColor& color ) : color_( color )
-                                                , range_( 0.0, 100.0 )
+RangeMarker::RangeMarker( const QColor& color ) : range_( 0.0, 100.0 )
+                                                , color_( color )
 {
 }
 
@@ -76,4 +77,3 @@ RangeMarker::draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap
 
     painter->fillRect( QRect( x1, canvasRect.top(), x2 - x1, canvasRect.height() ), color_ );
 };
-

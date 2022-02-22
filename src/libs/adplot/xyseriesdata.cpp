@@ -41,16 +41,16 @@ XYSeriesData::size() const
 QPointF
 XYSeriesData::sample( size_t idx ) const
 {
-    if ( idx < series_.size() ) 
+    if ( idx < series_.size() )
         return series_[ idx ];
 
     return QPointF();
 }
 
 QRectF
-XYSeriesData::boundingRect() const 
+XYSeriesData::boundingRect() const
 {
-    return d_boundingRect;
+    return boundingRect_;
 }
 
 ///////////////////////
@@ -64,14 +64,14 @@ XYSeriesData::XYSeriesData( QAbstractItemModel * model, int x, int y )
 
     do {
         model->fetchMore( model->index( row, x ) );
-        
+
         while ( model->index( row, x ).isValid() ) {
 
             QPointF p( model->index( row, x ).data().toDouble(), model->index( row, y ).data().toDouble() );
 
             series_.emplace_back( p );
 
-            ++row;            
+            ++row;
 
             if ( xMin > p.x() )
                 xMin = p.x();
@@ -80,14 +80,14 @@ XYSeriesData::XYSeriesData( QAbstractItemModel * model, int x, int y )
             if ( yMin > p.y() )
                 yMin = p.y();
             if ( yMax < p.y() )
-                yMax = p.y();            
+                yMax = p.y();
         }
-        
+
     } while ( model->canFetchMore( model->index( row, x ) ) );
 
     // RectF below looks like upside down, however qwtBoundingRect returns this way...
-    
-    d_boundingRect = QRectF( QPointF( xMin, yMin ), QPointF( xMax, yMax ) );
+
+    boundingRect_ = QRectF( QPointF( xMin, yMin ), QPointF( xMax, yMax ) );
 }
 
 XYSeriesData&
@@ -95,17 +95,17 @@ XYSeriesData::operator << ( const QPointF& pt )
 {
     series_.emplace_back( pt );
     if ( series_.size() == 1 ) {
-        d_boundingRect = QRectF( pt, pt );
+        boundingRect_ = QRectF( pt, pt );
     } else {
-        if ( d_boundingRect.left() > pt.x() )
-            d_boundingRect.setLeft( pt.x() );
-        if ( d_boundingRect.right() < pt.x() )
-            d_boundingRect.setRight( pt.x() );
+        if ( boundingRect_.left() > pt.x() )
+            boundingRect_.setLeft( pt.x() );
+        if ( boundingRect_.right() < pt.x() )
+            boundingRect_.setRight( pt.x() );
 
-        if ( d_boundingRect.bottom() > pt.y() )
-            d_boundingRect.setBottom( pt.y() );
-        if ( d_boundingRect.top() < pt.y() )
-            d_boundingRect.setTop( pt.y() );                
+        if ( boundingRect_.bottom() > pt.y() )
+            boundingRect_.setBottom( pt.y() );
+        if ( boundingRect_.top() < pt.y() )
+            boundingRect_.setTop( pt.y() );
     }
     return *this;
 }
@@ -114,6 +114,3 @@ XYSeriesData::operator << ( const QPointF& pt )
 XYHistogramData::XYHistogramData( QAbstractItemModel * model, int x, int y ) : XYSeriesData( model, x, y )
 {
 }
-
-
-

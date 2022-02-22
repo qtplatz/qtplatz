@@ -52,6 +52,7 @@ namespace adplot {
         XYSeriesData& operator << ( const QPointF& );
     protected:
         std::vector< QPointF > series_;
+        QRectF boundingRect_;
     };
 
     class ADPLOTSHARED_EXPORT XYHistogramData : public XYSeriesData {

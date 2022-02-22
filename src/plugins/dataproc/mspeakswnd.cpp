@@ -46,6 +46,7 @@
 #include <coreplugin/minisplitter.h>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QPainter>
 #include <QPrinter>
 #include <boost/format.hpp>
 #include <sstream>
@@ -53,7 +54,7 @@
 
 namespace dataproc {
     namespace mspeakswnd {
-        
+
         struct draw_crosshair_marker {
             std::vector< std::shared_ptr< QwtPlotMarker > >& markers_;
             draw_crosshair_marker( std::vector< std::shared_ptr< QwtPlotMarker > >& markers ) : markers_( markers ) {}
@@ -92,14 +93,14 @@ namespace dataproc {
 
             draw_stics( std::vector< std::shared_ptr< QwtPlotCurve > >& curves
                         , std::vector< std::shared_ptr< QwtPlotMarker > >& markers) : curves_( curves ), markers_( markers ) {}
-            
+
             void operator ()( const QVector< QPointF>& data, QwtPlot& plot ) {
 
                 const QPointF& dmax = *std::max_element( data.begin(), data.end(), []( const QPointF& a, const QPointF& b ){
                         return std::abs(a.y()) < std::abs(b.y()); } );
                 double dfs = std::abs(dmax.y()) * 1.2;
                 plot.setAxisScale( QwtPlot::yRight, -dfs, dfs );
-                
+
                 std::vector< std::tuple< int, double, double > > bars;
                 for ( auto& datum: data ) {
                     std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
@@ -131,7 +132,7 @@ namespace dataproc {
                 curve->setSamples( bar );
 				curve->setStyle( QwtPlotCurve::Sticks );
                 curve->attach( &plot );
-                
+
                 // horizontal center line for deviation plot
                 std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
                 markers_.push_back( marker );
@@ -151,7 +152,7 @@ MSPeaksWnd::MSPeaksWnd(QWidget *parent) : QWidget(parent)
 {
     plots_.push_back( std::make_shared< adplot::plot >() );
     plots_.push_back( std::make_shared< adplot::plot >() );
-    
+
     plotMarkers_.resize( plots_.size() );
     plotCurves_.resize( plots_.size() );
 
@@ -229,7 +230,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
 
     markers.clear();
     curves.clear();
-    
+
     // title
     plot.setTitle( ( boost::format( "#lap: %d" ) % mode ).str() );
 
@@ -334,7 +335,7 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
     }
     mspeakswnd::draw_stics devplot( curves, markers );
     devplot( deviation, plot );
-    
+
     double x0 = 0.0;
     double y0 = coeffs[ 0 ];
     mspeakswnd::draw_crosshair_marker draw_marker( markers );
@@ -364,7 +365,7 @@ void
 MSPeaksWnd::handlePrintCurrentView( const QString& pdfname )
 {
 	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
-	QSizeF sizeMM( 260, 160 ); // 260x160mm 
+	QSizeF sizeMM( 260, 160 ); // 260x160mm
 
     int resolution = 300;
 	const double mmToInch = 1.0 / 25.4;
@@ -378,12 +379,12 @@ MSPeaksWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
 	printer.setOrientation( QPrinter::Landscape );
-    
+
     printer.setDocName( "QtPlatz MS Peaks" );
     printer.setOutputFileName( pdfname );
     printer.setResolution( resolution );
 
-    //-------------------- 
+    //--------------------
     QPainter painter( &printer );
     int n = 0;
     for ( auto& plot: plots_ ) {
@@ -399,7 +400,7 @@ MSPeaksWnd::handlePrintCurrentView( const QString& pdfname )
         renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
         renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
         renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
-        
+
         drawRect.setTop( boundingRect.bottom() );
         drawRect.setHeight( size.height() );
         drawRect.setWidth( size.width() / 2 );

@@ -55,6 +55,9 @@
 #include <qwt_scale_widget.h>
 #include <qwt_scale_widget.h>
 #include <qwt_text.h>
+#include <QColor>
+#include <QPen>
+#include <QBrush>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <boost/format.hpp>
@@ -132,7 +135,7 @@ WaveformWnd::init()
 
         legend->attach( w.get() );
         legend->setMaxColumns( 2 );
-        legend->setAlignment( Qt::AlignRight | Qt::AlignTop );
+        legend->setAlignmentInCanvas( Qt::AlignRight | Qt::AlignTop );
         w->setContextMenuPolicy( Qt::CustomContextMenu );
     }
 

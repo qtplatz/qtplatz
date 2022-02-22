@@ -100,6 +100,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QMenu>
+#include <QPainter>
 #include <QPrinter>
 #include <QSettings>
 #include <QSlider>

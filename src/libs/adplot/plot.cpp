@@ -35,12 +35,14 @@
 #include <qtwrapper/font.hpp>
 #include <qwt_picker_machine.h>
 #include <qwt_scale_widget.h>
+#include <qwt_text.h>
 #include <adportable/utf.hpp>
 #include <algorithm>
 #include <qwt_plot_renderer.h>
 #include <QApplication>
 #include <QClipboard>
 #include <QSignalBlocker>
+#include <QPainter>
 //#include <QSvgGenerator>
 
 namespace adplot {

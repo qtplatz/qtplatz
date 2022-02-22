@@ -27,6 +27,7 @@
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/peak.hpp>
+#include <QColor>
 
 // enum { idPeakLeft, idPeakCenter, idPeakRight, idPeakBottom, idPeakThreshold, idPeakTop, numMarkers };
 
