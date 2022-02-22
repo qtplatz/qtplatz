@@ -24,6 +24,23 @@ if ( qwt_DIR )
   set( QWT_LIB "QWT_LIB-NOTFOUND" )
   set( QWT_DEBUG_LIB "QWT_DEBUG_LIB-NOTFOUND" )
 
+  find_file( qwt_global_h NAME "qwt_global.h" HINTS ${QWT_INCLUDE_DIR} )
+  if ( qwt_global_h )
+    file ( STRINGS ${qwt_global_h} line REGEX "define[ \t]+QWT_VERSION_STR" )
+    if ( line )
+      string( REGEX MATCHALL "[0-9]+|[\\.\\-][0-9]+" __list ${line} )
+      list( LENGTH __list __count )
+      if ( __count GREATER  1 ) # count >= 2
+	string( REGEX REPLACE "^#.*\"([0-9]+)\\.[0-9]+.*$" "\\1" QWT_VERSION_MAJOR ${line} )
+	string( REGEX REPLACE "^#.*\"[0-9]+\\.([0-9]+).*$" "\\1" QWT_VERSION_MINOR ${line} )
+      endif()
+      if ( __count GREATER 2 ) # count >= 3
+	string( REGEX REPLACE "^#.*\"[0-9]+\\.[0-9]+[\\.-]([0-9]+).*$" "\\1" QWT_VERSION_PATCH ${line} )
+      endif()
+      set ( QWT_VERSION "${QWT_VERSION_MAJOR}.${QWT_VERSION_MINOR}.${QWT_VERSION_PATCH}" )
+    endif ()
+  endif()
+
   find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
 
   if ( QWT_LIB )
