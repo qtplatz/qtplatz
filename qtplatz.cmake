@@ -9,7 +9,7 @@ set( Boost_NO_SYSTEM_PATHS ON )
 
 set ( __boost_versions
   "boost-1_78"        # V19
-  "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18 )
+  "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18)
   )
 
 if ( WIN32 )
@@ -158,24 +158,26 @@ if (MSVC)
 
   add_definitions( "-DUNICODE" "-D_UNICODE" "-D_WIN32_WINNT=0x0601" "-D_SCL_SECURE_NO_WARNINGS" )
   set( CMAKE_CXX_STANDARD 17 )
-  #message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
 
 else()
 
   include(CheckCXXCompilerFlag)
+  CHECK_CXX_COMPILER_FLAG("-std=c++23" COMPILER_SUPPORTS_CXX23)
+  CHECK_CXX_COMPILER_FLAG("-std=c++20" COMPILER_SUPPORTS_CXX20)
   CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
   CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
   CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
   CHECK_CXX_COMPILER_FLAG("-std=c++03" COMPILER_SUPPORTS_CXX03)
 
-  if(COMPILER_SUPPORTS_CXX17)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  if(COMPILER_SUPPORTS_CXX23)
+    set( CMAKE_CXX_STANDARD 23 )
+  elseif(COMPILER_SUPPORTS_CXX20)
+    set( CMAKE_CXX_STANDARD 20 )
+  elseif(COMPILER_SUPPORTS_CXX17)
     set( CMAKE_CXX_STANDARD 17 )
   elseif(COMPILER_SUPPORTS_CXX14)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
     set( CMAKE_CXX_STANDARD 14 )
   elseif(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     set( CMAKE_CXX_STANDARD 11 )
   elseif(COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
