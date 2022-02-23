@@ -158,6 +158,7 @@ if (MSVC)
 
   add_definitions( "-DUNICODE" "-D_UNICODE" "-D_WIN32_WINNT=0x0601" "-D_SCL_SECURE_NO_WARNINGS" )
   set( CMAKE_CXX_STANDARD 17 )
+  set( COMPILER_SUPPORTS_CXX17 TRUE )
 
 else()
 
