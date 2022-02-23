@@ -1,10 +1,29 @@
 #!/bin/bash
 
 cwd="$(cd "$(dirname "$0")" && pwd)"
+arch=`uname`-`arch`
 source ${cwd}/config.sh
 source ./prompt.sh
 
-QWT_BUILD_DIR=${SRC}/qwt-6.1
+function qwt_download {
+    QWT_VERSION=$1
+    QWT_BUILD_DIR=$2
+
+    if [ ! -f ${DOWNLOADS}/qwt-${QWT_VERSION}.tar.bz2 ]; then
+		echo "=============================="
+		VERSION=$(echo $QWT_VERSION | tr _ .)
+		echo curl -L -o ${DOWNLOADS}/qwt-${QWT_VERSION}.tar.bz2 https://sourceforge.net/projects/qwt/files/qwt/6.2.0/qwt-${QWT_VERSION}.tar.bz2/download
+		curl -L -o ${DOWNLOADS}/qwt-${QWT_VERSION}.tar.bz2 https://sourceforge.net/projects/qwt/files/qwt/6.2.0/qwt-${QWT_VERSION}.tar.bz2/download
+	fi
+
+	if [ ! -d ${QWT_BUILD_DIR} ]; then
+		prompt
+		tar xvf ${DOWNLOADS}/qwt-${QWT_VERSION}.tar.bz2 -C $(dirname ${QWT_BUILD_DIR})
+	fi
+}
+
+QWT_VERSION=6.2.0
+QWT_BUILD_DIR=${SRC}/qwt-6.2.0
 
 if ! find_qmake QMAKE; then
     echo "qmake command not found."
@@ -15,18 +34,18 @@ echo "==========================="
 echo "Install qwt using $QMAKE"
 prompt
 
-# https://sourceforge.net/projects/qwt/files/latest/download
+qwt_download ${QWT_VERSION} ${QWT_BUILD_DIR}
 
-if ! type svn >/dev/null; then
-    sudo apt-get -y install subversion
-fi
+case $arch in
+	Darwin-i386)
+		qmake_args=('QMAKE_APPLE_DEVICE_ARCHS=x86_64')
+		;;
+	Darwin-arm64)
+		qmake_args=('QMAKE_APPLE_DEVICE_ARCHS=arm64')
+		;;
+esac
 
-if [ ! -d $QWT_BUILD_DIR ]; then
-    svn checkout svn://svn.code.sf.net/p/qwt/code/branches/qwt-6.1 $QWT_BUILD_DIR
-fi
-
-cd $QWT_BUILD_DIR
-svn update
+cd ${QWT_BUILD_DIR}
 
 cp -p qwtconfig.pri qwtconfig.pri.orig
 
@@ -38,7 +57,9 @@ cat qwtconfig.pri.orig | \
 	sed '/QwtFramework/s/^/#/' | \
 	sed '/QwtPlayground/s/^/#/' > qwtconfig.pri
 
-$QMAKE -r qwt.pro
+echo $QMAKE -r qwt.pro "${qmake_args[@]}"
+
+$QMAKE -r qwt.pro "${qmake_args[@]}"
 make -j4
 echo "==========================="
 echo "sudo make install on `pwd`"
