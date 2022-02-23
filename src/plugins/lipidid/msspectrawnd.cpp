@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,13 +23,10 @@
 **************************************************************************/
 
 #include "msspectrawnd.hpp"
-#include <adprocessor/dataprocessor.hpp>
 #include "document.hpp"
 #include "mainwindow.hpp"
-#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/description.hpp>
-#include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msqpeaks.hpp>
 #include <adlog/logger.hpp>
@@ -48,6 +45,7 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/mspeaktree.hpp>
 #include <adwidgets/msquantable.hpp>
@@ -260,12 +258,13 @@ MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
 }
 
 void
-MSSpectraWnd::handleFormulaSelection( const QString& formula )
+MSSpectraWnd::handleFormulaSelection( const QString& formula, double abundance )
 {
-    impl_->selectedFormula_ = formula.toStdString();
-    adcontrols::isotopeCluster isoCalc( 1.0e-4, 4000 );
-    auto cluster = isoCalc( adcontrols::ChemicalFormula::split( impl_->selectedFormula_ ), 0 );
+    // ADDEBUG() << "formula: " << formula.toStdString() << ", abundance: " << abundance;
     if ( auto refms = document::instance()->reference_mass_spectrum() ) {
-        // impl_->plots_[ 1 ]->setData( refms, 0 );
+        impl_->plots_[ 1 ]->setAlpha( 0, 0x60 );
+        if ( auto overlay = document::instance()->overlay_mass_spectrum() ) {
+            impl_->plots_[ 1 ]->setData( overlay, 1 );
+        }
     }
 }

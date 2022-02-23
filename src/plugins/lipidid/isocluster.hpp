@@ -39,6 +39,10 @@ namespace lipidid {
                                                   , const std::string& adduct
                                                   , double abundance_llimit = 1.0e-4
                                                   , double resolving_power = 4000 );
+
+        static std::vector< value_type > compute( const std::string& formula
+                                                  , double abundance_llimit = 1.0e-4
+                                                  , double resolving_power = 4000 );
     };
 
 }

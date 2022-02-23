@@ -209,6 +209,35 @@ MetIdProcessor::find_all( adfs::sqlite& db
     // ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
 }
 
+std::shared_ptr< adcontrols::MassSpectrum > // reference (calculated) spectrum
+MetIdProcessor::compute_reference_spectrum( const std::string& formula // contains adducts
+                                            , double abundance
+                                            , std::shared_ptr< const adcontrols::MassSpectrum > ms )
+{
+    auto refMs = std::make_shared< adcontrols::MassSpectrum >();
+    refMs->clone( *ms, false );
+    auto cluster = isoCluster::compute( formula );
+    std::vector< double > masses, intensities;
+    std::vector< uint8_t > colors;
+    refMs->get_annotations()
+        << adcontrols::annotation( formula
+                                   , cluster.at(0).first // mass
+                                   , cluster.at(0).second * abundance
+                                   , masses.size() // index
+                                   , cluster.at(0).second * abundance
+                                   , adcontrols::annotation::dataFormula
+                                   , adcontrols::annotation::flag_targeting );
+    for ( const auto& ipk: cluster ) {
+        masses.emplace_back( ipk.first );
+        intensities.emplace_back( ipk.second * abundance );
+        colors.emplace_back( 4 ); // deep pink
+    }
+    refMs->setMassArray( std::move( masses ) );
+    refMs->setIntensityArray( std::move( intensities ) );
+    refMs->setColorArray( std::move( colors ) );
+    return refMs;
+}
+
 
 namespace lipidid {
 
@@ -241,9 +270,9 @@ namespace lipidid {
                 for ( const auto& ipk: cluster ) {
                     masses.emplace_back( ipk.first );
                     intensities.emplace_back( ipk.second * intensity );
-                    colors.emplace_back( cid );
+                    colors.emplace_back( cid & 1 ? 0 : 6 ); // blue, indigo
                 }
-                cid = ++cid > 8 ? 0 : cid;
+                ++cid;
             }
         }
         refMs->setMassArray( std::move( masses ) );

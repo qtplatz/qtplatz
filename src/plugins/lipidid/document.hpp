@@ -58,6 +58,7 @@ namespace lipidid {
         bool find_all( adcontrols::MetIdMethod&& );
 
         std::shared_ptr< const adcontrols::MassSpectrum > reference_mass_spectrum() const;
+        std::shared_ptr< const adcontrols::MassSpectrum > overlay_mass_spectrum() const;
 
         std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum
                     , std::shared_ptr< const adcontrols::MassSpectrum > // reference (calculated) spectrum

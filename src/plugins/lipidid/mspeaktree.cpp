@@ -256,14 +256,18 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
     while ( top.parent() != QModelIndex() )
         top = top.parent();
 
-    // ADDEBUG() << std::make_tuple( index.row(), index.column(), index.parent().row(), index.column() );
     if ( index.column() == c_inchikey ) {
         auto key = index.data( Qt::EditRole ).toString();
         if ( ! key.isEmpty() ) {
             emit inChIKeySelected( key );
-            auto formula = index.model()->index( index.row(), c_formula, index.parent() ).data( Qt::EditRole ).toString();
-            double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
-            document::instance()->handleFormulaSelected( formula, abundance );
+            auto fidx = index.model()->index( index.row(), c_formula, index.parent() );
+            if ( fidx.data( Qt::EditRole ).isNull() )
+                fidx = index.model()->index( fidx.parent().row(), c_formula, fidx.parent().parent() );
+            if ( fidx.data( Qt::EditRole ).isValid() ) {
+                auto formula = fidx.data( Qt::EditRole ).toString();
+                double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
+                document::instance()->handleFormulaSelected( formula, abundance );
+            }
         }
     }
     if ( index.column() == c_formula ) {

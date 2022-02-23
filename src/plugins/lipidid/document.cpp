@@ -96,6 +96,7 @@ namespace lipidid {
         std::shared_ptr< adfs::sqlite > sqlite_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         std::shared_ptr< const adcontrols::MassSpectrum > refms_;
+        std::shared_ptr< const adcontrols::MassSpectrum > overlay_;
         std::shared_ptr< lipidid::simple_mass_spectrum > simple_mass_spectrum_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, double > logP_;
@@ -241,10 +242,18 @@ document::handleCheckStateChanged( adextension::iSessionManager *
 void
 document::handleFormulaSelected( const QString& formula, double abundance )
 {
-    ADDEBUG() << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance;
-    if ( impl_->selectedFormula_ != formula ) {
-        impl_->selectedFormula_ = formula;
-        emit onFormulaSelected( impl_->selectedFormula_, abundance );
+    // ADDEBUG() << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance;
+    try {
+        if ( impl_->selectedFormula_ != formula ) {
+            impl_->selectedFormula_ = formula;
+            auto metid = lipidid::MetIdProcessor::create( impl_->method_ );
+            if ( auto ms = reference_mass_spectrum() ) {
+                impl_->overlay_ = metid->compute_reference_spectrum( formula.toStdString(), abundance, ms );
+                emit onFormulaSelected( impl_->selectedFormula_, abundance );
+            }
+        }
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << "exception: " << ex.what();
     }
 }
 
@@ -253,6 +262,12 @@ std::shared_ptr< const adcontrols::MassSpectrum >
 document::reference_mass_spectrum() const
 {
     return impl_->refms_;
+}
+
+std::shared_ptr< const adcontrols::MassSpectrum >
+document::overlay_mass_spectrum() const
+{
+    return impl_->overlay_;
 }
 
 std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum

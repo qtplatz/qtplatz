@@ -59,6 +59,11 @@ namespace lipidid {
                     , std::shared_ptr< const adcontrols::MassSpectrum >
                     , std::shared_ptr< adwidgets::ProgressInterface > );
 
+        std::shared_ptr< adcontrols::MassSpectrum > // reference (calculated) spectrum
+        compute_reference_spectrum( const std::string& formula // contains adducts
+                                    , double abundance
+                                    , std::shared_ptr< const adcontrols::MassSpectrum > );
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;

@@ -33,7 +33,7 @@
 
 namespace adcontrols {
 
-	namespace mol { struct molecule; struct isotope; }
+	namespace mol { class molecule; struct isotope; }
 
     class MassSpectrometer;
     class MassSpectrum;
