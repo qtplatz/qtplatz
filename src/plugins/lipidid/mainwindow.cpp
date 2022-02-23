@@ -44,6 +44,7 @@
 #include <adprot/peptides.hpp>
 #include <adutils/adfile.hpp>
 #include <qtwrapper/trackingenabled.hpp>
+#include <qtwrapper/settings.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -490,4 +491,27 @@ MainWindow::setSimpleDockWidgetArrangement()
     }
 	widgets[ 1 ]->raise();
     update();
+}
+
+QString
+MainWindow::makeSaveSvgFilename()
+{
+    if ( auto settings = document::instance()->settings() ) {
+
+        std::filesystem::path fpath( qtwrapper::settings( *settings ).recentFile( "SVG", "Files" ).toStdString() );
+        if ( fpath.empty() ) {
+            fpath = document::instance()->dataFilename().replace_extension( ".svg" );
+        } else {
+            auto dir = fpath.remove_filename();
+            fpath = ( dir / fpath.stem() ).replace_extension( ".svg" );
+        }
+
+        QString fn = QFileDialog::getSaveFileName(
+            nullptr
+            , QObject::tr("Save SVG File...")
+            , QString::fromStdString( fpath )
+            , QObject::tr("SVG Files (*.svg);;All Files (*)") );
+        return fn;
+    }
+    return {};
 }

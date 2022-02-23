@@ -55,6 +55,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <adportable/unique_ptr.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/settings.hpp>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_renderer.h>
@@ -116,6 +117,7 @@ MSSpectraWnd::MSSpectraWnd( QWidget *parent ) : QWidget(parent)
                                               , impl_( new impl( this ) )
 {
     init();
+    setContextMenuPolicy( Qt::CustomContextMenu );
 }
 
 void
@@ -172,6 +174,28 @@ MSSpectraWnd::handleSelectionChanged( adprocessor::dataprocessor * processor, po
 void
 MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
 {
+    auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
+    if ( d <= 2 ) {
+		QMenu menu;
+        typedef std::pair < QAction *, std::function<void()> > action_type;
+        std::vector < action_type > actions;
+
+        actions.emplace_back( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } );
+        actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
+            auto name = MainWindow::makeSaveSvgFilename();
+            if ( ! name.isEmpty() ) {
+                adplot::plot::copyImageToFile( plot, name, "svg" );
+                qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( "SVG", "Files", name );
+            }
+        });
+
+        QAction * selected = menu.exec( QCursor::pos() );
+        if ( selected ) {
+            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
+            if ( it != actions.end() )
+                (it->second)();
+        }
+    }
 }
 
 void

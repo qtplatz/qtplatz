@@ -28,6 +28,7 @@
 #include <memory>
 #include <tuple>
 #include <optional>
+#include <filesystem>
 
 class QSettings;
 class QSqlDatabase;
@@ -66,6 +67,7 @@ namespace lipidid {
                     > getResultSet() const;
 
         std::optional< std::string > find_svg( const std::string& InChIKey ) const;
+        std::filesystem::path dataFilename() const;
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );

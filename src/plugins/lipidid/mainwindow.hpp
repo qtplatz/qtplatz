@@ -66,6 +66,7 @@ namespace lipidid {
 
         // call from lipididplugin
         void initializeActions( Core::IMode * );
+        static QString makeSaveSvgFilename();
 
     private:
 

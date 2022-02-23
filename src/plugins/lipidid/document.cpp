@@ -94,6 +94,7 @@ namespace lipidid {
         std::unique_ptr< QSettings > settings_;
         QSqlDatabase db_;
         std::shared_ptr< adfs::sqlite > sqlite_;
+        std::filesystem::path filename_;
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         std::shared_ptr< const adcontrols::MassSpectrum > refms_;
         std::shared_ptr< const adcontrols::MassSpectrum > overlay_;
@@ -215,6 +216,7 @@ document::handleSelectionChanged( adextension::iSessionManager *
         if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
             if ( ptr->isCentroid() ) {
                 impl_->ms_ = ptr;
+                impl_->filename_ = std::filesystem::path( file.toStdString() );
                 emit dataChanged( folium );
             }
         }
@@ -321,4 +323,10 @@ document::find_svg( const std::string& InChIKey ) const
     auto [ svg ] = adfs::get_column_values< std::string >( sql );
     lipidid::moldb::instance().addSVG( InChIKey, std::move( svg ) );
     return lipidid::moldb::instance().svg( InChIKey );
+}
+
+std::filesystem::path
+document::dataFilename() const
+{
+    return impl_->filename_;
 }
