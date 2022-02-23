@@ -54,7 +54,7 @@ set ( ZLIB_SOURCE_DIR ${SRCDIR}/zlib-1.2.11 )
 set ( ZLIB_BINARY_DIR ${BUILD_ROOT}/zlib.build )
 set ( ZLIB_INSTALL_PREFIX "C:/opt/zlib" )
 
-set ( QWT_VERSION "6.1.6" )
+set ( QWT_VERSION "6.2.0" )
 set ( QWT_SOURCE_DIR ${SRCDIR}/qwt-${QWT_VERSION} )
 
 if ( NOT $ENV{HOME} STREQUAL "")
