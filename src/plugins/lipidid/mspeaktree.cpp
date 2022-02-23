@@ -164,6 +164,21 @@ namespace lipidid {
             }
         }
 
+        std::optional<int> findFirstRow( const QStandardItemModel& model, int column, std::function< bool( const QVariant& ) > pred ) {
+            for ( int i = 0; i < model.rowCount(); ++i ) {
+                if ( pred( model.index( i, column ).data( Qt::EditRole ) ) )
+                    return i;
+            }
+            return {};
+        }
+
+        std::optional<int> findLastRow( const QStandardItemModel& model, int column, std::function< bool( const QVariant& ) > pred ) {
+            for ( int i = model.rowCount() -1; i >= 0; --i ) {
+                if ( pred( model.index( i, column ).data( Qt::EditRole ) ) )
+                    return i;
+            }
+            return {};
+        }
     }
 }
 
@@ -197,7 +212,7 @@ MSPeakTree::MSPeakTree(QWidget *parent) : QTreeView( parent )
     this->setHeader( new HtmlHeaderView );
     this->setModel( impl_->model_.get() );
 	this->setItemDelegate( impl_->delegate_.get() );
-    this->setSortingEnabled( true );
+    this->setSortingEnabled( false );
     //this->verticalHeader()->setDefaultSectionSize( 18 );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
 
@@ -236,10 +251,27 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 {
     scrollTo( index, QAbstractItemView::EnsureVisible );
     emit currentChanged( index );
+
+    auto top = index;
+    while ( top.parent() != QModelIndex() )
+        top = top.parent();
+
+    // ADDEBUG() << std::make_tuple( index.row(), index.column(), index.parent().row(), index.column() );
     if ( index.column() == c_inchikey ) {
         auto key = index.data( Qt::EditRole ).toString();
-        if ( ! key.isEmpty() )
+        if ( ! key.isEmpty() ) {
             emit inChIKeySelected( key );
+            auto formula = index.model()->index( index.row(), c_formula, index.parent() ).data( Qt::EditRole ).toString();
+            double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
+            document::instance()->handleFormulaSelected( formula, abundance );
+        }
+    }
+    if ( index.column() == c_formula ) {
+        auto formula = index.data( Qt::EditRole ).toString();
+        if ( ! formula.isEmpty() ) {
+            double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
+            document::instance()->handleFormulaSelected( formula, abundance );
+        }
     }
 }
 
@@ -257,41 +289,47 @@ MSPeakTree::keyPressEvent( QKeyEvent * event )
 }
 
 void
-MSPeakTree::handleZoomedOnSpectrum( const QRectF& rc, int axis )
+MSPeakTree::handleZoomedOnSpectrum( int view, const QRectF& rc )
 {
-#if 0
     QStandardItemModel& model = *impl_->model_;
-    bool isTimeAxis = axis == adcontrols::hor_axis_time;
-
-    if ( auto ptr = impl_->data_source_.lock() ) {
-        std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right(), isTimeAxis ); // index,fcn
-
-        if ( bp.first >= 0 && bp.second >= 0 ) {
-            do {
-                // ---> change rel. intensity
-                setUpdatesEnabled( false );
-                double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
-                for ( int row = 0; row < model.rowCount(); ++row ) {
-                    model.setData( model.index( row, c_relative_intensity )
-                                   , model.index( row, c_intensity ).data().toDouble() * 100 / base_height );
-                }
-                setUpdatesEnabled( true );
-                // <--- end rel. intensity
-            } while ( 0 );
-
-            do {
-                for ( int row = 0; row < model.rowCount(); ++row ) {
-                    if ( model.index( row, c_index ).data( Qt::EditRole ).toInt() == bp.first ) {
-                        QModelIndex index = model.index( row, isTimeAxis ? c_time : c_mass );
-                        setCurrentIndex( index );
-                        scrollTo( index, QAbstractItemView::EnsureVisible );
-                        break;
-                    }
-                }
-            } while ( 0 );
+    // std::shared_ptr< const lipidid::simple_mass_spectrum > simple_mass_spectrum;
+    // std::tie( std::ignore, std::ignore, simple_mass_spectrum ) = document::instance()->getResultSet();
+    // if ( simple_mass_spectrum ) {
+    //     auto it = std::lower_bound( simple_mass_spectrum->begin()
+    //                                 , simple_mass_spectrum->end()
+    //                                 , rc.left()
+    //                                 , [](const auto& a, double left){ return mass_value_t::mass(a) < left; });
+    // }
+    auto visualRows = std::make_pair( indexAt( rect().topLeft() ).row(), indexAt( rect().bottomLeft() ).row() );
+    if ( rc.left() < model.index( c_mass, visualRows.first ).data().toDouble() && // view left is lower than tree-top
+         rc.right() > model.index( c_mass, visualRows.second ).data().toDouble() ) { // view right is higher than tree-bottom
+        // tree range is contained -- nothing to do
+    }
+    if ( rc.left() > model.index( c_mass, visualRows.first ).data().toDouble() ) { // view left is higher than tree-top
+        if ( auto row = findFirstRow( model, c_mass, [&](auto& v){ return v.toDouble() > rc.left(); }) ) {
+            scrollTo( model.index( *row, 0 ), EnsureVisible );
+        }
+    } else if ( rc.right() < model.index( c_mass, visualRows.second ).data().toDouble() ) { // view right is lower than tree-bottom
+        if ( auto row = findLastRow( model, c_mass, [&](auto& v){ return v.toDouble() < rc.right(); }) ) {
+            scrollTo( model.index( *row, 0 ), EnsureVisible );
         }
     }
-#endif
+    if ( view == 1 ) {
+        // find base peak and select it
+        auto leftIndex = findFirstRow( model, c_mass, [&](auto& v){ return v.toDouble() > rc.left(); });
+        auto rightIndex = findLastRow( model, c_mass, [&](auto& v){ return v.toDouble() < rc.right(); });
+        if ( leftIndex && rightIndex ) {
+            int sel( *leftIndex );
+            for ( int row = *leftIndex; row <= *rightIndex; ++row ) {
+                if ( model.index( row, c_intensity ).data().toDouble() > model.index( sel, c_intensity ).data().toDouble() ) {
+                    sel = row;
+                }
+            }
+            // ADDEBUG() << "selected row: " << sel << ", mass=" << model.index( sel, c_mass ).data().toDouble();
+            scrollTo( model.index( sel, 0 ), EnsureVisible );
+            selectionModel()->select( model.index( sel, 0 ), QItemSelectionModel::Select | QItemSelectionModel::Rows);
+        }
+    }
 }
 
 void
@@ -437,25 +475,24 @@ MSPeakTree::handleIdCompleted()
     auto model = impl_->model_.get();
     model->setRowCount( simple_mass_spectrum->size() );
 
+    size_t row(0);
     for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
         auto [ time, mass, abundance, color ] = (*simple_mass_spectrum)[ i ];
         (void)time;
-
-        model->setData( model->index( i, c_index ), int( i ) );
-        model->setData( model->index( i, c_mass ), mass );
-        model->setData( model->index( i, c_intensity ), abundance );
-        if ( auto item = model->item( i, 0 ) ) {
-            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            item->setData( Qt::Unchecked, Qt::CheckStateRole );
-        }
-
         auto candidates = simple_mass_spectrum->candidates( i );
-        setRowHidden( i, QModelIndex(), candidates.empty() );
         if ( ! candidates.empty() ) {
+            model->setData( model->index( row, c_index ), int( i ) );
+            model->setData( model->index( row, c_mass ), mass );
+            model->setData( model->index( row, c_intensity ), abundance );
+            if ( auto item = model->item( row, 0 ) ) {
+                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                item->setData( Qt::Unchecked, Qt::CheckStateRole );
+            }
+            // setRowHidden( i, QModelIndex(), candidates.empty() );
             if ( candidates.size() == 1 ) {
-                setCandidateData( model, i, candidates.at( 0 ), QModelIndex() );
+                setCandidateData( model, row, candidates.at( 0 ), QModelIndex() );
             } else {
-                auto parent = model->itemFromIndex( model->index( i, 0 ) );
+                auto parent = model->itemFromIndex( model->index( row, 0 ) );
                 parent->setColumnCount( c_num_columns );
                 parent->setRowCount( candidates.size() );
                 size_t k(0);
@@ -464,6 +501,7 @@ MSPeakTree::handleIdCompleted()
                     ++k;
                 }
             }
+            ++row;
         }
     }
     resizeColumnToContents( c_formula );
@@ -474,6 +512,5 @@ void
 MSPeakTree::handleDataChanged( const portfolio::Folium& folium )
 {
 }
-
 
 #include "mspeaktree.moc"

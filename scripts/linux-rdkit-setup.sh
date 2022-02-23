@@ -56,7 +56,7 @@ if [ `uname` == "Darwin" ]; then
 			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
 			 "-DBoost_NO_BOOST_CMAKE=ON"
 			 "-DRDK_BUILD_FREETYPE_SUPPORT=OFF"
-			 "-DCMAKE_OSX_DEPLOYMENT_TARGET=12.2"
+			 "-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0"
 			   )
 	if (( $nproc < 8 )); then
 		cmake_args+=(

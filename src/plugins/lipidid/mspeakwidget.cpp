@@ -40,7 +40,6 @@ namespace lipidid {
     class MSPeakWidget::impl {
     public:
         void draw( const QString& key, QWidget * p ) {
-            ADDEBUG() << "key: " << key.toStdString();
             if ( auto svg = document::instance()->find_svg( key.toStdString() ) ) {
                 if ( auto view = p->findChild< QSvgWidget * >() ) {
                     QByteArray ba( svg->data(), svg->size() );

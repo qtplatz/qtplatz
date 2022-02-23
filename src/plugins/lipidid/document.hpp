@@ -76,12 +76,15 @@ namespace lipidid {
         void handleProcessed( adextension::iSessionManager *, const QString& file, const portfolio::Folium& );
 
         void handleCheckStateChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium&, bool );
+        void handleFormulaSelected( const QString& formula, double abundance );
 
     private:
 
     signals:
         void onConnectionChanged();
         void idCompleted();
+        void onZoomed( int, const QRectF& );
+        void onFormulaSelected( const QString&, double abundance );
 
         // souce iSessionManager
         void dataChanged( const portfolio::Folium& );

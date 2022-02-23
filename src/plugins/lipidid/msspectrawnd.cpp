@@ -26,8 +26,10 @@
 #include <adprocessor/dataprocessor.hpp>
 #include "document.hpp"
 #include "mainwindow.hpp"
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msqpeaks.hpp>
 #include <adlog/logger.hpp>
@@ -35,13 +37,14 @@
 #include <adplot/peakmarker.hpp>
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
+#include <adplot/zoomer.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
 #include <adportable/array_wrapper.hpp> // std::span
 #include <adportable/configuration.hpp>
-#include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -79,28 +82,27 @@ namespace lipidid {
                                  , selProcessed_( false ) {
 
             for ( size_t i = 0; i < plots_.size(); ++i ) {
-
                 plots_[ i ] = std::make_unique< adplot::SpectrumWidget >();
                 plots_[ i ]->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
                 plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-
                 markers_[ i ] = std::make_unique< adplot::PeakMarker >();
-
+                QObject::connect( plots_[ i ]->zoomer(), &adplot::Zoomer::zoomed
+                                  , [=]( const QRectF& rc ){
+                    emit document::instance()->onZoomed( i, rc );
+                } );
             }
-
         }
 
         ~impl() {
         }
 
         MSSpectraWnd * pThis_;
-
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > plots_;
         std::array< std::unique_ptr< adplot::PeakMarker >, 2 > markers_;
         bool isTimeAxis_;
         bool dirty_;
         bool selProcessed_;
-
+        std::string selectedFormula_;
     };
 
 }
@@ -198,6 +200,8 @@ MSSpectraWnd::handleCurrentChanged( const QString& guid, int idx, int fcn )
 void
 MSSpectraWnd::handleDataChanged( const portfolio::Folium& folium )
 {
+    impl_->selectedFormula_.clear();
+
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
@@ -212,6 +216,8 @@ MSSpectraWnd::handleDataChanged( const portfolio::Folium& folium )
 void
 MSSpectraWnd::handleIdCompleted()
 {
+    impl_->selectedFormula_.clear();
+
     if ( auto refms = document::instance()->reference_mass_spectrum() ) {
         impl_->plots_[ 1 ]->setData( refms, 0 );
     }
@@ -251,4 +257,15 @@ MSSpectraWnd::handleDataChanged( const QString& dataGuid, int idx, int fcn, int 
 void
 MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
 {
+}
+
+void
+MSSpectraWnd::handleFormulaSelection( const QString& formula )
+{
+    impl_->selectedFormula_ = formula.toStdString();
+    adcontrols::isotopeCluster isoCalc( 1.0e-4, 4000 );
+    auto cluster = isoCalc( adcontrols::ChemicalFormula::split( impl_->selectedFormula_ ), 0 );
+    if ( auto refms = document::instance()->reference_mass_spectrum() ) {
+        // impl_->plots_[ 1 ]->setData( refms, 0 );
+    }
 }

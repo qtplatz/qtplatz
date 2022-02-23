@@ -66,12 +66,14 @@ namespace lipidid {
     signals:
         void currentChanged( const QModelIndex& );
         void inChIKeySelected( const QString& );
+        void formulaSelected( const QString& );
 
     public slots:
         void handleCopyToClipboard();
         void handleCopyAllToClipboard();
         void handleCopyCheckedToClipboard();
-        void handleZoomedOnSpectrum( const QRectF&, int axis );   // zoomer zoomed
+
+        void handleZoomedOnSpectrum( int view, const QRectF& );   // zoomer zoomed
 
         //
         void handleDataChanged( const portfolio::Folium& );

@@ -120,13 +120,20 @@ namespace lipidid {
             }
             return nullptr;
         }
+        void setup_menu_actions();
 
         static QToolButton *
         toolButton( const char * id ) {
             return toolButton( Core::ActionManager::instance()->command( id )->action() );
         }
         static void createDockWidgets( MainWindow * );
-        void setup_menu_actions();
+        static void selDockWidget( MainWindow * pThis, const QString& objectname ) {
+            if ( auto dock = pThis->findChild< QDockWidget * >( objectname ) ) {
+                dock->raise();
+                pThis->update();
+            }
+        }
+
     };
 
 }
@@ -267,6 +274,7 @@ MainWindow::createContents( Core::IMode * mode )
             impl_->stackWidget_->addWidget( pWnd );
             connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
             connect( document::instance(), &document::idCompleted, pWnd, &MSSpectraWnd::handleIdCompleted );
+            connect( document::instance(), &document::onFormulaSelected, pWnd, &MSSpectraWnd::handleFormulaSelection );
         }
 
         if ( auto pWnd = new MolTableWnd ) {
@@ -292,8 +300,8 @@ MainWindow::createContents( Core::IMode * mode )
     mainWindowSplitter->setStretchFactor( 1, 0 );
     mainWindowSplitter->setOrientation( Qt::Vertical );
 
-    connect( document::instance(), &document::idCompleted, [&]{ dockWidgets()[3]->raise(); update(); });
-    connect( document::instance(), &document::dataChanged, [&]{ dockWidgets()[0]->raise(); update(); });
+    connect( document::instance(), &document::dataChanged, [&]{ impl::selDockWidget( this, "Adducts" ); });
+    connect( document::instance(), &document::idCompleted, [&]{ impl::selDockWidget( this, "MSPeakTree" ); });
 
 #if 0
     // Navigation and right-side window
@@ -385,10 +393,11 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
             QObject::connect( widget, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
         }
     }
-    if ( auto widget = dock_create< MSPeakWidget >( pThis, "Peaks", "Peaks" ) ) {
+    if ( auto widget = dock_create< MSPeakWidget >( pThis, "Peaks", "MSPeakTree" ) ) {
         auto tree = widget->treeView();
         QObject::connect( document::instance(), &document::dataChanged, tree, &MSPeakTree::handleDataChanged );
         QObject::connect( document::instance(), &document::idCompleted, tree, &MSPeakTree::handleIdCompleted );
+        QObject::connect( document::instance(), &document::onZoomed, tree, &MSPeakTree::handleZoomedOnSpectrum );
     }
 }
 
@@ -479,7 +488,6 @@ MainWindow::setSimpleDockWidgetArrangement()
         if ( npos++ >= 1 )
             tabifyDockWidget( widgets[0], widget );
     }
-	widgets[1]->raise();
-
+	widgets[ 1 ]->raise();
     update();
 }

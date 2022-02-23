@@ -99,6 +99,7 @@ namespace lipidid {
         std::shared_ptr< lipidid::simple_mass_spectrum > simple_mass_spectrum_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, double > logP_;
+        QString selectedFormula_;
     };
 
 }
@@ -236,6 +237,17 @@ document::handleCheckStateChanged( adextension::iSessionManager *
     ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
               << folium.fullpath();
 }
+
+void
+document::handleFormulaSelected( const QString& formula, double abundance )
+{
+    ADDEBUG() << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance;
+    if ( impl_->selectedFormula_ != formula ) {
+        impl_->selectedFormula_ = formula;
+        emit onFormulaSelected( impl_->selectedFormula_, abundance );
+    }
+}
+
 
 std::shared_ptr< const adcontrols::MassSpectrum >
 document::reference_mass_spectrum() const

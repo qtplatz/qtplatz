@@ -65,6 +65,10 @@ namespace lipidid {
 
         void handleDataChanged( const portfolio::Folium& );
         void handleIdCompleted();
+        void handleFormulaSelection( const QString& formula );
+
+    signals:
+        void zoomed( size_t, const QRectF& );
 
     private:
         void init();

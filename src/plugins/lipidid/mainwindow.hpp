@@ -61,7 +61,6 @@ namespace lipidid {
 
         void activateLayout();
         void setSimpleDockWidgetArrangement();
-
         void OnInitialUpdate();
         void OnFinalClose();
 
