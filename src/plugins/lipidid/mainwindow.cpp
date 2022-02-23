@@ -509,7 +509,7 @@ MainWindow::makeSaveSvgFilename()
         QString fn = QFileDialog::getSaveFileName(
             nullptr
             , QObject::tr("Save SVG File...")
-            , QString::fromStdString( fpath )
+            , QString::fromStdString( fpath.string() )
             , QObject::tr("SVG Files (*.svg);;All Files (*)") );
         return fn;
     }

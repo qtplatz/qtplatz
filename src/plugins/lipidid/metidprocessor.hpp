@@ -25,6 +25,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 namespace adwidgets { class ProgressInterface; }
 namespace adcontrols { class MassSpectrum; class MetIdMethod; }
