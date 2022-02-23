@@ -11,7 +11,7 @@ else()
 endif()
 
 set ( __qwt_dirs "" )
-foreach( __qwt_version "6.2.0" "6.1.6" "6.1.5" "6.1.4" "6.1.3" "6.1.2" )
+foreach( __qwt_version "6.2.0" )
   list ( APPEND __qwt_dirs "${__prefix}/qwt-${__qwt_version}" "${__prefix}/qwt-${__qwt_version}-svn" )
 endforeach()
 

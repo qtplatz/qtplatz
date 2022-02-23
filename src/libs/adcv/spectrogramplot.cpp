@@ -27,24 +27,27 @@
 #include <adcontrols/mappedimage.hpp>
 #include <adplot/zoomer.hpp>
 #include <qtwrapper/font.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <qwt_color_map.h>
 #include <qwt_interval.h>
-#include <qwt_plot_spectrogram.h>
-//#include <qwt_plot_rescaler.h>
-#include <qwt_plot_zoomer.h>
-#include <qwt_plot_panner.h>
-#include <qwt_plot_layout.h>
-#include <qwt_plot_renderer.h>
 #include <qwt_picker_machine.h>
-#include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_renderer.h>
+#include <qwt_plot_spectrogram.h>
+#include <qwt_plot_zoomer.h>
 #include <qwt_scale_draw.h>
+#include <qwt_scale_map.h>
 #include <qwt_scale_engine.h>
-//#include <QPrinter>
-//#include <QPrintDialog>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <qwt_scale_widget.h>
 #include <QBrush>
-#include <iostream>
+#include <QColor>
+#include <QPainter>
+#include <QPen>
+#include <QPrinter>
+//#include <qwt_plot_rescaler.h>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <iostream>
 
 namespace adcv {
 
@@ -72,7 +75,7 @@ namespace adcv {
 
     private:
         void draw( QPainter * painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap, const QRectF& canvasRect ) const override {
-            QRectF scaleRect = this->scaleRect( xMap, yMap );
+            // QRectF scaleRect = this->scaleRect( xMap, yMap );
             painter->save();
             QPen pen( QColor( 0xff, 0xff, 0xff, 0x80 ) ); pen.setWidth( 2 );
             painter->setPen( pen );
@@ -129,6 +132,15 @@ namespace adcv {
             setInterval( Qt::ZAxis, QwtInterval( 0, 10.0 ) );
         }
 
+        QwtInterval  interval( Qt::Axis axis ) const override {
+            switch ( axis ) {
+            case Qt::XAxis: return std::get< 0 >( interval_ );
+            case Qt::YAxis: return std::get< 1 >( interval_ );
+            case Qt::ZAxis: return std::get< 2 >( interval_ );
+            }
+            return {};
+        }
+
         void setData( cv::Mat&& data ) {
             data_ = std::move( data );
         }
@@ -143,7 +155,7 @@ namespace adcv {
             return false;
         }
 
-        virtual double value( double _x, double _y ) const  {
+        double value( double _x, double _y ) const  override {
             if ( ! data_.empty() ) {
                 size_t x = size_t( _x + 0.5 );
                 size_t y = size_t( _y + 0.5 );
@@ -153,9 +165,18 @@ namespace adcv {
             }
             return 0;
         }
+
+        void setInterval( Qt::Axis axis, QwtInterval&& interval ) {
+            switch ( axis ) {
+            case Qt::XAxis: std::get< 0 >( interval_ ) = std::move( interval ); break;
+            case Qt::YAxis: std::get< 1 >( interval_ ) = std::move( interval ); break;
+            case Qt::ZAxis: std::get< 2 >( interval_ ) = std::move( interval ); break;
+            }
+        }
     private:
         cv::Mat data_;
         std::pair< size_t, size_t > dimension_;
+        std::tuple< QwtInterval, QwtInterval, QwtInterval > interval_;
     };
 
     //------------------------- ColorMap -------------------------------
@@ -341,8 +362,8 @@ void
 SpectrogramPlot::setAxisZMax( double z )
 {
     if ( z > 0 ) {
+        impl_->drawable_->setInterval( Qt::ZAxis, { 0.0, z} );
         QwtInterval zInterval( 0.0, z );
-        impl_->drawable_->setInterval( Qt::ZAxis, zInterval );
 
         // A color bar on the right axis
         axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new ColorMap() );
