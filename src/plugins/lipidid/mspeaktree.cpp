@@ -275,7 +275,13 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
         if ( ! formula.isEmpty() ) {
             double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
             document::instance()->handleFormulaSelected( formula, abundance );
+
+            auto key = index.model()->index( index.row(), c_inchikey ).data( Qt::EditRole ).toString();
+            if ( !key.isEmpty() ) {
+                emit inChIKeySelected( key );
+            }
         }
+
     }
 }
 
