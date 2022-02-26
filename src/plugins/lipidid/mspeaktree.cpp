@@ -258,6 +258,9 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 
     if ( index.column() == c_inchikey ) {
         auto key = index.data( Qt::EditRole ).toString();
+        if ( key.isEmpty() && index.parent() == QModelIndex() ) {
+            setExpanded( index, true );
+        }
         if ( ! key.isEmpty() ) {
             emit inChIKeySelected( key );
             auto fidx = index.model()->index( index.row(), c_formula, index.parent() );
@@ -272,6 +275,9 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
     }
     if ( index.column() == c_formula ) {
         auto formula = index.data( Qt::EditRole ).toString();
+        if ( formula.isEmpty() && index.parent() == QModelIndex() ) {
+            setExpanded( index, true );
+        }
         if ( ! formula.isEmpty() ) {
             double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
             document::instance()->handleFormulaSelected( formula, abundance );
@@ -281,7 +287,6 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
                 emit inChIKeySelected( key );
             }
         }
-
     }
 }
 
@@ -301,15 +306,10 @@ MSPeakTree::keyPressEvent( QKeyEvent * event )
 void
 MSPeakTree::handleZoomedOnSpectrum( int view, const QRectF& rc )
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+
     QStandardItemModel& model = *impl_->model_;
-    // std::shared_ptr< const lipidid::simple_mass_spectrum > simple_mass_spectrum;
-    // std::tie( std::ignore, std::ignore, simple_mass_spectrum ) = document::instance()->getResultSet();
-    // if ( simple_mass_spectrum ) {
-    //     auto it = std::lower_bound( simple_mass_spectrum->begin()
-    //                                 , simple_mass_spectrum->end()
-    //                                 , rc.left()
-    //                                 , [](const auto& a, double left){ return mass_value_t::mass(a) < left; });
-    // }
+
     auto visualRows = std::make_pair( indexAt( rect().topLeft() ).row(), indexAt( rect().bottomLeft() ).row() );
     if ( rc.left() < model.index( c_mass, visualRows.first ).data().toDouble() && // view left is lower than tree-top
          rc.right() > model.index( c_mass, visualRows.second ).data().toDouble() ) { // view right is higher than tree-bottom

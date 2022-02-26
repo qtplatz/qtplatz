@@ -293,12 +293,17 @@ MSSpectraWnd::handleFormulaSelection( const QString& formula, double abundance )
             auto [left, right] = std::make_pair( overlay->massArray().front(), overlay->massArray().back() );
 
             auto rc = impl_->plots_[ 1 ]->zoomRect();
+            auto rc1( rc );
             if ( right < rc.left() || rc.right() < left ) {
-                rc.moveLeft( left - ( rc.width() / 20 ) );
-            } else if ( rc.right() < left ) {
-                rc.moveRight( right + ( rc.width() / 20 ) );
+                if ( rc.right() < left ) { // all peaks are right-side on view mass range
+                    rc.moveRight( right + ( rc.width() / 10 ) );
+                } else if ( right < rc.left() ) { // all peaks are left-side on view mass range
+                    rc.moveLeft( left - ( rc.width() / 10 ) );
+                }
+                ADDEBUG() << std::pair( rc1.left(), rc1.right() ) << " --> " << std::pair( rc.left(), rc.right() );
+                QSignalBlocker block( document::instance() ); // block document::onZoomed, which is initiated from MSSpectraWnd::impl
+                impl_->plots_[ 1 ]->zoomer()->zoom( rc );
             }
-            impl_->plots_[ 1 ]->zoomer()->zoom( rc );
         }
     }
 }
