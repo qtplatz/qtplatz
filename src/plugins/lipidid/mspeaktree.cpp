@@ -461,9 +461,11 @@ MSPeakTree::showContextMenu( const QPoint& pt )
             rows.insert( index.row() ); // make unique row list
 
         //------------ Copy assigned
-        menu.addAction( tr("Copy Checked"), this, SLOT( handleCopyCheckedToClipboard() ) );
-        menu.addAction( tr("Copy All"), this, SLOT( handleCopyAllToClipboard() ) );
+        menu.addAction( tr("Copy Checked"),  this, SLOT( handleCopyCheckedToClipboard() ) );
+        menu.addAction( tr("Copy All"),      this, SLOT( handleCopyAllToClipboard() ) );
         menu.addAction( tr("Copy Selected"), this, SLOT( handleCopyToClipboard() ) );
+        menu.addAction( tr("Expand All"),    this, [&]{ expandAll(); } );
+        menu.addAction( tr("Close All"),     this, [&]{ collapseAll(); } );
 
         menu.exec( this->mapToGlobal( pt ) );
     }

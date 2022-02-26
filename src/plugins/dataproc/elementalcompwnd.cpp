@@ -180,7 +180,7 @@ ElementalCompWnd::onInitialUpdate()
 void
 ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    impl_->splot< impl::idReference >()->setData( ptr, 0 );
+    impl_->splot< impl::idReference >()->setData( ptr, 0, QwtPlot::yLeft );
 }
 
 void
@@ -341,7 +341,7 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 void
 ElementalCompWnd::setSimulatedSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ms )
 {
-    impl_->splot< impl::idReference >()->setData( ms, 0 );
+    impl_->splot< impl::idReference >()->setData( ms, 0, QwtPlot::yLeft );
 }
 
 //////////////////////////////////////////

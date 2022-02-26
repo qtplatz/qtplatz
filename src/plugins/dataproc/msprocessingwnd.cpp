@@ -400,8 +400,8 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
         }
     }
 
-    pImpl_->profileSpectrum_->setData( hist, drawIdx1_ + 1 );
-    pImpl_->profileSpectrum_->setData( profile, drawIdx1_ );
+    pImpl_->profileSpectrum_->setData( hist, drawIdx1_ + 1, QwtPlot::yLeft );
+    pImpl_->profileSpectrum_->setData( profile, drawIdx1_, QwtPlot::yLeft );
     drawIdx1_ += 2;
     pImpl_->profileSpectrum_->setAxisTitle( QwtPlot::yLeft, QwtText( "Counts" ) );
 
@@ -432,7 +432,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
         }
     }
 
-    pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
+    pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++), QwtPlot::yLeft );
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )
 		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
@@ -446,7 +446,7 @@ MSProcessingWnd::draw1()
     if ( auto ptr = pProfileSpectrum_.second.lock() ) {
         if ( drawIdx1_ )
             --drawIdx1_;
-        pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
+        pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++), QwtPlot::yLeft );
 
         QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
         for ( auto text: ptr->getDescriptions() )

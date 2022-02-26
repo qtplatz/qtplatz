@@ -46,7 +46,6 @@ namespace adplot {
         void clear();
         void removeData( int idx, bool replot = true );
         size_t size() const;
-        [[deprecated("specify 3rd argument")]] void setData( std::shared_ptr< const adcontrols::MassSpectrum >, int idx, bool axisRight = false );
         void setData( std::shared_ptr< const adcontrols::MassSpectrum >, int idx, QwtPlot::Axis );
         void setAlpha( int idx, int alpha );
         void setColor( int idx, const QColor& color );

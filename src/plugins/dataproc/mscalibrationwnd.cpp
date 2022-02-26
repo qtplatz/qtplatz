@@ -299,11 +299,11 @@ MSCalibrationWnd::handleAxisChanged( adcontrols::hor_axis axis )
     boost::any& data = pImpl_->folium_;
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
-        pImpl_->processedSpectrum_->setData( ptr, idx_profile, true ); // on yRight axis
+        pImpl_->processedSpectrum_->setData( ptr, idx_profile, QwtPlot::yRight ); // on yRight axis
     }
 
     if ( auto centroid = pImpl_->calibCentroid_.lock() )
-        pImpl_->processedSpectrum_->setData( centroid, idx_centroid );
+        pImpl_->processedSpectrum_->setData( centroid, idx_centroid, QwtPlot::yLeft );
 }
 
 void
@@ -317,7 +317,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 	if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() ) {
         pImpl_->restore_state( *centroid );
         pImpl_->store_state( *centroid, fcn, idx );
-        pImpl_->processedSpectrum_->setData( centroid, 1 );
+        pImpl_->processedSpectrum_->setData( centroid, 1, QwtPlot::yLeft );
     }
 }
 
@@ -395,7 +395,7 @@ MSCalibrationWnd::handleValueChanged()
         if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() ) {
 
             if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
-                pImpl_->processedSpectrum_->setData( centroid, 1 );
+                pImpl_->processedSpectrum_->setData( centroid, 1, QwtPlot::yLeft );
 
             emit onSetData( *calibResult, *centroid );
         }
@@ -441,7 +441,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                             ms.setMass( i, calib.compute_mass( ms.time( i ) ) ); //getNormalizedTime( i ) ) );
                     }
                 }
-                pImpl_->processedSpectrum_->setData( profile, idx_profile, true );
+                pImpl_->processedSpectrum_->setData( profile, idx_profile, QwtPlot::yRight );
 
 				// centroid (override profile that has better visibility)
                 adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *centroid );
@@ -468,7 +468,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                 // update annotation
                 DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );
 
-                pImpl_->processedSpectrum_->setData( centroid, idx_centroid );
+                pImpl_->processedSpectrum_->setData( centroid, idx_centroid, QwtPlot::yLeft );
 
                 emit onSetData( *calibResult, *centroid );
             }

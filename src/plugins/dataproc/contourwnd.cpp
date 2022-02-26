@@ -240,11 +240,11 @@ ContourWnd::handleSelected( const QRectF& rect )
         qtwrapper::waitCursor wait;
 
         if ( const adcontrols::MassSpectrumPtr ms = ptr->find( rect.left() ) ) {
-            sp_->setData( ms, 0 );
+            sp_->setData( ms, 0, QwtPlot::yLeft );
             sp_->setTitle( (boost::format("Spectrum @ %.3fmin") % rect.left()).str() );
             MainWindow::instance()->selectionChanged( ms, [ms,this] ( int event, const QVector< QPair<int, int > >& indices ) {
                     if ( event == adwidgets::MSPeakTable::formula_changed )
-                        sp_->setData( ms, 0 );
+                        sp_->setData( ms, 0, QwtPlot::yLeft );
                     else if ( event == adwidgets::MSPeakTable::lockmass_triggered )
                         mslock( ms, indices );
                 } );

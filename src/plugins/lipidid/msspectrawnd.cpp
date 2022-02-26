@@ -31,6 +31,7 @@
 #include <adcontrols/msqpeaks.hpp>
 #include <adlog/logger.hpp>
 #include <adplot/chromatogramwidget.hpp>
+#include <adplot/panner.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
@@ -229,7 +230,7 @@ MSSpectraWnd::handleDataChanged( const portfolio::Folium& folium )
         using portfolio::get_shared_of;
         if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
             if ( ptr->isCentroid() ) {
-                impl_->plots_[ 0 ]->setData( ptr, 0 );
+                impl_->plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
             }
         }
     }
@@ -241,7 +242,7 @@ MSSpectraWnd::handleIdCompleted()
     impl_->selectedFormula_.clear();
 
     if ( auto refms = document::instance()->reference_mass_spectrum() ) {
-        impl_->plots_[ 1 ]->setData( refms, 0 );
+        impl_->plots_[ 1 ]->setData( refms, 0, QwtPlot::yLeft );
     }
 }
 
@@ -284,11 +285,20 @@ MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
 void
 MSSpectraWnd::handleFormulaSelection( const QString& formula, double abundance )
 {
-    // ADDEBUG() << "formula: " << formula.toStdString() << ", abundance: " << abundance;
     if ( auto refms = document::instance()->reference_mass_spectrum() ) {
         impl_->plots_[ 1 ]->setAlpha( 0, 0x60 );
         if ( auto overlay = document::instance()->overlay_mass_spectrum() ) {
-            impl_->plots_[ 1 ]->setData( overlay, 1 );
+            impl_->plots_[ 1 ]->setData( overlay, 1, QwtPlot::yLeft );
+
+            auto [left, right] = std::make_pair( overlay->massArray().front(), overlay->massArray().back() );
+
+            auto rc = impl_->plots_[ 1 ]->zoomRect();
+            if ( right < rc.left() || rc.right() < left ) {
+                rc.moveLeft( left - ( rc.width() / 20 ) );
+            } else if ( rc.right() < left ) {
+                rc.moveRight( right + ( rc.width() / 20 ) );
+            }
+            impl_->plots_[ 1 ]->zoomer()->zoom( rc );
         }
     }
 }

@@ -353,7 +353,7 @@ DataSequenceWidget::handlePlot( const QString& file )
 
                 // counting profile
                 if ( auto ms = dp->readCoAddedSpectrum( false ) ) {
-                    spw->setData( ms, 0, false );
+                    spw->setData( ms, 0, QwtPlot::yLeft );
                 }
 
                 // averaged histogram
@@ -364,7 +364,7 @@ DataSequenceWidget::handlePlot( const QString& file )
                         for ( size_t i = 0; i < t.size(); ++i )
                             t.setIntensity( i, t.intensity( i ) * 1000 / count_trig );
                     }
-                    spw->setData( hist, 1, true );
+                    spw->setData( hist, 1, QwtPlot::yRight );
                 }
 #if 0
                 // realtime histogram has a resolution problem

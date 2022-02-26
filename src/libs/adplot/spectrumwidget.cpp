@@ -585,12 +585,6 @@ SpectrumWidget::setColor( int idx, const QColor& color )
 }
 
 void
-SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, bool yRight )
-{
-    setData( ptr, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
-}
-
-void
 SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, QwtPlot::Axis axis )
 {
     using spectrumwidget::TraceData;
