@@ -16,16 +16,11 @@ namespace Constants {
     // const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
 
     // common actions
-    const char * const METHOD_OPEN          = "lipidid.MethodOpen";
-    const char * const METHOD_SAVE          = "lipidid.MethodSave";
-    const char * const METHOD_APPLY         = "lipidid.MethodApply";
+    const char * const FIND_ALL             = "lipidid.FindAll";
+    const char * const SAVE_ALL             = "lipidid.SaveAll";
     const char * const PRINT_CURRENT_VIEW   = "lipidid.PrintCurrentView";
-    const char * const CALIBFILE_APPLY      = "lipidid.ApplyCalibration";
-    const char * const PROCESS_ALL_CHECKED  = "lipidid.ProcessAllCheckedSpectra";
-    const char * const IMPORT_ALL_CHECKED   = "lipidid.ImportAllCheckedSpectra";
     const char * const LISTPEAKS_ON_CHECKED = "lipidid.PeakListAllChecked";
     const char * const EXPORT_ALL_CHECKED   = "lipidid.ExportAllChecked";
-    const char * const EXPORT_RMS_CHECKED   = "lipidid.ExportRMSAllChecked";
     const char * const HIDE_DOCK            = "lipidid.HideDock";
     const char * const SDF_IMPORT           = "lipidid.SDFImport";
 
@@ -72,7 +67,8 @@ namespace Constants {
 
     const char * const LIPIDID_TASK_SDFIMPORT = "lipidid.task.sdfimport";
     const char * const LIPIDID_TASK_FIND_ALL  = "lipidid.task.find_all";
-
+    //
+    const char * const THIS_GROUP           = "lipidid";
 
 } // Constants
 } // namespace lipidid

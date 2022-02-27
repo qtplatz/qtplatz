@@ -489,7 +489,7 @@ MSPeakTree::handleIdCompleted()
 
     size_t row(0);
     for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
-        auto [ time, mass, abundance, color ] = (*simple_mass_spectrum)[ i ];
+        auto [ time, mass, abundance, color, checked] = (*simple_mass_spectrum)[ i ];
         (void)time;
         auto candidates = simple_mass_spectrum->candidates( i );
         if ( ! candidates.empty() ) {
@@ -498,6 +498,7 @@ MSPeakTree::handleIdCompleted()
             model->setData( model->index( row, c_intensity ), abundance );
             if ( auto item = model->item( row, 0 ) ) {
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                // auto value = candidates.at( 0 ).checked() ? Qt::Checked : Qt::Unchecked;
                 item->setData( Qt::Unchecked, Qt::CheckStateRole );
             }
             // setRowHidden( i, QModelIndex(), candidates.empty() );

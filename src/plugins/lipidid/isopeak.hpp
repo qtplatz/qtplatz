@@ -26,6 +26,7 @@
 #pragma once
 
 #include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace lipidid {
 
@@ -49,5 +50,5 @@ namespace lipidid {
     };
 
     void tag_invoke( boost::json::value_from_tag, boost::json::value&, const isoPeak& );
-
+    isoPeak tag_invoke( boost::json::value_to_tag< isoPeak >&, const boost::json::value& );
 }

@@ -24,6 +24,7 @@
 
 #include "candidate.hpp"
 #include "isopeak.hpp"
+#include <adportable/json/extract.hpp>
 
 namespace lipidid {
 
@@ -39,6 +40,21 @@ namespace lipidid {
         };
     }
 
+    candidate
+    tag_invoke( boost::json::value_to_tag< candidate >&, const boost::json::value& jv )
+    {
+        candidate t{};
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            adportable::json::extract( obj, t.exact_mass_, "exact_mass" );
+            adportable::json::extract( obj, t.formula_,    "formula" );
+            adportable::json::extract( obj, t.adduct_,     "adduct" );
+            adportable::json::extract( obj, t.mass_error_, "mass_error" );
+            adportable::json::extract( obj, t.isotope_,    "isotope" );     // vector< isoPeak >
+            adportable::json::extract( obj, t.inchiKeys_,  "InChIKey" );    // vectro< std::string >
+        }
+        return t;
+    }
 }
 
 using namespace lipidid;
@@ -52,7 +68,7 @@ candidate::candidate( double m
                       , const std::string& a                 // adduct/lose
                       , double e                             // mass_error
                       , std::vector< lipidid::isoPeak >&& i    // isotope match
-                      , std::vector< std::string >&& keys )   // list of inchikey
+                      , std::vector< std::string >&& keys )
     : exact_mass_( m )
     , formula_( f )
     , adduct_( a )

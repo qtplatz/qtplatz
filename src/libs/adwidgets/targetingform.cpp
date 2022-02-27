@@ -118,10 +118,8 @@ void
 TargetingForm::getContents( adcontrols::MetIdMethod& m )
 {
     m.setTolerance( adcontrols::idTolerancePpm, ui->doubleSpinBoxRP->value() );
-
     m.setTolerance( adcontrols::idToleranceDaltons, ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
     m.setToleranceMethod( ui->radioButtonRP->isChecked() ? adcontrols::idTolerancePpm : adcontrols::idToleranceDaltons );
-
     m.chargeState( { ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() } );
 
     if ( ui->checkBox->isChecked() )

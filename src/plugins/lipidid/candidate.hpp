@@ -26,6 +26,7 @@
 
 #include "isopeak.hpp"
 #include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -60,8 +61,10 @@ namespace lipidid {
                    , std::vector< std::string >&& keys = {} );
 
         candidate( const candidate& t );
+        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const candidate& );
+        friend candidate tag_invoke( boost::json::value_to_tag< candidate >&, const boost::json::value& jv );
     };
 
     void tag_invoke( boost::json::value_from_tag, boost::json::value&, const candidate& );
-
+    candidate tag_invoke( boost::json::value_to_tag< candidate >&, const boost::json::value& );
 }

@@ -27,6 +27,7 @@
 #include "simple_mass_spectrum.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json/extract.hpp>
 #include <vector>
 #include <map>
 
@@ -43,10 +44,11 @@ namespace lipidid {
                         , isotope_match_result_( t.isotope_match_result_ ) {
 
         }
-        std::vector< std::tuple< double, double, double, int > > data_; // tof, mass, intensity, color
+        std::vector< value_type > data_; // tof, mass, intensity, color, checked
         std::vector< std::vector< candidate > > candidate_list_;
         std::map< size_t, std::vector< isoPeak > > isotope_match_result_;
     };
+
 
 }
 
@@ -64,15 +66,23 @@ simple_mass_spectrum::simple_mass_spectrum( const simple_mass_spectrum& t )
 {
 }
 
+simple_mass_spectrum&
+simple_mass_spectrum::operator = ( const simple_mass_spectrum& t )
+{
+    impl_ = std::make_unique< impl >( *t.impl_ );
+    return *this;
+}
+
 void
 simple_mass_spectrum::populate( const adcontrols::MassSpectrum& src
-                                , std::function< bool( const value_type& ) > pred )
+                                , std::function< bool( const adcontrols::mass_value_type& ) > pred )
 {
     impl_->data_.clear();
     for ( size_t i = 0; i < src.size(); ++i ) {
         auto value = src.value( i );
         if ( pred( value ) ) {
-            impl_->data_.emplace_back( value );
+            auto [tof,mass,intensity,color] = src.value( i );
+            impl_->data_.emplace_back( tof, mass, intensity, color, false );
         }
     }
 }
@@ -188,6 +198,21 @@ simple_mass_spectrum::cluster_match_result( size_t idx ) const
     return {};
 }
 
+simple_mass_spectrum&
+simple_mass_spectrum::operator << ( std::pair< value_type, std::vector< candidate > >&& t )
+{
+    auto [ value, candidates ] = t;
+    impl_->data_.emplace_back( value );
+    impl_->candidate_list_.emplace_back( candidates );
+    return *this;
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+simple_mass_spectrum::make_spectrum( const lipidid::simple_mass_spectrum& t ) const
+{
+    return {};
+}
+
 namespace lipidid {
 
     void
@@ -197,12 +222,12 @@ namespace lipidid {
         boost::json::array ja;
         for ( size_t i = 0; i < ms.size(); ++i ) {
             const auto& value = ms[ i ];
-            // ADDEBUG() << "value: " << value;
             boost::json::object jobj = {
                 { "idx", i }
-                , { "mass", mass_value_t::mass( value ) }
-                , { "intensity", mass_value_t::intensity( value ) }
-                , { "color", mass_value_t::color( value ) }
+                , { "mass",       mass_value_t::mass( value ) }
+                , { "intensity",  mass_value_t::intensity( value ) }
+                , { "color",      mass_value_t::color( value ) }
+                , { "checked",    mass_value_t::checked( value ) }
                 , { "candidates", ms.candidates( i ) }
             };
             ja.emplace_back( jobj );
@@ -210,4 +235,25 @@ namespace lipidid {
         jv = boost::json::object{{ "peaks", ja }};
     }
 
+    simple_mass_spectrum
+    tag_invoke( boost::json::value_to_tag< simple_mass_spectrum >&, const boost::json::value& jv )
+    {
+        simple_mass_spectrum t;
+        if ( auto peaks = jv.as_object().if_contains( "peaks" ) ) {
+            const auto& ja = peaks->as_array();
+            for ( const auto& value: ja ) {
+                simple_mass_spectrum::value_type v;
+                std::vector< candidate > candidates;
+
+                const auto& obj = value.as_object();
+                adportable::json::extract( obj, std::get< 1 >( v ), "mass"       );
+                adportable::json::extract( obj, std::get< 2 >( v ), "intensity"  );
+                adportable::json::extract( obj, std::get< 3 >( v ), "color"      );
+                adportable::json::extract( obj, std::get< 4 >( v ), "checked"      );
+                adportable::json::extract( obj, candidates,         "candidates" );
+                t << std::make_pair( v, candidates );
+            }
+        }
+        return t;
+    }
 }

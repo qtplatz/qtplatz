@@ -53,6 +53,7 @@ namespace adcontrols {
     class MassSpectrum;
 
     typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;
+    typedef std::tuple< double, double, double, int > mass_value_type;
 
     enum MS_POLARITY { PolarityIndeterminate
                        , PolarityPositive = (1)

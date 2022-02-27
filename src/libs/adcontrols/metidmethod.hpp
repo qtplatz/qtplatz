@@ -65,6 +65,7 @@ namespace adcontrols {
         idFindAlgorithm findAlgorithm() const;
         void setFindAlgorithm( idFindAlgorithm );
 
+        double tolerance() const;
         double tolerance( idToleranceMethod ) const;
         void setTolerance( idToleranceMethod, double );
 

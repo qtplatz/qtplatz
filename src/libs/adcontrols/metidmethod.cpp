@@ -25,7 +25,6 @@
 
 #include "metidmethod.hpp"
 #include "msfinder.hpp"
-#include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
 
 namespace boost { namespace serialization {  class access;  } }
@@ -44,12 +43,20 @@ namespace adcontrols {
         impl() : positiveMode_( true )
                , adducts_{
                 { true, "+[H]+"}, {true, "-H +[H]+"}, {true, "-H2O +[H]+"}
-                , {false, "-[H]+" }, {false, "+[OH]-"}, {false, "+[Cl]-" } }
+                , {false, "-[H]+" }, {false, "+H -[H]+"}, {false, "+[OH]-"}, {false, "+[Cl]-" } }
                , chargeState_{ 1, 1 }
                , toleranceMethod_( idToleranceDaltons )
                , findAlgorithm_( idFindClosest )
                , tolerancePpm_( 5 )
                , toleranceDaltons_( 0.010 ) { // Da (not mDa)
+        }
+        impl( const impl& t ) : positiveMode_( t.positiveMode_ )
+                              , adducts_( t.adducts_ )
+                              , chargeState_( t.chargeState_ )
+                              , toleranceMethod_( t.toleranceMethod_ )
+                              , findAlgorithm_( t.findAlgorithm_ )
+                              , tolerancePpm_( t.tolerancePpm_ )
+                              , toleranceDaltons_( t.toleranceDaltons_ ) {
         }
     };
 
@@ -153,6 +160,12 @@ MetIdMethod::tolerance( idToleranceMethod id ) const
     return id == idTolerancePpm ? impl_->tolerancePpm_ : impl_->toleranceDaltons_;
 }
 
+double
+MetIdMethod::tolerance() const
+{
+    return impl_->toleranceMethod_ == idTolerancePpm ? impl_->tolerancePpm_ : impl_->toleranceDaltons_;
+}
+
 void
 MetIdMethod::setTolerance( idToleranceMethod id, double value )
 {
@@ -167,17 +180,15 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MetIdMethod& t )
     {
-        jv = boost::json::object{{ "metIdMethod"
-                , {
-                    { "positiveMode", t.impl_->positiveMode_ }
-                    , { "adducts",            t.impl_->adducts_      }
-                    , { "chargeState",        t.impl_->chargeState_  }
-                    , { "idToleranceMethod",  int(t.impl_->toleranceMethod_) }
-                    , { "findAlgorithm",      int(t.impl_->findAlgorithm_) }
-                    , { "tolerancePpm",       t.impl_->tolerancePpm_ }
-                    , { "toleranceDaltons",   t.impl_->toleranceDaltons_ }
-                }
-            }};
+        jv = boost::json::object{
+            { "positiveMode", t.impl_->positiveMode_ }
+            , { "adducts",            t.impl_->adducts_      }
+            , { "chargeState",        t.impl_->chargeState_  }
+            , { "idToleranceMethod",  int(t.impl_->toleranceMethod_) }
+            , { "findAlgorithm",      int(t.impl_->findAlgorithm_) }
+            , { "tolerancePpm",       t.impl_->tolerancePpm_ }
+            , { "toleranceDaltons",   t.impl_->toleranceDaltons_ }
+        };
     }
 
     MetIdMethod

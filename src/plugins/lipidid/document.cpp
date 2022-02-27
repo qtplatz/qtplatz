@@ -29,6 +29,7 @@
 #include "constants.hpp"
 #include "isocluster.hpp"
 #include "isopeak.hpp"
+#include "make_reference_spectrum.hpp"
 #include "metidprocessor.hpp"
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/waitcursor.hpp>
@@ -38,6 +39,7 @@
 #include <adcontrols/metidmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json/extract.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
 #include <adfs/sqlite.hpp>
@@ -53,6 +55,7 @@
 #include <QSqlQuery>
 #include <boost/filesystem.hpp>
 #include <boost/json.hpp>
+#include <fstream>
 #include <tuple>
 #include <future>
 #include <mutex>
@@ -185,7 +188,6 @@ document::initialSetup()
             return;
         }
     } while ( 0 );
-
 }
 
 void
@@ -208,7 +210,8 @@ document::handleAddProcessor( adextension::iSessionManager *, const QString& fil
 // change node (folium) selection
 void
 document::handleSelectionChanged( adextension::iSessionManager *
-                                  , const QString& file, const portfolio::Folium& folium )
+                                  , const QString& file
+                                  , const portfolio::Folium& folium )
 {
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
@@ -218,6 +221,7 @@ document::handleSelectionChanged( adextension::iSessionManager *
                 impl_->ms_ = ptr;
                 impl_->filename_ = std::filesystem::path( file.toStdString() );
                 emit dataChanged( folium );
+                load_all();
             }
         }
     }
@@ -285,6 +289,10 @@ bool
 document::find_all( adcontrols::MetIdMethod&& t )
 {
     impl_->method_ = std::move( t );
+    // auto json = boost::json::serialize( boost::json::object{{ "metIdMethod", impl_->method_ }} );
+    // impl_->settings_->setValue( QString(Constants::THIS_GROUP) + "/MetIdMethod", QByteArray( json.data(), json.size() ) );
+    // ADDEBUG() << json;
+
     if ( ! impl_->ms_ ) {
         ADDEBUG() << "no spectrum to be processed.";
         return false;
@@ -329,4 +337,51 @@ std::filesystem::path
 document::dataFilename() const
 {
     return impl_->filename_;
+}
+
+void
+document::save_all() const
+{
+    if ( impl_->simple_mass_spectrum_ && std::filesystem::exists( impl_->filename_ ) ) {
+        auto file( impl_->filename_ );
+        file.replace_extension( ".json" );
+        std::ofstream( file )
+            << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+    }
+}
+
+void
+document::load_all() const
+{
+    auto file( impl_->filename_ );
+    file.replace_extension( ".json" );
+    if ( std::filesystem::exists( file ) ) {
+        std::ifstream is( file );
+        boost::json::stream_parser p;
+        std::string line;
+        boost::system::error_code ec;
+        while( std::getline( is, line ) )    {
+            p.write( line, ec );
+            if ( ec )
+                return;
+        }
+        p.finish( ec );
+        if ( ec )
+            return;
+        auto jv = p.release();
+        if ( auto top = jv.as_object().if_contains( "simple_mass_spectrum" ) ) {
+            auto data = std::make_shared< lipidid::simple_mass_spectrum >();
+            try {
+                *data = boost::json::value_to< lipidid::simple_mass_spectrum >( *top );
+                if ( auto refms = make_reference_spectrum()( *impl_->ms_, *data ) ) {
+                    impl_->simple_mass_spectrum_ = std::move( data );
+                    impl_->refms_ = std::move( refms );
+                }
+
+                emit idCompleted();
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << "### exception: json::value_to " << ex.what();
+            }
+        }
+    }
 }

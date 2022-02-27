@@ -85,6 +85,8 @@ add_library( ${PROJECT_NAME} MODULE
   simple_mass_spectrum.hpp
   metidprocessor.cpp
   metidprocessor.hpp
+  make_reference_spectrum.cpp
+  make_reference_spectrum.hpp
   ${Resources}
   )
 

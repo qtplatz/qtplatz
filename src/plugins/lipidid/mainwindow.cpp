@@ -363,15 +363,18 @@ MainWindow::impl::createMidStyledToolbar()
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
+			toolBarLayout->addWidget(toolButton(am->command(Constants::FIND_ALL)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::SAVE_ALL)->action()));
+
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            toolBarLayout->addItem( new QSpacerItem(32, 20, QSizePolicy::Minimum, QSizePolicy::Minimum) );
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            if ( auto label = new QLabel ) {
-                label->setText( tr("Control Method:" ) );
-                toolBarLayout->addWidget( label );
-            }
+            // toolBarLayout->addItem( new QSpacerItem(32, 20, QSizePolicy::Minimum, QSizePolicy::Minimum) );
+            // toolBarLayout->addWidget( new Utils::StyledSeparator );
+            // if ( auto label = new QLabel ) {
+                // label->setText( tr("Control Method:" ) );
+            // toolBarLayout->addWidget( label );
+            // }
             toolBarLayout->addItem( new QSpacerItem(16, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
         }
@@ -444,9 +447,19 @@ MainWindow::initializeActions( Core::IMode * mode )
         connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
     }
     if ( auto am = Core::ActionManager::instance() ) {
-        auto * action = new QAction( QObject::tr( "Import SDFile" ), this );
-        am->registerAction( action, Constants::SDF_IMPORT, mode->context() );
-        connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::importSDFile );
+        if ( auto * action = new QAction( QObject::tr( "Import SDFile" ), this ) ) {
+            am->registerAction( action, Constants::SDF_IMPORT, mode->context() );
+            connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::importSDFile );
+        }
+        if ( auto * action = new QAction( QObject::tr( "Find All" ), this ) ) {
+            am->registerAction( action, Constants::FIND_ALL, mode->context() );
+            connect( action, &QAction::triggered, [&]{
+                document::instance()->find_all( findChild< MetIdWidget * >()->getContents() ); } );
+        }
+        if ( auto * action = new QAction( QObject::tr( "Save" ), this ) ) {
+            am->registerAction( action, Constants::SAVE_ALL, mode->context() );
+            connect( action, &QAction::triggered, [&]{ document::instance()->save_all(); });
+        }
     }
     impl_->setup_menu_actions();
 }
@@ -464,6 +477,9 @@ MainWindow::impl::setup_menu_actions()
         if ( Core::ActionContainer * menu = am->createMenu( "lipidid.file.menu" ) ) {
             menu->menu()->setTitle( tr("LipidId") );
             menu->addAction( am->command( Constants::SDF_IMPORT ) );
+            menu->addAction( am->command( Constants::FIND_ALL ) );
+            menu->addAction( am->command( Constants::SAVE_ALL ) );
+
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
         }
     }

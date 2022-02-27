@@ -142,11 +142,10 @@ MSSpectraWnd::init()
             marker->visible( true );
             marker->setYAxis( QwtPlot::yRight );
 
-            if ( i )
+            if ( i ) {
                 impl_->plots_[ 0 ]->link( plot.get() );
-
+            }
             splitter->addWidget( plot.get() );
-
         }
 
         // splitter->addWidget( impl_->table_.get() );
@@ -300,7 +299,6 @@ MSSpectraWnd::handleFormulaSelection( const QString& formula, double abundance )
                 } else if ( right < rc.left() ) { // all peaks are left-side on view mass range
                     rc.moveLeft( left - ( rc.width() / 10 ) );
                 }
-                ADDEBUG() << std::pair( rc1.left(), rc1.right() ) << " --> " << std::pair( rc.left(), rc.right() );
                 QSignalBlocker block( document::instance() ); // block document::onZoomed, which is initiated from MSSpectraWnd::impl
                 impl_->plots_[ 1 ]->zoomer()->zoom( rc );
             }

@@ -25,6 +25,7 @@
 #include "metidprocessor.hpp"
 #include "candidate.hpp"
 #include "document.hpp"
+#include "make_reference_spectrum.hpp"
 #include "mol.hpp"
 #include "simple_mass_spectrum.hpp"
 #include "isocluster.hpp"
@@ -53,13 +54,6 @@ namespace lipidid {
         std::string adducts() const { return std::get< 3 >( t_ ); }
     };
 
-    struct make_reference_spectrum {
-        const std::map< std::string, std::vector< std::shared_ptr< lipidid::mol > > >& mols_;
-        make_reference_spectrum( std::map< std::string, std::vector< std::shared_ptr< lipidid::mol > > >& mols ) : mols_( mols ) {}
-        std::shared_ptr< adcontrols::MassSpectrum > operator()(const adcontrols::MassSpectrum&
-                                                               , const simple_mass_spectrum& );
-    };
-
     class MetIdProcessor::impl {
     public:
         impl() {}
@@ -75,9 +69,6 @@ namespace lipidid {
             }
             return t;
         }
-
-        void make_reference_spectrum();
-
         adcontrols::MetIdMethod method_;
         std::map< std::string, std::vector< std::shared_ptr< lipidid::mol > > > mols_; // stdformula, vector< mol >
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
@@ -203,10 +194,8 @@ MetIdProcessor::find_all( adfs::sqlite& db
             tms->add_a_candidate( index, std::move( x ) );
         }
     }
-    // impl_->simple_mass_spectrum_ = std::move( tms );
-    auto refms = make_reference_spectrum( impl_->mols_ )( *ms, *tms );
+    auto refms = make_reference_spectrum()( *ms, *tms );
     return { ms, refms, tms };
-    // ADDEBUG() << "\n" << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
 }
 
 std::shared_ptr< adcontrols::MassSpectrum > // reference (calculated) spectrum
@@ -236,49 +225,4 @@ MetIdProcessor::compute_reference_spectrum( const std::string& formula // contai
     refMs->setIntensityArray( std::move( intensities ) );
     refMs->setColorArray( std::move( colors ) );
     return refMs;
-}
-
-
-namespace lipidid {
-
-    std::shared_ptr< adcontrols::MassSpectrum >
-    make_reference_spectrum::operator()(const adcontrols::MassSpectrum& ms
-                                        , const simple_mass_spectrum& simple_ms )
-    {
-        auto refMs = std::make_shared< adcontrols::MassSpectrum >();
-        std::vector< double > masses, intensities;
-        std::vector< uint8_t > colors;
-        refMs->clone( ms, false );
-        int cid(0);
-
-        for ( size_t idx = 0; idx < simple_ms.size(); ++idx ) {
-            auto [ tof, mass, intensity, color ] = simple_ms[ idx ];
-
-            auto candidates = simple_ms.candidates( idx );
-
-            if ( ! candidates.empty() ) {
-                const auto& candidate = candidates.at( 0 );
-                auto cluster = isoCluster::compute( candidate.formula(), candidate.adduct() );
-                refMs->get_annotations()
-                    << adcontrols::annotation( candidate.formula() + " " + candidate.adduct()
-                                               , cluster.at(0).first // mass
-                                               , cluster.at(0).second * intensity
-                                               , masses.size() // index
-                                               , cluster.at(0).second * intensity
-                                               , adcontrols::annotation::dataFormula
-                                               , adcontrols::annotation::flag_targeting );
-                for ( const auto& ipk: cluster ) {
-                    masses.emplace_back( ipk.first );
-                    intensities.emplace_back( ipk.second * intensity );
-                    colors.emplace_back( cid & 1 ? 0 : 6 ); // blue, indigo
-                }
-                ++cid;
-            }
-        }
-        refMs->setMassArray( std::move( masses ) );
-        refMs->setIntensityArray( std::move( intensities ) );
-        refMs->setColorArray( std::move( colors ) );
-        return refMs;
-    }
-
 }

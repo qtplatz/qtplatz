@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "isopeak.hpp"
-
+#include <adportable/json/extract.hpp>
 
 namespace lipidid {
 
@@ -55,5 +55,17 @@ namespace lipidid {
             {"computed_isotope", t.computed_isotope_ }
             , { "matched_isotope", t.matched_isotope_ }
         };
+    }
+
+    isoPeak
+    tag_invoke( boost::json::value_to_tag< isoPeak >&, const boost::json::value& jv )
+    {
+        isoPeak t{{0,0}};
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            adportable::json::extract( obj, t.computed_isotope_, "computed_isotope" );
+            adportable::json::extract( obj, t.matched_isotope_,  "matched_isotope" );
+        }
+        return t;
     }
 }

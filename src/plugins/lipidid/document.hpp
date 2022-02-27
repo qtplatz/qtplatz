@@ -68,6 +68,8 @@ namespace lipidid {
 
         std::optional< std::string > find_svg( const std::string& InChIKey ) const;
         std::filesystem::path dataFilename() const;
+        void save_all() const;
+        void load_all() const;
 
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );
@@ -84,10 +86,10 @@ namespace lipidid {
     private:
 
     signals:
-        void onConnectionChanged();
-        void idCompleted();
-        void onZoomed( int, const QRectF& );
-        void onFormulaSelected( const QString&, double abundance );
+        void onConnectionChanged() const;
+        void idCompleted() const;
+        void onZoomed( int, const QRectF& ) const;
+        void onFormulaSelected( const QString&, double abundance ) const;
 
         // souce iSessionManager
         void dataChanged( const portfolio::Folium& );

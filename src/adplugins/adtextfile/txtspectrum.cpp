@@ -75,7 +75,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         hasMass = true;
     }
 
-    auto tp0 = std::chrono::steady_clock::now();
+    // auto tp0 = std::chrono::steady_clock::now();
 #if 1
     // x3 parser load duration 20.5ms for 11478 lines on core i7 linux
     txt_reader::data_type tdata;
@@ -100,8 +100,8 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                   , isCentroid );
     const size_t nSamples = flags[ flag_time ] ? std::get< flag_time >( data ).size() : std::get< flag_mass >( data ).size();
 #endif
-    auto dur = ( std::chrono::steady_clock::now() - tp0 );
-    ADDEBUG() << double( std::chrono::duration_cast< std::chrono::microseconds >( dur ).count() ) / 1000.0 << "ms";
+    // auto dur = ( std::chrono::steady_clock::now() - tp0 );
+    // ADDEBUG() << double( std::chrono::duration_cast< std::chrono::microseconds >( dur ).count() ) / 1000.0 << "ms";
 
     if ( nSamples == 0 )
         return false;
@@ -114,7 +114,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                 compiled_ = ms;
             }
         }
-        ADDEBUG() << "model: " << model << ", compiled: " << compiled_.get();
+        // ADDEBUG() << "model: " << model << ", compiled: " << compiled_.get();
     }
 
     if ( compiled_ ) {

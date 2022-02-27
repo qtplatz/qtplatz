@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #pragma once
-
 #include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -32,12 +32,15 @@
 #include <tuple>
 #include <vector>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols {
+    class MassSpectrum;
+    typedef std::tuple< double, double, double, int > mass_value_type;
+}
 
 namespace lipidid {
 
     struct isoPeak;
-    struct candidate;
+    class candidate;
 
     struct mass_value_t {
         // std::tuple< double (tof), double (mass), double (intensity), int8_t(color) >
@@ -45,18 +48,20 @@ namespace lipidid {
         template< typename value_type > static double mass( const value_type& v ){ return std::get< 1 >( v ); };
         template< typename value_type > static double intensity( const value_type& v ){ return std::get< 2 >( v ); };
         template< typename value_type > static int color( const value_type& v ){ return std::get< 3 >( v ); };
+        template< typename value_type > static bool checked( const value_type& v ){ return std::get< 4 >( v ); };
+        template< typename value_type > static void checked( value_type& v ){ return std::get< 4 >( v ); };
     };
 
     class simple_mass_spectrum {
     public:
-        typedef std::tuple< double, double, double, int > value_type; // tof, mass, intensity, color
+        typedef std::tuple< double, double, double, int, bool > value_type; // tof, mass, intensity, color, checked
         typedef std::vector< value_type >::iterator iterator;
         typedef std::vector< value_type >::const_iterator const_iterator;
         ~simple_mass_spectrum();
         simple_mass_spectrum();
         simple_mass_spectrum( const simple_mass_spectrum& t );
-        // void populate( csv_reader&, std::function< bool( const value_type& ) > pred = [](auto){ return true; } );
-        void populate( const adcontrols::MassSpectrum&, std::function< bool( const value_type& ) > pred = [](auto){ return true; } );
+        simple_mass_spectrum& operator = ( const simple_mass_spectrum& t );
+        void populate( const adcontrols::MassSpectrum&, std::function< bool( const adcontrols::mass_value_type& ) > pred = [](auto){ return true; } );
         size_t size() const;
         iterator begin();
         iterator end();
@@ -70,6 +75,10 @@ namespace lipidid {
         std::vector< isoPeak > find_cluster( size_t idx, const std::vector< std::pair< double, double > >& ) const;
         std::optional< std::vector< isoPeak > > cluster_match_result( size_t idx ) const;
 
+        simple_mass_spectrum& operator << ( std::pair< value_type, std::vector< candidate > >&& );
+
+        std::shared_ptr< adcontrols::MassSpectrum > make_spectrum( const lipidid::simple_mass_spectrum& ) const;
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;
@@ -77,5 +86,6 @@ namespace lipidid {
     };
 
     void tag_invoke( boost::json::value_from_tag, boost::json::value&, const simple_mass_spectrum& );
+    simple_mass_spectrum tag_invoke( boost::json::value_to_tag< simple_mass_spectrum >&, const boost::json::value& );
 
 }

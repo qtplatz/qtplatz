@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "metidwidget.hpp"
+#include "document.hpp"
+#include "constants.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adwidgets/delegatehelper.hpp>
@@ -34,6 +36,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <boost/json.hpp>
+#include <QSettings>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <QStandardItemModel>
@@ -134,6 +137,16 @@ MetIdWidget::MetIdWidget( QWidget * parent ) : QWidget( parent )
 void
 MetIdWidget::onInitialUpdate()
 {
+    auto ba = document::instance()->settings()->value( QString( Constants::THIS_GROUP ) + "/MetIdMethod" ).toByteArray();
+    if ( !ba.isEmpty() ) {
+        ADDEBUG() << ba.toStdString();
+        boost::system::error_code ec;
+        auto jv = boost::json::parse( ba.toStdString(), ec );
+        if ( !ec ) {
+            impl_->method_ = boost::json::value_to< adcontrols::MetIdMethod >( jv.as_object().at( "metIdMethod" ) );
+        }
+    }
+
     auto jv = boost::json::value_from( impl_->method_ );
     ADDEBUG() << jv;
 
@@ -186,11 +199,12 @@ MetIdWidget::onInitialUpdate()
 MetIdWidget::value_type
 MetIdWidget::getContents() const
 {
+    adcontrols::MetIdMethod t;
+    // unkown dirty condition for TargetingForm
+    if ( auto form = findChild< adwidgets::TargetingForm *>() ) {
+        form->getContents( t );
+    }
     if ( impl_->dirty_ ) {
-        adcontrols::MetIdMethod t;
-        if ( auto form = findChild< adwidgets::TargetingForm *>() ) {
-            form->getContents( t );
-        }
         const auto model = impl_->model_;
         for ( size_t row = 0; row < model->rowCount(); ++row ) {
             auto adducts = model->data( model->index( row, 0 ), Qt::EditRole ).toString().toStdString();
@@ -199,9 +213,15 @@ MetIdWidget::getContents() const
                 t << std::make_pair( enable, adducts );
             }
         }
-        impl_->method_ = t;
-        impl_->dirty_ = false;
     }
+    impl_->method_ = t;
+    impl_->dirty_ = false;
+    ADDEBUG() << "########## " << impl_->method_.tolerance();
+    auto json = boost::json::serialize( boost::json::object{{ "metIdMethod", impl_->method_ }} );
+    document::instance()->settings()->setValue( QString(Constants::THIS_GROUP) + "/MetIdMethod", QByteArray( json.data(), json.size() ) );
+    ADDEBUG() << json;
+
+
     return impl_->method_;
 }
 
