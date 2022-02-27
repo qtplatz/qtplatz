@@ -39,6 +39,7 @@
 #include <adcontrols/metidmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/json/extract.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
@@ -243,6 +244,17 @@ document::handleCheckStateChanged( adextension::iSessionManager *
 {
     ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
               << folium.fullpath();
+}
+
+void
+document::handleCheckState( int index, double mass, bool checked )
+{
+    if ( auto self = impl_->simple_mass_spectrum_ ) {
+        auto& value = self->at( index );
+        if ( adportable::compare< double >::approximatelyEqual( mass_value_t::mass( value ), mass ) ) {
+            mass_value_t::checked( value ) = checked;
+        }
+    }
 }
 
 void

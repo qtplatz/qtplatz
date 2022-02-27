@@ -104,7 +104,6 @@ MetIdMethod::operator << ( std::pair< bool, std::string >&& d )
     return *this;
 }
 
-
 void
 MetIdMethod::setAdducts( const std::vector< std::pair< bool, std::string > >& t )
 {
@@ -113,6 +112,12 @@ MetIdMethod::setAdducts( const std::vector< std::pair< bool, std::string > >& t 
 
 const std::vector< std::pair< bool, std::string > >&
 MetIdMethod::adducts() const
+{
+    return impl_->adducts_;
+}
+
+std::vector< std::pair< bool, std::string > >&
+MetIdMethod::adducts()
 {
     return impl_->adducts_;
 }

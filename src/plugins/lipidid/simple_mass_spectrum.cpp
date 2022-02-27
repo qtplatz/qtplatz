@@ -141,6 +141,12 @@ simple_mass_spectrum::operator []( size_t idx ) const
     return impl_->data_.at( idx );
 }
 
+simple_mass_spectrum::value_type&
+simple_mass_spectrum::at( size_t idx )
+{
+    return impl_->data_.at( idx );
+}
+
 std::vector< lipidid::isoPeak >
 simple_mass_spectrum::find_cluster( size_t idx, const std::vector< std::pair< double, double > >& cluster ) const
 {

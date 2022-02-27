@@ -48,6 +48,7 @@ namespace lipidid {
         mol( value_type&& ); // id, formula, smiles, inchicky
         inline size_t index() const { return std::get<0>( mol_ ); }
         inline const std::string& formula() const { return std::get<1>( mol_ ); }
+        inline std::string& formula() { return std::get<1>( mol_ ); }
         inline const std::string& smiles() const { return std::get<2>( mol_ ); }
         inline const std::string& inchikey() const { return std::get<3>( mol_ ); }
         inline double mass() const { return mass_; }

@@ -24,9 +24,24 @@
 
 #include "mol.hpp"
 #include <adcontrols/chemicalformula.hpp>
+#include <adportable/debug.hpp>
+#include <adchem/mol.hpp>
+#include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <boost/variant.hpp>
 
 using lipidid::mol;
 using lipidid::moldb;
+
+namespace {
+    namespace x3 = boost::spirit::x3;
+
+    auto const formula = *~x3::char_("[]");
+    static inline auto isotope_parser() {
+        auto delim = ( x3::char_("[]") );
+        return ( formula ) % delim;
+    }
+}
 
 mol::~mol()
 {
@@ -45,6 +60,33 @@ mol::mol( std::tuple< size_t, std::string, std::string, std::string, double >&& 
     : mol_( t )
     , mass_( adcontrols::ChemicalFormula().getMonoIsotopicMass( std::get< 1 >( t ) ) )
 {
+    if ( formula().find('[') != std::string::npos ) {
+        // ADDEBUG() << "isotoped formula: " << formula()
+        //           << " --> " << adchem::mol( smiles() ).formula();
+        formula() = adchem::mol( smiles() ).formula();
+/*
+        namespace x3 = boost::spirit::x3;
+        using x3::double_;
+        using x3::phrase_parse;
+        typedef boost::variant< x3::unused_type, std::string, int > variant_type;
+        std::vector< variant_type > v;
+
+        auto push_back = [&](auto& ctx){ v.push_back(_attr(ctx)); };
+        auto first = formula().begin();
+        auto last  = formula().end();
+
+        ADDEBUG() << x3::phrase_parse( first
+                                       , last
+                                       , (
+                                           (( *~x3::char_("[]") )[push_back]
+                                             | '[' >> (*~x3::char_("[]"))[push_back] >> ']' >> (x3::uint_ | x3::attr(1u))[push_back] )
+                                           )
+                                       , x3::space )
+                  << ", " << (first == last );
+        for ( auto f: v )
+            ADDEBUG() << f;
+*/
+    }
 }
 
 /////

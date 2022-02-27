@@ -59,13 +59,13 @@ namespace lipidid {
         void OnInitialUpdate();
         void OnFinalClose();
 
-        typedef void( callback_t )( int event, const QVector< QPair<int, int> >& );
-
         virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
+        void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles = QVector<int>()) override;
 
     signals:
         void currentChanged( const QModelIndex& );
         void inChIKeySelected( const QString& );
+        void checkStateChanged( int index, double mass, bool checked );
 
     public slots:
         void handleCopyToClipboard();

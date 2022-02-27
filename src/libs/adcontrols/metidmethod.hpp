@@ -55,6 +55,7 @@ namespace adcontrols {
         MetIdMethod& operator << ( std::pair< bool, std::string >&& );
         void setAdducts( const std::vector< std::pair< bool, std::string > >& );
         const std::vector< std::pair< bool, std::string > >& adducts() const;
+        std::vector< std::pair< bool, std::string > >& adducts();
 
 		std::pair< uint32_t, uint32_t > chargeState() const;
 		void chargeState( std::pair< uint32_t, uint32_t >&& );

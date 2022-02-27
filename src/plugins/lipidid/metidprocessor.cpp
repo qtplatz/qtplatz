@@ -99,8 +99,8 @@ MetIdProcessor::find_all( adfs::sqlite& db
 {
     auto self( shared_from_this() ); // protecting
     const auto& method = impl_->method_;
-    double mass_tolerance = method.tolerance( method.toleranceMethod() );
-    ADDEBUG() << "mass tolerance: " << mass_tolerance * 1000 << "mDa";
+    double mass_tolerance = method.tolerance() / 2.0;
+    ADDEBUG() << "##### mass tolerance: " << mass_tolerance * 1000 << "mDa";
 
     using lipidid::simple_mass_spectrum;
     using lipidid::mass_value_t;
@@ -139,7 +139,7 @@ MetIdProcessor::find_all( adfs::sqlite& db
         const auto& stdformula = it->first;
         for ( auto adduct: method.adducts() ) {
             if ( adduct.first ) { // enable
-                auto formulae = adcontrols::ChemicalFormula::split( stdformula + " " + adduct.second );
+                auto formulae = adcontrols::ChemicalFormula::split( stdformula + adduct.second );
                 auto [mass, charge] = adcontrols::ChemicalFormula().getMonoIsotopicMass( formulae );
                 impl_->reference_list_.emplace_back( std::make_tuple( mass, charge, stdformula, adduct.second ) );
             }
@@ -158,13 +158,16 @@ MetIdProcessor::find_all( adfs::sqlite& db
         auto observed_mass = mass_value_t::mass( *mIt );
         auto lit = std::lower_bound( impl_->reference_list_.begin()
                                      , impl_->reference_list_.end()
-                                     , observed_mass - mass_tolerance / 2.0
+                                     , observed_mass - mass_tolerance
                                      , []( const auto& a, double b ){ return a.mass() < b; });
 
         std::vector< std::vector< reference_mass >::const_iterator > tmp;
         if ( lit != impl_->reference_list_.end() ) {
-            while ( lit->mass() < (observed_mass + mass_tolerance / 2.0) )
+            while ( lit->mass() < (observed_mass + mass_tolerance) ) {
+                // ADDEBUG() << "\t\tmass: " << std::make_pair( observed_mass, (observed_mass+mass_tolerance) )
+                //           << ", found mass: " << std::make_pair( lit->mass(), (lit->mass() - observed_mass) * 1000 );
                 tmp.emplace_back( lit++ );
+            }
         }
         // sort gathered references in abs(mass error) ascending order
         std::sort( tmp.begin(), tmp.end()

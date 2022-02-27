@@ -36,9 +36,9 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <boost/json.hpp>
+#include <QBoxLayout>
 #include <QSettings>
 #include <QSplitter>
-#include <QBoxLayout>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 
@@ -204,23 +204,21 @@ MetIdWidget::getContents() const
     if ( auto form = findChild< adwidgets::TargetingForm *>() ) {
         form->getContents( t );
     }
-    if ( impl_->dirty_ ) {
-        const auto model = impl_->model_;
-        for ( size_t row = 0; row < model->rowCount(); ++row ) {
-            auto adducts = model->data( model->index( row, 0 ), Qt::EditRole ).toString().toStdString();
-            auto enable = model->data( model->index( row, 0 ), Qt::CheckStateRole ).toBool();
-            if ( !adducts.empty() ) {
-                t << std::make_pair( enable, adducts );
-            }
+
+    const auto model = impl_->model_;
+    t.adducts().clear();
+    for ( size_t row = 0; row < model->rowCount(); ++row ) {
+        auto adducts = model->data( model->index( row, 0 ), Qt::EditRole ).toString().toStdString();
+        auto enable  = model->data( model->index( row, 0 ), Qt::CheckStateRole ).toBool();
+        if ( !adducts.empty() ) {
+            t << std::make_pair( enable, adducts );
         }
     }
+
     impl_->method_ = t;
     impl_->dirty_ = false;
-    ADDEBUG() << "########## " << impl_->method_.tolerance();
     auto json = boost::json::serialize( boost::json::object{{ "metIdMethod", impl_->method_ }} );
     document::instance()->settings()->setValue( QString(Constants::THIS_GROUP) + "/MetIdMethod", QByteArray( json.data(), json.size() ) );
-    ADDEBUG() << json;
-
 
     return impl_->method_;
 }
@@ -235,6 +233,8 @@ MetIdWidget::setContents( const MetIdWidget::value_type& t )
     QSignalBlocker block( impl_->model_ );
     const auto& adducts = impl_->method_.adducts();
     auto model = impl_->model_;
+    model->setRowCount( adducts.size() );
+
     for ( size_t row = 0; row < adducts.size(); ++row ) {
         model->setData( model->index( row, 0 ), QString::fromStdString( adducts.at( row ).second ) );
 

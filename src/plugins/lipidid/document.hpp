@@ -82,6 +82,7 @@ namespace lipidid {
 
         void handleCheckStateChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium&, bool );
         void handleFormulaSelected( const QString& formula, double abundance );
+        void handleCheckState( int index, double mass, bool checked );
 
     private:
 

@@ -402,6 +402,7 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
         QObject::connect( document::instance(), &document::dataChanged, tree, &MSPeakTree::handleDataChanged );
         QObject::connect( document::instance(), &document::idCompleted, tree, &MSPeakTree::handleIdCompleted );
         QObject::connect( document::instance(), &document::onZoomed, tree, &MSPeakTree::handleZoomedOnSpectrum );
+        QObject::connect( tree, &MSPeakTree::checkStateChanged, document::instance(), &document::handleCheckState );
     }
 }
 

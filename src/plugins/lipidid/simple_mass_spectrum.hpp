@@ -49,7 +49,7 @@ namespace lipidid {
         template< typename value_type > static double intensity( const value_type& v ){ return std::get< 2 >( v ); };
         template< typename value_type > static int color( const value_type& v ){ return std::get< 3 >( v ); };
         template< typename value_type > static bool checked( const value_type& v ){ return std::get< 4 >( v ); };
-        template< typename value_type > static void checked( value_type& v ){ return std::get< 4 >( v ); };
+        template< typename value_type > static bool& checked( value_type& v ){ return std::get< 4 >( v ); };
     };
 
     class simple_mass_spectrum {
@@ -68,6 +68,7 @@ namespace lipidid {
         const_iterator begin() const;
         const_iterator end() const;
         value_type operator []( size_t idx ) const;
+        value_type& at( size_t idx );
 
         void add_a_candidate( size_t idx, candidate&& );
         std::vector< candidate > candidates( size_t idx ) const;

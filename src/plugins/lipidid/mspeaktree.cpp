@@ -109,6 +109,38 @@ namespace lipidid {
                         DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
                     } while(0);
                     break;
+                case c_exact_mass:
+                    if ( index.data( Qt::EditRole ).isValid() ) {
+                        painter->save();
+                        using adcontrols::ChemicalFormula;
+                        auto formula = index.model()->index( index.row(), c_formula, index.parent() ).data( Qt::EditRole ).toString().toStdString();
+                        auto [mass, charge] = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
+                        if ( adportable::compare< double >::approximatelyEqual( index.data( Qt::EditRole ).toDouble(), mass ) ) {
+                            painter->fillRect( option.rect, QColor( 0xf0, 0xf8, 0xff, 0x80 ) ); // AliceBlue
+                        } else {
+                            painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
+                        }
+                        QItemDelegate::paint( painter, option, index );
+                        painter->restore();
+                    }
+                    break;
+                case c_mass_error:
+                    if ( index.data( Qt::EditRole ).isValid() ) {
+                        painter->save();
+                        double mass = index.parent() == QModelIndex()
+                            ? index.model()->index( index.row(), c_mass, index.parent() ).data( Qt::EditRole ).toDouble()
+                            : index.model()->index( index.parent().row(), c_mass ).data( Qt::EditRole ).toDouble();
+                        double exact_mass = index.model()->index( index.row(), c_exact_mass, index.parent() ).data( Qt::EditRole ).toDouble();
+                        auto error = (exact_mass - mass) * 1000;
+                        if ( adportable::compare< double >::approximatelyEqual( index.data( Qt::EditRole ).toDouble(), error, 0.001 ) ) {
+                            painter->fillRect( option.rect, QColor( 0xf0, 0xf8, 0xff, 0x80 ) ); // AliceBlue
+                        } else {
+                            painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
+                        }
+                        QItemDelegate::paint( painter, option, index );
+                        painter->restore();
+                    }
+                    break;
                 default:
                     QItemDelegate::paint( painter, option, index );
                     break;
@@ -306,8 +338,6 @@ MSPeakTree::keyPressEvent( QKeyEvent * event )
 void
 MSPeakTree::handleZoomedOnSpectrum( int view, const QRectF& rc )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
-
     QStandardItemModel& model = *impl_->model_;
 
     auto visualRows = std::make_pair( indexAt( rect().topLeft() ).row(), indexAt( rect().bottomLeft() ).row() );
@@ -487,6 +517,8 @@ MSPeakTree::handleIdCompleted()
     auto model = impl_->model_.get();
     model->setRowCount( simple_mass_spectrum->size() );
 
+    QSignalBlocker block( model );
+
     size_t row(0);
     for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
         auto [ time, mass, abundance, color, checked] = (*simple_mass_spectrum)[ i ];
@@ -499,7 +531,7 @@ MSPeakTree::handleIdCompleted()
             if ( auto item = model->item( row, 0 ) ) {
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
                 // auto value = candidates.at( 0 ).checked() ? Qt::Checked : Qt::Unchecked;
-                item->setData( Qt::Unchecked, Qt::CheckStateRole );
+                item->setData( checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
             }
             // setRowHidden( i, QModelIndex(), candidates.empty() );
             if ( candidates.size() == 1 ) {
@@ -524,6 +556,19 @@ MSPeakTree::handleIdCompleted()
 void
 MSPeakTree::handleDataChanged( const portfolio::Folium& folium )
 {
+    impl_->model_->setRowCount( 0 );
 }
+
+void
+MSPeakTree::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles )
+{
+    if ( roles.contains( Qt::CheckStateRole ) ) {
+        emit checkStateChanged( topLeft.model()->index( topLeft.row(), c_index ).data( Qt::EditRole ).toInt()
+                                , topLeft.model()->index( topLeft.row(), c_mass ).data( Qt::EditRole ).toDouble()
+                                , impl_->model_->item( topLeft.row(), 0 )->checkState() == Qt::Checked );
+    }
+    QTreeView::dataChanged( topLeft, bottomRight, roles );
+}
+
 
 #include "mspeaktree.moc"
