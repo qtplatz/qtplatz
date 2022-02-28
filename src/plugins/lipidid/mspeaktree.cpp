@@ -422,7 +422,7 @@ MSPeakTree::handleCopyCheckedToClipboard()
     selected_text.append( '\n' );
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        if ( model.item( row, 0 )->checkState() == Qt::Checked ) {
+        if ( model.index( row, 0 ).data( Qt::CheckStateRole ).toInt() == Qt::Checked ) {
             for ( int col = 0; col < model.columnCount(); ++col ) {
                 selected_text.append( model.index( row, col ).data( Qt::EditRole ).toString() );
                 if ( col != model.columnCount() - 1 )
@@ -515,9 +515,11 @@ MSPeakTree::handleIdCompleted()
     auto obj = boost::json::object{{ "simple_mass_spectrum", *simple_mass_spectrum }};
 
     auto model = impl_->model_.get();
-    model->setRowCount( simple_mass_spectrum->size() );
 
     QSignalBlocker block( model );
+
+    model->removeRows( 0, model->rowCount() );
+    model->setRowCount( simple_mass_spectrum->size() );
 
     size_t row(0);
     for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
@@ -530,7 +532,6 @@ MSPeakTree::handleIdCompleted()
             model->setData( model->index( row, c_intensity ), abundance );
             if ( auto item = model->item( row, 0 ) ) {
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                // auto value = candidates.at( 0 ).checked() ? Qt::Checked : Qt::Unchecked;
                 item->setData( checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
             }
             // setRowHidden( i, QModelIndex(), candidates.empty() );
@@ -549,6 +550,7 @@ MSPeakTree::handleIdCompleted()
             ++row;
         }
     }
+    model->setRowCount( row ); // update (shrink) row count
     resizeColumnToContents( c_formula );
     resizeColumnToContents( c_inchikey );
 }
