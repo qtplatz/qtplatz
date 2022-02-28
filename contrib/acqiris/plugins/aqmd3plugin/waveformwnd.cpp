@@ -199,11 +199,11 @@ WaveformWnd::handle_method( const QString& )
     if ( auto ptr = document::instance()->method() ) {
         if ( ( ptr->channels() & 0x01 ) == 0 && sp_[ 0 ] ) {
             sp_[ 0 ]->resize( 0 );
-            spw_->setData( sp_[ 0 ], 0, false );
+            spw_->setData( sp_[ 0 ], 0, QwtPlot::yLeft );
         }
         if ( ( ptr->channels() & 0x02 ) == 0 && sp_[ 1 ] ) {
             sp_[ 1 ]->resize( 0 );
-            spw_->setData( sp_[ 1 ], 1, true );
+            spw_->setData( sp_[ 1 ], 1, QwtPlot::yRight );
         }
         spw_->setAxisAutoScale( QwtPlot::yLeft, true );// ptr->threshold_.autoScale );
         //spw_->setAxisAutoScale( QwtPlot::yRight, ptr->ch2_.autoScale );
@@ -267,11 +267,11 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                     , QString::number( sp->getMSProperty().trigNumber() ) );
                 if ( idx == 0 ) {
                     spw_->setTitle( title );
-                    spw_->setData( sp, idx, false );
+                    spw_->setData( sp, idx, QwtPlot::yLeft );
                     spw_->setKeepZoomed( true );
                 } else {
                     hpw_->setTitle( title );
-                    hpw_->setData( sp, idx, false );
+                    hpw_->setData( sp, idx, QwtPlot::yLeft );
                     hpw_->setKeepZoomed( true );
                 }
             } else if ( uuid == aqmd3::histogram_observer ) {
@@ -285,7 +285,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                     , QString::number( rate, 'f', 2 ) );
 
                 hpw_->setTitle( title );
-                hpw_->setData( sp, idx, bool( idx ) );
+                hpw_->setData( sp, idx, idx == 0 ? QwtPlot::yLeft : QwtPlot::yRight );
                 hpw_->setKeepZoomed( true );
 
             } else {
@@ -299,11 +299,11 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 
             if ( uuid == aqmd3::waveform_observer ) {
 
-                spw_->setData( empty, idx, bool( idx ) );
+                spw_->setData( empty, idx, idx == 0 ? QwtPlot::yLeft : QwtPlot::yRight );
 
             } else if ( uuid == aqmd3::histogram_observer ) {
 
-                hpw_->setData( empty, idx, bool( idx ) );
+                hpw_->setData( empty, idx, idx == 0 ? QwtPlot::yLeft : QwtPlot::yRight );
 
             }
 
