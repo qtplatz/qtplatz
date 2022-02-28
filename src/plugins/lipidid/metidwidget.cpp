@@ -139,7 +139,6 @@ MetIdWidget::onInitialUpdate()
 {
     auto ba = document::instance()->settings()->value( QString( Constants::THIS_GROUP ) + "/MetIdMethod" ).toByteArray();
     if ( !ba.isEmpty() ) {
-        ADDEBUG() << ba.toStdString();
         boost::system::error_code ec;
         auto jv = boost::json::parse( ba.toStdString(), ec );
         if ( !ec ) {
@@ -147,8 +146,8 @@ MetIdWidget::onInitialUpdate()
         }
     }
 
-    auto jv = boost::json::value_from( impl_->method_ );
-    ADDEBUG() << jv;
+    // auto jv = boost::json::value_from( impl_->method_ );
+    // ADDEBUG() << jv;
 
     using adwidgets::TableView;
     using adwidgets::HtmlHeaderView;

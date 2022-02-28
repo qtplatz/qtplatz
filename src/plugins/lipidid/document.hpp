@@ -40,6 +40,7 @@ namespace portfolio    { class Folium; }
 namespace lipidid {
 
     class simple_mass_spectrum;
+    class mol;
 
     class document : public QObject    {
         Q_OBJECT
@@ -67,6 +68,7 @@ namespace lipidid {
                     > getResultSet() const;
 
         std::optional< std::string > find_svg( const std::string& InChIKey ) const;
+        std::shared_ptr< lipidid::mol > find_mol( const std::string& InChIKey ) const;
         std::filesystem::path dataFilename() const;
         void save_all() const;
         void load_all() const;

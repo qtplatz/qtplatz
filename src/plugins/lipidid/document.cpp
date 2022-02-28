@@ -205,7 +205,7 @@ document::sqlDatabase()
 void
 document::handleAddProcessor( adextension::iSessionManager *, const QString& file )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
 }
 
 // change node (folium) selection
@@ -343,6 +343,20 @@ document::find_svg( const std::string& InChIKey ) const
     auto [ svg ] = adfs::get_column_values< std::string >( sql );
     lipidid::moldb::instance().addSVG( InChIKey, std::move( svg ) );
     return lipidid::moldb::instance().svg( InChIKey );
+}
+
+std::shared_ptr< lipidid::mol >
+document::find_mol( const std::string& InChIKey ) const
+{
+    adfs::stmt sql( *impl_->sqlite_ );
+    sql.prepare( "SELECT id,formula,smiles,SlogP FROM mols WHERE inchiKey = ?" );
+    sql.bind( 1 ) = InChIKey;
+    while ( sql.step() == adfs::sqlite_row ) {
+        auto [ id, formula, smiles, SlogP ] = adfs::get_column_values< int64_t, std::string, std::string, double >( sql );
+        auto mol = std::make_shared< lipidid::mol >( std::make_tuple( id, formula, smiles, InChIKey, SlogP ) );
+        return mol;
+    }
+    return {};
 }
 
 std::filesystem::path

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mol.hpp"
+#include "document.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
 #include <adchem/mol.hpp>
@@ -102,8 +103,14 @@ std::shared_ptr< const mol >
 moldb::find( const std::string& InChIKey ) const
 {
     auto it = mols_.find( InChIKey );
-    if ( it != mols_.end() )
+    if ( it != mols_.end() ){
         return it->second;
+    } else if ( it == mols_.end() ) {
+        if ( auto mol = document::instance()->find_mol( InChIKey ) ) {
+            instance() << mol;
+            return mol;
+        }
+    }
     return {};
 }
 
@@ -117,8 +124,9 @@ moldb::operator << ( std::shared_ptr< const mol > mol )
 double
 moldb::logP( const std::string& InChIKey )
 {
-    if ( auto mol = instance().find( InChIKey ) )
+    if ( auto mol = instance().find( InChIKey ) ) {
         return mol->logP();
+    }
     return 0;
 }
 

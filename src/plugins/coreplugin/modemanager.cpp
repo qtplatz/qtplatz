@@ -83,7 +83,7 @@ static int indexOf(Id id)
         if (d->m_modes.at(i)->id() == id)
             return i;
     }
-    qDebug() << "Warning, no such mode:" << id.toString();
+    // qDebug() << "Warning, no such mode:" << id.toString();
     return -1;
 }
 

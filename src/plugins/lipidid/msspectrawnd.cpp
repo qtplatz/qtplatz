@@ -290,14 +290,16 @@ MSSpectraWnd::handleFormulaSelection( const QString& formula, double abundance )
             impl_->plots_[ 1 ]->setData( overlay, 1, QwtPlot::yLeft );
 
             auto [left, right] = std::make_pair( overlay->massArray().front(), overlay->massArray().back() );
-
             auto rc = impl_->plots_[ 1 ]->zoomRect();
             auto rc1( rc );
-            if ( right < rc.left() || rc.right() < left ) {
-                if ( rc.right() < left ) { // all peaks are right-side on view mass range
-                    rc.moveRight( right + ( rc.width() / 10 ) );
-                } else if ( right < rc.left() ) { // all peaks are left-side on view mass range
-                    rc.moveLeft( left - ( rc.width() / 10 ) );
+            rc1.setLeft( rc.left() + rc.width() / 10 );
+            rc1.setRight( rc.right() - rc.width() / 10 );
+
+            if ( right < rc1.left() || rc1.right() < left ) {
+                if ( rc1.right() < left ) { // all peaks are right-side on view mass range
+                    rc.moveRight( right + ( rc.width() / 4 ) );
+                } else if ( right < rc1.left() ) { // all peaks are left-side on view mass range
+                    rc.moveLeft( left - ( rc.width() / 4 ) );
                 }
                 QSignalBlocker block( document::instance() ); // block document::onZoomed, which is initiated from MSSpectraWnd::impl
                 impl_->plots_[ 1 ]->zoomer()->zoom( rc );
