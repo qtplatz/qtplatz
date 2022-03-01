@@ -3,7 +3,7 @@ QTDIR      = @QTDIR@
 DEPLOYQT   = ${QTDIR}/bin/macdeployqt
 FRAMEWORKS = ./qtplatz.app/Contents/Frameworks
 PLUGINS    = ./qtplatz.app/Contents/PlugIns
-TARGET     = qtplatz-@QTPLATZ_VERSION@.dmg
+TARGET     = qtplatz-@QTPLATZ_VERSION@-@OSX_TARGET_ARCH@.dmg
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 
 ADPLUGIN:=$(wildcard qtplatz.app/Contents/PlugIns/MS-Cheminformatics/*.adplugin)
@@ -71,7 +71,7 @@ list_rpath:
 
 rpath.sh:
 	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" |\
-		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh	
+		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh
 
 rpath: rpath.sh
 	for i in qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz/*.so; do \
@@ -84,4 +84,3 @@ rpath: rpath.sh
 		install_name_tool -add_rpath @loader_path/../../Frameworks qtplatz.app/Contents/PlugIns/MS-Cheminformatics/lib$$i.dylib; \
 	done
 	@sh ./rpath.sh
-
