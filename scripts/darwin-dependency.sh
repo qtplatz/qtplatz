@@ -7,4 +7,4 @@ brew list libxslt || brew install libxslt
 brew install eigen
 brew install rtags
 
-sudo python3 -m pip install numpy
+python3 -m pip install numpy
