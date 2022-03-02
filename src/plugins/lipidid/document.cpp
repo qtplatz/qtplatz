@@ -371,8 +371,15 @@ document::save_all() const
     if ( impl_->simple_mass_spectrum_ && std::filesystem::exists( impl_->filename_ ) ) {
         auto file( impl_->filename_ );
         file.replace_extension( ".json" );
-        std::ofstream( file )
-            << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+        const auto& method = impl_->simple_mass_spectrum_->method();
+        if ( method ) {
+            std::ofstream( file )
+                << boost::json::object{{ "metid_method", *method }
+                    , { "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }  };
+        } else {
+            std::ofstream( file )
+                << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+        }
     }
 }
 
@@ -395,15 +402,23 @@ document::load_all() const
         if ( ec )
             return;
         auto jv = p.release();
+
+        std::unique_ptr< adcontrols::MetIdMethod > method;
+        if ( auto top = jv.as_object().if_contains( "metid_method" ) ) {
+            method = std::make_unique< adcontrols::MetIdMethod >( boost::json::value_to< adcontrols::MetIdMethod >( *top ) );
+            impl_->method_ = *method;
+            emit metIdMethodChanged( impl_->method_ );
+        }
+
         if ( auto top = jv.as_object().if_contains( "simple_mass_spectrum" ) ) {
             auto data = std::make_shared< lipidid::simple_mass_spectrum >();
             try {
                 *data = boost::json::value_to< lipidid::simple_mass_spectrum >( *top );
+                data->set_method( std::move( method ) );
                 if ( auto refms = make_reference_spectrum()( *impl_->ms_, *data ) ) {
                     impl_->simple_mass_spectrum_ = std::move( data );
                     impl_->refms_ = std::move( refms );
                 }
-
                 emit idCompleted();
             } catch ( std::exception& ex ) {
                 ADDEBUG() << "### exception: json::value_to " << ex.what();

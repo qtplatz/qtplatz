@@ -89,8 +89,8 @@ MetIdProcessor::MetIdProcessor( const adcontrols::MetIdMethod& m ) : impl_( std:
 {
 }
 
-std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum
-            , std::shared_ptr< adcontrols::MassSpectrum > // reference (calculated) spectrum
+std::tuple< std::shared_ptr< const adcontrols::MassSpectrum >  // acquired spectrum
+            , std::shared_ptr< adcontrols::MassSpectrum >      // reference (calculated) spectrum
             , std::shared_ptr< lipidid::simple_mass_spectrum > // reference (calculated) spectrum
             >
 MetIdProcessor::find_all( adfs::sqlite& db
@@ -110,6 +110,7 @@ MetIdProcessor::find_all( adfs::sqlite& db
         ADDEBUG() << "no colored peak.";
         return {};
     }
+    tms->set_method( std::make_unique< adcontrols::MetIdMethod > ( method ) );
 
     size_t counts(0);
     if ( impl_->mols_.empty() ) {

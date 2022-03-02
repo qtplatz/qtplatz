@@ -34,6 +34,7 @@
 
 namespace adcontrols {
     class MassSpectrum;
+    class MetIdMethod;
     typedef std::tuple< double, double, double, int > mass_value_type;
 }
 
@@ -79,6 +80,8 @@ namespace lipidid {
         simple_mass_spectrum& operator << ( std::pair< value_type, std::vector< candidate > >&& );
 
         std::shared_ptr< adcontrols::MassSpectrum > make_spectrum( const lipidid::simple_mass_spectrum& ) const;
+        std::unique_ptr< adcontrols::MetIdMethod >& method() const;
+        void set_method( std::unique_ptr< adcontrols::MetIdMethod >&& );
 
     private:
         class impl;

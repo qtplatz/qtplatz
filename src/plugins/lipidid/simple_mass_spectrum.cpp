@@ -26,6 +26,7 @@
 #include "isopeak.hpp"
 #include "simple_mass_spectrum.hpp"
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/metidmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
 #include <vector>
@@ -47,6 +48,7 @@ namespace lipidid {
         std::vector< value_type > data_; // tof, mass, intensity, color, checked
         std::vector< std::vector< candidate > > candidate_list_;
         std::map< size_t, std::vector< isoPeak > > isotope_match_result_;
+        std::unique_ptr< adcontrols::MetIdMethod > method_;
     };
 
 
@@ -217,6 +219,18 @@ std::shared_ptr< adcontrols::MassSpectrum >
 simple_mass_spectrum::make_spectrum( const lipidid::simple_mass_spectrum& t ) const
 {
     return {};
+}
+
+std::unique_ptr< adcontrols::MetIdMethod >&
+simple_mass_spectrum::method() const
+{
+    return impl_->method_;
+}
+
+void
+simple_mass_spectrum::set_method( std::unique_ptr< adcontrols::MetIdMethod >&& t )
+{
+    impl_->method_ = std::move( t );
 }
 
 namespace lipidid {

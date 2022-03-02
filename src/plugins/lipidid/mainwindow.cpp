@@ -391,6 +391,7 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
     }
     if ( auto widget = dock_create< MetIdWidget >( pThis, "Adducts/Losses", "Adducts" ) ) {
         QObject::connect( widget, &MetIdWidget::triggered, [=]{ document::instance()->find_all( widget->getContents() ); } );
+        QObject::connect( document::instance(), &document::metIdMethodChanged, widget, &MetIdWidget::setContents );
     }
     if ( auto widget = dock_create< SqlEditForm >( pThis, "SQL", "SqlEditForm" ) ) {
         if ( auto table = pThis->findChild< MolTableWnd * >() ) {

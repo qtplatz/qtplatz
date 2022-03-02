@@ -90,6 +90,7 @@ namespace lipidid {
 
     signals:
         void onConnectionChanged() const;
+        void metIdMethodChanged( const adcontrols::MetIdMethod& ) const;
         void idCompleted() const;
         void onZoomed( int, const QRectF& ) const;
         void onFormulaSelected( const QString&, double abundance ) const;
