@@ -79,7 +79,8 @@ namespace lipidid {
 
         simple_mass_spectrum& operator << ( std::pair< value_type, std::vector< candidate > >&& );
 
-        std::shared_ptr< adcontrols::MassSpectrum > make_spectrum( const lipidid::simple_mass_spectrum& ) const;
+        // std::shared_ptr< adcontrols::MassSpectrum > make_spectrum( const lipidid::simple_mass_spectrum& ) const;
+        std::shared_ptr< adcontrols::MassSpectrum > make_spectrum( const candidate&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
         std::unique_ptr< adcontrols::MetIdMethod >& method() const;
         void set_method( std::unique_ptr< adcontrols::MetIdMethod >&& );
 

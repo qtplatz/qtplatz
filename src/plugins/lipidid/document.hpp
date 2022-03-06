@@ -60,7 +60,8 @@ namespace lipidid {
         bool find_all( adcontrols::MetIdMethod&& );
 
         std::shared_ptr< const adcontrols::MassSpectrum > reference_mass_spectrum() const;
-        std::shared_ptr< const adcontrols::MassSpectrum > overlay_mass_spectrum() const;
+        std::shared_ptr< const adcontrols::MassSpectrum > matched_mass_spectrum() const; // overlay on reference spectrum
+        std::shared_ptr< const adcontrols::MassSpectrum > overlay_mass_spectrum() const; // computed isotope pattern
 
         std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum
                     , std::shared_ptr< const adcontrols::MassSpectrum > // reference (calculated) spectrum
@@ -83,7 +84,7 @@ namespace lipidid {
         void handleProcessed( adextension::iSessionManager *, const QString& file, const portfolio::Folium& );
 
         void handleCheckStateChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium&, bool );
-        void handleFormulaSelected( const QString& formula, double abundance );
+        void handleFormulaSelected( const QString& formula, double abundance, int index /* on simple_mass_spectrum */ );
         void handleCheckState( int index, double mass, bool checked );
 
     private:
@@ -94,6 +95,7 @@ namespace lipidid {
         void idCompleted() const;
         void onZoomed( int, const QRectF& ) const;
         void onFormulaSelected( const QString&, double abundance ) const;
+        void onMatchedSelected() const;
 
         // souce iSessionManager
         void dataChanged( const portfolio::Folium& );

@@ -307,3 +307,12 @@ MSSpectraWnd::handleFormulaSelection( const QString& formula, double abundance )
         }
     }
 }
+
+void
+MSSpectraWnd::handleMatchedSelection()
+{
+    if ( auto overlay = document::instance()->matched_mass_spectrum() ) {
+        impl_->plots_[ 0 ]->setData( overlay, 1, QwtPlot::yLeft );
+        impl_->plots_[ 0 ]->update();
+    }
+}

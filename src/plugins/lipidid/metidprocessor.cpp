@@ -217,7 +217,7 @@ MetIdProcessor::compute_reference_spectrum( const std::string& formula // contai
                                    , cluster.at(0).first // mass
                                    , cluster.at(0).second * abundance
                                    , masses.size() // index
-                                   , cluster.at(0).second * abundance
+                                   , int( cluster.at(0).second * abundance )
                                    , adcontrols::annotation::dataFormula
                                    , adcontrols::annotation::flag_targeting );
     for ( const auto& ipk: cluster ) {

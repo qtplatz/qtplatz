@@ -25,10 +25,13 @@
 #include "candidate.hpp"
 #include "isopeak.hpp"
 #include "simple_mass_spectrum.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
+#include <boost/format.hpp>
 #include <vector>
 #include <map>
 
@@ -215,10 +218,59 @@ simple_mass_spectrum::operator << ( std::pair< value_type, std::vector< candidat
     return *this;
 }
 
+// std::shared_ptr< adcontrols::MassSpectrum >
+// simple_mass_spectrum::make_spectrum( const lipidid::simple_mass_spectrum& t ) const
+// {
+//     return {};
+// }
+
 std::shared_ptr< adcontrols::MassSpectrum >
-simple_mass_spectrum::make_spectrum( const lipidid::simple_mass_spectrum& t ) const
+simple_mass_spectrum::make_spectrum( const candidate& candidate, std::shared_ptr< const adcontrols::MassSpectrum > refms ) const
 {
-    return {};
+    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+    ms->clone( *refms, false );
+    std::vector< double > masses, intensities;
+    std::vector< uint8_t > colors;
+
+    size_t ioffs(0);
+    for ( const auto& ipk: candidate.isotope() ) {
+        auto [ found, index, mass_error, ra_error ] = ipk.matched_isotope_;
+        // ADDEBUG() << ipk.matched_isotope_;
+        if ( found ) {
+            const auto& value = (*this)[ index ];
+            masses.emplace_back( mass_value_t::mass( value ) );
+            intensities.emplace_back( mass_value_t::intensity( value ) );
+            if ( ioffs == 0 ) {
+                colors.emplace_back( 7 ); // crimson
+                ms->get_annotations()
+                    << adcontrols::annotation( candidate.formula() + candidate.adduct()
+                                               , masses.back()
+                                               , intensities.back()
+                                               , masses.size() - 1 // index
+                                               , int( intensities.back() )
+                                               , adcontrols::annotation::dataFormula
+                                               , adcontrols::annotation::flag_targeting );
+            } else {
+                double offs = ipk.computed_isotope_.first - candidate.isotope()[ 0 ].computed_isotope_.first;
+                colors.emplace_back( 7 ); // crimson
+                ms->get_annotations()
+                    << adcontrols::annotation( "+" + std::to_string( int( offs + 0.7 ) )
+                                               , masses.back()
+                                               , intensities.back()
+                                               , masses.size() - 1 // index
+                                               , int( intensities.back() )
+                                               , adcontrols::annotation::dataText
+                                               , adcontrols::annotation::flag_targeting );
+            }
+        }
+        (void)mass_error;
+        (void)ra_error;
+        ++ioffs;
+    }
+    ms->setMassArray( std::move( masses ) );
+    ms->setIntensityArray( std::move( intensities ) );
+    ms->setColorArray( std::move( colors ) );
+    return ms;
 }
 
 std::unique_ptr< adcontrols::MetIdMethod >&

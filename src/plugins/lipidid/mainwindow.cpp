@@ -276,6 +276,7 @@ MainWindow::createContents( Core::IMode * mode )
             connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
             connect( document::instance(), &document::idCompleted, pWnd, &MSSpectraWnd::handleIdCompleted );
             connect( document::instance(), &document::onFormulaSelected, pWnd, &MSSpectraWnd::handleFormulaSelection );
+            connect( document::instance(), &document::onMatchedSelected, pWnd, &MSSpectraWnd::handleMatchedSelection );
         }
 
         if ( auto pWnd = new MolTableWnd ) {

@@ -301,7 +301,8 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
             if ( fidx.data( Qt::EditRole ).isValid() ) {
                 auto formula = fidx.data( Qt::EditRole ).toString();
                 double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
-                document::instance()->handleFormulaSelected( formula, abundance );
+                int idx = index.model()->index( top.row(), c_index ).data( Qt::EditRole ).toInt();
+                document::instance()->handleFormulaSelected( formula, abundance, idx );
             }
         }
     }
@@ -312,7 +313,8 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
         }
         if ( ! formula.isEmpty() ) {
             double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();
-            document::instance()->handleFormulaSelected( formula, abundance );
+            int idx = index.model()->index( top.row(), c_index ).data( Qt::EditRole ).toInt();
+            document::instance()->handleFormulaSelected( formula, abundance, idx );
 
             auto key = index.model()->index( index.row(), c_inchikey ).data( Qt::EditRole ).toString();
             if ( !key.isEmpty() ) {

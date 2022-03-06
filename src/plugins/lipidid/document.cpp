@@ -102,6 +102,7 @@ namespace lipidid {
         std::shared_ptr< const adcontrols::MassSpectrum > ms_;
         std::shared_ptr< const adcontrols::MassSpectrum > refms_;
         std::shared_ptr< const adcontrols::MassSpectrum > overlay_;
+        std::shared_ptr< const adcontrols::MassSpectrum > matched_;
         std::shared_ptr< lipidid::simple_mass_spectrum > simple_mass_spectrum_;
         adcontrols::MetIdMethod method_;
         std::map< std::string, double > logP_;
@@ -258,9 +259,23 @@ document::handleCheckState( int index, double mass, bool checked )
 }
 
 void
-document::handleFormulaSelected( const QString& formula, double abundance )
+document::handleFormulaSelected( const QString& formula, double abundance, int index )
 {
-    // ADDEBUG() << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance;
+    // ADDEBUG() << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance << ", index: " << index;
+    if ( auto self = impl_->simple_mass_spectrum_ ) {
+        // auto& value = self->at( index );
+        auto candidates = self->candidates( index );
+        auto it = std::find_if( candidates.begin()
+                                , candidates.end()
+                                , [&](const auto& c){ return ( c.formula() + c.adduct() ) == formula.toStdString(); });
+        if ( it != candidates.end() ) {
+            if ( auto ms = reference_mass_spectrum() ) {
+                impl_->matched_ = self->make_spectrum( *it, ms );
+                emit onMatchedSelected();
+            }
+        }
+    }
+
     try {
         if ( impl_->selectedFormula_ != formula ) {
             impl_->selectedFormula_ = formula;
@@ -286,6 +301,12 @@ std::shared_ptr< const adcontrols::MassSpectrum >
 document::overlay_mass_spectrum() const
 {
     return impl_->overlay_;
+}
+
+std::shared_ptr< const adcontrols::MassSpectrum >
+document::matched_mass_spectrum() const
+{
+    return impl_->matched_;
 }
 
 std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectrum
