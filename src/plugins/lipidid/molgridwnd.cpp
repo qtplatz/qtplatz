@@ -116,7 +116,7 @@ MolGridWnd::handleMatchedSelection( int index )
 
         // ADDEBUG() << "nmols: " << nmols << ", " << gidx.size;
         impl_->table_->horizontalHeader()->setDefaultSectionSize( width / columns );
-        impl_->table_->verticalHeader()->setDefaultSectionSize( width / columns );
+        impl_->table_->verticalHeader()->setDefaultSectionSize( rows == 1 ? width / columns : impl_->table_->height() / rows );
 
         impl_->table_->setRowCount( rows );
         impl_->table_->setColumnCount( columns );
