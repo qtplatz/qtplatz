@@ -33,8 +33,6 @@
 
 namespace pugi {
 
-
-
     class xmlhelper {
         xml_document dom;
         xmlhelper( const xmlhelper& ) = delete;
