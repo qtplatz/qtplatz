@@ -160,6 +160,8 @@ namespace adcontrols {
         template<class T> const T& get();
         std::pair<double, double> getAcquisitionMassRange() const;
         std::pair<size_t, size_t> minmax_element() const;
+        size_t max_element( const std::pair< double, double >&, bool isTime = false ) const;
+
         double maxIntensity() const;
         double minIntensity() const;
         double mass( size_t idx ) const;

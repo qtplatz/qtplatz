@@ -40,6 +40,7 @@
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/scoped_debug.hpp>
+#include <adportable/tuple_arith.hpp>
 #include <qtwrapper/font.hpp>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
@@ -220,7 +221,7 @@ namespace adplot {
         boost::optional< std::pair< double, double > > yScale1_;
 
         void clear();
-        void update_annotations( plot&, const std::pair<double, double>&, QwtPlot::Axis );
+        void update_annotations( plot&, const QRectF&, QwtPlot::Axis );
 		void clear_annotations();
 
         void handleZoomRect( QRectF& );
@@ -234,6 +235,28 @@ namespace adplot {
     };
 
 } // namespace adplot
+
+namespace {
+
+    struct make_text {
+        QwtText operator()( const adcontrols::annotation& a ) const {
+            if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
+                return QwtText( QString::fromStdString( adcontrols::ChemicalFormula::formatFormulae( a.text() ) ), QwtText::RichText );
+            } else {
+                return QwtText( QString::fromStdString( a.text() ), QwtText::RichText );
+            }
+        }
+    };
+
+    struct compare_range {
+        bool operator()( const std::pair<double, double >& range, const adcontrols::mass_value_type& value, bool isTime ) const {
+            if ( isTime )
+                return range.first < std::get< 0 >( value ) && std::get< 0 >( value ) < range.second;
+            else
+                return range.first < std::get< 1 >( value ) && std::get< 1 >( value ) < range.second;
+        }
+    };
+}
 
 
 QColor
@@ -280,7 +303,7 @@ void
 SpectrumWidget::update_annotation( bool bReplot )
 {
     QRectF rc = zoomRect();
-    impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ), impl_->yAxisForAnnotation_ );
+    impl_->update_annotations( *this, rc, impl_->yAxisForAnnotation_ );
     if ( bReplot )
         replot();
 }
@@ -443,7 +466,7 @@ SpectrumWidget::zoomed( const QRectF& rect )
         setAxisScale( QwtPlot::yRight, range->first, range->second ); // set yRight
     }
 
-    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ), impl_->yAxisForAnnotation_ );
+    impl_->update_annotations( *this, rect, impl_->yAxisForAnnotation_ );
     replot();
 }
 
@@ -1043,15 +1066,18 @@ SpectrumWidget::impl::clear_annotations()
 }
 
 void
-SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, double>& range, QwtPlot::Axis axis )
+SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot::Axis axis )
 {
     using adportable::array_wrapper;
-    using namespace adcontrols::metric;
+    // using namespace adcontrols::metric;
 
-    // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "update_annotateion:";
     plot.setUpdatesEnabled( false );
-
     yAxisForAnnotation_ = axis;
+
+    using namespace adportable::tuple_arith;
+    auto range = std::make_tuple( rc.left(), rc.right() );
+    if ( isTimeAxis_ )
+        range = range * (1.0/std::micro::den);
 
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
@@ -1059,114 +1085,56 @@ SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, do
     if ( auto ms = msForAnnotation_.lock() ) {
 
         std::vector< peak > peaks;
-       adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
 
-        adcontrols::annotations auto_annotations;
-        adcontrols::annotations annotations;
-
-        double max_y = adcontrols::segments_helper::max_intensity( *ms );
+        std::vector< adcontrols::annotation > avec;
+        std::vector< adcontrols::annotation > a_avec;
 
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
-            const unsigned char * colors = ms.getColorArray();
+            double max_y = ms.intensity( ms.max_element( range ) );
 
-            size_t beg( 0 ), end( 0 );
-            if ( isTimeAxis_ ) {
-                if ( const double * times = ms.getTimeArray() ) {
-                    beg = std::distance( times, std::lower_bound( times, times + ms.size(), scale_to_base( range.first, micro ) ) );
-                    end = std::distance( times, std::lower_bound( times, times + ms.size(), scale_to_base( range.second, micro ) ) );
-                }
-            } else {
-                if ( const double * masses = ms.getMassArray() ) {
-                    beg = std::distance( masses, std::lower_bound( masses, masses + ms.size(), range.first ) );
-                    end = std::distance( masses, std::lower_bound( masses, masses + ms.size(), range.second ) );
+            for ( const auto& a: ms.get_annotations() ) {
+                if (( a.index() >= 0 ) && std::get<0>(range) <= a.x() && a.x() < std::get<1>(range) ) {
+                    auto tmp( a );
+                    tmp.x( isTimeAxis_ ? ms.time( a.index() ) : a.x() );
+                    avec.emplace_back( std::move( tmp ) );
                 }
             }
 
-            if ( beg < end ) {
-                const adcontrols::annotations& attached = ms.get_annotations();
-                std::map< size_t, adcontrols::annotations > marge;
-                for ( auto a : attached ) {
-                    if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
-                        if ( a.index() >= 0 ) {
-							if ( isTimeAxis_ ) {
-								a.x( scale_to_micro( ms.time( a.index() ) ) );
-							} else {
-								a.x( ms.mass( a.index() ) );
-							}
-							a.y( ms.intensity( a.index() ) );
-						}
-						if ( a.dataFormat() == adcontrols::annotation::dataFormula ) {
-							a.text( adcontrols::ChemicalFormula::formatFormulae( a.text () ), adcontrols::annotation::dataFormula );
-                        }
-                        marge[ a.index() ] << a;
-                    }
-                }
-                for ( auto& a : marge ) {
-                    // if more than two annotations attached to an index, text is a priority on spectrum
-                    auto it = std::find_if( a.second.begin(), a.second.end()
-                                            , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText; } );
-                    if ( it == a.second.end() )
-                        it = std::find_if( a.second.begin(), a.second.end()
-                                           , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula; } );
-                    if ( it != a.second.end() )
-                        annotations << *it;
-                }
-
-                if ( ms.isCentroid() && !ms.isHistogram() && autoAnnotation_ ) {
-                    // generate auto-annotation
-                    for ( size_t idx = beg; idx <= end; ++idx ) {
-                        if ( std::find_if( attached.begin()
-                                           , attached.end()
-                                           , [idx]( const adcontrols::annotation& a ){ return a.index() == int(idx); } ) == attached.end() ) {
-                            int pri = ms.intensity( idx ) / max_y * 1000;
-                            (void)colors;
-                            // if ( colors && colors[ idx ] > 0 )
-                            //     pri *= 100;
-                            if ( isTimeAxis_ ) {
-                                double microseconds = adcontrols::metric::scale_to_micro( ms.time( idx ) );
-                                adcontrols::annotation annot( ( boost::wformat( L"%.3lf" ) % microseconds ).str()
-                                                              , microseconds, ms.intensity( idx )
-                                                              , int( fcn << 24 | idx ), pri );
-                                auto_annotations << annot;
-                            } else {
-                                adcontrols::annotation annot( ( boost::wformat( L"%.2lf" ) % ms.mass( idx ) ).str()
-                                                              , ms.mass( idx ), ms.intensity( idx ), int( fcn << 24 | idx ), pri );
-                                auto_annotations << annot;
-                            }
+            if ( ms.isCentroid() && !ms.isHistogram() && autoAnnotation_ ) {
+                // generate auto-annotation
+                for ( size_t i = 0; i < ms.size(); ++i ) {
+                    if ( compare_range()( range, ms.value( i ), isTimeAxis_ ) ) {
+                        if ( std::find_if ( avec.begin(), avec.end(), [i]( const auto& a ){ return a.index() == int(i); } ) == avec.end() ) {
+                            a_avec.emplace_back( ( boost::format( "%.3f" ) % ms.mass( i ) ).str()
+                                                 , isTimeAxis_ ? (ms.time( i ) * std::micro::den) : ms.mass( i )
+                                                 , ms.intensity( i )
+                                                 , i
+                                                 , (ms.intensity(i) / max_y) * 256 );
                         }
                     }
                 }
+                std::sort( a_avec.begin(), a_avec.end(), [](const auto& a, const auto& b){ return a.priority() > b.priority(); } );
             }
         }
-
-        auto_annotations.sort();
-        annotations.sort();
 
         annotations_.clear();
         Annotations annots(plot, annotations_);
-
-        for ( const auto& a: annotations ) {
-            QwtText text( QString::fromStdString(a.text()), QwtText::RichText);
+        for ( const auto& a: avec ) {
+            auto text = make_text()( a );// QwtText text( QString::fromStdString(a.text()), QwtText::RichText);
             text.setColor( Qt::darkGreen );
             text.setFont( Annotation::font() );
-            bool added = annots.insert( a.x(), a.y(), yAxisForAnnotation_, text, Qt::AlignTop | Qt::AlignHCenter );
-            (void)added;
+            annots.insert( a.x(), a.y(), yAxisForAnnotation_, text, Qt::AlignTop | Qt::AlignHCenter );
         }
 
-        QColor color = Qt::darkGreen;
         QFont font = Annotation::font();
-        if ( ! annotations.empty() ) {
-            // if user defined annotations were exist
-            font.setPointSize( font.pointSize() - 2 );
-            color = Qt::gray;
-        }
-        for ( const auto& a: auto_annotations ) {
-            QwtText text( QString::fromStdString(a.text()), QwtText::RichText );
-            text.setColor( color );
+        font.setPointSize( font.pointSize() - 1 );
+        for ( const auto& a: a_avec ) {
+            auto text = QwtText( QString::fromStdString(a.text()), QwtText::RichText );
+            text.setColor( Qt::darkGray );
             text.setFont( font );
-			auto added = annots.insert( a.x(), a.y(), yAxisForAnnotation_, text, Qt::AlignTop | Qt::AlignHCenter );
-            (void)added;
+            annots.insert( a.x(), a.y(), yAxisForAnnotation_, text, Qt::AlignTop | Qt::AlignHCenter );
         }
     }
     plot.setUpdatesEnabled( true );

@@ -1411,3 +1411,20 @@ MassSpectrum::minmax_element() const
 {
     return impl_->minmax_element();
 }
+
+size_t
+MassSpectrum::max_element( const std::pair< double, double >& range, bool isTime ) const
+{
+    size_t left(0), right(0);
+    if ( isTime ) {
+        const auto& a = impl_->tofArray_;
+        left = std::distance( a.begin(), std::lower_bound( a.begin(), a.end(), range.first ) );
+        right = std::distance( a.begin(), std::lower_bound( a.begin(), a.end(), range.second ) );
+    } else {
+        const auto& a = impl_->massArray_;
+        left = std::distance( a.begin(), std::lower_bound( a.begin(), a.end(), range.first ) );
+        right = std::distance( a.begin(), std::lower_bound( a.begin(), a.end(), range.second ) );
+    }
+    const auto& ia = impl_->intensityArray_;
+    return std::distance( ia.begin(), std::max_element( ia.begin() + left, ia.begin() + right ) );
+}

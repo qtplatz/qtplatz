@@ -58,6 +58,7 @@ add_library( ${PROJECT_NAME} SHARED
   json_helper.hpp
   json/extract.cpp
   json/extract.hpp
+  tuple_arith.hpp
   )
 
 target_include_directories( adportable PUBLIC
