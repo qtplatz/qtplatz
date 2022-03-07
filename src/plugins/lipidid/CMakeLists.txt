@@ -77,6 +77,8 @@ add_library( ${PROJECT_NAME} MODULE
   isopeak.hpp
   mol.cpp
   mol.hpp
+  molgridwnd.cpp
+  molgridwnd.hpp
   mspeaktree.cpp
   mspeaktree.hpp
   mspeakwidget.cpp

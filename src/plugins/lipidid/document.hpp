@@ -95,7 +95,7 @@ namespace lipidid {
         void idCompleted() const;
         void onZoomed( int, const QRectF& ) const;
         void onFormulaSelected( const QString&, double abundance ) const;
-        void onMatchedSelected() const;
+        void onMatchedSelected( int ) const;
 
         // souce iSessionManager
         void dataChanged( const portfolio::Folium& );

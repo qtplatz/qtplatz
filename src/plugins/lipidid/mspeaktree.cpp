@@ -275,6 +275,8 @@ MSPeakTree::onInitialUpdate()
     model.setHeaderData( c_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_logP,        Qt::Horizontal, QObject::tr( "logP" ) );
     setColumnHidden( c_index, true );
+    this->header()->setSectionResizeMode( c_formula, QHeaderView::ResizeToContents);
+    this->header()->setSectionResizeMode( c_inchikey, QHeaderView::ResizeToContents);
 }
 
 
@@ -493,7 +495,6 @@ MSPeakTree::showContextMenu( const QPoint& pt )
             rows.insert( index.row() ); // make unique row list
 
         //------------ Copy assigned
-        menu.addAction( tr("Adjust Width"),  this, [&]{resizeColumnToContents( c_formula );resizeColumnToContents( c_inchikey ); } );
         menu.addAction( tr("Copy Checked"),  this, SLOT( handleCopyCheckedToClipboard() ) );
         menu.addAction( tr("Copy All"),      this, SLOT( handleCopyAllToClipboard() ) );
         menu.addAction( tr("Copy Selected"), this, SLOT( handleCopyToClipboard() ) );
@@ -519,41 +520,43 @@ MSPeakTree::handleIdCompleted()
 
     auto model = impl_->model_.get();
 
-    QSignalBlocker block( model );
+    do {
+        QSignalBlocker block( model );
 
-    model->removeRows( 0, model->rowCount() );
-    model->setRowCount( simple_mass_spectrum->size() );
+        model->removeRows( 0, model->rowCount() );
+        model->setRowCount( simple_mass_spectrum->size() );
 
-    size_t row(0);
-    for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
-        auto [ time, mass, abundance, color, checked] = (*simple_mass_spectrum)[ i ];
-        (void)time;
-        auto candidates = simple_mass_spectrum->candidates( i );
-        if ( ! candidates.empty() ) {
-            model->setData( model->index( row, c_index ), int( i ) );
-            model->setData( model->index( row, c_mass ), mass );
-            model->setData( model->index( row, c_intensity ), abundance );
-            if ( auto item = model->item( row, 0 ) ) {
-                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                item->setData( checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-            }
-            // setRowHidden( i, QModelIndex(), candidates.empty() );
-            if ( candidates.size() == 1 ) {
-                setCandidateData( model, row, candidates.at( 0 ), QModelIndex() );
-            } else {
-                auto parent = model->itemFromIndex( model->index( row, 0 ) );
-                parent->setColumnCount( c_num_columns );
-                parent->setRowCount( candidates.size() );
-                size_t k(0);
-                for ( const auto& candidate: candidates ) { // for ( size_t k = 0; k < candidates.size(); ++k ) {
-                    setCandidateData( model, k, candidate, parent->index() );
-                    ++k;
+        size_t row(0);
+        for ( size_t i = 0; i < simple_mass_spectrum->size(); ++i ){
+            auto [ time, mass, abundance, color, checked] = (*simple_mass_spectrum)[ i ];
+            (void)time;
+            auto candidates = simple_mass_spectrum->candidates( i );
+            if ( ! candidates.empty() ) {
+                model->setData( model->index( row, c_index ), int( i ) );
+                model->setData( model->index( row, c_mass ), mass );
+                model->setData( model->index( row, c_intensity ), abundance );
+                if ( auto item = model->item( row, 0 ) ) {
+                    item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                    item->setData( checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
                 }
+                // setRowHidden( i, QModelIndex(), candidates.empty() );
+                if ( candidates.size() == 1 ) {
+                    setCandidateData( model, row, candidates.at( 0 ), QModelIndex() );
+                } else {
+                    auto parent = model->itemFromIndex( model->index( row, 0 ) );
+                    parent->setColumnCount( c_num_columns );
+                    parent->setRowCount( candidates.size() );
+                    size_t k(0);
+                    for ( const auto& candidate: candidates ) { // for ( size_t k = 0; k < candidates.size(); ++k ) {
+                        setCandidateData( model, k, candidate, parent->index() );
+                        ++k;
+                    }
+                }
+                ++row;
             }
-            ++row;
         }
-    }
-    model->setRowCount( row ); // update (shrink) row count
+        model->setRowCount( row ); // update (shrink) row count
+    } while ( 0 );
     resizeColumnToContents( c_formula );
     resizeColumnToContents( c_inchikey );
 }

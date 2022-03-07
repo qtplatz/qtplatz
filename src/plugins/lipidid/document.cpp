@@ -263,7 +263,6 @@ document::handleFormulaSelected( const QString& formula, double abundance, int i
 {
     // ADDEBUG() << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance << ", index: " << index;
     if ( auto self = impl_->simple_mass_spectrum_ ) {
-        // auto& value = self->at( index );
         auto candidates = self->candidates( index );
         auto it = std::find_if( candidates.begin()
                                 , candidates.end()
@@ -271,7 +270,7 @@ document::handleFormulaSelected( const QString& formula, double abundance, int i
         if ( it != candidates.end() ) {
             if ( auto ms = reference_mass_spectrum() ) {
                 impl_->matched_ = self->make_spectrum( *it, ms );
-                emit onMatchedSelected();
+                emit onMatchedSelected( index );
             }
         }
     }

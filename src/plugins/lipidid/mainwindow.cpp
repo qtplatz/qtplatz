@@ -25,6 +25,7 @@
 #include "document.hpp"
 #include "mainwindow.hpp"
 #include "metidwidget.hpp"
+#include "molgridwnd.hpp"
 #include "moltablewnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspeaktree.hpp"
@@ -269,14 +270,23 @@ MainWindow::createContents( Core::IMode * mode )
                     }
                 }
             });
-
-        if ( auto pWnd = new MSSpectraWnd ) {
-            pWnd->setWindowTitle( "Spectra" );
-            impl_->stackWidget_->addWidget( pWnd );
-            connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
-            connect( document::instance(), &document::idCompleted, pWnd, &MSSpectraWnd::handleIdCompleted );
-            connect( document::instance(), &document::onFormulaSelected, pWnd, &MSSpectraWnd::handleFormulaSelection );
-            connect( document::instance(), &document::onMatchedSelected, pWnd, &MSSpectraWnd::handleMatchedSelection );
+        if ( auto splitter = new QSplitter ) {
+            if ( auto pWnd = new MSSpectraWnd ) {
+                splitter->addWidget( pWnd );
+                pWnd->setWindowTitle( "Spectra" );
+                //impl_->stackWidget_->addWidget( pWnd );
+                connect( document::instance(), &document::dataChanged, [=](auto& f){ pWnd->handleDataChanged(f);} );
+                connect( document::instance(), &document::idCompleted, pWnd, &MSSpectraWnd::handleIdCompleted );
+                connect( document::instance(), &document::onFormulaSelected, pWnd, &MSSpectraWnd::handleFormulaSelection );
+                connect( document::instance(), &document::onMatchedSelected, pWnd, &MSSpectraWnd::handleMatchedSelection );
+            }
+            if ( auto pGrid = new MolGridWnd ) {
+                splitter->addWidget( pGrid );
+                connect( document::instance(), &document::onMatchedSelected, pGrid, &MolGridWnd::handleMatchedSelection );
+            }
+            splitter->setStretchFactor( 0, 10 );
+            splitter->setStretchFactor( 1, 0 );
+            impl_->stackWidget_->addWidget( splitter );
         }
 
         if ( auto pWnd = new MolTableWnd ) {
