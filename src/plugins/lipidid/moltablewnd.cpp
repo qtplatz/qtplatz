@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 #include "document.hpp"
-#include "moltabledelegate.hpp"
+// #include "moltabledelegate.hpp"
 #include "moltablewnd.hpp"
 #include <adlog/logger.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -254,101 +254,11 @@ MolTableWnd::handleDataChaged( const QModelIndex& topLeft, const QModelIndex& bo
 void
 MolTableWnd::handleSDFileChanged()
 {
-#if 0
-    auto tp = std::chrono::steady_clock::now();
-    emit onProgressInitiated( document::instance()->sdfile()->size() );
-    std::atomic< uint32_t > progressCount(0);
-    auto future = std::async( std::launch::async, [&](){
-        return document::instance()->sdfile()->populate( [&](size_t c){ progressCount = c; } );
-    });
-    using namespace std::chrono_literals;
-    while ( std::future_status::ready != future.wait_for( 200ms ) ) {
-        emit onProgress( progressCount );
-        QCoreApplication::instance()->processEvents();
-    }
-    future.wait();
-
-    ADDEBUG() << "elapsed time: "
-              << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - tp ).count() ) / 1000.0
-              << " s";
-    emit onProgressFinished();
-    QCoreApplication::instance()->processEvents();
-
-    document::instance()->set_sdmols( future.get() );
-    auto sdmols = document::instance()->sdmols();
-    auto model = std::make_unique< QStandardItemModel >();
-    std::vector< std::string > keys{ "svg", "formula", "mass", "smiles" };
-    for ( auto it = sdmols.begin(); it != sdmols.end(); ++it ) {
-        for ( const auto& item: it->dataItems() ) {
-            if ( std::find( keys.begin(), keys.end(), item.first ) == keys.end() )
-                keys.emplace_back( item.first );
-        }
-    }
-
-    auto delegate = new MolTableDelegate();
-    connect( delegate, &MolTableDelegate::onNullData, this, &MolTableWnd::handleNullData );
-
-    delegate->setColumnField( 0, adwidgets::ColumnState::f_svg, false, false );
-    delegate->setColumnField( 1, adwidgets::ColumnState::f_formula, false, true );
-    delegate->setColumnField( 2, adwidgets::ColumnState::f_mass, false, false );
-    delegate->setColumnField( 3, adwidgets::ColumnState::f_smiles, false, true );
-
-    table_->setItemDelegate( delegate );
-
-    model->setColumnCount( keys.size() );
-    model->setRowCount( sdmols.size() );
-    for ( auto it = keys.begin(); it != keys.end(); ++it ) {
-        model->setHeaderData( std::distance( keys.begin(), it ), Qt::Horizontal, QString::fromStdString( *it ) );
-    }
-
-    emit onProgressInitiated( document::instance()->sdfile()->size() );
-    size_t row(0);
-    for ( auto it = sdmols.begin(); it != sdmols.end(); ++it, ++row ) {
-        emit onProgress( row );
-        QCoreApplication::instance()->processEvents();
-        model->setData( model->index( row, 1 ), QString::fromStdString( it->formula() ) );
-        model->setData( model->index( row, 2 ), adcontrols::ChemicalFormula().getMonoIsotopicMass( it->formula() ) );
-        // svg & smiles data will be loaded on demand
-        //model->setData( model->index( row, 0 ), QByteArray( it->svg().data(), it->svg().size() ) );
-        //model->setData( model->index( row, 3 ), QString::fromStdString( it->smiles() ) );
-        for ( const auto& item: it->dataItems() ) {
-            auto col = std::distance( keys.begin(), std::find( keys.begin(), keys.end(), item.first ) );
-            model->setData( model->index( row, col ), QString::fromStdString( item.second ) );
-        }
-    }
-    auto temp = std::move( model_ ); // hold scope until return;
-    model_ = std::move( model ); // replace model_ should be later than table model replace
-#if 0
-    if ( auto m = new QSortFilterProxyModel() ) {
-        m->setDynamicSortFilter( false );
-        m->setSourceModel( model_.get() );
-        m->sort( 2 );
-        table_->setModel( m );
-        table_->setSortingEnabled( true );
-    }
-#else
-    table_->setModel( model_.get() );
-#endif
-    // table_->setModel( model_.get() );
-    table_->verticalHeader()->setFixedWidth( 40 );
-    table_->verticalHeader()->setSizeAdjustPolicy( QHeaderView::AdjustToContents );
-
-    ADDEBUG() << "total elapsed time: "
-              << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - tp ).count() ) / 1000.0
-              << " s";
-#endif
     emit onProgressFinished();
     QCoreApplication::instance()->processEvents();
 }
 
 void
 MolTableWnd::handleNullData( const QModelIndex& index )
-
 {
-#if 0
-    // on-demand data loading
-    auto sdmol = document::instance()->sdmols().at( index.row() );
-    table_->model()->setData( table_->model()->index( index.row(), 0 ), QByteArray( sdmol.svg().data(), sdmol.svg().size() ) );
-    table_->model()->setData( table_->model()->index( index.row(), 3 ), QString::fromStdString( sdmol.smiles() ) );
-#endif
 }
