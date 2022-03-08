@@ -4,6 +4,7 @@ cmake_policy( SET CMP0042 NEW )
 project( test_svg )
 
 if ( NOT Boost_FOUND ) # -- standalone
+  message( STATUS "############### standalone ################## ${CMAKE_SYSTEM_PROCESSOR}" )
   cmake_minimum_required( VERSION 3.22 )
   set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
@@ -11,8 +12,12 @@ if ( NOT Boost_FOUND ) # -- standalone
     list( APPEND CMAKE_MODULE_PATH "C:/qtplatz"    "C:/opt/Eigen3/share/eigen3/cmake/")
     list( APPEND CMAKE_PREFIX_PATH "C:/opt/Eigen3" "C:/opt/RDKit/lib/cmakec/rdkit")
   elseif( APPLE )
+    set ( ARCH ${CMAKE_SYSTEM_PROCESSOR} )
+    if ( "${ARCH}" STREQUAL "x86_64" )
+      set ( ARCH "i386" )
+    endif()
     find_path( qtplatz_config_DIR NAMES "qtplatz-config.cmake"
-      HINTS "$ENV{HOME}/src/build-Darwin-${CMAKE_SYSTEM_PROCESSOR}/qtplatz.release" )
+      HINTS "$ENV{HOME}/src/build-Darwin-${ARCH}/qtplatz.release" )
     list( APPEND CMAKE_PREFIX_PATH ${qtplatz_config_DIR} )
   else()
     list( APPEND CMAKE_MODULE_PATH "/opt/qtplatz")
@@ -45,9 +50,9 @@ set(CMAKE_AUTORCC ON)
 find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multimedia )
 
 include_directories(
-  ${Boost_INCLUDE_DIRS}
-  ${QTPLATZ_SOURCE_DIR}/src/libs
+  "${QTPLATZ_SOURCE_DIR}/src/libs"
   "${QTPLATZ_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.12/src"
+  ${Boost_INCLUDE_DIRS}
   ${Qt5Svg_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
