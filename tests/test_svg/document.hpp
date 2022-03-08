@@ -47,6 +47,9 @@ public:
     void saveSvg( const QString& filename ) const;
     bool loadSvg( const QString& filename );
     QString filename() const;
+    void setInChIKey( const std::string& key );
+    void editSvg();
+    void walkSvg();
 
 signals:
     void onSvgLoaded( const QByteArray& ) const;

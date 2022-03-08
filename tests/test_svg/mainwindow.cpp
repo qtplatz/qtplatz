@@ -202,6 +202,8 @@ MainWindow::setupEditActions()
     addToolBar(tb);
     QMenu *menu = new QMenu(tr("&Edit"), this);
     menuBar()->addMenu(menu);
+    menu->addAction(tr("Add Text"), this, []{ document::instance()->editSvg(); } );
+    menu->addAction(tr("Walk SVG"), this, []{ document::instance()->walkSvg(); } );
 }
 
 void
@@ -252,7 +254,7 @@ MainWindow::fileSaveAs()
     QFileDialog fileDialog(this, tr("Save as..."));
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);
     QStringList mimeTypes;
-    mimeTypes << "application/svg" << "text/svg";
+    mimeTypes << "image/svg" << "application/xml";
     fileDialog.setMimeTypeFilters(mimeTypes);
     fileDialog.setDefaultSuffix("svg");
     if (fileDialog.exec() != QDialog::Accepted)
@@ -331,6 +333,7 @@ MainWindow::onInitialUpdate()
         connect( document::instance(), &document::onSvgLoaded, grid, &MolGridWnd::handleSVG );
     }
     document::instance()->initialSetup();
+    std::cout << "------------------------";
 }
 
 QDockWidget *

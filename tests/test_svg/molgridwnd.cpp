@@ -80,19 +80,17 @@ MolGridWnd::MolGridWnd(QWidget *parent) : QWidget( parent )
 
         impl_->table_->setRowCount( 1 );
         impl_->table_->setColumnCount( 1 );
-        //impl_->table_->verticalHeader()->hide();
-        //impl_->table_->horizontalHeader()->hide();
-        auto sz = std::min( impl_->table_->width(), impl_->table_->height() );
-        impl_->table_->horizontalHeader()->setDefaultSectionSize( sz );
-        impl_->table_->verticalHeader()->setDefaultSectionSize( sz );
+        impl_->table_->verticalHeader()->hide();
+        impl_->table_->horizontalHeader()->hide();
+        // auto sz = std::min( impl_->table_->width(), impl_->table_->height() );
+        impl_->table_->horizontalHeader()->setDefaultSectionSize( impl_->table_->width()  );
+        impl_->table_->verticalHeader()->setDefaultSectionSize( impl_->table_->height() );
     }
 }
 
 void
 MolGridWnd::handleSVG( const QByteArray& ba )
 {
-    ADDEBUG() << ba.toStdString();
-
     auto widget = new QSvgWidget();
     widget->load( ba );
     impl_->table_->setCellWidget( 0, 0, widget );

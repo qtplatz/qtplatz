@@ -36,17 +36,18 @@
 #include <streambuf>
 #include <string>
 #include <mutex>
-    
-class OutputWidget::impl : public QTextEdit, public std::basic_streambuf < char > {
+
+class OutputWidget::impl : public QTextEdit
+                         , public std::basic_streambuf < char > {
     Q_OBJECT
 public:
     impl( std::ostream &stream ) : stream_( stream ), mainFrame_( 0 ), completer_(0) {
-        old_buf_ = stream.rdbuf();
-        stream.rdbuf(this);
+        old_buf_ = stream_.rdbuf();
+        stream_.rdbuf(this);
         QTextCursor cursor = textCursor();
         cursor.movePosition( QTextCursor::Start );
         pframe_ = mainFrame_ = cursor.currentFrame();
-        
+
         plainFormat_ = cursor.charFormat();
         plainFormat_.setFontPointSize( 10 );
 
@@ -58,14 +59,14 @@ public:
         frameFormat_.setBorder( 1 );
         frameFormat_.setMargin( 2 );
         frameFormat_.setPadding( 2 );
-        
+
         connect( this, &impl::onText, this, &impl::handleText );
     }
 
     ~impl() {
         stream_.rdbuf( old_buf_ );
     }
-        
+
 protected:
     // this can be called from several threads
     virtual int_type overflow(int_type v) override {
@@ -77,7 +78,7 @@ protected:
         }
         return v;
     }
-        
+
     virtual std::streamsize xsputn( const char *p, std::streamsize n ) override {
         size_t nchars = n;
         while ( nchars-- )

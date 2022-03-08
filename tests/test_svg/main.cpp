@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "document.hpp"
 #include <QApplication>
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -42,6 +43,7 @@ main( int argc, char * argv [] )
         description.add_options()
             ( "help,h",    "Display this help message" )
             ( "load",      po::value< std::string >(), "load method from file" )
+            ( "inchikey",  po::value< std::string >()->default_value( "CROAPHWLZZGVPY-UHFFFAOYSA-N" ), "InChIKey" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -50,6 +52,9 @@ main( int argc, char * argv [] )
         std::cout << description;
         return 0;
     }
+
+    if ( vm.count( "inchikey" ) )
+        document::instance()->setInChIKey( vm[ "inchikey" ].as< std::string >() );
 
     MainWindow w;
     w.resize( 800, 600 );

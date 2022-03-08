@@ -43,21 +43,23 @@ namespace {
     struct impl {
         QSettings settings_;
         std::shared_ptr< adfs::sqlite > sqlite_;
+        std::string inchiKey_;
+
+        QString filename_;
+        pugi::xml_document xdoc_;
 
         std::shared_ptr< adfs::sqlite > sqlite() { return sqlite_; }
-        QString filename_;
-        pugi::xml_document xsvg_;
 
         static impl& instance() {
             static impl impl_;
             return impl_;
         };
 
-        impl() : settings_(
-            QSettings::IniFormat, QSettings::UserScope
-            , QLatin1String( "QtPlatz" ) // "QtPlatz"
-            , QLatin1String( "test_svg" ) )
-               , sqlite_( std::make_shared< adfs::sqlite >() ) {
+        impl() : settings_( QSettings::IniFormat, QSettings::UserScope
+                            , QLatin1String( "QtPlatz" ) // "QtPlatz"
+                            , QLatin1String( "test_svg" ) )
+               , sqlite_( std::make_shared< adfs::sqlite >() )
+               , inchiKey_( "YANLIXDCINUGHT-UHFFFAOYSA-N" ) {
         }
     };
 
@@ -84,7 +86,9 @@ document::initialSetup()
     auto path = std::filesystem::path( impl::instance().settings_.fileName().toStdString() );
     auto dir = path.remove_filename() / "lipidid";
 
-    std::filesystem::path fpath = qtwrapper::settings( impl::instance().settings_ ).recentFile( "ChemistryDB", "Files" ).toStdWString();
+    using qtwrapper::settings;
+    std::filesystem::path fpath
+        = settings( impl::instance().settings_ ).recentFile( "ChemistryDB", "Files" ).toStdWString();
     if ( fpath.empty() ) {
         fpath = dir / "lipids.db";
     }
@@ -102,10 +106,12 @@ document::initialSetup()
         if ( sql.step() != adfs::sqlite_row ) {
             ADDEBUG() << "empty database";
         }
-        ADDEBUG() << sql.get_column_value< std::string >( 0 );
+        // ADDEBUG() << sql.get_column_value< std::string >( 0 );
     }
 
-    sql.prepare( "SELECT svg FROM mols WHERE inchiKey = 'YANLIXDCINUGHT-UHFFFAOYSA-N'" );
+    //sql.prepare( "SELECT svg FROM mols WHERE inchiKey = 'YANLIXDCINUGHT-UHFFFAOYSA-N'" );
+    sql.prepare( "SELECT svg FROM mols WHERE inchiKey = ?");
+    sql.bind( 1 ) = impl::instance().inchiKey_;
     if ( sql.step() == adfs::sqlite_row ) {
         auto [ svg ] = adfs::get_column_values< std::string >( sql );
         setSvg( svg );
@@ -130,14 +136,14 @@ std::string
 document::svg() const
 {
     std::ostringstream o;
-    impl::instance().xsvg_.save( o );
+    impl::instance().xdoc_.save( o );
     return o.str();
 }
 
 void
 document::setSvg( const std::string& svg )
 {
-    if ( impl::instance().xsvg_.load_string( svg.c_str() ) )
+    if ( impl::instance().xdoc_.load_string( svg.c_str() ) )
         ADDEBUG() << "svg parse ok";
     else
         ADDEBUG() << "svg parse failed";
@@ -146,7 +152,7 @@ document::setSvg( const std::string& svg )
 void
 document::saveSvg( const QString& filename ) const
 {
-    if ( impl::instance().xsvg_.save_file( filename.toStdString().c_str() ) )
+    if ( impl::instance().xdoc_.save_file( filename.toStdString().c_str() ) )
         impl::instance().filename_ = filename;
 }
 
@@ -157,11 +163,11 @@ document::loadSvg( const QString& filename )
     if ( std::filesystem::exists( path ) ) {
         pugi::xml_document doc;
         if ( doc.load_file( path.c_str() ) ) {
-            impl::instance().xsvg_ = std::move( doc );
+            impl::instance().xdoc_ = std::move( doc );
             impl::instance().filename_ = filename;
 
             std::ostringstream o;
-            impl::instance().xsvg_.save( o );
+            impl::instance().xdoc_.save( o );
             emit onSvgLoaded( QByteArray( o.str().data(), o.str().size() ) );
             return true;
         }
@@ -173,4 +179,52 @@ QString
 document::filename() const
 {
     return impl::instance().filename_;
+}
+
+void
+document::setInChIKey( const std::string& key )
+{
+    impl::instance().inchiKey_ = key;
+}
+
+void
+document::editSvg()
+{
+    auto& doc = impl::instance().xdoc_;
+    ADDEBUG() << "----------- edit svg ---------------" << doc;
+    if ( doc ) {
+        auto svg = doc.select_node( "/svg" );
+        auto node = svg.node().append_child();
+        node.set_name( "text" );
+        node.set_value( "value" );
+        node.append_attribute( "x" ).set_value( 200 );
+        node.append_attribute( "y" ).set_value( 50 );
+        node.append_attribute( "style" ).set_value( "font-size:13px;font-style:normal" );
+        //node.append_child( pugi::node_pcdata ).set_value( R"(H<tspan baseline-shift='sub'>3</tspan>O<tspan baseline-shift='super'>+</tspan>)" );
+        node.append_child( pugi::node_pcdata ).set_value( "H" );
+        auto ts = node.append_child( "tspan" );
+        ts.append_attribute( "dy" ).set_value( -7 );
+        ts.append_child( pugi::node_pcdata ).set_value( "3" );
+
+        std::ostringstream o;
+        doc.print( o, "" ); //, pugi::format_raw);
+        ADDEBUG() << o.str();
+        emit onSvgLoaded( QByteArray( o.str().data(), o.str().size() ) );
+    }
+	// <text x="257.8" y="282.7" class="atom-10"
+    // style="font-size:13px;font-style:normal;font-weight:normal;fill-opacity:1;stroke:no
+}
+
+void
+document::walkSvg()
+{
+    auto& doc = impl::instance().xdoc_;
+    if ( doc ) {
+        for (auto point : doc.select_nodes("/svg/text")) {
+             std::ostringstream o;
+             point.node().print( o, "" ); //, pugi::format_raw);
+             ADDEBUG() << o.str()
+                       << "\n" << point.node().attribute( "class" ).value();
+        }
+    }
 }
