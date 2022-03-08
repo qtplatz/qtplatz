@@ -47,6 +47,7 @@ find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multi
 include_directories(
   ${Boost_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src/libs
+  "${QTPLATZ_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.12/src"
   ${Qt5Svg_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
@@ -73,4 +74,5 @@ target_link_libraries( ${PROJECT_NAME}
   adui
   adlog
   qtwrapper
+  xmlparser
   )

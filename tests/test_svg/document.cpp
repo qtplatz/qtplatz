@@ -24,6 +24,7 @@
 
 #include "document.hpp"
 #include "mainwindow.hpp"
+#include <pugixml.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -36,6 +37,7 @@
 #include <QSettings>
 #include <QStandardItemModel>
 #include <filesystem>
+#include <sstream>
 
 namespace {
     struct impl {
@@ -43,6 +45,8 @@ namespace {
         std::shared_ptr< adfs::sqlite > sqlite_;
 
         std::shared_ptr< adfs::sqlite > sqlite() { return sqlite_; }
+        QString filename_;
+        pugi::xml_document xsvg_;
 
         static impl& instance() {
             static impl impl_;
@@ -104,6 +108,7 @@ document::initialSetup()
     sql.prepare( "SELECT svg FROM mols WHERE inchiKey = 'YANLIXDCINUGHT-UHFFFAOYSA-N'" );
     if ( sql.step() == adfs::sqlite_row ) {
         auto [ svg ] = adfs::get_column_values< std::string >( sql );
+        setSvg( svg );
         emit onSvgLoaded( QByteArray( svg.data(), svg.size() ) );
     } else {
         ADDEBUG() << "error: " << sql.errmsg() << "\n" << sql.expanded_sql();
@@ -119,4 +124,53 @@ QSettings *
 document::settings()
 {
     return &impl::instance().settings_;
+}
+
+std::string
+document::svg() const
+{
+    std::ostringstream o;
+    impl::instance().xsvg_.save( o );
+    return o.str();
+}
+
+void
+document::setSvg( const std::string& svg )
+{
+    if ( impl::instance().xsvg_.load_string( svg.c_str() ) )
+        ADDEBUG() << "svg parse ok";
+    else
+        ADDEBUG() << "svg parse failed";
+}
+
+void
+document::saveSvg( const QString& filename ) const
+{
+    if ( impl::instance().xsvg_.save_file( filename.toStdString().c_str() ) )
+        impl::instance().filename_ = filename;
+}
+
+bool
+document::loadSvg( const QString& filename )
+{
+    auto path = std::filesystem::path( filename.toStdString() );
+    if ( std::filesystem::exists( path ) ) {
+        pugi::xml_document doc;
+        if ( doc.load_file( path.c_str() ) ) {
+            impl::instance().xsvg_ = std::move( doc );
+            impl::instance().filename_ = filename;
+
+            std::ostringstream o;
+            impl::instance().xsvg_.save( o );
+            emit onSvgLoaded( QByteArray( o.str().data(), o.str().size() ) );
+            return true;
+        }
+    }
+    return false;
+}
+
+QString
+document::filename() const
+{
+    return impl::instance().filename_;
 }

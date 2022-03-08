@@ -209,14 +209,6 @@ MainWindow::setupTextActions()
 {
 }
 
-// bool
-// MainWindow::load(const QString &f)
-// {
-//     setCurrentFileName( f );
-//     // document::instance()->load( f );
-//     return true;
-// }
-
 void
 MainWindow::setCurrentFileName(const QString &fileName)
 {
@@ -230,23 +222,51 @@ MainWindow::fileNew()
 void
 MainWindow::fileOpen()
 {
+    QFileDialog fileDialog(this, tr("Open File..."));
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setFileMode(QFileDialog::ExistingFile);
+    // fileDialog.setDefaultSuffix("svg");
+    fileDialog.setMimeTypeFilters(QStringList() << "image/svg+xml" << "application/xml");
+    if (fileDialog.exec() != QDialog::Accepted)
+        return;
+    const QString fn = fileDialog.selectedFiles().first();
+    if ( document::instance()->loadSvg(fn))
+        statusBar()->showMessage(tr("Opened \"%1\"").arg(QDir::toNativeSeparators(fn)));
+    else
+        statusBar()->showMessage(tr("Could not open \"%1\"").arg(QDir::toNativeSeparators(fn)));
 }
 
 bool
 MainWindow::fileSave()
 {
+    auto fn = document::instance()->filename();
+    if ( fn.isEmpty() )
+        return fileSaveAs();
+    document::instance()->saveSvg( fn );
     return true;
 }
 
 bool
 MainWindow::fileSaveAs()
 {
+    QFileDialog fileDialog(this, tr("Save as..."));
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    QStringList mimeTypes;
+    mimeTypes << "application/svg" << "text/svg";
+    fileDialog.setMimeTypeFilters(mimeTypes);
+    fileDialog.setDefaultSuffix("svg");
+    if (fileDialog.exec() != QDialog::Accepted)
+        return false;
+    const QString fn = fileDialog.selectedFiles().first();
+    setCurrentFileName(fn);
+    document::instance()->saveSvg( fn );
     return true;
 }
 
 void
 MainWindow::filePrint()
 {
+    ADDEBUG() << "file print...";
 }
 
 void

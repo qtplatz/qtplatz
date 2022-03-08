@@ -42,6 +42,13 @@ public:
     void finalClose();
     QSettings * settings();
 
+    std::string svg() const;
+    void setSvg( const std::string& );
+    void saveSvg( const QString& filename ) const;
+    bool loadSvg( const QString& filename );
+    QString filename() const;
+
 signals:
     void onSvgLoaded( const QByteArray& ) const;
+    void onSvgModified() const;
 };
