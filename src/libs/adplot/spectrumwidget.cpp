@@ -249,11 +249,11 @@ namespace {
     };
 
     struct compare_range {
-        bool operator()( const std::pair<double, double >& range, const adcontrols::mass_value_type& value, bool isTime ) const {
-            if ( isTime )
-                return range.first < std::get< 0 >( value ) && std::get< 0 >( value ) < range.second;
+        bool operator()( const std::tuple<double, double >& range, const adcontrols::mass_value_type& value, bool isTime ) const {
+            if (isTime)
+                return std::get<0>(range) < std::get< 0 >(value) && std::get< 0 >(value) < std::get<1>(range);
             else
-                return range.first < std::get< 1 >( value ) && std::get< 1 >( value ) < range.second;
+                return std::get<0>(range) < std::get< 1 >(value) && std::get< 1 >(value) < std::get<1>(range);
         }
     };
 }
@@ -1092,7 +1092,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot:
 
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
-            double max_y = ms.intensity( ms.max_element( range ) );
+            double max_y = ms.intensity( ms.max_element( std::make_pair( std::get<0>(range), std::get<1>(range) ) ) );
 
             for ( const auto& a: ms.get_annotations() ) {
                 if (( a.index() >= 0 ) && std::get<0>(range) <= a.x() && a.x() < std::get<1>(range) ) {

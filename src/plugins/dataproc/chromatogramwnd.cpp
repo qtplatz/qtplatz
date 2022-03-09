@@ -93,7 +93,7 @@ namespace dataproc {
                                     , peakTable_( new adwidgets::PeakTable )
                                     , marker_( std::make_unique< adplot::PeakMarker >() )
                                     , yScale_{ true, 0,  100.0, false }
-                                    , xScale_{ true, 0, 1000.0 }
+                                    , xScale_{ true, 0, 1000.0, false }
                                     , dirty_( false ) {
 
             using adwidgets::PeakTable;
