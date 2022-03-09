@@ -45,21 +45,21 @@ namespace dataproc {
     class Dataprocessor;
 
     class ChromatogramWndImpl;
-    
+
     class ChromatogramWnd : public QWidget {
         Q_OBJECT
     public:
         explicit ChromatogramWnd( QWidget *parent = 0 );
         ~ChromatogramWnd();
-        
+
         void init();
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw( std::shared_ptr< adcontrols::Chromatogram >& );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
-        
+
     signals:
-                                                         
+
     public slots :
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
         void handleSessionAdded( Dataprocessor* );
@@ -67,7 +67,9 @@ namespace dataproc {
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& );
-        
+
+        void handleChromatogramYScale( bool checked, double bottom, double top ) const;
+        void handleChromatogramXScale( bool checked, double left, double right ) const;
     private:
         class impl;
         std::unique_ptr< impl > impl_;

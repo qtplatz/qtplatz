@@ -441,6 +441,17 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 
 }
 
+
+void
+ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
+{
+}
+
+void
+ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
+{
+}
+
 ///////////////////////////
 
 void

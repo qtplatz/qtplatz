@@ -55,6 +55,9 @@ namespace dataproc {
         void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
         void handlePrintCurrentView( const QString& outpdf );
 
+        void handleChromatogramYScale( bool checked, double bottom, double top ) const;
+        void handleChromatogramXScale( bool checked, double left, double right ) const;
+
     private slots:
 		void handleSelected( const QPointF& );
 		void handleSelected( const QRectF& );

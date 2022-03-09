@@ -372,6 +372,16 @@ ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVect
     return true;
 }
 
+void
+ContourWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
+{
+}
+
+void
+ContourWnd::handleChromatogramXScale( bool checked, double left, double right ) const
+{
+}
+
 // #define MASS_MAJOR // x-axis on masses
 
 //

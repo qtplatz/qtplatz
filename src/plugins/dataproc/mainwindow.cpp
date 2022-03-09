@@ -222,6 +222,13 @@ namespace dataproc {
 
 using namespace dataproc;
 
+namespace {
+    template< typename ...Args > void scaleChangeConnector( MainWindow * w, QObject * p ) {
+        ( QObject::connect( w, &MainWindow::onScaleChromatogramYChanged, p->findChild<Args *>(), &Args::handleChromatogramYScale ),...);
+        ( QObject::connect( w, &MainWindow::onScaleChromatogramXChanged, p->findChild<Args *>(), &Args::handleChromatogramXScale ),...);
+    }
+}
+
 MainWindow::~MainWindow()
 {
 }
@@ -307,10 +314,10 @@ MainWindow::createStyledBarTop()
 
         // -- axis y-scale
         constexpr int i = 1;
-        if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {
+        if ( auto cb = qtwrapper::make_widget< QCheckBox >( QString("cbY%1" ).arg(i), "Y-Auto" ) ) {
             cb->setCheckState( Qt::Checked ); // defalut start with auto
             toolBarLayout->addWidget( cb );
-            connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleYChanged( 1 ); } );
+            connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleYChanged( i ); } );
         }
 
         if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spB%1%" ) % i ).str().c_str() ) ) {
@@ -329,9 +336,8 @@ MainWindow::createStyledBarTop()
             connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleYChanged( 1 ); } );
         }
         // <---- y-scale
-
-        toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
-        toolBarLayout->addWidget( new QLineEdit );
+        // toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
+        // toolBarLayout->addWidget( new QLineEdit );
     }
     return toolBar;
 }
@@ -361,25 +367,102 @@ MainWindow::handleScaleYChanged( int i )
 }
 
 void
+MainWindow::handleScaleY2Changed( int r, int c )
+{
+    if ( auto cb = findChild< QCheckBox * >( QString( "cb%1Y%2" ).arg(r).arg(c) ) ) {
+        if ( auto height = findChild< QDoubleSpinBox * >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
+            if ( auto bottom = findChild< QDoubleSpinBox * >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
+                emit onScaleChromatogramYChanged( cb->isChecked(), bottom->value(), height->value() );
+                QJsonDocument doc( QJsonObject{{"autoY", cb->isChecked()}, {"bottom", bottom->value()}, {"height", height->value()}} );
+                document::instance()->settings()->setValue( QString( "MainWindow/axes%1Y/%2" ).arg(r).arg(c), QString(doc.toJson()) );
+            } else {
+                ADDEBUG() << QString( "sp%1B%2" ).arg( r ).arg( c ).toStdString() << " ---- not found";
+            }
+        } else {
+            ADDEBUG() << QString( "sp%1H%2" ).arg( r ).arg( c ).toStdString() << " ---- not found";
+        }
+    } else {
+        ADDEBUG() << "## " << __FUNCTION__ << " ## " << QString( "cb%1Y%2 -- not found" ).arg( r, c ).toStdString() << std::make_pair( r, c );
+    }
+}
+
+void
+MainWindow::handleScaleX2Changed( int r, int c )
+{
+    if ( auto cb = findChild< QCheckBox * >( QString( "cb%1X%2" ).arg(r).arg(c) ) ) {
+        if ( auto left = findChild< QDoubleSpinBox * >( QString( "sp%1L%2" ).arg(r).arg(c) ) ) {
+            if ( auto right = findChild< QDoubleSpinBox * >( QString( "sp%1R%2" ).arg(r).arg(c) ) ) {
+                emit onScaleChromatogramXChanged( cb->isChecked(), left->value(), right->value() );
+                QJsonDocument doc( QJsonObject{{"autoX", cb->isChecked()}, {"left", left->value()}, {"right", right->value()}} );
+                document::instance()->settings()->setValue( QString( "MainWindow/axes%1X/%2" ).arg(r).arg(c), QString(doc.toJson()) );
+            } else {
+                ADDEBUG() << QString( "sp%1L%2" ).arg(r).arg(c).toStdString() << " ---- not found";
+            }
+        } else {
+            ADDEBUG() << QString( "sp%1R%2" ).arg(r).arg(c).toStdString() << " ---- not found";
+        }
+    } else {
+        ADDEBUG() << "## " << __FUNCTION__ << " ## " << QString( "cb%1X%2 -- not found" ).arg(r).arg(c).toStdString() << std::make_pair( r, c );
+    }
+}
+
+void
 MainWindow::loadSettings()
 {
-    constexpr int i = 1;
+    do {
+        constexpr int i = 1;
+        auto axes = QJsonDocument::fromJson( document::instance()->settings()->value( QString("MainWindow/axes/%1").arg(i), "{}").toByteArray() ).object();
+        if ( ! axes.isEmpty() ) {
+            if ( auto autoY = qtwrapper::JsonHelper::value<bool>( axes, "autoY" ) )
+                ; // ignore settings (always auto Y scale)
 
-    auto axes = QJsonDocument::fromJson( document::instance()->settings()->value( QString("MainWindow/axes/%1").arg(i), "{}").toByteArray() ).object();
-    if ( ! axes.isEmpty() ) {
-        if ( auto autoY = qtwrapper::JsonHelper::value<bool>( axes, "autoY" ) )
-            ; // ignore settings (always auto Y scale)
+            if ( auto height = qtwrapper::JsonHelper::value< double >( axes, "height" ) ) {
+                if ( auto sbox = findChild< QDoubleSpinBox * >( QString("spH%1").arg(i) ) )
+                    sbox->setValue( *height );
+            }
 
-        if ( auto height = qtwrapper::JsonHelper::value< double >( axes, "height" ) ) {
-            if ( auto sbox = findChild< QDoubleSpinBox * >( QString("spH%1").arg(i) ) )
-                sbox->setValue( *height );
+            if ( auto bottom = qtwrapper::JsonHelper::value< double >( axes, "bottom" ) ) {
+                if ( auto sbox = findChild< QDoubleSpinBox * >( QString("spB%1").arg(i) ) )
+                    sbox->setValue( *bottom );
+            }
         }
+    } while ( 0 );
 
-        if ( auto bottom = qtwrapper::JsonHelper::value< double >( axes, "bottom" ) ) {
-            if ( auto sbox = findChild< QDoubleSpinBox * >( QString("spB%1").arg(i) ) )
-                sbox->setValue( *bottom );
+    constexpr int r = 2, c = 1;
+    do {
+        auto axesY = QJsonDocument::fromJson(
+            document::instance()->settings()->value( QString("MainWindow/axes%1Y/%2").arg(r).arg(c), "{}").toByteArray() ).object();
+        if ( ! axesY.isEmpty() ) {
+            if ( auto autoY = qtwrapper::JsonHelper::value<bool>( axesY, "autoY" ) )
+                ; // ignore settings (always auto Y scale)
+            if ( auto height = qtwrapper::JsonHelper::value< double >( axesY, "height" ) ) {
+                if ( auto sbox = findChild< QDoubleSpinBox * >( QString("sp%1H%2").arg(r).arg(c) ) )
+                    sbox->setValue( *height );
+            }
+
+            if ( auto bottom = qtwrapper::JsonHelper::value< double >( axesY, "bottom" ) ) {
+                if ( auto sbox = findChild< QDoubleSpinBox * >( QString("sp%1B%2").arg(r).arg(c) ) )
+                    sbox->setValue( *bottom );
+            }
         }
-    }
+    } while ( 0 );
+    do {
+        auto axesX = QJsonDocument::fromJson(
+            document::instance()->settings()->value( QString("MainWindow/axes%1X/%2").arg(r).arg(c), "{}").toByteArray() ).object();
+        if ( ! axesX.isEmpty() ) {
+            if ( auto autoY = qtwrapper::JsonHelper::value<bool>( axesX, "autoY" ) )
+                ; // ignore settings (always auto Y scale)
+            if ( auto left = qtwrapper::JsonHelper::value< double >( axesX, "left" ) ) {
+                if ( auto sbox = findChild< QDoubleSpinBox * >( QString("sp%1L%2").arg(r).arg(c) ) )
+                    sbox->setValue( *left );
+            }
+
+            if ( auto right = qtwrapper::JsonHelper::value< double >( axesX, "right" ) ) {
+                if ( auto sbox = findChild< QDoubleSpinBox * >( QString("sp%1R%2").arg(r).arg(c) ) )
+                    sbox->setValue( *right );
+            }
+        }
+    } while ( 0 );
 }
 
 void
@@ -464,13 +547,54 @@ MainWindow::createStyledBarMiddle()
             auto edit = new QLineEdit;
             edit->setObjectName( Constants::EDIT_PROCMETHOD );
             edit->setEnabled( false );
-
             toolBarLayout->addWidget( edit );
 
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
-            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
+            constexpr int r = 2, c = 1;
+            if ( auto cb = qtwrapper::make_widget< QCheckBox >( QString( "cb%1Y%2" ).arg(r).arg(c), "Y-Auto" ) ) {
+                cb->setCheckState( Qt::Checked ); // defalut start with auto
+                toolBarLayout->addWidget( cb );
+                connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleY2Changed( r, c ); } );
+            }
 
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
+                sp->setRange( -200000.0, 200000.0 );
+                sp->setDecimals( 3 );
+                sp->setSingleStep( 0.1 );
+                toolBarLayout->addWidget( sp );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleY2Changed( r, c ); } );
+            }
+
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
+                sp->setRange( -200000.0, 200000.0 );
+                sp->setDecimals( 3 );
+                sp->setSingleStep( 0.1 );
+                toolBarLayout->addWidget( sp );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleY2Changed( r, c ); } );
+            }
+
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            if ( auto cb = qtwrapper::make_widget< QCheckBox >( QString("cb%1X%2").arg(r).arg(c), "X-Auto" ) ) {
+                cb->setCheckState( Qt::Checked ); // defalut start with auto
+                toolBarLayout->addWidget( cb );
+                connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleX2Changed( r, c ); } );
+            }
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1L%2" ).arg(r).arg(c) ) ) {
+                sp->setRange( -100.0, 9999.0 );
+                sp->setDecimals( 0 );
+                sp->setSingleStep( 1 );
+                toolBarLayout->addWidget( sp );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleX2Changed( r, c ); } );
+            }
+            if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1R%2" ).arg(r).arg(c) ) ) {
+                sp->setRange( 0.0, 9999.0 );
+                sp->setDecimals( 0 );
+                sp->setSingleStep( 1 );
+                toolBarLayout->addWidget( sp );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleX2Changed( r, c); } );
+            }
+            toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
         }
     }
     return toolBar2;
@@ -501,8 +625,9 @@ MainWindow::createContents( Core::IMode * mode )
         connect( stack_, &QStackedWidget::currentChanged, this, &MainWindow::currentPageChanged );
 
         if ( auto pWnd = new MSProcessingWnd ) {
-            wnd.push_back( pWnd );
-            stack_->addWidget( boost::apply_visitor( wnd_set_title( tr( "MS Process" ) ), wnd.back() ) );
+            pWnd->setWindowTitle( tr( "MS Process" ) );
+            wnd.emplace_back( pWnd );
+            stack_->addWidget( pWnd ); // boost::apply_visitor( wnd_set_title( tr( "MS Process" ) ), wnd.back() ) );
             connect( this, &MainWindow::onDataMayCanged, pWnd, &MSProcessingWnd::handleDataMayChanged );
         }
 
@@ -549,11 +674,25 @@ MainWindow::createContents( Core::IMode * mode )
         boost::apply_visitor( selection_changed_connector(this), it );
         boost::apply_visitor( processed_connector(this), it );
         boost::apply_visitor( apply_method_connector(this), it );
-
         boost::apply_visitor( check_state_changed_connector(this), it );
         boost::apply_visitor( axis_changed_connector(this, axisChoice_), it );
     }
-
+#if __cplusplus >= 201703L
+    scaleChangeConnector<MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
+#else
+    if ( auto wnd = stack_->findChild< MSProcessingWnd * >() ) {
+        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &MSProcessingWnd::handleChromatogramYScale );
+        connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &MSProcessingWnd::handleChromatogramXScale );
+    }
+    if ( auto wnd = stack_->findChild< ChromatogramWnd * >() ) {
+        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramYScale );
+        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramXScale );
+    }
+    if ( auto wnd = stack_->findChild< ContourWnd * >() ) {
+        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramYScale );
+        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramXScale );
+    }
+#endif
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);

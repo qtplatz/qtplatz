@@ -26,8 +26,8 @@
 #pragma once
 
 namespace qtwrapper {
-    
-    template<class _Ty,  class... _Types>
+
+    template<typename _Ty,  typename ... _Types>
     inline _Ty * make_widget(const char * ident, _Types&&... _Args)
     {
         auto w = new _Ty( std::forward<_Types>(_Args)...);
@@ -35,5 +35,12 @@ namespace qtwrapper {
             w->setObjectName( ident );
         return w;
     }
-}
 
+    template<typename _Ty,  typename ... _Types>
+    inline _Ty * make_widget(QString&& ident, _Types&&... _Args)
+    {
+        auto w = new _Ty( std::forward<_Types>(_Args)...);
+        w->setObjectName( ident );
+        return w;
+    }
+}

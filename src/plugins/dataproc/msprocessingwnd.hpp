@@ -96,6 +96,10 @@ namespace dataproc {
         void handleScanLawEst( const QVector< QPair< int, int > >& );
         void handleRescaleY( int idx );
 
+        // slots for axis scale
+        void handleChromatogramYScale( bool checked, double bottom, double top ) const;
+        void handleChromatogramXScale( bool checked, double left, double right ) const;
+
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );
 

@@ -168,6 +168,8 @@ namespace dataproc {
         Utils::StyledBar * createStyledBarMiddle();
         void currentPageChanged( int );
         void handleScaleYChanged( int );
+        void handleScaleY2Changed( int, int );
+        void handleScaleX2Changed( int, int );
         void loadSettings();
 
     signals:
@@ -177,6 +179,8 @@ namespace dataproc {
         void onZoomedOnSpectrum( const QRectF&, int axis ) const;
         void onZoomedOnChromatogram( const QRectF& ) const;
         void onScaleYChanged( bool checked, double bottom, double top ) const;
+        void onScaleChromatogramYChanged( bool checked, double bottom, double top ) const;
+        void onScaleChromatogramXChanged( bool checked, double bottom, double top ) const;
     };
 
     ///// SpectrumWidget scale (us) -> seconds

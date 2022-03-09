@@ -87,13 +87,15 @@ using namespace dataproc;
 std::atomic<document * > document::instance_(0);
 std::mutex document::mutex_;
 
-document::document(QObject *parent) : QObject(parent)
-                                    , quant_( std::make_shared< adcontrols::MSQPeaks >() )
-                                    , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
-                                                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                                                , QLatin1String( "dataproc" ) ) )
-                                    , horAxis_{ { PlotChromatogram, adcontrols::axis::Seconds }
-                                               ,{ PlotSpectrum, adcontrols::axis::MassToCharge } }
+document::document(QObject *parent)
+    : QObject(parent)
+    , quant_( std::make_shared< adcontrols::MSQPeaks >() )
+    , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                , QLatin1String( "dataproc" ) ) )
+    , horAxis_{
+            { PlotChromatogram, adcontrols::axis::Seconds }
+            ,{ PlotSpectrum, adcontrols::axis::MassToCharge }}
 {
 }
 
