@@ -358,6 +358,9 @@ namespace adplot {
         std::unique_ptr< QwtLegend > externalLegend_;
         std::array< bool, QwtPlot::axisCnt > normalizedY_;
 
+        std::tuple< bool, double, double > yScale_;
+        std::tuple< bool, double, double > xScale_;
+
         void clear();
         void removeData( int );
         void update_annotations( const std::pair<double, double>&, adcontrols::annotations& ) const;
@@ -441,11 +444,41 @@ ChromatogramWidget::removeData( int idx, bool bReplot )
         replot();
 }
 void
-ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot )
+ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot ) // minutes|seconds
 {
     impl_->axis_ = axis;
     if ( replot )
         impl_->redraw();
+}
+
+void
+ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale )
+{
+    if ( !std::get< 0 >( yScale ) ) { // not an auto scaled
+        std::get< 0 >( yScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( yScale ), std::get< 2 >( yScale ) );
+    }
+    impl_->yScale_ = std::move( yScale );
+
+    if ( auto zoomer = plot::zoomer() )
+        zoomer->autoYScale( std::get< 0 >( impl_->yScale_ ) );
+
+    if ( !std::get< 0 >( impl_->yScale_ ) ) { // not auto scale
+        setAxisScale( QwtPlot::yLeft, std::get< 1 >( impl_->yScale_ ), std::get< 2 >( impl_->yScale_ ) );
+        replot();
+    }
+}
+
+void
+ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
+{
+    if ( !std::get< 0 >( xScale ) ) { // not an auto scaled
+        std::get< 0 >( xScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( xScale ), std::get< 2 >( xScale ) );
+    }
+    impl_->xScale_ = std::move( xScale );
+    if ( !std::get< 0 >( impl_->xScale_ ) ) { // not auto scale
+        setAxisScale( QwtPlot::xBottom, std::get< 1 >( impl_->xScale_ ), std::get< 2 >( impl_->xScale_ ) );
+        replot();
+    }
 }
 
 void
@@ -505,60 +538,6 @@ ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int i
     }
 }
 
-#if 0
-void
-ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int idx, QwtPlot::Axis yAxis )
-{
-    if ( c->size() < 2 )
-        return;
-
-    if ( impl_->traces_.size() <= size_t( idx ) )
-        impl_->traces_.resize( idx + 1 );
-
-    if ( ! boost::apply_visitor( isValid< TraceData< adcontrols::Trace > >(), impl_->traces_[ idx ] ) )
-        impl_->traces_[ idx ] = std::make_unique< TraceData< adcontrols::Trace > >( *this );
-
-    if ( auto& trace = boost::get< std::unique_ptr< TraceData< adcontrols::Trace > > >( impl_->traces_[ idx ] ) ) {
-
-        trace->plot_curve().setPen( QPen( color_table [ idx ] ) );
-        trace->plot_curve().setYAxis( yRight ? QwtPlot::yRight : QwtPlot::yLeft );
-        trace->setData( c );
-
-        trace->plot_curve().setTitle( QString::fromStdString( c->legend() ) );
-
-        // auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
-
-        QRectF rc;
-        for ( auto& trace: impl_->traces_ ) {
-            if ( ( ! boost::apply_visitor( isNull(), trace ) ) && ( boost::apply_visitor( yAxis_visitor(), trace ) == yAxis ) ) {
-                QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
-                if ( rc.isEmpty() )
-                    rc = rect;
-                else
-                    rc |= rect;
-            }
-        }
-
-        for ( auto& trace: impl_->traces_ ) {
-            if ( ! boost::apply_visitor( isNull(), trace ) && ( boost::apply_visitor( yAxis_visitor(), trace ) != yAxis ) ) {
-                QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
-                rc = QRectF( QPointF( std::min( rc.left(), rect.left() ), rc.top() )
-                             , QPointF( std::max( rc.right(), rect.right() ), rc.bottom() ) );
-            }
-        }
-
-        if ( adportable::compare<double>::essentiallyEqual( rc.height(), 0.0 ) )
-            rc.setHeight( 1.0 );
-
-        setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
-
-        setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale
-
-        zoomer()->setZoomBase();
-    }
-}
-#endif
-
 std::shared_ptr< const adcontrols::Chromatogram >
 ChromatogramWidget::getData( int idx ) const
 {
@@ -570,13 +549,6 @@ ChromatogramWidget::getData( int idx ) const
     }
     return {};
 }
-
-// deprecated
-// void
-// ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, bool yRight )
-// {
-//     setData( cp, idx, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
-// }
 
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, QwtPlot::Axis yAxis )

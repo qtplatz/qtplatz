@@ -184,7 +184,7 @@ namespace dataproc {
         std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
         std::tuple< bool, double, double, bool > yScale_;
-        std::tuple< bool, double, double > xScale_;
+        std::tuple< bool, double, double, bool > xScale_;
         bool dirty_;
     public slots:
         void copy() {
@@ -427,7 +427,6 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
     font.setPointSize( 8 );
     painter.setFont( font );
     painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
-
 }
 
 
@@ -435,15 +434,13 @@ void
 ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
     impl_->yScale_ = { checked, bottom, top, std::get< 0 >( impl_->yScale_ ) != checked };
-    ADDEBUG() << impl_->yScale_;
     impl_->redraw();
 }
 
 void
 ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
-    ADDEBUG() << std::make_tuple( checked, left, right );
-    impl_->xScale_ = { checked, left, right };
+    impl_->xScale_ = { checked, left, right, std::get< 0 >( impl_->xScale_ ) != checked };
     impl_->redraw();
 }
 
@@ -509,6 +506,12 @@ ChromatogramWnd::impl::selectedOnChromatogram1( const QRectF& rect )
 void
 ChromatogramWnd::impl::redraw()
 {
+    if ( std::get< 3 >( yScale_ ) || std::get< 3 >( xScale_ ) ) { // scale auto flag changed
+        auto& plot = plots_[ 0 ];
+        plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)) );
+        plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)) );
+    }
+
     if ( overlays_.empty() ) {
         plots_[ 1 ]->hide();
     } else {
@@ -545,11 +548,18 @@ ChromatogramWnd::impl::redraw()
             }
         }
         plot->setAxisTitle( QwtPlot::yLeft, std::get<0>( yScale_ ) ? QwtText( "Intensity (R.A.)" ) : QwtText( "Intensity (a.u.)" ) );
-        dirty_ = false;
-        std::get< 3 >( yScale_ ) = false;
+        if ( std::get< 0 >( yScale_ ) ) {
+            if ( ( std::get< 2 >(yScale_) - std::get< 1 >(yScale_) ) > 0.1 ) {
+                plot->setAxisScale( QwtPlot::yLeft, std::get< 1 >( yScale_ ), std::get< 2 >( yScale_ ) );
+            }
+        }
+        plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)) );
+        plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)) );
         plot->show();
     }
-
+    dirty_ = false;
+    std::get< 3 >( yScale_ ) = false;
+    std::get< 3 >( xScale_ ) = false;
 }
 
 /////////
