@@ -146,12 +146,7 @@ namespace dataproc {
     typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd* //, MSCalibSpectraWnd*
                             , ChromatogramWnd*, MSPeaksWnd*, ContourWnd*, MSSpectraWnd* > wnd_ptr_t;
 
-    struct wnd_set_title : public boost::static_visitor < QWidget * > {
-        const QString& text_;
-        wnd_set_title( const QString& t ) : text_( t ) {}
-        template<class T> QWidget * operator () ( T* wnd ) const { wnd->setWindowTitle( text_ ); return wnd; }
-    };
-
+#if __cplusplus < 201703L
     struct session_added_connector : public boost::static_visitor < bool > {
         QObject * this_;
         session_added_connector( QObject * p ) : this_(p) {}
@@ -218,14 +213,66 @@ namespace dataproc {
     template<> bool axis_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( MSPeaksWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( ContourWnd * ) const { return false; }
+#endif
 }
 
 using namespace dataproc;
 
 namespace {
+
+    template<typename _Ty,  typename ... _Types>
+    inline _Ty * make_stack_widget( QStackedWidget * stack, QString&& title, _Types&&... _Args )
+    {
+        if ( auto w = new _Ty( std::forward<_Types>(_Args)...) ) {
+            w->setWindowTitle( title );
+            stack->addWidget( w );
+            return w;
+        }
+        return nullptr;
+    }
+}
+
+namespace {
+    // __cplusplus >= 201703L
     template< typename ...Args > void scaleChangeConnector( MainWindow * w, QObject * p ) {
         ( QObject::connect( w, &MainWindow::onScaleChromatogramYChanged, p->findChild<Args *>(), &Args::handleChromatogramYScale ),...);
         ( QObject::connect( w, &MainWindow::onScaleChromatogramXChanged, p->findChild<Args *>(), &Args::handleChromatogramXScale ),...);
+    }
+
+    template< typename ...Args> void sessionAddedConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::signalSessionAdded
+                            , p->findChild< Args *>(), &Args::handleSessionAdded ), ...);
+    }
+
+    template< typename ...Args> void selectionChangedConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::signalSelectionChanged
+                            , p->findChild< Args * >(), &Args::handleSelectionChanged ), ...);
+    }
+
+    template< typename ...Args> void processedConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::onProcessed
+                            , p->findChild< Args * >()
+                            , &Args::handleProcessed ), ...);
+    }
+
+    template< typename ...Args> void applyMethodConnector( QObject * p ) {
+        ( QObject::connect( DataprocPlugin::instance(), &DataprocPlugin::onApplyMethod
+                            , p->findChild< Args * >()
+                            , &Args::handleApplyMethod ), ...);
+    }
+
+    template< typename ...Args> void checkStateChangedConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::signalCheckStateChanged
+                            , p->findChild< Args * >()
+                            , &Args::handleCheckStateChanged ), ...);
+    }
+
+    template< typename ...Args> void axisChangedConnector( QObject * p, QComboBox * choice ) {
+        ( QObject::connect( choice, qOverload< int >( &QComboBox::currentIndexChanged )
+                            , p->findChild< Args * >()
+                            , [=](int id){
+                                if ( auto w = p->findChild< Args * >() )
+                                    w->handleAxisChanged( id == 0 ? adcontrols::hor_axis_mass : adcontrols::hor_axis_time );}), ...);
     }
 }
 
@@ -624,30 +671,28 @@ MainWindow::createContents( Core::IMode * mode )
 
         connect( stack_, &QStackedWidget::currentChanged, this, &MainWindow::currentPageChanged );
 
-        if ( auto pWnd = new MSProcessingWnd ) {
-            pWnd->setWindowTitle( tr( "MS Process" ) );
+        if ( auto pWnd = make_stack_widget< MSProcessingWnd >( stack_, tr( "MS Process" ) ) ) {
             wnd.emplace_back( pWnd );
-            stack_->addWidget( pWnd ); // boost::apply_visitor( wnd_set_title( tr( "MS Process" ) ), wnd.back() ) );
             connect( this, &MainWindow::onDataMayCanged, pWnd, &MSProcessingWnd::handleDataMayChanged );
         }
-
-        wnd.push_back( new ElementalCompWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Elemental Comp.") ), wnd.back() ) );
-
-        wnd.push_back( new MSCalibrationWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration") ), wnd.back() ) );
-
-        wnd.push_back( new ChromatogramWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Chromatogram") ), wnd.back() ) );
-
-        wnd.push_back( new MSPeaksWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("TOF Peaks") ), wnd.back() ) );
-
-        wnd.push_back( new ContourWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Contour") ), wnd.back() ) );
-
-        wnd.push_back( new MSSpectraWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectra") ), wnd.back() ) );
+        if ( auto pWnd = make_stack_widget< ElementalCompWnd >( stack_, tr("Elemental Comp.") ) ) {
+            wnd.emplace_back( pWnd );
+        }
+        if ( auto pWnd = make_stack_widget< MSCalibrationWnd >( stack_, tr("MS Calibration") ) ) {
+            wnd.emplace_back( pWnd );
+        }
+        if ( auto pWnd = make_stack_widget< ChromatogramWnd >( stack_, tr("Chromatogram") ) ) {
+            wnd.emplace_back( pWnd );
+        }
+        if ( auto pWnd = make_stack_widget< MSPeaksWnd >( stack_, tr("TOF Peaks") ) ) {
+            wnd.emplace_back( new MSPeaksWnd );
+        }
+        if ( auto pWnd = make_stack_widget< ContourWnd >( stack_, tr("Contour") ) ) {
+            wnd.emplace_back( new ContourWnd );
+        }
+        if ( auto pWnd = make_stack_widget< MSSpectraWnd >( stack_, tr("Spectra") ) ) {
+            wnd.emplace_back( new MSSpectraWnd );
+        }
     }
 
     if ( auto pSrc = stack_->widget( idSelMSProcess ) ) {
@@ -668,7 +713,16 @@ MainWindow::createContents( Core::IMode * mode )
             w->setTimeSquaredScanLaw( length, vaccl, tdelay );
         }
     } );
+#if __cplusplus >= 201703L
+    sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    selectionChangedConnector< MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    processedConnector       < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
 
+    scaleChangeConnector<MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
+#else
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         boost::apply_visitor( session_added_connector(this), it );
         boost::apply_visitor( selection_changed_connector(this), it );
@@ -677,9 +731,6 @@ MainWindow::createContents( Core::IMode * mode )
         boost::apply_visitor( check_state_changed_connector(this), it );
         boost::apply_visitor( axis_changed_connector(this, axisChoice_), it );
     }
-#if __cplusplus >= 201703L
-    scaleChangeConnector<MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
-#else
     if ( auto wnd = stack_->findChild< MSProcessingWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &MSProcessingWnd::handleChromatogramYScale );
         connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &MSProcessingWnd::handleChromatogramXScale );
