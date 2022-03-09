@@ -92,6 +92,8 @@ namespace dataproc {
                                     , this_( p )
                                     , peakTable_( new adwidgets::PeakTable )
                                     , marker_( std::make_unique< adplot::PeakMarker >() )
+                                    , yScale_{ true, 0,  100.0, false }
+                                    , xScale_{ true, 0, 1000.0 }
                                     , dirty_( false ) {
 
             using adwidgets::PeakTable;
@@ -167,7 +169,6 @@ namespace dataproc {
             }
         }
 
-
         void selectedOnChromatogram( const QRectF&, int );
         void selectedOnChromatogram0( const QRectF& );
         void selectedOnChromatogram1( const QRectF& );
@@ -182,6 +183,8 @@ namespace dataproc {
         adcontrols::PeakResultPtr peakResult_;
         std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
+        std::tuple< bool, double, double, bool > yScale_;
+        std::tuple< bool, double, double > xScale_;
         bool dirty_;
     public slots:
         void copy() {
@@ -197,20 +200,6 @@ namespace dataproc {
         void operator () ( adutils::PeakResultPtr& ptr ) const {  wnd_.draw( ptr );   }
         void operator () ( adutils::ChromatogramPtr& ptr ) const {  wnd_.draw( ptr );   }
     };
-
-    // template<class Wnd> class selChanged : public boost::static_visitor<bool> {
-    //     Wnd& wnd_;
-    // public:
-    //     selChanged( Wnd& wnd ) : wnd_(wnd) { }
-    //     template< typename T >
-    //     bool operator()( T& ) { return false; };
-    // };
-
-    // template< typename T > struct is_same : public boost::static_visitor< bool > {
-    //     template<typename U> bool operator()( U& ) const { return false; };
-    //     bool operator()( T& ) const { return true; };
-    // };
-
 }
 
 ChromatogramWnd::~ChromatogramWnd()
@@ -445,11 +434,17 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 void
 ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
+    impl_->yScale_ = { checked, bottom, top, std::get< 0 >( impl_->yScale_ ) != checked };
+    ADDEBUG() << impl_->yScale_;
+    impl_->redraw();
 }
 
 void
 ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
+    ADDEBUG() << std::make_tuple( checked, left, right );
+    impl_->xScale_ = { checked, left, right };
+    impl_->redraw();
 }
 
 ///////////////////////////
@@ -528,24 +523,30 @@ ChromatogramWnd::impl::redraw()
                     if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )
                         plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
                 } else {
-                    if ( ! datum.overlayChromatogram_ ) {
-                        if ((datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr ) ) ) {
+                    if ( std::get< 3 >( yScale_ ) || !datum.overlayChromatogram_ ) {
+                        if ( (datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr ) ) ) {
                             datum.overlayChromatogram_->setBaselines( adcontrols::Baselines() ); // clear baselines
                             datum.overlayChromatogram_->setPeaks( adcontrols::Peaks() );         // clear peaks
-                            double yMax = chr->getMaxIntensity() - chr->getMinIntensity();
-                            for ( size_t i = 0; i < chr->size(); ++i ) {
-                                datum.overlayChromatogram_->setIntensity( i, ( 100. * ( chr->intensity( i ) - chr->getMinIntensity() ) / yMax ) );
+                            if ( std::get< 0 >( yScale_ ) ) { // autoY
+                                double yMax = chr->getMaxIntensity() - chr->getMinIntensity();
+                                for ( size_t i = 0; i < chr->size(); ++i ) {
+                                    datum.overlayChromatogram_->setIntensity( i, ( 100. * ( chr->intensity( i ) - chr->getMinIntensity() ) / yMax ) );
+                                }
+                            } else {
+                                for ( size_t i = 0; i < chr->size(); ++i ) {
+                                    datum.overlayChromatogram_->setIntensity( i, ( chr->intensity( i ) - chr->getMinIntensity() ) );
+                                }
                             }
                         }
                     }
                     plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
-                    // plot->setLegend( idx, QwtText( datum.display_name() ) );
-                    plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (R.A.)" ) );
                     ++idx;
                 }
             }
         }
+        plot->setAxisTitle( QwtPlot::yLeft, std::get<0>( yScale_ ) ? QwtText( "Intensity (R.A.)" ) : QwtText( "Intensity (a.u.)" ) );
         dirty_ = false;
+        std::get< 3 >( yScale_ ) = false;
         plot->show();
     }
 

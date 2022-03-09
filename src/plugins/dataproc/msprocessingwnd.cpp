@@ -2056,11 +2056,11 @@ MSProcessingWnd::chromatogrRect() const
 void
 MSProcessingWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
-    ADDEBUG() << std::make_tuple( checked, bottom, top );
+    // ADDEBUG() << std::make_tuple( checked, bottom, top );
 }
 
 void
 MSProcessingWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
-    ADDEBUG() << std::make_tuple( checked, left, right );
+    // ADDEBUG() << std::make_tuple( checked, left, right );
 }
