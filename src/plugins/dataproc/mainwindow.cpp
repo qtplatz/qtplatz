@@ -240,8 +240,13 @@ namespace {
     }
 
     template< typename ...Args> void sessionAddedConnector( QObject * p ) {
-        ( QObject::connect( SessionManager::instance(), &SessionManager::signalSessionAdded
+        ( QObject::connect( SessionManager::instance(), &SessionManager::onSessionAdded
                             , p->findChild< Args *>(), &Args::handleSessionAdded ), ...);
+    }
+
+    template< typename ...Args> void sessionRemovedConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::onSessionRemoved
+                            , p->findChild< Args *>(), &Args::handleSessionRemoved ), ...);
     }
 
     template< typename ...Args> void selectionChangedConnector( QObject * p ) {
@@ -701,7 +706,7 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
     connect( SessionManager::instance(), &SessionManager::onDataprocessorChanged, this, &MainWindow::handleDataprocessor );
-    connect( SessionManager::instance(), &SessionManager::signalSessionAdded, this, &MainWindow::handleSessionAdded );
+    connect( SessionManager::instance(), &SessionManager::onSessionAdded, this, &MainWindow::handleSessionAdded );
     connect( SessionManager::instance(), &SessionManager::onProcessed, this, &MainWindow::handleProcessed );
 
     // The handleSelectionChanged on MainWindow should be called in advance for all stacked child widgets.
@@ -715,6 +720,7 @@ MainWindow::createContents( Core::IMode * mode )
     } );
 #if __cplusplus >= 201703L
     sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    sessionRemovedConnector  < ChromatogramWnd >( stack_ );
     selectionChangedConnector< MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     processedConnector       < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );

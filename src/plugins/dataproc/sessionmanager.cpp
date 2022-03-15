@@ -71,12 +71,14 @@ SessionManager::removeEditor( Core::IEditor * editor )
         });
 
     if ( it != sessions_.end() ) {
+        auto filename = QString::fromStdWString( it->processor()->filename() );
         if ( activeDataprocessor_ == it->processor() ) {
             activeDataprocessor_ = 0;
             emit onDataprocessorChanged( activeDataprocessor_ );
         }
         emit onRemoveSession( it->processor() );
         sessions_.erase( it );
+        emit onSessionRemoved( filename );
     }
 }
 
@@ -90,7 +92,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
     emit onDataprocessorChanged( activeDataprocessor_ );
 
 	emit signalAddSession( proc.get() );
-    emit signalSessionAdded( proc.get() );
+    emit onSessionAdded( proc.get() );
 
     // iSessionManager
     emit addProcessor( this, proc->qfilename() );

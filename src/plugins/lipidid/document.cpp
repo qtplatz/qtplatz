@@ -243,8 +243,8 @@ document::handleCheckStateChanged( adextension::iSessionManager *
                                    , const portfolio::Folium& folium
                                    , bool checked )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
-              << folium.fullpath();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString()
+    //           << folium.fullpath();
 }
 
 void

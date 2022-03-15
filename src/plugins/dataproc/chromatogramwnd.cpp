@@ -278,6 +278,17 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 }
 
 void
+ChromatogramWnd::handleSessionRemoved( const QString& filename )
+{
+    auto it = std::remove_if( impl_->overlays_.begin()
+                              , impl_->overlays_.end()
+                              , [&](const auto& a){ return a.filename_ == filename.toStdWString(); });
+    if ( it != impl_->overlays_.end() )
+        impl_->overlays_.erase( it, impl_->overlays_.end() );
+    impl_->redraw();
+}
+
+void
 ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
 {
 }

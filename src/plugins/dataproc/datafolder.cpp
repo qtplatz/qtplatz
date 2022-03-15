@@ -42,6 +42,7 @@ datafolder::datafolder() : idx_(0)
 
 datafolder::datafolder( const std::wstring& fullpath
                         , const portfolio::Folium& folium ) : idx_( 0 )
+                                                            , filename_( fullpath )
                                                             , display_name_( make_display_name( fullpath, folium ) )
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
@@ -68,6 +69,7 @@ datafolder::datafolder( const std::wstring& fullpath
 }
 
 datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
+                                              , filename_( t.filename_ )
                                               , display_name_( t.display_name_ )
                                               , idFolium_( t.idFolium_ )
                                               , idCentroid_( t.idCentroid_ )

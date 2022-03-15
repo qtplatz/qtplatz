@@ -38,6 +38,7 @@ namespace dataproc {
 
     struct datafolder {
         int idx_;
+        std::wstring filename_;
         QString display_name_; // fileneme::folium.name
         std::wstring idFolium_;
         boost::uuids::uuid idfolium_;
