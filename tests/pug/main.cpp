@@ -52,6 +52,7 @@ main( int argc, char * argv [] )
             ( "help,h",    "Display this help message" )
             ( "host,h",    po::value< std::string >()->default_value( "www.example.com" ), "host" )
             ( "port,p",    po::value< std::string >()->default_value( "80" ), "port" )
+            ( "target,t",  po::value< std::string >()->default_value( "/" ),  "target" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -63,8 +64,8 @@ main( int argc, char * argv [] )
 
     auto const host = vm[ "host" ].as< std::string >();
     auto const port = vm[ "port" ].as< std::string >();
+    auto const target = vm[ "target" ].as< std::string >();
     int version = 10;  // "1.0"
-    auto target = "/";
 
     // The io_context is required for all I/O
     boost::asio::io_context ioc;
