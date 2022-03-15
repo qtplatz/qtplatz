@@ -26,7 +26,6 @@
 #include "queryconstants.hpp"
 #include "queryconnection.hpp"
 #include "document.hpp"
-#include "queryform.hpp"
 #include "querywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -48,23 +47,20 @@
 #include <coreplugin/documentmanager.h>
 #include <utils/styledbar.h>
 #include <QComboBox>
+#include <QDockWidget>
 #include <QFileDialog>
-#include <QLineEdit>
-#include <QMessageBox>
-#include <QStackedWidget>
-#include <QPushButton>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QToolButton>
-#include <QTextEdit>
 #include <QLabel>
 #include <QLineEdit>
-#include <QTextEdit>
-#include <QTableView>
-#include <QDockWidget>
-#include <QStandardItemModel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QStackedWidget>
+#include <QStandardItemModel>
+#include <QTableView>
+#include <QToolButton>
+#include <QVBoxLayout>
 
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
@@ -251,28 +247,6 @@ MainWindow::handleOpen()
         QMessageBox::warning( this, "Query MainWindow", boost::current_exception_diagnostic_information().c_str() );
     }
 
-}
-
-QDockWidget *
-MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& pageName )
-{
-    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
-        widget->setWindowTitle( title );
-
-    if ( widget->objectName().isEmpty() )
-        widget->setObjectName( pageName );
-
-    QDockWidget * dockWidget = addDockForWidget( widget );
-    dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
-
-    if ( title.isEmpty() )
-        dockWidget->setWindowTitle( widget->objectName() );
-    else
-        dockWidget->setWindowTitle( title );
-
-    addDockWidget( Qt::TopDockWidgetArea, dockWidget );
-
-    return dockWidget;
 }
 
 void
