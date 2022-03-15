@@ -288,17 +288,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested );
 
     if ( SessionManager * mgr = SessionManager::instance() ) {
-
-        connect( mgr, &SessionManager::onSessionRemoved, this, &NavigationWidget::handleRemoveSession );
-
+        connect( mgr, &SessionManager::onRemoveSession, this, &NavigationWidget::handleRemoveSession );
         connect( mgr, &SessionManager::signalAddSession, this, &NavigationWidget::handleAddSession );
-
         connect( mgr, &SessionManager::onSessionUpdated, this, [&] ( Dataprocessor* dp, const QString& id ){ handleSessionUpdated( dp, id ); } );
-
         connect( mgr, &SessionManager::onFolderChanged, this, &NavigationWidget::handleFolderChanged );
-
         connect( pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
-
         connect( mgr, &SessionManager::foliumChanged, this, &NavigationWidget::handleFoliumChanged );
     }
 

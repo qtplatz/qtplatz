@@ -75,7 +75,7 @@ SessionManager::removeEditor( Core::IEditor * editor )
             activeDataprocessor_ = 0;
             emit onDataprocessorChanged( activeDataprocessor_ );
         }
-        emit onSessionRemoved( it->processor() );
+        emit onRemoveSession( it->processor() );
         sessions_.erase( it );
     }
 }
