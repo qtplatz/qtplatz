@@ -296,8 +296,6 @@ ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, b
 void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
-    if ( auto ptr = folium.get< adcontrols::ChromatogramPtr >() ) {
-    }
     try {
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
         boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), data );  // draw data
@@ -317,7 +315,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
 {
     try {
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-        if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) ) // draw data
+        if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
             return;
     } catch ( boost::exception& ex ) {
         ADDEBUG() << ex;
@@ -554,6 +552,8 @@ ChromatogramWnd::impl::redraw()
                         }
                     }
                     plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
+                    if ( idx > 0 )
+                        peakTable_->addData( adcontrols::PeakResult{ chr->baselines(), chr->peaks(), chr->isCounting() }, idx );
                     ++idx;
                 }
             }

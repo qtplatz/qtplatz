@@ -57,6 +57,7 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         int peakId( int row ) const;
+        void addData( adcontrols::PeakResult&&, size_t idx );
 
     signals:
         void valueChanged( int row );
@@ -69,7 +70,7 @@ namespace adwidgets {
         void setData( const adcontrols::Peaks&, bool isCounting );
 
     private:
-        void add( const adcontrols::Peak& );
+        void add( const adcontrols::Peak&, size_t idx );
 
         // QTableView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;

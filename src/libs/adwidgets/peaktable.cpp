@@ -38,6 +38,29 @@
 #include <boost/format.hpp>
 #include <functional>
 
+namespace {
+    static QColor colors [] = {
+        QColor( 0x00, 0x00, 0xff, 0x20 )    // 0  blue
+        , QColor( 0xff, 0x00, 0x00, 0x20 )  // 1  red
+        , QColor( 0x00, 0x80, 0x00, 0x20 )  // 2  green
+        , QColor( 0x4b, 0x00, 0x82, 0x20 )  // 3  indigo
+        , QColor( 0xff, 0x14, 0x93, 0x20 )  // 4  deep pink
+        , QColor( 0x94, 0x00, 0xd3, 0x20 )  // 5  dark violet
+        , QColor( 0x80, 0x00, 0x80, 0x20 )  // 6  purple
+        , QColor( 0xdc, 0x13, 0x4c, 0x20 )  // 7  crimson
+        , QColor( 0x69, 0x69, 0x69, 0x20 )  // 8  dim gray
+        , QColor( 0x80, 0x80, 0x80, 0x20 )  // 9  gray
+        , QColor( 0xa9, 0xa9, 0xa9, 0x20 )  //10  dark gray
+        , QColor( 0xc0, 0xc0, 0xc0, 0x20 )  //11  silver
+        , QColor( 0xd3, 0xd3, 0xd3, 0x20 )  //12  light gray
+        , QColor( 0xd2, 0x69, 0x1e, 0x20 )  //13  chocolate
+        , QColor( 0x00, 0x00, 0x8b, 0x20 )  //14  dark blue
+        , QColor( 0xff, 0xff, 0xff, 0x20 )  //15  white
+        , QColor( 0xff, 0x8c, 0x00, 0x20 )  //16  dark orange
+        , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
+    };
+}
+
 namespace adwidgets {
     namespace peaktable {
 
@@ -52,6 +75,7 @@ namespace adwidgets {
             , c_rs
             , c_asymmetry
             , c_capacityfactor
+            , c_cid
             , nbr_of_columns
         };
 
@@ -72,6 +96,12 @@ namespace adwidgets {
                 if ( index.column() > c_name )
                     op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
+                auto color = index.model()->index( index.row(), c_cid ).data( Qt::EditRole ).toInt();
+                if ( color > 0 ) {
+                    painter->save();
+                    painter->fillRect( option.rect, colors[ color % (sizeof(colors)/sizeof(colors[0])) ] );
+                    painter->restore();
+                }
                 switch( index.column() ) {
                 case c_tr:
                     drawDisplay( painter, op, op.rect, QString::number( index.data().toDouble(), 'f', 4 ) );
@@ -160,6 +190,7 @@ PeakTable::OnInitialUpdate()
     model.setHeaderData( c_rs, Qt::Horizontal, QObject::tr("<i>Rs</i>") );
     model.setHeaderData( c_asymmetry, Qt::Horizontal, QObject::tr("Asymmetry") );
     model.setHeaderData( c_capacityfactor, Qt::Horizontal, QObject::tr("<i>k'<i>") );
+    model.setHeaderData( c_cid, Qt::Horizontal, QObject::tr("overlay#") );
 
     setColumnHidden( c_id, true );
     // resizeColumnsToContents();
@@ -183,17 +214,24 @@ PeakTable::setContents( boost::any&& )
 }
 
 void
+PeakTable::addData( adcontrols::PeakResult&& result, size_t idx )
+{
+    for ( const auto& peak: result.peaks() ) {
+        add( peak, idx );
+    }
+}
+
+void
 PeakTable::setData( const adcontrols::Peaks& peaks, bool isCounting )
 {
     QStandardItemModel& model = *model_;
     model.removeRows( 0, model.rowCount() );
 
-    // ADDEBUG() << __FUNCTION__ << "\tisCounting: " << isCounting;
     model.setHeaderData( c_area, Qt::Horizontal, isCounting ? QObject::tr("Area(Counts)") : QObject::tr("Area") );
 
-    using namespace adcontrols;
-    for ( Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
-        add( *it );
+    for ( const auto& peak: peaks ) {
+        add( peak, 0 );
+    }
 }
 
 void
@@ -203,15 +241,16 @@ PeakTable::setData( const adcontrols::PeakResult& result )
 }
 
 void
-PeakTable::add( const adcontrols::Peak& peak )
+PeakTable::add( const adcontrols::Peak& peak, size_t idx )
 {
     QStandardItemModel& model = *model_;
 
     int row = model.rowCount();
     model.setRowCount( row + 1 );
 
-    model.setData( model.index( row, c_id ), static_cast< int >( peak.peakId() ) );
-    model.setData( model.index( row, c_name ), QString::fromStdString( peak.name() ) );
+    model.setData( model.index( row, c_cid ), int(idx), Qt::EditRole );
+    model.setData( model.index( row, c_id ),  int( peak.peakId() ), Qt::EditRole );
+    model.setData( model.index( row, c_name ), QString::fromStdString( peak.name() ), Qt::EditRole );
     model.setData( model.index( row, c_tr ), static_cast<double>( peak.peakTime() ), Qt::EditRole );
    // model.setData( model.index( row, c_tr ), static_cast<double>( adcontrols::timeutil::toMinutes( peak.peakTime() ) ), Qt::EditRole );
     model.setData( model.index( row, c_area ), peak.peakArea(), Qt::EditRole );
