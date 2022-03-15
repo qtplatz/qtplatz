@@ -197,8 +197,8 @@ namespace dataproc {
         Wnd& wnd_;
         selProcessed( Wnd& wnd ) : wnd_(wnd) {}
         template<typename T> void operator ()( T& ) const { }
-        void operator () ( adutils::PeakResultPtr& ptr ) const {  wnd_.draw( ptr );   }
-        void operator () ( adutils::ChromatogramPtr& ptr ) const {  wnd_.draw( ptr );   }
+        void operator () ( adutils::PeakResultPtr& ptr ) const {  wnd_.draw( ptr ); }
+        void operator () ( adutils::ChromatogramPtr& ptr ) const {  wnd_.draw( ptr );  }
     };
 }
 
@@ -228,15 +228,15 @@ ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
     impl_->peakTable_->OnInitialUpdate();
 }
 
-void
-ChromatogramWnd::draw1( adutils::MassSpectrumPtr& )
-{
-}
+// void
+// ChromatogramWnd::draw1( adutils::MassSpectrumPtr& )
+// {
+// }
 
-void
-ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
-{
-}
+// void
+// ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
+// {
+// }
 
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
@@ -364,9 +364,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             }
         }
     }
-
-    if ( impl_->dirty_ )
-        impl_->redraw();
+    impl_->redraw();
 }
 
 void
