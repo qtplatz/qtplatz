@@ -37,10 +37,14 @@ if ( NOT Boost_FOUND ) # -- standalone
     execute_process( COMMAND ${QMAKE} -query QT_HOST_PREFIX OUTPUT_VARIABLE QTDIR )
   endif()
   list( APPEND CMAKE_PREFIX_PATH ${QTDIR} )
-
   set( CMAKE_CXX_STANDARD 20 )
-
 endif()
+
+#set (OPENSSL_ROOT_DIR "/usr/local/Cellar/libressl/3.4.2/include" )
+set (OPENSSL_ROOT_DIR "/usr/local/Cellar/libressl/3.4.2" )
+
+find_package( OpenSSL )
+message( STATUS "OpenSSL : " "${OPENSSL_FOUND}" )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -52,19 +56,22 @@ find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multi
 include_directories(
   "${QTPLATZ_SOURCE_DIR}/src/libs"
   "${QTPLATZ_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.12/src"
-  ${Boost_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  "${Boost_INCLUDE_DIRS}"
+  "${Qt5Svg_INCLUDE_DIRS}"
+  "${Qt5Widgets_INCLUDE_DIRS}"
+  "${OPENSSL_INCLUDE_DIR}"
   )
 
 add_executable( ${PROJECT_NAME}
   main.cpp
-  mainwindow.cpp
-  mainwindow.hpp
-  document.cpp
-  document.hpp
-  molgridwnd.cpp
-  molgridwnd.hpp
+  http_client_async.cpp
+  http_client_async.hpp
+#  mainwindow.cpp
+#  mainwindow.hpp
+#  document.cpp
+#  document.hpp
+#  molgridwnd.cpp
+#  molgridwnd.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME}
@@ -78,4 +85,5 @@ target_link_libraries( ${PROJECT_NAME}
   adlog
   qtwrapper
   xmlparser
+  ${OPENSSL_LIBRARIES}
   )

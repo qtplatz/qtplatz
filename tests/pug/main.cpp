@@ -22,8 +22,9 @@
 **
 **************************************************************************/
 
-#include "mainwindow.hpp"
-#include "document.hpp"
+//#include "mainwindow.hpp"
+//#include "document.hpp"
+#include "http_client_async.hpp"
 #include <QApplication>
 #include <boost/program_options.hpp>
 #include <boost/beast/core.hpp>
@@ -45,14 +46,19 @@ main( int argc, char * argv [] )
 {
     QApplication a( argc, argv );
 
+// https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244
+
     po::variables_map vm;
     po::options_description description( argv[0] );
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
-            ( "host,h",    po::value< std::string >()->default_value( "www.example.com" ), "host" )
-            ( "port,p",    po::value< std::string >()->default_value( "80" ), "port" )
-            ( "target,t",  po::value< std::string >()->default_value( "/" ),  "target" )
+            //( "host,h",    po::value< std::string >()->default_value( "www.example.com" ), "host" )
+            ( "host,h",    po::value< std::string >()->default_value( "pubchem.ncbi.nlm.nih.gov" ), "host" )
+            ( "port,p",    po::value< std::string >()->default_value( "https" ), "port" )
+            ( "target,t",  po::value< std::string >()->default_value( "/rest/pug/compound/cid/2244" ),  "target" )
+            // ( "target,t",  po::value< std::string >()->default_value( "/" ),    "target" )
+            ( "version,v", po::value< std::string >()->default_value( "1.0" ),  "version" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -62,64 +68,20 @@ main( int argc, char * argv [] )
         return 0;
     }
 
-    auto const host = vm[ "host" ].as< std::string >();
-    auto const port = vm[ "port" ].as< std::string >();
-    auto const target = vm[ "target" ].as< std::string >();
-    int version = 10;  // "1.0"
+    auto const host = vm[ "host" ].as< std::string >().c_str();
+    auto const port = vm[ "port" ].as< std::string >().c_str();
+    auto const target = vm[ "target" ].as< std::string >().c_str();
+    int version = vm[ "version" ].as< std::string >() == "1.0" ? 10 : 11;  // "1.0"
 
     // The io_context is required for all I/O
     boost::asio::io_context ioc;
+    ssl::context ctx{ssl::context::tlsv12_client};
+    load_root_certificates(ctx);
 
-    // These objects perform our I/O
-    boost::asio::ip::tcp::resolver resolver(ioc);
-    boost::beast::tcp_stream stream(ioc);
+    std::make_shared<session>( boost::asio::make_strand(ioc),  ctx )->run(host, port, target, version);
 
-    // Look up the domain name
-    auto const results = resolver.resolve(host, port);
+    // std::make_shared<session>(ioc)->run( host.c_str(), port.c_str(), target.c_str(), version );
+    ioc.run();
 
-    // Make the connection on the IP address we get from a lookup
-    stream.connect(results);
-
-    // Set up an HTTP GET request message
-    boost::beast::http::request< boost::beast::http::string_body> req{boost::beast::http::verb::get, target, version};
-
-    req.set( boost::beast::http::field::host, host);
-    req.set( boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-
-    // Send the HTTP request to the remote host
-    boost::beast::http::write(stream, req);
-
-    // This buffer is used for reading and must be persisted
-    boost::beast::flat_buffer buffer;
-
-    // Declare a container to hold the response
-    boost::beast::http::response< boost::beast::http::dynamic_body > res;
-
-    // Receive the HTTP response
-    boost::beast::http::read(stream, buffer, res);
-
-    // Write the message to standard out
-    std::cout << res << std::endl;
-
-    // Gracefully close the socket
-    boost::beast::error_code ec;
-    stream.socket().shutdown( boost::asio::ip::tcp::socket::shutdown_both, ec );
-
-    // not_connected happens sometimes
-    // so don't bother reporting it.
-    //
-    if( ec && ec != boost::beast::errc::not_connected )
-        throw boost::beast::system_error{ec};
-
-    // If we get here then the connection is closed gracefully
-    /*
-    MainWindow w;
-    w.resize( 800, 600 );
-    w.onInitialUpdate();
-    w.show();
-
-    QCoreApplication::processEvents();
-    a.exec();
-    */
     return 0;
 }
