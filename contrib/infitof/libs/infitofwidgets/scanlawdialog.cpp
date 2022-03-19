@@ -673,8 +673,8 @@ ScanLawDialog::handlePeakTableMenu( const QPoint& pt )
     QString title1( tr( "Calibrate accelerator voltage using %1" ).arg( list1 ) );
     QString title2( tr( "Calibrate dimension using %1" ).arg( list2 ) );
 
-    menu.addAction( title1, [=](){ estimateAcceleratorVoltage( peaks1 ); } );
-    menu.addAction( title2, [=](){ estimateL1( formulae, peaks1 ); } );
+    menu.addAction( title1, [=,this](){ estimateAcceleratorVoltage( peaks1 ); } );
+    menu.addAction( title2, [=,this](){ estimateL1( formulae, peaks1 ); } );
 
     // menu.addAction( tr( "Add peak" ), this, SLOT( handleAddPeak() ) );
     if ( auto table = findChild< adwidgets::MolTableView * >( "peakTable" ) )

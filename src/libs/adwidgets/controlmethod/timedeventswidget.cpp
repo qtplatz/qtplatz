@@ -730,7 +730,7 @@ TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
 
         for ( auto& cap: capList_ ) {
             QString text = QString( "Add: %1" ).arg( cap.second.model_display_name().c_str() );
-            menu.addAction( text, [=](){ addLine( cap.second ); } );
+            menu.addAction( text, [=,this](){ addLine( cap.second ); } );
         }
 
         menu.exec( table->mapToGlobal( pt ) );

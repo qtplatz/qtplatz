@@ -186,7 +186,7 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
 {
     setModel( model_ );
     auto delegate = new CompoundsDelegate;
-    delegate->register_handler( [=]( const QModelIndex& index ){ handleValueChanged( index ); } );
+    delegate->register_handler( [=,this]( const QModelIndex& index ){ handleValueChanged( index ); } );
 	setItemDelegate( delegate );
     setSortingEnabled( true );
     // QFont font;
@@ -194,7 +194,7 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &CompoundsTable::handleContextMenu );
-    connect( document::instance(), &document::onMSLockEnabled, this, [=] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
+    connect( document::instance(), &document::onMSLockEnabled, this, [=,this] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
 
     setEditTriggers( QAbstractItemView::AllEditTriggers );
 

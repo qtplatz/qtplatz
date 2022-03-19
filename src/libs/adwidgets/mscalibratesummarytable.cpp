@@ -118,7 +118,7 @@ MSCalibrateSummaryTable::MSCalibrateSummaryTable(QWidget *parent) : QTableView(p
 
     auto delegate = new adwidgets::detail::mscalibratesummarytable::ItemDelegate;
 
-    delegate->valueChanged_ = [=] ( const QModelIndex& index ){ handleValueChanged( index ); };
+    delegate->valueChanged_ = [=,this] ( const QModelIndex& index ){ handleValueChanged( index ); };
 
     setItemDelegate( delegate );
 

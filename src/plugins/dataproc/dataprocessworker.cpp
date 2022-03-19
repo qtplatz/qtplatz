@@ -86,7 +86,7 @@ DataprocessWorker::DataprocessWorker() : work_( io_service_ )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     if ( threads_.empty() )
-        threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+        threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 }
 
 DataprocessWorker::~DataprocessWorker()
@@ -114,7 +114,7 @@ DataprocessWorker::createChromatogramsByPeakInfo3( Dataprocessor* processor
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
-    threads_.emplace_back( adportable::asio::thread( [=] {
+    threads_.emplace_back( adportable::asio::thread( [=,this] {
                 handleChromatogramsByPeakInfo3( processor, pm, pkinfo, reader->shared_from_this(), p );
             } ) );
 }
@@ -132,7 +132,7 @@ DataprocessWorker::createChromatogramByAxisRange3( Dataprocessor * processor
     if ( auto rawfile = processor->rawdata() ) {
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
-                threads_.emplace_back( adportable::asio::thread( [=] {
+                threads_.emplace_back( adportable::asio::thread( [=,this] {
                             handleChromatogramByAxisRange3( processor, pm, axis, range, reader->shared_from_this(), -1, p );
                         } ) );
             } else {
@@ -180,7 +180,7 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
                     double width = enableTime ? timeWidth : massWidth;
                     threads_.emplace_back(
                         adportable::asio::thread(
-                            [=]{
+                            [=,this]{
                                 handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress );
                             })
                         );
@@ -232,7 +232,7 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
                         document::instance()->setProcessMethod( tmp );
 
                         if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                            threads_.emplace_back( adportable::asio::thread( [=,this] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 } else {
                     auto readers = rawfile->dataReaders();
@@ -241,7 +241,7 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
                         adportable::semaphore sem;
                         auto reader = (*it);
                         threads_.emplace_back( std::thread(
-                                                   [=,&sem] {
+                                                   [=,&sem,this] {
                                                        handleChromatogramsByMethod3( processor, *tm, pm, reader, p );
                                                        sem.signal();
                                                    } ) );
@@ -251,7 +251,7 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
 
             } else {
                 // v2
-                threads_.emplace_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
+                threads_.emplace_back( adportable::asio::thread( [=,this] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
             }
         }
     }
@@ -266,12 +266,12 @@ DataprocessWorker::createChromatogramsV2( Dataprocessor * processor
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-        threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+        threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, pm, axis, ranges, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleCreateChromatogramsV2( processor, pm, axis, ranges, p ); } ) );
 }
 
 void
@@ -282,7 +282,7 @@ DataprocessWorker::createContour( Dataprocessor* processor )
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( threads_.empty() )
-            threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+            threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
     } while ( 0 );
 
     adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
@@ -294,10 +294,10 @@ DataprocessWorker::createContour( Dataprocessor* processor )
             if ( dlg.exec() == QDialog::Accepted ) {
                 int fcn = dlg.fcn();
                 if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
+                    threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
             }
         } else {
-            threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
+            threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram( processor, pm, p ); } ) );
         }
     }
 }
@@ -309,12 +309,12 @@ DataprocessWorker::clusterContour( Dataprocessor * processor )
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( adportable::asio::thread( [=] { handleClusterSpectrogram( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleClusterSpectrogram( processor, pm, p ); } ) );
 }
 
 void
@@ -324,12 +324,12 @@ DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digeste
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( adportable::asio::thread( [=] { handleFindPeptide( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleFindPeptide( processor, pm, p ); } ) );
 }
 
 void
@@ -340,7 +340,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
     if ( spectra->mslocked() ) {
         int result = QMessageBox::question( MainWindow::instance()
@@ -352,7 +352,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
     }
 
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
-    threads_.push_back( adportable::asio::thread( [=] { handleMSLock( processor, spectra, lockm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleMSLock( processor, spectra, lockm, p ); } ) );
 }
 
 void

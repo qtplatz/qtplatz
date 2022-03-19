@@ -182,7 +182,7 @@ MSCalibrateForm::handleReferenceDlg()
 {
     if ( dlg_ == 0 ) {
         dlg_ = new MSReferenceDialog(this);
-        dlg_->register_handler( [=] ( const adcontrols::MSReference& ref ){ emit addReference( ref ); } );
+        dlg_->register_handler( [=,this] ( const adcontrols::MSReference& ref ){ emit addReference( ref ); } );
         // dlg_->setWindowFlags( Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint );
         dlg_->setModal( false );
         dlg_->show();

@@ -98,7 +98,7 @@ if [ -z "$cross_target" ]; then
 			QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
 			echo "$0: qmake found in "$QTDIR " (qmake="${QMAKE}")"
 			cmake_args+=("-DQMAKE=${QMAKE}")
-			echo cmake "${cmake_args[@]}" $source_dir
+			echo cmake "${cmake_args[@]}" $source_dir "(${build_dirs[*]})"
 			prompt
 			export PATH=$QTDIR/bin:$PATH
 		else
@@ -126,10 +126,8 @@ for build_dir in ${build_dirs[@]}; do
     echo "#" pwd `pwd`
 
     if [ -z $cross_target ]; then
-
 		echo cmake "${cmake_args[@]}" $source_dir
 		cmake "${cmake_args[@]}" $source_dir
-
     else
 		echo "#######################################"
 		echo "## Cross build for $cross_target"

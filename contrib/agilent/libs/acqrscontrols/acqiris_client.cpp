@@ -106,7 +106,7 @@ acqiris_client::handle_resolve( const boost::system::error_code& err
         tcp::endpoint endpoint = *endpoint_iterator;
         auto next = ++endpoint_iterator;
 
-        socket_.async_connect( endpoint, [=]( const boost::system::error_code& ec ) {
+        socket_.async_connect( endpoint, [=,this]( const boost::system::error_code& ec ) {
                 handle_connect( ec, next );
             });
 
@@ -142,7 +142,7 @@ acqiris_client::handle_connect( const boost::system::error_code& err,
         tcp::endpoint endpoint = *endpoint_iterator;
         auto next = ++endpoint_iterator;
 
-        socket_.async_connect( endpoint, [=]( const boost::system::error_code& ec ) {
+        socket_.async_connect( endpoint, [=,this]( const boost::system::error_code& ec ) {
                 handle_connect( ec, next );
             });
 

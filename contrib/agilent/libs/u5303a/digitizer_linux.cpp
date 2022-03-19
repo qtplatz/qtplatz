@@ -394,7 +394,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
     ADDEBUG() << "##### u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
 #endif
 
-    io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
+    io_service_.post( strand_.wrap( [=,this] { handle_prepare_for_run( method ); } ) );
 
     return true;
 }

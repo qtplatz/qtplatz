@@ -202,16 +202,16 @@ task::~task()
 bool
 task::initialize()
 {
-    std::call_once( flag1, [=] () {
+    std::call_once( flag1, [=,this] () {
 
-            impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
+        impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->worker_thread(); } ) );
 
-            unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
-            ADTRACE() << nCores << " threads created for u5303a task";
-            while( nCores-- )
-                impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
+        unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
+        ADTRACE() << nCores << " threads created for u5303a task";
+        while( nCores-- )
+            impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->io_service_.run(); } ) );
 
-        } );
+    } );
 
     return true;
 }
@@ -254,7 +254,7 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 
         impl_->data_status_[ so->objid() ].posted_data_count_++;
 
-        impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
+        impl_->io_service_.post( [=,this]{ impl_->readData( so, pos ); } );
 
     }
 }
@@ -380,7 +380,7 @@ task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
 
         } else {
             std::string name = so->objtext();
-            auto uuid = so->objid();
+            // auto uuid = so->objid();
             ADTRACE() << "Unhandled data : " << name;
         }
     }

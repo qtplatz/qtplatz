@@ -201,13 +201,13 @@ MainWindow::createTopStyledToolbar()
             Core::Context globalcontext( (Core::Id( Core::Constants::C_GLOBAL )) );
 
             if ( auto p = new QAction( tr("Manipulation"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( 0 ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( 0 ); } );
                 am->registerAction( p, "VIDEO.manipulation", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
             if ( auto p = new QAction( tr("Capture"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( 1 ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( 1 ); } );
                 am->registerAction( p, "VIDEO.capture", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }

@@ -279,7 +279,7 @@ hvWidget::hvWidget( const QString& server
         button->setCheckable( true );
         button->setChecked( false );
         handleSwitchToggled( button, false );
-        connect( button, &QPushButton::toggled, this, [=]( bool checked ){ handleSwitchToggled( button, checked ); } );
+        connect( button, &QPushButton::toggled, this, [=,this]( bool checked ){ handleSwitchToggled( button, checked ); } );
     }
 
     setStyleSheet(

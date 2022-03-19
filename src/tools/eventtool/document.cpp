@@ -102,7 +102,7 @@ namespace eventtool {
             udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, port ) );
             udpReceiver_->register_handler( [this] ( const char * data, size_t length, const boost::asio::ip::udp::endpoint& ep ) { event_received( data, length, ep ); } );
             if ( threads_.empty() )
-                threads_.push_back( adportable::asio::thread( [=]{ io_service_.run(); } ) );
+                threads_.push_back( adportable::asio::thread( [=,this]{ io_service_.run(); } ) );
         }
     };
 }

@@ -322,34 +322,34 @@ MainWindow::createStyledBarTop()
             Core::Context context( ( Core::Id( "dataproc.MainView" ) ) );
 
             if ( auto p = new QAction( tr("MS Process"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSProcess ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelMSProcess ); } );
                 am->registerAction( p, "dataproc.selMSProcess", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSProcess ) ) );
             }
             if ( auto p = new QAction( tr("Spectra"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelSpectra ); } );
                 am->registerAction( p, "dataproc.selSpectra", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelSpectra ) ) );
             }
             if ( auto p = new QAction( tr("Simulation"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelElementalComp ); } );
                 am->registerAction( p, "dataproc.selElementalComp", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelElementalComp ) ) );
             }
             if ( auto p = new QAction( tr("MS Calibration"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
                 am->registerAction( p, "dataproc.selMSCalibration", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSCalibration ) ) );
             }
 
             if ( auto p = new QAction( tr("Chromatogram"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelChromatogram ); } );
                 am->registerAction( p, "dataproc.selChromatogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelChromatogram ) ) );
             }
 
             if ( auto p = new QAction( tr("Contour"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
+                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
                 am->registerAction( p, "dataproc.selSpectrogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelSpectrogram ) ) );
             }

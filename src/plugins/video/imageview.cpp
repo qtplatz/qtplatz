@@ -163,7 +163,7 @@ ImageView::ImageView( int index
             labelLayout->addWidget( btn );
             btn->setCheckable( true );
             btn->setChecked( false );
-            connect( btn, &QToolButton::toggled, this, [=]( bool toggle ) { emit toggled( this, name, toggle ); } );
+            connect( btn, &QToolButton::toggled, this, [=,this]( bool toggle ) { emit toggled( this, name, toggle ); } );
         }
     }
 
@@ -180,7 +180,7 @@ ImageView::ImageView( int index
             btn->setChecked( false );
             labelLayout->addWidget( btn );
             exclsiveButtons->addButton( btn );
-            connect( btn, &QToolButton::toggled, this, [=]( bool toggle ) { emit toggled( this, name, toggle ); } );
+            connect( btn, &QToolButton::toggled, this, [=,this]( bool toggle ) { emit toggled( this, name, toggle ); } );
         }
     }
 

@@ -698,7 +698,7 @@ MSPeakTree::showContextMenu( const QPoint& pt )
             return;
 
         //--------------------
-        menu.addAction( tr("Gen. Chromatogram(s) ..."), [=]{ handleGenChromatogram(); } );
+        menu.addAction( tr("Gen. Chromatogram(s) ..."), [=,this]{ handleGenChromatogram(); } );
 
         std::set< int > rows;
         for ( auto index: list )
@@ -723,9 +723,9 @@ MSPeakTree::showContextMenu( const QPoint& pt )
 
         //------------ lock mass
         if ( impl_->callback_.empty() )
-            menu.addAction( tr("Lock mass with %1").arg( formulae ), [=](){ emit triggerLockMass( refs ); } );
+            menu.addAction( tr("Lock mass with %1").arg( formulae ), [=,this](){ emit triggerLockMass( refs ); } );
         else
-            menu.addAction( tr("Lock mass with %1").arg( formulae ), [=](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
+            menu.addAction( tr("Lock mass with %1").arg( formulae ), [=,this](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
 
         //------------ Copy assigned
         menu.addAction( tr("Copy All"), this, SLOT( handleCopyAllToClipboard() ) );

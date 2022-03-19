@@ -297,7 +297,7 @@ MSProcessingWnd::init()
         if ( ( pImpl_->ticPlot_ = new adplot::ChromatogramWidget(this) ) ) {
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
-            pImpl_->ticPlot_->register_tracker( [=]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
+            pImpl_->ticPlot_->register_tracker( [=,this]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
             pImpl_->ticPlot_->setItemLegendEnabled( false );
         }
 
@@ -1110,12 +1110,12 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString (title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
                             } else {
                                 auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString( title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
                             }
                         }
                     }
@@ -1139,7 +1139,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 tr("Count/Area in range %1 -- %2(us)") : tr("Count/Area in m/z range %1 -- %2");
 
             menu.addAction( tr( "y-zoom" )
-                , [=](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } );
+                            , [=,this](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } );
 
             menu.addAction( QString( f_rms ).arg( left, right ), [&](){
                     if ( compute_rms( rect.left(), rect.right() ) )

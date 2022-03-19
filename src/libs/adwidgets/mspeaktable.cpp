@@ -901,12 +901,12 @@ MSPeakTable::showContextMenu( const QPoint& pt )
 
         //------------ lock mass
         if ( impl_->callback_.empty() )
-            menu.addAction( formulae, [=](){ emit triggerLockMass( refs ); } );
+            menu.addAction( formulae, [=,this](){ emit triggerLockMass( refs ); } );
         else
-            menu.addAction( formulae, [=](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
+            menu.addAction( formulae, [=,this](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
 
         //------------ scan law estimation
-        menu.addAction( "Estimate scan law...", [=](){ emit estimateScanLaw( refs ); }  );
+        menu.addAction( "Estimate scan law...", [=,this](){ emit estimateScanLaw( refs ); }  );
 
         //------------ Copy assigned
         menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );

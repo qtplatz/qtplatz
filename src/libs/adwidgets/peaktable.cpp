@@ -159,7 +159,7 @@ PeakTable::PeakTable( QWidget *parent ) : TableView( parent )
     setModel( model_ );
 
     if ( auto delegate = new peaktable::ItemDelegate() ) {
-        delegate->valueChanged_ = [=] ( const QModelIndex& idx ){ emit valueChanged( idx.row() ); };
+        delegate->valueChanged_ = [=,this] ( const QModelIndex& idx ){ emit valueChanged( idx.row() ); };
         setItemDelegate( delegate );
     }
 

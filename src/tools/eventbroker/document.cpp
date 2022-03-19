@@ -52,8 +52,8 @@ document::~document()
 document::document() : work_( io_service_ )
                      , udpSender_( std::make_unique< acewrapper::udpEventSender >( io_service_, "localhost", "7125" ) )
 {
-    threads_.emplace_back( std::thread( [=] {io_service_.run(); } ) );
-    threads_.emplace_back( std::thread( [=] {io_service_.run(); } ) );
+    threads_.emplace_back( std::thread( [=,this] {io_service_.run(); } ) );
+    threads_.emplace_back( std::thread( [=,this] {io_service_.run(); } ) );
 }
 
 document *
@@ -104,7 +104,7 @@ document::event_out( uint32_t value )
         std::ostringstream o;
         o << "EVENTOUT " << value << std::endl;
         return udpSender_->send_to( o.str()
-                                    , [=] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
+                                    , [=,this] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
                                           for ( auto callback : handlers_ )
                                               callback( "event_out", code, duration, msg );
                                       } );
@@ -132,7 +132,7 @@ document::event_out( event_id value, uint64_t tp, const std::string& json )
         std::ostringstream o;
         boost::property_tree::write_json( o, pt );
         return udpSender_->send_to( o.str()
-                                    , [=] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
+                                    , [=,this] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
                                         for ( auto callback : handlers_ )
                                             callback( "event_out", code, duration, msg );
                                     } );

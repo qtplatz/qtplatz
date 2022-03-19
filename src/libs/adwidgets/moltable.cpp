@@ -487,8 +487,8 @@ MolTable::handleContextMenu( const QPoint& pt )
 
     std::vector< action_type > actions;
 
-    actions.emplace_back( menu.addAction( "Enable all" ), [=](){ enable_all( true ); } );
-    actions.emplace_back( menu.addAction( "Disable all" ), [=](){ enable_all( false ); } );
+    actions.emplace_back( menu.addAction( "Enable all" ), [=,this](){ enable_all( true ); } );
+    actions.emplace_back( menu.addAction( "Disable all" ), [=,this](){ enable_all( false ); } );
 
     TableView::addActionsToContextMenu( menu, pt );
 

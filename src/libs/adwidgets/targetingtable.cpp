@@ -58,7 +58,7 @@ namespace adwidgets {
         };
 
         class TargetingDelegate : public QStyledItemDelegate {
-        
+
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
 
                 QStyleOptionViewItem opt(option);
@@ -66,12 +66,12 @@ namespace adwidgets {
                 opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
                 if ( index.column() == c_formula ) {
-                    
+
                     std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                     DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
                 } else if ( index.column() == c_mass ) {
-                    
+
                     painter->save();
                     std::string formula = index.model()->index( index.row(), c_formula ).data( Qt::EditRole ).toString().toStdString();
                     double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
@@ -121,7 +121,7 @@ TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
 {
     setModel( model_ );
     auto delegate = new detail::TargetingDelegate;
-    delegate->register_handler( [=]( const QModelIndex& index ){ handleValueChanged( index ); } );
+    delegate->register_handler( [=,this]( const QModelIndex& index ){ handleValueChanged( index ); } );
 	setItemDelegate( delegate );
     setSortingEnabled( true );
 
@@ -165,7 +165,7 @@ TargetingTable::onInitialUpdate()
     enableLockMass( false );
 
     setEditTriggers( QAbstractItemView::AllEditTriggers );
-    
+
     //resizeColumnsToContents();
     resizeRowsToContents();
 }
@@ -233,7 +233,7 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
 
     mass_editable_ = true;
     enableLockMass( m.lockmass() );
-    
+
     model.setRowCount( int( m.molecules().size() + 1 ) ); // add one free line for add formula
 
     int row = 0;
@@ -259,7 +259,7 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
             cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
             model.setData( model.index( row, c_msref ), value.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        
+
         model.setData( model.index( row, c_description ), QString::fromStdWString( value.description() ) );
         model.item( row, c_description )->setEditable( true );
 
@@ -315,7 +315,7 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
         model_->setData( model_->index( index.row(), c_mass ), exactMass );
         if ( mass_editable_ ) {
             model_->item( index.row(), c_mass )->setEditable( true );
-            model_->setData( model_->index( index.row(), c_description ), QString( "" ) );            
+            model_->setData( model_->index( index.row(), c_description ), QString( "" ) );
         }
 
         model_->setData( model_->index( index.row(), c_msref ), false );
@@ -325,7 +325,7 @@ TargetingTable::handleValueChanged( const QModelIndex& index )
             model_->setData( model_->index( index.row(), c_msref ), Qt::Unchecked, Qt::CheckStateRole );
         }
     }
-    
+
     if ( index.column() == c_mass ) {
         std::string formula = index.model()->index( index.row(), c_formula ).data( Qt::EditRole ).toString().toStdString();
         double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
@@ -354,12 +354,12 @@ TargetingTable::handleContextMenu( const QPoint& pt )
     QMenu menu;
 
     emit onContextMenu( menu, pt );
-    
+
     typedef std::pair< QAction *, std::function< void() > > action_type;
 
     std::vector< action_type > actions;
-    actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [=](){ enable_all( true ); }) );
-    actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [=](){ enable_all( false ); }) );
+    actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [=,this](){ enable_all( true ); }) );
+    actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [=,this](){ enable_all( false ); }) );
 
     if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
         auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){
@@ -368,7 +368,7 @@ TargetingTable::handleContextMenu( const QPoint& pt )
         if ( it != actions.end() )
             (it->second)();
     }
-    
+
 
 }
 
@@ -379,7 +379,7 @@ TargetingTable::enable_all( bool enable )
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
         if ( !model.index( row, detail::c_formula ).data().toString().isEmpty() )
-            model_->setData( model.index( row, detail::c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );        
+            model_->setData( model.index( row, detail::c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 
 }

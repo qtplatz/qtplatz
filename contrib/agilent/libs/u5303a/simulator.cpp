@@ -180,7 +180,7 @@ simulator::waitForEndOfAcquisition()
 {
     //std::this_thread::sleep_for( std::chrono::milliseconds( nbrWaveforms_ ) ); // simulate triggers
     std::unique_lock< std::mutex > lock( queue_ );
-    if ( cond_.wait_for( lock, std::chrono::milliseconds( 3000 ), [=](){ return hasWaveform_ == true; } ) ) {
+    if ( cond_.wait_for( lock, std::chrono::milliseconds( 3000 ), [=,this](){ return hasWaveform_ == true; } ) ) {
         acqTriggered_.clear();
         return true;
     } else {
