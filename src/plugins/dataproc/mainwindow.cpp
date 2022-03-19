@@ -152,7 +152,7 @@ namespace dataproc {
         session_added_connector( QObject * p ) : this_(p) {}
         template<class T> bool operator () ( T* wnd ) const {
             return
-                this_->connect( SessionManager::instance(), &SessionManager::signalSessionAdded, wnd
+                this_->connect( SessionManager::instance(), &SessionManager::onSessionAdded, wnd
                                 , [=]( Dataprocessor *dp ){ wnd->handleSessionAdded(dp);});
         }
     };
@@ -219,7 +219,7 @@ namespace dataproc {
 using namespace dataproc;
 
 namespace {
-
+#if __cplusplus >= 201703L
     template<typename _Ty,  typename ... _Types>
     inline _Ty * make_stack_widget( QStackedWidget * stack, QString&& title, _Types&&... _Args )
     {
@@ -230,10 +230,22 @@ namespace {
         }
         return nullptr;
     }
+#else
+    template<typename _Ty,  typename ... _Types>
+    inline _Ty * make_stack_widget( QStackedWidget * stack, const QString& title, const _Types&... _Args )
+    {
+        if ( auto w = new _Ty( std::forward<_Types>(_Args)...) ) {
+            w->setWindowTitle( title );
+            stack->addWidget( w );
+            return w;
+        }
+        return nullptr;
+    }
+#endif
 }
 
 namespace {
-    // __cplusplus >= 201703L
+#if  __cplusplus >= 201703L
     template< typename ...Args > void scaleChangeConnector( MainWindow * w, QObject * p ) {
         ( QObject::connect( w, &MainWindow::onScaleChromatogramYChanged, p->findChild<Args *>(), &Args::handleChromatogramYScale ),...);
         ( QObject::connect( w, &MainWindow::onScaleChromatogramXChanged, p->findChild<Args *>(), &Args::handleChromatogramXScale ),...);
@@ -279,6 +291,7 @@ namespace {
                                 if ( auto w = p->findChild< Args * >() )
                                     w->handleAxisChanged( id == 0 ? adcontrols::hor_axis_mass : adcontrols::hor_axis_time );}), ...);
     }
+#endif
 }
 
 MainWindow::~MainWindow()

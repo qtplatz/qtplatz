@@ -134,7 +134,12 @@ TargetingForm::setContents( const adcontrols::MetIdMethod& m )
     ui->doubleSpinBoxRP->setValue( m.tolerance( adcontrols::idTolerancePpm ) );
     ui->doubleSpinBoxWidth->setValue( m.tolerance( adcontrols::idToleranceDaltons ) * 1000.0 );
     ui->radioButtonRP->setChecked( m.toleranceMethod() == adcontrols::idTolerancePpm );
+#if __cplusplus >= 201703L
     auto [chargeMin, chargeMax] = m.chargeState();
+#else
+    auto chargeMin = m.chargeState().first;
+    auto chargeMax = m.chargeState().second;
+#endif
     ui->spinBoxChargeMin->setValue( chargeMin );
     ui->spinBoxChargeMax->setValue( chargeMax );
     ui->checkBox->setChecked( m.findAlgorithm() == adcontrols::idFindClosest );

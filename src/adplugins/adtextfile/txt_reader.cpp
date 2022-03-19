@@ -97,7 +97,21 @@ txt_reader::load( std::ifstream& istrm
 }
 
 namespace adtextfile {
-#if defined __cpp_fold_expressions
+#if defined __GNUC__ && __GNUC__ <= 6
+
+    template<class Tuple, std::size_t... Is>
+    void to_legacy_impl( Tuple& dst
+                         , const txt_reader::data_type& src
+                         , const txt_reader::flags_type& flags
+                         , std::index_sequence<Is...>)
+    {
+        ((std::get<Is>(dst).resize( flags[Is] ? src.size() : 0 )), ...);
+        // ((std::transform( src.begin(), flags[Is] ? src.end() : src.begin(), std::get<Is>( dst ).begin()
+        //                   , [](const auto& t){ return std::get<Is>(t); }) ), ...);
+    }
+
+#elif defined __cpp_fold_expressions
+
     template<class Tuple, std::size_t... Is>
     void to_legacy_impl( Tuple& dst
                          , const txt_reader::data_type& src
@@ -110,6 +124,7 @@ namespace adtextfile {
                               , [](const auto& t){ return std::get<Is>(t); } )
             ), ...);
     }
+#endif
 
     template<typename... Args> void to_legacy( std::tuple< Args... >& dst
                                                , const txt_reader::data_type& src
@@ -117,15 +132,18 @@ namespace adtextfile {
     {
         to_legacy_impl( dst, src, flags, std::index_sequence_for<Args...>{} );
     }
-#endif
 }
 
 legacy::data_type
 txt_reader::make_legacy( const data_type& src, const txt_reader::flags_type& flags ) const
 {
     legacy::data_type dst;
-#if defined __cpp_fold_expressions
+#if defined __GNUC__ && __GNUC__ <= 6
+
+#else
+# if defined __cpp_fold_expressions
     adtextfile::to_legacy( dst, src, flags );
+# endif
 #endif
     return dst;
 }
