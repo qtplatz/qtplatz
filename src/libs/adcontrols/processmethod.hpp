@@ -93,21 +93,21 @@ namespace adcontrols {
         }
 
         template<class T> const T* find() const {
-            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return is_type<T>( t ); });
+            auto it = std::find_if( begin(), end(), [=,this] ( const value_type& t ){ return is_type<T>( t ); });
             if ( it != end() )
                 return &boost::get<T>(*it);
             return 0;
         }
 
         template<class T> T* find() {
-            auto it = std::find_if( begin(), end(), [=] ( const value_type& t ){ return is_type<T>( t ); });
+            auto it = std::find_if( begin(), end(), [=,this] ( const value_type& t ){ return is_type<T>( t ); });
             if ( it != end() )
                 return &boost::get<T>(*it);
             return 0;
         }
 
         template<class T> void remove() {
-            auto it = std::remove_if( begin(), end(), [=] ( const value_type& t ){ return is_type<T>( t ); });
+            auto it = std::remove_if( begin(), end(), [=,this] ( const value_type& t ){ return is_type<T>( t ); });
             if ( it != end() )
                 erase( it, end() );
         }

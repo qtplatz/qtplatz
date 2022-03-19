@@ -114,7 +114,7 @@ tcp_server::post( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > p )
 void
 tcp_server::post( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > p )
 {
-    strand_.post( [=] {
+    strand_.post( [=,this] {
 
             if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *p ) ) {
 

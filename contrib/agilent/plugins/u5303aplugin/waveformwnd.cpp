@@ -196,11 +196,11 @@ WaveformWnd::handle_method( const QString& )
     if ( auto ptr = document::instance()->method() ) {
         if ( ( ptr->channels() & 0x01 ) == 0 && sp_[ 0 ] ) {
             sp_[ 0 ]->resize( 0 );
-            spw_->setData( sp_[ 0 ], 0, false );
+            spw_->setData( sp_[ 0 ], 0, QwtPlot::yLeft );
         }
         if ( ( ptr->channels() & 0x02 ) == 0 && sp_[ 1 ] ) {
             sp_[ 1 ]->resize( 0 );
-            spw_->setData( sp_[ 1 ], 1, true );
+            spw_->setData( sp_[ 1 ], 1, QwtPlot::yRight );
         }
         spw_->setAxisAutoScale( QwtPlot::yLeft, true );// ptr->threshold_.autoScale );
         //spw_->setAxisAutoScale( QwtPlot::yRight, ptr->ch2_.autoScale );
@@ -261,7 +261,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                                                                                       , QString::number( sp->getMSProperty().trigNumber() ) );
 
                 spw_->setTitle( title );
-                spw_->setData( sp, idx, bool( idx ) );
+                spw_->setData( sp, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
                 spw_->setKeepZoomed( true );
 
             } else if ( uuid == histogram_observer ) {
@@ -275,7 +275,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                     , QString::number( rate, 'f', 2 ) );
 
                 hpw_->setTitle( title );
-                hpw_->setData( sp, idx, bool( idx ) );
+                hpw_->setData( sp, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
                 hpw_->setKeepZoomed( true );
 
             } else if ( uuid == ap240_observer ) {
@@ -285,7 +285,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                                                                                      , QString::number( sp->getMSProperty().trigNumber() ) );
 
                 spw_->setTitle( title );
-                spw_->setData( sp, idx, bool( idx ) );
+                spw_->setData( sp, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
 
             } else {
                 ADDEBUG() << "Unhandled observer";
@@ -298,11 +298,11 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 
             if ( uuid == u5303a_observer ) {
 
-                spw_->setData( empty, idx, bool( idx ) );
+                spw_->setData( empty, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
 
             } else if ( uuid == histogram_observer ) {
 
-                hpw_->setData( empty, idx, bool( idx ) );
+                hpw_->setData( empty, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
 
             }
 

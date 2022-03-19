@@ -30,19 +30,22 @@
 #include <qtwrapper/font.hpp>
 #include <qwt_color_map.h>
 #include <qwt_interval.h>
-#include <qwt_plot_spectrogram.h>
-#include <qwt_plot_rescaler.h>
-#include <qwt_plot_zoomer.h>
-#include <qwt_plot_panner.h>
-#include <qwt_plot_layout.h>
-#include <qwt_plot_renderer.h>
 #include <qwt_picker_machine.h>
-#include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_renderer.h>
+#include <qwt_plot_rescaler.h>
+#include <qwt_plot_spectrogram.h>
+#include <qwt_plot_zoomer.h>
 #include <qwt_scale_draw.h>
 #include <qwt_scale_engine.h>
+#include <qwt_scale_map.h>
+#include <qwt_scale_widget.h>
+#include <QBrush>
+#include <QPainter>
+#include <QPen>
 #include <QPrinter>
 #include <QPrintDialog>
-#include <QBrush>
 #include <iostream>
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -53,7 +56,7 @@ namespace counting2d {
 
     public:
         marker() : rect_( 7, 7, 1, 1 ) { setZ( 10 ); }
-            
+
         void setRect( const QPointF& p ) {
             rect_ = QRect( int( p.x() ), int( p.y() ), 1, 1 );
         }
@@ -68,11 +71,11 @@ namespace counting2d {
         int height() const { return rect_.height(); }
         QRect& rect() { return rect_; }
         const QRect& rect() const { return rect_; }
-            
+
 
     private:
         void draw( QPainter * painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap, const QRectF& canvasRect ) const override {
-            QRectF scaleRect = this->scaleRect( xMap, yMap );
+            // QRectF scaleRect = this->scaleRect( xMap, yMap );
             painter->save();
             QPen pen( QColor( 0xff, 0xff, 0xff, 0x80 ) ); pen.setWidth( 2 );
             painter->setPen( pen );
@@ -93,16 +96,16 @@ namespace counting2d {
             setRubberBandPen( QColor( Qt::red ) );
             setTrackerPen( QColor( Qt::white ) );
         }
-            
+
         QwtText trackerTextF( const QPointF &pos ) const override {
             QwtText text( QString( "(%1,%2)" ).arg( QString::number( int( pos.x() ) ), QString::number( int( pos.y() ) ) ) );
             QColor bg( Qt::white );
             bg.setAlpha( 100 );
             text.setBackgroundBrush( QBrush( bg ) );
             return text;
-        }            
+        }
     };
-        
+
     // ------------------ zoomer ----------------------
     class zoomer : public QwtPlotZoomer {
     public:
@@ -113,7 +116,7 @@ namespace counting2d {
         virtual QwtText trackerTextF( const QPointF &pos ) const {
             QColor bg( Qt::white );
             bg.setAlpha( 200 );
-            
+
             QwtText text( QString( "%1,%2" ).arg( QString::number( int( pos.x() ) ), QString::number( int( pos.y() ) ) ) );
             text.setBackgroundBrush( QBrush( bg ) );
             return text;
@@ -121,7 +124,7 @@ namespace counting2d {
     };
 
     // ---------------- SpectrogramData ------------------
-    class SpectrogramData: public QwtRasterData  {
+    class SpectrogramData : public QwtRasterData  {
     public:
         SpectrogramData( uint32_t size1, uint32_t size2 ) : dimension_( std::make_pair( size1, size2 ) ) {
             setInterval( Qt::XAxis, QwtInterval( 0, size1, QwtInterval::ExcludeMaximum ) ); // columns
@@ -153,9 +156,25 @@ namespace counting2d {
             }
             return 0;
         }
+        QwtInterval interval( Qt::Axis axis ) const {
+            switch ( axis ) {
+            case Qt::XAxis: return std::get< 0 >( interval_ );
+            case Qt::YAxis: return std::get< 1 >( interval_ );
+            case Qt::ZAxis: return std::get< 2 >( interval_ );
+            }
+            return {};
+        }
+        void setInterval( Qt::Axis axis, QwtInterval && interval ) {
+            switch ( axis ) {
+            case Qt::XAxis: std::get< 0 >( interval_ ) = std::move( interval ); break;
+            case Qt::YAxis: std::get< 1 >( interval_ ) = std::move( interval ); break;
+            case Qt::ZAxis: std::get< 2 >( interval_ ) = std::move( interval ); break;
+            }
+        }
     private:
         std::shared_ptr< adcontrols::MappedImage > data_;
         std::pair< size_t, size_t > dimension_;
+        std::tuple< QwtInterval, QwtInterval, QwtInterval > interval_;
     };
 
     //------------------------- ColorMap -------------------------------
@@ -170,25 +189,24 @@ namespace counting2d {
 
     //------------------------- impl ----------------------------------
     class SpectrogramPlot::impl {
-        SpectrogramPlot * this_;
+        // SpectrogramPlot * this_;
     public:
-        impl( SpectrogramPlot * p ) : this_( p )
-                                    , spectrogram_( new QwtPlotSpectrogram() )
-                                    , drawable_( new SpectrogramData( 64, 64 ) )
-                                    , marker_( new marker() )
+        impl( SpectrogramPlot * ) : spectrogram_( new QwtPlotSpectrogram() )
+                                  , drawable_( new SpectrogramData( 64, 64 ) )
+                                  , marker_( new marker() )
             {}
 
         ~impl()  {
-            // following two objects are self-delete in QWT 
+            // following two objects are self-delete in QWT
             drawable_ = 0;
             spectrogram_ = 0;
         }
-            
+
         QwtPlotSpectrogram * spectrogram_;
         SpectrogramData * drawable_;
         marker * marker_;
     };
-        
+
     //----------------------------------------------------------------
 
 }
@@ -203,7 +221,7 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
                                                     , impl_( new impl( this ) )
 {
     impl_->spectrogram_->setRenderThreadCount( 0 ); // use system specific thread count
-    
+
     impl_->spectrogram_->setColorMap( new ColorMap() );
     impl_->spectrogram_->setCachePolicy( QwtPlotRasterItem::PaintCache );
 
@@ -231,7 +249,7 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
     axisScaleEngine( QwtPlot::xBottom )->setAttribute( QwtScaleEngine::Floating, true );
     axisScaleEngine( QwtPlot::yLeft )->setAttribute( QwtScaleEngine::Floating, true );
     axisScaleEngine( QwtPlot::yLeft )->setAttribute( QwtScaleEngine::Inverted, true );
-    
+
 	setAxisScale(QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue());
     enableAxis( QwtPlot::yRight );
 
@@ -256,22 +274,22 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
         picker->setRubberBand( QwtPicker::RectRubberBand );
         picker->setRubberBandPen( QColor( Qt::red ) );
         picker->setTrackerPen( QColor( Qt::white ) );
-        
+
         picker->setMousePattern( QwtEventPattern::MouseSelect1, Qt::RightButton );
         picker->setTrackerMode( QwtPicker::AlwaysOff );
         picker->setEnabled( true );
-        
-        connect( picker, static_cast<void( QwtPlotPicker::* )( const QPointF& )>( &QwtPlotPicker::selected ), 
+
+        connect( picker, static_cast<void( QwtPlotPicker::* )( const QPointF& )>( &QwtPlotPicker::selected ),
                  this, [this] ( const QPointF& p ) {
                      impl_->marker_->setRect( p ); replot();
                      emit cellSelected( impl_->marker_->rect() );
                  } );
 
-        connect( picker, static_cast<void( QwtPlotPicker::* )( const QRectF& )>( &QwtPlotPicker::selected ), 
+        connect( picker, static_cast<void( QwtPlotPicker::* )( const QRectF& )>( &QwtPlotPicker::selected ),
                  this, [this] ( const QRectF& rc ) {
                      impl_->marker_->setRect( rc ); replot();
-                     emit cellSelected( impl_->marker_->rect() );                     
-                 } );        
+                     emit cellSelected( impl_->marker_->rect() );
+                 } );
     }
 
     auto font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
@@ -301,7 +319,7 @@ SpectrogramPlot::setData( std::shared_ptr< adcontrols::MappedImage >&& matrix )
         }
     }
 
-    // double z = matrix->max_z();    
+    // double z = matrix->max_z();
     impl_->drawable_->setData( std::move( matrix ) );
 	impl_->spectrogram_->invalidateCache();
 
@@ -312,10 +330,10 @@ void
 SpectrogramPlot::setAxisZMax( double z )
 {
     if ( z > 0 ) {
-        
-        QwtInterval zInterval( 0.0, z );
-        impl_->drawable_->setInterval( Qt::ZAxis, zInterval );
 
+        impl_->drawable_->setInterval( Qt::ZAxis, QwtInterval( 0.0, z ) );
+
+        QwtInterval zInterval( 0.0, z );
         // A color bar on the right axis
         axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new ColorMap() );
         setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );

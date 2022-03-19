@@ -175,15 +175,15 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 
     if ( ptr ) {
         std::call_once( impl::flag2_, [&] () {
-                impl_->threads_.push_back( adportable::asio::thread( [=]() {
-                    try {
-                        impl_->io_service_.run();
-                    } catch ( std::exception& ex ) {
-                        ADDEBUG() << boost::current_exception_diagnostic_information();
-                        BOOST_THROW_EXCEPTION( ex );
-                    }
-                    } ) );
-            });
+            impl_->threads_.push_back( adportable::asio::thread( [=,this]() {
+                try {
+                    impl_->io_service_.run();
+                } catch ( std::exception& ex ) {
+                    ADDEBUG() << boost::current_exception_diagnostic_information();
+                    BOOST_THROW_EXCEPTION( ex );
+                }
+            } ) );
+        });
 
         do {
             std::lock_guard< std::mutex > lock( impl_->mutex() );

@@ -464,18 +464,18 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
         auto rstr = QString::fromStdString( ( boost::format("%.2f - %2f") % rect.left() % rect.right() ).str() );
         menu.addAction( QString( "Find single peak (FI; DI-PTR) in %1" ).arg( rstr )
-                        , [=]() {
+                        , [=,this]() {
                             addFIPeak( rect.left(), rect.right() );
                         } );
 
         menu.addAction( QString( "Area in range %1 - %2" ).arg( rstr )
-                        , [=]() {
+                        , [=,this]() {
                             addPeak( rect.left(), rect.right() );
                         } );
     } else {
         auto rc = plots_[ index ]->zoomRect();
         menu.addAction( tr( "Find flow injection peak" )
-                        , [=]() { addFIPeak( rc.left(), rc.right() );  } );
+                        , [=,this]() { addFIPeak( rc.left(), rc.right() );  } );
     }
 
     menu.addAction( tr("Copy image to clipboard")

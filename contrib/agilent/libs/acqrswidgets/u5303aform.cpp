@@ -37,7 +37,7 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
 {
     ui->setupUi( this );
 
-    connect( ui->pushButton, &QPushButton::pressed, [=](){  emit valueChanged( idU5303AAny, 0, QVariant() ); } );
+    connect( ui->pushButton, &QPushButton::pressed, [=,this](){  emit valueChanged( idU5303AAny, 0, QVariant() ); } );
 
     ui->spinBox->setStepBy( []( adwidgets::SpinBox * _this, int step ) {
             int index = _this->value() >= 8 ? ( _this->value() ) / 8 + 7 : _this->value();
@@ -51,7 +51,7 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
             ui->doubleSpinBox_1->setStyleSheet( "QDoubleSpinBox { color: #ff6347; }" );
             emit valueChanged( idU5303AStartDelay, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) );
         } );
-    
+
     // width
     connect( ui->doubleSpinBox_2, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double d ) {
             ui->doubleSpinBox_2->setStyleSheet( "QDoubleSpinBox { color: #ff6347; }" );
@@ -121,7 +121,7 @@ void
 u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
 {
     QSignalBlocker blocks[] = {
-        QSignalBlocker( ui->doubleSpinBox_1 ), QSignalBlocker( ui->doubleSpinBox_2 ), QSignalBlocker( ui->doubleSpinBox ) 
+        QSignalBlocker( ui->doubleSpinBox_1 ), QSignalBlocker( ui->doubleSpinBox_2 ), QSignalBlocker( ui->doubleSpinBox )
         , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ), QSignalBlocker( ui->spinBox_2 )
         , QSignalBlocker( ui->checkBox ) };
 
@@ -208,7 +208,7 @@ u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )
             ui->doubleSpinBox_1->setValue( adcontrols::metric::scale_to_micro( value.toDouble() ) );
         } while ( 0 );
         break;
-        
+
     case idU5303ANbrSamples:
         do {
             QSignalBlocker block( ui->doubleSpinBox_2 );

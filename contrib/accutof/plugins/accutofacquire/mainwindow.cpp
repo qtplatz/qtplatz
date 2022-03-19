@@ -593,7 +593,8 @@ MainWindow::createTopStyledToolbar()
                 choice->addItems( QStringList() << "m/z" << "time" );
                 toolBarLayout->addWidget( choice );
                 choice->setProperty( "id", QVariant( int(i) ) ); // <------------ combo id
-                connect( choice, qOverload<int>( &QComboBox::currentIndexChanged ), [=] ( int index ) { axisChanged( choice, index ); } );
+                connect( choice, qOverload<int>( &QComboBox::currentIndexChanged )
+                         , [=,this] ( int index ) { axisChanged( choice, index ); } );
             }
 
             if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {

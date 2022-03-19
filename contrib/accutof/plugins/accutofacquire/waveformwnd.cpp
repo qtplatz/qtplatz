@@ -59,6 +59,7 @@
 #include <qwt_plot_marker.h>
 #include <qwt_scale_widget.h>
 #include <QBoxLayout>
+#include <QPen>
 #include <QSplitter>
 #include <QLocale>
 #include <boost/format.hpp>
@@ -297,11 +298,11 @@ WaveformWnd::handle_method( const QString& )
     if ( auto ptr = document::instance()->method() ) {
         if ( ( ptr->channels() & 0x01 ) == 0 && sp_[ 0 ] ) {
             sp_[ 0 ]->resize( 0 );
-            spw_->setData( sp_[ 0 ], 0, false );
+            spw_->setData( sp_[ 0 ], 0, QwtPlot::yLeft );
         }
         if ( ( ptr->channels() & 0x02 ) == 0 && sp_[ 1 ] ) {
             sp_[ 1 ]->resize( 0 );
-            spw_->setData( sp_[ 1 ], 1, true );
+            spw_->setData( sp_[ 1 ], 1, QwtPlot::yRight );
         }
         spw_->setAxisAutoScale( QwtPlot::yLeft, true );// ptr->threshold_.autoScale );
         //spw_->setAxisAutoScale( QwtPlot::yRight, ptr->ch2_.autoScale );
@@ -412,13 +413,13 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                     }
                     //.........
                     spw_->setTitle( title );
-                    spw_->setData( sp, idx, bool( idx ) );
+                    spw_->setData( sp, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
                     spw_->setKeepZoomed( true );
 
                     uint32_t id(0);
                     for ( auto& closeup: closeups_ ) {
                         if ( closeup.enable ) {
-                            closeup.sp->setData( sp, 0, true ); // right axis
+                            closeup.sp->setData( sp, 0, QwtPlot::yRight ); // right axis
                             double rate = document::instance()->countRate( id );
                             QString title = QString( "%1 Count rate: %2%" ).arg( closeup.formula, QString::number( rate * 100, 'f', 3 ) );
                             closeup.sp->setTitle( title );
@@ -434,7 +435,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                               , loc.toString( numberOfTriggersSinceInject_ ) );
                     hpw_->setTitle( title );
                     if ( pkdSpectrumEnabled_ ) {
-                        hpw_->setData( sp, 0, false );
+                        hpw_->setData( sp, 0, QwtPlot::yLeft );
                         hpw_->setKeepZoomed( true );
                     }
                 }
@@ -443,12 +444,12 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                 numberOfTriggersSinceInject_ = sp->getMSProperty().numAverage();
                 if ( longTermHistogramEnabled_ ) {
                     // title may set at waveform (PKD) draw
-                    hpw_->setData( sp, 1, true );
+                    hpw_->setData( sp, 1, QwtPlot::yRight );
                 }
 
                 for ( auto& closeup: closeups_ ) {
                     if ( closeup.enable )
-                        closeup.sp->setData( sp, 1, false ); // left axis
+                        closeup.sp->setData( sp, 1, QwtPlot::yLeft ); // left axis
                 }
 
             } else if ( uuid == acqrscontrols::u5303a::histogram_observer ) { // Vth counting
@@ -460,12 +461,12 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                           , QString::number( rate, 'f', 2 ) );
 
                 hpw_->setTitle( title );
-                hpw_->setData( sp, idx, bool( idx ) );
+                hpw_->setData( sp, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
                 hpw_->setKeepZoomed( true );
 
                 for ( auto& closeup: closeups_ ) {
                     if ( closeup.enable )
-                        closeup.sp->setData( sp, 1, false ); // left axis
+                        closeup.sp->setData( sp, 1, QwtPlot::yLeft ); // left axis
                 }
 
             } else {
@@ -474,10 +475,10 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 
         } else {
             if ( uuid == acqrscontrols::u5303a::waveform_observer ) {
-                spw_->setData( nullptr, idx, bool( idx ) );
+                spw_->setData( nullptr, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
 
             } else if ( uuid == acqrscontrols::u5303a::histogram_observer ) {
-                hpw_->setData( nullptr, idx, bool( idx ) );
+                hpw_->setData( nullptr, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
             }
         }
     }
@@ -489,7 +490,7 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
     // ADDEBUG() << "--------------- setMethod ------------- <-- from Chrmatograms";
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    hpw_->setData( nullptr, 1, true ); // clear co-added pkd
+    hpw_->setData( nullptr, 1, QwtPlot::yRight ); // clear co-added pkd
 
     for ( size_t i = 0; i < m.size() && i < closeups_.size(); ++i ) {
         const auto& tofm = m.begin() + i;
@@ -566,11 +567,11 @@ WaveformWnd::handleDrawSettings()
     //hpw_->enableAxis( QwtPlot::yRight, longTermHistogramEnabled_ );
 
     if ( ! pkdSpectrumEnabled_ ) {
-        hpw_->setData( nullptr, 0, false );
+        hpw_->setData( nullptr, 0, QwtPlot::yLeft );
         // hpw_->axisWidget( QwtPlot::yLeft )->hide(); //scaleDraw()->setMinimumExtent( 50 );
     }
     if ( ! longTermHistogramEnabled_ ) {
-        hpw_->setData( nullptr, 1, true );
+        hpw_->setData( nullptr, 1, QwtPlot::yRight );
     }
 }
 

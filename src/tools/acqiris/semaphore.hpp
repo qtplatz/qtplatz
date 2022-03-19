@@ -32,11 +32,11 @@ namespace adportable {
     class semaphore {
         semaphore( const semaphore& ) = delete;
         semaphore& operator = ( const semaphore& ) = delete;
-        
+
         size_t count_;
         std::mutex mutex_;
         std::condition_variable condition_;
-        
+
     public:
         explicit semaphore( size_t ini = 0 ) : count_( ini ) {
         }
@@ -53,7 +53,7 @@ namespace adportable {
         // P
         inline void wait() {
             std::unique_lock< std::mutex > lock( mutex_ );
-            condition_.wait( lock, [=]{ return count_ > 0; } );
+            condition_.wait( lock, [=,this]{ return count_ > 0; } );
             --count_;
         }
 
@@ -70,9 +70,6 @@ namespace adportable {
         void lock() { wait(); }
         void unlock() { signal(); }
         // C++ Locable
-        bool try_lock() { return try_wait(); }        
+        bool try_lock() { return try_wait(); }
     };
 }
-
-
-

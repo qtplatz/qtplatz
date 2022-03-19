@@ -793,7 +793,7 @@ QuanPublisher::appendQuanDataGuids( pugi::xml_node& doc )
                  "SELECT id, QuanResponse.dataGuid, refDataGuid,QuanDataGuids.idx,QuanDataGuids.fcn"
                  " FROM QuanResponse, QuanDataGuids WHERE QuanResponse.dataGuid = QuanDataGuids.dataGuid" ) ) {
 
-            int nSelected = 0;
+            // int nSelected = 0;
             while ( sql.step() == adfs::sqlite_row ) {
                 auto rnode = node.append_child( "row" );
                 detail::append_column append( rnode );

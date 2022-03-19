@@ -32,7 +32,7 @@ using namespace adwidgets;
 MSLockForm::MSLockForm(QWidget *parent) : QWidget(parent), ui(new Ui::MSLockForm)
 {
     ui->setupUi(this);
-    connect( ui->groupBox, &QGroupBox::toggled, this, [=] ( bool checked ){ emit toggled( checked ); } );
+    connect( ui->groupBox, &QGroupBox::toggled, this, [=,this] ( bool checked ){ emit toggled( checked ); } );
 }
 
 MSLockForm::~MSLockForm()
@@ -113,7 +113,7 @@ MSLockForm::setContents( const adcontrols::ProcessMethod& pm, bool bForceCreate 
         setContents( adcontrols::MSLockMethod() );
         return true;
     }
-        
+
     return false;
 }
 
@@ -125,4 +125,3 @@ MSLockForm::getContents( adcontrols::ProcessMethod& pm )
     pm.appendMethod( lkm );
     return true;
 }
-

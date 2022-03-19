@@ -129,7 +129,7 @@ SampleProcessor::__close()
         }
 
         if ( close_future_ ) {
-            boost::asio::post( task::instance()->io_service(), [=]{ close_future_->get(); } );
+            boost::asio::post( task::instance()->io_service(), [=,this]{ close_future_->get(); } );
         }
         auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
         ADINFO() << boost::format( "SampleProcessor: %s\tclosed. Took %.1f seconds to complete." ) % storage_name_.stem().string() % duration;

@@ -212,25 +212,24 @@ task::~task()
 bool
 task::initialize()
 {
-    std::call_once( flag1, [=] () {
+    std::call_once( flag1, [=,this] () {
+        impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->worker_thread(); } ) );
 
-            impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
+        unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
+        ADTRACE() << nCores << " threads created for u5303a task";
+        while( nCores-- ) {
+            impl_->threads_.emplace_back( adportable::asio::thread( [=,this] { impl_->io_service_.run(); } ) );
+        }
 
-            unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
-            ADTRACE() << nCores << " threads created for u5303a task";
-            while( nCores-- ) {
-                impl_->threads_.emplace_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
-            }
+        adacquire::task::instance()->connect_inst_events( [&]( adacquire::Instrument::eInstEvent ev ){
+            // handle UDP port 7125 event
+            if ( ev == adacquire::Instrument::instEventInjectOut )
+                document::instance()->actionInject();
+        });
 
-            adacquire::task::instance()->connect_inst_events( [&]( adacquire::Instrument::eInstEvent ev ){
-                    // handle UDP port 7125 event
-                    if ( ev == adacquire::Instrument::instEventInjectOut )
-                        document::instance()->actionInject();
-                });
+        adacquire::task::instance()->initialize();
 
-            adacquire::task::instance()->initialize();
-
-        } );
+    } );
 
     return true;
 }
@@ -276,7 +275,7 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 
         impl_->data_status_[ so->objid() ].posted_data_count_++;
 
-        boost::asio::post( impl_->io_service_, [=]{ impl_->readData( so, pos ); } );
+        boost::asio::post( impl_->io_service_, [=,this]{ impl_->readData( so, pos ); } );
         //impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
 
     }

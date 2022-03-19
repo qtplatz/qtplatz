@@ -221,36 +221,36 @@ task::initialize()
 {
     std::call_once(
         flag1
-        , [=] () {
-              impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
+        , [=,this] () {
+            impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->worker_thread(); } ) );
 
-              unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
-              ADTRACE() << nCores << " threads created for acquire task";
-              while( nCores-- )
-                  impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
+            unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
+            ADTRACE() << nCores << " threads created for acquire task";
+            while( nCores-- )
+                impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->io_service_.run(); } ) );
 
-              adacquire::task::instance()->connect_inst_events(
-                  []( adacquire::Instrument::eInstEvent ev ){ // handle {UDP port 7125|hardware injection via signalObserver}
-                      ADTRACE() << "Event: " << ev << " handled";
-                      if ( ev == adacquire::Instrument::instEventInjectOut )
-                          document::instance()->actionInject();
-                  });
+            adacquire::task::instance()->connect_inst_events(
+                []( adacquire::Instrument::eInstEvent ev ){ // handle {UDP port 7125|hardware injection via signalObserver}
+                    ADTRACE() << "Event: " << ev << " handled";
+                    if ( ev == adacquire::Instrument::instEventInjectOut )
+                        document::instance()->actionInject();
+                });
 
-              // Listen 'inject' trigger from UDP Event Source
-              adacquire::task::instance()->connect_inst_events( std::bind( &task::impl::handle_inst_event, impl_, std::placeholders::_1 ) );
+            // Listen 'inject' trigger from UDP Event Source
+            adacquire::task::instance()->connect_inst_events( std::bind( &task::impl::handle_inst_event, impl_, std::placeholders::_1 ) );
 
-              // periodic timer (100ms interval)
-              adacquire::task::instance()->connect_periodic_timer( std::bind( &task::impl::handle_periodic_timer, impl_, std::placeholders::_1 ) );
+            // periodic timer (100ms interval)
+            adacquire::task::instance()->connect_periodic_timer( std::bind( &task::impl::handle_periodic_timer, impl_, std::placeholders::_1 ) );
 
-              // time event handler
-              adacquire::task::instance()->register_time_event_handler( std::bind( &task::impl::handle_time_event
-                                                                                   , impl_
-                                                                                   , std::placeholders::_1
-                                                                                   , std::placeholders::_2
-                                                                                   , std::placeholders::_3 ) );
-              // Initialize core
-              adacquire::task::instance()->initialize();
-          } );
+            // time event handler
+            adacquire::task::instance()->register_time_event_handler( std::bind( &task::impl::handle_time_event
+                                                                                 , impl_
+                                                                                 , std::placeholders::_1
+                                                                                 , std::placeholders::_2
+                                                                                 , std::placeholders::_3 ) );
+            // Initialize core
+            adacquire::task::instance()->initialize();
+        } );
 
     return true;
 }
@@ -297,7 +297,7 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 #endif
     if ( impl_->isRecording_ ) {
         impl_->data_status_[ so->objid() ].posted_data_count_++;
-        impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
+        impl_->io_service_.post( [=,this]{ impl_->readData( so, pos ); } );
     }
 }
 
