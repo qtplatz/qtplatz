@@ -97,6 +97,7 @@ txt_reader::load( std::ifstream& istrm
 }
 
 namespace adtextfile {
+
 #if defined __GNUC__ && __GNUC__ <= 6
 
     template<class Tuple, std::size_t... Is>
@@ -106,8 +107,18 @@ namespace adtextfile {
                          , std::index_sequence<Is...>)
     {
         ((std::get<Is>(dst).resize( flags[Is] ? src.size() : 0 )), ...);
-        // ((std::transform( src.begin(), flags[Is] ? src.end() : src.begin(), std::get<Is>( dst ).begin()
-        //                   , [](const auto& t){ return std::get<Is>(t); }) ), ...);
+        if ( flags[ 0 ] ) {
+            std::transform( src.begin(), src.end(), std::get<0>( dst ).begin(), []( const auto& t){ return std::get<0>(t); } );
+        }
+        if ( flags[ 1 ] ) {
+            std::transform( src.begin(), src.end(), std::get<1>( dst ).begin(), []( const auto& t){ return std::get<1>(t); } );
+        }
+        if ( flags[ 2 ] ) {
+            std::transform( src.begin(), src.end(), std::get<2>( dst ).begin(), []( const auto& t){ return std::get<2>(t); } );
+        }
+        if ( flags[ 3 ] ) {
+            std::transform( src.begin(), src.end(), std::get<3>( dst ).begin(), []( const auto& t){ return std::get<3>(t); } );
+        }
     }
 
 #elif defined __cpp_fold_expressions
@@ -138,12 +149,6 @@ legacy::data_type
 txt_reader::make_legacy( const data_type& src, const txt_reader::flags_type& flags ) const
 {
     legacy::data_type dst;
-#if defined __GNUC__ && __GNUC__ <= 6
-
-#else
-# if defined __cpp_fold_expressions
     adtextfile::to_legacy( dst, src, flags );
-# endif
-#endif
     return dst;
 }
