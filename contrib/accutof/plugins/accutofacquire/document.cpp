@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -103,7 +103,6 @@
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
-// #include <json.hpp>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -234,26 +233,12 @@ namespace accutof { namespace acquire {
             }
         };
 
-        // struct exec_fsm_inject {
-        //     void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
-        //         task::instance()->sample_injected();
-        //         for ( auto& iController : iControllers ) {
-        //             if ( auto session = iController->getInstrumentSession() ) {
-        //                 ADDEBUG() << "##### INJECT loopback to peripherals #####";
-        //                 session->event_out( adacquire::Instrument::instEventInjectOut ); // loopback to peripherals
-        //             }
-        //         }
-        //     }
-        // };
-
         struct exec_fsm_complete {
             void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
                 adacquire::task::instance()->fsmStart();
                 adacquire::task::instance()->fsmReady();
             }
         };
-
-        // template<typename T> struct wrap {};
 
         //..........................................
         class document::impl {
@@ -285,7 +270,6 @@ namespace accutof { namespace acquire {
 
             std::shared_ptr< QSettings > settings_;  // user scope settings
             QString ctrlmethod_filename_;
-
             std::map< QString, bool > moduleStates_;
 
             // display data

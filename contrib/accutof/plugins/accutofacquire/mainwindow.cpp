@@ -355,6 +355,15 @@ MainWindow::OnInitialUpdate()
         }
     }
 
+    // update axis, closeup views
+    if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
+        auto m = widget->method();
+        if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+            wnd->setMethod( m );
+            document::instance()->setMethod( m );
+        }
+    }
+
 #if ! defined Q_OS_MAC
     for ( auto dock: dockWidgets() )
         dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
