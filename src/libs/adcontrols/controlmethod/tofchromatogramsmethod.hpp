@@ -26,6 +26,8 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <string>
 #include <map>
 #include <vector>
@@ -72,10 +74,20 @@ namespace adcontrols {
         static bool archive( std::ostream&, const TofChromatogramsMethod& );
         static bool restore( std::istream&, TofChromatogramsMethod& );
         static bool xml_archive( std::wostream&, const TofChromatogramsMethod& );
-        static bool xml_restore( std::wistream&, TofChromatogramsMethod& );        
-        
+        static bool xml_restore( std::wistream&, TofChromatogramsMethod& );
+
     private:
         class impl;
         impl * impl_;
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofChromatogramsMethod& );
+        friend ADCONTROLSSHARED_EXPORT TofChromatogramsMethod
+        tag_invoke( boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv );
     };
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofChromatogramsMethod& );
+
+    ADCONTROLSSHARED_EXPORT
+    TofChromatogramsMethod tag_invoke( boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv );
+
 }

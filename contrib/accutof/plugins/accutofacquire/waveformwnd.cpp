@@ -109,7 +109,8 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
 
     init();
 
-    connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
+    connect( document::instance(), &document::dataChanged, this, &WaveformWnd::handleDataChanged );
+    connect( document::instance(), &document::traceChanged, this, &WaveformWnd::handleTraceChanged );
     connect( document::instance(), &document::drawSettingChanged, [&]{ handleDrawSettings(); } );
 }
 
@@ -143,7 +144,7 @@ WaveformWnd::init()
             closeup.sp->setAutoAnnotation( false );
             closeup.sp->setKeepZoomed( true );
             closeup.sp->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
-            closeup.sp->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
+            closeup.sp->setAxisTitle( QwtPlot::yLeft, tr( "a.u." ) );
             closeup.marker = std::make_unique< adplot::SpanMarker >( QColor( 0x4b, 0x00, 0x62, 0x60 ), QwtPlotMarker::VLine, 1.5 );
             closeup.marker->attach( closeup.sp.get() );
             splitter_r->addWidget( closeup.sp.get() );
@@ -178,7 +179,7 @@ WaveformWnd::init()
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
-    hpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
+    hpw_->setAxisTitle( QwtPlot::yLeft, tr( "Counts" ) );
     //hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
     //hpw_->enableAxis( QwtPlot::yRight, true );
 
@@ -188,7 +189,7 @@ WaveformWnd::init()
 
     spw_->link( hpw_ );
 
-    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
+    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "Counts" ) );
     //tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
     //tpw_->enableAxis( QwtPlot::yRight, true );
 
@@ -310,7 +311,7 @@ WaveformWnd::handle_method( const QString& )
 }
 
 void
-WaveformWnd::pkdAvgTraceChanged()
+WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_obsserver */ )
 {
     std::vector< std::shared_ptr< adcontrols::Trace > > traces;
 
@@ -381,23 +382,25 @@ WaveformWnd::thresholdTraceChanged()
 }
 
 void
-WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
+WaveformWnd::handleDataChanged( const boost::uuids::uuid& uuid, int idx )
 {
+    // ADDEBUG() << uuid
+    //           << "\t"  << bool( uuid == acqrscontrols::u5303a::waveform_observer )
+    //           << "\t" << idx;
     std::lock_guard< std::mutex > lock( mutex_ );
     QLocale loc;
-    if ( uuid == pkd_trace_observer ) {
 
-        pkdAvgTraceChanged();
-
-    } else if ( uuid == trace_observer ) {
+    if ( uuid == trace_observer ) {
 
         thresholdTraceChanged();
 
     } else {
+        // idx == 0 --> avg.waveform
+        // idx == 1 --> pkd.waveform
         if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
 
             if ( uuid == acqrscontrols::u5303a::waveform_observer ) {
-                if ( idx == 0 ) {
+                if ( idx == 0 ) { // avg.waveform
                     // waveform (analog)
                     double seconds = sp->getMSProperty().timeSinceInjection();
                     QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( loc.toString( seconds, 'f', 4 )
@@ -413,13 +416,14 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                     }
                     //.........
                     spw_->setTitle( title );
-                    spw_->setData( sp, idx, bool( idx ) ? QwtPlot::yRight : QwtPlot::yLeft );
+                    spw_->setData( sp, idx, QwtPlot::yLeft );
                     spw_->setKeepZoomed( true );
 
                     uint32_t id(0);
+                    const auto yAxis = pkdSpectrumEnabled_ ? QwtPlot::yRight : QwtPlot::yLeft;
                     for ( auto& closeup: closeups_ ) {
                         if ( closeup.enable ) {
-                            closeup.sp->setData( sp, 0, QwtPlot::yRight ); // right axis
+                            closeup.sp->setData( sp, 1, yAxis );
                             double rate = document::instance()->countRate( id );
                             QString title = QString( "%1 Count rate: %2%" ).arg( closeup.formula, QString::number( rate * 100, 'f', 3 ) );
                             closeup.sp->setTitle( title );
@@ -428,19 +432,23 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
                     }
 
                 } else {
-                    // waveform (PKD)
+                    // pkd.waveform (PKD)
                     elapsedTime_ = sp->getMSProperty().timeSinceInjection();
                     QString title = QString( "U5303A: Elapsed time: %1s, Total <font color=blue>%2 <font color=black>triggers acquired." )
                         .arg( loc.toString( elapsedTime_, 'f', 3 )
                               , loc.toString( numberOfTriggersSinceInject_ ) );
                     hpw_->setTitle( title );
+                    hpw_->setData( sp, 0, QwtPlot::yLeft );
+                    hpw_->setKeepZoomed( true );
                     if ( pkdSpectrumEnabled_ ) {
-                        hpw_->setData( sp, 0, QwtPlot::yLeft );
-                        hpw_->setKeepZoomed( true );
+                        for ( auto& closeup: closeups_ ) {
+                            if ( closeup.enable ) {
+                                closeup.sp->setData( sp, 0, QwtPlot::yLeft );
+                            }
+                        }
                     }
                 }
-
-            } else if ( uuid == acqrscontrols::u5303a::pkd_coadd_spectrum ) {
+            } else if ( uuid == acqrscontrols::u5303a::pkd_coadd_spectrum ) { // soft pkd
                 numberOfTriggersSinceInject_ = sp->getMSProperty().numAverage();
                 if ( longTermHistogramEnabled_ ) {
                     // title may set at waveform (PKD) draw
@@ -487,12 +495,12 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 void
 WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-    // ADDEBUG() << "--------------- setMethod ------------- <-- from Chrmatograms";
     std::lock_guard< std::mutex > lock( mutex_ );
 
     hpw_->setData( nullptr, 1, QwtPlot::yRight ); // clear co-added pkd
 
     for ( size_t i = 0; i < m.size() && i < closeups_.size(); ++i ) {
+
         const auto& tofm = m.begin() + i;
         auto& closeup = closeups_.at( i );
 

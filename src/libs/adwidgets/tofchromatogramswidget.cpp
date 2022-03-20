@@ -29,6 +29,7 @@
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -62,7 +63,6 @@ namespace adwidgets {
 
         impl( TofChromatogramsWidget * p ) : this_( p )
                                            , model_( std::make_unique< QStandardItemModel >() ) {
-
             model_->setColumnCount( ncolumns );
             model_->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
             model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
@@ -81,20 +81,23 @@ namespace adwidgets {
             int row = _1.row();
             QSignalBlocker block( model_.get() );
             if ( _1.column() == c_formula ) {
-                double exactMass = MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
-                if ( exactMass > 0.7 && exactMass < 100000 ) {
-                    model_->setData( model_->index( row, c_mass ), exactMass );
+                adcontrols::ChemicalFormula cf;
+                auto formulae = _1.data( Qt::EditRole ).toString().toStdString();
+                auto mc = cf.getMonoIsotopicMass( cf.split( formulae ) );
+                if ( mc.first > 0.7 ) {
+                    model_->setData( model_->index( row, c_mass ), mc.first );
                     if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.0001 )
                         model_->setData( model_->index( row, c_masswindow ), 0.100 );
-
                     if ( auto sp = spectrometer_.lock() ) {
-                        double time = sp->timeFromMass( exactMass );
+                        double time = sp->timeFromMass( mc.first );
                         model_->setData( model_->index( row, c_time ), time * std::micro::den );
                     }
                 } else {
                     for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
                         model_->setData( model_->index( row, id ), QVariant() );
                 }
+                if ( auto tv = this_->findChild< QTableView * >() )
+                    tv->resizeColumnToContents( c_formula );
             } else if ( _1.column() == c_time ) {
                 if ( auto sp = spectrometer_.lock() ) {
                     double mass = sp->assignMass( _1.data( Qt::EditRole ).toDouble() / std::micro::den );
@@ -166,9 +169,9 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         table->setPrecision( c_timewindow, 3 );
         {
             std::vector< std::pair< QString, QVariant > > choice;
-            choice.emplace_back( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) );
-            choice.emplace_back( "Height", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) );
-            choice.emplace_back( "Counting", QVariant( adcontrols::TofChromatogramMethod::eCounting ) );
+            choice.emplace_back( "Area", QVariant( adcontrols::xic::ePeakAreaOnProfile ) );
+            choice.emplace_back( "Height", QVariant( adcontrols::xic::ePeakHeightOnProfile ) );
+            choice.emplace_back( "Counting", QVariant( adcontrols::xic::eCounting ) );
             table->setChoice( c_algo, choice );
         }
         {
@@ -190,12 +193,12 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
     }
 
     if ( auto form = findChild< TofChromatogramsForm * >() )  {
-        connect( form, &TofChromatogramsForm::applyTriggered, [this](){ emit applyTriggered(); } );
         connect( form, &TofChromatogramsForm::valueChanged, [this](){ emit valueChanged(); } );
     }
 
-    connect( impl_->model_.get(), &QStandardItemModel::dataChanged
-             , [this] ( const QModelIndex& _1, const QModelIndex& _2 ) { impl_->dataChanged( _1, _2 ); } );
+    connect( impl_->model_.get()
+             , &QStandardItemModel::dataChanged
+             , [&] ( const QModelIndex& _1, const QModelIndex& _2 ) { impl_->dataChanged( _1, _2 ); } );
 }
 
 TofChromatogramsWidget::~TofChromatogramsWidget()
@@ -269,8 +272,8 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
     //QSqlDatabase db = QSqlDatabase::database( impl_->connString_ );
     auto& model = *impl_->model_;
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        using adcontrols::TofChromatogramMethod;
         adcontrols::TofChromatogramMethod item;
+        namespace xic = adcontrols::xic;
 
         item.setEnable( model.index( row, c_formula ).data( Qt::CheckStateRole ) == Qt::Checked );
         item.setFormula( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString() );
@@ -278,7 +281,7 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         item.setMassWindow( model.index( row, c_masswindow ).data( Qt::EditRole ).toDouble() );
 		item.setTime( model.index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den );
         item.setTimeWindow( model.index( row, c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setIntensityAlgorithm( TofChromatogramMethod::eIntensityAlgorishm(  model.index( row, c_algo ).data( Qt::EditRole ).toInt() ) );
+        item.setIntensityAlgorithm( xic::eIntensityAlgorishm(  model.index( row, c_algo ).data( Qt::EditRole ).toInt() ) );
         item.setProtocol( model.index( row, c_protocol ).data( Qt::EditRole ).toInt() );
         m << item;
     }
@@ -311,6 +314,9 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
         model.setData( model.index( row, c_algo ), trace.intensityAlgorithm() );
         model.setData( model.index( row, c_protocol ), trace.protocol() );
         ++row;
+    }
+    if ( auto table = findChild< MolTableView * >() ) {
+        table->resizeColumnToContents( c_formula );
     }
     return true;
 

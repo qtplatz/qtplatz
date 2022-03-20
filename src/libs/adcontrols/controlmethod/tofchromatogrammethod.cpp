@@ -24,6 +24,7 @@
 
 #include "tofchromatogrammethod.hpp"
 #include "serializer.hpp"
+#include <adportable/json/extract.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -37,21 +38,21 @@ namespace adcontrols {
 
         ~impl() {
         }
-        
+
         impl() : formula_( "TIC" )
                , mass_( 0 )
                , massWindow_( 0 )
                , time_( 0 )
                , timeWindow_( 0 )
-               , algo_( ePeakAreaOnProfile )
+               , algo_( xic::ePeakAreaOnProfile )
                , protocol_( 0 )
                , id_( -1 )
                , enable_( false ) {
-        }        
+        }
 
         impl( const impl& t ) : formula_( t.formula_ )
                               , mass_( t.mass_ )
-                              , massWindow_( t.massWindow_ )             
+                              , massWindow_( t.massWindow_ )
                               , time_( t.time_ )
                               , timeWindow_( t.timeWindow_ )
                               , algo_( t.algo_ )
@@ -59,13 +60,13 @@ namespace adcontrols {
                               , id_( t.id_ )
                               , enable_( t.enable_ ) {
         }
-        
+
         std::string formula_;
         double mass_;
         double massWindow_;
         double time_;
         double timeWindow_;
-        TofChromatogramMethod::eIntensityAlgorishm algo_;
+        xic::eIntensityAlgorishm algo_;
         int32_t protocol_;  // 0, 1...
         int32_t id_;        // trace id := color index
         bool enable_;
@@ -114,7 +115,7 @@ namespace adcontrols {
     {
         ar & boost::serialization::make_nvp( "impl", *impl_ );
     }
-    
+
 }
 
 BOOST_CLASS_VERSION( adcontrols::TofChromatogramMethod::impl, 1 )
@@ -129,7 +130,7 @@ TofChromatogramMethod::TofChromatogramMethod( const TofChromatogramMethod& t ) :
 {
 }
 
-TofChromatogramMethod::~TofChromatogramMethod() 
+TofChromatogramMethod::~TofChromatogramMethod()
 {
     delete impl_;
 }
@@ -194,14 +195,14 @@ TofChromatogramMethod::setTimeWindow( double seconds )
     impl_->timeWindow_ = seconds;
 }
 
-TofChromatogramMethod::eIntensityAlgorishm
+xic::eIntensityAlgorishm
 TofChromatogramMethod::intensityAlgorithm() const
 {
     return impl_->algo_;
 }
 
 void
-TofChromatogramMethod::setIntensityAlgorithm( eIntensityAlgorishm algo )
+TofChromatogramMethod::setIntensityAlgorithm( xic::eIntensityAlgorishm algo )
 {
     impl_->algo_ = algo;
 }
@@ -240,4 +241,42 @@ void
 TofChromatogramMethod::setEnable( bool enable )
 {
     impl_->enable_ = enable;
+}
+
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramMethod& t )
+    {
+        jv = boost::json::object{ { "TofChromatogramMethod"
+                , {
+                    { "formula",      t.impl_->formula_ }
+                    , { "mass",       t.impl_->mass_ }
+                    , { "massWindow", t.impl_->massWindow_ }
+                    , { "time",       t.impl_->time_ }
+                    , { "algo",       int( t.impl_->algo_ ) }
+                    , { "protocol",   t.impl_->protocol_ }
+                    , { "enable",     t.impl_->enable_ }
+                }
+            }};
+    }
+
+    TofChromatogramMethod
+    tag_invoke( boost::json::value_to_tag< TofChromatogramMethod >&, const boost::json::value& jv )
+    {
+        TofChromatogramMethod t;
+        using namespace adportable::json;
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            extract( obj, t.impl_->formula_,     "formula" );
+            extract( obj, t.impl_->mass_,        "mass" );
+            extract( obj, t.impl_->massWindow_ , "massWindow" );
+            extract( obj, t.impl_->time_ ,       "time" );
+            int algo;
+            extract( obj, algo,                  "algo" );
+            t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
+            extract( obj, t.impl_->enable_,      "enable" );
+        }
+        return t;
+    }
 }

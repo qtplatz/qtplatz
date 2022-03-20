@@ -193,6 +193,7 @@ namespace accutof {
             void sampleRunChanged();
             // void sampleProgress( double elapsed_time, double method_time, const QString& runName, int, int );
             void dataChanged( const boost::uuids::uuid&, int );
+            void traceChanged( const boost::uuids::uuid& );
             void instStateChanged( int );
             void onModulesFailed( const QStringList& );
             void moduleConfigChanged();

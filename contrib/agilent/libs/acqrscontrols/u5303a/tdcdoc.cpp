@@ -314,10 +314,10 @@ tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
 
     for ( auto& trace: method ) {
         if ( trace.enable() && trace.protocol() == waveform->meta_.protocolIndex ) {
-            if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) {
+            if ( trace.intensityAlgorithm() == adcontrols::xic::ePeakAreaOnProfile ) {
                 double a = waveform->accumulate( trace.time(), trace.timeWindow() );
                 values.emplace_back( trace.id(), a );
-            } else if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) {
+            } else if ( trace.intensityAlgorithm() == adcontrols::xic::ePeakHeightOnProfile ) {
                 double rms(0), dbase(0);
                 adportable::spectrum_processor::tic( wform.size(), wform.begin(), dbase, rms, 7 );
                 if ( trace.time() < 1.0e-9 ) {

@@ -1259,10 +1259,11 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
         while ( impl_->traces_.size() < impl_->tofChromatogramsMethod_->size() )
             impl_->traces_.push_back( std::make_shared< adcontrols::Trace >( uint32_t( impl_->traces_.size() ), 8192 - 512, 8192 ) );
 
+        namespace xic = adcontrols::xic;
         size_t idx( 0 );
         std::for_each( impl_->traces_.begin(), impl_->traces_.end(), [&] ( std::shared_ptr< adcontrols::Trace >& trace ) {
             const auto method = impl_->tofChromatogramsMethod_->begin() + idx++;
-            trace->setIsCountingTrace( method->intensityAlgorithm() == method->eCounting );
+            trace->setIsCountingTrace( method->intensityAlgorithm() == xic::eCounting );
         } );
     }
 

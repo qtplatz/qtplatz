@@ -263,8 +263,8 @@ namespace accutof { namespace acquire {
             static const std::chrono::system_clock::time_point uptime_;
             static const uint64_t tp0_;
             static std::set<QString> blockedModules_;
-
             std::shared_ptr< acqrscontrols::u5303a::tdcdoc > tdcdoc_;
+            std::chrono::time_point<std::chrono::steady_clock> trace_check_tp_;
             std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
 
             std::shared_ptr< iU5303AFacade > iU5303AFacade_;
@@ -310,6 +310,7 @@ namespace accutof { namespace acquire {
             bool hasDark_;
 
             impl() : tdcdoc_( std::make_shared< acqrscontrols::u5303a::tdcdoc >() )
+                   , trace_check_tp_( std::chrono::steady_clock::now() )
                    , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                    , iU5303AFacade_( std::make_shared< iU5303AFacade >() )
                    , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "AccuTOF" ) )
@@ -1279,15 +1280,12 @@ document::impl::takeSnapshot()
     std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
     std::string date = adportable::date_string::logformat( tp );
 
-    uint32_t serialnumber(0);
-
     // get waveform(s)
     auto spectra = spectra_[ acqrscontrols::u5303a::waveform_observer ];
 
     int ch = 1;
     for ( auto ms: spectra ) {
         if ( ms ) {
-            serialnumber = ms->getMSProperty().trigNumber();
             QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
             QString folderId;
             if ( appendOnFile( path, title, *ms, folderId ) ) {
@@ -1570,6 +1568,7 @@ document::applyTriggered()
 void
 document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
+    namespace xic = adcontrols::xic;
     tdc()->setTofChromatogramsMethod( m );
     task::instance()->setHistogramClearCycleEnabled( m.refreshHistogram() );
 
@@ -1589,8 +1588,8 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
             } else if ( ( idx - 1 ) < impl_->tofChromatogramsMethod_->size() ) {
                 const auto item = impl_->tofChromatogramsMethod_->begin() + ( idx - 1 );
                 trace->setEnable( item->enable() );
-                trace->setIsCountingTrace( item->intensityAlgorithm() == item->eCounting );
-                char c = item->intensityAlgorithm() == item->eCounting ? 'C' : item->intensityAlgorithm() == item->ePeakAreaOnProfile ? 'A' : 'H';
+                trace->setIsCountingTrace( item->intensityAlgorithm() == xic::eCounting );
+                char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
                 auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
                 trace->setLegend( ( boost::format( "%d: %s[%c]" ) % idx % formula % c ).str() );
             }
@@ -1617,6 +1616,7 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
     // double tic = avg->accumulate( 0, -1 ); // TIC
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
     impl_->traces_ [ 0 ]->append( avg->serialnumber_, seconds, pkd_total_counts );
     impl_->traces_ [ 0 ]->setIsCountingTrace( true );
     impl_->traces_ [ 0 ]->setInjectTime( t_inject );
@@ -1629,10 +1629,10 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
                 impl_->traces_[ id ]->setInjectTime( t_inject );
                 impl_->countrate_calculators_[ item.id() ] << std::make_pair( pkCounts, pkd->meta_.actualAverages );
 
-                if ( item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::eCounting ) {
+                if ( item.intensityAlgorithm() == adcontrols::xic::eCounting ) {
                     impl_->traces_[ id ]->append( pkd->serialnumber(), seconds, pkCounts );
                     impl_->traces_[ id ]->setIsCountingTrace( true );
-                } else if ( item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) {
+                } else if ( item.intensityAlgorithm() == adcontrols::xic::ePeakAreaOnProfile ) {
                     impl_->traces_[ id ]->append( pkd->serialnumber(), seconds, avg->accumulate( item.time(), item.timeWindow() ) ); // area
                     impl_->traces_[ id ]->setIsCountingTrace( false );
                 } else {
@@ -1643,8 +1643,13 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
         }
     }
 
-    if ( impl_->traces_[ 0 ]->size() >= 2 )
-        emit dataChanged( pkd_trace_observer, 0 );
+    using namespace std::chrono_literals;
+    auto tp = std::chrono::steady_clock::now();
+    if ( (impl_->traces_[ 0 ]->size() >= 2 ) && ( tp - impl_->trace_check_tp_ ) > 0.5s ) {
+        emit traceChanged( pkd_trace_observer ); // append timed trace
+        impl_->trace_check_tp_ = tp;
+    }
+
 }
 
 void
@@ -1661,7 +1666,7 @@ document::addCountingChromatogramPoints( const adcontrols::TofChromatogramsMetho
         impl_->traces_[ 0 ]->setInjectTime( t_inject );
 
         for ( auto item: method ) {
-            if ( item.enable() && item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::eCounting ) {
+            if ( item.enable() && item.intensityAlgorithm() == adcontrols::xic::eCounting ) {
                 int id = item.id() + 1;
                 if ( id >= 1 && id < impl_->traces_.size() ) {
                     uint32_t pkCounts = ptr->accumulate( item.time(), item.timeWindow() );

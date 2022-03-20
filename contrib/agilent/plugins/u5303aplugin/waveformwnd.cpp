@@ -210,6 +210,8 @@ WaveformWnd::handle_method( const QString& )
 void
 WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 {
+    namespace xic = adcontrols::xic;
+
     if ( uuid == trace_observer ) {
         auto method = document::instance()->tdc()->tofChromatogramsMethod();
 
@@ -233,7 +235,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             tpw_->setTrace( trace, fcn, yRight ? QwtPlot::yRight : QwtPlot::yLeft );
 
             // title for legends
-            char c = item->intensityAlgorithm() == item->eCounting ? 'C' : item->intensityAlgorithm() == item->ePeakAreaOnProfile ? 'A' : 'H';
+            char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
             auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
             if ( formula.empty() )
                 titles << QwtText( QString( "%1: %2[%3]" ).arg( QString::number( ++idx )

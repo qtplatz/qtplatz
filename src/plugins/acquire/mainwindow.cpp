@@ -172,14 +172,14 @@ MainWindow::createDockWidgets()
         createDockWidget( widget, "Output", "Output" );
         document::instance()->console() << "Hello World" << std::endl;
         connect( widget, &adwidgets::OutputWidget::onInputLine
-                 , [this]( const QString& line ){
+                 , []( const QString& line ){
                        document::instance()->handleConsoleIn( line );
                    });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "tofChromatograms" ) ) {
         createDockWidget( widget, "Chromatograms", "Chromatograms" );
-        connect( widget, &adwidgets::TofChromatogramsWidget::applyTriggered
+        connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged
                  , [widget](){
                        document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
                    });
@@ -188,7 +188,7 @@ MainWindow::createDockWidgets()
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
         createDockWidget( widget, "Modules", "CherryPicker" );
         connect( widget, &adwidgets::CherryPicker::stateChanged
-                 , [this]( const QString& key, bool enable ){
+                 , []( const QString& key, bool enable ){
                        document::instance()->setControllerSettings( key, enable );
                    });
     }
@@ -270,7 +270,7 @@ MainWindow::OnInitialUpdate()
         }
 
         connect( document::instance(), &document::moduleConfigChanged, this
-                 , [this,picker](){
+                 , [picker](){
                        for ( auto& module: document::instance()->controllerSettings() ) {
                            picker->setChecked( module.first, module.second );
                        }
@@ -649,12 +649,12 @@ MainWindow::createActions()
             action->setEnabled( false );
             auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
             menu->addAction( cmd );
-            connect( action, &QAction::triggered, [this](bool rec){
-                    document::instance()->actionRec(rec);
-                    if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
-                        if ( !action->isEnabled() )
-                            action->setEnabled( true );
-                } );
+            connect( action, &QAction::triggered, [](bool rec){
+                document::instance()->actionRec(rec);
+                if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
+                    if ( !action->isEnabled() )
+                        action->setEnabled( true );
+            });
         }
     } while ( 0 );
 

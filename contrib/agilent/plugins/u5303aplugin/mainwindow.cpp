@@ -148,11 +148,11 @@ MainWindow::createDockWidgets()
         widget->setObjectName( "U5303A" );
         createDockWidget( widget, "U5303A", "ControlMethod" );
 
-        connect( widget, &acqrswidgets::u5303AWidget::valueChanged, [this,widget]( acqrswidgets::idCategory cat, int ch ) {
-                acqrscontrols::u5303a::method m;
-                if ( widget->get( m ) )
-                    document::instance()->set_method( m );
-            });
+        connect( widget, &acqrswidgets::u5303AWidget::valueChanged, [widget]( acqrswidgets::idCategory cat, int ch ) {
+            acqrscontrols::u5303a::method m;
+            if ( widget->get( m ) )
+                document::instance()->set_method( m );
+        });
     }
 
     if ( auto widget = new adwidgets::SampleRunWidget ) {
@@ -162,15 +162,14 @@ MainWindow::createDockWidgets()
     if ( auto widget = new adwidgets::TofChromatogramsWidget ) {
 
         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
-        connect( widget, &adwidgets::TofChromatogramsWidget::applyTriggered, [] () { document::instance()->applyTriggered(); } );
 
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
-            connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [=] () {
-                    adcontrols::TofChromatogramsMethod m;
-                    widget->getContents( m );
-                    wnd->setMethod( m ); // draw markers
-                    document::instance()->setMethod( m );
-                } );
+            connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [wnd,widget] () {
+                adcontrols::TofChromatogramsMethod m;
+                widget->getContents( m );
+                wnd->setMethod( m ); // draw markers
+                document::instance()->setMethod( m );
+            });
         }
 
     }
@@ -576,12 +575,12 @@ MainWindow::createActions()
             action->setEnabled( false );
             auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
             menu->addAction( cmd );
-            connect( action, &QAction::triggered, [this](bool rec){
-                    document::instance()->actionRec(rec);
-                    if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
-                        if ( !action->isEnabled() )
-                            action->setEnabled( true );
-                } );
+            connect( action, &QAction::triggered, [](bool rec){
+                document::instance()->actionRec(rec);
+                if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
+                    if ( !action->isEnabled() )
+                        action->setEnabled( true );
+            });
         }
     } while ( 0 );
 

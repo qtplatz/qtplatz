@@ -28,6 +28,7 @@
 #include <QWidget>
 #include <QBoxLayout>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QPushButton>
@@ -41,7 +42,7 @@ namespace adwidgets {
         }
         QVBoxLayout * layout_;
     };
-    
+
 }
 
 using namespace adwidgets;
@@ -51,13 +52,13 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
 {
     setObjectName( "TofChromatogramsForm" );
     impl_->layout_ = new QVBoxLayout( this );
-    
+
     auto gridLayout = new QGridLayout();
     gridLayout->setObjectName( "gridLayout" );
     impl_->layout_->addLayout( gridLayout );
-    
+
     resize( QSize( 100, 80 ) );
-    
+
     int row = 0;
     int col = 0;
     gridLayout->addWidget( create_widget<QLabel>( "label1", "# of triggers" ), row, col++ );
@@ -66,23 +67,25 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
     row++; col = 0;
     gridLayout->addWidget( create_widget<QLabel>( "labelRefresh", "Refresh histogram" ), row, col++ );
     gridLayout->addWidget( create_widget<QCheckBox>( "cbxRefresh" ), row, col++ );
-    
+
     row++; col = 0;
-    gridLayout->addWidget( create_widget<QLabel>( "label2", "Response(s)" ), row, col++ );
-    gridLayout->addWidget( create_widget<QDoubleSpinBox>( "response" ), row, col++ );
+    gridLayout->addWidget( create_widget<QLabel>( "TIC", "TIC" ), row, col++ );
+    if ( auto cb = create_widget< QComboBox >( "algo" ) ) {
+        qobject_cast< QComboBox *>(cb)->addItems( QStringList{ "Area", "Counts", "None" } );
+        gridLayout->addWidget( cb, row, col++ );
+    }
 
+#if 0
     impl_->layout_->addItem( new QSpacerItem( 40, 20, QSizePolicy::Maximum, QSizePolicy::Expanding ) );
-
-    // impl_->layout_->addWidget( create_widget< QPushButton >( "minusButton", tr( "-" ) ) );
-    // impl_->layout_->addWidget( create_widget< QPushButton >( "plusButton", tr( "+" ) ) );
-    // setStyleSheet( "QPushButton#addRow { max-width: 1em; border-style: outset; border-width: 1px; border-color: beige; font: bold 14px; }"
-    //                      "QPushButton#addRow:pressed { background-color: rgb(224,0,0); border-style: inset; }"
-    //                      );
-
     impl_->layout_->addWidget( create_widget< QPushButton >( "applyButton", tr( "Apply" ) ) );
 
     if ( auto button = findChild< QPushButton *>( "applyButton" ) ) {
-        connect( button, &QPushButton::pressed, [this] () { emit applyTriggered(); } );
+        connect( button, &QPushButton::pressed, [this] () { emit valueChanged(); } );
+    }
+#endif
+
+    if ( auto cb = findChild< QComboBox * >( "algo" ) ) {
+        connect( cb, qOverload< int >(&QComboBox::currentIndexChanged), this, [&](int){ emit valueChanged(); } );
     }
 
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) ) {
@@ -92,10 +95,6 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
 
     if ( auto cbx = findChild<QCheckBox *>( "cbxRefresh" ) ) {
         connect( cbx, &QCheckBox::stateChanged, [this] ( double ) { emit valueChanged(); } );
-    }
-    
-    if ( auto spin = findChild<QDoubleSpinBox *>( "response" ) ) {
-        connect( spin, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit valueChanged(); } );
     }
 
 }

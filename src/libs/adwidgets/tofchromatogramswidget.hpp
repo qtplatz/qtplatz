@@ -79,7 +79,6 @@ namespace adwidgets {
 
     signals:
         void valueChanged();
-        void applyTriggered();
         void editorValueChanged( const QModelIndex&, double );
 
     public slots:

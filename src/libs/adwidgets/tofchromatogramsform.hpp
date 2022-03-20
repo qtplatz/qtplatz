@@ -35,7 +35,7 @@ namespace adwidgets {
     class ADWIDGETSSHARED_EXPORT TofChromatogramsForm : public QWidget {
 
         Q_OBJECT
-        
+
     public:
         explicit TofChromatogramsForm( QWidget *parent = 0 );
         ~TofChromatogramsForm();
@@ -51,14 +51,12 @@ namespace adwidgets {
 
         class impl;
         std::unique_ptr< impl > impl_;
-        
+
     signals:
         void valueChanged();
-        void applyTriggered();
 
     public slots:
 
     };
 
 }
-

@@ -61,7 +61,7 @@ namespace acqrscontrols {
     template< typename waveform_type > struct tdcdoc_type {};
     template<> struct tdcdoc_type< u5303a::waveform > { typedef u5303a::tdcdoc _type; };
     template<> struct tdcdoc_type< ap240::waveform > { typedef ap240::tdcdoc _type; };
-    
+
     template< typename waveform_type > struct threshold_result_type {};
     template<> struct threshold_result_type< u5303a::waveform > { typedef u5303a::threshold_result _type; };
     template<> struct threshold_result_type< ap240::waveform > { typedef ap240::threshold_result _type; };
@@ -83,10 +83,10 @@ namespace acqrscontrols {
 
             for ( auto& trace: method ) {
                 if ( trace.enable() && trace.protocol() == waveform->meta_.protocolIndex ) {
-                    if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) {
+                    if ( trace.intensityAlgorithm() == adcontrols::xic::ePeakAreaOnProfile ) {
                         double a = waveform->accumulate( trace.time(), trace.timeWindow() );
                         values.emplace_back( trace.id(), a );
-                    } else if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) {
+                    } else if ( trace.intensityAlgorithm() == adcontrols::xic::ePeakHeightOnProfile ) {
                         double rms(0), dbase(0);
                         adportable::spectrum_processor::tic( wform.size(), wform.begin(), dbase, rms, 7 );
                         if ( trace.time() < 1.0e-9 ) {

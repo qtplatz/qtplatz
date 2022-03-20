@@ -72,8 +72,8 @@ namespace accutof { namespace acquire {
 
 
     private slots:
-        void dataChanged( const boost::uuids::uuid&, int idx );
-        void pkdAvgTraceChanged();
+        void handleDataChanged( const boost::uuids::uuid&, int idx );
+        void handleTraceChanged( const boost::uuids::uuid& );
         void thresholdTraceChanged();
 
     private:

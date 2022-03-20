@@ -350,7 +350,7 @@ task::initialize()
 #if !defined NDEBUG && 0
     ADDEBUG() << "####################### task::initialize #########################";
 #endif
-	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
+	io_service_.post( strand_.wrap( [] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
 

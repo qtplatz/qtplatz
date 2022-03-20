@@ -26,6 +26,8 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <string>
 #include <vector>
 
@@ -33,19 +35,19 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-    // template<typename T> class TofChromatogramMethod_archive;
+    namespace xic {
+        enum eIntensityAlgorishm {
+            ePeakAreaOnProfile
+            , ePeakHeightOnProfile
+            , eCounting
+        };
+    }
 
     class ADCONTROLSSHARED_EXPORT TofChromatogramMethod {
     public:
         ~TofChromatogramMethod();
         TofChromatogramMethod();
         TofChromatogramMethod( const TofChromatogramMethod& );
-
-        enum eIntensityAlgorishm {
-            ePeakAreaOnProfile
-            , ePeakHeightOnProfile
-            , eCounting
-        };
 
         bool enable() const;
         void setEnable( bool );
@@ -56,7 +58,7 @@ namespace adcontrols {
         void setFormula( const std::string& );
 
         /** Mono isotopic mass for generate trace
-         */        
+         */
         double mass() const;
         void setMass( double );
 
@@ -67,12 +69,12 @@ namespace adcontrols {
          */
         double time() const;
         void setTime( double seconds );
-        
+
         const double timeWindow() const;
         void setTimeWindow( double seconds );
 
-        eIntensityAlgorishm intensityAlgorithm() const;
-        void setIntensityAlgorithm( eIntensityAlgorishm );
+        xic::eIntensityAlgorishm intensityAlgorithm() const;
+        void setIntensityAlgorithm( xic::eIntensityAlgorishm );
 
         void setProtocol( int );
         int protocol() const;
@@ -85,5 +87,14 @@ namespace adcontrols {
         impl * impl_;
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofChromatogramMethod& );
+        friend ADCONTROLSSHARED_EXPORT TofChromatogramMethod
+        tag_invoke( boost::json::value_to_tag< TofChromatogramMethod >&, const boost::json::value& jv );
     };
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofChromatogramMethod& );
+
+    ADCONTROLSSHARED_EXPORT
+    TofChromatogramMethod tag_invoke( boost::json::value_to_tag< TofChromatogramMethod >&, const boost::json::value& jv );
 }

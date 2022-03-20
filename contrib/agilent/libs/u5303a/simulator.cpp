@@ -50,7 +50,11 @@ namespace u5303a {
     static size_t __counter__;
 
     static std::vector< std::pair<double, double> >
-    peak_list = { { 14.0e-6, 0.01 }, { 25.0e-6, 0.005 }, { 46.0e-6, 0.0030 } };
+    peak_list = {
+        { 14.0e-6, 0.01 }
+        , { 27.351e-6, 0.005 } // 257.2481, palmitic acid (newtral) +H
+        , { 42.456e-6, 0.0030 } // 622.0295,
+    };
 
     class waveform_simulator : public adacquire::waveform_simulator {
     public:

@@ -25,6 +25,7 @@
 #include "tofchromatogramsmethod.hpp"
 #include "tofchromatogrammethod.hpp"
 #include "serializer.hpp"
+#include <adportable/json/extract.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -57,15 +58,12 @@ namespace adcontrols {
                 vec_.resize( 8 );
             for ( size_t i = 0; i < vec_.size(); ++i )
                 vec_[ i ].setId( i );
-            for ( size_t i = sz; i < vec_.size(); ++i ) {
-                vec_[ i ].setFormula( "TIC" );
-                vec_[ i ].setIntensityAlgorithm( i % 01 ? TofChromatogramMethod::ePeakAreaOnProfile : TofChromatogramMethod::eCounting );
-                vec_[ i ].setEnable( false );
-            }
         }
 
         size_t numberOfTriggers_;
         bool refreshHistogram_; // real-time monitoring parameter
+        bool enableTIC_;
+        adcontrols::xic::eIntensityAlgorishm algo_;
         std::vector< TofChromatogramMethod > vec_;
 
     private:
@@ -200,4 +198,39 @@ TofChromatogramsMethod::clsid()
     static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
     static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "adcontrols::TofChromatogramsMethod" );
     return myclsid;
+}
+
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramsMethod& t )
+    {
+        jv = boost::json::object{ { "TofChromatogramsMethod"
+                , {
+                    { "numberOfTriggers",      t.impl_->numberOfTriggers_ }
+                    , { "refreshHistogram",    t.impl_->refreshHistogram_ }
+                    , { "enableTIC",           t.impl_->enableTIC_ }
+                    , { "algoTIC",             int( t.impl_->algo_ ) }
+                    , { "vec",                 t.impl_->vec_ }
+                }
+            }};
+    }
+
+    TofChromatogramsMethod
+    tag_invoke( boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv )
+    {
+        TofChromatogramsMethod t;
+        using namespace adportable::json;
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            extract( obj, t.impl_->numberOfTriggers_, "numberOfTriggers" );
+            extract( obj, t.impl_->refreshHistogram_, "refreshHistogram" );
+            extract( obj, t.impl_->enableTIC_,        "enableTIC" );
+            int algo;
+            extract( obj, algo,             "algoTIC" );
+            t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
+            extract( obj, t.impl_->vec_,              "vec" );
+        }
+        return t;
+    }
 }

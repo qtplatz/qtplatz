@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -131,27 +131,6 @@ MainWindow::createDockWidgets()
     file.open( QFile::ReadOnly );
     QString tabStyle( file.readAll() );
 
-    if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
-
-        createDockWidget( widget, "Threshold", "ThresholdMethod" );
-
-        connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
-                if ( auto form = findChild< acqrswidgets::ThresholdWidget * >() ) {
-                    if ( cat == acqrswidgets::idSlopeTimeConverter ) {
-                        adcontrols::threshold_method tm;
-                        form->get( ch, tm );
-                        document::instance()->set_threshold_method( ch, tm ); // <--
-                    } else if ( cat == acqrswidgets::idThresholdAction ) {
-                        adcontrols::threshold_action am;
-                        form->get( am );
-                        document::instance()->set_threshold_action( am ); // <--
-                    }
-                }
-
-            });
-    }
-
-
     ///////// U5303A /////////
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::u5303AWidget>( "U5303A" ) ) {
 
@@ -193,24 +172,38 @@ MainWindow::createDockWidgets()
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
-
         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
-        connect( widget, &adwidgets::TofChromatogramsWidget::applyTriggered, [] () { document::instance()->applyTriggered(); } );
-        if ( auto wnd = findChild< WaveformWnd * >() ) {
-            connect( widget, &adwidgets::TofChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
-                    if ( index.column() == 4 || index.column() == 5 )  // time | time-window
-                        wnd->setSpanMarker( index.row(), index.column() - 4, value );
-                } );
-        }
-
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+            connect( widget, &adwidgets::TofChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
+                if ( index.column() == 4 || index.column() == 5 )  // time | time-window
+                    wnd->setSpanMarker( index.row(), index.column() - 4, value );
+            });
+
             connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [=] () {
-                    adcontrols::TofChromatogramsMethod m;
-                    widget->getContents( m );
-                    wnd->setMethod( m ); // draw markers
-                    document::instance()->setMethod( m );
-                } );
+                adcontrols::TofChromatogramsMethod m;
+                widget->getContents( m );
+                wnd->setMethod( m ); // draw markers
+                document::instance()->setMethod( m );
+            });
         }
+    }
+
+    if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
+        createDockWidget( widget, "Threshold", "ThresholdMethod" );
+        connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
+                if ( auto form = findChild< acqrswidgets::ThresholdWidget * >() ) {
+                    if ( cat == acqrswidgets::idSlopeTimeConverter ) {
+                        adcontrols::threshold_method tm;
+                        form->get( ch, tm );
+                        document::instance()->set_threshold_method( ch, tm ); // <--
+                    } else if ( cat == acqrswidgets::idThresholdAction ) {
+                        adcontrols::threshold_action am;
+                        form->get( am );
+                        document::instance()->set_threshold_action( am ); // <--
+                    }
+                }
+
+            });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
@@ -481,7 +474,7 @@ MainWindow::setSimpleDockWidgetArrangement()
 {
     qtwrapper::TrackingEnabled< Utils::FancyMainWindow > x( *this );
 
-    const std::string left = "ThresholdMethod;DelayPulseSSE"; // ;SampleRunWidget";
+    const std::string left = ""; //"ThresholdMethod;DelayPulseSSE"; // ;SampleRunWidget";
 
     for ( auto widget : dockWidgets() ) {
         widget->setFloating( false );

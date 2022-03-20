@@ -270,14 +270,9 @@ void
 task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
-
     if ( impl_->isRecording_ ) {
-
         impl_->data_status_[ so->objid() ].posted_data_count_++;
-
-        boost::asio::post( impl_->io_service_, [=,this]{ impl_->readData( so, pos ); } );
-        //impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
-
+        boost::asio::post( impl_->io_service_, [=]{ task::instance()->impl_->readData( so, pos ); } );
     }
 }
 
