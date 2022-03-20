@@ -53,11 +53,10 @@ main( int argc, char * argv [] )
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
-            //( "host,h",    po::value< std::string >()->default_value( "www.example.com" ), "host" )
             ( "host,h",    po::value< std::string >()->default_value( "pubchem.ncbi.nlm.nih.gov" ), "host" )
             ( "port,p",    po::value< std::string >()->default_value( "https" ), "port" )
-            ( "target,t",  po::value< std::string >()->default_value( "/rest/pug/compound/cid/2244" ),  "target" )
-            // ( "target,t",  po::value< std::string >()->default_value( "/" ),    "target" )
+            //( "target,t",  po::value< std::string >()->default_value( "/rest/pug/compound/cid/2244" ),  "target" )
+            ( "target,t",  po::value< std::string >()->default_value( "/rest/pug/compound/name/APAP" ),  "target" )
             ( "version,v", po::value< std::string >()->default_value( "1.0" ),  "version" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
@@ -75,12 +74,10 @@ main( int argc, char * argv [] )
 
     // The io_context is required for all I/O
     boost::asio::io_context ioc;
-    ssl::context ctx{ssl::context::tlsv12_client};
+    boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
     load_root_certificates(ctx);
 
     std::make_shared<session>( boost::asio::make_strand(ioc),  ctx )->run(host, port, target, version);
-
-    // std::make_shared<session>(ioc)->run( host.c_str(), port.c_str(), target.c_str(), version );
     ioc.run();
 
     return 0;
