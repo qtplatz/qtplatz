@@ -137,8 +137,8 @@ MainWindow::createDockWidgets()
         createDockWidget( widget, tr( "U5303A" ), "ControlMethod" );
 
         connect( widget, &acqrswidgets::u5303AWidget::applyTriggered, []() {
-                document::instance()->applyTriggered();
-            });
+            document::instance()->applyTriggered();
+        });
 
         connect( widget, &acqrswidgets::u5303AWidget::dataChanged, [this,widget]() {
                 acqrscontrols::u5303a::method u;
@@ -151,6 +151,9 @@ MainWindow::createDockWidgets()
                         sform->setDisabled( disable );
                     } else {
                         ADDEBUG() << "slopeForm not find";
+                    }
+                    if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
+                        widget->setDigitizerMode( int( u.mode() ) == 0 );
                     }
                 }
             });
@@ -357,6 +360,8 @@ MainWindow::OnInitialUpdate()
 
     // update axis, closeup views
     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
+        int mode = int( document::instance()->method()->mode() );
+        widget->setDigitizerMode( mode == 0 );
         auto m = widget->method();
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
             wnd->setMethod( m );
@@ -710,7 +715,6 @@ MainWindow::createActions()
     const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL ) ) );
 
     menu->menu()->setTitle( "U5303A" );
-
 
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
@@ -1089,7 +1093,7 @@ MainWindow::handleDataSaveIn()
 
         } catch ( ... ) {
             ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
-            QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+            QMessageBox::information( this, "accutofacquire MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
         }
     }
 }
@@ -1118,7 +1122,7 @@ MainWindow::handleRunName()
                                                      , tr( "DATA(*.txt *.adfs)" ) );
             } catch ( ... ) {
                 ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
-                QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+                QMessageBox::information( this, "accutofacquire MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
             }
 
             if ( !file.isEmpty() ) {
@@ -1161,7 +1165,7 @@ MainWindow::handleControlMethodOpen()
             }
         } catch ( ... ) {
             ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
-            QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+            QMessageBox::information( this, "accutofacquire MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
         }
     }
 }
@@ -1189,7 +1193,7 @@ MainWindow::handleControlMethodSaveAs()
             }
         } catch ( ... ) {
             ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
-            QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+            QMessageBox::information( this, "accutofacquire MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
         }
     }
 }
