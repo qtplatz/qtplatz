@@ -181,8 +181,8 @@ MainWindow::createDockWidgets()
         createDockWidget( widget, "Chromatograms", "Chromatograms" );
         connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged
                  , [widget](){
-                       document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
-                   });
+                     document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
+                 });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {

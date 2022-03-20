@@ -334,7 +334,7 @@ namespace accutof { namespace acquire {
 
                 uint32_t id(0);
                 for ( auto& trace: traces_ )
-                    trace = std::make_shared< adcontrols::Trace >( id++, 8192 - 512, 8192 );
+                    trace = std::make_shared< adcontrols::Trace >( id++, 4096 - 512, 4096 );
             }
 
             void addInstController( std::shared_ptr< adextension::iController > p );
@@ -1568,22 +1568,23 @@ document::applyTriggered()
 void
 document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
+    ADDEBUG() << "-------------- chromatograms method value changed -------------------";
     namespace xic = adcontrols::xic;
+
     tdc()->setTofChromatogramsMethod( m );
+
     task::instance()->setHistogramClearCycleEnabled( m.refreshHistogram() );
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    auto prev = impl_->tofChromatogramsMethod_;
-
     if ( ( impl_->tofChromatogramsMethod_ = tdc()->tofChromatogramsMethod() ) ) {
-
-        task::instance()->setTofChromatogramsMethod( *impl_->tofChromatogramsMethod_ );
 
         for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
             auto& trace = impl_->traces_[ idx ];
             if ( idx == 0 ) {
-                trace->setEnable( true );
+                auto [enable, algo] = m.tic();
+                trace->setEnable( enable );
+                trace->setIsCountingTrace( algo == xic::eCounting );
                 trace->setLegend( "TIC" );
             } else if ( ( idx - 1 ) < impl_->tofChromatogramsMethod_->size() ) {
                 const auto item = impl_->tofChromatogramsMethod_->begin() + ( idx - 1 );
@@ -1591,7 +1592,7 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
                 trace->setIsCountingTrace( item->intensityAlgorithm() == xic::eCounting );
                 char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
                 auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
-                trace->setLegend( ( boost::format( "%d: %s[%c]" ) % idx % formula % c ).str() );
+                trace->setLegend( ( boost::format( "%d[%c]" ) % idx % c ).str() );
             }
         }
     }

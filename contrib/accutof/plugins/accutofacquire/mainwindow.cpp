@@ -179,9 +179,8 @@ MainWindow::createDockWidgets()
                     wnd->setSpanMarker( index.row(), index.column() - 4, value );
             });
 
-            connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [=] () {
-                adcontrols::TofChromatogramsMethod m;
-                widget->getContents( m );
+            connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [wnd,widget] () {
+                auto m = widget->method();
                 wnd->setMethod( m ); // draw markers
                 document::instance()->setMethod( m );
             });

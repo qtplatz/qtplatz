@@ -58,6 +58,7 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         //
+        adcontrols::TofChromatogramsMethod method() const;
         bool getContents( adcontrols::TofChromatogramsMethod& ) const;
         bool setContents( const adcontrols::TofChromatogramsMethod& );
         //

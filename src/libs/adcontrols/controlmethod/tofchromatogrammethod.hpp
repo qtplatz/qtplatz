@@ -36,7 +36,7 @@ namespace boost { namespace serialization { class access; } }
 namespace adcontrols {
 
     namespace xic {
-        enum eIntensityAlgorishm {
+        enum eIntensityAlgorishm : int {
             ePeakAreaOnProfile
             , ePeakHeightOnProfile
             , eCounting

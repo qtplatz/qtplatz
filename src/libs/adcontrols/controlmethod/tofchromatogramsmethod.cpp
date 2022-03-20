@@ -63,7 +63,7 @@ namespace adcontrols {
         size_t numberOfTriggers_;
         bool refreshHistogram_; // real-time monitoring parameter
         bool enableTIC_;
-        adcontrols::xic::eIntensityAlgorishm algo_;
+        xic::eIntensityAlgorishm algo_;
         std::vector< TofChromatogramMethod > vec_;
 
     private:
@@ -76,12 +76,16 @@ namespace adcontrols {
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( refreshHistogram_ );
             ar & BOOST_SERIALIZATION_NVP( vec_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( enableTIC_ );
+                ar & BOOST_SERIALIZATION_NVP( algo_ );
+            }
         }
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::TofChromatogramsMethod::impl, 1 )
+BOOST_CLASS_VERSION( adcontrols::TofChromatogramsMethod::impl, 2 )
 
 using namespace adcontrols;
 
@@ -163,6 +167,18 @@ void
 TofChromatogramsMethod::setRefreshHistogram( bool refresh )
 {
     impl_->refreshHistogram_ = refresh;
+}
+
+std::tuple< bool, xic::eIntensityAlgorishm >
+TofChromatogramsMethod::tic() const
+{
+    return { impl_->enableTIC_, impl_->algo_ };
+}
+
+void
+TofChromatogramsMethod::setTIC( std::tuple< bool, xic::eIntensityAlgorishm >&& t )
+{
+    std::tie( impl_->enableTIC_, impl_->algo_ ) = std::move( t );
 }
 
 bool

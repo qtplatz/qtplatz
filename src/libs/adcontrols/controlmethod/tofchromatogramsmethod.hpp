@@ -39,6 +39,10 @@ namespace boost {
 
 namespace adcontrols {
 
+    namespace xic {
+        enum eIntensityAlgorishm : int;
+    }
+
     class TofChromatogramMethod;
 
     class ADCONTROLSSHARED_EXPORT TofChromatogramsMethod {
@@ -70,6 +74,8 @@ namespace adcontrols {
 
         bool refreshHistogram() const;
         void setRefreshHistogram( bool );
+        std::tuple< bool, xic::eIntensityAlgorishm > tic() const;
+        void setTIC( std::tuple< bool, xic::eIntensityAlgorishm >&& );
 
         static bool archive( std::ostream&, const TofChromatogramsMethod& );
         static bool restore( std::istream&, TofChromatogramsMethod& );

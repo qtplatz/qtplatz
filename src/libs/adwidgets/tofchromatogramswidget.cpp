@@ -45,6 +45,7 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <ratio>
 #include <cmath>
 
@@ -261,6 +262,15 @@ TofChromatogramsWidget::setContents( boost::any&& a )
     return false;
 }
 
+adcontrols::TofChromatogramsMethod
+TofChromatogramsWidget::method() const
+{
+    adcontrols::TofChromatogramsMethod m;
+    getContents( m );
+    return m;
+}
+
+
 bool
 TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) const
 {
@@ -292,6 +302,8 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
 bool
 TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
+    QSignalBlocker block( this );
+
     if ( auto form = findChild< TofChromatogramsForm *>() )
         form->setContents( m );
 
@@ -415,6 +427,9 @@ TofChromatogramsWidget::readJson() const
     jobj[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ] = jtop;
 
     QJsonDocument jdoc( jobj );
+
+    ADDEBUG() << jdoc.toJson().toStdString();
+
     return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
 }
 
@@ -454,6 +469,7 @@ TofChromatogramsWidget::setJson( const QByteArray& json )
         ++row;
     }
 }
+
 
 QStandardItemModel *
 TofChromatogramsWidget::model()

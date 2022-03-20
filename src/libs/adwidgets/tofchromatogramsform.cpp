@@ -25,6 +25,7 @@
 #include "tofchromatogramsform.hpp"
 #include "create_widget.hpp"
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <QWidget>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -117,21 +118,40 @@ TofChromatogramsForm::getContents( adcontrols::TofChromatogramsMethod& m ) const
     if ( auto cbx = findChild< QCheckBox * >( "cbxRefresh" ) )
         m.setRefreshHistogram( cbx->isChecked() );
 
-    //if ( auto spin = findChild< QDoubleSpinBox *>( "response" ) )
-    //    ; // not in use
+    if ( auto cb = findChild< QComboBox * >( "algo" ) ) {
+        if ( cb->currentIndex() == 0 )
+            m.setTIC( { true, adcontrols::xic::ePeakAreaOnProfile } );
+        else if ( cb->currentIndex() == 1 )
+            m.setTIC( { true, adcontrols::xic::eCounting } );
+        else
+            m.setTIC( { false, adcontrols::xic::ePeakAreaOnProfile } );
+    }
 }
 
 void
 TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
+    QSignalBlocker block( this );
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) ) {
-        QSignalBlocker block( spin );
+        // QSignalBlocker block( spin );
         size_t n = m.numberOfTriggers() == 0 ? 1 : m.numberOfTriggers();
         spin->setValue( int( n ) );
     }
     if ( auto cbx = findChild< QCheckBox * >( "cbxRefresh" ) ) {
-        QSignalBlocker block( cbx );
+        // QSignalBlocker block( cbx );
         cbx->setChecked( m.refreshHistogram() );
+    }
+    if ( auto cb = findChild< QComboBox * >( "algo" ) ) {
+        // QSignalBlocker block( cb );
+        auto [enable, algo] = m.tic();
+        if ( enable ) {
+            if ( algo == adcontrols::xic::ePeakAreaOnProfile )
+                cb->setCurrentIndex( 0 );
+            if ( algo == adcontrols::xic::eCounting )
+                cb->setCurrentIndex( 1 );
+        } else {
+            cb->setCurrentIndex( 2 );
+        }
     }
 }
 
