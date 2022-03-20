@@ -35,10 +35,6 @@ add_library( ${PROJECT_NAME} MODULE
   scanlaw.hpp
   )
 
-#foreach( lib ${Boost_LIBRARIES} )
-#  message( STATUS "adspectrometer boost lib: " ${lib} )
-#endforeach()
-
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   accutofcontrols
   acqrscontrols
