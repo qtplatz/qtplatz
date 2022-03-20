@@ -1588,42 +1588,55 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
                                  , pkdavg_waveforms_t waveforms )
 {
     auto avg( waveforms[ 0 ] );
-    auto pkd( waveforms[ 1 ] );
-
-    if ( !pkd )
-        return;
+    auto pkd( waveforms[ 1 ] ); // can be nullptr
 
     // elapsed time since start
     double seconds  = double( avg->timeSinceEpoch_ - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
     double t_inject = double( task::instance()->injectTimeSinceEpoch() - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
 
-    size_t pkd_total_counts = pkd->accumulate( 0, 0 );
+    // size_t pkd_total_counts = pkd->accumulate( 0, 0 );
     // double tic = avg->accumulate( 0, -1 ); // TIC
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    impl_->traces_ [ 0 ]->append( avg->serialnumber_, seconds, pkd_total_counts );
-    impl_->traces_ [ 0 ]->setIsCountingTrace( true );
-    impl_->traces_ [ 0 ]->setInjectTime( t_inject );
+    do {
+        auto trace = impl_->traces_[ 0 ]; // TIC
+        auto [enable,algo] = method.tic();
+        if ( enable ) {
+            if ( algo == adcontrols::xic::eCounting && pkd ) {
+                trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
+                trace->setIsCountingTrace( true );
+            } else {
+                trace->append( avg->serialnumber(), seconds, avg->accumulate( 0, 0 ) );
+                trace->setIsCountingTrace( false );
+            }
+        } else {
+            trace->append( avg->serialnumber(), seconds, 0 );
+        }
+        trace->setInjectTime( t_inject );
+    } while ( 0 );
 
     for ( auto item: method ) {
-        if ( item.enable() ) {
-            int id = item.id() + 1;
-            if ( id >= 1 && id < impl_->traces_.size() ) {
-                uint32_t pkCounts = pkd->accumulate( item.time(), item.timeWindow() );
-                impl_->traces_[ id ]->setInjectTime( t_inject );
-                impl_->countrate_calculators_[ item.id() ] << std::make_pair( pkCounts, pkd->meta_.actualAverages );
-
+        int id = item.id() + 1;
+        if ( id >= 1 && id < impl_->traces_.size() ) {
+            auto trace = impl_->traces_[ id ];
+            trace->setInjectTime( t_inject );
+            if ( item.enable() ) {
                 if ( item.intensityAlgorithm() == adcontrols::xic::eCounting ) {
-                    impl_->traces_[ id ]->append( pkd->serialnumber(), seconds, pkCounts );
-                    impl_->traces_[ id ]->setIsCountingTrace( true );
+                    uint32_t pkCounts = pkd ? pkd->accumulate( item.time(), item.timeWindow() ) : 0;
+                    trace->append( pkd ? pkd->serialnumber() : avg->serialnumber(), seconds, pkCounts );
+                    impl_->countrate_calculators_[ item.id() ] << std::make_pair( pkCounts, pkd->meta_.actualAverages );
+                    trace->setIsCountingTrace( true );
                 } else if ( item.intensityAlgorithm() == adcontrols::xic::ePeakAreaOnProfile ) {
-                    impl_->traces_[ id ]->append( pkd->serialnumber(), seconds, avg->accumulate( item.time(), item.timeWindow() ) ); // area
-                    impl_->traces_[ id ]->setIsCountingTrace( false );
+                    trace->append( pkd->serialnumber(), seconds, avg->accumulate( item.time(), item.timeWindow() ) ); // area
+                    trace->setIsCountingTrace( false );
                 } else {
-                    impl_->traces_[ id ]->append( pkd->serialnumber(), seconds, avg->height( item.time(), item.timeWindow() ) ); // height
-                    impl_->traces_[ id ]->setIsCountingTrace( false );
+                    trace->append( pkd->serialnumber(), seconds, avg->height( item.time(), item.timeWindow() ) ); // height
+                    trace->setIsCountingTrace( false );
                 }
+            } else {
+                trace->append( pkd->serialnumber(), seconds, 0 );
+                trace->setIsCountingTrace( false );
             }
         }
     }

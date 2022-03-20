@@ -320,7 +320,7 @@ WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_
     QString footer;
     QString runname;
 
-    size_t idx(0);
+    size_t idx( 0 );
     for ( const auto& trace: traces ) {
         if ( idx == 0 ) {
             double t_inject = trace->x( trace->size() - 1 ) - trace->injectTime(); // time since injection trigger
