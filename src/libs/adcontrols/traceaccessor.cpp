@@ -48,14 +48,17 @@ TraceAccessor::TraceAccessor( const TraceAccessor& t ) : trace_( t.trace_ )
 TraceAccessor&
 TraceAccessor::operator += ( const TraceAccessor& t )
 {
-    if ( trace_.empty() )
+    if ( trace_.empty() ) {
         trace_ = t.trace_;
-    else
+    } else {
         trace_.insert( trace_.end(), t.trace_.begin(), t.trace_.end() );
-	if ( maxfcn_ < t.maxfcn_ )
+    }
+	if ( maxfcn_ < t.maxfcn_ ) {
 		maxfcn_ = t.maxfcn_;
-    if ( injectTime_ < t.injectTime_ )
+    }
+    if ( injectTime_ < t.injectTime_ ) {
         injectTime_ = t.injectTime_;
+    }
     return *this;
 }
 
@@ -78,7 +81,7 @@ TraceAccessor::operator >> ( Trace& t ) const
 {
     size_t n = 0;
     for ( const auto& d: trace_ ) {
-        if ( d.fcn == t.fcn() ) {
+        if ( d.fcn == t.protocol() ) {
             t.append( d.npos, d.x.seconds, d.y );
             ++n;
         }
@@ -103,7 +106,7 @@ TraceAccessor::copy_to( Chromatogram& c, int fcn )
 {
     std::vector< double > x;
     std::vector< double > y;
-    
+
     for ( const auto& d: trace_ ) {
         if ( d.fcn == fcn ) {
             x.emplace_back( d.x.seconds - trace_[0].x.seconds );

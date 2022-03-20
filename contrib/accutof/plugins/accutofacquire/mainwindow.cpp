@@ -655,7 +655,7 @@ MainWindow::createMidStyledToolbar()
                 if ( auto action = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition ) )
                     connect( action, &QAction::triggered, this, &MainWindow::handleDataSaveIn );
             }
-
+#if 0
             if ( auto edit = new QLineEdit ) {
                 edit->setObjectName( "runName" );
                 edit->setReadOnly( true );
@@ -666,7 +666,7 @@ MainWindow::createMidStyledToolbar()
                 if ( auto action = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition ) )
                     connect( action, &QAction::triggered, this, &MainWindow::handleRunName );
             }
-
+#endif
             toolBarLayout->addItem( new QSpacerItem(32, 20, QSizePolicy::Minimum, QSizePolicy::Minimum) );
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             if ( auto label = new QLabel ) {
@@ -685,6 +685,9 @@ MainWindow::createMidStyledToolbar()
 
                 toolBarLayout->addWidget( edit );
             }
+
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_XIC_CLEAR)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_XIC_ZERO)->action()));
 
             toolBarLayout->addItem( new QSpacerItem(16, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
@@ -784,6 +787,17 @@ MainWindow::createActions()
     if ( auto action = createAction( Constants::ICON_OWL, tr( "DARK" ), this ) ) {
         connect( action, &QAction::triggered, this, &MainWindow::actDark );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_DARK, context );
+        menu->addAction( cmd );
+    }
+
+    if ( auto action = createAction( Constants::ICON_BALANCE, tr( "Auto-zero" ), this ) ) {
+        connect( action, &QAction::triggered, document::instance(), &document::handleAutoZeroXICs );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_XIC_ZERO, context );
+        menu->addAction( cmd );
+    }
+    if ( auto action = createAction( Constants::ICON_RECYCLE, tr( "Clear traces" ), this ) ) {
+        connect( action, &QAction::triggered, document::instance(), &document::handleClearXICs );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_XIC_CLEAR, context );
         menu->addAction( cmd );
     }
 

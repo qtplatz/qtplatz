@@ -1135,23 +1135,37 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
         // do nothing
 
     } else if ( code == adacquire::Receiver::STATE_CHANGED ) {
-
         if ( value & adacquire::Instrument::eErrorFlag ) {
             QMessageBox::warning( MainWindow::instance(), "U5303A Error"
                                   , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
         }
     } else if ( code == adacquire::Receiver::DARK_STARTED ) {
         impl_->hasDark_ = false;
-        ADDEBUG() << "DARK_STARTED: " << value;
     } else if ( code == adacquire::Receiver::DARK_ACQUIRED ) {
         impl_->hasDark_ = true;
         emit darkStateChanged( 1 );
-        ADDEBUG() << "DARK_ACQUIRED: " << value;
     } else if ( code == adacquire::Receiver::DARK_CANCELED ) {
         impl_->hasDark_ = false;
         emit darkStateChanged( 0 );
-        ADDEBUG() << "DARK_CANCELD: " << value;
     }
+}
+
+void
+document::handleAutoZeroXICs()
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    for ( auto& trace: impl_->traces_ ) {
+        if ( !trace->values().empty() )
+            trace->setYOffset( std::get< adcontrols::Trace::y_value >( trace->values().back() ) );
+    }
+}
+
+void
+document::handleClearXICs()
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    for ( auto& trace: impl_->traces_ )
+        trace->clear();
 }
 
 void

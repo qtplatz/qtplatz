@@ -29,6 +29,10 @@
     -->
     <file>images/owl-icon32x32.png</file>
     <file>images/noun_reflection_591120.png</file>
+    <!-- <a href="https://www.flaticon.com/free-icons/balance" title="balance icons">Balance icons created by Freepik - Flaticon</a>  -->
+    <file>images/balance.png</file>
+    <!-- <a href="https://www.flaticon.com/free-icons/recycle" title="recycle icons">Recycle icons created by Freepik - Flaticon</a> -->
+    <file>images/recycle-symbol.png</file>
     <file>stylesheet/tabbar.qss</file>
   </qresource>
 </RCC>

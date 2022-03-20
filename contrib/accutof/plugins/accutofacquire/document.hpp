@@ -177,6 +177,10 @@ namespace accutof {
         private:
             void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
 
+        public slots:
+            void handleAutoZeroXICs();
+            void handleClearXICs();
+
         private slots:
             void handleMessage( adextension::iController *, uint32_t code, uint32_t value );
 

@@ -52,6 +52,8 @@ namespace accutof { namespace acquire {
             const char * const ACTION_SYNC          = "accutof.acquire.SyncTrig";
             const char * const ACTION_INJECT        = "accutof.acquire.Inject";
             const char * const ACTION_DARK          = "accutof.acquire.Dark";
+            const char * const ACTION_XIC_ZERO      = "accutof.acquire.XIC_ZERO";
+            const char * const ACTION_XIC_CLEAR     = "accutof.acquire.XIC_CLEAR";
             const char * const PRINT_CURRENT_VIEW   = "accutof.acquire.print_current_view";
             const char * const SAVE_CURRENT_IMAGE   = "accutof.acquire.save_current_image";
             const char * const HIDE_DOCK            = "accutof.acquire.HideDock";
@@ -76,6 +78,8 @@ namespace accutof { namespace acquire {
             const char * const ICON_IMAGE           = ":/accutof/images/image.png";
             const char * const ICON_NEXT            = ":/accutof/images/blue-document-page-next.png";
             const char * const ICON_OWL             = ":/accutof/images/owl-icon32x32.png";
+            const char * const ICON_BALANCE         = ":/accutof/images/balance.png";
+            const char * const ICON_RECYCLE         = ":/accutof/images/recycle-symbol.png";
             ///////////////////////////////////////////
 
             // settings

@@ -45,14 +45,15 @@ Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
                                                         , enable_( true )
                                                         , injectTime_( 0 )
                                                         , yOffset_( 0 )
+                                                        , yZero_( 0 )
 {
 }
 
-void
-Trace::set_fcn( size_t n )
-{
-    fcn_ = static_cast<int>(n);
-}
+// void
+// Trace::set_fcn( size_t n )
+// {
+//     fcn_ = static_cast<int>(n);
+// }
 
 void
 Trace::setProtocol( int proto )
@@ -67,6 +68,9 @@ Trace::append( size_t npos, double x, double y, uint32_t events )
 
     if ( !values_.empty() && ( npos < std::get< data_number >( values_.back() ) ))
         return false;
+
+    if ( values_.empty() )
+        yOffset_ = y;
 
     values_.emplace_back( npos, x, y, events );
 
@@ -117,6 +121,7 @@ Trace::clear()
     values_.clear();
     minY_ = isCountingTrace_ ? 0 : std::numeric_limits<double>::max();
     maxY_ = std::numeric_limits<double>::lowest();
+    yOffset_ = 0;
 }
 
 size_t

@@ -40,14 +40,17 @@ namespace adcontrols {
         Trace& operator = ( const Trace& ) = delete;
 
     public:
+        enum { data_number, x_value, y_value, event_flags };
+        typedef std::tuple< size_t, double, double, uint32_t > value_type;
+
         ~Trace();
 		Trace( int fcn = 0, unsigned lower = 2048 - 512, unsigned upper = 2048 );
 
 		unsigned upper_limit;
         unsigned lower_limit;
 
-        [[deprecated("Replaced by setProtocol(int)")]] void set_fcn( size_t fcn );
-        [[deprecated("Replaced by protocol()")]] inline int fcn() const { return fcn_; }
+        // [[deprecated("Replaced by setProtocol(int)")]] void set_fcn( size_t fcn );
+        // [[deprecated("Replaced by protocol()")]] inline int fcn() const { return fcn_; }
 
         void setProtocol( int );
         inline int protocol() const { return fcn_; }
@@ -79,6 +82,7 @@ namespace adcontrols {
 
         const std::string& legend() const;
         void setLegend( const std::string& );
+        const std::vector< value_type >& values() const { return values_; };
 
         void setYOffset( double );
         double yOffset() const;
@@ -92,9 +96,8 @@ namespace adcontrols {
         double injectTime_;
         std::string legend_;
         double yOffset_;
+        double yZero_;
 
-        enum { data_number, x_value, y_value, event_flags };
-        typedef std::tuple< size_t, double, double, uint32_t > value_type;
         std::mutex mutex_;
         std::vector< value_type > values_;
     };

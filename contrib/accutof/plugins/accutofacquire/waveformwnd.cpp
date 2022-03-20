@@ -340,6 +340,7 @@ WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_
             if ( auto plotItem = tpw_->getPlotItem( idx ) ) {
                 plotItem->setTitle( QwtText( QString::fromStdString( trace->legend() ) ) );
             }
+        } else {
         }
         // tpw_->setData( trace, idx, false );
         ++idx;
