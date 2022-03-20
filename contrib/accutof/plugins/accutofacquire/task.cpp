@@ -212,13 +212,13 @@ task::~task()
 bool
 task::initialize()
 {
-    std::call_once( flag1, [=,this] () {
-        impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->worker_thread(); } ) );
+    std::call_once( flag1, [&] () {
+        impl_->threads_.push_back( adportable::asio::thread( [&] { impl_->worker_thread(); } ) );
 
         unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
         ADTRACE() << nCores << " threads created for u5303a task";
         while( nCores-- ) {
-            impl_->threads_.emplace_back( adportable::asio::thread( [=,this] { impl_->io_service_.run(); } ) );
+            impl_->threads_.emplace_back( adportable::asio::thread( [&] { impl_->io_service_.run(); } ) );
         }
 
         adacquire::task::instance()->connect_inst_events( [&]( adacquire::Instrument::eInstEvent ev ){

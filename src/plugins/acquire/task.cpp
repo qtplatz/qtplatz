@@ -222,12 +222,12 @@ task::initialize()
     std::call_once(
         flag1
         , [=,this] () {
-            impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->worker_thread(); } ) );
+            impl_->threads_.push_back( adportable::asio::thread( [this] { impl_->worker_thread(); } ) );
 
             unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
             ADTRACE() << nCores << " threads created for acquire task";
             while( nCores-- )
-                impl_->threads_.push_back( adportable::asio::thread( [=,this] { impl_->io_service_.run(); } ) );
+                impl_->threads_.push_back( adportable::asio::thread( [this] { impl_->io_service_.run(); } ) );
 
             adacquire::task::instance()->connect_inst_events(
                 []( adacquire::Instrument::eInstEvent ev ){ // handle {UDP port 7125|hardware injection via signalObserver}

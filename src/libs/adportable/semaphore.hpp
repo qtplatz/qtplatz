@@ -53,7 +53,7 @@ namespace adportable {
         // P
         inline void wait() {
             std::unique_lock< std::mutex > lock( mutex_ );
-            condition_.wait( lock, [=,this]{ return count_ > 0; } );
+            condition_.wait( lock, [&]{ return count_ > 0; } );
             --count_;
         }
 

@@ -142,8 +142,12 @@ TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
         cbx->setChecked( m.refreshHistogram() );
     }
     if ( auto cb = findChild< QComboBox * >( "algo" ) ) {
-        // QSignalBlocker block( cb );
+#if __cplusplus >= 201703L
         auto [enable, algo] = m.tic();
+#else
+        auto enable = std::get<0>( m.tic() );
+        auto algo = std::get<1>( m.tic() );
+#endif
         if ( enable ) {
             if ( algo == adcontrols::xic::ePeakAreaOnProfile )
                 cb->setCurrentIndex( 0 );

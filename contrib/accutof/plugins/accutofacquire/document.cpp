@@ -1580,7 +1580,12 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
         for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
             auto& trace = impl_->traces_[ idx ];
             if ( idx == 0 ) {
+#if __cplusplus >= 201703L
                 auto [enable, algo] = m.tic();
+#else
+                auto enable = std::get< 0 >( m.tic() );
+                auto algo = std::get< 1 >( m.tic() );
+#endif
                 trace->setEnable( enable );
                 trace->setIsCountingTrace( algo == xic::eCounting );
                 trace->setLegend( "TIC" );
@@ -1615,7 +1620,12 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
+#if __cplusplus >= 201703L
         auto [enable,algo] = method.tic();
+#else
+        auto enable = std::get< 0 >( method.tic() );
+        auto algo   = std::get< 1 >( method.tic() );
+#endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
