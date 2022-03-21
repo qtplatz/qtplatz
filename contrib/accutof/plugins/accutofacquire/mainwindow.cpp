@@ -57,6 +57,7 @@
 #include <adwidgets/samplerunwidget.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
+#include <qtwrapper/settings.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -236,12 +237,11 @@ void
 MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
-
     connect( document::instance(), &document::onModulesFailed, this, &MainWindow::handleModulesFailed );
-
     connect( document::instance(), &document::sampleRunChanged, this, [this] {
             setSampleRun( *document::instance()->sampleRun() );
         });
+    connect( document::instance(), &document::msCalibrationLoaded, this, &MainWindow::handleMSCalibrationLoaded );
 
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
@@ -368,6 +368,8 @@ MainWindow::OnInitialUpdate()
             document::instance()->setMethod( m );
         }
     }
+
+    handleMSCalibrationLoaded( document::instance()->msCalibFile() );
 
 #if ! defined Q_OS_MAC
     for ( auto dock: dockWidgets() )
@@ -665,7 +667,7 @@ MainWindow::createMidStyledToolbar()
                 edit->setObjectName( "runName" );
                 edit->setReadOnly( true );
                 edit->setText( QString::fromStdWString( sampleRun->filePrefix() ) );
-                edit->setFixedWidth( 120 );
+                edit->setFixedWidth( 80 );
                 toolBarLayout->addWidget( edit );
                 auto icon = QIcon( Constants::ICON_FILE_OPEN );
                 if ( auto action = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition ) )
@@ -691,11 +693,19 @@ MainWindow::createMidStyledToolbar()
                 toolBarLayout->addWidget( edit );
             }
 
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SEL_CALIBFILE)->action()));
+            if ( auto edit = new QLineEdit ) {
+                edit->setObjectName( "calibfile" );
+                edit->setReadOnly( true );
+                toolBarLayout->addWidget( edit );
+            }
+
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_XIC_CLEAR)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_XIC_ZERO)->action()));
 
             toolBarLayout->addItem( new QSpacerItem(16, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
 
         }
@@ -802,6 +812,12 @@ MainWindow::createActions()
     if ( auto action = createAction( Constants::ICON_RECYCLE, tr( "Clear traces" ), this ) ) {
         connect( action, &QAction::triggered, document::instance(), &document::handleClearXICs );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_XIC_CLEAR, context );
+        menu->addAction( cmd );
+    }
+
+    if ( auto action = createAction( Constants::ICON_CALIBRATE, tr( "Choose calibration data" ), this ) ) {
+        connect( action, &QAction::triggered, this, &MainWindow::handleSelCalibFile );
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SEL_CALIBFILE, context );
         menu->addAction( cmd );
     }
 
@@ -1222,4 +1238,34 @@ MainWindow::getSampleRun() const
         widget->getSampleRun( *sr );
     }
     return sr;
+}
+
+void
+MainWindow::handleSelCalibFile()
+{
+    auto file = qtwrapper::settings( *document::instance()->settings() ).recentFile( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES );
+
+	QFileDialog dlg( 0, "Open MS Calibration file", file );
+	dlg.setNameFilter( tr("MSCalibrations(*.msclb)" ) );
+	dlg.setFileMode( QFileDialog::ExistingFile );
+
+    if ( dlg.exec() == QDialog::Accepted ) {
+
+		auto result = dlg.selectedFiles();
+        if ( document::instance()->setMSCalibFile( result[ 0 ] ) ) {
+            qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
+        } else {
+            QMessageBox::warning( 0, tr( "select calibration file" ), tr( "Calibration file load failed" ) );
+        }
+	}
+}
+
+void
+MainWindow::handleMSCalibrationLoaded( const QString& file )
+{
+    if ( auto edit = findChild< QLineEdit * >( "calibfile" ) ) {
+        auto path = boost::filesystem::path( file.toStdString() );
+        edit->setText( QString::fromStdString( path.stem().string() ) );
+        edit->setToolTip( file );
+    }
 }

@@ -387,6 +387,7 @@ Targeting::setup( const TargetingMethod& m )
 {
     ChemicalFormula formula_parser;
 
+    ADDEBUG() << "=================== targeting setup ======================";
     active_formula_.clear();
 
     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_global;
@@ -396,7 +397,7 @@ Targeting::setup( const TargetingMethod& m )
     auto charge_range = m.chargeState();
 
     for ( auto& a: m.adducts( positive ) ) {
-        if ( a.first ) {
+        if ( a.first ) { // enable
             for ( const auto& adduct: ChemicalFormula::split( a.second ) ) {
                 auto sign = (adduct.second == '-' ? "-" : "+");
                 auto pair = ChemicalFormula::neutralize( adduct.first ); // neutral formula, charge
@@ -411,12 +412,18 @@ Targeting::setup( const TargetingMethod& m )
             std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local( adducts_global );
 
             if ( !std::string( x.adducts() ).empty() ) {
-                for ( const auto& a: ChemicalFormula::split( x.adducts() ) ) {
-                    auto formula = std::string( x.formula() ) + (a.second == '-' ? "-" : "+") + a.first;
-                    double mass;
-                    std::tie( mass, std::ignore ) = formula_parser.getMonoIsotopicMass( ChemicalFormula::split( formula ), 0 );
-                    active_formula_.emplace_back( formula, mass );
-                }
+                auto formula = x.formula() + x.adducts();
+                double mass; int charge;
+                std::tie( mass, charge ) = formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
+                active_formula_.emplace_back( formula, mass );
+                // todo
+                // if adduct has ',' or ';' then multiple adducts combination should be added separately
+                // for ( const auto& a: ChemicalFormula::split( x.adducts() ) ) {
+                //     auto formula = std::string( x.formula() ) + (a.second == '-' ? "-" : "+") + a.first;
+                //     double mass;
+                //     std::tie( mass, std::ignore ) = formula_parser.getMonoIsotopicMass( ChemicalFormula::split( formula ), 0 );
+                //     active_formula_.emplace_back( formula, mass );
+                // }
             } else {
                 for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
                     int icharge = positive ? charge : -static_cast<int>(charge);

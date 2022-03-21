@@ -33,6 +33,8 @@
     <file>images/balance.png</file>
     <!-- <a href="https://www.flaticon.com/free-icons/recycle" title="recycle icons">Recycle icons created by Freepik - Flaticon</a> -->
     <file>images/recycle-symbol.png</file>
+    <!-- <a href="https://www.flaticon.com/free-icons/calibration" title="calibration icons">Calibration icons created by Freepik - Flaticon</a> -->
+    <file>images/calibrate.png</file>
     <file>stylesheet/tabbar.qss</file>
   </qresource>
 </RCC>

@@ -8,9 +8,6 @@
         <file>image/filesave.png</file>
         <file>image/file_pdf.png</file>
         <file>image/pdf.png</file>
-        <file>image/calibration32.png</file>
-        <file>image/calibration64.png</file>
-        <file>image/calibration96.png</file>
 	<file>image/cross.png</file>
 	<file>image/control.png</file>
 	<file>image/control-270.png</file>
@@ -22,5 +19,7 @@
 	<file>image/folder-bookmark.png</file>
 	<file>image/folder-open.png</file>
 	<file>image/folder--plus.png</file>
+	<!-- <a href="https://www.flaticon.com/free-icons/calibration" title="calibration icons">Calibration icons created by Freepik - Flaticon</a> -->
+	<file>image/calibrate.png</file>
     </qresource>
 </RCC>

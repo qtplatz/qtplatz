@@ -146,7 +146,6 @@ namespace adwidgets {
             emit this_->valueChanged( index, value );
         }
 
-
     };
 
     //-------------------------- delegate ---------------
@@ -867,13 +866,13 @@ MolTableView::setContents( const adcontrols::moltable& mols )
     SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
 
     for ( const auto& mol: mols.data() ) {
-        assign( *model(), row, ColumnState::f_formula, mol.formula(), mol.enable() );
-        assign( *model(), row, ColumnState::f_adducts, mol.adducts() );
+        assign( *model(), row, ColumnState::f_formula, mol.formula().c_str(), mol.enable() );
+        assign( *model(), row, ColumnState::f_adducts, mol.adducts().c_str() );
         assign( *model(), row, ColumnState::f_mass,    mol.mass() );
         assign( *model(), row, ColumnState::f_abundance, mol.abundance() );
-        assign( *model(), row, ColumnState::f_description, mol.description() );
+        assign( *model(), row, ColumnState::f_description, mol.description().c_str() );
         // assign( model, row, ColumnState::f_svg, svg );
-        assign( *model(), row, ColumnState::f_smiles,    mol.smiles() );
+        assign( *model(), row, ColumnState::f_smiles,    mol.smiles().c_str() );
         if ( auto protocol = mol.protocol() )
             assign( *model(), row, ColumnState::f_protocol,  *protocol );
     }

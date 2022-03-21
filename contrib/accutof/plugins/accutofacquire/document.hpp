@@ -169,6 +169,9 @@ namespace accutof {
             void clearDark();
             void acquireDark();
 
+            bool setMSCalibFile( const QString& );
+            QString msCalibFile() const;
+
             static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
             static bool load( const QString& filename, acqrscontrols::u5303a::method& );
             static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
@@ -205,6 +208,7 @@ namespace accutof {
             void onTick( const QByteArray );
             void onDelayPulseData( const QByteArray );
             void darkStateChanged( int );
+            void msCalibrationLoaded( const QString& );
         };
     }
 }

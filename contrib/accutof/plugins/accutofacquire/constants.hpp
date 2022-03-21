@@ -54,6 +54,7 @@ namespace accutof { namespace acquire {
             const char * const ACTION_DARK          = "accutof.acquire.Dark";
             const char * const ACTION_XIC_ZERO      = "accutof.acquire.XIC_ZERO";
             const char * const ACTION_XIC_CLEAR     = "accutof.acquire.XIC_CLEAR";
+            const char * const ACTION_SEL_CALIBFILE = "accutof.acquire.sel_calibfile";
             const char * const PRINT_CURRENT_VIEW   = "accutof.acquire.print_current_view";
             const char * const SAVE_CURRENT_IMAGE   = "accutof.acquire.save_current_image";
             const char * const HIDE_DOCK            = "accutof.acquire.HideDock";
@@ -80,13 +81,15 @@ namespace accutof { namespace acquire {
             const char * const ICON_OWL             = ":/accutof/images/owl-icon32x32.png";
             const char * const ICON_BALANCE         = ":/accutof/images/balance.png";
             const char * const ICON_RECYCLE         = ":/accutof/images/recycle-symbol.png";
+            const char * const ICON_CALIBRATE       = ":/accutof/images/calibrate.png";
             ///////////////////////////////////////////
 
             // settings
-            const char * const GRP_DATA_FILES       = "DataFiles";
-            const char * const GRP_METHOD_FILES     = "MethodFiles";
-            const char * const KEY_FILES            = "Files";
+            constexpr const char * const GRP_DATA_FILES       = "DataFiles";
+            constexpr const char * const GRP_METHOD_FILES     = "MethodFiles";
+            constexpr const char * const KEY_FILES            = "Files";
             constexpr const char * const THIS_GROUP           = "pkdavg";
+            constexpr const char * const GRP_MSCALIB_FILES    = "MSCalibFiles";
 
             // default method files
             const char * const LAST_METHOD          = "accutof-acquire.adfs";

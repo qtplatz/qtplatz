@@ -267,6 +267,8 @@ namespace accutof { namespace acquire {
             std::unique_ptr< PKDAVGWriter > pkdavgWriter_;
             std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer_;
+            mutable QString msCalibFile_;
+            std::shared_ptr< adcontrols::MSCalibrateResult > msCalibResult_;
 
             std::shared_ptr< QSettings > settings_;  // user scope settings
             QString ctrlmethod_filename_;
@@ -329,7 +331,7 @@ namespace accutof { namespace acquire {
             void loadControllerState();
             void takeSnapshot();
             std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double resolution ) const;
-
+            std::shared_ptr< adcontrols::MSCalibrateResult > loadMSCalibFile( const boost::filesystem::path& ) const;
             bool prepareStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const;
@@ -775,6 +777,17 @@ document::initialSetup()
     // }
 
     emit on_threshold_action_changed();
+
+    do {
+        auto settings( impl_->settings_ );
+        auto calibfile = qtwrapper::settings( *settings ).recentFile( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES );
+        if ( !calibfile.isEmpty() ) {
+            if ( auto calibResult = impl_->loadMSCalibFile( calibfile.toStdString() ) ) {
+                impl_->msCalibFile_ = calibfile;
+                impl_->msCalibResult_ = calibResult;
+            }
+        }
+    } while ( 0 );
 
     /////////////////////////////////////
     //impl_->connect_httpd_map();
@@ -1501,25 +1514,38 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
 
     if ( uuid == boost::uuids::uuid{{ 0 }} ) {
         // default calibration
-        boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
-        path /= accutof::acquire::Constants::DEFAULT_CALIB_FILE; // default.mscalib
-
-        if ( boost::filesystem::exists( path ) ) {
-            ADTRACE() << "Loading calibration from file: " << path.string();
-            adfs::filesystem fs;
-            if ( fs.mount( path ) ) {
-                adcontrols::MSCalibrateResult calibResult;
-                if ( adutils::fsio::load_mscalibfile( fs, calibResult ) ) {
-                    if ( calibResult.calibration().massSpectrometerClsid() == accutof::spectrometer::iids::uuid_massspectrometer ) {
-                        adutils::mscalibio::write( db, calibResult );
-                        massSpectrometer_->initialSetup( db, {{0}} );
-                    }
-                }
+        bool loaded( false );
+        if ( !msCalibFile_.isEmpty() ) {
+            if ( auto calibResult = loadMSCalibFile( msCalibFile_.toStdString() ) ) {
+                adutils::mscalibio::write( db, *calibResult );
+                massSpectrometer_->initialSetup( db, {{0}} );
+                loaded = true;
             }
         }
+        if ( !loaded ) {
+            msCalibFile_ = QString();
+            boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
+            path /= accutof::acquire::Constants::DEFAULT_CALIB_FILE; // default.msclb
+            if ( auto calibResult = loadMSCalibFile( path ) ) {
+                adutils::mscalibio::write( db, *calibResult );
+                massSpectrometer_->initialSetup( db, {{0}} );
+                loaded = true;
+            }
+        }
+        emit document::instance()->msCalibrationLoaded( msCalibFile_ );
+        // if ( boost::filesystem::exists( path ) ) {
+        //     ADTRACE() << "Loading calibration from file: " << path.string();
+        //     adfs::filesystem fs;
+        //     if ( fs.mount( path ) ) {
+        //         adcontrols::MSCalibrateResult calibResult;
+        //         if ( adutils::fsio::load_mscalibfile( fs, calibResult ) ) {
+        //             if ( calibResult.calibration().massSpectrometerClsid() == accutof::spectrometer::iids::uuid_massspectrometer ) {
+        //                 adutils::mscalibio::write( db, calibResult );
+        //                 massSpectrometer_->initialSetup( db, {{0}} );
+        //             }
+        //         }
+        //     }
     }
-
-
     return true;
 }
 
@@ -1583,8 +1609,8 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 #if __cplusplus >= 201703L
                 auto [enable, algo] = m.tic();
 #else
-                auto enable = std::get< 0 >( m.tic() );
-                auto algo = std::get< 1 >( m.tic() );
+                bool enable; xic::eIntensityAlgorishm algo;
+                std::tie( enable, algo ) = m.tic();
 #endif
                 trace->setEnable( enable );
                 trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1623,8 +1649,8 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 #if __cplusplus >= 201703L
         auto [enable,algo] = method.tic();
 #else
-        auto enable = std::get< 0 >( method.tic() );
-        auto algo   = std::get< 1 >( method.tic() );
+        bool enable; xic::eIntensityAlgorishm algo;
+        std::tie( enable, algo ) = method.tic();
 #endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
@@ -1828,4 +1854,39 @@ document::acquireDark()
             session->dark_run( 3 ); // wait 3 averaged waveforms
     }
     emit darkStateChanged( 1 );
+}
+
+bool
+document::setMSCalibFile( const QString& filename )
+{
+    if ( auto calib = impl_->loadMSCalibFile( filename.toStdString() ) ) {
+        impl_->msCalibFile_ = filename;
+        impl_->msCalibResult_.reset();
+        return true;
+    }
+    return false;
+}
+
+QString
+document::msCalibFile() const
+{
+    return impl_->msCalibFile_;
+}
+
+std::shared_ptr< adcontrols::MSCalibrateResult >
+document::impl::loadMSCalibFile( const boost::filesystem::path& path ) const
+{
+    if ( boost::filesystem::exists( path ) ) {
+        ADTRACE() << "select calibration file: " << path.string();
+        adfs::filesystem fs;
+        if ( fs.mount( path ) ) {
+            auto calibResult = std::make_shared< adcontrols::MSCalibrateResult >();
+            if ( adutils::fsio::load_mscalibfile( fs, *calibResult ) ) {
+                if ( calibResult->calibration().massSpectrometerClsid() == accutof::spectrometer::iids::uuid_massspectrometer ) {
+                    return calibResult;
+                }
+            }
+        }
+    }
+    return nullptr;
 }

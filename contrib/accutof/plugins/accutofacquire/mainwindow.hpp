@@ -104,7 +104,9 @@ namespace accutof {
             void handleControlMethodOpen();
             void handleControlMethodSaveAs();
             void handleModulesFailed( const QStringList& );
+            void handleSelCalibFile();
             void axisChanged( QComboBox *, int index );
+            void handleMSCalibrationLoaded( const QString& );
 
         private:
             QAction * actionConnect_;

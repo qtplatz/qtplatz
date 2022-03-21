@@ -43,7 +43,7 @@ namespace Constants {
     const char * const ICON_OPEN            = ":/dataproc/image/fileopen.png";
     const char * const ICON_METHOD_APPLY    = ":/dataproc/image/apply_small.png";
     const char * const ICON_PDF             = ":/dataproc/image/file_pdf.png"; // http://findicons.com/icon/74870/file_pdf?id=355001
-    const char * const ICON_CALIBFILE       = ":/dataproc/image/calibration32.png";
+    const char * const ICON_CALIBFILE       = ":/dataproc/image/calibrate.png";
     const char * const ICON_DOCKHIDE        = ":/dataproc/image/button_close.png";
     const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";
     // freeware license, Designed by Andy Gongea

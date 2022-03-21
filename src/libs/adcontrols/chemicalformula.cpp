@@ -928,7 +928,7 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
     adportable::chem::icomp_type mol;
     if ( chem::parser()( mol, formula ) ) {
 
-        chem::adductlist_splitter()( adductlist, adducts ); // split by comma; e.g. "+[H]+, +[Na]+" --> "+[H]+", "+[Na]+"
+        chem::adductlist_splitter()( adductlist, adducts ); // split by comma|semicolon; e.g. "+[H]+, +[Na]+" --> "+[H]+", "+[Na]+"
 
         if ( adductlist.empty() )
             formulae.emplace_back( chem::make_string< char >( mol ) );

@@ -74,11 +74,16 @@ namespace adcontrols {
             uint32_t flags() const { return flags_; }
             double mass() const { return mass_; }
             double abundance() const { return abundance_; }
-            const char * formula() const { return formula_.c_str(); }
-            const char * adducts() const { return adducts_.c_str(); }
-            const char * synonym() const { return synonym_.c_str(); }
-            const char * smiles() const { return smiles_.c_str(); }
-            const wchar_t * description() const { return description_.c_str(); }
+            const std::string& formula() const { return formula_; }
+            const std::string& adducts() const { return adducts_; }
+            const std::string& synonym() const { return synonym_; }
+            const std::string& smiles() const { return smiles_; }
+            const std::wstring& description() const { return description_; }
+            // const char * cformula() const { return formula_.c_str(); }
+            // const char * cadducts() const { return adducts_.c_str(); }
+            // const char * csynonym() const { return synonym_.c_str(); }
+            // const char * csmiles() const { return smiles_.c_str(); }
+            // const wchar_t * cdescription() const { return description_.c_str(); }
 
             bool isMSRef() const;
             void setIsMSRef( bool on );
