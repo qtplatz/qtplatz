@@ -1175,7 +1175,9 @@ MainWindow::handleControlMethodOpen()
                                                         , tr( "Control Method Files(*.ctrl)" ) );
             auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
             if ( document::load( name, *cm ) ) {
-                edit->setText( name );
+                auto path = boost::filesystem::path( name.toStdString() );
+                edit->setText( QString::fromStdString( path.stem().string() ) );
+                edit->setToolTip( name );
                 this->setControlMethod( cm );
                 document::instance()->setControlMethod( cm, name );
             }
@@ -1192,7 +1194,7 @@ MainWindow::handleControlMethodSaveAs()
     QString dstfile;
 
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
-        dstfile = edit->text();
+        dstfile = edit->toolTip();
         if ( dstfile.isEmpty() )
             dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
         try {
