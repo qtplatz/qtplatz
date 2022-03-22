@@ -1041,7 +1041,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
 
         } else {
-            ADINFO() << "##### AVG ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" );
+            // ADINFO() << "##### AVG ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" );
 
             AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 

@@ -58,7 +58,7 @@ namespace adwidgets {
         void apply();
 
     public slots:
-
+        void handleRunning( bool );
     };
 
 }

@@ -87,6 +87,7 @@ namespace accutof {
             QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
 
         signals:
+            void onSampleRun( bool );
 
         public slots:
             void actDark();

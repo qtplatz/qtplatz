@@ -107,6 +107,17 @@ MainWindow * MainWindow::instance_ = 0;
 
 namespace {
     enum { numAxes = 2 };
+
+    struct setCalibFileName {
+        void operator()( QWidget * parent, const QString& file, QString&& ss ) const {
+            if ( auto edit = parent->findChild< QLineEdit * >( "calibfile" ) ) {
+                auto path = boost::filesystem::path( file.toStdString() );
+                edit->setText( QString::fromStdString( path.stem().string() ) );
+                edit->setToolTip( file );
+                edit->setStyleSheet( ss );
+            }
+        }
+    };
 }
 
 
@@ -137,6 +148,8 @@ MainWindow::createDockWidgets()
 
         createDockWidget( widget, tr( "U5303A" ), "ControlMethod" );
 
+        connect( this, &MainWindow::onSampleRun, widget, &acqrswidgets::u5303AWidget::handleRunning );
+
         connect( widget, &acqrswidgets::u5303AWidget::applyTriggered, []() {
             document::instance()->applyTriggered();
         });
@@ -144,17 +157,16 @@ MainWindow::createDockWidgets()
         connect( widget, &acqrswidgets::u5303AWidget::dataChanged, [this,widget]() {
                 acqrscontrols::u5303a::method u;
                 if ( widget->get( u ) ) {
+                    using acqrscontrols::u5303a::method;
                     document::instance()->set_method( u );
                     if ( auto sform = findChild< adwidgets::findSlopeForm * >() ) {
                         // disable counting if pkd enabled && number of averages >= 2
                         bool disable = u._device_method().pkd_enabled ||
-                            ( u.mode() == acqrscontrols::u5303a::method::DigiMode::Averager && u._device_method().nbr_of_averages >= 2 );
+                            ( u.mode() == method::DigiMode::Averager && u._device_method().nbr_of_averages >= 2 );
                         sform->setDisabled( disable );
-                    } else {
-                        ADDEBUG() << "slopeForm not find";
                     }
                     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
-                        widget->setDigitizerMode( int( u.mode() ) == 0 );
+                        widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
                 }
             });
@@ -162,6 +174,8 @@ MainWindow::createDockWidgets()
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::SampleRunWidget >( "SampleRunwidget" ) ) {
         createDockWidget( widget, tr( "Sample Run" ), "SampleRunWidget" );
+        connect( this, &MainWindow::onSampleRun, widget, &adwidgets::SampleRunWidget::handleRunning );
+        connect( widget, &adwidgets::SampleRunWidget::apply, document::instance(), &document::handleSampleRun );
     }
 
     if ( auto widget = qtwrapper::make_widget< MoleculesWidget >( "Molecules" ) ) {
@@ -210,9 +224,7 @@ MainWindow::createDockWidgets()
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
-
         createDockWidget( widget, "Modules", "CherryPicker" );
-
         connect( widget, &adwidgets::CherryPicker::stateChanged
                  , []( const QString& key, bool enable ){
                        document::instance()->setControllerSettings( key, enable );
@@ -236,11 +248,11 @@ MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iCon
 void
 MainWindow::OnInitialUpdate()
 {
+    setSampleRun( *document::instance()->sampleRun() );
+
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
     connect( document::instance(), &document::onModulesFailed, this, &MainWindow::handleModulesFailed );
-    connect( document::instance(), &document::sampleRunChanged, this, [this] {
-            setSampleRun( *document::instance()->sampleRun() );
-        });
+    connect( document::instance(), &document::sampleRunChanged, this, [&]{ setSampleRun( *document::instance()->sampleRun() ); });
     connect( document::instance(), &document::msCalibrationLoaded, this, &MainWindow::handleMSCalibrationLoaded );
 
     for ( auto dock: dockWidgets() ) {
@@ -369,7 +381,7 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-    handleMSCalibrationLoaded( document::instance()->msCalibFile() );
+    setCalibFileName()( this, document::instance()->msCalibFile(), "background-color: cyan;" );
 
 #if ! defined Q_OS_MAC
     for ( auto dock: dockWidgets() )
@@ -971,6 +983,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( pair.second );
         }
     }
+    emit onSampleRun( status == adacquire::Instrument::eRunning );
 }
 
 void
@@ -1226,7 +1239,7 @@ MainWindow::setSampleRun( const adcontrols::SampleRun& m )
     if ( auto edit = findChild< QLineEdit * >( "runName" ) ) {
         edit->setText( QString::fromStdWString( std::wstring( m.filePrefix() ) ) );
     }
-
+    ADDEBUG() << "############## setSampleRun #############";
     if ( auto widget = findChild< adwidgets::SampleRunWidget * >() ) {
         widget->setSampleRun( m );
     }
@@ -1235,6 +1248,7 @@ MainWindow::setSampleRun( const adcontrols::SampleRun& m )
 std::shared_ptr< adcontrols::SampleRun >
 MainWindow::getSampleRun() const
 {
+    ADDEBUG() << "############## getSampleRun #############";
     auto sr = std::make_shared< adcontrols::SampleRun >();
     if ( auto widget = findChild< adwidgets::SampleRunWidget * >() ) {
         widget->getSampleRun( *sr );
@@ -1252,10 +1266,10 @@ MainWindow::handleSelCalibFile()
 	dlg.setFileMode( QFileDialog::ExistingFile );
 
     if ( dlg.exec() == QDialog::Accepted ) {
-
 		auto result = dlg.selectedFiles();
         if ( document::instance()->setMSCalibFile( result[ 0 ] ) ) {
             qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
+            setCalibFileName()( this, file, "background-color:yellow;" );
         } else {
             QMessageBox::warning( 0, tr( "select calibration file" ), tr( "Calibration file load failed" ) );
         }
@@ -1265,9 +1279,5 @@ MainWindow::handleSelCalibFile()
 void
 MainWindow::handleMSCalibrationLoaded( const QString& file )
 {
-    if ( auto edit = findChild< QLineEdit * >( "calibfile" ) ) {
-        auto path = boost::filesystem::path( file.toStdString() );
-        edit->setText( QString::fromStdString( path.stem().string() ) );
-        edit->setToolTip( file );
-    }
+    setCalibFileName()( this, file, "background-color:white;" );
 }

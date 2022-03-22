@@ -33,6 +33,7 @@
 #include <adportable/serializer.hpp>
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
+#include <QPushButton>
 
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
@@ -192,5 +193,17 @@ u5303AWidget::setEnabled( const QString& name, bool enable )
     }
     if ( auto table = findChild< u5303ATable *>() ) {
         table->setEnabled( name, enable );
+    }
+}
+
+void
+u5303AWidget::handleRunning( bool isRunning )
+{
+    if ( auto form = findChild< u5303AForm * >() ) {
+        if ( auto button = form->findChild< QPushButton * >( "pushButton" ) ) {
+            button->setEnabled( !isRunning );
+        } else {
+            ADDEBUG() << "############ pushButton not found ##############";
+        }
     }
 }

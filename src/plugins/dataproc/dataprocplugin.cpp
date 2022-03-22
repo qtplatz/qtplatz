@@ -164,7 +164,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     //-------------------------------------------------------------------------------------------
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    adplugin::manager::standalone_initialize();
+    // adplugin::manager::standalone_initialize(); <-- already processed in servantplugin
 
     do {
         std::vector< std::string > mime;

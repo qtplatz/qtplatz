@@ -336,8 +336,9 @@ namespace accutof { namespace acquire {
             bool closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const;
             void handle_fsm_state_changed( bool enter, int id_state, adacquire::Instrument::eInstStatus st ) {
-                if ( enter )
+                if ( enter ) {
                     emit document::instance()->instStateChanged( st );
+                }
             }
 
             void handle_fsm_action( adacquire::Instrument::idFSMAction a ) {
@@ -539,15 +540,12 @@ void
 document::addInstController( adextension::iController * p )
 {
     try {
-
         if ( auto ptr = p->pThis() )
             impl_->addInstController( p->pThis() );
 
     } catch ( std::bad_weak_ptr& ) {
-
         QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin"
                               , QString( tr( "Instrument controller %1 has no shared_ptr; ignored." ) ).arg( p->module_name() ) );
-
     }
 }
 
@@ -622,17 +620,13 @@ document::prepare_for_run()
 void
 document::start_run()
 {
-    ADDEBUG() << "### start run ###";
     prepare_for_run();
 }
 
 void
 document::stop()
 {
-    ADDEBUG() << "### stop ###";
-
     std::vector< std::future< bool > > futures;
-
     for ( auto& iController : impl_->iControllers_ ) {
         if ( auto session = iController->getInstrumentSession() ) {
             futures.push_back( std::async( [=] () { return session->stop_run(); } ) );
@@ -1524,7 +1518,8 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
         }
         if ( !loaded ) {
             msCalibFile_ = QString();
-            boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
+            boost::filesystem::path path =
+                QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
             path /= accutof::acquire::Constants::DEFAULT_CALIB_FILE; // default.msclb
             if ( auto calibResult = loadMSCalibFile( path ) ) {
                 adutils::mscalibio::write( db, *calibResult );
@@ -1533,18 +1528,6 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
             }
         }
         emit document::instance()->msCalibrationLoaded( msCalibFile_ );
-        // if ( boost::filesystem::exists( path ) ) {
-        //     ADTRACE() << "Loading calibration from file: " << path.string();
-        //     adfs::filesystem fs;
-        //     if ( fs.mount( path ) ) {
-        //         adcontrols::MSCalibrateResult calibResult;
-        //         if ( adutils::fsio::load_mscalibfile( fs, calibResult ) ) {
-        //             if ( calibResult.calibration().massSpectrometerClsid() == accutof::spectrometer::iids::uuid_massspectrometer ) {
-        //                 adutils::mscalibio::write( db, calibResult );
-        //                 massSpectrometer_->initialSetup( db, {{0}} );
-        //             }
-        //         }
-        //     }
     }
     return true;
 }
@@ -1592,7 +1575,6 @@ document::applyTriggered()
 void
 document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-    ADDEBUG() << "-------------- chromatograms method value changed -------------------";
     namespace xic = adcontrols::xic;
 
     tdc()->setTofChromatogramsMethod( m );
@@ -1889,4 +1871,12 @@ document::impl::loadMSCalibFile( const boost::filesystem::path& path ) const
         }
     }
     return nullptr;
+}
+
+void
+document::handleSampleRun()
+{
+    ADDEBUG() << "############# handleSampleRun ############";
+    actionStop();
+    actionRun();
 }

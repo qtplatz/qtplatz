@@ -77,27 +77,20 @@ loader::populate( const wchar_t * topdir )
     boost::filesystem::path modules( appdir / pluginDirectory );
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
 #ifndef NDEBUG
-    ADDEBUG() << "loader populating in directory: " << topdir;
+    static size_t count = 0;
+    ADDEBUG() << "loader populating in directory: " << topdir << "\t#" << count++;
 #endif
 
     if ( boost::filesystem::is_directory( modules ) ) {
-
         boost::system::error_code ec;
         boost::filesystem::recursive_directory_iterator it( modules, ec );
-
         if ( !ec ) {
-
             while ( it != boost::filesystem::recursive_directory_iterator() ) {
-
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
-
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
-
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
-
                         for ( auto& dir : { branch /*, sharedlibs */ } ) {
-
                             auto fname = dir / (stem.string() + debug_trail);
                             boost::system::error_code ec;
                             boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );

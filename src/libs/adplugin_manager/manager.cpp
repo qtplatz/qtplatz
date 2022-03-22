@@ -80,11 +80,11 @@ namespace adplugin {
     public:
         ~plugin_data() {
             plugin_ = nullptr; // release plugin before unload library
-#ifndef NDEBUG            
+#ifndef NDEBUG
             auto loc = boost::filesystem::relative( dll_.location(), boost::dll::program_location().parent_path() );
 #endif
             dll_.unload();
-#ifndef NDEBUG                        
+#ifndef NDEBUG
             ADDEBUG() << "<<< unloading " << loc << " " << (dll_.is_loaded() ? " fail" : " success");
 #endif
         }
@@ -328,7 +328,7 @@ manager::standalone_initialize()
     // Mac/Linux --> qtplatz.release/lib/qtplatz/libadplugin_manager.so
     auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
 #endif
-
+    ADDEBUG() << "standalone_initialize start populate...";
     adplugin::loader::populate( tpath.wstring().c_str() );
 
     // spectrometers

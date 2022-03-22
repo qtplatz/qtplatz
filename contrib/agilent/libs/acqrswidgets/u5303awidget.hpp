@@ -66,7 +66,7 @@ namespace acqrswidgets {
         void applyTriggered();
 
     public slots:
-
+        void handleRunning( bool );
     };
 
 }

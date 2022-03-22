@@ -30,12 +30,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #endif
-#include <adportable/scoped_flag.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/scoped_flag.hpp>
 #include <qtwrapper/font.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include <QAction>
+#include <QApplication>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QFileDialog>
@@ -47,7 +49,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QTextEdit>
-
+#include <QDebug>
 
 namespace adwidgets {
 
@@ -69,12 +71,15 @@ namespace adwidgets {
         class ItemDelegate : public QStyledItemDelegate {
         public:
             void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
-
+                QStyleOptionViewItem op( option );
+                initStyleOption( &op, index );
                 if ( index.column() == 1 && index.row() == 0 ) { // method time
-                    painter->drawText( option.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 2 ) );
+                    if ( auto item = qobject_cast< const QStandardItemModel * >(index.model())->itemFromIndex( index ) ) {
+                        painter->setBrush( item->background() );
+                        painter->drawRect( option.rect );
+                    }
+                    painter->drawText( option.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 1 ) );
                 } else {
-                    QStyleOptionViewItem op( option );
-                    initStyleOption( &op, index );
                     if ( index.column() == c_item_name || (index.column() == c_item_value && index.row() == r_method_time) )
                         op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     if ( index.row() == r_directory && index.column() == c_item_value )
@@ -111,7 +116,7 @@ namespace adwidgets {
     public:
         explicit SampleRunTable( QWidget *parent = 0) : TableView( parent )
                                                       , model_( new QStandardItemModel )
-                                                      , inProgress_( false ) {
+                                                      , blockBackgroundColor_ ( false ) {
             setModel( model_ );
             setItemDelegate( new ItemDelegate );
 
@@ -123,7 +128,6 @@ namespace adwidgets {
         }
 
         void onInitialUpdate() {
-            adportable::scoped_flag scope_lock( inProgress_ );
             QStandardItemModel& model = *model_;
             static const QPair< QString, QString > headings[] = {
                 { tr( "Method time (seconds):" ), tr( "Methond run length" ) }
@@ -132,7 +136,7 @@ namespace adwidgets {
                 , { tr( "Data save in:" ),        tr( "Data directory where data to be stored" ) }
                 , { tr( "Filename:" ),            tr( "Initial filename for data, name to be incremented" ) }
             };
-
+            adportable::scoped_flag flag( blockBackgroundColor_ );
             model.setColumnCount( 3 );
             model.setHeaderData( c_item_name, Qt::Horizontal, QObject::tr( "parameter" ) );
             model.setHeaderData( c_item_value, Qt::Horizontal, QObject::tr( "value" ) );
@@ -147,8 +151,7 @@ namespace adwidgets {
         }
 
         bool setContents( const adcontrols::SampleRun& t ) {
-
-            adportable::scoped_flag scope_lock( inProgress_ );
+            QSignalBlocker block( model_ );
             QStandardItemModel& model = *model_;
 
             model.setData( model.index( r_method_time, 1 ), t.methodTime() ); // shows in seconds
@@ -164,19 +167,27 @@ namespace adwidgets {
         }
 
         bool getContents( adcontrols::SampleRun& t ) const {
+            ADDEBUG() << "\t########### getContents ############ --> to Qt::white";
             QStandardItemModel& model = *model_;
+
             t.methodTime( model.index( r_method_time, 1 ).data().toDouble() ); // stored in seconds
             t.replicates( model.index( r_replicates, 1 ).data().toInt() );
             t.setDataDirectory( model.index( r_directory, 1 ).data().toString().toStdWString() );
             t.setFilePrefix( model.index( r_filename, 1 ).data().toString().toStdWString() );
             t.setIonization( model.index( r_ionization, 1 ).data().toString().toStdString() );
             t.setPolarityPositive( model.index( r_ionization, 1 ).data().toString().contains("(+)") );
+
+            // QSignalBlocker block( model_ );
+            adportable::scoped_flag flag( blockBackgroundColor_ );
+            for ( int row = 0; row < model.rowCount(); ++row ) {
+                model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::white ) );
+            }
             return true;
         }
 
     private:
         QStandardItemModel * model_;
-        bool inProgress_;
+        mutable bool blockBackgroundColor_;
 
         // TableView
         void addActionsToContextMenu( QMenu& menu, const QPoint& pt ) const override {
@@ -192,11 +203,14 @@ namespace adwidgets {
 
     public slots:
         void handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight ) {
-            if ( inProgress_ )
-                return;
-            QStandardItemModel& model = *model_;
-            for ( int row = topLeft.row(); row <= bottomRight.row(); ++row )
-                model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
+            if ( !blockBackgroundColor_ ) {
+                for ( int row = topLeft.row(); row <= bottomRight.row(); ++row ) {
+                    if ( topLeft.column() <= c_item_value && c_item_value <= bottomRight.column() ) {
+                        ADDEBUG() << ">> handleDataChanged: " << std::make_pair( row, c_item_value );
+                        model_->itemFromIndex( model_->index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
+                    }
+                }
+            }
         }
 
         void findDirectory( const QModelIndex& menuIndex ) {
@@ -208,8 +222,6 @@ namespace adwidgets {
         }
 
         void setDefault() {
-            adportable::scoped_flag lock( inProgress_ );
-
             boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
             path /= "data";
             path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
@@ -244,11 +256,11 @@ SampleRunWidget::SampleRunWidget(QWidget *parent) :  QWidget(parent)
         }
 
         if ( auto vLayout = new QHBoxLayout ) {
-            if ( auto button = new QPushButton( tr("Apply") ) ) {
+            if ( auto button = qtwrapper::make_widget<QPushButton>( "apply", tr("Apply") ) ) {
                 vLayout->addWidget( button );
-                connect( button, &QPushButton::released, this, [this](){ emit apply(); } );
+                connect( button, &QPushButton::released, this, [&](){ emit apply(); } );
             }
-            if ( auto button = new QPushButton( tr("Default folder") ) ) {
+            if ( auto button = qtwrapper::make_widget< QPushButton >( "reset-folder", tr("Reset folder to default") ) ) {
                 vLayout->addWidget( button );
                 if ( auto table = findChild< SampleRunTable * >() )
                     connect( button, &QPushButton::released, table, &SampleRunTable::setDefault );
@@ -279,7 +291,6 @@ bool
 SampleRunWidget::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< std::shared_ptr< adcontrols::SampleRun > >::is_a( a ) ) {
-
         if ( auto ptr = boost::any_cast<std::shared_ptr< adcontrols::SampleRun >>(a) ) {
             getSampleRun( *ptr );
             return true;
@@ -333,11 +344,22 @@ SampleRunWidget::setSampleRun( const adcontrols::SampleRun& t )
 void
 SampleRunWidget::getSampleRun( adcontrols::SampleRun& t ) const
 {
-    if ( auto table = findChild< SampleRunTable * >() )
+    if ( auto table = findChild< SampleRunTable * >() ) {
         table->getContents( t );
+    }
     if ( auto edit = findChild< QTextEdit * >() )
         t.description( edit->toHtml().toStdString().c_str() );
 }
 
+void
+SampleRunWidget::handleRunning( bool running )
+{
+    ADDEBUG() << "######### handleRunning (" << running << ")";
+    if ( auto button = findChild< QPushButton * >( "apply" ) ) {
+        button->setEnabled( !running );
+    } else {
+        ADDEBUG() << "======== no apply button ======";
+    }
+}
 
 #include "samplerunwidget.moc"

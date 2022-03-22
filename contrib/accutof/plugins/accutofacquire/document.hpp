@@ -183,7 +183,7 @@ namespace accutof {
         public slots:
             void handleAutoZeroXICs();
             void handleClearXICs();
-
+            void handleSampleRun();
         private slots:
             void handleMessage( adextension::iController *, uint32_t code, uint32_t value );
 

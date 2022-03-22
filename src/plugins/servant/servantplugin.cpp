@@ -120,6 +120,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     adplugin::manager::standalone_initialize();
 
+    ADLOG(adlog::LOG_INFO) << "adplugin::manager::standalone_initialize done.";
+
     return true;
 }
 
