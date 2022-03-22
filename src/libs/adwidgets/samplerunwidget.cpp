@@ -75,15 +75,12 @@ namespace adwidgets {
                 initStyleOption( &op, index );
                 if ( index.column() == 1 && index.row() == 0 ) { // method time
                     if ( auto item = qobject_cast< const QStandardItemModel * >(index.model())->itemFromIndex( index ) ) {
-                        painter->setBrush( item->background() );
-                        painter->drawRect( option.rect );
+                        painter->fillRect( option.rect, item->background() );
                     }
                     painter->drawText( option.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 1 ) );
                 } else {
-                    if ( index.column() == c_item_name || (index.column() == c_item_value && index.row() == r_method_time) )
+                    if ( index.column() == c_item_name || (index.column() == c_item_value /*&& index.row() == r_method_time*/) )
                         op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
-                    if ( index.row() == r_directory && index.column() == c_item_value )
-                        op.textElideMode = Qt::ElideLeft;
                     QStyledItemDelegate::paint( painter, op, index );
                 }
             }
@@ -206,6 +203,7 @@ namespace adwidgets {
                 for ( int row = topLeft.row(); row <= bottomRight.row(); ++row ) {
                     if ( topLeft.column() <= c_item_value && c_item_value <= bottomRight.column() ) {
                         model_->itemFromIndex( model_->index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
+                        resizeColumnToContents( 1 );
                     }
                 }
             }
