@@ -96,6 +96,7 @@ namespace accutof {
             void saveCurrentImage();
             void printCurrentView();
             void hideDock( bool );
+            void handleDefferedWrite( const QString&, int, int );
 
         private slots:
             void handle_reply( const QString&, const QString& );
@@ -117,6 +118,8 @@ namespace accutof {
             void createDockWidgets();
             Utils::StyledBar * createTopStyledToolbar();
             Utils::StyledBar * createMidStyledToolbar();
+            class impl;
+            std::unique_ptr< impl > impl_;
         };
     }
 }

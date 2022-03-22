@@ -133,9 +133,7 @@ namespace accutof { namespace acquire {
             static std::mutex mutex_;
 
             const std::chrono::system_clock::time_point tp_uptime_;
-
             std::chrono::system_clock::time_point tp_inject_;
-
             boost::asio::io_context io_service_;
             work_guard_type work_guard_;
             boost::asio::io_context::strand strand_;
@@ -227,9 +225,12 @@ task::initialize()
                 document::instance()->actionInject();
         });
 
-        adacquire::task::instance()->initialize();
+        adacquire::task::instance()->connect_deffered_progress( []( const std::string& stem, size_t remain, size_t progress ){
+            document::instance()->handleDefferedWrite( stem, remain, progress );
+        });
 
-    } );
+        adacquire::task::instance()->initialize();
+    });
 
     return true;
 }

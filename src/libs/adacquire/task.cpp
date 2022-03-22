@@ -89,6 +89,7 @@ namespace adacquire {
         boost::signals2::signal< fsm_action_t > signalFSMAction_;
         boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
         boost::signals2::signal< periodic_timer_t > signal_periodic_timer_;
+        boost::signals2::signal< deffered_progress_t > signal_deffered_progress_;
         time_event_handler_t time_event_handler_;
 
         boost::asio::deadline_timer timer_;
@@ -162,6 +163,12 @@ boost::signals2::connection
 task::connect_periodic_timer( signal_periodic_timer_t f )
 {
 	return impl_->signal_periodic_timer_.connect( f );
+}
+
+boost::signals2::connection
+task::connect_deffered_progress( signal_deffered_progress_t f )
+{
+    return impl_->signal_deffered_progress_.connect( f );
 }
 
 boost::signals2::connection
@@ -518,4 +525,11 @@ task::handle_so_event( SignalObserver::wkEvent events )
 {
     if ( events & SignalObserver::wkEvent_INJECT )
         impl_->signalInstEvents_( Instrument::instEventInjectOut );
+}
+
+void
+task::handleDataWriterStatus( size_t id, const std::string& filename, size_t remains, size_t progress, double dur )
+{
+    auto stem = boost::filesystem::path( filename ).stem().string();
+    impl_->signal_deffered_progress_( stem, remains, progress );
 }

@@ -79,6 +79,7 @@ SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
     , ts_inject_trigger_( 0 )
     , elapsed_time_( 0 )
     , closed_flag_( false )
+    , deffered_count_( 0 )
 {
 }
 
@@ -226,18 +227,20 @@ SampleProcessor::writer_thread()
             std::tie( objId, writer ) = que_.front();
             que_.pop_front();
 
-            if ( objId == boost::uuids::uuid{{0}} || writer == nullptr )
+            if ( objId == boost::uuids::uuid{{0}} || writer == nullptr ) {
+                if ( deffered_count_ ) {
+                    task::instance()->handleDataWriterStatus( myId_, fs_->filename(), 0, deffered_count_, 0);
+                }
                 return; // end of thread
+            }
         } while (0);
 
         __write( objId, writer );
 
         if ( c_acquisition_active_ && closed_flag_ ) {
+            ++deffered_count_;
             auto duration = std::chrono::duration< double >( std::chrono::steady_clock::now() - tp_close_trigger_).count();
-
-            ADDEBUG() << "SampleProcessor: " << boost::filesystem::path( fs_->filename() ).stem().string()
-                      << "\tremains: "
-                      << boost::format("%2d;\ttook %.1f s") % sema_.count() % duration;
+            task::instance()->handleDataWriterStatus( myId_, fs_->filename(), sema_.count(), deffered_count_, duration );
         }
     } while ( true );
 }

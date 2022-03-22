@@ -112,6 +112,7 @@ namespace adacquire {
         std::deque< std::pair<boost::uuids::uuid, std::shared_ptr<adacquire::SignalObserver::DataWriter>> > que_;
         std::thread thread_;
         std::atomic_bool closed_flag_;
+        size_t deffered_count_;
         boost::optional< std::future< void > > close_future_;
     };
 

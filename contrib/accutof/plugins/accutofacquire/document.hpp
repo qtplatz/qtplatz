@@ -172,6 +172,8 @@ namespace accutof {
             bool setMSCalibFile( const QString& );
             QString msCalibFile() const;
 
+            void handleDefferedWrite( const std::string& stem, size_t remain, size_t progress );
+
             static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
             static bool load( const QString& filename, acqrscontrols::u5303a::method& );
             static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
@@ -209,6 +211,7 @@ namespace accutof {
             void onDelayPulseData( const QByteArray );
             void darkStateChanged( int );
             void msCalibrationLoaded( const QString& );
+            void onDefferedWrite( const QString&, int, int );
         };
     }
 }

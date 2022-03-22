@@ -54,6 +54,7 @@
 #include <adwidgets/dgwidget.hpp>
 #include <adwidgets/findslopeform.hpp>
 #include <adwidgets/moltableview.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
@@ -62,6 +63,7 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <coreplugin/imode.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/findplaceholder.h>
@@ -120,8 +122,18 @@ namespace {
     };
 }
 
+namespace accutof {
+    namespace acquire {
+        class MainWindow::impl {
+        public:
+            std::shared_ptr< adwidgets::ProgressInterface > progress_;
+        };
+    }
+}
+
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
+                                        , impl_( std::make_unique< impl >() )
 {
     instance_ = this;
 }
@@ -252,6 +264,7 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(), &document::onModulesFailed, this, &MainWindow::handleModulesFailed );
     connect( document::instance(), &document::sampleRunChanged, this, [&]{ setSampleRun( *document::instance()->sampleRun() ); });
     connect( document::instance(), &document::msCalibrationLoaded, this, &MainWindow::handleMSCalibrationLoaded );
+    connect( document::instance(), &document::onDefferedWrite, this, &MainWindow::handleDefferedWrite );
 
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
@@ -1277,4 +1290,16 @@ void
 MainWindow::handleMSCalibrationLoaded( const QString& file )
 {
     setCalibFileName()( this, file, "background-color:white;" );
+}
+
+void
+MainWindow::handleDefferedWrite( const QString& stem, int remain, int progress )
+{
+    if ( !impl_->progress_ ) {
+        impl_->progress_ = std::make_shared< adwidgets::ProgressInterface >( 0, remain + progress );
+        Core::ProgressManager::addTask( impl_->progress_->progress.future(), "Processing...", "accutof.task.deffered" );
+    }
+    (*impl_->progress_)( progress );
+    if ( remain == 0 )
+        impl_->progress_.reset();
 }

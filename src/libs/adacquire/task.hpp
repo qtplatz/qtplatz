@@ -72,11 +72,14 @@ namespace adacquire {
                                                , adcontrols::ControlMethod::const_time_event_iterator
                                                , adcontrols::ControlMethod::const_time_event_iterator ) > time_event_handler_t;
 
+        typedef void( deffered_progress_t )(const std::string& stem, size_t remain, size_t progress );
+        typedef std::function< deffered_progress_t > signal_deffered_progress_t;
+
         boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
         boost::signals2::connection connect_fsm_state( signal_fsm_state_changed_t );
         boost::signals2::connection connect_inst_events( signal_inst_events_t );
         boost::signals2::connection connect_periodic_timer( signal_periodic_timer_t );
-
+        boost::signals2::connection connect_deffered_progress( signal_deffered_progress_t );
         boost::signals2::connection register_time_event_handler( const time_event_handler_t::slot_type& );
 
         void initialize();
@@ -120,6 +123,7 @@ namespace adacquire {
 #endif
         //
         void handle_so_event( SignalObserver::wkEvent );
+        void handleDataWriterStatus( size_t id, const std::string& name, size_t remains, size_t progress, double dur );
 
     private:
         friend std::unique_ptr< task >::deleter_type;

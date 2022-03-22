@@ -352,11 +352,8 @@ SampleRunWidget::getSampleRun( adcontrols::SampleRun& t ) const
 void
 SampleRunWidget::handleRunning( bool running )
 {
-    ADDEBUG() << "######### handleRunning (" << running << ")";
     if ( auto button = findChild< QPushButton * >( "apply" ) ) {
         button->setEnabled( !running );
-    } else {
-        ADDEBUG() << "======== no apply button ======";
     }
 }
 

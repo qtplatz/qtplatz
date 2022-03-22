@@ -1882,3 +1882,10 @@ document::handleSampleRun()
     actionStop();
     actionRun();
 }
+
+void
+document::handleDefferedWrite( const std::string& stem, size_t remain, size_t progress )
+{
+    // ADDEBUG() << stem << ", " << remain << "/" << (remain + progress);
+    emit onDefferedWrite( QString::fromStdString( stem ), int(remain), int(progress) );
+}
