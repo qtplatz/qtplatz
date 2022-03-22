@@ -1633,7 +1633,7 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 #if __cplusplus >= 201703L
         auto [enable,algo] = method.tic();
 #else
-        bool enable; xic::eIntensityAlgorishm algo;
+        bool enable; adcontrols::xic::eIntensityAlgorishm algo;
         std::tie( enable, algo ) = method.tic();
 #endif
         if ( enable ) {
