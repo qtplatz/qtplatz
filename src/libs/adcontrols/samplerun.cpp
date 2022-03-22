@@ -60,9 +60,9 @@ namespace adcontrols {
         impl() : methodTime_( 60.0 )
                , replicates_( 999 )
                , filePrefix_( L"RUN_0001" )
-               , runCount_( 0 )
                , ionization_( "" )
                , polarityPositive_( true )
+               , runCount_( 0 )
                , runNumber_( 0 ) {
 
             std::ostringstream os;
@@ -81,10 +81,10 @@ namespace adcontrols {
                               , dataDirectory_( t.dataDirectory_ )
                               , filePrefix_( t.filePrefix_ )
                               , description_( t.description_ )
-                              , runCount_( t.runCount_ )
-                              , runNumber_( t.runNumber_ )
                               , ionization_( t.ionization_ )
-                              , polarityPositive_( true ) {
+                              , polarityPositive_( true )
+                              , runCount_( t.runCount_ )
+                              , runNumber_( t.runNumber_ )  {
         }
 
         size_t findLastRunNumber() {
@@ -305,7 +305,7 @@ SampleRun::setPolarityPositive( bool value )
 size_t
 SampleRun::operator ++ ()
 {
-    uint32_t prev = impl_->runNumber_++;
+    impl_->runNumber_++;
 #if !defined NDEBUG && 0
     ADDEBUG() << "##### increment sample run number : " << prev << " --> " << impl_->runNumber_ << " ####################";
 #endif

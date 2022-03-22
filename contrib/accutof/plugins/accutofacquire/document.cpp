@@ -711,7 +711,7 @@ document::initialSetup()
             std::wifstream inf( fname.string() );
             try {
                 adcontrols::SampleRun::xml_restore( inf, *run );
-
+                ADDEBUG() << "***** SampleRun RUN NAME\t" << run->runname();
                 // replace directory name to 'today'
                 run->setDataDirectory( impl_->nextSampleRun_->dataDirectory() ); // reset data directory to ctor default
                 adacquire::SampleProcessor::prepare_sample_run( *run, false );
@@ -722,6 +722,8 @@ document::initialSetup()
             } catch ( std::exception& ex ) {
                 ADDEBUG() << ex.what();
             }
+        } else {
+            ADDEBUG() << fname << " does not exists.";
         }
     }
 
@@ -1119,6 +1121,7 @@ void
 document::setSampleRun( std::shared_ptr< adcontrols::SampleRun > sr )
 {
     impl_->nextSampleRun_ = sr;
+    ADDEBUG() << "***** SampleRun RUN NAME\t" << sr->runname();
 }
 
 bool
@@ -1859,7 +1862,7 @@ std::shared_ptr< adcontrols::MSCalibrateResult >
 document::impl::loadMSCalibFile( const boost::filesystem::path& path ) const
 {
     if ( boost::filesystem::exists( path ) ) {
-        ADTRACE() << "select calibration file: " << path.string();
+        // ADTRACE() << "select calibration file: " << path.string();
         adfs::filesystem fs;
         if ( fs.mount( path ) ) {
             auto calibResult = std::make_shared< adcontrols::MSCalibrateResult >();

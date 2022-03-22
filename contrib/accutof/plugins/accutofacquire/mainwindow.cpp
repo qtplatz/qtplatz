@@ -248,8 +248,6 @@ MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iCon
 void
 MainWindow::OnInitialUpdate()
 {
-    setSampleRun( *document::instance()->sampleRun() );
-
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
     connect( document::instance(), &document::onModulesFailed, this, &MainWindow::handleModulesFailed );
     connect( document::instance(), &document::sampleRunChanged, this, [&]{ setSampleRun( *document::instance()->sampleRun() ); });
@@ -262,6 +260,10 @@ MainWindow::OnInitialUpdate()
             widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
     }
+
+    // this must call after onInitialUpdate
+    setSampleRun( *document::instance()->sampleRun() );
+
     if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
         w->setMassSpectrometer( document::instance()->massSpectrometer() );
     }
@@ -1232,14 +1234,11 @@ MainWindow::handleControlMethodSaveAs()
 void
 MainWindow::setSampleRun( const adcontrols::SampleRun& m )
 {
+    ADDEBUG() << "***** SampleRun RUN NAME\t" << m.runname();
     if ( auto edit = findChild< QLineEdit * >( "dataSaveIn" ) ) {
         edit->setText( QString::fromStdWString( std::wstring( m.dataDirectory() ) ) );
     }
 
-    if ( auto edit = findChild< QLineEdit * >( "runName" ) ) {
-        edit->setText( QString::fromStdWString( std::wstring( m.filePrefix() ) ) );
-    }
-    ADDEBUG() << "############## setSampleRun #############";
     if ( auto widget = findChild< adwidgets::SampleRunWidget * >() ) {
         widget->setSampleRun( m );
     }
@@ -1248,7 +1247,6 @@ MainWindow::setSampleRun( const adcontrols::SampleRun& m )
 std::shared_ptr< adcontrols::SampleRun >
 MainWindow::getSampleRun() const
 {
-    ADDEBUG() << "############## getSampleRun #############";
     auto sr = std::make_shared< adcontrols::SampleRun >();
     if ( auto widget = findChild< adwidgets::SampleRunWidget * >() ) {
         widget->getSampleRun( *sr );
