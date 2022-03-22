@@ -328,7 +328,6 @@ manager::standalone_initialize()
     // Mac/Linux --> qtplatz.release/lib/qtplatz/libadplugin_manager.so
     auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
 #endif
-    ADDEBUG() << "standalone_initialize start populate...";
     adplugin::loader::populate( tpath.wstring().c_str() );
 
     // spectrometers

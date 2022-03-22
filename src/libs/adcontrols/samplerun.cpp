@@ -89,9 +89,7 @@ namespace adcontrols {
 
         size_t findLastRunNumber() {
             boost::filesystem::path dir( dataDirectory_ );
-
-            boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
-
+            // boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
             size_t lastRunNumber(0);
             if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
                 using boost::filesystem::directory_iterator;
@@ -234,7 +232,8 @@ void
 SampleRun::setDataDirectory( const std::wstring& dir )
 {
     impl_->dataDirectory_ = dir;
-    impl_->runNumber_ = impl_->findLastRunNumber() + 1;
+    impl_->runCount_   = impl_->findLastRunNumber();
+    impl_->runNumber_  = impl_->runCount_ + 1;
     impl_->filePrefix_ = impl_->make_name( impl_->runNumber_ );
 }
 

@@ -153,7 +153,6 @@ namespace adwidgets {
         bool setContents( const adcontrols::SampleRun& t ) {
             QSignalBlocker block( model_ );
             QStandardItemModel& model = *model_;
-            ADDEBUG() << "***** SampleRun RUN NAME\t" << t.runname() << ", " << t.filePrefix();
 
             model.setData( model.index( r_method_time, 1 ), t.methodTime() ); // shows in seconds
             model.setData( model.index( r_replicates, 1 ), int( t.replicates() ) );
@@ -168,7 +167,6 @@ namespace adwidgets {
         }
 
         bool getContents( adcontrols::SampleRun& t ) const {
-            ADDEBUG() << "\t########### getContents ############ --> to Qt::white";
             QStandardItemModel& model = *model_;
 
             t.methodTime( model.index( r_method_time, 1 ).data().toDouble() ); // stored in seconds
@@ -207,7 +205,6 @@ namespace adwidgets {
             if ( !blockBackgroundColor_ ) {
                 for ( int row = topLeft.row(); row <= bottomRight.row(); ++row ) {
                     if ( topLeft.column() <= c_item_value && c_item_value <= bottomRight.column() ) {
-                        ADDEBUG() << ">> handleDataChanged: " << std::make_pair( row, c_item_value );
                         model_->itemFromIndex( model_->index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
                     }
                 }
@@ -334,7 +331,6 @@ SampleRunWidget::setContents( boost::any&& a )
 void
 SampleRunWidget::setSampleRun( const adcontrols::SampleRun& t )
 {
-    ADDEBUG() << "***** SampleRun RUN NAME\t" << t.runname();
     if ( auto table = findChild< SampleRunTable * >() ) {
         table->setContents( t );
     }

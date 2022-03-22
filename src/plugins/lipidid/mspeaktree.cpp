@@ -251,7 +251,6 @@ MSPeakTree::MSPeakTree(QWidget *parent) : QTreeView( parent )
     this->setSelectionMode( QAbstractItemView::ExtendedSelection );
 
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
-    connect( impl_->delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }
 
 void

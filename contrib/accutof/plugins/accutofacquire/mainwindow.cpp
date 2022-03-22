@@ -1234,7 +1234,6 @@ MainWindow::handleControlMethodSaveAs()
 void
 MainWindow::setSampleRun( const adcontrols::SampleRun& m )
 {
-    ADDEBUG() << "***** SampleRun RUN NAME\t" << m.runname();
     if ( auto edit = findChild< QLineEdit * >( "dataSaveIn" ) ) {
         edit->setText( QString::fromStdWString( std::wstring( m.dataDirectory() ) ) );
     }
