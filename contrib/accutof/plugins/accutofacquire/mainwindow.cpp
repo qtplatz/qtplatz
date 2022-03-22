@@ -90,6 +90,7 @@
 #include <QMessageBox>
 #include <QSignalBlocker>
 #include <QStackedWidget>
+#include <QStatusBar>
 #include <QResizeEvent>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -1297,9 +1298,10 @@ MainWindow::handleDefferedWrite( const QString& stem, int remain, int progress )
 {
     if ( !impl_->progress_ ) {
         impl_->progress_ = std::make_shared< adwidgets::ProgressInterface >( 0, remain + progress );
-        Core::ProgressManager::addTask( impl_->progress_->progress.future(), "Processing...", "accutof.task.deffered" );
+        Core::ProgressManager::addTask( impl_->progress_->progress.future(), QString("Closing %1...").arg(stem), "accutof.task.deffered" );
     }
     (*impl_->progress_)( progress );
-    if ( remain == 0 )
+    if ( remain == 0 ) {
         impl_->progress_.reset();
+    }
 }
