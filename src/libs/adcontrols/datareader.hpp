@@ -64,13 +64,23 @@ namespace adcontrols {
         int fcn() const;
     };
 
-    class ADCONTROLSSHARED_EXPORT DataReader_iterator
-        : public std::iterator< std::bidirectional_iterator_tag
-                                , DataReader_iterator > {
+    class ADCONTROLSSHARED_EXPORT DataReader_iterator {
+        // : public std::iterator< std::bidirectional_iterator_tag
+        //                         , DataReader_iterator > {
         std::weak_ptr< const DataReader > reader_;
         DataReader_value_type value_;
         int fcn_;
     public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = DataReader_iterator;
+#if __cplusplus >= 201703L
+        using difference_type = std::ptrdiff_t;
+#else
+        using difference_type = int;
+#endif
+        using pointer = value_type*;
+        using reference = value_type&;
+
         DataReader_iterator();
         DataReader_iterator( const DataReader* reader, int64_t rowid, int fcn = (-1) );
         DataReader_iterator( const DataReader_iterator& );
