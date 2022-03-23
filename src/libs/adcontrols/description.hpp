@@ -42,10 +42,9 @@ namespace adcontrols {
         ~description();
         description();
         description( const description& );
-        //[[deprecated]] description( const wchar_t * key, const wchar_t * text );
-        [[deprecated]] description( const std::wstring& key, const std::wstring& text );
+        description( const std::wstring& key, const std::wstring& text );
         description( std::pair< std::string, std::string >&& keyValue );
-        template< typename char_type > description( const std::basic_string< char_type >&& key, const std::basic_string< char_type >&& value );
+        // template< typename char_type > description( const std::basic_string< char_type >&& key, const std::basic_string< char_type >&& value );
 
         inline bool operator == ( const description& t ) const;
 

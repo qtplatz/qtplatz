@@ -102,21 +102,17 @@ description::description()
     posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 }
 
-// description::description( const wchar_t * key, const wchar_t * text )
-// {
-//     posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
-//     keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) );
-// }
-
 description::description( const std::wstring& key, const std::wstring& text )
+    : posix_time_( std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count() )
+    , keyValue_( std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) ) )
 {
-    posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
-    keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) );
+
 }
 
-description::description( std::pair< std::string, std::string >&& keyValue ) : keyValue_( keyValue )
+description::description( std::pair< std::string, std::string >&& keyValue )
+    : posix_time_( std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count() )
+    , keyValue_( keyValue )
 {
-    posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 }
 
 description::description( const description& t ) : posix_time_( t.posix_time_ )
@@ -144,17 +140,6 @@ description::setValue( const std::string& t )
 }
 
 namespace adcontrols {
-    template<>
-    description::description( const std::basic_string< char >&& key, const std::basic_string< char >&& value )
-        : keyValue_{ std::move(key), std::move(value) }
-    {
-    }
-
-    template<>
-    description::description( const std::basic_string< wchar_t >&& key, const std::basic_string< wchar_t >&& value )
-        : keyValue_{ adportable::utf::to_utf8(key), adportable::utf::to_utf8(value) }
-    {
-    }
 
     template<> std::basic_string< char >
     description::text() const {

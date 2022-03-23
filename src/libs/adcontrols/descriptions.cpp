@@ -93,11 +93,11 @@ namespace adcontrols {
                                , [&] ( const description& d ){
 
                                      std::match_results< std::wstring::const_iterator > match;
-                                     std::wstring key = d.key();
+                                     std::wstring key = d.key<wchar_t>();
                                      if ( std::regex_match( key, match, regex_ ) ) {
                                          if ( !name.empty() )
                                              name += L' ';
-                                         name += d.text();
+                                         name += d.text<wchar_t>();
                                      }
                                  } );
 
@@ -160,7 +160,7 @@ descriptions::toString() const
 {
     std::wstring text;
     for ( auto& desc: *this )
-        text += std::wstring( desc.text() ) + L";";
+        text += std::wstring( desc.text<wchar_t>() ) + L";";
     return text;
 }
 
