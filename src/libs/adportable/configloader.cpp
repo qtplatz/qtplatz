@@ -89,7 +89,7 @@ ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstri
 {
     pugi::xml_document dom;
     pugi::xml_parse_result result;
-    if ( ! ( result = dom.load( pugi::as_utf8( xml ).c_str() ) ) )
+    if ( ! ( result = dom.load_string( pugi::as_utf8( xml ).c_str() ) ) )
         return false;
 
     pugi::xpath_node_set list = dom.select_nodes( pugi::as_utf8( query ).c_str() );
@@ -143,18 +143,18 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
         for ( pugi::xml_attribute_iterator it = node.attributes_begin(); it != node.attributes_end(); ++it )
             config.attribute( it->name(), it->value() );
 
-        pugi::xpath_node title_node = node.select_single_node( "./title[@lang='jp']" );
+        pugi::xpath_node title_node = node.select_node( "./title[@lang='jp']" );
         if ( title_node ) {
             config.title( pugi::as_wide( title_node.node().child_value() ) );
         } else {
-            if ( ( title_node = node.select_single_node( "./title[@lang='en']" ) ) )
+            if ( ( title_node = node.select_node( "./title[@lang='en']" ) ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
-            else if ( ( title_node = node.select_single_node( "./title" ) ) )
+            else if ( ( title_node = node.select_node( "./title" ) ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
         }
 
         do {
-            std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
+            std::string interface = node.select_node( "./Component/@interface" ).attribute().value();
             if ( ! interface.empty() )
                 config.component_interface( interface );
         } while (0);

@@ -24,10 +24,16 @@ set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
 set ( Boost_NO_BOOST_CMAKE OFF )
 
 if ( APPLE )
+#  add_definitions( "-Wno-unused-local-typedefs" )
+#  add_definitions( -Wno-deprecated-declarations )
   # -- uncomment following line, is you would like to build a universal binary --
   # set( CMAKE_OSX_ARCHITECTURES "arm64;x86_64" )
   #
   # set( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # Catalina
+endif()
+
+if ( CMAKE_COMPILER_IS_GNUCC )
+#  add_definitions( "-Wno-deprecated-declarations" )
 endif()
 
 option( WITH_RDKIT         "Include chemistry support"  ON )

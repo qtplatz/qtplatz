@@ -201,14 +201,6 @@ if ( MSVC )
   add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 -wd4996 -wd4348 )
 endif()
 
-if ( APPLE )
-  add_definitions( "-Wno-unused-local-typedefs" )
-  add_definitions( -Wno-deprecated-declarations )
-endif()
-
-if ( CMAKE_COMPILER_IS_GNUCC )
-  add_definitions( "-Wno-deprecated-declarations" )
-endif()
 remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 
 add_library( QTC::Core SHARED IMPORTED )
