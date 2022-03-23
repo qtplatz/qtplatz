@@ -247,7 +247,7 @@ void QtColorButton::mouseMoveEvent(QMouseEvent *event)
         drg->setPixmap(d_ptr->generatePixmap());
         setDown(false);
         event->accept();
-        drg->start();
+        drg->exec();
         return;
     }
 #endif

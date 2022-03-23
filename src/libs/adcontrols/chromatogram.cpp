@@ -915,7 +915,7 @@ Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
     for ( auto& desc: descs ) {
         if ( ! name.empty() )
             name += L"/";
-        name += desc.text();
+        name += desc.text<wchar_t>();
     }
     return name;
 }
@@ -1027,8 +1027,8 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     size_t pos0 = std::distance( pImpl_->timeArray_.begin(), it0 );
     size_t pos1 = std::distance( pImpl_->timeArray_.begin(), it1 );
 
-    pk.setStartPos( int(pos0), pImpl_->dataArray_.at( pos0 ) );
-    pk.setEndPos( int(pos1), pImpl_->dataArray_.at( pos1 ) );
+    pk.setStartData({ std::int32_t(pos0), *it0, pImpl_->dataArray_.at( pos0 ) });
+    pk.setEndData({ std::int32_t(pos1), *it1, pImpl_->dataArray_.at( pos1 ) });
 
     double area = std::accumulate( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1, 0.0 );
     double height = *std::max_element( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1 );

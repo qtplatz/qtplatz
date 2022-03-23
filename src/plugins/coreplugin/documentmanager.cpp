@@ -1405,7 +1405,7 @@ void DocumentManager::populateOpenWithMenu(QMenu *menu, const QString &fileName)
                 OpenWithEntry entry;
                 entry.editorFactory = editorFactory;
                 entry.fileName = fileName;
-                action->setData(qVariantFromValue(entry));
+                action->setData(QVariant::fromValue(entry));
             }
             // Add all suitable external editors
             foreach (IExternalEditor *externalEditor, externalEditors) {
@@ -1413,7 +1413,7 @@ void DocumentManager::populateOpenWithMenu(QMenu *menu, const QString &fileName)
                 OpenWithEntry entry;
                 entry.externalEditor = externalEditor;
                 entry.fileName = fileName;
-                action->setData(qVariantFromValue(entry));
+                action->setData(QVariant::fromValue(entry));
             }
         }
     }

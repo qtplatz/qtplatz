@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #pragma once
+
 #include "adcontrols_global.h"
 
 namespace boost { namespace uuids { struct uuid; } }
@@ -32,16 +33,16 @@ namespace adcontrols {
     namespace constants {
 
         // Folium (attachment) name
-        const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
-        const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
-        const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
-        const wchar_t * const F_TARGETING          = L"Targeting";
-        const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
-        const wchar_t * const F_PROFILED_HISTOGRAM = L"Profiled Histogram";
-        const wchar_t * const F_PEAKRESULT         = L"PeakResult";
+        extern const wchar_t * const F_DFT_FILTERD;       //  = L"DFT Low Pass Filtered Spectrum";
+        extern const wchar_t * const F_CENTROID_SPECTRUM; //  = L"Centroid Spectrum";
+        extern const wchar_t * const F_MSPEAK_INFO;       //        = L"MSPeakInfo";
+        extern const wchar_t * const F_TARGETING;                //           = L"Targeting";
+        extern const wchar_t * const F_QUANSAMPLE;        //         = L"QuanSample";
+        extern const wchar_t * const F_PROFILED_HISTOGRAM; // = L"Profiled Histogram";
+        extern const wchar_t * const F_PEAKRESULT;        //          = L"PeakResult";
 
         // (attachment) dataType
-        const wchar_t * const DT_PEAKRESULT        = L"PeakResult";
+        extern const wchar_t * const DT_PEAKRESULT;       //        = L"PeakResult";
     }
 
     namespace iids {
@@ -53,6 +54,8 @@ namespace adcontrols {
     }
 
     enum hor_axis: unsigned int { hor_axis_mass, hor_axis_time };
+
+    enum ion_polarity: unsigned int { polarity_positive, polarity_negative };
 
     namespace plot {
         enum axis : unsigned int { yAxis, xAxis };

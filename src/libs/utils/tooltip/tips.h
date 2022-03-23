@@ -109,7 +109,7 @@ public slots:
     void pinToolTipWidget();
 
 private:
-    QWidget *takeWidget(Qt::WindowFlags wf = 0);
+    QWidget *takeWidget(Qt::WindowFlags wf = {});
 
     QVBoxLayout *m_layout;
 };

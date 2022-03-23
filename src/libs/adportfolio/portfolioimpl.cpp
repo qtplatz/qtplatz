@@ -48,9 +48,9 @@ PortfolioImpl::PortfolioImpl() : isXMLLoaded_(false)
 
 PortfolioImpl::PortfolioImpl( const std::string& xml ) : isXMLLoaded_(false)
 {
-    pugi::xml_parse_result result = doc_.load( xml.c_str() );
+    pugi::xml_parse_result result = doc_.load_string( xml.c_str() );
     if ( result ) {
-        pugi::xpath_node node = doc_.select_single_node( "/xtree/dataset" );
+        pugi::xpath_node node = doc_.select_node( "/xtree/dataset" );
         if ( node ) {
             node_ = node.node();
             isXMLLoaded_ = true;
@@ -132,7 +132,7 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
     dset.set_name( "dataset" );
     dset.append_attribute( "fullpath" ).set_value( pugi::as_utf8( fullpath ).c_str() );
 
-    pugi::xpath_node dataset = doc_.select_single_node( "/xtree/dataset" );
+    pugi::xpath_node dataset = doc_.select_node( "/xtree/dataset" );
     if ( dataset ) {
         node_ = dataset.node();
         isXMLLoaded_ = true;
@@ -190,7 +190,7 @@ PortfolioImpl::collect_garbage()
     for ( auto a: db_ ) {
         std::string query = "//*[@dataId=\"" + pugi::as_utf8( a.first ) +"\"]";
         try {
-            pugi::xpath_node node = node_.select_single_node( query.c_str() );
+            pugi::xpath_node node = node_.select_node( query.c_str() );
             if ( ! node )
 				candidates.push_back( a.first );
         } catch ( pugi::xpath_exception& ex ) {

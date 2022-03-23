@@ -48,7 +48,7 @@ class QTCREATOR_UTILS_EXPORT Wizard : public QWizard
     Q_PROPERTY(bool automaticProgressCreationEnabled READ isAutomaticProgressCreationEnabled WRITE setAutomaticProgressCreationEnabled)
 
 public:
-    explicit Wizard(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+    explicit Wizard(QWidget *parent = 0, Qt::WindowFlags flags = {});
     virtual ~Wizard();
 
     bool isAutomaticProgressCreationEnabled() const;

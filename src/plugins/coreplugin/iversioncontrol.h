@@ -139,7 +139,7 @@ public:
      * Returns settings.
      */
 
-    virtual SettingsFlags settingsFlags() const { return 0; }
+    virtual SettingsFlags settingsFlags() const { return {}; }
 
     /*!
      * Called after a file has been added to a project If the version control

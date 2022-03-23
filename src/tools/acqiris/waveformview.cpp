@@ -103,7 +103,7 @@ WaveformView::WaveformView( QWidget * parent ) : QwtPlot( parent )
 
     QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
     panner->setAxisEnabled( QwtPlot::yRight, false );
-    panner->setMouseButton( Qt::MidButton );
+    panner->setMouseButton( Qt::MiddleButton );
 
     const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );

@@ -220,10 +220,20 @@ namespace adcontrols {
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
-    class ADCONTROLSSHARED_EXPORT Chromatogram_iterator : public std::iterator< std::forward_iterator_tag, Chromatogram_iterator > {
+    class ADCONTROLSSHARED_EXPORT Chromatogram_iterator { // : public std::iterator< std::forward_iterator_tag, Chromatogram_iterator > {
         const Chromatogram * chromatogram_;
         size_t idx_;
     public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = Chromatogram_iterator;
+#if __cplusplus >= 201703L
+        using difference_type = std::ptrdiff_t;
+#else
+        using difference_type = int;
+#endif
+        using pointer = value_type*;
+        using reference = value_type&;
+
         Chromatogram_iterator();
         Chromatogram_iterator( const Chromatogram *, size_t idx );
         Chromatogram_iterator( const Chromatogram_iterator& );

@@ -209,7 +209,7 @@ void
 CentroidProcessImpl::setup( const CentroidMethod& method )
 {
     method_ = method;
-	desc_ = adcontrols::description( L"CentroidProcess", L"Centroid" );
+	desc_ = adcontrols::description({"CentroidProcess", "Centroid"});
 
 	std::ostringstream o;
 	boost::archive::xml_oarchive ar( o );

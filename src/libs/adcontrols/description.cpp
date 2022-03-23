@@ -143,6 +143,40 @@ description::setValue( const std::string& t )
     keyValue_.second = t;
 }
 
+namespace adcontrols {
+    template<>
+    description::description( const std::basic_string< char >&& key, const std::basic_string< char >&& value )
+        : keyValue_{ std::move(key), std::move(value) }
+    {
+    }
+
+    template<>
+    description::description( const std::basic_string< wchar_t >&& key, const std::basic_string< wchar_t >&& value )
+        : keyValue_{ adportable::utf::to_utf8(key), adportable::utf::to_utf8(value) }
+    {
+    }
+
+    template<> std::basic_string< char >
+    description::text() const {
+        return keyValue_.second;
+    }
+
+    template<> std::basic_string< wchar_t >
+    description::text() const {
+        return adportable::utf::to_wstring( keyValue_.second );
+    }
+
+    template<> std::basic_string< char >
+    description::key() const {
+        return keyValue_.first;
+    }
+
+    template<> std::basic_string< wchar_t >
+    description::key() const {
+        return adportable::utf::to_wstring( keyValue_.first );
+    }
+}
+
 std::wstring
 description::text() const
 {

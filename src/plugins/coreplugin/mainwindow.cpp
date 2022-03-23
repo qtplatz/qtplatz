@@ -1066,7 +1066,7 @@ void MainWindow::aboutToShowRecentFiles()
         hasRecentFiles = true;
         QAction *action = menu->addAction(
                     QDir::toNativeSeparators(Utils::withTildeHomePath(file.first)));
-        action->setData(qVariantFromValue(file));
+        action->setData(QVariant::fromValue(file));
         connect(action, SIGNAL(triggered()), this, SLOT(openRecentFile()));
     }
     menu->setEnabled(hasRecentFiles);

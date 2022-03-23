@@ -79,7 +79,7 @@ public:
     static IEditor *activateEditor(EditorView *view, IEditor *editor,
                                    EditorManager::OpenEditorFlags flags = EditorManager::NoFlags);
     static IEditor *activateEditorForDocument(EditorView *view, IDocument *document,
-                                              EditorManager::OpenEditorFlags flags = 0);
+                                              EditorManager::OpenEditorFlags flags = {});
     static void activateEditorForEntry(EditorView *view, DocumentModel::Entry *entry,
                                        EditorManager::OpenEditorFlags flags = EditorManager::NoFlags);
     static EditorView *viewForEditor(IEditor *editor);

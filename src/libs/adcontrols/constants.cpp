@@ -30,6 +30,20 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 namespace adcontrols {
+
+    namespace constants {
+        const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
+        const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
+        const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
+        const wchar_t * const F_TARGETING          = L"Targeting";
+        const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
+        const wchar_t * const F_PROFILED_HISTOGRAM = L"Profiled Histogram";
+        const wchar_t * const F_PEAKRESULT         = L"PeakResult";
+
+        // (attachment) dataType
+        const wchar_t * const DT_PEAKRESULT        = L"PeakResult";
+    }
+
     namespace iids {
 
         const boost::uuids::uuid massspectrometer_uuid = boost::uuids::string_generator()( "{85897CCB-8025-41AB-B01E-3147C44A8955}" );
