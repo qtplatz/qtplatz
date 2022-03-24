@@ -238,6 +238,9 @@ WaveformWnd::onInitialUpdate()
 
     handle_method( QString() );
     handle_threshold_method( 0 );
+
+    document::instance()->setPKDSpectrumEnabled( !pkdSpectrumEnabled_ );// force get dirty in the handleDrawsettingchanged method
+    handleDrawSettingChanged();
 }
 
 void
@@ -569,8 +572,16 @@ void
 WaveformWnd::handleDrawSettingChanged()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
+    bool dirty = pkdSpectrumEnabled_ != document::instance()->pkdSpectrumEnabled();
+
     pkdSpectrumEnabled_ = document::instance()->pkdSpectrumEnabled();
     longTermHistogramEnabled_ = document::instance()->longTermHistogramEnabled();
+
+    if ( dirty ) {
+        for ( auto& closeup: closeups_ ) {
+            closeup.sp->enableAxis( QwtPlot::yRight, pkdSpectrumEnabled_ );
+        }
+    }
 
     //hpw_->enableAxis( QwtPlot::yLeft, pkdSpectrumEnabled_ );
     //hpw_->enableAxis( QwtPlot::yRight, longTermHistogramEnabled_ );
