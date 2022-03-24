@@ -37,6 +37,7 @@
 #include <QObject>
 #include <QScopedPointer>
 #include <QReadWriteLock>
+#include <QElapsedTimer>
 
 QT_BEGIN_NAMESPACE
 class QTime;
@@ -116,7 +117,7 @@ public:
     QEventLoop *shutdownEventLoop; // used for async shutdown
 
     QStringList arguments;
-    QScopedPointer<QTime> m_profileTimer;
+    QScopedPointer<QElapsedTimer> m_profileTimer;
     QHash<const PluginSpec *, int> m_profileTotal;
     int m_profileElapsedMS;
     unsigned m_profilingVerbosity;

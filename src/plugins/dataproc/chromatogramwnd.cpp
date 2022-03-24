@@ -384,7 +384,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setFullPage( false );
 
 	portfolio::Folium folium;

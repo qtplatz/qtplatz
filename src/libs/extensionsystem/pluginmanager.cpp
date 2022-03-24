@@ -546,7 +546,7 @@ static QStringList subList(const QStringList &in, const QString &key)
     QStringList rc;
     // Find keyword and copy arguments until end or next keyword
     const QStringList::const_iterator inEnd = in.constEnd();
-    QStringList::const_iterator it = qFind(in.constBegin(), inEnd, key);
+    QStringList::const_iterator it = std::find(in.constBegin(), inEnd, key);
     if (it != inEnd) {
         const QChar nextIndicator = QLatin1Char(':');
         for (++it; it != inEnd && !it->startsWith(nextIndicator); ++it)
@@ -1275,7 +1275,7 @@ void PluginManagerPrivate::readPluginPaths()
     }
     resolveDependencies();
     // ensure deterministic plugin load order by sorting
-    qSort(pluginSpecs.begin(), pluginSpecs.end(), lessThanByPluginName);
+    std::sort(pluginSpecs.begin(), pluginSpecs.end(), lessThanByPluginName);
     emit q->pluginsChanged();
 }
 
@@ -1334,7 +1334,7 @@ PluginSpec *PluginManagerPrivate::pluginByName(const QString &name) const
 void PluginManagerPrivate::initProfiling()
 {
     if (m_profileTimer.isNull()) {
-        m_profileTimer.reset(new QTime);
+        m_profileTimer.reset(new QElapsedTimer);
         m_profileTimer->start();
         m_profileElapsedMS = 0;
         qDebug("Profiling started");

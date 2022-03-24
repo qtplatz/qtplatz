@@ -134,10 +134,10 @@ ContourWnd::handlePrintCurrentView( const QString& pdfname )
     QPrinter printer( QPrinter::HighResolution );
 
     printer.setOutputFileName( pdfname );
-    printer.setOrientation( QPrinter::Landscape );
+    printer.setPageOrientation( QPageLayout::Landscape );
     printer.setDocName( "QtPlatz Spectrogram" );
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setFullPage( false );
     printer.setResolution( 300 );
 
