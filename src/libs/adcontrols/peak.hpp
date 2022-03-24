@@ -77,9 +77,9 @@ namespace adcontrols {
         void setEndData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& );
         void setTopData( std::tuple< std::int32_t /*pos*/, seconds_t, peakheight_t >&& );
 
-        [[deprecated]] void  setStartPos(std::int32_t pos, peakheight_t h);
-        [[deprecated]] void  setTopPos(std::int32_t pos,   peakheight_t h);
-        [[deprecated]] void  setEndPos(std::int32_t pos,   peakheight_t h);
+        void  setStartPos(std::int32_t pos, peakheight_t h);
+        void  setTopPos(std::int32_t pos,   peakheight_t h);
+        void  setEndPos(std::int32_t pos,   peakheight_t h);
 
         seconds_t startTime() const;
         void   setStartTime( seconds_t newTime);

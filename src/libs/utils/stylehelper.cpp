@@ -190,7 +190,7 @@ void StyleHelper::verticalGradient(QPainter *painter, const QRect &spanRect, con
             clipRect.height(), keyColor.rgb());
 
         QPixmap pixmap;
-        if (!QPixmapCache::find(key, pixmap)) {
+        if (!QPixmapCache::find(key, &pixmap)) {
             pixmap = QPixmap(clipRect.size());
             QPainter p(&pixmap);
             QRect rect(0, 0, clipRect.width(), clipRect.height());
@@ -248,7 +248,7 @@ void StyleHelper::horizontalGradient(QPainter *painter, const QRect &spanRect, c
             clipRect.height(), keyColor.rgb(), spanRect.x());
 
         QPixmap pixmap;
-        if (!QPixmapCache::find(key, pixmap)) {
+        if (!QPixmapCache::find(key, &pixmap)) {
             pixmap = QPixmap(clipRect.size());
             QPainter p(&pixmap);
             QRect rect = QRect(0, 0, clipRect.width(), clipRect.height());
@@ -288,7 +288,7 @@ void StyleHelper::drawArrow(QStyle::PrimitiveElement element, QPainter *painter,
                        uint(option->state), element,
                        size, option->palette.cacheKey(),
                        devicePixelRatio);
-    if (!QPixmapCache::find(pixmapName, pixmap)) {
+    if (!QPixmapCache::find(pixmapName, &pixmap)) {
         const QCommonStyle* const style = qobject_cast<QCommonStyle*>(QApplication::style());
         if (!style)
             return;
@@ -334,7 +334,7 @@ void StyleHelper::menuGradient(QPainter *painter, const QRect &spanRect, const Q
             clipRect.height(), StyleHelper::baseColor().rgb());
 
         QPixmap pixmap;
-        if (!QPixmapCache::find(key, pixmap)) {
+        if (!QPixmapCache::find(key, &pixmap)) {
             pixmap = QPixmap(clipRect.size());
             QPainter p(&pixmap);
             QRect rect = QRect(0, 0, clipRect.width(), clipRect.height());
@@ -366,7 +366,7 @@ void StyleHelper::drawIconWithShadow(const QIcon &icon, const QRect &rect,
     QPixmap cache;
     QString pixmapName = QString::fromLatin1("icon %0 %1 %2").arg(icon.cacheKey()).arg(iconMode).arg(rect.height());
 
-    if (!QPixmapCache::find(pixmapName, cache)) {
+    if (!QPixmapCache::find(pixmapName, &cache)) {
         // High-dpi support: The in parameters (rect, radius, offset) are in
         // device-independent pixels. The call to QIcon::pixmap() below might
         // return a high-dpi pixmap, which will in that case have a devicePixelRatio
