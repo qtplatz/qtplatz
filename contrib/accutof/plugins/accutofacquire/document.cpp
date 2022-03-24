@@ -1596,16 +1596,22 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
                 bool enable; xic::eIntensityAlgorishm algo;
                 std::tie( enable, algo ) = m.tic();
 #endif
+                bool dirty = trace->enable() != enable;
                 trace->setEnable( enable );
                 trace->setIsCountingTrace( algo == xic::eCounting );
                 trace->setLegend( "TIC" );
+                if ( dirty )
+                    emit traceSettingChanged( idx, enable );
             } else if ( ( idx - 1 ) < impl_->tofChromatogramsMethod_->size() ) {
                 const auto item = impl_->tofChromatogramsMethod_->begin() + ( idx - 1 );
+                bool dirty = trace->enable() != item->enable();
                 trace->setEnable( item->enable() );
                 trace->setIsCountingTrace( item->intensityAlgorithm() == xic::eCounting );
                 char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
                 auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
                 trace->setLegend( ( boost::format( "%d[%c]" ) % idx % c ).str() );
+                if ( dirty )
+                    emit traceSettingChanged( idx, item->enable() );
             }
         }
     }

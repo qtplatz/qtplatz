@@ -70,17 +70,16 @@ namespace accutof { namespace acquire {
         void handleScaleY( int, bool autoScale, double top, double bottom );
         void handleMolecules( const QString& );
 
-
     private slots:
         void handleDataChanged( const boost::uuids::uuid&, int idx );
         void handleTraceChanged( const boost::uuids::uuid& );
         void thresholdTraceChanged();
-
+        void handleDrawSettingChanged();
+        void handleTraceSettingChanged( int idx, bool );
     private:
         void init();
         void fini();
         void setCountingRange( int row, const std::pair<double, double>& range );
-        void handleDrawSettingChanged();
 
         adplot::ChromatogramWidget * tpw_;
         adplot::SpectrumWidget * spw_;

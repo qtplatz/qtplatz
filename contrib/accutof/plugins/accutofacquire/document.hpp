@@ -207,6 +207,7 @@ namespace accutof {
             void onModulesFailed( const QStringList& );
             void moduleConfigChanged();
             void drawSettingChanged(); // <- setPKDSpectrumEnabled, setLongTermHistogramEnabled
+            void traceSettingChanged( int id, bool );
             void onTick( const QByteArray );
             void onDelayPulseData( const QByteArray );
             void darkStateChanged( int );

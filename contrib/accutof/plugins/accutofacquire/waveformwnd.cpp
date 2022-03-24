@@ -111,7 +111,8 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
 
     connect( document::instance(), &document::dataChanged, this, &WaveformWnd::handleDataChanged );
     connect( document::instance(), &document::traceChanged, this, &WaveformWnd::handleTraceChanged );
-    connect( document::instance(), &document::drawSettingChanged, [&]{ handleDrawSettingChanged(); } );
+    connect( document::instance(), &document::drawSettingChanged, this, &WaveformWnd::handleDrawSettingChanged );
+    connect( document::instance(), &document::traceSettingChanged, this, &WaveformWnd::handleTraceSettingChanged );
 }
 
 WaveformWnd::~WaveformWnd()
@@ -313,6 +314,15 @@ WaveformWnd::handle_method( const QString& )
 }
 
 void
+WaveformWnd::handleTraceSettingChanged( int idx, bool enable )
+{
+    ADDEBUG() << __FUNCTION__ << "\t" << std::make_pair( idx, enable );
+    if ( idx == 0 && !enable ) {
+        // tpw_->setTrace( nullptr, idx, QwtPlot::yLeft );
+    }
+}
+
+void
 WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_obsserver */ )
 {
     std::vector< std::shared_ptr< adcontrols::Trace > > traces;
@@ -344,7 +354,6 @@ WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_
             }
         } else {
         }
-        // tpw_->setData( trace, idx, false );
         ++idx;
     }
 }
@@ -460,7 +469,7 @@ WaveformWnd::handleDataChanged( const boost::uuids::uuid& uuid, int idx )
 
                     for ( auto& closeup: closeups_ ) {
                         if ( closeup.enable )
-                            closeup.sp->setData( sp, 2, QwtPlot::yLeft ); // left axis
+                            closeup.sp->setData( sp, 2, QwtPlot::yRight ); // left axis
                     }
                 }
 
@@ -478,7 +487,7 @@ WaveformWnd::handleDataChanged( const boost::uuids::uuid& uuid, int idx )
 
                 for ( auto& closeup: closeups_ ) {
                     if ( closeup.enable )
-                        closeup.sp->setData( sp, 3, QwtPlot::yLeft ); // left axis
+                        closeup.sp->setData( sp, 3, QwtPlot::yRight ); // left axis
                 }
 
             } else {

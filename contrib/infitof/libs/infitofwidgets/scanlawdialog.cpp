@@ -406,7 +406,7 @@ bool
 ScanLawDialog::read( int row, adcontrols::MSPeaks& peaks ) const
 {
     const auto& m = *impl_->model_;
-    const size_t rowCount = m.rowCount();
+    // const size_t rowCount = m.rowCount();
 
     if ( 0 <= row && row < m.rowCount() ) {
 
