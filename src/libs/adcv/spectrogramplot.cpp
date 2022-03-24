@@ -272,7 +272,7 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
 
     QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
     panner->setAxisEnabled( QwtPlot::yRight, false );
-    panner->setMouseButton( Qt::MidButton );
+    panner->setMouseButton( Qt::MiddleButton );
 
     if ( auto picker = new adcv::picker( canvas() ) ) {
 
@@ -308,7 +308,7 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
 
     const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
-    sd->setMinimumExtent( fm.width( "888.0" ) );
+    sd->setMinimumExtent( fm.horizontalAdvance( "888.0" ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
 }

@@ -51,13 +51,23 @@ namespace adchem {
 
 #if HAVE_RDKit
         inline RDKit::SDMolSupplier& supplier() { return *supplier_; }
-        
-        class iterator : public std::iterator<  std::input_iterator_tag     // iterator_category
-                                                , RDKit::ROMol              // value_type
-                                                , size_t                    // difference_type
-                                                , const RDKit::ROMol*       // pointer
-                                                , const RDKit::ROMol& > {   // reference
+
+        class iterator { //: public std::iterator<  std::input_iterator_tag     // iterator_category
+                         //                       , RDKit::ROMol              // value_type
+                         //                       , size_t                    // difference_type
+                         //                       , const RDKit::ROMol*       // pointer
+                         //                       , const RDKit::ROMol& > {   // reference
         public:
+            using iterator_category = std::input_iterator_tag;
+            using value_type = RDKit::ROMol;
+#if __cplusplus >= 201703L
+            using difference_type = std::ptrdiff_t;
+#else
+            using difference_type = int;
+#endif
+            using pointer = value_type*;
+            using reference = value_type&;
+
             explicit iterator( RDKit::SDMolSupplier&, size_t idx = 0 );
             iterator( const iterator& );
             iterator& operator++();
@@ -70,7 +80,7 @@ namespace adchem {
             size_t idx_;
             std::unique_ptr< RDKit::ROMol > mol_;
         };
-    
+
         iterator begin();
         iterator end();
     private:
@@ -79,4 +89,3 @@ namespace adchem {
     };
 
 }
-

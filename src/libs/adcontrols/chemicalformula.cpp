@@ -891,26 +891,25 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
             mformula += formula.first;
     }
 
-    int charge;
-    std::vector< mol::element > mol, loses;
-    getComposition( mol, mformula, charge );
-    // ADDEBUG() << "mformula: " << mformula << ", charge: " << charge << ", lformula: " << lformula;
+    auto m = toMolecule( mformula );
+    int charge = m.charge();
 
-    if ( getComposition( loses, lformula, charge ) ) {
-        for ( auto& lose : loses ) {
-            auto it = std::find_if( mol.begin(), mol.end(), [lose] ( const mol::element& a ) {
-                    return a.atomicNumber() == lose.atomicNumber();
-                } );
-            if ( it != mol.end() )
+    if ( auto lm = toMolecule( lformula ) ) {
+        for ( const auto& lose: lm.elements() ) {
+            auto it = std::find_if( m.elements_begin(), m.elements_end(), [lose] ( const mol::element& a ) {
+                return a.atomicNumber() == lose.atomicNumber();
+            });
+            if ( it != m.elements_end() )
                 it->count( it->count() - lose.count() );
         }
-        charge = (-charge); // lose
+        charge = (-lm.charge() );
     }
-    std::sort( mol.begin(), mol.end()
+
+    std::sort( m.elements_begin(), m.elements_end()
                , [] ( const mol::element& a, const mol::element& b ) { return std::strcmp( a.symbol(), b.symbol() ) < 0; } );
 
     std::ostringstream o;
-    for ( auto& a : mol ) {
+    for ( auto& a : m.elements() ) {
         if ( a.count() > 0 ) {
             o << a.symbol();
             if ( a.count() > 1 )

@@ -101,8 +101,8 @@ void DockWidgetTitleButton::paintEvent(QPaintEvent *)
     opt.init(this);
     opt.state |= QStyle::State_AutoRaise;
     opt.icon = icon();
-    opt.subControls = 0;
-    opt.activeSubControls = 0;
+    opt.subControls = {};
+    opt.activeSubControls = {};
     opt.features = QStyleOptionToolButton::None;
     opt.arrowType = Qt::NoArrow;
     int size = style()->pixelMetric(QStyle::PM_SmallIconSize, 0, this);
@@ -464,7 +464,7 @@ void FancyMainWindow::addDockActionsToMenu(QMenu *menu)
             actions.append(dockwidgets.at(i)->toggleViewAction());
         }
     }
-    qSort(actions.begin(), actions.end(), actionLessThan);
+    std::sort(actions.begin(), actions.end(), actionLessThan);
     foreach (QAction *action, actions)
         menu->addAction(action);
     menu->addAction(&d->m_menuSeparator);

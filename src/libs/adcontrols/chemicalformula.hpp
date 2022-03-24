@@ -56,7 +56,9 @@ namespace adcontrols {
 		static std::wstring standardFormula( const std::wstring& formula, bool removeChare = false );
 		static std::string standardFormula( const std::string& formula, bool removeCharge = false );
 		static std::pair< std::string, int > standardFormula( const std::vector< std::pair< std::string, char > >& formulae ); // formula, charge
-        [[deprecated("use toMoleclue")]] static bool getComposition( std::vector< mol::element >&, const std::string& formula, int& charge );
+        [[deprecated("use toMoleclue")]]
+        static bool getComposition( std::vector< mol::element >&, const std::string& formula, int& charge );
+
         static mol::molecule toMolecule( const std::string& formula );
         static mol::molecule toMolecule( const std::string& formula, const std::string& adduct );
 

@@ -66,7 +66,7 @@ static bool sortEnvironmentItem(const EnvironmentItem &a, const EnvironmentItem 
 
 void EnvironmentItem::sort(QList<EnvironmentItem> *list)
 {
-    qSort(list->begin(), list->end(), &sortEnvironmentItem);
+    std::sort(list->begin(), list->end(), &sortEnvironmentItem);
 }
 
 QList<EnvironmentItem> EnvironmentItem::fromStringList(const QStringList &list)

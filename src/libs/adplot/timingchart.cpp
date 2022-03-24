@@ -84,7 +84,7 @@ namespace adplot {
             marker1_->attach( plot );
             marker2_->attach( plot );
         }
-        
+
         void setValue( const QPointF& p1, const QPointF& p2 ) {
 
             marker1_->setValue( p1.x(), p1.y() );
@@ -93,7 +93,7 @@ namespace adplot {
             QwtText label1( QString( "%1&mu;s" ).arg( QString::number( p1.x(), 'f', 3 ) ), QwtText::RichText );
             QwtText label2( QString( "%1&mu;s\n(%2&mu;s)" ).arg( QString::number( p2.x(), 'f', 3 )
                                                                 , QString::number( p2.x() - p1.x(), 'f', 3 ) ), QwtText::RichText );
-            
+
             marker1_->setLabel( label1 );
             marker2_->setLabel( label2 );
         }
@@ -148,7 +148,7 @@ TimingChart::TimingChart(QWidget *parent) : plot(parent)
     setAxisScale( QwtPlot::xBottom, -100.0, 1000.0 );
     setAxisScale( QwtPlot::yLeft, -5.0, 80.0 );
     setAxisTitle( QwtPlot::xBottom, QwtText( "&mu;s", QwtText::RichText ) );
-    
+
     plot::zoomer()->setZoomBase();
 
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
@@ -228,7 +228,7 @@ TimingChart::move( const QPoint &pos )
         return;
 
     QVector< QPointF > samples;
-    
+
     for ( int i = 0; i < impl_->selectedCurve_->dataSize(); ++i )
         samples.push_back( impl_->selectedCurve_->sample( i ) );
 
@@ -261,7 +261,7 @@ TimingChart::move( const QPoint &pos )
     }
 
     showCursor( true );
-    
+
     for ( auto& pair : impl_->pulses_ ) {
         if ( pair.second.get() == impl_->selectedCurve_ ) {
             pair.first.delay( samples[ 0 ].x() );
@@ -361,7 +361,7 @@ TimingChart::showCursor( bool showIt )
 
     const QBrush brush = symbol->brush();
     if ( showIt )
-        symbol->setBrush( symbol->brush().color().dark( 180 ) );
+        symbol->setBrush( symbol->brush().color().darker( 180 ) );
 
     QwtPlotDirectPainter directPainter;
     directPainter.drawSeries( impl_->selectedCurve_, impl_->selectedPoint_, impl_->selectedPoint_ );
@@ -383,7 +383,7 @@ TimingChart::impl::addPulse( const timingchart::pulse& p )
         pulse.uniqId( int( pulses_.size() ) );
 
     double base = pulses_.size() * 10;
-    
+
     if ( auto marker = std::make_shared< QwtPlotMarker >() ) {
         markers_.push_back( marker );
         marker->setLineStyle( QwtPlotMarker::HLine );
@@ -406,7 +406,7 @@ TimingChart::impl::addPulse( const timingchart::pulse& p )
         QVector< QPointF > line;
         line.push_back( QPointF( pulse.delay(), base ) );
         line.push_back( QPointF( pulse.delay() + pulse.duration(), base ) );
-    
+
         curve->setSamples( line );
         curve->setTitle( pulse.name() );
         curve->setVisible( true );
@@ -466,7 +466,7 @@ TimingChartPicker::eventFilter( QObject * object, QEvent * event )
     case QEvent::FocusIn:
         plot()->showCursor( true );
         break;
-    case QEvent::FocusOut: 
+    case QEvent::FocusOut:
         plot()->showCursor( false );
         break;
     case QEvent::Paint:
@@ -520,7 +520,7 @@ pulse::pulse( const pulse& t ) : uniqId_( t.uniqId_ )
 double
 pulse::delay( bool microseconds ) const
 {
-    return microseconds ? 
+    return microseconds ?
         adcontrols::metric::scale_to_micro( delay_ ) : delay_;
 }
 
@@ -533,7 +533,7 @@ pulse::delay( double value, bool microseconds )
 double
 pulse::duration( bool microseconds ) const
 {
-    return microseconds ? 
+    return microseconds ?
         adcontrols::metric::scale_to_micro( duration_ ) : duration_;
 }
 

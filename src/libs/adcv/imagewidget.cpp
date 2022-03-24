@@ -115,10 +115,9 @@ ImageWidget::handleZoom( double scale )
 void
 ImageWidget::setupMatrix()
 {
-    QMatrix matrix;
+    QTransform matrix;
     matrix.scale( scale_, scale_ );
-
-    graphicsView_->setMatrix(matrix);
+    graphicsView_->setTransform(matrix);
 }
 
 QGraphicsView *
