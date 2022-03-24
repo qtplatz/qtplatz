@@ -80,7 +80,7 @@ namespace accutof { namespace acquire {
         void init();
         void fini();
         void setCountingRange( int row, const std::pair<double, double>& range );
-        void handleDrawSettings();
+        void handleDrawSettingChanged();
 
         adplot::ChromatogramWidget * tpw_;
         adplot::SpectrumWidget * spw_;

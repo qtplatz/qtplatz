@@ -111,7 +111,7 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
 
     connect( document::instance(), &document::dataChanged, this, &WaveformWnd::handleDataChanged );
     connect( document::instance(), &document::traceChanged, this, &WaveformWnd::handleTraceChanged );
-    connect( document::instance(), &document::drawSettingChanged, [&]{ handleDrawSettings(); } );
+    connect( document::instance(), &document::drawSettingChanged, [&]{ handleDrawSettingChanged(); } );
 }
 
 WaveformWnd::~WaveformWnd()
@@ -566,7 +566,7 @@ WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 
 }
 
 void
-WaveformWnd::handleDrawSettings()
+WaveformWnd::handleDrawSettingChanged()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     pkdSpectrumEnabled_ = document::instance()->pkdSpectrumEnabled();
