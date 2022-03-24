@@ -55,6 +55,7 @@ namespace adplot {
 		~ChromatogramWidget();
 
         // void setData( std::shared_ptr< const adcontrols::Trace>, int idx = 0, QwtPlot::Axis axis = QwtPlot::yLeft ); --> setTrace
+        void removeTrace( int idx );
         void setTrace( std::shared_ptr< const adcontrols::Trace>, int idx, QwtPlot::Axis );
         void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx, QwtPlot::Axis );
         std::shared_ptr< const adcontrols::Chromatogram > getData( int idx ) const;

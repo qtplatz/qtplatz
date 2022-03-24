@@ -51,7 +51,7 @@ namespace adplot {
 
         void attach( QwtPlot * );
         void detach();
-        
+
         void setYAxis( int );
         [[deprecated]] void setValue( fence, double value );
         [[deprecated]] void setValue( double lower_value, double upper_value );
@@ -60,10 +60,10 @@ namespace adplot {
         double xValue( fence ) const;
         std::pair< double, double > xValue() const;
 
-        [[deprecated]] void visible( bool );
+        [[deprecated("use SetVisible")]] void visible( bool );
         void setVisible( bool );
         bool isVisible() const;
-        
+
         void replot();
 
         QwtPlotMarker * marker( fence idx );
@@ -73,4 +73,3 @@ namespace adplot {
     };
 
 }
-

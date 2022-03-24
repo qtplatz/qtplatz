@@ -143,7 +143,7 @@ WaveformWnd::init()
             QColor color( tpw_->color( idx++ ) );
             color.setAlpha( 0x20 );
             marker = std::make_unique< adplot::SpanMarker >( color, QwtPlotMarker::VLine, 2.0 );
-            marker->visible( false );
+            marker->setVisible( false );
             marker->attach( viewId == 0 ? spw_ : hpw_ );
         }
         ++viewId;
@@ -324,7 +324,7 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 
                 for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
                     auto& marker = histogram_window_markers_[ i ][ idx ];
-                    marker->visible( false );
+                    marker->setVisible( false );
                 }
 
             } else {
@@ -335,7 +335,7 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 
                 for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
                     auto& marker = histogram_window_markers_[ i ][ idx ];
-                    marker->setValue( scale_to_micro( lower ), scale_to_micro( upper ) );
+                    marker->setXValue( scale_to_micro( lower ), scale_to_micro( upper ) );
                     marker->visible( true );
                 }
             }

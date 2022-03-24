@@ -316,9 +316,8 @@ WaveformWnd::handle_method( const QString& )
 void
 WaveformWnd::handleTraceSettingChanged( int idx, bool enable )
 {
-    ADDEBUG() << __FUNCTION__ << "\t" << std::make_pair( idx, enable );
-    if ( idx == 0 && !enable ) {
-        // tpw_->setTrace( nullptr, idx, QwtPlot::yLeft );
+    if ( !enable ) {
+        tpw_->removeData( idx, false );
     }
 }
 

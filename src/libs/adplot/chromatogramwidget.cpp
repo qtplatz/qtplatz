@@ -180,7 +180,6 @@ namespace adplot {
         template<> void TraceData<adcontrols::Trace>::setData( std::shared_ptr< const adcontrols::Trace > trace )
         {
             if ( trace->size() > 2 ) {
-
                 auto * d_trace = new tSeriesData< adcontrols::Trace >( trace );
 
                 double x0 = trace->x( 0 ) - trace->injectTime();
@@ -488,10 +487,11 @@ ChromatogramWidget::setNormalizedY( QwtPlot::Axis axis, bool normalized )
         impl_->normalizedY_[ axis ] = normalized;
 }
 
+
 void
 ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int idx, QwtPlot::Axis yAxis )
 {
-    if ( c->size() < 2 )
+    if ( !c || c->size() < 2 )
         return;
 
     if ( impl_->traces_.size() <= size_t( idx ) )
