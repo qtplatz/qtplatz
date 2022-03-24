@@ -37,10 +37,10 @@
 #include <utils/qtcassert.h>
 
 #include <QCoreApplication>
-#include <QFileInfo>
-#include <QDir>
-
 #include <QDebug>
+#include <QDir>
+#include <QFileInfo>
+#include <QRandomGenerator>
 
 using namespace Core;
 using namespace Core::Internal;
@@ -80,7 +80,7 @@ static QString getUserFilePath(const QString &proposalFileName)
         if (++count > 15)
             return QString();
         // add random number
-        const int number = qrand() % 1000;
+        const int number = QRandomGenerator::global()->generate() % 1000;
         tryPath = newFilePath + QString::number(number) + suffix;
     }
     return tryPath;

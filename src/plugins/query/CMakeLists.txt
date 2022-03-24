@@ -36,10 +36,10 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec  
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 add_definitions(
@@ -74,7 +74,7 @@ add_library( Query MODULE
   queryplugin.cpp
   queryplugin.hpp
   queryform.cpp
-  queryform.hpp  
+  queryform.hpp
   querywidget.cpp
   querywidget.hpp
   queryresulttable.cpp
@@ -110,7 +110,7 @@ target_link_libraries(
   ${_opencv_libraries}
   ${_charts_libraries}
   )
-  
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32

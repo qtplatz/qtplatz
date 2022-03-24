@@ -88,7 +88,7 @@ CorePlugin::~CorePlugin()
 #if ! defined NDEBUG
     ADDEBUG() << "\t## DTOR ##";
 #endif
-    
+
 }
 
 void CorePlugin::parseArguments(const QStringList &arguments)
@@ -106,7 +106,6 @@ void CorePlugin::parseArguments(const QStringList &arguments)
 
 bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
-    qsrand(QDateTime::currentDateTime().toTime_t());
     parseArguments(arguments);
     const bool success = m_mainWindow->init(errorMessage);
     if (success) {
@@ -170,7 +169,7 @@ ExtensionSystem::IPlugin::ShutdownFlag CorePlugin::aboutToShutdown()
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
                                                       , boost::dll::program_location().parent_path() );
 #endif
-    
+
     return SynchronousShutdown;
 }
 
