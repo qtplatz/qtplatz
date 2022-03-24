@@ -54,8 +54,6 @@ namespace adplot {
         explicit ChromatogramWidget(QWidget *parent = 0);
 		~ChromatogramWidget();
 
-        // void setData( std::shared_ptr< const adcontrols::Trace>, int idx = 0, QwtPlot::Axis axis = QwtPlot::yLeft ); --> setTrace
-        void removeTrace( int idx );
         void setTrace( std::shared_ptr< const adcontrols::Trace>, int idx, QwtPlot::Axis );
         void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx, QwtPlot::Axis );
         std::shared_ptr< const adcontrols::Chromatogram > getData( int idx ) const;
@@ -64,8 +62,6 @@ namespace adplot {
         void setXScale( std::tuple< bool, double, double >&& );
         void replotScale();
 
-    public:
-        // void setData( std::shared_ptr< const adcontrols::Chromatogram >&&, int idx = 0, bool axisRight = false );
 		void setPeakResult( const adcontrols::PeakResult&, QwtPlot::Axis );
         void setAlpha( int idx, int alpha );
         void setColor( int idx, const QColor& color );

@@ -586,6 +586,7 @@ WaveformWnd::handleDrawSettingChanged()
 
     for ( auto& closeup: closeups_ ) {
         closeup.sp->enableAxis( QwtPlot::yRight, pkdSpectrumEnabled_ );
+        closeup.sp->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 20 );
         for ( uint32_t i = 0; i < 4; ++i )
             closeup.sp->setData( nullptr, i, QwtPlot::yRight );
     }
