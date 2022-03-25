@@ -247,8 +247,8 @@ isotopeCluster::formulae( const std::string& formula )
     return std::vector< std::string >();
 
     int charge(0);
-    std::vector< mol::element > elements;
-    ChemicalFormula::getComposition( elements, formula, charge );
+    auto m = ChemicalFormula::toMolecule( formula );
+    std::vector< mol::element > elements = m.elements();
 
     molformula::molecule mol;
     mol.cluster.emplace_back( 0, 1.0 );

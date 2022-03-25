@@ -210,8 +210,8 @@ rawdata::loadCalibrations()
     using adcontrols::MSCalibrateResult;
 
     std::for_each( conf_.begin(), conf_.end(), [&]( const adutils::AcquiredConf::data& conf ){
-            std::vector< char > device;
-            int64_t rev;
+#if 0 // v2 data has no calibration
+        std::vector< char > device;
             if ( adutils::mscalibio::readCalibration( dbf_.db(), uint32_t(conf.objid), MSCalibrateResult::dataClass(), device, rev ) ) {
 
                 auto calibResult = std::make_shared< MSCalibrateResult >();
@@ -225,6 +225,7 @@ rawdata::loadCalibrations()
                         spectrometer->setCalibration( calibResult->mode(), *calibResult );
                 }
             }
+#endif
         });
 }
 
@@ -483,8 +484,9 @@ rawdata::posFromTime( double seconds ) const
 double
 rawdata::timeFromPos( size_t pos ) const
 {
-    if ( !times_.empty() && pos < times_.size() )
+    if ( !times_.empty() && pos < times_.size() ) {
         return times_[ pos ].first;
+    }
 	return 0;
 }
 

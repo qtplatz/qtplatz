@@ -300,9 +300,9 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
     QPrinter printer;
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setFullPage( false );
-	printer.setOrientation( QPrinter::Landscape );
+	printer.setPageOrientation( QPageLayout::Landscape );
 
     printer.setDocName( "QtPlatz isotope simulation report" );
     printer.setOutputFileName( pdfname );

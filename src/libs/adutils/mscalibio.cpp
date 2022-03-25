@@ -95,35 +95,6 @@ mscalibio::readCalibration( adfs::sqlite& db
     return false;
 }
 
-bool
-mscalibio::writeCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * calibId, const wchar_t * dataClass, const char * data, size_t size )
-{
-#if 0
-    adfs::stmt sql( db );
-
-    const char * query = "INSERT INTO Calibration (objid,calibId,dataClass,data) VALUES(:objid,:calibId,:dataClass,:data)";
-
-    if ( ! sql.prepare( query ) ) {
-        if ( ! create_table( db ) )
-			return false;
-		if ( ! sql.prepare( query ) )
-			return false;
-	}
-
-    sql.bind( 1 ) = objId;
-    sql.bind( 2 ) = std::wstring( calibId );
-    sql.bind( 3 ) = std::wstring( dataClass );
-    sql.bind( 4 ) = adfs::blob( size, reinterpret_cast< const int8_t *>( data ) );
-
-    if ( sql.step() == adfs::sqlite_done ) {
-        sql.commit();
-        return true;
-    }
-
-    sql.reset();
-#endif
-    return false;
-}
 
 //static
 bool
