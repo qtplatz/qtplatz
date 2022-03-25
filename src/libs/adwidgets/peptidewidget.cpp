@@ -47,12 +47,12 @@ PeptideWidget::PeptideWidget(QWidget *parent) : QWidget(parent)
 
         layout->setMargin(0);
         layout->setSpacing(0);
-        
+
         if ( QSplitter * splitter = new QSplitter ) {
 
-            splitter->addWidget( ( form_ = new TargetingForm ) ); 
-            splitter->addWidget( ( table_ = new TargetingTable ) ); 
-            splitter->addWidget( ( peptideTable_ = new PeptideTable ) ); 
+            splitter->addWidget( ( form_ = new TargetingForm ) );
+            splitter->addWidget( ( table_ = new TargetingTable ) );
+            splitter->addWidget( ( peptideTable_ = new PeptideTable ) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 1 );
             splitter->setStretchFactor( 2, 1 );
@@ -125,7 +125,7 @@ PeptideWidget::setContents( boost::any&& a )
 
         auto digested = boost::any_cast< adprot::digestedPeptides >( a );
 		table_->setContents( digested );
-        
+
         return true;
 
     } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
@@ -150,7 +150,7 @@ PeptideWidget::showContextMenu( const QPoint& pt )
     QMenu menu;
 
     QModelIndexList indices = table_->selectionModel()->selectedIndexes();
-    qSort( indices );
+    std::sort( indices.begin(), indices.end() );
     if ( indices.size() < 1 )
         return;
 
@@ -161,7 +161,7 @@ PeptideWidget::showContextMenu( const QPoint& pt )
     QStandardItemModel& model = table_->model();
 
     QVector< QPair< QString, QString > > peptides;
-    for ( auto& row: rows ) 
+    for ( auto& row: rows )
 		peptides.push_back( QPair< QString, QString >( model.index(row, 0).data().toString(), model.index( row, 1 ).data().toString() ) );
 
     QAction * action(0);

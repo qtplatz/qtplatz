@@ -32,7 +32,7 @@ using namespace adwidgets;
 MSLockForm::MSLockForm(QWidget *parent) : QWidget(parent), ui(new Ui::MSLockForm)
 {
     ui->setupUi(this);
-    connect( ui->groupBox, &QGroupBox::toggled, this, [=,this] ( bool checked ){ emit toggled( checked ); } );
+    connect( ui->groupBox, &QGroupBox::toggled, this, [this] ( bool checked ){ emit toggled( checked ); } );
 }
 
 MSLockForm::~MSLockForm()

@@ -335,34 +335,34 @@ MainWindow::createStyledBarTop()
             Core::Context context( ( Core::Id( "dataproc.MainView" ) ) );
 
             if ( auto p = new QAction( tr("MS Process"), this ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelMSProcess ); } );
+                connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelMSProcess ); } );
                 am->registerAction( p, "dataproc.selMSProcess", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSProcess ) ) );
             }
             if ( auto p = new QAction( tr("Spectra"), this ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelSpectra ); } );
+                connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelSpectra ); } );
                 am->registerAction( p, "dataproc.selSpectra", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelSpectra ) ) );
             }
             if ( auto p = new QAction( tr("Simulation"), this ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelElementalComp ); } );
+                connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelElementalComp ); } );
                 am->registerAction( p, "dataproc.selElementalComp", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelElementalComp ) ) );
             }
             if ( auto p = new QAction( tr("MS Calibration"), this ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
+                connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
                 am->registerAction( p, "dataproc.selMSCalibration", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSCalibration ) ) );
             }
 
             if ( auto p = new QAction( tr("Chromatogram"), this ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelChromatogram ); } );
+                connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelChromatogram ); } );
                 am->registerAction( p, "dataproc.selChromatogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelChromatogram ) ) );
             }
 
             if ( auto p = new QAction( tr("Contour"), this ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
+                connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
                 am->registerAction( p, "dataproc.selSpectrogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelSpectrogram ) ) );
             }
@@ -434,10 +434,13 @@ MainWindow::handleScaleYChanged( int i )
 void
 MainWindow::handleScaleY2Changed( int r, int c )
 {
+    ADDEBUG() << "### Y2 " << __FUNCTION__ << "r,c=" << std::make_pair( r, c );
+
     if ( auto cb = findChild< QCheckBox * >( QString( "cb%1Y%2" ).arg(r).arg(c) ) ) {
         if ( auto height = findChild< QDoubleSpinBox * >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
             if ( auto bottom = findChild< QDoubleSpinBox * >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
                 emit onScaleChromatogramYChanged( cb->isChecked(), bottom->value(), height->value() );
+
                 QJsonDocument doc( QJsonObject{{"autoY", cb->isChecked()}, {"bottom", bottom->value()}, {"height", height->value()}} );
                 document::instance()->settings()->setValue( QString( "MainWindow/axes%1Y/%2" ).arg(r).arg(c), QString(doc.toJson()) );
             } else {
@@ -454,6 +457,8 @@ MainWindow::handleScaleY2Changed( int r, int c )
 void
 MainWindow::handleScaleX2Changed( int r, int c )
 {
+    ADDEBUG() << "### X2 " << __FUNCTION__ << "r,c=" << std::make_pair( r, c );
+
     if ( auto cb = findChild< QCheckBox * >( QString( "cb%1X%2" ).arg(r).arg(c) ) ) {
         if ( auto left = findChild< QDoubleSpinBox * >( QString( "sp%1L%2" ).arg(r).arg(c) ) ) {
             if ( auto right = findChild< QDoubleSpinBox * >( QString( "sp%1R%2" ).arg(r).arg(c) ) ) {
@@ -620,7 +625,7 @@ MainWindow::createStyledBarMiddle()
             if ( auto cb = qtwrapper::make_widget< QCheckBox >( QString( "cb%1Y%2" ).arg(r).arg(c), "Y-Auto" ) ) {
                 cb->setCheckState( Qt::Checked ); // defalut start with auto
                 toolBarLayout->addWidget( cb );
-                connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleY2Changed( r, c ); } );
+                connect( cb, &QCheckBox::toggled, [r,c,this](bool checked){ handleScaleY2Changed( r, c ); } );
             }
 
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
@@ -628,7 +633,7 @@ MainWindow::createStyledBarMiddle()
                 sp->setDecimals( 3 );
                 sp->setSingleStep( 0.1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleY2Changed( r, c ); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleY2Changed( r, c ); } );
             }
 
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
@@ -636,7 +641,7 @@ MainWindow::createStyledBarMiddle()
                 sp->setDecimals( 3 );
                 sp->setSingleStep( 0.1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleY2Changed( r, c ); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleY2Changed( r, c ); } );
             }
 
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -650,14 +655,14 @@ MainWindow::createStyledBarMiddle()
                 sp->setDecimals( 0 );
                 sp->setSingleStep( 1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleX2Changed( r, c ); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleX2Changed( r, c ); } );
             }
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1R%2" ).arg(r).arg(c) ) ) {
                 sp->setRange( 0.0, 9999.0 );
                 sp->setDecimals( 0 );
                 sp->setSingleStep( 1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleX2Changed( r, c); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleX2Changed( r, c); } );
             }
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
         }
@@ -739,7 +744,6 @@ MainWindow::createContents( Core::IMode * mode )
     applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
-
     scaleChangeConnector<MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
 #else
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
@@ -756,11 +760,11 @@ MainWindow::createContents( Core::IMode * mode )
     }
     if ( auto wnd = stack_->findChild< ChromatogramWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramYScale );
-        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramXScale );
+        connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &ChromatogramWnd::handleChromatogramXScale );
     }
     if ( auto wnd = stack_->findChild< ContourWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramYScale );
-        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramXScale );
+        connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &ContourWnd::handleChromatogramXScale );
     }
 #endif
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
@@ -1447,7 +1451,8 @@ MainWindow::handleExportAllChecked()
     QFileDialog dlg( this, tr("Select directory for export" ) );
     dlg.setDirectory( dataPath );
     dlg.setAcceptMode( QFileDialog::AcceptSave );
-    dlg.setFileMode( QFileDialog::DirectoryOnly );
+    //dlg.setFileMode( QFileDialog::DirectoryOnly );
+    dlg.setOption( QFileDialog::ShowDirsOnly, true );
     if ( dlg.exec() ) {
         auto files = dlg.selectedFiles();
         if ( files.empty() )

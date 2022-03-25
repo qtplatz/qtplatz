@@ -440,6 +440,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 void
 ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " Y " << std::make_tuple( checked, bottom, top );
     impl_->yScale_ = { checked, bottom, top, std::get< 0 >( impl_->yScale_ ) != checked };
     impl_->redraw();
 }
@@ -447,6 +448,7 @@ ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double t
 void
 ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " X " << std::make_tuple( checked, left, right );
     impl_->xScale_ = { checked, left, right, std::get< 0 >( impl_->xScale_ ) != checked };
     impl_->redraw();
 }
@@ -464,18 +466,18 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
         auto rstr = QString::fromStdString( ( boost::format("%.2f - %2f") % rect.left() % rect.right() ).str() );
         menu.addAction( QString( "Find single peak (FI; DI-PTR) in %1" ).arg( rstr )
-                        , [=,this]() {
+                        , [rect,this]() {
                             addFIPeak( rect.left(), rect.right() );
                         } );
 
         menu.addAction( QString( "Area in range %1 - %2" ).arg( rstr )
-                        , [=,this]() {
+                        , [rect,this]() {
                             addPeak( rect.left(), rect.right() );
                         } );
     } else {
         auto rc = plots_[ index ]->zoomRect();
         menu.addAction( tr( "Find flow injection peak" )
-                        , [=,this]() { addFIPeak( rc.left(), rc.right() );  } );
+                        , [rc,this]() { addFIPeak( rc.left(), rc.right() );  } );
     }
 
     menu.addAction( tr("Copy image to clipboard")

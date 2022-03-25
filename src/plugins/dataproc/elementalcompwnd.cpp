@@ -358,7 +358,7 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         std::vector < action_type > actions;
 
         menu.addAction( tr("Copy image to clipboard"), [=](){ adplot::plot::copyToClipboard( plot ); } );
-        menu.addAction( tr("Save as SVG File"), [=,this](){
+        menu.addAction( tr("Save as SVG File"), [plot,this](){
             QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                          , MainWindow::makePrintFilename( impl_->idSpectrumFolium_, L"_" )
                                                          , tr( "SVG (*.svg)" ) );
@@ -379,7 +379,7 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
         for ( auto model : models ) {
             auto a = menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) )
-                                     , [=,this](){
+                                     , [this,model](){
                                          estimateScanLaw( QString::fromStdWString( model ) );
                                      } );
             // if ( !centroid_.lock() )
