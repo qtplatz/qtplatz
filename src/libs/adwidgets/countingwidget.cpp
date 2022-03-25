@@ -31,6 +31,7 @@
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/element.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/molecule.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adportable/is_type.hpp>
@@ -310,9 +311,8 @@ CountingWidget::handleItemChanged( const QStandardItem * item )
     if ( index.column() == c_formula ) {
         QSignalBlocker block( model_.get() );
 
-        std::vector< adcontrols::mol::element > elements;
-        int charge;
-        if ( adcontrols::ChemicalFormula::getComposition( elements, index.data().toString().toStdString(), charge ) && charge == 0 ) {
+        auto m = adcontrols::ChemicalFormula::toMolecule( index.data().toString().toStdString() );
+        if ( m && m.charge() == 0 ) {
             QString f = QString( "[%1]+" ).arg( index.data().toString() );
             model_->setData( index, f, Qt::EditRole );
         }
