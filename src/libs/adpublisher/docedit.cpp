@@ -233,7 +233,7 @@ docEdit::setDocument( std::shared_ptr< adpublisher::document >& t )
 void
 docEdit::repaint( const pugi::xml_document& doc )
 {
-    if ( const pugi::xpath_node node = doc.select_single_node( "/article|/book" ) ) {
+    if ( const pugi::xpath_node node = doc.select_node( "/article|/book" ) ) {
         try {
             detail::text_writer writer( *this );
             writer( node );
@@ -244,13 +244,13 @@ docEdit::repaint( const pugi::xml_document& doc )
             QMessageBox::warning( this, "adpublisher::docEdit", ex.what() );
         }
     }
-    else if ( const pugi::xpath_node node = doc.select_single_node( "/qtplatz_document" ) ) {
+    else if ( const pugi::xpath_node node = doc.select_node( "/qtplatz_document" ) ) {
         (void)node;
     }
     else {
         try {
             detail::xhtml_writer writer( *this );
-            writer( doc.select_single_node( "/" ) );
+            writer( doc.select_node( "/" ) );
             auto cursor = textCursor();
             cursor.movePosition( QTextCursor::Start );
             ensureCursorVisible();
@@ -446,20 +446,20 @@ docEdit::fetch( pugi::xml_document& xml )
     }
 
     auto doc = xml.document_element();
-    if ( auto node = doc.select_single_node( "/article/title" ) ) {
+    if ( auto node = doc.select_node( "/article/title" ) ) {
         node.node().text() = static_cast<const char *>( article_title.toUtf8() );
     }
-    if ( auto node = doc.select_single_node( "/article/author" ) ) {
+    if ( auto node = doc.select_node( "/article/author" ) ) {
         node.node().text() = static_cast<const char *>( article_author.toUtf8() );
     }
     for ( auto& sec : sections ) {
         QString query_title = QString( "/article/section[@id='%1']/title" ).arg( sec.first.c_str() );
         QString query_para = QString( "/article/section[@id='%1']/paragraph" ).arg( sec.first.c_str() );
 
-        if ( auto node = doc.select_single_node(static_cast< const char *>( query_title.toUtf8() ) ) ) {
+        if ( auto node = doc.select_node(static_cast< const char *>( query_title.toUtf8() ) ) ) {
             node.node().text() = static_cast<const char *>( sec.second.first.toUtf8() );
         }
-        if ( auto node = doc.select_single_node(static_cast< const char *>( query_para.toUtf8() ) ) ) {
+        if ( auto node = doc.select_node(static_cast< const char *>( query_para.toUtf8() ) ) ) {
             node.node().text() = static_cast<const char *>( sec.second.second.toUtf8() );
         }
     }

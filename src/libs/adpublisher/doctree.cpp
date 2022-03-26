@@ -104,7 +104,7 @@ docTree::repaint( const pugi::xml_document& doc )
     model.clear();
     model.setColumnCount( 2 );
 
-    if ( const pugi::xpath_node node = doc.select_single_node( "/article|/book" ) ) {
+    if ( const pugi::xpath_node node = doc.select_node( "/article|/book" ) ) {
         try {
             detail::model_writer writer( *model_ );
             writer( node, QModelIndex() );
@@ -114,7 +114,7 @@ docTree::repaint( const pugi::xml_document& doc )
             QMessageBox::warning( this, "adpublisher::docTree", ex.what() );
         }
     }
-    else if ( const pugi::xpath_node node = doc.select_single_node( "/qtplatz_document" ) ) {
+    else if ( const pugi::xpath_node node = doc.select_node( "/qtplatz_document" ) ) {
         try {
             detail::model_writer writer( *model_ );
             writer( node, QModelIndex() );

@@ -38,7 +38,7 @@ Folium::Folium()
 {
 }
 
-Folium::Folium( const Folium& t ) : Node( t ) 
+Folium::Folium( const Folium& t ) : Node( t )
 {
 }
 
@@ -104,7 +104,7 @@ Folium::attachments()
     Folio attachments;
 
     pugi::xpath_node_set list = Node::selectNodes( L"./attachment" );
-    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it ) 
+    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
         attachments.push_back( Folium( it->node(), impl_ ) );
 
     return attachments;
@@ -122,7 +122,7 @@ Folium::addAttachment( const std::wstring& name )
     return Folium( Node::addAttachment( name ), impl_ );
 }
 
-bool 
+bool
 Folium::removeAttachment( const std::wstring& name, bool removeContents )
 {
     if ( Node::removeAttachment( name ) ) {
@@ -156,7 +156,7 @@ Folium::parentFolder() const
         parent = parent.parent();
 
     if ( parent && parent.name() == std::string( "folder" )
-        && parent.attribute( "folderType" ).value() == std::string( "directory" ) ) 
+        && parent.attribute( "folderType" ).value() == std::string( "directory" ) )
         return Folder( parent, impl_ );
 
     return Folder();
@@ -174,14 +174,14 @@ Folium::fullpath( bool fullyqualified ) const
 	while ( parent && parent.attribute( "folderType" ).value() != std::string( "directory" ) )
 		parent = parent.parent();
 
-	while ( parent.name() == std::string( "folder" ) 
+	while ( parent.name() == std::string( "folder" )
 		&& parent.attribute( "folderType" ).value() == std::string( "directory" ) ) {
 		hierachey.push_back( parent.attribute( "name" ).value() );
 		parent = parent.parent();
 	}
 	std::string path;
 	if ( fullyqualified ) {
-		pugi::xpath_node dset = node_.select_single_node( "/xtree/dataset" );
+		pugi::xpath_node dset = node_.select_node( "/xtree/dataset" );
 		path = dset.node().attribute( "fullpath" ).value();
 		path += "::";
 	}
@@ -190,7 +190,3 @@ Folium::fullpath( bool fullyqualified ) const
 	});
 	return path;
 }
-
-
-
-

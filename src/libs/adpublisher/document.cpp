@@ -137,7 +137,7 @@ document::save( std::string& ar ) const
 bool
 document::load( const char * xml )
 {
-    return doc_->load( xml );
+    return doc_->load_string( xml );
 }
 
 std::shared_ptr< pugi::xml_document >
@@ -168,7 +168,7 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
 
     pugi::xml_document doc;
     if ( doc.load_file( xsltfile ) ) {
-        if ( auto node = doc.select_single_node( "//xsl:output[@method]" ) ) {
+        if ( auto node = doc.select_node( "//xsl:output[@method]" ) ) {
             method = node.node().attribute( "method" ).value();
             if ( method == "xml" ) {
                 std::string media = node.node().attribute( "media-type" ).value();
