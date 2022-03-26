@@ -29,6 +29,7 @@
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adlog/logger.hpp>
 #include <adacquire/constants.hpp>
+#include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
@@ -52,6 +53,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -616,18 +618,27 @@ task::handle_temperature()
     AgMD2::log( AgMD2_QueryBoardTemperature( spDriver()->session(), &temperature_ ), __FILE__,__LINE__ );
     AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel1", &channel_temperature_[ 0 ] ),__FILE__,__LINE__ );
 
-    std::ostringstream o;
-    o << temperature_ << ", Channel1: " << channel_temperature_[ 0 ];
-
+    bool interleaving(false);
     if ( ident_->Options().find( "INT" ) != std::string::npos ) {
+        interleaving = true;
         AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel2", &channel_temperature_[ 1 ] ),__FILE__,__LINE__ );
-        o << ", Channel2: " << channel_temperature_[ 1 ];
     }
 
-    for ( auto& reply: reply_handlers_ )
-        reply( "Temperature", o.str() );
+    auto jv =
+        boost::json::object{{ "U5303A", {
+                { "Temp", temperature_ }
+                , { "CH1", channel_temperature_[ 0 ] }
+                , { "CH2", channel_temperature_[ 1 ] }
+                , { "ID",  ident_->SerialNumber() }
+                , { "TP",   adportable::date_string::logformat( std::chrono::system_clock::now() ) }
+            }
+        }
+    };
 
-    // ADDEBUG() << "U5303A: " << ident_->SerialNumber() << "\tTemprature: " << o.str();
+    for ( auto& reply: reply_handlers_ ) {
+        const std::string method = isSimulated() ? "Temperature.simulated" : "Temperature";
+        reply( method, boost::json::serialize(jv) );
+    }
 
     return true;
 }

@@ -836,7 +836,7 @@ MainWindow::saveCurrentImage()
     qApp->beep();
     if ( auto screen = QGuiApplication::primaryScreen() ) {
 
-        auto pixmap = QPixmap::grabWidget( this );
+        auto pixmap = this->grab(); // QPixmap::grabWidget( this );
 
         if ( auto sample = document::instance()->sampleRun() ) {
             boost::filesystem::path path( sample->dataDirectory() );

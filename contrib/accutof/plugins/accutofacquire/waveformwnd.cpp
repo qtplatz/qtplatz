@@ -170,19 +170,13 @@ WaveformWnd::init()
     hpw_->setMinimumHeight( 80 );
     spw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 72 );
     hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 72 );
-    //spw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 72 );
-    //hpw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 72 );
 
     spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-    //spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    //spw_->enableAxis( QwtPlot::yRight, true );
 
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
 
     hpw_->setAxisTitle( QwtPlot::yLeft, tr( "Counts" ) );
-    //hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
-    //hpw_->enableAxis( QwtPlot::yRight, true );
 
     hpw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     hpw_->setKeepZoomed( false );

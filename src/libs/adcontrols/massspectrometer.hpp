@@ -61,6 +61,9 @@ namespace adcontrols {
         MassSpectrometer( adcontrols::datafile * );
         virtual ~MassSpectrometer(void);
 
+        void setCalibrationFilename( const std::string& t ) { calibFilename_ = t; }
+        const std::string& calibrationFilename() const      { return calibFilename_; }
+
         virtual const wchar_t * name() const;
 
         // data format v2 interface
@@ -128,6 +131,7 @@ namespace adcontrols {
         double acceleratorVoltage_;
         double tDelay_;
         double fLength_;
+        std::string calibFilename_;
     };
 
 }

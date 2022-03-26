@@ -40,15 +40,15 @@
 
 using namespace acqrscontrols::u5303a;
 
-threshold_result::threshold_result() : foundIndex_( npos )
-                                     , findRange_( 0, 0 )
+threshold_result::threshold_result() : findRange_( 0, 0 )
+                                     , foundIndex_( npos )
                                      , findUp_( false )
 {
 }
 
 threshold_result::threshold_result( std::shared_ptr< const waveform > d ) : data_( d )
-                                                                          , foundIndex_( npos )
                                                                           , findRange_( 0, 0 )
+                                                                          , foundIndex_( npos )
                                                                           , findUp_( false )
 {
 }
@@ -57,8 +57,8 @@ threshold_result::threshold_result( const threshold_result& t ) : adportable::co
                                                                 , data_( t.data_ )
                                                                 , indices_( t.indices_ )
                                                                 , processed_( t.processed_ )
-                                                                , foundIndex_( t.foundIndex_ )
                                                                 , findRange_( t.findRange_ )
+                                                                , foundIndex_( t.foundIndex_ )
                                                                 , findUp_( t.findUp_ )
 {
 }

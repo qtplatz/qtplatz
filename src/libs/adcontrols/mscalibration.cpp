@@ -124,7 +124,6 @@ MSCalibration::compute_mass( double time ) const
 double
 MSCalibration::compute_time( double mass, double resolution ) const
 {
-    // ADDEBUG() << "----- coeffs_.size() : " << coeffs_.size();
     if ( coeffs_.size() == 2 ) { // first order (linear)
         return ( std::sqrt( mass ) - coeffs_[0] ) * coeffs_[1];
     } else if ( coeffs_.size() == 3 ) { // second order (parabolic)
@@ -141,20 +140,6 @@ MSCalibration::compute_time( double mass, double resolution ) const
         return std::abs( compute_mass( t1 ) - mass ) < std::abs( compute_mass( t2 ) - mass ) ? t1 : t2;
     } else {
         double t = ( std::sqrt( mass ) - coeffs_[0] ) * coeffs_[1];
-        size_t iteration(0);
-        if ( compute_mass( t ) > mass ) {
-            while ( ( compute_mass( t - resolution ) > mass ) && ( iteration < 1000 ) ) {
-                t -= resolution;
-                ++iteration;
-            }
-            return t;
-        } else {
-            while ( ( compute_mass( t + resolution ) < mass ) && ( iteration < 1000 ) ) {
-                t += resolution;
-                ++iteration;
-            }
-            return t;
-        }
         return t;
     }
     return 0;

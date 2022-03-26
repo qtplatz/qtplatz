@@ -97,12 +97,13 @@
 #include <boost/mpl/at.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+// #include <boost/property_tree/ptree.hpp>
+// #include <boost/property_tree/json_parser.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/json.hpp>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -266,7 +267,7 @@ namespace accutof { namespace acquire {
             std::unique_ptr< ResultWriter > resultWriter_;
             std::unique_ptr< PKDAVGWriter > pkdavgWriter_;
             std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
-            std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer_;
+            mutable std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer_;
             mutable QString msCalibFile_;
             std::shared_ptr< adcontrols::MSCalibrateResult > msCalibResult_;
 
@@ -728,10 +729,8 @@ document::initialSetup()
     }
 
     if ( ! impl_->massSpectrometer_  ) {
-
         if ( ( impl_->massSpectrometer_
                = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
-            // todo: load mass calibration from settings
         } else {
             QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin", QString( tr( "No AccuTOF Spectrometer installed." ) ) );
         }
@@ -1451,7 +1450,10 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
 #ifndef NDEBUG
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
 #endif
-    if ( auto sp = document::instance()->massSpectrometer() ) {
+    auto sp = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer );
+    if ( sp ) {
+        sp->setCalibrationFilename( msCalibFile_.toStdString() );
+        // if ( auto sp = document::instance()->massSpectrometer() ) {
         if ( auto law = sp->scanLaw() ) {
             adfs::stmt sql( db );
             sql.prepare( "\
@@ -1464,8 +1466,6 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
             sql.bind( 4 ) = sp->tDelay();
             sql.bind( 5 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer );
             sql.bind( 6 ) = accutof::spectrometer::iids::uuid_massspectrometer;
-
-            // ADDEBUG() << "initStorage acceleratorVoltage: " << sp->acceleratorVoltage() << ", " << sp->tDelay() << ", " << uuid;
 
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << "sqlite error";
@@ -1514,7 +1514,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
         if ( !msCalibFile_.isEmpty() ) {
             if ( auto calibResult = loadMSCalibFile( msCalibFile_.toStdString() ) ) {
                 adutils::mscalibio::write( db, *calibResult );
-                massSpectrometer_->initialSetup( db, {{0}} );
+                sp->initialSetup( db, {{0}} );
                 loaded = true;
             }
         }
@@ -1525,10 +1525,20 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
             path /= accutof::acquire::Constants::DEFAULT_CALIB_FILE; // default.msclb
             if ( auto calibResult = loadMSCalibFile( path ) ) {
                 adutils::mscalibio::write( db, *calibResult );
-                massSpectrometer_->initialSetup( db, {{0}} );
+                sp->initialSetup( db, {{0}} );
                 loaded = true;
             }
         }
+        // ADDEBUG() << "==============================================================";
+        // auto calib = sp->calibrateResult()->calibration();
+        // ADDEBUG() << calib.coeffs().size();
+        // size_t order(0);
+        // for ( const auto& f: calib.coeffs() )
+        //     ADDEBUG() << "coef[ " << order++ << "] =" << f;
+        // double tof = sp->timeFromMass( 257.2480 );
+        // double mass = sp->assignMass( tof );
+        // ADDEBUG() << "###### timeFromMass: " << tof << " --> " << mass << "\tdelta: " << (257.2480 - mass);
+        massSpectrometer_ = sp;
         emit document::instance()->msCalibrationLoaded( msCalibFile_ );
     }
     return true;
@@ -1849,9 +1859,20 @@ document::acquireDark()
 bool
 document::setMSCalibFile( const QString& filename )
 {
-    if ( auto calib = impl_->loadMSCalibFile( filename.toStdString() ) ) {
+    if ( auto calibResult = impl_->loadMSCalibFile( filename.toStdString() ) ) {
         impl_->msCalibFile_ = filename;
         impl_->msCalibResult_.reset();
+
+        ADDEBUG() << "--------------- reloading calibration ----------------";
+        auto calib = calibResult->calibration();
+        ADDEBUG() << boost::json::value{{ "coeffs", calib.coeffs() }};
+        for ( const auto& m: *impl_->tofChromatogramsMethod_ ) {
+            if ( m.enable() ) {
+                ADDEBUG() << boost::format("%20s") % m.formula() << "\t" << m.mass() << "\t" << m.time()
+                          << "\tcomputed: " << calib.compute_mass( m.time() ) << "\t" << calib.compute_time( m.mass() );
+            }
+        }
+        ADDEBUG() << "--------------- reloading calibration ----------------";
         return true;
     }
     return false;

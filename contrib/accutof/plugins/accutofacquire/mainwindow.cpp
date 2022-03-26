@@ -1054,7 +1054,7 @@ MainWindow::saveCurrentImage()
     qApp->beep();
     if ( auto screen = QGuiApplication::primaryScreen() ) {
 
-        auto pixmap = QPixmap::grabWidget( this );
+        auto pixmap = this->grab(); // QPixmap::grabWidget( this );
 
         if ( auto sample = document::instance()->sampleRun() ) {
             boost::filesystem::path path( sample->dataDirectory() );
@@ -1281,6 +1281,7 @@ MainWindow::handleSelCalibFile()
         if ( document::instance()->setMSCalibFile( result[ 0 ] ) ) {
             qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
             setCalibFileName()( this, file, "background-color:yellow;" );
+
         } else {
             QMessageBox::warning( 0, tr( "select calibration file" ), tr( "Calibration file load failed" ) );
         }
@@ -1291,6 +1292,10 @@ void
 MainWindow::handleMSCalibrationLoaded( const QString& file )
 {
     setCalibFileName()( this, file, "background-color:white;" );
+
+    if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
+        w->setMassSpectrometer( document::instance()->massSpectrometer() );
+    }
 }
 
 void
