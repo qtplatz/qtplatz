@@ -154,7 +154,7 @@ MainWindow::createDockWidgets()
         connect( sse, &adwidgets::dgWidget::hostChanged, this
                  , [sse](const QString& host, const QString& port ){
                        document::instance()->set_http_addr( host, port );
-                       sse->setURL( QString("http://%1:%2").arg( host, port ) );
+                       sse->setUrl( host, port );
                    });
 
         connect( document::instance(), &document::onTick, this
@@ -292,7 +292,7 @@ MainWindow::OnInitialUpdate()
     if ( auto w = findChild< adwidgets::dgWidget * >( "delayPulseMonitor" ) ) {
         QString host, port;
         std::tie( host, port ) = document::instance()->http_addr();
-        w->setURL( QString("http://%1:%2").arg( host, port ) );
+        w->setUrl( host, port ); // QString("http://%1:%2").arg( host, port ) );
     }
 
     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >( "tofChromatograms" ) ) {

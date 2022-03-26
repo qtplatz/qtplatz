@@ -261,7 +261,7 @@ MainWindow::createContents( Core::IMode * mode )
         splitter3->addWidget( impl_->stackWidget_ );
 
         connect( impl_->stackWidget_, &QStackedWidget::currentChanged, this, [&]( int idx ){
-                auto list = findChildren<QToolButton *>( QRegExp( "wnd\\.[0-9]+" ) );
+                auto list = findChildren<QToolButton *>( QRegularExpression( "wnd\\.[0-9]+" ) );
                 for ( auto btn : list ) {
                     if ( btn->objectName() == QString( "wnd.%1" ).arg( QString::number( idx ) ) ) {
                         btn->setStyleSheet( QString( "color: ivory; border: 2px; border-color: darkGray; border-style: inset;" ) );

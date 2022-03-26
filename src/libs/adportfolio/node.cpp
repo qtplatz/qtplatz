@@ -242,7 +242,7 @@ pugi::xpath_node
 Node::selectSingleNode( const std::wstring& query )
 {
     try {
-        return node_.select_single_node( pugi::as_utf8( query ).c_str() );
+        return node_.select_node( pugi::as_utf8( query ).c_str() );
     } catch ( pugi::xpath_exception& ex ) {
         ADDEBUG() << "xml_exception: " << ex.what();
         BOOST_THROW_EXCEPTION( ex );
@@ -253,7 +253,7 @@ Node::selectSingleNode( const std::wstring& query )
 pugi::xpath_node
 Node::selectSingleNode( const std::string& query )
 {
-    return node_.select_single_node( query.c_str() );
+    return node_.select_node( query.c_str() );
 }
 
 //////////////////////////

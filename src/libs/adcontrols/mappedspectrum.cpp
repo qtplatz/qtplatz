@@ -377,7 +377,7 @@ MappedSpectrum::transform( adcontrols::MassSpectrum& ms ) const
 
     int32_t nDelay = int32_t( ( delay_ / sampInterval_ ) + 0.5 );
     auto si = SamplingInfo( sampInterval_, delay_, nDelay, nSamples_, num_average_, 0 /* mode */ );
-    si.fSampInterval( sampInterval_ );
+    si.setSampInterval( sampInterval_ );
     prop.setSamplingInfo( si );
     prop.setNumAverage( num_average_ );
     prop.setTrigNumber( trig_number_, trig_number_origin_ );

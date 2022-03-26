@@ -233,7 +233,7 @@ dgWidget::handleDelayPulseData( const QByteArray data )
         size_t idx(0);
         for ( const auto& proto: protocols ) {
             auto obj = proto.toObject();
-            size_t index = obj[ "index" ].toString().toUInt();
+            // size_t index = obj[ "index" ].toString().toUInt();
             size_t replicates = obj[ "replicates" ].toString().toUInt();
             std::vector< std::pair< double, double > > values;
             for ( const auto& pulse_ref: obj[ "pulses" ].toArray() ) {
