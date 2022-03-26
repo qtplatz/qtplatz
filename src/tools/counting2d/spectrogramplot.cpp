@@ -265,7 +265,7 @@ SpectrogramPlot::SpectrogramPlot( QWidget *parent ) : QwtPlot(parent)
 
     QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
     panner->setAxisEnabled( QwtPlot::yRight, false );
-    panner->setMouseButton( Qt::MidButton );
+    panner->setMouseButton( Qt::MiddleButton );
 
     if ( auto picker = new adplot::Picker( canvas() ) ) {
 
