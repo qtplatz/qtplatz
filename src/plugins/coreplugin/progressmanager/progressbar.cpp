@@ -187,7 +187,7 @@ QSize ProgressBar::sizeHint() const
     int height = PROGRESSBAR_HEIGHT + 6;
     if (m_titleVisible) {
         QFontMetrics fm(titleFont());
-        width = qMax(width, fm.width(m_title) + 16);
+        width = qMax(width, fm.horizontalAdvance(m_title) + 16);
         height += fm.height() + 4;
     }
     if (m_separatorVisible)

@@ -272,14 +272,14 @@ DoubleTabWidget::convertPosToTab(QPoint pos)
         int eventX = pos.x();
         QFontMetrics fm(font());
         int x = title_.isEmpty() ? 0 :
-                2 * MARGIN + qMax(fm.width(title_), MIN_LEFT_MARGIN);
+            2 * MARGIN + qMax(fm.horizontalAdvance(title_), MIN_LEFT_MARGIN);
 
         if (eventX <= x)
             return qMakePair(HITNOTHING, -1);
         int i;
         for (i = 0; i <= lastVisibleIndex_; ++i) {
-            int otherX = x + 2 * MARGIN + fm.width(tabs_.at(
-                    currentTabIndices_.at(i)).displayName());
+            int otherX = x + 2 * MARGIN + fm.horizontalAdvance(tabs_.at(
+                                                                   currentTabIndices_.at(i)).displayName());
             if (eventX > x && eventX < otherX)
                 break;
             x = otherX;
@@ -308,7 +308,7 @@ DoubleTabWidget::convertPosToTab(QPoint pos)
         int x = MARGIN;
         int i;
         for (i = 0; i < subTabs.size(); ++i) {
-            int otherX = x + 2 * SELECTION_IMAGE_WIDTH + fm.width(subTabs.at(i));
+            int otherX = x + 2 * SELECTION_IMAGE_WIDTH + fm.horizontalAdvance(subTabs.at(i));
             if (eventX > x && eventX < otherX)
                 break;
             x = otherX + 2 * MARGIN;
@@ -411,7 +411,7 @@ DoubleTabWidget::paintEvent(QPaintEvent *event)
 
     // top level tabs
     int x = title_.isEmpty() ? 0 :
-            2 * MARGIN + qMax(fm.width(title_), MIN_LEFT_MARGIN);
+            2 * MARGIN + qMax(fm.horizontalAdvance(title_), MIN_LEFT_MARGIN);
 
     // calculate sizes
     QList<int> nameWidth;
@@ -420,7 +420,7 @@ DoubleTabWidget::paintEvent(QPaintEvent *event)
     int indexSmallerThanWidth = -1;
     for (int i = 0; i < tabs_.size(); ++i) {
         const Tab &tab = tabs_.at(i);
-        int w = fm.width(tab.displayName());
+        int w = fm.horizontalAdvance(tab.displayName());
         nameWidth << w;
         width += 2 * MARGIN + w;
         if (width < r.width())
@@ -484,7 +484,7 @@ DoubleTabWidget::paintEvent(QPaintEvent *event)
             painter.setPen(Utils::StyleHelper::borderColor());
             painter.drawLine(x - 1, 0, x - 1, r.height() - 1);
             painter.fillRect(QRect(x, 0,
-                                   2 * MARGIN + fm.width(tab.displayName()),
+                                   2 * MARGIN + fm.horizontalAdvance(tab.displayName()),
                                    r.height() + 1),
                              grad);
 
@@ -534,7 +534,7 @@ DoubleTabWidget::paintEvent(QPaintEvent *event)
         x = 0;
         for (int i = 0; i < subTabs.size(); ++i) {
             x += MARGIN;
-            int textWidth = fm.width(subTabs.at(i));
+            int textWidth = fm.horizontalAdvance(subTabs.at(i));
             if (currentTab.currentSubTab == i) {
                 painter.setPen(Qt::white);
                 painter.drawPixmap(x, y, left_);

@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include "axisextent.hpp"
 #include "spectrogramwidget.hpp"
 #include "spectrogramdata.hpp"
 #include "zoomer.hpp"
@@ -160,9 +161,9 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     plotLayout()->setAlignCanvasToScales( true );
     replot();
 
-    const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
+    // const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
-    sd->setMinimumExtent( fm.horizontalAdvance( "8000.0" ) ); // width for yLeft axis
+    sd->setMinimumExtent( AxisExtent::width( axisWidget( QwtPlot::yLeft )->font(), "8000.0") ); // width for yLeft axis
 
     connect( zoomer_, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
 }

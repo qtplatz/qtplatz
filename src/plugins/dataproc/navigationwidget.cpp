@@ -69,7 +69,7 @@ public:
     template<class T> static QStandardItem * appendRow( QStandardItemModel& model, const T& value ) {
         // top level row that should be dataset (file on disk)
         QStandardItem * item = new QStandardItem;
-        item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
+        item->setData( QVariant::fromValue<T>( value ), Qt::UserRole );
         model.appendRow( item );
         return item;
     }
@@ -84,10 +84,10 @@ public:
 			item->setCheckable( true );
 			item->setData( isChecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
 			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
-			item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
+			item->setData( QVariant::fromValue<T>( value ), Qt::UserRole );
         } else {
 			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
-			item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
+			item->setData( QVariant::fromValue<T>( value ), Qt::UserRole );
 		}
 
         return item;
@@ -390,7 +390,7 @@ NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfoli
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
-                item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
+                item->setData( QVariant::fromValue< portfolio::Folium >( folium ), Qt::UserRole );
                 for ( auto& att: folium.attachments() ) {
                     if ( StandardItemHelper::findFolium( item, att.id() ) == nullptr )
                         PortfolioHelper::appendAttachment( *item, att );
@@ -411,7 +411,7 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
         if ( QStandardItem * folderItem = StandardItemHelper::findFolder( procItem, foldername.toStdWString() ) ) {
             for ( auto folium: folio ) {
                 if ( QStandardItem * item = StandardItemHelper::findFolium( procItem, folium.id() ) ) {
-                    item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
+                    item->setData( QVariant::fromValue< portfolio::Folium >( folium ), Qt::UserRole );
                 } else {
                     PortfolioHelper::appendFolium( *folderItem, folium );
                 }
@@ -441,7 +441,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 
             if ( QStandardItem * item = StandardItemHelper::findFolium( processorItem, folium.id() ) ) {
                 // replace existing
-                item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
+                item->setData( QVariant::fromValue< portfolio::Folium >( folium ), Qt::UserRole );
             } else {
                 PortfolioHelper::appendFolium( *folderItem, folium );
             }

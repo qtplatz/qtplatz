@@ -297,9 +297,9 @@ void CrumblePath::sortChildren(Qt::SortOrder order)
     QList<QAction *> actions = childList->actions();
 
     if (order == Qt::AscendingOrder)
-        qStableSort(actions.begin(), actions.end(), lessThan);
+        std::stable_sort(actions.begin(), actions.end(), lessThan);
     else
-        qStableSort(actions.begin(), actions.end(), greaterThan);
+        std::stable_sort(actions.begin(), actions.end(), greaterThan);
 
     childList->clear();
     childList->addActions(actions);
@@ -387,7 +387,7 @@ void CrumblePath::resizeButtons()
             CrumblePathButton *button = d->m_buttons.at(i);
 
             QFontMetrics fm(button->font());
-            int originalSize = ArrowBorderSize + fm.width(button->text()) + ArrowBorderSize + 12;
+            int originalSize = ArrowBorderSize + fm.horizontalAdvance(button->text()) + ArrowBorderSize + 12;
             sizes << originalSize;
             totalSize += originalSize - ArrowBorderSize;
         }

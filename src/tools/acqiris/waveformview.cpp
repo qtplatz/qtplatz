@@ -107,7 +107,7 @@ WaveformView::WaveformView( QWidget * parent ) : QwtPlot( parent )
 
     const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
-    sd->setMinimumExtent( fm.width( "100.00" ) );
+    sd->setMinimumExtent( fm.horizontalAdvance( "888.88" ) );
 
     const QColor c( Qt::darkBlue );
     zoomer->setRubberBandPen( c );

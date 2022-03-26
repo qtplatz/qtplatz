@@ -265,7 +265,7 @@ void OutputPaneManager::init()
 
         m_opToolBarWidgets->addWidget(toolButtonsContainer);
 
-        minTitleWidth = qMax(minTitleWidth, titleFm.width(outPane->displayName()));
+        minTitleWidth = qMax(minTitleWidth, titleFm.horizontalAdvance(outPane->displayName()));
 
         QString suffix = outPane->displayName().simplified();
         suffix.remove(QLatin1Char(' '));
@@ -694,7 +694,7 @@ void OutputPaneToggleButton::paintEvent(QPaintEvent *event)
 
     const QFontMetrics fm = fontMetrics();
     const int baseLine = (height() - fm.height() + 1) / 2 + fm.ascent();
-    const int numberWidth = fm.width(m_number);
+    const int numberWidth = fm.horizontalAdvance(m_number);
 
     QPainter p(this);
     if (m_flashTimer->state() == QTimeLine::Running) {
@@ -795,5 +795,3 @@ void OutputPaneManageButton::paintEvent(QPaintEvent *event)
 
 } // namespace Internal
 } // namespace Core
-
-

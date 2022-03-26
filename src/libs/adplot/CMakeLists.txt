@@ -27,8 +27,8 @@ set( adplot_SOURCES
   annotation.hpp
   annotations.cpp
   annotations.hpp
-  axis.cpp
-  axis.hpp
+  axisextent.cpp
+  axisextent.hpp
   baseline.cpp
   baseline.hpp
   chartview.cpp

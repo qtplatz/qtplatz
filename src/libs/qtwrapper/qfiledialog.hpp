@@ -39,7 +39,7 @@ namespace qtwrapper {
                                         , const QString& name
                                         , const QString& filter
                                         , QString * selectedFilter = 0
-                                        , Options options = 0 ) {
+                                        , Options options = {} ) {
             // create a qt dialog
             ::QFileDialog dialog( parent, caption, dir, filter );
             dialog.setFileMode( AnyFile );
@@ -58,4 +58,3 @@ namespace qtwrapper {
         }
     };
 }
-
