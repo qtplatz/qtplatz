@@ -586,9 +586,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
         QString protlabel;
 
         auto& descs = fms.getDescriptions();
-        auto it = std::find_if( descs.begin(), descs.end(), [] ( const adcontrols::description& d ){ return d.key() == L"acquire.protocol.label"; } );
+        auto it = std::find_if( descs.begin(), descs.end(), [] ( const adcontrols::description& d ){ return d.key<char>() == "acquire.protocol.label"; } );
         if ( it != descs.end() ) {
-            protlabel = QString::fromStdWString( (boost::wformat( L"#%d %s" ) % fcn % it->text() ).str() );
+            protlabel = QString::fromStdWString( (boost::wformat( L"#%d %s" ) % fcn % it->text<wchar_t>() ).str() );
         } else {
             protlabel = QString::fromStdString( (boost::format( "#%1%" ) % fcn).str() );
         }
@@ -684,9 +684,9 @@ void
 MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
-    size_t total_size = 0;
-    for( auto& t: segs )
-        total_size += t.size();
+    // size_t total_size = 0;
+    // for( auto& t: segs )
+    //     total_size += t.size();
 
     setPeakInfo( ms );
     return;
@@ -834,7 +834,7 @@ MSPeakTable::handleCopyToClipboard()
     QStandardItemModel& model = *impl_->model_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 
@@ -1208,9 +1208,10 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
 {
     const QStandardItemModel& model = *(impl_->model_);
     printer.newPage();
-	const QRect rect( printer.pageRect().x() + printer.pageRect().width() * 0.05
-                      , printer.pageRect().y() + printer.pageRect().height() * 0.05
-                      , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
+    auto pageRect = printer.pageLayout().paintRectPixels(printer.resolution());
+	const QRect rect( pageRect.x() + pageRect.width() * 0.05
+                      , pageRect.y() + pageRect.height() * 0.05
+                      , pageRect.width() * 0.9, pageRect.height() * 0.8 );
 
     const int rows = model.rowCount();
     const int cols = model.columnCount();

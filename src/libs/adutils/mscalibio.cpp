@@ -62,40 +62,6 @@ mscalibio::create_table( adfs::sqlite& db )
 }
 
 
-// static
-bool
-mscalibio::readCalibration( adfs::sqlite& db
-                            , uint32_t objId
-                            , const wchar_t * dataClass
-                            , std::vector< char >& device
-                            , int64_t& revision )
-{
-#if 0
-    adfs::stmt sql( db );
-
-    if ( sql.prepare( "SELECT rowid,revision FROM Calibration WHERE dataClass =? AND objid=? ORDER BY revision desc" ) ) {
-
-        sql.bind( 1 ) = std::wstring( dataClass );
-        sql.bind( 2 ) = objId;
-
-        if ( sql.step() == adfs::sqlite_row ) {
-
-            uint64_t rowid = sql.get_column_value< int64_t >( 0 );
-            revision = sql.get_column_value< int64_t >( 1 );
-            adfs::blob blob;
-
-            if ( blob.open( db, "main", "Calibration", "data", rowid, adfs::readonly ) ) {
-                device.resize( blob.size() );
-                if ( blob.read( reinterpret_cast< int8_t *>( device.data() ), device.size() ) )
-                    return true;
-            }
-        }
-    }
-#endif
-    return false;
-}
-
-
 //static
 bool
 mscalibio::write( adfs::sqlite& db, const adcontrols::MSCalibrateResult& calibResult )

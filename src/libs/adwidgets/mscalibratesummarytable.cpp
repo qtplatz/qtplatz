@@ -574,7 +574,7 @@ MSCalibrateSummaryTable::handleCopyToClipboard()
     QStandardItemModel& model = *pModel_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 
@@ -689,7 +689,7 @@ MSCalibrateSummaryTable::handlePasteFromClipboard()
 	QStringList texts = pasted.split( "\n" );
 
     QModelIndexList list = selectionModel()->selectedIndexes();
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
     QModelIndex index = list.at( 0 );
@@ -791,9 +791,11 @@ MSCalibrateSummaryTable::handlePrint( QPrinter& printer, QPainter& painter )
 {
     const QStandardItemModel& model = *pModel_;
     printer.newPage();
-	const QRect rect( printer.pageRect().x() + printer.pageRect().width() * 0.05
-                      , printer.pageRect().y() + printer.pageRect().height() * 0.05
-                      , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
+
+    auto pageRect = printer.pageLayout().paintRectPixels(printer.resolution());
+	const QRect rect( pageRect.x() + pageRect.width() * 0.05
+                      , pageRect.y() + pageRect.height() * 0.05
+                      , pageRect.width() * 0.9, pageRect.height() * 0.8 );
 
     const int rows = model.rowCount();
     const int cols = model.columnCount();

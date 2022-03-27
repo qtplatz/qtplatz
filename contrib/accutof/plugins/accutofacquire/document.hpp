@@ -153,7 +153,6 @@ namespace accutof {
 
             // copy from infitof2 document
             void onChromatogramChanged();
-            void appendToChromatograms(std::shared_ptr<const acqrscontrols::u5303a::waveform> waveform );
             // <--
 
             std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const;
@@ -169,7 +168,8 @@ namespace accutof {
             void clearDark();
             void acquireDark();
 
-            bool setMSCalibFile( const QString& );
+            // this method store niter massspectrometer nor calibration into document;
+            std::shared_ptr< adcontrols::MassSpectrometer > setMSCalibFile( const QString& );
             QString msCalibFile() const;
 
             void handleDefferedWrite( const std::string& stem, size_t remain, size_t progress );
@@ -213,6 +213,7 @@ namespace accutof {
             void darkStateChanged( int );
             void msCalibrationLoaded( const QString& );
             void onDefferedWrite( const QString&, int, int );
+            void onXicMethod( QString );
         };
     }
 }

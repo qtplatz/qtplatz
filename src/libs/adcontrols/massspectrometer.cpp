@@ -158,6 +158,7 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
     return 0;
 }
 
+// deprecated; this is for v2 adfs file
 void
 MassSpectrometer::setCalibration( int mode, const MSCalibrateResult& cr )
 {
@@ -166,6 +167,7 @@ MassSpectrometer::setCalibration( int mode, const MSCalibrateResult& cr )
     mode_calib_map_[ mode ] = ptr;
 }
 
+// deprecated; this is for v2 adfs file
 const adcontrols::MSCalibration *
 MassSpectrometer::findCalibration( int mode ) const
 {
@@ -175,6 +177,7 @@ MassSpectrometer::findCalibration( int mode ) const
     return 0;
 }
 
+// deprecated; this is for v2 adfs file
 const std::shared_ptr< adcontrols::MSCalibrateResult >
 MassSpectrometer::getCalibrateResult( size_t idx ) const
 {

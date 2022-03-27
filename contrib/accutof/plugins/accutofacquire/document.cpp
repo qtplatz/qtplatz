@@ -1453,7 +1453,6 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
     auto sp = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer );
     if ( sp ) {
         sp->setCalibrationFilename( msCalibFile_.toStdString() );
-        // if ( auto sp = document::instance()->massSpectrometer() ) {
         if ( auto law = sp->scanLaw() ) {
             adfs::stmt sql( db );
             sql.prepare( "\
@@ -1538,8 +1537,10 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
         // double tof = sp->timeFromMass( 257.2480 );
         // double mass = sp->assignMass( tof );
         // ADDEBUG() << "###### timeFromMass: " << tof << " --> " << mass << "\tdelta: " << (257.2480 - mass);
-        massSpectrometer_ = sp;
-        emit document::instance()->msCalibrationLoaded( msCalibFile_ );
+        if ( loaded ) {
+            massSpectrometer_ = sp;
+            emit document::instance()->msCalibrationLoaded( msCalibFile_ );
+        }
     }
     return true;
 }
@@ -1593,39 +1594,38 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 
     task::instance()->setHistogramClearCycleEnabled( m.refreshHistogram() );
 
+    auto xm = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
+    impl_->tofChromatogramsMethod_ = xm;
+
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    if ( ( impl_->tofChromatogramsMethod_ = tdc()->tofChromatogramsMethod() ) ) {
-
-        for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
-            auto& trace = impl_->traces_[ idx ];
-            if ( idx == 0 ) {
+    for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
+        auto& trace = impl_->traces_[ idx ];
+        if ( idx == 0 ) {
 #if __cplusplus >= 201703L
-                auto [enable, algo] = m.tic();
+            auto [enable, algo] = m.tic();
 #else
-                bool enable; xic::eIntensityAlgorishm algo;
-                std::tie( enable, algo ) = m.tic();
+            bool enable; xic::eIntensityAlgorishm algo;
+            std::tie( enable, algo ) = m.tic();
 #endif
-                bool dirty = trace->enable() != enable;
-                trace->setEnable( enable );
-                trace->setIsCountingTrace( algo == xic::eCounting );
-                trace->setLegend( "TIC" );
-                if ( dirty )
-                    emit traceSettingChanged( idx, enable );
-            } else if ( ( idx - 1 ) < impl_->tofChromatogramsMethod_->size() ) {
-                const auto item = impl_->tofChromatogramsMethod_->begin() + ( idx - 1 );
-                bool dirty = trace->enable() != item->enable();
-                trace->setEnable( item->enable() );
-                trace->setIsCountingTrace( item->intensityAlgorithm() == xic::eCounting );
-                char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
-                auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
-                trace->setLegend( ( boost::format( "%d[%c]" ) % idx % c ).str() );
-                if ( dirty )
-                    emit traceSettingChanged( idx, item->enable() );
-            }
+            bool dirty = trace->enable() != enable;
+            trace->setEnable( enable );
+            trace->setIsCountingTrace( algo == xic::eCounting );
+            trace->setLegend( "TIC" );
+            if ( dirty )
+                emit traceSettingChanged( idx, enable );
+        } else if ( ( idx - 1 ) < xm->size() ) {
+            const auto item = xm->begin() + ( idx - 1 );
+            bool dirty = trace->enable() != item->enable();
+            trace->setEnable( item->enable() );
+            trace->setIsCountingTrace( item->intensityAlgorithm() == xic::eCounting );
+            char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
+            auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
+            trace->setLegend( ( boost::format( "%d[%c]" ) % idx % c ).str() );
+            if ( dirty )
+                emit traceSettingChanged( idx, item->enable() );
         }
     }
-
 }
 
 void
@@ -1638,9 +1638,6 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
     // elapsed time since start
     double seconds  = double( avg->timeSinceEpoch_ - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
     double t_inject = double( task::instance()->injectTimeSinceEpoch() - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
-
-    // size_t pkd_total_counts = pkd->accumulate( 0, 0 );
-    // double tic = avg->accumulate( 0, -1 ); // TIC
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
@@ -1765,38 +1762,6 @@ document::progress( double elapsed_time, std::shared_ptr< const adcontrols::Samp
 }
 
 void
-document::appendToChromatograms(std::shared_ptr<const acqrscontrols::u5303a::waveform> waveform )
-{
-#if 0
-    if ( auto pm = tofChromatogramsMethod() ) {
-        std::vector< std::pair<uint32_t, double> > results;
-
-        if ( waveform->wellKnownEvents_ & adacquire::SignalObserver::wkEvent_INJECT ) {
-            double time = ( waveform->timeSinceEpoch_ - task::instance()->upTimeSinceEpoch() ) / std::nano::den; // uptime (s)
-            //impl_->injectTime_ = time;
-            //for ( auto& trace: impl_->traces_ )
-            //    trace->setInjectTime( time );
-            //emit onWellKnownEvent( adacquire::SignalObserver::wkEvent_INJECT, time );
-        }
-
-        tdc()->makeChromatogramPoints( waveform, *pm, results );
-
-        if ( results.empty() )
-            return;
-
-        double time = ( waveform->timeSinceEpoch_ - task::instance()->upTimeSinceEpoch() ) / std::nano::den; // uptime (s)
-
-        std::lock_guard< std::mutex > lock( impl_->mutex_ );
-
-        for ( auto& data: results ) {
-            if ( data.first < impl_->traces_.size() )
-                impl_->traces_[ data.first ]->append( waveform->serialnumber_, time, data.second, waveform->wellKnownEvents_ );
-        }
-    }
-#endif
-}
-
-void
 document::onChromatogramChanged()
 {
     emit dataChanged( trace_observer, 0 );
@@ -1856,26 +1821,37 @@ document::acquireDark()
     emit darkStateChanged( 1 );
 }
 
-bool
+std::shared_ptr< adcontrols::MassSpectrometer >
 document::setMSCalibFile( const QString& filename )
 {
     if ( auto calibResult = impl_->loadMSCalibFile( filename.toStdString() ) ) {
         impl_->msCalibFile_ = filename;
         impl_->msCalibResult_.reset();
 
-        ADDEBUG() << "--------------- reloading calibration ----------------";
         auto calib = calibResult->calibration();
-        ADDEBUG() << boost::json::value{{ "coeffs", calib.coeffs() }};
-        for ( const auto& m: *impl_->tofChromatogramsMethod_ ) {
-            if ( m.enable() ) {
-                ADDEBUG() << boost::format("%20s") % m.formula() << "\t" << m.mass() << "\t" << m.time()
-                          << "\tcomputed: " << calib.compute_mass( m.time() ) << "\t" << calib.compute_time( m.mass() );
-            }
-        }
         ADDEBUG() << "--------------- reloading calibration ----------------";
-        return true;
+        ADDEBUG() << calib.formulaText( false );
+        using adcontrols::MassSpectrometerBroker;
+        namespace iids = accutof::spectrometer::iids;
+        if ( auto sp = MassSpectrometerBroker::make_massspectrometer( iids::uuid_massspectrometer ) ) {
+            sp->setCalibrationFilename( filename.toStdString() );
+
+            auto db = std::make_unique< adfs::sqlite >();
+            db->open( ":memory:" );
+            adutils::mscalibio::write( *db, *calibResult );
+            sp->initialSetup( *db, {{0}} );
+            auto xm = std::make_shared< adcontrols::TofChromatogramsMethod >( *impl_->tofChromatogramsMethod_ );
+            for ( auto& m: *xm ) {
+                if ( m.enable() && m.mass() > 0.7 ) {
+                    m.setTime( calib.compute_time( m.mass() ) );
+                }
+            }
+            emit onXicMethod ( QString::fromStdString( boost::json::serialize( boost::json::value_from( *xm ) ) ) );
+            impl_->tofChromatogramsMethod_ = xm;
+            return sp;
+        }
     }
-    return false;
+    return {};
 }
 
 QString
@@ -1888,7 +1864,6 @@ std::shared_ptr< adcontrols::MSCalibrateResult >
 document::impl::loadMSCalibFile( const boost::filesystem::path& path ) const
 {
     if ( boost::filesystem::exists( path ) ) {
-        // ADTRACE() << "select calibration file: " << path.string();
         adfs::filesystem fs;
         if ( fs.mount( path ) ) {
             auto calibResult = std::make_shared< adcontrols::MSCalibrateResult >();

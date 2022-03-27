@@ -89,7 +89,7 @@ namespace adwidgets {
                     model_->setData( model_->index( row, c_mass ), mc.first );
                     if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.0001 )
                         model_->setData( model_->index( row, c_masswindow ), 0.100 );
-                    if ( auto sp = spectrometer_.lock() ) {
+                    if ( auto sp = spectrometer_ ) {
                         double time = sp->timeFromMass( mc.first );
                         model_->setData( model_->index( row, c_time ), time * std::micro::den );
                     }
@@ -100,19 +100,19 @@ namespace adwidgets {
                 if ( auto tv = this_->findChild< QTableView * >() )
                     tv->resizeColumnToContents( c_formula );
             } else if ( _1.column() == c_time ) {
-                if ( auto sp = spectrometer_.lock() ) {
+                if ( auto sp = spectrometer_ ) {
                     double mass = sp->assignMass( _1.data( Qt::EditRole ).toDouble() / std::micro::den );
                     model_->setData( model_->index( row, c_mass ), mass );
                 }
             } else if ( _1.column() == c_timewindow ) {
-                if ( auto sp = spectrometer_.lock() ) {
+                if ( auto sp = spectrometer_ ) {
                     double t1 = model_->data( model_->index( row, c_time ), Qt::EditRole ).toDouble() / std::micro::den;
                     double t2 = t1 + _1.data( Qt::EditRole ).toDouble() / std::micro::den;
                     double dm = std::abs( sp->assignMass( t2 ) - sp->assignMass( t1 ) );
                     model_->setData( model_->index( row, c_masswindow ), dm );
                 }
             } else if ( _1.column() == c_mass && _1.isValid() ) {
-                if ( auto sp = spectrometer_.lock() ) {
+                if ( auto sp = spectrometer_ ) {
                     double mass = _1.data( Qt::EditRole ).toDouble();
                     if ( mass > 1.0 && mass < 100000 ) {
                         double time = sp->timeFromMass( _1.data( Qt::EditRole ).toDouble() );
@@ -120,7 +120,7 @@ namespace adwidgets {
                     }
                 }
             } else if ( _1.column() == c_masswindow ) {
-                if ( auto sp = spectrometer_.lock() ) {
+                if ( auto sp = spectrometer_ ) {
                     double m1 = model_->data( model_->index( row, c_mass ), Qt::EditRole ).toDouble();
                     double m2 = m1 + _1.data( Qt::EditRole ).toDouble();
                     double dt = std::abs( sp->timeFromMass( m2 ) - sp->timeFromMass( m1 ) );
@@ -134,7 +134,7 @@ namespace adwidgets {
         void addLine();
 
         std::unique_ptr< QStandardItemModel > model_;
-        std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
+        std::shared_ptr< const adcontrols::MassSpectrometer > spectrometer_;
     };
 
 }
@@ -251,6 +251,7 @@ TofChromatogramsWidget::getContents( boost::any& a ) const
 bool
 TofChromatogramsWidget::setContents( boost::any&& a )
 {
+    ADDEBUG() << "------ setContents via any ------";
     auto pi = adcontrols::ControlMethod::any_cast<>()( a, adcontrols::TofChromatogramsMethod::clsid() );
     if ( pi ) {
         adcontrols::TofChromatogramsMethod m;
@@ -302,6 +303,8 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
 bool
 TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
+    ADDEBUG() << "------ setContents ------";
+
     QSignalBlocker block( this );
 
     if ( auto form = findChild< TofChromatogramsForm *>() )
@@ -383,6 +386,7 @@ void
 TofChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
 {
     impl_->spectrometer_ = sp;
+    ADDEBUG() << sp->calibrationFilename();
 }
 
 void

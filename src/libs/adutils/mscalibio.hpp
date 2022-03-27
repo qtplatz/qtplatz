@@ -41,8 +41,7 @@ namespace adutils {
     class ADUTILSSHARED_EXPORT mscalibio {
     public:
         mscalibio();
-        [[deprecated]] static bool readCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * dataClass, std::vector< char >&, int64_t& revision );
-        //[[deprecated]] static bool writeCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * calibId, const wchar_t * dataClass, const char * data, size_t size );
+        // [[deprecated]] static bool readCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * dataClass, std::vector< char >&, int64_t& revision );
         static bool create_table( adfs::sqlite& db );
         static bool write( adfs::sqlite& db, const adcontrols::MSCalibrateResult& );
         static bool read( adfs::sqlite& db, adcontrols::MSCalibrateResult&, const boost::uuids::uuid& );

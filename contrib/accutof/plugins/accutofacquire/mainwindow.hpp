@@ -109,6 +109,7 @@ namespace accutof {
             void handleSelCalibFile();
             void axisChanged( QComboBox *, int index );
             void handleMSCalibrationLoaded( const QString& );
+            void handleXicMethod( QString );
 
         private:
             QAction * actionConnect_;

@@ -267,15 +267,19 @@ namespace adcontrols {
         TofChromatogramMethod t;
         using namespace adportable::json;
         if ( jv.is_object() ) {
-            auto obj = jv.as_object();
-            extract( obj, t.impl_->formula_,     "formula" );
-            extract( obj, t.impl_->mass_,        "mass" );
-            extract( obj, t.impl_->massWindow_ , "massWindow" );
-            extract( obj, t.impl_->time_ ,       "time" );
-            int algo;
-            extract( obj, algo,                  "algo" );
-            t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
-            extract( obj, t.impl_->enable_,      "enable" );
+            if ( auto child = jv.as_object().if_contains( "TofChromatogramMethod" ) ) {
+                if ( child->is_object() ) {
+                    auto obj = child->as_object();
+                    extract( obj, t.impl_->formula_,     "formula" );
+                    extract( obj, t.impl_->mass_,        "mass" );
+                    extract( obj, t.impl_->massWindow_ , "massWindow" );
+                    extract( obj, t.impl_->time_ ,       "time" );
+                    int algo;
+                    extract( obj, algo,                  "algo" );
+                    t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
+                    extract( obj, t.impl_->enable_,      "enable" );
+                }
+            }
         }
         return t;
     }

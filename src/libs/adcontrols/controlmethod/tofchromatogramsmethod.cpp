@@ -25,12 +25,14 @@
 #include "tofchromatogramsmethod.hpp"
 #include "tofchromatogrammethod.hpp"
 #include "serializer.hpp"
+#include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/json.hpp>
 #include <string>
 #include <map>
 #include <vector>
@@ -221,7 +223,7 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramsMethod& t )
     {
-        jv = boost::json::object{ { "TofChromatogramsMethod"
+        jv = boost::json::object{{ "TofChromatogramsMethod"
                 , {
                     { "numberOfTriggers",      t.impl_->numberOfTriggers_ }
                     , { "refreshHistogram",    t.impl_->refreshHistogram_ }
@@ -237,15 +239,20 @@ namespace adcontrols {
     {
         TofChromatogramsMethod t;
         using namespace adportable::json;
-        if ( jv.is_object() ) {
-            auto obj = jv.as_object();
-            extract( obj, t.impl_->numberOfTriggers_, "numberOfTriggers" );
-            extract( obj, t.impl_->refreshHistogram_, "refreshHistogram" );
-            extract( obj, t.impl_->enableTIC_,        "enableTIC" );
-            int algo;
-            extract( obj, algo,             "algoTIC" );
-            t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
-            extract( obj, t.impl_->vec_,              "vec" );
+        auto tv = adportable::json_helper::find( jv, "TofChromatogramsMethod" );
+        if ( tv.is_object() ) {
+            try {
+                auto obj = tv.as_object();
+                extract( obj, t.impl_->numberOfTriggers_, "numberOfTriggers" );
+                extract( obj, t.impl_->refreshHistogram_, "refreshHistogram" );
+                extract( obj, t.impl_->enableTIC_,        "enableTIC" );
+                int algo;
+                extract( obj, algo,             "algoTIC" );
+                t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
+                extract( obj, t.impl_->vec_,              "vec" );
+            } catch ( std::exception& ex ) {
+                BOOST_THROW_EXCEPTION(std::runtime_error("adportable/json/extract<TOFChromatogramsmethod> exception"));
+            }
         }
         return t;
     }

@@ -34,6 +34,7 @@
 #include <acqrswidgets/u5303awidget.hpp>
 #include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -74,10 +75,11 @@
 #include <coreplugin/icore.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <QApplication>
 #include <QCheckBox>
@@ -262,10 +264,11 @@ void
 MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
-    connect( document::instance(), &document::onModulesFailed, this, &MainWindow::handleModulesFailed );
+    connect( document::instance(), &document::onModulesFailed,  this, &MainWindow::handleModulesFailed );
     connect( document::instance(), &document::sampleRunChanged, this, [&]{ setSampleRun( *document::instance()->sampleRun() ); });
     connect( document::instance(), &document::msCalibrationLoaded, this, &MainWindow::handleMSCalibrationLoaded );
     connect( document::instance(), &document::onDefferedWrite, this, &MainWindow::handleDefferedWrite );
+    connect( document::instance(), &document::onXicMethod,     this, &MainWindow::handleXicMethod );
 
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
@@ -1278,10 +1281,12 @@ MainWindow::handleSelCalibFile()
 
     if ( dlg.exec() == QDialog::Accepted ) {
 		auto result = dlg.selectedFiles();
-        if ( document::instance()->setMSCalibFile( result[ 0 ] ) ) {
+        if ( auto sp = document::instance()->setMSCalibFile( result[ 0 ] ) ) {
             qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
             setCalibFileName()( this, file, "background-color:yellow;" );
-
+            if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
+                w->setMassSpectrometer( sp );
+            }
         } else {
             QMessageBox::warning( 0, tr( "select calibration file" ), tr( "Calibration file load failed" ) );
         }
@@ -1295,6 +1300,19 @@ MainWindow::handleMSCalibrationLoaded( const QString& file )
 
     if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
         w->setMassSpectrometer( document::instance()->massSpectrometer() );
+    }
+}
+
+void
+MainWindow::handleXicMethod( QString json )
+{
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( json.toStdString(), ec );
+    if ( !ec ) {
+        auto xm = boost::json::value_to< adcontrols::TofChromatogramsMethod >( jv );
+        if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
+            w->setContents( xm );
+        }
     }
 }
 

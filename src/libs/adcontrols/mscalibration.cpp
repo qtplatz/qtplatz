@@ -34,8 +34,50 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <sstream>
+#include <adportable/debug.hpp>
 
 using namespace adcontrols;
+
+namespace {
+    //////////
+    // https://www.daniweb.com/programming/software-development/threads/489917/solving-polynomial-equations-of-degree-3-with-c
+
+    std::tuple< double, double, double >
+    polynome3(double a0,double a1,double a2, double a3) {
+        double y[21];
+        double z[21];
+        for (int k=0;k<21;k++) {
+            y[0]=1;
+            y[1]=1;
+            y[2]=1;
+            /*  Bernoulli's algorithm */
+            y[k+3]=-(((a1*y[k+2])+(a2*y[k+1])+(a3*y[k]))/a0);
+            // cout<<y[10]/y[9]<<endl;
+        }
+        double alpha1 = y[20]/y[19];
+        // cout<< "The first solution is alpha1 =  " << alpha1<<endl;
+        double b0=a0;
+        double b1=a1+alpha1*b0;
+        double b2=-(a3/alpha1);
+        // cout<<b0<<" " <<b1<<" "<<b2<<endl;
+        for(int j=0; j < 21; j++) {
+            z[0]=0;
+            z[1]=1;
+            z[j+2]=-((b1*z[j+1]+b2*z[j])/b0);
+        }
+
+        double alpha2=(z[20]/z[19]);
+        // cout<<" The second solution is alpha2=  " <<alpha2<<endl;
+
+        double c0=b0;
+        double c1=-(b2/alpha2);
+        double alpha3 =- (c1/c0);
+        // cout<<c0<<" " <<c1<<endl;
+        // cout<<" The third solution will be alpha3 = "<< alpha3<< "\n"<<endl;
+        return { alpha1, alpha2, alpha3 };
+    }
+}
+
 
 MSCalibration::MSCalibration() : mode_( 0 )
                                , calibrationUuid_( boost::uuids::random_generator()() )
@@ -122,27 +164,23 @@ MSCalibration::compute_mass( double time ) const
 }
 
 double
-MSCalibration::compute_time( double mass, double resolution ) const
+MSCalibration::compute_time( double mass ) const
 {
-    if ( coeffs_.size() == 2 ) { // first order (linear)
-        return ( std::sqrt( mass ) - coeffs_[0] ) * coeffs_[1];
-    } else if ( coeffs_.size() == 3 ) { // second order (parabolic)
-        double a = coeffs_[0];
-        double b = coeffs_[1];
-        double c = coeffs_[2];
-        double q = std::sqrt( mass );
-        double t1 = ( -b - std::sqrt( (b * b) - (4 * a * c) + (4 * c * q ) ) ) / ( 2 * c );
-        double t2 = ( -b + std::sqrt( (b * b) - (4 * a * c) + (4 * c * q ) ) ) / ( 2 * c );
-        if ( t1 < 0 && t2 > 0 )
-            return t2;
-        if ( t2 < 0  && t1 > 0 )
-            return t1;
-        return std::abs( compute_mass( t1 ) - mass ) < std::abs( compute_mass( t2 ) - mass ) ? t1 : t2;
+    double t = ( std::sqrt( mass ) - coeffs_[0] ) / coeffs_[1];
+    if ( coeffs_.size() <= 2 )
+        return t;
+
+    std::pair< double, double > y{ t - 0.5e-6, t + 0.5e-6 }; // times
+    std::pair< double, double > x{ compute( coeffs_, y.first ), compute( coeffs_, y.second ) }; // sqrt{m}
+
+    double t_est = (sqrt(mass) - x.first) * (y.second - y.first)/(x.second - x.first) + y.first;
+    if ( std::abs( compute_mass( t_est ) - mass ) < std::abs( compute_mass( t ) - mass ) ) {
+        // ADDEBUG() << "\tfinal estimated error (mDa): " << ( compute_mass( t_est ) - mass ) * 1000;
+        return t_est;
     } else {
-        double t = ( std::sqrt( mass ) - coeffs_[0] ) * coeffs_[1];
+        // ADDEBUG() << "\tfinal estimated error (mDa): " << ( compute_mass( t ) - mass ) * 1000;
         return t;
     }
-    return 0;
 }
 
 // static

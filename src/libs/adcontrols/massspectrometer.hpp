@@ -68,13 +68,13 @@ namespace adcontrols {
 
         // data format v2 interface
 		virtual std::shared_ptr<ScanLaw> scanLaw( const adcontrols::MSProperty& ) const;
-		virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
-        virtual const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const;
-        virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
-        virtual adcontrols::datafile * datafile() const;
-        virtual void setDebugTrace( const char * logfile, int level );
-        virtual void setProcessMethod( const std::shared_ptr< adcontrols::ProcessMethod > ) { return; }
+		[[deprecated("for v2 adfs. No longer supported")]] virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
+        [[deprecated("for v2 adfs. No longer supported")]] virtual const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const;
+        [[deprecated("for v2 adfs. No longer supported")]] virtual adcontrols::datafile * datafile() const;
+        [[deprecated("for v2 adfs. No longer supported")]] virtual void setDebugTrace( const char * logfile, int level );
+        [[deprecated("for v2 adfs. No longer supported")]] virtual void setProcessMethod( const std::shared_ptr< adcontrols::ProcessMethod > ) { return; }
         // end v2 specific
+        virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
 
         // data format v3 interface
         virtual void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& objuuid ) = 0;
@@ -122,7 +122,7 @@ namespace adcontrols {
         virtual std::pair<double,double> timeFromMass( const std::pair<double,double>&, const MassSpectrum& ) const;
         virtual std::pair<double,double> massFromTime( const std::pair<double,double>&, const MassSpectrum& ) const;
     protected:
-        // v2
+        // v2 -- deprecated
         adcontrols::datafile * datafile_;
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
         // v3
