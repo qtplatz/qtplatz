@@ -24,17 +24,28 @@
 
 #pragma once
 
-class QWidget;
+#include "moltable.hpp"
+
+class QStandardItemModel;
+class QMenu;
+
+namespace adcontrols { class moltable; }
 
 namespace adwidgets {
 
-    template<class _Ty, class... _Types >
-    inline _Ty * create_widget( const char * ident, _Types&&... _Args )
-    {
-        auto w = new _Ty( std::forward<_Types>( _Args )... );
-        if ( ident && *ident )
-            w->setObjectName( ident );
-        return w;
-    }
+    class XChromatogramsTable : public MolTable  {
+        Q_OBJECT
+    public:
+        explicit XChromatogramsTable(QWidget *parent = 0);
+        ~XChromatogramsTable();
+    private:
+
+    signals:
+
+    private slots:
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
+    };
 
 }

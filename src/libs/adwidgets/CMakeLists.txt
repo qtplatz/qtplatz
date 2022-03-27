@@ -115,6 +115,9 @@ set( ${PROJECT_NAME}_SOURCES
   controlmethod/timedeventswidget.cpp
   controlmethod/timedtableview.cpp
   countingwidget.cpp
+  xchromatogramsform.cpp
+  xchromatogramstable.cpp
+  xchromatogramswidget.cpp
   ${_sources}
 )
 
@@ -183,6 +186,9 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethod/timedeventswidget.hpp
   controlmethod/timedtableview.hpp
   countingwidget.hpp
+  xchromatogramsform.hpp
+  xchromatogramstable.hpp
+  xchromatogramswidget.hpp
   )
 
 if ( WIN32 )

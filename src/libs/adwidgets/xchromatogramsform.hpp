@@ -24,17 +24,40 @@
 
 #pragma once
 
-class QWidget;
+#include "adwidgets_global.hpp"
+#include <QWidget>
+#include <memory>
+
+namespace adcontrols { class TofChromatogramsMethod; }
 
 namespace adwidgets {
 
-    template<class _Ty, class... _Types >
-    inline _Ty * create_widget( const char * ident, _Types&&... _Args )
-    {
-        auto w = new _Ty( std::forward<_Types>( _Args )... );
-        if ( ident && *ident )
-            w->setObjectName( ident );
-        return w;
-    }
+    class ADWIDGETSSHARED_EXPORT XChromatogramsForm : public QWidget {
+
+        Q_OBJECT
+
+    public:
+        explicit XChromatogramsForm( QWidget *parent = 0 );
+        ~XChromatogramsForm();
+
+        void OnInitialUpdate();
+        void getContents( adcontrols::TofChromatogramsMethod& ) const;
+        void setContents( const adcontrols::TofChromatogramsMethod& );
+
+        void setDigitizerMode( bool );
+        void setCalibrationFilename( QString&& stem, QString&& filename );
+
+    private:
+        XChromatogramsForm( const XChromatogramsForm& ) = delete;
+
+        class impl;
+        std::unique_ptr< impl > impl_;
+
+    signals:
+        void valueChanged();
+
+    public slots:
+
+    };
 
 }

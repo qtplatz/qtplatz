@@ -717,7 +717,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     const adcontrols::descriptions& descs = src.getDescriptions();
     std::wstring name;
     for ( size_t i = 0; i < descs.size(); ++i )
-        name += descs[i].text();
+        name += descs[i].text<wchar_t>();
 
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
     portfolio::Folium folium = folder.addFolium( name );
@@ -784,7 +784,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
     std::wstring name;
     const adcontrols::descriptions& descs = centroid.getDescriptions();
     for ( size_t i = 0; i < descs.size(); ++i )
-        name += descs[ i ].text();
+        name += descs[ i ].text<wchar_t>();
     name += L", manually assigned";
 
     portfolio::Folium folium = folder.addFolium( name );
@@ -1026,7 +1026,7 @@ Dataprocessor::addContour( std::shared_ptr< adcontrols::MassSpectra > spectra )
 
     const auto& desc = spectra->getDescriptions();
     std::wstring name =
-        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Contour " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text(); } );
+        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Contour " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text<wchar_t>(); } );
 
     portfolio::Folium folium = folder.addFolium( name );  // "Contours/Contour"
 	folium.assign( spectra, spectra->dataClass() );

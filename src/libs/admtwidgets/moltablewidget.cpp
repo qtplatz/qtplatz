@@ -174,7 +174,7 @@ namespace admtwidgets {
                 }
                 targetRow_ = boost::none;
                 QModelIndexList indices = table->selectionModel()->selectedIndexes();
-                qSort( indices );
+                std::sort( indices.begin(), indices.end() );
                 if ( indices.size() ) {
                     targetRow_ = indices.first().row();
                     updateTarget();

@@ -407,7 +407,7 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
 
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: hist->getDescriptions() )
-		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
+		title += QString::fromStdWString( std::wstring( text.text<wchar_t>() ) + L", " );
 
 	pImpl_->profileSpectrum_->setTitle( title );
     pImpl_->processedSpectrum_->clear();
@@ -435,7 +435,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
     pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++), QwtPlot::yLeft );
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: ptr->getDescriptions() )
-		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
+		title += QString::fromStdWString( std::wstring( text.text<wchar_t>() ) + L", " );
 	pImpl_->profileSpectrum_->setTitle( title );
     pImpl_->processedSpectrum_->clear();
 }
@@ -450,7 +450,7 @@ MSProcessingWnd::draw1()
 
         QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
         for ( auto text: ptr->getDescriptions() )
-            title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
+            title += QString::fromStdWString( std::wstring( text.text<wchar_t>() ) + L", " );
 
         pImpl_->profileSpectrum_->setTitle( title );
         pImpl_->processedSpectrum_->clear();
@@ -1446,7 +1446,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                     std::wostringstream o;
                     adcontrols::ProcessMethod::xml_archive( o, *pm );
                     pugi::xml_document dom;
-                    auto result = dom.load( pugi::as_utf8( o.str() ).c_str() );
+                    auto result = dom.load_string( pugi::as_utf8( o.str() ).c_str() );
                     if ( result )
                         adpublisher::printer::print( printer, painter, drawRect, dom, "process-method-html.xsl" );
                 }
