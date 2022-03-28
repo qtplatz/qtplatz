@@ -355,7 +355,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                     auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                     double tof = t.time( t.getIndexFromMass( mol.mass() ) );
-                    auto molid = mol.property< boost::uuids::uuid >( "molid" );
+                    auto molid = mol.molid(); // property< boost::uuids::uuid >( "molid" );
                     auto time_of_injection = this->time_of_injection();
 
                     extract_by_mols.moltable_  = { *proto, mol.mass(), width, mol.formula(), tof };

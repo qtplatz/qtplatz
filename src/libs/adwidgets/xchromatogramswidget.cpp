@@ -42,7 +42,6 @@
 #include <QMessageBox>
 #include <QSignalBlocker>
 #include <QSplitter>
-#include <QStandardItemModel>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <boost/filesystem.hpp>
@@ -54,33 +53,14 @@ namespace adwidgets {
     class XChromatogramsWidget::impl {
         XChromatogramsWidget * this_;
     public:
-        // enum columns { c_id, c_formula, c_mass, c_masswindow, c_time, c_timewindow, c_algo, c_protocol, ncolumns };
-
-        QString connString_;
-
-        impl( XChromatogramsWidget * p ) : this_( p )
-                                           , model_( std::make_unique< QStandardItemModel >() ) {
-            // model_->setColumnCount( ncolumns );
-            // model_->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
-            // model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
-            // model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
-            // model_->setHeaderData( c_masswindow, Qt::Horizontal, QObject::tr( "Window(Da)" ) );
-            // model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
-            // model_->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Window(&mu;s)" ) );
-            // model_->setHeaderData( c_algo,       Qt::Horizontal, QObject::tr( "Method" ) );
-            // model_->setHeaderData( c_protocol,   Qt::Horizontal, QObject::tr( "Protocol#" ) );
+        impl( XChromatogramsWidget * p ) : this_( p ) {
+            (void)this_;
         }
 
         ~impl() {
         }
 
-        void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
-        }
-
         void handleContextMenu( const QPoint& pt );
-        void addLine();
-
-        std::unique_ptr< QStandardItemModel > model_;
         std::shared_ptr< const adcontrols::MassSpectrometer > spectrometer_;
     };
 
@@ -121,11 +101,8 @@ XChromatogramsWidget::OnInitialUpdate()
 {
     if ( auto form = findChild< XChromatogramsForm * >() )
         form->OnInitialUpdate();
-
-    // if ( auto table = findChild< MolTableView *>() ) {
-    //     table->onInitialUpdate();
-    //     // connect( table, &MolTableView::onContextMenu, this, &XChromatogramsWidget::handleContextMenu );
-    // }
+    if ( auto table = findChild< XChromatogramsTable * >() )
+        table->onInitialUpdate();
 
     setContents( adcontrols::TofChromatogramsMethod() );
 }
@@ -143,6 +120,7 @@ XChromatogramsWidget::OnFinalClose()
 bool
 XChromatogramsWidget::getContents( boost::any& a ) const
 {
+#if 0
     adcontrols::TofChromatogramsMethod m;
     getContents( m );
 
@@ -150,6 +128,7 @@ XChromatogramsWidget::getContents( boost::any& a ) const
         auto ptr = boost::any_cast< std::shared_ptr< adcontrols::ControlMethod::Method > >( a );
         ptr->append( m );
     }
+#endif
     return false;
 }
 
@@ -185,56 +164,21 @@ XChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) const
     if ( auto form = findChild< XChromatogramsForm *>() )
         form->getContents( m );
 
-    //QSqlDatabase db = QSqlDatabase::database( impl_->connString_ );
-    auto& model = *impl_->model_;
-    for ( int row = 0; row < model.rowCount(); ++row ) {
-        adcontrols::TofChromatogramMethod item;
-        namespace xic = adcontrols::xic;
-
-        item.setEnable( model.index( row, c_formula ).data( Qt::CheckStateRole ) == Qt::Checked );
-        item.setFormula( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString() );
-        item.setMass( model.index( row, c_mass ).data( Qt::EditRole ).toDouble() );
-        item.setMassWindow( model.index( row, c_masswindow ).data( Qt::EditRole ).toDouble() );
-		item.setTime( model.index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setTimeWindow( model.index( row, c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setIntensityAlgorithm( xic::eIntensityAlgorishm(  model.index( row, c_algo ).data( Qt::EditRole ).toInt() ) );
-        item.setProtocol( model.index( row, c_protocol ).data( Qt::EditRole ).toInt() );
-        m << item;
-    }
-
     return true;
 }
 
 bool
 XChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
-    ADDEBUG() << "------ setContents ------";
+    ADDEBUG() << "------ setContents ------" << boost::json::value_from( m );
 
     QSignalBlocker block( this );
 
     if ( auto form = findChild< XChromatogramsForm *>() )
         form->setContents( m );
+    if ( auto table = findChild< XChromatogramsTable * >() )
+        table->setValue( m );
 
-    auto& model = *impl_->model_;
-    model.setRowCount( m.size() );
-
-    int row(0);
-    for ( auto& trace: m ) {
-        model.setData( model.index( row, c_formula ), QString::fromStdString( trace.formula() ) );
-
-        if ( auto item = model.item( row, c_formula ) ) {
-            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            model.setData( model.index( row, c_formula ), trace.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-        }
-
-        model.setData( model.index( row, c_mass ), trace.mass() );
-        model.setData( model.index( row, c_masswindow ), trace.massWindow() );
-        model.setData( model.index( row, c_time ), trace.time() * std::micro::den );
-        model.setData( model.index( row, c_timewindow ), trace.timeWindow() * std::micro::den );
-        model.setData( model.index( row, c_algo ), trace.intensityAlgorithm() );
-        model.setData( model.index( row, c_protocol ), trace.protocol() );
-        ++row;
-    }
     return true;
 
 }

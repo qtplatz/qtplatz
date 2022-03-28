@@ -31,7 +31,8 @@
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/isotopecluster.hpp>
-// #include <adcontrols/tofchromatogramstable.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
@@ -72,26 +73,35 @@ namespace adwidgets {
 
     class XChromatogramsTable::impl  {
     public:
-        impl() {
+        impl() : model_( new QStandardItemModel ) {
         }
 
         ~impl() {
         }
+
+        QStandardItemModel *model_;
     };
 }
 
+namespace {
+    enum columns { c_id, c_formula, c_adducts, c_mass, c_masswindow, c_time, c_timewindow, c_algo, c_protocol, ncolumns };
+}
 
-XChromatogramsTable::XChromatogramsTable(QWidget *parent) : MolTable(parent)
+
+XChromatogramsTable::XChromatogramsTable(QWidget *parent) : TableView(parent)
                                                           , impl_( std::make_unique< impl >() )
 {
-    // setModel( model_ );
+    impl_->model_->setColumnCount( ncolumns );
+    impl_->model_->setRowCount( 8 );
+
+    setModel( impl_->model_ );
 	// setItemDelegate( new delegate( [this]( const QModelIndex& index ){
     //     if ( ! signalsBlocked() )
     //         handleValueChanged( index );
     // } ) );
 
-    // setHorizontalHeader( new HtmlHeaderView );
-    // setSortingEnabled( true );
+    setHorizontalHeader( new HtmlHeaderView );
+    setSortingEnabled( false );
     // setAcceptDrops( true );
 
     // connect( this, &TableView::rowsDeleted, [this]() {
@@ -102,11 +112,45 @@ XChromatogramsTable::XChromatogramsTable(QWidget *parent) : MolTable(parent)
     // setContextMenuPolicy( Qt::CustomContextMenu );
     // connect( this, &QTableView::customContextMenuRequested, this, &XChromatogramsTable::handleContextMenu );
 
-    // model_->setColumnCount( nbrColums );
-    // model_->setRowCount( 1 );
     // //setColumnHidden( c_smiles, true );
 }
 
 XChromatogramsTable::~XChromatogramsTable()
 {
+}
+
+void
+XChromatogramsTable::onInitialUpdate()
+{
+    auto model = impl_->model_;
+    model->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
+    model->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
+    model->setHeaderData( c_adducts,    Qt::Horizontal, QObject::tr( "Adducts" ) );
+    model->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
+    model->setHeaderData( c_masswindow, Qt::Horizontal, QObject::tr( "Window(Da)" ) );
+    model->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
+    model->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Window(&mu;s)" ) );
+    model->setHeaderData( c_algo,       Qt::Horizontal, QObject::tr( "Method" ) );
+    model->setHeaderData( c_protocol,   Qt::Horizontal, QObject::tr( "Protocol#" ) );
+}
+
+void
+XChromatogramsTable::setValue( const adcontrols::TofChromatogramsMethod& xm )
+{
+    auto model = impl_->model_;
+    size_t row(0);
+    for ( const auto& m: xm ) {
+        model->setData( model->index( row, c_formula ), QString::fromStdString( m.formula() ) );
+        if ( auto item = model->item( row, c_formula ) ) {
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            model->setData( model->index( row, c_formula ), m.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+        model->setData( model->index( row, c_mass ), m.mass() );
+        model->setData( model->index( row, c_masswindow ), m.massWindow() );
+        model->setData( model->index( row, c_time ), m.time() * std::micro::den );
+        model->setData( model->index( row, c_timewindow ), m.timeWindow() * std::micro::den );
+        model->setData( model->index( row, c_algo ), m.intensityAlgorithm() );
+        model->setData( model->index( row, c_protocol ), m.protocol() );
+        ++row;
+    }
 }

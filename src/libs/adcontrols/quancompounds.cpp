@@ -212,7 +212,7 @@ QuanCompounds::convert_if( moltable& mols, std::function< bool( const value_type
             if ( comp.protocol() >= 0 )
                 value.setProtocol( comp.protocol() );
 
-            value.setProperty( "molid", comp.uuid() );
+            value.setMolid( comp.uuid() );
 
             mols << value;
         }

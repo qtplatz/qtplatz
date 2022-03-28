@@ -24,9 +24,9 @@
 **************************************************************************/
 
 #pragma once
+
 #include "adfs_global.h"
 #include <vector>
-//#include <boost/cstdint.hpp>
 #include "attributes.hpp"
 
 namespace boost { namespace uuids { struct uuid; } }
@@ -51,11 +51,10 @@ namespace adfs {
         file selectFile( const std::wstring& );
 
         // --- add/modify features
-        [[deprecated]] file addFile( const std::wstring& id, const std::wstring& title = L"" );
-        file addFile( const boost::uuids::uuid& id, const std::wstring& title = L"" );
+        file addFile( const std::wstring& id, const std::wstring& title = {} );
+        file addFile( const boost::uuids::uuid& id, const std::wstring& title = {} );
 
         inline int64_t rowid() const { return rowid_; }
-        // inline const std::wstring& name() const { return name_; }
         template< typename T = wchar_t > const std::basic_string< T > name() const;
 
         inline sqlite& db() const { return *db_; }
@@ -70,4 +69,3 @@ namespace adfs {
     typedef std::vector< adfs::folder > folders;
 
 }
-

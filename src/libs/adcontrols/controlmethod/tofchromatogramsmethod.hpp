@@ -40,7 +40,7 @@ namespace boost {
 namespace adcontrols {
 
     namespace xic {
-        enum eIntensityAlgorishm : int;
+        enum eIntensityAlgorishm : unsigned int;
     }
 
     class TofChromatogramMethod;

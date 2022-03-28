@@ -58,6 +58,7 @@
 #include <adwidgets/progressinterface.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
+#include <adwidgets/xchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -219,7 +220,16 @@ MainWindow::createDockWidgets()
             });
         }
     }
-
+    if ( auto widget = qtwrapper::make_widget< adwidgets::XChromatogramsWidget >( "XICs" ) ) {
+        createDockWidget( widget, tr( "XICs" ), "XICs" );
+        if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+            connect( widget, &adwidgets::XChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
+                if ( index.column() == 4 || index.column() == 5 )  // time | time-window
+                    wnd->setSpanMarker( index.row(), index.column() - 4, value );
+            });
+            connect( widget, &adwidgets::XChromatogramsWidget::valueChanged, this, &MainWindow::handleTofChromatogramsMethod );
+        }
+    }
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
         createDockWidget( widget, "Threshold", "ThresholdMethod" );
         connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
@@ -268,7 +278,6 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(), &document::sampleRunChanged, this, [&]{ setSampleRun( *document::instance()->sampleRun() ); });
     connect( document::instance(), &document::msCalibrationLoaded, this, &MainWindow::handleMSCalibrationLoaded );
     connect( document::instance(), &document::onDefferedWrite, this, &MainWindow::handleDefferedWrite );
-    connect( document::instance(), &document::onXicMethod,     this, &MainWindow::handleXicMethod );
 
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
@@ -1304,7 +1313,7 @@ MainWindow::handleMSCalibrationLoaded( const QString& file )
 }
 
 void
-MainWindow::handleXicMethod( QString json )
+MainWindow::handleTofChromatogramsMethod( const QString& json )
 {
     boost::system::error_code ec;
     auto jv = boost::json::parse( json.toStdString(), ec );

@@ -562,7 +562,7 @@ MainWindow::currentPageChanged( int idx )
             p->onPageSelected();
     }
 
-    QRegExp reg( "wnd\\.[0-9]+" );
+    QRegularExpression reg( "wnd\\.[0-9]+" );
     auto list = findChildren<QToolButton *>( reg );
     for ( auto btn : list )
         btn->setStyleSheet( QString( "color: lightGray; border: 2px; border-color: gray; border-style: groove" ) );
@@ -625,7 +625,7 @@ MainWindow::createStyledBarMiddle()
             if ( auto cb = qtwrapper::make_widget< QCheckBox >( QString( "cb%1Y%2" ).arg(r).arg(c), "Y-Auto" ) ) {
                 cb->setCheckState( Qt::Checked ); // defalut start with auto
                 toolBarLayout->addWidget( cb );
-                connect( cb, &QCheckBox::toggled, [r,c,this](bool checked){ handleScaleY2Changed( r, c ); } );
+                connect( cb, &QCheckBox::toggled, [&](bool checked){ handleScaleY2Changed( r, c ); } );
             }
 
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
@@ -633,7 +633,7 @@ MainWindow::createStyledBarMiddle()
                 sp->setDecimals( 3 );
                 sp->setSingleStep( 0.1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleY2Changed( r, c ); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleY2Changed( r, c ); } );
             }
 
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
@@ -641,7 +641,7 @@ MainWindow::createStyledBarMiddle()
                 sp->setDecimals( 3 );
                 sp->setSingleStep( 0.1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleY2Changed( r, c ); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleY2Changed( r, c ); } );
             }
 
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -655,14 +655,14 @@ MainWindow::createStyledBarMiddle()
                 sp->setDecimals( 0 );
                 sp->setSingleStep( 1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleX2Changed( r, c ); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleX2Changed( r, c ); } );
             }
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1R%2" ).arg(r).arg(c) ) ) {
                 sp->setRange( 0.0, 9999.0 );
                 sp->setDecimals( 0 );
                 sp->setSingleStep( 1 );
                 toolBarLayout->addWidget( sp );
-                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [r,c,this](double){ handleScaleX2Changed( r, c); } );
+                connect( sp, qOverload<double>(&QDoubleSpinBox::valueChanged), [&](double){ handleScaleX2Changed( r, c); } );
             }
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
         }

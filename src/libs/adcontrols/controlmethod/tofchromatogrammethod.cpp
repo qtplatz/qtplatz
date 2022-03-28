@@ -24,6 +24,7 @@
 
 #include "tofchromatogrammethod.hpp"
 #include "serializer.hpp"
+#include "constants.hpp"
 #include <adportable/json/extract.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>

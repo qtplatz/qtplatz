@@ -26,6 +26,7 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include "constants_fwd.hpp"
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
 #include <string>
@@ -34,14 +35,6 @@
 namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
-
-    namespace xic {
-        enum eIntensityAlgorishm : int {
-            ePeakAreaOnProfile
-            , ePeakHeightOnProfile
-            , eCounting
-        };
-    }
 
     class ADCONTROLSSHARED_EXPORT TofChromatogramMethod {
     public:

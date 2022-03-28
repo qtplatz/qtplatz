@@ -566,7 +566,7 @@ QuanChromatogramProcessor::extract_chromatograms_via_auto_target( QuanSampleProc
     for ( auto& c: candidates ) {
         double tR = c.mol().tR() ? *c.mol().tR() : 0;
         auto title = save_spectrum::make_title( sample.dataSource(), c.mol().formula(), tR, (idx ? L" (histogram)" : L" (profile)" ) );
-        auto molid = c.mol().property< boost::uuids::uuid >( "molid" );
+        auto molid = c.mol().molid(); // property< boost::uuids::uuid >( "molid" );
         auto msGuid = save_spectrum::save( writer
                                            , sample.dataSource()
                                            , c.refms()

@@ -28,6 +28,9 @@
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_from.hpp>
+#include <boost/json/value_to.hpp>
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -43,7 +46,6 @@ namespace adcontrols {
     public:
         enum molflags { isMSRef = 0x80000000 };
 
-        typedef boost::variant< bool, uint32_t, double, std::string, boost::uuids::uuid > custom_type;
         class ADCONTROLSSHARED_EXPORT value_type;
 
         class value_type {
@@ -59,7 +61,7 @@ namespace adcontrols {
             std::wstring description_;
             boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
             boost::optional< double > tR_; // data source for mass chromatogram generation
-            std::vector < std::pair< std::string, custom_type > > properties_;
+            boost::optional< boost::uuids::uuid > molid_; // used in quan
         public:
             bool& enable() { return enable_; }
             uint32_t& flags() { return flags_; }
@@ -79,11 +81,6 @@ namespace adcontrols {
             const std::string& synonym() const { return synonym_; }
             const std::string& smiles() const { return smiles_; }
             const std::wstring& description() const { return description_; }
-            // const char * cformula() const { return formula_.c_str(); }
-            // const char * cadducts() const { return adducts_.c_str(); }
-            // const char * csynonym() const { return synonym_.c_str(); }
-            // const char * csmiles() const { return smiles_.c_str(); }
-            // const wchar_t * cdescription() const { return description_.c_str(); }
 
             bool isMSRef() const;
             void setIsMSRef( bool on );
@@ -96,6 +93,9 @@ namespace adcontrols {
             boost::optional< double > tR() const;
             void set_tR( boost::optional< double >&& );
 
+            boost::optional< boost::uuids::uuid > molid() const;
+            void setMolid( boost::optional< boost::uuids::uuid >&& );
+            /*
             template< typename T > void setProperty( const std::string& key, const T& value ) {
                 auto it = std::find_if( properties_.begin(),  properties_.end(), [&]( auto& t ){ return t.first == key; } );
                 if ( it != properties_.end() )
@@ -111,10 +111,10 @@ namespace adcontrols {
                 }
                 return boost::none;
             }
+            */
 
-            std::vector< std::pair< std::string, custom_type > >& properties() { return properties_; }
-
-            const std::vector< std::pair< std::string, custom_type > >& properties() const  { return properties_; }
+            // std::vector< std::pair< std::string, custom_type > >& properties() { return properties_; }
+            // const std::vector< std::pair< std::string, custom_type > >& properties() const  { return properties_; }
 
             value_type() : enable_( true ), flags_( 0 ), mass_( 0 ), abundance_( 1.0 ), protocol_( boost::none ), tR_( boost::none ) {
             }
@@ -129,8 +129,8 @@ namespace adcontrols {
                                               , smiles_( t.smiles_ )
                                               , description_( t.description_ )
                                               , protocol_( t.protocol_ )
-                                              , tR_( t.tR_ )
-                                              , properties_( t.properties_ ) {
+                                              , tR_( t.tR_ ) {
+                // , properties_( t.properties_ ) {
             }
         };
 
@@ -158,6 +158,18 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const moltable::value_type& );
+
+    ADCONTROLSSHARED_EXPORT
+    moltable::value_type tag_invoke( boost::json::value_to_tag< moltable::value_type >&, const boost::json::value& jv );
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const moltable& );
+
+    ADCONTROLSSHARED_EXPORT
+    moltable tag_invoke( boost::json::value_to_tag< moltable >&, const boost::json::value& jv );
 
 #if defined _MSC_VER
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::moltable::value_type > ;

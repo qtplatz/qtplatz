@@ -30,6 +30,7 @@
 #include <adportable/debug.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>

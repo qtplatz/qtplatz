@@ -1846,7 +1846,7 @@ document::setMSCalibFile( const QString& filename )
                     m.setTime( calib.compute_time( m.mass() ) );
                 }
             }
-            emit onXicMethod ( QString::fromStdString( boost::json::serialize( boost::json::value_from( *xm ) ) ) );
+            // emit onXChromatogramMethod ( QString::fromStdString( boost::json::serialize( boost::json::value_from( *xm ) ) ) );
             impl_->tofChromatogramsMethod_ = xm;
             return sp;
         }

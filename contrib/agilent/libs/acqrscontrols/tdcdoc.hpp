@@ -29,6 +29,7 @@
 #include "ap240/tdcdoc.hpp"
 #include "u5303a/tdcdoc.hpp"
 #include <acqrscontrols/constants.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adportable/waveform_wrapper.hpp>

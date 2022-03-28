@@ -24,6 +24,7 @@
 
 #include "xchromatogramsform.hpp"
 #include "create_widget.hpp"
+#include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <QWidget>

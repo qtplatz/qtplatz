@@ -44,7 +44,7 @@ namespace dataproc {
         }
         static bool populate( QStringList& vec, const char * xml ) {
             pugi::xml_document doc;
-            if ( doc.load( xml ) ) {
+            if ( doc.load_string( xml ) ) {
                 pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
                 for ( auto it = list.begin(); it != list.end(); ++it )
                     vec << it->node().attribute( "type" ).value();

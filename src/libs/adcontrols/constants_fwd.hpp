@@ -1,15 +1,16 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@qtplatz.com
+** Contact: toshi.hondo@scienceliaison.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics LLC.
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -24,33 +25,22 @@
 
 #pragma once
 
-#include "moltable.hpp"
+namespace adcontrols {
 
-class QStandardItemModel;
-class QMenu;
+    enum hor_axis: unsigned int;
 
-namespace adcontrols { class TofChromatogramsMethod; }
+    enum ion_polarity: unsigned int;
 
-namespace adwidgets {
+    namespace xic {
+        enum eIntensityAlgorishm : unsigned int;
+    }
 
-    class XChromatogramsTable : public TableView  {
-        Q_OBJECT
-    public:
-        explicit XChromatogramsTable(QWidget *parent = 0);
-        ~XChromatogramsTable();
+    namespace plot {
+        enum axis : unsigned int;
+        enum unit : unsigned int;
+    }
 
-        void onInitialUpdate();
-        void setValue( const adcontrols::TofChromatogramsMethod& );
-        adcontrols::TofChromatogramsMethod getValue();
-
-    private:
-
-    signals:
-
-    private slots:
-    private:
-        class impl;
-        std::unique_ptr< impl > impl_;
-    };
-
+    namespace Quan {
+        enum QuanInlet : unsigned int;
+    }
 }

@@ -54,8 +54,15 @@ namespace adcontrols {
     }
 
     enum hor_axis: unsigned int { hor_axis_mass, hor_axis_time };
-
     enum ion_polarity: unsigned int { polarity_positive, polarity_negative };
+
+    namespace xic {
+        enum eIntensityAlgorishm : unsigned int {
+            ePeakAreaOnProfile
+            , ePeakHeightOnProfile
+            , eCounting
+        };
+    }
 
     namespace plot {
         enum axis : unsigned int { yAxis, xAxis };
@@ -65,7 +72,7 @@ namespace adcontrols {
     extern const boost::uuids::uuid adcontrols_uuid;
 
     namespace Quan {
-        enum QuanInlet {
+        enum QuanInlet : unsigned int {
             Chromatography
             , Infusion
             , Counting

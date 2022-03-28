@@ -25,6 +25,8 @@
 #include "moltable.hpp"
 #include "serializer.hpp"
 #include <adportable/float.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -46,25 +48,47 @@ namespace boost {
 
         using namespace adcontrols;
 
+        // compatibility only
+        typedef boost::variant< bool, uint32_t, double, std::string, boost::uuids::uuid > custom_type;
+
         template <class Archive >
         void serialize( Archive& ar, moltable::value_type& p, const unsigned int version ) {
-            ar & BOOST_SERIALIZATION_NVP( p.enable_ );
-            ar & BOOST_SERIALIZATION_NVP( p.flags_ );
-            ar & BOOST_SERIALIZATION_NVP( p.mass_ );
-            ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
-            ar & BOOST_SERIALIZATION_NVP( p.formula_ );
-            ar & BOOST_SERIALIZATION_NVP( p.adducts_ );
-            ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
-            ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
-            ar & BOOST_SERIALIZATION_NVP( p.description_ );
-            if ( version >= 2 ) {
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( p.enable_ );
+                ar & BOOST_SERIALIZATION_NVP( p.flags_ );
+                ar & BOOST_SERIALIZATION_NVP( p.mass_ );
+                ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
+                ar & BOOST_SERIALIZATION_NVP( p.formula_ );
+                ar & BOOST_SERIALIZATION_NVP( p.adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
+                ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
+                ar & BOOST_SERIALIZATION_NVP( p.description_ );
                 ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
-                ar & BOOST_SERIALIZATION_NVP( p.properties_ );
-            }
-            if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( p.tR_ );
+                ar & BOOST_SERIALIZATION_NVP( p.molid_ );
+            } else {
+                std::vector < std::pair< std::string, custom_type > > properties;
+                ar & BOOST_SERIALIZATION_NVP( p.enable_ );
+                ar & BOOST_SERIALIZATION_NVP( p.flags_ );
+                ar & BOOST_SERIALIZATION_NVP( p.mass_ );
+                ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
+                ar & BOOST_SERIALIZATION_NVP( p.formula_ );
+                ar & BOOST_SERIALIZATION_NVP( p.adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
+                ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
+                ar & BOOST_SERIALIZATION_NVP( p.description_ );
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
+                    ar & BOOST_SERIALIZATION_NVP( properties );
+                }
+                if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP( p.tR_ );
+                }
+                auto it = std::find_if( properties.begin(), properties.end(), []( const auto& t ){ return t.first == "molid"; } );
+                if ( it != properties.end() ) {
+                    p.molid_ = boost::get< boost::uuids::uuid >( it->second );
+                }
             }
-
         }
     }
 }
@@ -120,7 +144,7 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::moltable::impl, 2 )
+BOOST_CLASS_VERSION( adcontrols::moltable::impl, 4 )
 
 using namespace adcontrols;
 
@@ -174,6 +198,18 @@ void
 moltable::value_type::set_tR( boost::optional< double >&& tR )
 {
     tR_ = tR;
+}
+
+boost::optional< boost::uuids::uuid >
+moltable::value_type::molid() const
+{
+    return molid_;
+}
+
+void
+moltable::value_type::setMolid( boost::optional< boost::uuids::uuid >&& uuid )
+{
+    molid_ = uuid;
 }
 
 moltable::~moltable()
@@ -254,4 +290,77 @@ bool
 moltable::xml_restore( std::wistream& is, moltable& t )
 {
     return internal::xmlSerializer("moltable").restore( is, t );
+}
+
+namespace adcontrols {
+
+    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const moltable::value_type& t )
+    {
+        jv = boost::json::object{
+            { "enable",        t.enable_ }
+            , { "flags",       t.flags_ }
+            , { "mass",        t.mass_ }
+            , { "abundance",   t.abundance_ }
+            , { "formula",     t.formula_ }
+            , { "adducts",     t.adducts_ }
+            , { "synonym",     t.synonym_ }
+            , { "smiles",      t.smiles_ }
+            , { "description", t.description_ }
+        };
+        auto obj = jv.as_object();
+        if ( t.protocol_ ) { obj[ "protocol" ]   = *t.protocol_; }
+        if ( t.tR_ )       { obj[ "tR" ]         = *t.tR_;       }
+        if ( t.molid_ )    { obj[ "molid"    ]   = boost::lexical_cast< std::string >( *t.molid_ ); }
+    }
+
+    moltable::value_type tag_invoke( boost::json::value_to_tag< moltable::value_type >&, const boost::json::value& jv )
+    {
+        moltable::value_type t;
+        if ( jv.is_object() ) {
+            using namespace adportable::json;
+            auto obj = jv.as_object();
+            extract( obj, t.enable_,      "enable" );
+            extract( obj, t.flags_,       "flags" );
+            extract( obj, t.mass_,        "mass" );
+            extract( obj, t.abundance_,   "abundance" );
+            extract( obj, t.formula_,     "formula" );
+            extract( obj, t.adducts_,     "adducts" );
+            extract( obj, t.synonym_,     "synonym" );
+            extract( obj, t.smiles_,      "smiles" );
+            extract( obj, t.description_, "description" );
+            if ( auto protocol = obj.if_contains( "protocol" ) ) {
+                t.protocol_ = boost::json::value_to< int32_t >( *protocol );
+            }
+            if ( auto tR = obj.if_contains( "tR" ) ) {
+                t.tR_ = boost::json::value_to< double >( *tR );
+            }
+            if ( auto molid = obj.if_contains( "molid" ) ) {
+                t.molid_ = boost::lexical_cast< boost::uuids::uuid >( boost::json::value_to< std::string >( *molid ) );
+            }
+        }
+        return t;
+    }
+
+    ////////
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const moltable& t )
+    {
+        jv = boost::json::object{{ "moltable", {{ "data",      t.data() }} }};
+    }
+
+    moltable
+    tag_invoke( boost::json::value_to_tag< moltable >&, const boost::json::value& jv )
+    {
+        moltable t;
+
+        using namespace adportable::json;
+        if ( jv.is_object() ) {
+            if ( const auto&  moltable = jv.as_object().if_contains( "moltable" ) ) {
+                if ( moltable->is_object() ) {
+                    extract( moltable->as_object(), t.data(), "data" );
+                }
+            }
+        }
+        return t;
+    }
 }

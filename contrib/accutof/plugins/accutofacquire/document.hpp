@@ -213,7 +213,6 @@ namespace accutof {
             void darkStateChanged( int );
             void msCalibrationLoaded( const QString& );
             void onDefferedWrite( const QString&, int, int );
-            void onXicMethod( QString );
         };
     }
 }
