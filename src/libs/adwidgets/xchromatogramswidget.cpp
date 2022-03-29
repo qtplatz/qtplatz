@@ -89,6 +89,7 @@ XChromatogramsWidget::XChromatogramsWidget(QWidget *parent) : QWidget(parent)
         auto form = findChild< XChromatogramsForm * >();
         auto table = findChild< XChromatogramsTable * >();
         connect( form, &XChromatogramsForm::polarityToggled, table, &XChromatogramsTable::handlePolarity );
+        connect( form, &XChromatogramsForm::valueChanged, this, &XChromatogramsWidget::handleValueChanged );
         connect( table, &XChromatogramsTable::valueChanged, this, &XChromatogramsWidget::handleValueChanged );
         connect( table, &XChromatogramsTable::editorValueChanged, this
                  , [&]( const QModelIndex index, double value ){ emit editorValueChanged( index, value ); });
@@ -209,5 +210,6 @@ void
 XChromatogramsWidget::handleValueChanged()
 {
     auto jv = boost::json::value_from( getValue() );
+    ADDEBUG() << "##### " << __FUNCTION__;
     emit valueChanged( QString::fromStdString( boost::json::serialize( jv ) ) );
 }
