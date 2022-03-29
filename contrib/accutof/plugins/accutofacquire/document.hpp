@@ -142,7 +142,10 @@ namespace accutof {
             QSettings * settings();
 
 #if XCHROMATOGRAMSMETHOD
-            void addChromatogramsPoint( const adcontrols::XChromatogramsMethod&, pkdavg_waveforms_t );
+            void addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogramsMethod >
+                                        , pkdavg_waveforms_t );
+            void addCountingChromatogramPoints( std::shared_ptr< const adcontrols::XChromatogramsMethod >
+                                                , const std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& );
 #endif
 #if TOFCHROMATOGRAMSMETHOD
             void addCountingChromatogramPoints( const adcontrols::TofChromatogramsMethod&

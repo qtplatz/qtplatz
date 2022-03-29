@@ -639,6 +639,7 @@ task::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 void
 task::impl::handle_averaged_waveforms()
 {
+#if TOFCHROMATOGRAMSMETHOD
     if ( auto cm = document::tdc()->tofChromatogramsMethod() ) {
         std::vector< pkdavg_waveforms_t > vec;
         if ( document::instance()->dequeue( vec ) > 0 ) {
@@ -646,6 +647,16 @@ task::impl::handle_averaged_waveforms()
                 document::instance()->addChromatogramsPoint( *cm, waveforms );
         }
     }
+#endif
+#if XCHROMATOGRAMSMETHOD
+    if ( auto cm = document::instance()->xChromatogramsMethod() ) {
+        std::vector< pkdavg_waveforms_t > vec;
+        if ( document::instance()->dequeue( vec ) > 0 ) {
+            for ( auto& waveforms: vec )
+                document::instance()->addChromatogramsPoint( cm, waveforms );
+        }
+    }
+#endif
 }
 
 void
@@ -673,9 +684,15 @@ task::impl::handle_histograms()
                         );
             } while (0 );
 
-// <============================================================================
+            // <============================================================================
+#if TOFCHROMATOGRAMSMETHOD
             if ( auto cm = tdc->tofChromatogramsMethod() )
                 document::instance()->addCountingChromatogramPoints( *cm, accessor->vec );
+#endif
+#if XCHROMATOGRAMSMETHOD
+            if ( auto m = document::instance()->xChromatogramsMethod() )
+                document::instance()->addCountingChromatogramPoints( m, accessor->vec );
+#endif
 
             if ( auto hgrm = accessor->vec.back() ) {
                 data_status_[ acqrscontrols::u5303a::histogram_observer ].plot_ready_ = true;

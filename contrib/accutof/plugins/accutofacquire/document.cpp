@@ -1703,7 +1703,7 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 
 #if XCHROMATOGRAMSMETHOD
 void
-document::addChromatogramsPoint( const adcontrols::XChromatogramsMethod& method
+document::addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogramsMethod > method
                                  , pkdavg_waveforms_t waveforms )
 {
     auto avg( waveforms[ 0 ] );
@@ -1718,7 +1718,7 @@ document::addChromatogramsPoint( const adcontrols::XChromatogramsMethod& method
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
 #if __cplusplus >= 201703L
-        auto [enable,algo] = method.tic();
+        auto [enable,algo] = method->tic();
 #else
         bool enable; adcontrols::xic::eIntensityAlgorishm algo;
         std::tie( enable, algo ) = method.tic();
@@ -1737,9 +1737,9 @@ document::addChromatogramsPoint( const adcontrols::XChromatogramsMethod& method
         trace->setInjectTime( t_inject );
     } while ( 0 );
 
-    for ( size_t i = 0; i < method.xics().size(); ++i ) {
+    for ( size_t i = 0; i < method->xics().size(); ++i ) {
         int id = i + 1;
-        const auto& item = method.xics().at( i );
+        const auto& item = method->xics().at( i );
         if ( id >= 1 && id < impl_->traces_.size() ) {
             auto trace = impl_->traces_[ id ];
             trace->setInjectTime( t_inject );
@@ -1842,6 +1842,7 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 }
 #endif
 
+#if TOFCHROMATOGRAMSMETHOD
 void
 document::addCountingChromatogramPoints( const adcontrols::TofChromatogramsMethod& method
                                          , const std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& vec )
@@ -1872,6 +1873,41 @@ document::addCountingChromatogramPoints( const adcontrols::TofChromatogramsMetho
     if ( impl_->traces_[ 0 ]->size() >= 2 )
         emit dataChanged( trace_observer, 0 );
 }
+#endif
+
+#if XCHROMATOGRAMSMETHOD
+void
+document::addCountingChromatogramPoints( std::shared_ptr< const adcontrols::XChromatogramsMethod > method
+                                         , const std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& vec )
+{
+    double t_inject = double( task::instance()->injectTimeSinceEpoch() - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
+
+    for ( auto& ptr: vec ) {
+
+        double seconds = double( ptr->timeSinceEpoch().first - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
+        impl_->traces_[ 0 ]->append( ptr->serialnumber().first, seconds, ptr->accumulate( 0, -1 ) ); // TIC
+        impl_->traces_[ 0 ]->setIsCountingTrace( true );
+        impl_->traces_[ 0 ]->setInjectTime( t_inject );
+
+        size_t item_id(0);
+        for ( auto item: method->xics() ) {
+            if ( item.enable() && item.algo() == adcontrols::xic::eCounting ) {
+                int id = item_id + 1;
+                if ( id >= 1 && id < impl_->traces_.size() ) {
+                    uint32_t pkCounts = ptr->accumulate( item.time(), item.time_window() );
+                    impl_->countrate_calculators_[ item_id ] << std::make_pair( pkCounts, ptr->trigger_count() );
+                    impl_->traces_[ id ]->append( ptr->serialnumber().first, seconds, pkCounts );
+                    impl_->traces_[ id ]->setIsCountingTrace( true );
+                    impl_->traces_[ id ]->setInjectTime( t_inject );
+                }
+            }
+            ++item_id;
+        }
+    }
+    if ( impl_->traces_[ 0 ]->size() >= 2 )
+        emit dataChanged( trace_observer, 0 );
+}
+#endif
 
 double
 document::countRate( int idx ) const
