@@ -256,6 +256,8 @@ XChromatogramsTable::setValue( int row, const adcontrols::xic::xic_method& m, ad
 {
     auto model = impl_->model_;
 
+    QSignalBlocker block( model );
+
     impl_->current_polarity_ = polarity;
     model->setData( model->index( row, c_synonym ), QString::fromStdString( m.synonym() ) );
     model->setData( model->index( row, c_formula ), QString::fromStdString( m.formula() ) );
