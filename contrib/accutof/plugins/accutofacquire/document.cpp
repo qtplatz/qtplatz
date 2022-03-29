@@ -1632,7 +1632,7 @@ document::setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > m
 #if __cplusplus >= 201703L
             auto [enable, algo] = m->tic();
 #else
-            bool enable; xic::eIntensityAlgorishm algo;
+            bool enable; xic::eIntensityAlgorithm algo;
             std::tie( enable, algo ) = m->tic();
 #endif
             bool dirty = trace->enable() != enable;
@@ -1720,8 +1720,8 @@ document::addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogra
 #if __cplusplus >= 201703L
         auto [enable,algo] = method->tic();
 #else
-        bool enable; adcontrols::xic::eIntensityAlgorishm algo;
-        std::tie( enable, algo ) = method.tic();
+        bool enable; adcontrols::xic::eIntensityAlgorithm algo;
+        std::tie( enable, algo ) = method->tic();
 #endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
