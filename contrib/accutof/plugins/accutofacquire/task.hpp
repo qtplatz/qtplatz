@@ -37,7 +37,9 @@ namespace adacquire {
 namespace adcontrols {
     namespace ControlMethod { class Method; }
     class SampleRun;
+#if TOFCHROMATOGRAMSMETHOD
     class TofChromatogramsMethod;
+#endif
 }
 
 
@@ -71,8 +73,9 @@ namespace accutof { namespace acquire {
         void sample_started();  // autosampler start
         void sample_injected(); // data acquisition start, being time zero
         void sample_stopped();  // data close, if ( injected ) { post process start } else { delete data }
-
+#if TOFCHROMATOGRAMSMETHOD
         void setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
+#endif
         uint64_t injectTimeSinceEpoch() const;
         uint64_t upTimeSinceEpoch() const;
 

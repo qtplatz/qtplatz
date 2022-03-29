@@ -32,9 +32,13 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
-#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
+#if XCHROMATOGRAMSMETHOD
+# include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
+#endif
+#if TOFCHROMATOGRAMSMETHOD
+# include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+# include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#endif
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -499,6 +503,7 @@ WaveformWnd::handleDataChanged( const boost::uuids::uuid& uuid, int idx )
     }
 }
 
+#if TOFCHROMATOGRAMSMETHOD
 void
 WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
@@ -538,7 +543,9 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
         }
     }
 }
+#endif
 
+#if XCHROMATOGRAMSMETHOD
 void
 WaveformWnd::setMethod( const adcontrols::XChromatogramsMethod& m )
 {
@@ -578,7 +585,7 @@ WaveformWnd::setMethod( const adcontrols::XChromatogramsMethod& m )
         }
     }
 }
-
+#endif
 
 void
 WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = mass, 1 = window */, double value )

@@ -109,9 +109,12 @@ namespace accutof {
             void handleSelCalibFile();
             void axisChanged( QComboBox *, int index );
             void handleMSCalibrationLoaded( const QString& );
+#if TOFCHROMATOGRAMSMETHOD
             void handleTofChromatogramsMethod( const QString& );
+#endif
+#if XCHROMATOGRAMSMETHOD
             void handleXChromatogramsMethod( const QString& );
-
+#endif
         private:
             QAction * actionConnect_;
             static MainWindow * instance_;

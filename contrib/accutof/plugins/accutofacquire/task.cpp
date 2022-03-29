@@ -38,8 +38,10 @@
 #include <adacquire/task.hpp>
 #include <adacquire/timedigital_histogram_accessor.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#if TOFCHROMATOGRAMSMETHOD
+# include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+# include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#endif
 #if XCHROMATOGRAMSMETHOD
 # include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #endif
@@ -630,11 +632,13 @@ task::isRecording() const
     return impl_->isRecording_;
 }
 
+#if TOFCHROMATOGRAMSMETHOD
 void
 task::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     impl_->refreshHistogram_ = m.refreshHistogram();
 }
+#endif
 
 void
 task::impl::handle_averaged_waveforms()

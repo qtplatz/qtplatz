@@ -34,8 +34,10 @@
 #include <acqrswidgets/u5303awidget.hpp>
 #include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#if TOFCHROMATOGRAMSMETHOD
+# include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+# include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#endif
 #include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -58,7 +60,9 @@
 #include <adwidgets/moltableview.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <adwidgets/samplerunwidget.hpp>
-#include <adwidgets/tofchromatogramswidget.hpp>
+#if TOFCHROMATOGRAMSMETHOD
+# include <adwidgets/tofchromatogramswidget.hpp>
+#endif
 #include <adwidgets/xchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/settings.hpp>
@@ -183,9 +187,11 @@ MainWindow::createDockWidgets()
                             ( u.mode() == method::DigiMode::Averager && u._device_method().nbr_of_averages >= 2 );
                         sform->setDisabled( disable );
                     }
+#if TOFCHROMATOGRAMSMETHOD
                     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
+#endif
                     if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >() ) {
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
@@ -1343,12 +1349,19 @@ void
 MainWindow::handleMSCalibrationLoaded( const QString& file )
 {
     setCalibFileName()( this, file, "background-color:white;" );
-
+#if TOFCHROMATOGRAMSMETHOD
     if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
         w->setMassSpectrometer( document::instance()->massSpectrometer() );
     }
+#endif
+#if XCHROMATOGRAMSMETHOD
+    if ( auto w = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
+        w->setMassSpectrometer( document::instance()->massSpectrometer() );
+    }
+#endif
 }
 
+#if TOFCHROMATOGRAMSMETHOD
 void
 MainWindow::handleTofChromatogramsMethod( const QString& json )
 {
@@ -1361,6 +1374,7 @@ MainWindow::handleTofChromatogramsMethod( const QString& json )
         }
     }
 }
+#endif
 
 void
 MainWindow::handleXChromatogramsMethod( const QString& json )
