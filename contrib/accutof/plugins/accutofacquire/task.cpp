@@ -40,6 +40,9 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#if XCHROMATOGRAMSMETHOD
+# include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
+#endif
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>

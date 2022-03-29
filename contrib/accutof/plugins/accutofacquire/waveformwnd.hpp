@@ -32,7 +32,12 @@
 class QwtPlotMarker;
 
 namespace adplot { class ChromatogramWidget; class PeakMarker; class TraceWidget; class SpectrumWidget; class SpanMarker; }
-namespace adcontrols { class CountingMethod; class MassSpectrum; class MSPeakInfo;  class Trace; class TofChromatogramsMethod; class threshold_action; }
+namespace adcontrols {
+    class CountingMethod; class MassSpectrum; class MSPeakInfo;  class Trace;
+    class TofChromatogramsMethod;
+    class XChromatogramsMethod;
+    class threshold_action;
+}
 namespace acqrscontrols { namespace u5303a { class waveform; } }
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -54,7 +59,7 @@ namespace accutof { namespace acquire {
         void onInitialUpdate();
         void setData( const std::shared_ptr< const acqrscontrols::u5303a::waveform >& );
         void setMethod( const adcontrols::TofChromatogramsMethod& m );
-        // void setMethod( const adcontrols::CountingMethod& m );
+        void setMethod( const adcontrols::XChromatogramsMethod& m );
         void setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 = window */, double );
 
         // bool longTermHistogramEnabled() const;

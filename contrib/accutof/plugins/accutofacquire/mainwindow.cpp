@@ -36,6 +36,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/samplerun.hpp>
@@ -185,6 +186,9 @@ MainWindow::createDockWidgets()
                     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
+                    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >() ) {
+                        widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
+                    }
                 }
             });
     }
@@ -205,7 +209,7 @@ MainWindow::createDockWidgets()
             connect( widget, &MoleculesWidget::valueChanged, wnd, &WaveformWnd::handleMolecules );
         }
     }
-
+#if ! XCHROMATOGRAMSMETHOD
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
@@ -221,16 +225,19 @@ MainWindow::createDockWidgets()
             });
         }
     }
+#else
     if ( auto widget = qtwrapper::make_widget< adwidgets::XChromatogramsWidget >( "XICs" ) ) {
         createDockWidget( widget, tr( "XICs" ), "XICs" );
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
             connect( widget, &adwidgets::XChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
-                if ( index.column() == 4 || index.column() == 5 )  // time | time-window
-                    wnd->setSpanMarker( index.row(), index.column() - 4, value );
+                ADDEBUG() << "############## handle editorValueChanged ###################### " << index.column() << ", " << value;
+                if ( index.column() == 3 || index.column() == 4 )  // mass, mass_window
+                    wnd->setSpanMarker( index.row(), index.column() - 3, value );
             });
-            connect( widget, &adwidgets::XChromatogramsWidget::valueChanged, this, &MainWindow::handleTofChromatogramsMethod );
+            connect( widget, &adwidgets::XChromatogramsWidget::valueChanged, this, &MainWindow::handleXChromatogramsMethod );
         }
     }
+#endif
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
         createDockWidget( widget, "Threshold", "ThresholdMethod" );
         connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
@@ -280,6 +287,7 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(), &document::msCalibrationLoaded, this, &MainWindow::handleMSCalibrationLoaded );
     connect( document::instance(), &document::onDefferedWrite, this, &MainWindow::handleDefferedWrite );
 
+    // initialize ui and method data
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->OnInitialUpdate();
@@ -290,10 +298,16 @@ MainWindow::OnInitialUpdate()
 
     // this must call after onInitialUpdate
     setSampleRun( *document::instance()->sampleRun() );
-
+#if XCHROMATOGRAMSMETHOD
+    if ( auto w = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
+        w->setMassSpectrometer( document::instance()->massSpectrometer() );
+    }
+#endif
+#if TOFCHROMATOGRAMSMETHOD
     if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
         w->setMassSpectrometer( document::instance()->massSpectrometer() );
     }
+#endif
 
     // Set control method name on MidToolBar
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
@@ -399,6 +413,19 @@ MainWindow::OnInitialUpdate()
         }
     }
 
+#if XCHROMATOGRAMSMETHOD
+    // update axis, closeup views
+    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >() ) {
+        //int mode = int( document::instance()->method()->mode() );
+        //widget->setDigitizerMode( mode == 0 );
+        auto m = widget->getValue();
+        if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+            wnd->setMethod( m );
+        }
+    }
+#endif
+
+#if TOFCHROMATOGRAMSMETHOD && 0
     // update axis, closeup views
     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
         int mode = int( document::instance()->method()->mode() );
@@ -409,6 +436,7 @@ MainWindow::OnInitialUpdate()
             document::instance()->setMethod( m );
         }
     }
+#endif
 
     setCalibFileName()( this, document::instance()->msCalibFile(), "background-color: cyan;" );
 
@@ -1296,12 +1324,15 @@ MainWindow::handleSelCalibFile()
         if ( auto sp = document::instance()->setMSCalibFile( result[ 0 ] ) ) {
             qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
             setCalibFileName()( this, file, "background-color:yellow;" );
-            if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
-                w->setMassSpectrometer( sp );
-            }
+#if XCHROMATOGRAMSMETHOD
             if ( auto w = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
                 w->setMassSpectrometer( sp );
             }
+#else
+            if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
+                w->setMassSpectrometer( sp );
+            }
+#endif
         } else {
             QMessageBox::warning( 0, tr( "select calibration file" ), tr( "Calibration file load failed" ) );
         }
@@ -1327,6 +1358,19 @@ MainWindow::handleTofChromatogramsMethod( const QString& json )
         auto xm = boost::json::value_to< adcontrols::TofChromatogramsMethod >( jv );
         if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
             w->setContents( xm );
+        }
+    }
+}
+
+void
+MainWindow::handleXChromatogramsMethod( const QString& json )
+{
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( json.toStdString(), ec );
+    if ( !ec ) {
+        auto xm = boost::json::value_to< adcontrols::XChromatogramsMethod >( jv );
+        if ( auto wnd = findChild< WaveformWnd * >() ) {
+            wnd->setMethod( xm );
         }
     }
 }

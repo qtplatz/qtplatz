@@ -110,6 +110,7 @@ namespace accutof {
             void axisChanged( QComboBox *, int index );
             void handleMSCalibrationLoaded( const QString& );
             void handleTofChromatogramsMethod( const QString& );
+            void handleXChromatogramsMethod( const QString& );
 
         private:
             QAction * actionConnect_;

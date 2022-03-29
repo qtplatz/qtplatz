@@ -34,6 +34,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -539,20 +540,59 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 }
 
 void
-WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 = window */, double value )
+WaveformWnd::setMethod( const adcontrols::XChromatogramsMethod& m )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    // ADDEBUG() << "--------------- setSpanMarker ------------- <-- from Chrmatograms";
+    hpw_->setData( nullptr, 1, QwtPlot::yRight ); // clear co-added pkd
+
+    for ( size_t i = 0; i < m.size() && i < closeups_.size(); ++i ) {
+
+        const auto& xm = m.xics().at( i );
+        auto& closeup = closeups_.at( i );
+
+        closeup.enable = xm.enable();
+        closeup.formula = QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( xm.formula() ) );
+
+        double width( 1 ), cx(0);
+
+        if ( closeup.sp->axis() == adplot::SpectrumWidget::HorizontalAxisTime ) {
+            cx = xm.time() * std::micro::den;
+            width = xm.time_window() * std::micro::den;
+        } else {
+            cx = xm.mass();
+            width = xm.mass_window();
+        }
+
+        closeup.marker->setXValue( cx - ( width / 2 ), cx + width / 2 );
+
+        auto zoom = closeup.sp->zoomer()->zoomBase();
+        zoom.setLeft( cx - ( width * widthFactor ) / 2 );
+        zoom.setWidth( width * widthFactor );
+        if ( closeup.enable ) {
+            closeup.sp->show();
+            closeup.sp->setZoomStack( zoom );
+            closeup.sp->replot();
+        } else {
+            closeup.sp->hide();
+        }
+    }
+}
+
+
+void
+WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = mass, 1 = window */, double value )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( row < closeups_.size() ) {
         auto& closeup = closeups_.at( row );
 
         auto range = closeup.marker->xValue();
 
-        double width = range.second - range.first;  // us
-        double cx = range.first + ( width / 2 );  // us
-        if ( index == 0 ) {
+        double width = range.second - range.first;
+        double cx = range.first + ( width / 2 );
+        if ( index == 0 ) { // mass
             cx = value * std::micro::den;         // -> us
         } else if ( index == 1 ) {
             width = value * std::micro::den;        // -> us

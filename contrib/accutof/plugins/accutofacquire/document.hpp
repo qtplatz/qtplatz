@@ -46,7 +46,8 @@ namespace adcontrols {
     class SampleRun;
     class threshold_method;
     class threshold_action;
-    class TofChromatogramsMethod;
+    class TofChromatogramsMethod; // deprecated
+    class XChromatogramsMethod;
     class TimeDigitalHistogram;
 }
 
@@ -132,17 +133,22 @@ namespace accutof {
             void takeSnapshot();
             void applyTriggered();
             void setMethod( const adcontrols::TofChromatogramsMethod& );
+            void setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > );
+            std::shared_ptr< const adcontrols::XChromatogramsMethod > xChromatogramsMethod() const;
             void getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& );
             void progress( double elapsed_time, std::shared_ptr< const adcontrols::SampleRun >&& );
 
             static acqrscontrols::u5303a::tdcdoc * tdc();
             QSettings * settings();
 
+#if XCHROMATOGRAMSMETHOD
+            void addChromatogramsPoint( const adcontrols::XChromatogramsMethod&, pkdavg_waveforms_t );
+#endif
+#if TOFCHROMATOGRAMSMETHOD
             void addCountingChromatogramPoints( const adcontrols::TofChromatogramsMethod&
                                                 , const std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& );
-
             void addChromatogramsPoint( const adcontrols::TofChromatogramsMethod&, pkdavg_waveforms_t );
-
+#endif
             size_t enqueue( pkdavg_waveforms_t&& );
             size_t dequeue( std::vector< pkdavg_waveforms_t >& );
 
