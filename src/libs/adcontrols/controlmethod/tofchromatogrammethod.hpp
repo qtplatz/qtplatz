@@ -66,8 +66,8 @@ namespace adcontrols {
         const double timeWindow() const;
         void setTimeWindow( double seconds );
 
-        xic::eIntensityAlgorishm intensityAlgorithm() const;
-        void setIntensityAlgorithm( xic::eIntensityAlgorishm );
+        xic::eIntensityAlgorithm intensityAlgorithm() const;
+        void setIntensityAlgorithm( xic::eIntensityAlgorithm );
 
         void setProtocol( int );
         int protocol() const;

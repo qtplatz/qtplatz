@@ -252,7 +252,6 @@ TofChromatogramsWidget::getContents( boost::any& a ) const
 bool
 TofChromatogramsWidget::setContents( boost::any&& a )
 {
-    ADDEBUG() << "------ setContents via any ------";
     auto pi = adcontrols::ControlMethod::any_cast<>()( a, adcontrols::TofChromatogramsMethod::clsid() );
     if ( pi ) {
         adcontrols::TofChromatogramsMethod m;
@@ -293,7 +292,7 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         item.setMassWindow( model.index( row, c_masswindow ).data( Qt::EditRole ).toDouble() );
 		item.setTime( model.index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den );
         item.setTimeWindow( model.index( row, c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setIntensityAlgorithm( xic::eIntensityAlgorishm(  model.index( row, c_algo ).data( Qt::EditRole ).toInt() ) );
+        item.setIntensityAlgorithm( xic::eIntensityAlgorithm(  model.index( row, c_algo ).data( Qt::EditRole ).toInt() ) );
         item.setProtocol( model.index( row, c_protocol ).data( Qt::EditRole ).toInt() );
         m << item;
     }
@@ -304,8 +303,6 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
 bool
 TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m )
 {
-    ADDEBUG() << "------ setContents ------";
-
     QSignalBlocker block( this );
 
     if ( auto form = findChild< TofChromatogramsForm *>() )
@@ -387,7 +384,6 @@ void
 TofChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
 {
     impl_->spectrometer_ = sp;
-    ADDEBUG() << sp->calibrationFilename();
 }
 
 void
@@ -432,8 +428,6 @@ TofChromatogramsWidget::readJson() const
     jobj[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ] = jtop;
 
     QJsonDocument jdoc( jobj );
-
-    ADDEBUG() << jdoc.toJson().toStdString();
 
     return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
 }

@@ -27,16 +27,20 @@
 #include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
-#include <QWidget>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
+#include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QGroupBox>
 #include <QLabel>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QSpacerItem>
 #include <QLineEdit>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QSpacerItem>
+#include <QSpinBox>
+#include <QWidget>
 
 namespace adwidgets {
 
@@ -78,6 +82,24 @@ XChromatogramsForm::XChromatogramsForm( QWidget * parent ) : QWidget( parent )
         cb->addItems( QStringList{ "Area", "Counts", "None" } );
         gridLayout->addWidget( cb, row, col++ );
     }
+
+    //////// group box //////
+    row++; col = 0;
+    if ( auto gb = create_widget<QGroupBox>( "polarity", tr("Polarity"), this ) ) {
+        gridLayout->addWidget( gb, row, col++, 1, 2 );
+        auto pos = create_widget< QRadioButton >( "radio_pos", tr("&Positive") );
+        auto neg = create_widget< QRadioButton >( "radio_neg", tr("&Negative") );
+        pos->setChecked( true );
+        auto layout = new QHBoxLayout;
+        layout->addWidget( pos );
+        layout->addWidget( neg );
+        gb->setLayout( layout );
+        connect( pos, &QRadioButton::toggled, this, [&]( bool checked ){
+            emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+        });
+    }
+
+    //////////////
     row++; col = 0;
     gridLayout->addWidget( create_widget<QLabel>( "MSCalib", "MS Calibration" ), row, col++ );
     if ( auto edit = create_widget< QLineEdit >("mscalibname") ) {
@@ -85,7 +107,7 @@ XChromatogramsForm::XChromatogramsForm( QWidget * parent ) : QWidget( parent )
         gridLayout->addWidget( edit, row, col++ );
     }
     row++; col = 0;
-    gridLayout->addItem( new QSpacerItem( 20, 20, QSizePolicy::Maximum, QSizePolicy::Maximum ), row, col );
+    gridLayout->setRowStretch( row, 1 );
 
 #if 0
     impl_->layout_->addItem( new QSpacerItem( 40, 20, QSizePolicy::Maximum, QSizePolicy::Expanding ) );
@@ -121,13 +143,20 @@ XChromatogramsForm::OnInitialUpdate()
 }
 
 void
-XChromatogramsForm::getContents( adcontrols::TofChromatogramsMethod& m ) const
+XChromatogramsForm::getContents( adcontrols::XChromatogramsMethod& m ) const
 {
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) )
         m.setNumberOfTriggers( spin->value() );
 
     if ( auto cbx = findChild< QCheckBox * >( "cbxRefresh" ) )
         m.setRefreshHistogram( cbx->isChecked() );
+
+    if ( auto radio = findChild< QRadioButton * >( "radio_pos" ) ) {
+        if ( radio->isChecked() )
+            m.setPolarity( adcontrols::polarity_positive );
+        else
+            m.setPolarity( adcontrols::polarity_negative );
+    }
 
     if ( auto cb = findChild< QComboBox * >( "algo" ) ) {
         if ( cb->currentIndex() == 0 )
@@ -140,18 +169,18 @@ XChromatogramsForm::getContents( adcontrols::TofChromatogramsMethod& m ) const
 }
 
 void
-XChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
+XChromatogramsForm::setContents( const adcontrols::XChromatogramsMethod& m )
 {
     QSignalBlocker block( this );
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) ) {
-        // QSignalBlocker block( spin );
         size_t n = m.numberOfTriggers() == 0 ? 1 : m.numberOfTriggers();
         spin->setValue( int( n ) );
     }
+
     if ( auto cbx = findChild< QCheckBox * >( "cbxRefresh" ) ) {
-        // QSignalBlocker block( cbx );
         cbx->setChecked( m.refreshHistogram() );
     }
+
     if ( auto cb = findChild< QComboBox * >( "algo" ) ) {
 #if __cplusplus >= 201703L
         auto [enable, algo] = m.tic();

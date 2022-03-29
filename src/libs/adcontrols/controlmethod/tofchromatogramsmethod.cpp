@@ -32,6 +32,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/json.hpp>
 #include <string>
 #include <map>
@@ -65,7 +66,7 @@ namespace adcontrols {
         size_t numberOfTriggers_;
         bool refreshHistogram_; // real-time monitoring parameter
         bool enableTIC_;
-        xic::eIntensityAlgorishm algo_;
+        xic::eIntensityAlgorithm algo_;
         std::vector< TofChromatogramMethod > vec_;
 
     private:
@@ -171,14 +172,14 @@ TofChromatogramsMethod::setRefreshHistogram( bool refresh )
     impl_->refreshHistogram_ = refresh;
 }
 
-std::tuple< bool, xic::eIntensityAlgorishm >
+std::tuple< bool, xic::eIntensityAlgorithm >
 TofChromatogramsMethod::tic() const
 {
     return { impl_->enableTIC_, impl_->algo_ };
 }
 
 void
-TofChromatogramsMethod::setTIC( std::tuple< bool, xic::eIntensityAlgorishm >&& t )
+TofChromatogramsMethod::setTIC( std::tuple< bool, xic::eIntensityAlgorithm >&& t )
 {
     std::tie( impl_->enableTIC_, impl_->algo_ ) = std::move( t );
 }
@@ -215,6 +216,7 @@ TofChromatogramsMethod::clsid()
 {
     static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
     static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "adcontrols::TofChromatogramsMethod" );
+    // myclsid = "{83284e49-6520-5b8d-becd-6fadc0e6c6be}"
     return myclsid;
 }
 
@@ -248,7 +250,7 @@ namespace adcontrols {
                 extract( obj, t.impl_->enableTIC_,        "enableTIC" );
                 int algo;
                 extract( obj, algo,             "algoTIC" );
-                t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
+                t.impl_->algo_ = xic::eIntensityAlgorithm( algo );
                 extract( obj, t.impl_->vec_,              "vec" );
             } catch ( std::exception& ex ) {
                 BOOST_THROW_EXCEPTION(std::runtime_error("adportable/json/extract<TOFChromatogramsmethod> exception"));

@@ -49,6 +49,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -917,9 +918,22 @@ document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
                 auto file = files.back();
                 try {
                     file.fetch( m );
+#if 0
+                    ADDEBUG() << "---------- file fetched ----------";
+                    for ( const auto& item: m ) {
+                        if ( item.clsid() == adcontrols::XChromatogramsMethod::clsid() ) {
+                            adcontrols::XChromatogramsMethod t;
+                            if ( item.get( item, t ) ) {
+                                for ( const adcontrols::xic::xic_method& m: t.xics() )
+                                    ADDEBUG() << boost::json::value_from( m );
+                            }
+                        }
+                    }
+                    ADDEBUG() << "<---------- file fetched ----------";
+#endif
                 } catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "acquire -- Open default process method"
-                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                    QMessageBox::information( 0, "accutofacquire -- Open process method"
+                                              , (boost::format( "Failed to open process method file: %1% by reason of %2% @ %3% #%4%" )
                                                  % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
                     return false;
                 }
@@ -950,22 +964,6 @@ document::save( const QString& filename, const adcontrols::ControlMethod::Method
         return false;
     }
     adfile.commit();
-
-#if 0 // adcontrols can't archive into xml format
-    QFileInfo xmlfile( filename + ".xml" );
-    if ( xmlfile.exists() )
-        QFile::remove( xmlfile.absoluteFilePath() );
-
-    std::wstringstream o;
-    try {
-        adcontrols::ControlMethod::xml_archive( o, m );
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << boost::diagnostic_information( ex );
-    }
-    pugi::xml_document doc;
-    doc.load( o );
-    doc.save_file( xmlfile.absoluteFilePath().toStdString().c_str() );
-#endif
 
     return true;
 }

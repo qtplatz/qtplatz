@@ -25,10 +25,11 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
+#include <adcontrols/constants_fwd.hpp>
 #include <QWidget>
 #include <memory>
 
-namespace adcontrols { class TofChromatogramsMethod; }
+namespace adcontrols { class XChromatogramsMethod; }
 
 namespace adwidgets {
 
@@ -41,8 +42,8 @@ namespace adwidgets {
         ~XChromatogramsForm();
 
         void OnInitialUpdate();
-        void getContents( adcontrols::TofChromatogramsMethod& ) const;
-        void setContents( const adcontrols::TofChromatogramsMethod& );
+        void getContents( adcontrols::XChromatogramsMethod& ) const;
+        void setContents( const adcontrols::XChromatogramsMethod& );
 
         void setDigitizerMode( bool );
         void setCalibrationFilename( QString&& stem, QString&& filename );
@@ -55,6 +56,7 @@ namespace adwidgets {
 
     signals:
         void valueChanged();
+        void polarityToggled( adcontrols::ion_polarity );
 
     public slots:
 

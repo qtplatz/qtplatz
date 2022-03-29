@@ -32,7 +32,7 @@
 class QMenu;
 class QStandardItemModel;
 
-namespace adcontrols { class TofChromatogramsMethod; class MassSpectrometer; }
+namespace adcontrols { class TofChromatogramsMethod; class XChromatogramsMethod; class MassSpectrometer; }
 
 namespace adwidgets {
 
@@ -56,9 +56,11 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         //
-        adcontrols::TofChromatogramsMethod method() const;
-        bool getContents( adcontrols::TofChromatogramsMethod& ) const;
-        bool setContents( const adcontrols::TofChromatogramsMethod& );
+        bool getContents( adcontrols::XChromatogramsMethod& ) const;
+
+        adcontrols::XChromatogramsMethod getValue() const;
+        bool setValue( const adcontrols::XChromatogramsMethod& );
+        bool setValue( const adcontrols::TofChromatogramsMethod& );
         //
         void setDigitizerMode( bool ); // true for soft accumulate, false for hard averaged
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
@@ -75,6 +77,7 @@ namespace adwidgets {
     public slots:
 
     private slots:
+        void handleValueChanged();
 
     };
 

@@ -32,7 +32,7 @@ namespace adcontrols {
     enum ion_polarity: unsigned int;
 
     namespace xic {
-        enum eIntensityAlgorishm : unsigned int;
+        enum eIntensityAlgorithm : unsigned int;
     }
 
     namespace plot {

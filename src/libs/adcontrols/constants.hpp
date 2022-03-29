@@ -57,7 +57,7 @@ namespace adcontrols {
     enum ion_polarity: unsigned int { polarity_positive, polarity_negative };
 
     namespace xic {
-        enum eIntensityAlgorishm : unsigned int {
+        enum eIntensityAlgorithm : unsigned int {
             ePeakAreaOnProfile
             , ePeakHeightOnProfile
             , eCounting

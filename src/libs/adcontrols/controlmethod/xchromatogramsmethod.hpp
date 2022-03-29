@@ -26,6 +26,7 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include "constants_fwd.hpp"
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
 #include <string>
@@ -39,19 +40,15 @@ namespace boost {
 
 namespace adcontrols {
 
-    namespace constants {
-        enum ion_polarity : unsigned int;
-    }
-
     namespace xic {
-        enum eIntensityAlgorishm : uint32_t;
+        enum eIntensityAlgorithm : uint32_t;
 
         struct ADCONTROLSSHARED_EXPORT xic_method {
             std::tuple< bool, std::string, std::string, std::string > mol_; // enable, synonym, formula, smiles
             std::tuple< std::string, std::string >  adduct_; // pos, neg
             std::pair< double, double >  mass_window_;
             std::pair< double, double >  time_window_;
-            eIntensityAlgorishm algo_;
+            eIntensityAlgorithm algo_;
             int protocol_;
 
             xic_method();
@@ -60,12 +57,14 @@ namespace adcontrols {
             bool enable() const                     { return std::get< 0 >( mol_ ); }
             const std::string& synonym() const      { return std::get< 1 >( mol_ ); }
             const std::string& formula() const      { return std::get< 2 >( mol_ ); }
+            const std::string& smiles() const       { return std::get< 3 >( mol_ ); }
 
-            void enable( bool enable )              { std::get< 0 >( mol_ ) = enable; }
+            void enable( bool t )                   { std::get< 0 >( mol_ ) = t; }
             void synonym( const std::string& t )    { std::get< 1 >( mol_ ) = t; }
-            void formula( std::string& t )          { std::get< 2 >( mol_ ) = t; }
-            template< constants::ion_polarity pol > const std::string& adduct()              { return std::get< pol >( adduct_ ); }
-            template< constants::ion_polarity pol > void adduct( const std::string& adduct ) { std::get< pol >( adduct_ ) = adduct; }
+            void formula( const std::string& t )    { std::get< 2 >( mol_ ) = t; }
+            void smiles( const std::string& t )     { std::get< 3 >( mol_ ) = t; }
+            template< ion_polarity pol > const std::string& adduct() const        { return std::get< pol >( adduct_ ); }
+            template< ion_polarity pol > void adduct( const std::string& adduct ) { std::get< pol >( adduct_ ) = adduct; }
             double mass() const                     { return std::get< 0 >( mass_window_ ); }
             double mass_window() const              { return std::get< 1 >( mass_window_ ); }
             void mass( double t )                   { std::get< 0 >( mass_window_ ) = t; }
@@ -74,8 +73,8 @@ namespace adcontrols {
             double time_window() const              { return std::get< 1 >( time_window_ ); }
             void time( double t )                   { std::get< 0 >( time_window_ ) = t; }
             void time_window( double t )            { std::get< 1 >( time_window_ ) = t; }
-            eIntensityAlgorishm algo() const        { return algo_; }
-            void algo( eIntensityAlgorishm t )      { algo_ = t; }
+            eIntensityAlgorithm algo() const        { return algo_; }
+            void algo( eIntensityAlgorithm t )      { algo_ = t; }
             int protocol() const                    { return protocol_; }
             void protocol( int t )                  {  protocol_ = t; }
         };
@@ -87,17 +86,15 @@ namespace adcontrols {
         XChromatogramsMethod();
         XChromatogramsMethod( const XChromatogramsMethod& );
 
-        static const char * modelClass() { return "TofChromatograms"; }
-        static const char * itemLabel()  { return "Chromatograms.1"; }
+        static const char * modelClass() { return "XChromatograms"; }
+        static const char * itemLabel()  { return "XChromatograms.1"; }
         static const boost::uuids::uuid& clsid();
 
         size_t size() const;
         void clear();
 
-        XChromatogramsMethod& operator << ( xic::xic_method&& );
-
-        constants::ion_polarity polarity() const;
-        void setPolarity( constants::ion_polarity );
+        ion_polarity polarity() const;
+        void setPolarity( ion_polarity );
 
         size_t numberOfTriggers() const;
         void setNumberOfTriggers( size_t );
@@ -105,8 +102,11 @@ namespace adcontrols {
         bool refreshHistogram() const;
         void setRefreshHistogram( bool );
 
-        std::tuple< bool, xic::eIntensityAlgorishm > tic() const;
-        void setTIC( std::tuple< bool, xic::eIntensityAlgorishm >&& );
+        std::tuple< bool, xic::eIntensityAlgorithm > tic() const;
+        void setTIC( std::tuple< bool, xic::eIntensityAlgorithm >&& );
+
+        const std::vector< xic::xic_method >& xics() const;
+        std::vector< xic::xic_method >& xics();
 
         static bool archive( std::ostream&, const XChromatogramsMethod& );
         static bool restore( std::istream&, XChromatogramsMethod& );
@@ -122,12 +122,14 @@ namespace adcontrols {
         friend ADCONTROLSSHARED_EXPORT X tag_invoke( boost::json::value_to_tag< X >&, const boost::json::value& jv );
     };
 
-    // xic::xic_method
-    ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const xic::xic_method& );
+    namespace xic {
+        // xic_method
+        ADCONTROLSSHARED_EXPORT
+        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const xic::xic_method& );
 
-    ADCONTROLSSHARED_EXPORT
-    xic::xic_method tag_invoke( boost::json::value_to_tag< xic::xic_method >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT
+        xic::xic_method tag_invoke( boost::json::value_to_tag< xic::xic_method >&, const boost::json::value& jv );
+    }
 
     // XChromatogramsmethod
     ADCONTROLSSHARED_EXPORT

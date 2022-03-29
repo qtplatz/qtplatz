@@ -26,6 +26,7 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include "constants_fwd.hpp"
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
 #include <string>
@@ -38,10 +39,6 @@ namespace boost {
 }
 
 namespace adcontrols {
-
-    namespace xic {
-        enum eIntensityAlgorishm : unsigned int;
-    }
 
     class TofChromatogramMethod;
 
@@ -74,8 +71,8 @@ namespace adcontrols {
 
         bool refreshHistogram() const;
         void setRefreshHistogram( bool );
-        std::tuple< bool, xic::eIntensityAlgorishm > tic() const;
-        void setTIC( std::tuple< bool, xic::eIntensityAlgorishm >&& );
+        std::tuple< bool, xic::eIntensityAlgorithm > tic() const;
+        void setTIC( std::tuple< bool, xic::eIntensityAlgorithm >&& );
 
         static bool archive( std::ostream&, const TofChromatogramsMethod& );
         static bool restore( std::istream&, TofChromatogramsMethod& );

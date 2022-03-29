@@ -82,6 +82,7 @@
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -1034,6 +1035,9 @@ MainWindow::getControlMethod() const
             widget->getContents( a );
         }
     }
+    // for ( const auto& item: *ptr ) {
+    //     ADDEBUG() << item.clsid() << "\t" << item.modelname();
+    // }
     return ptr;
 }
 
@@ -1240,10 +1244,9 @@ MainWindow::handleControlMethodSaveAs()
             dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
         try {
             QString name = QFileDialog::getSaveFileName( this, tr( "Save Control Method" )
-                                                        , dstfile
-                                                        , tr( "Control Method Files(*.ctrl)" ) );
+                                                         , dstfile
+                                                         , tr( "Control Method Files(*.ctrl)" ) );
             if ( !name.isEmpty() ) {
-
                 // save method on UI
                 if ( auto cm = getControlMethod() ) {
                     if ( document::save( name, *cm ) )
@@ -1294,6 +1297,9 @@ MainWindow::handleSelCalibFile()
             qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( Constants::GRP_MSCALIB_FILES, Constants::KEY_FILES, result[0] );
             setCalibFileName()( this, file, "background-color:yellow;" );
             if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
+                w->setMassSpectrometer( sp );
+            }
+            if ( auto w = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
                 w->setMassSpectrometer( sp );
             }
         } else {

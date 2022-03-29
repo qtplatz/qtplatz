@@ -67,7 +67,7 @@ namespace adcontrols {
         double massWindow_;
         double time_;
         double timeWindow_;
-        xic::eIntensityAlgorishm algo_;
+        xic::eIntensityAlgorithm algo_;
         int32_t protocol_;  // 0, 1...
         int32_t id_;        // trace id := color index
         bool enable_;
@@ -196,14 +196,14 @@ TofChromatogramMethod::setTimeWindow( double seconds )
     impl_->timeWindow_ = seconds;
 }
 
-xic::eIntensityAlgorishm
+xic::eIntensityAlgorithm
 TofChromatogramMethod::intensityAlgorithm() const
 {
     return impl_->algo_;
 }
 
 void
-TofChromatogramMethod::setIntensityAlgorithm( xic::eIntensityAlgorishm algo )
+TofChromatogramMethod::setIntensityAlgorithm( xic::eIntensityAlgorithm algo )
 {
     impl_->algo_ = algo;
 }
@@ -277,7 +277,7 @@ namespace adcontrols {
                     extract( obj, t.impl_->time_ ,       "time" );
                     int algo;
                     extract( obj, algo,                  "algo" );
-                    t.impl_->algo_ = xic::eIntensityAlgorishm( algo );
+                    t.impl_->algo_ = xic::eIntensityAlgorithm( algo );
                     extract( obj, t.impl_->enable_,      "enable" );
                 }
             }

@@ -83,7 +83,7 @@ TableView::handleCopyToClipboard()
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    qSort( indices );
+    std::sort( indices.begin(), indices.end() );
     if ( indices.size() < 1 )
         return;
 
@@ -126,9 +126,10 @@ TableView::handleDeleteSelection()
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    qSort( indices );
-    if ( indices.size() < 1 )
+    std::sort( indices.begin(), indices.end() );
+    if ( indices.size() < 1 ) {
         return;
+    }
 
 	std::set< int > rows;
     for( int i = 0; i < indices.size(); ++i ) {

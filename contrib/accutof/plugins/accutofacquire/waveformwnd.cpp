@@ -669,10 +669,9 @@ void
 WaveformWnd::handleMolecules( const QString & json )
 {
     if ( auto mols = MoleculesWidget::json_to_moltable( json.toStdString() ) ) {
-        for ( auto& mol: mols->data() ) {
-            ADDEBUG() << "mol.formula: " << mol.formula() << ", " << mol.mass();
-        }
-
+        // for ( auto& mol: mols->data() ) {
+        //     ADDEBUG() << "mol.formula: " << mol.formula() << ", " << mol.mass();
+        // }
         while ( tof_markers_.size() < mols->data().size() ) {
             tof_markers_.emplace_back( std::make_unique< QwtPlotMarker >() );
             auto& marker = tof_markers_.back();

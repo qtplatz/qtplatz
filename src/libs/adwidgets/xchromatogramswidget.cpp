@@ -31,6 +31,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <QBoxLayout>
@@ -45,6 +46,7 @@
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <ratio>
 #include <cmath>
 
@@ -84,6 +86,12 @@ XChromatogramsWidget::XChromatogramsWidget(QWidget *parent) : QWidget(parent)
             splitter->setOrientation ( Qt::Horizontal );
             layout->addWidget( splitter );
         }
+        auto form = findChild< XChromatogramsForm * >();
+        auto table = findChild< XChromatogramsTable * >();
+        connect( form, &XChromatogramsForm::polarityToggled, table, &XChromatogramsTable::handlePolarity );
+        connect( table, &XChromatogramsTable::valueChanged, this, &XChromatogramsWidget::handleValueChanged );
+        connect( table, &XChromatogramsTable::editorValueChanged, this
+                 , [&]( const QModelIndex index, double value ){ emit editorValueChanged( index, value ); });
     }
 }
 
@@ -104,7 +112,7 @@ XChromatogramsWidget::OnInitialUpdate()
     if ( auto table = findChild< XChromatogramsTable * >() )
         table->onInitialUpdate();
 
-    setContents( adcontrols::TofChromatogramsMethod() );
+    setContents( adcontrols::XChromatogramsMethod{} );
 }
 
 void
@@ -120,67 +128,79 @@ XChromatogramsWidget::OnFinalClose()
 bool
 XChromatogramsWidget::getContents( boost::any& a ) const
 {
-#if 0
-    adcontrols::TofChromatogramsMethod m;
-    getContents( m );
-
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
+
         auto ptr = boost::any_cast< std::shared_ptr< adcontrols::ControlMethod::Method > >( a );
-        ptr->append( m );
+        ptr->append( getValue() );
+        return true;
     }
-#endif
     return false;
 }
 
 bool
 XChromatogramsWidget::setContents( boost::any&& a )
 {
-    ADDEBUG() << "------ setContents via any ------";
-    auto pi = adcontrols::ControlMethod::any_cast<>()( a, adcontrols::TofChromatogramsMethod::clsid() );
-    if ( pi ) {
-        adcontrols::TofChromatogramsMethod m;
+    if ( auto pi = adcontrols::ControlMethod::any_cast<>()( a, adcontrols::XChromatogramsMethod::clsid() ) ) {
+        adcontrols::XChromatogramsMethod m;
         if ( pi->get( *pi, m ) ) {
-            setContents( m );
+            setValue( m );
             return true;
         }
+    } else {
+        ADDEBUG() << __FUNCTION__ << " --------- XChromatogramsMethod NOT found -----------";
     }
     return false;
 }
 
-adcontrols::TofChromatogramsMethod
-XChromatogramsWidget::method() const
+adcontrols::XChromatogramsMethod
+XChromatogramsWidget::getValue() const
 {
-    adcontrols::TofChromatogramsMethod m;
-    getContents( m );
+    adcontrols::XChromatogramsMethod m;
+    if ( auto form = findChild< XChromatogramsForm * >() )
+        form->getContents( m );
+    if ( auto table = findChild< XChromatogramsTable * >() )
+        table->getContents( m );
     return m;
 }
 
-
 bool
-XChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) const
+XChromatogramsWidget::setValue( const adcontrols::TofChromatogramsMethod& m )
 {
-    m.clear();
+    adcontrols::XChromatogramsMethod t;
+    t.setNumberOfTriggers( m.numberOfTriggers() );
+    t.setRefreshHistogram( m.refreshHistogram() );
+    t.setTIC( m.tic() );
+    if ( t.xics().size() < m.size() )
+        t.xics().resize( m.size() );
+    size_t row(0);
+    for ( const auto& item: m ) {
+        adcontrols::xic::xic_method x;
+        x.enable( item.enable() );
+        x.formula( item.formula() );
+        x.mass( item.mass() );
+        x.mass_window( item.massWindow() );
+        x.time( item.time() );
+        x.time_window( item.timeWindow() );
+        x.algo( item.intensityAlgorithm() );
+        x.protocol( item.protocol() );
 
-    if ( auto form = findChild< XChromatogramsForm *>() )
-        form->getContents( m );
-
-    return true;
+        // ADDEBUG() << boost::json::value_from( x );
+        t.xics()[row++] = std::move( x );
+    }
+    // return setValue( t );
+    return false;
 }
 
 bool
-XChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m )
+XChromatogramsWidget::setValue( const adcontrols::XChromatogramsMethod& m )
 {
-    ADDEBUG() << "------ setContents ------" << boost::json::value_from( m );
-
     QSignalBlocker block( this );
-
     if ( auto form = findChild< XChromatogramsForm *>() )
         form->setContents( m );
     if ( auto table = findChild< XChromatogramsTable * >() )
         table->setValue( m );
 
     return true;
-
 }
 
 void
@@ -200,6 +220,7 @@ void
 XChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
 {
     impl_->spectrometer_ = sp;
+
     ADDEBUG() << sp->calibrationFilename();
 
     boost::filesystem::path path( sp->calibrationFilename() );
@@ -207,4 +228,14 @@ XChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::Ma
         form->setCalibrationFilename( QString::fromStdString( path.stem().string() )
                                       , QString::fromStdString( sp->calibrationFilename() ) );
     }
+    if ( auto table = findChild< XChromatogramsTable * >() ) {
+        table->setMassSpectrometer( sp );
+    }
+}
+
+void
+XChromatogramsWidget::handleValueChanged()
+{
+    auto jv = boost::json::value_from( getValue() );
+    emit valueChanged( QString::fromStdString( boost::json::serialize( jv ) ) );
 }

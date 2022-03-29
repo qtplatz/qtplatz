@@ -25,11 +25,16 @@
 #pragma once
 
 #include "moltable.hpp"
+#include <adcontrols/constants_fwd.hpp>
 
 class QStandardItemModel;
 class QMenu;
 
-namespace adcontrols { class TofChromatogramsMethod; }
+namespace adcontrols {
+    class XChromatogramsMethod;
+    namespace xic { class xic_method; }
+    class MassSpectrometer;
+}
 
 namespace adwidgets {
 
@@ -40,14 +45,25 @@ namespace adwidgets {
         ~XChromatogramsTable();
 
         void onInitialUpdate();
-        void setValue( const adcontrols::TofChromatogramsMethod& );
-        adcontrols::TofChromatogramsMethod getValue();
+        void setValue( const adcontrols::XChromatogramsMethod& );
+        void getContents( adcontrols::XChromatogramsMethod& );
 
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp );
     private:
+        void setValue( int row, const adcontrols::xic::xic_method&, adcontrols::ion_polarity );
 
     signals:
+        void valueChanged();
+        void editorValueChanged( const QModelIndex&, double );
+
+    public slots:
+        void handlePolarity( adcontrols::ion_polarity );
+        void handleDataChanged( const QModelIndex&, const QModelIndex& );
 
     private slots:
+        void handleContextMenu( const QPoint& pt );
+        void handleSetAdducts();
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;

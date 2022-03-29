@@ -45,8 +45,8 @@ namespace adcontrols {
 
         xic_method::xic_method() : mol_{}
                                  , adduct_{}
-                                 , mass_window_{}
-                                 , time_window_{}
+                                 , mass_window_{ 0, 0.100 }   // 100 mDa
+                                 , time_window_{ 0, 5.0e-9 }  // 5.0 ns
                                  , algo_{ ePeakAreaOnProfile }
                                  , protocol_{0}
         {
@@ -79,19 +79,27 @@ namespace adcontrols {
     ///////////////
     class XChromatogramsMethod::impl {
     public:
-        impl() : numberOfTriggers_( 100 )
-               , refreshHistogram_( true ) {
+        impl() : polarity_( adcontrols::polarity_positive )
+               , numberOfTriggers_( 100 )
+               , refreshHistogram_( true )
+               , enableTIC_{ true }
+               , algo_{}
+               , xics_(8) {
         }
 
-        impl( const impl& t ) : numberOfTriggers_( t.numberOfTriggers_ )
-                              , refreshHistogram_( t.refreshHistogram_ ){
+        impl( const impl& t ) : polarity_( t.polarity_ )
+                              , numberOfTriggers_( t.numberOfTriggers_ )
+                              , refreshHistogram_( t.refreshHistogram_ )
+                              , enableTIC_( t.enableTIC_ )
+                              , algo_( t.algo_ )
+                              , xics_( t.xics_ ) {
         }
 
-        constants::ion_polarity polarity_;
+        ion_polarity polarity_;
         size_t numberOfTriggers_;
         bool refreshHistogram_; // real-time monitoring parameter
         bool enableTIC_;
-        xic::eIntensityAlgorishm algo_;
+        xic::eIntensityAlgorithm algo_;
         std::vector< xic::xic_method > xics_;
 
     private:
@@ -137,14 +145,14 @@ XChromatogramsMethod::clear()
     impl_->xics_.clear();
 }
 
-constants::ion_polarity
+ion_polarity
 XChromatogramsMethod::polarity() const
 {
     return impl_->polarity_;
 }
 
 void
-XChromatogramsMethod::setPolarity( constants::ion_polarity t )
+XChromatogramsMethod::setPolarity( ion_polarity t )
 {
     impl_->polarity_ = t;
 }
@@ -173,16 +181,28 @@ XChromatogramsMethod::setRefreshHistogram( bool refresh )
     impl_->refreshHistogram_ = refresh;
 }
 
-std::tuple< bool, xic::eIntensityAlgorishm >
+std::tuple< bool, xic::eIntensityAlgorithm >
 XChromatogramsMethod::tic() const
 {
     return { impl_->enableTIC_, impl_->algo_ };
 }
 
 void
-XChromatogramsMethod::setTIC( std::tuple< bool, xic::eIntensityAlgorishm >&& t )
+XChromatogramsMethod::setTIC( std::tuple< bool, xic::eIntensityAlgorithm >&& t )
 {
     std::tie( impl_->enableTIC_, impl_->algo_ ) = std::move( t );
+}
+
+const std::vector< xic::xic_method >&
+XChromatogramsMethod::xics() const
+{
+    return impl_->xics_;
+}
+
+std::vector< xic::xic_method >&
+XChromatogramsMethod::xics()
+{
+    return impl_->xics_;
 }
 
 bool
@@ -215,8 +235,7 @@ XChromatogramsMethod::xml_restore( std::wistream& is, XChromatogramsMethod& t )
 const boost::uuids::uuid&
 XChromatogramsMethod::clsid()
 {
-    static const boost::uuids::uuid baseid = boost::uuids::string_generator()( "{6A4E59EB-0E9D-49B5-8812-3D6FC5084638}" );
-    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "adcontrols::XChromatogramsMethod" );
+    static const boost::uuids::uuid myclsid = boost::uuids::string_generator()( "{6A4E59EB-0E9D-49B5-8812-3D6FC5084638}" );
     return myclsid;
 }
 
