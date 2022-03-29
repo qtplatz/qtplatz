@@ -29,9 +29,10 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <u5303a/digitizer.hpp>
-#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/constants.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -58,15 +59,12 @@ using namespace u5303a;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , spw_( new adplot::SpectrumWidget )
-                                             , hpw_( new adplot::SpectrumWidget )
                                              , tpw_( new adplot::ChromatogramWidget )
+                                             , hpw_( new adplot::SpectrumWidget )
                                              , tickCount_( 0 )
 {
     for ( auto& tp: tp_ )
         tp = std::make_shared< adcontrols::Trace >();
-
-    // for ( auto& marker : peak_marker_ )
-    //     marker = std::make_unique< adplot::PeakMarker >();
 
     init();
     connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
@@ -336,7 +334,7 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
                 for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
                     auto& marker = histogram_window_markers_[ i ][ idx ];
                     marker->setXValue( scale_to_micro( lower ), scale_to_micro( upper ) );
-                    marker->visible( true );
+                    marker->setVisible( true );
                 }
             }
         }

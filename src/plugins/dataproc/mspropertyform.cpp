@@ -204,8 +204,8 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     for ( size_t i = 0; i < ms.getDescriptions().size(); ++i ) {
         auto desc = ms.getDescriptions()[ i ];
         o << "<tr>"
-          << "<td>" << utf::to_utf8( desc.key() ) << "</td>"
-          << "<td>" << utf::to_utf8( desc.text() ) << "</td>"
+          << "<td>" << desc.key<char>() << "</td>"
+          << "<td>" << desc.text<char>() << "</td>"
           << "</tr>";
     }
     o << "</table>";
