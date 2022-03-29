@@ -162,7 +162,7 @@ void PluginView::updateList()
         collectionItem->setIcon(0, iconForState(state));
         collectionItem->setData(C_LOAD, Qt::CheckStateRole, QVariant(groupState));
         collectionItem->setToolTip(C_LOAD, tr("Load on Startup"));
-        collectionItem->setData(0, Qt::UserRole, qVariantFromValue(collection));
+        collectionItem->setData(0, Qt::UserRole, QVariant::fromValue(collection));
     }
 
     QList<PluginSpec *> plugins = defaultCollection ? defaultCollection->plugins() : QList<PluginSpec *>();
@@ -183,7 +183,7 @@ void PluginView::updateList()
         defaultCollectionItem->setIcon(0, iconForState(state));
         defaultCollectionItem->setData(C_LOAD, Qt::CheckStateRole, QVariant(groupState));
         defaultCollectionItem->setToolTip(C_LOAD, tr("Load on Startup"));
-        defaultCollectionItem->setData(0, Qt::UserRole, qVariantFromValue(defaultCollection));
+        defaultCollectionItem->setData(0, Qt::UserRole, QVariant::fromValue(defaultCollection));
     }
 
     updatePluginDependencies();
@@ -222,7 +222,7 @@ int PluginView::parsePluginSpecs(QTreeWidgetItem *parentItem, Qt::CheckState &gr
             icon = m_notLoadedIcon;
 
         pluginItem->setIcon(0, icon);
-        pluginItem->setData(0, Qt::UserRole, qVariantFromValue(spec));
+        pluginItem->setData(0, Qt::UserRole, QVariant::fromValue(spec));
 
         Qt::CheckState state = Qt::Unchecked;
         if (spec->isEnabledInSettings()) {

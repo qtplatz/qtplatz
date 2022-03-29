@@ -24,6 +24,7 @@
 #include "isotopecluster.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/molecule.hpp>
 #include <adcontrols/element.hpp>
 #include <adcontrols/isotopes.hpp>
 #include <adportable/debug.hpp>
@@ -32,14 +33,17 @@
 using namespace py_module;
 
 IsotopeCluster::IsotopeCluster( const std::string& formula ) : formula_( formula )
-                                                             , resolvingPower_( 10000 )
                                                              , charge_( 1 )
+                                                             , resolvingPower_( 10000 )
 {
-    int charge;
-    std::vector< adcontrols::mol::element > comp;
-    if ( adcontrols::ChemicalFormula::getComposition( comp, formula_, charge ) ) {
-        charge_ = charge;
+    if ( auto mol = adcontrols::ChemicalFormula::toMolecule( formula ) ) {
+        charge_ = mol.charge();
     }
+    // int charge;
+    // std::vector< adcontrols::mol::element > comp;
+    // if ( adcontrols::ChemicalFormula::getComposition( comp, formula_, charge ) ) {
+    //     charge_ = charge;
+    // }
 }
 
 IsotopeCluster::IsotopeCluster( const IsotopeCluster& t ) : formula_( t.formula_ )
