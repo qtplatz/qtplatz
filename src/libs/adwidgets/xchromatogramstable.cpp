@@ -132,7 +132,10 @@ namespace {
 
     class delegate : public QStyledItemDelegate {
         adcontrols::ChemicalFormula cf_;
+        XChromatogramsTable * table_;
     public:
+        delegate( XChromatogramsTable * table ) : table_( table ) {}
+
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             QStyleOptionViewItem opt(option);
             initStyleOption( &opt, index );
@@ -166,6 +169,14 @@ namespace {
                 cbx->addItems( { "Area", "Height", "Counts" } );
                 cbx->setCurrentIndex( index.data().toInt() );
                 return cbx;
+            } else if (( index.column() == c_mass ) || ( index.column() == c_masswindow )) {
+                auto spin = new QDoubleSpinBox( parent );
+                spin->setDecimals( 3 ); // mDa
+                spin->setSingleStep( 0.001 );
+                spin->setRange( 0.001, 4000 ); // 1000s
+                connect( spin, qOverload< double >(&QDoubleSpinBox::valueChanged)
+                         , [index,this](double value){ emit table_->editorValueChanged( index, value ); });
+                return spin;
             } else if ( index.column() == c_time ) {
                 auto spin = new TimeSpinBox<std::micro>( parent );
                 spin->setDecimals( 9 );  // ns resolution; QAbstractSpinBox rounds up value by specified decimals here.
@@ -202,14 +213,13 @@ XChromatogramsTable::XChromatogramsTable(QWidget *parent) : TableView(parent)
     impl_->model_->setRowCount( 8 );
 
     setModel( impl_->model_ );
-    setItemDelegate( new delegate );
+    setItemDelegate( new delegate( this ) );
 
     setHorizontalHeader( new HtmlHeaderView );
     setSortingEnabled( false );
     // setAcceptDrops( true );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
-    connect( this, &QTableView::customContextMenuRequested, this, &XChromatogramsTable::handleContextMenu );
 
     // //setColumnHidden( c_smiles, true );
 }
@@ -236,6 +246,7 @@ XChromatogramsTable::onInitialUpdate()
     for ( int i = 0; i < 8; ++i )
         setValue( i, adcontrols::xic::xic_method{}, impl_->current_polarity_ );
 
+    connect( this, &QTableView::customContextMenuRequested, this, &XChromatogramsTable::handleContextMenu );
     connect( model, &QStandardItemModel::dataChanged, this, &XChromatogramsTable::handleDataChanged );
 }
 
