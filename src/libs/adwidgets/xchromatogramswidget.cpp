@@ -210,6 +210,5 @@ void
 XChromatogramsWidget::handleValueChanged()
 {
     auto jv = boost::json::value_from( getValue() );
-    ADDEBUG() << "##### " << __FUNCTION__;
     emit valueChanged( QString::fromStdString( boost::json::serialize( jv ) ) );
 }

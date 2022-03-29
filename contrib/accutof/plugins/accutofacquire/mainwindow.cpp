@@ -1384,6 +1384,7 @@ MainWindow::handleXChromatogramsMethod( const QString& json )
     auto jv = boost::json::parse( json.toStdString(), ec );
     if ( !ec ) {
         auto xm = boost::json::value_to< adcontrols::XChromatogramsMethod >( jv );
+        document::instance()->setMethod( std::make_shared< adcontrols::XChromatogramsMethod >(xm) );
         if ( auto wnd = findChild< WaveformWnd * >() ) {
             wnd->setMethod( xm );
         }

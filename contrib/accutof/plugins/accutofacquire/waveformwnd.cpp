@@ -553,10 +553,13 @@ WaveformWnd::setMethod( const adcontrols::XChromatogramsMethod& m )
 
     hpw_->setData( nullptr, 1, QwtPlot::yRight ); // clear co-added pkd
 
+    ADDEBUG() << "############# set XIC method ##############";
     for ( size_t i = 0; i < m.size() && i < closeups_.size(); ++i ) {
 
         const auto& xm = m.xics().at( i );
         auto& closeup = closeups_.at( i );
+
+        ADDEBUG() << "\t## " << i << ", enable=" << xm.enable();
 
         closeup.enable = xm.enable();
         closeup.formula = QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( xm.formula() ) );
@@ -645,8 +648,6 @@ void
 WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-
-    // ADDEBUG() << "setAxis(" << idView << ", " << axis << ")";
 
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 
