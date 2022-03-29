@@ -192,7 +192,7 @@ MainWindow::createDockWidgets()
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
 #endif
-                    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >() ) {
+                    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
                 }
@@ -215,7 +215,7 @@ MainWindow::createDockWidgets()
             connect( widget, &MoleculesWidget::valueChanged, wnd, &WaveformWnd::handleMolecules );
         }
     }
-#if ! XCHROMATOGRAMSMETHOD
+#if TOFCHROMATOGRAMSMETHOD
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
@@ -231,7 +231,8 @@ MainWindow::createDockWidgets()
             });
         }
     }
-#else
+#endif
+//----------
     if ( auto widget = qtwrapper::make_widget< adwidgets::XChromatogramsWidget >( "XICs" ) ) {
         createDockWidget( widget, tr( "XICs" ), "XICs" );
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
@@ -243,7 +244,7 @@ MainWindow::createDockWidgets()
             connect( widget, &adwidgets::XChromatogramsWidget::valueChanged, this, &MainWindow::handleXChromatogramsMethod );
         }
     }
-#endif
+//<---------
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
         createDockWidget( widget, "Threshold", "ThresholdMethod" );
         connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
@@ -421,7 +422,7 @@ MainWindow::OnInitialUpdate()
 
 #if XCHROMATOGRAMSMETHOD
     // update axis, closeup views
-    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >() ) {
+    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
         //int mode = int( document::instance()->method()->mode() );
         //widget->setDigitizerMode( mode == 0 );
         auto m = widget->getValue();

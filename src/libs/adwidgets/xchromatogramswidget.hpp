@@ -60,7 +60,6 @@ namespace adwidgets {
 
         adcontrols::XChromatogramsMethod getValue() const;
         bool setValue( const adcontrols::XChromatogramsMethod& );
-        bool setValue( const adcontrols::TofChromatogramsMethod& );
         //
         void setDigitizerMode( bool ); // true for soft accumulate, false for hard averaged
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );

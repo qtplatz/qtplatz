@@ -164,34 +164,6 @@ XChromatogramsWidget::getValue() const
 }
 
 bool
-XChromatogramsWidget::setValue( const adcontrols::TofChromatogramsMethod& m )
-{
-    adcontrols::XChromatogramsMethod t;
-    t.setNumberOfTriggers( m.numberOfTriggers() );
-    t.setRefreshHistogram( m.refreshHistogram() );
-    t.setTIC( m.tic() );
-    if ( t.xics().size() < m.size() )
-        t.xics().resize( m.size() );
-    size_t row(0);
-    for ( const auto& item: m ) {
-        adcontrols::xic::xic_method x;
-        x.enable( item.enable() );
-        x.formula( item.formula() );
-        x.mass( item.mass() );
-        x.mass_window( item.massWindow() );
-        x.time( item.time() );
-        x.time_window( item.timeWindow() );
-        x.algo( item.intensityAlgorithm() );
-        x.protocol( item.protocol() );
-
-        // ADDEBUG() << boost::json::value_from( x );
-        t.xics()[row++] = std::move( x );
-    }
-    // return setValue( t );
-    return false;
-}
-
-bool
 XChromatogramsWidget::setValue( const adcontrols::XChromatogramsMethod& m )
 {
     QSignalBlocker block( this );
