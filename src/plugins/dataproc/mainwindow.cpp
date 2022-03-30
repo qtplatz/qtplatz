@@ -807,8 +807,8 @@ MainWindow::setSimpleDockWidgetArrangement()
         widget->setFloating( false );
         removeDockWidget( widget );
     }
-
     size_t npos = 0;
+#if 0
     for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
@@ -816,7 +816,15 @@ MainWindow::setSimpleDockWidgetArrangement()
             tabifyDockWidget( widgets[1], widget );
     }
 	widgets[1]->raise();
-
+#else
+    for ( auto widget: widgets ) {
+        addDockWidget( Qt::BottomDockWidgetArea, widget );
+        widget->show();
+        if ( npos++ >= 1 )
+            tabifyDockWidget( widgets[0], widget );
+    }
+	widgets[1]->raise();
+#endif
     update();
 }
 
@@ -860,8 +868,8 @@ MainWindow::createDockWidgets()
     };
 
     std::vector< widget > widgets = {
-        { tr( "Centroid" ),        "CentroidMethod",     [] (){ return new adwidgets::CentroidForm; } } // should be first
-        , { tr( "Centroid(2)" ),    "Centroid2",         [] (){ return new adwidgets::CentroidWidget; } }
+        {  tr( "Centroid" ),        "CentroidMethod",    [] (){ return new adwidgets::CentroidForm; } } // should be first
+        // , { tr( "Centroid(2)" ),    "Centroid2",         [] (){ return new adwidgets::CentroidWidget; } }
         , { tr( "MS Peaks" ),       "MSPeakTable",       [] (){ return new dataproc::MSPeakTable; } }
         , { tr( "MS Simulator" ),   "MSSimulatorMethod", [] (){ return new adwidgets::MSSimulatorWidget; } }
         , { tr( "Targeting" ),      "TargetingMethod",   [] (){ return new adwidgets::TargetingWidget; } }
