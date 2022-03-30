@@ -868,8 +868,8 @@ MainWindow::createDockWidgets()
     };
 
     std::vector< widget > widgets = {
-        {  tr( "Centroid" ),        "CentroidMethod",    [] (){ return new adwidgets::CentroidForm; } } // should be first
-        // , { tr( "Centroid(2)" ),    "Centroid2",         [] (){ return new adwidgets::CentroidWidget; } }
+        // {  tr( "Centroid" ),        "CentroidMethod",    [] (){ return new adwidgets::CentroidForm; } } // should be first
+        { tr( "Centroid" ),         "CentroidMethod",    [] (){ return new adwidgets::CentroidWidget; } }
         , { tr( "MS Peaks" ),       "MSPeakTable",       [] (){ return new dataproc::MSPeakTable; } }
         , { tr( "MS Simulator" ),   "MSSimulatorMethod", [] (){ return new adwidgets::MSSimulatorWidget; } }
         , { tr( "Targeting" ),      "TargetingMethod",   [] (){ return new adwidgets::TargetingWidget; } }
