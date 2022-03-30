@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,12 +28,19 @@ class QWidget;
 
 namespace adwidgets {
 
-    template<class _Ty, class... _Types >
+    template<typename _Ty, typename... _Types >
     inline _Ty * create_widget( const char * ident, _Types&&... _Args )
     {
         auto w = new _Ty( std::forward<_Types>( _Args )... );
         if ( ident && *ident )
             w->setObjectName( ident );
+        return w;
+    }
+
+    template<typename _Ty, typename _P, typename... _Types >
+    inline _Ty * add_widget( _P * p, _Ty * w, _Types&&... _Args )
+    {
+        p->addWidget( w, std::forward<_Types>( _Args )... );
         return w;
     }
 

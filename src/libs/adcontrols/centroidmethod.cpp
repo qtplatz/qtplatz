@@ -81,11 +81,11 @@ bool
 CentroidMethod::operator == ( const CentroidMethod & rhs ) const
 {
 	return	peakWidthMethod() == rhs.peakWidthMethod() &&
-        adportable::compare<double>::approximatelyEqual( rsTofInDa_, rhs.rsTofInDa() ) &&
-        adportable::compare<double>::approximatelyEqual( rsTofAtMz_, rhs.rsTofAtMz() ) &&
-        adportable::compare<double>::approximatelyEqual( rsPropoInPpm_, rhs.rsPropoInPpm() ) &&
-        adportable::compare<double>::approximatelyEqual( rsConstInDa_, rhs.rsConstInDa() ) &&
-        adportable::compare<double>::approximatelyEqual( baselineWidth_, rhs.baselineWidth() ) &&
+        adportable::compare<double>::approximatelyEqual( rsTofInDa_, rhs.rsTofInDa_ ) &&
+        adportable::compare<double>::approximatelyEqual( rsTofAtMz_, rhs.rsTofAtMz_ ) &&
+        adportable::compare<double>::approximatelyEqual( rsPropoInPpm_, rhs.rsPropoInPpm_ ) &&
+        adportable::compare<double>::approximatelyEqual( rsConstInDa_, rhs.rsConstInDa_ ) &&
+        adportable::compare<double>::approximatelyEqual( baselineWidth_, rhs.baselineWidth_ ) &&
         centroidAreaIntensity() == rhs.centroidAreaIntensity() &&
         peakWidthMethod() == rhs.peakWidthMethod() &&
         adportable::compare<double>::approximatelyEqual( peakCentroidFraction_, rhs.peakCentroidFraction() ) &&
@@ -106,6 +106,41 @@ CentroidMethod::baselineWidth() const
 {
 	return baselineWidth_;
 }
+
+std::tuple< double, double >
+CentroidMethod::peak_width( ePeakWidthMethod e ) const
+{
+    switch ( e ) {
+    case CentroidMethod::ePeakWidthTOF:
+        return { rsTofInDa_, rsTofAtMz_ };
+    case CentroidMethod::ePeakWidthProportional:
+        return { rsPropoInPpm_, 0 };
+    case CentroidMethod::ePeakWidthConstant:
+        return { rsConstInDa_, 0 };
+    }
+    return {};
+}
+
+void
+CentroidMethod::set_peak_width( const std::tuple< double, double >& t, ePeakWidthMethod m )
+{
+    if ( m == CentroidMethod::ePeakWidthTOF ) {
+        std::tie( rsTofInDa_, rsTofAtMz_ ) = std::move( t );
+    } else {
+        set_peak_width( std::get< 0 >(t), m );
+    }
+}
+
+void
+CentroidMethod::set_peak_width( double t, ePeakWidthMethod m )
+{
+    if ( m == ePeakWidthProportional ) {
+        rsPropoInPpm_ = t;
+    } else if ( m == ePeakWidthConstant ) {
+        rsConstInDa_ = t;
+    }
+}
+
 
 double
 CentroidMethod::rsConstInDa() const
@@ -261,4 +296,28 @@ void
 CentroidMethod::setRsInSeconds( double value )
 {
     rsInSeconds_ = value;
+}
+
+std::pair< bool, double >
+CentroidMethod::peak_process_on_time() const
+{
+    return { processOnTimeAxis_, rsInSeconds_ };
+}
+
+void
+CentroidMethod::set_peak_process_on_time( std::pair< bool, double >&& t )
+{
+    std::tie( processOnTimeAxis_, rsInSeconds_ ) = std::move( t );
+}
+
+std::pair< CentroidMethod::eNoiseFilterMethod, double >
+CentroidMethod::noise_filter() const
+{
+    return { noiseFilterMethod_, cutoffFreqHz_ };
+}
+
+void
+CentroidMethod::set_noise_filter( std::pair< eNoiseFilterMethod, double >&& t )
+{
+    std::tie( noiseFilterMethod_, cutoffFreqHz_ ) = std::move( t );
 }

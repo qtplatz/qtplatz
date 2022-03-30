@@ -24,6 +24,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "constants_fwd.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
@@ -55,31 +56,34 @@ namespace adcontrols {
             double mass_;
             double abundance_;
             std::string formula_;
-            std::string adducts_;
+            std::tuple<std::string, std::string>  adducts_;
             std::string synonym_;
             std::string smiles_;
             std::wstring description_;
             boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
             boost::optional< double > tR_; // data source for mass chromatogram generation
             boost::optional< boost::uuids::uuid > molid_; // used in quan
+            ion_polarity polarity_;
         public:
-            bool& enable() { return enable_; }
-            uint32_t& flags() { return flags_; }
-            double& mass() { return mass_; }
-            double& abundance() { return abundance_; }
-            std::string& formula() { return formula_; }
-            std::string& adducts() { return adducts_; }
-            std::string& synonym() { return synonym_; }
-            std::string& smiles() { return smiles_; }
-            std::wstring& description() { return description_; }
-            bool enable() const { return enable_; }
-            uint32_t flags() const { return flags_; }
-            double mass() const { return mass_; }
-            double abundance() const { return abundance_; }
+            bool& enable()                     { return enable_; }
+            uint32_t& flags()                  { return flags_; }
+            double& mass()                     { return mass_; }
+            double& abundance()                { return abundance_; }
+            std::string& formula()             { return formula_; }
+            std::string& adducts();
+            template< ion_polarity pol > std::string& adducts() { return std::get< pol >( adducts_ ); };
+            template< ion_polarity pol > const std::string& adducts() const { return std::get< pol >( adducts_ ); };
+            std::string& synonym()             { return synonym_; }
+            std::string& smiles()              { return smiles_; }
+            std::wstring& description()        { return description_; }
+            bool enable() const                { return enable_; }
+            uint32_t flags() const             { return flags_; }
+            double mass() const                { return mass_; }
+            double abundance() const           { return abundance_; }
             const std::string& formula() const { return formula_; }
-            const std::string& adducts() const { return adducts_; }
+            const std::string& adducts() const;
             const std::string& synonym() const { return synonym_; }
-            const std::string& smiles() const { return smiles_; }
+            const std::string& smiles() const  { return smiles_; }
             const std::wstring& description() const { return description_; }
 
             bool isMSRef() const;
@@ -95,43 +99,9 @@ namespace adcontrols {
 
             boost::optional< boost::uuids::uuid > molid() const;
             void setMolid( boost::optional< boost::uuids::uuid >&& );
-            /*
-            template< typename T > void setProperty( const std::string& key, const T& value ) {
-                auto it = std::find_if( properties_.begin(),  properties_.end(), [&]( auto& t ){ return t.first == key; } );
-                if ( it != properties_.end() )
-                    properties_.erase( it );
-                properties_.emplace_back( key, value );
-            }
 
-            template< typename T > boost::optional< T > property( const std::string& key ) const {
-                auto it = std::find_if( properties_.begin(), properties_.end(), [&]( auto& t ){ return t.first == key; } );
-                if ( it != properties_.end() ) {
-                    if ( auto t = boost::get< const T >( &(it->second) ) )
-                        return *t;
-                }
-                return boost::none;
-            }
-            */
-
-            // std::vector< std::pair< std::string, custom_type > >& properties() { return properties_; }
-            // const std::vector< std::pair< std::string, custom_type > >& properties() const  { return properties_; }
-
-            value_type() : enable_( true ), flags_( 0 ), mass_( 0 ), abundance_( 1.0 ), protocol_( boost::none ), tR_( boost::none ) {
-            }
-
-            value_type( const value_type& t ) : enable_( t.enable_ )
-                                              , flags_( t.flags_ )
-                                              , mass_( t.mass_ )
-                                              , abundance_( t.abundance_ )
-                                              , formula_( t.formula_ )
-                                              , adducts_( t.adducts_ )
-                                              , synonym_( t.synonym_ )
-                                              , smiles_( t.smiles_ )
-                                              , description_( t.description_ )
-                                              , protocol_( t.protocol_ )
-                                              , tR_( t.tR_ ) {
-                // , properties_( t.properties_ ) {
-            }
+            value_type();
+            value_type( const value_type& t );
         };
 
         ~moltable();
@@ -177,4 +147,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 3 )
+BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 4 )

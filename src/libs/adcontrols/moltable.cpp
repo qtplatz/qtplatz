@@ -24,6 +24,7 @@
 
 #include "moltable.hpp"
 #include "serializer.hpp"
+#include "constants.hpp"
 #include <adportable/float.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
@@ -59,13 +60,15 @@ namespace boost {
                 ar & BOOST_SERIALIZATION_NVP( p.mass_ );
                 ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
                 ar & BOOST_SERIALIZATION_NVP( p.formula_ );
-                ar & BOOST_SERIALIZATION_NVP( p.adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( std::get< 0 >( p.adducts_ ) );
+                ar & BOOST_SERIALIZATION_NVP( std::get< 1 >( p.adducts_ ) );
                 ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
                 ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
                 ar & BOOST_SERIALIZATION_NVP( p.description_ );
                 ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
                 ar & BOOST_SERIALIZATION_NVP( p.tR_ );
                 ar & BOOST_SERIALIZATION_NVP( p.molid_ );
+                ar & BOOST_SERIALIZATION_NVP( p.polarity_ );
             } else {
                 std::vector < std::pair< std::string, custom_type > > properties;
                 ar & BOOST_SERIALIZATION_NVP( p.enable_ );
@@ -73,7 +76,7 @@ namespace boost {
                 ar & BOOST_SERIALIZATION_NVP( p.mass_ );
                 ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
                 ar & BOOST_SERIALIZATION_NVP( p.formula_ );
-                ar & BOOST_SERIALIZATION_NVP( p.adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( std::get< 0 >( p.adducts_ ) );
                 ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
                 ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
                 ar & BOOST_SERIALIZATION_NVP( p.description_ );
@@ -148,6 +151,29 @@ BOOST_CLASS_VERSION( adcontrols::moltable::impl, 4 )
 
 using namespace adcontrols;
 
+moltable::value_type::value_type()
+    : enable_( true ), flags_( 0 ), mass_( 0 ), abundance_( 1.0 )
+    , protocol_( boost::none ), tR_( boost::none )
+    , polarity_( polarity_positive )
+{
+}
+
+moltable::value_type::value_type( const value_type& t )
+    : enable_( t.enable_ )
+    , flags_( t.flags_ )
+    , mass_( t.mass_ )
+    , abundance_( t.abundance_ )
+    , formula_( t.formula_ )
+    , adducts_( t.adducts_ )
+    , synonym_( t.synonym_ )
+    , smiles_( t.smiles_ )
+    , description_( t.description_ )
+    , protocol_( t.protocol_ )
+    , tR_( t.tR_ )
+    , polarity_( t.polarity_ )
+{
+}
+
 bool
 moltable::value_type::operator == ( const value_type& t ) const
 {
@@ -162,6 +188,22 @@ moltable::value_type::operator == ( const value_type& t ) const
         formula_ == t.formula_ &&
         adducts_ == t.adducts_ &&
         protocol_ == t.protocol_;
+}
+
+std::string&
+moltable::value_type::adducts()
+{
+    return polarity_ == polarity_positive
+        ? std::get< polarity_positive >( adducts_ )
+        : std::get< polarity_negative >( adducts_ );
+}
+
+const std::string&
+moltable::value_type::adducts() const
+{
+    return polarity_ == polarity_positive
+        ? std::get< polarity_positive >( adducts_ )
+        : std::get< polarity_negative >( adducts_ );
 }
 
 bool
@@ -297,15 +339,16 @@ namespace adcontrols {
     void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const moltable::value_type& t )
     {
         jv = boost::json::object{
-            { "enable",        t.enable_ }
-            , { "flags",       t.flags_ }
-            , { "mass",        t.mass_ }
-            , { "abundance",   t.abundance_ }
-            , { "formula",     t.formula_ }
-            , { "adducts",     t.adducts_ }
-            , { "synonym",     t.synonym_ }
-            , { "smiles",      t.smiles_ }
-            , { "description", t.description_ }
+            { "enable",        t.enable_     }
+            , { "flags",       t.flags_      }
+            , { "mass",        t.mass_       }
+            , { "abundance",   t.abundance_  }
+            , { "formula",     t.formula_    }
+            , { "adducts",     t.adducts_    }
+            , { "synonym",     t.synonym_    }
+            , { "smiles",      t.smiles_     }
+            , { "description", t.description_}
+            , { "polarity",    static_cast< unsigned int >( t.polarity_ ) }
         };
         auto obj = jv.as_object();
         if ( t.protocol_ ) { obj[ "protocol" ]   = *t.protocol_; }
@@ -319,15 +362,27 @@ namespace adcontrols {
         if ( jv.is_object() ) {
             using namespace adportable::json;
             auto obj = jv.as_object();
-            extract( obj, t.enable_,      "enable" );
-            extract( obj, t.flags_,       "flags" );
-            extract( obj, t.mass_,        "mass" );
-            extract( obj, t.abundance_,   "abundance" );
-            extract( obj, t.formula_,     "formula" );
-            extract( obj, t.adducts_,     "adducts" );
-            extract( obj, t.synonym_,     "synonym" );
-            extract( obj, t.smiles_,      "smiles" );
+            extract( obj, t.enable_,      "enable"      );
+            extract( obj, t.flags_,       "flags"       );
+            extract( obj, t.mass_,        "mass"        );
+            if ( auto adducts = obj.if_contains( "adducts" ) ) {
+                if ( adducts->is_array() ) { // v4 data
+                    t.adducts_ = boost::json::value_to< decltype( t.adducts_ ) >( *adducts );
+                } else {
+                    std::get< 0 >( t.adducts_ ) = boost::json::value_to< std::string >( *adducts );
+                }
+            }
+            extract( obj, t.abundance_,   "abundance"   );
+            extract( obj, t.formula_,     "formula"     );
+            extract( obj, t.adducts_,     "adducts"     ); // check if array then v4 else v3 data
+            extract( obj, t.synonym_,     "synonym"     );
+            extract( obj, t.smiles_,      "smiles"      );
             extract( obj, t.description_, "description" );
+
+            if ( auto polarity = obj.if_contains( "polarity" ) ) { // v4 added
+                extract( obj, reinterpret_cast< unsigned int& >( t.polarity_ ), "polarity" );
+            }
+            //
             if ( auto protocol = obj.if_contains( "protocol" ) ) {
                 t.protocol_ = boost::json::value_to< int32_t >( *protocol );
             }

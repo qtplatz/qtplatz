@@ -74,6 +74,7 @@
 #include <adprot/peptides.hpp>
 #include <adutils/adfile.hpp>
 #include <adwidgets/centroidform.hpp>
+#include <adwidgets/centroidwidget.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <adwidgets/peptidewidget.hpp>
 #include <adwidgets/targetingwidget.hpp>
@@ -859,14 +860,15 @@ MainWindow::createDockWidgets()
     };
 
     std::vector< widget > widgets = {
-        { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
-        , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new dataproc::MSPeakTable; } }
-        , { tr( "MS Simulator" ), "MSSimulatorMethod", [] () { return new adwidgets::MSSimulatorWidget; } }
-        , { tr( "Targeting" ), "TargetingMethod", [] () { return new adwidgets::TargetingWidget; } }
-        , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }
-        , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }
-        , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
-        , { tr( "Data property" ), "DataProperty", [] () { return new dataproc::MSPropertyForm; } }
+        { tr( "Centroid" ),        "CentroidMethod",     [] (){ return new adwidgets::CentroidForm; } } // should be first
+        , { tr( "Centroid(2)" ),    "Centroid2",         [] (){ return new adwidgets::CentroidWidget; } }
+        , { tr( "MS Peaks" ),       "MSPeakTable",       [] (){ return new dataproc::MSPeakTable; } }
+        , { tr( "MS Simulator" ),   "MSSimulatorMethod", [] (){ return new adwidgets::MSSimulatorWidget; } }
+        , { tr( "Targeting" ),      "TargetingMethod",   [] (){ return new adwidgets::TargetingWidget; } }
+        , { tr( "MS Chromatogr." ), "MSChromatogrMethod",[] (){ return new adwidgets::MSChromatogramWidget; } }
+        , { tr( "Peak Find" ),      "PeakFindMethod",    [] (){ return new adwidgets::PeakMethodForm; } }
+        , { tr( "MS Calibration" ), "MSCalibrateWidget", [] (){ return new adwidgets::MSCalibrateWidget; } }
+        , { tr( "Data property" ),  "DataProperty",      [] (){ return new dataproc::MSPropertyForm; } }
         // , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
     };
 

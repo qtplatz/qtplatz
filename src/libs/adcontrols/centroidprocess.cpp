@@ -104,13 +104,15 @@ namespace adcontrols {
 
         struct findPeakWidth {
             std::pair<double, double> operator ()( const CentroidMethod& method, double mass ) const {
-                if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
-                    return std::make_pair( method.rsConstInDa(), 0 );
-                } else if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
-                    return std::make_pair( method.rsPropoInPpm() * mass / 1.0e-6, 0 );
-                } else { // if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
-                    return std::make_pair( method.rsTofInDa(), method.rsTofAtMz() );
-                }
+                auto t = method.peak_width( method.peakWidthMethod() );
+                return { std::get< 0 >(t), std::get< 1 >(t) };
+                // if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
+                //     return std::make_pair( method.rsConstInDa(), 0 );
+                // } else if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
+                //     return std::make_pair( method.rsPropoInPpm() * mass / 1.0e-6, 0 );
+                // } else { // if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
+                //     return std::make_pair( method.rsTofInDa(), method.rsTofAtMz() );
+                // }
             }
         };
 
@@ -238,12 +240,13 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     using adportable::array_wrapper;
 
     adportable::spectrum_peakfinder finder;
+    auto value = method_.peak_width( method_.peakWidthMethod() );
     if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
-        finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, method_.rsConstInDa() );
+        finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, std::get< 0 >( value ) );
     } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
-        finder.setPeakWidth( adportable::spectrum_peakfinder::Proportional, method_.rsPropoInPpm() );
+        finder.setPeakWidth( adportable::spectrum_peakfinder::Proportional, std::get< 0 >( value ) );
     } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
-        finder.setPeakWidth( adportable::spectrum_peakfinder::TOF, method_.rsTofInDa(), method_.rsTofAtMz() );
+        finder.setPeakWidth( adportable::spectrum_peakfinder::TOF, std::get< 0 >( value ), std::get< 1 >( value ) );
     }
 
     finder( profile.size(), profile.getMassArray(), profile.getIntensityArray() );
@@ -375,7 +378,8 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     using adportable::array_wrapper;
 
     adportable::spectrum_peakfinder finder;
-    finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, method_.rsInSeconds() );
+    auto rsInSeconds = method_.peak_process_on_time(); // pair< bool, double >
+    finder.setPeakWidth( adportable::spectrum_peakfinder::Constant, rsInSeconds.second ); // to be replaced with peak_process_on_time
 
     std::vector< double > times( profile.size() );
     timeFunctor functor( profile );
@@ -471,20 +475,27 @@ CentroidProcessImpl::findCluster( const MassSpectrum& xhistogram )
         double width_m(0), width_t(0);
         switch ( method_.peakWidthMethod() ) {
         case CentroidMethod::ePeakWidthTOF:
-            width_m = method_.rsTofInDa();
-            width_t = solver.delta_t( width_m, method_.rsTofAtMz() );
+            double mass;
+            std::tie( width_m, mass ) = method_.peak_width( CentroidMethod::ePeakWidthTOF );
+            // width_m = method_.rsTofInDa();
+            width_t = solver.delta_t( width_m, mass ); //method_.rsTofAtMz() );
             break;
         case CentroidMethod::ePeakWidthProportional:
-            width_m = xhistogram.mass( 0 ) * method_.rsPropoInPpm() / 1000000;
-            width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
+            do { auto value = method_.peak_width( CentroidMethod::ePeakWidthProportional );
+                width_m = xhistogram.mass( 0 ) * std::get< 0 >( value ) / 1000000;
+                width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
+            } while(0);
             break;
         case CentroidMethod::ePeakWidthConstant:
-            width_m = method_.rsConstInDa();
+            do {
+            auto value = method_.peak_width( CentroidMethod::ePeakWidthConstant );
+            width_m = std::get< 0 >( value ); //method_.rsConstInDa();
             width_t = solver.delta_t( width_m, xhistogram.mass(0) ); // workaround (due to instMassRange is empty)
+            } while(0);
             break;
         }
-        size_t width_i = size_t( width_t / xhistogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
 #if !defined NDEBUG
+        size_t width_i = size_t( width_t / xhistogram.getMSProperty().samplingInfo().fSampInterval() + 0.5 );
         ADDEBUG() << "width_m: " << (width_m *1000) << "mDa\twidth_t: "
                   << (width_t *1e9) << "ns \twidth_i: " << width_i << "\t@" << method_.rsTofAtMz();
 #endif

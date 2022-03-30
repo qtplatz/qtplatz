@@ -60,11 +60,24 @@ namespace adcontrols {
 		bool operator == ( const CentroidMethod & rhs ) const;
 		bool operator != ( const CentroidMethod & rhs ) const;
 
-		double baselineWidth() const;
-		double rsConstInDa() const;
-		double rsPropoInPpm() const;
+		[[deprecated("no longer used")]] double baselineWidth() const;
+		[[deprecated("no longer used")]] double rsConstInDa() const;
+		[[deprecated("no longer used")]] double rsPropoInPpm() const;
 		double rsTofInDa() const;
 		double rsTofAtMz() const;
+
+        std::tuple< double, double > peak_width( ePeakWidthMethod = ePeakWidthTOF ) const;
+        void set_peak_width( const std::tuple< double, double >&, ePeakWidthMethod = ePeakWidthTOF );
+        void set_peak_width( double, ePeakWidthMethod );
+
+        bool processOnTimeAxis() const;
+        [[deprecated("use peak_process_on_time")]] double rsInSeconds() const;
+        [[deprecated("use set_peak_process_on_time")]] void setRsInSeconds( double );
+        [[deprecated("use set_peak_process_on_time")]] void setProcessOnTimeAxis( bool );
+
+        std::pair< bool, double > peak_process_on_time() const;
+        void set_peak_process_on_time( std::pair< bool, double >&& );
+
 		// double attenuation() const; not in use
 		double peakCentroidFraction() const;
 		ePeakWidthMethod peakWidthMethod() const;
@@ -85,13 +98,11 @@ namespace adcontrols {
         double cutoffFreqHz() const;
         void cutoffFreqHz( double );
 
+        std::pair< eNoiseFilterMethod, double > noise_filter() const;
+        void set_noise_filter( std::pair< eNoiseFilterMethod, double >&& );
+
         eAreaMethod areaMethod() const;
         void areaMethod( eAreaMethod );
-
-        bool processOnTimeAxis() const;
-        void setProcessOnTimeAxis( bool );
-        double rsInSeconds() const;
-        void setRsInSeconds( double );
 
 	private:
 		double baselineWidth_; // depreicated
