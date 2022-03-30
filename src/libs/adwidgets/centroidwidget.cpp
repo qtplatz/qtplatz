@@ -78,7 +78,7 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
                                                 , impl_( std::make_unique< impl >() )
 {
     auto vLayout = create_widget< QVBoxLayout >( "virticalLayout", this );
-    auto hLayout = create_widget< QHBoxLayout >( "horizontalLayout", this );
+    auto hLayout = create_widget< QHBoxLayout >( "horizontalLayout" );
     auto grid = create_widget< QGridLayout >( "gridlayout" );
     vLayout->addLayout( hLayout );
     hLayout->addLayout( grid );

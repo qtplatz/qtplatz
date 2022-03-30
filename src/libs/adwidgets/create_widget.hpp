@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <utility>
+
 class QWidget;
 
 namespace adwidgets {

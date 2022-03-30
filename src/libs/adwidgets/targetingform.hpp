@@ -28,6 +28,8 @@
 #include "adwidgets_global.hpp"
 #include <QWidget>
 
+#define TARGETING_FORM_LOCAL_IMPL 1
+
 namespace Ui {
 class TargetingForm;
 }
@@ -54,7 +56,14 @@ namespace adwidgets {
         void setContents( const adcontrols::MetIdMethod& );
 
     private:
-        ::Ui::TargetingForm *ui;
+        class impl;
+        std::shared_ptr< impl > impl_;
+#if TARGETING_FORM_LOCAL_IMPL
+        impl * ui;
+#else
+        ::Ui::TargetingForm * ui;
+#endif
+
     signals:
         void triggerProcess();
     };
