@@ -25,6 +25,7 @@
 
 #include "centroidmethod.hpp"
 #include <adportable/float.hpp>
+#include <tuple>
 
 using namespace adcontrols;
 
