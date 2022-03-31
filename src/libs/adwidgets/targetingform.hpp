@@ -28,7 +28,7 @@
 #include "adwidgets_global.hpp"
 #include <QWidget>
 
-#define TARGETING_FORM_LOCAL_IMPL 1
+#define TARGETING_FORM_LOCAL_IMPL 0
 
 namespace Ui {
 class TargetingForm;
