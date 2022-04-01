@@ -56,7 +56,8 @@ namespace adcontrols {
     class Trace;
     class SampleRun;
     class threshold_method;
-    class TofChromatogramsMethod;
+    class TofChromatogramsMethod; // deprecated as of 1/Apr/2022
+    class XChromatogramsMethod;
 }
 
 namespace admethods { namespace controlmethod { class ADTraceMethod; } }
@@ -139,8 +140,9 @@ namespace acquire {
         const QJsonDocument& threshold_action() const;
         QByteArray acquire_method() const;
 
-        void set_tof_chromatograms_method( const QByteArray& json, bool commitSettings );
-        QByteArray tof_chromatograms_method() const;
+        void setXChromatogramsMethod( std::shared_ptr< adcontrols::XChromatogramsMethod >&& );
+        std::shared_ptr< const adcontrols::XChromatogramsMethod > xChromatogramsMethod() const;
+
         void set_trace_method( const admethods::controlmethod::ADTraceMethod& );
 
         void commitData(); // call from task

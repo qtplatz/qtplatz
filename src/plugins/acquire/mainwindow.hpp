@@ -100,6 +100,7 @@ namespace acquire {
         void handleControlMethodOpen();
         void handleControlMethodSaveAs();
         void handleModulesFailed( const QStringList& );
+        void handleXChromatogramsMethod( const QString& );
 
 	private:
         QAction * actionConnect_;

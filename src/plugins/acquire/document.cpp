@@ -36,8 +36,9 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+//#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+//#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -251,6 +252,7 @@ namespace acquire {
 
         // display data
         std::array< std::shared_ptr< adcontrols::Trace >, 8 > traces_;
+        std::shared_ptr< adcontrols::XChromatogramsMethod > xChromatogramsMethod_;
 
         impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iDGMODImpl_( std::make_shared< acquire::iDGMODImpl >() )
@@ -283,10 +285,11 @@ namespace acquire {
                , polling_counts_( 0 )
                , avrg_count_( 100 )
                , avrg_refresh_( false )
+               , xChromatogramsMethod_( std::make_shared< adcontrols::XChromatogramsMethod >() )
             {
                 method_ = std::make_shared< adcontrols::threshold_method >();
-                adcontrols::TofChromatogramsMethod tofm;
-                tofm.setNumberOfTriggers( 1000 );
+                // adcontrols::TofChromatogramsMethod tofm;
+                // tofm.setNumberOfTriggers( 1000 );
 
                 for ( size_t i = 0; i < traces_.size(); ++i ) {
                     traces_[ i ] = std::make_shared< adcontrols::Trace >( i, 8192 - 512, 8192 );
@@ -1238,54 +1241,16 @@ document::set_threshold_action( const QByteArray& json )
     emit on_threshold_action_changed( impl_->threshold_action_ );
 }
 
-void
-document::set_tof_chromatograms_method( const QByteArray& json, bool commitSettings )
+std::shared_ptr< const adcontrols::XChromatogramsMethod >
+document::xChromatogramsMethod() const
 {
-    auto doc = QJsonDocument::fromJson( json );
-    auto jtop = doc.object()[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ].toObject();
-
-    impl_->avrg_refresh_ = jtop[ "refreshHistogram" ].toBool();
-    impl_->avrg_count_ = jtop[ "numberOfTriggers" ].toInt();
-
-    task::instance()->setHistogramClearCycleEnabled( impl_->avrg_refresh_ );
-    task::instance()->setHistogramClearCycle( impl_->avrg_count_ );
-
-    auto jlist = jtop[ "list" ].toArray();
-    size_t idx(0);
-    for ( const auto& item: jlist ) {
-        if ( idx < impl_->traces_.size() ) {
-            const auto& obj = item.toObject();
-            auto& trace = impl_->traces_.at( idx );
-            bool enable = obj[ "enable" ].toBool();
-            auto formula = obj[ "formula" ].toString().toStdString();
-            auto legend = adcontrols::ChemicalFormula::formatFormula( formula );
-
-            trace->setEnable( enable ); // id[0] is always true
-            trace->setLegend( legend.empty() ? formula : legend );
-        }
-        ++idx;
-    }
-
-    while ( idx < impl_->traces_.size() )
-        impl_->traces_.at( idx++ )->setEnable(false);
-
-    // check if nothing enabled
-    auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end(), [](const auto& t){ return t->enable(); });
-    if ( it == impl_->traces_.end() ) {
-        impl_->traces_.at( 0 )->setEnable( true );
-    }
-    if ( commitSettings ) {
-        if ( auto settings = impl_->settings_ )
-            settings->setValue( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", doc.toJson( QJsonDocument::Compact ) );
-    }
+    return impl_->xChromatogramsMethod_;
 }
 
-QByteArray
-document::tof_chromatograms_method() const
+void
+document::setXChromatogramsMethod( std::shared_ptr< adcontrols::XChromatogramsMethod >&& p )
 {
-    if ( auto settings = impl_->settings_ )
-        return settings->value( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", QByteArray() ).toByteArray();
-    return QByteArray();
+    impl_->xChromatogramsMethod_ = std::move( p );
 }
 
 void

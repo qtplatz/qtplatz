@@ -23,6 +23,7 @@
 
 #include "chemicalformula.hpp"
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/molecule.hpp>
 #include <adcontrols/element.hpp>
 #include <adcontrols/isotopes.hpp>
 #include <adportable/debug.hpp>
@@ -81,14 +82,11 @@ ChemicalFormula::composition() const
 {
     std::vector< boost::python::tuple > a;
 
-    int charge;
-    std::vector< adcontrols::mol::element > comp;
-    if ( adcontrols::ChemicalFormula::getComposition( comp, formula_, charge ) ) {
-        for ( const auto& c: comp ) {
-            a.emplace_back( boost::python::make_tuple( std::string(c.symbol())
-                                                       , c.count() ) );
+    if ( auto m = adcontrols::ChemicalFormula::toMolecule( formula_ ) ) {
+        for ( const auto& c: m.elements() ) {
+            a.emplace_back( boost::python::make_tuple( std::string(c.symbol()), c.count() ) );
         }
-        const_cast< ChemicalFormula * >(this)->charge_ = charge;
+        charge_ = m.charge();
     }
 
     return a;
@@ -99,41 +97,31 @@ ChemicalFormula::composition_dict() const
 {
     std::vector< boost::python::dict > a;
 
-    int charge;
-    std::vector< adcontrols::mol::element > comp;
-    if ( adcontrols::ChemicalFormula::getComposition( comp, formula_, charge ) ) {
-        for ( const auto& c: comp ) {
+    if ( auto m = adcontrols::ChemicalFormula::toMolecule( formula_ ) ) {
+        for ( const auto& c: m.elements() ) {
             boost::python::dict dict;
-            dict[ "symbol" ] = std::string( c.symbol() );
-            dict[ "name" ] = std::string( c.name() );
+            dict[ "symbol" ]       = std::string( c.symbol() );
+            dict[ "name" ]         = std::string( c.name() );
             dict[ "atomicNumber" ] = c.atomicNumber();
-            dict[ "valence" ] = c.valence();
-            dict[ "count" ] = c.count();
-            dict[ "mass" ] = c.monoIsotopicMass( c );
-
-            // std::vector< boost::python::tuple > isotopes;
-            // for ( const auto& i: c.isotopes() )
-            //     isotopes.emplace_back( boost::python::make_tuple( i.mass, i.abundance ) );
-
-            // dict[ "isotopes" ] = isotopes;
+            dict[ "valence" ]      = c.valence();
+            dict[ "count" ]        = c.count();
+            dict[ "mass" ]         = c.monoIsotopicMass( c );
 
             a.emplace_back( dict );
         }
-        const_cast< ChemicalFormula * >(this)->charge_ = charge;
+        charge_ = m.charge();
     }
+
     return a;
 }
 
 int
 ChemicalFormula::charge() const
 {
-    if ( charge_ )
-        return *charge_;
-
-    int charge(0);
-    std::vector< adcontrols::mol::element > comp;
-    adcontrols::ChemicalFormula::getComposition( comp, formula_, charge );
-    const_cast< ChemicalFormula * >(this)->charge_ = charge;
-
-    return charge;
+    if ( !charge_ ) {
+        if ( auto m = adcontrols::ChemicalFormula::toMolecule( formula_ ) ) {
+            charge_ = m.charge();
+        }
+    }
+    return charge_ ? *charge_ : -1;
 }

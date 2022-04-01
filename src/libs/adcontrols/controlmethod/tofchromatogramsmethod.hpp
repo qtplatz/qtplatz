@@ -40,7 +40,8 @@ namespace boost {
 
 namespace adcontrols {
 
-    class TofChromatogramMethod;
+
+    class [[deprecated("consider switch to XChromatogramsMethod")]] TofChromatogramMethod;
 
     class ADCONTROLSSHARED_EXPORT TofChromatogramsMethod {
     public:

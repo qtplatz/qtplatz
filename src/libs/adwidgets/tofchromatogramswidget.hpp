@@ -38,6 +38,8 @@ namespace adwidgets {
 
     class MolTableView;
 
+    class [[deprecated("Use XChromatogramsWidget instead")]] TofChromatogramsWidget;
+
     class ADWIDGETSSHARED_EXPORT TofChromatogramsWidget : public QWidget
                                                         , public adplugin::LifeCycle {
 

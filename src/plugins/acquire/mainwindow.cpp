@@ -30,7 +30,8 @@
 #include "idgmodimpl.hpp"
 #include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+// #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/samplerun.hpp>
@@ -51,7 +52,7 @@
 #include <adwidgets/dgwidget.hpp>
 #include <adwidgets/outputwidget.hpp>
 #include <adwidgets/samplerunwidget.hpp>
-#include <adwidgets/tofchromatogramswidget.hpp>
+#include <adwidgets/xchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -92,8 +93,9 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <qdebug.h>
-#include <csignal>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/json.hpp>
+#include <csignal>
 
 using namespace acquire;
 
@@ -177,12 +179,12 @@ MainWindow::createDockWidgets()
                    });
     }
 
-    if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "tofChromatograms" ) ) {
+    if ( auto widget = qtwrapper::make_widget< adwidgets::XChromatogramsWidget >( "tofChromatograms" ) ) {
         createDockWidget( widget, "Chromatograms", "Chromatograms" );
-        connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged
-                 , [widget](){
-                     document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
-                 });
+        connect( widget, &adwidgets::XChromatogramsWidget::valueChanged, this, &MainWindow::handleXChromatogramsMethod );
+                 // , [widget](){
+                 //     document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
+                 // });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
@@ -295,10 +297,11 @@ MainWindow::OnInitialUpdate()
         w->setUrl( host, port ); // QString("http://%1:%2").arg( host, port ) );
     }
 
-    if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >( "tofChromatograms" ) ) {
-        QByteArray json = document::instance()->tof_chromatograms_method();
-        if ( !json.isEmpty() )
-            widget->setJson( json );
+    if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >( "tofChromatograms" ) ) {
+        widget->setValue( *document::instance()->xChromatogramsMethod() );
+        // QByteArray json = document::instance()->tof_chromatograms_method();
+        // if ( !json.isEmpty() )
+        //     widget->setJson( json );
     }
 
     if ( auto btn = findChild< QPushButton * >( "btnZERO" ) ) {
@@ -1060,4 +1063,18 @@ MainWindow::getSampleRun() const
         widget->getSampleRun( *sr );
     }
     return sr;
+}
+
+void
+MainWindow::handleXChromatogramsMethod( const QString& json )
+{
+    // , [widget](){
+    //     document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
+    // });
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( json.toStdString(), ec );
+    if ( !ec ) {
+        auto xm = boost::json::value_to< adcontrols::XChromatogramsMethod >( jv );
+        document::instance()->setXChromatogramsMethod( std::make_shared< adcontrols::XChromatogramsMethod >( xm ) );
+    }
 }

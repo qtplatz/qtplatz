@@ -50,6 +50,6 @@ namespace py_module {
 
     private:
         std::string formula_;
-        adportable::optional< int > charge_;
+        mutable adportable::optional< int > charge_;
     };
 }

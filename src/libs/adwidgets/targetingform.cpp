@@ -168,9 +168,15 @@ namespace adwidgets {
             }
 
             ++xy;
-            if ( auto radio = add_widget( gridLayout_2, create_widget< QRadioButton >( "radioPos", tr("Positive ion")) , std::get<0>(xy), std::get<1>(xy)++ ) ) {
-            }
-            if ( auto radio = add_widget( gridLayout_2, create_widget< QRadioButton >( "radioNeg", tr("Negative ion")) , std::get<0>(xy), std::get<1>(xy)++ ) ) {
+            if ( auto groupBox = add_widget( gridLayout_2, create_widget< QGroupBox >( "GroupBox", tr("Polarity" ) ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 )){
+                auto layout = create_widget< QHBoxLayout >( "groupBox_Layout" );
+                layout->setSpacing( 2 );
+                layout->setContentsMargins(4, 0, 4, 0);
+                if ( auto radio = add_widget( layout, create_widget< QRadioButton >( "radioPos", tr("Positive ion") ) ) ) {
+                }
+                if ( auto radio = add_widget( layout, create_widget< QRadioButton >( "radioNeg", tr("Negative ion") ) ) ) {
+                }
+                groupBox->setLayout( layout );
             }
 
             ++xy;
@@ -208,7 +214,7 @@ namespace adwidgets {
 TargetingForm::TargetingForm(QWidget *parent) : QWidget(parent)
 #if TARGETING_FORM_LOCAL_IMPL
                                               , impl_( std::make_unique< impl >() )
-                                              , ui( impl_.get() )
+                                              , ui( impl_ )
 #else
                                               , ui(new Ui::TargetingForm)
 #endif
@@ -235,7 +241,9 @@ TargetingForm::TargetingForm(QWidget *parent) : QWidget(parent)
 
 TargetingForm::~TargetingForm()
 {
+#if ! TARGETING_FORM_LOCAL_IMPL
     delete ui;
+#endif
 }
 
 void
