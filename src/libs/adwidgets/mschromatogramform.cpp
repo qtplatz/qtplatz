@@ -47,27 +47,27 @@ namespace adwidgets {
     namespace Ui {
         class MSChromatogramForm {
         public:
-            QGridLayout *gridLayout_2;
-            QDialogButtonBox *buttonBox;
-            QVBoxLayout *verticalLayout;
-            QGroupBox *groupBox;
-            QGridLayout *gridLayout_3;
-            QGridLayout *gridLayout;
-            QDoubleSpinBox *doubleSpinBox;
-            QLabel *label;
-            QRadioButton *radioButton;
-            QDoubleSpinBox *doubleSpinBox_4;
-            QSpinBox *spinBox;
-            QLabel *label_2;
             QCheckBox *checkBox;
-            QRadioButton *radioButton_2;
-            QLineEdit *lineEdit;
-            QGroupBox *groupBoxAutoTargeting;
-            QGridLayout *gridLayout_5;
-            QGridLayout *gridLayout_4;
-            QLabel *label_3;
+            QDialogButtonBox *buttonBox;
+            QDoubleSpinBox *doubleSpinBox;
             QDoubleSpinBox *doubleSpinBox_2;
+            QDoubleSpinBox *doubleSpinBox_4;
+            //QGridLayout *gridLayout;
+            //QGridLayout *gridLayout_2;
+            //QGridLayout *gridLayout_3;
+            //QGridLayout *gridLayout_4;
+            //QGridLayout *gridLayout_5;
+            QGroupBox *groupBox;
+            QGroupBox *groupBoxAutoTargeting;
+            QLabel *label;
+            QLabel *label_2;
+            QLabel *label_3;
+            QLineEdit *lineEdit;
+            QRadioButton *radioButton;
+            QRadioButton *radioButton_2;
             QSpacerItem *verticalSpacer;
+            QSpinBox *spinBox;
+            // QVBoxLayout *verticalLayout;
 
             void setupUi(QWidget * MSChromatogramForm );
             void retranslateUi(QWidget *MSChromatogramForm );
@@ -150,14 +150,6 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
     ui->spinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInRP ) );
 
     ui->doubleSpinBox_2->setValue( m.peakWidthForChromatogram() );
-    // ui->checkBox_lower->setChecked( m.lower_limit() < 0 ? false : true );
-    // ui->checkBox_upper->setChecked( m.upper_limit() < 0 ? false : true );
-
-    // ui->doubleSpinBox_2->setEnabled( ui->checkBox_lower->isChecked() );
-    // ui->doubleSpinBox_3->setEnabled( ui->checkBox_upper->isChecked() );
-
-    // ui->doubleSpinBox_2->setValue( m.lower_limit() );
-    // ui->doubleSpinBox_3->setValue( m.upper_limit() );
 
     ui->checkBox->setChecked( m.lockmass() );
 
@@ -199,138 +191,85 @@ namespace adwidgets {
         {
             if (form->objectName().isEmpty())
                 form->setObjectName(QString::fromUtf8("Ui_MSChromatogramForm"));
-
-            verticalLayout = create_widget< QVBoxLayout >("verticalLayout");
-            // verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-
-            groupBox = add_widget( verticalLayout, create_widget< QGroupBox >("groupBox", form ) );
-            // verticalLayout->addWidget(groupBox);
-            // groupBox->setObjectName(QString::fromUtf8("groupBox"));
-
-            gridLayout = create_widget< QGridLayout >("gridLayout" );
-            // gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-            gridLayout->setSpacing(0);
-
-            label = add_widget( gridLayout, create_widget< QLabel >("label", groupBox ), 0, 0, 1, 1 );
-            // gridLayout->addWidget(label, 0, 0, 1, 1);
-            // label->setObjectName(QString::fromUtf8("label"));
-
-
             // form->resize(318, 274);
-            gridLayout_2 = create_widget< QGridLayout >("gridLayout_2", form);
-            // gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
-            gridLayout_2->setSpacing(0);
-            gridLayout_2->setContentsMargins(4, 2, 4, 2);
 
-            if (( buttonBox = add_widget( gridLayout_2, create_widget< QDialogButtonBox >("buttonBox", form), 2, 0, 1, 1 ) )) {
-                // gridLayout_2->addWidget(buttonBox, 2, 0, 1, 1);
-                // buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
-                buttonBox->setStandardButtons(QDialogButtonBox::Apply);
+            if ( auto verticalLayout = create_widget< QVBoxLayout >("verticalLayout") ) {
+
+                groupBox = add_widget( verticalLayout, create_widget< QGroupBox >("groupBox", form ) );
+
+                if ( auto gridLayout = create_widget< QGridLayout >( "gridLayout", groupBox ) ) {
+                    gridLayout->setContentsMargins(2, 2, 2, 2);
+                    gridLayout->setSpacing(0);
+
+                    label = add_widget( gridLayout, create_widget< QLabel >("label", groupBox ), 0, 0, 1, 1 );
+
+                    if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox), 2, 1, 1, 1 ) )) {
+                        doubleSpinBox->setDecimals(4);
+                        doubleSpinBox->setMinimum(0.000000000000000);
+                        doubleSpinBox->setMaximum(1.000000000000000);
+                        doubleSpinBox->setSingleStep(0.001000000000000);
+                    }
+
+                    radioButton = add_widget( gridLayout, create_widget< QRadioButton >("radioButton", groupBox), 2, 0, 1, 1);
+                    radioButton->setChecked(true);
+
+                    doubleSpinBox_4 = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox ), 4, 1, 1, 1);
+                    doubleSpinBox_4->setMaximum(1000.000000000000000);
+
+                    spinBox = add_widget( gridLayout, create_widget< QSpinBox >("spinBox", groupBox ), 3, 1, 1, 1);
+                    spinBox->setMinimum(100);
+                    spinBox->setMaximum(10000000);
+                    spinBox->setSingleStep(1000);
+                    spinBox->setValue(3000);
+
+                    label_2 = add_widget( gridLayout, create_widget< QLabel >("label_2", groupBox), 1, 0, 1, 1);
+
+                    checkBox = add_widget( gridLayout, create_widget< QCheckBox >("checkBox", groupBox ), 4, 0, 1, 1);
+
+                    radioButton_2 = add_widget( gridLayout, create_widget< QRadioButton >("radioButton_2", groupBox ), 3, 0, 1, 1);
+                    radioButton_2->setEnabled(true);
+
+                    lineEdit = add_widget( gridLayout, create_widget< QLineEdit >("lineEdit", groupBox), 0, 1, 1, 1);
+                    lineEdit->setReadOnly(false);
+                    lineEdit->setClearButtonEnabled(true);
+                }
+
+
+                if ( auto gridLayout_2 = create_widget< QGridLayout >("gridLayout_2", form) ) {
+
+                    //if (( groupBoxAutoTargeting = add_widget( gridLayout_2, create_widget< QGroupBox >("groupBoxAutoTargeting", form), 1, 0, 1, 1 ) )) {
+                    if (( groupBoxAutoTargeting = add_widget( verticalLayout, create_widget< QGroupBox >("groupBoxAutoTargeting", form ) ) )) {
+                        groupBoxAutoTargeting->setCheckable(true);
+                        groupBoxAutoTargeting->setChecked(false);
+
+                        if ( auto gridLayout_4 = create_widget< QGridLayout >("gridLayout_4", groupBoxAutoTargeting ) ) {
+
+                            label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", groupBoxAutoTargeting), 0, 0, 1, 1);
+
+                            if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
+                                doubleSpinBox_2->setDecimals(3);
+                                doubleSpinBox_2->setMinimum(0.001000000000000);
+                                doubleSpinBox_2->setMaximum(10.000000000000000);
+                                doubleSpinBox_2->setSingleStep(0.100000000000000);
+                                doubleSpinBox_2->setValue(2.000000000000000);
+                            }
+                            // gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
+                            verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+                            gridLayout_4->addItem(verticalSpacer, 1, 0, 1, 1);
+                        }
+                    }
+
+                    gridLayout_2->setSpacing(0);
+                    gridLayout_2->setContentsMargins(4, 2, 4, 2);
+                    gridLayout_2->addLayout( verticalLayout, 0, 0, 1, 1);
+
+                }
+
+                if (( buttonBox = add_widget( verticalLayout, create_widget< QDialogButtonBox >("buttonBox", form ) ) )) {
+                    buttonBox->setStandardButtons(QDialogButtonBox::Apply);
+                }
             }
-
-
-            gridLayout_3 = create_widget< QGridLayout >("gridLayout_3", groupBox );
-            gridLayout_3->setSpacing(2);
-            // gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
-            gridLayout_3->setContentsMargins(2, 2, 2, 2);
-
-
-            if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox), 2, 1, 1, 1 ) )) {
-                // doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox"));
-                // gridLayout->addWidget(doubleSpinBox, 2, 1, 1, 1);
-                doubleSpinBox->setDecimals(4);
-                doubleSpinBox->setMinimum(0.000000000000000);
-                doubleSpinBox->setMaximum(1.000000000000000);
-                doubleSpinBox->setSingleStep(0.001000000000000);
-            }
-
-
-
-            radioButton = add_widget( gridLayout, create_widget< QRadioButton >("radioButton", groupBox), 2, 0, 1, 1);
-            // gridLayout->addWidget(radioButton, 2, 0, 1, 1);
-            // radioButton->setObjectName(QString::fromUtf8("radioButton"));
-            radioButton->setChecked(true);
-
-
-            doubleSpinBox_4 = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox ), 4, 1, 1, 1);
-            // gridLayout->addWidget(doubleSpinBox_4, 4, 1, 1, 1);
-            // doubleSpinBox_4->setObjectName(QString::fromUtf8("doubleSpinBox_4"));
-            doubleSpinBox_4->setMaximum(1000.000000000000000);
-
-
-
-            spinBox = add_widget( gridLayout, create_widget< QSpinBox >("spinBox", groupBox ), 3, 1, 1, 1);
-            // gridLayout->addWidget(spinBox, 3, 1, 1, 1);
-            // spinBox->setObjectName(QString::fromUtf8("spinBox"));
-            spinBox->setMinimum(100);
-            spinBox->setMaximum(10000000);
-            spinBox->setSingleStep(1000);
-            spinBox->setValue(3000);
-
-
-
-            label_2 = add_widget( gridLayout, create_widget< QLabel >("label_2", groupBox), 1, 0, 1, 1);
-            // label_2->setObjectName(QString::fromUtf8("label_2"));
-            // gridLayout->addWidget(label_2, 1, 0, 1, 1);
-
-            checkBox = add_widget( gridLayout, create_widget< QCheckBox >("checkBox", groupBox ), 4, 0, 1, 1);
-            // gridLayout->addWidget(checkBox, 4, 0, 1, 1);
-            // checkBox->setObjectName(QString::fromUtf8("checkBox"));
-
-
-            radioButton_2 = add_widget( gridLayout, create_widget< QRadioButton >("radioButton_2", groupBox ), 3, 0, 1, 1);
-            // gridLayout->addWidget(radioButton_2, 3, 0, 1, 1);
-            // radioButton_2->setObjectName(QString::fromUtf8("radioButton_2"));
-            radioButton_2->setEnabled(true);
-
-
-            lineEdit = add_widget( gridLayout, create_widget< QLineEdit >("lineEdit", groupBox), 0, 1, 1, 1);
-            // gridLayout->addWidget(lineEdit, 0, 1, 1, 1);
-            // lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
-            lineEdit->setReadOnly(false);
-            lineEdit->setClearButtonEnabled(true);
-
-
-            gridLayout_3->addLayout(gridLayout, 0, 0, 1, 1);
-
-            gridLayout_2->addLayout(verticalLayout, 0, 0, 1, 1);
-
-            if (( groupBoxAutoTargeting = add_widget( gridLayout_2, create_widget< QGroupBox >("groupBoxAutoTargeting", form), 1, 0, 1, 1 ) )) {
-                // gridLayout_2->addWidget(groupBoxAutoTargeting, 1, 0, 1, 1);
-                // groupBoxAutoTargeting->setObjectName(QString::fromUtf8("groupBoxAutoTargeting"));
-                groupBoxAutoTargeting->setCheckable(true);
-                groupBoxAutoTargeting->setChecked(false);
-            }
-
-            gridLayout_5 = create_widget< QGridLayout >("gridLayout_5", groupBoxAutoTargeting);
-            // gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
-            gridLayout_5->setContentsMargins(2, 2, 2, 2);
-
-            gridLayout_4 = create_widget< QGridLayout >("gridLayout_4");
-            // gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
-
-            label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", groupBoxAutoTargeting), 0, 0, 1, 1);
-            // label_3->setObjectName(QString::fromUtf8("label_3"));
-            // gridLayout_4->addWidget(label_3, 0, 0, 1, 1);
-
-            if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
-                // doubleSpinBox_2->setObjectName(QString::fromUtf8("doubleSpinBox_2"));
-                // gridLayout_4->addWidget(doubleSpinBox_2, 0, 1, 1, 1);
-                doubleSpinBox_2->setDecimals(3);
-                doubleSpinBox_2->setMinimum(0.001000000000000);
-                doubleSpinBox_2->setMaximum(10.000000000000000);
-                doubleSpinBox_2->setSingleStep(0.100000000000000);
-                doubleSpinBox_2->setValue(2.000000000000000);
-            }
-
-            gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
-
-            verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-            gridLayout_5->addItem(verticalSpacer, 1, 0, 1, 1);
-
             retranslateUi(form);
-
             QMetaObject::connectSlotsByName(form);
         } // setupUi
 
@@ -338,6 +277,7 @@ namespace adwidgets {
         MSChromatogramForm::retranslateUi(QWidget *form)
         {
             form->setWindowTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Form", nullptr));
+
             groupBox->setTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Chromatogram generation", nullptr));
             label->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Data reader", nullptr));
             radioButton->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Dalton", nullptr));
