@@ -103,6 +103,7 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
         spin->setDecimals( 4 );
         connect( spin, qOverload< double >( &QDoubleSpinBox::valueChanged ), this, &CentroidWidget::handlePeakWidthChanged );
     }
+    ++xy;
     if ( auto label = add_widget( grid, create_widget< QLabel >( "label_atMass", tr("at <i>m/z</i>:") ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
         label->setTextFormat(Qt::RichText);
         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
