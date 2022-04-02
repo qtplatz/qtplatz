@@ -63,7 +63,7 @@ namespace adcontrols {
             boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
             boost::optional< double > tR_; // data source for mass chromatogram generation
             boost::optional< boost::uuids::uuid > molid_; // used in quan
-            ion_polarity polarity_;
+            uint32_t resv_;
         public:
             bool& enable()                     { return enable_; }
             uint32_t& flags()                  { return flags_; }
@@ -71,7 +71,7 @@ namespace adcontrols {
             double& abundance()                { return abundance_; }
             std::string& formula()             { return formula_; }
             std::string& adducts();
-            template< ion_polarity pol > std::string& adducts() { return std::get< pol >( adducts_ ); };
+            template< ion_polarity pol > std::string& adducts()             { return std::get< pol >( adducts_ ); };
             template< ion_polarity pol > const std::string& adducts() const { return std::get< pol >( adducts_ ); };
             std::string& synonym()             { return synonym_; }
             std::string& smiles()              { return smiles_; }
@@ -113,6 +113,10 @@ namespace adcontrols {
         const std::vector< value_type >& data() const;
         std::vector< value_type >& data();
 
+        const ion_polarity& polarity() const;
+        ion_polarity& polarity();
+        void setPolarity( ion_polarity );
+
         moltable& operator << ( const value_type& );
         size_t size() const;
         bool empty() const;
@@ -121,7 +125,6 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, moltable& );
 
     private:
-        class delegate;
         class impl;
         impl * impl_;
 

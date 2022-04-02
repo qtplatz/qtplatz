@@ -26,6 +26,7 @@
 #define TARGETINGFORM_HPP
 
 #include "adwidgets_global.hpp"
+#include <adcontrols/constants_fwd.hpp>
 #include <QWidget>
 
 #define TARGETING_FORM_LOCAL_IMPL 1
@@ -66,6 +67,7 @@ namespace adwidgets {
 
     signals:
         void triggerProcess();
+        void polarityToggled( adcontrols::ion_polarity );
     };
 
 }

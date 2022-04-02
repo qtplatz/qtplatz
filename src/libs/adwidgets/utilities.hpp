@@ -33,18 +33,13 @@ namespace adwidgets {
 
     struct accessor {
         const QObject * pThis;
-        accessor( QObject * p ) : pThis( p ) {}
-        accessor( const QObject * p ) : pThis( p ) {}
+        accessor( QObject * p );
+        accessor( const QObject * p );
 
         template<typename T > T find( const QString& name ) {
             return pThis->findChild< T >( name );
         }
     };
 
-    std::tuple< size_t, size_t >& operator ++ (std::tuple< size_t, size_t >& t ) {
-        std::get<0>(t)++;
-        std::get<1>(t) = 0;
-        return t;
-    }
-
+    std::tuple< size_t, size_t >& operator ++ (std::tuple< size_t, size_t >& t );
 }

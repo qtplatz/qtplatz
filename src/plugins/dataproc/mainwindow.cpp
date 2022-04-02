@@ -902,7 +902,7 @@ MainWindow::createDockWidgets()
                 }
             }
 
-            if ( qobject_cast< adwidgets::CentroidForm * >( pWidget ) == nullptr &&
+            if ( qobject_cast< adwidgets::CentroidWidget * >( pWidget ) == nullptr &&
                  qobject_cast< adwidgets::MSSimulatorWidget *>( pWidget ) == nullptr &&
                  qobject_cast< adwidgets::TargetingWidget *>( pWidget ) == nullptr &&
                  qobject_cast< adwidgets::MSChromatogramWidget *>( pWidget ) == nullptr &&
@@ -1686,7 +1686,10 @@ MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
 {
     using namespace adextension;// ::iEditorFactory;
 
-    if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidForm > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
+    // if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidForm > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
+    //     impl << p;
+    // };
+    if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidWidget > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
         impl << p;
     };
     if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::TargetingWidget > >( "Targeting",  iEditorFactory::PROCESS_METHOD ) ) {

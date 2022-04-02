@@ -46,6 +46,8 @@ namespace Ui {
 
 namespace adwidgets {
 
+    class [[deprecated("Use CentroidWidget")]] CentroidForm;
+
     class ADWIDGETSSHARED_EXPORT CentroidForm : public QWidget
                                               , public adplugin::LifeCycle {
         Q_OBJECT

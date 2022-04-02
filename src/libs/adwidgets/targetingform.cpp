@@ -24,36 +24,22 @@
 
 #include "create_widget.hpp"
 #include "targetingform.hpp"
-#include "ui_targetingform.h"
+#include "utilities.hpp"
+// #include "ui_targetingform.h"
 #include "spin_t.hpp"
 #include <adcontrols/constants.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adportable/debug.hpp>
 
-#include <QSpinBox>
-#include <QLabel>
-#include <QDoubleSpinBox>
 #include <QCheckBox>
 #include <QDialogButtonBox>
-
-namespace {
-    struct accessor {
-        const QObject * pThis;
-        accessor( QObject * p ) : pThis( p ) {}
-        accessor( const QObject * p ) : pThis( p ) {}
-
-        template<typename T > T find( const QString& name ) {
-            return pThis->findChild< T >( name );
-        }
-    };
-
-    std::tuple< size_t, size_t >& operator ++ (std::tuple< size_t, size_t >& t ) {
-        std::get<0>(t)++;
-        std::get<1>(t) = 0;
-        return t;
-    }
-}
+#include <QDoubleSpinBox>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QRadioButton>
+#include <QSpinBox>
 
 using namespace adwidgets;
 
@@ -61,46 +47,28 @@ namespace adwidgets {
     class TargetingForm::impl {
     public:
         QGridLayout * gridLayout_2;
-        // QVBoxLayout * verticalLayout;
-        // QGroupBox *   groupBox;
-        // QGridLayout * gridLayout_3;
-        // QSpacerItem * horizontalSpacer;
-        // QGridLayout * gridLayout;
-        // QRadioButton * radioButtonRP;
-        // QRadioButton * radioButtonWidth;
         QLabel * label;
         QCheckBox * cbxLowMass;
         QLabel * label_2;
         QSpinBox * spinBoxChargeMin;
         QCheckBox * cbxHighMass;
         QSpinBox * spinBoxChargeMax;
-        // QDoubleSpinBox * doubleSpinBoxRP;
         QDoubleSpinBox * doubleSpinBoxLowMassLimit;
         QDoubleSpinBox * doubleSpinBoxWidth;
         QDoubleSpinBox * doubleSpinBoxHighMassLimit;
         QCheckBox * checkBox;
-        // QSpacerItem * verticalSpacer;
         QDialogButtonBox * buttonBox;
         impl() : gridLayout_2( 0 )
-                 // , verticalLayout( 0 )   // null 1
-                 // , groupBox( 0 )         // null 2
-                 // , gridLayout_3( 0 )     // null 3
-                 // , horizontalSpacer( 0 ) // null 4
-                 // , gridLayout( 0 )       // null 5
-                 // , radioButtonRP( 0 )    // null 6
-                 // , radioButtonWidth( 0 ) // null 7
                , label( 0 )            // 1
                , cbxLowMass( 0 )       // 2
                , label_2( 0 )          // 3
                , spinBoxChargeMin( 0 ) // 4
                , cbxHighMass( 0 )      // 5
                , spinBoxChargeMax( 0 ) // 6
-                 // , doubleSpinBoxRP( 0 )  // null 1
                , doubleSpinBoxLowMassLimit( 0 ) // null 2
                , doubleSpinBoxWidth( 0 )  // 1
                , doubleSpinBoxHighMassLimit( 0 ) // 2
                , checkBox( 0 )            // 3
-                 // , verticalSpacer( 0 )      // null
                , buttonBox( 0 ) {
         }
 
@@ -118,10 +86,6 @@ namespace adwidgets {
 
             if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "title", tr("Targeting(2)") ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
             }
-            // radioButtonRP = new QRadioButton(groupBox);
-            // radioButtonRP->setObjectName(QString::fromUtf8("radioButtonRP"));
-            // gridLayout->addWidget(radioButtonRP, 0, 0, 1, 1);
-
             ++xy;
             if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "label_width", "Width (mDa)" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
                 label->setTextFormat(Qt::RichText);
@@ -193,20 +157,6 @@ namespace adwidgets {
             if ( auto radio = accessor( form ).find< QRadioButton * >( "radioPos" ) ) {
                 radio->setChecked( true );
             }
-
-            ADDEBUG() <<
-                std::make_tuple( gridLayout_2
-                                 , label
-                                 , cbxLowMass
-                                 , label_2
-                                 , spinBoxChargeMin
-                                 , cbxHighMass
-                                 , spinBoxChargeMax
-                                 , doubleSpinBoxLowMassLimit
-                                 , doubleSpinBoxWidth
-                                 , doubleSpinBoxHighMassLimit
-                                 , checkBox
-                                 , buttonBox );
         }
     };
 }
@@ -237,6 +187,13 @@ TargetingForm::TargetingForm(QWidget *parent) : QWidget(parent)
 	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxHighMassLimit, 1, 5000, 2000 );
 
     connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
+
+    if ( auto pol = accessor( this ).find< QRadioButton * >( "radioPos" ) ) {
+        connect( pol, &QRadioButton::toggled, this, [&]( bool checked ){
+            emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+        });
+    }
+
 }
 
 TargetingForm::~TargetingForm()

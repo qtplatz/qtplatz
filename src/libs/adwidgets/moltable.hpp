@@ -26,7 +26,7 @@
 #define MOLTABLE_HPP
 
 #include "tableview.hpp"
-
+#include <adcontrols/constants_fwd.hpp>
 class QStandardItemModel;
 class QMenu;
 
@@ -70,12 +70,10 @@ namespace adwidgets {
         // QStandardItemModel& model();
 
     private:
-        class delegate;
         class impl;
         impl * impl_;
-        QStandardItemModel * model_;
 
-        void handleValueChanged( const QModelIndex& );
+        void handleDataChanged( const QModelIndex&, const QModelIndex& );
         void handleContextMenu( const QPoint& );
         void enable_all( bool );
         void setData( int row, const QString& formula, const QString& smiles, const QByteArray& svg );
@@ -88,6 +86,9 @@ namespace adwidgets {
     signals:
         void onContextMenu( QMenu&, const QPoint& );
         void onValueChanged();
+
+    public slots:
+        void handlePolarity( adcontrols::ion_polarity );
 
     private slots:
         void handleCopyToClipboard() override;

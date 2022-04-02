@@ -68,7 +68,7 @@ namespace boost {
                 ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
                 ar & BOOST_SERIALIZATION_NVP( p.tR_ );
                 ar & BOOST_SERIALIZATION_NVP( p.molid_ );
-                ar & BOOST_SERIALIZATION_NVP( p.polarity_ );
+                ar & BOOST_SERIALIZATION_NVP( p.resv_ );
             } else {
                 std::vector < std::pair< std::string, custom_type > > properties;
                 ar & BOOST_SERIALIZATION_NVP( p.enable_ );
@@ -101,22 +101,29 @@ namespace adcontrols {
     class moltable::impl {
     public:
         std::vector< value_type > data_;
+        ion_polarity polarity_;
 
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             try {
-                ar & BOOST_SERIALIZATION_NVP( data_ );
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( data_ );
+                    ar & BOOST_SERIALIZATION_NVP( polarity_ );
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( data_ );
+                }
             } catch ( std::exception& ) {
                 BOOST_THROW_EXCEPTION( serializer_error() << info( std::string( typeid(Archive).name() ) ) );
             }
         }
 
-        impl() {
+        impl() : polarity_( adcontrols::polarity_positive ) {
         }
 
-        impl( const impl& t ) : data_( t.data_ ) {
+        impl( const impl& t ) : data_( t.data_ )
+                              , polarity_( t.polarity_ ) {
         }
     };
 
@@ -147,14 +154,14 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::moltable::impl, 4 )
+BOOST_CLASS_VERSION( adcontrols::moltable::impl, 5 )
 
 using namespace adcontrols;
 
 moltable::value_type::value_type()
     : enable_( true ), flags_( 0 ), mass_( 0 ), abundance_( 1.0 )
     , protocol_( boost::none ), tR_( boost::none )
-    , polarity_( polarity_positive )
+    , resv_( 0 )
 {
 }
 
@@ -170,7 +177,7 @@ moltable::value_type::value_type( const value_type& t )
     , description_( t.description_ )
     , protocol_( t.protocol_ )
     , tR_( t.tR_ )
-    , polarity_( t.polarity_ )
+    , resv_( t.resv_ )
 {
 }
 
@@ -193,17 +200,19 @@ moltable::value_type::operator == ( const value_type& t ) const
 std::string&
 moltable::value_type::adducts()
 {
-    return polarity_ == polarity_positive
-        ? std::get< polarity_positive >( adducts_ )
-        : std::get< polarity_negative >( adducts_ );
+    return std::get< polarity_positive >( adducts_ );
+    // return polarity_ == polarity_positive
+    //     ? std::get< polarity_positive >( adducts_ )
+    //     : std::get< polarity_negative >( adducts_ );
 }
 
 const std::string&
 moltable::value_type::adducts() const
 {
-    return polarity_ == polarity_positive
-        ? std::get< polarity_positive >( adducts_ )
-        : std::get< polarity_negative >( adducts_ );
+    return std::get< polarity_positive >( adducts_ );
+    // return polarity_ == polarity_positive
+    //     ? std::get< polarity_positive >( adducts_ )
+    //     : std::get< polarity_negative >( adducts_ );
 }
 
 bool
@@ -301,6 +310,24 @@ moltable::data()
     return impl_->data_;
 }
 
+ion_polarity&
+moltable::polarity()
+{
+    return impl_->polarity_;
+}
+
+const ion_polarity&
+moltable::polarity() const
+{
+    return impl_->polarity_;
+}
+
+void
+moltable::setPolarity( ion_polarity t )
+{
+    impl_->polarity_ = t;
+}
+
 moltable&
 moltable::operator << ( const value_type& v )
 {
@@ -348,7 +375,6 @@ namespace adcontrols {
             , { "synonym",     t.synonym_    }
             , { "smiles",      t.smiles_     }
             , { "description", t.description_}
-            , { "polarity",    static_cast< unsigned int >( t.polarity_ ) }
         };
         auto obj = jv.as_object();
         if ( t.protocol_ ) { obj[ "protocol" ]   = *t.protocol_; }
@@ -379,9 +405,6 @@ namespace adcontrols {
             extract( obj, t.smiles_,      "smiles"      );
             extract( obj, t.description_, "description" );
 
-            if ( auto polarity = obj.if_contains( "polarity" ) ) { // v4 added
-                extract( obj, reinterpret_cast< unsigned int& >( t.polarity_ ), "polarity" );
-            }
             //
             if ( auto protocol = obj.if_contains( "protocol" ) ) {
                 t.protocol_ = boost::json::value_to< int32_t >( *protocol );
@@ -400,7 +423,12 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const moltable& t )
     {
-        jv = boost::json::object{{ "moltable", {{ "data",      t.data() }} }};
+        jv = boost::json::object{{ "moltable"
+                , {
+                    {   "data",      t.data() }
+                    , { "polarity",   static_cast< uint32_t >( t.polarity() ) }
+                }
+            }};
     }
 
     moltable
@@ -412,7 +440,11 @@ namespace adcontrols {
         if ( jv.is_object() ) {
             if ( const auto&  moltable = jv.as_object().if_contains( "moltable" ) ) {
                 if ( moltable->is_object() ) {
-                    extract( moltable->as_object(), t.data(), "data" );
+                    auto& obj = moltable->as_object();
+                    extract( obj, t.data(), "data" );
+                    if ( obj.if_contains( "polarity" ) ) {
+                        extract( obj, reinterpret_cast< uint32_t& >(t.polarity()), "polarity" );
+                    }
                 }
             }
         }

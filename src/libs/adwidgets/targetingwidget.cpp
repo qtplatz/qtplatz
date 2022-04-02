@@ -60,6 +60,8 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
     if ( auto widget = findChild< TargetingAdducts * >() )
         connect( widget, &TargetingAdducts::resetAdducts, this, &TargetingWidget::handleResetAdducts );
 
+    if ( auto table = findChild< MolTable * >() )
+        connect( form_, &TargetingForm::polarityToggled, table, &MolTable::handlePolarity );
     connect( form_, &TargetingForm::triggerProcess, [this] { emit triggerProcess( "TargetingWidget" ); } );
 }
 

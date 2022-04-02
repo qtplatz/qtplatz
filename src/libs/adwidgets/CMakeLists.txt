@@ -119,6 +119,7 @@ set( ${PROJECT_NAME}_SOURCES
   xchromatogramsform.cpp
   xchromatogramstable.cpp
   xchromatogramswidget.cpp
+  utilities.cpp
   ${_sources}
 )
 
@@ -191,6 +192,7 @@ set( ${PROJECT_NAME}_HEADERS
   xchromatogramsform.hpp
   xchromatogramstable.hpp
   xchromatogramswidget.hpp
+  utilities.hpp
   )
 
 if ( WIN32 )
