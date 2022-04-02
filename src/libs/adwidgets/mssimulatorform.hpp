@@ -27,6 +27,7 @@
 
 #include <QWidget>
 #include <memory>
+#include <adcontrols/constants_fwd.hpp>
 
 namespace adcontrols { class MSSimulatorMethod; class MassSpectrometer; class MassSpectrum; }
 
@@ -56,6 +57,7 @@ namespace adwidgets {
         void onValueChanged();
         void onLapChanged( int );
         void triggerProcess();
+        void polarityToggled( adcontrols::ion_polarity );
 
     private:
         Ui::MSSimulatorForm *ui;

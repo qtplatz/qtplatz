@@ -23,10 +23,57 @@
 **************************************************************************/
 
 #include "mschromatogramform.hpp"
-#include "ui_mschromatogramform.h"
+#include "utilities.hpp"
+// #include "ui_mschromatogramform.h"
 #include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adportable/is_type.hpp>
+#include <QtCore/QVariant>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QDoubleSpinBox>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
+
+namespace adwidgets {
+    namespace Ui {
+        class MSChromatogramForm {
+        public:
+            QGridLayout *gridLayout_2;
+            QDialogButtonBox *buttonBox;
+            QVBoxLayout *verticalLayout;
+            QGroupBox *groupBox;
+            QGridLayout *gridLayout_3;
+            QGridLayout *gridLayout;
+            QDoubleSpinBox *doubleSpinBox;
+            QLabel *label;
+            QRadioButton *radioButton;
+            QDoubleSpinBox *doubleSpinBox_4;
+            QSpinBox *spinBox;
+            QLabel *label_2;
+            QCheckBox *checkBox;
+            QRadioButton *radioButton_2;
+            QLineEdit *lineEdit;
+            QGroupBox *groupBoxAutoTargeting;
+            QGridLayout *gridLayout_5;
+            QGridLayout *gridLayout_4;
+            QLabel *label_3;
+            QDoubleSpinBox *doubleSpinBox_2;
+            QSpacerItem *verticalSpacer;
+
+            void setupUi(QWidget * MSChromatogramForm );
+            void retranslateUi(QWidget *MSChromatogramForm );
+        };
+    } // namespace Ui
+}
 
 using namespace adwidgets;
 
@@ -143,3 +190,156 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
 
     m.setPeakWidthForChromatogram( ui->doubleSpinBox_2->value() );
 }
+
+namespace adwidgets {
+    namespace Ui {
+
+        void
+        MSChromatogramForm::setupUi(QWidget *form)
+        {
+            if (form->objectName().isEmpty())
+                form->setObjectName(QString::fromUtf8("form"));
+
+            // form->resize(318, 274);
+            gridLayout_2 = create_widget< QGridLayout >("gridLayout_2", form);
+            gridLayout_2->setSpacing(0);
+            // gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+            gridLayout_2->setContentsMargins(4, 2, 4, 2);
+            buttonBox = create_widget< QDialogButtonBox >("buttonBox", form);
+            // buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
+            buttonBox->setStandardButtons(QDialogButtonBox::Apply);
+
+            gridLayout_2->addWidget(buttonBox, 2, 0, 1, 1);
+
+            verticalLayout = create_widget< QVBoxLayout >("verticalLayout");
+            // verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+            groupBox = create_widget< QGroupBox >("groupBox", form );
+            groupBox->setObjectName(QString::fromUtf8("groupBox"));
+            gridLayout_3 = create_widget< QGridLayout >("gridLayout_3", groupBox );
+            gridLayout_3->setSpacing(2);
+            // gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
+            gridLayout_3->setContentsMargins(2, 2, 2, 2);
+            gridLayout = create_widget< QGridLayout >("gridLayout" );
+            gridLayout->setSpacing(0);
+            // gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+            doubleSpinBox = create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox);
+            // doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox"));
+            doubleSpinBox->setDecimals(4);
+            doubleSpinBox->setMinimum(0.000000000000000);
+            doubleSpinBox->setMaximum(1.000000000000000);
+            doubleSpinBox->setSingleStep(0.001000000000000);
+
+            gridLayout->addWidget(doubleSpinBox, 2, 1, 1, 1);
+
+            label = create_widget< QLabel >("label", groupBox);
+            // label->setObjectName(QString::fromUtf8("label"));
+
+            gridLayout->addWidget(label, 0, 0, 1, 1);
+
+            radioButton = create_widget< QRadioButton >("radioButton", groupBox);
+            // radioButton->setObjectName(QString::fromUtf8("radioButton"));
+            radioButton->setChecked(true);
+
+            gridLayout->addWidget(radioButton, 2, 0, 1, 1);
+
+            doubleSpinBox_4 = create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox );
+            // doubleSpinBox_4->setObjectName(QString::fromUtf8("doubleSpinBox_4"));
+            doubleSpinBox_4->setMaximum(1000.000000000000000);
+
+            gridLayout->addWidget(doubleSpinBox_4, 4, 1, 1, 1);
+
+            spinBox = create_widget< QSpinBox >("spinBox", groupBox );
+            // spinBox->setObjectName(QString::fromUtf8("spinBox"));
+            spinBox->setMinimum(100);
+            spinBox->setMaximum(10000000);
+            spinBox->setSingleStep(1000);
+            spinBox->setValue(3000);
+
+            gridLayout->addWidget(spinBox, 3, 1, 1, 1);
+
+            label_2 = create_widget< QLabel >("label_2", groupBox);
+            // label_2->setObjectName(QString::fromUtf8("label_2"));
+
+            gridLayout->addWidget(label_2, 1, 0, 1, 1);
+
+            checkBox = create_widget< QCheckBox >("checkBox", groupBox );
+            // checkBox->setObjectName(QString::fromUtf8("checkBox"));
+
+            gridLayout->addWidget(checkBox, 4, 0, 1, 1);
+
+            radioButton_2 = create_widget< QRadioButton >("radioButton_2", groupBox );
+            // radioButton_2->setObjectName(QString::fromUtf8("radioButton_2"));
+            radioButton_2->setEnabled(true);
+
+            gridLayout->addWidget(radioButton_2, 3, 0, 1, 1);
+
+            lineEdit = create_widget< QLineEdit >("lineEdit", groupBox);
+            // lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+            lineEdit->setReadOnly(false);
+            lineEdit->setClearButtonEnabled(true);
+
+            gridLayout->addWidget(lineEdit, 0, 1, 1, 1);
+
+
+            gridLayout_3->addLayout(gridLayout, 0, 0, 1, 1);
+
+
+            verticalLayout->addWidget(groupBox);
+
+
+            gridLayout_2->addLayout(verticalLayout, 0, 0, 1, 1);
+
+            groupBoxAutoTargeting = create_widget< QGroupBox >("groupBoxAutoTargeting", form);
+            // groupBoxAutoTargeting->setObjectName(QString::fromUtf8("groupBoxAutoTargeting"));
+            groupBoxAutoTargeting->setCheckable(true);
+            groupBoxAutoTargeting->setChecked(false);
+            gridLayout_5 = create_widget< QGridLayout >("gridLayout_5", groupBoxAutoTargeting);
+            // gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
+            gridLayout_5->setContentsMargins(2, 2, 2, 2);
+            gridLayout_4 = create_widget< QGridLayout >("gridLayout_4");
+            // gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
+            label_3 = create_widget< QLabel >("label_3", groupBoxAutoTargeting);
+            // label_3->setObjectName(QString::fromUtf8("label_3"));
+
+            gridLayout_4->addWidget(label_3, 0, 0, 1, 1);
+
+            doubleSpinBox_2 = create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting);
+            // doubleSpinBox_2->setObjectName(QString::fromUtf8("doubleSpinBox_2"));
+            doubleSpinBox_2->setDecimals(3);
+            doubleSpinBox_2->setMinimum(0.001000000000000);
+            doubleSpinBox_2->setMaximum(10.000000000000000);
+            doubleSpinBox_2->setSingleStep(0.100000000000000);
+            doubleSpinBox_2->setValue(2.000000000000000);
+
+            gridLayout_4->addWidget(doubleSpinBox_2, 0, 1, 1, 1);
+
+            gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
+
+            verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+            gridLayout_5->addItem(verticalSpacer, 1, 0, 1, 1);
+
+            gridLayout_2->addWidget(groupBoxAutoTargeting, 1, 0, 1, 1);
+
+            retranslateUi(form);
+
+            QMetaObject::connectSlotsByName(form);
+        } // setupUi
+
+        void
+        MSChromatogramForm::retranslateUi(QWidget *form)
+        {
+            form->setWindowTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Form", nullptr));
+            groupBox->setTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Chromatogram generation", nullptr));
+            label->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Data reader", nullptr));
+            radioButton->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Dalton", nullptr));
+            doubleSpinBox_4->setSuffix(QString());
+            label_2->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Mass window", nullptr));
+            checkBox->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Lockmass (mDa)", nullptr));
+            radioButton_2->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "R. P.", nullptr));
+            groupBoxAutoTargeting->setTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Auto targeting from chromatogram", nullptr));
+            label_3->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Peak width (s)", nullptr));
+        } // retranslateUi
+
+    } // namespace Ui
+} // namespace adwidgets

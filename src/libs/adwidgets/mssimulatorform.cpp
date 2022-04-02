@@ -25,6 +25,7 @@
 #include "utilities.hpp"
 #include "mssimulatorform.hpp"
 // #include "ui_mssimulatorform.h"
+#include <adcontrols/constants.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mssimulatormethod.hpp>
@@ -133,6 +134,12 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent)
 
     ui->comboBox_2->addItems( QStringList() << "0.1" << "0.01" << "0.001" << "1.0e-4" << "1.0e-5" << "1.0e-6"  << "1.0e-7"  << "1.0e-8"  << "1.0e-9" );
     ui->comboBox_2->setCurrentIndex( 2 );
+
+    if ( auto radioPos = findChild< QRadioButton * >( "radioButtonPos" ) ) {
+        connect( radioPos, &QRadioButton::toggled, this, [&]( bool checked ){
+            emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+        });
+    }
 
     // connect( ui->comboBox_2, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
     //     double limit = std::pow( 10, -( index + 1) );

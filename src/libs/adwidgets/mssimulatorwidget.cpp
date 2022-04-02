@@ -77,6 +77,9 @@ MSSimulatorWidget::MSSimulatorWidget(QWidget *parent) : QWidget(parent)
     if ( auto form = findChild< MSSimulatorForm * >() ) {
         connect( form, &MSSimulatorForm::triggerProcess, [this] { run(); } );
         connect( form, &MSSimulatorForm::onLapChanged, this, &MSSimulatorWidget::handleLapChanged );
+        if ( auto table = findChild< MolTable * >() ) {
+            connect( form, &MSSimulatorForm::polarityToggled, table, &MolTable::handlePolarity );
+        }
     }
 }
 
