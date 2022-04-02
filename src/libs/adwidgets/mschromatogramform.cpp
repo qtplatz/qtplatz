@@ -65,7 +65,7 @@ namespace adwidgets {
             QLineEdit *lineEdit;
             QRadioButton *radioButton;
             QRadioButton *radioButton_2;
-            QSpacerItem *verticalSpacer;
+            // QSpacerItem *verticalSpacer;
             QSpinBox *spinBox;
             // QVBoxLayout *verticalLayout;
 
@@ -191,11 +191,10 @@ namespace adwidgets {
         {
             if (form->objectName().isEmpty())
                 form->setObjectName(QString::fromUtf8("Ui_MSChromatogramForm"));
-            // form->resize(318, 274);
 
-            if ( auto verticalLayout = create_widget< QVBoxLayout >("verticalLayout") ) {
+            if ( auto verticalLayout = create_widget< QVBoxLayout >("verticalLayout", form ) ) {
 
-                groupBox = add_widget( verticalLayout, create_widget< QGroupBox >("groupBox", form ) );
+                groupBox = add_widget( verticalLayout, create_widget< QGroupBox >("groupBox") );
 
                 if ( auto gridLayout = create_widget< QGridLayout >( "gridLayout", groupBox ) ) {
                     gridLayout->setContentsMargins(2, 2, 2, 2);
@@ -235,40 +234,31 @@ namespace adwidgets {
                 }
 
 
-                if ( auto gridLayout_2 = create_widget< QGridLayout >("gridLayout_2", form) ) {
+                if (( groupBoxAutoTargeting = add_widget( verticalLayout, create_widget< QGroupBox >("groupBoxAutoTargeting" ) ) )) {
+                    groupBoxAutoTargeting->setCheckable(true);
+                    groupBoxAutoTargeting->setChecked(false);
 
-                    //if (( groupBoxAutoTargeting = add_widget( gridLayout_2, create_widget< QGroupBox >("groupBoxAutoTargeting", form), 1, 0, 1, 1 ) )) {
-                    if (( groupBoxAutoTargeting = add_widget( verticalLayout, create_widget< QGroupBox >("groupBoxAutoTargeting", form ) ) )) {
-                        groupBoxAutoTargeting->setCheckable(true);
-                        groupBoxAutoTargeting->setChecked(false);
+                    if ( auto gridLayout_4 = create_widget< QGridLayout >("gridLayout_4", groupBoxAutoTargeting ) ) {
 
-                        if ( auto gridLayout_4 = create_widget< QGridLayout >("gridLayout_4", groupBoxAutoTargeting ) ) {
+                        label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", groupBoxAutoTargeting), 0, 0, 1, 1);
 
-                            label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", groupBoxAutoTargeting), 0, 0, 1, 1);
-
-                            if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
-                                doubleSpinBox_2->setDecimals(3);
-                                doubleSpinBox_2->setMinimum(0.001000000000000);
-                                doubleSpinBox_2->setMaximum(10.000000000000000);
-                                doubleSpinBox_2->setSingleStep(0.100000000000000);
-                                doubleSpinBox_2->setValue(2.000000000000000);
-                            }
-                            // gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
-                            verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-                            gridLayout_4->addItem(verticalSpacer, 1, 0, 1, 1);
+                        if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
+                            doubleSpinBox_2->setDecimals(3);
+                            doubleSpinBox_2->setMinimum(0.001000000000000);
+                            doubleSpinBox_2->setMaximum(10.000000000000000);
+                            doubleSpinBox_2->setSingleStep(0.100000000000000);
+                            doubleSpinBox_2->setValue(2.000000000000000);
                         }
+                        // gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
                     }
-
-                    gridLayout_2->setSpacing(0);
-                    gridLayout_2->setContentsMargins(4, 2, 4, 2);
-                    gridLayout_2->addLayout( verticalLayout, 0, 0, 1, 1);
-
                 }
 
+                verticalLayout->addItem( new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding) );
                 if (( buttonBox = add_widget( verticalLayout, create_widget< QDialogButtonBox >("buttonBox", form ) ) )) {
                     buttonBox->setStandardButtons(QDialogButtonBox::Apply);
                 }
             }
+
             retranslateUi(form);
             QMetaObject::connectSlotsByName(form);
         } // setupUi
