@@ -38,9 +38,8 @@ namespace adcontrols {
 }
 
 namespace adwidgets {
-
     template <typename X, typename Tuple> class index_of;
-
+#if 0 // __cplusplus >= 201703L
     template <typename X, typename... T>
     class index_of< X, std::tuple<T...> > {
         template <std::size_t... idx>
@@ -51,7 +50,19 @@ namespace adwidgets {
     public:
         static constexpr ssize_t value = find_idx(std::index_sequence_for<T...>{});
     };
+#else
+    template< typename X, typename... T>
+    class index_of<X, std::tuple<X, T...>> {
+    public:
+        static const std::size_t value = 0;
+    };
 
+    template < typename T, typename U, typename... Types>
+    class index_of<T, std::tuple<U, Types...>> {
+    public:
+        static const std::size_t value = 1 + index_of<T, std::tuple<Types...> >::value;
+    };
+#endif
     struct col_formula       { typedef std::string value_type; const QString header = "Formula";       };
     struct col_adducts       { typedef std::string value_type; const QString header = "Adduct";        };
     struct col_mass          { typedef double value_type;      const QString header = "Mass";          };
