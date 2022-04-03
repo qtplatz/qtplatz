@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2020 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,38 +23,21 @@
 
 #pragma once
 
-#include "adwidgets_global.hpp"
-#include <adportable/optional.hpp>
 #include <adcontrols/constants_fwd.hpp>
-#include <vector>
 #include <QString>
 #include <QMetaType>
-
-class QUrl;
-class QClipboard;
-class QByteArray;
+#include <tuple>
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT MolTableHelper;
-
-    class MolTableHelper {
-    public:
-        struct SmilesToSVG {
-            adportable::optional< std::tuple< QString, QByteArray > > // formula, svg
-            operator()( const QString& smiles ) const;
-        };
-
-        struct SDMolSupplier {
-            typedef std::tuple< QString, QString, QByteArray > value_type; // formula,smiles,svg
-
-            std::vector< value_type > operator()( const QUrl& ) const;           // drag&drop
-            std::vector< value_type > operator()( const QClipboard* ) const;     // paste
-        };
-
-        static adportable::optional< std::pair<double, double> > logP( const QString& smiles );
-
-        static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
+    struct adducts_type {
+        adducts_type();
+        adducts_type( const std::tuple< std::string, std::string >& t );
+        QString get( adcontrols::ion_polarity polarity ) const;
+        void set( const QString& adduct, adcontrols::ion_polarity polarity );
+        std::tuple< std::string, std::string > adducts;
     };
 
 }
+
+Q_DECLARE_METATYPE( adwidgets::adducts_type );

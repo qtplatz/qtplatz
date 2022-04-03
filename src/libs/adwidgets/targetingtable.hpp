@@ -38,6 +38,8 @@ namespace adwidgets {
     // will be deprecated
     // this class is only crated in peptidewidget -- to be replaced with MOLTable class
 
+    class [[deprecated]] TargetingTable;
+
     class TargetingTable : public TableView  {
         Q_OBJECT
     public:

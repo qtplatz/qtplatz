@@ -112,28 +112,3 @@ MolTableHelper::logP( const QString& smiles )
 
 
 /////////////
-
-adducts_type::adducts_type()
-{
-}
-
-adducts_type::adducts_type( const std::tuple< std::string, std::string >& t )
-    : adducts( t )
-{
-}
-
-QString
-adducts_type::get( adcontrols::ion_polarity polarity ) const
-{
-    return polarity == adcontrols::polarity_positive
-        ? QString::fromStdString( std::get< adcontrols::polarity_positive >( adducts ) )
-        : QString::fromStdString( std::get< adcontrols::polarity_negative >( adducts ) );
-}
-
-void
-adducts_type::set( const QString& adduct, adcontrols::ion_polarity polarity )
-{
-    ( polarity == adcontrols::polarity_positive
-      ? std::get< adcontrols::polarity_positive >( adducts )
-      : std::get< adcontrols::polarity_negative >( adducts ) ) = adduct.toStdString();
-}

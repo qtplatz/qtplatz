@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include "adducts_type.hpp"
 #include "mschromatogramtable.hpp"
 #include "moltablehelper.hpp"
 #include "delegatehelper.hpp"

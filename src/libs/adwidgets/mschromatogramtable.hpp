@@ -25,9 +25,10 @@
 #pragma once
 
 #include "tableview.hpp"
+#include "moltablecolumns.hpp"
 #include <adcontrols/constants_fwd.hpp>
 #include <adportable/debug.hpp>
-#include <tuple>
+#include <adportable/index_of.hpp>
 
 class QStandardItemModel;
 class QMenu;
@@ -38,41 +39,9 @@ namespace adcontrols {
 }
 
 namespace adwidgets {
-    template <typename X, typename Tuple> class index_of;
-#if 0 // __cplusplus >= 201703L
-    template <typename X, typename... T>
-    class index_of< X, std::tuple<T...> > {
-        template <std::size_t... idx>
-        static constexpr ssize_t find_idx(std::index_sequence<idx...>) {
-            // return ((std::is_same<X, T>::value ? idx : 0) + ...); // return 0 if not found
-            return std::max({static_cast<ssize_t>(std::is_same_v<X, T> ? idx : -1)...}); // return -1, if not found
-        }
-    public:
-        static constexpr ssize_t value = find_idx(std::index_sequence_for<T...>{});
-    };
-#else
-    template< typename X, typename... T>
-    class index_of<X, std::tuple<X, T...>> {
-    public:
-        static const std::size_t value = 0;
-    };
 
-    template < typename T, typename U, typename... Types>
-    class index_of<T, std::tuple<U, Types...>> {
-    public:
-        static const std::size_t value = 1 + index_of<T, std::tuple<Types...> >::value;
-    };
-#endif
-    struct col_formula       { typedef std::string value_type; const QString header = "Formula";       };
-    struct col_adducts       { typedef std::string value_type; const QString header = "Adduct";        };
-    struct col_mass          { typedef double value_type;      const QString header = "Mass";          };
-    struct col_retentionTime { typedef double value_type;      const QString header = "t<sub>R</sub>"; };
-    struct col_lockmass      { typedef bool value_type;        const QString header = "lock mass";     };
-    struct col_protocol      { typedef int value_type;         const QString header = "protocol";      };
-    struct col_synonym       { typedef std::string value_type; const QString header = "Synonym";       };
-    struct col_memo          { typedef std::string value_type; const QString header = "Memo";          };
-    struct col_svg           { typedef std::string value_type; const QString header = "Structure";     };
-    struct col_smiles        { typedef std::string value_type; const QString header = "SMILES";        };
+    using namespace moltable;
+    using adportable::index_of;
 
     typedef std::tuple< col_formula
                         , col_adducts

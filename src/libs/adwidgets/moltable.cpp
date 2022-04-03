@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "moltable.hpp"
+#include "adducts_type.hpp"
 #include "delegatehelper.hpp"
 #include "htmlheaderview.hpp"
 #include "moltablehelper.hpp"
@@ -639,6 +640,8 @@ void
 MolTable::handlePolarity( adcontrols::ion_polarity polarity )
 {
     auto model = impl_->model_;
+    QSignalBlocker block( model );
+
     if ( impl_->current_polarity_ != polarity ) {
         impl_->current_polarity_ = polarity;
 

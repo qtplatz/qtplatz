@@ -41,6 +41,8 @@ if ( qwt_FOUND )
 endif()
 
 set( ${PROJECT_NAME}_SOURCES
+  adducts_type.cpp
+  adducts_type.hpp
   adcv/contoursform.cpp
   adcv/contoursform.hpp
   adwidgets.cpp
