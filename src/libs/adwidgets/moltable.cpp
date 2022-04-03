@@ -69,6 +69,7 @@
 
 using namespace adwidgets;
 
+#if 0
 namespace {
     using adcontrols::ion_polarity;
     struct adducts_type {
@@ -88,7 +89,8 @@ namespace {
         std::tuple< std::string, std::string > adducts;
     };
 }
-Q_DECLARE_METATYPE( adducts_type );
+#endif
+// Q_DECLARE_METATYPE( adducts_type );
 
 namespace {
     static std::tuple< double, QString > computeMass( const QString& formula, const QString& adducts )

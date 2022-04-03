@@ -77,8 +77,8 @@ namespace adwidgets {
         void addRow();
         void handleDataChanged( const QModelIndex&, const QModelIndex& );
     private:
-        std::unique_ptr< QStandardItemModel > model_;
-        struct helper;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }

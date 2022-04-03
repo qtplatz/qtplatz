@@ -24,6 +24,7 @@
 
 #include "mschromatogramwidget.hpp"
 #include "mschromatogramform.hpp"
+#include "mschromatogramtable.hpp"
 #include "moltableview.hpp"
 #include "moltablehelper.hpp"
 #include "targetingadducts.hpp"
@@ -44,6 +45,13 @@
 #include <boost/json.hpp>
 #include <fstream>
 
+namespace {
+    struct helper {
+        static bool readRow( int row, adcontrols::moltable::value_type&, const QStandardItemModel& model );
+        static bool setRow( int row, const adcontrols::moltable::value_type&, QStandardItemModel& model );
+    };
+}
+
 namespace adwidgets {
 
     enum {
@@ -60,15 +68,20 @@ namespace adwidgets {
         , column_count
     };
 
-    struct MSChromatogramWidget::helper {
-        static bool readRow( int row, adcontrols::moltable::value_type&, const QStandardItemModel& model );
-        static bool setRow( int row, const adcontrols::moltable::value_type&, QStandardItemModel& model );
+    class MSChromatogramWidget::impl {
+    public:
+        std::unique_ptr< QStandardItemModel > model_;
+
+        impl() : model_( std::make_unique< QStandardItemModel >() ) {
+        }
     };
+
 }
 
 using namespace adwidgets;
 
 MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
+                                                            , impl_( std::make_unique< impl >() )
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
@@ -77,8 +90,8 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
 
         if ( QSplitter * splitter = new QSplitter ) {
             splitter->addWidget( ( new MSChromatogramForm ) );
-            auto table = new MolTableView();
-            setup( table );
+            auto table = new MSChromatogramTable(); //new MolTableView();
+            // setup( table );
             splitter->addWidget( table );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
@@ -94,6 +107,10 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
                      , [table]( bool enable ) { table->setColumnHidden( c_lockmass, !enable ); } );
 
         connect( form, &MSChromatogramForm::triggerProcess, [this] { run(); } );
+
+        if ( auto table = findChild< MSChromatogramTable *>() ) {
+            connect( form, &MSChromatogramForm::polarityToggled, table, &MSChromatogramTable::handlePolarity );
+        }
     }
 }
 
@@ -119,6 +136,9 @@ MSChromatogramWidget::OnInitialUpdate()
         form->OnInitialUpdate();
 
     if ( auto table = findChild< MolTableView *>() )
+        table->onInitialUpdate();
+
+    if ( auto table = findChild< MSChromatogramTable * >() )
         table->onInitialUpdate();
 }
 
@@ -169,17 +189,21 @@ MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
     if ( auto table = findChild< MolTableView * >() ) {
         table->setColumnHidden( c_lockmass, !m.lockmass() );
     }
+    if ( auto table = findChild< MSChromatogramTable * >() ) {
+        table->setColumnHidden( col_lockmass{}, !m.lockmass() );
+        table->setValue( m.molecules() );
+    }
 
     size_t size = m.molecules().data().size();
 
-    if ( size > model_->rowCount() )
-        model_->setRowCount( m.molecules().data().size() );
+    if ( size > impl_->model_->rowCount() )
+        impl_->model_->setRowCount( m.molecules().data().size() );
     else
-        model_->removeRows( size - 1, model_->rowCount() - size );
+        impl_->model_->removeRows( size - 1, impl_->model_->rowCount() - size );
 
     int row( 0 );
     for ( auto& mol: m.molecules().data() )
-        helper::setRow( row++, mol, *model_ );
+        helper::setRow( row++, mol, *impl_->model_ );
 
     addRow();
 }
@@ -192,9 +216,9 @@ MSChromatogramWidget::getContents( adcontrols::MSChromatogramMethod& m ) const
 
     m.molecules().data().clear();
 
-    for ( int row = 0; row < model_->rowCount(); ++row ) {
+    for ( int row = 0; row < impl_->model_->rowCount(); ++row ) {
         adcontrols::moltable::value_type value;
-        helper::readRow( row, value, *model_ );
+        helper::readRow( row, value, *impl_->model_ );
         if ( !value.formula().empty() && value.mass() > 0 ) {
             // ADDEBUG() << boost::json::object{ { "row", row }, { "formula", value.formula() }
             //         , { "enable", value.enable() }, {"adducts", value.adducts() }, { "mass", value.mass() } };
@@ -228,21 +252,21 @@ MSChromatogramWidget::run()
 void
 MSChromatogramWidget::setup( MolTableView * table )
 {
-    model_ = std::make_unique< QStandardItemModel >();
-    model_->setColumnCount( column_count );
+    impl_->model_ = std::make_unique< QStandardItemModel >();
+    impl_->model_->setColumnCount( column_count );
 
-    model_->setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "Formula" ) );
-    model_->setHeaderData( c_adducts,  Qt::Horizontal, QObject::tr( "adduct/lose" ) );
-    model_->setHeaderData( c_mass,     Qt::Horizontal, QObject::tr( "<i>m/z<i>" ) );
-    model_->setHeaderData( c_tR,       Qt::Horizontal, QObject::tr( "<i>t<sub>R</sub><i>" ) );
-    model_->setHeaderData( c_lockmass, Qt::Horizontal, QObject::tr( "lock mass" ) );
-    model_->setHeaderData( c_protocol, Qt::Horizontal, QObject::tr( "protocol#" ) );
-    model_->setHeaderData( c_synonym,  Qt::Horizontal, QObject::tr( "synonym" ) );
-    model_->setHeaderData( c_memo,     Qt::Horizontal, QObject::tr( "memo" ) );
-    model_->setHeaderData( c_svg,      Qt::Horizontal, QObject::tr( "structure" ) );
-    model_->setHeaderData( c_smiles,   Qt::Horizontal, QObject::tr( "SMILES" ) );
+    impl_->model_->setHeaderData( c_formula,  Qt::Horizontal, QObject::tr( "Formula" ) );
+    impl_->model_->setHeaderData( c_adducts,  Qt::Horizontal, QObject::tr( "adduct/lose" ) );
+    impl_->model_->setHeaderData( c_mass,     Qt::Horizontal, QObject::tr( "<i>m/z<i>" ) );
+    impl_->model_->setHeaderData( c_tR,       Qt::Horizontal, QObject::tr( "<i>t<sub>R</sub><i>" ) );
+    impl_->model_->setHeaderData( c_lockmass, Qt::Horizontal, QObject::tr( "lock mass" ) );
+    impl_->model_->setHeaderData( c_protocol, Qt::Horizontal, QObject::tr( "protocol#" ) );
+    impl_->model_->setHeaderData( c_synonym,  Qt::Horizontal, QObject::tr( "synonym" ) );
+    impl_->model_->setHeaderData( c_memo,     Qt::Horizontal, QObject::tr( "memo" ) );
+    impl_->model_->setHeaderData( c_svg,      Qt::Horizontal, QObject::tr( "structure" ) );
+    impl_->model_->setHeaderData( c_smiles,   Qt::Horizontal, QObject::tr( "SMILES" ) );
 
-    table->setModel( model_.get() );
+    table->setModel( impl_->model_.get() );
 
     //                                                          editable, checkable
     table->setColumnField( c_formula, ColumnState::f_formula,     true,  true );
@@ -263,31 +287,31 @@ MSChromatogramWidget::setup( MolTableView * table )
             if ( auto table = findChild< MolTableView * >() )
                 menu.exec( table->mapToGlobal( pt ) );
         });
-    connect( model_.get(), &QAbstractItemModel::dataChanged, this, &MSChromatogramWidget::handleDataChanged );
+    connect( impl_->model_.get(), &QAbstractItemModel::dataChanged, this, &MSChromatogramWidget::handleDataChanged );
     addRow();
 }
 
 void
 MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight )
 {
-    QSignalBlocker block( model_.get() );
+    QSignalBlocker block( impl_->model_.get() );
 
     if ( ( topLeft.column() <= c_formula && c_formula <= bottomRight.column() ) ||
          ( topLeft.column() <= c_adducts && c_adducts <= bottomRight.column() ) ) {
 
         for ( auto row = topLeft.row(); row <= bottomRight.row(); ++row ) {
 
-            double mass = MolTableHelper::monoIsotopicMass( model_->index( row, c_formula ).data( Qt::EditRole ).toString()
-                                                             , model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
+            double mass = MolTableHelper::monoIsotopicMass( impl_->model_->index( row, c_formula ).data( Qt::EditRole ).toString()
+                                                             , impl_->model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
 
-            model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
+            impl_->model_->setData( impl_->model_->index( row, c_mass ), mass, Qt::EditRole );
         }
     }
 
     if ( topLeft.column() <= c_smiles && c_smiles <= bottomRight.column() ) {
 
         for ( auto row = topLeft.row(); row <= bottomRight.row(); ++row ) {
-            auto smiles = model_->index( row, c_smiles ).data( Qt::EditRole ).toString();
+            auto smiles = impl_->model_->index( row, c_smiles ).data( Qt::EditRole ).toString();
             if ( auto fsvg = MolTableHelper::SmilesToSVG()( smiles ) ) {
 #if __cplusplus >= 201703L
                 auto [ formula, svg ] = *fsvg;
@@ -296,11 +320,11 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
                 QByteArray svg;
                 std::tie( formula, svg ) = *fsvg;
 #endif
-                double mass = MolTableHelper::monoIsotopicMass( formula, model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
-                model_->setData( model_->index( row, c_svg ), svg );
-                model_->setData( model_->index( row, c_formula ), formula, Qt::EditRole );
-                model_->setData( model_->index( row, c_mass ), mass, Qt::EditRole );
-                if ( auto item = model_->item( row, c_formula ) )
+                double mass = MolTableHelper::monoIsotopicMass( formula, impl_->model_->index( row, c_adducts ).data( Qt::EditRole ).toString() );
+                impl_->model_->setData( impl_->model_->index( row, c_svg ), svg );
+                impl_->model_->setData( impl_->model_->index( row, c_formula ), formula, Qt::EditRole );
+                impl_->model_->setData( impl_->model_->index( row, c_mass ), mass, Qt::EditRole );
+                if ( auto item = impl_->model_->item( row, c_formula ) )
                     item->setEditable( false );
             }
         }
@@ -311,70 +335,72 @@ MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QMode
 void
 MSChromatogramWidget::addRow()
 {
-    int row = model_->rowCount();
-    model_->setRowCount( row + 1 );
+    int row = impl_->model_->rowCount();
+    impl_->model_->setRowCount( row + 1 );
 
-    helper::setRow( row, adcontrols::moltable::value_type(), *model_ );
+    helper::setRow( row, adcontrols::moltable::value_type(), *impl_->model_ );
 }
 
-bool
-MSChromatogramWidget::helper::readRow( int row, adcontrols::moltable::value_type& mol, const QStandardItemModel& model )
-{
-    mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
-    mol.enable()  = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-    mol.mass()    = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
-    mol.abundance() = 1.0;
-    mol.adducts() = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
-    mol.synonym() = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
-    mol.description() = model.index( row, c_memo ).data( Qt::EditRole ).toString().toStdWString();
-    mol.setIsMSRef( model.index( row, c_lockmass ).data( Qt::CheckStateRole ).toBool() );
-    mol.smiles()  = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
-    int protocol = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
-    mol.setProtocol( protocol >= 0 ? boost::optional< int32_t >( protocol ) : boost::none );
-
-    double tR = model.index( row, c_tR ).data( Qt::EditRole ).toDouble();
-    mol.set_tR( tR > 0 ? boost::optional< double >( tR ) : boost::none );
-
-	return true;
-}
-
-bool
-MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value_type& mol, QStandardItemModel& model )
-{
+namespace {
+    bool
+    helper::readRow( int row, adcontrols::moltable::value_type& mol, const QStandardItemModel& model )
     {
-        QSignalBlocker block( &model );
+        mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        mol.enable()  = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        mol.mass()    = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+        mol.abundance() = 1.0;
+        mol.adducts() = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
+        mol.synonym() = model.index( row, c_synonym ).data( Qt::EditRole ).toString().toStdString();
+        mol.description() = model.index( row, c_memo ).data( Qt::EditRole ).toString().toStdWString();
+        mol.setIsMSRef( model.index( row, c_lockmass ).data( Qt::CheckStateRole ).toBool() );
+        mol.smiles()  = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
+        int protocol = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
+        mol.setProtocol( protocol >= 0 ? boost::optional< int32_t >( protocol ) : boost::none );
 
-        if ( row <= model.rowCount() )
-            model.setRowCount( row + 1 );
+        double tR = model.index( row, c_tR ).data( Qt::EditRole ).toDouble();
+        mol.set_tR( tR > 0 ? boost::optional< double >( tR ) : boost::none );
 
-        if ( auto item = new QStandardItem() ) {
-            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            item->setEditable( true );
-            item->setCheckState( mol.enable() ? Qt::Checked : Qt::Unchecked );
-            model.setItem ( row, c_formula, item );
-        }
-
-        if ( !QString::fromStdString( mol.formula() ).isEmpty() && QString::fromStdString( mol.smiles() ).isEmpty() )
-            model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
-
-        model.setData( model.index( row, c_adducts ), QString::fromStdString( mol.adducts() ) );
-        model.setData( model.index( row, c_mass ), mol.mass() );
-        model.setData( model.index( row, c_lockmass ), mol.isMSRef() );
-        if ( auto item = model.item( row, c_lockmass ) ) {
-            item->setEditable( false );
-            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            model.setData( model.index( row, c_lockmass ), mol.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-        } else {
-            ADDEBUG() << "--------- empty item (c_lockmass) ------------- " << mol.formula();
-        }
-        model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
-        model.setData( model.index( row, c_tR ), mol.tR() ? mol.tR().get() : 0.0 );
-        model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );
-        model.setData( model.index( row, c_memo ), QString::fromStdWString( mol.description() ) );
+        return true;
     }
 
-    if ( !QString::fromStdString( mol.smiles() ).isEmpty() )
-        model.setData( model.index( row, c_smiles ), QString::fromStdString( mol.smiles() ) );
+    bool
+    ::helper::setRow( int row, const adcontrols::moltable::value_type& mol, QStandardItemModel& model )
+    {
+        {
+            QSignalBlocker block( &model );
 
-    return true;
+            if ( row <= model.rowCount() )
+                model.setRowCount( row + 1 );
+
+            if ( auto item = new QStandardItem() ) {
+                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                item->setEditable( true );
+                item->setCheckState( mol.enable() ? Qt::Checked : Qt::Unchecked );
+                model.setItem ( row, c_formula, item );
+            }
+
+            if ( !QString::fromStdString( mol.formula() ).isEmpty() && QString::fromStdString( mol.smiles() ).isEmpty() )
+                model.setData( model.index( row, c_formula ), QString::fromStdString( mol.formula() ) );
+
+            model.setData( model.index( row, c_adducts ), QString::fromStdString( mol.adducts() ) );
+            model.setData( model.index( row, c_mass ), mol.mass() );
+            model.setData( model.index( row, c_lockmass ), mol.isMSRef() );
+            if ( auto item = model.item( row, c_lockmass ) ) {
+                item->setEditable( false );
+                item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                model.setData( model.index( row, c_lockmass ), mol.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            } else {
+                ADDEBUG() << "--------- empty item (c_lockmass) ------------- " << mol.formula();
+            }
+            model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
+            model.setData( model.index( row, c_tR ), mol.tR() ? mol.tR().get() : 0.0 );
+            model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );
+            model.setData( model.index( row, c_memo ), QString::fromStdWString( mol.description() ) );
+        }
+
+        if ( !QString::fromStdString( mol.smiles() ).isEmpty() )
+            model.setData( model.index( row, c_smiles ), QString::fromStdString( mol.smiles() ) );
+
+        return true;
+    }
 }

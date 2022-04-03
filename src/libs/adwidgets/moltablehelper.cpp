@@ -26,6 +26,7 @@
 #include <adchem/sdmolsupplier.hpp>
 #include <adchem/smilestosvg.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/constants.hpp>
 #include <adportable/optional.hpp>
 #include <QByteArray>
 #include <QClipboard>
@@ -39,12 +40,8 @@ adportable::optional< std::tuple< QString, QByteArray > > // formula, svg
 MolTableHelper::SmilesToSVG::operator()( const QString& smiles ) const
 {
     if ( auto d = adchem::SmilesToSVG()( smiles.toStdString() ) ) {
-#if __cplusplus >= 201703L
-        auto [ formula, svg ] = *d;
-#else
-        std::string formula, svg;
-        std::tie( formula, svg ) = *d;
-#endif
+        auto formula = std::get<0>(*d);
+        auto svg = std::get<1>(*d);
         return std::make_tuple( QString::fromStdString( formula ), QByteArray( svg.data(), svg.size() ) );
     }
     return {};
@@ -60,12 +57,8 @@ MolTableHelper::SDMolSupplier::operator()( const QUrl& url ) const
     adchem::SDMolSupplier supplier( url.toLocalFile().toStdString() );
 
     for ( size_t i = 0; i < supplier.size(); ++i ) {
-#if __cplusplus >= 201703L
-        auto [ formula, smiles, svg ] = supplier[ i ];
-#else
         std::string formula, smiles, svg;
         std::tie( formula, smiles, svg ) = supplier[ i ];
-#endif
         results.emplace_back( QString::fromStdString( formula ), QString::fromStdString( smiles ), QByteArray( svg.data(), svg.size() ) );
     }
     return results;
@@ -83,12 +76,8 @@ MolTableHelper::SDMolSupplier::operator()( const QClipboard* clipboard ) const
     supplier.setData( clipboard->text().toStdString() );
 
     for ( size_t i = 0; i < supplier.size(); ++i ) {
-#if __cplusplus >= 201703L
-        auto [ formula, smiles, svg ] = supplier[ i ];
-#else
         std::string formula, smiles, svg;
         std::tie( formula, smiles, svg ) = supplier[ i ];
-#endif
         results.emplace_back( QString::fromStdString( formula ), QString::fromStdString( smiles ), QByteArray( svg.data(), svg.size() ) );
     }
     return results;
@@ -119,4 +108,32 @@ MolTableHelper::logP( const QString& smiles )
 #else
     return {};
 #endif
+}
+
+
+/////////////
+
+adducts_type::adducts_type()
+{
+}
+
+adducts_type::adducts_type( const std::tuple< std::string, std::string >& t )
+    : adducts( t )
+{
+}
+
+QString
+adducts_type::get( adcontrols::ion_polarity polarity ) const
+{
+    return polarity == adcontrols::polarity_positive
+        ? QString::fromStdString( std::get< adcontrols::polarity_positive >( adducts ) )
+        : QString::fromStdString( std::get< adcontrols::polarity_negative >( adducts ) );
+}
+
+void
+adducts_type::set( const QString& adduct, adcontrols::ion_polarity polarity )
+{
+    ( polarity == adcontrols::polarity_positive
+      ? std::get< adcontrols::polarity_positive >( adducts )
+      : std::get< adcontrols::polarity_negative >( adducts ) ) = adduct.toStdString();
 }

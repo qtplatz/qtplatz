@@ -25,8 +25,10 @@
 
 #include "adwidgets_global.hpp"
 #include <adportable/optional.hpp>
+#include <adcontrols/constants_fwd.hpp>
 #include <vector>
 #include <QString>
+#include <QMetaType>
 
 class QUrl;
 class QClipboard;
@@ -55,4 +57,16 @@ namespace adwidgets {
         static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
     };
 
+    ///////////////////
+
+    struct adducts_type {
+        adducts_type();
+        adducts_type( const std::tuple< std::string, std::string >& t );
+        QString get( adcontrols::ion_polarity polarity ) const;
+        void set( const QString& adduct, adcontrols::ion_polarity polarity );
+        std::tuple< std::string, std::string > adducts;
+    };
+
 }
+
+Q_DECLARE_METATYPE( adwidgets::adducts_type );

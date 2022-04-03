@@ -26,7 +26,7 @@
 #include "document.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adportable/debug.hpp>
-#include <adwidgets/centroidform.hpp>
+#include <adwidgets/centroidwidget.hpp>
 #include <adwidgets/mstoleranceform.hpp>
 #include <adwidgets/mslockform.hpp>
 #include <adwidgets/peakmethodform.hpp>
@@ -58,7 +58,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     // |             -------------|           |
     // |             | assign     |           |
     // ----------------------------------------
-    auto centroidform = new adwidgets::CentroidForm;
+    auto centroidform = new adwidgets::CentroidWidget;
     layout_->addWidget( centroidform );
 
     if ( auto widget = new QWidget ) { // Lock mass, assign method column
@@ -86,7 +86,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     centroidform->OnInitialUpdate();
     peakmethodform->OnInitialUpdate();
 
-    connect( centroidform, &adwidgets::CentroidForm::valueChanged, this, &ProcessMethodWidget::commit );
+    connect( centroidform, &adwidgets::CentroidWidget::valueChanged, this, &ProcessMethodWidget::commit );
     connect( peakmethodform, &adwidgets::PeakMethodForm::valueChanged, this, &ProcessMethodWidget::commit );
 
     document::instance()->connectDataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
@@ -101,7 +101,7 @@ ProcessMethodWidget::handleDataChanged( int id, bool load )
 
         if ( auto pm = document::instance()->getm< adcontrols::ProcessMethod >() ) {
 
-            if ( auto centroidform = findChild< adwidgets::CentroidForm * >() ) {
+            if ( auto centroidform = findChild< adwidgets::CentroidWidget * >() ) {
                 centroidform->setContents( boost::any(*pm) );
             }
 
@@ -129,7 +129,7 @@ ProcessMethodWidget::commit()
 {
     adcontrols::ProcessMethod pm;
 
-    if ( auto form = findChild< adwidgets::CentroidForm * >() )
+    if ( auto form = findChild< adwidgets::CentroidWidget * >() )
         form->getContents( pm );
 
     if ( auto form = findChild< adwidgets::PeakMethodForm * >() )

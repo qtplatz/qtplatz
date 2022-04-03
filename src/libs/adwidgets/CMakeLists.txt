@@ -76,6 +76,7 @@ set( ${PROJECT_NAME}_SOURCES
   mspeaktree.cpp
   msquantable.cpp
   mscalibrateform.cpp
+  mschromatogramtable.cpp
   mschromatogramform.cpp
   mschromatogramwidget.cpp
   mspeaksummary.cpp
@@ -156,6 +157,7 @@ set( ${PROJECT_NAME}_HEADERS
   mstoleranceform.hpp
   mslockform.hpp
   mschromatogramform.hpp
+  mschromatogramtable.hpp
   mschromatogramwidget.hpp
   mspeaksummary.hpp
   mspeakwidget.hpp

@@ -101,6 +101,12 @@ void
 MSChromatogramForm::OnInitialUpdate()
 {
     setContents( adcontrols::MSChromatogramMethod() );
+    if ( auto radio = findChild< QRadioButton * >( "radioPos" ) ) {
+        connect( radio, &QRadioButton::toggled, [&](bool checked){
+            emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+        });
+
+    }
 }
 
 void
@@ -200,37 +206,55 @@ namespace adwidgets {
                     gridLayout->setContentsMargins(2, 2, 2, 2);
                     gridLayout->setSpacing(0);
 
-                    label = add_widget( gridLayout, create_widget< QLabel >("label", groupBox ), 0, 0, 1, 1 );
+                    std::tuple< size_t, size_t > xy{0,0};
 
-                    if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox), 2, 1, 1, 1 ) )) {
+                    label = add_widget( gridLayout, create_widget< QLabel >("label", "Data reader", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1 );
+                    if (( lineEdit = add_widget( gridLayout, create_widget< QLineEdit >("lineEdit", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
+                        lineEdit->setReadOnly(false);
+                        lineEdit->setClearButtonEnabled(true);
+                    }
+
+                    ++xy; // line 1
+                    label_2 = add_widget( gridLayout, create_widget< QLabel >("label_2", "Mass window", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 );
+
+                    ++xy; // line 2
+                    if (( radioButton = add_widget( gridLayout, create_widget< QRadioButton >("radioButton", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
+                        radioButton->setChecked(true);
+                    }
+                    if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
                         doubleSpinBox->setDecimals(4);
-                        doubleSpinBox->setMinimum(0.000000000000000);
-                        doubleSpinBox->setMaximum(1.000000000000000);
+                        doubleSpinBox->setRange( 0.0, 1.0 );
                         doubleSpinBox->setSingleStep(0.001000000000000);
                     }
 
-                    radioButton = add_widget( gridLayout, create_widget< QRadioButton >("radioButton", groupBox), 2, 0, 1, 1);
-                    radioButton->setChecked(true);
-
-                    doubleSpinBox_4 = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox ), 4, 1, 1, 1);
-                    doubleSpinBox_4->setMaximum(1000.000000000000000);
-
-                    spinBox = add_widget( gridLayout, create_widget< QSpinBox >("spinBox", groupBox ), 3, 1, 1, 1);
-                    spinBox->setMinimum(100);
-                    spinBox->setMaximum(10000000);
-                    spinBox->setSingleStep(1000);
-                    spinBox->setValue(3000);
-
-                    label_2 = add_widget( gridLayout, create_widget< QLabel >("label_2", groupBox), 1, 0, 1, 1);
-
-                    checkBox = add_widget( gridLayout, create_widget< QCheckBox >("checkBox", groupBox ), 4, 0, 1, 1);
-
-                    radioButton_2 = add_widget( gridLayout, create_widget< QRadioButton >("radioButton_2", groupBox ), 3, 0, 1, 1);
+                    ++xy; // line 3
+                    radioButton_2 = add_widget( gridLayout, create_widget< QRadioButton >("radioButton_2", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1);
                     radioButton_2->setEnabled(true);
 
-                    lineEdit = add_widget( gridLayout, create_widget< QLineEdit >("lineEdit", groupBox), 0, 1, 1, 1);
-                    lineEdit->setReadOnly(false);
-                    lineEdit->setClearButtonEnabled(true);
+                    if (( spinBox = add_widget( gridLayout, create_widget< QSpinBox >("spinBox", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
+                        spinBox->setRange(100, 10000000);
+                        spinBox->setSingleStep(1000);
+                        spinBox->setValue(3000);
+                    }
+
+                    ++xy; // line 4
+                    checkBox = add_widget( gridLayout, create_widget< QCheckBox >("checkBox", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1);
+                    if (( doubleSpinBox_4 = add_widget( gridLayout
+                                                        , create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox )
+                                                        , std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
+                        doubleSpinBox_4->setMaximum(1000.000000000000000);
+                    }
+
+                    ++xy;
+                    if ( auto groupBox = add_widget( gridLayout, create_widget< QGroupBox >( "GroupBox", QObject::tr("Polarity" ) ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 )){
+                        auto layout = create_widget< QHBoxLayout >( "groupBox_Layout" );
+                        layout->setSpacing( 2 );
+                        layout->setContentsMargins(4, 0, 4, 0);
+                        add_widget( layout, create_widget< QRadioButton >( "radioPos", QObject::tr("Positive ion") ) )->setChecked( true );
+                        add_widget( layout, create_widget< QRadioButton >( "radioNeg", QObject::tr("Negative ion") ) );
+
+                        groupBox->setLayout( layout );
+                    }
                 }
 
 
@@ -244,12 +268,10 @@ namespace adwidgets {
 
                         if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
                             doubleSpinBox_2->setDecimals(3);
-                            doubleSpinBox_2->setMinimum(0.001000000000000);
-                            doubleSpinBox_2->setMaximum(10.000000000000000);
+                            doubleSpinBox_2->setRange(0.001000000000000, 10.000000000000000);
                             doubleSpinBox_2->setSingleStep(0.100000000000000);
                             doubleSpinBox_2->setValue(2.000000000000000);
                         }
-                        // gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
                     }
                 }
 

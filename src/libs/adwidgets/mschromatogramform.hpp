@@ -25,6 +25,7 @@
 #ifndef MSCHROMATOGRAMFORM_HPP
 #define MSCHROMATOGRAMFORM_HPP
 
+#include <adcontrols/constants_fwd.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include "adwidgets_global.hpp"
@@ -59,6 +60,7 @@ namespace adwidgets {
         void getContents( adcontrols::MSChromatogramMethod& ) const;
 
     signals:
+        void polarityToggled( adcontrols::ion_polarity );
         void onEnableLockMass( bool );
         void triggerProcess();
 

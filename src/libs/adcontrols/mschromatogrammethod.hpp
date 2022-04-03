@@ -51,8 +51,6 @@ namespace adcontrols {
 
         enum WidthMethod { widthInDa, widthInRP, widthPeakFWHM, widthTime };
 
-        //DataSource dataSource() const;
-        //void dataSource( enum DataSource );
         const std::string& dataReader() const;
         void setDataReader( const std::string& );
 

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "create_widget.hpp"
+#include "spin_t.hpp"
 #include <utility>
 #include <QString>
 #include <QObject>

@@ -67,8 +67,6 @@ namespace adwidgets {
 
         void setColumHide( const std::vector< std::pair< fields, bool > >& );
 
-        // QStandardItemModel& model();
-
     private:
         class impl;
         impl * impl_;
