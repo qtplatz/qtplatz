@@ -225,6 +225,7 @@ MSSimulatorWidget::run()
 void
 MSSimulatorWidget::handleLapChanged( int nlaps )
 {
+    using adportable::index_of;
     QAbstractItemModel * model(0);
 
     if ( auto table = findChild< MolTable * >() ) {
@@ -243,15 +244,13 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
                     if (auto scanlaw = sp->scanLaw()) {
                         adcontrols::lapFinder finder(*scanlaw, baseIt->mass(), nlaps);
                         for (int row = 0; row < model->rowCount() && row < m.data().size(); ++row) {
-#if __cplusplus > 201703L
-                            auto [xlaps, xtof] = finder(m.data().at(row).mass()); // lap, time
-#else
-                            int xlaps; double xtof; std::tie( xlaps, xtof ) = finder(m.data().at(row).mass()); // lap, time
-#endif
+                            int xlaps; double xtof;
+                            std::tie( xlaps, xtof ) = finder(m.data().at(row).mass()); // lap, time
+
                             auto apparent_mass = scanlaw->getMass(xtof, nlaps);
-                            model->setData(model->index(row, MolTable::c_nlaps), xlaps);
-                            model->setData(model->index(row, MolTable::c_apparent_mass), apparent_mass);
-                            model->setData(model->index(row, MolTable::c_time), xtof * 1e6);
+                            model->setData(model->index(row, index_of< col_nlaps, MolTable::column_list >::value), xlaps);
+                            model->setData(model->index(row, index_of< col_apparent_mass, MolTable::column_list>::value), apparent_mass);
+                            model->setData(model->index(row, index_of< col_tof, MolTable::column_list>::value), xtof * 1e6);
                         }
                     }
                 }
@@ -263,7 +262,8 @@ MSSimulatorWidget::handleLapChanged( int nlaps )
 void
 MSSimulatorWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex& )
 {
-    if ((topLeft.column() != MolTable::c_mass) ) {
+    using adportable::index_of;
+    if ((topLeft.column() != index_of< col_mass, MolTable::column_list >::value ) ) {
         return;
     }
 
@@ -283,16 +283,11 @@ MSSimulatorWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassS
         form->setMassSpectrometer( p );
     }
     if ( p ) {
-        if ( p->massSpectrometerClsid() == qtplatz::infitof::iids::uuid_massspectrometer ) {
-            std::vector< std::pair< MolTable::fields, bool > > hides
-                = { { MolTable::c_nlaps, false }, { MolTable::c_apparent_mass, false }, { MolTable::c_time, false } };
-            if ( auto table = findChild< MolTable * >() )
-                table->setColumHide( hides );
-        } else {
-            std::vector< std::pair< MolTable::fields, bool > > hides
-                = { { MolTable::c_nlaps, true }, { MolTable::c_apparent_mass, true }, { MolTable::c_time, true } };
-            if ( auto table = findChild< MolTable * >() )
-                table->setColumHide( hides );
+        bool hide = p->massSpectrometerClsid() != qtplatz::infitof::iids::uuid_massspectrometer;
+        if ( auto table = findChild< MolTable * >() ) {
+            table->setColumnHidden( col_nlaps{}, hide );
+            table->setColumnHidden( col_apparent_mass{}, hide );
+            table->setColumnHidden( col_tof{}, hide );
         }
     }
 }

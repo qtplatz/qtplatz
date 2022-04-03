@@ -47,7 +47,7 @@ namespace adwidgets {
                         , col_adducts
                         , col_mass
                         , col_retentionTime
-                        , col_lockmass
+                        , col_msref
                         , col_protocol
                         , col_synonym
                         , col_memo

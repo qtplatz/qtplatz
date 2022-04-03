@@ -112,3 +112,19 @@ MolTableHelper::logP( const QString& smiles )
 
 
 /////////////
+
+namespace adwidgets {
+    namespace moltable {
+        std::tuple< double, QString >
+        computeMass( const QString& formula, const QString& adducts )
+        {
+            std::string stdformula = formula.toStdString();
+            std::string stdadducts = adducts.toStdString();
+            auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
+            if ( v.empty() )
+                return {0,{}};
+            return { adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ), QString::fromStdString( v[0] ) }; // handle first molecule
+        }
+
+    }
+}

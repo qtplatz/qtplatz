@@ -57,4 +57,8 @@ namespace adwidgets {
         static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
     };
 
+    namespace moltable {
+        std::tuple< double, QString > computeMass( const QString& formula, const QString& adducts );
+    }
+
 }

@@ -190,7 +190,7 @@ MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
         table->setColumnHidden( c_lockmass, !m.lockmass() );
     }
     if ( auto table = findChild< MSChromatogramTable * >() ) {
-        table->setColumnHidden( col_lockmass{}, !m.lockmass() );
+        table->setColumnHidden( col_msref{}, !m.lockmass() );
         table->setValue( m.molecules() );
     }
 

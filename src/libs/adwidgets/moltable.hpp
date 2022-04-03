@@ -26,7 +26,10 @@
 #define MOLTABLE_HPP
 
 #include "tableview.hpp"
+#include "moltablecolumns.hpp"
 #include <adcontrols/constants_fwd.hpp>
+#include <adportable/index_of.hpp>
+
 class QStandardItemModel;
 class QMenu;
 
@@ -34,28 +37,48 @@ namespace adcontrols { class moltable; }
 
 namespace adwidgets {
 
+    using namespace moltable; // moltablecolumns
+
     class MolTable : public TableView  {
         Q_OBJECT
     public:
         explicit MolTable(QWidget *parent = 0);
         ~MolTable();
 
+        typedef std::tuple<
+            col_formula
+            , col_adducts
+            , col_mass
+            , col_nlaps
+            , col_apparent_mass
+            , col_tof
+            , col_msref
+            , col_abundance
+            , col_synonym
+            , col_svg
+            , col_smiles
+            , col_logp
+            , col_memo
+            > column_list;
+
+        // for compatiblity to old code
         enum fields {
-            c_formula
-            , c_adducts
-            , c_mass
-            , c_nlaps         // added 2021-03-01
-            , c_apparent_mass // added 2021-03-01
-            , c_time          // added 2021-03-01
-            , c_msref
-            , c_abundance
-            , c_synonym
-            , c_svg
-            , c_smiles
-            , c_logp
-            , c_description
-            , nbrColums
+            c_formula         = adportable::index_of< col_formula,   column_list >::value
+            , c_adducts       = adportable::index_of< col_adducts,   column_list >::value
+            , c_mass          = adportable::index_of< col_mass,      column_list >::value
+            , c_nlaps         = adportable::index_of< col_nlaps,     column_list >::value
+            , c_apparent_mass = adportable::index_of< col_apparent_mass, column_list >::value
+            , c_time          = adportable::index_of< col_tof,       column_list >::value
+            , c_msref         = adportable::index_of< col_msref,     column_list >::value
+            , c_abundance     = adportable::index_of< col_abundance, column_list >::value
+            , c_synonym       = adportable::index_of< col_synonym,   column_list >::value
+            , c_svg           = adportable::index_of< col_svg,       column_list >::value
+            , c_smiles        = adportable::index_of< col_smiles,    column_list >::value
+            , c_logp          = adportable::index_of< col_logp,      column_list >::value
+            , c_description   = adportable::index_of< col_memo,      column_list >::value
         };
+
+        static constexpr const size_t ncolumns = std::tuple_size< column_list >();
 
         void onInitialUpdate();
 
@@ -65,7 +88,11 @@ namespace adwidgets {
         void setColumnEditable( int column, bool );
         bool isColumnEditable( int column ) const;
 
-        void setColumHide( const std::vector< std::pair< fields, bool > >& );
+        void setColumHide( const std::vector< std::pair< fields, bool > >& hides );
+
+        template< typename T > void setColumnHidden( T&&, bool hidden ) {
+            TableView::setColumnHidden( adportable::index_of< T, column_list >::value, hidden );
+        }
 
     private:
         class impl;

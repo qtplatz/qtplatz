@@ -38,6 +38,7 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/index_of.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QByteArray>
@@ -69,43 +70,36 @@
 #include <sstream>
 
 using namespace adwidgets;
-
-#if 0
-namespace {
-    using adcontrols::ion_polarity;
-    struct adducts_type {
-        adducts_type() {}
-        adducts_type( const std::tuple< std::string, std::string >& t )
-            : adducts( t ) {}
-        QString get( ion_polarity polarity ) const {
-            return polarity == adcontrols::polarity_positive ?
-                QString::fromStdString( std::get< adcontrols::polarity_positive >( adducts ) )
-                : QString::fromStdString( std::get< adcontrols::polarity_negative >( adducts ) );
-        }
-        void set( const QString& adduct, ion_polarity polarity ) {
-            ( polarity == adcontrols::polarity_positive
-                ? std::get< adcontrols::polarity_positive >( adducts )
-              : std::get< adcontrols::polarity_negative >( adducts ) )  = adduct.toStdString();
-        }
-        std::tuple< std::string, std::string > adducts;
-    };
-}
-#endif
-// Q_DECLARE_METATYPE( adducts_type );
+using adportable::index_of;
 
 namespace {
-    static std::tuple< double, QString > computeMass( const QString& formula, const QString& adducts )
-    {
-        std::string stdformula = formula.toStdString();
-        std::string stdadducts = adducts.toStdString();
-        auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
-        if ( v.empty() )
-            return {0,{}};
-        return { adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ), QString::fromStdString( v[0] ) }; // handle first molecule
+    template< class Tuple, std::size_t... Is> void setHeaderDataImpl( QStandardItemModel * model, const Tuple& t, std::index_sequence<Is...>) {
+        ( (model->setHeaderData( Is, Qt::Horizontal, std::get<Is>(t).header )), ... );
     }
-    /////////////////
+
+    template< typename... Args > void setHeaderData( QStandardItemModel * model, const std::tuple< Args ...>&& args) {
+        setHeaderDataImpl( model, args, std::index_sequence_for<Args...>{} );
+    }
+}
+
+
+namespace {
+    // static std::tuple< double, QString > computeMass( const QString& formula, const QString& adducts )
+    // {
+    //     std::string stdformula = formula.toStdString();
+    //     std::string stdadducts = adducts.toStdString();
+    //     auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
+    //     if ( v.empty() )
+    //         return {0,{}};
+    //     return { adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ), QString::fromStdString( v[0] ) }; // handle first molecule
+    // }
+    // /////////////////
 
     class delegate : public QStyledItemDelegate {
+        enum {
+            c_formula = index_of< col_formula, MolTable::column_list >::value
+            , c_adducts = index_of< col_adducts, MolTable::column_list >::value
+        };
 
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             using adcontrols::ChemicalFormula;
@@ -114,15 +108,15 @@ namespace {
             initStyleOption( &opt, index );
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
-            if ( index.column() == MolTable::c_formula ) {
+            if ( index.column() == index_of< col_formula, MolTable::column_list >::value ) {
                 std::string formula = ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                 DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
-            } else if ( index.column() == MolTable::c_adducts ) {
+            } else if ( index.column() == index_of< col_adducts, MolTable::column_list >::value ) {
                 std::string formula = ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                 DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
-            } else if ( index.column() == MolTable::c_description ) {
+            } else if ( index.column() == index_of< col_memo, MolTable::column_list >::value ) {
                 DelegateHelper::render_html2( painter, opt, index.data().toString() );
-            } else if ( index.column() == MolTable::c_abundance ) {
+            } else if ( index.column() == index_of< col_abundance, MolTable::column_list >::value ) {
                 if ( index.data().toDouble() <= 0.002 ) {
                     painter->save();
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
@@ -130,10 +124,11 @@ namespace {
                     painter->restore();
                 }
                 QStyledItemDelegate::paint( painter, opt, index );
-            } else if ( index.column() == MolTable::c_mass ) {
+            } else if ( index.column() == index_of< col_mass, MolTable::column_list >::value ) {
                 painter->save();
-                double exactMass = std::get< 0 >( computeMass( index.model()->index( index.row(), MolTable::c_formula ).data().toString()
-                                                               , index.model()->index( index.row(), MolTable::c_adducts ).data().toString() ) );
+                using adwidgets::moltable::computeMass;
+                double exactMass = std::get< 0 >( computeMass( index.model()->index( index.row(), c_formula ).data().toString()
+                                                               , index.model()->index( index.row(), c_adducts ).data().toString() ) );
                 double mass = index.data( Qt::EditRole ).toDouble();
                 if ( adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
                     painter->fillRect( option.rect, QColor( 0xf0, 0xf8, 0xff, 0x80 ) ); // AliceBlue
@@ -147,7 +142,7 @@ namespace {
                 // QStyledItemDelegate::paint( painter, opt, index );
                 painter->restore();
 
-            } else if ( index.column() == MolTable::c_svg ) {
+            } else if ( index.column() == index_of< col_svg, MolTable::column_list >::value ) {
                 painter->save();
                 QSvgRenderer renderer( index.data().toByteArray() );
                 painter->translate( option.rect.x(), option.rect.y() );
@@ -162,7 +157,7 @@ namespace {
         }
 
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
-            if ( index.column() == MolTable::c_mass ) {
+            if ( index.column() == index_of< col_mass, MolTable::column_list >::value ) {
                 auto widget = new QDoubleSpinBox( parent );
                 widget->setMinimum( 0 ); widget->setMaximum( 5000 ); widget->setSingleStep( 0.0001 ); widget->setDecimals( 7 );
                 widget->setValue( index.data( Qt::EditRole ).toDouble() );
@@ -173,9 +168,9 @@ namespace {
         }
 
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            if ( index.column() == MolTable::c_svg && !index.data( Qt::EditRole ).toByteArray().isEmpty() ) {
+            if ( index.column() == index_of< col_svg, MolTable::column_list >::value && !index.data( Qt::EditRole ).toByteArray().isEmpty() ) {
                 return QSize( 80, 80 );
-            } else if ( index.column() == MolTable::c_formula ) {
+            } else if ( index.column() == index_of< col_formula, MolTable::column_list >::value ) {
                 return DelegateHelper::html_size_hint( option, index );
             } else {
                 return QStyledItemDelegate::sizeHint( option, index );
@@ -193,9 +188,15 @@ namespace adwidgets {
     public:
         impl() : model_( new QStandardItemModel() )
                , current_polarity_( adcontrols::polarity_positive ) {
+            using adportable::index_of;
 
             std::fill( editable_.begin(), editable_.end(), false );
-            for ( auto& col : { c_formula, c_adducts, c_abundance, c_synonym, c_description, c_smiles } )
+            for ( auto& col : { index_of< col_formula, column_list >::value
+                               , index_of< col_adducts, column_list >::value
+                               , index_of< col_abundance, column_list >::value
+                               , index_of< col_synonym, column_list >::value
+                               , index_of< col_memo, column_list >::value
+                               , index_of< col_smiles, column_list >::value } )
                 editable_[ col ] = true;
         }
 
@@ -204,7 +205,7 @@ namespace adwidgets {
         }
 
         QStandardItemModel * model_;
-        std::array< bool, nbrColums > editable_;
+        std::array< bool, ncolumns > editable_;
         adcontrols::ion_polarity current_polarity_;
 
         void formulaChanged( int row );
@@ -233,7 +234,8 @@ MolTable::MolTable(QWidget *parent) : TableView(parent)
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &MolTable::handleContextMenu );
 
-    impl_->model_->setColumnCount( nbrColums );
+    impl_->model_->setColumnCount( std::tuple_size< column_list >() );
+    // impl_->model_->setColumnCount( nbrColums );
     impl_->model_->setRowCount( 1 );
     //setColumnHidden( c_smiles, true );
 }
@@ -245,29 +247,16 @@ MolTable::~MolTable()
 void
 MolTable::onInitialUpdate()
 {
-    QStandardItemModel& model = *impl_->model_;
+    using adportable::index_of;
 
-    model.setColumnCount( nbrColums );
-    model.setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "formula" ) );
-    model.setHeaderData( c_adducts, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
-    model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "mass" ) );
-    model.setHeaderData( c_msref, Qt::Horizontal, QObject::tr( "lock mass" ) );
-    model.setHeaderData( c_abundance, Qt::Horizontal, QObject::tr( "R.A." ) );
-    model.setHeaderData( c_synonym, Qt::Horizontal, QObject::tr( "synonym" ) );
-    model.setHeaderData( c_svg, Qt::Horizontal, QObject::tr( "structure" ) );
-    model.setHeaderData( c_smiles, Qt::Horizontal, QObject::tr( "SMILES" ) );
-    model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
-    model.setHeaderData( c_logp, Qt::Horizontal, QObject::tr( "log P" ) );
-    // setEditTriggers( QAbstractItemView::AllEditTriggers );
-    model.setHeaderData( c_nlaps, Qt::Horizontal, QObject::tr( "nlaps" ) );
-    model.setHeaderData( c_apparent_mass, Qt::Horizontal, QObject::tr( "apparent <i>m/z</i>" ) );
-    model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "tof(&mu;s)" ) );
+    QStandardItemModel * model = impl_->model_;
 
-    setColumnHidden( c_msref, true );
+    setHeaderData( model, column_list{} );
 
-    setColumnHidden( c_nlaps, true );
-    setColumnHidden( c_apparent_mass, true );
-    setColumnHidden( c_time, true );
+    setColumnHidden( col_msref{}, true );
+    setColumnHidden( col_nlaps(), true );
+    setColumnHidden( col_apparent_mass(), true );
+    setColumnHidden( col_tof{}, true );
 
     horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
     horizontalHeader()->setStretchLastSection( true );
@@ -276,6 +265,8 @@ MolTable::onInitialUpdate()
 void
 MolTable::setContents( const adcontrols::moltable& mols )
 {
+    using adportable::index_of;
+
     QStandardItemModel& model = *impl_->model_;
     adcontrols::ChemicalFormula cformula;
 
@@ -291,13 +282,14 @@ MolTable::setContents( const adcontrols::moltable& mols )
         }
     } while ( 0 );
 
-    resizeColumnToContents( c_formula );
+    resizeColumnToContents( index_of< col_formula, column_list >::value );
     this->viewport()->repaint();
 }
 
 void
 MolTable::getContents( adcontrols::moltable& m )
 {
+    using adportable::index_of;
     QStandardItemModel& model = *impl_->model_;
 
     m.data().clear();
@@ -305,24 +297,24 @@ MolTable::getContents( adcontrols::moltable& m )
     for ( int row = 0; row < model.rowCount(); ++row ) {
         adcontrols::moltable::value_type mol;
 
-        mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
+        mol.formula() = model.index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
 
         if ( !mol.formula().empty() ) {
 
-            mol.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-            // mol.adducts() = model.index( row, c_adducts ).data( Qt::EditRole ).toString().toStdString();
-            mol.adducts_ = model.index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >().adducts; // tuple
+            mol.enable() = model.index( row, index_of< col_formula, column_list >::value ).data( Qt::CheckStateRole ).toBool();
+            // mol.adducts() = model.index( row, index_of< col_adducts, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
+            mol.adducts_ = model.index( row, index_of< col_adducts, column_list >::value ).data( Qt::UserRole + 1 ).value< adducts_type >().adducts; // tuple
 
-            mol.description() = model.index( row, c_description ).data().toString().toStdWString();
-            mol.abundance() = model.index( row, c_abundance ).data().toDouble();
-            mol.synonym() = model.index( row, c_synonym ).data().toString().toStdString();
-            mol.smiles() = model.index( row, c_smiles ).data().toString().toStdString();
-            mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
-            mol.mass() = model.index( row, c_mass ).data().toDouble();
+            mol.description() = model.index( row, index_of< col_memo, column_list >::value ).data().toString().toStdWString();
+            mol.abundance()   = model.index( row, index_of< col_abundance, column_list >::value ).data().toDouble();
+            mol.synonym()     = model.index( row, index_of< col_synonym, column_list >::value ).data().toString().toStdString();
+            mol.smiles()      = model.index( row, index_of< col_smiles, column_list >::value ).data().toString().toStdString();
+            mol.setIsMSRef( model.index( row, index_of< col_msref, column_list >::value ).data( Qt::CheckStateRole ).toBool() );
+            mol.mass()        = model.index( row, index_of< col_mass, column_list >::value ).data().toDouble();
             if ( mol.mass() < 0.7 ) {
                 mol.mass() = std::get< 0 >(
-                    computeMass( model.index(row, c_formula).data(Qt::EditRole).toString()
-                                 , model.index(row, c_adducts).data(Qt::EditRole).toString())
+                    computeMass( model.index(row, index_of< col_formula, column_list >::value).data(Qt::EditRole).toString()
+                                 , model.index(row, index_of< col_adducts, column_list >::value).data(Qt::EditRole).toString())
                     );
             }
             m << mol;
@@ -333,38 +325,39 @@ MolTable::getContents( adcontrols::moltable& m )
 void
 MolTable::handleDataChanged( const QModelIndex& index, const QModelIndex& last )
 {
+    using adportable::index_of;
     QString stdFormula;
     auto model = impl_->model_;
 
-    if ( index.column() == c_formula ) {
+    if ( index.column() == index_of< col_formula, column_list >::value ) {
         impl_->formulaChanged( index.row() );
-        resizeColumnToContents( c_formula );
+        resizeColumnToContents( index_of< col_formula, column_list >::value );
     }
 
-    if ( index.column() == c_adducts ) {
-        auto adducts = model->index( index.row(), c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
+    if ( index.column() == index_of< col_adducts, column_list >::value ) {
+        auto adducts = model->index( index.row(), index_of< col_adducts, column_list >::value ).data( Qt::UserRole + 1 ).value< adducts_type >();
         adducts.set( index.data().toString(), impl_->current_polarity_ ); // update adducts_type
-        model->setData( model->index( index.row(), c_adducts ), QVariant::fromValue( adducts ), Qt::UserRole + 1 ); // restore
+        model->setData( model->index( index.row(), index_of< col_adducts, column_list >::value ), QVariant::fromValue( adducts ), Qt::UserRole + 1 ); // restore
         impl_->formulaChanged( index.row() );
     }
     if ( !stdFormula.isEmpty() )
-        model->setData( model->index( index.row(), c_description ), stdFormula );
+        model->setData( model->index( index.row(), index_of< col_memo, column_list >::value ), stdFormula );
 
-    if ( index.column() == c_smiles ) {
+    if ( index.column() == index_of< col_smiles, column_list >::value ) {
         auto smiles = index.data( Qt::EditRole ).toString();
         if ( smiles.isEmpty() ) {
-            model->setData( model->index( index.row(), c_svg ), QByteArray() );
+            model->setData( model->index( index.row(), index_of< col_svg, column_list >::value ), QByteArray() );
         } else {
             if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
-                model->setData( model->index( index.row(), c_svg ), std::get< 1 >( *d ) );
-                model->setData( model->index( index.row(), c_formula ), std::get< 0 >( *d ) );
+                model->setData( model->index( index.row(), index_of< col_svg, column_list >::value ), std::get< 1 >( *d ) );
+                model->setData( model->index( index.row(), index_of< col_formula, column_list >::value ), std::get< 0 >( *d ) );
                 impl_->formulaChanged( index.row() );
             }
         }
     }
 
     if ( index.row() == model->rowCount() - 1 &&
-         !model->index( index.row(), c_formula ).data( Qt::EditRole ).toString().isEmpty() ) {
+         !model->index( index.row(), index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().isEmpty() ) {
         model->insertRow( index.row() + 1 );
     }
 
@@ -414,11 +407,12 @@ MolTable::handleContextMenu( const QPoint& pt )
 void
 MolTable::enable_all( bool enable )
 {
+    using adportable::index_of;
     QStandardItemModel& model = *impl_->model_;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        if ( ! model.index( row, c_formula ).data().toString().isEmpty() )
-            model.setData( model.index( row, c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        if ( ! model.index( row, index_of< col_formula, column_list >::value ).data().toString().isEmpty() )
+            model.setData( model.index( row, index_of< col_formula, column_list >::value ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 
 }
@@ -494,6 +488,7 @@ MolTable::dropEvent( QDropEvent * event )
 void
 MolTable::handleCopyToClipboard()
 {
+    using adportable::index_of;
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
     std::sort( indices.begin(), indices.end() );
@@ -517,7 +512,7 @@ MolTable::handleCopyToClipboard()
         if ( !isRowHidden( prev.row() ) ) {
 
             //auto t = prev.data( Qt::EditRole ).type();
-            if ( !isColumnHidden( prev.column() ) && ( prev.column() != MolTable::c_svg ) ) {
+            if ( !isColumnHidden( prev.column() ) && ( prev.column() != index_of< col_svg, column_list >::value ) ) {
 
                 QString text = prev.data( Qt::EditRole ).toString();
                 selected_text.append( text );
@@ -526,13 +521,13 @@ MolTable::handleCopyToClipboard()
                     selected_text.append( '\t' );
             }
             switch( prev.column() ) {
-            case MolTable::c_formula: jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_adducts: jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_mass:    jobj[ "mass" ] = prev.data( Qt::EditRole ).toDouble(); break;
-            case MolTable::c_abundance: jobj[ "abundance" ] = prev.data( Qt::EditRole ).toDouble(); break;
-            case MolTable::c_synonym: jobj[ "synonym" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_description: jobj[ "description" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case MolTable::c_smiles:  jobj[ "smiles" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case index_of< col_formula, column_list >::value: jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case index_of< col_adducts, column_list >::value: jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case index_of< col_mass, column_list >::value:    jobj[ "mass" ] = prev.data( Qt::EditRole ).toDouble(); break;
+            case index_of< col_abundance, column_list >::value: jobj[ "abundance" ] = prev.data( Qt::EditRole ).toDouble(); break;
+            case index_of< col_synonym, column_list >::value: jobj[ "synonym" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case index_of< col_memo, column_list >::value: jobj[ "description" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            case index_of< col_smiles, column_list >::value:  jobj[ "smiles" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
             }
             if ( index.row() != prev.row() ) {
                 selected_text.append( '\n' );
@@ -633,12 +628,13 @@ void
 MolTable::setColumHide( const std::vector< std::pair< fields, bool > >& hides )
 {
     for ( auto& hide: hides )
-        setColumnHidden( hide.first, hide.second );
+        QTableView::setColumnHidden( hide.first, hide.second );
 }
 
 void
 MolTable::handlePolarity( adcontrols::ion_polarity polarity )
 {
+    using adportable::index_of;
     auto model = impl_->model_;
     QSignalBlocker block( model );
 
@@ -646,8 +642,8 @@ MolTable::handlePolarity( adcontrols::ion_polarity polarity )
         impl_->current_polarity_ = polarity;
 
         for ( int row = 0; row < model->rowCount(); ++row ) {
-            auto adducts = model->index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
-            model->setData( model->index( row, c_adducts ), adducts.get( polarity ) );
+            auto adducts = model->index( row, index_of< col_adducts, column_list >::value ).data( Qt::UserRole + 1 ).value< adducts_type >();
+            model->setData( model->index( row, index_of< col_adducts, column_list >::value ), adducts.get( polarity ) );
             impl_->formulaChanged( row );
         }
     }
@@ -659,19 +655,21 @@ MolTable::handlePolarity( adcontrols::ion_polarity polarity )
 void
 MolTable::impl::formulaChanged( int row )
 {
-    bool enable = model_->index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-    auto formula = model_->index( row, c_formula ).data().toString().toStdString();
-    auto adduct  = model_->index( row, c_adducts ).data().toString().toStdString();
+    using adportable::index_of;
 
-    if ( auto item = model_->item( row, c_formula ) ) {
+    bool enable = model_->index( row, index_of< col_formula, column_list >::value ).data( Qt::CheckStateRole ).toBool();
+    auto formula = model_->index( row, index_of< col_formula, column_list >::value ).data().toString().toStdString();
+    auto adduct  = model_->index( row, index_of< col_adducts, column_list >::value ).data().toString().toStdString();
+
+    if ( auto item = model_->item( row, index_of< col_formula, column_list >::value ) ) {
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-        model_->setData( model_->index( row, c_formula ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 
     auto vec = adcontrols::ChemicalFormula::standardFormulae( formula, adduct );
     if ( !vec.empty() ) {
         const double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( vec.at( 0 ) );
-        model_->setData( model_->index( row, c_mass ), mass );
+        model_->setData( model_->index( row, index_of< col_mass, column_list >::value ), mass );
         auto mol = adcontrols::ChemicalFormula::toMolecule( formula, adduct );
 
         auto charge_string = (mol.charge() == 1 || mol.charge() == -1) ? QString() : QString("%1").arg(QString::number(std::abs(mol.charge())));
@@ -680,43 +678,44 @@ MolTable::impl::formulaChanged( int row )
         auto adduct_string = QString::fromStdString( adcontrols::ChemicalFormula::neutralize( adduct ).first );
 
         QString display_formula = QString("[M%1]<sup>%2</sup>").arg( adduct_string, charge_string);
-        model_->setData( model_->index( row, c_description ), display_formula );
+        model_->setData( model_->index( row, index_of< col_memo, column_list >::value ), display_formula );
     }
 }
 
 void
 MolTable::impl::setValue( int row, const adcontrols::moltable::value_type& value )
 {
+    using adportable::index_of;
     auto smiles = QString::fromStdString( value.smiles() );
     adducts_type adducts( value.adducts_ );
-    model_->setData( model_->index( row, c_adducts ), QVariant::fromValue( adducts ), Qt::UserRole + 1 );
-    model_->setData( model_->index( row, c_adducts ), adducts.get( current_polarity_ ), Qt::EditRole );
+    model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ), QVariant::fromValue( adducts ), Qt::UserRole + 1 );
+    model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ), adducts.get( current_polarity_ ), Qt::EditRole );
 
-    model_->setData( model_->index( row, c_smiles ),      smiles );
-    model_->setData( model_->index( row, c_formula ),     QString::fromStdString( value.formula() ) );
-    model_->setData( model_->index( row, c_synonym ),     QString::fromStdString( value.synonym() ) );
-    model_->setData( model_->index( row, c_abundance ),   value.abundance() );
-    model_->setData( model_->index( row, c_mass ),        value.mass() );
-    model_->setData( model_->index( row, c_msref ),       value.isMSRef() );
-    model_->setData( model_->index( row, c_description ), QString::fromStdWString( value.description() ) );
+    model_->setData( model_->index( row, index_of< col_smiles, column_list >::value ),      smiles );
+    model_->setData( model_->index( row, index_of< col_formula, column_list >::value ),     QString::fromStdString( value.formula() ) );
+    model_->setData( model_->index( row, index_of< col_synonym, column_list >::value ),     QString::fromStdString( value.synonym() ) );
+    model_->setData( model_->index( row, index_of< col_abundance, column_list >::value ),   value.abundance() );
+    model_->setData( model_->index( row, index_of< col_mass, column_list >::value ),        value.mass() );
+    model_->setData( model_->index( row, index_of< col_msref, column_list >::value ),       value.isMSRef() );
+    model_->setData( model_->index( row, index_of< col_memo, column_list >::value ), QString::fromStdWString( value.description() ) );
 
     if ( !smiles.isEmpty() ) {
         if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
             auto formula = std::get< 0 >( *d );
             auto svg = std::get< 1 >( *d );
-            model_->setData( model_->index( row, c_svg ), svg );
+            model_->setData( model_->index( row, index_of< col_svg, column_list >::value ), svg );
             if ( auto logP = MolTableHelper::logP( smiles ) )
-                model_->setData( model_->index( row, c_logp ), logP->first );
+                model_->setData( model_->index( row, index_of< col_logp, column_list >::value ), logP->first );
         }
-        if ( auto item = model_->item( row, c_formula ) )
+        if ( auto item = model_->item( row, index_of< col_formula, column_list >::value ) )
             item->setEditable( false );
     }
-    if ( auto item = model_->item( row, c_formula ) ) {
+    if ( auto item = model_->item( row, index_of< col_formula, column_list >::value ) ) {
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-        model_->setData( model_->index( row, c_formula ), value.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), value.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
-    if ( auto item = model_->item( row, c_svg ) ) // has structure data
+    if ( auto item = model_->item( row, index_of< col_svg, column_list >::value ) ) // has structure data
         item->setEditable( false );
-    if ( auto item = model_->item( row, c_mass ) )
-        item->setEditable( editable_[ c_mass ] );
+    if ( auto item = model_->item( row, index_of< col_mass, column_list >::value ) )
+        item->setEditable( editable_[ index_of< col_mass, column_list >::value ] );
 }

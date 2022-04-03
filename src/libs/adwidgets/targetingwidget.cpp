@@ -89,7 +89,7 @@ TargetingWidget::OnInitialUpdate()
     if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
         table->setContents( m.molecules() );
-        table->setColumnHidden( MolTable::c_abundance, true );
+        table->setColumnHidden( col_abundance{}, true );
     }
 
     form_->setContents( m );
