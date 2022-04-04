@@ -270,34 +270,16 @@ void
 MolTable::getContents( adcontrols::moltable& m )
 {
     using adportable::index_of;
-    QStandardItemModel& model = *impl_->model_;
+    auto model = impl_->model_;
 
     m.data().clear();
 
-    for ( int row = 0; row < model.rowCount(); ++row ) {
+    for ( int row = 0; row < model->rowCount(); ++row ) {
         adcontrols::moltable::value_type mol;
 
-        mol.formula() = model.index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
-
+        mol.formula() = model->index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
         if ( !mol.formula().empty() ) {
-
-            mol.enable() = model.index( row, index_of< col_formula, column_list >::value ).data( Qt::CheckStateRole ).toBool();
-            // mol.adducts() = model.index( row, index_of< col_adducts, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
-            mol.adducts_ = model.index( row, index_of< col_adducts, column_list >::value ).data( Qt::UserRole + 1 ).value< adducts_type >().adducts; // tuple
-
-            mol.description() = model.index( row, index_of< col_memo, column_list >::value ).data().toString().toStdWString();
-            mol.abundance()   = model.index( row, index_of< col_abundance, column_list >::value ).data().toDouble();
-            mol.synonym()     = model.index( row, index_of< col_synonym, column_list >::value ).data().toString().toStdString();
-            mol.smiles()      = model.index( row, index_of< col_smiles, column_list >::value ).data().toString().toStdString();
-            mol.setIsMSRef( model.index( row, index_of< col_msref, column_list >::value ).data( Qt::CheckStateRole ).toBool() );
-            mol.mass()        = model.index( row, index_of< col_mass, column_list >::value ).data().toDouble();
-            if ( mol.mass() < 0.7 ) {
-                mol.mass() = std::get< 0 >(
-                    computeMass( model.index(row, index_of< col_formula, column_list >::value).data(Qt::EditRole).toString()
-                                 , model.index(row, index_of< col_adducts, column_list >::value).data(Qt::EditRole).toString())
-                    );
-            }
-            m << mol;
+            m << moltable::value_from( model, row, column_list{} );
         }
     }
 }

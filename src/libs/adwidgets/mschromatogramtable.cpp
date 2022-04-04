@@ -201,7 +201,8 @@ MSChromatogramTable::setValue( const adcontrols::moltable& t )
     for ( const auto& mol: t.data() ) {
         impl_->setValue( row++, mol );
     }
-
+    resizeColumnToContents( index_of< col_formula, column_list >::value );
+    this->viewport()->repaint();
 }
 
 void
