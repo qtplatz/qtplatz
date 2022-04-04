@@ -246,7 +246,8 @@ namespace adwidgets {
                     }
 
                     ++xy;
-                    if ( auto groupBox = add_widget( gridLayout, create_widget< QGroupBox >( "GroupBox", QObject::tr("Polarity" ) ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 )){
+                    if ( auto groupBox = add_widget( gridLayout, create_widget< QGroupBox >( "GroupBox"/*, QObject::tr("Polarity"*/ )
+                                                     , std::get<0>(xy), std::get<1>(xy)++, 1, 2 )) {
                         auto layout = create_widget< QHBoxLayout >( "groupBox_Layout" );
                         layout->setSpacing( 2 );
                         layout->setContentsMargins(4, 0, 4, 0);
@@ -263,7 +264,7 @@ namespace adwidgets {
                     groupBoxAutoTargeting->setChecked(false);
 
                     if ( auto gridLayout_4 = create_widget< QGridLayout >("gridLayout_4", groupBoxAutoTargeting ) ) {
-
+                        gridLayout_4->setContentsMargins(4, 0, 4, 0);
                         label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", groupBoxAutoTargeting), 0, 0, 1, 1);
 
                         if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {

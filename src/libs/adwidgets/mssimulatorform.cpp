@@ -58,33 +58,33 @@ namespace adwidgets {
         class MSSimulatorForm {
         public:
             MSSimulatorForm();
-            QVBoxLayout *verticalLayout_2;
-            QVBoxLayout *verticalLayout;
-            QGridLayout *gridLayout;
-            QRadioButton *radioButtonNeg;
-            QLabel *label_2;
-            QSpinBox *spinBox;
-            QHBoxLayout *horizontalLayout;
-            QSpinBox *spinBox_2;
-            QSpinBox *spinBox_3;
-            QRadioButton *radioButtonPos;
-            QLabel *label;
-            QLabel *label_6;
+            QComboBox *comboBox;
             QComboBox *comboBox_2;
-            QGroupBox *groupBox;
-            QGridLayout *gridLayout_3;
-            QGridLayout *gridLayout_2;
-            QLabel *label_5;
-            QSpinBox *spinBox_lap;
             QDoubleSpinBox *doubleSpinBox_3;
             QDoubleSpinBox *doubleSpinBox_4;
             QDoubleSpinBox *doubleSpinBox_5;
+            QGridLayout *gridLayout;
+            QGridLayout *gridLayout_2;
+            QGridLayout *gridLayout_3;
+            QGroupBox *groupBox;
+            QHBoxLayout *horizontalLayout;
+            QHBoxLayout *horizontalLayout_2;
+            QLabel *label;
+            QLabel *label_2;
             QLabel *label_3;
             QLabel *label_4;
-            QComboBox *comboBox;
-            QHBoxLayout *horizontalLayout_2;
-            QSpacerItem *horizontalSpacer;
+            QLabel *label_5;
+            QLabel *label_6;
             QPushButton *pushButton;
+            QRadioButton *radioButtonNeg;
+            QRadioButton *radioButtonPos;
+            QSpacerItem *horizontalSpacer;
+            QSpinBox *spinBox;
+            QSpinBox *spinBox_2;
+            QSpinBox *spinBox_3;
+            QSpinBox *spinBox_lap;
+            QVBoxLayout *verticalLayout;
+            QVBoxLayout *verticalLayout_2;
             void setupUi( adwidgets::MSSimulatorForm * );
             void retranslateUi(QWidget *);
         };
@@ -342,7 +342,8 @@ namespace adwidgets {
                 }
 
                 ++xy; // line 3
-                if ( auto gbx = add_widget( gridLayout, create_widget<QGroupBox>( "GroupBoxPolarity", QObject::tr("Polarity") ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
+                if ( auto gbx = add_widget( gridLayout, create_widget<QGroupBox>( "GroupBoxPolarity" /*, QObject::tr("Polarity")*/ )
+                                            , std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
                     auto _layout = create_widget< QHBoxLayout >("GroupBoxPolarityLayout", gbx );
                     _layout->setSpacing( 2 );
                     _layout->setContentsMargins( 4, 0, 4, 0 );

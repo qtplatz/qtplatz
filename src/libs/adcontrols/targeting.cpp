@@ -355,7 +355,6 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
 
     auto neutral = ChemicalFormula::neutralize( formula );
     int charge = neutral.second ? neutral.second : 1;
-    // double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
     double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) ).first;
 
     if ( ms.nProtocols() <= fcn ) {
@@ -388,7 +387,7 @@ Targeting::setup( const TargetingMethod& m )
 
     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_global;
 
-    bool positive = true;
+    bool positive = m.molecules().polarity() == adcontrols::polarity_positive;
 
     auto charge_range = m.chargeState();
 

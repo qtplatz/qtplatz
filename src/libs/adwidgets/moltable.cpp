@@ -291,6 +291,8 @@ MolTable::handleDataChanged( const QModelIndex& index, const QModelIndex& last )
     QString stdFormula;
     auto model = impl_->model_;
 
+    QSignalBlocker block( model );
+
     if ( index.column() == index_of< col_formula, column_list >::value ) {
         impl_->formulaChanged( index.row() );
         resizeColumnToContents( index_of< col_formula, column_list >::value );
@@ -579,7 +581,16 @@ MolTable::impl::setValue( int row, const adcontrols::moltable::value_type& value
     model_->setData( model_->index( row, index_of< col_synonym,   column_list >::value ), QString::fromStdString( value.synonym() ) );
     model_->setData( model_->index( row, index_of< col_abundance, column_list >::value ), value.abundance() );
     model_->setData( model_->index( row, index_of< col_mass,      column_list >::value ), value.mass() );
-    model_->setData( model_->index( row, index_of< col_msref,     column_list >::value ), value.isMSRef() );
+
+    // model_->setData( model_->index( row, index_of< col_msref,     column_list >::value ), value.isMSRef() );
+    model_->setData( model_->index( row, index_of< col_msref, column_list >::value ), value.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    if ( auto item = model_->item( row, index_of< col_msref, column_list >::value ) ) {
+        item->setEditable( false );
+        item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+    } else {
+        ADDEBUG() << "-------- empty item -----------";
+    }
+
     model_->setData( model_->index( row, index_of< col_memo,      column_list >::value ), QString::fromStdWString( value.description() ) );
 
     if ( !smiles.isEmpty() ) {
@@ -597,6 +608,7 @@ MolTable::impl::setValue( int row, const adcontrols::moltable::value_type& value
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
         model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), value.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
+
     if ( auto item = model_->item( row, index_of< col_svg, column_list >::value ) ) // has structure data
         item->setEditable( false );
     if ( auto item = model_->item( row, index_of< col_mass, column_list >::value ) )

@@ -282,6 +282,14 @@ MSChromatogramTable::impl::setValue( int row, const adcontrols::moltable::value_
     model_->setData( model_->index( row, index_of< col_mass, column_list >::value ),       value.mass() );
     model_->setData( model_->index( row, index_of< col_retentionTime, column_list >::value ), value.tR() ? *value.tR() : 0 );
 
+    model_->setData( model_->index( row, index_of< col_msref, column_list >::value ), value.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    if ( auto item = model_->item( row, index_of< col_msref, column_list >::value ) ) {
+        item->setEditable( false );
+        item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+    } else {
+        ADDEBUG() << "-------- empty item -----------";
+    }
+
     if ( !smiles.isEmpty() ) {
         if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
             model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), std::get< 0 >( *d ) ); // formula

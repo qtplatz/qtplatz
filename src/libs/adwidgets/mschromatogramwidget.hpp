@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,8 +30,6 @@
 #include <memory>
 #include "adwidgets_global.hpp"
 
-#define USE_MOLTABLEVIEW 0
-
 class QMenu;
 class QStandardItemModel;
 
@@ -41,9 +39,6 @@ namespace adwidgets {
 
     class MSChromatogramForm;
     class TargetingTable;
-#if USE_MOLTABLEVIEW
-    class MolTableView;
-#endif
 
     class ADWIDGETSSHARED_EXPORT MSChromatogramWidget : public QWidget
                                                       , public adplugin::LifeCycle {
@@ -69,9 +64,6 @@ namespace adwidgets {
         //
     private:
         void handleContextMenu( QMenu&, const QPoint& );
-#if USE_MOLTABLEVIEW
-        void setup( MolTableView * );
-#endif
     signals:
         void triggerProcess( const QString& );
 
@@ -79,8 +71,7 @@ namespace adwidgets {
 
     private slots:
         void run();
-        void addRow();
-        void handleDataChanged( const QModelIndex&, const QModelIndex& );
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;
