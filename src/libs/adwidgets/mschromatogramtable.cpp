@@ -192,6 +192,8 @@ MSChromatogramTable::setValue( const adcontrols::moltable& t )
 
     QSignalBlocker block( model );
 
+    ADDEBUG() << "######## setValue size: " << t.data().size();
+
     model->setRowCount( int( t.data().size() + 1 ) ); // add one free line for add formula
     impl_->current_polarity_ = t.polarity();
 
@@ -269,6 +271,7 @@ MSChromatogramTable::impl::formulaChanged( int row )
 void
 MSChromatogramTable::impl::setValue( int row, const adcontrols::moltable::value_type& value )
 {
+    ADDEBUG() << "######## setValue row: " << row << ", " << value.formula() << ", " << value.adducts_;
     auto smiles = QString::fromStdString( value.smiles() );
     adducts_type adducts( value.adducts_ );
     model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ),    QVariant::fromValue( adducts ), Qt::UserRole + 1 );

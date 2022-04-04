@@ -26,6 +26,7 @@
 #define TARGETING_HPP
 
 #include "adcontrols_global.h"
+#include "constants_fwd.hpp"
 #include <string>
 #include <vector>
 #include <boost/serialization/nvp.hpp>
@@ -113,7 +114,7 @@ namespace adcontrols {
 
         // 'formula+adduct', exact mass, charge
         static std::vector< std::tuple<std::string, double, int> >
-        make_mapping( const std::pair<uint32_t, uint32_t>&, const std::string& formula, const std::string& adducts, bool positive_polairy );
+        make_mapping( const std::pair<uint32_t, uint32_t>&, const std::string& formula, const std::string& adducts, adcontrols::ion_polarity );
 
         static bool archive( std::ostream&, const Targeting& );
         static bool restore( std::istream&, Targeting& );
@@ -126,7 +127,7 @@ namespace adcontrols {
         std::vector< std::pair< std::string, double > > active_formula_;
 
         void setup( const TargetingMethod& );
-        bool find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive ); //, const std::vector< charge_adduct_type >& list );
+        bool find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_polarity ); //, const std::vector< charge_adduct_type >& list );
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, unsigned int ) {

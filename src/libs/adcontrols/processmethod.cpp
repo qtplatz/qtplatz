@@ -161,7 +161,12 @@ ProcessMethod::restore( std::istream& is, ProcessMethod& t )
 bool
 ProcessMethod::xml_archive( std::wostream& os, const ProcessMethod& t )
 {
-    return internal::xmlSerializer("ProcessMethod").archive( os, t );
+    try {
+        return internal::xmlSerializer("ProcessMethod").archive( os, t );
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << "############ xml_archive got an exception ###########";
+        BOOST_THROW_EXCEPTION( std::runtime_error( ex.what() ) );
+    }
 }
 
 //static

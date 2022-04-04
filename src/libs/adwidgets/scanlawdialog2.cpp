@@ -151,7 +151,7 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
              , [this](const QModelIndex& _1, const QModelIndex& _2, const QVector<int>& _3 ) {
                  if ( _1.column() == impl::c_formula ) {
                      QSignalBlocker block( impl_->model_.get() );
-                     double exactMass = MolTableHelper::monoIsotopicMass( _1.data( Qt::EditRole ).toString() );
+                     double exactMass = std::get< 0 >( moltable::computeMass( _1.data( Qt::EditRole ).toString(), {} ) );
                      impl_->model_->setData( impl_->model_->index( _1.row(), impl::c_mass ), exactMass, Qt::EditRole );
                  }
                  if ( !impl_->model1busy_ )
@@ -318,7 +318,7 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
     model.setRowCount( row + 1 );
     model.setData( model.index( row, impl::c_id ), id, Qt::EditRole );
     model.setData( model.index( row, impl::c_formula ), formula, Qt::EditRole );
-    double exact_mass = MolTableHelper::monoIsotopicMass( formula, "" );
+    double exact_mass = std::get< 0 >( moltable::computeMass( formula, {} ) );
     model.setData( model.index( row, impl::c_mass), exact_mass, Qt::EditRole );
     model.setData( model.index( row, impl::c_time), time * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, impl::c_mode), mode );
@@ -670,7 +670,7 @@ ScanLawDialog2::handleAddPeak()
     auto& model = *impl_->model_;
 
     int mode = 0;
-    double mass = MolTableHelper::monoIsotopicMass( "H" );
+    double mass = std::get< 0 >( moltable::computeMass( "H", {} ) );
     double time = 1.0e-6;
     if ( impl_->spectrometer_ ) {
         auto scanLaw = impl_->spectrometer_->scanLaw();

@@ -136,9 +136,13 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP( vec_ );
-            if ( version >= 1 )
-                ar & BOOST_SERIALIZATION_NVP( ident_ );
+            try {
+                ar & BOOST_SERIALIZATION_NVP( vec_ );
+                if ( version >= 1 )
+                    ar & BOOST_SERIALIZATION_NVP( ident_ );
+            } catch ( std::exception& ex ) {
+                BOOST_THROW_EXCEPTION( std::runtime_error( "serialize error" ) );
+            }
         }
 
     };

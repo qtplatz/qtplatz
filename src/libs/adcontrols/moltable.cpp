@@ -55,20 +55,24 @@ namespace boost {
         template <class Archive >
         void serialize( Archive& ar, moltable::value_type& p, const unsigned int version ) {
             if ( version >= 4 ) {
-                ar & BOOST_SERIALIZATION_NVP( p.enable_ );
-                ar & BOOST_SERIALIZATION_NVP( p.flags_ );
-                ar & BOOST_SERIALIZATION_NVP( p.mass_ );
-                ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
-                ar & BOOST_SERIALIZATION_NVP( p.formula_ );
-                ar & BOOST_SERIALIZATION_NVP( std::get< 0 >( p.adducts_ ) );
-                ar & BOOST_SERIALIZATION_NVP( std::get< 1 >( p.adducts_ ) );
-                ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
-                ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
-                ar & BOOST_SERIALIZATION_NVP( p.description_ );
-                ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
-                ar & BOOST_SERIALIZATION_NVP( p.tR_ );
-                ar & BOOST_SERIALIZATION_NVP( p.molid_ );
-                ar & BOOST_SERIALIZATION_NVP( p.resv_ );
+                try {
+                    ar & BOOST_SERIALIZATION_NVP( p.enable_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.flags_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.mass_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.formula_ );
+                    ar & boost::serialization::make_nvp("adduct_pos", std::get< 0 >( p.adducts_ ) );
+                    ar & boost::serialization::make_nvp("adduct_neg", std::get< 1 >( p.adducts_ ) );
+                    ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.description_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.tR_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.molid_ );
+                    ar & BOOST_SERIALIZATION_NVP( p.resv_ );
+                } catch ( std::exception& ex ) {
+                    BOOST_THROW_EXCEPTION( std::runtime_error( ex.what() ) );
+                }
             } else {
                 std::vector < std::pair< std::string, custom_type > > properties;
                 ar & BOOST_SERIALIZATION_NVP( p.enable_ );

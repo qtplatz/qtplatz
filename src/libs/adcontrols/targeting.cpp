@@ -28,6 +28,7 @@
 #include "targeting.hpp"
 #include "targetingmethod.hpp"
 #include "chemicalformula.hpp"
+#include "constants.hpp"
 #include "massspectrum.hpp"
 #include "molecule.hpp"
 #include "msproperty.hpp"
@@ -202,10 +203,8 @@ Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, int32_t _charge, 
 }
 
 bool
-Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive )
+Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_polarity polarity )
 {
-    (void)polarity_positive;
-
     if ( ms.size() == 0 )
         return false;
 
@@ -231,16 +230,13 @@ Targeting::operator()( const MassSpectrum& ms )
     if ( !ms.isCentroid() )
         return false;
 
-    bool polarity_positive = (ms.polarity() == PolarityPositive) || (ms.polarity() == PolarityIndeterminate);
+    // bool polarity_positive = (ms.polarity() == PolarityPositive) || (ms.polarity() == PolarityIndeterminate);
+    auto polarity = method_->molecules().polarity();
 
     segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     int fcn = 0;
     for ( auto& fms : segs ) {
-        if ( polarity_positive ) {
-            find_candidate( fms, fcn++, true );
-        } else {
-            find_candidate( fms, fcn++, false);
-        }
+        find_candidate( fms, fcn++, polarity );
     }
     return true;
 }
@@ -460,7 +456,10 @@ Targeting::setup( const TargetingMethod& m )
 
 //static
 std::vector< std::tuple<std::string, double, int> >
-Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range, const std::string& formula, const std::string& adducts, bool positive_polairy )
+Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range
+                         , const std::string& formula
+                         , const std::string& adducts
+                         , adcontrols::ion_polarity polarity )
 {
     std::vector< std::tuple<std::string, double, int> > res;
 
@@ -472,7 +471,7 @@ Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range, cons
     }
 
     for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-        int icharge = positive_polairy ? charge : -static_cast<int>(charge);
+        int icharge = polarity == adcontrols::polarity_positive ? charge : -static_cast<int>(charge);
         if ( charge == 0 || charge == 1 ) {
             if ( adducts_local.empty() ) {
                 if ( charge == 0 ) {

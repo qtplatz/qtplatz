@@ -23,23 +23,25 @@
 
 #pragma once
 
+#include <QString>
+
 namespace adwidgets {
     namespace moltable {
 
-        struct col_formula       { typedef std::string value_type; const QString header = "formula";       };
-        struct col_adducts       { typedef std::string value_type; const QString header = "adduct/lose";   };
-        struct col_mass          { typedef double value_type;      const QString header = "mass";          };
-        struct col_retentionTime { typedef double value_type;      const QString header = "t<sub>R</sub>"; };
-        struct col_msref         { typedef bool value_type;        const QString header = "lock mass";     };
-        struct col_protocol      { typedef int value_type;         const QString header = "protocol";      };
-        struct col_synonym       { typedef std::string value_type; const QString header = "synonym";       };
-        struct col_memo          { typedef std::string value_type; const QString header = "memo";          };
-        struct col_svg           { typedef std::string value_type; const QString header = "Structure";     };
-        struct col_smiles        { typedef std::string value_type; const QString header = "SMILES";        };
-        struct col_nlaps         { typedef size_t value_type;      const QString header = "nlaps";         };
-        struct col_abundance     { typedef double value_type;      const QString header = "R.A.";          };
-        struct col_logp          { typedef double value_type;      const QString header = "logP";          };
-        struct col_apparent_mass { typedef double value_type;      const QString header = "apparent <i>m/z</i>"; };
-        struct col_tof           { typedef double value_type;      const QString header = "tof(&mu;s)"; };
+        struct col_formula       { typedef QString value_type; const QString header = "formula";       };
+        struct col_adducts       { typedef QString value_type; const QString header = "adduct/lose";   };
+        struct col_mass          { typedef double  value_type; const QString header = "mass";          };
+        struct col_retentionTime { typedef double  value_type; const QString header = "t<sub>R</sub>"; };
+        struct col_msref         { typedef bool    value_type; const QString header = "lock mass";     };
+        struct col_protocol      { typedef int     value_type; const QString header = "protocol";      };
+        struct col_synonym       { typedef QString value_type; const QString header = "synonym";       };
+        struct col_memo          { typedef QString value_type; const QString header = "memo";          };
+        struct col_svg           { typedef QString value_type; const QString header = "Structure";     };
+        struct col_smiles        { typedef QString value_type; const QString header = "SMILES";        };
+        struct col_nlaps         { typedef QString value_type; const QString header = "nlaps";         };
+        struct col_abundance     { typedef double  value_type; const QString header = "R.A.";          };
+        struct col_logp          { typedef double  value_type; const QString header = "logP";          };
+        struct col_apparent_mass { typedef double  value_type; const QString header = "apparent <i>m/z</i>"; };
+        struct col_tof           { typedef double  value_type; const QString header = "tof(&mu;s)"; };
     }
 }

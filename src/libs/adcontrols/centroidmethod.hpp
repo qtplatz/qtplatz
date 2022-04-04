@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/exception/all.hpp>
 
 namespace adcontrols {
 
@@ -130,32 +131,36 @@ namespace adcontrols {
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
-            if ( version < 5 )
-                ar & BOOST_SERIALIZATION_NVP(baselineWidth_); // deprecated
-            ar & BOOST_SERIALIZATION_NVP(rsConstInDa_);
-            ar & BOOST_SERIALIZATION_NVP(rsPropoInPpm_);
-            ar & BOOST_SERIALIZATION_NVP(rsTofInDa_);
-            ar & BOOST_SERIALIZATION_NVP(rsTofAtMz_);
-            if ( version < 5 )
-                ar & BOOST_SERIALIZATION_NVP(attenuation_); // deprecated
+            try {
+                if ( version < 5 )
+                    ar & BOOST_SERIALIZATION_NVP(baselineWidth_); // deprecated
+                ar & BOOST_SERIALIZATION_NVP(rsConstInDa_);
+                ar & BOOST_SERIALIZATION_NVP(rsPropoInPpm_);
+                ar & BOOST_SERIALIZATION_NVP(rsTofInDa_);
+                ar & BOOST_SERIALIZATION_NVP(rsTofAtMz_);
+                if ( version < 5 )
+                    ar & BOOST_SERIALIZATION_NVP(attenuation_); // deprecated
 
-            ar & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_);
-            ar & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
+                ar & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_);
+                ar & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
 
-            if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP(noiseFilterMethod_)
-                    & BOOST_SERIALIZATION_NVP(cutoffFreqHz_)
-                    ;
-            }
-            if ( version >= 3 ) {
-                ar & BOOST_SERIALIZATION_NVP( areaMethod_ );
-            }
-            if ( version >= 4 ) {
-                ar & BOOST_SERIALIZATION_NVP( processOnTimeAxis_ );
-                ar & BOOST_SERIALIZATION_NVP( rsInSeconds_ );
-            }
-            if ( version >= 5 ) {
-                ar & BOOST_SERIALIZATION_NVP( peakWidthMethod_ ); // this was forgotten
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP(noiseFilterMethod_)
+                        & BOOST_SERIALIZATION_NVP(cutoffFreqHz_)
+                        ;
+                }
+                if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP( areaMethod_ );
+                }
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( processOnTimeAxis_ );
+                    ar & BOOST_SERIALIZATION_NVP( rsInSeconds_ );
+                }
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( peakWidthMethod_ ); // this was forgotten
+                }
+            } catch ( std::exception& ex ) {
+                BOOST_THROW_EXCEPTION( std::runtime_error( ex.what() ) );
             }
         }
 

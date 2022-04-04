@@ -33,6 +33,7 @@
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adcontrols/molecule.hpp>
@@ -626,9 +627,10 @@ void
 MolTableView::handleCopyToClipboard()
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
-    std::sort( indices.begin(), indices.end() );
     if ( indices.size() < 1 )
         return;
+
+    std::sort( indices.begin(), indices.end() );
 
     int column_mass = impl_->findColumn( ColumnState::f_mass );
 
@@ -636,59 +638,56 @@ MolTableView::handleCopyToClipboard()
     QModelIndex prev = indices.first();
     QModelIndex last = indices.last();
 
-    boost::json::array ja;
-    boost::json::object jobj;
+    // boost::json::array ja;
+    // boost::json::object jobj;
+
+    adcontrols::moltable mols;
+    adcontrols::moltable::value_type mol;
 
     for( int i = 1; i < indices.size(); ++i ) {
 
         QModelIndex index = indices.at( i );
 
         if ( !isRowHidden( prev.row() ) ) {
-
             if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != ColumnState::f_svg ) ) {
                 QString text = prev.data( Qt::EditRole ).toString();
                 selected_text.append( text );
-
                 if ( index.row() == prev.row() )
                     selected_text.append( '\t' );
             }
 
             switch( impl_->field( prev.column() ) ) {
-            case ColumnState::f_formula:     jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString();   break;
-            case ColumnState::f_adducts:     jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString();   break;
-            case ColumnState::f_mass:        jobj[ "mass" ] = prev.data( Qt::EditRole ).toDouble();      break;
-            case ColumnState::f_abundance:   jobj[ "abundance" ] = prev.data( Qt::EditRole ).toDouble(); break;
-            case ColumnState::f_synonym:     jobj[ "synonym" ] = prev.data( Qt::EditRole ).toDouble();   break;
-            case ColumnState::f_description: jobj[ "description" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_smiles:      jobj[ "smiles" ] = prev.data( Qt::EditRole ).toString().toStdString();    break;
+            case ColumnState::f_formula:     mol.formula()     = prev.data( Qt::EditRole ).toString().toStdString();   break;
+            case ColumnState::f_adducts:     mol.adducts< adcontrols::polarity_positive >() = prev.data( Qt::EditRole ).toString().toStdString();   break;
+            case ColumnState::f_mass:        mol.mass()        = prev.data( Qt::EditRole ).toDouble(); break;
+            case ColumnState::f_abundance:   mol.abundance()   = prev.data( Qt::EditRole ).toDouble(); break;
+            case ColumnState::f_synonym:     mol.synonym()     = prev.data( Qt::EditRole ).toString().toStdString();  break;
+            case ColumnState::f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
+            case ColumnState::f_smiles:      mol.smiles()      = prev.data( Qt::EditRole ).toString().toStdString();  break;
             case ColumnState::f_any:
-                jobj[ model()->headerData( prev.column(), Qt::Horizontal ).toString().toStdString() ] = prev.data( Qt::EditRole ).toString().toStdString();
-                break;
             default: break;
             }
-
             // eol found
             if ( index.row() != prev.row() ) {
                 selected_text.append( '\n' );
-
-                if ( !jobj.empty() && model()->index( prev.row(), column_mass ).data( Qt::EditRole ).toDouble() > 0.1 )
-                    ja.push_back( jobj );
-
-                jobj.clear();
+                if ( !( mol.formula().empty() && mol.smiles().empty() ) ) {
+                    mols << mol;
+                }
+                mol = {};
             }
         }
         prev = index;
     }
-
-    if ( !jobj.empty() && model()->index( last.row(), column_mass ).data( Qt::EditRole ).toDouble() > 0.1 ) {
-        ja.push_back( jobj );
-    }
+    mols << mol; // add last line
 
     if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) ) {
         selected_text.append( last.data( Qt::EditRole ).toString() );
     }
 
-    auto json = QString::fromStdString( boost::json::serialize( boost::json::value{{ "moltable", ja }} ) );
+    auto jv = boost::json::value_from( mols );
+    QString json = QString::fromStdString( static_cast< std::string >(boost::json::serialize( jv ) ) );
+
+    ADDEBUG() << "handleCopy: " << mols.data().size() << " rows";
 
     if ( auto md = new QMimeData() ) {
         md->setData( QLatin1String( "application/json" ), json.toUtf8() );

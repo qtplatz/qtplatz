@@ -24,15 +24,22 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
+#include "moltablecolumns.hpp"
 #include <adportable/optional.hpp>
-#include <adcontrols/constants_fwd.hpp>
-#include <vector>
-#include <QString>
+#include <adcontrols/constants.hpp>
+#include <adcontrols/moltable.hpp>
+#include <adportable/debug.hpp>
+#include <QAbstractItemModel>
 #include <QMetaType>
+#include <QString>
+#include <vector>
+#include <tuple>
 
 class QUrl;
 class QClipboard;
 class QByteArray;
+
+namespace adcontrols { class moltable; }
 
 namespace adwidgets {
 
@@ -51,14 +58,102 @@ namespace adwidgets {
             std::vector< value_type > operator()( const QUrl& ) const;           // drag&drop
             std::vector< value_type > operator()( const QClipboard* ) const;     // paste
         };
+        static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
 
         static adportable::optional< std::pair<double, double> > logP( const QString& smiles );
-
-        static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
+        static adportable::optional< adcontrols::moltable > paste();
     };
 
     namespace moltable {
+
         std::tuple< double, QString > computeMass( const QString& formula, const QString& adducts );
+
+        ///// set headerData helper
+        template< class Tuple, std::size_t... Is> void
+        setHeaderDataImpl( QAbstractItemModel * model
+                           , const Tuple& t, std::index_sequence<Is...>) {
+            ( (model->setHeaderData( Is, Qt::Horizontal, std::get<Is>(t).header )), ... );
+        }
+
+        template< typename... Args > void
+        setHeaderData( QAbstractItemModel * model
+                       , const std::tuple< Args ...>&& args) {
+            setHeaderDataImpl( model, args, std::index_sequence_for<Args...>{} );
+        }
+
+        //------------------------------------------------------
+        //--------------- clipboard copy helper ----------------
+        //------------------------------------------------------
+        // equal_range will be supported on c++20
+        template< typename Iterator, typename T, typename Compare > std::pair< Iterator, Iterator >
+        equal_range( Iterator first, Iterator last, const T& value, Compare comp ) {
+            return std::make_pair( std::lower_bound( first, last, value, comp )
+                                   , std::upper_bound( first, last, value, comp ) );
+        }
+
+        //------------------------------------------------------
+        //------------------------------------------------------
+        //------------------------------------------------------
+        namespace detail {
+            typedef std::pair< const QModelIndexList::const_iterator, const QModelIndexList::const_iterator > QModelIndexRange;
+
+            template< size_t Is >
+            bool if_contains( const QModelIndexRange& range ) {
+                return std::find_if( range.first, range.second, [](const auto& a){ return a.column() == Is; }) != range.second;
+            }
+
+            template< typename T > void __assign( T& t, const QModelIndex& index, adcontrols::moltable::value_type& value ) {
+            };
+
+            template<> void __assign( moltable::col_formula& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_adducts& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_mass& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_retentionTime& t, const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_msref& t,         const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_protocol& t,      const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_synonym& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_memo& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_smiles& t,        const QModelIndex& index, adcontrols::moltable::value_type& value );
+            // template<> void __assign( moltable::col_nlaps& t,         const QModelIndex& index, adcontrols::moltable::value_type& value );
+            template<> void __assign( moltable::col_abundance& t,     const QModelIndex& index, adcontrols::moltable::value_type& value );
+            // template<> void __assign( moltable::col_logp& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
+            // template<> void __assign( moltable::col_apparent_mass& t, const QModelIndex& index, adcontrols::moltable::value_type& value );
+            // template<> void __assign( moltable::col_tof& t,           const QModelIndex& index, adcontrols::moltable::value_type& value );
+
+            template< size_t Is, typename T >
+            void assign( T& t, const QModelIndexRange& range, adcontrols::moltable::value_type& value ) {
+                auto it = std::find_if( range.first, range.second, [](const auto& a){ return a.column() == Is; });
+                if ( it != range.second ) {
+                    __assign( t, *it, value );
+                }
+            }
+
+            template< typename Tuple, std::size_t... Is >
+            adcontrols::moltable::value_type value_from( const QModelIndexRange& range
+                                                         , Tuple&& tag
+                                                         , std::index_sequence<Is...> ) {
+                adcontrols::moltable::value_type value;
+                // (( ADDEBUG() << std::make_tuple( if_contains<Is>(range), Is, std::get<Is>(tag).header.toStdString() )), ... );
+                (( assign<Is>( std::get<Is>( tag ), range, value ) ), ... );
+                ADDEBUG() << "--------------------";
+                return value;
+            }
+        }
+
+        template< typename... Args >
+        adcontrols::moltable copy( const QModelIndexList& indices, std::tuple< Args... >&& ) {
+            using namespace detail;
+            std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
+            adcontrols::moltable mols;
+            while ( range.first != indices.end() ) {
+                range = equal_range( indices.begin(), indices.end(), *range.first, [](const auto& a, const auto& b){ return a.row() < b.row(); });
+                if ( range.first != indices.end() ) {
+                    mols << value_from( range, std::tuple<Args...>{}, std::index_sequence_for< Args... >{} );
+                }
+                range.first = range.second;
+            }
+            return mols;
+        }
     }
 
 }

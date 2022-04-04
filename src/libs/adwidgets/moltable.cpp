@@ -72,28 +72,8 @@
 using namespace adwidgets;
 using adportable::index_of;
 
-namespace {
-    template< class Tuple, std::size_t... Is> void setHeaderDataImpl( QStandardItemModel * model, const Tuple& t, std::index_sequence<Is...>) {
-        ( (model->setHeaderData( Is, Qt::Horizontal, std::get<Is>(t).header )), ... );
-    }
-
-    template< typename... Args > void setHeaderData( QStandardItemModel * model, const std::tuple< Args ...>&& args) {
-        setHeaderDataImpl( model, args, std::index_sequence_for<Args...>{} );
-    }
-}
-
 
 namespace {
-    // static std::tuple< double, QString > computeMass( const QString& formula, const QString& adducts )
-    // {
-    //     std::string stdformula = formula.toStdString();
-    //     std::string stdadducts = adducts.toStdString();
-    //     auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
-    //     if ( v.empty() )
-    //         return {0,{}};
-    //     return { adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ), QString::fromStdString( v[0] ) }; // handle first molecule
-    // }
-    // /////////////////
 
     class delegate : public QStyledItemDelegate {
         enum {
@@ -235,7 +215,6 @@ MolTable::MolTable(QWidget *parent) : TableView(parent)
     connect( this, &QTableView::customContextMenuRequested, this, &MolTable::handleContextMenu );
 
     impl_->model_->setColumnCount( std::tuple_size< column_list >() );
-    // impl_->model_->setColumnCount( nbrColums );
     impl_->model_->setRowCount( 1 );
     //setColumnHidden( c_smiles, true );
 }
@@ -253,6 +232,7 @@ MolTable::onInitialUpdate()
 
     setHeaderData( model, column_list{} );
 
+    //----------
     setColumnHidden( col_msref{}, true );
     setColumnHidden( col_nlaps(), true );
     setColumnHidden( col_apparent_mass(), true );
@@ -495,60 +475,28 @@ MolTable::handleCopyToClipboard()
     if ( indices.size() < 1 )
         return;
 
-    adcontrols::moltable molecules;
+    auto mol = moltable::copy( indices, column_list{} );
+    auto json = QString::fromStdString( boost::json::serialize( boost::json::value_from( mol ) ) );
 
+    // text
     QString selected_text;
-    QModelIndex prev = indices.first();
-    QModelIndex last = indices.last();
-
-    indices.removeFirst();
-
-    boost::json::array ja;
-    boost::json::object jobj;
-    for( int i = 0; i < indices.size(); ++i ) {
-
-        QModelIndex index = indices.at( i );
-
-        if ( !isRowHidden( prev.row() ) ) {
-
-            //auto t = prev.data( Qt::EditRole ).type();
-            if ( !isColumnHidden( prev.column() ) && ( prev.column() != index_of< col_svg, column_list >::value ) ) {
-
-                QString text = prev.data( Qt::EditRole ).toString();
+    std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
+    while ( range.first != indices.end() ) {
+        range = equal_range( indices.begin(), indices.end(), *range.first, [](const auto& a, const auto& b){ return a.row() < b.row(); });
+        // per line
+        for ( auto it = range.first; it != range.second; ++it ) {
+            if ( !isColumnHidden( it->column() ) && ( it->column() != index_of< col_svg, column_list >::value ) )  {
+                auto text = it->data( Qt::EditRole ).toString();
                 selected_text.append( text );
-
-                if ( index.row() == prev.row() )
-                    selected_text.append( '\t' );
-            }
-            switch( prev.column() ) {
-            case index_of< col_formula, column_list >::value: jobj[ "formula" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case index_of< col_adducts, column_list >::value: jobj[ "adducts" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case index_of< col_mass, column_list >::value:    jobj[ "mass" ] = prev.data( Qt::EditRole ).toDouble(); break;
-            case index_of< col_abundance, column_list >::value: jobj[ "abundance" ] = prev.data( Qt::EditRole ).toDouble(); break;
-            case index_of< col_synonym, column_list >::value: jobj[ "synonym" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case index_of< col_memo, column_list >::value: jobj[ "description" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case index_of< col_smiles, column_list >::value:  jobj[ "smiles" ] = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            }
-            if ( index.row() != prev.row() ) {
-                selected_text.append( '\n' );
-                if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
-                    ja.push_back( jobj );
-                jobj.clear();
+                selected_text.append( '\t' );
             }
         }
-        prev = index;
+        selected_text.append( '\n' );
+        range.first = range.second;
     }
-    if ( !jobj.empty() && jobj.at( "mass" ).as_double() > 0.5 )
-        ja.push_back( jobj );
-
-    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
-        selected_text.append( last.data( Qt::EditRole ).toString() );
-
-    auto json = QString::fromStdString( boost::json::serialize( boost::json::value{{ "moltable", ja }} ) );
-    // ADDEBUG() << json.toStdString();
-
     if ( auto md = new QMimeData() ) {
         md->setData( QLatin1String( "application/json" ), json.toUtf8() );
+        // workaround for x11
         if ( QApplication::keyboardModifiers() & ( Qt::ShiftModifier | Qt::ControlModifier ) )
             md->setText( json );
         else
@@ -561,65 +509,16 @@ void
 MolTable::handlePaste()
 {
     auto model = impl_->model_;
-    int row = model->rowCount() ? model->rowCount() - 1 : 0;
 
-    if ( auto md = QApplication::clipboard()->mimeData() ) {
-        boost::json::value jv;
-        boost::system::error_code ec;
-        auto data = md->data( "application/json" );
-        if ( data.isEmpty() ) {
-            auto text = md->data( "text/plain" );
-            if ( text.at( 0 ) == '{' ) { // check if json
-                jv = boost::json::parse( text.toStdString(), ec );
-            } else {
-                std::istringstream in( text.toStdString() );
-                std::string line;
-                boost::json::array ja;
-                while ( std::getline( in, line ) ) {
-                    ADDEBUG() << row << "\t" << line;
-                    if ( adcontrols::ChemicalFormula().getMonoIsotopicMass( line ) > 0.1 ) {
-                        ja.push_back( {{ "formula", line }, {"enable", true}, {"abundance", 1.0}} );
-                    }
-                }
-                jv = {{ "moltable", ja }};
-            }
-        } else {
-            jv = boost::json::parse( data.toStdString(), ec );
-        }
+    int row = model->rowCount() - 1;
 
-        if ( !ec && jv.is_object() && jv.as_object().contains( "moltable" ) ) {
-            auto ja = jv.as_object()[ "moltable" ].as_array();
-            model->setRowCount( row + int( ja.size() ) + 1 );
-            adcontrols::moltable::value_type mol;
-            for ( const auto& ji: ja ) {
-                for ( const auto& it: ji.as_object() ) {
-                    if ( it.key() == "smiles" )
-                        mol.smiles() = it.value().as_string().data();
-                    if ( it.key() == "mass" )
-                        mol.mass() = it.value().as_double();
-                    if ( it.key() == "formula" )
-                        mol.formula() = it.value().as_string().data();
-                    if ( it.key() == "synonym" )
-                        mol.synonym() = it.value().as_string().data();
-                    if ( it.key() == "enable" )
-                        mol.enable() = it.value().as_bool();
-                    if ( it.key() == "abundance" )
-                        mol.enable() = it.value().as_double();
-                }
-                /*
-                impl_->setData( *this
-                                , row++
-                                , QString::fromStdString( mol.formula() )
-                                , QString::fromStdString( mol.adducts() )
-                                , QString::fromStdString( mol.smiles() )
-                                , QByteArray()
-                                , QString::fromStdString( mol.synonym() )
-                                , QString::fromStdWString( mol.description() )
-                                , mol.mass()
-                                , mol.abundance()
-                                , mol.enable() );
-                */
-            }
+    if ( auto mols = MolTableHelper::paste() ) {
+        model->setRowCount( model->rowCount() + mols->data().size() );
+
+        QSignalBlocker block( model );
+        for ( const auto& value: mols->data() ) {
+            // ADDEBUG() << "row: " << row << "\t" << value.mass() << ", " << value.synonym();
+            impl_->setValue( row++, value );
         }
     }
 }
@@ -686,18 +585,20 @@ void
 MolTable::impl::setValue( int row, const adcontrols::moltable::value_type& value )
 {
     using adportable::index_of;
+
     auto smiles = QString::fromStdString( value.smiles() );
     adducts_type adducts( value.adducts_ );
-    model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ), QVariant::fromValue( adducts ), Qt::UserRole + 1 );
-    model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ), adducts.get( current_polarity_ ), Qt::EditRole );
 
-    model_->setData( model_->index( row, index_of< col_smiles, column_list >::value ),      smiles );
-    model_->setData( model_->index( row, index_of< col_formula, column_list >::value ),     QString::fromStdString( value.formula() ) );
-    model_->setData( model_->index( row, index_of< col_synonym, column_list >::value ),     QString::fromStdString( value.synonym() ) );
-    model_->setData( model_->index( row, index_of< col_abundance, column_list >::value ),   value.abundance() );
-    model_->setData( model_->index( row, index_of< col_mass, column_list >::value ),        value.mass() );
-    model_->setData( model_->index( row, index_of< col_msref, column_list >::value ),       value.isMSRef() );
-    model_->setData( model_->index( row, index_of< col_memo, column_list >::value ), QString::fromStdWString( value.description() ) );
+    model_->setData( model_->index( row, index_of< col_adducts,   column_list >::value ), QVariant::fromValue( adducts ), Qt::UserRole + 1 );
+    model_->setData( model_->index( row, index_of< col_adducts,   column_list >::value ), adducts.get( current_polarity_ ), Qt::EditRole );
+
+    model_->setData( model_->index( row, index_of< col_smiles,    column_list >::value ), smiles );
+    model_->setData( model_->index( row, index_of< col_formula,   column_list >::value ), QString::fromStdString( value.formula() ) );
+    model_->setData( model_->index( row, index_of< col_synonym,   column_list >::value ), QString::fromStdString( value.synonym() ) );
+    model_->setData( model_->index( row, index_of< col_abundance, column_list >::value ), value.abundance() );
+    model_->setData( model_->index( row, index_of< col_mass,      column_list >::value ), value.mass() );
+    model_->setData( model_->index( row, index_of< col_msref,     column_list >::value ), value.isMSRef() );
+    model_->setData( model_->index( row, index_of< col_memo,      column_list >::value ), QString::fromStdWString( value.description() ) );
 
     if ( !smiles.isEmpty() ) {
         if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
