@@ -30,6 +30,8 @@
 #include <memory>
 #include "adwidgets_global.hpp"
 
+#define USE_MOLTABLEVIEW 0
+
 class QMenu;
 class QStandardItemModel;
 
@@ -39,7 +41,9 @@ namespace adwidgets {
 
     class MSChromatogramForm;
     class TargetingTable;
+#if USE_MOLTABLEVIEW
     class MolTableView;
+#endif
 
     class ADWIDGETSSHARED_EXPORT MSChromatogramWidget : public QWidget
                                                       , public adplugin::LifeCycle {
@@ -65,8 +69,9 @@ namespace adwidgets {
         //
     private:
         void handleContextMenu( QMenu&, const QPoint& );
+#if USE_MOLTABLEVIEW
         void setup( MolTableView * );
-
+#endif
     signals:
         void triggerProcess( const QString& );
 

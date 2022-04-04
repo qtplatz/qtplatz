@@ -43,20 +43,20 @@ namespace adwidgets {
     using namespace moltable;
     using adportable::index_of;
 
-    typedef std::tuple< col_formula
-                        , col_adducts
-                        , col_mass
-                        , col_retentionTime
-                        , col_msref
-                        , col_protocol
-                        , col_synonym
-                        , col_memo
-                        , col_svg
-                        , col_smiles > column_list;
-
     class MSChromatogramTable : public TableView {
         Q_OBJECT
     public:
+        typedef std::tuple< col_formula
+                            , col_adducts
+                            , col_mass
+                            , col_retentionTime
+                            , col_msref
+                            , col_protocol
+                            , col_synonym
+                            , col_memo
+                            , col_svg
+                            , col_smiles > column_list;
+
         explicit MSChromatogramTable(QWidget *parent = 0);
         ~MSChromatogramTable();
 
@@ -68,7 +68,7 @@ namespace adwidgets {
         void setValue( const adcontrols::moltable& );
 
         // void setValue( const adcontrols::MSChromatogramMethod& );
-        // void getContents( adcontrols::MSChromatogramMethod& );
+        void getContents( adcontrols::moltable& );
 
     private:
 
@@ -79,6 +79,8 @@ namespace adwidgets {
     public slots:
         void handlePolarity( adcontrols::ion_polarity );
         void handleDataChanged( const QModelIndex&, const QModelIndex& );
+        void handleCopyToClipboard() override;
+        void handlePaste() override;
 
     private slots:
         // void handleContextMenu( const QPoint& pt );

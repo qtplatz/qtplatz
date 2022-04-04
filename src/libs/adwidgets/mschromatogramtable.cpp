@@ -81,20 +81,22 @@ namespace adwidgets {
 }
 
 namespace {
+    using adwidgets::moltable::computeMass;
+    typedef MSChromatogramTable::column_list column_list;
 
-    template< class Tuple, std::size_t... Is> void setHeaderDataImpl( QStandardItemModel * model, const Tuple& t, std::index_sequence<Is...>) {
-        ( (model->setHeaderData( Is, Qt::Horizontal, std::get<Is>(t).header )), ... );
-    }
-
-    template< typename... Args > void setHeaderData( QStandardItemModel * model, const std::tuple< Args ...>&& args) {
-        setHeaderDataImpl( model, args, std::index_sequence_for<Args...>{} );
-    }
-
-}
-
-namespace {
+    enum fields {
+        c_formula         = adportable::index_of< col_formula,   column_list >::value
+        , c_adducts       = adportable::index_of< col_adducts,   column_list >::value
+        , c_mass          = adportable::index_of< col_mass,      column_list >::value
+        , c_msref         = adportable::index_of< col_msref,     column_list >::value
+        , c_synonym       = adportable::index_of< col_synonym,   column_list >::value
+        , c_svg           = adportable::index_of< col_svg,       column_list >::value
+        , c_smiles        = adportable::index_of< col_smiles,    column_list >::value
+        , c_description   = adportable::index_of< col_memo,      column_list >::value
+    };
 
     class delegate : public QStyledItemDelegate {
+
 
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             using adcontrols::ChemicalFormula;
@@ -112,9 +114,20 @@ namespace {
             } else if ( index.column() == index_of< col_memo, column_list >::value ) {
                 DelegateHelper::render_html2( painter, opt, index.data().toString() );
             } else if ( index.column() == index_of< col_mass, column_list >::value ) {
+                double exactMass = std::get< 0 >( computeMass( index.model()->index( index.row(), c_formula ).data().toString()
+                                                               , index.model()->index( index.row(), c_adducts ).data().toString() ) );
+                double mass = index.data( Qt::EditRole ).toDouble();
+                if ( adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
+                    painter->fillRect( option.rect, QColor( 0xf0, 0xf8, 0xff, 0x80 ) ); // AliceBlue
+                else
+                    painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
                 painter->drawText( opt.rect
                                    , opt.displayAlignment
                                    , QString::number( index.data().toDouble(), 'f', 4  ) );
+            } else if ( index.column() == index_of< col_retentionTime, column_list >::value ) {
+                painter->drawText( opt.rect
+                                   , opt.displayAlignment
+                                   , QString::number( index.data().toDouble(), 'f', 1  ) );
             } else if ( index.column() == index_of< col_svg, column_list >::value ) {
                 painter->save();
                 QSvgRenderer renderer( index.data().toByteArray() );
@@ -161,15 +174,6 @@ MSChromatogramTable::MSChromatogramTable(QWidget *parent) : TableView( parent )
     setItemDelegate( new delegate() );
 
     impl_->model_->setColumnCount( std::tuple_size< column_list >() );
-
-    // impl_->model_->setRowCount( 8 );
-
-    // setSortingEnabled( false );
-    // setAcceptDrops( true );
-
-    // setContextMenuPolicy( Qt::CustomContextMenu );
-
-    // //setColumnHidden( c_smiles, true );
 }
 
 MSChromatogramTable::~MSChromatogramTable()
@@ -180,8 +184,6 @@ void
 MSChromatogramTable::onInitialUpdate()
 {
     setHeaderData( impl_->model_.get(), column_list{} );
-
-    // connect( this, &QTableView::customContextMenuRequested, this, &MSChromatogramTable::handleContextMenu );
     connect( impl_->model_.get(), &QStandardItemModel::dataChanged, this, &MSChromatogramTable::handleDataChanged );
 }
 
@@ -191,8 +193,6 @@ MSChromatogramTable::setValue( const adcontrols::moltable& t )
     auto model = impl_->model_.get();
 
     QSignalBlocker block( model );
-
-    ADDEBUG() << "######## setValue size: " << t.data().size();
 
     model->setRowCount( int( t.data().size() + 1 ) ); // add one free line for add formula
     impl_->current_polarity_ = t.polarity();
@@ -271,28 +271,20 @@ MSChromatogramTable::impl::formulaChanged( int row )
 void
 MSChromatogramTable::impl::setValue( int row, const adcontrols::moltable::value_type& value )
 {
-    ADDEBUG() << "######## setValue row: " << row << ", " << value.formula() << ", " << value.adducts_;
     auto smiles = QString::fromStdString( value.smiles() );
     adducts_type adducts( value.adducts_ );
     model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ),    QVariant::fromValue( adducts ), Qt::UserRole + 1 );
     model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ),    adducts.get( current_polarity_ ), Qt::EditRole );
-
-    model_->setData( model_->index( row, index_of< col_smiles, column_list >::value ),     smiles );
+    model_->setData( model_->index( row, index_of< col_smiles,  column_list >::value ),    smiles );
     model_->setData( model_->index( row, index_of< col_formula, column_list >::value ),    QString::fromStdString( value.formula() ) );
     model_->setData( model_->index( row, index_of< col_synonym, column_list >::value ),    QString::fromStdString( value.synonym() ) );
-
-    model_->setData( model_->index( row, index_of< col_mass, column_list >::value ),        value.mass() );
-    // model_->setData( model_->index( row, index_of< col_msref, column_list >::value ),       value.isMSRef() );
-    // model_->setData( model_->index( row, index_of< col_description, column_list >::value ), QString::fromStdWString( value.description() ) );
-
+    model_->setData( model_->index( row, index_of< col_mass, column_list >::value ),       value.mass() );
     model_->setData( model_->index( row, index_of< col_retentionTime, column_list >::value ), value.tR() ? *value.tR() : 0 );
 
     if ( !smiles.isEmpty() ) {
         if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {
             model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), std::get< 0 >( *d ) ); // formula
             model_->setData( model_->index( row, index_of< col_svg, column_list >::value ), std::get< 1 >( *d ) ); // svg
-            // if ( auto logP = MolTableHelper::logP( smiles ) )
-            //     model_->setData( model_->index( row, index_of< col_logp, column_list >::value ), logP->first );
         }
         if ( auto item = model_->item( row, index_of< col_formula, column_list >::value ) )
             item->setEditable( false );
@@ -303,6 +295,72 @@ MSChromatogramTable::impl::setValue( int row, const adcontrols::moltable::value_
     }
     if ( auto item = model_->item( row, index_of< col_svg, column_list >::value ) ) // has structure data
         item->setEditable( false );
-    // if ( auto item = model_->item( row, index_of< col_mass, column_list >::value ) )
-    //     item->setEditable( editable_[ index_of< col_mass, column_list >::value ] );
+}
+
+void
+MSChromatogramTable::handleCopyToClipboard()
+{
+    using adportable::index_of;
+	QModelIndexList indices = selectionModel()->selectedIndexes();
+
+    std::sort( indices.begin(), indices.end() );
+    if ( indices.size() < 1 )
+        return;
+
+    auto mol = moltable::copy( indices, column_list{} );
+    auto json = QString::fromStdString( boost::json::serialize( boost::json::value_from( mol ) ) );
+    // text
+    QString selected_text;
+    std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
+    while ( range.first != indices.end() ) {
+        range = equal_range( indices.begin(), indices.end(), *range.first, [](const auto& a, const auto& b){ return a.row() < b.row(); });
+        // per line
+        for ( auto it = range.first; it != range.second; ++it ) {
+            if ( !isColumnHidden( it->column() ) && ( it->column() != index_of< col_svg, column_list >::value ) )  {
+                auto text = it->data( Qt::EditRole ).toString();
+                selected_text.append( text );
+                selected_text.append( '\t' );
+            }
+        }
+        selected_text.append( '\n' );
+        range.first = range.second;
+    }
+    if ( auto md = new QMimeData() ) {
+        md->setData( QLatin1String( "application/json" ), json.toUtf8() );
+        // workaround for x11
+        if ( QApplication::keyboardModifiers() & ( Qt::ShiftModifier | Qt::ControlModifier ) )
+            md->setText( json );
+        else
+            md->setText( selected_text );
+        QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
+    }
+}
+
+void
+MSChromatogramTable::handlePaste()
+{
+    auto model = impl_->model_.get();
+
+    int row = model->rowCount() - 1;
+
+    if ( auto mols = MolTableHelper::paste() ) {
+        model->setRowCount( model->rowCount() + mols->data().size() );
+
+        QSignalBlocker block( model );
+        for ( const auto& value: mols->data() ) {
+            impl_->setValue( row++, value );
+        }
+    }
+}
+
+void
+MSChromatogramTable::getContents( adcontrols::moltable& m )
+{
+    using adportable::index_of;
+    auto model = impl_->model_.get();
+    m.data().clear();
+    for ( int row = 0; row < model->rowCount(); ++row ) {
+        m << moltable::value_from( model, row, column_list{} );
+    }
+
 }

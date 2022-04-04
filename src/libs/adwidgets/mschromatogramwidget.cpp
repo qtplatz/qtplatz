@@ -213,8 +213,10 @@ MSChromatogramWidget::getContents( adcontrols::MSChromatogramMethod& m ) const
 {
     if ( auto form = findChild< MSChromatogramForm * >() )
         form->getContents( m );
+    if ( auto table = findChild< MSChromatogramTable * >() )
+        table->getContents( m.molecules() );
 
-    m.molecules().data().clear();
+#if USE_MOLTABLEVIEW
 
     for ( int row = 0; row < impl_->model_->rowCount(); ++row ) {
         adcontrols::moltable::value_type value;
@@ -226,14 +228,14 @@ MSChromatogramWidget::getContents( adcontrols::MSChromatogramMethod& m ) const
         }
     }
 
-#if ! defined NDEBUG // || 1
+# if ! defined NDEBUG // || 1
     int cnt = 0;
     for ( const auto& value: m.molecules().data() ) {
         ADDEBUG() << boost::json::object{ { "row", cnt++}, { "formula", value.formula() }
                 , { "enable", value.enable() }, {"adducts", value.adducts() }, { "mass", value.mass() } };
     }
+# endif
 #endif
-
     return true;
 }
 
@@ -249,6 +251,7 @@ MSChromatogramWidget::run()
     emit triggerProcess( "MSChromatogramWidget" );
 }
 
+#if USE_MOLTABLEVIEW
 void
 MSChromatogramWidget::setup( MolTableView * table )
 {
@@ -290,6 +293,7 @@ MSChromatogramWidget::setup( MolTableView * table )
     connect( impl_->model_.get(), &QAbstractItemModel::dataChanged, this, &MSChromatogramWidget::handleDataChanged );
     addRow();
 }
+#endif
 
 void
 MSChromatogramWidget::handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight )

@@ -93,32 +93,33 @@ namespace adwidgets {
 
         //------------------------------------------------------
         //------------------------------------------------------
+
+        template< typename T > void __assign( T& t, const QModelIndex& index, adcontrols::moltable::value_type& value ) {
+        };
+
+        template<> void __assign( moltable::col_formula& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_adducts& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_mass& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_retentionTime& t, const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_msref& t,         const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_protocol& t,      const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_synonym& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_memo& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_smiles& t,        const QModelIndex& index, adcontrols::moltable::value_type& value );
+        // template<> void __assign( moltable::col_nlaps& t,         const QModelIndex& index, adcontrols::moltable::value_type& value );
+        template<> void __assign( moltable::col_abundance& t,     const QModelIndex& index, adcontrols::moltable::value_type& value );
+        // template<> void __assign( moltable::col_logp& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
+        // template<> void __assign( moltable::col_apparent_mass& t, const QModelIndex& index, adcontrols::moltable::value_type& value );
+        // template<> void __assign( moltable::col_tof& t,           const QModelIndex& index, adcontrols::moltable::value_type& value );
+
         //------------------------------------------------------
-        namespace detail {
+        namespace copy_detail {
             typedef std::pair< const QModelIndexList::const_iterator, const QModelIndexList::const_iterator > QModelIndexRange;
 
             template< size_t Is >
             bool if_contains( const QModelIndexRange& range ) {
                 return std::find_if( range.first, range.second, [](const auto& a){ return a.column() == Is; }) != range.second;
             }
-
-            template< typename T > void __assign( T& t, const QModelIndex& index, adcontrols::moltable::value_type& value ) {
-            };
-
-            template<> void __assign( moltable::col_formula& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_adducts& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_mass& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_retentionTime& t, const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_msref& t,         const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_protocol& t,      const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_synonym& t,       const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_memo& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_smiles& t,        const QModelIndex& index, adcontrols::moltable::value_type& value );
-            // template<> void __assign( moltable::col_nlaps& t,         const QModelIndex& index, adcontrols::moltable::value_type& value );
-            template<> void __assign( moltable::col_abundance& t,     const QModelIndex& index, adcontrols::moltable::value_type& value );
-            // template<> void __assign( moltable::col_logp& t,          const QModelIndex& index, adcontrols::moltable::value_type& value );
-            // template<> void __assign( moltable::col_apparent_mass& t, const QModelIndex& index, adcontrols::moltable::value_type& value );
-            // template<> void __assign( moltable::col_tof& t,           const QModelIndex& index, adcontrols::moltable::value_type& value );
 
             template< size_t Is, typename T >
             void assign( T& t, const QModelIndexRange& range, adcontrols::moltable::value_type& value ) {
@@ -133,16 +134,14 @@ namespace adwidgets {
                                                          , Tuple&& tag
                                                          , std::index_sequence<Is...> ) {
                 adcontrols::moltable::value_type value;
-                // (( ADDEBUG() << std::make_tuple( if_contains<Is>(range), Is, std::get<Is>(tag).header.toStdString() )), ... );
                 (( assign<Is>( std::get<Is>( tag ), range, value ) ), ... );
-                ADDEBUG() << "--------------------";
                 return value;
             }
         }
 
         template< typename... Args >
         adcontrols::moltable copy( const QModelIndexList& indices, std::tuple< Args... >&& ) {
-            using namespace detail;
+            using namespace copy_detail;
             std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
             adcontrols::moltable mols;
             while ( range.first != indices.end() ) {
@@ -153,6 +152,30 @@ namespace adwidgets {
                 range.first = range.second;
             }
             return mols;
+        }
+
+        namespace value_from_detail {
+
+            template< size_t Is, typename T >
+            void assign( T&& t, const QModelIndex& index, adcontrols::moltable::value_type& value ) {
+                __assign( t, index, value );
+            }
+
+            template< typename Tuple, std::size_t... Is >
+            adcontrols::moltable::value_type value_from_impl( const QAbstractItemModel * model
+                                                              , int row
+                                                              , Tuple&& tag
+                                                              , std::index_sequence<Is...> ) {
+                adcontrols::moltable::value_type value;
+                (( assign<Is>( std::get<Is>( tag ), model->index( row, Is ), value ) ), ... );
+                return value;
+            }
+        }
+
+        template< typename... Args >
+        adcontrols::moltable::value_type value_from( const QAbstractItemModel * model, int row, std::tuple< Args... >&& ) {
+            using namespace value_from_detail;
+            return value_from_impl( model, row, std::tuple<Args...>{}, std::index_sequence_for< Args... >{} );
         }
     }
 
