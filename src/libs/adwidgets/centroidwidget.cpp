@@ -83,6 +83,9 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
     vLayout->addLayout( hLayout );
     hLayout->addLayout( grid );
 
+    grid->setSpacing( 2 );
+    grid->setContentsMargins(2, 0, 2, 0);
+
     std::tuple< size_t, size_t > xy{0,0};
 
     if ( auto label = add_widget( grid, create_widget< QLabel >( "label_analyzerType", "Analyzer Type" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {

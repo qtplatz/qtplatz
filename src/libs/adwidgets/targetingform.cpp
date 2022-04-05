@@ -103,18 +103,13 @@ namespace adwidgets {
             auto vLayout = create_widget< QVBoxLayout >( "virticalLayout", form );
             auto hLayout = create_widget< QHBoxLayout >( "horizontalLayout" );
             gridLayout_2 = create_widget< QGridLayout >( "gridLayout_2" );
-            gridLayout_2->setContentsMargins(2, 2, 2, 2);
-
-            gridLayout_2->setVerticalSpacing(2);
+            gridLayout_2->setContentsMargins(2, 0, 2, 0);
+            gridLayout_2->setVerticalSpacing(0);
             vLayout->addLayout( hLayout );
             hLayout->addLayout( gridLayout_2 );
 
             std::tuple< size_t, size_t > xy{0,0};
 
-            if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "title", tr("Targeting(2)") )
-                                          , std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
-            }
-            ++xy;
             if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "label_width", "Width (mDa)" )
                                           , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                 label->setTextFormat(Qt::RichText);
@@ -186,7 +181,7 @@ namespace adwidgets {
             }
 
             ++xy;
-            hLayout->addSpacerItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+            hLayout->addSpacerItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
             vLayout->addSpacerItem( new QSpacerItem( 20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding) );
 
             if (( buttonBox = add_widget( vLayout, create_widget< QDialogButtonBox >( "buttonBox" ) ) )) {

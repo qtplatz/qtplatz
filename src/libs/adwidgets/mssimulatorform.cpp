@@ -24,7 +24,6 @@
 
 #include "utilities.hpp"
 #include "mssimulatorform.hpp"
-// #include "ui_mssimulatorform.h"
 #include <adcontrols/constants.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -124,7 +123,6 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent)
 
     connect( ui->spinBox_3, qOverload< int >( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
 
-    //connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
 
@@ -132,7 +130,7 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent)
         // ADDEBUG() << ui->comboBox->currentData().toInt();
     });
 
-    ui->comboBox_2->addItems( QStringList() << "0.1" << "0.01" << "0.001" << "1.0e-4" << "1.0e-5" << "1.0e-6"  << "1.0e-7"  << "1.0e-8"  << "1.0e-9" );
+    ui->comboBox_2->addItems({"0.1", "0.01", "0.001", "1.0e-4", "1.0e-5", "1.0e-6", "1.0e-7", "1.0e-8", "1.0e-9"});
     ui->comboBox_2->setCurrentIndex( 2 );
 
     if ( auto radioPos = findChild< QRadioButton * >( "radioButtonPos" ) ) {
@@ -268,33 +266,33 @@ namespace adwidgets {
 
     namespace Ui {
         MSSimulatorForm::MSSimulatorForm()
-            : verticalLayout_2(0)
-            , verticalLayout(0)
-            , gridLayout(0)
-            , radioButtonNeg(0)
-            , label_2(0)
-            , spinBox(0)
-            , horizontalLayout(0)
-            , spinBox_2(0)
-            , spinBox_3(0)
-            , radioButtonPos(0)
-            , label(0)
-            , label_6(0)
-            , comboBox_2(0)
-            , groupBox(0)
-            , gridLayout_3(0)
-            , gridLayout_2(0)
-            , label_5(0)
-            , spinBox_lap(0)
-            , doubleSpinBox_3(0)
-            , doubleSpinBox_4(0)
-            , doubleSpinBox_5(0)
-            , label_3(0)
-            , label_4(0)
-            , comboBox(0)
-            , horizontalLayout_2(0)
-            , horizontalSpacer(0)
-            , pushButton(0)
+            : comboBox( 0 )
+            , comboBox_2( 0 )
+            , doubleSpinBox_3( 0 )
+            , doubleSpinBox_4( 0 )
+            , doubleSpinBox_5( 0 )
+            , gridLayout( 0 )
+            , gridLayout_2( 0 )
+            , gridLayout_3( 0 )
+            , groupBox( 0 )
+            , horizontalLayout( 0 )
+            , horizontalLayout_2( 0 )
+            , label( 0 )
+            , label_2( 0 )
+            , label_3( 0 )
+            , label_4( 0 )
+            , label_5( 0 )
+            , label_6( 0 )
+            , pushButton( 0 )
+            , radioButtonNeg( 0 )
+            , radioButtonPos( 0 )
+            , horizontalSpacer( 0 )
+            , spinBox( 0 )
+            , spinBox_2( 0 )
+            , spinBox_3( 0 )
+            , spinBox_lap( 0 )
+            , verticalLayout( 0 )
+            , verticalLayout_2( 0 )
         {}
 
         void
@@ -311,6 +309,7 @@ namespace adwidgets {
 
             if (( gridLayout = create_widget< QGridLayout >("gridLayout") )) {
                 gridLayout->setVerticalSpacing(0);
+                gridLayout->setContentsMargins( 4, 0, 4, 0 );
 
                 std::tuple< size_t, size_t > xy = {0,0};
 
@@ -345,7 +344,7 @@ namespace adwidgets {
                 if ( auto gbx = add_widget( gridLayout, create_widget<QGroupBox>( "GroupBoxPolarity" /*, QObject::tr("Polarity")*/ )
                                             , std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
                     auto _layout = create_widget< QHBoxLayout >("GroupBoxPolarityLayout", gbx );
-                    _layout->setSpacing( 2 );
+                    _layout->setSpacing( 0 );
                     _layout->setContentsMargins( 4, 0, 4, 0 );
                     radioButtonPos = add_widget( _layout, create_widget< QRadioButton >("radioButtonPos", form ) ); radioButtonPos->setChecked(true);
                     radioButtonNeg = add_widget( _layout, create_widget< QRadioButton >("radioButtonNeg", form ) );

@@ -49,36 +49,34 @@
 
 using namespace adcontrols::chromatography;
 
+namespace {
+    class teDelegate : public QStyledItemDelegate {
+    public:
+        explicit teDelegate( adwidgets::PeakMethodForm *, QObject *parent = 0 );
+
+        QWidget * createEditor( QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+        void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+        void setModelData( QWidget *editor, QAbstractItemModel *model, const QModelIndex &index ) const override;
+    private:
+        adwidgets::PeakMethodForm * form_;
+    };
+}
+
+
 namespace adwidgets {
 
     enum { c_time, c_function, c_event_value };
-
-    namespace peakmethodform {
-    
-        class teDelegate : public QStyledItemDelegate {
-        public:
-            explicit teDelegate( PeakMethodForm *, QObject *parent = 0 );
-            
-            QWidget * createEditor( QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
-            void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
-            void setModelData( QWidget *editor, QAbstractItemModel *model, const QModelIndex &index ) const override;
-        private:
-            PeakMethodForm * form_;
-        };
-
-    }
 
     class PeakMethodForm::impl {
     public:
         impl( PeakMethodForm * ) : model_( new QStandardItemModel ) {
         }
-                 
+
         std::unique_ptr< QStandardItemModel > model_;
     };
 }
 
 using namespace adwidgets;
-using namespace adwidgets::peakmethodform;
 
 PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                                                   , ui( new Ui::PeakMethodForm )
@@ -119,7 +117,7 @@ PeakMethodForm::OnInitialUpdate()
     setContents( adcontrols::PeakMethod() );
 
     if ( auto table = findChild< TableView * >() ) {
-        
+
         QStandardItemModel& model = *impl_->model_;
         model.setColumnCount( 3 );
         model.setHeaderData( c_time, Qt::Horizontal, "Time(min)" );
@@ -185,7 +183,7 @@ PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
 
     do {
         QStandardItemModel& model = *impl_->model_;
-		
+
 		model.setRowCount( static_cast< int >( method.size() + 1 ) ); // add one blank line at end
 		int row = 0;
         for ( const auto& item : method ) {
@@ -202,7 +200,7 @@ PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
                 ++row;
             }
 		}
-        
+
     } while(0);
 }
 
@@ -220,7 +218,7 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
     int value = ui->comboBox->currentIndex();
     method.pharmacopoeia( static_cast< adcontrols::chromatography::ePharmacopoeia >( value ) );
 
-    
+
     switch( method.pharmacopoeia() ) {
     case ePHARMACOPOEIA_USP:
         method.theoreticalPlateMethod( ePeakWidth_Tangent );
@@ -228,20 +226,20 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
     case ePHARMACOPOEIA_EP:
     case ePHARMACOPOEIA_JP:
         method.theoreticalPlateMethod( ePeakWidth_HalfHeight );
-        method.peakWidthMethod( ePeakWidth_HalfHeight );        
+        method.peakWidthMethod( ePeakWidth_HalfHeight );
         break;
     case ePHARMACOPOEIA_NotSpcified:
         break;
     }
 
     QStandardItemModel& model = *impl_->model_;
-    
+
     method.erase( method.begin(), method.end() );
-    
+
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
         double minutes = model.data( model.index( row, c_time ) ).toDouble();
-        adcontrols::chromatography::ePeakEvent func 
+        adcontrols::chromatography::ePeakEvent func
             = static_cast< adcontrols::chromatography::ePeakEvent >( model.data( model.index( row, c_function ) ).toInt() );
         if ( func != ePeakEvent_Nothing ) {
             const QVariant value = model.data( model.index( row, c_event_value ) );
@@ -335,7 +333,7 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
 
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
         adcontrols::chromatography::ePeakEvent func = static_cast< adcontrols::chromatography::ePeakEvent >( p->currentIndex() + 1 );
-        
+
         model->setData( index, func );
 
         if ( adcontrols::PeakMethod::TimedEvent::isBool( func ) ) {
@@ -359,4 +357,3 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
 }
 
 ////////////////////////////////////
-

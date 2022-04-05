@@ -148,7 +148,7 @@ XChromatogramsWidget::setContents( boost::any&& a )
             return true;
         }
     } else {
-        ADDEBUG() << __FUNCTION__ << " --------- XChromatogramsMethod NOT found -----------";
+        // ADDEBUG() << __FUNCTION__ << " --------- XChromatogramsMethod NOT found -----------";
     }
     return false;
 }
