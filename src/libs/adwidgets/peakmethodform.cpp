@@ -106,7 +106,11 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxSlope"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-                            spin_init( spin, std::make_tuple( Decimals(2), Minimum<>(0.0), Maximum<>(99.999), SingleStep<>(0.01), Value<>(0.05) ) );
+#if __cplusplus >= 201703L // same all folloing call of spin_init
+                            spin_init( spin, std::tuple{ Decimals{2}, Minimum{0.0}, Maximum{99.999}, SingleStep{0.01}, Value{0.05} } );
+#else // for gcc 6.3 support
+                            spin_init( spin, std::make_tuple( Decimals{2}, Minimum<>{0.0}, Maximum<>{99.999}, SingleStep<>{0.01}, Value<>{0.05} ) );
+#endif
                         }
                     }
                     ++xy;

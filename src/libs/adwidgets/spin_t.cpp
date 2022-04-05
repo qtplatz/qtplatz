@@ -80,5 +80,53 @@ namespace adwidgets {
             spin->setSingleStep( t.value );
         }
 
+        ///////////////////////////////////
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<double>& t )
+        {
+            spin->setMinimum( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<double>& t )
+        {
+            spin->setMaximum( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<double>& t )
+        {
+            spin->setValue( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<double>& t )
+        {
+            spin->setSingleStep( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<int>& t )
+        {
+            spin->setMinimum( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<int>& t )
+        {
+            spin->setMaximum( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<int>& t )
+        {
+            spin->setValue( t.value );
+        }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<int>& t )
+        {
+            spin->setSingleStep( t.value );
+        }
     }
 }

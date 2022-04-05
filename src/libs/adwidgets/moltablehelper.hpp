@@ -139,6 +139,7 @@ namespace adwidgets {
             }
         }
 
+        // argument indices must be sorted in advance!!
         template< typename... Args >
         adcontrols::moltable copy( const QModelIndexList& indices, std::tuple< Args... >&& ) {
             using namespace copy_detail;

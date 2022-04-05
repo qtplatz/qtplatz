@@ -49,15 +49,22 @@ namespace adwidgets {
 
         template< class Spin > struct spin_type {
             template< typename T > static void assign_to( Spin * spin, const T& t ) {
-                ADDEBUG() << "========= " << typeid(T).name() << ", " << t.value;
+                ADDEBUG() << "\tError: not assigned for " << typeid(T).name() << ", " << t.value;
             }
         };
 
-        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Decimals& t );
+        // QDoubleSpinBox
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Decimals&  t );
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Minimum<>& t );
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Maximum<>& t );
-        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Value<>& t );
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Value<>&   t );
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const SingleStep<>& t );
+
+        // QSpinBox
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<int>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<int>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<int>&   t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<int>& t );
 
         template< class Spin, typename Tuple, std::size_t... Is >
         void spin_init_impl( Spin * spin, Tuple&& args, std::index_sequence< Is... > ) {
@@ -69,14 +76,6 @@ namespace adwidgets {
             spin_init_impl( spin, args, std::index_sequence_for< Args... >{} );
         }
     }
-    struct spin_i {
-        template< class Spin > static void init( Spin * spin, std::tuple< int, double, double, double, double >&& list ) {
-            spin->setDecimals( std::get<0>( list ) );
-            spin->setRange( std::get< 1 >( list ), std::get< 2 >( list ) );
-            spin->setValue( std::get< 3 >( list ) );
-            spin->setSingleStep( std::get< 4 >( list ) );
-        }
-    };
 }
 
 #endif // SPIN_TYPE_HPP
