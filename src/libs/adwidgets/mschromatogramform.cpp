@@ -55,13 +55,13 @@ namespace adwidgets {
             QDoubleSpinBox *doubleSpinBox_4;
             QGroupBox *groupBox;
             QGroupBox *groupBoxAutoTargeting;
-            QLabel *label;
-            QLabel *label_2;
+            // QLabel *label;
+            // QLabel *label_2;
             QLabel *label_3;
             QLineEdit *lineEdit;
-            QRadioButton *radioButton;
-            QRadioButton *radioButton_2;
-            QSpinBox *spinBox;
+            // QRadioButton *radioButton;
+            // QRadioButton *radioButton_2;
+            // QSpinBox *spinBox;
             std::tuple< QRadioButton *, QRadioButton * > polarityButtons;
 
             void setupUi(QWidget * MSChromatogramForm );
@@ -142,13 +142,13 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
     // ui->comboBox->setCurrentIndex( QString::fromStdString( m.dataReader() ) );
     ui->lineEdit->setText( QString::fromStdString( m.dataReader() ) );
 
-    if ( m.widthMethod() == adcontrols::MSChromatogramMethod::widthInDa )
-        ui->radioButton->setChecked( true );
-    else
-        ui->radioButton_2->setChecked( true );
+    // if ( m.widthMethod() == adcontrols::MSChromatogramMethod::widthInDa )
+    // ui->radioButton->setChecked( true ); // always true
+    // else
+    //     ui->radioButton_2->setChecked( true );
 
-    ui->doubleSpinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInDa ) );
-    ui->spinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInRP ) );
+    ui->doubleSpinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInDa ) * 1000 ); // mDa
+    // ui->spinBox->setValue( m.width( adcontrols::MSChromatogramMethod::widthInRP ) );
 
     ui->doubleSpinBox_2->setValue( m.peakWidthForChromatogram() );
 
@@ -166,13 +166,14 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
 {
     //m.dataSource( static_cast<adcontrols::MSChromatogramMethod::DataSource>(ui->comboBox->currentIndex()) );
     m.setDataReader( ui->lineEdit->text().toStdString() );
-    if ( ui->radioButton->isChecked() )
-        m.widthMethod( adcontrols::MSChromatogramMethod::widthInDa );
-    else
-        m.widthMethod( adcontrols::MSChromatogramMethod::widthInRP );
+    m.widthMethod( adcontrols::MSChromatogramMethod::widthInDa );
+    // if ( ui->radioButton->isChecked() )
+    //     m.widthMethod( adcontrols::MSChromatogramMethod::widthInDa );
+    // else
+    //     m.widthMethod( adcontrols::MSChromatogramMethod::widthInRP );
 
-    m.width( ui->doubleSpinBox->value(), adcontrols::MSChromatogramMethod::widthInDa );
-    m.width( ui->spinBox->value(), adcontrols::MSChromatogramMethod::widthInRP );
+    m.width( ui->doubleSpinBox->value() / 1000, adcontrols::MSChromatogramMethod::widthInDa );
+    // m.width( ui->spinBox->value(), adcontrols::MSChromatogramMethod::widthInRP );
 
     //m.lower_limit( ui->doubleSpinBox_2->value() );
     //m.upper_limit( ui->doubleSpinBox_3->value() );
@@ -205,34 +206,22 @@ namespace adwidgets {
 
                     std::tuple< size_t, size_t > xy{0,0};
 
-                    label = add_widget( gridLayout, create_widget< QLabel >("label", "Data reader", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1 );
-                    if (( lineEdit = add_widget( gridLayout, create_widget< QLineEdit >("lineEdit", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
+                    // label = add_widget( gridLayout, create_widget< QLabel >("label", "Data reader", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1 );
+                    if (( lineEdit = add_widget( gridLayout, create_widget< QLineEdit >("lineEdit", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) )) {
                         lineEdit->setReadOnly(false);
                         lineEdit->setClearButtonEnabled(true);
                     }
 
-                    ++xy; // line 1
-                    label_2 = add_widget( gridLayout, create_widget< QLabel >("label_2", "Mass window", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 );
-
                     ++xy; // line 2
-                    if (( radioButton = add_widget( gridLayout, create_widget< QRadioButton >("radioButton", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
-                        radioButton->setChecked(true);
+                    if ( auto label = add_widget( gridLayout, create_widget< QLabel >("labelX", "Mass window (mDa)", groupBox), std::get<0>(xy), std::get<1>(xy)++) ) {
+                        // radioButton->setChecked(true);
                     }
                     if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox)
                                                       , std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
-                        doubleSpinBox->setDecimals(4);
-                        doubleSpinBox->setRange( 0.0, 1.0 );
-                        doubleSpinBox->setSingleStep(0.001000000000000);
-                    }
-
-                    ++xy; // line 3
-                    radioButton_2 = add_widget( gridLayout, create_widget< QRadioButton >("radioButton_2", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1);
-                    radioButton_2->setEnabled(true);
-
-                    if (( spinBox = add_widget( gridLayout, create_widget< QSpinBox >("spinBox", groupBox ), std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
-                        spinBox->setRange(100, 10000000);
-                        spinBox->setSingleStep(1000);
-                        spinBox->setValue(3000);
+                        doubleSpinBox->setDecimals(1);
+                        doubleSpinBox->setRange( 0.1, 1000.0 );
+                        doubleSpinBox->setSingleStep(1.0);
+                        doubleSpinBox->setAlignment( Qt::AlignRight );
                     }
 
                     ++xy; // line 4
@@ -241,6 +230,7 @@ namespace adwidgets {
                                                         , create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox )
                                                         , std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
                         doubleSpinBox_4->setMaximum(1000.000000000000000);
+                        doubleSpinBox_4->setAlignment( Qt::AlignRight );
                     }
 
                     ++xy;
@@ -265,7 +255,7 @@ namespace adwidgets {
 
                     if ( auto gridLayout_4 = create_widget< QGridLayout >("gridLayout_4", groupBoxAutoTargeting ) ) {
                         gridLayout_4->setContentsMargins(4, 0, 4, 0);
-                        label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", groupBoxAutoTargeting), 0, 0, 1, 1);
+                        label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", "Peak width (s)", groupBoxAutoTargeting), 0, 0, 1, 1);
 
                         if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
                             doubleSpinBox_2->setDecimals(3);
@@ -290,16 +280,9 @@ namespace adwidgets {
         MSChromatogramForm::retranslateUi(QWidget *form)
         {
             form->setWindowTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Form", nullptr));
-
-            groupBox->setTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Chromatogram generation", nullptr));
-            label->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Data reader", nullptr));
-            radioButton->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Dalton", nullptr));
-            doubleSpinBox_4->setSuffix(QString());
-            label_2->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Mass window", nullptr));
             checkBox->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Lockmass (mDa)", nullptr));
-            radioButton_2->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "R. P.", nullptr));
-            groupBoxAutoTargeting->setTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Auto targeting from chromatogram", nullptr));
-            label_3->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Peak width (s)", nullptr));
+            groupBoxAutoTargeting->setTitle(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Auto targeting at retention time for", nullptr));
+            // label_3->setText(QCoreApplication::translate("adwidgets::MSChromatogramForm", "Peak width (s)", nullptr));
         } // retranslateUi
 
     } // namespace Ui
