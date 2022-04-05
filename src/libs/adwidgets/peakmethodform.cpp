@@ -98,7 +98,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
         if ( auto vLeft = add_layout( hTopLayout, create_widget< QVBoxLayout >("vLayout") ) ) {
             // vLeft->setContentsMargins( 0, 0, 0, 0 );
             if ( auto gbx = add_widget( vLeft, create_widget< QGroupBox >( "globalGroup", "Global" ) ) ) {
-                if ( auto grid = add_layout( vLeft, create_widget< QGridLayout >( "grid", gbx ) ) ) {
+                if ( auto grid = create_widget< QGridLayout >( "grid", gbx ) ) {
                     grid->setSpacing( 2 );
                     grid->setContentsMargins( 2, 0, 2, 0 );
                     std::tuple< size_t, size_t > xy{0,0};
