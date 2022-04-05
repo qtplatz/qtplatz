@@ -123,7 +123,7 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent)
 
     connect( ui->spinBox_3, qOverload< int >( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
 
-    connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );
+    connect( ui->groupBox, &QGroupBox::toggled, this, &MSSimulatorForm::onTOFToggled ); // )[this](bool) { emit onValueChanged(); } );
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
 
     connect( ui->comboBox, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
@@ -138,12 +138,6 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent)
             emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
         });
     }
-
-    // connect( ui->comboBox_2, qOverload< int >( &QComboBox::currentIndexChanged ), this, [&](int index){
-    //     double limit = std::pow( 10, -( index + 1) );
-    //     int rindex = -(std::log10( limit ) + 1);
-    //     ADDEBUG() << "index: " << index << ", limit: " << limit << ", --> rev-index: " << rindex;
-    // });
 }
 
 MSSimulatorForm::~MSSimulatorForm()
@@ -179,9 +173,9 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
     int index = ui->comboBox_2->currentIndex(); // 0.1 .. 1.0e-9
     m.setAbundanceLowLimit( std::pow(10, -(index + 1)) );
 
-    ui->groupBox->setHidden( !m.isTof() );
-
-    // ADDEBUG() << "index : " << index << ", limit: " << m.abundanceLowLimit();
+    // ui->groupBox->setStyleSheet( "*{fontSize: 9pt}");
+    // ui->gridLayout_3->widget()->setHidden( !m.isTof() );
+    // ui->groupBox->setHidden( !m.isTof() );
 
     return true;
 }
@@ -263,6 +257,19 @@ MSSimulatorForm::setMassSpectrum( std::shared_ptr< const adcontrols::MassSpectru
     }
 }
 
+void
+MSSimulatorForm::onTOFToggled( bool checked )
+{
+    emit onValueChanged();
+    // ui->groupBox->setHidden( !checked );
+
+#if defined Q_OS_MAC
+    static std::pair< QString, QString > styles { "*{ font-size: 8pt;}", "*{ font-size: 12pt;}" };
+#else
+    static std::pair< QString, QString > styles { "*{ font-size: 7pt;}", "*{ font-size: 9pt;}" };
+#endif
+    ui->groupBox->setStyleSheet( checked ? std::get<1>(styles) : std::get<0>(styles) );
+}
 
 namespace adwidgets {
 
@@ -355,6 +362,7 @@ namespace adwidgets {
                 verticalLayout->addLayout(gridLayout);
             }
 
+            // TOF
             if (( groupBox = add_widget( verticalLayout, create_widget< QGroupBox >("groupBox", form) ) )) {
                 groupBox->setFlat(false);
                 groupBox->setCheckable(true);

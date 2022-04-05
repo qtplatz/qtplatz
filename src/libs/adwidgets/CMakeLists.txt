@@ -123,6 +123,8 @@ set( ${PROJECT_NAME}_SOURCES
   xchromatogramstable.cpp
   xchromatogramswidget.cpp
   utilities.cpp
+  spin_t.cpp
+  spin_t.hpp
   ${_sources}
 )
 

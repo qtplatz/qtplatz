@@ -46,4 +46,11 @@ namespace adwidgets {
         return w;
     }
 
+    template<typename _Ty, typename _P, typename... _Types >
+    inline _Ty * add_layout( _P * p, _Ty * w, _Types&&... _Args )
+    {
+        p->addLayout( w, std::forward<_Types>( _Args )... );
+        return w;
+    }
+
 }

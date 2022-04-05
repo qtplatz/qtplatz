@@ -58,6 +58,8 @@ namespace adwidgets {
         void onLapChanged( int );
         void triggerProcess();
         void polarityToggled( adcontrols::ion_polarity );
+    private slots:
+        void onTOFToggled( bool );
 
     private:
         Ui::MSSimulatorForm *ui;

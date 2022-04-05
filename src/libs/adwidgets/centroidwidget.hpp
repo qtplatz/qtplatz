@@ -39,10 +39,6 @@ namespace adcontrols {
     class ProcessMethod;
 }
 
-namespace Ui {
-    class CentroidForm;
-}
-
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT CentroidWidget : public QWidget

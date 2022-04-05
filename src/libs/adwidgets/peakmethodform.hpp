@@ -76,7 +76,7 @@ namespace adwidgets {
     private slots:
 
     private:
-        Ui::PeakMethodForm *ui;
+        // Ui::PeakMethodForm *ui;
         class impl;
         std::unique_ptr< impl > impl_;
 

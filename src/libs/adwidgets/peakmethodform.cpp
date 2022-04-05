@@ -23,23 +23,29 @@
 **************************************************************************/
 
 #include "peakmethodform.hpp"
-#include "ui_peakmethodform.h"
+#include "utilities.hpp"
+// #include "ui_peakmethodform.h"
 #include "tableview.hpp"
-
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adplot/constants.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
 #include <QAbstractButton>
+#include <QBoxLayout>
+#include <QGridLayout>
 #include <QComboBox>
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QEvent>
+#include <QGroupBox>
+#include <QHeaderView>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QPainter>
 #include <QSignalBlocker>
 #include <QStandardItemModel>
@@ -47,9 +53,11 @@
 #include <QTextDocument>
 #include <QTreeView>
 
+
 using namespace adcontrols::chromatography;
 
-namespace {
+namespace adwidgets {
+
     class teDelegate : public QStyledItemDelegate {
     public:
         explicit teDelegate( adwidgets::PeakMethodForm *, QObject *parent = 0 );
@@ -79,29 +87,118 @@ namespace adwidgets {
 using namespace adwidgets;
 
 PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
-                                                  , ui( new Ui::PeakMethodForm )
+                                                    //, ui( new Ui::PeakMethodForm )
                                                   , impl_( new impl( this ) )
 {
-    ui->setupUi(this);
+    // ui->setupUi(this);
+    using namespace spin_initializer;
 
-    ui->horizontalLayout->setStretch( 0, 0 );
-    ui->horizontalLayout->setStretch( 1, 1 );
+    if ( auto hTopLayout = new QHBoxLayout( this ) ) { // ui->horizontalLayout_2 ) {
 
-    if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
-        ui->label->setText( "Slope[&mu;V/s]" );
-        ui->label_2->setText( "Minimum width[s]" );
+        if ( auto vLeft = add_layout( hTopLayout, create_widget< QVBoxLayout >("vLayout") ) ) {
+            // vLeft->setContentsMargins( 0, 0, 0, 0 );
+            if ( auto gbx = add_widget( vLeft, create_widget< QGroupBox >( "globalGroup", "Global" ) ) ) {
+                if ( auto grid = add_layout( vLeft, create_widget< QGridLayout >( "grid", gbx ) ) ) {
+                    grid->setSpacing( 2 );
+                    grid->setContentsMargins( 2, 0, 2, 0 );
+                    std::tuple< size_t, size_t > xy{0,0};
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelSlope", "Slope (&mu;V/min)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxSlope"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_init( spin, std::make_tuple( Decimals{2}, Minimum{0.0}, Maximum{99.999}, SingleStep{0.01}, Value{0.05} ) );
+                        }
+                    }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMW", "Minimum width (s)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMW"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_i::init( spin, { 2, 0.0, 99.999, 0.1, 0.1 } );
+                        }
+                    }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMH", "Minimum height"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMH"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_i::init( spin, { 1, 0.0, 999999999999.9, 1, 1 } );
+                        }
+                    }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelDrift", "Drift (&mu;V/s)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxDrift"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_i::init( spin, { 2, 0.0, 9999.99, 0.1, 0.1 } );
+                        }
+                    }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMA", "Minimum area (&mu;V&times;s)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMA"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_i::init( spin, { 2, 0.0, 999999999999.9, 1, 1 } );
+                        }
+                    }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelT0", "<i>T<sub>0</sub>"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxT0"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_i::init( spin, { 3, 0.0, 3600, 4.0, 0.1 } );
+                        }
+                    }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelPC", "Pharmacopoeia"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        label->setTextFormat(Qt::RichText);
+                        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+                        if ( auto combo = add_widget( grid, create_widget< QComboBox >( "comboBoxPharmacopoeia"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            combo->addItems( {"Not specified", "EP", "JP", "USP"} );
+                        }
+                    }
+                    vLeft->addSpacerItem( new QSpacerItem( 20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding) );
+                    if ( auto buttonBox = add_widget( vLeft, create_widget< QDialogButtonBox >( "buttonBox" ) ) ) {
+                        buttonBox->setStandardButtons(QDialogButtonBox::Apply);
+                    }
+                }
+            }
+        }
+        if ( auto vRight = add_layout( hTopLayout, create_widget< QVBoxLayout >("vLayout") ) ) {
+            if ( auto gbx = add_widget( vRight, create_widget< QGroupBox >( "timedEventsGroup", "Timed event" ) ) ) {
+                auto layout = new QVBoxLayout( gbx );
+                if ( auto table = add_widget( layout, create_widget< adwidgets::TableView >( "timedEventTable", gbx ) ) ) {
+                    table->setModel( impl_->model_.get() );
+                    table->setItemDelegate( new teDelegate( this ) );
+                    table->verticalHeader()->setDefaultSectionSize( 18 );
+                }
+            }
+        }
+
+        hTopLayout->setStretch( 0, 0 );
+        hTopLayout->setStretch( 1, 1 );
     }
 
-    ui->tableView->setModel( impl_->model_.get() );
-    ui->tableView->setItemDelegate( new teDelegate( this ) );
-    ui->tableView->verticalHeader()->setDefaultSectionSize( 18 );
+    // ui->horizontalLayout->setStretch( 0, 0 );
+    // ui->horizontalLayout->setStretch( 1, 1 );
 
-    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess( "PeakFind" ); } );
+    // if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
+    //     ui->label->setText( "Slope[&mu;V/s]" );
+    //     ui->label_2->setText( "Minimum width[s]" );
+    // }
+
+    // ui->tableView->setModel( impl_->model_.get() );
+    // ui->tableView->setItemDelegate( new teDelegate( this ) );
+    // ui->tableView->verticalHeader()->setDefaultSectionSize( 18 );
+    if ( auto buttonBox = findChild< QDialogButtonBox * >( "buttonBox" ) ) {
+        connect( buttonBox, &QDialogButtonBox::clicked, [this] () { ADDEBUG() << "PeakFind triggered"; emit triggerProcess( "PeakFind" ); } );
+    }
+    // connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess( "PeakFind" ); } );
 }
 
 PeakMethodForm::~PeakMethodForm()
 {
-    delete ui;
+    // delete ui;
 }
 
 void
@@ -115,16 +212,27 @@ PeakMethodForm::OnInitialUpdate()
 {
     // initialize with ctor default value
     setContents( adcontrols::PeakMethod() );
+    if ( auto table = findChild< TableView * >( "tableView" ) ) {
+        table->setHidden( true );
+    }
+    // if ( auto table = findChild< TableView * >( "tableView" ) ) {
 
-    if ( auto table = findChild< TableView * >() ) {
+    //     QStandardItemModel& model = *impl_->model_;
+    //     model.setColumnCount( 3 );
+    //     model.setHeaderData( c_time, Qt::Horizontal, "Time(min)" );
+    //     model.setHeaderData( c_function, Qt::Horizontal, "Func" );
+    //     model.setHeaderData( c_event_value, Qt::Horizontal, "Value" );
+    //     table->setSortingEnabled( true );
 
+    // }
+
+    if ( auto table = findChild< TableView * >( "timedEventTable" ) ) {
         QStandardItemModel& model = *impl_->model_;
         model.setColumnCount( 3 );
         model.setHeaderData( c_time, Qt::Horizontal, "Time(min)" );
         model.setHeaderData( c_function, Qt::Horizontal, "Func" );
         model.setHeaderData( c_event_value, Qt::Horizontal, "Value" );
         table->setSortingEnabled( true );
-
     }
 }
 
@@ -172,14 +280,36 @@ PeakMethodForm::getContents( adcontrols::ProcessMethod& pm ) const
 void
 PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
 {
-    ui->doubleSpinBox->setValue( method.slope() );
-    ui->doubleSpinBox_2->setValue( method.minimumWidth() );
-    ui->doubleSpinBox_3->setValue( method.minimumHeight() );
-    ui->doubleSpinBox_4->setValue( method.drift() );
-    ui->doubleSpinBox_5->setValue( method.minimumArea() );
-    ui->doubleSpinBox_6->setValue( method.t0() );
-    // method.doubleWidthTime( 0.0 );
-    ui->comboBox->setCurrentIndex( int( method.pharmacopoeia() ) );
+    // ui->doubleSpinBox->setValue( method.slope() );
+    // ui->doubleSpinBox_2->setValue( method.minimumWidth() );
+    // ui->doubleSpinBox_3->setValue( method.minimumHeight() );
+    // ui->doubleSpinBox_4->setValue( method.drift() );
+    // ui->doubleSpinBox_5->setValue( method.minimumArea() );
+    // ui->doubleSpinBox_6->setValue( method.t0() );
+    // // method.doubleWidthTime( 0.0 );
+    // ui->comboBox->setCurrentIndex( int( method.pharmacopoeia() ) );
+
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxSlope") ) {
+        spin->setValue( method.slope() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxMW") ) {
+        spin->setValue( method.minimumWidth() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxMH") ) {
+        spin->setValue( method.minimumHeight() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxDrift") ) {
+        spin->setValue( method.drift() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxMA") ) {
+        spin->setValue( method.minimumArea() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxT0") ) {
+        spin->setValue( method.t0() );
+    }
+    if ( auto combo = findChild< QComboBox * >("comboBoxPharmacopoeia") ) {
+        combo->setCurrentIndex( int( method.pharmacopoeia() ) );
+    }
 
     do {
         QStandardItemModel& model = *impl_->model_;
@@ -207,17 +337,37 @@ PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
 void
 PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
 {
-    method.slope( ui->doubleSpinBox->value() );
-    method.minimumWidth( ui->doubleSpinBox_2->value() );
-    method.minimumHeight( ui->doubleSpinBox_3->value() );
-    method.drift( ui->doubleSpinBox_4->value() );
-    method.minimumArea( ui->doubleSpinBox_5->value() );
-    method.doubleWidthTime( 0.0 );
-    method.t0( ui->doubleSpinBox_6->value() );
+    // method.slope( ui->doubleSpinBox->value() );
+    // method.minimumWidth( ui->doubleSpinBox_2->value() );
+    // method.minimumHeight( ui->doubleSpinBox_3->value() );
+    // method.drift( ui->doubleSpinBox_4->value() );
+    // method.minimumArea( ui->doubleSpinBox_5->value() );
+    // method.doubleWidthTime( 0.0 );
+    // method.t0( ui->doubleSpinBox_6->value() );
+    // int value = ui->comboBox->currentIndex();
+    // method.pharmacopoeia( static_cast< adcontrols::chromatography::ePharmacopoeia >( value ) );
 
-    int value = ui->comboBox->currentIndex();
-    method.pharmacopoeia( static_cast< adcontrols::chromatography::ePharmacopoeia >( value ) );
-
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxSlope") ) {
+        method.slope( spin->value() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxMW") ) {
+        method.minimumWidth( spin->value() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxMH") ) {
+        method.minimumHeight( spin->value() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxDrift") ) {
+        method.drift( spin->value() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxMA") ) {
+        method.minimumArea( spin->value() );
+    }
+    if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxT0") ) {
+        method.t0( spin->value() );
+    }
+    if ( auto combo = findChild< QComboBox * >("comboBoxPharmacopoeia") ) {
+        method.pharmacopoeia( static_cast< adcontrols::chromatography::ePharmacopoeia >( combo->currentIndex() ) );
+    }
 
     switch( method.pharmacopoeia() ) {
     case ePHARMACOPOEIA_USP:

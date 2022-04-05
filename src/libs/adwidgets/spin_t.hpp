@@ -25,6 +25,10 @@
 #ifndef SPIN_TYPE_HPP
 #define SPIN_TYPE_HPP
 
+#include <QDoubleSpinBox>
+#include <QSpinBox>
+#include <adportable/debug.hpp>
+
 namespace adwidgets {
 
     template<class Spin, typename T = double> struct spin_t {
@@ -33,6 +37,50 @@ namespace adwidgets {
             s->setMaximum( maximum );
             s->setValue( initval );
             s->setKeyboardTracking( false );
+        }
+    };
+
+    namespace spin_initializer {
+        struct Decimals                   { typedef int value_type; value_type value; Decimals  ( value_type t ) : value( t ){}  };
+        template<typename value_type = double > struct Minimum    { value_type value; Minimum   ( value_type t ) : value( t ){}  };
+        template<typename value_type = double > struct Maximum    { value_type value; Maximum   ( value_type t ) : value( t ){}  };
+        template<typename value_type = double > struct Value      { value_type value; Value     ( value_type t ) : value( t ){}  };
+        template<typename value_type = double > struct SingleStep { value_type value; SingleStep( value_type t ) : value( t ){}  };
+
+        template< class Spin > struct spin_type {
+            template< typename T > static void assign_to( Spin * spin, const T& t ) {
+                ADDEBUG() << "========= " << typeid(T).name() << ", " << t.value;
+            }
+        };
+
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Decimals& t );
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Minimum<>& t );
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Maximum<>& t );
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Value<>& t );
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const SingleStep<>& t );
+
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Decimals& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<>& t );
+
+        template< class Spin, typename Tuple, std::size_t... Is >
+        void spin_init_impl( Spin * spin, Tuple&& args, std::index_sequence< Is... > ) {
+            (( spin_type<Spin>::assign_to( spin, std::get<Is>( args ))) , ... );
+        }
+
+        template< class Spin, typename... Args >
+        void spin_init( Spin * spin, std::tuple< Args... >&& args ) {
+            spin_init_impl( spin, args, std::index_sequence_for< Args... >{} );
+        }
+    }
+    struct spin_i {
+        template< class Spin > static void init( Spin * spin, std::tuple< int, double, double, double, double >&& list ) {
+            spin->setDecimals( std::get<0>( list ) );
+            spin->setRange( std::get< 1 >( list ), std::get< 2 >( list ) );
+            spin->setValue( std::get< 3 >( list ) );
+            spin->setSingleStep( std::get< 4 >( list ) );
         }
     };
 }
