@@ -118,7 +118,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMW"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-                            spin_init( spin, std::make_tuple( Decimals(2), Minimum<>(0.0), Maximum<>(99.999), SingleStep<>(0.1f), Value<>(0.1) ) );
+                            spin_init( spin, std::make_tuple( Decimals{2}, Minimum<>{0.0}, Maximum<>{99.999}, SingleStep<>{0.10}, Value<>{0.1} ) );
                         }
                     }
                     ++xy;
@@ -126,7 +126,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMH"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-                            spin_init( spin, std::make_tuple( Decimals(1), Minimum<>(0.0), Maximum<>(999999999999.9), SingleStep<>(1.0), Value<>(1.0) ) );
+                            spin_init( spin, std::make_tuple( Decimals{1}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}, Value<>{1.0} ) );
                         }
                     }
                     ++xy;
@@ -134,7 +134,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxDrift"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-                            spin_init( spin, std::make_tuple( Decimals(2), Minimum<>(0.0), Maximum<>(9999.99), SingleStep<>(0.1), Value<>(0.1) ) );
+                            spin_init( spin, std::make_tuple( Decimals{2}, Minimum<>{0.0}, Maximum<>{9999.99}, SingleStep<>{0.1}, Value<>{0.1} ) );
                         }
                     }
                     ++xy;
@@ -142,7 +142,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMA"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-                            spin_init( spin, std::make_tuple( Decimals(2), Minimum<>(0.0), Maximum<>(999999999999.9), SingleStep<>(1.0), Value<>(1.0) ) );
+                            spin_init( spin, std::make_tuple( Decimals{2}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}, Value<>{1.0} ) );
                         }
                     }
                     ++xy;
@@ -150,7 +150,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxT0"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-                            spin_init( spin, std::make_tuple( Decimals(3), Minimum<>(0.0), Maximum<>(3600.0), SingleStep<>(4.0), Value<>(0.1) ) );
+                            spin_init( spin, std::make_tuple( Decimals{3}, Minimum<>{0.0}, Maximum<>{3600.0}, SingleStep<>{4.0}, Value<>{0.1} ) );
                         }
                     }
                     ++xy;
