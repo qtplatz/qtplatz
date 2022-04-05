@@ -59,12 +59,6 @@ namespace adwidgets {
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Value<>& t );
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const SingleStep<>& t );
 
-        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Decimals& t );
-        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<>& t );
-        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<>& t );
-        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<>& t );
-        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<>& t );
-
         template< class Spin, typename Tuple, std::size_t... Is >
         void spin_init_impl( Spin * spin, Tuple&& args, std::index_sequence< Is... > ) {
             (( spin_type<Spin>::assign_to( spin, std::get<Is>( args ))) , ... );

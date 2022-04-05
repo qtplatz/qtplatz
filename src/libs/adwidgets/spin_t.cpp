@@ -57,31 +57,25 @@ namespace adwidgets {
         }
 
         template<>
-        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Decimals& t )
-        {
-            // nothing to do
-        }
-
-        template<>
-        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<int>& t )
+        template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Minimum<int>& t )
         {
             spin->setMinimum( t.value );
         }
 
         template<>
-        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<int>& t )
+        template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Maximum<int>& t )
         {
             spin->setMaximum( t.value );
         }
 
         template<>
-        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<int>& t )
+        template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Value<int>& t )
         {
             spin->setValue( t.value );
         }
 
         template<>
-        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<int>& t )
+        template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const SingleStep<int>& t )
         {
             spin->setSingleStep( t.value );
         }
