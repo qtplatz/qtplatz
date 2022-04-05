@@ -567,9 +567,11 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
 
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    //printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setFullPage( false );
-	printer.setOrientation( QPrinter::Landscape );
+	//printer.setOrientation( QPrinter::Landscape );
+    printer.setPageOrientation( QPageLayout::Landscape );
 
     printer.setDocName( "QtPlatz Calibration Report" );
     printer.setOutputFileName( pdfname );

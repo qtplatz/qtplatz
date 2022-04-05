@@ -189,6 +189,7 @@ namespace adwidgets {
         {
             // ADDEBUG() << "col_formula\t" << std::make_pair( index.row(), index.column() ) << index.data().value< col_formula::value_type >().toStdString();
             value.formula() = index.data().value< col_formula::value_type >().toStdString();
+            value.enable() = index.data( Qt::CheckStateRole ).toBool();
         }
 
         template<> void __assign( moltable::col_adducts& t, const QModelIndex& index, adcontrols::moltable::value_type& value )

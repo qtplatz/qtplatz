@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <adcontrols/constants_fwd.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
@@ -49,8 +50,10 @@ namespace adcontrols {
         MetIdMethod( const MetIdMethod& );
         MetIdMethod& operator = ( const MetIdMethod& rhs );
 
-        bool isPositiveMode() const;
-        void setPositiveMode( bool );
+        adcontrols::ion_polarity polarity() const;
+        void setPolarity( adcontrols::ion_polarity );
+        [[deprecated]] bool isPositiveMode() const;
+        [[deprecated]] void setPositiveMode( bool );
 
         MetIdMethod& operator << ( std::pair< bool, std::string >&& );
         void setAdducts( const std::vector< std::pair< bool, std::string > >& );

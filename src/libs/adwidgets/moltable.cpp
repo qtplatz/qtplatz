@@ -253,6 +253,8 @@ MolTable::setContents( const adcontrols::moltable& mols )
     model.setRowCount( int( mols.data().size() + 1 ) ); // add one free line for add formula
 
     impl_->current_polarity_ = mols.polarity();
+
+    // ADDEBUG() << "===== setContents current_polarity : " << impl_->current_polarity_;
     do {
         QSignalBlocker block( impl_->model_ );
         int row = 0;
@@ -275,10 +277,8 @@ MolTable::getContents( adcontrols::moltable& m )
     m.data().clear();
 
     for ( int row = 0; row < model->rowCount(); ++row ) {
-        adcontrols::moltable::value_type mol;
-
-        mol.formula() = model->index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
-        if ( !mol.formula().empty() ) {
+        auto formula = model->index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
+        if ( !formula.empty() ) {
             m << moltable::value_from( model, row, column_list{} );
         }
     }
@@ -501,7 +501,6 @@ MolTable::handlePaste()
 
         QSignalBlocker block( model );
         for ( const auto& value: mols->data() ) {
-            // ADDEBUG() << "row: " << row << "\t" << value.mass() << ", " << value.synonym();
             impl_->setValue( row++, value );
         }
     }

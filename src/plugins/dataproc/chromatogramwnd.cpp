@@ -440,7 +440,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 void
 ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " Y " << std::make_tuple( checked, bottom, top );
+    // ADDEBUG() << "## " << __FUNCTION__ << " Y " << std::make_tuple( checked, bottom, top );
     impl_->yScale_ = { checked, bottom, top, std::get< 0 >( impl_->yScale_ ) != checked };
     impl_->redraw();
 }
@@ -448,7 +448,7 @@ ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double t
 void
 ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " X " << std::make_tuple( checked, left, right );
+    // ADDEBUG() << "## " << __FUNCTION__ << " X " << std::make_tuple( checked, left, right );
     impl_->xScale_ = { checked, left, right, std::get< 0 >( impl_->xScale_ ) != checked };
     impl_->redraw();
 }

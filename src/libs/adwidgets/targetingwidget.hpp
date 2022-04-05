@@ -60,8 +60,6 @@ namespace adwidgets {
         void saveToUI( const adcontrols::TargetingMethod& );
 
     private:
-        TargetingForm * form_;
-        //TargetingTable * table_;
 
     signals:
         void triggerProcess( const QString& );

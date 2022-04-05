@@ -25,6 +25,7 @@
 
 #include "metidmethod.hpp"
 #include "msfinder.hpp"
+#include <adcontrols/constants.hpp>
 #include <adportable/json/extract.hpp>
 
 namespace boost { namespace serialization {  class access;  } }
@@ -33,14 +34,15 @@ namespace adcontrols {
 
     class MetIdMethod::impl {
     public:
-        bool positiveMode_;
+        // bool positiveMode_;
+        adcontrols::ion_polarity polarity_;
         std::vector< std::pair< bool, std::string > > adducts_;
         std::pair< uint32_t, uint32_t > chargeState_;
         idToleranceMethod toleranceMethod_;
         idFindAlgorithm findAlgorithm_;
         double tolerancePpm_;
         double toleranceDaltons_;
-        impl() : positiveMode_( true )
+        impl() : polarity_( adcontrols::polarity_positive )
                , adducts_{
                 { true, "+[H]+"}, {true, "-H +[H]+"}, {true, "-H2O +[H]+"}
                 , {false, "-[H]+" }, {false, "+H -[H]+"}, {false, "+[OH]-"}, {false, "+[Cl]-" } }
@@ -50,7 +52,7 @@ namespace adcontrols {
                , tolerancePpm_( 5 )
                , toleranceDaltons_( 0.010 ) { // Da (not mDa)
         }
-        impl( const impl& t ) : positiveMode_( t.positiveMode_ )
+        impl( const impl& t ) : polarity_( t.polarity_ )
                               , adducts_( t.adducts_ )
                               , chargeState_( t.chargeState_ )
                               , toleranceMethod_( t.toleranceMethod_ )
@@ -85,16 +87,29 @@ MetIdMethod::MetIdMethod::operator = ( const MetIdMethod& rhs )
     return *this;
 }
 
+adcontrols::ion_polarity
+MetIdMethod::polarity() const
+{
+    return impl_->polarity_;
+}
+
+void
+MetIdMethod::setPolarity( adcontrols::ion_polarity value )
+{
+    impl_->polarity_ = value;
+}
+
+
 bool
 MetIdMethod::isPositiveMode() const
 {
-    return impl_->positiveMode_;
+    return impl_->polarity_ == adcontrols::polarity_positive;
 }
 
 void
 MetIdMethod::setPositiveMode( bool flag )
 {
-    impl_->positiveMode_ = flag;
+    setPolarity( flag ? adcontrols::polarity_positive : adcontrols::polarity_negative );
 }
 
 MetIdMethod&
@@ -186,7 +201,7 @@ namespace adcontrols {
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MetIdMethod& t )
     {
         jv = boost::json::object{
-            { "positiveMode", t.impl_->positiveMode_ }
+            { "polarity",             static_cast<uint32_t>(t.impl_->polarity_) }
             , { "adducts",            t.impl_->adducts_      }
             , { "chargeState",        t.impl_->chargeState_  }
             , { "idToleranceMethod",  int(t.impl_->toleranceMethod_) }
@@ -204,16 +219,22 @@ namespace adcontrols {
 
         if ( jv.is_object() ) {
             auto obj = jv.as_object();
-             extract( obj, t.impl_->positiveMode_    , "positiveMode" );
-             extract( obj, t.impl_->adducts_         , "adducts" );
-             extract( obj, t.impl_->chargeState_     , "chargeState" );
-             int tmp;
-             extract( obj, tmp                       , "idToleranceMethod" );
-             t.impl_->toleranceMethod_ = static_cast< idToleranceMethod >( tmp );
-             extract( obj, tmp                       , "findAlgorithm" );
-             t.impl_->findAlgorithm_   = static_cast< idFindAlgorithm> ( tmp );
-             extract( obj, t.impl_->tolerancePpm_    , "tolerancePpm" );
-             extract( obj, t.impl_->toleranceDaltons_, "toleranceDaltons" );
+            if ( auto pol = obj.if_contains( "positiveMode" ) ) {
+                bool value = boost::json::value_to< bool >( *pol );
+                t.impl_->polarity_ = value ? adcontrols::polarity_positive : adcontrols::polarity_negative;
+                // extract( obj, t.impl_->positiveMode_    , "positiveMode" );
+            } else {
+                extract( obj, reinterpret_cast< uint32_t&>(t.impl_->polarity_),    "polarity" );
+            }
+            extract( obj, t.impl_->adducts_         , "adducts" );
+            extract( obj, t.impl_->chargeState_     , "chargeState" );
+            int tmp;
+            extract( obj, tmp                       , "idToleranceMethod" );
+            t.impl_->toleranceMethod_ = static_cast< idToleranceMethod >( tmp );
+            extract( obj, tmp                       , "findAlgorithm" );
+            t.impl_->findAlgorithm_   = static_cast< idFindAlgorithm> ( tmp );
+            extract( obj, t.impl_->tolerancePpm_    , "tolerancePpm" );
+            extract( obj, t.impl_->toleranceDaltons_, "toleranceDaltons" );
         }
         return t;
     }

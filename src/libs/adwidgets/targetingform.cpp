@@ -25,11 +25,12 @@
 #include "create_widget.hpp"
 #include "targetingform.hpp"
 #include "utilities.hpp"
-// #include "ui_targetingform.h"
 #include "spin_t.hpp"
+#include "radiobuttonshelper.hpp"
 #include <adcontrols/constants.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/metidmethod.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adportable/debug.hpp>
 
 #include <QCheckBox>
@@ -42,6 +43,31 @@
 #include <QSpinBox>
 
 using namespace adwidgets;
+
+// namespace {
+
+//     template<typename Tuple, std::size_t... Is>
+//     void setExclusiveCheckedButtonsImpl( Tuple& t, size_t idx, std::index_sequence<Is...> ) {
+//         (( (Is == idx)? std::get<Is>(t)->setChecked(true) : std::get<Is>(t)->setChecked(false)),...);
+//     }
+
+//     template<typename... Args>
+//     void setExclusiveCheckedButtons( std::tuple< Args...> args, size_t idx ) {
+//         setExclusiveCheckedButtonsImpl( args, idx, std::index_sequence_for< Args... >{} );
+//     }
+
+//     template<typename Tuple, typename... Args, std::size_t... Is>
+//     Tuple radioButtonsStateImpl( std::tuple< Args... > args, std::index_sequence<Is...> ) {
+//         Tuple r;
+//         ((std::get<Is>( r ) = std::get<Is>(args)->isChecked() ),...);
+//         return r;
+//     }
+
+//     template<typename Tuple, typename... Args>
+//     Tuple radioButtonState( std::tuple< Args... > args, Tuple&& ) {
+//         return radioButtonsStateImpl<Tuple>( args, std::index_sequence_for< Args... >{} );
+//     }
+// }
 
 namespace adwidgets {
     class TargetingForm::impl {
@@ -58,6 +84,7 @@ namespace adwidgets {
         QDoubleSpinBox * doubleSpinBoxHighMassLimit;
         QCheckBox * checkBox;
         QDialogButtonBox * buttonBox;
+        std::tuple< QRadioButton *, QRadioButton * > radioButtons;
         impl() : gridLayout_2( 0 )
                , label( 0 )            // 1
                , cbxLowMass( 0 )       // 2
@@ -84,67 +111,78 @@ namespace adwidgets {
 
             std::tuple< size_t, size_t > xy{0,0};
 
-            if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "title", tr("Targeting(2)") ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
+            if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "title", tr("Targeting(2)") )
+                                          , std::get<0>(xy), std::get<1>(xy)++, 1, 2 ) ) {
             }
             ++xy;
-            if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "label_width", "Width (mDa)" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+            if ( auto label = add_widget( gridLayout_2, create_widget< QLabel >( "label_width", "Width (mDa)" )
+                                          , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                 label->setTextFormat(Qt::RichText);
                 label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
             }
-            doubleSpinBoxWidth = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxWidth" ), std::get<0>(xy), std::get<1>(xy)++ );
+            doubleSpinBoxWidth = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxWidth" )
+                                             , std::get<0>(xy), std::get<1>(xy)++ );
 
             ++xy;
-            if (( label = add_widget( gridLayout_2, create_widget< QLabel >( "label", "Min. Charge" ), std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( label = add_widget( gridLayout_2, create_widget< QLabel >( "label", "Min. Charge" )
+                                      , std::get<0>(xy), std::get<1>(xy)++ ) )) {
                 label->setTextFormat(Qt::RichText);
                 label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
             }
 
-            if (( spinBoxChargeMin = add_widget( gridLayout_2, create_widget< QSpinBox >( "spinBoxChargeMin" ), std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( spinBoxChargeMin = add_widget( gridLayout_2, create_widget< QSpinBox >( "spinBoxChargeMin" )
+                                                 , std::get<0>(xy), std::get<1>(xy)++ ) )) {
                 spinBoxChargeMin->setRange( 1, 100 );
             }
 
             ++xy;
-            if (( label_2 = add_widget( gridLayout_2, create_widget< QLabel >( "label", "Max. Charge" ), std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( label_2 = add_widget( gridLayout_2, create_widget< QLabel >( "label", "Max. Charge" )
+                                        , std::get<0>(xy), std::get<1>(xy)++ ) )) {
                 label_2->setTextFormat(Qt::RichText);
                 label_2->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
             }
 
-            if (( spinBoxChargeMax = add_widget( gridLayout_2, create_widget< QSpinBox >( "spinBoxChargeMax" ), std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( spinBoxChargeMax = add_widget( gridLayout_2, create_widget< QSpinBox >( "spinBoxChargeMax" )
+                                                 , std::get<0>(xy), std::get<1>(xy)++ ) )) {
                 spinBoxChargeMax->setRange( 1, 100 );
             }
 
             ++xy;
-            if (( cbxLowMass = add_widget( gridLayout_2, create_widget< QCheckBox >( "cbxLowMass", tr("Low mass limit")) , std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( cbxLowMass = add_widget( gridLayout_2, create_widget< QCheckBox >( "cbxLowMass", tr("Low mass limit"))
+                                           , std::get<0>(xy), std::get<1>(xy)++ ) )) {
             }
             /////////
-            if (( doubleSpinBoxLowMassLimit = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxLowMassLimit" ), std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( doubleSpinBoxLowMassLimit = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxLowMassLimit" )
+                                                          , std::get<0>(xy), std::get<1>(xy)++ ) )) {
                 doubleSpinBoxLowMassLimit->setRange( 0.0, 10000.0 );
                 doubleSpinBoxLowMassLimit->setDecimals( 2 );
             }
 
             ++xy;
-            if (( cbxHighMass = add_widget( gridLayout_2, create_widget< QCheckBox >( "cbxHightMass", tr("High mass limit")) , std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( cbxHighMass = add_widget( gridLayout_2, create_widget< QCheckBox >( "cbxHightMass", tr("High mass limit"))
+                                            , std::get<0>(xy), std::get<1>(xy)++ ) )) {
             }
 
-            if (( doubleSpinBoxHighMassLimit = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxHighMassLimit" ), std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( doubleSpinBoxHighMassLimit = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxHighMassLimit" )
+                                                           , std::get<0>(xy), std::get<1>(xy)++ ) )) {
                 doubleSpinBoxHighMassLimit->setRange( 0.0, 10000.0 );
                 doubleSpinBoxHighMassLimit->setDecimals( 2 );
             }
 
             ++xy;
-            if ( auto groupBox = add_widget( gridLayout_2, create_widget< QGroupBox >( "GroupBox", tr("Polarity" ) ), std::get<0>(xy), std::get<1>(xy)++, 1, 2 )){
+            if ( auto groupBox = add_widget( gridLayout_2, create_widget< QGroupBox >( "GroupBox", tr("Polarity" ) )
+                                             , std::get<0>(xy), std::get<1>(xy)++, 1, 2 )){
                 auto layout = create_widget< QHBoxLayout >( "groupBox_Layout" );
                 layout->setSpacing( 2 );
                 layout->setContentsMargins(4, 0, 4, 0);
-                if ( auto radio = add_widget( layout, create_widget< QRadioButton >( "radioPos", tr("Positive ion") ) ) ) {
-                }
-                if ( auto radio = add_widget( layout, create_widget< QRadioButton >( "radioNeg", tr("Negative ion") ) ) ) {
-                }
+                std::get<0>(radioButtons) = add_widget( layout, create_widget< QRadioButton >("radioPos", tr("Positive ion") ) );
+                std::get<1>(radioButtons) = add_widget( layout, create_widget< QRadioButton >("radioNeg", tr("Negative ion") ) );
                 groupBox->setLayout( layout );
             }
 
             ++xy;
-            if (( checkBox = add_widget( gridLayout_2, create_widget< QCheckBox >( "checkBox", tr("Closest m/z")) , std::get<0>(xy), std::get<1>(xy)++ ) )) {
+            if (( checkBox = add_widget( gridLayout_2, create_widget< QCheckBox >( "checkBox", tr("Closest m/z"))
+                                         , std::get<0>(xy), std::get<1>(xy)++ ) )) {
             }
 
             ++xy;
@@ -154,30 +192,15 @@ namespace adwidgets {
             if (( buttonBox = add_widget( vLayout, create_widget< QDialogButtonBox >( "buttonBox" ) ) )) {
                 buttonBox->setStandardButtons(QDialogButtonBox::Apply);
             }
-            if ( auto radio = accessor( form ).find< QRadioButton * >( "radioPos" ) ) {
-                radio->setChecked( true );
-            }
         }
     };
 }
 
 TargetingForm::TargetingForm(QWidget *parent) : QWidget(parent)
-#if TARGETING_FORM_LOCAL_IMPL
                                               , impl_( std::make_unique< impl >() )
                                               , ui( impl_ )
-#else
-                                              , ui(new Ui::TargetingForm)
-#endif
-
 {
     ui->setupUi( this );
-    // impl_->setupUi( this );
-#if ! TARGETING_FORM_LOCAL_IMPL
-    ui->radioButtonRP->setChecked( false );
-    ui->radioButtonWidth->setChecked( true );
-    spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxRP, 1000.0, 100000.0, 10000.0 );
-    spin_t<QDoubleSpinBox, double>::init( ui->doubleSpinBoxWidth, 0.1, 500.0, 1.0 );
-#endif
     spin_t<QSpinBox, int >::init( ui->spinBoxChargeMin, 1, 50, 1 );
     spin_t<QSpinBox, int >::init( ui->spinBoxChargeMax, 1, 50, 3 );
 
@@ -187,28 +210,18 @@ TargetingForm::TargetingForm(QWidget *parent) : QWidget(parent)
 	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxHighMassLimit, 1, 5000, 2000 );
 
     connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
-
-    if ( auto pol = accessor( this ).find< QRadioButton * >( "radioPos" ) ) {
-        connect( pol, &QRadioButton::toggled, this, [&]( bool checked ){
-            emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
-        });
-    }
-
+    connect( std::get<0>(ui->radioButtons), &QRadioButton::toggled, this, [&]( bool checked ){
+        emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+    });
 }
 
 TargetingForm::~TargetingForm()
 {
-#if ! TARGETING_FORM_LOCAL_IMPL
-    delete ui;
-#endif
 }
 
 void
 TargetingForm::setTitle( const QString& title, bool enableCharge, bool enableLimits )
 {
-#if ! TARGETING_FORM_LOCAL_IMPL
-    ui->groupBox->setTitle( title );
-#endif
     if ( !enableCharge ) {
         ui->cbxLowMass->setCheckState( Qt::Unchecked );
         ui->cbxHighMass->setCheckState( Qt::Unchecked );
@@ -224,13 +237,7 @@ TargetingForm::setTitle( const QString& title, bool enableCharge, bool enableLim
 void
 TargetingForm::getContents( adcontrols::TargetingMethod& m )
 {
-#if ! TARGETING_FORM_LOCAL_IMPL
-    m.setTolerance( adcontrols::idTolerancePpm, ui->doubleSpinBoxRP->value() );
-#endif
     m.setTolerance( adcontrols::idToleranceDaltons, ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
-#if ! TARGETING_FORM_LOCAL_IMPL
-    m.setToleranceMethod( ui->radioButtonRP->isChecked() ? adcontrols::idTolerancePpm : adcontrols::idToleranceDaltons );
-#endif
     m.chargeState( ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() );
 
     m.isLowMassLimitEnabled( ui->cbxLowMass->checkState() == Qt::Checked );
@@ -243,18 +250,18 @@ TargetingForm::getContents( adcontrols::TargetingMethod& m )
         m.setFindAlgorithm( adcontrols::idFindClosest );
     else
         m.setFindAlgorithm( adcontrols::idFindLargest );
+
+    if ( auto radio = findChild< QRadioButton * >( "radioPos" ) ) {
+        m.molecules().setPolarity( radio->isChecked() ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+    }
 }
 
 void
 TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 {
-#if ! TARGETING_FORM_LOCAL_IMPL
-    ui->doubleSpinBoxRP->setValue( m.tolerance( adcontrols::idTolerancePpm ) );
-#endif
+    // QSignalBlocker block( this );
+
     ui->doubleSpinBoxWidth->setValue( m.tolerance( adcontrols::idToleranceDaltons ) * 1000.0 );
-#if ! TARGETING_FORM_LOCAL_IMPL
-    ui->radioButtonRP->setChecked( m.toleranceMethod() == adcontrols::idTolerancePpm );
-#endif
     auto charge = m.chargeState();
     ui->spinBoxChargeMin->setValue( charge.first );
     ui->spinBoxChargeMax->setValue( charge.second );
@@ -268,36 +275,29 @@ TargetingForm::setContents( const adcontrols::TargetingMethod& m )
 	ui->doubleSpinBoxHighMassLimit->setValue( m.highMassLimit() );
 
     ui->checkBox->setChecked( m.findAlgorithm() == adcontrols::idFindClosest );
+
+    radiobuttons::setChecked( ui->radioButtons, m.molecules().polarity() );
+    // ADDEBUG() << "RadioButtns state: " << radiobuttons::checkedStates( ui->radioButtons, std::tuple<bool,bool>{} );
 }
 
 void
 TargetingForm::getContents( adcontrols::MetIdMethod& m )
 {
-#if ! TARGETING_FORM_LOCAL_IMPL
-    m.setTolerance( adcontrols::idTolerancePpm, ui->doubleSpinBoxRP->value() );
-#endif
     m.setTolerance( adcontrols::idToleranceDaltons, ui->doubleSpinBoxWidth->value() / 1000.0 ); // mDa --> Da
-#if ! TARGETING_FORM_LOCAL_IMPL
-    m.setToleranceMethod( ui->radioButtonRP->isChecked() ? adcontrols::idTolerancePpm : adcontrols::idToleranceDaltons );
-#endif
     m.chargeState( { ui->spinBoxChargeMin->value(), ui->spinBoxChargeMax->value() } );
 
     if ( ui->checkBox->isChecked() )
         m.setFindAlgorithm( adcontrols::idFindClosest );
     else
         m.setFindAlgorithm( adcontrols::idFindLargest );
+
+    radiobuttons::setChecked( ui->radioButtons, m.polarity() );
 }
 
 void
 TargetingForm::setContents( const adcontrols::MetIdMethod& m )
 {
-#if ! TARGETING_FORM_LOCAL_IMPL
-    ui->doubleSpinBoxRP->setValue( m.tolerance( adcontrols::idTolerancePpm ) );
-#endif
     ui->doubleSpinBoxWidth->setValue( m.tolerance( adcontrols::idToleranceDaltons ) * 1000.0 );
-#if ! TARGETING_FORM_LOCAL_IMPL
-    ui->radioButtonRP->setChecked( m.toleranceMethod() == adcontrols::idTolerancePpm );
-#endif
     auto chargeMin = m.chargeState().first;
     auto chargeMax = m.chargeState().second;
     ui->spinBoxChargeMin->setValue( chargeMin );
@@ -314,4 +314,6 @@ TargetingForm::setContents( const adcontrols::MetIdMethod& m )
 	ui->doubleSpinBoxHighMassLimit->setValue( 4000.0 );
     ui->doubleSpinBoxLowMassLimit->setEnabled( false );
 	ui->doubleSpinBoxHighMassLimit->setEnabled( false );
+
+    radiobuttons::setChecked( ui->radioButtons, m.polarity() );
 }

@@ -26,17 +26,17 @@
 #include "targetingform.hpp"
 #include "moltable.hpp"
 #include "targetingadducts.hpp"
-#include <adportable/is_type.hpp>
-#include <adprot/digestedpeptides.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/is_type.hpp>
+#include <adprot/digestedpeptides.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 
 using namespace adwidgets;
 
 TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
-                                                  , form_(0)
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
@@ -44,10 +44,9 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {
-            splitter->addWidget( ( form_ = new TargetingForm ) );
-            //splitter->addWidget( ( table_ = new TargetingTable ) );
+            splitter->addWidget( new TargetingForm );
             splitter->addWidget( new MolTable );
-            splitter->addWidget( (new TargetingAdducts) );
+            splitter->addWidget( new TargetingAdducts );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
             splitter->setStretchFactor( 2, 1 );
@@ -60,14 +59,17 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
     if ( auto widget = findChild< TargetingAdducts * >() )
         connect( widget, &TargetingAdducts::resetAdducts, this, &TargetingWidget::handleResetAdducts );
 
-    if ( auto table = findChild< MolTable * >() )
-        connect( form_, &TargetingForm::polarityToggled, table, &MolTable::handlePolarity );
-    connect( form_, &TargetingForm::triggerProcess, [this] { emit triggerProcess( "TargetingWidget" ); } );
+    if ( auto form = findChild< TargetingForm * >() ) {
+        connect( form, &TargetingForm::triggerProcess, [this] { emit triggerProcess( "TargetingWidget" ); } );
+        if ( auto table = findChild< MolTable * >() ) {
+            connect( form, &TargetingForm::polarityToggled, table, &MolTable::handlePolarity );
+        }
+    }
+
 }
 
 TargetingWidget::~TargetingWidget()
 {
-    delete form_;
 }
 
 QWidget *
@@ -84,19 +86,19 @@ TargetingWidget::OnCreate( const adportable::Configuration& )
 void
 TargetingWidget::OnInitialUpdate()
 {
-    adcontrols::TargetingMethod m; // default
+    if ( auto form = findChild< TargetingForm * >() ) {
+        form->setContents( adcontrols::TargetingMethod{} );
+    }
 
     if ( auto table = findChild< MolTable *>() ) {
         table->onInitialUpdate();
-        table->setContents( m.molecules() );
+        table->setContents( adcontrols::TargetingMethod{}.molecules() );
         table->setColumnHidden( col_abundance{}, true );
     }
 
-    form_->setContents( m );
-
     if ( auto tree = findChild< TargetingAdducts * >() ) {
         tree->OnInitialUpdate();
-        tree->setContents( m );
+        tree->setContents( adcontrols::TargetingMethod{} );
     }
 }
 
@@ -127,10 +129,9 @@ TargetingWidget::getContents( boost::any& a ) const
 
             adcontrols::TargetingMethod method( adcontrols::TargetingMethod::idTargetFormula );
 
-            form_->getContents( method );
-
-            //if ( auto table = findChild< TargetingTable * >() )
-            // table->getContents( method );
+            if ( auto form = findChild< TargetingForm * >() ) {
+                form->getContents( method );
+            }
             if ( auto table = findChild< MolTable *>() )
                 table->getContents( method.molecules() );
 
@@ -160,7 +161,9 @@ TargetingWidget::setContents( boost::any&& a )
 
         if ( const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >() ) {
 
-            form_->setContents( *t );
+            if ( auto form = findChild< TargetingForm * >() ) {
+                form->setContents( *t );
+            }
 
             if ( auto table = findChild< MolTable *>() )
                 table->setContents( t->molecules() );

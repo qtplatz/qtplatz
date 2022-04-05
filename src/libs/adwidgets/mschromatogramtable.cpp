@@ -368,8 +368,11 @@ MSChromatogramTable::getContents( adcontrols::moltable& m )
     using adportable::index_of;
     auto model = impl_->model_.get();
     m.data().clear();
+    m.setPolarity( impl_->current_polarity_ );
     for ( int row = 0; row < model->rowCount(); ++row ) {
-        m << moltable::value_from( model, row, column_list{} );
+        auto formula = model->index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();
+        if ( !formula.empty() )
+            m << moltable::value_from( model, row, column_list{} );
     }
 
 }

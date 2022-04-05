@@ -458,8 +458,7 @@ MainWindow::handleScaleY2Changed( int r, int c )
 void
 MainWindow::handleScaleX2Changed( int r, int c )
 {
-    ADDEBUG() << "### X2 " << __FUNCTION__ << "r,c=" << std::make_pair( r, c );
-
+    // ADDEBUG() << "### X2 " << __FUNCTION__ << "r,c=" << std::make_pair( r, c );
     if ( auto cb = findChild< QCheckBox * >( QString( "cb%1X%2" ).arg(r).arg(c) ) ) {
         if ( auto left = findChild< QDoubleSpinBox * >( QString( "sp%1L%2" ).arg(r).arg(c) ) ) {
             if ( auto right = findChild< QDoubleSpinBox * >( QString( "sp%1R%2" ).arg(r).arg(c) ) ) {

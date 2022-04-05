@@ -24,7 +24,8 @@
 
 #include "mschromatogramform.hpp"
 #include "utilities.hpp"
-// #include "ui_mschromatogramform.h"
+#include "radiobuttonshelper.hpp"
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adportable/is_type.hpp>
@@ -52,11 +53,6 @@ namespace adwidgets {
             QDoubleSpinBox *doubleSpinBox;
             QDoubleSpinBox *doubleSpinBox_2;
             QDoubleSpinBox *doubleSpinBox_4;
-            //QGridLayout *gridLayout;
-            //QGridLayout *gridLayout_2;
-            //QGridLayout *gridLayout_3;
-            //QGridLayout *gridLayout_4;
-            //QGridLayout *gridLayout_5;
             QGroupBox *groupBox;
             QGroupBox *groupBoxAutoTargeting;
             QLabel *label;
@@ -65,9 +61,8 @@ namespace adwidgets {
             QLineEdit *lineEdit;
             QRadioButton *radioButton;
             QRadioButton *radioButton_2;
-            // QSpacerItem *verticalSpacer;
             QSpinBox *spinBox;
-            // QVBoxLayout *verticalLayout;
+            std::tuple< QRadioButton *, QRadioButton * > polarityButtons;
 
             void setupUi(QWidget * MSChromatogramForm );
             void retranslateUi(QWidget *MSChromatogramForm );
@@ -100,7 +95,7 @@ MSChromatogramForm::OnCreate( const adportable::Configuration& )
 void
 MSChromatogramForm::OnInitialUpdate()
 {
-    setContents( adcontrols::MSChromatogramMethod() );
+    setContents( adcontrols::MSChromatogramMethod{} );
     if ( auto radio = findChild< QRadioButton * >( "radioPos" ) ) {
         connect( radio, &QRadioButton::toggled, [&](bool checked){
             emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
@@ -162,6 +157,8 @@ MSChromatogramForm::setContents( const adcontrols::MSChromatogramMethod& m )
     ui->doubleSpinBox_4->setValue( m.tolerance() * 1000.0 );
 
     ui->groupBoxAutoTargeting->setChecked( m.enableAutoTargeting() );
+
+    radiobuttons::setChecked( ui->polarityButtons, m.molecules().polarity() );
 }
 
 void
@@ -221,7 +218,8 @@ namespace adwidgets {
                     if (( radioButton = add_widget( gridLayout, create_widget< QRadioButton >("radioButton", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
                         radioButton->setChecked(true);
                     }
-                    if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox), std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
+                    if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox)
+                                                      , std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
                         doubleSpinBox->setDecimals(4);
                         doubleSpinBox->setRange( 0.0, 1.0 );
                         doubleSpinBox->setSingleStep(0.001000000000000);
@@ -251,8 +249,10 @@ namespace adwidgets {
                         auto layout = create_widget< QHBoxLayout >( "groupBox_Layout" );
                         layout->setSpacing( 2 );
                         layout->setContentsMargins(4, 0, 4, 0);
-                        add_widget( layout, create_widget< QRadioButton >( "radioPos", QObject::tr("Positive ion") ) )->setChecked( true );
-                        add_widget( layout, create_widget< QRadioButton >( "radioNeg", QObject::tr("Negative ion") ) );
+                        std::get< adcontrols::polarity_positive >( polarityButtons )
+                            = add_widget( layout, create_widget< QRadioButton >( "radioPos", QObject::tr("Positive ion") ) );
+                        std::get< adcontrols::polarity_negative >( polarityButtons )
+                            = add_widget( layout, create_widget< QRadioButton >( "radioNeg", QObject::tr("Negative ion") ) );
 
                         groupBox->setLayout( layout );
                     }

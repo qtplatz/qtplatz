@@ -394,7 +394,6 @@ void
 CentroidWidget::handleAnalyzerTypeChanged( int index )
 {
     using adcontrols::CentroidMethod;
-    ADDEBUG() << index; // TOF, Proportional, Constant
     CentroidMethod::ePeakWidthMethod idx = CentroidMethod::ePeakWidthMethod( index );
     accessor a(this);
 

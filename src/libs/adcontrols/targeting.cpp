@@ -382,16 +382,17 @@ Targeting::setup( const TargetingMethod& m )
 {
     ChemicalFormula formula_parser;
 
-    ADDEBUG() << "=================== targeting setup ======================";
     active_formula_.clear();
 
     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_global;
 
     bool positive = m.molecules().polarity() == adcontrols::polarity_positive;
-
     auto charge_range = m.chargeState();
 
+    ADDEBUG() << "====== targeting setup ====== polarity ? " << (positive ? "positive\t" : "negative\t") << charge_range;
+
     for ( auto& a: m.adducts( positive ) ) {
+        ADDEBUG() << "adducts: " << a;
         if ( a.first ) { // enable
             for ( const auto& adduct: ChemicalFormula::split( a.second ) ) {
                 auto sign = (adduct.second == '-' ? "-" : "+");
