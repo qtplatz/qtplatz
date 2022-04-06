@@ -291,6 +291,7 @@ DataprocessWorker::createContour( Dataprocessor* processor )
     if ( auto rawfile = processor->rawdata() ) {
         if ( rawfile->dataformat_version() >= 3 ) {
             adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
+            dlg.setFormHidden( true );
             if ( dlg.exec() == QDialog::Accepted ) {
                 int fcn = dlg.fcn();
                 if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )

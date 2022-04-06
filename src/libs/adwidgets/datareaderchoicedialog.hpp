@@ -40,12 +40,15 @@ namespace adwidgets {
         explicit DataReaderChoiceDialog( QWidget * parent = 0 );
         DataReaderChoiceDialog( std::vector< std::shared_ptr< adcontrols::DataReader > >&&, QWidget * parent = 0 );
         void setProtocolHidden( bool );
+        void setFormHidden( bool );
+
         int currentSelection() const;
         int fcn() const;
 
         // extended interface
         // allow multiple selection
         std::vector< std::pair< int, int > > selection() const;
+
         void setMassWidth( double );
         double massWidth() const;
         void setTimeWidth( double );

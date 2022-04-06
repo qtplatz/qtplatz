@@ -109,8 +109,10 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( QWidget *parent ) : QDialog( par
     }
 }
 
-DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< adcontrols::DataReader > >&& readers
-                                                , QWidget * parent ) : QDialog( parent )
+DataReaderChoiceDialog::DataReaderChoiceDialog(
+    std::vector< std::shared_ptr< adcontrols::DataReader > >&& readers
+    , QWidget * parent )
+    : QDialog( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
 
@@ -128,10 +130,12 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< ad
         model->setHeaderData( c_fcn, Qt::Horizontal, tr( "Protocol#" ) );
         model->setHeaderData( c_objtext, Qt::Horizontal, tr( "id" ) );
         for ( int row = 0; row < int( readers.size() ); ++row ) {
+
             const auto& reader = readers[ row ];
+            //ADDEBUG() << "======== fcnCount(): " << reader->fcnCount() << ", " << reader->display_name();
             model->setData( model->index( row, c_display_name ), QString::fromStdString( reader->display_name() ) );
             model->setData( model->index( row, c_objtext ), QString::fromStdString( reader->objtext() ) );
-            model->setData( model->index( row, c_fcn ), -1, Qt::EditRole ); // fcn '*'
+            model->setData( model->index( row, c_fcn ), reader->fcnCount() <= 1 ? 0 : -1, Qt::EditRole ); // -1 := '*'
             model->setData( model->index( row, c_fcn ), int( reader->fcnCount() ), Qt::UserRole + 1 );
             model->item( row, c_display_name )->setEditable( false );
             model->item( row, c_objtext )->setEditable( false );
@@ -171,12 +175,12 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< ad
                  });
 
         connect( form, &CGenForm::valueChanged, [table]( int id, double value ){
-                                                    table->model()->setData( table->model()->index( table->currentIndex().row(), c_display_name ), value, Qt::UserRole + 1 + id );
-                                                });
+            table->model()->setData( table->model()->index( table->currentIndex().row(), c_display_name ), value, Qt::UserRole + 1 + id );
+        });
 
         connect( form, &CGenForm::enableTimeChanged, [table]( bool enable ){
-                                                         table->model()->setData( table->model()->index( table->currentIndex().row(), c_display_name ), enable, Qt::UserRole + 3 );
-                                                     });
+            table->model()->setData( table->model()->index( table->currentIndex().row(), c_display_name ), enable, Qt::UserRole + 3 );
+        });
 
         auto label = new QLabel;
         label->setText( "Select trace and protocol# from the above table." );
@@ -195,14 +199,16 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< ad
 
     adjustSize();
     this->resize( this->size() + QSize( 200, 0 ) );
+    // ADDEBUG() << std::make_pair( size().width(), size().height() );
 }
 
-int
-DataReaderChoiceDialog::currentSelection() const
+void
+DataReaderChoiceDialog::setFormHidden( bool hide )
 {
-    if ( auto table = findChild< QTableView * >() )
-        return table->currentIndex().row();
-    return 0;
+    if ( auto form = findChild< CGenForm * >() ) {
+        form->setHidden( hide );
+        resize( QSize( size().width(), 200 ) );
+    }
 }
 
 void
@@ -211,6 +217,14 @@ DataReaderChoiceDialog::setProtocolHidden( bool hide )
     if ( auto table = findChild< QTableView * >() ) {
         table->setColumnHidden( c_fcn, hide );
     }
+}
+
+int
+DataReaderChoiceDialog::currentSelection() const
+{
+    if ( auto table = findChild< QTableView * >() )
+        return table->currentIndex().row();
+    return 0;
 }
 
 int
@@ -243,6 +257,7 @@ DataReaderChoiceDialog::selection() const
     }
     return res;
 }
+
 
 void
 DataReaderChoiceDialog::setMassWidth( double width /* dalton */ )

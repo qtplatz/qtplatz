@@ -1296,7 +1296,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
     printer.setPageSize( QPageSize( QPageSize::A4 ) );
-    printer.setPageMargins( 10.0, 10.0, 10.0, 10.0, printer.Millimeter);
+    printer.setPageMargins( QMarginsF( 10.0, 10.0, 10.0, 10.0 ), QPageLayout::Millimeter);
     printer.setFullPage( true );
 
 	portfolio::Folium folium;
@@ -1341,7 +1341,8 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     QTextDocument doc;
     QTextBlockFormat blockFormat;
     QTextCursor cursor(&doc);
-    auto pageSize = printer.pageRect().size();
+    auto pageSize = printer.pageLayout().paintRectPixels( printer.resolution() ).size();
+    // auto pageSize = printer.pageRect().size();
     doc.setPageSize( pageSize );
     const QRectF textRect( 10, 10, pageSize.width() - 2 * 10, pageSize.height() - 2 * 10 );
 
