@@ -461,7 +461,9 @@ ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale )
     if ( auto zoomer = plot::zoomer() )
         zoomer->autoYScale( std::get< 0 >( impl_->yScale_ ) );
 
-    if ( !std::get< 0 >( impl_->yScale_ ) ) { // not auto scale
+    if ( std::get< 0 >( impl_->yScale_ ) ) { // auto scale
+        // cannot handle y auto scale collectly, application should set data again
+    } else {
         setAxisScale( QwtPlot::yLeft, std::get< 1 >( impl_->yScale_ ), std::get< 2 >( impl_->yScale_ ) );
         replot();
     }
@@ -476,6 +478,16 @@ ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
     impl_->xScale_ = std::move( xScale );
     if ( !std::get< 0 >( impl_->xScale_ ) ) { // not auto scale
         setAxisScale( QwtPlot::xBottom, std::get< 1 >( impl_->xScale_ ), std::get< 2 >( impl_->xScale_ ) );
+        replot();
+    } else {
+        QRectF rc = {};
+        for ( const auto& v: impl_->traces_ ) {
+            if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
+                auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
+                rc |= trace->boundingRect();
+            }
+        }
+        setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() );
         replot();
     }
 }
@@ -582,12 +594,20 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
             }
         }
     }
+    // ADDEBUG() << "rect.height: " << std::make_tuple( rect.top(), rect.bottom(), rect.height() );
 
-    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    setAxisScale( yAxis, rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );
+    if ( std::get< 0 >( impl_->xScale_ ) ) { // x auto scale
+        setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+    } else {
+        setAxisScale( QwtPlot::xBottom, std::get< 1 >( impl_->xScale_ ), std::get< 2 >( impl_->xScale_ ) );
+    }
 
-    zoomer()->setZoomBase(); // zoom base set to data range
-
+    if ( std::get< 0 >( impl_->yScale_ ) ) { // y is not auto scale
+        setAxisScale( yAxis, rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );
+    } else {
+        setAxisScale( yAxis, std::get< 1 >( impl_->yScale_ ), std::get< 2 >( impl_->yScale_ ) );
+    }
+    zoomer()->setZoomBase();
 }
 
 void
@@ -880,7 +900,6 @@ ChromatogramWidget::legendEnabled() const
 {
     return impl_->externalLegend_ != nullptr;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

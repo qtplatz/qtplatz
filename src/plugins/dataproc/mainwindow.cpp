@@ -435,8 +435,6 @@ MainWindow::handleScaleYChanged( int i )
 void
 MainWindow::handleScaleY2Changed( int r, int c )
 {
-    ADDEBUG() << "### Y2 " << __FUNCTION__ << "r,c=" << std::make_pair( r, c );
-
     if ( auto cb = findChild< QCheckBox * >( QString( "cb%1Y%2" ).arg(r).arg(c) ) ) {
         if ( auto height = findChild< QDoubleSpinBox * >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
             if ( auto bottom = findChild< QDoubleSpinBox * >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
@@ -835,8 +833,8 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
     if ( widget->objectName().isEmpty() )
         widget->setObjectName( pageName );
 
-
     QDockWidget * dockWidget = addDockForWidget( widget );
+    dockWidget->titleBarWidget()->setHidden(true);
     dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
 
     if ( title.isEmpty() )
@@ -867,7 +865,6 @@ MainWindow::createDockWidgets()
     };
 
     std::vector< widget > widgets = {
-        // {  tr( "Centroid" ),        "CentroidMethod",    [] (){ return new adwidgets::CentroidForm; } } // should be first
         { tr( "Centroid" ),         "CentroidMethod",    [] (){ return new adwidgets::CentroidWidget; } }
         , { tr( "MS Peaks" ),       "MSPeakTable",       [] (){ return new dataproc::MSPeakTable; } }
         , { tr( "MS Simulator" ),   "MSSimulatorMethod", [] (){ return new adwidgets::MSSimulatorWidget; } }
@@ -876,7 +873,6 @@ MainWindow::createDockWidgets()
         , { tr( "Peak Find" ),      "PeakFindMethod",    [] (){ return new adwidgets::PeakMethodForm; } }
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] (){ return new adwidgets::MSCalibrateWidget; } }
         , { tr( "Data property" ),  "DataProperty",      [] (){ return new dataproc::MSPropertyForm; } }
-        // , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
     };
 
     auto list = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iDataproc >();

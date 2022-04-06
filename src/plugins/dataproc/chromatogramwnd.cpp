@@ -228,16 +228,6 @@ ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
     impl_->peakTable_->OnInitialUpdate();
 }
 
-// void
-// ChromatogramWnd::draw1( adutils::MassSpectrumPtr& )
-// {
-// }
-
-// void
-// ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
-// {
-// }
-
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {

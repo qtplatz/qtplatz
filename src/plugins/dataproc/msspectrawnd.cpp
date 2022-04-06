@@ -349,7 +349,7 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
             plot->replot();
         });
 #endif
-        actions.emplace_back( menu.addAction( tr("set intersection") ), [&]() {
+        actions.emplace_back( menu.addAction( tr("set intersection (common ions)") ), [&]() {
             if ( impl_->currData_ && !impl_->data_.empty() ) {
                 if ( auto const ms1 = impl_->data_.at( 0 ).get_processed() ) { // reference
                     if ( auto const ms2 = impl_->currData_.get_processed() ) {
@@ -475,7 +475,7 @@ MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
 
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setFullPage( false );
 
     printer.setDocName( "QtPlatz Process Report" );

@@ -141,7 +141,9 @@ namespace dataproc {
                               , hasHistogram_( false )
                               , scaleYAuto_( true )
                               , scaleY_( {0, 0} )
-                              , yRightEnabled_( false ) {
+                              , yRightEnabled_( false )
+                              , yScaleChromatogram_{ true, 0,  100.0 }
+                              , xScaleChromatogram_{ true, 0, 1000.0 } {
         }
 
         void currentChanged( const adcontrols::MSPeakInfoItem& pk ) {
@@ -271,6 +273,8 @@ namespace dataproc {
         bool scaleYAuto_;
         std::pair< double, double > scaleY_;
         bool yRightEnabled_;
+        std::tuple< bool, double, double > yScaleChromatogram_;
+        std::tuple< bool, double, double > xScaleChromatogram_;
     };
 
 }
@@ -1291,7 +1295,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setPageMargins( 10.0, 10.0, 10.0, 10.0, printer.Millimeter);
     printer.setFullPage( true );
 
@@ -2056,11 +2060,14 @@ MSProcessingWnd::chromatogrRect() const
 void
 MSProcessingWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
-    // ADDEBUG() << std::make_tuple( checked, bottom, top );
+    pImpl_->yScaleChromatogram_ = { checked, bottom, top };
+    pImpl_->ticPlot_->setYScale( std::make_tuple( checked, bottom, top ) );
 }
 
 void
 MSProcessingWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
-    // ADDEBUG() << std::make_tuple( checked, left, right );
+    ADDEBUG() << std::make_tuple( checked, left, right );
+    pImpl_->xScaleChromatogram_ = { checked, left, right };
+    pImpl_->ticPlot_->setXScale( std::make_tuple( checked, left, right ) );
 }
