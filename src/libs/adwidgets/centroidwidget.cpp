@@ -24,6 +24,7 @@
 
 #include "centroidwidget.hpp"
 #include "create_widget.hpp"
+#include "utilities.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adportable/debug.hpp>
@@ -77,6 +78,7 @@ namespace {
 CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
                                                 , impl_( std::make_unique< impl >() )
 {
+    using namespace spin_initializer;
     auto vLayout = create_widget< QVBoxLayout >( "virticalLayout", this );
     auto hLayout = create_widget< QHBoxLayout >( "horizontalLayout" );
     auto grid = create_widget< QGridLayout >( "gridlayout" );
@@ -102,8 +104,9 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
     }
 
     if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doublSpinBox_peakWidth" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-        spin->setRange( 0.00001, 10.0 );
-        spin->setDecimals( 4 );
+        spin_init( spin, std::make_tuple( Minimum<>{0.00001}, Maximum<>{10.0}, Decimals{4}, Alignment{Qt::AlignRight}) );
+        // spin->setRange( 0.00001, 10.0 );
+        // spin->setDecimals( 4 );
         connect( spin, qOverload< double >( &QDoubleSpinBox::valueChanged ), this, &CentroidWidget::handlePeakWidthChanged );
     }
     ++xy;
@@ -112,8 +115,9 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
     }
     if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doublSpinBox_atMass" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-        spin->setRange( 1, 10000.0 );
-        spin->setDecimals( 0 );
+        spin_init( spin, std::make_tuple( Minimum<>{1.}, Maximum<>{10'000.0}, Decimals{0}, Alignment{Qt::AlignRight}) );
+        // spin->setRange( 1, 10000.0 );
+        // spin->setDecimals( 0 );
     }
 
     ++xy;
@@ -132,8 +136,9 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
     ++xy;
     grid->addWidget( create_widget< QCheckBox >( "checkBox_lowpassFilter", tr("Low-pass filter (MHz)")) , std::get<0>(xy), std::get<1>(xy)++ );
     if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doublSpinBox_lowpassfilter" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
-        spin->setRange( 0.0, 1000.0 );
-        spin->setDecimals( 0 );
+        spin_init( spin, std::make_tuple( Minimum<>{0.}, Maximum<>{1'000.0}, Decimals{0}, Alignment{Qt::AlignRight}) );
+        // spin->setRange( 0.0, 1000.0 );
+        // spin->setDecimals( 0 );
     }
 
     ++xy;
@@ -142,7 +147,9 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
         label->setTextFormat(Qt::RichText);
     }
 
-    grid->addWidget( create_widget< QDoubleSpinBox >( "doubleSpinBox_useTimeAxis" ), std::get<0>(xy), std::get<1>(xy)++ );
+    if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBox_useTimeAxis" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+        spin_init( spin, std::make_tuple( Decimals{3}, Minimum<>{0.004}, Maximum<>{1'000.0}, SingleStep<>{0.001}, Alignment{Qt::AlignRight}) );
+    }
 
     ++xy;
     hLayout->addSpacerItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );

@@ -308,6 +308,7 @@ namespace adwidgets {
         MSSimulatorForm::setupUi( adwidgets::MSSimulatorForm * form )
         {
             using namespace adwidgets;
+            using namespace spin_initializer;
 
             if (form->objectName().isEmpty())
                 form->setObjectName(QString::fromUtf8("form"));
@@ -327,10 +328,7 @@ namespace adwidgets {
                     label->setAlignment(Qt::AlignCenter);
                 }
                 if (( spinBox = add_widget( gridLayout, create_widget< QSpinBox >("spinBox", form), std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
-                    spinBox->setMinimum(100);
-                    spinBox->setMaximum(10000000);
-                    spinBox->setSingleStep(100);
-                    spinBox->setValue(10000);
+                    spin_init( spinBox, std::make_tuple( Minimum<>{100}, Maximum<>{10000000}, SingleStep<>{100}, Value<>{10000},Alignment{Qt::AlignRight} ) );
                 }
 
                 ++xy; // line 1
@@ -377,30 +375,21 @@ namespace adwidgets {
                 label_5 = add_widget( gridLayout_2, create_widget< QLabel >( "label_5", groupBox ), 2, 0, 1, 1 );
                 label_5->setTextFormat(Qt::RichText);
                 label_5->setAlignment(Qt::AlignCenter);
-                // gridLayout_2->addWidget(label_5, 2, 0, 1, 1);
 
                 spinBox_lap = add_widget( gridLayout_2, create_widget< QSpinBox >("spinBox_lap", groupBox), 3, 1, 1, 1 );
+                spin_init( spinBox_lap, std::make_tuple( Maximum{9999},Alignment{Qt::AlignRight} ) );
                 spinBox_lap->setEnabled(false);
-                spinBox_lap->setMaximum(9999);
-                // gridLayout_2->addWidget(spinBox_lap, 3, 1, 1, 1);
 
                 if (( doubleSpinBox_3 = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >("doubleSpinBox_3", groupBox), 0, 1, 1, 1 ) )) {
-                    doubleSpinBox_3->setMinimum(0.100000000000000);
-                    doubleSpinBox_3->setMaximum(999.990000000000009);
-                    doubleSpinBox_3->setValue(2.000000000000000);
+                    spin_init( doubleSpinBox_3, std::make_tuple( Minimum<>{0.1},Maximum<>{999.99},Value<>{2.0},Alignment{Qt::AlignRight} ) );
                 }
 
                 if (( doubleSpinBox_4 = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox), 1, 1, 1, 1 ) )) {
-                    doubleSpinBox_4->setDecimals(1);
-                    doubleSpinBox_4->setMaximum(50000.000000000000000);
-                    doubleSpinBox_4->setValue(7000.000000000000000);
+                    spin_init( doubleSpinBox_4, std::make_tuple( Decimals{1}, Maximum<>{50000.0},Value<>{7000.0},Alignment{Qt::AlignRight} ) );
                 }
 
                 if (( doubleSpinBox_5 = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >("doubleSpinBox_5", groupBox), 2, 1, 1, 1 ) )) {
-                    doubleSpinBox_5->setDecimals(5);
-                    doubleSpinBox_5->setMinimum(-1000.000000000000000);
-                    doubleSpinBox_5->setMaximum(1000.000000000000000);
-                    doubleSpinBox_5->setSingleStep(0.010000000000000);
+                    spin_init( doubleSpinBox_4, std::make_tuple( Decimals{5}, Minimum<>{-1000.0}, Maximum<>{10000},SingleStep<>{0.01},Alignment{Qt::AlignRight} ) );
                 }
 
                 label_3 = add_widget( gridLayout_2, create_widget< QLabel >("label_3", groupBox), 0, 0, 1, 1 );
@@ -426,20 +415,20 @@ namespace adwidgets {
 
         void
         MSSimulatorForm::retranslateUi(QWidget * form )  {
-            form->setWindowTitle(QCoreApplication::translate("adwidgets::MSSimulatorForm", "Form", nullptr));
+            form->setWindowTitle(QCoreApplication::translate("adwidgets::MSSimulatorForm",    "Form", nullptr));
             radioButtonNeg->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "NEG", nullptr));
-            label_2->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "Charge", nullptr));
+            label_2->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm",        "Charge", nullptr));
             radioButtonPos->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "POS", nullptr));
-            label->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "R.P.", nullptr));
-            label_6->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "RA limits", nullptr));
-            groupBox->setTitle(QCoreApplication::translate("adwidgets::MSSimulatorForm", "TOF", nullptr));
-            label_5->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "<i>T<sub>0</sub></it> (<it>&mu;s</i>)", nullptr));
-            label_3->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "Length(m)", nullptr));
-            label_4->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "Accel. (V)", nullptr));
-            comboBox->setItemText(0, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p0", nullptr));
-            comboBox->setItemText(1, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p1", nullptr));
-            comboBox->setItemText(2, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p2", nullptr));
-            comboBox->setItemText(3, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p3", nullptr));
+            label->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm",          "R.P.", nullptr));
+            label_6->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm",        "RA limits", nullptr));
+            groupBox->setTitle(QCoreApplication::translate("adwidgets::MSSimulatorForm",      "TOF", nullptr));
+            label_5->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm",        "<i>T<sub>0</sub></it> (<it>&mu;s</i>)", nullptr));
+            label_3->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm",        "Length(m)", nullptr));
+            label_4->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm",        "Accel. (V)", nullptr));
+            // comboBox->setItemText(0, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p0", nullptr));
+            // comboBox->setItemText(1, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p1", nullptr));
+            // comboBox->setItemText(2, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p2", nullptr));
+            // comboBox->setItemText(3, QCoreApplication::translate("adwidgets::MSSimulatorForm", "p3", nullptr));
 
             pushButton->setText(QCoreApplication::translate("adwidgets::MSSimulatorForm", "Apply", nullptr));
         } // retranslateUi

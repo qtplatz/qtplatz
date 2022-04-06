@@ -76,30 +76,6 @@ namespace adwidgets {
                     BOOST_THROW_EXCEPTION( error() );
                 }
             };
-
-#if 0 // moving on to styleSheet rater than code
-            struct align_property : public boost::static_visitor < void > {
-                QFlags<Qt::AlignmentFlag> align_;
-                align_property() : align_( Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter ) {
-                }
-                template< class T > void operator ()( T* widget ) const {
-                    widget->setAlignment( align_ );
-                }
-            };
-
-            struct font_property : public boost::static_visitor < void > {
-                QFont font;
-                bool bold_;
-                font_property( bool bold = true ) : bold_(bold) {
-                    font.setFamily( "Calibri" );
-                    font.setBold( bold_ );
-                    font.setWeight( 75 );
-                }
-                template< class T > void operator ()( T* widget ) const {
-                    widget->setFont( font );
-                }
-            };
-#endif
         }
     }
 }
@@ -119,16 +95,23 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
     // font_property()(ui->groupBox);
 
     ui_locator accessor( ui );
+    using namespace spin_initializer;
 
-    // for ( int i = 0; i < numItems; ++i ) {
-    //     boost::apply_visitor( font_property(false), accessor( idItem( i ) ) );
-    //     boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
-    // }
-    spin_t< QSpinBox, int >::init( boost::get<QSpinBox *>(accessor(ePolynomialDegree)), 1, 25, 1);
-    spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMassTolerance)), 2.0, 50.0, 1.0);
-    spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA)), 0.0, 100.0, 1.0); // %
-    spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eLowMass)), 1.0, 10000, 1);
-    spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eHighMass)), 1000.0, 10000, 1);
+    //spin_t< QSpinBox, int >::init( boost::get<QSpinBox *>(accessor(ePolynomialDegree)), 1, 25, 1);
+    //spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMassTolerance)), 2.0, 50.0, 1.0);
+    //spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA)), 0.0, 100.0, 1.0); // %
+    //spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eLowMass)), 1.0, 10000, 1);
+    //spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eHighMass)), 1000.0, 10000, 1);
+    spin_init( boost::get<QSpinBox *>(accessor(ePolynomialDegree))
+               , std::make_tuple( Minimum<>{1}, Maximum<>{25}, Value<>{1},Alignment{Qt::AlignRight} ));
+    spin_init( boost::get<QDoubleSpinBox *>(accessor(eMassTolerance))
+               , std::make_tuple( Minimum<>{2.0}, Maximum<>{50.0}, Value<>{1.0}, Alignment{Qt::AlignRight}) );
+    spin_init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA))
+               , std::make_tuple( Minimum<>{0.0}, Maximum<>{100.0}, Value<>{1.0}, Alignment{Qt::AlignRight} )); // %
+    spin_init( boost::get<QDoubleSpinBox *>(accessor(eLowMass))
+               , std::make_tuple( Minimum<>{1.0}, Maximum<>{10000.}, Value<>{1.}, Alignment{Qt::AlignRight} ));
+    spin_init( boost::get<QDoubleSpinBox *>(accessor(eHighMass))
+               , std::make_tuple( Minimum<>{1000.0}, Maximum<>{10000.}, Value<>{1.}, Alignment{Qt::AlignRight} ));
 
     if ( auto spin = boost::get< QDoubleSpinBox * >( accessor( eHighMass ) ) ) {
         connect( spin, qOverload<double>(&QDoubleSpinBox::valueChanged)
@@ -182,7 +165,7 @@ MSCalibrateForm::handleReferenceDlg()
 {
     if ( dlg_ == 0 ) {
         dlg_ = new MSReferenceDialog(this);
-        dlg_->register_handler( [=,this] ( const adcontrols::MSReference& ref ){ emit addReference( ref ); } );
+        dlg_->register_handler( [&] ( const adcontrols::MSReference& ref ){ emit addReference( ref ); } );
         // dlg_->setWindowFlags( Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint );
         dlg_->setModal( false );
         dlg_->show();

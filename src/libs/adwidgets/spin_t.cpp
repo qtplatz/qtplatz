@@ -80,6 +80,12 @@ namespace adwidgets {
             spin->setSingleStep( t.value );
         }
 
+        template<>
+        template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Alignment& t )
+        {
+            spin->setAlignment( t.value );
+        }
+
         ///////////////////////////////////
         template<>
         template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<double>& t )
@@ -128,5 +134,12 @@ namespace adwidgets {
         {
             spin->setSingleStep( t.value );
         }
+
+        template<>
+        template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Alignment& t )
+        {
+            spin->setAlignment( t.value );
+        }
+
     }
 }

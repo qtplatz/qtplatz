@@ -70,6 +70,7 @@ using namespace adwidgets;
 // }
 
 namespace adwidgets {
+
     class TargetingForm::impl {
     public:
         QGridLayout * gridLayout_2;
@@ -100,6 +101,8 @@ namespace adwidgets {
         }
 
         void setupUi( TargetingForm * form ) {
+            using namespace spin_initializer;
+
             auto vLayout = create_widget< QVBoxLayout >( "virticalLayout", form );
             auto hLayout = create_widget< QHBoxLayout >( "horizontalLayout" );
             gridLayout_2 = create_widget< QGridLayout >( "gridLayout_2" );
@@ -115,8 +118,10 @@ namespace adwidgets {
                 label->setTextFormat(Qt::RichText);
                 label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
             }
-            doubleSpinBoxWidth = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxWidth" )
-                                             , std::get<0>(xy), std::get<1>(xy)++ );
+            if (( doubleSpinBoxWidth = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxWidth" )
+                                                   , std::get<0>(xy), std::get<1>(xy)++ ) )) {
+                spin_init( doubleSpinBoxWidth, std::make_tuple( Decimals{2}, Minimum<>{0.01}, Maximum<>{500.}, Alignment{Qt::AlignRight} ) );
+            }
 
             ++xy;
             if (( label = add_widget( gridLayout_2, create_widget< QLabel >( "label", "Min. Charge" )
@@ -127,7 +132,7 @@ namespace adwidgets {
 
             if (( spinBoxChargeMin = add_widget( gridLayout_2, create_widget< QSpinBox >( "spinBoxChargeMin" )
                                                  , std::get<0>(xy), std::get<1>(xy)++ ) )) {
-                spinBoxChargeMin->setRange( 1, 100 );
+                spin_init( spinBoxChargeMin, std::make_tuple( Minimum<>{1}, Maximum<>{100}, Alignment{Qt::AlignRight} ) );
             }
 
             ++xy;
@@ -139,7 +144,7 @@ namespace adwidgets {
 
             if (( spinBoxChargeMax = add_widget( gridLayout_2, create_widget< QSpinBox >( "spinBoxChargeMax" )
                                                  , std::get<0>(xy), std::get<1>(xy)++ ) )) {
-                spinBoxChargeMax->setRange( 1, 100 );
+                spin_init( spinBoxChargeMax, std::make_tuple( Minimum<>{1}, Maximum<>{100}, Alignment{Qt::AlignRight} ) );
             }
 
             ++xy;
@@ -149,8 +154,7 @@ namespace adwidgets {
             /////////
             if (( doubleSpinBoxLowMassLimit = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxLowMassLimit" )
                                                           , std::get<0>(xy), std::get<1>(xy)++ ) )) {
-                doubleSpinBoxLowMassLimit->setRange( 0.0, 10000.0 );
-                doubleSpinBoxLowMassLimit->setDecimals( 2 );
+                spin_init( doubleSpinBoxLowMassLimit, std::make_tuple( Minimum<>{0.0}, Maximum<>{10'000}, Decimals{2}, Alignment{Qt::AlignRight} ) );
             }
 
             ++xy;
@@ -160,8 +164,7 @@ namespace adwidgets {
 
             if (( doubleSpinBoxHighMassLimit = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >( "doublSpinBoxHighMassLimit" )
                                                            , std::get<0>(xy), std::get<1>(xy)++ ) )) {
-                doubleSpinBoxHighMassLimit->setRange( 0.0, 10000.0 );
-                doubleSpinBoxHighMassLimit->setDecimals( 2 );
+                spin_init( doubleSpinBoxHighMassLimit, std::make_tuple( Minimum<>{0.0}, Maximum<>{10'000}, Decimals{2}, Alignment{Qt::AlignRight} ) );
             }
 
             ++xy;
@@ -195,14 +198,20 @@ TargetingForm::TargetingForm(QWidget *parent) : QWidget(parent)
                                               , impl_( std::make_unique< impl >() )
                                               , ui( impl_ )
 {
+    using namespace spin_initializer;
     ui->setupUi( this );
-    spin_t<QSpinBox, int >::init( ui->spinBoxChargeMin, 1, 50, 1 );
-    spin_t<QSpinBox, int >::init( ui->spinBoxChargeMax, 1, 50, 3 );
+
+    // spin_t<QSpinBox, int >::init( ui->spinBoxChargeMin, 1, 50, 1 );
+    // spin_t<QSpinBox, int >::init( ui->spinBoxChargeMax, 1, 50, 3 );
+    spin_init( ui->spinBoxChargeMin, std::make_tuple( Minimum<>{1}, Maximum<>{50}, Value<>{1} ) );
+    spin_init( ui->spinBoxChargeMax, std::make_tuple( Minimum<>{1}, Maximum<>{50}, Value<>{3} ) );
 
 	ui->cbxLowMass->setCheckState( Qt::Unchecked );
 	ui->cbxHighMass->setCheckState( Qt::Unchecked );
-	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxLowMassLimit, 1, 5000,  100 );
-	spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxHighMassLimit, 1, 5000, 2000 );
+	//spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxLowMassLimit, 1, 5000,  100 );
+	//spin_t<QDoubleSpinBox, double >::init( ui->doubleSpinBoxHighMassLimit, 1, 5000, 2000 );
+    spin_init( ui->doubleSpinBoxLowMassLimit, std::make_tuple( Minimum<>{1.}, Maximum<>{5000.}, Value<>{100.} ) );
+    spin_init( ui->doubleSpinBoxHighMassLimit, std::make_tuple( Minimum<>{1.}, Maximum<>{5000.}, Value<>{4000.} ) );
 
     connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
     connect( std::get<0>(ui->radioButtons), &QRadioButton::toggled, this, [&]( bool checked ){

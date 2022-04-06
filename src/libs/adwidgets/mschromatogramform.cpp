@@ -189,6 +189,7 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
 
 namespace adwidgets {
     namespace Ui {
+        using namespace spin_initializer;
 
         void
         MSChromatogramForm::setupUi(QWidget *form )
@@ -218,10 +219,9 @@ namespace adwidgets {
                     }
                     if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox)
                                                       , std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
-                        doubleSpinBox->setDecimals(1);
-                        doubleSpinBox->setRange( 0.1, 1000.0 );
-                        doubleSpinBox->setSingleStep(1.0);
-                        doubleSpinBox->setAlignment( Qt::AlignRight );
+                        spin_init( doubleSpinBox
+                                   , std::make_tuple( Decimals{1}, Minimum<>{0.1}, Maximum<>{1000.0}, SingleStep{1.0}, Alignment{ Qt::AlignRight } ) );
+                        // doubleSpinBox->setAlignment( Qt::AlignRight );
                     }
 
                     ++xy; // line 4
@@ -229,8 +229,8 @@ namespace adwidgets {
                     if (( doubleSpinBox_4 = add_widget( gridLayout
                                                         , create_widget< QDoubleSpinBox >("doubleSpinBox_4", groupBox )
                                                         , std::get<0>(xy), std::get<1>(xy)++, 1, 1) )) {
-                        doubleSpinBox_4->setMaximum(1000.000000000000000);
-                        doubleSpinBox_4->setAlignment( Qt::AlignRight );
+                        spin_init( doubleSpinBox_4
+                                   , std::make_tuple( Maximum<>{1000.0}, Alignment{ Qt::AlignRight } ) );
                     }
 
                     ++xy;
@@ -258,10 +258,8 @@ namespace adwidgets {
                         label_3 = add_widget( gridLayout_4, create_widget< QLabel >("label_3", "Peak width (s)", groupBoxAutoTargeting), 0, 0, 1, 1);
 
                         if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
-                            doubleSpinBox_2->setDecimals(3);
-                            doubleSpinBox_2->setRange(0.001000000000000, 10.000000000000000);
-                            doubleSpinBox_2->setSingleStep(0.100000000000000);
-                            doubleSpinBox_2->setValue(2.000000000000000);
+                            spin_init( doubleSpinBox_2
+                                       , std::make_tuple( Decimals{3}, Minimum<>{0.001}, Maximum<>{10.0}, SingleStep<>{0.1}, Value{2.0} ) );
                         }
                     }
                 }

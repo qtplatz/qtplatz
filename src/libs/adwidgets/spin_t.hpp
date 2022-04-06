@@ -31,6 +31,8 @@
 
 namespace adwidgets {
 
+    template<class Spin, typename T> struct [[deprecated("use spin_init function template")]] spin_t;
+
     template<class Spin, typename T = double> struct spin_t {
         static void init( Spin * s, T minimum, T maximum, T initval ) {
             s->setMinimum( minimum );
@@ -41,7 +43,8 @@ namespace adwidgets {
     };
 
     namespace spin_initializer {
-        struct Decimals                   { typedef int value_type; value_type value; Decimals  ( value_type t ) : value( t ){}  };
+        struct Alignment    { typedef Qt::AlignmentFlag value_type; value_type value; Alignment ( value_type t ) : value( t ){}  };
+        struct Decimals     { typedef int value_type;               value_type value; Decimals  ( value_type t ) : value( t ){}  };
         template<typename value_type = double > struct Minimum    { value_type value; Minimum   ( value_type t ) : value( t ){}  };
         template<typename value_type = double > struct Maximum    { value_type value; Maximum   ( value_type t ) : value( t ){}  };
         template<typename value_type = double > struct Value      { value_type value; Value     ( value_type t ) : value( t ){}  };
@@ -59,12 +62,14 @@ namespace adwidgets {
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Maximum<>& t );
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Value<>&   t );
         template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const SingleStep<>& t );
+        template<> template<> void spin_type< QDoubleSpinBox >::assign_to( QDoubleSpinBox * spin, const Alignment& t );
 
         // QSpinBox
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<int>& t );
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<int>& t );
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<int>&   t );
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<int>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Alignment& t );
 
         template< class Spin, typename Tuple, std::size_t... Is >
         void spin_init_impl( Spin * spin, Tuple&& args, std::index_sequence< Is... > ) {
