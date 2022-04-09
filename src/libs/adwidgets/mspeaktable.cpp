@@ -466,7 +466,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
 
         auto it
-            = std::find_if( candidates.begin(), candidates.end(), [=] ( const adcontrols::Targeting::Candidate& c ){
+            = std::find_if( candidates.begin(), candidates.end(), [=] ( const adcontrols::targeting::Candidate& c ){
                     return c.idx == uint32_t(idx) && c.fcn == uint32_t(fcn);  } );
         if ( it != candidates.end() ) {
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );

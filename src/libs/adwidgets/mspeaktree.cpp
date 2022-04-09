@@ -846,9 +846,10 @@ MSPeakTree::handlePrint( QPrinter& printer, QPainter& painter )
 {
     const QStandardItemModel& model = *(impl_->model_);
     printer.newPage();
-	const QRect rect( printer.pageRect().x() + printer.pageRect().width() * 0.05
-                      , printer.pageRect().y() + printer.pageRect().height() * 0.05
-                      , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
+    auto pageRect = printer.pageLayout().paintRectPixels( printer.resolution() );
+	const QRect rect( pageRect.x() + pageRect.width() * 0.05
+                      , pageRect.y() + pageRect.height() * 0.05
+                      , pageRect.width() * 0.9, pageRect.height() * 0.8 );
 
     const int rows = model.rowCount();
     const int cols = model.columnCount();

@@ -26,6 +26,7 @@
 #include "annotations.hpp"
 #include "isotopecluster.hpp"
 #include "targeting.hpp"
+#include "targeting/candidate.hpp"
 #include "targetingmethod.hpp"
 #include "chemicalformula.hpp"
 #include "constants.hpp"
@@ -170,37 +171,37 @@ Targeting::Targeting( const TargetingMethod& m ) : method_( std::make_shared<Tar
     setup( m );
 }
 
-Targeting::Candidate::Candidate() : idx(0)
-                                  , fcn(0)
-                                  , charge(1)
-                                  , mass(0)
-                                  , exact_mass(0)
-                                  , score(0)
-{
-}
+// Targeting::Candidate::Candidate() : idx(0)
+//                                   , fcn(0)
+//                                   , charge(1)
+//                                   , mass(0)
+//                                   , exact_mass(0)
+//                                   , score(0)
+// {
+// }
 
-Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
-                                                      , fcn( t.fcn )
-                                                      , charge( t.charge )
-                                                      , mass( t.mass )
-                                                      , formula( t.formula )
-                                                      , exact_mass( t.exact_mass )
-                                                      , score( t.score )
-                                                      , isotopes( t.isotopes )
-{
-}
+// Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
+//                                                       , fcn( t.fcn )
+//                                                       , charge( t.charge )
+//                                                       , mass( t.mass )
+//                                                       , formula( t.formula )
+//                                                       , exact_mass( t.exact_mass )
+//                                                       , score( t.score )
+//                                                       , isotopes( t.isotopes )
+// {
+// }
 
 
-Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, int32_t _charge, double _mass, double _exact_mass, const std::string& _formula )
-    : idx( _idx )
-    , fcn( _fcn )
-    , charge( _charge )
-    , mass( _mass )
-    , formula( _formula )
-    , exact_mass( _exact_mass )
-    , score( 0 )
-{
-}
+// Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, int32_t _charge, double _mass, double _exact_mass, const std::string& _formula )
+//     : idx( _idx )
+//     , fcn( _fcn )
+//     , charge( _charge )
+//     , mass( _mass )
+//     , formula( _formula )
+//     , exact_mass( _exact_mass )
+//     , score( 0 )
+// {
+// }
 
 bool
 Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_polarity polarity )
@@ -211,6 +212,7 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
     adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
 
     for ( auto& formula : active_formula_ ) {
+        ADDEBUG() << "find_candidate formula : " << formula;
         double exact_mass = formula.second; // search 'M'
         size_t pos = finder( ms, exact_mass );
         if ( pos != MassSpectrum::npos ) {
@@ -270,8 +272,8 @@ Targeting::operator()( MassSpectrum& ms )
                 double error = tms.mass( candidate.idx ) - bp->mass;
                 size_t nCarbons = ChemicalFormula::number_of_atoms( neutral.first, "C" );
 
-                std::vector< isotope > isotopes( v_peak.size() );
-                std::transform( v_peak.begin(), v_peak.end(), isotopes.begin(), [](const auto& v){ return isotope(-1, 0, 0, 0, v.mass, v.abundance ); });
+                std::vector< targeting::isotope > isotopes( v_peak.size() );
+                std::transform( v_peak.begin(), v_peak.end(), isotopes.begin(), [](const auto& v){ return targeting::isotope(-1, 0, 0, 0, v.mass, v.abundance ); });
 
                 // order of abundance desc
                 std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_abundance > b.exact_abundance; });
@@ -279,7 +281,7 @@ Targeting::operator()( MassSpectrum& ms )
                 // remove most abundant peak that is equivalent to candidate
                 isotopes.erase( isotopes.begin() );
 
-                for ( std::vector< isotope >::iterator it = isotopes.begin(); it < isotopes.end(); ++it ) {
+                for ( std::vector< targeting::isotope >::iterator it = isotopes.begin(); it < isotopes.end(); ++it ) {
                     auto& i = *it;
                     auto pos = finder( tms, it->exact_mass + error );
 
@@ -316,6 +318,7 @@ Targeting::operator()( MassSpectrum& ms )
                 auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
                 tms.setColor( candidate.idx, 16 ); // dark orange
                 int pri = 1000 * (std::log10( tms.intensity( candidate.idx ) / tms.maxIntensity() ) + 15); // 0..15000
+
                 tms.get_annotations()
                     << annotation( candidate.formula, tms.mass( candidate.idx )
                                    , tms.intensity( candidate.idx ), candidate.idx, pri, annotation::dataFormula, annotation::flag_targeting );

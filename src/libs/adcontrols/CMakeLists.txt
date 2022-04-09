@@ -265,6 +265,10 @@ add_library( adcontrols SHARED
   quan/extract_by_mols.hpp
   quan/targeting_candidate.cpp
   quan/targeting_candidate.hpp
+  targeting/candidate.cpp
+  targeting/candidate.hpp
+  targeting/isotope.cpp
+  targeting/isotope.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

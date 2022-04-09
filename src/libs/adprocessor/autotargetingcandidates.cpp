@@ -68,7 +68,7 @@ AutoTargetingCandidates::size() const
     return targeting_ ? targeting_->candidates().size() : 0;
 }
 
-boost::optional< adcontrols::Targeting::Candidate >
+boost::optional< adcontrols::targeting::Candidate >
 AutoTargetingCandidates::operator []( size_t index ) const
 {
     if ( targeting_ && targeting_->candidates().size() > index )

@@ -527,9 +527,12 @@ dataprocessor::createSpectrogram( std::shared_ptr< const adcontrols::ProcessMeth
 
         int pos( 0 );
 
+        auto background = reader->getSpectrum( reader->begin( proto )->rowid() );
+
         for ( auto it = reader->begin( proto ); it != reader->end(); ++it ) {
 
             auto ms = reader->getSpectrum( it->rowid() );
+
             progress( ++pos, total );
 
             if ( !ms->isCentroid() || ms->isHistogram() ) {

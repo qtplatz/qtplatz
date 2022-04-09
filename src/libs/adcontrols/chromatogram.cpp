@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -944,61 +944,6 @@ Chromatogram::generatorProperty() const
 {
     return pImpl_->generator_property_;
 }
-
-namespace {
-
-    struct tokenizer {
-        std::vector< std::string > tokens_;
-        tokenizer( std::string s ) {
-            size_t pos(0);
-            while ( ( pos = s.find( "." ) ) != std::string::npos ) {
-                tokens_.emplace_back( s.substr( 0, pos ) );
-                s.erase( 0, pos + 1 );
-            }
-            if ( !s.empty() )
-                tokens_.emplace_back( s );
-        }
-        std::vector< std::string >::const_iterator begin() const { return tokens_.begin(); }
-        std::vector< std::string >::const_iterator end() const { return tokens_.end(); }
-    };
-
-    // struct json_helper {
-    //     static boost::optional< boost::json::value > find( const boost::json::object& obj, const std::string& key ) {
-    //         if ( auto jv = obj.if_contains( key ) )
-    //             return *jv;
-    //         return {};
-    //     }
-    // };
-
-}
-
-// template<>
-// boost::optional< boost::json::value >
-// Chromatogram::findProperty( const std::string& keys ) const
-// {
-//     if ( pImpl_->generator_property_ ) {
-//         boost::system::error_code ec;
-//         auto jv = boost::json::parse( *pImpl_->generator_property_, ec );
-//         if ( !ec ) {
-//             if ( keys.empty() )
-//                 return jv;
-
-//             tokenizer tok( keys );
-
-//             boost::json::value value = jv;
-//             for ( const auto& key: tok ) {
-//                 if ( value.kind() != boost::json::kind::object ) {
-//                     return {};
-//                 }
-//                 if ( auto v = json_helper::find( value.as_object(), key ) ) {
-//                     value = *v;
-//                 }
-//             }
-//             return value;
-//         }
-//     }
-//     return {};
-// }
 
 void
 Chromatogram::setDataGuid( const boost::uuids::uuid& uuid )

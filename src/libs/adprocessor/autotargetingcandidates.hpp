@@ -26,6 +26,7 @@
 #include "adprocessor_global.hpp"
 #include <adcontrols/moltable.hpp>
 #include <adcontrols/targeting.hpp>
+#include <adcontrols/targeting/candidate.hpp>
 #include <boost/optional.hpp>
 #include <memory>
 
@@ -59,7 +60,7 @@ namespace adprocessor {
                                  , std::shared_ptr< adcontrols::MSPeakInfo > pkinfo );
 
         size_t size() const;
-        boost::optional< adcontrols::Targeting::Candidate > operator []( size_t index ) const;
+        boost::optional< adcontrols::targeting::Candidate > operator []( size_t index ) const;
 
         void set_refms( std::shared_ptr< adcontrols::MassSpectrum > profile, std::shared_ptr< adcontrols::MassSpectrum > centroid );
         void set_mol( const adcontrols::moltable::value_type& );
