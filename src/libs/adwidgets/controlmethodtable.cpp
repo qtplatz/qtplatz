@@ -63,7 +63,7 @@ namespace adwidgets {
                     auto mi = v.value< adcontrols::ControlMethod::MethodItem >();
                     if ( index.column() == 0 && !mi.isInitialCondition() )
                         mi.setTime( index.data().toDouble() * 60.0 );  // seconds is the internal format
-                    model->setData( model->index( index.row(), 0 ), qVariantFromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
+                    model->setData( model->index( index.row(), 0 ), QVariant::fromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
                 }
             }
 
@@ -92,7 +92,7 @@ ControlMethodTable::ControlMethodTable( ControlMethodWidget * parent ) : adwidge
     onInitialUpdate();
 }
 
-QStandardItemModel& 
+QStandardItemModel&
 ControlMethodTable::model()
 {
     return *model_;
@@ -128,7 +128,7 @@ ControlMethodTable::setSharedPointer( std::shared_ptr< adcontrols::ControlMethod
         setContents( *ptr );
 }
 
-bool 
+bool
 ControlMethodTable::setContents( const adcontrols::ControlMethod::Method& m )
 {
     QStandardItemModel& model = *model_;
@@ -170,7 +170,7 @@ ControlMethodTable::commit()
     setData( mi, row );       // set it to master table
 
     if ( auto ptr = method_.lock() ) {
-    
+
         ptr->clear();
         for ( int row = 0; row < model_->rowCount(); ++row ) {
             mi = data( row );
@@ -209,7 +209,7 @@ ControlMethodTable::delLine( int /* row */)
     handleDeleteSelection();
 }
 
-void 
+void
 ControlMethodTable::showContextMenu( const QPoint& pt )
 {
     std::vector< QAction * > actions;
@@ -226,7 +226,7 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
     QAction * import_init = menu.addAction( "Import Inital Condition" );
 
     TableView::addActionsToContextMenu( menu, pt );
-    
+
     if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
         if ( selected == delete_action )
             delLine( indexAt( pt ).row() );
@@ -279,7 +279,7 @@ ControlMethodTable::setData( const adcontrols::ControlMethod::MethodItem& mi, in
     }
 
     auto item = model.itemFromIndex( model.index( row, 0 ) );
-    item->setData( qVariantFromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
+    item->setData( QVariant::fromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
 
     model.setData( model.index( row, 1 ), QString::fromStdString( mi.modelname() ) );
     model.setData( model.index( row, 2 ), mi.funcid() );
@@ -299,14 +299,14 @@ ControlMethodTable::data( int row ) const
         auto v = item->data( Qt::UserRole );
         if ( v.canConvert< adcontrols::ControlMethod::MethodItem >() ) {
             auto mi = v.value< adcontrols::ControlMethod::MethodItem >();
-            
+
             // time
             double seconds = model_->data( model_->index( row, 0 ) ).toDouble() * 60.0;
             if ( seconds < 0 )
                 mi.setIsInitialCondition( true );
             else
                 mi.setTime( seconds );
-            
+
             // description
             auto desc = model_->data( model_->index( row, 4 ) ).toString();
             mi.setDescription( desc.toStdString().c_str() );

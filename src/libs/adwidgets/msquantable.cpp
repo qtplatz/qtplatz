@@ -322,7 +322,7 @@ MSQuanTable::handleCopyToClipboard()
     QStandardItemModel& model = *model_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 

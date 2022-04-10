@@ -64,7 +64,7 @@ MolView::MolView(QWidget *parent) : QGraphicsView( parent )
     // OpenGL
     //setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers) ) );
     setViewport( new QWidget() );
-    setRenderHint( QPainter::HighQualityAntialiasing, true );
+    setRenderHint( QPainter::Antialiasing, true );
 }
 
 void
@@ -85,7 +85,7 @@ MolView::svgSize() const
 void MolView::setHighQualityAntialiasing(bool highQualityAntialiasing)
 {
 #ifndef QT_NO_OPENGL
-    setRenderHint( QPainter::HighQualityAntialiasing, highQualityAntialiasing );
+    setRenderHint( QPainter::Antialiasing, highQualityAntialiasing );
 #else
     Q_UNUSED(highQualityAntialiasing);
 #endif
@@ -128,7 +128,7 @@ MolView::renderer() const
 {
     if ( svgItem_ )
         return svgItem_->renderer();
-    
+
     return nullptr;
 }
 
@@ -146,7 +146,7 @@ MolView::setData( const QVariant& d )
 
     if (!svgItem->renderer()->isValid())
         return false;
-    
+
     s->clear();
     resetTransform();
 
@@ -156,10 +156,10 @@ MolView::setData( const QVariant& d )
     double factor = std::min( sz.width() / rc.width(), sz.height() / rc.height() );
     scale( factor, factor );
     // end resize
-    
+
     svgItem_ = svgItem.take();
     renderer_ = std::move( renderer );
-    
+
     svgItem_->setFlags( QGraphicsItem::ItemClipsToShape );
     svgItem_->setCacheMode( QGraphicsItem::NoCache );
     svgItem_->setZValue( 0 );
@@ -169,7 +169,7 @@ MolView::setData( const QVariant& d )
     backgroundItem_->setPen( Qt::NoPen );
     backgroundItem_->setVisible( drawBackground );
     backgroundItem_->setZValue( -1 );
-    
+
     outlineItem_ = new QGraphicsRectItem( svgItem_->boundingRect() );
 
     QPen outline(Qt::black, 2, Qt::DashLine);
