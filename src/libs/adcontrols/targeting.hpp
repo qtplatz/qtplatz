@@ -63,62 +63,9 @@ namespace adcontrols {
 
         const std::vector< targeting::Candidate >& candidates() const { return candidates_; }
 
-        // struct isotope {
-        //     int32_t idx;
-        //     double mass;
-        //     double abundance_ratio;
-        //     double abundance_ratio_error;
-        //     double exact_mass;
-        //     double exact_abundance;
-        //     isotope() : idx(-1), mass(0), abundance_ratio(0), abundance_ratio_error(0), exact_mass(0), exact_abundance(0) {}
-        //     isotope( size_t _1, double _2, double _3, double _4, double _5, double _6 )
-        //         : idx(_1), mass(_2), abundance_ratio(_3), abundance_ratio_error(_4), exact_mass(_5), exact_abundance(_6) {}
-        //     isotope( const isotope& t )
-        //         : idx( t.idx ), mass( t.mass ), abundance_ratio( t.abundance_ratio ), abundance_ratio_error( t.abundance_ratio_error )
-        //         , exact_mass( t.exact_mass ), exact_abundance(t.exact_abundance) {}
-        // private:
-        //     friend class boost::serialization::access;
-        //     template<class Archive> void serialize(Archive& ar, unsigned int ) {
-        //         ar & BOOST_SERIALIZATION_NVP( idx );
-        //         ar & BOOST_SERIALIZATION_NVP( mass );
-        //         ar & BOOST_SERIALIZATION_NVP( abundance_ratio );
-        //         ar & BOOST_SERIALIZATION_NVP( abundance_ratio_error );
-        //         ar & BOOST_SERIALIZATION_NVP( exact_mass );
-        //         ar & BOOST_SERIALIZATION_NVP( exact_abundance );
-        //     }
-        // };
-
-        // struct Candidate {
-        //     uint32_t idx;                       // peak index on mass-spectrum
-        //     uint32_t fcn;                       // protocol (aka segment) id
-        //     int32_t  charge;
-        //     double   mass;                      // This used to an error from exact mass, change it to found mass at V2 (2019-AUG-15)
-        //     std::string formula;                // this is the exact formula matched with the peak (contains adducts)
-        //     double   exact_mass;                // V2
-        //     int32_t  score;                     // V2
-        //     std::vector< isotope > isotopes;    // V2
-        //     Candidate();
-        //     Candidate( const Candidate& );
-        //     Candidate( uint32_t idx, uint32_t fcn, int32_t charge, double mass, double exact_mass, const std::string& formula );
-        // private:
-        //     friend class boost::serialization::access;
-        //     template<class Archive> void serialize(Archive& ar, unsigned int version ) {
-        //         ar & BOOST_SERIALIZATION_NVP( idx );
-        //         ar & BOOST_SERIALIZATION_NVP( fcn );
-        //         ar & BOOST_SERIALIZATION_NVP( charge );
-        //         ar & BOOST_SERIALIZATION_NVP( mass );
-        //         ar & BOOST_SERIALIZATION_NVP( formula );
-        //         if ( version >= 2 ) {
-        //             ar & BOOST_SERIALIZATION_NVP( exact_mass );
-        //             ar & BOOST_SERIALIZATION_NVP( score );
-        //             ar & BOOST_SERIALIZATION_NVP( isotopes );
-        //         }
-        //     }
-        // };
-
         // 'formula+adduct', exact mass, charge
-        static std::vector< std::tuple<std::string, double, int> >
-        make_mapping( const std::pair<uint32_t, uint32_t>&, const std::string& formula, const std::string& adducts, adcontrols::ion_polarity );
+        // static std::vector< std::tuple<std::string, double, int> >
+        // make_mapping( const std::pair<uint32_t, uint32_t>&, const std::string& formula, const std::string& adducts, adcontrols::ion_polarity );
 
         static bool archive( std::ostream&, const Targeting& );
         static bool restore( std::istream&, Targeting& );

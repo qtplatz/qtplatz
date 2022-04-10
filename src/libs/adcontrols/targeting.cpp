@@ -457,61 +457,61 @@ Targeting::setup( const TargetingMethod& m )
     }
 }
 
-//static
-std::vector< std::tuple<std::string, double, int> >
-Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range
-                         , const std::string& formula
-                         , const std::string& adducts
-                         , adcontrols::ion_polarity polarity )
-{
-    std::vector< std::tuple<std::string, double, int> > res;
+// //static
+// std::vector< std::tuple<std::string, double, int> >
+// Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range
+//                          , const std::string& formula
+//                          , const std::string& adducts
+//                          , adcontrols::ion_polarity polarity )
+// {
+//     std::vector< std::tuple<std::string, double, int> > res;
 
-    std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local;
+//     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local;
 
-    for ( const auto& adduct: ChemicalFormula::split( adducts ) ) {
-        auto sign = (adduct.second == '-' ? "-" : "+");
-        adducts_local[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { ChemicalFormula::neutralize(adduct.first).first, sign[0] };
-    }
+//     for ( const auto& adduct: ChemicalFormula::split( adducts ) ) {
+//         auto sign = (adduct.second == '-' ? "-" : "+");
+//         adducts_local[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { ChemicalFormula::neutralize(adduct.first).first, sign[0] };
+//     }
 
-    for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-        int icharge = polarity == adcontrols::polarity_positive ? charge : -static_cast<int>(charge);
-        if ( charge == 0 || charge == 1 ) {
-            if ( adducts_local.empty() ) {
-                if ( charge == 0 ) {
-                    double mass; int fcharge;
-                    std::tie( mass, fcharge) = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
-                    res.emplace_back( formula, mass, fcharge ); // ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ), icharge ), icharge );
-                } else {
-                    std::ostringstream t;
-                    t << "[" << formula << "]" << (icharge > 0 ? '+' : '-');
-                    res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
-                }
-            } else {
-                for ( const auto& a: adducts_local ) {
-                    std::ostringstream t;
-                    t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
-                    res.emplace_back( t.str(), mass, icharge );
-                }
-            }
-        } else if ( charge >= 2 ) {
-            if ( adducts_local.empty() ) {
-                std::ostringstream t;
-                t << "[" << formula << "]" << charge << (icharge > 0 ? '+' : '-');
-                res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
-            } else {
-                for ( const auto& a: make_combination()( charge, adducts_local ) ) {
-                    std::ostringstream t;
-                    t << formula << a;
-                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
-                    res.emplace_back( t.str(), mass, icharge );
-                }
-            }
-        }
-    }
+//     for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
+//         int icharge = polarity == adcontrols::polarity_positive ? charge : -static_cast<int>(charge);
+//         if ( charge == 0 || charge == 1 ) {
+//             if ( adducts_local.empty() ) {
+//                 if ( charge == 0 ) {
+//                     double mass; int fcharge;
+//                     std::tie( mass, fcharge) = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
+//                     res.emplace_back( formula, mass, fcharge ); // ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ), icharge ), icharge );
+//                 } else {
+//                     std::ostringstream t;
+//                     t << "[" << formula << "]" << (icharge > 0 ? '+' : '-');
+//                     res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
+//                 }
+//             } else {
+//                 for ( const auto& a: adducts_local ) {
+//                     std::ostringstream t;
+//                     t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
+//                     double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
+//                     res.emplace_back( t.str(), mass, icharge );
+//                 }
+//             }
+//         } else if ( charge >= 2 ) {
+//             if ( adducts_local.empty() ) {
+//                 std::ostringstream t;
+//                 t << "[" << formula << "]" << charge << (icharge > 0 ? '+' : '-');
+//                 res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
+//             } else {
+//                 for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+//                     std::ostringstream t;
+//                     t << formula << a;
+//                     double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
+//                     res.emplace_back( t.str(), mass, icharge );
+//                 }
+//             }
+//         }
+//     }
 
-    return res;
-}
+//     return res;
+// }
 
 bool
 Targeting::archive( std::ostream& os, const Targeting& v )
