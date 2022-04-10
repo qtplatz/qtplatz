@@ -27,6 +27,7 @@
 #define TARGETINGMETHOD_H
 
 #include "adcontrols_global.h"
+#include "constants_fwd.hpp"
 #include "msfinder.hpp"
 #include <boost/serialization/version.hpp>
 #include <cstdint>
@@ -51,8 +52,10 @@ namespace adcontrols {
         void targetId( idTarget );
         idTarget targetId() const;
 
-        std::vector< std::pair< bool, std::string > >& adducts( bool positive = true );
-        const std::vector< std::pair< bool, std::string > >& adducts( bool positive = true ) const;
+        [[deprecated("use ion_polarity as argument")]] std::vector< std::pair< bool, std::string > >& adducts( bool positive = true );
+        [[deprecated("use ion_polarity as argument")]] const std::vector< std::pair< bool, std::string > >& adducts( bool positive = true ) const;
+        std::vector< std::pair< bool, std::string > >& adducts( ion_polarity );
+        const std::vector< std::pair< bool, std::string > >& adducts( ion_polarity ) const;
 
 		std::pair< unsigned int, unsigned int > chargeState() const;
 		void chargeState( unsigned int, unsigned int );
@@ -79,7 +82,8 @@ namespace adcontrols {
         const moltable& molecules() const;
         moltable& molecules();
         void setMolecules( const moltable& );
-        void setMolecules( const moltable&, const std::string& adduct, bool positive = true ); // for single mol target (using chromatogram generation)
+        // [[deprecated]] void setMolecules( const moltable&, const std::string& adduct, bool positive = true ); // for single mol target (using chromatogram generation)
+        void setMolecules( const moltable&, const std::string& adduct ); // for single mol target (using chromatogram generation)
 
         static std::string default_adducts( bool positive = true );
 

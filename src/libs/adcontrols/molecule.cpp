@@ -72,6 +72,40 @@ molecule::operator << ( isotope&& t )
     return *this;
 }
 
+molecule&
+molecule::operator += ( const molecule& t )
+{
+    for ( auto it = t.elements_begin(); it != t.elements_end(); ++it ) {
+        auto xIt = std::find_if( elements_.begin(), elements_.end(), [&]( const auto& e ){ return e.atomicNumber() == it->atomicNumber(); });
+        if ( xIt == elements_.end() ) {
+            elements_.emplace_back( *it );
+        } else {
+            xIt->count( xIt->count() + it->count() );
+        }
+    }
+    charge_ += t.charge();
+    return *this;
+}
+
+molecule&
+molecule::operator *= ( size_t n )
+{
+    if ( n > 1 ) {
+        std::for_each( elements_.begin(), elements_.end(), [n](auto& e){ e.count( e.count() * n ); });
+        charge_ *= n;
+    }
+    return *this;
+}
+
+molecule
+molecule::operator * ( size_t n ) const
+{
+    molecule t(*this);
+    t *= n;
+    return t;
+}
+
+
 int
 molecule::charge() const
 {
@@ -103,17 +137,17 @@ molecule::max_abundant_isotope() const
 }
 
 std::string
-molecule::formula() const
+molecule::formula( bool handleCharge ) const
 {
     std::ostringstream o;
-    if ( charge_ )
+    if ( charge_ && handleCharge )
         o << "[";
     for ( const auto& e: elements_ ) {
         o << e.symbol();
         if ( e.count() > 1 )
             o << e.count();
     }
-    if ( charge_ ) {
+    if ( charge_ && handleCharge ) {
         o << "]";
         if ( std::abs( charge_ ) > 1 )
             o << std::abs( charge_ );

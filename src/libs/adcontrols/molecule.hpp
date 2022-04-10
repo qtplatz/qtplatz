@@ -54,10 +54,13 @@ namespace adcontrols {
 
             inline operator bool () const { return !elements_.empty(); }
 
-            molecule& operator << (const element&);
-            molecule& operator << (element&& e);
-            molecule& operator << (const isotope&);
-            molecule& operator << (isotope&& i);
+            molecule& operator << ( const element& );
+            molecule& operator << ( element&& e );
+            molecule& operator << ( const isotope& );
+            molecule& operator << ( isotope&& i );
+            molecule& operator += ( const molecule& );
+            molecule& operator *= ( size_t );
+            molecule operator * ( size_t ) const;
             int charge() const;
             void setCharge( int );
             void clear();
@@ -81,7 +84,7 @@ namespace adcontrols {
 
             /* return standard formula
              */
-            std::string formula() const;
+            std::string formula( bool handleCharge = true ) const;
 
             /* display formula (usually, 'formula + adduct')
              */

@@ -46,11 +46,20 @@ namespace adcontrols {
                                                    , exact_mass( t.exact_mass )
                                                    , score( t.score )
                                                    , isotopes( t.isotopes )
+                                                   , synonym( t.synonym )
+                                                   , key( t.key )
         {
         }
 
 
-        Candidate::Candidate( uint32_t _idx, uint32_t _fcn, int32_t _charge, double _mass, double _exact_mass, const std::string& _formula )
+        Candidate::Candidate( uint32_t _idx
+                              , uint32_t _fcn
+                              , int32_t _charge
+                              , double _mass
+                              , double _exact_mass
+                              , const std::string& _formula
+                              , const std::string& _synonym
+                              , const std::string& _key )
             : idx( _idx )
             , fcn( _fcn )
             , charge( _charge )
@@ -58,6 +67,8 @@ namespace adcontrols {
             , formula( _formula )
             , exact_mass( _exact_mass )
             , score( 0 )
+            , synonym( _synonym )
+            , key( _key )
         {
         }
 

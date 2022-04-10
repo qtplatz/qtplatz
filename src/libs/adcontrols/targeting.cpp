@@ -50,109 +50,6 @@
 
 namespace adcontrols {
 
-    typedef std::map< std::string, uint32_t > adduct_complex_t; // adduct[replicates] such as (CH3CN)2, ...
-
-    struct make_formula {
-        template< char sign >
-        bool to_formula( int charge
-                         , const adduct_complex_t& complex
-                         , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts
-                         , std::ostream& o ) {
-
-            bool once_flag(true);
-
-            for ( const auto& a: complex ) {
-                assert( a.second );
-                auto it = adducts.find( a.first );
-                if ( it != adducts.end() ) {
-                    if ( it->second.second == sign ) {
-                        if ( once_flag ) {
-                            o << sign;
-                            if ( charge )
-                                o << "[";
-                            once_flag = false;
-                        }
-                        size_t natoms = adcontrols::ChemicalFormula::number_of_atoms( it->second.first );
-                        if ( a.second > 1 && natoms > 1 )
-                            o << "(";
-                        o << it->second.first;
-                        if ( a.second > 1 && natoms > 1 )
-                            o << ")";
-                        if ( a.second > 1 )
-                            o << a.second;
-                    }
-                }
-            }
-
-            if ( charge && !once_flag ) {
-                o << "]";
-                if ( std::abs( charge ) > 1 )
-                    o << std::abs( charge );
-                o << (charge > 0 ? '+' : '-');
-            }
-            return !once_flag;
-        }
-
-        std::string
-        operator()( int charge
-                    , const adduct_complex_t& complex
-                    , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts ) {
-            std::ostringstream o;
-            to_formula<'-'>( 0, complex, adducts, o );
-            if ( ! to_formula<'+'>( charge, complex, adducts, o ) ) {
-                std::ostringstream n;
-                to_formula<'-'>( charge, complex, adducts, n );
-                return n.str();
-            }
-            return o.str();
-        }
-
-    };
-
-    struct make_combination {
-
-        typedef std::map< std::string, uint32_t > adduct_complex_t;
-        std::vector< adduct_complex_t > complex_;
-#if 0
-        static void print( int charge
-                           , const adduct_complex_t& complex
-                           , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts
-                           , std::ostream& o ) {
-            o << make_formula()( charge, complex, adducts );
-        }
-#endif
-
-        std::vector< std::string >
-        operator()( uint32_t charge
-                    , const std::map< std::string /*key*/, adcontrols::ChemicalFormula::formula_adduct_t >& adducts /*formula,[+|-]*/) {
-
-            const size_t r = charge;
-            const size_t n = adducts.size();
-
-            if ( n > 0 ) {
-                std::vector< std::string > v_keys( n );
-                std::transform( adducts.begin(), adducts.end(), v_keys.begin(), [](const auto& a){ return a.first; });
-                std::vector< std::vector< std::string >::const_iterator > v_iter( r, v_keys.begin() );
-                do {
-                    std::ostringstream o;
-
-                    adduct_complex_t an_adduct;
-                    std::for_each( v_iter.begin(), v_iter.end(), [&]( const auto& it ){ an_adduct[ *it ]++; });
-                    complex_.emplace_back( std::move( an_adduct ) );
-
-                } while ( boost::next_mapping( v_iter.begin(), v_iter.end(), v_keys.begin(), v_keys.end() ) );
-
-                std::vector< std::string > results;
-                for ( const auto& complex: complex_ )
-                    results.emplace_back( make_formula()( charge, complex, adducts ) );
-
-                return results;
-            }
-            return std::vector< std::string >();
-        }
-
-    };
-
     class Targeting::impl {
     public:
         impl() {
@@ -160,8 +57,75 @@ namespace adcontrols {
         impl( const impl& t ) : active_formula_( t.active_formula_ ) {
         }
         // typedef std::pair< double, std::string > adduct_type;
-        std::vector< std::pair< std::string, double > > active_formula_;
+        typedef std::tuple< std::string    // active_formula (mol + adducts) --"M +[H]+"
+                            , double       // exact mass for active_formula
+                            , std::string  // mol formula defined in moltable::data.formula (exclude adduct)
+                            , std::string  // mol syonym
+                            > active_formula_type;
+        enum { active_formula_formula, active_formula_mass, active_formula_mol_formula, active_formula_synonym };
+        std::vector< active_formula_type > active_formula_;
     };
+
+
+    //////////////
+    //////////////
+
+    namespace targeting {
+
+        typedef std::map< std::string, uint32_t > adduct_repeat_t; // formula, repeat
+
+        std::string to_addlose_string( std::pair< mol::molecule, mol::molecule >&& addlose, int scharge ) {
+            std::ostringstream o;
+            if ( ! std::get< 0 >( addlose ).elements().empty() ) {
+                if ( std::get< 1 >( addlose ).elements().empty() )
+                    o << "+[" << std::get< 0 >( addlose ).formula( false ) << "]";
+                else
+                    o << "+" << std::get< 0 >( addlose ).formula( false );
+            }
+            if ( ! std::get< 1 >( addlose ).elements().empty() ) {
+                o << "-[" << std::get< 1 >( addlose ).formula( false ) << "]";
+            }
+            if ( std::abs( scharge ) > 1 )
+                o << std::abs( scharge );
+            o << (scharge < 0 ? '-' : '+');
+            return o.str();
+        };
+
+        std::pair< mol::molecule, mol::molecule > // add, sub, charge
+        to_molecule( adduct_repeat_t&& alist ) {
+            std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule > addlose;
+            for ( const auto& m: alist ) {
+                auto v = adcontrols::ChemicalFormula::split( m.first ); // remove leading +|- (add/sub specifier)
+                auto mol = adcontrols::ChemicalFormula::toMolecule( v.at(0).first ) * size_t( m.second );
+                if ( v.at(0).second == '+' ) {
+                    std::get<0>(addlose) += mol; // adduct
+                } else {
+                    std::get<1>(addlose) += mol; // lose
+                }
+            }
+            return addlose;
+        }
+
+        std::vector< std::string >
+        make_combination( uint32_t charge, const std::vector< std::string >& adducts, ion_polarity polarity )
+        {
+            std::vector< std::string > addloses;
+            const size_t r = charge;
+            const size_t n = adducts.size();
+            const int scharge = polarity == polarity_positive ? charge : -int(charge);
+            if ( n > 0 ) {
+                std::vector< std::vector< std::string >::const_iterator > v_iter( r, adducts.begin() );
+                do {
+                    adduct_repeat_t an_adduct;
+                    std::for_each( v_iter.begin(), v_iter.end(), [&]( const auto& it ){
+                        an_adduct[ *it ]++;
+                    });
+                    addloses.emplace_back( to_addlose_string( to_molecule( std::move( an_adduct ) ), scharge ) );
+                } while ( boost::next_mapping( v_iter.begin(), v_iter.end(), adducts.begin(), adducts.end() ) );
+            }
+            return addloses;
+        }
+    }
 }
 
 using namespace adcontrols;
@@ -187,38 +151,6 @@ Targeting::Targeting( const TargetingMethod& m ) : method_( std::make_shared<Tar
     setup( m );
 }
 
-// Targeting::Candidate::Candidate() : idx(0)
-//                                   , fcn(0)
-//                                   , charge(1)
-//                                   , mass(0)
-//                                   , exact_mass(0)
-//                                   , score(0)
-// {
-// }
-
-// Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
-//                                                       , fcn( t.fcn )
-//                                                       , charge( t.charge )
-//                                                       , mass( t.mass )
-//                                                       , formula( t.formula )
-//                                                       , exact_mass( t.exact_mass )
-//                                                       , score( t.score )
-//                                                       , isotopes( t.isotopes )
-// {
-// }
-
-
-// Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, int32_t _charge, double _mass, double _exact_mass, const std::string& _formula )
-//     : idx( _idx )
-//     , fcn( _fcn )
-//     , charge( _charge )
-//     , mass( _mass )
-//     , formula( _formula )
-//     , exact_mass( _exact_mass )
-//     , score( 0 )
-// {
-// }
-
 bool
 Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_polarity polarity )
 {
@@ -229,12 +161,20 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
 
     for ( auto& formula : impl_->active_formula_ ) {
         ADDEBUG() << "find_candidate formula : " << formula;
-        double exact_mass = formula.second; // search 'M'
+        double exact_mass = std::get< impl::active_formula_mass >( formula ); // search 'M'
         size_t pos = finder( ms, exact_mass );
         if ( pos != MassSpectrum::npos ) {
             double mass = ms.mass( pos );
-            auto neutral = adcontrols::ChemicalFormula::neutralize( formula.first );
-            candidates_.emplace_back( uint32_t( pos /*idx*/ ), fcn, neutral.second/*charge*/, mass, exact_mass, formula.first /*formula*/ );
+            int charge;
+            std::tie(std::ignore, charge) = adcontrols::ChemicalFormula::neutralize( std::get< impl::active_formula_formula >( formula ) );
+            candidates_.emplace_back( uint32_t( pos )
+                                      , fcn
+                                      , charge
+                                      , mass
+                                      , exact_mass
+                                      , std::get< impl::active_formula_formula >( formula ) // full formula
+                                      , std::get< impl::active_formula_synonym >( formula ) // synonym
+                );
         }
     }
     return true;
@@ -399,135 +339,53 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
 void
 Targeting::setup( const TargetingMethod& m )
 {
-    ChemicalFormula formula_parser;
+    static ChemicalFormula cf;
 
     impl_->active_formula_.clear();
 
-    std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_global;
-
-    bool positive = m.molecules().polarity() == adcontrols::polarity_positive;
     auto charge_range = m.chargeState();
+    std::vector< std::string > addlose_global;
 
-    ADDEBUG() << "====== targeting setup ====== polarity ? " << (positive ? "positive\t" : "negative\t") << charge_range;
+    ADDEBUG() << "====== targeting setup ====== polarity ? "
+              << (m.molecules().polarity() == polarity_positive ? "positive\t" : "negative\tcharge range: ")
+              << charge_range;
 
-    for ( auto& a: m.adducts( positive ) ) {
-        ADDEBUG() << "adducts: " << a;
-        if ( a.first ) { // enable
-            for ( const auto& adduct: ChemicalFormula::split( a.second ) ) {
-                auto sign = (adduct.second == '-' ? "-" : "+");
-                auto pair = ChemicalFormula::neutralize( adduct.first ); // neutral formula, charge
-                adducts_global[ sign + ChemicalFormula::standardFormula( pair.first, true ) ] = { pair.first, sign[0] };
-            }
+    for ( auto& a: m.adducts( m.molecules().polarity() ) ) {
+        if ( a.first ) {
+            addlose_global.emplace_back( a.second );
         }
     }
+    // <----
 
     for ( auto& x : m.molecules().data() ) {
         if ( x.enable() ) {
 
-            std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local( adducts_global );
-
+            // if moltable has a designated adduct
             if ( !std::string( x.adducts() ).empty() ) {
+
                 auto formula = x.formula() + x.adducts();
                 double mass; int charge;
-                std::tie( mass, charge ) = formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
-                impl_->active_formula_.emplace_back( formula, mass );
-                // todo
-                // if adduct has ',' or ';' then multiple adducts combination should be added separately
-                // for ( const auto& a: ChemicalFormula::split( x.adducts() ) ) {
-                //     auto formula = std::string( x.formula() ) + (a.second == '-' ? "-" : "+") + a.first;
-                //     double mass;
-                //     std::tie( mass, std::ignore ) = formula_parser.getMonoIsotopicMass( ChemicalFormula::split( formula ), 0 );
-                //     active_formula_.emplace_back( formula, mass );
-                // }
+                std::tie( mass, charge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
+                impl_->active_formula_.emplace_back( formula, mass, x.formula(), x.synonym() );
+
             } else {
+
                 for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-                    int icharge = positive ? charge : -static_cast<int>(charge);
-                    if ( charge == 1 ) { // no charge 0 supported
-                        if ( adducts_local.empty() ) {
-                            std::ostringstream t;
-                            t << "[" << x.formula() << "]" << ( positive ? '+' : '-' );
-                            impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
-                        } else {
-                            for ( const auto& a: adducts_local ) {
-                                std::ostringstream t;
-                                t << x.formula() << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                                impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
-                            }
-                        }
-                    } else if ( charge >= 2 ) {
-                        if ( adducts_local.empty() ) {
-                            std::ostringstream t;
-                            t << "[" << x.formula() << "]" << charge << ( positive ? '+' : '-' );
-                            impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
-                        } else {
-                            for ( const auto& a: make_combination()( charge, adducts_local ) ) {
-                                std::ostringstream t;
-                                t << x.formula() << a;
-                                impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
-                            }
-                        }
+                    int scharge = m.molecules().polarity() == polarity_positive ? charge : -static_cast<int>(charge);
+                    for ( const auto& addlose: targeting::make_combination( charge, addlose_global, m.molecules().polarity() ) ) {
+                        auto formula = x.formula() + addlose;
+                        impl_->active_formula_.emplace_back(
+                            formula
+                            , cf.getMonoIsotopicMass( ChemicalFormula::split( formula ), scharge ).first
+                            , x.formula()
+                            , x.synonym() );
+                        ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back();
                     }
                 }
             }
         }
     }
 }
-
-// //static
-// std::vector< std::tuple<std::string, double, int> >
-// Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range
-//                          , const std::string& formula
-//                          , const std::string& adducts
-//                          , adcontrols::ion_polarity polarity )
-// {
-//     std::vector< std::tuple<std::string, double, int> > res;
-
-//     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local;
-
-//     for ( const auto& adduct: ChemicalFormula::split( adducts ) ) {
-//         auto sign = (adduct.second == '-' ? "-" : "+");
-//         adducts_local[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { ChemicalFormula::neutralize(adduct.first).first, sign[0] };
-//     }
-
-//     for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-//         int icharge = polarity == adcontrols::polarity_positive ? charge : -static_cast<int>(charge);
-//         if ( charge == 0 || charge == 1 ) {
-//             if ( adducts_local.empty() ) {
-//                 if ( charge == 0 ) {
-//                     double mass; int fcharge;
-//                     std::tie( mass, fcharge) = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ) );
-//                     res.emplace_back( formula, mass, fcharge ); // ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ), icharge ), icharge );
-//                 } else {
-//                     std::ostringstream t;
-//                     t << "[" << formula << "]" << (icharge > 0 ? '+' : '-');
-//                     res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
-//                 }
-//             } else {
-//                 for ( const auto& a: adducts_local ) {
-//                     std::ostringstream t;
-//                     t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-//                     double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
-//                     res.emplace_back( t.str(), mass, icharge );
-//                 }
-//             }
-//         } else if ( charge >= 2 ) {
-//             if ( adducts_local.empty() ) {
-//                 std::ostringstream t;
-//                 t << "[" << formula << "]" << charge << (icharge > 0 ? '+' : '-');
-//                 res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first, icharge );
-//             } else {
-//                 for ( const auto& a: make_combination()( charge, adducts_local ) ) {
-//                     std::ostringstream t;
-//                     t << formula << a;
-//                     double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first;
-//                     res.emplace_back( t.str(), mass, icharge );
-//                 }
-//             }
-//         }
-//     }
-
-//     return res;
-// }
 
 bool
 Targeting::archive( std::ostream& os, const Targeting& v )

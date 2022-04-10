@@ -52,10 +52,19 @@ namespace adcontrols {
             double   exact_mass;                // V2
             int32_t  score;                     // V2
             std::vector< isotope > isotopes;    // V2
+            std::string synonym;                // V3
+            std::string key;                    // V3
 
             Candidate();
             Candidate( const Candidate& );
-            Candidate( uint32_t idx, uint32_t fcn, int32_t charge, double mass, double exact_mass, const std::string& formula );
+            Candidate( uint32_t idx
+                       , uint32_t fcn
+                       , int32_t charge
+                       , double mass
+                       , double exact_mass
+                       , const std::string& formula      // full formula contains M and addlose
+                       , const std::string& synonym = {}
+                       , const std::string& key     = {} );
         private:
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, unsigned int version ) {
@@ -69,10 +78,14 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( score );
                     ar & BOOST_SERIALIZATION_NVP( isotopes );
                 }
+                if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP( synonym );
+                    ar & BOOST_SERIALIZATION_NVP( key );
+                }
             }
         };
 
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::targeting::Candidate, 2 )
+BOOST_CLASS_VERSION( adcontrols::targeting::Candidate, 3 )

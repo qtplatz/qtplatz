@@ -25,6 +25,7 @@
 #include "targetingmethod.hpp"
 #include "serializer.hpp"
 #include "moltable.hpp"
+#include "constants.hpp"
 #include "chemicalformula.hpp"
 #include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -254,17 +255,32 @@ TargetingMethod::targetId() const
     return impl_->idTarget_;
 }
 
+// deprecated
 std::vector< std::pair< bool, std::string > >&
 TargetingMethod::adducts( bool positive )
 {
     return positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
 }
 
+// deprecated
 const std::vector< std::pair< bool, std::string > >&
 TargetingMethod::adducts( bool positive ) const
 {
     return positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
 }
+
+std::vector< std::pair< bool, std::string > >&
+TargetingMethod::adducts( ion_polarity polarity )
+{
+    return polarity == polarity_positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
+}
+
+const std::vector< std::pair< bool, std::string > >&
+TargetingMethod::adducts( ion_polarity polarity ) const
+{
+    return polarity == polarity_positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
+}
+
 
 std::pair< uint32_t, uint32_t >
 TargetingMethod::chargeState() const
@@ -380,11 +396,11 @@ TargetingMethod::setMolecules( const moltable& t )
 }
 
 void
-TargetingMethod::setMolecules( const moltable& t, const std::string& adduct, bool positive )
+TargetingMethod::setMolecules( const moltable& t, const std::string& adduct )
 {
     impl_->molecules_ = t;
-    adducts( positive ).clear();
-    adducts( positive ).emplace_back( true, adduct );
+    adducts( t.polarity() ).clear();
+    adducts( t.polarity() ).emplace_back( true, adduct );
 }
 
 //static
