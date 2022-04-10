@@ -52,7 +52,7 @@ namespace adcontrols {
     public:
 
         static const wchar_t * dataClass() { return L"adcontrols::Targeting"; }
-
+        ~Targeting();
         Targeting();
         Targeting( const Targeting& );
         Targeting( const TargetingMethod& );
@@ -73,9 +73,10 @@ namespace adcontrols {
     private:
         std::shared_ptr< TargetingMethod > method_;
         std::vector< targeting::Candidate > candidates_;
-        typedef std::pair< double, std::string > adduct_type;
-
-        std::vector< std::pair< std::string, double > > active_formula_;
+        class impl;
+        std::unique_ptr< impl > impl_;
+        // typedef std::pair< double, std::string > adduct_type;
+        // std::vector< std::pair< std::string, double > > active_formula_;
 
         void setup( const TargetingMethod& );
         bool find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_polarity ); //, const std::vector< charge_adduct_type >& list );

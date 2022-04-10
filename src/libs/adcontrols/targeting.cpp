@@ -152,21 +152,37 @@ namespace adcontrols {
         }
 
     };
+
+    class Targeting::impl {
+    public:
+        impl() {
+        }
+        impl( const impl& t ) : active_formula_( t.active_formula_ ) {
+        }
+        // typedef std::pair< double, std::string > adduct_type;
+        std::vector< std::pair< std::string, double > > active_formula_;
+    };
 }
 
 using namespace adcontrols;
 
+Targeting::~Targeting()
+{
+}
+
 Targeting::Targeting() : method_( std::make_shared< TargetingMethod >() )
+                       , impl_( std::make_unique< impl >() )
 {
 }
 
 Targeting::Targeting( const Targeting& t ) : method_( t.method_ )
                                            , candidates_( t.candidates_ )
-                                           , active_formula_( t.active_formula_ )
+                                           , impl_( std::make_unique< impl >( *t.impl_ ) )
 {
 }
 
 Targeting::Targeting( const TargetingMethod& m ) : method_( std::make_shared<TargetingMethod>( m ) )
+                                                 , impl_( std::make_unique< impl >() )
 {
     setup( m );
 }
@@ -211,7 +227,7 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
 
     adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
 
-    for ( auto& formula : active_formula_ ) {
+    for ( auto& formula : impl_->active_formula_ ) {
         ADDEBUG() << "find_candidate formula : " << formula;
         double exact_mass = formula.second; // search 'M'
         size_t pos = finder( ms, exact_mass );
@@ -385,7 +401,7 @@ Targeting::setup( const TargetingMethod& m )
 {
     ChemicalFormula formula_parser;
 
-    active_formula_.clear();
+    impl_->active_formula_.clear();
 
     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_global;
 
@@ -414,7 +430,7 @@ Targeting::setup( const TargetingMethod& m )
                 auto formula = x.formula() + x.adducts();
                 double mass; int charge;
                 std::tie( mass, charge ) = formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
-                active_formula_.emplace_back( formula, mass );
+                impl_->active_formula_.emplace_back( formula, mass );
                 // todo
                 // if adduct has ',' or ';' then multiple adducts combination should be added separately
                 // for ( const auto& a: ChemicalFormula::split( x.adducts() ) ) {
@@ -430,24 +446,24 @@ Targeting::setup( const TargetingMethod& m )
                         if ( adducts_local.empty() ) {
                             std::ostringstream t;
                             t << "[" << x.formula() << "]" << ( positive ? '+' : '-' );
-                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
+                            impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
                         } else {
                             for ( const auto& a: adducts_local ) {
                                 std::ostringstream t;
                                 t << x.formula() << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                                active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
+                                impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
                             }
                         }
                     } else if ( charge >= 2 ) {
                         if ( adducts_local.empty() ) {
                             std::ostringstream t;
                             t << "[" << x.formula() << "]" << charge << ( positive ? '+' : '-' );
-                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
+                            impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ).first );
                         } else {
                             for ( const auto& a: make_combination()( charge, adducts_local ) ) {
                                 std::ostringstream t;
                                 t << x.formula() << a;
-                                active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
+                                impl_->active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ).first );
                             }
                         }
                     }
