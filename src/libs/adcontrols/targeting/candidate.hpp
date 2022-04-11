@@ -27,15 +27,17 @@
 #include "../adcontrols_global.h"
 #include "../constants_fwd.hpp"
 #include "isotope.hpp"
-#include <string>
-#include <vector>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
-#include <tuple>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 #include <memory>
+#include <string>
+#include <tuple>
+#include <vector>
 
 namespace adcontrols {
     namespace targeting {
@@ -45,7 +47,7 @@ namespace adcontrols {
 
         struct Candidate {
             uint32_t idx;                       // peak index on mass-spectrum
-            uint32_t fcn;                       // protocol (aka segment) id
+            int32_t  fcn;                       // protocol (aka segment) id
             int32_t  charge;
             double   mass;                      // This used to an error from exact mass, change it to found mass at V2 (2019-AUG-15)
             std::string formula;                // this is the exact formula matched with the peak (contains adducts)
@@ -53,18 +55,19 @@ namespace adcontrols {
             int32_t  score;                     // V2
             std::vector< isotope > isotopes;    // V2
             std::string synonym;                // V3
-            std::string key;                    // V3
+            std::string display_name;           // V3
+            bool     selected;                  // V3
 
             Candidate();
             Candidate( const Candidate& );
             Candidate( uint32_t idx
-                       , uint32_t fcn
+                       , int32_t fcn
                        , int32_t charge
                        , double mass
                        , double exact_mass
                        , const std::string& formula      // full formula contains M and addlose
                        , const std::string& synonym = {}
-                       , const std::string& key     = {} );
+                       , const std::string& display_name = {} ); // richText
         private:
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, unsigned int version ) {
@@ -80,11 +83,17 @@ namespace adcontrols {
                 }
                 if ( version >= 3 ) {
                     ar & BOOST_SERIALIZATION_NVP( synonym );
-                    ar & BOOST_SERIALIZATION_NVP( key );
+                    ar & BOOST_SERIALIZATION_NVP( display_name );
+                    ar & BOOST_SERIALIZATION_NVP( selected );
                 }
             }
         };
 
+        ADCONTROLSSHARED_EXPORT
+        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const Candidate& );
+
+        ADCONTROLSSHARED_EXPORT
+        Candidate tag_invoke( boost::json::value_to_tag< Candidate >&, const boost::json::value& jv );
     }
 }
 

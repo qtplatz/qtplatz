@@ -24,6 +24,7 @@
 
 #include "targetingadducts.hpp"
 #include "delegatehelper.hpp"
+#include <adcontrols/constants.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/debug.hpp>
@@ -105,8 +106,9 @@ TargetingAdducts::getContents( adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< std::pair< bool, int >, 2 > polarities = { { std::make_pair( true, r_pos_adducts )
-                                                             , std::make_pair( false, r_neg_adducts ) } };
+    std::array< std::pair< adcontrols::ion_polarity, int >, 2 > polarities =
+        { { std::make_pair( adcontrols::polarity_positive, r_pos_adducts )
+              , std::make_pair( adcontrols::polarity_negative, r_neg_adducts ) } };
 
     for ( auto polarity: polarities ) {
 
@@ -134,8 +136,9 @@ TargetingAdducts::setContents( const adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< std::pair< bool, int >, 2 > polarities = { { std::make_pair( true, r_pos_adducts )
-                                                             , std::make_pair( false, r_neg_adducts ) } };
+    std::array< std::pair< adcontrols::ion_polarity, int >, 2 > polarities =
+        { { std::make_pair( adcontrols::polarity_positive, r_pos_adducts )
+              , std::make_pair( adcontrols::polarity_negative, r_neg_adducts ) } };
 
     for ( auto polarity: polarities ) {
 

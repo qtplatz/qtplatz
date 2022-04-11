@@ -362,7 +362,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
 
                         if ( !sql.exec() ) {
                             ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
-                                      << ", code = " << sql.lastError().number() << " while inserting " << InChI;
+                                      << ", code = " << sql.lastError().nativeErrorCode().toStdString() << " while inserting " << InChI;
                         }
                     } while( 0 );
 
@@ -383,7 +383,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
 
                         if ( !sql.exec() ) {
                             ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
-                                      << ", code = " << sql.lastError().number() << " while updating " << InChI;
+                                      << ", code = " << sql.lastError().nativeErrorCode().toStdString() << " while updating " << InChI;
                         }
                     } while( 0 );
 
@@ -436,7 +436,7 @@ document::findCSIDFromInChI( const QString& InChI )
 
             if ( !sql.exec() ) {
                 ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
-                          << ", code = " << sql.lastError().number() << " while updating " << InChI.toStdString();
+                          << ", code = " << sql.lastError().nativeErrorCode().toStdString() << " while updating " << InChI.toStdString();
             }
         }
         emit onConnectionChanged(); // this will re-run setQuery

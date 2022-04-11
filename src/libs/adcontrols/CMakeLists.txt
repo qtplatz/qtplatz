@@ -269,6 +269,8 @@ add_library( adcontrols SHARED
   targeting/candidate.hpp
   targeting/isotope.cpp
   targeting/isotope.hpp
+  genchromatogram.cpp
+  genchromatogram.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

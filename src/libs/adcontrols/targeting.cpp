@@ -59,10 +59,15 @@ namespace adcontrols {
         // typedef std::pair< double, std::string > adduct_type;
         typedef std::tuple< std::string    // active_formula (mol + adducts) --"M +[H]+"
                             , double       // exact mass for active_formula
+                            , int          // charge
                             , std::string  // mol formula defined in moltable::data.formula (exclude adduct)
                             , std::string  // mol syonym
                             > active_formula_type;
-        enum { active_formula_formula, active_formula_mass, active_formula_mol_formula, active_formula_synonym };
+        enum { active_formula_formula
+            , active_formula_mass
+            , active_formula_charge
+            , active_formula_mol_formula
+            , active_formula_synonym };
         std::vector< active_formula_type > active_formula_;
     };
 
@@ -157,23 +162,39 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
     if ( ms.size() == 0 )
         return false;
 
+    using adcontrols::ChemicalFormula;
+
     adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
 
-    for ( auto& formula : impl_->active_formula_ ) {
-        ADDEBUG() << "find_candidate formula : " << formula;
-        double exact_mass = std::get< impl::active_formula_mass >( formula ); // search 'M'
+    for ( auto& aformula : impl_->active_formula_ ) {
+        double exact_mass = std::get< impl::active_formula_mass >( aformula ); // search 'M'
         size_t pos = finder( ms, exact_mass );
         if ( pos != MassSpectrum::npos ) {
             double mass = ms.mass( pos );
-            int charge;
-            std::tie(std::ignore, charge) = adcontrols::ChemicalFormula::neutralize( std::get< impl::active_formula_formula >( formula ) );
+            int scharge = std::get< impl::active_formula_charge >( aformula );
+            auto synonym = std::get< impl::active_formula_synonym >( aformula );
+            auto formula = std::get< impl::active_formula_formula >( aformula );
+
+
+            std::string display_name;
+            if ( !synonym.empty() && synonym.size() < 8 ) {
+                display_name = synonym;
+            } else {
+                auto v = ChemicalFormula::split( formula );
+                display_name = ( boost::format("%.1f") % adcontrols::ChemicalFormula().getMonoIsotopicMass( v.at(0).first, false ) ).str();
+            }
+
+            using namespace adcontrols::cf;
+            display_name += " " + ChemicalFormula::formatFormulae( formula, {Charge{scharge}, RichText{true}, {"M"} } );
+
             candidates_.emplace_back( uint32_t( pos )
                                       , fcn
-                                      , charge
+                                      , scharge
                                       , mass
                                       , exact_mass
-                                      , std::get< impl::active_formula_formula >( formula ) // full formula
-                                      , std::get< impl::active_formula_synonym >( formula ) // synonym
+                                      , std::get< impl::active_formula_formula >( aformula ) // full formula
+                                      , synonym
+                                      , display_name
                 );
         }
     }
@@ -364,9 +385,9 @@ Targeting::setup( const TargetingMethod& m )
             if ( !std::string( x.adducts() ).empty() ) {
 
                 auto formula = x.formula() + x.adducts();
-                double mass; int charge;
-                std::tie( mass, charge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
-                impl_->active_formula_.emplace_back( formula, mass, x.formula(), x.synonym() );
+                double mass; int scharge;
+                std::tie( mass, scharge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
+                impl_->active_formula_.emplace_back( formula, mass, scharge, x.formula(), x.synonym() );
 
             } else {
 
@@ -377,6 +398,7 @@ Targeting::setup( const TargetingMethod& m )
                         impl_->active_formula_.emplace_back(
                             formula
                             , cf.getMonoIsotopicMass( ChemicalFormula::split( formula ), scharge ).first
+                            , scharge
                             , x.formula()
                             , x.synonym() );
                         ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back();

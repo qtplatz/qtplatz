@@ -37,6 +37,14 @@ namespace adcontrols {
     class CTable;
     namespace mol { class element; class molecule; }
 
+    namespace cf {
+        struct Charge { typedef int value_type; value_type value; Charge( const value_type& t = 0 ) : value{t} {}; };
+        struct RichText { typedef bool value_type; value_type value; RichText( const value_type& t = 0 ) : value{t} {}; };
+        struct MolSubst { typedef std::string value_type; value_type value; MolSubst( const value_type& t = {} ) : value{t}{} };
+
+        typedef std::tuple< Charge, RichText, MolSubst > format_option_type; // charge, richText, mol replace
+    };
+
     class ADCONTROLSSHARED_EXPORT ChemicalFormula {
     public:
         ~ChemicalFormula();
@@ -90,6 +98,10 @@ namespace adcontrols {
 
         static std::string formatFormulae( const std::string& formula, bool richText = true );
         static std::wstring formatFormulae( const std::wstring& formula, bool richText = true );
+
+        static std::string formatFormulae( const std::string& formula, int charge, bool richText );
+
+        static std::string formatFormulae( const std::string& formula, cf::format_option_type&& );
 
         /**
          * makeFormulae synthesize standard formulae from formula and commna (or semicolon) separated list of adducts/lose

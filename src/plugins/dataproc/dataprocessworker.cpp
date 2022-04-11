@@ -35,6 +35,7 @@
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/genchromatogram.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -486,8 +487,12 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
             tgtm = *tm;
 
         // ADDEBUG() << boost::json::object{ { "auto_targeting", true }, { "tolerance", tgtm.tolerance( tgtm.toleranceMethod() ) } };
-
+#if 0
         boost::json::array jArray;
+#else
+        std::vector< adcontrols::GenChromatogram > genChromatograms;
+#endif
+
         for ( auto mol: cm.molecules().data() ) {
             if ( mol.tR() && mol.enable() ) {
                 double tR = *mol.tR();
@@ -509,7 +514,9 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                                                                 , []( const auto& a ) { return a.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
                                 found = true;
+
                                 for ( const auto& c : targeting->candidates() ) {
+#if 0
                                     jArray.emplace_back( boost::json::object{
                                             { "formula", c.formula }
                                             , { "exact_mass", c.exact_mass }
@@ -519,6 +526,9 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                                             , { "index", static_cast< int >(c.idx) }
                                             , { "proto", static_cast< int >(c.fcn) }
                                             , { "selected", true } } );
+#else
+                                    genChromatograms.emplace_back( adcontrols::GenChromatogram( c, true ) );
+#endif
                                 }
                             }
                         }
@@ -530,8 +540,14 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                 }
             }
         }
+#if 0
         auto json = boost::json::serialize( boost::json::object{ { "formulae", jArray } } );
         ADDEBUG() << json;
+#else
+        auto jv = boost::json::value_from( boost::json::object{{ "formulae", genChromatograms }} );
+        ADDEBUG() << jv;
+        auto json = boost::json::serialize( jv );
+#endif
 
         double width = cm.width( cm.widthMethod() );
         if ( auto dset = processor->rawdata() ) {

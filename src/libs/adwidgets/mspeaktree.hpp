@@ -38,7 +38,8 @@ class QPrinter;
 class QJsonDocument;
 class QByteArray;
 
-namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;
+namespace adcontrols {
+    class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;
     class MSPeaks; class MSPeak; }
 
 namespace adwidgets {
@@ -79,7 +80,9 @@ namespace adwidgets {
         bool getMSPeak( adcontrols::MSPeak&, int row ) const;
 
         // Targeting Result
-        void setContents( std::tuple< std::shared_ptr< adcontrols::MSPeakInfo >, std::shared_ptr< adcontrols::MassSpectrum >, std::shared_ptr< const adcontrols::Targeting > >&& );
+        void setContents( std::tuple< std::shared_ptr< adcontrols::MSPeakInfo >
+                          , std::shared_ptr< adcontrols::MassSpectrum >
+                          , std::shared_ptr< const adcontrols::Targeting > >&& );
         void setContents( std::pair< std::shared_ptr< adcontrols::MassSpectrum >, std::shared_ptr< const adcontrols::Targeting > >&& );
 
         virtual int findColumn( const QString& name ) const;

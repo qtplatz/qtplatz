@@ -99,7 +99,7 @@ namespace peptide {
                 }
                 return QItemDelegate::sizeHint( option, index );
             }
-            
+
         private:
             void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
                 painter->save();
@@ -177,10 +177,10 @@ DigestedPeptideTable::setData( const adprot::digestedPeptides& digested )
 		double heavyWater = formulaParser->getMonoIsotopicMass( "H2 18O" );
 
         model.setRowCount( static_cast<int>( digested.peptides().size() ) );
-        
+
         int row = 0;
         for ( auto& peptide: digested.peptides() ) {
-            
+
             const std::string& sequence = peptide.sequence();
             const std::string& stdFormula = peptide.formula();
             double mass = peptide.mass();
@@ -188,9 +188,9 @@ DigestedPeptideTable::setData( const adprot::digestedPeptides& digested )
             model.setData( model.index( row, 0 ), QString::fromStdString( sequence ) );
             model.setData( model.index( row, 1 ), QString::fromStdString( stdFormula ) );
             model.setData( model.index( row, 2 ), mass );
-            model.setData( model.index( row, 3 ), mass + proton ); 
+            model.setData( model.index( row, 3 ), mass + proton );
 			model.setData( model.index( row, 4 ), mass - water + heavyWater + proton ); // 18O
-            
+
             ++row;
         }
     }
@@ -208,12 +208,12 @@ DigestedPeptideTable::selectionChanged( const QItemSelection& selected, const QI
 	QTableView::selectionChanged( selected, deselected );
 
     QModelIndexList list = selectionModel()->selectedIndexes();
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
     QVector< QString > formulae;
     for ( auto index: list )
         formulae.push_back( model_->index( index.row(), 1 ).data( Qt::EditRole ).toString() );
-    
+
     emit selectedFormulae( formulae );
 }

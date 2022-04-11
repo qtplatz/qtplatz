@@ -28,17 +28,21 @@
 #include "../constants_fwd.hpp"
 #include <string>
 #include <vector>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 #include <tuple>
 #include <memory>
 
 namespace adcontrols {
 
     namespace targeting {
+
+        struct ADCONTROLSSHARED_EXPORT isotope;
 
         struct isotope {
             int32_t idx;
@@ -63,6 +67,11 @@ namespace adcontrols {
             }
         };
 
+        ADCONTROLSSHARED_EXPORT
+        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const isotope& );
+
+        ADCONTROLSSHARED_EXPORT
+        isotope tag_invoke( boost::json::value_to_tag< isotope >&, const boost::json::value& jv );
     }
 }
 

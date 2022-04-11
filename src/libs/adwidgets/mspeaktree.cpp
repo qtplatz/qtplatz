@@ -32,6 +32,7 @@
 #include <adcontrols/constants.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/genchromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -59,12 +60,13 @@
 #include <QPair>
 #include <QtPrintSupport/QPrinter>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <boost/signals2.hpp>
 #include <boost/variant.hpp>
 #include <algorithm>
-#include <sstream>
-#include <set>
 #include <ratio>
+#include <set>
+#include <sstream>
 
 namespace adwidgets {
 
@@ -74,6 +76,7 @@ namespace adwidgets {
 
         enum {
             c_formula
+            , c_display_name
             , c_exact_mass
             , c_mass
             , c_mass_error
@@ -129,6 +132,9 @@ namespace adwidgets {
                 }
 
                 switch( index.column() ) {
+                case c_display_name:
+                    DelegateHelper::render_html( painter, option, index.data().toString() );
+                    break;
                 case c_time:
                     if ( valid ) {
                         op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
@@ -183,6 +189,9 @@ namespace adwidgets {
 
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 auto size = QItemDelegate::sizeHint(option, index);
+                if ( index.column() == c_formula || index.column() == c_display_name ) {
+                    size = DelegateHelper::html_size_hint( option, index );
+                }
                 if ( index.parent() == QModelIndex() )
                     size.setHeight(20);
                 return size;
@@ -201,19 +210,6 @@ namespace adwidgets {
                 return wptr.lock();
             }
         };
-
-        // struct dataMayChanged : public boost::static_visitor< bool > {
-        //     MSPeakTree * pThis_;
-        //     dataMayChanged( MSPeakTree * table ) : pThis_( table ) {}
-        //     bool operator()( std::weak_ptr< adcontrols::MassSpectrum >& wptr ) const {
-        //         if ( auto ptr = wptr.lock() )
-        //             pThis_->setData( *ptr );
-        //         return true;
-        //     }
-        //     bool operator()( std::weak_ptr< adcontrols::MSPeakInfo >& ) const {
-        //         return false; // do nothing
-        //     }
-        // };
 
         struct annotation_updator {
 
@@ -420,7 +416,7 @@ MSPeakTree::onInitialUpdate()
     QStandardItemModel& model = *impl_->model_;
 
     model.setColumnCount( c_num_columns );
-
+    model.setHeaderData( c_display_name, Qt::Horizontal, QObject::tr( "Name" ) );
     model.setHeaderData( c_time,        Qt::Horizontal, QObject::tr( "time(&mu;s)" ) );
     model.setHeaderData( c_exact_mass,  Qt::Horizontal, QObject::tr( "Exact <i>m/z</i>" ) );
     model.setHeaderData( c_mass,        Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
@@ -455,6 +451,8 @@ MSPeakTree::setPeakInfo( const adcontrols::Targeting& targeting, std::shared_ptr
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > v_ms(*ms);
 
     for ( auto& c: candidates ) {
+        model.setData( model.index( row, c_display_name ), QString::fromStdString( c.display_name ) );
+
         model.setData( model.index( row, c_fcn ), c.fcn ); // hidden
         model.setData( model.index( row, c_index ), c.idx );
 
@@ -475,7 +473,6 @@ MSPeakTree::setPeakInfo( const adcontrols::Targeting& targeting, std::shared_ptr
         setRowHidden( row, QModelIndex(), false );
         matchCount++;
 
-        this->resizeColumnToContents( c_formula );
 
         // -- sub tree
         auto parent = model.itemFromIndex( model.index( row, c_formula ) );
@@ -494,7 +491,8 @@ MSPeakTree::setPeakInfo( const adcontrols::Targeting& targeting, std::shared_ptr
                     model.setData( model.index( iRow, c_mass, parent->index() ), i.mass );
                     model.setData( model.index( iRow, c_mass_error, parent->index() ), (i.mass - i.exact_mass) * 1000 );
                     model.setData( model.index( iRow, c_intensity, parent->index() ), v_ms[ c.fcn ].intensity( i.idx ) );
-                    model.setData( model.index( iRow, c_relative_intensity, parent->index() ), 100 * ( v_ms[ c.fcn ].intensity( i.idx ) / v_ms[ c.fcn ].intensity( c.idx ) ) );
+                    model.setData( model.index( iRow, c_relative_intensity, parent->index() )
+                                   , 100 * ( v_ms[ c.fcn ].intensity( i.idx ) / v_ms[ c.fcn ].intensity( c.idx ) ) );
                     model.setData( model.index( iRow, c_abundance_error, parent->index() ), 100 * i.abundance_ratio_error );
                     model.setData( model.index( iRow, c_time, parent->index() ), v_ms[ c.fcn ].time( i.idx ) );
                 } else {
@@ -506,16 +504,15 @@ MSPeakTree::setPeakInfo( const adcontrols::Targeting& targeting, std::shared_ptr
                     model.setData( model.index( iRow, c_time, parent->index() ), QVariant() );
                 }
                 model.setData( model.index( iRow, c_exact_abundance, parent->index() ), 100 * i.exact_abundance );
-
             }
             ++iRow;
-
         }
-
         row++;
     }
-}
 
+    resizeColumnToContents( c_formula );
+    resizeColumnToContents( c_display_name );
+}
 
 
 void
@@ -942,61 +939,81 @@ MSPeakTree::handleGenChromatogram() const
 
     std::sort( list.begin(), list.end(), []( const auto& a, const auto& b ){ return compare()( a, b ); } );
 
-    // size_t n = 0;
-    // for ( auto a: list ) {
-    //     ADDEBUG() << n++ << "\trow: " << a.row() << " --> " << a.parent().row();
-    // }
-    // ADDEBUG() << "---------------------------------------";
-
     const auto& model = *impl_->model_;
     QJsonArray a;
 
+    std::vector< adcontrols::GenChromatogram > genChromatograms;
+
     auto it = list.begin();
     while ( it != list.end() ) {
-        QJsonObject obj;
+        // QJsonObject obj;
         QModelIndex topIndex = ( it->parent() == QModelIndex() ) ? (*it) : it->parent();
 
-        obj = QJsonObject{
-            { "formula", model.index( topIndex.row(), c_formula ).data( Qt::EditRole ).toString() }
-            , { "exact_mass", model.index( topIndex.row(), c_exact_mass ).data( Qt::EditRole ).toDouble() }
-            , { "exact_abundance", model.index( topIndex.row(), c_exact_abundance ).data( Qt::EditRole ).toDouble() }
-            , { "mass", model.index( topIndex.row(), c_mass ).data( Qt::EditRole ).toDouble() }
-            , { "time", model.index( topIndex.row(), c_time ).data( Qt::EditRole ).toDouble() }
-            , { "index", model.index( topIndex.row(), c_index ).data( Qt::EditRole ).toInt() }
-            , { "proto", model.index( topIndex.row(), c_fcn ).data( Qt::EditRole ).toInt() }
-            , { "selected", ( it->parent() == QModelIndex() ? true : false ) }
-        };
+        // obj = QJsonObject{
+        //     { "formula", model.index( topIndex.row(), c_formula ).data( Qt::EditRole ).toString() }
+        //     , { "display_name", model.index( topIndex.row(), c_display_name ).data( Qt::EditRole ).toString() }
+        //     , { "exact_mass", model.index( topIndex.row(), c_exact_mass ).data( Qt::EditRole ).toDouble() }
+        //     , { "exact_abundance", model.index( topIndex.row(), c_exact_abundance ).data( Qt::EditRole ).toDouble() }
+        //     , { "mass", model.index( topIndex.row(), c_mass ).data( Qt::EditRole ).toDouble() }
+        //     , { "time", model.index( topIndex.row(), c_time ).data( Qt::EditRole ).toDouble() }
+        //     , { "index", model.index( topIndex.row(), c_index ).data( Qt::EditRole ).toInt() }
+        //     , { "proto", model.index( topIndex.row(), c_fcn ).data( Qt::EditRole ).toInt() }
+        //     , { "selected", ( it->parent() == QModelIndex() ? true : false ) }
+        // };
+
+        // formulae
+        adcontrols::GenChromatogram g;
+        g.formula         = model.index( topIndex.row(), c_formula ).data( Qt::EditRole ).toString().toStdString();
+        g.display_name    = model.index( topIndex.row(), c_display_name ).data( Qt::EditRole ).toString().toStdString();
+        g.exact_mass      = model.index( topIndex.row(), c_exact_mass ).data( Qt::EditRole ).toDouble();
+        g.exact_abundance = model.index( topIndex.row(), c_exact_abundance ).data( Qt::EditRole ).toDouble();
+        g.mass            = model.index( topIndex.row(), c_mass ).data( Qt::EditRole ).toDouble();
+        g.time            = model.index( topIndex.row(), c_time ).data( Qt::EditRole ).toDouble();
+        g.index           = model.index( topIndex.row(), c_index ).data( Qt::EditRole ).toInt();
+        g.proto           = model.index( topIndex.row(), c_fcn ).data( Qt::EditRole ).toInt();
+        g.selected        = it->parent() == QModelIndex() ? true : false;
 
         if ( it->parent() == QModelIndex() )
             std::advance( it, 1 );
 
         QJsonArray sub;
         while ( it != list.end() && ( it->parent() == topIndex ) ) {
-
-            QJsonObject sobj {
-                { "exact_mass", model.index( it->row(), c_exact_mass, it->parent() ).data( Qt::EditRole ).toDouble() }
-                , { "exact_abundance", model.index( it->row(), c_exact_abundance, it->parent() ).data( Qt::EditRole ).toDouble() }
-                , { "mass", model.index( it->row(), c_mass, it->parent() ).data( Qt::EditRole ).toDouble() }
-                , { "time", model.index( it->row(), c_time, it->parent() ).data( Qt::EditRole ).toDouble() }
-                , { "index", model.index( it->row(), c_index, it->parent() ).data( Qt::EditRole ).toInt() }
-                , { "proto", model.index( it->row(), c_fcn, it->parent() ).data( Qt::EditRole ).toInt() }
-                , { "selected", true }
-            };
-            sub.push_back( sobj );
+            // QJsonObject sobj {
+            //     { "exact_mass",        model.index( it->row(), c_exact_mass, it->parent() ).data( Qt::EditRole ).toDouble() }
+            //     , { "exact_abundance", model.index( it->row(), c_exact_abundance, it->parent() ).data( Qt::EditRole ).toDouble() }
+            //     , { "mass",            model.index( it->row(), c_mass, it->parent() ).data( Qt::EditRole ).toDouble() }
+            //     , { "time",            model.index( it->row(), c_time, it->parent() ).data( Qt::EditRole ).toDouble() }
+            //     , { "index",           model.index( it->row(), c_index, it->parent() ).data( Qt::EditRole ).toInt() }
+            //     , { "proto",           model.index( it->row(), c_fcn, it->parent() ).data( Qt::EditRole ).toInt() }
+            //     , { "selected", true }
+            // };
+            // sub.push_back( sobj );
+            adcontrols::targeting::isotope iso;
+            iso.idx             = model.index( it->row(), c_index, it->parent() ).data( Qt::EditRole ).toInt();
+            iso.mass            = model.index( it->row(), c_mass, it->parent() ).data( Qt::EditRole ).toDouble();
+            iso.abundance_ratio = model.index( it->row(), c_exact_abundance, it->parent() ).data( Qt::EditRole ).toDouble();
+            iso.abundance_ratio_error = model.index( it->row(), c_abundance_error, it->parent() ).data( Qt::EditRole ).toDouble() / 100.;
+            iso.exact_mass      = model.index( it->row(), c_exact_mass, it->parent() ).data( Qt::EditRole ).toDouble();
+            iso.exact_abundance = model.index( it->row(), c_exact_abundance, it->parent() ).data( Qt::EditRole ).toDouble();
+            g.isotopes.emplace_back( std::move( iso ) );
 
             std::advance( it, 1 );
         }
 
-        obj[ "children" ] = sub;
-        a.push_back( obj );
+        // obj[ "children" ] = sub;
+        // a.push_back( obj );
+
+        genChromatograms.emplace_back( g );
     }
 
     QJsonObject top{ { "formulae", a } };
-
-#if !defined NDEBUG && 0
-    ADDEBUG() << QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
-#endif
-    emit generateChromatogram( QJsonDocument( top ).toJson() );
+    auto jv = boost::json::value_from( boost::json::object{ {"formulae", genChromatograms }} );
+    auto json = boost::json::serialize( jv );
+//#if !defined NDEBUG && 0
+    // ADDEBUG() << QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();
+//#endif
+    emit generateChromatogram( QByteArray( json.data(), json.size() ) );
+    // emit generateChromatogram( QJsonDocument( top ).toJson() );
 }
 
 void

@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "isotope.hpp"
+#include <adportable/json/extract.hpp>
+#include <boost/json.hpp>
 
 namespace adcontrols {
 
@@ -43,5 +45,37 @@ namespace adcontrols {
             , exact_mass( t.exact_mass ), exact_abundance(t.exact_abundance)
         {
         }
+
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const isotope& t )
+        {
+            jv = boost::json::object{ { "isotope"
+                    , {
+                        {   "idx",                   t.idx }
+                        , { "abundance_ratio",       t.abundance_ratio }
+                        , { "abundance_ratio_error", t.abundance_ratio_error }
+                        , { "exact_mass",            t.exact_mass }
+                        , { "exact_abundance",       t.exact_abundance }
+                    }
+                }};
+        }
+
+        isotope
+        tag_invoke( boost::json::value_to_tag< isotope >&, const boost::json::value& jv )
+        {
+            isotope t;
+            using namespace adportable::json;
+            if ( jv.is_object() ) {
+                auto obj = jv.as_object();
+                extract( obj, t.idx,                   "idx" );
+                extract( obj, t.abundance_ratio,       "abundance_ratio" );
+                extract( obj, t.abundance_ratio_error, "abundance_ratio_error" );
+                extract( obj, t.exact_mass,            "exact_mass" );
+                extract( obj, t.exact_abundance,       "exact_abundance" );
+            }
+            return t;
+        }
+
     }
 }

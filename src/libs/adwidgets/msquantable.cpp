@@ -427,8 +427,9 @@ MSQuanTable::handleContextMenuRequested( const QPoint& )
 void
 MSQuanTable::setData( adcontrols::MSQPeaks * pks )
 {
-    if ( pks )
+    if ( pks ) {
         qpks_ = pks->shared_from_this();
+    }
 
 	QStandardItemModel& model = *model_;
 
@@ -493,9 +494,9 @@ MSQuanTable::set_a_row( QStandardItemModel& model, int row, const adcontrols::MS
     model.setData( model.index( row, c_amount ), pk.amount() );
     model.setData( model.index( row, c_component ), QString::fromStdWString( pk.componentId() ) );
     if ( pk.isSTD() )
-        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundColorRole );
+        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundRole );
     else
-        model.setData( model.index( row, c_component ), QColor( Qt::white ), Qt::BackgroundColorRole );
+        model.setData( model.index( row, c_component ), QColor( Qt::white ), Qt::BackgroundRole );
 
     model.setData( model.index( row, c_time ), pk.time() );
     model.setData( model.index( row, c_mass ), pk.mass() );
@@ -549,14 +550,14 @@ MSQuanTable::update_row( QStandardItemModel& model, int row, const adcontrols::M
         return;
 
     if ( pk.isSTD() )
-        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundColorRole );
+        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundRole );
     else
-        model.setData( model.index( row, c_component ), QColor( Qt::white ), Qt::BackgroundColorRole );
+        model.setData( model.index( row, c_component ), QColor( Qt::white ), Qt::BackgroundRole );
 
     model.setData( model.index( row, c_amount ), pk.amount() );
     model.setData( model.index( row, c_component ), QString::fromStdWString( pk.componentId() ) );
     if ( pk.isSTD() )
-        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundColorRole );
+        model.setData( model.index( row, c_component ), QColor( 0x7a, 0xf5, 0xf5, 0x80 ), Qt::BackgroundRole );
 
     model.setData( model.index( row, c_formula ), QString::fromStdString( pk.formula() ) );
     model.setData( model.index( row, c_description ), QString::fromStdString( pk.description() ) );
