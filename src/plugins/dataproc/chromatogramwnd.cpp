@@ -510,8 +510,8 @@ ChromatogramWnd::impl::redraw()
     if ( std::get< 3 >( yScale_ ) || std::get< 3 >( xScale_ ) ) { // scale auto flag changed
         auto& plot = plots_[ 0 ];
         // ADDEBUG() << "##### redraw [0] " << xScale_ << ", " << yScale_;
-        plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)) );
-        plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)) );
+        plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)), false );
+        plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)), true );
     }
 
     if ( overlays_.empty() ) {
@@ -557,8 +557,8 @@ ChromatogramWnd::impl::redraw()
                 plot->setAxisScale( QwtPlot::yLeft, std::get< 1 >( yScale_ ), std::get< 2 >( yScale_ ) );
             }
         }
-        plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)) );
-        plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)) );
+        plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)), false );
+        plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)), true );
         plot->show();
     }
     dirty_ = false;

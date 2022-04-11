@@ -912,7 +912,7 @@ ChromatogramWidget::legendEnabled() const
 
 
 void
-ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale )
+ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale, bool update )
 {
     if ( !std::get< 0 >( yScale ) ) { // not an auto scaled
         std::get< 0 >( yScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( yScale ), std::get< 2 >( yScale ) );
@@ -930,12 +930,13 @@ ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale )
         }
     } else {
         setAxisScale( QwtPlot::yLeft, std::get< 1 >( impl_->yScale_ ), std::get< 2 >( impl_->yScale_ ) );
-        replot();
     }
+    if ( update )
+        replot();
 }
 
 void
-ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
+ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale, bool update )
 {
     if ( !std::get< 0 >( xScale ) ) { // not an auto scaled
         std::get< 0 >( xScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( xScale ), std::get< 2 >( xScale ) );
@@ -943,14 +944,14 @@ ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
     impl_->xScale_ = std::move( xScale );
     if ( !std::get< 0 >( impl_->xScale_ ) ) { // not auto scale
         setAxisScale( QwtPlot::xBottom, std::get< 1 >( impl_->xScale_ ), std::get< 2 >( impl_->xScale_ ) );
-        replot();
     } else {
         auto rect = impl_->unitedRect( QwtPlot::yLeft );
         if ( rect != QRectF{} ) {
             setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-            replot();
         }
     }
+    if ( update )
+        replot();
 }
 
 

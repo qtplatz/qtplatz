@@ -2063,15 +2063,12 @@ void
 MSProcessingWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
     pImpl_->yScaleChromatogram_ = { checked, bottom, top };
-    // ADDEBUG() << "setYScale: " << pImpl_->yScaleChromatogram_;
-    pImpl_->ticPlot_->setYScale( std::make_tuple( checked, bottom, top ) );
+    pImpl_->ticPlot_->setYScale( std::make_tuple( checked, bottom, top ), true );
 }
 
 void
 MSProcessingWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
     pImpl_->xScaleChromatogram_ = { checked, left, right };
-    // ADDEBUG() << "setXScale: " << pImpl_->xScaleChromatogram_;
-
-    pImpl_->ticPlot_->setXScale( std::make_tuple( checked, left, right ) );
+    pImpl_->ticPlot_->setXScale( std::make_tuple( checked, left, right ), true );
 }
