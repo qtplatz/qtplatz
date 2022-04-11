@@ -65,30 +65,108 @@
 #include <memory>
 
 namespace adplot {
+    namespace ns_c     {  class ChromatogramData;                 }
+    namespace ns_trace {  template<typename T> class TraceData;   }
+}
 
-    namespace chromatogram_widget {
+namespace {
 
-        static QColor color_table [] = {
-            QColor( 0x00, 0x00, 0xff )    // 0  blue
-            , QColor( 0xff, 0x00, 0x00 )  // 1  red
-            , QColor( 0x00, 0x80, 0x00 )  // 2  green
-            , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
-            , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
-            , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
-            , QColor( 0x80, 0x00, 0x80 )  // 6  purple
-            , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
-            , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
-            , QColor( 0x80, 0x80, 0x80 )  // 9  gray
-            , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
-            , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
-            , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
-            , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
-            , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
-            , QColor( 0xff, 0xff, 0xff )  //15  white
-            , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
-            , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
-        };
+    template< typename T >
+    std::string __name( T* obj ) { return " " + obj->objectName().toStdString() + ":"; };
 
+    //---------------------------------------
+
+    static QColor color_table [] = {
+        QColor( 0x00, 0x00, 0xff )    // 0  blue
+        , QColor( 0xff, 0x00, 0x00 )  // 1  red
+        , QColor( 0x00, 0x80, 0x00 )  // 2  green
+        , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
+        , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
+        , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
+        , QColor( 0x80, 0x00, 0x80 )  // 6  purple
+        , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
+        , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
+        , QColor( 0x80, 0x80, 0x80 )  // 9  gray
+        , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
+        , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
+        , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
+        , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
+        , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
+        , QColor( 0xff, 0xff, 0xff )  //15  white
+        , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
+        , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
+    };
+
+    class zoomer : public QwtPlotZoomer {
+        zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
+            QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
+            setRubberBandPen( pen );
+            setRubberBand(QwtPlotPicker::CrossRubberBand);
+            setTrackerMode( AlwaysOn );
+        }
+        QSizeF minZoomSize() const override {
+            QRectF rc = zoomBase();
+            return QSizeF( rc.width() * 1.0e-9, rc.height() * 1.0e-9 );
+        }
+        QwtText trackerTextF( const QPointF &pos ) const override {
+            QColor bg( Qt::white );
+            bg.setAlpha( 128 );
+            QwtText text;
+            text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.4fs") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
+            text.setBackgroundBrush( QBrush( bg ) );
+            return text;
+        }
+
+    };
+}
+
+namespace {
+
+    typedef boost::variant<
+        std::unique_ptr< adplot::ns_c::ChromatogramData >
+        , std::unique_ptr< adplot::ns_trace::TraceData<adcontrols::Trace> >
+        > trace_variant;
+
+    //-------------
+
+    struct boundingRect_visitor : public boost::static_visitor< QRectF > {
+        template<typename T> QRectF operator()( const T& t ) const {  return t ? t->boundingRect() : QRectF();  }
+    };
+
+    struct yAxis_visitor : public boost::static_visitor< QwtPlot::Axis > {
+        template< typename T > QwtPlot::Axis operator ()( const T& t ) const { return t ? QwtPlot::Axis( t->plot_curve().yAxis() ) : QwtPlot::yLeft; }
+    };
+
+    struct updateMarkers_visitor : public boost::static_visitor< void > {
+        QwtPlot * plot_;
+        std::pair< double, double > range_;
+        updateMarkers_visitor( QwtPlot * plot, const std::pair< double, double >& range ) : plot_( plot ), range_( range ) {}
+        template<typename T> void operator()( T& t ) const { if ( t ) t->drawMarkers( plot_, range_ ); }
+    };
+
+    template< typename trace_type >
+        struct isValid : public boost::static_visitor< bool > {
+        template< typename T > bool operator()( T& t ) const {  return bool( t ) && typeid(T) == typeid(trace_type);  };
+    };
+
+    struct isNull : public boost::static_visitor< bool > {
+        template< typename T > bool operator()( T& t ) const {  return !( t );  };
+    };
+
+    struct GetPlotItem : public boost::static_visitor< QwtPlotItem * > {
+        template< typename T > QwtPlotItem * operator()( T& t ) const { return t ? &(t->plot_curve()) : nullptr;  };
+    };
+
+    struct RemoveData : public boost::static_visitor< void > {
+        template< typename T > void operator()( T& t ) const {  t = nullptr;  };
+    };
+} // namespaece
+
+
+namespace adplot {
+    namespace ns_c {
+        //---------------------------------------------------------
+        //---------------------------------------------------------
         // for ChromatogramData
         class xSeriesData : public QwtSeriesData< QPointF > {
             xSeriesData( const xSeriesData& ) = delete;
@@ -128,7 +206,11 @@ namespace adplot {
 
             QRectF boundingRect() const override { return rect_; }
         };
+    }
 
+    namespace ns_trace {
+        //---------------------------------------------------------
+        //---------------------------------------------------------
         // for TraceData
         template< typename T >
         class tSeriesData : public QwtSeriesData< QPointF > {
@@ -159,6 +241,8 @@ namespace adplot {
 			QRectF rect_;
         };
 
+        //---------------------------------------------------------
+        //---------------------------------------------------------
         template<class T> class TraceData {
         public:
             ~TraceData() { }
@@ -192,6 +276,9 @@ namespace adplot {
                 curve_.p()->setData( d_trace );
             }
         }
+    } // ns_trace
+
+    namespace ns_c {
 
         class ChromatogramData {
         public:
@@ -267,87 +354,29 @@ namespace adplot {
             bool yNormalize_;
         };
 
-        // typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
-        typedef boost::variant< std::unique_ptr< ChromatogramData >
-                                , std::unique_ptr< TraceData<adcontrols::Trace> > > trace_variant;
+    }  // chromatogram
+} // adplot
 
-        struct boundingRect_visitor : public boost::static_visitor< QRectF > {
-            template<typename T> QRectF operator()( const T& t ) const {
-                return t ? t->boundingRect() : QRectF();
-            }
-        };
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-        struct yAxis_visitor : public boost::static_visitor< QwtPlot::Axis > {
-            template< typename T > QwtPlot::Axis operator ()( const T& t ) const { return t ? QwtPlot::Axis( t->plot_curve().yAxis() ) : QwtPlot::yLeft; }
-        };
-
-        struct updateMarkers_visitor : public boost::static_visitor< void > {
-            QwtPlot * plot_;
-            std::pair< double, double > range_;
-            updateMarkers_visitor( QwtPlot * plot, const std::pair< double, double >& range ) : plot_( plot ), range_( range ) {}
-            template<typename T> void operator()( T& t ) const { if ( t ) t->drawMarkers( plot_, range_ ); }
-        };
-
-        template< typename trace_type >
-        struct isValid : public boost::static_visitor< bool > {
-            template< typename T > bool operator()( T& t ) const {
-                return bool( t ) && typeid(T) == typeid(trace_type);
-            };
-        };
-
-        struct isNull : public boost::static_visitor< bool > {
-            template< typename T > bool operator()( T& t ) const {
-                return !( t );
-            };
-        };
-
-        struct GetPlotItem : public boost::static_visitor< QwtPlotItem * > {
-            template< typename T > QwtPlotItem * operator()( T& t ) const {
-                return t ? &(t->plot_curve()) : nullptr;
-            };
-        };
-
-        struct RemoveData : public boost::static_visitor< void > {
-            template< typename T > void operator()( T& t ) const {
-                t = nullptr;
-            };
-        };
-
-        class zoomer : public QwtPlotZoomer {
-            zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
-                QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
-                setRubberBandPen( pen );
-                setRubberBand(QwtPlotPicker::CrossRubberBand);
-                setTrackerMode( AlwaysOn );
-            }
-            QSizeF minZoomSize() const override {
-                QRectF rc = zoomBase();
-                return QSizeF( rc.width() * 1.0e-9, rc.height() * 1.0e-9 );
-            }
-            QwtText trackerTextF( const QPointF &pos ) const override {
-                QColor bg( Qt::white );
-                bg.setAlpha( 128 );
-                QwtText text;
-                text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.4fs") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
-                text.setBackgroundBrush( QBrush( bg ) );
-                return text;
-            }
-
-        };
-
-    }
+namespace adplot {
 
     class ChromatogramWidget::impl {
         impl( const impl& ) = delete;
         impl& operator = ( const impl& ) = delete;
     public:
         impl() : axis_( HorizontalAxisSeconds )
-               , normalizedY_{ false } {}
+               , normalizedY_{ false }
+               , yScale_{ true, 0, 0 }
+               , xScale_{ true, 0, 0 }
+            {}
 
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
 
-        std::vector< chromatogram_widget::trace_variant > traces_;
+        std::vector< /* anonymous */ trace_variant > traces_;
         std::vector< adplot::Peak > plot_peaks_;
         std::vector< adplot::Baseline > plot_baselines_;
         std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
@@ -374,7 +403,7 @@ namespace adplot {
 }
 
 using namespace adplot;
-using namespace adplot::chromatogram_widget;
+// using namespace adplot::chromatogram;
 
 ChromatogramWidget::~ChromatogramWidget()
 {
@@ -482,8 +511,8 @@ ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
     } else {
         QRectF rc = {};
         for ( const auto& v: impl_->traces_ ) {
-            if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
-                auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
+            if ( boost::apply_visitor( isValid< std::unique_ptr< ns_c::ChromatogramData > >(), v ) ) {
+                auto& trace = boost::get< std::unique_ptr< ns_c::ChromatogramData > >( v );
                 rc |= trace->boundingRect();
             }
         }
@@ -509,10 +538,10 @@ ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int i
     if ( impl_->traces_.size() <= size_t( idx ) )
         impl_->traces_.resize( idx + 1 );
 
-    if ( ! boost::apply_visitor( isValid< TraceData< adcontrols::Trace > >(), impl_->traces_[ idx ] ) )
-        impl_->traces_[ idx ] = std::make_unique< TraceData< adcontrols::Trace > >( *this );
+    if ( ! boost::apply_visitor( isValid< ns_trace::TraceData< adcontrols::Trace > >(), impl_->traces_[ idx ] ) )
+        impl_->traces_[ idx ] = std::make_unique< ns_trace::TraceData< adcontrols::Trace > >( *this );
 
-    if ( auto& trace = boost::get< std::unique_ptr< TraceData< adcontrols::Trace > > >( impl_->traces_[ idx ] ) ) {
+    if ( auto& trace = boost::get< std::unique_ptr< ns_trace::TraceData< adcontrols::Trace > > >( impl_->traces_[ idx ] ) ) {
 
         trace->plot_curve().setPen( QPen( color_table [ idx ] ) );
         trace->plot_curve().setYAxis( yAxis );
@@ -553,6 +582,8 @@ ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int i
 std::shared_ptr< const adcontrols::Chromatogram >
 ChromatogramWidget::getData( int idx ) const
 {
+    using ns_c::ChromatogramData;
+
     if ( impl_->traces_.size() > size_t( idx ) ) {
         if ( ! boost::apply_visitor( isValid< ChromatogramData >(), impl_->traces_[ idx ] ) ) {
             auto& data = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_[ idx ] );
@@ -568,7 +599,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
     if ( cp->size() < 2 )
         return;
 
-    using adcontrols::Chromatogram;
+    using ns_c::ChromatogramData;
 
     if ( impl_->traces_.size() <= size_t( idx ) )
         impl_->traces_.resize( idx + 1 );
@@ -613,6 +644,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
 void
 ChromatogramWidget::setAlpha( int idx, int alpha )
 {
+    using ns_c::ChromatogramData;
     if ( impl_->traces_.size() > idx ) {
         if ( const auto& p = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_.at( idx ) ) )
             p->setAlpha( alpha );
@@ -622,6 +654,7 @@ ChromatogramWidget::setAlpha( int idx, int alpha )
 void
 ChromatogramWidget::setColor( int idx, const QColor& color )
 {
+    using ns_c::ChromatogramData;
     if ( impl_->traces_.size() > idx ) {
         if ( const auto& p = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_.at( idx ) ) )
             p->setColor( color );
@@ -652,7 +685,6 @@ ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, QwtPlot::Axi
 		setBaseline( bs );
 
     impl_->peak_annotations_.clear();
-	//for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
 
     for ( const auto& pk:  r.peaks() )
 		setPeak( pk, impl_->peak_annotations_ );
@@ -716,7 +748,6 @@ ChromatogramWidget::drawPeakParameter( const adcontrols::Peak& pk )
         for ( int i = 0; i <= width; ++i ) {
             double x = tr.boundary( 0 ) + ( ( tr.boundary( 1 ) - tr.boundary( 0 ) ) * i ) / width;
             double y = a + ( b * x ) + ( c * x * x );
-            //points << QPointF( adcontrols::Chromatogram::toMinutes( x ), y );
             points << QPointF( x, y );
             curve->setSamples( points );
         }
@@ -853,8 +884,10 @@ void
 ChromatogramWidget::setItemLegendEnabled( bool enable )
 {
     if ( enable ) {
+
         if ( ! impl_->legendItem_ )
             impl_->legendItem_ = std::make_unique< QwtPlotLegendItem >();
+
         impl_->legendItem_->setRenderHint( QwtPlotItem::RenderAntialiased );
         QColor color( Qt::white );
         impl_->legendItem_->setTextPen( color );

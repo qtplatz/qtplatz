@@ -742,7 +742,7 @@ MainWindow::createContents( Core::IMode * mode )
     applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
-    scaleChangeConnector<MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
+    scaleChangeConnector     < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
 #else
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         boost::apply_visitor( session_added_connector(this), it );

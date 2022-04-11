@@ -75,8 +75,8 @@ namespace adwidgets {
     namespace {
 
         enum {
-            c_formula
-            , c_display_name
+            c_display_name
+            , c_formula
             , c_exact_mass
             , c_mass
             , c_mass_error
@@ -473,9 +473,8 @@ MSPeakTree::setPeakInfo( const adcontrols::Targeting& targeting, std::shared_ptr
         setRowHidden( row, QModelIndex(), false );
         matchCount++;
 
-
         // -- sub tree
-        auto parent = model.itemFromIndex( model.index( row, c_formula ) );
+        auto parent = model.itemFromIndex( model.index( row, 0 ) );
         parent->setColumnCount( c_num_columns );
         parent->setRowCount( c.isotopes.size() );
 

@@ -299,6 +299,7 @@ MSProcessingWnd::init()
     if ( splitter ) {
 
         if ( ( pImpl_->ticPlot_ = new adplot::ChromatogramWidget(this) ) ) {
+            pImpl_->ticPlot_->setObjectName( "MSProcessingWnd.0" );
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
             pImpl_->ticPlot_->register_tracker( [=,this]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
@@ -2062,13 +2063,15 @@ void
 MSProcessingWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
     pImpl_->yScaleChromatogram_ = { checked, bottom, top };
+    // ADDEBUG() << "setYScale: " << pImpl_->yScaleChromatogram_;
     pImpl_->ticPlot_->setYScale( std::make_tuple( checked, bottom, top ) );
 }
 
 void
 MSProcessingWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
-    ADDEBUG() << std::make_tuple( checked, left, right );
     pImpl_->xScaleChromatogram_ = { checked, left, right };
+    // ADDEBUG() << "setXScale: " << pImpl_->xScaleChromatogram_;
+
     pImpl_->ticPlot_->setXScale( std::make_tuple( checked, left, right ) );
 }

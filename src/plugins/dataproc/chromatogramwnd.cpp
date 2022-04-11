@@ -97,13 +97,14 @@ namespace dataproc {
                                     , dirty_( false ) {
 
             using adwidgets::PeakTable;
-
-            std::for_each( plots_.begin(), plots_.end(), [&]( auto& plot ){
-                    plot = std::make_unique< adplot::ChromatogramWidget >();
-                    plot->setMinimumHeight( 80 );
-                    plot->setItemLegendEnabled( false );
-                    plot->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-                });
+            size_t n(0);
+            std::for_each( plots_.begin(), plots_.end(), [&]( auto& plot ) {
+                plot = std::make_unique< adplot::ChromatogramWidget >();
+                plot->setObjectName( QString("ChromatogramWnd.%1").arg( QString::number(n++) ) );
+                plot->setMinimumHeight( 80 );
+                plot->setItemLegendEnabled( false );
+                plot->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+            });
 
             plots_[ 0 ]->link( plots_[ 1 ].get() );
 
@@ -179,6 +180,7 @@ namespace dataproc {
         std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > plots_;
         adwidgets::PeakTable * peakTable_;
         std::unique_ptr< adplot::PeakMarker > marker_;
+        // plot[0] data
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
         std::wstring idActiveFolium_;
@@ -430,16 +432,16 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 void
 ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
-    // ADDEBUG() << "## " << __FUNCTION__ << " Y " << std::make_tuple( checked, bottom, top );
     impl_->yScale_ = { checked, bottom, top, std::get< 0 >( impl_->yScale_ ) != checked };
+    // ADDEBUG() << "## " << __FUNCTION__ << " Y " << impl_->yScale_;
     impl_->redraw();
 }
 
 void
 ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
-    // ADDEBUG() << "## " << __FUNCTION__ << " X " << std::make_tuple( checked, left, right );
     impl_->xScale_ = { checked, left, right, std::get< 0 >( impl_->xScale_ ) != checked };
+    // ADDEBUG() << "## " << __FUNCTION__ << " X " << impl_->xScale_;
     impl_->redraw();
 }
 
@@ -507,8 +509,11 @@ ChromatogramWnd::impl::redraw()
 {
     if ( std::get< 3 >( yScale_ ) || std::get< 3 >( xScale_ ) ) { // scale auto flag changed
         auto& plot = plots_[ 0 ];
+        // ADDEBUG() << "##### redraw [0] " << xScale_ << ", " << yScale_;
         plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)) );
         plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)) );
+        // if ( std::get< 0 >( yScale_ ) ) { // yAuto need to set data
+        // }
     }
 
     if ( overlays_.empty() ) {

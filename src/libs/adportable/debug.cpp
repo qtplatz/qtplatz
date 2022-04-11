@@ -43,6 +43,7 @@ debug::debug( const char * file, const int line ) : line_(line)
 {
     if ( file )
         file_ = file;
+    o_ << std::boolalpha;
 }
 
 debug::~debug(void)
