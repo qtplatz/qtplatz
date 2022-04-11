@@ -74,6 +74,10 @@ namespace {
     template< typename T >
     std::string __name( T* obj ) { return " " + obj->objectName().toStdString() + ":"; };
 
+    std::tuple< double, double, double > rc_tuple( const QRectF& rc ) {
+        return std::make_tuple( rc.top(), rc.bottom(), rc.height() );
+    }
+
     //---------------------------------------
 
     static QColor color_table [] = {
@@ -130,7 +134,7 @@ namespace {
     //-------------
 
     struct boundingRect_visitor : public boost::static_visitor< QRectF > {
-        template<typename T> QRectF operator()( const T& t ) const {  return t ? t->boundingRect() : QRectF();  }
+        template<typename T> QRectF operator()( const T& t ) const {  return t ? t->boundingRect() : QRectF{};  }
     };
 
     struct yAxis_visitor : public boost::static_visitor< QwtPlot::Axis > {
@@ -160,6 +164,7 @@ namespace {
     struct RemoveData : public boost::static_visitor< void > {
         template< typename T > void operator()( T& t ) const {  t = nullptr;  };
     };
+
 } // namespaece
 
 
@@ -307,7 +312,7 @@ namespace adplot {
                 if ( yNormalize_ )
                     rect_.setCoords( range_x.first, 105.0, range_x.second, -5.0 );
                 else
-                    rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
+                    rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first ); // left,top, right,bottom
 
                 curve_.p()->setYAxis( yAxis_ );
                 curve_.p()->setData( new xSeriesData( cp, rect_, yNormalize_ ) );
@@ -399,6 +404,19 @@ namespace adplot {
         QwtText tracker2( const QPointF&, const QPointF& );
 
         void redraw();
+
+        QRectF unitedRect( QwtPlot::Axis yAxis ) const {
+            QRectF rect = {};
+            for ( const auto& v: traces_ ) {
+                if ( boost::apply_visitor( isValid< std::unique_ptr< ns_c::ChromatogramData > >(), v ) ) {
+                    auto rc = boost::get< std::unique_ptr< ns_c::ChromatogramData > >( v )->boundingRect();
+                    auto leftTop = QPointF( std::min( rc.left(), rect.left() ), std::max( rc.top(), rect.top() ) );
+                    auto rightBottom = QPointF( std::max( rc.right(), rect.right() ), std::min( rc.bottom(), rect.bottom() ) );
+                    rect = QRectF( leftTop, rightBottom );
+                }
+            }
+            return rect;
+        }
     };
 }
 
@@ -477,48 +495,6 @@ ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot ) // minutes|secon
     impl_->axis_ = axis;
     if ( replot )
         impl_->redraw();
-}
-
-void
-ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale )
-{
-    if ( !std::get< 0 >( yScale ) ) { // not an auto scaled
-        std::get< 0 >( yScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( yScale ), std::get< 2 >( yScale ) );
-    }
-    impl_->yScale_ = std::move( yScale );
-
-    if ( auto zoomer = plot::zoomer() )
-        zoomer->autoYScale( std::get< 0 >( impl_->yScale_ ) );
-
-    if ( std::get< 0 >( impl_->yScale_ ) ) { // auto scale
-        // cannot handle y auto scale collectly, application should set data again
-    } else {
-        setAxisScale( QwtPlot::yLeft, std::get< 1 >( impl_->yScale_ ), std::get< 2 >( impl_->yScale_ ) );
-        replot();
-    }
-}
-
-void
-ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
-{
-    if ( !std::get< 0 >( xScale ) ) { // not an auto scaled
-        std::get< 0 >( xScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( xScale ), std::get< 2 >( xScale ) );
-    }
-    impl_->xScale_ = std::move( xScale );
-    if ( !std::get< 0 >( impl_->xScale_ ) ) { // not auto scale
-        setAxisScale( QwtPlot::xBottom, std::get< 1 >( impl_->xScale_ ), std::get< 2 >( impl_->xScale_ ) );
-        replot();
-    } else {
-        QRectF rc = {};
-        for ( const auto& v: impl_->traces_ ) {
-            if ( boost::apply_visitor( isValid< std::unique_ptr< ns_c::ChromatogramData > >(), v ) ) {
-                auto& trace = boost::get< std::unique_ptr< ns_c::ChromatogramData > >( v );
-                rc |= trace->boundingRect();
-            }
-        }
-        setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() );
-        replot();
-    }
 }
 
 void
@@ -933,6 +909,50 @@ ChromatogramWidget::legendEnabled() const
 {
     return impl_->externalLegend_ != nullptr;
 }
+
+
+void
+ChromatogramWidget::setYScale( std::tuple< bool, double, double >&& yScale )
+{
+    if ( !std::get< 0 >( yScale ) ) { // not an auto scaled
+        std::get< 0 >( yScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( yScale ), std::get< 2 >( yScale ) );
+    }
+    impl_->yScale_ = std::move( yScale );
+
+    if ( auto zoomer = plot::zoomer() )
+        zoomer->autoYScale( std::get< 0 >( impl_->yScale_ ) );
+
+    if ( std::get< 0 >( impl_->yScale_ ) ) { // auto scale
+        auto rect = impl_->unitedRect( QwtPlot::yLeft );
+        if ( rect != QRectF{} ) {
+            double margin = rect.height() * 0.05;  // should be negative height
+            setAxisScale( QwtPlot::yLeft, rect.bottom() + margin, rect.top() - margin ); // min, max
+        }
+    } else {
+        setAxisScale( QwtPlot::yLeft, std::get< 1 >( impl_->yScale_ ), std::get< 2 >( impl_->yScale_ ) );
+        replot();
+    }
+}
+
+void
+ChromatogramWidget::setXScale( std::tuple< bool, double, double >&& xScale )
+{
+    if ( !std::get< 0 >( xScale ) ) { // not an auto scaled
+        std::get< 0 >( xScale ) = adportable::compare< double >::essentiallyEqual( std::get< 1 >( xScale ), std::get< 2 >( xScale ) );
+    }
+    impl_->xScale_ = std::move( xScale );
+    if ( !std::get< 0 >( impl_->xScale_ ) ) { // not auto scale
+        setAxisScale( QwtPlot::xBottom, std::get< 1 >( impl_->xScale_ ), std::get< 2 >( impl_->xScale_ ) );
+        replot();
+    } else {
+        auto rect = impl_->unitedRect( QwtPlot::yLeft );
+        if ( rect != QRectF{} ) {
+            setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+            replot();
+        }
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

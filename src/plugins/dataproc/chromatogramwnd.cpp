@@ -512,8 +512,6 @@ ChromatogramWnd::impl::redraw()
         // ADDEBUG() << "##### redraw [0] " << xScale_ << ", " << yScale_;
         plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)) );
         plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)) );
-        // if ( std::get< 0 >( yScale_ ) ) { // yAuto need to set data
-        // }
     }
 
     if ( overlays_.empty() ) {
