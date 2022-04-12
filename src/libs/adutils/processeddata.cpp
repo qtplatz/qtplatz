@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "processeddata.hpp"
+#include "processeddata_t.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -44,35 +45,8 @@ ProcessedData::ProcessedData()
 ProcessedData::value_type
 ProcessedData::toVariant( boost::any & a )
 {
-	if ( adportable::a_type< MassSpectrumPtr >::is_a( a ) )
-        return boost::any_cast< MassSpectrumPtr >( a );
-
-	else if ( adportable::a_type< ChromatogramPtr >::is_a( a ) )
-        return boost::any_cast< ChromatogramPtr >( a );
-
-    else if ( adportable::a_type< ProcessMethodPtr >::is_a( a ) )
-        return boost::any_cast< ProcessMethodPtr >( a );
-
-    else if ( adportable::a_type< ElementalCompositionCollectionPtr >::is_a( a ) )
-        return boost::any_cast< ElementalCompositionCollectionPtr >( a );
-
-    else if ( adportable::a_type< MSCalibrateResultPtr >::is_a( a ) )
-        return boost::any_cast< MSCalibrateResultPtr >( a );
-
-    else if ( adportable::a_type< PeakResultPtr >::is_a( a ) )
-        return boost::any_cast< PeakResultPtr >( a );
-
-    else if ( adportable::a_type< MSPeakInfoPtr >::is_a( a ) )
-        return boost::any_cast< MSPeakInfoPtr >( a );
-
-    else if ( adportable::a_type< MassSpectraPtr >::is_a( a ) )
-        return boost::any_cast< MassSpectraPtr >( a );
-
-    else if ( adportable::a_type< SpectrogramClustersPtr >::is_a( a ) )
-        return boost::any_cast< SpectrogramClustersPtr >( a );
-
-    // adportable::debug(__FILE__, __LINE__)
-    //     << "ProcessedData::toVariant( " << a.type().name() << " ) -- return Nothing()";
-
-    return Nothing();
+    if ( auto var = to_variant< dataTuple >()( a ) ) {
+        return *var;
+    }
+    return {}; // Nothing();
 }

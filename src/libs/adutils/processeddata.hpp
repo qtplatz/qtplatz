@@ -31,7 +31,6 @@
 #include <memory>
 #include "adutils_global.h"
 
-
 // todo: see chromatogramwnd.cpp, lines 86..113 for refactoring
 
 namespace adcontrols {
@@ -67,17 +66,24 @@ namespace adutils {
             Nothing() {}
         };
 
-        typedef boost::variant< Nothing                                // 0
-                                , MassSpectrumPtr                      // 1
-                                , ChromatogramPtr                      // 2
-                                , ProcessMethodPtr                     // 3
-                                , ElementalCompositionCollectionPtr    // 4
-                                , MSCalibrateResultPtr                 // 5
-                                , PeakResultPtr                        // 6
-                                , MSPeakInfoPtr                        // 7
-                                , MassSpectraPtr                       // 8
-                                , SpectrogramClustersPtr               // 9
-                              > value_type;
+        using dataTuple = std::tuple< MassSpectrumPtr
+                                    , ChromatogramPtr
+                                    , ProcessMethodPtr
+                                    , ElementalCompositionCollectionPtr
+                                    , MSCalibrateResultPtr
+                                    , PeakResultPtr
+                                    , MSPeakInfoPtr
+                                    , MassSpectraPtr
+                                    , SpectrogramClustersPtr
+                                    >;
+
+        template< typename Tuple > struct variant_type;
+
+        template< typename... Args> struct variant_type< std::tuple<Args... >>  {
+            using type = boost::variant< Nothing, Args ... >;
+        };
+
+        using value_type = variant_type< dataTuple >::type;
 
         static value_type toVariant( boost::any& );
 
