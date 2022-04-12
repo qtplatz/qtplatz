@@ -190,21 +190,9 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
         hTopLayout->setStretch( 1, 1 );
     }
 
-    // ui->horizontalLayout->setStretch( 0, 0 );
-    // ui->horizontalLayout->setStretch( 1, 1 );
-
-    // if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
-    //     ui->label->setText( "Slope[&mu;V/s]" );
-    //     ui->label_2->setText( "Minimum width[s]" );
-    // }
-
-    // ui->tableView->setModel( impl_->model_.get() );
-    // ui->tableView->setItemDelegate( new teDelegate( this ) );
-    // ui->tableView->verticalHeader()->setDefaultSectionSize( 18 );
     if ( auto buttonBox = findChild< QDialogButtonBox * >( "buttonBox" ) ) {
-        connect( buttonBox, &QDialogButtonBox::clicked, [this] () { ADDEBUG() << "PeakFind triggered"; emit triggerProcess( "PeakFind" ); } );
+        connect( buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess( "PeakFind" ); } );
     }
-    // connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess( "PeakFind" ); } );
 }
 
 PeakMethodForm::~PeakMethodForm()
@@ -226,16 +214,6 @@ PeakMethodForm::OnInitialUpdate()
     if ( auto table = findChild< TableView * >( "tableView" ) ) {
         table->setHidden( true );
     }
-    // if ( auto table = findChild< TableView * >( "tableView" ) ) {
-
-    //     QStandardItemModel& model = *impl_->model_;
-    //     model.setColumnCount( 3 );
-    //     model.setHeaderData( c_time, Qt::Horizontal, "Time(min)" );
-    //     model.setHeaderData( c_function, Qt::Horizontal, "Func" );
-    //     model.setHeaderData( c_event_value, Qt::Horizontal, "Value" );
-    //     table->setSortingEnabled( true );
-
-    // }
 
     if ( auto table = findChild< TableView * >( "timedEventTable" ) ) {
         QStandardItemModel& model = *impl_->model_;
@@ -291,15 +269,6 @@ PeakMethodForm::getContents( adcontrols::ProcessMethod& pm ) const
 void
 PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
 {
-    // ui->doubleSpinBox->setValue( method.slope() );
-    // ui->doubleSpinBox_2->setValue( method.minimumWidth() );
-    // ui->doubleSpinBox_3->setValue( method.minimumHeight() );
-    // ui->doubleSpinBox_4->setValue( method.drift() );
-    // ui->doubleSpinBox_5->setValue( method.minimumArea() );
-    // ui->doubleSpinBox_6->setValue( method.t0() );
-    // // method.doubleWidthTime( 0.0 );
-    // ui->comboBox->setCurrentIndex( int( method.pharmacopoeia() ) );
-
     if ( auto spin = findChild< QDoubleSpinBox * >("doubleSpinBoxSlope") ) {
         spin->setValue( method.slope() );
     }

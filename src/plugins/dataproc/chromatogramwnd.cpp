@@ -155,7 +155,7 @@ namespace dataproc {
 
         }
 
-        void setData( adcontrols::ChromatogramPtr& ptr ) {
+        void setChromatogram( adcontrols::ChromatogramPtr& ptr ) {
             data_ = ptr;
             plots_[ 0 ]->clear();
             plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
@@ -166,9 +166,10 @@ namespace dataproc {
                 peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
         }
 
-        void setData( adcontrols::PeakResultPtr& ptr ) {
+        void setPeakResult( adcontrols::PeakResultPtr& ptr ) {
             peakResult_ = ptr;
             plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
+            // add to table
             peakTable_->setData( *ptr );
         }
 
@@ -192,7 +193,7 @@ namespace dataproc {
                 if ( !peakResult_ )
                     peakResult_ = std::make_shared< adcontrols::PeakResult >();
                 if ( data->add_manual_peak( *peakResult_, t1, t2, horBase, 0.0 ) ) {
-                    setData( peakResult_ );
+                    setPeakResult( peakResult_ );
                     plots_[ 0 ]->replot();
                 }
             }
@@ -268,13 +269,13 @@ ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
-    impl_->setData( ptr );
+    impl_->setChromatogram( ptr );
 }
 
 void
 ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 {
-    impl_->setData( ptr );
+    impl_->setPeakResult( ptr );
 }
 
 void
@@ -316,8 +317,9 @@ ChromatogramWnd::handleSessionRemoved( const QString& filename )
 }
 
 void
-ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
+ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool flag )
 {
+    ADDEBUG() << "state changed: " << flag;
 }
 
 void
@@ -340,6 +342,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
             ADDEBUG() << "\tattachment variant not found for " << static_cast< boost::any& >( folium ).type().name();
         }
     }
+    impl_->redraw();
 }
 
 void
@@ -382,6 +385,8 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium_; } );
+
+    ADDEBUG() << __FUNCTION__ << " isChecked: " << folium.attribute( L"isChecked" );
 
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
         if ( it != impl_->overlays_.end() ) {
@@ -473,7 +478,6 @@ void
 ChromatogramWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
     impl_->yScale_ = { checked, bottom, top, std::get< 0 >( impl_->yScale_ ) != checked };
-    // ADDEBUG() << "## " << __FUNCTION__ << " Y " << impl_->yScale_;
     impl_->redraw();
 }
 
@@ -481,7 +485,6 @@ void
 ChromatogramWnd::handleChromatogramXScale( bool checked, double left, double right ) const
 {
     impl_->xScale_ = { checked, left, right, std::get< 0 >( impl_->xScale_ ) != checked };
-    // ADDEBUG() << "## " << __FUNCTION__ << " X " << impl_->xScale_;
     impl_->redraw();
 }
 
@@ -560,6 +563,8 @@ ChromatogramWnd::impl::redraw()
         auto& plot = plots_[ 1 ];
 
         plot->clear();
+        plot->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( yScale_ ) && (overlays_.size() > 1) );
+
         int idx(0);
         for ( auto& datum: overlays_ ) {
             if ( auto chr = datum.get_chromatogram() ) {
@@ -568,25 +573,16 @@ ChromatogramWnd::impl::redraw()
                     if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )
                         plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
                 } else {
-                    if ( std::get< 3 >( yScale_ ) || !datum.overlayChromatogram_ ) {
-                        if ( (datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr ) ) ) {
-                            datum.overlayChromatogram_->setBaselines( adcontrols::Baselines() ); // clear baselines
-                            datum.overlayChromatogram_->setPeaks( adcontrols::Peaks() );         // clear peaks
-                            if ( std::get< 0 >( yScale_ ) ) { // autoY
-                                double yMax = chr->getMaxIntensity() - chr->getMinIntensity();
-                                for ( size_t i = 0; i < chr->size(); ++i ) {
-                                    datum.overlayChromatogram_->setIntensity( i, ( 100. * ( chr->intensity( i ) - chr->getMinIntensity() ) / yMax ) );
-                                }
-                            } else {
-                                for ( size_t i = 0; i < chr->size(); ++i ) {
-                                    datum.overlayChromatogram_->setIntensity( i, ( chr->intensity( i ) - chr->getMinIntensity() ) );
-                                }
-                            }
-                        }
-                    }
+                    datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr );
+                    datum.overlayChromatogram_->setBaselines( adcontrols::Baselines() ); // clear baselines
+                    datum.overlayChromatogram_->setPeaks( adcontrols::Peaks() );         // clear peaks
+
+                    ADDEBUG() << "redraw set overlay chromatogram: " << idx;
                     plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
-                    if ( idx > 0 )
+                    if ( idx > 0 ) {
+                        ADDEBUG() << "redraw set overlay peak results idx: " << idx << ", peaks: " << chr->peaks().size();
                         peakTable_->addData( adcontrols::PeakResult{ chr->baselines(), chr->peaks(), chr->isCounting() }, idx );
+                    }
                     ++idx;
                 }
             }
