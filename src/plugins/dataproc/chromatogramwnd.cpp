@@ -49,7 +49,9 @@
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/is_same.hpp>
+#include <adportable/is_type.hpp>
 #include <adutils/processeddata.hpp>
+#include <adutils/processeddata_t.hpp>
 #include <adwidgets/peaktable.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -79,40 +81,6 @@
 #include <memory>
 
 using namespace dataproc;
-
-namespace {
-
-    struct null_t {};
-    template < typename ... T >  struct type_list_t {};
-
-    template< typename Last >  struct type_list_t< Last > {
-        template< typename variant_type >
-        boost::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
-            return {};
-        }
-    };
-
-    template< typename First, typename... Args >  struct type_list_t< First, Args... > {
-        template< typename variant_type >
-        boost::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
-            if ( adportable::a_type< First >::is_a( a ) )
-                return variant_type( boost::any_cast< First >( a ) );
-            return type_list_t< Args... >{}.do_cast( variant_type{}, a );
-        }
-    };
-
-    template< typename Tuple > struct to_variant;
-
-    template< typename... Args >
-    struct to_variant< std::tuple<Args ... > > {
-        using type = boost::variant< Args ... >;
-        boost::optional<type> operator()( boost::any& a ) const {
-            return type_list_t< Args ..., null_t >{}.do_cast( type{}, a );
-        }
-    };
-    ////////////
-}
-
 
 namespace dataproc {
 
@@ -328,7 +296,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
                                   , std::shared_ptr< adcontrols::Chromatogram > >;
 
-    if ( auto var = to_variant< dataTuple >()(static_cast< boost::any& >( folium )) ) {
+    if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( folium )) ) {
         boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), *var );  // draw data
     } else {
         ADDEBUG() << "######## variant not found for " << static_cast< boost::any& >( folium ).type().name();
@@ -336,7 +304,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-        if ( auto var = to_variant< dataTuple >()(static_cast< boost::any& >( *it )) ) {
+        if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( *it )) ) {
             boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), *var );
         } else {
             ADDEBUG() << "\tattachment variant not found for " << static_cast< boost::any& >( folium ).type().name();
@@ -349,9 +317,16 @@ void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
     try {
-        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-        if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
+        using dataTuple = std::tuple< std::shared_ptr< adcontrols::Chromatogram > >;
+
+        if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( folium )) ) {
+            boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), *var );  // draw data
+        } else {
             return;
+        }
+        // adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        // if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
+        //     return;
     } catch ( boost::exception& ex ) {
         ADDEBUG() << ex;
         for( const auto& a: folium.attributes() )
@@ -375,10 +350,16 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (a.u.)" ) );
         }
 
+        using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
+                                      , std::shared_ptr< adcontrols::Chromatogram > >;
+
         portfolio::Folio attachments = folium.attachments();
         for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-            adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-            boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
+            // adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( *it  )) ) {
+                boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), *var );
+                // todo: if attachment is peakresult, should be put into overlay folder
+            }
         }
     } else {
         return;
