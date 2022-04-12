@@ -31,6 +31,9 @@
 #include <memory>
 #include "adutils_global.h"
 
+
+// todo: see chromatogramwnd.cpp, lines 86..113 for refactoring
+
 namespace adcontrols {
     class MassSpectrum;
     class Chromatogram;
@@ -59,7 +62,7 @@ namespace adutils {
     public:
         ProcessedData();
 
-        class ADUTILSSHARED_EXPORT Nothing { 
+        class ADUTILSSHARED_EXPORT Nothing {
         public:
             Nothing() {}
         };
@@ -87,4 +90,3 @@ namespace adutils {
     };
 
 }
-

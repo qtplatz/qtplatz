@@ -54,9 +54,10 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
-#include <boost/variant.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#include <boost/optional.hpp>
+#include <boost/variant.hpp>
 
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
@@ -78,6 +79,40 @@
 #include <memory>
 
 using namespace dataproc;
+
+namespace {
+
+    struct null_t {};
+    template < typename ... T >  struct type_list_t {};
+
+    template< typename Last >  struct type_list_t< Last > {
+        template< typename variant_type >
+        boost::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
+            return {};
+        }
+    };
+
+    template< typename First, typename... Args >  struct type_list_t< First, Args... > {
+        template< typename variant_type >
+        boost::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
+            if ( adportable::a_type< First >::is_a( a ) )
+                return variant_type( boost::any_cast< First >( a ) );
+            return type_list_t< Args... >{}.do_cast( variant_type{}, a );
+        }
+    };
+
+    template< typename Tuple > struct to_variant;
+
+    template< typename... Args >
+    struct to_variant< std::tuple<Args ... > > {
+        using type = boost::variant< Args ... >;
+        boost::optional<type> operator()( boost::any& a ) const {
+            return type_list_t< Args ..., null_t >{}.do_cast( type{}, a );
+        }
+    };
+    ////////////
+}
+
 
 namespace dataproc {
 
@@ -288,17 +323,22 @@ ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, b
 void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
-    try {
-        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-        boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), data );  // draw data
-    } catch ( boost::exception& ex ) {
-        ADDEBUG() << ex;
+    using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
+                                  , std::shared_ptr< adcontrols::Chromatogram > >;
+
+    if ( auto var = to_variant< dataTuple >()(static_cast< boost::any& >( folium )) ) {
+        boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), *var );  // draw data
+    } else {
+        ADDEBUG() << "######## variant not found for " << static_cast< boost::any& >( folium ).type().name();
     }
 
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
+        if ( auto var = to_variant< dataTuple >()(static_cast< boost::any& >( *it )) ) {
+            boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), *var );
+        } else {
+            ADDEBUG() << "\tattachment variant not found for " << static_cast< boost::any& >( folium ).type().name();
+        }
     }
 }
 

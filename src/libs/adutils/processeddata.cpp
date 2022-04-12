@@ -35,6 +35,8 @@
 
 using namespace adutils;
 
+// todo: see chromatogramwnd.cpp, lines 86..113 for refactoring
+
 ProcessedData::ProcessedData()
 {
 }

@@ -696,7 +696,8 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         pImpl_->ticPlot_->setPeakResult( *pkresults, QwtPlot::yLeft );
                     }
                 }
-                pImpl_->ticPlot_->setNormalizedY( QwtPlot::yRight, true );
+                pImpl_->ticPlot_->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( pImpl_->yScaleChromatogram_ ) );  // auto scale y?
+
                 pImpl_->clearCheckedChromatograms();
                 // redraw all chromatograms with check marked
                 auto folio = folder.folio();
@@ -706,7 +707,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( f ) ) {
                             ++idx;
                             pImpl_->setCheckedChromatogram( cptr, idx );
-                            pImpl_->ticPlot_->setData( cptr, idx, QwtPlot::yRight );
+                            pImpl_->ticPlot_->setData( cptr, idx, QwtPlot::yLeft );
                             pImpl_->ticPlot_->setAlpha( idx, 0x40 );
                         }
                     }
@@ -1669,7 +1670,8 @@ MSProcessingWnd::compute_minmax( double s, double e )
                 auto pair = std::minmax_element( data.begin() + range.first, data.begin() + range.second );
 
                 std::pair<double, double> result = std::make_pair( *pair.first, *pair.second );
-                std::pair< size_t, size_t > index = std::make_pair( std::distance( data.begin(), pair.first ), std::distance( data.begin(), pair.second ) );
+                std::pair< size_t, size_t > index = std::make_pair( std::distance( data.begin(), pair.first )
+                                                                    , std::distance( data.begin(), pair.second ) );
 
                 std::pair< double, double > time = std::make_pair(
                     adcontrols::MSProperty::toSeconds( index.first, ms.getMSProperty().samplingInfo() )
@@ -2063,6 +2065,7 @@ void
 MSProcessingWnd::handleChromatogramYScale( bool checked, double bottom, double top ) const
 {
     pImpl_->yScaleChromatogram_ = { checked, bottom, top };
+    pImpl_->ticPlot_->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( pImpl_->yScaleChromatogram_ ) );  // auto scale y?
     pImpl_->ticPlot_->setYScale( std::make_tuple( checked, bottom, top ), true );
 }
 
