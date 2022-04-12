@@ -66,6 +66,9 @@ namespace adutils {
         boost::optional<type> operator()( boost::any& a ) const {
             return type_list_t< Args ..., null_t >{}.do_cast( type{}, a );
         }
+        boost::optional<type> operator()( const boost::any& a ) const {
+            return type_list_t< Args ..., null_t >{}.do_cast( type{}, const_cast< boost::any& >(a) );
+        }
     };
     ////////////
 }

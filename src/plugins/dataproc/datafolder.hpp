@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,7 +28,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/optional.hpp>
 
-namespace adcontrols { class MassSpectrum; class Chromatogram; }
+namespace adcontrols { class MassSpectrum; class Chromatogram; class PeakResult; }
 namespace adprocessor { class dataprocessor; }
 namespace portfolio { class Folium; }
 
@@ -49,8 +49,9 @@ namespace dataproc {
         std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // centroid
         std::weak_ptr< adcontrols::Chromatogram > chromatogram_;
 
+        std::shared_ptr< adcontrols::PeakResult > peakResult_;
         std::shared_ptr< adcontrols::MassSpectrum > overlaySpectrum_; // y-scale normalized
-        std::shared_ptr< adcontrols::Chromatogram > overlayChromatogram_; // y-scale normalized
+        std::shared_ptr< adcontrols::Chromatogram > overlayChromatogram_;
 
         datafolder();
         datafolder( const std::wstring& filename, const portfolio::Folium& folium );
@@ -61,7 +62,10 @@ namespace dataproc {
         operator bool () const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_profile() const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_processed() const;
-        std::shared_ptr< const adcontrols::Chromatogram > get_chromatogram() const;
+
+        std::shared_ptr< adcontrols::Chromatogram > get_chromatogram() const;
+        std::shared_ptr< adcontrols::Chromatogram > get_overlayChromatogram() const;
+        std::shared_ptr< adcontrols::PeakResult > get_peakResult() const;
 
         static QString make_display_name( const std::wstring& fullpath, const portfolio::Folium& );
         static QString make_display_name( Dataprocessor *, const portfolio::Folium& );
