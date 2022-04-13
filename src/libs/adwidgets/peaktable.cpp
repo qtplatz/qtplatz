@@ -219,6 +219,7 @@ PeakTable::addData( adcontrols::PeakResult&& result, size_t idx )
     for ( const auto& peak: result.peaks() ) {
         add( peak, idx );
     }
+    resizeColumnsToContents();
 }
 
 void
@@ -232,6 +233,7 @@ PeakTable::setData( const adcontrols::Peaks& peaks, bool isCounting )
     for ( const auto& peak: peaks ) {
         add( peak, 0 );
     }
+    resizeColumnsToContents();
 }
 
 void

@@ -107,12 +107,14 @@ datafolder::datafolder( const std::wstring& fullpath
             }
         }
     }
-    ADDEBUG() << "--- datafolder ctor\n"
-              << "\thas chromatogram ? " << bool(chromatogram_.lock())
-              << ", has peakResult ? "  << bool(peakResult_)
-              << ", has profile ? "     << bool(profile_.lock())
-              << ", has histogram ? "   << bool(profiledHistogram_.lock())
-              << ", has centroid ? "    << bool(centroid_.lock());
+    if ( chromatogram_.lock() ) {
+        ADDEBUG() << "--- datafolder chromatogram: has peakResult ? " << bool(peakResult_);
+              // << "\thas chromatogram ? " << bool(chromatogram_.lock())
+              //     << ", has peakResult ? "
+              // << ", has profile ? "     << bool(profile_.lock())
+              // << ", has histogram ? "   << bool(profiledHistogram_.lock())
+              // << ", has centroid ? "    << bool(centroid_.lock());
+    }
 #if 0
     if ( auto raw = folium.get< adcontrols::MassSpectrumPtr >() ) {
         profile_ = *raw; // maybe profile or histogram
@@ -145,7 +147,9 @@ datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
                                               , profiledHistogram_( t.profiledHistogram_ )
                                               , centroid_( t.centroid_ )
                                               , chromatogram_( t.chromatogram_ )
+                                              , peakResult_( t.peakResult_ )
                                               , overlaySpectrum_( t.overlaySpectrum_ )
+                                              , overlayChromatogram_( t.overlayChromatogram_ )
 {
 }
 

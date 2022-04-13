@@ -176,6 +176,19 @@ namespace dataproc {
                 dp->findSinglePeak( folium, { t1, t2 } );
             }
         }
+        void addOverlay( datafolder&& datum ) {
+            auto it = std::remove_if( overlays_.begin(), overlays_.end()
+                                      , [&](const auto& a){ return a.idFolium_ == datum.idFolium_ || a.idfolium_ == datum.idfolium_; });
+            if ( it != overlays_.end() )
+                overlays_.erase( it, overlays_.end() );
+            overlays_.emplace_front( std::move( datum ) );
+        }
+        void eraseOverlay( const portfolio::Folium& folium ) {
+            auto it = std::remove_if( overlays_.begin(), overlays_.end()
+                                      , [&](const auto& a){ return a.idFolium_ == folium.id() || a.idfolium_ == folium.uuid(); });
+            if ( it != overlays_.end() )
+                overlays_.erase( it, overlays_.end() );
+        }
 
         void selectedOnChromatogram( const QRectF&, int );
         void selectedOnChromatogram0( const QRectF& );
@@ -256,7 +269,10 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
         for ( auto& folium: folder.folio() ) {
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
-
+                auto datum = datafolder( processor->filename(), folium );
+                impl_->addOverlay( std::move( datum ) );
+                impl_->dirty_ = true;
+#if 0
                 if ( auto chro = folium.get< adcontrols::ChromatogramPtr >() ) {
                     auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end()
                                             , [&](const auto& a){ return a.id() == folium.uuid(); });
@@ -265,13 +281,12 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
                         impl_->dirty_ = true;
                     }
                 }
+#endif
+            } else {
+                impl_->eraseOverlay( folium );
             }
         }
     }
-
-    if ( MainWindow::instance()->curPage() != MainWindow::idSelChromatogram )
-        return;
-
     if ( impl_->dirty_ )
         impl_->redraw();
 }
@@ -553,6 +568,7 @@ ChromatogramWnd::impl::redraw()
         plot->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( yScale_ ) && (overlays_.size() > 1) );
 
         int idx(0);
+        ADDEBUG() << "------ overlay size: " << overlays_.size();
         for ( auto& datum: overlays_ ) {
             if ( auto chr = datum.get_chromatogram() ) {
                 if ( overlays_.size() == 1 ) {
@@ -564,16 +580,18 @@ ChromatogramWnd::impl::redraw()
                     datum.overlayChromatogram_->setBaselines( adcontrols::Baselines() ); // clear baselines
                     datum.overlayChromatogram_->setPeaks( adcontrols::Peaks() );         // clear peaks
 
-                    ADDEBUG() << "redraw set overlay chromatogram: " << idx;
                     plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
-                    if ( idx > 0 ) {
+                    //if ( idx > 0 ) {
+                        ADDEBUG() << "redraw set overlay chromatogram: idx=" << idx;
                         if ( auto pks = datum.get_peakResult() ) {
                             ADDEBUG() << "redraw set overlay peak results idx: " << idx << ", peaks: " << chr->peaks().size() << ", " << pks->peaks().size();
-                            peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx );
+                            peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx + 1 );
+                        } else {
+                            ADDEBUG() << "####### no peak result in overlay ############";
                         }
-                    }
-                    ++idx;
+                        //}
                 }
+                ++idx;
             }
         }
         plot->setAxisTitle( QwtPlot::yLeft, std::get<0>( yScale_ ) ? QwtText( "Intensity (R.A.)" ) : QwtText( "Intensity (a.u.)" ) );
