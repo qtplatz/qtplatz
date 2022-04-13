@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -53,8 +53,6 @@ namespace dataproc {
         ~ChromatogramWnd();
 
         void init();
-        void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw( std::shared_ptr< adcontrols::Chromatogram >& );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
 

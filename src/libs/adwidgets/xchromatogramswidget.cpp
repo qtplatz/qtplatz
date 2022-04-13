@@ -194,7 +194,7 @@ XChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::Ma
 {
     impl_->spectrometer_ = sp;
 
-    ADDEBUG() << sp->calibrationFilename();
+    // ADDEBUG() << sp->calibrationFilename();
 
     boost::filesystem::path path( sp->calibrationFilename() );
     if ( auto form = findChild< XChromatogramsForm * >() ) {
