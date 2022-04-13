@@ -171,7 +171,7 @@ namespace dataproc {
 
         void addFIPeak( double t1, double t2 ) {
             if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                auto folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+                auto folium = dp->getPortfolio().findFolium( std::get< 1 >( selected_folder_ ) ); // idActiveFolium_ );
                 dp->findSinglePeak( folium, { t1, t2 } );
             }
         }
@@ -203,7 +203,7 @@ namespace dataproc {
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
         std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
-        std::wstring idActiveFolium_;
+        // std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
         std::tuple< bool, double, double, bool > yScale_;
         std::tuple< bool, double, double, bool > xScale_;
@@ -348,12 +348,13 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     auto datum = datafolder( processor->filename(), folium );
-    impl_->selected_folder_ = { folium.uuid(), folium.id() };
 
     if ( auto chr = datum.get_chromatogram() ) {
 
         // if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
-        impl_->idActiveFolium_ = folium.id();
+        // impl_->idActiveFolium_ = folium.id();
+        impl_->selected_folder_ = { folium.uuid(), folium.id() };
+
         auto& plot = impl_->plots_[ 0 ];
 
         plot->clear();
@@ -431,7 +432,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 	portfolio::Folium folium;
     printer.setDocName( "QtPlatz Chromatogram Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        folium = dp->getPortfolio().findFolium( impl_->idActiveFolium_ );
+        folium = dp->getPortfolio().findFolium( std::get< 1 >( impl_->selected_folder_ ) );
     }
 
     printer.setOutputFileName( pdfname );
@@ -529,7 +530,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
                         QString name
                             = QFileDialog::getSaveFileName( MainWindow::instance()
                                                             , "Save SVG File"
-                                                            , MainWindow::makePrintFilename( idActiveFolium_, L"_" )
+                                                            , MainWindow::makePrintFilename( std::get< 1 >( selected_folder_ ), L"_" )
                                                             , tr( "SVG (*.svg)" ) );
                         if ( ! name.isEmpty() )
                             adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
