@@ -130,12 +130,15 @@ namespace dataproc {
             auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
             plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
             peakResult_.reset();
-            if ( ptr->peaks().size() )
+            ADDEBUG() << "==== chromatogram.peaks.size: " << ptr->peaks().size();
+            if ( ptr->peaks().size() ) {
                 peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
+            }
         }
 
         void setPeakResult( adcontrols::PeakResultPtr& ptr ) {
             peakResult_ = ptr;
+            ADDEBUG() << "==== peakResult.peaks.size: " << ptr->peaks().size();
             plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
             // add to table
             peakTable_->setData( *ptr );
@@ -324,9 +327,6 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         } else {
             return;
         }
-        // adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-        // if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
-        //     return;
     } catch ( boost::exception& ex ) {
         ADDEBUG() << ex;
         for( const auto& a: folium.attributes() )
@@ -350,9 +350,14 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (a.u.)" ) );
         }
 
+        if ( auto pks = datum.get_peakResult() ) {
+            impl_->setPeakResult( pks );
+        } else {
+            ADDEBUG() << "############## no peak result containd in datafolder ################";
+        }
+#if 0
         using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
                                       , std::shared_ptr< adcontrols::Chromatogram > >;
-
         portfolio::Folio attachments = folium.attachments();
         for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
             // adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
@@ -361,6 +366,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
                 // todo: if attachment is peakresult, should be put into overlay folder
             }
         }
+#endif
     } else {
         return;
     }
@@ -561,8 +567,10 @@ ChromatogramWnd::impl::redraw()
                     ADDEBUG() << "redraw set overlay chromatogram: " << idx;
                     plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
                     if ( idx > 0 ) {
-                        ADDEBUG() << "redraw set overlay peak results idx: " << idx << ", peaks: " << chr->peaks().size();
-                        peakTable_->addData( adcontrols::PeakResult{ chr->baselines(), chr->peaks(), chr->isCounting() }, idx );
+                        if ( auto pks = datum.get_peakResult() ) {
+                            ADDEBUG() << "redraw set overlay peak results idx: " << idx << ", peaks: " << chr->peaks().size() << ", " << pks->peaks().size();
+                            peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx );
+                        }
                     }
                     ++idx;
                 }

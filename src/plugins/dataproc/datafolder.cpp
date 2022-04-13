@@ -107,8 +107,8 @@ datafolder::datafolder( const std::wstring& fullpath
             }
         }
     }
-    ADDEBUG() << "--- datafolder ctor"
-              << " has chromatogram ? " << bool(chromatogram_.lock())
+    ADDEBUG() << "--- datafolder ctor\n"
+              << "\thas chromatogram ? " << bool(chromatogram_.lock())
               << ", has peakResult ? "  << bool(peakResult_)
               << ", has profile ? "     << bool(profile_.lock())
               << ", has histogram ? "   << bool(profiledHistogram_.lock())
@@ -201,4 +201,10 @@ std::shared_ptr< adcontrols::Chromatogram >
 datafolder::get_chromatogram() const
 {
     return chromatogram_.lock();
+}
+
+std::shared_ptr< adcontrols::PeakResult >
+datafolder::get_peakResult() const
+{
+    return peakResult_;
 }
