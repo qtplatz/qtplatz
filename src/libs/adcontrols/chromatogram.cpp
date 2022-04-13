@@ -131,6 +131,7 @@ namespace adcontrols {
             std::vector< double > massArray_;
             std::string time_of_injection_; // iso8601 extended
             std::pair< plot::unit, size_t > yAxisUnit_;
+            std::string display_name_;
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -196,13 +197,16 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                     ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
                     ar & BOOST_SERIALIZATION_NVP( generator_property_ );
+                    if ( version>= 10 ) {
+                        ar & BOOST_SERIALIZATION_NVP( display_name_ );
+                    }
                 }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 9 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 10 )
 
 namespace {
 
@@ -841,6 +845,7 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , massArray_( t.massArray_ )
                                                                 , time_of_injection_( t.time_of_injection_ )
                                                                 , yAxisUnit_( t.yAxisUnit_ )
+                                                                , display_name_( t.display_name_ )
 {
     descriptions_ = t.descriptions_;
 }
@@ -934,6 +939,12 @@ Chromatogram::dataReaderUuid() const
 }
 
 void
+Chromatogram::setGeneratorProperty( std::string&& prop )
+{
+    pImpl_->generator_property_ = std::move( prop );
+}
+
+void
 Chromatogram::setGeneratorProperty( const std::string& prop )
 {
     pImpl_->generator_property_ = prop;
@@ -943,6 +954,20 @@ boost::optional< std::string >
 Chromatogram::generatorProperty() const
 {
     return pImpl_->generator_property_;
+}
+
+void
+Chromatogram::set_display_name( const std::string& t )
+{
+    pImpl_->display_name_ = t;
+}
+
+boost::optional< std::string >
+Chromatogram::display_name() const
+{
+    if ( !pImpl_->display_name_.empty() )
+        return pImpl_->display_name_;
+    return {};
 }
 
 void

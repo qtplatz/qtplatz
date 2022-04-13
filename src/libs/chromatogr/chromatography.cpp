@@ -177,6 +177,14 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
 		it->setPercentHeight( ( it->peakHeight() / heightTotal ) * 100 );
 	}
 
+    for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
+        if ( auto display_name = c.display_name() ){
+            it->setName( *display_name + " (" + std::to_string( 1 + std::distance( peaks_.begin(), it ) ) + ")");
+        } else {
+            it->setName( std::to_string( 1 + std::distance( peaks_.begin(), it ) ) );
+        }
+    }
+
     return true;
 }
 

@@ -186,7 +186,11 @@ namespace adcontrols {
         const boost::uuids::uuid& dataGuid() const;
 
         void setGeneratorProperty( const std::string& );
+        void setGeneratorProperty( std::string&& );
         boost::optional< std::string > generatorProperty() const;
+
+        void set_display_name( const std::string& );
+        boost::optional< std::string > display_name() const;
 
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -171,7 +171,7 @@ namespace adprocessor {
 }
 
 namespace {
-    std::string remove_tag( std::string text ) {
+    std::string remove_html_tag( std::string text ) {
         std::string::size_type pos;
         while ((pos = text.find( "<" )) != std::string::npos ) {
             auto endpos = text.find( ">", pos );
@@ -542,9 +542,9 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
     bool loaded( false );
 
     if ( auto formulae = obj.if_contains( "formulae" ) ) {
-        // std::vector< adcontrols::GenChromatogram > genChromatograms;
+        std::vector< adcontrols::GenChromatogram > genChromatograms;
         try {
-            auto genChromatograms = boost::json::value_to< std::vector< adcontrols::GenChromatogram > >( *formulae );
+            genChromatograms = boost::json::value_to< std::vector< adcontrols::GenChromatogram > >( *formulae );
             // ADDEBUG() << boost::json::value_from( boost::json::object{{ "loaded", genChromatograms }} );
             for ( const auto& gen: genChromatograms ) {
                 if ( gen.selected ) {
@@ -620,19 +620,19 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                 width *= std::nano::den;   // --> ns
             }
 
-            auto g = std::get< 2 >( list[ idx ] );
-            if ( g ) {
-                ADDEBUG() << "########### " << remove_tag( g->display_name ) << "; " << g->display_name;
-            }
-
+            auto gen = std::get< 2 >( list[ idx ] );
             res->pChr_->addDescription(
                 adcontrols::description( { "Create", ( fmt
-                                                       % (g ? remove_tag( g->display_name ) : formula )
+                                                       % (gen ? remove_html_tag( gen->display_name ) : formula )
                                                        % centre
                                                        % width
                                                        % reader->display_name()
                                                        % protocol ).str() } ) );
             res->pChr_->setIsCounting( res->isCounting_ );
+            if ( gen ) {
+                res->pChr_->setGeneratorProperty( boost::json::serialize( boost::json::value_from( *gen ) ) );
+                res->pChr_->set_display_name( gen->display_name );
+            }
             impl_->results_.emplace_back( res );
         }
 
@@ -820,11 +820,8 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 boost::system::error_code ec;
                 auto jv = boost::json::parse( pk.toJson(), ec );
                 if ( !ec ) {
-                    boost::json::object obj = {
-                        { "generator"
-                          , {{ "extract_by_peak_info"
-                                  , {{ "pkinfo", jv }}
-                                }} }
+                    boost::json::object obj = {{ "generator"
+                            , {{ "extract_by_peak_info", {{ "pkinfo", jv }} }} }
                     };
                     ( *it )->pChr_->setGeneratorProperty( boost::json::serialize( obj ) );
                 }
