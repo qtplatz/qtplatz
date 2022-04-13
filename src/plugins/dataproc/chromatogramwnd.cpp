@@ -120,7 +120,6 @@ namespace dataproc {
             marker_->attach( plots_[ 0 ].get() );
             marker_->visible( true );
             marker_->setYAxis( QwtPlot::yLeft );
-
         }
 
         void setChromatogram( adcontrols::ChromatogramPtr& ptr ) {
@@ -203,6 +202,7 @@ namespace dataproc {
         // plot[0] data
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
+        std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
         std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
         std::tuple< bool, double, double, bool > yScale_;
@@ -271,20 +271,20 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
                 auto datum = datafolder( processor->filename(), folium );
                 impl_->addOverlay( std::move( datum ) );
-                impl_->dirty_ = true;
 #if 0
-                if ( auto chro = folium.get< adcontrols::ChromatogramPtr >() ) {
-                    auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end()
-                                            , [&](const auto& a){ return a.id() == folium.uuid(); });
-                    if ( it == impl_->overlays_.end() ) {
-                        impl_->overlays_.emplace_back( datafolder( processor->filename(), folium ) );
-                        impl_->dirty_ = true;
-                    }
-                }
+                // if ( auto chro = folium.get< adcontrols::ChromatogramPtr >() ) {
+                //     auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end()
+                //                             , [&](const auto& a){ return a.id() == folium.uuid(); });
+                //     if ( it == impl_->overlays_.end() ) {
+                //         impl_->overlays_.emplace_back( datafolder( processor->filename(), folium ) );
+                //         impl_->dirty_ = true;
+                //     }
+                // }
 #endif
             } else {
                 impl_->eraseOverlay( folium );
             }
+            impl_->dirty_ = true;
         }
     }
     if ( impl_->dirty_ )
@@ -303,9 +303,8 @@ ChromatogramWnd::handleSessionRemoved( const QString& filename )
 }
 
 void
-ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool flag )
+ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
 {
-    ADDEBUG() << "state changed: " << flag;
 }
 
 void
@@ -349,6 +348,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     auto datum = datafolder( processor->filename(), folium );
+    impl_->selected_folder_ = { folium.uuid(), folium.id() };
 
     if ( auto chr = datum.get_chromatogram() ) {
 
@@ -371,16 +371,16 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             ADDEBUG() << "############## no peak result containd in datafolder ################";
         }
 #if 0
-        using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
-                                      , std::shared_ptr< adcontrols::Chromatogram > >;
-        portfolio::Folio attachments = folium.attachments();
-        for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-            // adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( *it  )) ) {
-                boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), *var );
-                // todo: if attachment is peakresult, should be put into overlay folder
-            }
-        }
+        // using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
+        //                               , std::shared_ptr< adcontrols::Chromatogram > >;
+        // portfolio::Folio attachments = folium.attachments();
+        // for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+        //     // adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+        //     if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( *it  )) ) {
+        //         boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), *var );
+        //         // todo: if attachment is peakresult, should be put into overlay folder
+        //     }
+        // }
 #endif
     } else {
         return;
@@ -391,17 +391,19 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     ADDEBUG() << __FUNCTION__ << " isChecked: " << folium.attribute( L"isChecked" );
 
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
-        if ( it != impl_->overlays_.end() ) {
-            impl_->overlays_.erase( it );
-            impl_->dirty_ = true;
-        }
+        impl_->eraseOverlay( folium );
+        // if ( it != impl_->overlays_.end() ) {
+        //     impl_->overlays_.erase( it );
+        //     impl_->dirty_ = true;
+        // }
     } else {
-        if ( it == impl_->overlays_.end() ) {
-            if ( auto chr = datum.get_chromatogram() ) {
-                impl_->overlays_.emplace_front( datum );
-                impl_->dirty_ = true;
-            }
-        }
+        impl_->addOverlay( std::move( datum ) );
+        // if ( it == impl_->overlays_.end() ) {
+        //     if ( auto chr = datum.get_chromatogram() ) {
+        //         impl_->overlays_.emplace_front( datum );
+        //         impl_->dirty_ = true;
+        //     }
+        // }
     }
     impl_->redraw();
 }
@@ -576,20 +578,20 @@ ChromatogramWnd::impl::redraw()
                     if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )
                         plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
                 } else {
-                    datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr );
-                    datum.overlayChromatogram_->setBaselines( adcontrols::Baselines() ); // clear baselines
-                    datum.overlayChromatogram_->setPeaks( adcontrols::Peaks() );         // clear peaks
-
+                    if ( ! datum.overlayChromatogram_ ) {
+                        datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr );
+                        datum.overlayChromatogram_->setBaselines( adcontrols::Baselines{} ); // clear baselines
+                        datum.overlayChromatogram_->setPeaks( adcontrols::Peaks{} );         // clear peaks
+                    }
                     plot->setData( datum.overlayChromatogram_, idx, QwtPlot::yLeft );
-                    //if ( idx > 0 ) {
-                        ADDEBUG() << "redraw set overlay chromatogram: idx=" << idx;
+
+                    if ( datum.id() != std::get<0>(selected_folder_)
+                         && datum.idFolium_ != std::get< 1 >( selected_folder_ ) ) { // this is not currently focused chromatogram
                         if ( auto pks = datum.get_peakResult() ) {
                             ADDEBUG() << "redraw set overlay peak results idx: " << idx << ", peaks: " << chr->peaks().size() << ", " << pks->peaks().size();
                             peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx + 1 );
-                        } else {
-                            ADDEBUG() << "####### no peak result in overlay ############";
                         }
-                        //}
+                    }
                 }
                 ++idx;
             }
