@@ -524,7 +524,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
             sbox->setKeyboardTracking( false );
             sbox->setProperty( "id", id );
             connect( sbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
-                     , [=,this]( double value ){ handleSectorValueChanged( sbox, value ); } );
+                     , [sbox,this]( double value ){ handleSectorValueChanged( sbox, value ); } );
         }
         if ( auto sbox = findChild< QDoubleSpinBox * >( ( "act." + key ).c_str() ) ) {
             sbox->setMaximum( maxValue );
@@ -540,7 +540,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
             sbox->setKeyboardTracking( false );
             sbox->setProperty( "id", std::get< 3 >( item ) );
             connect( sbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
-                     , [=,this]( double value ){ handleValueChanged( sbox, value ); } );
+                     , [sbox,this]( double value ){ handleValueChanged( sbox, value ); } );
         }
 #if ! USING_QDOUBLESPINB0X
         if ( auto sbox = findChild< act_widget_t * >( ( "act." + std::get< 0 >( item ) ).c_str() ) ) {
@@ -567,8 +567,8 @@ hvTuneWidget::hvTuneWidget( const QString& server
         button->setCheckable( true );
         button->setChecked( false );
         handleSwitchToggled( button, false );
-        connect( button, &QPushButton::toggled, this, [=,this]( bool checked ){ handleSwitchToggled( button, checked ); } );
-        connect( button, &QPushButton::clicked, this, [=,this]( bool checked ){ handleSwitchClicked( button, checked ); } );
+        connect( button, &QPushButton::toggled, this, [button,this]( bool checked ){ handleSwitchToggled( button, checked ); } );
+        connect( button, &QPushButton::clicked, this, [button,this]( bool checked ){ handleSwitchClicked( button, checked ); } );
     }
 
     setStyleSheet(

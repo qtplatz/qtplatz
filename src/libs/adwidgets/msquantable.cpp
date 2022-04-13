@@ -174,7 +174,7 @@ MSQuanTable::MSQuanTable( QWidget * parent ) : TableView( parent )
     setHorizontalHeader( new HtmlHeaderView );
     setModel( model_ );
     if ( auto delegate = new detail::ItemDelegate() ) {
-        delegate->valueChanged_ = [=,this] ( const QModelIndex& idx ){ handleValueChanged( idx ); };
+        delegate->valueChanged_ = [this] ( const QModelIndex& idx ){ handleValueChanged( idx ); };
         setItemDelegate( delegate );
         connect( this, static_cast< void (MSQuanTable::*)(const QModelIndex&)>(&MSQuanTable::currentChanged), delegate, &ItemDelegate::handleCurrentChanged );
     }
@@ -407,11 +407,11 @@ MSQuanTable::handleValueChanged( const QModelIndex& index )
 
         if ( std_assigned ) {
             adcontrols::MSIdent ident( 0.010 ); // +/- 10mDa
-            ident( *pks, [=,this] ( adcontrols::MSQPeak& pk ){
+            ident( *pks, [this] ( adcontrols::MSQPeak& pk ){
                     update_row( *model_, find_row( pk ), pk );
                 } );
 
-            adcontrols::MSQuant()(*pks, [=,this] ( adcontrols::MSQPeak& pk ){
+            adcontrols::MSQuant()(*pks, [this] ( adcontrols::MSQPeak& pk ){
                     update_row( *model_, find_row( pk ), pk );
                 });
         }

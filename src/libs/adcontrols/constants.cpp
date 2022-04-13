@@ -32,6 +32,7 @@
 namespace adcontrols {
 
     namespace constants {
+
         const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
         const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
         const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";

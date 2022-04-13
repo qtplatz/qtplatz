@@ -332,7 +332,7 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
 
         actions.emplace_back( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } );
 
-        actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [=,this] () {
+        actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
             QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                          , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
                                                          , tr( "SVG (*.svg)" ) );

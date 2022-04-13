@@ -41,7 +41,8 @@
 #include <QRadioButton>
 
 #include <boost/any.hpp>
-
+#include <array>
+#include <tuple>
 using adwidgets::CentroidWidget;
 
 /////////////////////

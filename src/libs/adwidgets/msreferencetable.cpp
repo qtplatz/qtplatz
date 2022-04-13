@@ -262,7 +262,7 @@ MSReferenceTable::handleContextMenu(const QPoint &pt)
                 model_->insertRow( 0 );
             }
         }
-        , { menu.addAction("Delete line(s)"), [=,this](){
+        , { menu.addAction("Delete line(s)"), [this](){
                 handleDeleteSelection();
                 if ( model_->rowCount() == 0 ||
                      !model_->index( model_->rowCount() - 1, c_formula ).data( Qt::EditRole ).toString().isEmpty() ) {

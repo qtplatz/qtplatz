@@ -50,8 +50,8 @@ namespace adcontrols {
 
         [[deprecated]] std::wstring text() const;
         [[deprecated]] std::wstring key() const;
-        template< typename char_type > std::basic_string< char_type > text() const;
-        template< typename char_type > std::basic_string< char_type > key() const;
+        template< typename char_type > ADCONTROLSSHARED_EXPORT std::basic_string< char_type > text() const;
+        template< typename char_type > ADCONTROLSSHARED_EXPORT std::basic_string< char_type > key() const;
 
         std::pair< std::string, std::string > keyValue() const;
         void setKey( const std::string& );

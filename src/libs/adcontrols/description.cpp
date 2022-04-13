@@ -141,22 +141,22 @@ description::setValue( const std::string& t )
 
 namespace adcontrols {
 
-    template<> std::basic_string< char >
+    template<> ADCONTROLSSHARED_EXPORT std::basic_string< char >
     description::text() const {
         return keyValue_.second;
     }
 
-    template<> std::basic_string< wchar_t >
+    template<> ADCONTROLSSHARED_EXPORT std::basic_string< wchar_t >
     description::text() const {
         return adportable::utf::to_wstring( keyValue_.second );
     }
 
-    template<> std::basic_string< char >
+    template<> ADCONTROLSSHARED_EXPORT std::basic_string< char >
     description::key() const {
         return keyValue_.first;
     }
 
-    template<> std::basic_string< wchar_t >
+    template<> ADCONTROLSSHARED_EXPORT std::basic_string< wchar_t >
     description::key() const {
         return adportable::utf::to_wstring( keyValue_.first );
     }

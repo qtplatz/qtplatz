@@ -25,6 +25,7 @@
 #ifndef SPIN_TYPE_HPP
 #define SPIN_TYPE_HPP
 
+#include "adwidgets_global.hpp"
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <adportable/debug.hpp>
@@ -43,6 +44,7 @@ namespace adwidgets {
     };
 
     namespace spin_initializer {
+
         struct Alignment    { typedef Qt::AlignmentFlag value_type; value_type value; Alignment ( value_type t ) : value( t ){}  };
         struct Decimals     { typedef int value_type;               value_type value; Decimals  ( value_type t ) : value( t ){}  };
         template<typename value_type = double > struct Minimum    { value_type value; Minimum   ( value_type t ) : value( t ){}  };
@@ -70,6 +72,12 @@ namespace adwidgets {
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<int>&   t );
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<int>& t );
         template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Alignment& t );
+
+        // follwing 4 lines are workaround for MSVC
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Minimum<>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Maximum<>& t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const Value<>&   t );
+        template<> template<> void spin_type< QSpinBox >::assign_to( QSpinBox * spin, const SingleStep<>& t );
 
         template< class Spin, typename Tuple, std::size_t... Is >
         void spin_init_impl( Spin * spin, Tuple&& args, std::index_sequence< Is... > ) {

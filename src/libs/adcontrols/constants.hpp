@@ -33,20 +33,28 @@ namespace adcontrols {
     namespace constants {
 
         // Folium (attachment) name
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_DFT_FILTERD;       //  = L"DFT Low Pass Filtered Spectrum";
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_CENTROID_SPECTRUM; //  = L"Centroid Spectrum";
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_MSPEAK_INFO;       //        = L"MSPeakInfo";
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_TARGETING;                //           = L"Targeting";
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_QUANSAMPLE;        //         = L"QuanSample";
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_PROFILED_HISTOGRAM; // = L"Profiled Histogram";
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_PEAKRESULT;        //          = L"PeakResult";
 
         // (attachment) dataType
+        ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const DT_PEAKRESULT;       //        = L"PeakResult";
     }
 
     namespace iids {
-
+        ADCONTROLSSHARED_EXPORT
         extern const boost::uuids::uuid massspectrometer_uuid;
 
         ADCONTROLSSHARED_EXPORT

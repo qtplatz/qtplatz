@@ -341,13 +341,13 @@ MainWindow::impl::createTopStyledToolbar()
             Core::Context context( ( Core::Id( "lipidid.MainWindow" ) ) );
 
             if ( auto p = new QAction( tr("Spectra"), this_ ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stackWidget_->setCurrentIndex( idSelSpectra ); } );
+                connect( p, &QAction::triggered, [this](){ stackWidget_->setCurrentIndex( idSelSpectra ); } );
                 am->registerAction( p, "lipidid.selSpectra", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelSpectra ) ) );
             }
 
             if ( auto p = new QAction( tr("Mols"), this_ ) ) {
-                connect( p, &QAction::triggered, [=,this](){ stackWidget_->setCurrentIndex( idSelMols ); } );
+                connect( p, &QAction::triggered, [this](){ stackWidget_->setCurrentIndex( idSelMols ); } );
                 am->registerAction( p, "lipidid.selMols", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMols ) ) );
             }

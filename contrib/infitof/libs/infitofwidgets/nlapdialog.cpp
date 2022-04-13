@@ -506,7 +506,7 @@ nLapDialog::handlePeakTableMenu( const QPoint& pt )
     QString title1( tr( "Calibrate accelerator voltage using %1" ).arg( list1 ) );
     QString title2( tr( "Calibrate dimension using %1" ).arg( list2 ) );
 
-    menu.addAction( title1, [=,this](){ estimateAcceleratorVoltage( peaks1 ); } );
+    menu.addAction( title1, [peaks1,this](){ estimateAcceleratorVoltage( peaks1 ); } );
     menu.addAction( tr( "Add row" ), this, SLOT( handleAddRow() ) );
 
     if ( auto table = findChild< adwidgets::MolTableView * >( "peakTable" ) )

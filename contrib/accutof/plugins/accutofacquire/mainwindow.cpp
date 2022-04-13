@@ -678,7 +678,7 @@ MainWindow::createTopStyledToolbar()
                 toolBarLayout->addWidget( choice );
                 choice->setProperty( "id", QVariant( int(i) ) ); // <------------ combo id
                 connect( choice, qOverload<int>( &QComboBox::currentIndexChanged )
-                         , [=,this] ( int index ) { axisChanged( choice, index ); } );
+                         , [choice,this] ( int index ) { axisChanged( choice, index ); } );
             }
 
             if ( auto cb = qtwrapper::make_widget< QCheckBox >( ( boost::format( "cbY%1%" ) % i ).str().c_str(), "Y-Auto" ) ) {

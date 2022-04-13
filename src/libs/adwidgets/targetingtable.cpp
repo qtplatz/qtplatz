@@ -121,7 +121,7 @@ TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
 {
     setModel( model_ );
     auto delegate = new detail::TargetingDelegate;
-    delegate->register_handler( [=,this]( const QModelIndex& index ){ handleValueChanged( index ); } );
+    delegate->register_handler( [this]( const QModelIndex& index ){ handleValueChanged( index ); } );
 	setItemDelegate( delegate );
     setSortingEnabled( true );
 
@@ -358,8 +358,8 @@ TargetingTable::handleContextMenu( const QPoint& pt )
     typedef std::pair< QAction *, std::function< void() > > action_type;
 
     std::vector< action_type > actions;
-    actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [=,this](){ enable_all( true ); }) );
-    actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [=,this](){ enable_all( false ); }) );
+    actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [&](){ enable_all( true ); }) );
+    actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [&](){ enable_all( false ); }) );
 
     if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
         auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){

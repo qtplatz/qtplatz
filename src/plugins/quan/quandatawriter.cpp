@@ -91,7 +91,7 @@ QuanDataWriter::remove( const std::wstring& title, const wchar_t * directory )
     if ( adfs::folder folder = fs_.addFolder( directory ) ) { // directory := L"/Processed/Spectra" | L"/Processed/Chromatograms" ...
 
         auto vec = folder.files();
-        std::for_each( vec.begin(), vec.end(), [=,this] ( const adfs::file& f ) {
+        std::for_each( vec.begin(), vec.end(), [=] ( const adfs::file& f ) {
             if ( f.attribute( L"name" ) == title ) {
 
                 adfs::stmt sql( fs_.db() );

@@ -158,12 +158,12 @@ MSPeakTable::addContextMenu( QMenu& menu, const QPoint& pos, const QTableView *,
     if ( auto sp = this->massSpectrometer() ) {
         menu.addSeparator();
         menu.addAction( QObject::tr( "lap deconvolution" )
-                        , [=,this](){
+                        , [&](){
                             const_cast< MSPeakTable *>(this)->lap_deconvolution( getSelectedPeaks() );
                         });
 
         menu.addAction( QObject::tr( "list selected peaks" )
-                        , [=,this](){
+                        , [&](){
                             if ( auto pks = this->getSelectedPeaks() ) {
                                 lap_list( pks );
                             }

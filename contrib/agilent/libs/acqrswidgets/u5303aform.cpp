@@ -37,7 +37,7 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
 {
     ui->setupUi( this );
 
-    connect( ui->pushButton, &QPushButton::pressed, [=,this](){  emit valueChanged( idU5303AAny, 0, QVariant() ); } );
+    connect( ui->pushButton, &QPushButton::pressed, [this](){  emit valueChanged( idU5303AAny, 0, QVariant() ); } );
 
     ui->spinBox->setStepBy( []( adwidgets::SpinBox * _this, int step ) {
             int index = _this->value() >= 8 ? ( _this->value() ) / 8 + 7 : _this->value();
