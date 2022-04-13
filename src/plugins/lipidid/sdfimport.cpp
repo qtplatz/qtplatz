@@ -230,7 +230,7 @@ SDFileImport::impl::populate( std::shared_ptr< adchem::SDFile > sdfile
 
     (*p)( 0, sdfile->size() );
 
-    auto future = std::async( std::launch::async, [=,this](){ task( sdfile, sqlite, p ); } );
+    auto future = std::async( std::launch::async, [=](){ task( sdfile, sqlite, p ); } );
 
     while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
         QCoreApplication::instance()->processEvents();
