@@ -91,6 +91,18 @@ TableView::handleCopyToClipboard()
     QModelIndex prev = indices.first();
     QModelIndex last = indices.last();
 
+    // copy header --->
+    std::set< int > hCols;
+    for ( const auto& index: indices )
+        hCols.insert( index.column() );
+
+    for ( int col: hCols ) {
+        selected_text.append( model()->headerData( col, Qt::Horizontal ).toString() );
+        selected_text.append( '\t' );
+    }
+    selected_text.append( '\n' );
+    // <-------------
+
     indices.removeFirst();
     for( int i = 0; i < indices.size(); ++i ) {
         QModelIndex index = indices.at( i );
