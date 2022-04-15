@@ -673,6 +673,7 @@ MolTableView::handleCopyToClipboard()
                 if ( !( mol.formula().empty() && mol.smiles().empty() ) ) {
                     mols << mol;
                 }
+                ADDEBUG() << "formula, synonym: " << std::make_pair( mol.formula(), mol.synonym() );
                 mol = {};
             }
         }

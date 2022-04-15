@@ -140,6 +140,8 @@ MolTableWnd::setQuery( const QString& sqlstmt )
                 table_->setColumnField( col, adwidgets::ColumnState::f_formula, false, true );
             else if ( column == "smiles" )
                 table_->setColumnField( col, adwidgets::ColumnState::f_smiles, false, true );
+            else if ( column == "synonym" )
+                table_->setColumnField( col, adwidgets::ColumnState::f_synonym, false, true );
             else
                 table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
         }
