@@ -445,7 +445,7 @@ namespace {
                 int col; ColumnState state;
                 std::tie( col, state ) = *res;
 #endif
-                ADDEBUG() << "##### SetData()() " << row << ", " << col << ", state.isCheckable=" << state.isCheckable;
+                // ADDEBUG() << "##### SetData()() " << row << ", " << col << ", state.isCheckable=" << state.isCheckable;
                 if ( row >= model.rowCount() ) {
                     model.insertRow( model.rowCount() );
                     row = model.rowCount() - 1;
@@ -632,7 +632,7 @@ MolTableView::handleCopyToClipboard()
 
     std::sort( indices.begin(), indices.end() );
 
-    int column_mass = impl_->findColumn( ColumnState::f_mass );
+    // int column_mass = impl_->findColumn( ColumnState::f_mass );
 
     QString selected_text;
     QModelIndex prev = indices.first();
@@ -673,7 +673,6 @@ MolTableView::handleCopyToClipboard()
                 if ( !( mol.formula().empty() && mol.smiles().empty() ) ) {
                     mols << mol;
                 }
-                ADDEBUG() << "formula, synonym: " << std::make_pair( mol.formula(), mol.synonym() );
                 mol = {};
             }
         }
@@ -688,7 +687,7 @@ MolTableView::handleCopyToClipboard()
     auto jv = boost::json::value_from( mols );
     QString json = QString::fromStdString( static_cast< std::string >(boost::json::serialize( jv ) ) );
 
-    ADDEBUG() << "handleCopy: " << mols.data().size() << " rows";
+    // ADDEBUG() << "handleCopy: " << mols.data().size() << " rows";
 
     if ( auto md = new QMimeData() ) {
         md->setData( QLatin1String( "application/json" ), json.toUtf8() );
@@ -855,13 +854,13 @@ MolTableView::json() const
 void
 MolTableView::setContents( const std::string& json )
 {
-    ADDEBUG() << "####### " << __FUNCTION__;
+    // ADDEBUG() << "####### " << __FUNCTION__;
 }
 
 bool
 MolTableView::setContents( const adcontrols::moltable& mols )
 {
-    ADDEBUG() << "####### " << __FUNCTION__;
+    // ADDEBUG() << "####### " << __FUNCTION__;
     size_t row = std::numeric_limits<int>::max();
     SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
 
