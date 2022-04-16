@@ -25,21 +25,25 @@
 #pragma once
 
 #include <QString>
+#include "make_filename.hpp"
 
 namespace portfolio {
     class Folium;
 }
 
+namespace adplot {
+    class plot;
+}
+
 namespace dataproc {
+    namespace utility {
 
-    enum PrintFormatType { PDF, SVG };
+        template< PrintFormatType >
+        struct save_image_as {
+            std::pair<bool, QString> operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& insertor = {} ) const;
+        };
 
-    template< PrintFormatType >
-    struct make_filename {
-        QString operator ()( const portfolio::Folium&, std::string&& insertor, const QString& lastDir );
-    };
-
-    template<> QString make_filename< PDF >::operator ()( const portfolio::Folium&, std::string&&, const QString& lastDir );
-    template<> QString make_filename< SVG >::operator ()( const portfolio::Folium&, std::string&&, const QString& lastDir );
-
+        template<> std::pair<bool, QString>
+        save_image_as< SVG >::operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& ) const;
+    }
 }

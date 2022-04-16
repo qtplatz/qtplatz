@@ -32,6 +32,7 @@
 #include "mainwindow.hpp"
 #include "qtwidgets_name.hpp"
 #include "sessionmanager.hpp"
+#include "utility.hpp"
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -496,39 +497,11 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
                         adplot::plot::copyToClipboard( this->plots_[ index ].get() );
                     } );
 
-	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+    menu.addAction( tr( "Save SVG File" ), [index,this](){
         auto idFolium = (index == 1 && !overlays_.empty()) ? overlays_.at( 0 ).idFolium_ : std::get<1>( selected_folder_ );
-        auto folium = dp->getPortfolio().findFolium( idFolium );
+        utility::save_image_as< SVG >()( plots_[ index ].get(), idFolium );
+    });
 
-        menu.addAction( tr( "Save SVG File" )
-                        , [folium,index,this](){
-                            QFileDialog dlg( nullptr, tr("Save SVG file") );
-                            dlg.setDirectory( make_filename<SVG>()( folium, document::instance()->recentFile( Constants::GRP_SVG_FILES ) ) );
-                            dlg.setAcceptMode( QFileDialog::AcceptSave );
-                            dlg.setFileMode( QFileDialog::AnyFile );
-                            dlg.setNameFilters( QStringList{ "SVG(*.svg)"} );
-                            if ( dlg.exec() ) {
-                                auto files = dlg.selectedFiles();
-                                if ( !files.isEmpty() ) {
-                                    auto name = files.at( 0 );
-                                    adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
-                                    document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
-                                }
-                            }
-                        });
-    }
-#if 0
-    menu.addAction( tr( "Save SVG File" )
-                    , [&] () {
-                        QString name
-                            = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                            , "Save SVG File"
-                                                            , MainWindow::makePrintFilename( std::get< 1 >( selected_folder_ ), L"_" )
-                                                            , tr( "SVG (*.svg)" ) );
-                        if ( ! name.isEmpty() )
-                            adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
-                    } );
-#endif
     menu.exec( QCursor::pos() );
 
 }

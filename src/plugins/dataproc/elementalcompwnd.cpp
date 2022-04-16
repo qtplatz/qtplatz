@@ -29,6 +29,7 @@
 #include "elementalcompwnd.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
+#include "utility.hpp"
 #include <adutils/constants.hpp> // clsid for massspectrometer
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -359,13 +360,14 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
 
         menu.addAction( tr("Copy image to clipboard"), [=](){ adplot::plot::copyToClipboard( plot ); } );
         menu.addAction( tr("Save as SVG File"), [plot,this](){
-            QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                         , MainWindow::makePrintFilename( impl_->idSpectrumFolium_, L"_" )
-                                                         , tr( "SVG (*.svg)" ) );
-            if ( ! name.isEmpty() ) {
-                adplot::plot::copyImageToFile( plot, name, "svg" );
-                MainWindow::addPrintFileToSettings( name );
-            }
+            utility::save_image_as<SVG>()( plot, impl_->idSpectrumFolium_ );
+            // QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+            //                                              , MainWindow::makePrintFilename( impl_->idSpectrumFolium_, L"_" )
+            //                                              , tr( "SVG (*.svg)" ) );
+            // if ( ! name.isEmpty() ) {
+            //     adplot::plot::copyImageToFile( plot, name, "svg" );
+            //     MainWindow::addPrintFileToSettings( name );
+            // }
         });
 
         if ( id == impl::idProcessed ) {

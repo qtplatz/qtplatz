@@ -135,6 +135,8 @@ add_library( ${PROJECT_NAME} MODULE
   lapdeconvdlg.hpp
   make_filename.cpp
   make_filename.hpp
+  utility.cpp
+  utility.hpp
   ${_source}
   ${Resources}
   )

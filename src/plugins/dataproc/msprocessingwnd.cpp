@@ -22,15 +22,15 @@
 **
 **************************************************************************/
 
-#include "msprocessingwnd.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
 #include "document.hpp"
 #include "mainwindow.hpp"
+#include "msprocessingwnd.hpp"
 #include "rms_export.hpp"
 #include "sessionmanager.hpp"
-
+#include "utility.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -1037,19 +1037,24 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         }
 
         menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( pImpl_->ticPlot_ ); } );
+#if 0
+        // menu.addAction( tr( "Save SVG File" ), [&] () {
+        //     QString name = QFileDialog::getSaveFileName( MainWindow::instance()
+        //                                                  , "Save SVG File"
+        //                                                  , MainWindow::makePrintFilename( idChromatogramFolium_, L"," )
+        //                                                  , tr( "SVG (*.svg)" ) );
+        //     auto dir = boost::filesystem::path( name.toStdString() ).parent_path();
+        //     if ( ! name.isEmpty() ) {
 
+        //         adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
+        //         MainWindow::addPrintFileToSettings( name );
+        //     }
+        // });
+#else
         menu.addAction( tr( "Save SVG File" ), [&] () {
-            QString name = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                         , "Save SVG File"
-                                                         , MainWindow::makePrintFilename( idChromatogramFolium_, L"," )
-                                                         , tr( "SVG (*.svg)" ) );
-            auto dir = boost::filesystem::path( name.toStdString() ).parent_path();
-            if ( ! name.isEmpty() ) {
-                adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
-                MainWindow::addPrintFileToSettings( name );
-            }
+            utility::save_image_as<SVG>()( pImpl_->ticPlot_, idChromatogramFolium_ );
         });
-
+#endif
         menu.addAction( tr("Frequency analysis"), [&] () {
                 if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                     auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
@@ -1213,14 +1218,8 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
     menu.addAction( tr( "Copy to Clipboard" ), [&](){ adplot::plot::copyToClipboard( pImpl_->pwplot_ ); } );
 
     menu.addAction( tr( "Save as SVG File..." ), [&](){
-            QString name =
-                QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                              , MainWindow::makePrintFilename( idSpectrumFolium_, L",power;" ), tr( "SVG (*.svg)" ) );
-            if ( !name.isEmpty() ) {
-                adplot::plot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
-                MainWindow::addPrintFileToSettings( name );
-            }
-        } );
+        utility::save_image_as<SVG>()( pImpl_->pwplot_, idSpectrumFolium_ );
+    });
 
     menu.addAction( tr( "Dismiss" ), [&](){ pImpl_->pwplot_->hide(); } );
 
@@ -1260,13 +1259,14 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     menu.addAction( tr( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
     // [5]
     menu.addAction( tr( "Save as SVG File..." ), [&]{
-        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                         , MainWindow::makePrintFilename( idSpectrumFolium_, L",processed;" )
-                                                         , tr("SVG (*.svg)") );
-            if ( ! name.isEmpty() ) {
-                adplot::plot::copyImageToFile( pImpl_->processedSpectrum_, name, "svg" );
-                MainWindow::addPrintFileToSettings( name );
-            }
+        utility::save_image_as< SVG >()( pImpl_->processedSpectrum_, idSpectrumFolium_, ",processed;" );
+        // QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+        //                                                  , MainWindow::makePrintFilename( idSpectrumFolium_, L",processed;" )
+        //                                                  , tr("SVG (*.svg)") );
+        //     if ( ! name.isEmpty() ) {
+        //         adplot::plot::copyImageToFile( pImpl_->processedSpectrum_, name, "svg" );
+        //         MainWindow::addPrintFileToSettings( name );
+        //     }
         });
 
     auto actions = menu.actions();
@@ -1980,27 +1980,33 @@ MSProcessingWnd::save_image_file()
 
     std::string dfmt = "." + fmt.toStdString();
 
-    adwidgets::FileDialog dlg( MainWindow::instance()
-                               , tr( "Save Image File" )
-                               , MainWindow::makePrintFilename( idSpectrumFolium_, L",", dfmt.c_str(), lastDir ) );
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        auto folium = dp->getPortfolio().findFolium( idSpectrumFolium_ );
+        auto name = make_filename< SVG >()( folium, ",", document::instance()->recentFile( Constants::GRP_SVG_FILES ) );
 
-    dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
+        adwidgets::FileDialog dlg( MainWindow::instance(), tr( "Save Image File" ) );
+        dlg.setDirectory( name );
+        dlg.setAcceptMode( QFileDialog::AcceptSave );
+        dlg.setFileMode( QFileDialog::AnyFile );
+        dlg.setNameFilters( QStringList{ "SVG(*.svg)"} );
+        dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
 
-    if ( dlg.exec() == QDialog::Accepted ) {
-        auto result = dlg.selectedFiles();
-        boost::filesystem::path path( result.at( 0 ).toStdWString() );
-        const char * format = "svg";
-        if ( path.extension() == ".pdf" )
-            format = "pdf";
+        if ( dlg.exec() == QDialog::Accepted ) {
+            auto result = dlg.selectedFiles();
+            boost::filesystem::path path( result.at( 0 ).toStdWString() );
+            const char * format = "svg";
+            if ( path.extension() == ".pdf" )
+                format = "pdf";
 
-        settings->beginGroup( GRP_SPECTRUM_IMAGE );
-        settings->setValue( KEY_IMAGEE_FORMAT, format );
-        settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
-        settings->setValue( KEY_DPI, dlg.dpi() );
-        settings->setValue( KEY_IMAGE_SAVE_DIR, QString::fromStdString( path.parent_path().string() ) );
-        settings->endGroup();
-
-        adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
+            settings->beginGroup( GRP_SPECTRUM_IMAGE );
+            settings->setValue( KEY_IMAGEE_FORMAT, format );
+            settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
+            settings->setValue( KEY_DPI, dlg.dpi() );
+            settings->setValue( KEY_IMAGE_SAVE_DIR, QString::fromStdString( path.parent_path().string() ) );
+            settings->endGroup();
+            adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
+            document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
+        }
     }
 }
 

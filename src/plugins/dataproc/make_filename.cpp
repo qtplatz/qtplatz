@@ -47,9 +47,13 @@ namespace {
         return dir;
     }
 
-    boost::filesystem::path __make_filename( const portfolio::Folium& folium, const QString& lastDir, const char * extension ) {
+    boost::filesystem::path __make_filename( const portfolio::Folium& folium
+                                             , std::string&& insertor
+                                             , const QString& lastDir, const char * extension ) {
 
-        auto stem = boost::filesystem::path( folium.impl()->fullpath() ).stem().string() + "_" + make_filename_string( folium ).string();
+        auto stem = boost::filesystem::path( folium.impl()->fullpath() ).stem().string()
+            + ( insertor.empty() ? "_" : insertor )
+            + make_filename_string( folium ).string();
         auto dir  = make_directory_string( lastDir );
         if ( dir.empty() ) {
             dir = make_directory_string( QString::fromStdWString( folium.impl()->fullpath() ) );
@@ -65,15 +69,15 @@ namespace dataproc {
 
     // enum PrintFormatType { PDF, SVG };
     template<>
-    QString make_filename< SVG >::operator()( const portfolio::Folium& folium, const QString& lastDir )
+    QString make_filename< SVG >::operator()( const portfolio::Folium& folium, std::string&& insertor, const QString& lastDir )
     {
-        return QString::fromStdString( __make_filename( folium, lastDir, ".svg" ).string() );
+        return QString::fromStdString( __make_filename( folium, std::move( insertor ), lastDir, ".svg" ).string() );
     }
 
     template<>
-    QString make_filename< PDF >::operator()( const portfolio::Folium& folium, const QString& lastDir )
+    QString make_filename< PDF >::operator()( const portfolio::Folium& folium, std::string&& insertor, const QString& lastDir )
     {
-        return QString::fromStdString( __make_filename( folium, lastDir, ".pdf" ).string() );
+        return QString::fromStdString( __make_filename( folium, std::move( insertor ), lastDir, ".pdf" ).string() );
     }
 
 }

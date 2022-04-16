@@ -30,7 +30,7 @@
 #include "qtwidgets_name.hpp"
 #include "selchanged.hpp"
 #include "sessionmanager.hpp"
-
+#include "utility.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -255,8 +255,6 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    // if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
-    //     return;
     if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
 
@@ -333,22 +331,9 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
         actions.emplace_back( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } );
 
         actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
-            QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                         , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
-                                                         , tr( "SVG (*.svg)" ) );
-            if ( ! name.isEmpty() )
-                adplot::plot::copyImageToFile( plot, name, "svg" );
-        });
-#if 0
-        actions.emplace_back( menu.addAction( tr("setAxisScale(0,100)") ), [=](){
-            plot->setAxisScale( QwtPlot::yRight, 0, 100 );
-            plot->replot();
+            utility::save_image_as< SVG >()( plot, impl_->profile_.first );
         });
 
-        actions.emplace_back( menu.addAction( tr("replot") ), [=](){
-            plot->replot();
-        });
-#endif
         actions.emplace_back( menu.addAction( tr("set intersection (common ions)") ), [&]() {
             if ( impl_->currData_ && !impl_->data_.empty() ) {
                 if ( auto const ms1 = impl_->data_.at( 0 ).get_processed() ) { // reference
