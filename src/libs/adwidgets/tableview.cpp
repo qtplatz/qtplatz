@@ -84,7 +84,7 @@ TableView::handlePaste()
 
 namespace {
 
-    inline QString remove_html( QString&& s, bool enable ) {
+    QString __remove_html( QString&& s, bool enable ) {
         return enable ? s.remove( QRegularExpression( "<[^>]*>" ) ) : s;
     }
 }
@@ -115,7 +115,7 @@ TableView::copyToClipboard( bool remove_html )
         hCols.insert( index.column() );
 
     for ( int col: hCols ) {
-        selected_text.append( remove_html( model()->headerData( col, Qt::Horizontal ).toString(), remove_html ) );
+        selected_text.append( __remove_html( model()->headerData( col, Qt::Horizontal ).toString(), remove_html ) );
         selected_text.append( '\t' );
     }
     selected_text.append( '\n' );
@@ -130,7 +130,7 @@ TableView::copyToClipboard( bool remove_html )
             //auto t = prev.data( Qt::EditRole ).type();
             if ( !isColumnHidden( prev.column() ) ) {
 
-                QString text = remove_html( prev.data( Qt::EditRole ).toString(), remove_html );
+                QString text = __remove_html( prev.data( Qt::EditRole ).toString(), remove_html );
                 selected_text.append( text );
 
                 if ( index.row() == prev.row() )

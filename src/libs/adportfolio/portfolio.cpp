@@ -52,6 +52,10 @@ Portfolio::Portfolio( const std::wstring& xml ) : impl_( new internal::Portfolio
 {
 }
 
+Portfolio::Portfolio( std::shared_ptr< internal::PortfolioImpl > t ) : impl_( t )
+{
+}
+
 std::vector< Folder >
 Portfolio::folders()
 {

@@ -376,9 +376,9 @@ MSPeaksWnd::handlePrintCurrentView( const QString& pdfname )
 
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
-    printer.setPaperSize( QPrinter::A4 );
+    printer.setPageSize( QPageSize( QPageSize::A4 ) );
     printer.setFullPage( false );
-	printer.setOrientation( QPrinter::Landscape );
+    printer.setPageOrientation( QPageLayout::Landscape );
 
     printer.setDocName( "QtPlatz MS Peaks" );
     printer.setOutputFileName( pdfname );

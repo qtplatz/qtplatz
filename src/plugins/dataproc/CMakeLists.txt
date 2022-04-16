@@ -133,6 +133,8 @@ add_library( ${PROJECT_NAME} MODULE
   sessionmanager.hpp
   lapdeconvdlg.cpp
   lapdeconvdlg.hpp
+  make_filename.cpp
+  make_filename.hpp
   ${_source}
   ${Resources}
   )

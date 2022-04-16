@@ -51,6 +51,7 @@ namespace portfolio {
         Portfolio( const Portfolio& );
         Portfolio( const std::wstring& xml );
 		Portfolio( const std::string& xml );
+        Portfolio( std::shared_ptr< internal::PortfolioImpl > );
 
         std::vector<Folder> folders();
         const std::vector<Folder> folders() const;

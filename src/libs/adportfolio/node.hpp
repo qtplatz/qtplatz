@@ -70,7 +70,7 @@ namespace portfolio {
 
             static boost::uuids::uuid uuidFromString( const std::string& );
 
-            const PortfolioImpl * impl() { return impl_; };
+            const PortfolioImpl * impl() const { return impl_; };
 
         protected:
             pugi::xpath_node_set selectNodes( const std::wstring& query );
