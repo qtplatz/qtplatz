@@ -52,7 +52,9 @@ namespace adwidgets {
 
     private:
         bool allowDelete_;
-        
+
+        void copyToClipboard( bool remove_html );
+
     signals:
         void rowsDeleted();
 

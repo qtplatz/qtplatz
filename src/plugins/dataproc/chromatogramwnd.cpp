@@ -127,9 +127,9 @@ namespace dataproc {
             plots_[ 0 ]->clear();
             plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
             auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
-            for ( const auto& x: ptr->getDescriptions() ) {
-                ADDEBUG() << x.keyValue();
-            }
+            // for ( const auto& x: ptr->getDescriptions() ) {
+            //     ADDEBUG() << x.keyValue();
+            // }
 
             plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
             peakResult_.reset();

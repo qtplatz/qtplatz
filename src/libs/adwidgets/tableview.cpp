@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "tableview.hpp"
+#include <adportable/debug.hpp>
 #include <QApplication>
 #include <QClipboard>
 #include <QContextMenuEvent>
@@ -32,6 +33,8 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <QDebug>
+#include <QRegularExpression>
 #include <set>
 
 using namespace adwidgets;
@@ -46,6 +49,7 @@ TableView::TableView(QWidget *parent) : QTableView(parent)
 void
 TableView::keyPressEvent( QKeyEvent * event )
 {
+    qDebug() << __FILE__ << __LINE__ << ": " << event;
 	if ( event->matches( QKeySequence::Copy ) ) {
         handleCopyToClipboard();
     } else if ( event->matches( QKeySequence::Paste ) ) {
@@ -78,8 +82,22 @@ TableView::handlePaste()
 {
 }
 
+namespace {
+
+    inline QString remove_html( QString&& s, bool enable ) {
+        return enable ? s.remove( QRegularExpression( "<[^>]*>" ) ) : s;
+    }
+}
+
 void
 TableView::handleCopyToClipboard()
+{
+    bool keyShift = bool( QApplication::keyboardModifiers() & Qt::ShiftModifier );
+    copyToClipboard( keyShift );
+}
+
+void
+TableView::copyToClipboard( bool remove_html )
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
@@ -97,7 +115,7 @@ TableView::handleCopyToClipboard()
         hCols.insert( index.column() );
 
     for ( int col: hCols ) {
-        selected_text.append( model()->headerData( col, Qt::Horizontal ).toString() );
+        selected_text.append( remove_html( model()->headerData( col, Qt::Horizontal ).toString(), remove_html ) );
         selected_text.append( '\t' );
     }
     selected_text.append( '\n' );
@@ -112,7 +130,7 @@ TableView::handleCopyToClipboard()
             //auto t = prev.data( Qt::EditRole ).type();
             if ( !isColumnHidden( prev.column() ) ) {
 
-                QString text = prev.data( Qt::EditRole ).toString();
+                QString text = remove_html( prev.data( Qt::EditRole ).toString(), remove_html );
                 selected_text.append( text );
 
                 if ( index.row() == prev.row() )
