@@ -38,7 +38,6 @@
 #include <QTextStream>
 
 #include <QAction>
-#include <QShortcut>
 
 /*!
     \class Core::Command
@@ -208,7 +207,7 @@ using namespace Core::Internal;
   \internal
 */
 Action::Action(Id id)
-    : m_attributes(0),
+    : m_attributes{},
       m_id(id),
       m_isKeyInitialized(false),
       m_action(new Utils::ProxyAction(this)),

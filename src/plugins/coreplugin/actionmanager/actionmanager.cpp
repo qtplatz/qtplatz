@@ -41,7 +41,6 @@
 #include <QLabel>
 #include <QMenu>
 #include <QAction>
-#include <QShortcut>
 #include <QMenuBar>
 
 namespace {

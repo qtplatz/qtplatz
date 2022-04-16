@@ -28,7 +28,6 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QProgressBar>
-#include <QShortcut>
 #include <QSignalBlocker>
 #include <QStandardItemModel>
 #include <QSvgWidget>

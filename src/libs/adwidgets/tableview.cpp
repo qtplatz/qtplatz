@@ -36,7 +36,6 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include <QRegularExpression>
-#include <QShortcut>
 #include <set>
 
 using namespace adwidgets;
