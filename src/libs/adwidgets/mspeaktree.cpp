@@ -571,7 +571,6 @@ void
 MSPeakTree::keyPressEvent( QKeyEvent * event )
 {
     if ( event->matches( QKeySequence::Copy ) ) {
-        ADDEBUG() << "handleCopy";
         handleCopyToClipboard();
     } else if ( event->matches( QKeySequence::Paste ) ) {
         // handlePasteFromClipboard();
@@ -663,8 +662,6 @@ MSPeakTree::handleCopyAllToClipboard()
 void
 MSPeakTree::handleCopyToClipboard()
 {
-    ADDEBUG() << "## " << __FUNCTION__;
-
     QStandardItemModel& model = *impl_->model_;
     QModelIndexList list = selectionModel()->selectedRows();
 

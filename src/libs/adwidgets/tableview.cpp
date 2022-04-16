@@ -24,6 +24,7 @@
 
 #include "tableview.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/algorithm.hpp>
 #include <QApplication>
 #include <QClipboard>
 #include <QContextMenuEvent>
@@ -39,6 +40,7 @@
 #include <set>
 
 using namespace adwidgets;
+using adportable::equal_range;
 
 TableView::TableView(QWidget *parent) : QTableView(parent)
                                       , allowDelete_( true )
@@ -51,13 +53,10 @@ void
 TableView::keyPressEvent( QKeyEvent * event )
 {
     if ( event->matches( QKeySequence::Copy ) ) {
-        ADDEBUG() << "handleCopy";
         handleCopyToClipboard();
     } else if ( event->matches( QKeySequence::Paste ) ) {
-        ADDEBUG() << "handlePaste";
         handlePaste();
     } else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
-        ADDEBUG() << "handleDelete";
 		handleDeleteSelection();
 	} else
 		QTableView::keyPressEvent( event );
@@ -95,7 +94,6 @@ namespace {
 void
 TableView::handleCopyToClipboard()
 {
-    ADDEBUG() << "## " << __FUNCTION__;
     bool keyShift = bool( QApplication::keyboardModifiers() & Qt::ShiftModifier );
     copyToClipboard( keyShift );
 }
@@ -110,8 +108,6 @@ TableView::copyToClipboard( bool enable_html )
         return;
 
     QString selected_text;
-    QModelIndex prev = indices.first();
-    QModelIndex last = indices.last();
 
     // copy header --->
     std::set< int > hCols;
@@ -119,37 +115,26 @@ TableView::copyToClipboard( bool enable_html )
         hCols.insert( index.column() );
 
     for ( int col: hCols ) {
-        selected_text.append( __remove_html( model()->headerData( col, Qt::Horizontal ).toString(), enable_html ) );
-        selected_text.append( '\t' );
+        if ( !isColumnHidden( col ) ) {
+            selected_text.append( __remove_html( model()->headerData( col, Qt::Horizontal ).toString(), enable_html ) );
+            selected_text.append( '\t' );
+        }
     }
     selected_text.append( '\n' );
     // <-------------
-
-    indices.removeFirst();
-    for( int i = 0; i < indices.size(); ++i ) {
-        QModelIndex index = indices.at( i );
-
-        if ( !isRowHidden( prev.row() ) ) {
-
-            //auto t = prev.data( Qt::EditRole ).type();
-            if ( !isColumnHidden( prev.column() ) ) {
-
-                QString text = __remove_html( prev.data( Qt::EditRole ).toString(), enable_html );
-                selected_text.append( text );
-
-                if ( index.row() == prev.row() )
-                    selected_text.append( '\t' );
+    std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
+    while ( range.first != indices.end() ) {
+        range = equal_range( indices.begin(), indices.end(), *range.first, [](const auto& a, const auto& b){ return a.row() < b.row(); });
+        // per line
+        for ( auto it = range.first; it != range.second; ++it ) {
+            if ( ! isColumnHidden( it->column() ) ) {
+                selected_text.append( __remove_html( it->data( Qt::EditRole ).toString(), enable_html ) );
+                selected_text.append( '\t' );
             }
-
-            if ( index.row() != prev.row() )
-                selected_text.append( '\n' );
         }
-        prev = index;
+        selected_text.append( '\n' );
+        range.first = range.second;
     }
-
-    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
-        selected_text.append( last.data( Qt::EditRole ).toString() );
-
     QMimeData * md = new QMimeData();
     md->setText( selected_text );
     QApplication::clipboard()->setMimeData( md );

@@ -254,7 +254,7 @@ namespace adwidgets {
         }
 
         std::shared_ptr< adcontrols::MSPeakInfo > __getMSPeakInfo() {
-            ADDEBUG() << "__getMSPeakInfo() which: " << data_source_.which();
+            // ADDEBUG() << "__getMSPeakInfo() which: " << data_source_.which();
             if ( data_source_.which() == 0 ) {
                 auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
                 return wptr.lock();
@@ -616,10 +616,10 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
             auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
-                ADDEBUG() << "anno.text: " << it->text();
+                //ADDEBUG() << "anno.text: " << it->text();
                 if ( auto json = it->json() ) {
                     auto jv = adportable::json_helper::parse( json );
-                    ADDEBUG() << "########### find json annotation ###########\n" << jv;
+                    //ADDEBUG() << "########### find json annotation ###########\n" << jv;
                     auto t = boost::json::value_to< adcontrols::annotation::peak >( jv );
                     model.setData( model.index( row, c_mspeaktable_mode ), t.mode );
                 }
@@ -936,7 +936,7 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
     } else if ( index.column() == c_mspeaktable_description ) {
         descriptionChanged( index );
     } else if ( index.column() == c_mspeaktable_mode ) {
-        ADDEBUG() << "------- mode changed to " << index.data( Qt::EditRole ).toInt();
+        // ADDEBUG() << "------- mode changed to " << index.data( Qt::EditRole ).toInt();
         modeChanged( index );
     }
 }

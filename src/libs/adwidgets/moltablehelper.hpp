@@ -28,6 +28,7 @@
 #include <adportable/optional.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adportable/algorithm.hpp>
 #include <adportable/debug.hpp>
 #include <QAbstractItemModel>
 #include <QMetaType>
@@ -44,6 +45,8 @@ namespace adcontrols { class moltable; }
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT MolTableHelper;
+
+    using adportable::equal_range;
 
     class MolTableHelper {
     public:
@@ -79,16 +82,6 @@ namespace adwidgets {
         setHeaderData( QAbstractItemModel * model
                        , const std::tuple< Args ...>&& args) {
             setHeaderDataImpl( model, args, std::index_sequence_for<Args...>{} );
-        }
-
-        //------------------------------------------------------
-        //--------------- clipboard copy helper ----------------
-        //------------------------------------------------------
-        // equal_range will be supported on c++20
-        template< typename Iterator, typename T, typename Compare > std::pair< Iterator, Iterator >
-        equal_range( Iterator first, Iterator last, const T& value, Compare comp ) {
-            return std::make_pair( std::lower_bound( first, last, value, comp )
-                                   , std::upper_bound( first, last, value, comp ) );
         }
 
         //------------------------------------------------------

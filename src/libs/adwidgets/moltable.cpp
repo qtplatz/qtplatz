@@ -36,6 +36,7 @@
 #include <adcontrols/moltable.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adportable/algorithm.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/index_of.hpp>
@@ -71,7 +72,7 @@
 
 using namespace adwidgets;
 using adportable::index_of;
-
+using adportable::equal_range;
 
 namespace {
 
@@ -481,7 +482,7 @@ MolTable::handleCopyToClipboard()
     if ( auto md = new QMimeData() ) {
         md->setData( QLatin1String( "application/json" ), json.toUtf8() );
         // workaround for x11
-        if ( QApplication::keyboardModifiers() & ( Qt::ShiftModifier | Qt::ControlModifier ) )
+        if ( QApplication::keyboardModifiers() & Qt::ShiftModifier )
             md->setText( json );
         else
             md->setText( selected_text );

@@ -30,8 +30,7 @@
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT TableView : public QTableView
-    {
+    class ADWIDGETSSHARED_EXPORT TableView : public QTableView   {
         Q_OBJECT
     public:
         explicit TableView(QWidget *parent = 0);
