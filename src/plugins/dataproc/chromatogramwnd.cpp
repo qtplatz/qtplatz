@@ -499,8 +499,9 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
         auto idFolium = (index == 1 && !overlays_.empty()) ? overlays_.at( 0 ).idFolium_ : std::get<1>( selected_folder_ );
         auto folium = dp->getPortfolio().findFolium( idFolium );
+
         menu.addAction( tr( "Save SVG File" )
-                        , [folium,index,this] () {
+                        , [folium,index,this](){
                             QFileDialog dlg( nullptr, tr("Save SVG file") );
                             dlg.setDirectory( make_filename<SVG>()( folium, document::instance()->recentFile( Constants::GRP_SVG_FILES ) ) );
                             dlg.setAcceptMode( QFileDialog::AcceptSave );
@@ -513,8 +514,8 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
                                     adplot::plot::copyImageToFile( plots_[ index ].get(), name, "svg" );
                                     document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
                                 }
-
-                        } );
+                            }
+                        });
     }
 #if 0
     menu.addAction( tr( "Save SVG File" )

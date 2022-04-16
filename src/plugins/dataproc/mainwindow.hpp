@@ -95,7 +95,7 @@ namespace dataproc {
         void proteinSelected( const adprot::digestedPeptides& );
         void setSpectrumAxisChoice( adcontrols::hor_axis );
 
-        static QString makePrintFilename( const std::wstring& id, const std::wstring& insertor = L"__"
+        [[deprecated("use make_filename")]]static QString makePrintFilename( const std::wstring& id, const std::wstring& insertor = L"__"
                                           , const char * extension = ".svg", const QString& = QString() );
         static void addPrintFileToSettings( const QString& );
         static QString makeDisplayName( const std::wstring& id, const char * insertor = ";", int nbsp = 0 );
