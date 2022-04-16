@@ -571,6 +571,7 @@ void
 MSPeakTree::keyPressEvent( QKeyEvent * event )
 {
     if ( event->matches( QKeySequence::Copy ) ) {
+        ADDEBUG() << "handleCopy";
         handleCopyToClipboard();
     } else if ( event->matches( QKeySequence::Paste ) ) {
         // handlePasteFromClipboard();
@@ -618,9 +619,16 @@ MSPeakTree::handleZoomedOnSpectrum( const QRectF& rc, int axis )
     }
 }
 
+namespace {
+    QString __remove_html( QString&& s, bool enable = false ) {
+        return enable == false ? s.remove( QRegularExpression( "<[^>]*>" ) ) : s;
+    }
+}
+
 void
 MSPeakTree::handleCopyAllToClipboard()
 {
+    ADDEBUG() << "## " << __FUNCTION__;
     QStandardItemModel& model = *impl_->model_;
 
     QString selected_text;
@@ -629,7 +637,8 @@ MSPeakTree::handleCopyAllToClipboard()
         auto formula = model.data( model.index( row, c_formula ) ).toString();
         selected_text.append( QString( "\"%1\"\t" ).arg( formula ) );
         for ( int col = 1; col < model.columnCount(); ++col ) {
-            selected_text.append( model.index( row, col ).data( Qt::EditRole ).toString() );
+            auto text = model.index( row, col ).data( Qt::EditRole ).toString();
+            selected_text.append( __remove_html( std::move( text ) ) );
             if ( col != model.columnCount() - 1 )
                 selected_text.append( '\t' );
         }
@@ -639,7 +648,7 @@ MSPeakTree::handleCopyAllToClipboard()
             for ( auto i = 0; i < parent->rowCount(); ++i ) {
                 selected_text.append( '\t' ); // empty for formula
                 for ( int col = 1; col < model.columnCount(); ++col ) {
-                    selected_text.append( model.index( i, col, parent->index() ).data( Qt::EditRole ).toString() );
+                    selected_text.append( __remove_html( model.index( i, col, parent->index() ).data( Qt::EditRole ).toString() ) );
                     if ( col != model.columnCount() - 1 )
                         selected_text.append( '\t' );
                 }
@@ -654,6 +663,8 @@ MSPeakTree::handleCopyAllToClipboard()
 void
 MSPeakTree::handleCopyToClipboard()
 {
+    ADDEBUG() << "## " << __FUNCTION__;
+
     QStandardItemModel& model = *impl_->model_;
     QModelIndexList list = selectionModel()->selectedRows();
 
@@ -668,12 +679,15 @@ MSPeakTree::handleCopyToClipboard()
     for ( auto idx: list ) {
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
-        if ( idx.column() == c_time )
-            copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
-		else if ( model.data( idx ).type() == QVariant::Double )
-			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
-        else
-            copy_table.append( model.data( idx ).toString() );
+
+        if ( idx.column() == c_time ) {
+            auto text = QString::fromStdString((boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str());
+            copy_table.append( text );
+		} else if ( model.data( idx ).type() == QVariant::Double ) {
+			copy_table.append( QString::fromStdString((boost::format("%.14g") % model.data( idx ).toDouble()).str()) );
+        } else {
+            copy_table.append( __remove_html( model.data( idx ).toString() ) );
+        }
         prev = idx;
     }
     QApplication::clipboard()->setText( copy_table );

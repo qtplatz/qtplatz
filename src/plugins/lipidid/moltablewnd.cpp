@@ -51,7 +51,6 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QProgressBar>
-#include <QShortcut>
 #include <QSignalBlocker>
 #include <QSortFilterProxyModel>
 #include <QSqlField>
@@ -90,9 +89,6 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     }
 
     setAcceptDrops( true );
-
-    QShortcut* shortcut = new QShortcut(QKeySequence(QKeySequence::Copy), table_);
-    connect( shortcut, SIGNAL(activated()), table_, SLOT( handleCopyToClipboard() ) );
 
     // table_->setModel( model_ );
     if ( auto m = new QSortFilterProxyModel() ) {

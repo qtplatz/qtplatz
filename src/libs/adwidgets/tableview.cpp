@@ -35,6 +35,7 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include <QRegularExpression>
+#include <QShortcut>
 #include <set>
 
 using namespace adwidgets;
@@ -49,12 +50,14 @@ TableView::TableView(QWidget *parent) : QTableView(parent)
 void
 TableView::keyPressEvent( QKeyEvent * event )
 {
-    qDebug() << __FILE__ << __LINE__ << ": " << event;
-	if ( event->matches( QKeySequence::Copy ) ) {
+    if ( event->matches( QKeySequence::Copy ) ) {
+        ADDEBUG() << "handleCopy";
         handleCopyToClipboard();
     } else if ( event->matches( QKeySequence::Paste ) ) {
+        ADDEBUG() << "handlePaste";
         handlePaste();
     } else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
+        ADDEBUG() << "handleDelete";
 		handleDeleteSelection();
 	} else
 		QTableView::keyPressEvent( event );
@@ -85,19 +88,20 @@ TableView::handlePaste()
 namespace {
 
     QString __remove_html( QString&& s, bool enable ) {
-        return enable ? s.remove( QRegularExpression( "<[^>]*>" ) ) : s;
+        return enable == false ? s.remove( QRegularExpression( "<[^>]*>" ) ) : s;
     }
 }
 
 void
 TableView::handleCopyToClipboard()
 {
+    ADDEBUG() << "## " << __FUNCTION__;
     bool keyShift = bool( QApplication::keyboardModifiers() & Qt::ShiftModifier );
     copyToClipboard( keyShift );
 }
 
 void
-TableView::copyToClipboard( bool remove_html )
+TableView::copyToClipboard( bool enable_html )
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
@@ -115,7 +119,7 @@ TableView::copyToClipboard( bool remove_html )
         hCols.insert( index.column() );
 
     for ( int col: hCols ) {
-        selected_text.append( __remove_html( model()->headerData( col, Qt::Horizontal ).toString(), remove_html ) );
+        selected_text.append( __remove_html( model()->headerData( col, Qt::Horizontal ).toString(), enable_html ) );
         selected_text.append( '\t' );
     }
     selected_text.append( '\n' );
@@ -130,7 +134,7 @@ TableView::copyToClipboard( bool remove_html )
             //auto t = prev.data( Qt::EditRole ).type();
             if ( !isColumnHidden( prev.column() ) ) {
 
-                QString text = __remove_html( prev.data( Qt::EditRole ).toString(), remove_html );
+                QString text = __remove_html( prev.data( Qt::EditRole ).toString(), enable_html );
                 selected_text.append( text );
 
                 if ( index.row() == prev.row() )

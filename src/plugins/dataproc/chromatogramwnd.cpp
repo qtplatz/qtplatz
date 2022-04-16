@@ -78,7 +78,6 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QPrinter>
-#include <QShortcut>
 #include <QSvgGenerator>
 #include <deque>
 #include <memory>
@@ -114,8 +113,6 @@ namespace dataproc {
 
             plots_[ 0 ]->link( plots_[ 1 ].get() );
 
-            auto shortcut = new QShortcut( QKeySequence::Copy, p );
-            connect( shortcut, &QShortcut::activatedAmbiguously, this, &impl::copy );
             connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
             connect( plots_[0].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram0 );
             connect( plots_[1].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram1 );
@@ -219,9 +216,9 @@ namespace dataproc {
         std::tuple< bool, double, double, bool > xScale_;
         bool dirty_;
     public slots:
-        void copy() {
-            peakTable_->handleCopyToClipboard();
-        }
+        // void copy() {
+        //     peakTable_->handleCopyToClipboard();
+        // }
     };
 
     //----------------------------//

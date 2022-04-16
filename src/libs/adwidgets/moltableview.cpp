@@ -626,6 +626,7 @@ MolTableView::dropEvent( QDropEvent * event )
 void
 MolTableView::handleCopyToClipboard()
 {
+    ADDEBUG() << "## " << __FUNCTION__;
 	QModelIndexList indices = selectionModel()->selectedIndexes();
     if ( indices.size() < 1 )
         return;
