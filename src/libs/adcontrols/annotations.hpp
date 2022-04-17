@@ -69,9 +69,7 @@ namespace adcontrols {
         //inline iterator erase( iterator it ) { return vec_.erase( it ); }
         template<typename functor>
         inline iterator erase_if( functor pred ) {
-            if ( !vec_.empty() )
-                return vec_.erase( std::remove_if( vec_.begin(), vec_.end(), std::bind( pred, std::placeholders::_1 ) ) );
-            return vec_.end();
+            return vec_.erase( std::remove_if( vec_.begin(), vec_.end(), std::bind( pred, std::placeholders::_1 ) ), vec_.end() );
         }
     private:
         vector_type vec_;

@@ -56,6 +56,10 @@ namespace adplot {
 
         void setTrace( std::shared_ptr< const adcontrols::Trace>, int idx, QwtPlot::Axis );
         void setData( std::shared_ptr< const adcontrols::Chromatogram >, int idx, QwtPlot::Axis );
+        void setChromatogram( std::tuple< int
+                              , std::shared_ptr< const adcontrols::Chromatogram >
+                              , std::shared_ptr< const adcontrols::PeakResult > >
+                              , QwtPlot::Axis );
         std::shared_ptr< const adcontrols::Chromatogram > getData( int idx ) const;
 
         void setYScale( std::tuple< bool, double, double >&&, bool replot );

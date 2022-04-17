@@ -57,7 +57,7 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         int peakId( int row ) const;
-        void addData( adcontrols::PeakResult&&, size_t idx );
+        void addData( adcontrols::PeakResult&&, size_t idx, bool clearAll = false );
 
     signals:
         void valueChanged( int row );

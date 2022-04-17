@@ -49,6 +49,9 @@ namespace adcontrols {
         algo algorithm() const;
         double threshold( int ) const;
         double boundary( int ) const;
+        std::pair< double, double > threshold() const { return threshold_; }
+        std::pair< double, double > boundary() const  { return boundary_; }
+
         bool eq( double& a, double& b, double& c ) const;
 
     private:
@@ -70,4 +73,3 @@ namespace adcontrols {
         }
     };
 }
-

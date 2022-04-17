@@ -538,19 +538,21 @@ ChromatogramWnd::impl::redraw()
             if ( auto chr = datum.get_chromatogram() ) {
 
                 if ( ! datum.overlayChromatogram_ ) {
+                    // set a copy (deep)
                     datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr );
-                    datum.overlayChromatogram_->setBaselines( adcontrols::Baselines{} ); // clear baselines
-                    datum.overlayChromatogram_->setPeaks( adcontrols::Peaks{} );         // clear peaks
                 }
 
-                plot->setData( chr, idx, QwtPlot::yLeft );
-                if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )
-                    plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
+                plot->setChromatogram( {idx, chr, datum.get_peakResult()}, QwtPlot::yLeft );
+
+                if ( idx == 0 ) {
+                    if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )
+                        plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
+                }
 
                 if ( datum.id() != std::get<0>(selected_folder_)
                      && datum.idFolium_ != std::get< 1 >( selected_folder_ ) ) { // this is not currently focused chromatogram
                     if ( auto pks = datum.get_peakResult() ) {
-                        peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx + 1 );
+                        peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx, idx == 0 );
                     }
                 }
                 ++idx;

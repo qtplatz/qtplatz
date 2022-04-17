@@ -37,6 +37,7 @@
 #include <adcontrols/peak.hpp>
 #include <boost/format.hpp>
 #include <functional>
+#include <set>
 
 namespace {
     static QColor colors [] = {
@@ -213,8 +214,20 @@ PeakTable::setContents( boost::any&& )
 }
 
 void
-PeakTable::addData( adcontrols::PeakResult&& result, size_t idx )
+PeakTable::addData( adcontrols::PeakResult&& result, size_t idx, bool clearAll )
 {
+    if ( clearAll ) {
+        model_->removeRows( 0, model_->rowCount() );
+    } else {
+        std::set< int > rows;
+        for ( int row = 0; row < model_->rowCount(); ++row ) {
+            if ( model_->index( row, c_cid ).data().toInt() == idx )
+                rows.insert( row );
+        }
+        for ( auto it = rows.rbegin(); it != rows.rend(); ++it ) // remove bottom to top
+            model_->removeRow( *it );
+    }
+
     for ( const auto& peak: result.peaks() ) {
         add( peak, idx );
     }
