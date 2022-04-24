@@ -1731,44 +1731,6 @@ MainWindow::addPrintFileToSettings( const QString& name )
     }
 }
 
-// QString
-// MainWindow::makePrintFilename( const std::wstring& id, const std::wstring& insertor, const char * extension, const QString& lastDir )
-// {
-//     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-
-//         portfolio::Portfolio portfolio = dp->getPortfolio();
-
-//         boost::filesystem::path dir;
-//         if ( lastDir.isEmpty() ) {
-//             auto settings = document::instance()->settings();
-//             settings->beginGroup( Constants::GRP_SPECTRUM_IMAGE );
-//             dir = settings->value( Constants::KEY_IMAGE_SAVE_DIR
-//                                    , QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) ).toString().toStdString();
-//             settings->endGroup();
-//         } else {
-//             dir = lastDir.toStdString();
-//         }
-
-//         auto path = dir / boost::filesystem::path( portfolio.fullpath() ).stem();
-
-//         if ( portfolio::Folium folium = portfolio.findFolium( id ) ) {
-//             std::wstring name = folium.name();
-//             std::replace( name.begin(), name.end(), '/', '_' );
-//             boost::algorithm::trim( name ); // remove leading and trailing spaces
-//             path += ( insertor + name );
-
-//             boost::filesystem::path tpath = path;
-//             tpath += extension;
-//             int nnn = 1;
-//             while( boost::filesystem::exists( tpath ) )
-// 				tpath = path.wstring() + ( boost::wformat(L",%d%s") % nnn++ % extension).str();
-
-//             return QString::fromStdString( tpath.string() );
-//         }
-//     }
-//     return QString();
-// }
-
 //static
 QString
 MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int nbsp )
