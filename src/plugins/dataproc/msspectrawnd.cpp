@@ -490,10 +490,6 @@ MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
 	QRectF boundingRect;
 	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
 
-    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        painter.drawText( drawRect, Qt::TextWordWrap, QString::fromStdWString( dp->portfolio().fullpath()), &boundingRect );
-    }
-
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );

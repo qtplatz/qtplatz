@@ -1255,8 +1255,11 @@ MainWindow::OnInitialUpdate()
 			pLifeCycle->OnInitialUpdate();
     }
 
-    if ( auto widget = findChild< MSProcessingWnd * >() )
-        widget->onInitialUpdate();
+    if ( auto wnd = findChild< MSProcessingWnd * >() )
+        wnd->onInitialUpdate();
+
+    if ( auto wnd = findChild< MSSpectraWnd * >() )
+        wnd->onInitialUpdate();
 
     if ( auto wnd = findChild< ElementalCompWnd * >() )
         wnd->onInitialUpdate();
