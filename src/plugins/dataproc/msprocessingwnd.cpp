@@ -2039,20 +2039,35 @@ MSProcessingWnd::onInitialUpdate()
                  });
     }
 
-    if ( auto w = MainWindow::instance() ) {
-        connect( w, &MainWindow::onScaleYChanged, this
-                 , [&]( bool autoScale, double base, double height ) {
-                     pImpl_->scaleYAuto_ = autoScale;
-                     pImpl_->scaleY_ = std::make_pair( base, height );
+    // this was moved to handleSpectrumYScale
+    // if ( auto w = MainWindow::instance() ) {
+    //     connect( w, &MainWindow::onScaleYChanged, this
+    //              , [&]( bool autoScale, double base, double height ) {
+    //                  pImpl_->scaleYAuto_ = autoScale;
+    //                  pImpl_->scaleY_ = std::make_pair( base, height );
 
-                     if ( autoScale )
-                         pImpl_->profileSpectrum_->setYScale( 0, 0, QwtPlot::yLeft );
-                     else
-                         pImpl_->profileSpectrum_->setYScale( base + height, base, QwtPlot::yLeft );
+    //                  if ( autoScale )
+    //                      pImpl_->profileSpectrum_->setYScale( 0, 0, QwtPlot::yLeft );
+    //                  else
+    //                      pImpl_->profileSpectrum_->setYScale( base + height, base, QwtPlot::yLeft );
 
-                     pImpl_->profileSpectrum_->replotYScale();
-                 });
-    }
+    //                  pImpl_->profileSpectrum_->replotYScale();
+    //              });
+    // }
+}
+
+void
+MSProcessingWnd::handleSpectrumYScale( bool autoScale, double base, double height )
+{
+    pImpl_->scaleYAuto_ = autoScale;
+    pImpl_->scaleY_ = std::make_pair( base, height );
+
+    if ( autoScale )
+        pImpl_->profileSpectrum_->setYScale( 0, 0, QwtPlot::yLeft );
+    else
+        pImpl_->profileSpectrum_->setYScale( base + height, base, QwtPlot::yLeft );
+
+    pImpl_->profileSpectrum_->replotYScale();
 }
 
 std::pair< QRectF, adcontrols::hor_axis >

@@ -232,7 +232,7 @@ Qt::ItemFlags ExternalToolModel::flags(const QModelIndex &index) const
             return TOOLSMENU_ITEM_FLAGS;
         return CATEGORY_ITEM_FLAGS;
     }
-    return 0;
+    return {};
 }
 
 bool ExternalToolModel::setData(const QModelIndex &modelIndex, const QVariant &value, int role)

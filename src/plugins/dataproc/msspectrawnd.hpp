@@ -56,6 +56,7 @@ namespace dataproc {
 
         void onPageSelected();
         void onDataChanged( const QString& foliumGuid, const QString& attGuid, int idx, int fcn );
+        void onInitialUpdate();
 
     public slots:
         void handleSessionAdded( Dataprocessor* );
@@ -65,6 +66,7 @@ namespace dataproc {
         void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( adcontrols::hor_axis );
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
+        void handleSpectrumYScale( bool, double, double );
 
     private:
         void init();

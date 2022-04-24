@@ -244,6 +244,24 @@ MSSpectraWnd::init()
     toolBarAddingLayout->addWidget( splitter );
 }
 
+void
+MSSpectraWnd::onInitialUpdate()
+{
+}
+
+void
+MSSpectraWnd::handleSpectrumYScale( bool autoY, double base, double height )
+{
+    // ADDEBUG() << std::make_tuple( autoY, base, height );
+    for ( auto& plot: impl_->plots_ ) {
+        if ( autoY ) {
+            plot->setYScale( 0, 0, QwtPlot::yLeft );
+        } else {
+            plot->setYScale( base + height, base, QwtPlot::yLeft );
+        }
+        plot->replotYScale();
+    }
+}
 
 void
 MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )

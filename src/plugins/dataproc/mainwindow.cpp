@@ -247,7 +247,11 @@ namespace {
 
 namespace {
 #if  __cplusplus >= 201703L
-    template< typename ...Args > void scaleChangeConnector( MainWindow * w, QObject * p ) {
+    template< typename ...Args > void scaleSpectrumConnector( MainWindow * w, QObject * p ) {
+        ( QObject::connect( w, &MainWindow::onScaleYChanged, p->findChild<Args *>(), &Args::handleSpectrumYScale ) , ... );
+    }
+
+    template< typename ...Args > void scaleChromatogramConnector( MainWindow * w, QObject * p ) {
         ( QObject::connect( w, &MainWindow::onScaleChromatogramYChanged, p->findChild<Args *>(), &Args::handleChromatogramYScale ),...);
         ( QObject::connect( w, &MainWindow::onScaleChromatogramXChanged, p->findChild<Args *>(), &Args::handleChromatogramXScale ),...);
     }
@@ -742,7 +746,8 @@ MainWindow::createContents( Core::IMode * mode )
     applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
-    scaleChangeConnector     < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
+    scaleChromatogramConnector < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
+    scaleSpectrumConnector   < MSProcessingWnd, MSSpectraWnd >( this, stack_ );
 #else
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         boost::apply_visitor( session_added_connector(this), it );
@@ -755,6 +760,10 @@ MainWindow::createContents( Core::IMode * mode )
     if ( auto wnd = stack_->findChild< MSProcessingWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &MSProcessingWnd::handleChromatogramYScale );
         connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &MSProcessingWnd::handleChromatogramXScale );
+        connect( this, &MainWindow::onScaleYChanged, wnd, &MSProcessingWnd::handleSpectrumYScale );
+    }
+    if ( auto wnd = stack_->findChild< MSSpectraWnd * >() ) {
+        connect( this, &MainWindow::onScaleYChanged, wnd, &MSSpectraWnd::handleSpectrumYScale );
     }
     if ( auto wnd = stack_->findChild< ChromatogramWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramYScale );

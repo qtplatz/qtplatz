@@ -86,6 +86,7 @@ namespace dataproc {
         void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( adcontrols::hor_axis );
         void handleFoliumDataChanged( const QString& );
+        void handleSpectrumYScale( bool, double, double );
 
         // slot for MSPeakTable
         void handleCurrentChanged( int idx, int fcn );
