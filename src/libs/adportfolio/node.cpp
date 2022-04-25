@@ -350,3 +350,11 @@ Node::removeAttachment( const std::wstring& name )
     }
     return false;
 }
+
+std::wstring
+Node::portfolio_fullpath() const
+{
+    if ( impl_ )
+        impl_->fullpath();
+    return {};
+}
