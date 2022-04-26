@@ -517,7 +517,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                                                  % L"TIC" % ( fcn + 1 ) ).str() );
                         if ( folium.nil() ) {
                             adcontrols::Chromatogram c = *tic;
-                            c.addDescription( adcontrols::description( L"acquire.title", ( boost::wformat( L"TIC.%1%" ) % ( fcn + 1 ) ).str() ) );
+                            c.addDescription( adcontrols::description( {"acquire.title", ( boost::format( "TIC.%1%" ) % ( fcn + 1 ) ).str() }) );
                             portfolio::Folium folium = processor->addChromatogram( c, m, true );
                         }
                         processor->setCurrentSelection( folium );
@@ -1037,24 +1037,9 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         }
 
         menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( pImpl_->ticPlot_ ); } );
-#if 0
-        // menu.addAction( tr( "Save SVG File" ), [&] () {
-        //     QString name = QFileDialog::getSaveFileName( MainWindow::instance()
-        //                                                  , "Save SVG File"
-        //                                                  , MainWindow::makePrintFilename( idChromatogramFolium_, L"," )
-        //                                                  , tr( "SVG (*.svg)" ) );
-        //     auto dir = boost::filesystem::path( name.toStdString() ).parent_path();
-        //     if ( ! name.isEmpty() ) {
-
-        //         adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
-        //         MainWindow::addPrintFileToSettings( name );
-        //     }
-        // });
-#else
-        menu.addAction( tr( "Save SVG File" ), [&] () {
+        menu.addAction( tr( "Save as SVG File..." ), [&] () {
             utility::save_image_as<SVG>()( pImpl_->ticPlot_, idChromatogramFolium_ );
         });
-#endif
         menu.addAction( tr("Frequency analysis"), [&] () {
                 if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                     auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
@@ -1183,12 +1168,15 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
         auto rect = pImpl_->profileSpectrum_->zoomRect();
 
-        menu.addAction( tr( "Correct baseline" ),   [this] () { correct_baseline(); draw1(); } );
-        menu.addAction( tr( "Copy to clipboard" ),  [this] () { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } );
-        menu.addAction( tr( "Frequency analysis" ), [this] () { frequency_analysis(); } );
-        menu.addAction( tr( "Zero filling" ),       [this] () { zero_filling(); } );
-        menu.addAction( tr( "Save image file..." ), [this] () { save_image_file(); } );
-        menu.addAction( tr( "RMS to clipboard" ),   [this,rect] () { compute_rms( rect.left(), rect.right() ); draw1(); } );
+        menu.addAction( tr( "Correct baseline" ),    [this] () { correct_baseline(); draw1(); } );
+        menu.addAction( tr( "Copy to clipboard" ),   [this] () { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } );
+        menu.addAction( tr( "Frequency analysis" ),  [this] () { frequency_analysis(); } );
+        menu.addAction( tr( "Zero filling" ),        [this] () { zero_filling(); } );
+        menu.addAction( tr( "Save as SVG File..." ), [this] () {
+            utility::save_image_as<SVG>()( pImpl_->profileSpectrum_, idSpectrumFolium_ );
+        });
+        menu.addAction( tr( "Save image file..." ),  [this] () { save_image_file(); } );
+        menu.addAction( tr( "RMS to clipboard" ),    [this,rect] () { compute_rms( rect.left(), rect.right() ); draw1(); } );
 
         // menu.actions()[4]->setCheckable( true );
         // menu.actions()[4]->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
@@ -1259,15 +1247,8 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     menu.addAction( tr( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
     // [5]
     menu.addAction( tr( "Save as SVG File..." ), [&]{
-        utility::save_image_as< SVG >()( pImpl_->processedSpectrum_, idSpectrumFolium_, ",processed;" );
-        // QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-        //                                                  , MainWindow::makePrintFilename( idSpectrumFolium_, L",processed;" )
-        //                                                  , tr("SVG (*.svg)") );
-        //     if ( ! name.isEmpty() ) {
-        //         adplot::plot::copyImageToFile( pImpl_->processedSpectrum_, name, "svg" );
-        //         MainWindow::addPrintFileToSettings( name );
-        //     }
-        });
+        utility::save_image_as< SVG >()( pImpl_->processedSpectrum_, idSpectrumFolium_ ); //, ",processed;" );
+    });
 
     auto actions = menu.actions();
     if ( actions.size() >= 4 ) {

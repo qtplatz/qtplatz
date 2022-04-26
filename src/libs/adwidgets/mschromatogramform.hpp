@@ -61,8 +61,9 @@ namespace adwidgets {
 
     signals:
         void polarityToggled( adcontrols::ion_polarity );
-        void onEnableLockMass( bool );
         void triggerProcess();
+        void onEnableLockMass( bool );
+        void onAutoTargetingEnabled( bool );
 
     private:
         Ui::MSChromatogramForm *ui;

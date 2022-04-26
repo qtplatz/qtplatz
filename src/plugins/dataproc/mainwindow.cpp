@@ -96,6 +96,7 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/variant.hpp>
+#include <boost/optional/optional_io.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -1131,7 +1132,8 @@ MainWindow::handleProcess( const QString& origin )
         if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( cm->enableAutoTargeting() ) { // check tR & protocol
                 for ( const auto& mol: cm->molecules().data() ) {
-                    if ( mol.mass() > 0 && !mol.tR() ) {
+                    ADDEBUG() << mol.formula() << ", enable: " << mol.enable() << ", " << mol.tR();
+                    if ( mol.enable() &&  mol.mass() > 0 && !mol.tR() ) {
                         QMessageBox::critical(0, QLatin1String("MS Chromatograms"), "Set tR and protocol# for auto-targeting" );
                         return;
                     }

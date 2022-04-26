@@ -55,8 +55,6 @@ namespace {
         o << boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf().string(); // leaf
         o << (insertor.empty() ? "_" : insertor);
         o << boost::filesystem::path( folium.portfolio_fullpath() ).stem().string();               // stem "pareint_dir__filename"
-        // o << (insertor.empty() ? "__" : insertor);
-        // o << make_filename_string( folium ).string();
         o << extension;
         auto dir  = make_directory_string( lastDir );
         if ( dir.empty() ) {
@@ -70,6 +68,7 @@ namespace {
                 destname = ( boost::format("%s(%d)%s") % name.string() % n++ % extension ).str();
             } while ( boost::filesystem::exists( destname ) );
         }
+        ADDEBUG() << "make_filename<svg>: " << destname;
         return destname;
     }
 }

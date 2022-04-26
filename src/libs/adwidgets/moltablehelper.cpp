@@ -38,6 +38,7 @@
 #include <QString>
 #include <QUrl>
 #include <boost/json.hpp>
+#include <boost/optional/optional_io.hpp>
 #include <tuple>
 
 namespace adwidgets {
@@ -210,8 +211,11 @@ namespace adwidgets {
 
         template<> void __assign( moltable::col_retentionTime& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_retentionTime\t" << std::make_pair( index.row(), index.column() );
-            value.tR() = index.data().value< col_retentionTime::value_type >();
+            // ADDEBUG() << "col_retentionTime\t" << std::make_pair( index.row(), index.column() ) << ", value=" << index.data().value< col_retentionTime::value_type >();
+            if ( index.data().isValid() && index.data().value< col_retentionTime::value_type >() > 0 )
+                value.set_tR( index.data().value< col_retentionTime::value_type >() );
+            else
+                value.set_tR( {} );
         }
 
         template<> void __assign( moltable::col_msref& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
@@ -223,7 +227,7 @@ namespace adwidgets {
         template<> void __assign( moltable::col_protocol& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
             // ADDEBUG() << "col_protocol\t" << std::make_pair( index.row(), index.column() );
-            value.protocol() = index.data().value< col_protocol::value_type >();
+            value.setProtocol( index.data().value< col_protocol::value_type >() );
         }
 
         template<> void __assign( moltable::col_synonym& t, const QModelIndex& index, adcontrols::moltable::value_type& value )

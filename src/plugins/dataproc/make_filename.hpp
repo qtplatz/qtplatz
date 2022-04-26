@@ -32,7 +32,7 @@ namespace portfolio {
 
 namespace dataproc {
 
-    enum PrintFormatType { PDF, SVG };
+    enum PrintFormatType { PDF, SVG, Image };
 
     template< PrintFormatType >
     struct make_filename {

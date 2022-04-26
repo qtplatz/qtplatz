@@ -606,7 +606,7 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
         const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
         // ADDEBUG() << "########## isCounting: " << isCounting << ", list.size = " << list.size();
 
-        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s p%d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s p%d" );
+        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s,p%d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s,p%d" );
 
         for ( size_t idx = 0; idx < list.size(); ++idx ) {
             auto res = std::make_shared< mschromatogramextractor::xChromatogram >( /*fcn*/ std::get< 1 >( list[ idx ] ), idx, isCounting );
@@ -815,7 +815,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 ( *it )->pChr_->addDescription(
                     adcontrols::description(
                         {"create"
-                         , ( boost::format( "m/z %.3lf(W %.1fmDa),%s p%d" )
+                         , ( boost::format( "m/z %.3lf(W %.1fmDa),%s,p%d" )
                              % pk.mass() % (pk.widthHH() * 1000) % display_name % protocol ).str()} ) );
                     //--------- add property ---------
                 boost::system::error_code ec;
@@ -861,7 +861,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             if ( axis == adcontrols::hor_axis_mass ) {
                 ( *it )->pChr_->addDescription( adcontrols::description(
                                                     { "create"
-                                                      , ( boost::format( "m/z %.4lf(W:%.4gmDa) %s p%d" )
+                                                      , ( boost::format( "m/z %.4lf(W:%.4gmDa) %s,p%d" )
                                                           % value
                                                           % (value_width * 1000)
                                                           % display_name
@@ -870,7 +870,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 // time axis
                 ( *it )->pChr_->addDescription( adcontrols::description(
                                                     { "create"
-                                                      , ( boost::format( "%.4lfus(W:%.4gns) %s p%d" )
+                                                      , ( boost::format( "%.4lfus(W:%.4gns) %s,p%d" )
                                                           % (value*std::micro::den)
                                                           % (value_width*std::nano::den)
                                                           % display_name

@@ -79,6 +79,7 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QWidget(parent)
         if ( auto table = findChild< MSChromatogramTable * >() ) {
             connect( form, &MSChromatogramForm::onEnableLockMass
                      , [table]( bool enable ) { table->setColumnHidden( col_msref{}, !enable ); } );
+            connect( form, &MSChromatogramForm::onAutoTargetingEnabled, table, &MSChromatogramTable::handleAutoTagetingEnabled );
         }
         connect( form, &MSChromatogramForm::triggerProcess, [this] { run(); } );
 

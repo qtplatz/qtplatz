@@ -81,6 +81,7 @@ namespace adwidgets {
         void handleDataChanged( const QModelIndex&, const QModelIndex& );
         void handleCopyToClipboard() override;
         void handlePaste() override;
+        void handleAutoTagetingEnabled( bool );
 
     private slots:
         // void handleContextMenu( const QPoint& pt );

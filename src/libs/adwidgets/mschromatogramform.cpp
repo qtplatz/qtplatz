@@ -100,7 +100,11 @@ MSChromatogramForm::OnInitialUpdate()
         connect( radio, &QRadioButton::toggled, [&](bool checked){
             emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
         });
-
+    }
+    if ( auto gbox = findChild< QGroupBox * >( "groupBoxAutoTargeting" ) ) {
+        connect( gbox, &QGroupBox::toggled, [&](bool checked){
+            emit onAutoTargetingEnabled( checked );
+        });
     }
 }
 
