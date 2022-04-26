@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <adcontrols/constants_fwd.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <boost/optional.hpp>
@@ -41,7 +42,7 @@ namespace adcontrols {
 namespace accutof {
 
     class MoleculesWidget : public QWidget
-                              , public adplugin::LifeCycle {
+                          , public adplugin::LifeCycle {
 
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
@@ -77,6 +78,7 @@ namespace accutof {
     private slots:
         void handleDataChanged( const QModelIndex&, const QModelIndex&, const QVector<int>& );
         void handleRowsRemoved( const QModelIndex&, int, int );
+        void handlePolarity( adcontrols::ion_polarity );
 
     private:
         class impl;

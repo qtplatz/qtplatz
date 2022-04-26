@@ -23,6 +23,7 @@
  **************************************************************************/
 
 #include "moleculeswidget.hpp"
+#include <adwidgets/create_widget.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/isocluster.hpp>
 #include <adcontrols/isotopecluster.hpp>
@@ -41,12 +42,14 @@
 #include <adutils/constants.hpp> // clsid for massspectrometer
 #include <adwidgets/moltable.hpp>
 #include <boost/json.hpp>
-#include <QBoxLayout>
-#include <QMenu>
-#include <QSplitter>
 #include <QAbstractItemModel>
-#include <QStandardItemModel>
+#include <QBoxLayout>
+#include <QGroupBox>
 #include <QItemSelectionModel>
+#include <QMenu>
+#include <QRadioButton>
+#include <QSplitter>
+#include <QStandardItemModel>
 
 namespace {
 
@@ -62,6 +65,44 @@ namespace {
 
 }
 
+namespace {
+
+    using adwidgets::create_widget;
+
+    class MoleculesForm : public QWidget {
+        Q_OBJECT
+
+    public:
+        explicit MoleculesForm( QWidget *parent = 0 ) : QWidget( parent ) {
+            auto layout = new QVBoxLayout( this );
+            if ( auto gb = create_widget<QGroupBox>( "polarity", tr("Polarity"), this ) ) {
+                layout->addWidget( gb );
+
+                auto pos = create_widget< QRadioButton >( "radio_pos", tr("&Positive") );
+                auto neg = create_widget< QRadioButton >( "radio_neg", tr("&Negative") );
+                pos->setChecked( true );
+                auto layout2 = new QVBoxLayout( gb );
+                layout2->addWidget( pos );
+                layout2->addWidget( neg );
+                connect( pos, &QRadioButton::toggled, this, [&]( bool checked ){
+                    emit polarityToggled( checked ? adcontrols::polarity_positive : adcontrols::polarity_negative );
+                    emit dataChanged();
+                });
+            }
+            layout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Maximum, QSizePolicy::Expanding ) );
+        }
+        ~MoleculesForm() {}
+
+    private:
+        MoleculesForm( const MoleculesForm& ) = delete;
+
+    signals:
+        void polarityToggled( adcontrols::ion_polarity );
+        void dataChanged();
+    public:
+
+    };
+}
 
 
 namespace accutof {
@@ -70,6 +111,7 @@ namespace accutof {
         std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
     };
 }
+
 
 using namespace accutof;
 
@@ -82,17 +124,22 @@ MoleculesWidget::MoleculesWidget(QWidget *parent) : QWidget(parent)
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {
+            splitter->addWidget( ( new MoleculesForm ) );
             splitter->addWidget( ( new adwidgets::MolTable ) );
-            //splitter->setStretchFactor( 0, 0 );
-            //splitter->setStretchFactor( 1, 3 );
+            splitter->setStretchFactor( 0, 0 );
+            splitter->setStretchFactor( 1, 3 );
             splitter->setOrientation ( Qt::Horizontal );
             layout->addWidget( splitter );
         }
     }
-    // if ( auto form = findChild< MSSimulatorForm * >() ) {
-    //     connect( form, &MSSimulatorForm::triggerProcess, [this] { run(); } );
-    //     connect( form, &MSSimulatorForm::onLapChanged, this, &MoleculesWidget::handleLapChanged );
-    // }
+    if ( auto form = findChild< MoleculesForm * >() ) {
+        if ( auto table = findChild< adwidgets::MolTable * >() ) {
+            connect( form, &MoleculesForm::polarityToggled, table, &adwidgets::MolTable::handlePolarity );
+            connect( form, &MoleculesForm::dataChanged, [&](){
+                emit valueChanged ( QString::fromStdString( readJson() ) );
+            });
+        }
+    }
 }
 
 MoleculesWidget::~MoleculesWidget()
@@ -239,6 +286,23 @@ MoleculesWidget::handleRowsRemoved(const QModelIndex&, int first, int last )
 }
 
 void
+MoleculesWidget::handlePolarity( adcontrols::ion_polarity )
+{
+    // if ( impl_->current_polarity_ != polarity ) {
+    //     impl_->current_polarity_ = polarity;
+
+    //     auto model = impl_->model_;
+
+    //     for ( int row = 0; row < model->rowCount(); ++row ) {
+    //         auto adducts = model->index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
+    //         model->setData( model->index( row, c_adducts ), adducts.get( polarity ) );
+    //         impl_->formulaChanged( row );
+    //     }
+    // }
+    // this->viewport()->repaint();
+}
+
+void
 MoleculesWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
 {
     impl_->massSpectrometer_ = p;
@@ -285,8 +349,7 @@ MoleculesWidget::readJson() const
                 }
             }
 
-            ADDEBUG() << "readJson -- rowCount: " << model->rowCount() << "--> size: " << ja.size();
-
+            // ADDEBUG() << "readJson -- rowCount: " << model->rowCount() << "--> size: " << ja.size();
             auto json = boost::json::serialize( boost::json::value{{ "molecules", ja }} );
             return json;
         }
@@ -335,3 +398,5 @@ MoleculesWidget::json_to_moltable( const std::string& json )
     }
     return {};
 }
+
+#include "moleculeswidget.moc"
