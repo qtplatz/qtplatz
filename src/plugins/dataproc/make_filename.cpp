@@ -27,6 +27,7 @@
 #include <adportfolio/folium.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 namespace {
 
@@ -34,7 +35,7 @@ namespace {
         auto name = folium.name();
         std::replace( name.begin(), name.end(), '/', '_' );
         boost::algorithm::trim( name ); // remove leading and trailing spaces
-        return name + L".svg"; // add temporary extension for avoiding wrong extension substitution on replace_extension call
+        return name; // add temporary extension for avoiding wrong extension substitution on replace_extension call
     }
 
     boost::filesystem::path make_directory_string( const QString& lastDir ) {
@@ -48,26 +49,29 @@ namespace {
 
     boost::filesystem::path __make_filename( const portfolio::Folium& folium
                                              , std::string&& insertor
-                                             , const QString& lastDir, const char * extension ) {
+                                             , const QString& lastDir, const char * extension ) { // must contains '.'
+        std::ostringstream o;
         auto leaf = boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf();
-        auto stem = boost::filesystem::path( folium.portfolio_fullpath() ).stem().string()
-            + ( insertor.empty() ? "_" : insertor )
-            + make_filename_string( folium ).string();
-
-        ADDEBUG() << "portfolio_fullpath: " << folium.portfolio_fullpath();
-        ADDEBUG() << "leaf: " << leaf;
-        ADDEBUG() << "stem: " << boost::filesystem::path( folium.portfolio_fullpath() ).stem();
-        ADDEBUG() << "folium.name: " << folium.name() << ", " << folium.fullpath();
-        ADDEBUG() << "name: " << stem;
-
+        o << boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf().string(); // leaf
+        o << (insertor.empty() ? "_" : insertor);
+        o << boost::filesystem::path( folium.portfolio_fullpath() ).stem().string();               // stem "pareint_dir__filename"
+        // o << (insertor.empty() ? "__" : insertor);
+        // o << make_filename_string( folium ).string();
+        o << extension;
         auto dir  = make_directory_string( lastDir );
-        ADDEBUG() << "dir: " << dir;
         if ( dir.empty() ) {
             dir = make_directory_string( QString::fromStdWString( folium.portfolio_fullpath() ) );
         }
-        return ( dir / stem ).replace_extension( extension );
+        auto destname = dir / o.str();
+        if ( boost::filesystem::exists( destname ) ) {
+            int n(1);
+            auto name = destname.replace_extension(); // remove extension
+            do {
+                destname = ( boost::format("%s(%d)%s") % name.string() % n++ % extension ).str();
+            } while ( boost::filesystem::exists( destname ) );
+        }
+        return destname;
     }
-
 }
 
 
