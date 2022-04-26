@@ -355,6 +355,6 @@ std::wstring
 Node::portfolio_fullpath() const
 {
     if ( impl_ )
-        impl_->fullpath();
+        return impl_->fullpath();
     return {};
 }

@@ -944,8 +944,8 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
-    std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
-
+    // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
+    std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)" );
     // if ( auto folium = folder.findFoliumByName( name ) )
     //     return folium; // already exists
 
@@ -966,7 +966,7 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > pt
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
-    std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
+    std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$|^((?!dataReader)" );
 
     if ( auto folium = folder.findFoliumByName( name ) )
         return folium; // already exists
@@ -988,7 +988,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
     std::wstring name = adcontrols::Chromatogram::make_folder_name( src.getDescriptions() );
-    // ADDEBUG() << "addChromatogram: " << name;
+    ADDEBUG() << "addChromatogram: " << name;
 
     portfolio::Folium folium = folder.addFolium( name );
     adutils::ChromatogramPtr c = std::make_shared< adcontrols::Chromatogram >( src );  // profile, deep copy

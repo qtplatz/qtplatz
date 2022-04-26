@@ -271,6 +271,29 @@ DataReader::axis_decimals() const
     return std::make_pair( axisX_decimals_, axisY_decimals_ );
 }
 
+std::string
+DataReader::abbreviated_display_name() const
+{
+    return abbreviated_name( this->display_name() );
+}
+
+//static
+std::string
+DataReader::abbreviated_name( const std::string& reader_name )
+{
+    std::string a;
+    std::string::size_type pos = reader_name.find_first_of( "." );
+    if ( pos != std::string::npos ) {
+        std::transform( reader_name.begin(), reader_name.begin() + pos, std::back_inserter(a), [](auto c){ return std::toupper(c); } );
+        if (( a == "1" ) && (reader_name == "1.u5303a")) {
+            return "AVG";
+        }
+        return a;
+    }
+    std::transform( reader_name.begin(), reader_name.end(), std::back_inserter(a), [](auto c){ return std::toupper(c); } );
+    return a;
+}
+
 //static
 std::shared_ptr< DataReader >
 DataReader::make_reader( const char * traceid )

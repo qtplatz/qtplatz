@@ -918,10 +918,12 @@ Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
 {
     std::wstring name;
     for ( auto& desc: descs ) {
+        ADDEBUG() << "make_folder_name: " << desc.keyValue();
         if ( ! name.empty() )
             name += L"/";
         name += desc.text<wchar_t>();
     }
+    ADDEBUG() << "\t--> make_folder_name: " << name;
     return name;
 }
 

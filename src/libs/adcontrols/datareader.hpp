@@ -201,15 +201,16 @@ namespace adcontrols {
                             , const std::string& axisX_label
                             , const std::string& axisY_label
                             , int axisX_decimals, int axisY_decimals);
+
+        std::string abbreviated_display_name() const;
+        static std::string abbreviated_name( const std::string& display_name );
+
     public:
         //////////////////////////////////////////////////////////////
         // singleton interfaces
         typedef std::shared_ptr< DataReader >( factory_type )( const char * traceid );
-
         static std::shared_ptr< DataReader > make_reader( const char * traceid );
-
         static void register_factory( std::function< factory_type >, const char * clsid );
-
         static void assign_reader( const char * clsid, const char * traceid );
 
     private:

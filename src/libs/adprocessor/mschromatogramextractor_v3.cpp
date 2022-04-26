@@ -157,7 +157,8 @@ namespace adprocessor {
                                                       , uMass( _u )
                                                       , proto( _p )
                                                       , pChr( std::make_shared< adcontrols::Chromatogram >() ) {
-            pChr->addDescription( { L"Create", desc } );
+            if ( ! desc.empty() )
+                pChr->addDescription( { L"create", desc } );
             pChr->setProtocol( _p );
         }
 
@@ -460,7 +461,7 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
                 if ( info.protocolId() == ms.second->protocolId() ) {
-                    impl_->append_to_chromatogram( ms.first, *ms.second, info, reader->display_name() );
+                    impl_->append_to_chromatogram( ms.first, *ms.second, info, reader->abbreviated_display_name() );
                 }
             }
         }
@@ -498,7 +499,7 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
 
         for ( auto& ms : impl_->spectra_ ) {
             // [2]
-            impl_->append_to_chromatogram( ms.first /*pos */, *ms.second, axis, range, reader->display_name() );
+            impl_->append_to_chromatogram( ms.first /*pos */, *ms.second, axis, range, reader->abbreviated_display_name() );
         }
 
         std::pair< double, double > time_range =
@@ -622,11 +623,11 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
             auto gen = std::get< 2 >( list[ idx ] );
             res->pChr_->addDescription(
-                adcontrols::description( { "Create", ( fmt
+                adcontrols::description( { "create", ( fmt
                                                        % (gen ? remove_html_tag( gen->display_name ) : formula )
                                                        % centre
                                                        % width
-                                                       % reader->display_name()
+                                                       % reader->abbreviated_display_name()
                                                        % protocol ).str() } ) );
             res->pChr_->setIsCounting( res->isCounting_ );
             if ( gen ) {
@@ -813,10 +814,10 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 it = results_.end() - 1;
                 ( *it )->pChr_->addDescription(
                     adcontrols::description(
-                        L"Create"
-                        , ( boost::wformat( L"m/z %.3lf(W %.1fmDa),%s_%d" )
-                            % pk.mass() % (pk.widthHH() * 1000) % utf::to_wstring( display_name ) % protocol ).str() ) );
-                //--------- add property ---------
+                        {"create"
+                         , ( boost::format( "m/z %.3lf(W %.1fmDa),%s p%d" )
+                             % pk.mass() % (pk.widthHH() * 1000) % display_name % protocol ).str()} ) );
+                    //--------- add property ---------
                 boost::system::error_code ec;
                 auto jv = boost::json::parse( pk.toJson(), ec );
                 if ( !ec ) {
@@ -859,14 +860,21 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             double value = range.first + value_width;
             if ( axis == adcontrols::hor_axis_mass ) {
                 ( *it )->pChr_->addDescription( adcontrols::description(
-                                                    L"Create"
-                                                    , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
-                                                        % utf::to_wstring( display_name ) % value % (value_width * 1000) % protocol ).str() ) );
+                                                    { "create"
+                                                      , ( boost::format( "m/z %.4lf(W:%.4gmDa) %s p%d" )
+                                                          % value
+                                                          % (value_width * 1000)
+                                                          % display_name
+                                                          % protocol ).str() }) );
             } else {
+                // time axis
                 ( *it )->pChr_->addDescription( adcontrols::description(
-                                                    L"Create"
-                                                    , ( boost::wformat( L"%s %.4lfus(W:%.4gns)_%d" )
-                                                        % utf::to_wstring( display_name ) % (value*std::micro::den) % (value_width*std::nano::den) % protocol ).str() ) );
+                                                    { "create"
+                                                      , ( boost::format( "%.4lfus(W:%.4gns) %s p%d" )
+                                                          % (value*std::micro::den)
+                                                          % (value_width*std::nano::den)
+                                                          % display_name
+                                                          % protocol ).str()} ) );
             }
         }
         ( *it )->append( uint32_t( pos ), time, y.get() );

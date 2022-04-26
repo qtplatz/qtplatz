@@ -84,23 +84,18 @@ namespace adcontrols {
             make_folder_name( const std::wstring& pattern
                               , const descriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
             }
-
             std::wstring operator()() const {
-
                 std::wstring name;
-
                 std::for_each( vec_.rbegin(), vec_.rend()
                                , [&] ( const description& d ){
-
-                                     std::match_results< std::wstring::const_iterator > match;
-                                     std::wstring key = d.key<wchar_t>();
-                                     if ( std::regex_match( key, match, regex_ ) ) {
-                                         if ( !name.empty() )
-                                             name += L' ';
-                                         name += d.text<wchar_t>();
-                                     }
-                                 } );
-
+                                   std::match_results< std::wstring::const_iterator > match;
+                                   std::wstring key = d.key<wchar_t>();
+                                   if ( std::regex_match( key, match, regex_ ) ) {
+                                       if ( !name.empty() )
+                                           name += L' ';
+                                       name += d.text<wchar_t>();
+                                   }
+                               } );
                 return name;
             }
         };

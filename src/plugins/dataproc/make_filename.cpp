@@ -25,7 +25,6 @@
 #include "make_filename.hpp"
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
-#include <adportfolio/portfolio.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
@@ -50,10 +49,19 @@ namespace {
     boost::filesystem::path __make_filename( const portfolio::Folium& folium
                                              , std::string&& insertor
                                              , const QString& lastDir, const char * extension ) {
+        auto leaf = boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf();
         auto stem = boost::filesystem::path( folium.portfolio_fullpath() ).stem().string()
             + ( insertor.empty() ? "_" : insertor )
             + make_filename_string( folium ).string();
+
+        ADDEBUG() << "portfolio_fullpath: " << folium.portfolio_fullpath();
+        ADDEBUG() << "leaf: " << leaf;
+        ADDEBUG() << "stem: " << boost::filesystem::path( folium.portfolio_fullpath() ).stem();
+        ADDEBUG() << "folium.name: " << folium.name() << ", " << folium.fullpath();
+        ADDEBUG() << "name: " << stem;
+
         auto dir  = make_directory_string( lastDir );
+        ADDEBUG() << "dir: " << dir;
         if ( dir.empty() ) {
             dir = make_directory_string( QString::fromStdWString( folium.portfolio_fullpath() ) );
         }

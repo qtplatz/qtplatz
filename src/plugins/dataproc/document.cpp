@@ -69,6 +69,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <atomic>
+#include <cctype>
 #include <thread>
 
 namespace dataproc {
@@ -488,18 +489,17 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
 void
 document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
+    using adcontrols::DataReader;
+
     double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
     for ( auto reader: dset->dataReaders() ) {
-
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
-
-            std::ostringstream o;
-            o << "Spectrum " << reader->display_name() << " (" << std::fixed << std::setprecision( 3 ) << x1 << " - " << x2 << ")min";
+            std::ostringstream text;
+            text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;
             adcontrols::ProcessMethod m;
-            ms->addDescription( adcontrols::description( { "create", o.str() } ) );
-            // ADDEBUG() << "================ " << __FUNCTION__ << " reader: " << reader->display_name() << ", desc: " << o.str();
+            ms->addDescription( adcontrols::description({"folium.create", text.str()}) );
             portfolio::Folium folium = dp->addSpectrum( ms, m );
         }
     }
@@ -509,26 +509,23 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 void
 document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterator iterator )
 {
+    using adcontrols::DataReader;
+
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
 
         if ( auto ms = reader->readSpectrum( iterator ) ) {
-
-            std::wostringstream text;
-            if ( iterator._fcn() < 0 )
-                text << boost::wformat ( L"%s %d @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
-                    % iterator->pos() % ( iterator->time_since_inject() );
-            else
-                text << boost::wformat ( L"%s %d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
-                    % iterator->pos() % ms->protocolId() % ms->nProtocols()
-                    % ( iterator->time_since_inject() );
-
+            std::ostringstream text;
+            if ( iterator._fcn() < 0 ) {
+                text << DataReader::abbreviated_name( reader->display_name() ) << boost::format ( " %.3fs" ) % iterator->time_since_inject();
+            } else {
+                text << DataReader::abbreviated_name( reader->display_name() )
+                     << boost::format ( " %.3fs p%d.%d " ) % iterator->time_since_inject() % ms->protocolId() % ms->nProtocols() ;
+            }
             adcontrols::ProcessMethod m;
-            ms->addDescription( adcontrols::description( L"create", text.str() ) );
-
+            ms->addDescription( adcontrols::description( {"folium.create", text.str() } ) );
 	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
                 portfolio::Folium folium = dp->addSpectrum( ms, m );
-
         }
 
     }

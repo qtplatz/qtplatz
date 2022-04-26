@@ -71,7 +71,7 @@ namespace acqrsinterpreter {
 
     // u5303a
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::value = "1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::display_name = "1.u5303a";
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::display_name = "avg.1.u5303a";
 
     // u5303a pkd
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform >, 1 >::value = "pkd.1.u5303a.ms-cheminfo.com";
@@ -79,12 +79,12 @@ namespace acqrsinterpreter {
 
     // soft counting
     template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::value = "timecount.1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::display_name = "timecount[u5303a]";
+    template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::display_name = "soft-tdc.1.u5303a";
 
     // ap240
     // "{76d1f823-2680-5da7-89f2-4d2d956149bd}"
     template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
-    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "1.ap240";
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "avg.1.ap240";
 
     // "{4f431f91-b08c-54ba-94f0-e1d13eba29d7}"
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > >::value = "timecount.1.ap240.ms-cheminfo.com";
@@ -244,25 +244,25 @@ namespace acqrsinterpreter {
     }
     //------------------ make_massspactrum visitor ----------------
 
-    //------------------ make_title visitor ----------------
-    struct make_title : public boost::static_visitor < std::wstring > {
-        std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
-            return ( boost::wformat( L"U5303A-T" ) ).str();
-        }
-        std::wstring operator()( std::shared_ptr< adcontrols::TimeDigitalHistogram> & ) const {
-            return ( boost::wformat( L"Histogram" ) ).str();
-        }
-        std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::waveform >& ) const {
-            return ( boost::wformat( L"U5303A-A" ) ).str();
-        }
-        std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::waveform >& ) const {
-            return ( boost::wformat( L"AP240-A" ) ).str();
-        }
-        std::wstring operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > & ) const {
-            return ( boost::wformat( L"AP240-T" ) ).str();
-        }
-    };
-    //------------------ make_title visitor ----------------
+    // //------------------ make_title visitor ----------------
+    // struct make_title : public boost::static_visitor < std::wstring > {
+    //     std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
+    //         return ( boost::wformat( L"U5303A-T" ) ).str();
+    //     }
+    //     std::wstring operator()( std::shared_ptr< adcontrols::TimeDigitalHistogram> & ) const {
+    //         return ( boost::wformat( L"Histogram" ) ).str();
+    //     }
+    //     std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::waveform >& ) const {
+    //         return ( boost::wformat( L"U5303A-A" ) ).str();
+    //     }
+    //     std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::waveform >& ) const {
+    //         return ( boost::wformat( L"AP240-A" ) ).str();
+    //     }
+    //     std::wstring operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > & ) const {
+    //         return ( boost::wformat( L"AP240-T" ) ).str();
+    //     }
+    // };
+    // //------------------ make_title visitor ----------------
 
     //------------------ waveforms_types --> any cast ---------------->>
     struct any_cast : public boost::static_visitor < boost::any > {
@@ -649,11 +649,11 @@ DataReader::loadTICs()
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
                     if ( pChro->size() == 0 ) {
-                        std::wstring title = boost::apply_visitor( make_title(), waveform );
-                        pChro->addDescription( adcontrols::description( L"title", title.c_str() ) );
+                        // auto ng title = boost::apply_visitor( make_title(), waveform );
+                        pChro->addDescription( adcontrols::description( { "dataReader", this->display_name() } ) );
                         adfs::stmt sql3( *db );
                         sql3.prepare( "UPDATE OR REPLACE AcquiredConf SET trace_display_name=? WHERE objuuid=?");
-                        sql3.bind( 1 ) = title;
+                        sql3.bind( 1 ) = this->display_name();
                         sql3.bind( 2 ) = objid_;
                         if ( sql3.step() != adfs::sqlite_done )
                             ADDEBUG() << "sqlite error " << sql2.errcode();
@@ -921,7 +921,8 @@ DataReader::getSpectrum( int64_t rowid ) const
                         }
                         // override elapsed_time (a.k.a. retention time)
                         ptr->getMSProperty().setTimeSinceInjection( elapsed_time );
-                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        // ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) ); // deprecated
+                        ptr->addDescription( adcontrols::description( {"dataReader", display_name()} ) );
                         ptr->setDataReaderUuid( objid_ );
                         ptr->setRowid( rowid );
 
@@ -978,7 +979,7 @@ DataReader::readSpectrum( const const_iterator& it ) const
                             ptr->getMSProperty().setInstMassRange( std::make_pair( lMass, uMass ) );
                             ptr->getMSProperty().setMassSpectrometerClsid( spectrometer_->massSpectrometerClsid() );
                         }
-                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        ptr->addDescription( adcontrols::description( {"dataReader", this->display_name()} ) );
                         ptr->setDataReaderUuid( objid_ );
                         ptr->setRowid( rowid );
 
@@ -1034,7 +1035,7 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 
                     if ( ptr->size() == 0 ) {
                         t0 = elapsed_time;
-                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        ptr->addDescription( adcontrols::description( {"dataReader", this->display_name()} ) );
                     }
 
                     double d = boost::apply_visitor( total_ion_count( time, width ), waveform );
@@ -1100,9 +1101,8 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                         ADDEBUG() << "T0=" << w->meta_.initialXOffset * 1.0e9 << "ns\tproto#=" << w->meta_.protocolIndex;
                     }
 #endif
-
                     if ( coadded[ proto ].first++ == 0 ) {
-                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        ptr->addDescription( adcontrols::description( {"dataReader", this->display_name()} ) );
                         boost::apply_visitor( coadd_initialize( coadded[ proto ].second ), waveform );
                     } else {
                         boost::apply_visitor( coadd_spectrum( coadded[ proto ].second ), waveform );
