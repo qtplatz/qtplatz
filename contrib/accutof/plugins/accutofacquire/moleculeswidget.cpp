@@ -286,23 +286,6 @@ MoleculesWidget::handleRowsRemoved(const QModelIndex&, int first, int last )
 }
 
 void
-MoleculesWidget::handlePolarity( adcontrols::ion_polarity )
-{
-    // if ( impl_->current_polarity_ != polarity ) {
-    //     impl_->current_polarity_ = polarity;
-
-    //     auto model = impl_->model_;
-
-    //     for ( int row = 0; row < model->rowCount(); ++row ) {
-    //         auto adducts = model->index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
-    //         model->setData( model->index( row, c_adducts ), adducts.get( polarity ) );
-    //         impl_->formulaChanged( row );
-    //     }
-    // }
-    // this->viewport()->repaint();
-}
-
-void
 MoleculesWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
 {
     impl_->massSpectrometer_ = p;

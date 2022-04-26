@@ -78,7 +78,6 @@ namespace accutof {
     private slots:
         void handleDataChanged( const QModelIndex&, const QModelIndex&, const QVector<int>& );
         void handleRowsRemoved( const QModelIndex&, int, int );
-        void handlePolarity( adcontrols::ion_polarity );
 
     private:
         class impl;
