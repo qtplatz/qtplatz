@@ -202,21 +202,19 @@ moltable::value_type::operator == ( const value_type& t ) const
 }
 
 std::string&
-moltable::value_type::adducts()
+moltable::value_type::adducts( ion_polarity pol )
 {
-    return std::get< polarity_positive >( adducts_ );
-    // return polarity_ == polarity_positive
-    //     ? std::get< polarity_positive >( adducts_ )
-    //     : std::get< polarity_negative >( adducts_ );
+    return pol == polarity_positive
+        ? std::get< polarity_positive >( adducts_ )
+        : std::get< polarity_negative >( adducts_ );
 }
 
 const std::string&
-moltable::value_type::adducts() const
+moltable::value_type::adducts( ion_polarity pol ) const
 {
-    return std::get< polarity_positive >( adducts_ );
-    // return polarity_ == polarity_positive
-    //     ? std::get< polarity_positive >( adducts_ )
-    //     : std::get< polarity_negative >( adducts_ );
+    return pol == polarity_positive
+        ? std::get< polarity_positive >( adducts_ )
+        : std::get< polarity_negative >( adducts_ );
 }
 
 bool

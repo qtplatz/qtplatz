@@ -306,7 +306,7 @@ MSSimulatorWidget::massSpectrum() const
         std::vector< adcontrols::mol::molecule > molecules;
         for ( auto& mol : m->molecules().data() ) {
             if ( mol.enable() ) {
-                auto molecule = adcontrols::ChemicalFormula::toMolecule( mol.formula(), mol.adducts() );
+                auto molecule = adcontrols::ChemicalFormula::toMolecule( mol.formula(), mol.adducts(m->molecules().polarity()) );
                 if ( m->chargeStateMin() == 0 ) {
                     adcontrols::isoCluster( abundance_threshold, m->resolvingPower() )( molecule, molecule.charge() );
                     molecules.emplace_back( molecule );

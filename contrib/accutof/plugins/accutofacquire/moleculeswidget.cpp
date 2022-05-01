@@ -25,6 +25,7 @@
 #include "moleculeswidget.hpp"
 #include <adwidgets/create_widget.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/isocluster.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/lapfinder.hpp>
@@ -136,7 +137,7 @@ MoleculesWidget::MoleculesWidget(QWidget *parent) : QWidget(parent)
         if ( auto table = findChild< adwidgets::MolTable * >() ) {
             connect( form, &MoleculesForm::polarityToggled, table, &adwidgets::MolTable::handlePolarity );
             connect( form, &MoleculesForm::dataChanged, [&](){
-                emit valueChanged ( QString::fromStdString( readJson() ) );
+                emit valueChanged ( QString::fromStdString( this->as_json() ) );
             });
         }
     }
@@ -206,51 +207,14 @@ MoleculesWidget::setContents( boost::any&& a )
     if ( auto table = findChild< adwidgets::MolTable * >() ) {
 
         if ( a.type() == typeid( std::string ) ) {
-            // adcontrols::moltable mols;
             auto json = boost::any_cast< std::string >( a );
-            if ( auto mols = json_to_moltable( json ) )
-                table->setContents( *mols );
-#if 0
             boost::system::error_code ec;
             auto jv = boost::json::parse( json, ec );
-            if ( !ec )  {
-                if ( jv.is_object() && jv.as_object().contains( "molecules" ) ) {
-
-                    auto ja = jv.as_object()[ "molecules" ].as_array();
-
-                    adcontrols::moltable::value_type mol;
-                    for ( const auto& ji: ja ) {
-                        for ( const auto& it: ji.as_object() ) {
-                            if ( it.key() == "smiles" ) {
-                                mol.smiles() = it.value().as_string().data();
-                            }
-                            if ( it.key() == "formula" ) {
-                                mol.formula() = it.value().as_string().data();
-                            }
-                            if ( it.key() == "adducts" ) {
-                                mol.adducts() = it.value().as_string().data();
-                            }
-                            if ( it.key() == "enable" ) {
-                                mol.enable() = it.value().as_bool();
-                            }
-                            if ( it.key() == "synonym" ) {
-                                mol.synonym() = it.value().as_string().data();
-                            }
-                            if ( it.key() == "mass" ) {
-                                mol.mass() = it.value().as_double();
-                            }
-                        }
-                        mols << mol;
-                    }
-                }
-                ADDEBUG() << "----------- set " << mols.data().size() << " molecules";
+            if ( !ec ) {
+                auto mols = boost::json::value_to< adcontrols::moltable >( jv );
                 table->setContents( mols );
                 return true;
-            } else {
-                ADDEBUG() << "error: json.parse() : " << ec.message() << "\n"
-                          << json;
             }
-#endif
         }
     }
     return false;
@@ -274,7 +238,7 @@ MoleculesWidget::handleDataChanged(const QModelIndex& topLeft, const QModelIndex
 
          ( topLeft.column() != adwidgets::MolTable::c_mass ) ) {
 
-        emit valueChanged ( QString::fromStdString( readJson() ) );
+        emit valueChanged ( QString::fromStdString( as_json() ) );
     }
 }
 
@@ -282,7 +246,7 @@ void
 MoleculesWidget::handleRowsRemoved(const QModelIndex&, int first, int last )
 {
     ADDEBUG() << "handleRowsRemoved: " << std::make_pair( first, last );
-    emit valueChanged ( QString::fromStdString( readJson() ) );
+    emit valueChanged ( QString::fromStdString( as_json() ) );
 }
 
 void
@@ -306,78 +270,15 @@ MoleculesWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpe
 }
 
 std::string
-MoleculesWidget::readJson() const
+MoleculesWidget::as_json() const
 {
     using adwidgets::MolTable;
 
     if ( auto table = findChild< adwidgets::MolTable *>() ) {
-
-        if ( auto model = table->model() ) {
-            boost::json::array ja;
-
-            for ( size_t row = 0; row < model->rowCount(); ++row ) {
-                auto formula = model->index( row, MolTable::c_formula ).data( Qt::EditRole ).toString();
-                if ( ! formula.isEmpty() ) {
-                    bool enable = model->index( row, MolTable::c_formula ).data( Qt::CheckStateRole ).toInt() == Qt::Checked;
-                    double mass = model->index( row, MolTable::c_mass ).data( Qt::EditRole ).toDouble();
-                    ja.emplace_back(
-                        boost::json::object{
-                            {   "formula", formula.toStdString() }
-                            , { "enable", enable }
-                            , { "mass", mass }
-                            , { "synonym", model->index( row, MolTable::c_synonym ).data( Qt::EditRole ).toString().toStdString() }
-                            , { "smiles",  model->index( row, MolTable::c_smiles ).data( Qt::EditRole ).toString().toStdString() }
-                            , { "adducts", model->index( row, MolTable::c_adducts ).data( Qt::EditRole ).toString().toStdString() }
-                        });
-                }
-            }
-
-            // ADDEBUG() << "readJson -- rowCount: " << model->rowCount() << "--> size: " << ja.size();
-            auto json = boost::json::serialize( boost::json::value{{ "molecules", ja }} );
-            return json;
-        }
-    }
-    return {};
-}
-
-boost::optional< adcontrols::moltable >
-MoleculesWidget::json_to_moltable( const std::string& json )
-{
-    adcontrols::moltable mols;
-
-    boost::system::error_code ec;
-    auto jv = boost::json::parse( json, ec );
-    if ( !ec )  {
-        if ( jv.is_object() && jv.as_object().contains( "molecules" ) ) {
-
-            auto ja = jv.as_object()[ "molecules" ].as_array();
-
-            adcontrols::moltable::value_type mol;
-            for ( const auto& ji: ja ) {
-                for ( const auto& it: ji.as_object() ) {
-                    if ( it.key() == "smiles" ) {
-                        mol.smiles() = it.value().as_string().data();
-                    }
-                    if ( it.key() == "formula" ) {
-                        mol.formula() = it.value().as_string().data();
-                    }
-                    if ( it.key() == "adducts" ) {
-                        mol.adducts() = it.value().as_string().data();
-                    }
-                    if ( it.key() == "enable" ) {
-                        mol.enable() = it.value().as_bool();
-                    }
-                    if ( it.key() == "synonym" ) {
-                        mol.synonym() = it.value().as_string().data();
-                    }
-                    if ( it.key() == "mass" ) {
-                        mol.mass() = it.value().as_double();
-                    }
-                }
-                mols << mol;
-            }
-        }
-        return mols;
+        adcontrols::moltable mols;
+        table->getContents( mols );
+        auto jv = boost::json::value_from( mols );
+        return boost::json::serialize( jv ); // boost::json::value{{ "molecules", ja }} );
     }
     return {};
 }

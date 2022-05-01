@@ -64,8 +64,8 @@ namespace accutof {
         //
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
-        std::string readJson() const;
-        static boost::optional< adcontrols::moltable > json_to_moltable( const std::string& json );
+        std::string as_json() const;
+        // static boost::optional< adcontrols::moltable > json_to_moltable( const std::string& json );
 
     signals:
         void valueChanged( const QString& json );

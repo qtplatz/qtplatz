@@ -713,11 +713,17 @@ WaveformWnd::handleScaleY( int which, bool autoScale, double top, double bottom 
 void
 WaveformWnd::handleMolecules( const QString & json )
 {
-    if ( auto mols = MoleculesWidget::json_to_moltable( json.toStdString() ) ) {
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( json.toStdString(), ec );
+    if ( !ec ) {
+        auto mols = boost::json::value_to< adcontrols::moltable >( jv );
+    // }
+
+    // if ( auto mols = MoleculesWidget::json_to_moltable( json.toStdString() ) ) {
         // for ( auto& mol: mols->data() ) {
         //     ADDEBUG() << "mol.formula: " << mol.formula() << ", " << mol.mass();
         // }
-        while ( tof_markers_.size() < mols->data().size() ) {
+        while ( tof_markers_.size() < mols.data().size() ) {
             tof_markers_.emplace_back( std::make_unique< QwtPlotMarker >() );
             auto& marker = tof_markers_.back();
             marker->attach( spw_ );
@@ -728,7 +734,7 @@ WaveformWnd::handleMolecules( const QString & json )
         }
 
         size_t i(0);
-        for ( const auto& mol: mols->data() ) {
+        for ( const auto& mol: mols.data() ) {
             if ( spw_->axis() == adplot::SpectrumWidget::HorizontalAxisMass ) {
                 tof_markers_[i]->setXValue( mol.mass() );
             } else {
@@ -746,8 +752,8 @@ WaveformWnd::handleMolecules( const QString & json )
             tof_markers_[i]->setVisible( mol.enable() );
             ++i;
         }
-        if ( tof_markers_.size() > mols->data().size() ) {
-            std::for_each( tof_markers_.begin() + mols->data().size(), tof_markers_.end()
+        if ( tof_markers_.size() > mols.data().size() ) {
+            std::for_each( tof_markers_.begin() + mols.data().size(), tof_markers_.end()
                            , []( const auto& marker ){ marker->setVisible( false ); });
         }
         spw_->replot();

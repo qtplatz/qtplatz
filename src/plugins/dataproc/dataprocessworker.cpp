@@ -498,7 +498,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                 double tR = *mol.tR();
                 adcontrols::moltable mtab;
                 mtab << mol;
-                tgtm.setMolecules( mtab, mol.adducts() );
+                tgtm.setMolecules( mtab, mol.adducts( mtab.polarity() ) );
                 tmp *= tgtm; // add/replace target method.
                 double pkw = cm.peakWidthForChromatogram();
 

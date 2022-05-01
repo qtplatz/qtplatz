@@ -743,7 +743,7 @@ MolTableView::handlePaste()
                     }
                     SetData assign( [&]( auto field ){ return impl_->findColumnState( field ); } );
                     assign( *model, row, ColumnState::f_formula,     QString::fromStdString( mol.formula() ), mol.enable() );
-                    assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts() ) );
+                    assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts<adcontrols::polarity_positive>() ) );
                     assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
                     assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
                     assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
@@ -866,7 +866,7 @@ MolTableView::setContents( const adcontrols::moltable& mols )
 
     for ( const auto& mol: mols.data() ) {
         assign( *model(), row, ColumnState::f_formula, mol.formula().c_str(), mol.enable() );
-        assign( *model(), row, ColumnState::f_adducts, mol.adducts().c_str() );
+        assign( *model(), row, ColumnState::f_adducts, mol.adducts<adcontrols::polarity_positive>().c_str() );
         assign( *model(), row, ColumnState::f_mass,    mol.mass() );
         assign( *model(), row, ColumnState::f_abundance, mol.abundance() );
         assign( *model(), row, ColumnState::f_description, mol.description().c_str() );
@@ -897,7 +897,7 @@ MolTableView::getContents( adcontrols::moltable& mols ) const
                 mol.enable() = index.data( Qt::CheckStateRole ).value< Qt::CheckState >() == Qt::Checked;
                 break;
             case ColumnState::f_adducts:
-                mol.adducts() = index.data( Qt::EditRole ).toString().toStdString();
+                mol.adducts( mols.polarity() ) = index.data( Qt::EditRole ).toString().toStdString();
                 break;
             case ColumnState::f_mass:
                 mol.mass() =  index.data( Qt::EditRole ).toDouble();

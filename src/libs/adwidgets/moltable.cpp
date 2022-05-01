@@ -276,6 +276,7 @@ MolTable::getContents( adcontrols::moltable& m )
     auto model = impl_->model_;
 
     m.data().clear();
+    m.setPolarity( impl_->current_polarity_ );
 
     for ( int row = 0; row < model->rowCount(); ++row ) {
         auto formula = model->index( row, index_of< col_formula, column_list >::value ).data( Qt::EditRole ).toString().toStdString();

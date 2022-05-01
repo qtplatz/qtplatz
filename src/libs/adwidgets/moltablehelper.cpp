@@ -188,7 +188,6 @@ namespace adwidgets {
 
         template<> void __assign( moltable::col_formula&, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_formula\t" << std::make_pair( index.row(), index.column() ) << index.data().value< col_formula::value_type >().toStdString();
             value.formula() = index.data().value< col_formula::value_type >().toStdString();
             value.enable() = index.data( Qt::CheckStateRole ).toBool();
         }
@@ -198,20 +197,18 @@ namespace adwidgets {
             // ADDEBUG() << "col_adducts\t" << std::make_pair( index.row(), index.column() );
             auto v = index.data( Qt::UserRole + 1 );
             if ( v.canConvert< adducts_type >() )
-                value.adducts_ = v.value< adducts_type >().adducts; // pos, neg pair
+                value.adducts_ = v.value< adducts_type >().adducts; // std::tuple< pos, neg >
             else
-                value.adducts() = index.data().value< col_adducts::value_type >().toStdString(); // handle as positive ion
+                value.adducts<adcontrols::polarity_positive>() = index.data().value< col_adducts::value_type >().toStdString(); // handle as positive ion
         }
 
         template<> void __assign( moltable::col_mass& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_mass\t" << std::make_pair( index.row(), index.column() );
             value.mass() = index.data().value< col_mass::value_type >();
         }
 
         template<> void __assign( moltable::col_retentionTime& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_retentionTime\t" << std::make_pair( index.row(), index.column() ) << ", value=" << index.data().value< col_retentionTime::value_type >();
             if ( index.data().isValid() && index.data().value< col_retentionTime::value_type >() > 0 )
                 value.set_tR( index.data().value< col_retentionTime::value_type >() );
             else
@@ -220,37 +217,31 @@ namespace adwidgets {
 
         template<> void __assign( moltable::col_msref& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_msref\t" << std::make_pair( index.row(), index.column() );
             value.setIsMSRef( index.data().value< col_msref::value_type >() );
         }
 
         template<> void __assign( moltable::col_protocol& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_protocol\t" << std::make_pair( index.row(), index.column() );
             value.setProtocol( index.data().value< col_protocol::value_type >() );
         }
 
         template<> void __assign( moltable::col_synonym& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_synonym\t" << std::make_pair( index.row(), index.column() );
             value.synonym() = index.data().value< col_synonym::value_type >().toStdString();
         }
 
         template<> void __assign( moltable::col_memo& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_memo\t" << std::make_pair( index.row(), index.column() );
             value.description() = index.data().value< col_memo::value_type >().toStdWString();
         }
 
         template<> void __assign( moltable::col_smiles& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_smiles\t" << std::make_pair( index.row(), index.column() );
             value.smiles() = index.data().value< col_smiles::value_type >().toStdString();
         }
 
         template<> void __assign( moltable::col_abundance& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            // ADDEBUG() << "col_abundance\t" << std::make_pair( index.row(), index.column() );
             value.abundance() = index.data().value< col_abundance::value_type >();
         }
 

@@ -367,6 +367,8 @@ Targeting::setup( const TargetingMethod& m )
     auto charge_range = m.chargeState();
     std::vector< std::string > addlose_global;
 
+    const auto pol = m.molecules().polarity();
+
     ADDEBUG() << "====== targeting setup ====== polarity ? "
               << (m.molecules().polarity() == polarity_positive ? "positive\t" : "negative\tcharge range: ")
               << charge_range;
@@ -382,11 +384,11 @@ Targeting::setup( const TargetingMethod& m )
         if ( x.enable() ) {
 
             // if moltable has a designated adduct
-            if ( !std::string( x.adducts() ).empty() ) {
+            if ( !std::string( x.adducts(pol) ).empty() ) {
 
-                auto formula = x.formula() + x.adducts();
+                auto formula = x.formula() + x.adducts(pol);
                 double mass; int scharge;
-                std::tie( mass, scharge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts() ), 0 );
+                std::tie( mass, scharge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts(pol) ), 0 );
                 impl_->active_formula_.emplace_back( formula, mass, scharge, x.formula(), x.synonym() );
 
             } else {

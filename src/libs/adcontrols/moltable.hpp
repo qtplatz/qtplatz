@@ -70,9 +70,13 @@ namespace adcontrols {
             double& mass()                     { return mass_; }
             double& abundance()                { return abundance_; }
             std::string& formula()             { return formula_; }
-            std::string& adducts();
+            std::tuple< std::string, std::string >& adducts()               { return adducts_; }
+            const std::tuple< std::string, std::string >& adducts() const   { return adducts_; }
+
             template< ion_polarity pol > std::string& adducts()             { return std::get< pol >( adducts_ ); };
             template< ion_polarity pol > const std::string& adducts() const { return std::get< pol >( adducts_ ); };
+            std::string& adducts( ion_polarity );
+            const std::string& adducts( ion_polarity ) const;
             std::string& synonym()             { return synonym_; }
             std::string& smiles()              { return smiles_; }
             std::wstring& description()        { return description_; }
@@ -81,7 +85,7 @@ namespace adcontrols {
             double mass() const                { return mass_; }
             double abundance() const           { return abundance_; }
             const std::string& formula() const { return formula_; }
-            const std::string& adducts() const;
+
             const std::string& synonym() const { return synonym_; }
             const std::string& smiles() const  { return smiles_; }
             const std::wstring& description() const { return description_; }
