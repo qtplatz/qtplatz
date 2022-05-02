@@ -92,28 +92,28 @@ namespace acqrscontrols {
 
     //////////////////////////////////////////////////
     //////////// U5303A
-    template<>
+    template<> DECL_EXPORT
     uint64_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::elapsed_time() const
     {
         return uint64_t( (*it_)->meta_.initialXTimeSeconds * 1.0e9 );
     }
 
-    template<>
+    template<> DECL_EXPORT
     uint64_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::epoch_time() const
     {
         return (*it_)->timeSinceEpoch_;
     }
 
-    template<>
+    template<> DECL_EXPORT
     uint64_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::pos() const
     {
         return (*it_)->serialnumber_;
     }
 
-    template<>
+    template<> DECL_EXPORT
     uint32_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::fcn() const
     {
@@ -121,7 +121,7 @@ namespace acqrscontrols {
         return idx;
     }
 
-    template<>
+    template<> DECL_EXPORT
     uint32_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::events() const
     {
@@ -129,7 +129,7 @@ namespace acqrscontrols {
         return (*it_)->wellKnownEvents_;
     }
 
-    template<>
+    template<> DECL_EXPORT
     size_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::xdata( std::string& ar ) const
     {
@@ -139,7 +139,7 @@ namespace acqrscontrols {
         return ar.size();
     }
 
-    template<>
+    template<> DECL_EXPORT
     size_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::xmeta( std::string& ar ) const
     {

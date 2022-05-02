@@ -31,6 +31,8 @@
 
 namespace acqrscontrols {
 
+    class ACQRSCONTROLSSHARED_EXPORT softaveraged_waveform_accessor;
+
     class softaveraged_waveform_accessor : public adacquire::SignalObserver::DataAccess {
         std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > >::iterator it_;
         softaveraged_waveform_accessor( const softaveraged_waveform_accessor& ) = delete;
@@ -92,11 +94,10 @@ namespace acqrscontrols {
             return (*it_)->serialize_xdata( ar );
         }
         size_t xmeta( std::string& ar ) const override {
-            return (*it_)->serialize_xmeta( ar );    
+            return (*it_)->serialize_xmeta( ar );
         }
 
         std::vector< std::shared_ptr< const waveform_type > > avgd;
     };
-    
-}
 
+}

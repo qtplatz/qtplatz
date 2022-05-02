@@ -1,2 +1,4 @@
 
-add_subdirectory( accutofacquire )
+if (NOT WIN32)
+  add_subdirectory( accutofacquire )
+endif()

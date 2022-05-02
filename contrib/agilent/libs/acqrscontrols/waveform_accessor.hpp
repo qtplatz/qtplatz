@@ -53,7 +53,7 @@ namespace acqrscontrols {
 
         // local impl
         std::shared_ptr< const T > data() { return *it_; }
-        
+
         std::vector< std::shared_ptr< const T > > list;
 
     private:

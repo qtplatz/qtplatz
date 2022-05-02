@@ -25,6 +25,7 @@
 #ifndef MOLTABLE_HPP
 #define MOLTABLE_HPP
 
+#include "adwidgets_global.hpp"
 #include "tableview.hpp"
 #include "moltablecolumns.hpp"
 #include <adcontrols/constants_fwd.hpp>
@@ -38,6 +39,8 @@ namespace adcontrols { class moltable; }
 namespace adwidgets {
 
     using namespace moltable; // moltablecolumns
+
+    class ADWIDGETSSHARED_EXPORT  MolTable;
 
     class MolTable : public TableView  {
         Q_OBJECT

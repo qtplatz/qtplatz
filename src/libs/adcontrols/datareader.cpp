@@ -26,6 +26,7 @@
 #include "datareader.hpp"
 #include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>

@@ -29,6 +29,8 @@ namespace acqrscontrols {
 
     template< typename T > class ACQRSCONTROLSSHARED_EXPORT waveform_accessor_;
 
+    class ACQRSCONTROLSSHARED_EXPORT pkd_counting_data_writer;
+
     class pkd_counting_data_writer : public adacquire::SignalObserver::DataWriter {
     public:
         pkd_counting_data_writer( std::shared_ptr< acqrscontrols::waveform_accessor_< acqrscontrols::u5303a::waveform > > a );
