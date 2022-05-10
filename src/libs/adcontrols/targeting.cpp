@@ -81,14 +81,20 @@ namespace adcontrols {
 
         std::string to_addlose_string( std::pair< mol::molecule, mol::molecule >&& addlose, int scharge ) {
             std::ostringstream o;
-            if ( ! std::get< 0 >( addlose ).elements().empty() ) {
-                if ( std::get< 1 >( addlose ).elements().empty() )
-                    o << "+[" << std::get< 0 >( addlose ).formula( false ) << "]";
+            if ( !std::get< 0 >( addlose ).elements().empty() ) { // has adduct
+                const auto& add = std::get< 0 >( addlose );
+                if ( std::get< 1 >( addlose ).elements().empty() ) // without loss
+                    o << "+[" << add.formula( false ) << "]";
                 else
-                    o << "+" << std::get< 0 >( addlose ).formula( false );
+                    o << "+" << add.formula( false );
             }
-            if ( ! std::get< 1 >( addlose ).elements().empty() ) {
-                o << "-[" << std::get< 1 >( addlose ).formula( false ) << "]";
+            if ( !std::get< 1 >( addlose ).elements().empty() ) { // has loss
+                const auto& loss = std::get< 1 >( addlose );
+                if ( (scharge < 0 ) && ( loss.elements().size() == 1 && loss.elements().at( 0 ).atomicNumber() == 1 ) ) { // H
+                    // -H --> -[H]+ to handle polarity appropriately in ChemicalFormula class
+                    scharge = (-scharge);
+                }
+                o << "-[" << loss.formula( false ) << "]";
             }
             if ( std::abs( scharge ) > 1 )
                 o << std::abs( scharge );
@@ -369,9 +375,9 @@ Targeting::setup( const TargetingMethod& m )
 
     const auto pol = m.molecules().polarity();
 
-    ADDEBUG() << "====== targeting setup ====== polarity ? "
-              << (m.molecules().polarity() == polarity_positive ? "positive\t" : "negative\tcharge range: ")
-              << charge_range;
+    // ADDEBUG() << "====== targeting setup ====== polarity ? "
+    //           << (m.molecules().polarity() == polarity_positive ? "positive\t" : "negative\tcharge range: ")
+    //           << charge_range;
 
     for ( auto& a: m.adducts( m.molecules().polarity() ) ) {
         if ( a.first ) {
@@ -395,7 +401,7 @@ Targeting::setup( const TargetingMethod& m )
 
                 for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
                     int scharge = m.molecules().polarity() == polarity_positive ? charge : -static_cast<int>(charge);
-                    for ( const auto& addlose: targeting::make_combination( charge, addlose_global, m.molecules().polarity() ) ) {
+                    for ( const auto& addlose: targeting::make_combination( charge, addlose_global, pol ) ) {
                         auto formula = x.formula() + addlose;
                         impl_->active_formula_.emplace_back(
                             formula
@@ -403,7 +409,7 @@ Targeting::setup( const TargetingMethod& m )
                             , scharge
                             , x.formula()
                             , x.synonym() );
-                        ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back();
+                        ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back() << " addlose: " << addlose;
                     }
                 }
             }

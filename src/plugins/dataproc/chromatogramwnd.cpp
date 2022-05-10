@@ -306,7 +306,8 @@ void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
-                                  , std::shared_ptr< adcontrols::Chromatogram > >;
+                                  , std::shared_ptr< adcontrols::Chromatogram >
+                                  , std::shared_ptr< adcontrols::MassSpectrum > >;
 
     if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( folium )) ) {
         boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), *var );  // draw data
