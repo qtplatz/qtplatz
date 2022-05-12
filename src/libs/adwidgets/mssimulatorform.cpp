@@ -377,7 +377,7 @@ namespace adwidgets {
                 label_5->setAlignment(Qt::AlignCenter);
 
                 spinBox_lap = add_widget( gridLayout_2, create_widget< QSpinBox >("spinBox_lap", groupBox), 3, 1, 1, 1 );
-                spin_init( spinBox_lap, std::make_tuple( Maximum{9999},Alignment{Qt::AlignRight} ) );
+                spin_init( spinBox_lap, std::make_tuple( Maximum<>{9999},Alignment{Qt::AlignRight} ) );
                 spinBox_lap->setEnabled(false);
 
                 if (( doubleSpinBox_3 = add_widget( gridLayout_2, create_widget< QDoubleSpinBox >("doubleSpinBox_3", groupBox), 0, 1, 1, 1 ) )) {

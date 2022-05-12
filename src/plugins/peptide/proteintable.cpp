@@ -90,7 +90,7 @@ namespace peptide {
                 document.drawContents( painter, clip );
                 painter->restore();
             }
-            
+
         };
 
     }
@@ -126,7 +126,7 @@ ProteinTable::init( QStandardItemModel& model )
 }
 
 void
-ProteinTable::setData( const adprot::protfile& file ) 
+ProteinTable::setData( const adprot::protfile& file )
 {
     QStandardItemModel& model = *model_;
 
@@ -173,13 +173,13 @@ ProteinTable::selectionChanged( const QItemSelection& selected, const QItemSelec
 	QTableView::selectionChanged( selected, deselected );
 
     QModelIndexList list = selectionModel()->selectedIndexes();
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 	std::set<int> uniq;
-    for ( auto index: list ) 
+    for ( auto index: list )
 		uniq.insert( index.row() );
-	
+
 	QVector<int> rows;
 	for ( auto row: uniq )
 		rows.push_back( row );
@@ -206,7 +206,7 @@ ProteinTable::handleCopyToClipboard()
     QStandardItemModel& model = *model_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 

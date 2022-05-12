@@ -82,13 +82,13 @@ namespace adwidgets {
             }
         }
     signals:
-            
+
     public slots:
     };
 
 }
 
-using namespace adwidgets; 
+using namespace adwidgets;
 
 
 TOFTable::TOFTable(QWidget *parent) : TableView(parent)
@@ -105,7 +105,7 @@ void
 TOFTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
-    
+
     model.setColumnCount( c_toftable_num_columns );
 
     model.setHeaderData( c_toftable_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
@@ -164,7 +164,7 @@ TOFTable::handleCopyToClipboard()
     QStandardItemModel& model = *model_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
-    qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 

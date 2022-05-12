@@ -224,7 +224,7 @@ namespace adwidgets {
                     if (( doubleSpinBox = add_widget( gridLayout, create_widget< QDoubleSpinBox >("doubleSpinBox", groupBox)
                                                       , std::get<0>(xy), std::get<1>(xy)++, 1, 1 ) )) {
                         spin_init( doubleSpinBox
-                                   , std::make_tuple( Decimals{1}, Minimum<>{0.1}, Maximum<>{1000.0}, SingleStep{1.0}, Alignment{ Qt::AlignRight } ) );
+                                   , std::make_tuple( Decimals{1}, Minimum<>{0.1}, Maximum<>{1000.0}, SingleStep<>{1.0}, Alignment{ Qt::AlignRight } ) );
                         // doubleSpinBox->setAlignment( Qt::AlignRight );
                     }
 
@@ -263,7 +263,7 @@ namespace adwidgets {
 
                         if (( doubleSpinBox_2 = add_widget( gridLayout_4, create_widget< QDoubleSpinBox >("doubleSpinBox_2", groupBoxAutoTargeting ), 0, 1, 1, 1 ) )) {
                             spin_init( doubleSpinBox_2
-                                       , std::make_tuple( Decimals{3}, Minimum<>{0.001}, Maximum<>{10.0}, SingleStep<>{0.1}, Value{2.0} ) );
+                                       , std::make_tuple( Decimals{3}, Minimum<>{0.001}, Maximum<>{10.0}, SingleStep<>{0.1}, Value<>{2.0} ) );
                         }
                     }
                 }
