@@ -165,6 +165,13 @@ namespace chemistry {
         , { R"(OC(=O)CCC\C=C1\C[C@@H]2[C@@H](/C=C/[C@@H](O)CCCCC)[C@H](O)C[C@@H]2O1)", { "PGI2", "Prostacyclin" } }
         , { R"(CCCCC[C@@H](/C=C/[C@@H]1[C@H]([C@@H]2C[C@@H](O2)O1)C/C=C\CCCC(=O)O)O)", { "Thromboxane A2", "TXA2" } }
         , { R"(CCCCC[C@H](O)\C=C\[C@H]1OC(O)C[C@H](O)[C@@H]1C\C=C/CCCC(O)=O)", { "Thrombxane B2", "TXB2" } }
+	, { R"(CCOC(=O)c1ccccc1C(=O)OCC)", { "DEP" } } // 223
+	, { R"(CCCOC(=O)c1ccccc1C(=O)OCCC)", { "dipropylpthalate" } } //
+	, { R"(CCCCOC(=O)c1ccccc1C(=O)OCCCC)", { "DBP" } } //
+	, { R"(CCCCCOC(=O)c1ccccc1C(=O)OCCCCC)", { "Di-n-pentyl pthalate" } } // 
+	, { R"(CCCCOC(=O)c1ccccc1C(=O)OCc2ccccc2)", { "BBP", "benzylbutyl pthalate" } } //
+	, { R"(c1ccc(c(c1)C(=O)OC2CCCCC2)C(=O)OC3CCCCC3)", { "dicycrohexyl pthalate" } } //
+	, { R"(CCCCCCOC(=O)c1ccccc1C(=O)OCCCCCC)", { "DHP" } } //
     };
 
 }
