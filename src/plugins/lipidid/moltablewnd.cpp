@@ -120,7 +120,7 @@ MolTableWnd::model()
 void
 MolTableWnd::setQuery( const QString& sqlstmt )
 {
-    // ADTRACE() << "setQuery: " << sqlstmt.toStdString();
+    ADTRACE() << "setQuery: " << sqlstmt.toStdString();
     if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
 
         QSqlQuery query( sqlstmt, document::instance()->sqlDatabase() );

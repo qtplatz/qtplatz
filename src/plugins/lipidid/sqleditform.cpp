@@ -85,7 +85,7 @@ SqlEditForm::SqlEditForm(QWidget *parent) : QWidget(parent)
 
             if ( auto button = new QPushButton( "Execute Query" ) ) {
                 toolBarLayout->addWidget( button );
-                connect( button, &QPushButton::pressed, this, [&]{ emit triggerQuery( editor->toPlainText() ); } );
+                connect( button, &QPushButton::pressed, this, [editor,this]{ emit triggerQuery( editor->toPlainText() ); } );
             }
             vLayout->addWidget( toolBar );
         }
