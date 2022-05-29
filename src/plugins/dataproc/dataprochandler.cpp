@@ -53,6 +53,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/polfit.hpp>
+#include <adportable/debug.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adlog/logger.hpp>
 #include <chromatogr/chromatography.hpp>

@@ -31,6 +31,7 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adplot/constants.hpp>
+#include <adportable/debug.hpp>
 
 namespace chromatogr {
 
@@ -137,6 +138,8 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
 
 	integrator.timeOffset( c.minimumTime() );
 	const size_t nSize = c.size();
+
+    // ADDEBUG() << "findPeaks size: " << nSize << ", constant sampled: " << c.isConstantSampledData();
 
     if ( c.isConstantSampledData() ) {
         double t = 0;

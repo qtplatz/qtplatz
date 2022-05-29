@@ -45,7 +45,7 @@ namespace adportable {
                                         , boost::numeric::ublas::vector<double>& yxSum
                                         , boost::numeric::ublas::matrix<double>& a
                                         , boost::numeric::ublas::vector<double>& b );
-	
+
         static void normalCoefficients( size_t count
                                         , const double* x, const double * y, int degree
                                         , boost::numeric::ublas::matrix<double>& a
@@ -59,7 +59,7 @@ using namespace adportable;
  * Reference for polfit() and determ();
  *  Pages 140-, 293-
  *  Data Reduction and Error Analysis for the Physical Sciences.
- *  Philip R. Bevington, McGraw-Hill Book Company, 1969 
+ *  Philip R. Bevington, McGraw-Hill Book Company, 1969
 */
 
 /*
@@ -114,7 +114,7 @@ using namespace adportable;
 //==============================================================================
 
 
-double 
+double
 internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **a, int n)
 {
     int i,j,j1,j2;
@@ -122,7 +122,7 @@ internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **
     // double ** m = 0;
     boost::numeric::ublas::matrix< double > m( n, n );
 
-    if (n < 1) { 
+    if (n < 1) {
         /* Error */
     } else if (n == 1) { /* Shouldn't get used */
         det = a(0, 0); //[0][0];
@@ -159,9 +159,9 @@ polfit::fit( const double *x
     int i, j, k, l, n;
     const int nmax = 2 * nterms - 1;
     std::vector<double> sumx(nmax), sumy(nterms);
-    boost::numeric::ublas::matrix< double > array( nterms, nterms );    
+    boost::numeric::ublas::matrix< double > array( nterms, nterms );
 
-    polynomial.clear(); 
+    polynomial.clear();
 
     memset( &sumx[0], 0, sizeof(double) * sumx.size() );
     memset( &sumy[0], 0, sizeof(double) * sumy.size() );
@@ -251,7 +251,7 @@ polfit::polfit()
 {
 }
 
-////////////////////// 
+//////////////////////
 // Calculate n + 1 equeations from given x, y data
 // Compute the coefficients for these equations
 /////
@@ -259,8 +259,8 @@ polfit::polfit()
 void
 internal::normalCoefficients( size_t npts
                            , const double * xArray
-                           , const double * yArray 
-                           , int degree	// degree of polynomial 
+                           , const double * yArray
+                           , int degree	// degree of polynomial
                            , boost::numeric::ublas::vector<double>& xSum
                            , boost::numeric::ublas::vector<double>& yxSum
                            , boost::numeric::ublas::matrix<double>& a			// 2 dimentional array for the a's.
@@ -280,7 +280,7 @@ internal::normalCoefficients( size_t npts
 	for ( i = 0; i < npts; i++ )	{
 		double x = xArray[i];
 		double y = yArray[i];
-		
+
 		double lastx = 1.0;
 		int j;
         for ( j = 0; j < n; j++ )		{
@@ -306,8 +306,8 @@ internal::normalCoefficients( size_t npts
 void
 internal::normalCoefficients(size_t count
                            , const double* xArray
-                           , const double* yArray 
-                           , int degree	// degree of polynomial  
+                           , const double* yArray
+                           , int degree	// degree of polynomial
                            , boost::numeric::ublas::matrix<double>& a			// 2 dimentional array for the a's.
                            , boost::numeric::ublas::vector<double>& b )		// 1 dimentional array for the b's, the right hand side.
 {
@@ -345,9 +345,10 @@ polfit::fit( const double* x, const double* y, size_t npts, int nterms, std::vec
 	}
 
     coeffs.clear();
-    for ( int i = 0; i < nterms; ++i )
+    for ( int i = 0; i < nterms; ++i ) {
         coeffs.push_back( b[i] );
-	
+    }
+
 	return true;
 }
 
@@ -371,4 +372,3 @@ polfit::standard_error( const double* x, const double* y, size_t npts, const std
     }
     return std::sqrt( sdd );
 }
-
