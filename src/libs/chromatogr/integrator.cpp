@@ -43,11 +43,11 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/moment.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/sgfilter.hpp>
-#include <adportable/float.hpp>
 #include <boost/bind.hpp>
 #include <boost/numeric/interval.hpp>
 
@@ -366,6 +366,13 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
     impl_->rejectPeaks( mth );
     peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
+#if ! defined NDEBUG
+    ADDEBUG() << "Integrator::close -- found peaks";
+	for ( const auto& pk: impl_->peaks_ ) {
+        ADDEBUG() << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+    }
+#endif
+
     impl_->updatePeakParameters( mth );
 
     peaks = impl_->peaks_;
@@ -421,9 +428,8 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
     using adcontrols::Peak;
 
     long id = 0;
-    for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
+    for ( auto& pk: peaks_ ) {
 
-        Peak& pk = *it;
         pk.setPeakId( id++ );
 
         peakHelper::tRetention_lsq( rdata_, pk ) || peakHelper::tRetention_moment( rdata_, pk );
@@ -497,8 +503,8 @@ Integrator::impl::pkfind( long pos, double df1, double )
         if ( zc_ > count && stf_ != PEAK_STATE_BASELINE )
             stf_ = PEAK_STATE_BASELINE;
     }
-#if defined _DEBUG
-    outf_ << pos << ",\t" << uc_ << ",\t" << dc_ << ",\t" << zc_ << ",\t" << rdata_.getIntensity( pos ) << ",\t" << df1 << std::endl;
+#if defined _DEBUG // || 1
+    ADDEBUG() << std::make_tuple(pos, rdata_.getTime(pos)) << ",\t" << uc_ << ",\t" << dc_ << ",\t" << zc_ << ",\t" << rdata_.getIntensity( pos ) << ",\t" << df1;
 #endif
 
     if ( stf_ != prev_stf ) {
@@ -563,7 +569,7 @@ Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
 
-#if defined _DEBUG
+#if defined _DEBUG // || 1
     std::string s;
     for (int i = 0; i < int(stack_.size()); ++i) {
         if (stack_[i] == PKVAL)
@@ -575,7 +581,7 @@ Integrator::impl::pkreduce()
 		if (stack_[i] == PKBAS)
 			s += "B";
 	}
-    outf_ << "pkreduce: stack [" << s << "]" << std::endl;
+    ADDEBUG() << "pkreduce: stack [" << s << "]";
 #endif
 
 	if (stack_.size() <= 1)	 {		/* stack empty */
@@ -869,8 +875,8 @@ Integrator::impl::reduceBaselines()
 bool
 peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
-	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.3 );
-    double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.3 );
+	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.5 );
+    double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.5 );
 
     // left boundary
     long left_bound = pk.topPos() - 1;
@@ -891,8 +897,8 @@ peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak
 
     std::vector<double> X, Y;
     for ( long i = left_bound; i <= right_bound; ++i ) {
-        X.push_back( c.getTime( i ) );
-        Y.push_back( c.getIntensity( i ) );
+        X.emplace_back( c.getTime( i ) );
+        Y.emplace_back( c.getIntensity( i ) );
     }
 
     std::vector<double> r;
@@ -901,6 +907,14 @@ peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak
         double b = r[1];
         double c = r[2];
         double tR = (-b) / 2 / c;
+
+        // ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
+
+        if ( tR < X.front() || X.back() < tR ) {
+            // apex is outside range -- no maximum found
+            return false;
+        }
+
 		pk.setPeakTime( tR );
         (void)a;
 
@@ -944,6 +958,9 @@ peakHelper::tRetention_moment(  const integrator::chromatogram& c, adcontrols::P
     tr.setBoundary( moment.xLeft(), moment.xRight() );
 
     pk.setRetentionTime( tr );
+
+    ADDEBUG() << "\ttRetention_moment: set " << pk.peakTime();
+
     return true;
 }
 
