@@ -25,6 +25,7 @@
 #include "peaklist_export.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
+#include "datafolder.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -40,6 +41,9 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adutils/processeddata_t.hpp>
+#include <boost/optional.hpp>
+#include <boost/optional/optional_io.hpp>
 #include <fstream>
 #include <iomanip>
 
@@ -326,7 +330,7 @@ namespace {
             sql.commit();
 
             sql.prepare( "INSERT INTO cpeak(chroid,name,tR,area,height,width,ntp,Rs,k,Tf ) VALUES (?,?,?,?,?,?,?,?,?,?)" );
-            // ADDEBUG() << "--------------- Chromatogram --------------- fileid:" << fileid_ << ", " << f.name();
+            ADDEBUG() << "-- Chromatogram -- fileid:" << fileid_ << ", " << f.name() << ", size=" << t.peaks().size();
             for ( auto pk: t.peaks() ){
                 sql.reset();
                 int id(1);
@@ -393,16 +397,32 @@ peaklist_export::sqlite_export( const boost::filesystem::path& path )
                     }
                 }
 
+                using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >; //, std::shared_ptr< adcontrols::Chromatogram > >;
+
+                bool success( false );
                 auto cfolio = processor->getPortfolio().findFolder( L"Chromatograms" );
                 for ( auto& folium: cfolio.folio() ) {
                     if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                        if ( folium.empty() )
+                        if ( folium.empty() ) {
                             processor->fetch( folium );
-                        portfolio::Folio atts = folium.attachments();
-                        auto it = std::find_if( atts.begin(), atts.end()
-                                                , []( portfolio::Folium& f ) { return f.name() == Constants::F_PEAKRESULT; });
-                        auto success = ( it != atts.end() ) && writer.write< adcontrols::PeakResult >( *it, folium );
-                        if ( ! success )
+                        }
+                        for ( auto& a: folium.attachments() ) {
+                            // ADDEBUG() << "\t" << a.name();
+                            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a ) ) ) {
+                                if ( var->which() == 0 ) {
+                                    if ( auto pkresult = boost::get< std::shared_ptr< adcontrols::PeakResult > >( *var ) )  {
+                                        // ADDEBUG() << "pkresult.size: " << pkresult->peaks().size();
+                                        writer.write( *pkresult, folium );
+                                        success = true;
+                                    }
+                                }
+                            }
+                        }
+                        // portfolio::Folio atts = folium.attachments();
+                        // auto it = std::find_if( atts.begin(), atts.end()
+                        //                         , []( portfolio::Folium& f ) { return f.name() == Constants::F_PEAKRESULT; });
+                        // auto success = ( it != atts.end() ) && writer.write< adcontrols::PeakResult >( *it, folium );
+                        if ( !success )
                             writer.write< adcontrols::Chromatogram >( folium, folium );
                     }
                 }

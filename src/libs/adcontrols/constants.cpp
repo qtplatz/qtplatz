@@ -39,10 +39,10 @@ namespace adcontrols {
         const wchar_t * const F_TARGETING          = L"Targeting";
         const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
         const wchar_t * const F_PROFILED_HISTOGRAM = L"Profiled Histogram";
-        const wchar_t * const F_PEAKRESULT         = L"PeakResult";
+        const wchar_t * const F_PEAKRESULT         = L"Peak Result";
 
         // (attachment) dataType
-        const wchar_t * const DT_PEAKRESULT        = L"PeakResult";
+        // const wchar_t * const DT_PEAKRESULT        = L"PeakResult";
     }
 
     namespace iids {

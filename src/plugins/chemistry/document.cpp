@@ -165,14 +165,14 @@ namespace chemistry {
         , { R"(OC(=O)CCC\C=C1\C[C@@H]2[C@@H](/C=C/[C@@H](O)CCCCC)[C@H](O)C[C@@H]2O1)", { "PGI2", "Prostacyclin" } }
         , { R"(CCCCC[C@@H](/C=C/[C@@H]1[C@H]([C@@H]2C[C@@H](O2)O1)C/C=C\CCCC(=O)O)O)", { "Thromboxane A2", "TXA2" } }
         , { R"(CCCCC[C@H](O)\C=C\[C@H]1OC(O)C[C@H](O)[C@@H]1C\C=C/CCCC(O)=O)", { "Thrombxane B2", "TXB2" } }
-	, { R"(CCOC(=O)c1ccccc1C(=O)OCC)",                    { "DEP" } } // 223
-	, { R"(CCCOC(=O)c1ccccc1C(=O)OCCC)",                  { "DPP", "dipropyl pthalate" } } //
-	, { R"(CCCCOC(=O)c1ccccc1C(=O)OCCCC)",                { "DBP" } } //
-	, { R"(CCCCCOC(=O)c1ccccc1C(=O)OCCCCC)",              { "DnPP", "Di-n-pentyl pthalate" } } // 
-	, { R"(CCCCOC(=O)c1ccccc1C(=O)OCc2ccccc2)",           { "BBP", "benzylbutyl pthalate" } } //
-	, { R"(c1ccc(c(c1)C(=O)OC2CCCCC2)C(=O)OC3CCCCC3)",    { "DCHP", "dicycrohexyl pthalate" } } //
-	, { R"(CCCCCCOC(=O)c1ccccc1C(=O)OCCCCCC)",            { "DHP" } } //
-	, { R"(O=C(OCC(CC)CCCC)C1=CC=CC=C1C(OCC(CC)CCCC)=O)", { "DEHP", "Bis(2-ethylhexyl) phthalate (di-2-ethylhexyl phthalate" } } //	
+        , { R"(CCOC(=O)c1ccccc1C(=O)OCC)",                    { "DEP" } } // 222.089
+        , { R"(CCCOC(=O)c1ccccc1C(=O)OCCC)",                  { "DPP", "dipropyl pthalate" } } // 250.121
+        , { R"(CCCCOC(=O)c1ccccc1C(=O)OCCCC)",                { "DBP" } } // 278.152
+        , { R"(CCCCCOC(=O)c1ccccc1C(=O)OCCCCC)",              { "DnPP", "Di-n-pentyl pthalate" } } // 312.136
+        , { R"(CCCCOC(=O)c1ccccc1C(=O)OCc2ccccc2)",           { "BBP", "benzylbutyl pthalate" } }  // 312.136
+        , { R"(c1ccc(c(c1)C(=O)OC2CCCCC2)C(=O)OC3CCCCC3)",    { "DCHP", "dicycrohexyl pthalate" } } // 330.183
+        , { R"(CCCCCCOC(=O)c1ccccc1C(=O)OCCCCCC)",            { "DHP" } } // 334.214
+        , { R"(O=C(OCC(CC)CCCC)C1=CC=CC=C1C(OCC(CC)CCCC)=O)", { "DEHP", "Bis(2-ethylhexyl) phthalate", "diethylhexyl phthalate", "DOP" } } // 390.277
     };
 
 }

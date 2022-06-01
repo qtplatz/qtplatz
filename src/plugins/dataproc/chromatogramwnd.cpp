@@ -344,6 +344,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     auto datum = datafolder( processor->filename(), folium );
+    ADDEBUG() << __FUNCTION__ << ", " << folium.name();
 
     if ( auto chr = datum.get_chromatogram() ) {
 

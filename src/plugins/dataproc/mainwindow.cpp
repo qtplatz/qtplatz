@@ -1354,6 +1354,7 @@ MainWindow::handleProcessChecked()
 void
 MainWindow::handleExportPeakList()
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
     QFileDialog dlg( this, tr( "Save peak list for all checked spectra/chromatograms") );
     //dlg.setDirectory( currentDir() );
     dlg.setDirectory( document::instance()->recentFile( Constants::GRP_EXPORT_FILES ) );
@@ -1463,6 +1464,7 @@ MainWindow::handleExportRMSAllChecked()
 void
 MainWindow::handleExportAllChecked()
 {
+    ADDEBUG() << __FUNCTION__;
     QString dataPath;
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
         dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
@@ -1480,7 +1482,7 @@ MainWindow::handleExportAllChecked()
     boost::filesystem::path dir( dlg.selectedFiles().at(0).toStdString() );
 
 
-    ADDEBUG() << dir.string();
+    ADDEBUG() << "## " << __FUNCTION__ << " dir: " << dir.string();
     if ( !boost::filesystem::exists( dir ) )
         boost::filesystem::create_directory( dir );
 

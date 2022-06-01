@@ -1065,7 +1065,8 @@ Dataprocessor::findSinglePeak( portfolio::Folium& folium, std::pair< double, dou
         if ( res.first && res.second ) {
             if ( auto pkres = std::make_shared< adcontrols::PeakResult >() ) {
                 *pkres << std::move( res );
-                portfolio::Folium att = folium.addAttachment( L"Peak Result" ); // unique by default
+
+                portfolio::Folium att = folium.addAttachment( Constants::F_PEAKRESULT ); // L"Peak Result" // unique by default
                 att.assign( pkres, pkres->dataClass() );
 
                 SessionManager::instance()->updateDataprocessor( this, folium );

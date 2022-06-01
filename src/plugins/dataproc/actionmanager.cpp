@@ -169,7 +169,7 @@ ActionManager::initialize_actions( const Core::Context& context )
             am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleProcessChecked );
         }
-        if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra..." ), this ) ) {
+        if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra/chromatograms..." ), this ) ) {
             am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportPeakList );
         }
@@ -184,7 +184,7 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportRMSAllChecked );
         }
 
-        if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra..." ), this ) ) {
+        if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra/chromatograms..." ), this ) ) {
             am->registerAction( p, Constants::IMPORT_ALL_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleImportChecked );
         }
