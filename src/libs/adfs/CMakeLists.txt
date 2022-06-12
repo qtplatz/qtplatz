@@ -54,7 +54,8 @@ target_link_libraries( adfs LINK_PUBLIC
   ${Boost_LIBRARIES}
   )
 
-add_library( sqlitefunctions SHARED extension-functions.c )
+add_library( sqlite3-functions MODULE extension-functions.c )
+set_target_properties( sqlite3-functions PROPERTIES  PREFIX "" )
 
 add_executable( sqlite3 sqlite-amalgamation-3370000/sqlite3.c sqlite-amalgamation-3370000/shell.c )
 
@@ -62,6 +63,7 @@ find_package( Threads REQUIRED )
 target_link_libraries( sqlite3 Threads::Threads ${CMAKE_DL_LIBS} )
 
 install( TARGETS ${PROJECT_NAME} sqlite3
+  sqlite3-functions
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )

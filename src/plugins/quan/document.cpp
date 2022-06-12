@@ -570,8 +570,7 @@ document::handle_processed( QuanProcessor * processor )
 void
 document::onInitialUpdate()
 {
-    if ( !load_default_methods() )
-        ADERROR() << "default method load failed";
+    load_default_methods();
 
     notify_update_( idQuanMethod, true );
     notify_update_( idQuanCompounds, true );

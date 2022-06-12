@@ -37,6 +37,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <QMessageBox>
+#include <QSqlDriver>
+#include <QVariant>
+#include <adfs/sqlite3.h>
 
 using namespace query;
 
@@ -52,9 +55,33 @@ bool
 QueryConnection::connect( const std::wstring& database )
 {
     db_.setDatabaseName( QString::fromStdWString( database ) );
-    
+
     if ( db_.open() ) {
-        filename_ = database;        
+        filename_ = database;
+
+        auto v = db_.driver()->handle();
+        if ( v.isValid() && qstrcmp( v.typeName(), "sqlite3*" ) == 0 ) {
+            sqlite3_initialize();
+            if ( auto db = *static_cast< sqlite3 **>(v.data()) ) {
+#if 1
+                sqlite3_enable_load_extension( db, 1 );
+                auto query = QSqlQuery( "SELECT load_extension( 'sqlite3-functions' )", db_ );
+                if ( query.exec() ) {
+                    ADDEBUG() << "sqlite3-functions loaded";
+                }
+                sqlite3_enable_load_extension( db, 0 );
+#else
+                int ret=0;
+                if ( sqlite3_db_config( db, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1, &ret ) == adfs::sqlite_ok ) {
+                    char * errmsg = 0;
+                    if (auto code = sqlite3_load_extension( db, "sqlite3-functions.so", 0, &errmsg ) ) {
+                        ADDEBUG() << errmsg << ", code=" << code;
+                    }
+                }
+#endif
+            }
+        }
+
         return true;
     }
 
@@ -76,4 +103,3 @@ QueryConnection::sqlQuery( const QString& query )
 {
     return QSqlQuery( query, db_ );
 }
-
