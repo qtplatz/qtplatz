@@ -69,6 +69,8 @@ namespace dataproc {
             , idActClusterSpectrogram
             , idActExportAllChecked
             , idActExportRMSAllChecked
+            , idActCheckAllXICs
+            , idActUncheckAllXICs
             , numOfActions
         };
 

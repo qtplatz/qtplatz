@@ -206,6 +206,12 @@ ActionManager::initialize_actions( const Core::Context& context )
         if ( auto p = actions_[ idActUncheckAllSpectra ] = new QAction( tr( "Uncheck all spectra" ), this ) )
             am->registerAction( p, Constants::UNCHECK_ALL_SPECTRA, context );
 
+        if ( auto p = actions_[ idActCheckAllXICs ] = new QAction( tr( "Check all XICs" ), this ) )
+            am->registerAction( p, Constants::CHECK_ALL_XICs, context );
+
+        if ( auto p = actions_[ idActUncheckAllXICs ] = new QAction( tr( "Uncheck all XICs" ), this ) )
+            am->registerAction( p, Constants::UNCHECK_ALL_XICs, context );
+
         do {
             QIcon icon;
             icon.addPixmap( QPixmap( Constants::ICON_DOCKHIDE ), QIcon::Normal, QIcon::Off );
@@ -228,10 +234,15 @@ ActionManager::connect_navigation_pointer( NavigationWidget * navi )
     connect( actions_[ idActCheckAllSpectra ], &QAction::triggered, navi, &NavigationWidget::handleCheckAllSpectra );
     connect( actions_[ idActUncheckAllSpectra ], &QAction::triggered, navi, &NavigationWidget::handleUncheckAllSpectra );
 
+    connect( actions_[ idActCheckAllXICs ], &QAction::triggered, navi, &NavigationWidget::handleCheckAllXICs );
+    connect( actions_[ idActUncheckAllXICs ], &QAction::triggered, navi, &NavigationWidget::handleUncheckAllXICs );
+
 	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
         auto edit = am->actionContainer( Core::Constants::M_EDIT );
         edit->addAction( am->command( Constants::CHECK_ALL_SPECTRA ) );
         edit->addAction( am->command( Constants::UNCHECK_ALL_SPECTRA ) );
+        edit->addAction( am->command( Constants::CHECK_ALL_XICs ) );
+        edit->addAction( am->command( Constants::UNCHECK_ALL_XICs ) );
     }
 }
 

@@ -53,6 +53,7 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QMenu>
+#include <QRegularExpression>
 #include <QStandardItemModel>
 #include <QTreeView>
 #include <QVBoxLayout>
@@ -894,6 +895,8 @@ NavigationWidget::handleAllCheckState( bool checked, const QString& node )
                 auto sp = model.itemFromIndex( model.index( n, 0, parent->index() ) );
                 for ( int isp = 0; isp < sp->rowCount(); ++isp ) {
                     if ( auto item = model.itemFromIndex(model.index(isp, 0, sp->index())) ) {
+
+                        ADDEBUG() << "-----> " << item->data( Qt::EditRole ).toString().toStdString();
                         if ( item->isCheckable() )
                             item->setCheckState( checked ? Qt::Checked : Qt::Unchecked );
                     }
@@ -904,15 +907,51 @@ NavigationWidget::handleAllCheckState( bool checked, const QString& node )
 }
 
 void
-NavigationWidget::handleUncheckAllSpectra()
+NavigationWidget::handleAllCheckState( bool checked, const QString& node, const QString& exclude )
 {
-    handleAllCheckState( false, "Spectra" );
+    QStandardItemModel& model = *pModel_;
+    QRegularExpression re(exclude);
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        auto parent = model.itemFromIndex( model.index( row, 0 ) );
+        for ( int n = 0; n < parent->rowCount(); ++n ) {
+            if ( model.data( model.index( n, 0, parent->index() ) ).toString() == node ) {
+                auto sp = model.itemFromIndex( model.index( n, 0, parent->index() ) );
+                for ( int isp = 0; isp < sp->rowCount(); ++isp ) {
+                    if ( auto item = model.itemFromIndex(model.index(isp, 0, sp->index())) ) {
+                        auto m = re.match( item->data( Qt::EditRole ).toString() );
+                        if ( item->isCheckable() && !m.hasMatch() )
+                            item->setCheckState( checked ? Qt::Checked : Qt::Unchecked );
+                    }
+                }
+            }
+        }
+    }
 }
 
 void
 NavigationWidget::handleCheckAllSpectra()
 {
     handleAllCheckState( true, "Spectra" );
+}
+
+void
+NavigationWidget::handleUncheckAllSpectra()
+{
+    handleAllCheckState( false, "Spectra" );
+}
+
+
+void
+NavigationWidget::handleCheckAllXICs()
+{
+    handleAllCheckState( true, "Chromatograms", ".*/TIC.[0-9]" );
+}
+
+void
+NavigationWidget::handleUncheckAllXICs()
+{
+    handleAllCheckState( false, "Chromatograms" );
 }
 
 

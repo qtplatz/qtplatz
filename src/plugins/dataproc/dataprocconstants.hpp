@@ -7,7 +7,7 @@ namespace dataproc {
 namespace Constants {
 
     const char ACTION_ID[] = "Dataproc.Action";
-    const char MENU_ID[] = "Dataproc.Menu";
+    const char MENU_ID[]   = "Dataproc.Menu";
 
     const char * const C_DATAPROCESSOR        = "Dataprocessor";
     const char * const C_DATAPROC_MODE        = "Dataproc.Mode";
@@ -35,6 +35,8 @@ namespace Constants {
     // edit
     const char * const CHECK_ALL_SPECTRA   = "dataproc.Edit.CheckAllSpectra";
     const char * const UNCHECK_ALL_SPECTRA = "dataproc.Edit.UncheckAllSpectra";
+    const char * const CHECK_ALL_XICs      = "dataproc.CheckAllXICs";
+    const char * const UNCHECK_ALL_XICs    = "dataproc.UncheckAllXICs";
 
     // icon
     const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";

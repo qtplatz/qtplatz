@@ -60,11 +60,14 @@ namespace dataproc {
 		void handleFolderChanged( Dataprocessor *, const QString& folder );
 
         // add child node when process applied (such as Centroid)
-        void handleFoliumChanged( Dataprocessor *, const portfolio::Folium& );  
+        void handleFoliumChanged( Dataprocessor *, const portfolio::Folium& );
         void handleRemoveSession( Dataprocessor * );
 
         void handleCheckAllSpectra();
         void handleUncheckAllSpectra();
+
+        void handleCheckAllXICs();
+        void handleUncheckAllXICs();
 
     private slots:
         void initView();
@@ -84,6 +87,7 @@ namespace dataproc {
         QStandardItemModel * pModel_;
         NavigationDelegate * pDelegate_;
         void handleAllCheckState( bool, const QString& );
+        void handleAllCheckState( bool, const QString&, const QString& re );
     };
 
 }
