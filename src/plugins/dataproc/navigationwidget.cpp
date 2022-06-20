@@ -761,6 +761,29 @@ namespace dataproc {
             processor->subtract( foreground, background );
         }
     };
+
+    struct fixBaselines {
+        QStandardItemModel& model;
+        QModelIndex index;
+        Dataprocessor * processor;
+        fixBaselines( QStandardItemModel& m, QModelIndex& idx, Dataprocessor * p ) : model( m ), index( idx ), processor( p )  {}
+        void operator()() {
+            auto parent = model.itemFromIndex( index );
+            for ( int row = 0; row < parent->rowCount(); ++row ) {
+                if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
+                    QVariant data = item->data( Qt::UserRole );
+                    if ( data.canConvert< portfolio::Folium >() ) {
+                        auto folium = data.value< portfolio::Folium >();
+                        if ( processor ) {
+                            processor->fetch( folium );
+                            processor->baselineCollection( folium );
+                        }
+                    }
+                }
+            }
+        }
+    };
+
 }
 
 void
@@ -797,6 +820,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     if ( folder.name() == L"Chromatograms" ) {
                         menu.addAction( QString( tr("List m/z list for %1") ).arg( index.data( Qt::EditRole ).toString() )
                                         , xicMassList( *pModel_, index, processor ) );
+                        menu.addAction( QString( tr("Fix all baseline levels for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                        , fixBaselines( *pModel_, index, processor ) );
                     }
                 }
 
