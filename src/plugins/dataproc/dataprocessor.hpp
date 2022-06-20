@@ -134,7 +134,8 @@ namespace dataproc {
         void createContour();
         void clusterContour();
         void findPeptide( const adprot::digestedPeptides& );
-        void findSinglePeak( portfolio::Folium&, std::pair< double, double > trange = { -1, 3600.0 } );
+        void findSinglePeak( portfolio::Folium, std::pair< double, double > trange = { -1, 3600.0 } );
+        void baselineCollection( portfolio::Folium );
 
         // portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );

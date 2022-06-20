@@ -32,6 +32,8 @@
 #include "sessionmanager.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/baselines.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -58,6 +60,9 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/peakmethod.hpp>
+#include <adcontrols/peakresolution.hpp>
+#include <adcontrols/peak.hpp>
+#include <adcontrols/peaks.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/samplinginfo.hpp>
@@ -72,6 +77,7 @@
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
 #include <adutils/acquiredconf_v3.hpp>
+#include <adutils/processeddata_t.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
@@ -141,6 +147,32 @@ namespace dataproc {
             }
             assert( p );
             return false;
+        }
+    };
+}
+
+namespace {
+    struct baseline_level_visitor : public boost::static_visitor< bool > {
+        double& y0_;
+        baseline_level_visitor( double& y0 ) : y0_( y0 ) {}
+        template< typename T > bool operator () ( T ) const {
+            ADDEBUG() << "unhandled attachment:";
+            return false;
+        }
+        bool operator () ( std::shared_ptr< adcontrols::Chromatogram > ptr ) const {
+            if ( ptr->size() > 0 && ( std::abs( ptr->intensity(0) ) > std::numeric_limits<double>::epsilon() ) ) {
+                y0_ = ptr->intensity( 0 );
+                for ( size_t i = 0; i < ptr->size(); ++i ) {
+                    ptr->setIntensity( i, ptr->intensity( i ) - y0_ );
+                }
+                return true;
+            }
+            return false;
+        }
+        bool operator () ( std::shared_ptr< adcontrols::PeakResult > ptr ) const {
+            std::for_each( ptr->baselines().begin(), ptr->baselines().end(), [&](auto& bs){ bs.yMove( y0_ ); } );
+            std::for_each( ptr->peaks().begin(), ptr->peaks().end(), [&](auto& pk){ pk.yMove( y0_ ); } );
+            return true;
         }
     };
 }
@@ -1053,7 +1085,7 @@ Dataprocessor::addContourClusters( std::shared_ptr< adcontrols::SpectrogramClust
 }
 
 void
-Dataprocessor::findSinglePeak( portfolio::Folium& folium, std::pair< double, double > trange )
+Dataprocessor::findSinglePeak( portfolio::Folium folium, std::pair< double, double > trange )
 {
     // ADDEBUG() << "#################### " << __FUNCTION__ << trange;
     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
@@ -1073,6 +1105,30 @@ Dataprocessor::findSinglePeak( portfolio::Folium& folium, std::pair< double, dou
                 setModified( true );
             }
         }
+    }
+}
+
+void
+Dataprocessor::baselineCollection( portfolio::Folium folium )
+{
+    using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
+                                  , std::shared_ptr< adcontrols::Chromatogram >
+                                  , std::shared_ptr< adcontrols::MassSpectrum >
+                                  >;
+    if ( auto var = adutils::to_variant< dataTuple >()( static_cast< const boost::any& >( folium ) ) ) {
+
+        double y0 = 0;
+        if ( boost::apply_visitor( baseline_level_visitor(y0), *var ) ) {
+            for ( auto& a: folium.attachments() ) {
+                if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( a )) ) {
+                    boost::apply_visitor( baseline_level_visitor(y0), *var );
+                }
+            }
+            SessionManager::instance()->updateDataprocessor( this, folium );
+            setModified( true );
+        }
+    } else {
+        ADDEBUG() << "####### no data found for " << __FUNCTION__ << " #########";
     }
 }
 

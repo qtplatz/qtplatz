@@ -134,6 +134,7 @@ namespace adcontrols {
         void userData( uint64_t );
         uint64_t userData() const;
         std::string json() const;
+        void yMove( double y0 );
 
     private:
 #if defined _MSC_VER

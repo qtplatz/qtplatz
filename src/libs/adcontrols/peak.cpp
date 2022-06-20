@@ -493,3 +493,11 @@ Peak::json() const
     return boost::json::serialize( jv );
     // return jv;
 }
+
+void
+Peak::yMove( double y0 )
+{
+    startHeight_ -= y0;
+    topHeight_ -= y0;
+    endHeight_ -= y0;
+}

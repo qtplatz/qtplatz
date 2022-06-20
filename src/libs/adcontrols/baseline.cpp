@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "baseline.hpp"
+#include <adportable/debug.hpp>
 
 using namespace adcontrols;
 
@@ -31,7 +32,7 @@ Baseline::~Baseline()
 {
 }
 
-Baseline::Baseline() : manuallyModified_( false ) 
+Baseline::Baseline() : manuallyModified_( false )
                      , baseId_( 0 )
                      , startPos_( 0 )
                      , stopPos_( 0 )
@@ -47,7 +48,7 @@ Baseline::Baseline( const Baseline& t ) : manuallyModified_( t.manuallyModified_
                                         , startHeight_( t.startHeight_ )
                                         , stopHeight_( t.stopHeight_ )
                                         , startTime_( t.startTime_ )
-                                        , stopTime_( t.stopTime_ )  
+                                        , stopTime_( t.stopTime_ )
 {
 }
 
@@ -74,7 +75,7 @@ Baseline::setStartPos( long value )
 {
     startPos_ = value;
 }
-       
+
 long
 Baseline::stopPos() const
 {
@@ -123,7 +124,7 @@ Baseline::stopTime() const
 {
     return stopTime_;
 }
-    
+
 void
 Baseline::setStartHeight( double value )
 {
@@ -155,4 +156,12 @@ Baseline::height(int pos) const
         return startHeight_;
     else
         return ((stopHeight_ - startHeight_) * ((double)(pos - startPos_) / (stopPos_ - startPos_))) + startHeight_;
+}
+
+void
+Baseline::yMove( double y0 )
+{
+    // ADDEBUG() << "yMove(" << y0 << ") " << std::make_pair( startHeight_, stopHeight_ );
+    startHeight_ -= y0;
+    stopHeight_ -= y0;
 }

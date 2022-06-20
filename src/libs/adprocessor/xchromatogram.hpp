@@ -48,6 +48,7 @@ namespace adprocessor {
                                                , cid_( cid )
                                                , count_( 0 )
                                                , isCounting_( isCounting )
+                                               , y0_( 0 )
                                                , target_( target )
                                                , pChr_( std::make_shared< adcontrols::Chromatogram >() ) {
 
@@ -69,13 +70,12 @@ namespace adprocessor {
             }
 
             void append( uint32_t pos, double time, double y ) {
-
+                if ( count_ == 0 )
+                    y0_ = y;
                 if ( count_++ == 0 && pos > 0 )
                     return; // ignore first data after chromatogram condition change
-
-                (*pChr_) << std::make_pair( time, y );
+                (*pChr_) << std::make_pair( time, y - y0_ );
                 pos_ = pos;
-
             }
 
             int32_t fcn_;
@@ -83,6 +83,7 @@ namespace adprocessor {
             uint32_t pos_;   // last pos
             uint32_t count_; // data count
             bool isCounting_;
+            double y0_;
             adcontrols::moltable::value_type target_;
             std::shared_ptr< adcontrols::Chromatogram > pChr_;
         };

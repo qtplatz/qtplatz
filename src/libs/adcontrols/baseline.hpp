@@ -40,13 +40,13 @@ namespace adcontrols {
         virtual ~Baseline();
         Baseline();
         Baseline( const Baseline& );
-        
+
         long baseId() const;
         void setBaseId( long );
 
         long startPos() const;
         void setStartPos( long );
-       
+
         long stopPos() const;
         void setStopPos( long );
 
@@ -57,11 +57,13 @@ namespace adcontrols {
         double stopHeight() const;
         seconds_t   startTime() const;
         seconds_t   stopTime() const;
-    
+
         void setStartHeight( double );
         void setStopHeight( double );
         void setStartTime( const seconds_t& );
         void setStopTime( const seconds_t& );
+
+        void yMove( double );
 
         double height(int pos) const;
     private:
@@ -90,5 +92,3 @@ namespace adcontrols {
     };
 
 }
-
-

@@ -197,7 +197,7 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( axisLabels_ );
                     ar & BOOST_SERIALIZATION_NVP( yAxisUnit_ );
                     ar & BOOST_SERIALIZATION_NVP( generator_property_ );
-                    if ( version>= 10 ) {
+                    if ( version >= 10 ) {
                         ar & BOOST_SERIALIZATION_NVP( display_name_ );
                     }
                 }
@@ -264,7 +264,7 @@ Chromatogram::Chromatogram( const Chromatogram& c ) : pImpl_(0)
 }
 
 Chromatogram&
-Chromatogram::operator =( const Chromatogram& t )
+Chromatogram::operator = ( const Chromatogram& t )
 {
     if ( t.pImpl_ != pImpl_ ) {
         delete pImpl_;
@@ -724,7 +724,6 @@ Chromatogram::time_of_injection_iso8601() const
     }
     return pImpl_->time_of_injection_;
 }
-
 
 // specialized template<> for boost::serialization
 // template<class Archiver> void serialize(Archiver& ar, const unsigned int version);

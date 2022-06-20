@@ -144,6 +144,7 @@ namespace adprocessor {
         double lMass;
         double uMass;
         int32_t proto;
+        double yoffs;
         std::shared_ptr< adcontrols::Chromatogram > pChr;
 
         cXtractor( double _m
@@ -156,6 +157,7 @@ namespace adprocessor {
                                                       , lMass( _l )
                                                       , uMass( _u )
                                                       , proto( _p )
+                                                      , yoffs( 0 )
                                                       , pChr( std::make_shared< adcontrols::Chromatogram >() ) {
             if ( ! desc.empty() )
                 pChr->addDescription( { L"create", desc } );
@@ -163,10 +165,16 @@ namespace adprocessor {
         }
 
         inline void append( uint32_t pos, double time, double y ) {
-            (*pChr) << std::make_pair( time, y );
+            if ( pChr->size() == 0 ) {
+                yoffs = y;
+            }
+            (*pChr) << std::make_pair( time, y - yoffs );
         }
         inline void append( uint32_t pos, double time, double y, double tof, double mass ) {
-            (*pChr) << std::make_tuple( time, y, tof, mass );
+            if ( pChr->size() == 0 ) {
+                yoffs = y;
+            }
+            (*pChr) << std::make_tuple( time, y - yoffs, tof, mass );
         }
     };
 }
