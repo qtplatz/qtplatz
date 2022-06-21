@@ -135,6 +135,15 @@ CentroidWidget::CentroidWidget(QWidget *parent) : QWidget(parent)
         gbx->setLayout( gLayout );
     }
     ++xy;
+    if ( auto label = add_widget( grid, create_widget< QLabel >( "label_fraction", tr("Centroid fraction [%]") ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+        label->setTextFormat(Qt::RichText);
+        label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+    }
+    if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doublSpinBox_fraction" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+        spin_init( spin, std::make_tuple( Minimum<>{0.}, Maximum<>{100.0}, Decimals{0}, Alignment{Qt::AlignRight}) );
+    }
+
+    ++xy;
     grid->addWidget( create_widget< QCheckBox >( "checkBox_lowpassFilter", tr("Low-pass filter (MHz)")) , std::get<0>(xy), std::get<1>(xy)++ );
     if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doublSpinBox_lowpassfilter" ), std::get<0>(xy), std::get<1>(xy)++ ) ) {
         spin_init( spin, std::make_tuple( Minimum<>{0.}, Maximum<>{1'000.0}, Decimals{0}, Alignment{Qt::AlignRight}) );
@@ -283,6 +292,10 @@ CentroidWidget::setValue( const adcontrols::CentroidMethod & m )
         combo->setCurrentIndex( int( m.areaMethod() ) );
     }
 
+    if ( auto spin = a.find< QDoubleSpinBox * >( "doublSpinBox_fraction" ) ) {
+        spin->setValue( m.peakCentroidFraction() * 100 );
+    }
+
     if ( auto cbx = a.find< QCheckBox * >( "checkBox_lowpassFilter" ) ) {
         cbx->setChecked( m.noiseFilterMethod() == CentroidMethod::eDFTLowPassFilter );
     }
@@ -323,6 +336,10 @@ CentroidWidget::getValue() const
 
     if ( auto combo = a.find< QComboBox * >( "comboBox_areaMethod" ) ) {
         m.areaMethod( static_cast< CentroidMethod::eAreaMethod >( combo->currentIndex() ) );
+    }
+
+    if ( auto spin = a.find< QDoubleSpinBox * >( "doublSpinBox_fraction" ) ) {
+        m.peakCentroidFraction( spin->value() / 100 );
     }
 
     if ( auto cbx = a.find< QCheckBox * >( "checkBox_lowpassFilter" ) ) {
