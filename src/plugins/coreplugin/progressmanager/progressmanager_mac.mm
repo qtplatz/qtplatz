@@ -96,7 +96,7 @@ static ApplicationProgressView *sharedProgressView = nil;
     NSRect boundary = [self bounds];
     [[NSApp applicationIconImage] drawInRect:boundary
                                      fromRect:NSZeroRect
-                                    operation:NSCompositeCopy
+                                    operation:NSCompositingOperationCopy
                                      fraction:1.0];
     NSRect progressBoundary = boundary;
     progressBoundary.size.height *= 0.13;
