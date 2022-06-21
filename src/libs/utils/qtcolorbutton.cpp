@@ -64,11 +64,14 @@ void QtColorButtonPrivate::slotEditColor()
 {
     QColor newColor;
     if (m_alphaAllowed) {
-        bool ok;
-        const QRgb rgba = QColorDialog::getRgba(m_color.rgba(), &ok, q_ptr);
-        if (!ok)
+        const QColor color = QColorDialog::getColor( QColor::fromRgba( m_color.rgba() ), q_ptr, QString(), QColorDialog::ShowAlphaChannel );
+        if ( ! color.isValid() )
             return;
+        QRgb rgba = color.isValid() ? color.rgba() : m_color.rgba();
         newColor = QColor::fromRgba(rgba);
+        // const QRgb rgba = QColorDialog::getRgba(m_color.rgba(), &ok, q_ptr);
+        //if (!ok)
+        //    return;
     } else {
         newColor = QColorDialog::getColor(m_color, q_ptr);
         if (!newColor.isValid())
