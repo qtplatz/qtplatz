@@ -71,7 +71,9 @@ QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
         if ( auto combo = new QComboBox() ) {
             combo->setObjectName( "tableList" );
             toolBarLayout->addWidget( combo );
-            connect( combo, qOverload< const QString &>(&QComboBox::currentIndexChanged), this, &QueryForm::on_comboBox_currentIndexChanged );
+            connect( combo, qOverload< int >(&QComboBox::currentIndexChanged), this, [combo,this](int idx){
+                on_comboBox_currentIndexChanged( combo->itemText( idx ) );
+            });
             toolBarLayout->setStretchFactor( combo, 1 );
         }
 

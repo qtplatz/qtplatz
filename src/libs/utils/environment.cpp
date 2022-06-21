@@ -28,7 +28,7 @@
 ****************************************************************************/
 
 #include "environment.h"
-
+#include <QDebug>
 #include <QDir>
 #include <QProcessEnvironment>
 #include <QSet>
@@ -290,7 +290,11 @@ FileName Environment::searchInPath(const QString &executable,
 QStringList Environment::path() const
 {
     return m_values.value(QLatin1String("PATH"))
+        .split(OsSpecificAspects(m_osType).pathListSeparator(), Qt::SkipEmptyParts);
+#if 0
+    return m_values.value(QLatin1String("PATH"))
             .split(OsSpecificAspects(m_osType).pathListSeparator(), QString::SkipEmptyParts);
+#endif
 }
 
 QString Environment::value(const QString &key) const

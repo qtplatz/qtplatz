@@ -71,10 +71,10 @@ namespace adwidgets {
                     drawDisplay( painter, option, option.rect, ( boost::format("%.7g") % (index.data( Qt::EditRole ).toDouble() * 1000) ).str().c_str() );
                     break;
                 default:
-                    QItemDelegate::paint( painter, option, index );        
+                    QItemDelegate::paint( painter, option, index );
                 }
             } else {
-                QItemDelegate::paint( painter, option, index );        
+                QItemDelegate::paint( painter, option, index );
             }
         }
     };
@@ -102,7 +102,7 @@ MSPeakSummary::onInitialUpdate( MSPeakWidget * parent )
     parent_ = parent;
 
     QStandardItemModel& model = *model_;
-    
+
     model.setColumnCount( 7 );
     model.setRowCount( r_num_rows );
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr( "item" ) );
@@ -116,7 +116,7 @@ MSPeakSummary::onInitialUpdate( MSPeakWidget * parent )
     model.setData( model.index( r_mass_vs_time, 0 ), "laps" );
     model.setData( model.index( r_length_vs_time, 0 ), "mol" );
     model.setData( model.index( r_result, 0 ), "normalized" );
-    
+
     for ( int row = 0; row < r_num_rows; ++row ) {
         QStandardItem * p1 = model.itemFromIndex( model.index( row, 0 ) );
         p1->setColumnCount( 7 );
@@ -240,7 +240,8 @@ MSPeakSummary::handleCopyToClipboard()
     QStandardItemModel& model = *model_;
     QModelIndexList list = selectionModel()->selectedIndexes();
 
-    qSort( list );
+    // qSort( list );
+    std::sort( list.begin(), list.end() );
     if ( list.size() < 1 )
         return;
 
@@ -266,7 +267,7 @@ void
 MSPeakSummary::showContextMenu( const QPoint& pt )
 {
     QMenu menu;
-    
+
     menu.addAction( "Copy", this, SLOT( handleCopyToClipboard() ) );
     menu.addAction( "Clear", this, SLOT( handleClear() ) );
 

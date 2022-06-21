@@ -66,7 +66,7 @@ public:
 GeneratedFilePrivate::GeneratedFilePrivate(const QString &p) :
     path(QDir::cleanPath(p)),
     binary(false),
-    attributes(0)
+    attributes{}
 {
 }
 

@@ -34,7 +34,7 @@ using namespace Utils;
 ProxyAction::ProxyAction(QObject *parent) :
     QAction(parent),
     m_action(0),
-    m_attributes(0),
+    m_attributes{},
     m_showShortcut(false),
     m_block(false)
 {

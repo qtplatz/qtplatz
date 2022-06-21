@@ -144,9 +144,9 @@ PanelsWidget::addPanel( PanelData *panel )
     nameLabel->setText( panel->displayName() );
     QPalette palette = nameLabel->palette();
     for (int i = QPalette::Active; i < QPalette::NColorGroups; ++i ) {
-        QColor foregroundColor = palette.color(QPalette::ColorGroup(i), QPalette::Foreground);
+        QColor foregroundColor = palette.color(QPalette::ColorGroup(i), QPalette::WindowText );
         foregroundColor.setAlpha(110);
-        palette.setBrush(QPalette::ColorGroup(i), QPalette::Foreground, foregroundColor);
+        palette.setBrush(QPalette::ColorGroup(i), QPalette::WindowText, foregroundColor);
     }
     nameLabel->setPalette(palette);
     nameLabel->setContentsMargins(0, Constants::ABOVE_HEADING_MARGIN, 0, 0);

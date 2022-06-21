@@ -295,7 +295,7 @@ bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2)
 static inline QList<Core::IOptionsPage*> sortedOptionsPages()
 {
     QList<Core::IOptionsPage*> rc = ExtensionSystem::PluginManager::getObjects<IOptionsPage>();
-    qStableSort(rc.begin(), rc.end(), optionsPageLessThan);
+    std::stable_sort(rc.begin(), rc.end(), optionsPageLessThan);
     return rc;
 }
 
@@ -461,7 +461,7 @@ void SettingsDialog::ensureCategoryWidget(Category *category)
         category->providerPagesCreated = true;
     }
 
-    qStableSort(category->pages.begin(), category->pages.end(), optionsPageLessThan);
+    std::stable_sort(category->pages.begin(), category->pages.end(), optionsPageLessThan);
 
     QTabWidget *tabWidget = new QTabWidget;
     for (int j = 0; j < category->pages.size(); ++j) {

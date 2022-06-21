@@ -242,7 +242,7 @@ void EditorView::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
-    painter.setBrush(palette().color(QPalette::Background).darker(107));
+    painter.setBrush(palette().color(QPalette::Window).darker(107));
     const int r = 3;
     painter.drawRoundedRect(m_container->geometry().adjusted(r , r, -r, -r), r * 2, r * 2);
 }
