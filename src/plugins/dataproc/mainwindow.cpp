@@ -73,7 +73,6 @@
 #include <adprot/peptide.hpp>
 #include <adprot/peptides.hpp>
 #include <adutils/adfile.hpp>
-#include <adwidgets/centroidform.hpp>
 #include <adwidgets/centroidwidget.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <adwidgets/peptidewidget.hpp>

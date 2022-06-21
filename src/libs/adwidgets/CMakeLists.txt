@@ -47,7 +47,6 @@ set( ${PROJECT_NAME}_SOURCES
   adcv/contoursform.hpp
   adwidgets.cpp
   centroidwidget.cpp
-  centroidform.cpp
   cherrypicker.cpp
   cgenform.cpp
   controlmethodtable.cpp
@@ -131,7 +130,6 @@ set( ${PROJECT_NAME}_SOURCES
 set( ${PROJECT_NAME}_HEADERS
   adwidgets.hpp
   adwidgets_global.hpp
-  centroidform.hpp
   centroidwidget.hpp
   cherrypicker.hpp
   cgenform.hpp

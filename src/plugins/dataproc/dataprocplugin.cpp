@@ -68,7 +68,6 @@
 #include <adlog/logger.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adportable/float.hpp>
-#include <adwidgets/centroidform.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adportfolio/logging_hook.hpp>
 #include <adportfolio/folium.hpp>
