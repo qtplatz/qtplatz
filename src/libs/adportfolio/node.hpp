@@ -83,8 +83,11 @@ namespace portfolio {
             pugi::xml_node addFolder( const std::wstring& name, PortfolioImpl* );
             pugi::xml_node addFolium( const std::wstring& name );
             pugi::xml_node addAttachment( const std::wstring& name, bool bUniq = true );
-			bool removeAttachment( const std::wstring& name );
-			bool removeFolium( const std::wstring& id );
+			// bool removeAttachment( const std::wstring& name );
+			// bool removeFolium( const std::wstring& id );
+
+            std::vector< std::string >
+            erase( const std::string& node, std::tuple< std::wstring, std::wstring > );
 
         protected:
             pugi::xml_node node_;

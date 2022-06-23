@@ -51,18 +51,5 @@ NavigationWidgetFactory::createWidget()
     Core::NavigationView n;
     NavigationWidget *ptw = new NavigationWidget;
     n.widget = ptw;
-
-    QToolButton * toggleSync = new QToolButton;
-    toggleSync->setIcon( QIcon(":/core/images/linkicon.png"));
-    toggleSync->setCheckable( true );
-    toggleSync->setChecked( ptw->autoSyncronization() );
-    toggleSync->setToolTip( tr("Synchronize with Editor" ) );
-    // filter->setPopupMode( QToolButton:: InstantPopup );
-
-    //connect( toggleSync, SIGNAL( clicked( bool ) ), ptw, SLOT( toggleAutoSynchronization() ) );
-    connect( toggleSync, &QToolButton::clicked, ptw, &NavigationWidget::toggleAutoSynchronization );
-
-    n.dockToolBarWidgets << toggleSync;
     return n;
 }
-

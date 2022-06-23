@@ -105,7 +105,7 @@ Folium::attachments()
 
     pugi::xpath_node_set list = Node::selectNodes( L"./attachment" );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-        attachments.push_back( Folium( it->node(), impl_ ) );
+        attachments.emplace_back( Folium( it->node(), impl_ ) );
 
     return attachments;
 }
@@ -122,15 +122,46 @@ Folium::addAttachment( const std::wstring& name )
     return Folium( Node::addAttachment( name ), impl_ );
 }
 
+// bool
+// Folium::removeAttachment( const std::wstring& name, bool removeContents )
+// {
+//     if ( Node::removeAttachment( name ) ) {
+// 		if ( removeContents )
+// 			impl_->collect_garbage();
+//         return true;
+//     }
+//     return false;
+// }
+
 bool
-Folium::removeAttachment( const std::wstring& name, bool removeContents )
+Folium::erase_attachment( const std::wstring& name
+                          , std::function< void( std::tuple< std::wstring, std::wstring > ) > callback )
 {
-    if ( Node::removeAttachment( name ) ) {
-		if ( removeContents )
-			impl_->collect_garbage();
-        return true;
+    pugi::xpath_node_set list = Node::selectNodes( "./attachment[@name='" + pugi::as_utf8( name ) + "']" );
+    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it ) {
+        Folium child( it->node(), impl_ );
+        if ( child.attachments().size() > 0 ) { // if subsidery attachments exists, remove them all
+            child.erase_attachments( callback );
+        }
+        Node::erase( "attachment", { child.name(), child.id() } );
+        callback( { name, pugi::as_wide( it->node().attribute( "dataId" ).as_string() ) } );
     }
-    return false;
+    return true;
+}
+
+bool
+Folium::erase_attachments( std::function< void( std::tuple< std::wstring, std::wstring > ) > callback )
+{
+    pugi::xpath_node_set list = Node::selectNodes( L"./attachment" );
+    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it ) {
+        Folium child( it->node(), impl_ );
+        if ( child.attachments().size() > 0 ) { // recursively call
+            child.erase_attachments( callback );
+        }
+        Node::erase( "attachment", { child.name(), child.id() } );
+        callback( { child.name(), child.id() } );
+    }
+    return true;
 }
 
 Folium

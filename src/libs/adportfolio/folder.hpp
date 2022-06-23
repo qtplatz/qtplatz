@@ -26,8 +26,9 @@
 #pragma once
 
 #include "portfolio_global.h"
-#include <vector>
 #include "node.hpp"
+#include <vector>
+#include <functional>
 
 namespace pugi { class xml_node; }
 
@@ -58,9 +59,10 @@ namespace portfolio {
         Folium findFoliumByRegex( const std::string& name );
         Folium findFoliumById( const std::wstring& id );
 
-        // --- add/modify features
+        // --- add/modify
         Folium addFolium( const std::wstring& name );
-        bool removeFolium( const Folium& );
+        // bool removeFolium( const Folium& );
+        bool erase( Folium, std::function< void( std::tuple< std::wstring, std::wstring > ) > );
     };
 
 }

@@ -39,9 +39,6 @@
 using namespace portfolio;
 using namespace portfolio::internal;
 
-// Portfolio/PortofolioImpl is corresponding to xtree<CDatafolder> class on libmc4
-// It is representing dataset, or exported data
-
 PortfolioImpl::PortfolioImpl() : isXMLLoaded_(false)
 {
 }
@@ -61,7 +58,9 @@ PortfolioImpl::PortfolioImpl( const std::string& xml ) : isXMLLoaded_(false)
 PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : Node( t )
                                                        , isXMLLoaded_( t.isXMLLoaded_ )
                                                        , db_( t.db_ )
+                                                       , removed_list_( t.removed_list_ )
 {
+    ADDEBUG() << "PortfolioImpl copy ctor : " << removed_list_.size();
 }
 
 const std::wstring
@@ -75,10 +74,9 @@ PortfolioImpl::selectFolders( const std::wstring& query )
 {
     std::vector<Folder> vec;
 
-
     pugi::xpath_node_set list = Node::selectNodes( query );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-        vec.push_back( Folder ( it->node(), this ) );
+        vec.emplace_back( it->node(), this );
 
     return vec;
 }
@@ -182,27 +180,37 @@ PortfolioImpl::newGuid()
 	return pugi::as_wide( s );
 }
 
-bool
-PortfolioImpl::collect_garbage()
+std::vector< std::tuple< std::string, std::string > >
+PortfolioImpl::collect_garbage() const
 {
-    std::vector< std::wstring > candidates;
+    std::vector< std::tuple< std::string, std::string > > dataIds; // data which is not referenced from portfolio xml tree
 
     for ( auto a: db_ ) {
         std::string query = "//*[@dataId=\"" + pugi::as_utf8( a.first ) +"\"]";
         try {
             pugi::xpath_node node = node_.select_node( query.c_str() );
-            if ( ! node )
-				candidates.push_back( a.first );
+            if ( !node ) {
+				dataIds.emplace_back( node.node().attribute( "name" ).as_string(), node.node().attribute( "dataId" ).as_string() );
+            }
         } catch ( pugi::xpath_exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
-            assert(0);
+            ADDEBUG() << "xml_exception: " << ex.what();
         }
     }
-	return true;
+	return dataIds;
 }
 
-void
-PortfolioImpl::removed( const std::string& dataId )
+bool
+PortfolioImpl::erase_data( const std::string& name, const std::string& dataId )
 {
-    removed_.insert( dataId );
+    removed_list_.emplace_back( name, dataId );
+
+    // ADDEBUG() << "### erase_data: " << name << ", " << dataId << "\t## removed_list.size: " << removed_list_.size();
+    auto it = db_.find( pugi::as_wide( dataId ) ); // in memory data
+    if ( it != db_.end() ) {
+        db_.erase( it );
+        return true;
+    } else {
+        // ADDEBUG() << "### erase_data: " << dataId << "\tdoes not exists";
+    }
+    return false;
 }

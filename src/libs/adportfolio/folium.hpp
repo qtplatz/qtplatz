@@ -30,6 +30,7 @@
 #include <boost/any.hpp>
 #include <boost/optional.hpp>
 #include <algorithm>
+#include <functional>
 #include <memory>
 
 namespace portfolio {
@@ -140,7 +141,9 @@ namespace portfolio {
 
         // --- create/modify
         Folium addAttachment( const std::wstring& name );
-		bool removeAttachment( const std::wstring& name, bool removeContents = true );
+		// bool removeAttachment( const std::wstring& name, bool removeContents = true );
+        bool erase_attachment( const std::wstring& name, std::function< void( std::tuple< std::wstring, std::wstring > ) > callback );
+        bool erase_attachments( std::function< void( std::tuple< std::wstring, std::wstring > ) > callback );
     };
 
     typedef std::vector< Folium > Folio;

@@ -49,7 +49,7 @@ namespace addatafile {
     public:
         virtual ~datafile();
         datafile();
-        
+
         bool open( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
@@ -60,7 +60,7 @@ namespace addatafile {
         bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& ) override;
         bool saveContents( const std::wstring&, const portfolio::Portfolio& ) override;
         bool loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& ) override;
-        bool removeContents( const std::vector< std::string >& dataids );
+        bool removeContents( std::vector< std::string >&& dataids );
 
         bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& ) override;
         bool readCalibration( size_t idx, adcontrols::MSCalibrateResult& ) const override;
@@ -76,13 +76,13 @@ namespace addatafile {
         bool mounted_;
         std::wstring filename_;
         adfs::filesystem dbf_;
-        
+
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        
+
         boost::variant< std::unique_ptr< v2::rawdata >, std::unique_ptr< v3::rawdata > > rawdata_;
-        
+
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > calibrations_; // mode, calibration pair
-        
+
         bool calibration_modified_;
     };
 

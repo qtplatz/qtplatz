@@ -102,8 +102,8 @@ namespace dataproc {
 
         void setModified( bool ) override;
         bool create( const QString& token );
+        bool open( const std::wstring&, std::wstring& errmsg ) override;
         bool open( const QString&, QString& errmsg );
-        QString qfilename() const;
 
         void exportXML() const;
 
@@ -129,13 +129,15 @@ namespace dataproc {
         void formulaChanged();
 
         void sendCheckedSpectraToCalibration( Dataprocessor * );
-        void removeCheckedItems();
+        // void removeCheckedItems();
         void remove( portfolio::Folium );
         void createContour();
         void clusterContour();
         void findPeptide( const adprot::digestedPeptides& );
         void findSinglePeak( portfolio::Folium, std::pair< double, double > trange = { -1, 3600.0 } );
         void baselineCollection( portfolio::Folium );
+        void setAttribute( portfolio::Folium, std::pair< std::string, std::string >&& );
+        void deleteRemovedItems();
 
         // portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );

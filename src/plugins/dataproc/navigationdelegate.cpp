@@ -27,9 +27,11 @@
 #include "dataprocessor.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adportable/debug.hpp>
+#include <adwidgets/standarditemhelper.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <qdebug.h>
 #include <QEvent>
+#include <QPainter>
 #include <qlineedit.h>
 
 Q_DECLARE_METATYPE( portfolio::Folium )
@@ -38,7 +40,7 @@ Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
 
 using namespace dataproc;
 
-NavigationDelegate::NavigationDelegate(QObject *parent) :  QItemDelegate(parent)
+NavigationDelegate::NavigationDelegate(QObject *parent) :  QStyledItemDelegate(parent)
 {
     qRegisterMetaType< portfolio::Folium >();
     //qRegisterMetaType< portfolio::Folder >();
@@ -48,19 +50,21 @@ NavigationDelegate::NavigationDelegate(QObject *parent) :  QItemDelegate(parent)
 void
 NavigationDelegate::setEditorData( QWidget * editor, const QModelIndex& index ) const
 {
-    QItemDelegate::setEditorData( editor, index );
+    ADDEBUG() << "---------- setEditorData -----------" << index.data( Qt::EditRole ).toString().toStdString();
+    QStyledItemDelegate::setEditorData( editor, index );
 }
 
 void
 NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, const QModelIndex& index ) const
 {
+    ADDEBUG() << "---------- setModelData -----------" << index.data( Qt::EditRole ).toString().toStdString();
     QVariant data = index.data( Qt::UserRole );
     if ( data.canConvert< portfolio::Folium >() ) {
         portfolio::Folium folium = data.value< portfolio::Folium >();
         QString value = static_cast< QLineEdit * >( editor )->text();
         folium.name( value.toStdWString() );
     } else {
-        QItemDelegate::setModelData( editor,  model, index );
+        QStyledItemDelegate::setModelData( editor,  model, index );
     }
 }
 
@@ -68,38 +72,46 @@ void
 NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
     QVariant data = index.data( Qt::UserRole );
+    QStyleOptionViewItem opt(option);
+    initStyleOption( &opt, index );
 
     if ( data.canConvert< Dataprocessor * >() ) {
-
         if ( Dataprocessor * processor = data.value< Dataprocessor * >() ) {
-            drawDisplay( painter, option, option.rect, processor->qfilename() );
+            QStyledItemDelegate::paint( painter, opt, index );
+            painter->drawText( option.rect, option.displayAlignment, processor->filePath() );
         }
-
     } else if ( data.canConvert< portfolio::Folder >() ) {
-
         portfolio::Folder folder = data.value< portfolio::Folder >();
-        drawDisplay( painter, option, option.rect, QString::fromStdWString( folder.name() ) );
+        QStyledItemDelegate::paint( painter, opt, index );
+    } else if ( data.canConvert< portfolio::Folium >() ) {
+        painter->save();
+        auto folium = data.value< portfolio::Folium >();
 
+        if ( folium.attribute( "tag" ) == "red" ) {
+            painter->fillRect( opt.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
+        }
+        if ( folium.attribute( "tag" ) == "blue" ) {
+            painter->fillRect( opt.rect, QColor( 0xa7, 0xc7, 0xe7, 0x80 ) ); // pastel blue
+        }
+        if ( folium.attribute( "tag" ) == "green" ) {
+            painter->fillRect( opt.rect, QColor( 0x00, 0x80, 0x00, 0x40 ) ); // dark-green
+        }
+        if ( folium.attribute( "remove" ) == "true" ) {
+            painter->fillRect( opt.rect, QColor( 0xd3, 0xd3, 0xd3, 0x80 ) ); // gray
+            painter->setPen(Qt::gray);
+            painter->drawText( opt.rect, opt.displayAlignment, index.data().toString() );
+        } else {
+            QStyledItemDelegate::paint( painter, opt, index );
+        }
+        painter->restore();
     } else {
-
-        QItemDelegate::paint( painter, option, index );
+        QStyledItemDelegate::paint( painter, option, index );
         return;
-
     }
 }
 
-bool
-NavigationDelegate::editorEvent( QEvent * event
-                                     , QAbstractItemModel * model
-                                     , const QStyleOptionViewItem& option
-                                     , const QModelIndex& index )
+QWidget *
+NavigationDelegate::createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const
 {
-    bool res = QItemDelegate::editorEvent( event, model, option, index );
-    if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
-
-        Qt::CheckState isChecked = static_cast< Qt::CheckState >( index.data( Qt::CheckStateRole ).toUInt() );
-        emit checkStateChanged( index, isChecked );
-
-    }
-    return res;
+    return QStyledItemDelegate::createEditor( parent, option, index );
 }

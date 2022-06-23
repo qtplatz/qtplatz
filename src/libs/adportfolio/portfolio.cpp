@@ -94,13 +94,10 @@ Portfolio::attributes() const
     return impl_->attributes();
 }
 
-size_t
-Portfolio::removed_dataids( std::vector< std::string >& v ) const
+const std::vector< std::tuple< std::string, std::string > >&
+Portfolio::erased_dataIds() const
 {
-    v.clear();
-    for ( const auto& dataid : impl_->removed_ )
-        v.push_back( dataid );
-    return v.size();
+    return impl_->removed_list_;
 }
 
 /////////////

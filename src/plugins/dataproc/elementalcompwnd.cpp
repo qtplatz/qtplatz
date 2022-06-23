@@ -316,7 +316,7 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 
     QString fullpath;
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-        fullpath = processor->qfilename();
+        fullpath = processor->filePath();
     }
 
 	painter.drawText( drawRect, Qt::TextWordWrap, fullpath, &boundingRect );

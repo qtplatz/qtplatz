@@ -282,25 +282,6 @@ Node::addFolium( const std::wstring& name )
     return child;
 }
 
-bool
-Node::removeFolium( const std::wstring& id )
-{
-	std::string query = "./folium[@dataId=\"" + pugi::as_utf8( id ) + "\"]";
-    try {
-        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
-            node_.remove_child( it->node() );
-            impl_->removed( it->node().attribute( "dataId" ).as_string() );
-        }
-        impl_->removed( pugi::as_utf8(id) );
-        return !nodes.empty();
-    } catch ( pugi::xpath_exception& ex ) {
-        ADDEBUG() << "xml_exception: " << ex.what();
-        BOOST_THROW_EXCEPTION( ex );
-    }
-    return false;
-}
-
 pugi::xml_node
 Node::addAttachment( const std::wstring& name, bool bUniq )
 {
@@ -310,8 +291,8 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
         try {
             pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
             for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
+                impl_->erase_data( it->node().attribute( "name" ).as_string(), it->node().attribute( "dataId" ).as_string() );
                 node_.remove_child( it->node() );
-                impl_->removed( it->node().attribute( "dataId" ).as_string() );
             }
         } catch ( pugi::xpath_exception& ex ) {
             ADDEBUG() << "xml_exception: " << ex.what();
@@ -330,19 +311,19 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
     return child;
 }
 
+#if 0
 bool
-Node::removeAttachment( const std::wstring& name )
+Node::removeFolium( const std::wstring& id )
 {
-	std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
-
-    // ADDEBUG() << "Node::removeAttachment(" << query << ")";
-
+	std::string query = "./folium[@dataId=\"" + pugi::as_utf8( id ) + "\"]";
     try {
         pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
         for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
             node_.remove_child( it->node() );
-            impl_->removed( it->node().attribute( "dataId" ).as_string() );
+            impl_->erase_data( pugi::as_wide( it->node().attribute( "name" ).as_string() )
+                               , it->node().attribute( "dataId" ).as_string() );
         }
+        impl_->erase( id );
         return !nodes.empty();
     } catch ( pugi::xpath_exception& ex ) {
         ADDEBUG() << "xml_exception: " << ex.what();
@@ -351,10 +332,55 @@ Node::removeAttachment( const std::wstring& name )
     return false;
 }
 
+bool
+Node::removeAttachment( const std::wstring& name )
+{
+	std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
+    // ADDEBUG() << "Node::removeAttachment(" << query << ")";
+
+    try {
+        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
+        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
+            node_.remove_child( it->node() );
+            impl_->erase( pugi::as_wide( it->node().attribute( "dataId" ).as_string() ) );
+        }
+        return !nodes.empty();
+    } catch ( pugi::xpath_exception& ex ) {
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
+    }
+    return false;
+}
+#endif
+
 std::wstring
 Node::portfolio_fullpath() const
 {
     if ( impl_ )
         return impl_->fullpath();
+    return {};
+}
+
+std::vector< std::string >
+Node::erase( const std::string& node // "folium" | "attachment"
+             , std::tuple< std::wstring, std::wstring > ids )
+{
+    std::vector< std::string > dataIds;
+    auto query = ( boost::format( "./%1%[@name='%2%' and @dataId='%3%']" )
+                   % node % pugi::as_utf8( std::get< 0 >(ids) ) % pugi::as_utf8( std::get< 1 >(ids) ) ).str();
+    // ADDEBUG() << "-------> erase: " << query;
+    try {
+        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
+        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
+            // ADDEBUG() << "\t== remove_child(" << it->node().attribute( "dataId" ).as_string() << ") -- ok";
+            dataIds.emplace_back( it->node().attribute( "dataId" ).as_string() );
+            impl_->erase_data( it->node().attribute( "name" ).as_string(), it->node().attribute( "dataId" ).as_string() );
+            node_.remove_child( it->node() );
+        }
+        return dataIds;
+    } catch ( pugi::xpath_exception& ex ) {
+        ADDEBUG() << "xml_exception: " << ex.what();
+        BOOST_THROW_EXCEPTION( ex );
+    }
     return {};
 }

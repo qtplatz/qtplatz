@@ -420,10 +420,14 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     if ( ! mounted_ )
         return false;
 
-    std::vector< std::string > removed;
-    if ( portfolio.removed_dataids( removed ) > 0 ) {
-        removeContents( removed );
-    }
+    // std::for_each( portfolio.erased_dataIds().begin(), portfolio.erased_dataIds().end(), [](auto t){ ADDEBUG() << "\terase: " << t; });
+
+    std::vector< std::string > dataIds;
+    std::transform( portfolio.erased_dataIds().begin()
+                    , portfolio.erased_dataIds().end()
+                    , std::back_inserter( dataIds ), []( const auto& t ){ return std::get< 1 >( t ); } );
+
+    removeContents( std::move( dataIds ) );
 
     if ( calibration_modified_ ) {
         for ( auto calib: calibrations_ )
@@ -453,9 +457,10 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     if ( ! mounted_ )
         return false;
 
-    std::vector< std::string > removed;
-    if ( portfolio.removed_dataids( removed ) > 0 )
-        removeContents( removed );
+    std::vector< std::string > dataIds;
+    std::transform( portfolio.erased_dataIds().begin(), portfolio.erased_dataIds().end()
+                    , std::back_inserter( dataIds ), []( const auto& t ){ return std::get< 1 >( t ); } );
+    removeContents( std::move( dataIds ) );
 
     adfs::stmt sql( dbf_.db() );
 
@@ -514,21 +519,26 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
 }
 
 bool
-datafile::removeContents( const std::vector< std::string >& dataids )
+datafile::removeContents( std::vector< std::string >&& dataIds )
 {
-    // not completed yet
-    if ( ! mounted_ )
+    if ( ! mounted_ || dataIds.empty() )
         return false;
 
     adfs::stmt sql( dbf_.db() );
 
-    for ( auto& dataid : dataids ) {
+    for ( auto& dataid : dataIds ) {
         sql.prepare( "DELETE FROM file WHERE fileid = (SELECT fileid FROM directory WHERE name = ?)" );
         sql.bind( 1 ) = dataid;
         if ( sql.step() == adfs::sqlite_done ) {
             sql.prepare( "DELETE FROM directory WHERE name = ?" );
             sql.bind( 1 ) = dataid;
-            sql.step();
+            if ( sql.step() == adfs::sqlite_done ) {
+                ADDEBUG() << "removeContents(\"" << sql.expanded_sql() << "\" -- ok";
+            } else {
+                ADDEBUG() << "sql error on removeContents(\"" << sql.expanded_sql() << "\" -- " << sql.errmsg();
+            }
+        } else {
+            ADDEBUG() << "sql error on removeContents(\"" << sql.expanded_sql() << "\" -- " << sql.errmsg();
         }
     }
     return true;
@@ -553,7 +563,7 @@ namespace addatafile {
 
         bool
         attachment::save_as( adfs::file& parent, const boost::filesystem::path& path
-                          , const adcontrols::datafile& source, const portfolio::Folium& folium )
+                             , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
             boost::filesystem::path filename = path / folium.id();
 
@@ -618,7 +628,7 @@ namespace addatafile {
         //------------------------------------
         bool
         folder::save_as( adfs::filesystem& dbf, const boost::filesystem::path& path
-                      , const adcontrols::datafile& source, const portfolio::Folder& folder )
+                         , const adcontrols::datafile& source, const portfolio::Folder& folder )
         {
             boost::filesystem::path pathname = path / folder.name();
 

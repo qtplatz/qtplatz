@@ -336,23 +336,24 @@ Dataprocessor::create(const QString& filename )
 }
 
 bool
-Dataprocessor::open(const QString &filename, QString& emsg )
+Dataprocessor::open(const std::wstring &filename, std::wstring& emsg )
 {
-    emsg.clear();
-    std::wstring msg;
-    if ( adprocessor::dataprocessor::open( filename.toStdWString(), msg ) ) {
-        Core::IDocument::setFilePath( filename );
-        Core::DocumentManager::setCurrentFile( filename );
+    emsg = std::wstring{};
+    if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
+        Core::IDocument::setFilePath( QString::fromStdWString( filename ) );
+        Core::DocumentManager::setCurrentFile( QString::fromStdWString( filename ) );
         return true;
     }
-    emsg = QString::fromStdWString( msg );
     return false;
 }
 
-QString
-Dataprocessor::qfilename() const
+bool
+Dataprocessor::open(const QString &filename, QString& emsg )
 {
-    return QString::fromStdWString( adprocessor::dataprocessor::filename() );
+    std::wstring msg;
+    bool rcode = open( filename.toStdWString(), msg );
+    emsg = QString::fromStdWString( msg );
+    return rcode;
 }
 
 bool
@@ -624,6 +625,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 void
 Dataprocessor::remove( portfolio::Folium folium )
 {
+#if 0
     if ( portfolio::Folium parent = folium.parentFolium() ) {
 
         if ( parent.removeAttachment( folium.name() ) )
@@ -635,20 +637,21 @@ Dataprocessor::remove( portfolio::Folium folium )
         setModified( true );
 
     }
+#endif
 }
 
-void
-Dataprocessor::removeCheckedItems()
-{
-    for ( auto& folder: portfolio_->folders() ) {
-        for ( auto& folium: folder.folio() ) {
-            if ( folium.attribute( L"isChecked" ) == L"false" ) {
-                folder.removeFolium( folium );
-                setModified( true );
-            }
-        }
-    }
-}
+// void
+// Dataprocessor::removeCheckedItems()
+// {
+//     for ( auto& folder: portfolio_->folders() ) {
+//         for ( auto& folium: folder.folio() ) {
+//             if ( folium.attribute( L"isChecked" ) == L"false" ) {
+//                 folder.removeFolium( folium );
+//                 setModified( true );
+//             }
+//         }
+//     }
+// }
 
 void
 Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
@@ -1133,6 +1136,29 @@ Dataprocessor::baselineCollection( portfolio::Folium folium )
 }
 
 void
+Dataprocessor::setAttribute( portfolio::Folium folium, std::pair< std::string, std::string >&& keyValue)
+{
+    folium.setAttribute( keyValue.first, keyValue.second );
+    if ( keyValue.first == "remove" && keyValue.second == "true" ) {
+        folium.setAttribute( "isChecked", "false" );
+    }
+    setModified( true );
+}
+
+void
+Dataprocessor::deleteRemovedItems()
+{
+    for ( auto folder: portfolio_->folders() ) {
+        for ( auto& folium: folder.folio() ) {
+            if ( folium.attribute( L"remove" ) == L"true" ) {
+                folder.erase( folium, []( const auto& t){ /* ADDEBUG() << "deleteRemovedItems: " << t; */} );
+                setModified( true );
+            }
+        }
+    }
+}
+
+void
 Dataprocessor::createContour()
 {
 	DataprocessWorker::instance()->createContour( this );
@@ -1248,7 +1274,7 @@ DataprocessorImpl::applyMethod( Dataprocessor *
 
                 if ( (*targeting)(*centroid) ) {
 
-                    fCentroid.removeAttachment( Constants::F_TARGETING );
+                    fCentroid.erase_attachment( Constants::F_TARGETING, [](auto t){ ADDEBUG() << "erase attachment: " << t; } );
                     portfolio::Folium att = fCentroid.addAttachment( Constants::F_TARGETING );
 
                     att.assign( targeting, adcontrols::Targeting::dataClass() );
@@ -1411,8 +1437,8 @@ DataprocessorImpl::applyMethod( Dataprocessor * dataprocessor
     bool centroid;
 
 	// make sure no 'processed profile' data exist
-	folium.removeAttachment( Constants::F_DFT_FILTERD ); // L"DFT Low Pass Filtered Spectrum";
-    folium.removeAttachment( Constants::F_MSPEAK_INFO );
+	folium.erase_attachment( Constants::F_DFT_FILTERD,[](auto t) { ADDEBUG() << "erase_attachment: " << t; });
+    folium.erase_attachment( Constants::F_MSPEAK_INFO,[](auto t) { ADDEBUG() << "erase_attachment: " << t; });
 
     std::shared_ptr< adcontrols::MSPeakInfo > pkInfo( std::make_shared< adcontrols::MSPeakInfo >() );
 

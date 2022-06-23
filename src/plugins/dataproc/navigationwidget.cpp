@@ -83,6 +83,7 @@ public:
 		//
         if ( isCheckable ) {
 			item->setCheckable( true );
+            item->setEditable( true );
 			item->setData( isChecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
 			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
 			item->setData( QVariant::fromValue<T>( value ), Qt::UserRole );
@@ -233,32 +234,24 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     pTreeView_->setItemDelegate( pDelegate_ );
 	pTreeView_->setDragEnabled( true );
     pTreeView_->setTextElideMode(Qt::ElideMiddle);
-
     setStyleSheet(
         "QTreeView {"
         " show-decoration-selected: 1;"
+#if defined Q_OS_MAC
+        " font-size: 11pt;"
+#else
         " font-size: 9pt;"
+#endif
         "}"
         "QTreeView::item:selected {"
         " border: 1px solid #567dbc;"
-        "}"
-        "QTreeView::item:open {"
-        " background-color: #c5ebfb;"
         " color: blue;"
         "}"
-#if ! defined Q_OS_MAC
-        "QTreeView::branch {"
-        " background: palette(base);"
+        "QTreeView::item:open {"
+        // " background-color: #c5ebfb;"
+        " color: blue;"
         "}"
-        "QTreeView::branch:open {"
-        " image: url(:/dataproc/image/control-270-small.png);"
-        "}"
-        "QTreeView::branch:closed:has-children {"
-        " image: url(:/dataproc/image/control-000-small.png);"
-        "}"
-#endif
         );
-
 
     // pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
 
@@ -297,32 +290,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         connect( mgr, &SessionManager::foliumChanged, this, &NavigationWidget::handleFoliumChanged );
     }
 
-    setAutoSynchronization(true);
     setAcceptDrops( true );
 
     if ( auto am = DataprocPlugin::instance()->actionManager() ) {
         am->connect_navigation_pointer( this );
     }
-}
-
-void
-NavigationWidget::setAutoSynchronization( bool sync )
-{
-    if ( autoSync_ == sync )
-        return;
-    autoSync_ = sync;
-}
-
-bool
-NavigationWidget::autoSyncronization() const
-{
-    return autoSync_;
-}
-
-void
-NavigationWidget::toggleAutoSynchronization()
-{
-    setAutoSynchronization( ! autoSync_ );
 }
 
 void
@@ -338,16 +310,11 @@ NavigationWidget::initView()
     // hide root folder
     view.setRootIndex(sessionIndex);
 
-    while ( model.canFetchMore(sessionIndex))
-        model.fetchMore(sessionIndex);
-
     // expand top level projects
     for ( int i = 0; i < pModel_->rowCount(sessionIndex); ++i)
         view.expand( model.index(i, 0, sessionIndex));
 
     view.setMouseTracking( true );
-
-    // setCurrentItem(m_explorer->currentNode(), m_explorer->currentProject());
 }
 
 void
@@ -356,6 +323,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
     // handle checkbox on tree item
     QVariant data = item->data( Qt::UserRole );
 
+    // ADDEBUG() << "handleItemChanged: " << item->data( Qt::DisplayRole ).toString().toStdString();
     if ( data.canConvert< portfolio::Folium >() ) {
 
 		Qt::CheckState state = static_cast< Qt::CheckState >( item->data( Qt::CheckStateRole ).toUInt() );
@@ -364,7 +332,6 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 
 		if ( Dataprocessor * dp = StandardItemHelper::findDataprocessor( item->index() ) )
             SessionManager::instance()->checkStateChanged( dp, folium, state == Qt::Checked );
-
     }
 
 }
@@ -372,14 +339,19 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-    QString filename( processor->qfilename() );
+    QString filename( processor->filePath() );
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
         model.removeRows( 0, item->rowCount(), item->index() );
         portfolio::Portfolio portfolio = processor->getPortfolio();
-        for ( auto folder: portfolio.folders() )
+        for ( auto folder: portfolio.folders() ) {
             PortfolioHelper::appendFolder( *item, folder );
+        }
+        // expanding top and 2nd levels
+        pTreeView_->expand( item->index() );
+        for ( int i = 0; i < item->rowCount(); ++i)
+            pTreeView_->expand( model.index( i, 0, item->index()) );
     }
 }
 
@@ -431,7 +403,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    QString filename = processor->qfilename();
+    QString filename = processor->filePath();
 
     QStandardItemModel& model = *pModel_;
 
@@ -476,7 +448,7 @@ void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     // adcontrols::datafile * file = processor->file();
-    QString filename = processor->qfilename();
+    QString filename = processor->filePath();
 
     QStandardItemModel& model = *pModel_;
 
@@ -532,18 +504,21 @@ NavigationWidget::handle_clicked( const QModelIndex& index )
 void
 NavigationWidget::handle_doubleClicked( const QModelIndex& index )
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     (void)index;
 }
 
 void
 NavigationWidget::handle_entered( const QModelIndex& index )
 {
+    // ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     (void)index;
 }
 
 void
 NavigationWidget::handle_pressed( const QModelIndex& index )
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     (void)index;
 }
 
@@ -795,7 +770,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     QMenu menu;
 
     if ( index.isValid() ) {
-
         portfolio::Folium active_folium;
         QString active_spectrum;
         if ( auto activeProcessor = SessionManager::instance()->getActiveDataprocessor() ) {
@@ -890,17 +864,26 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 processor->exportMatchedMasses( v, folium.id() );
                         } );
                 }
-
-                menu.addAction( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [&](){
-                        processor->remove( folium );
-                        invalidateSession( processor );
-                    } );
+                if ( folium.attribute("remove") == "true" ) {
+                    menu.addAction( tr( "Cancel remove"), [=](){ processor->setAttribute( folium, {"remove", "false"}); });
+                } else {
+                    menu.addAction( tr( "Remove"), [=](){        processor->setAttribute( folium, {"remove",  "true"}); });
+                }
+                menu.addAction( tr( "Tag none"  ), [=] () { processor->setAttribute( folium, { "tag", "none"  } ); });
+                menu.addAction( tr( "Tag red"   ), [=] () { processor->setAttribute( folium, { "tag",  "red"  } ); });
+                menu.addAction( tr( "Tag blue"  ), [=] () { processor->setAttribute( folium, { "tag", "blue"  } ); });
+                menu.addAction( tr( "Tag green" ), [=] () { processor->setAttribute( folium, { "tag", "green" } ); });
 
                 processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
+
             }
 
             menu.addSeparator();
             menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
+            menu.addAction( tr( "Delete removed items"), [processor, this](){
+                processor->deleteRemovedItems();
+                invalidateSession( processor );
+            } );
 
             menu.exec( globalPos );
 

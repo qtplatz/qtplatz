@@ -61,16 +61,19 @@ namespace portfolio {
             Folder addFolder( const std::wstring&, bool uniq );
             pugi::xml_document& getDocument() { return doc_; }
             static std::wstring newGuid();
-            bool collect_garbage();
-            void removed( const std::string& idataId );
+
+            std::vector< std::tuple< std::string, std::string > > collect_garbage() const;
+            bool erase_data( const std::string& name, const std::string& dataId );
 
         private:
             friend class portfolio::Portfolio;
+            friend class Node;
 
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;
+        protected:
             pugi::xml_document doc_;
-            std::set< std::string > removed_;  // [@dataId]
+            std::vector< std::tuple< std::string, std::string > > removed_list_; // name,dataId
         };
     }
 }

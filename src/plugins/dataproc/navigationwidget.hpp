@@ -46,14 +46,14 @@ namespace dataproc {
         explicit NavigationWidget(QWidget *parent = 0);
         ~NavigationWidget();
 
-        bool autoSyncronization() const;
-        void setAutoSynchronization( bool sync );
+        // bool autoSyncronization() const;
+        // void setAutoSynchronization( bool sync );
         void invalidateSession( Dataprocessor * );
 
     signals:
 
     public slots:
-        void toggleAutoSynchronization();
+        // void toggleAutoSynchronization();
         void handleAddSession( Dataprocessor * );
 		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
 		void handleSessionUpdated( Dataprocessor *, const QString& foliumId );

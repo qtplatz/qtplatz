@@ -26,7 +26,8 @@
 #ifndef NAVIGATIONDELEGATE_H
 #define NAVIGATIONDELEGATE_H
 
-#include <QItemDelegate>
+#include <QStyledItemDelegate>
+// #include <QItemDelegate>
 #if !defined Q_MOC_RUN
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
@@ -39,7 +40,7 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    class NavigationDelegate : public QItemDelegate {
+    class NavigationDelegate : public QStyledItemDelegate { // QItemDelegate {
         Q_OBJECT
     public:
         explicit NavigationDelegate(QObject *parent = 0);
@@ -47,11 +48,10 @@ namespace dataproc {
         void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& ) const override;
         void setEditorData( QWidget* editor, const QModelIndex& ) const override;
         void setModelData( QWidget *editor, QAbstractItemModel * model, const QModelIndex &index) const override;
-        bool editorEvent( QEvent * event, QAbstractItemModel *
-                          , const QStyleOptionViewItem&, const QModelIndex& ) override;
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override;
 
     signals:
-        void checkStateChanged( const QModelIndex&, Qt::CheckState );
+        // void checkStateChanged( const QModelIndex&, Qt::CheckState );
 
     public slots:
 

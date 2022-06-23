@@ -25,6 +25,7 @@
 #include "folder.hpp"
 #include "folium.hpp"
 #include "portfolioimpl.hpp"
+#include <adportable/debug.hpp>
 
 using namespace portfolio;
 
@@ -76,7 +77,7 @@ Folder::folio()
 
     pugi::xpath_node_set list = node_.select_nodes( "./folder[@folderType='file']|./folium" );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-        folio.push_back( Folium( it->node(), impl_ ) );
+        folio.emplace_back( Folium( it->node(), impl_ ) );
 
     return folio;
 }
@@ -127,6 +128,7 @@ Folder::addFolium( const std::wstring& name )
     return Folium( Node::addFolium( name ), impl_ );
 }
 
+#if 0
 bool
 Folder::removeFolium( const Folium& folium )
 {
@@ -135,4 +137,17 @@ Folder::removeFolium( const Folium& folium )
         return true;
     }
     return false;
+}
+#endif
+
+bool
+Folder::erase( Folium folium
+               , std::function< void( std::tuple< std::wstring, std::wstring > ) > callback )
+{
+    folium.erase_attachments( callback );
+
+    auto dataIds = Node::erase( "folium", { folium.name(), folium.id() } );
+    callback( { folium.name(), folium.id() } );
+
+    return true;
 }
