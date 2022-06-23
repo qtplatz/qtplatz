@@ -37,13 +37,13 @@ if ( CUDA_FOUND )
   )
 endif()
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets OpenGL ) #Gui )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets OpenGL ) #Gui )
 find_package( qwt )
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5OpenGL_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtOpenGL_INCLUDE_DIRS}
   )
 
 add_definitions(-DADCV_LIBRARY)
@@ -117,8 +117,8 @@ target_link_libraries( ${PROJECT_NAME} ${LINK_KEYWORD}
   ${Boost_LIBRARIES}
   ${CUDA_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  Qt5::Core
-  Qt5::Widgets
+  Qt::Core
+  Qt::Widgets
   )
 
 if( APPLE )

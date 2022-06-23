@@ -1,7 +1,7 @@
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
-find_package( Qt5 CONFIG REQUIRED Widgets )
+#find_package( Qt5 CONFIG REQUIRED Widgets )
 
 project( adui )
 
@@ -13,8 +13,8 @@ set(CMAKE_AUTOUIC ON)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 qt_add_resources(RC_SRC "adui.qrc")
@@ -29,8 +29,8 @@ add_library( ${PROJECT_NAME} SHARED
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   utils
-  Qt5::Core
-  Qt5::Widgets
+  Qt::Core
+  Qt::Widgets
   )
 
 install( TARGETS ${PROJECT_NAME}

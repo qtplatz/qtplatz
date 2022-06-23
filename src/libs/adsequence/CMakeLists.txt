@@ -5,7 +5,7 @@ project( adsequence )
 cmake_policy( SET CMP0022 NEW )
 
 add_definitions( -DADSEQUENCE_LIBRARY )
-include_directories( ${Qt5Core_INCLUDE_DIRS} )
+include_directories( ${QtCore_INCLUDE_DIRS} )
 
 set( adsequence_SOURCES
   adsequence.cpp

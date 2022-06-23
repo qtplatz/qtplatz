@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 REQUIRED Core Gui PrintSupport Sql Svg Widgets )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Core Gui PrintSupport Sql Svg Widgets )
 find_package( Threads REQUIRED )
 
 include_directories(
@@ -16,7 +16,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/multum/libs
   ${CMAKE_SOURCE_DIR}/contrib/include
   ${QWT_DIR}/include
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_definitions( -DADMTWIDGETS_LIBRARY )
@@ -48,9 +48,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adurl
   adio
   qtwrapper
-  Qt5::Sql
-  Qt5::Svg
-  Qt5::Widgets
+  Qt::Sql
+  Qt::Svg
+  Qt::Widgets
   ${Boost_LIBRARIES}
   Threads::Threads
   )

@@ -1,7 +1,7 @@
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
-find_package( Qt5 CONFIG REQUIRED Widgets )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets )
 
 project( qtwrapper )
 
@@ -12,8 +12,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 include_directories(
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_library( ${PROJECT_NAME} SHARED
@@ -29,8 +29,8 @@ add_library( ${PROJECT_NAME} SHARED
 )
 
 target_link_libraries( ${PROJECT_NAME}
-  Qt5::Core
-  Qt5::Widgets
+  Qt::Core
+  Qt::Widgets
   )
 
 install( TARGETS ${PROJECT_NAME}

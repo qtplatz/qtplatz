@@ -9,10 +9,10 @@ if ( MSVC )
   add_definitions( -wd4251 -wd4244 )
 endif()
 
-if ( Qt5_FOUND )
+if ( QT_FOUND )
   add_definitions( -DHAVE_Qt5=1 )  # this may inprove json read/write performance
-  include_directories( ${Qt5Core_INCLUDES} )
-  set ( qt5_libraries Qt5::Core )
+  include_directories( ${QtCore_INCLUDES} )
+  set ( qt_libraries Qt::Core )
 endif()
 
 add_library( ${PROJECT_NAME} SHARED
@@ -26,7 +26,7 @@ target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adportable_serializer
-  ${qt5_libraries}
+  ${qt_libraries}
   ${Boost_LIBRARIES}
   )
 

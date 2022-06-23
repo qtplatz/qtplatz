@@ -7,7 +7,7 @@ cmake_policy(SET CMP0028 NEW)
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
-find_package( Qt5 COMPONENTS Core REQUIRED )
+#find_package( Qt5 COMPONENTS Core REQUIRED )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -21,7 +21,7 @@ add_library( ${PROJECT_NAME} SHARED
   loader.hpp
   )
 
-include_directories( ${Qt5Core_INCLUDE_DIRS}  )
+include_directories( ${QtCore_INCLUDE_DIRS}  )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols

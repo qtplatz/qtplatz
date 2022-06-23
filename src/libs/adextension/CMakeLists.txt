@@ -50,7 +50,7 @@ set( adextension_SOURCES
 add_library( adextension SHARED ${adextension_SOURCES} )
 
 target_link_libraries( adextension LINK_PUBLIC
-  Qt5::Core
+  Qt::Core
   adacquire
   adportable
   ${Boost_LIBRARIES}

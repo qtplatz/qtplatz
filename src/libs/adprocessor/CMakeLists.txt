@@ -13,7 +13,7 @@ set(CMAKE_AUTORCC ON)
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/adplugins
   ${QWT_INCLUDE_DIR}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_definitions(-DADPROCESSOR_LIBRARY)
@@ -46,8 +46,8 @@ target_link_libraries( adprocessor LINK_PUBLIC
   adutils
   portfolio
   ${Boost_LIBRARIES}
-  Qt5::Widgets
-  Qt5::Core
+  Qt::Widgets
+  Qt::Core
   )
 
 install( TARGETS ${PROJECT_NAME}

@@ -11,7 +11,7 @@ add_subdirectory ( adfs )
 add_subdirectory ( adio )
 add_subdirectory ( adlog )
 add_subdirectory ( admethods )
-if ( Qt5_FOUND )
+if ( QT_FOUND )
   add_subdirectory ( adplugin )  # <-- Qt5_Core dependency (QJsonXXX)
   add_subdirectory ( adacquire ) # <-- adplugin dependency
   add_subdirectory ( adui )      # tools dependency
@@ -29,7 +29,7 @@ if ( OpenCV_FOUND OR ArrayFire_FOUND )
   add_subdirectory ( adcv )
 endif()
 
-if ( NOT CMAKE_CROSSCOMPILING AND Qt5_FOUND )
+if ( NOT CMAKE_CROSSCOMPILING AND QT_FOUND )
 
   add_subdirectory (adextension)
   add_subdirectory (adprocessor)
@@ -41,8 +41,8 @@ if ( NOT CMAKE_CROSSCOMPILING AND Qt5_FOUND )
   add_subdirectory (aggregation)
   add_subdirectory (extensionsystem)
   add_subdirectory (utils)
-  find_package( Qt5 COMPONENTS XmlPatterns QUIET )
-  find_package( Qt5 COMPONENTS WebEngineWidgets QUIET )
+  find_package( Qt${QT_VERSION_MAJOR} COMPONENTS XmlPatterns QUIET )
+  find_package( Qt${QT_VERSION_MAJOR} COMPONENTS WebEngineWidgets QUIET )
   add_subdirectory (adpublisher)
 
 endif()

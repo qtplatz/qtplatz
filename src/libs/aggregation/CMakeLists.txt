@@ -8,8 +8,8 @@ set(CMAKE_AUTOMOC ON)
 
 add_definitions(-DAGGREGATION_LIBRARY)
 
-find_package( Qt5 REQUIRED Core )
-include_directories( ${Qt5Core_INCLUDE_DIRS} )
+#find_package( Qt5 REQUIRED Core )
+include_directories( ${QtCore_INCLUDE_DIRS} )
 
 add_library(
   ${PROJECT_NAME} SHARED
@@ -20,7 +20,7 @@ add_library(
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
-  Qt5::Core
+  Qt::Core
   )
 
 install( TARGETS ${PROJECT_NAME}

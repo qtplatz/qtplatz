@@ -8,13 +8,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
 find_package( qwt )
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtSvg_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_definitions(-DADPLOT_LIBRARY)
@@ -85,10 +85,10 @@ target_link_libraries( adplot LINK_PUBLIC
   adportable
   qtwrapper
   ${QWT_LIBRARIES}
-  Qt5::Svg
-  Qt5::PrintSupport
-  Qt5::Widgets
-  Qt5::Core
+  Qt::Svg
+  Qt::PrintSupport
+  Qt::Widgets
+  Qt::Core
   )
 
 if( APPLE )

@@ -14,17 +14,17 @@ configure_file(
   "${PROJECT_BINARY_DIR}/share/qtplatz/xslt"  # <QtPlatz>/share/qtplatz/xslt
   )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
 
 add_definitions(-DADPUBLISHER_LIBRARY)
 
 include_directories(
-  ${Qt5Concurrent_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Xml_INCLUDE_DIRS}
-  ${Qt5XmlPatterns_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtConcurrent_INCLUDE_DIRS}
+  ${QtSvg_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
+  ${QtXml_INCLUDE_DIRS}
+  ${QtXmlPatterns_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 if ( NOT WIN32 )
@@ -80,9 +80,9 @@ target_link_libraries(
   adportable
   qtwrapper
   xmlparser
-  Qt5::Widgets
-  Qt5::Core
-  Qt5::PrintSupport
+  Qt::Widgets
+  Qt::Core
+  Qt::PrintSupport
   ${_xslt_libs}
   ${Boost_LIBRARIES}
   )
