@@ -3,7 +3,7 @@
 
 include( "soname" )
 
-find_package( Qt5
+find_package( Qt${QT_VERSION_MAJOR}
   REQUIRED
   Core
   DBus
@@ -23,17 +23,17 @@ find_package( Qt5
   )
 
 if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
-  find_package( Qt5 REQUIRED WebKit WebKitWidgets WebEngineWidgets )
-  set( _webkits Qt5::WebKit Qt5::WebKitWidgets )
+  find_package( Qt${QT_VERSION_MAJOR} REQUIRED WebKit WebKitWidgets WebEngineWidgets )
+  set( _webkits Qt::WebKit Qt::WebKitWidgets )
 endif()
 
-get_target_property( _loc Qt5::Core LOCATION )
+get_target_property( _loc Qt::Core LOCATION )
 get_filename_component( _dir ${_loc} DIRECTORY )
 
-foreach( _lib "icu*" Qt5CLucene Qt5XcbQpa )
+foreach( _lib "icu*" Qt${QT_VERSION_MAJOR}CLucene Qt${QT_VERSION_MAJOR}XcbQpa )
   if ( WIN32 )
     file( GLOB files "${_dir}/${_lib}.${SO}" )
-    install( PROGRAMS ${files} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )  
+    install( PROGRAMS ${files} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
   else()
     file( GLOB files "${_dir}/lib${_lib}.${SO}.*" )
     install( PROGRAMS ${files} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
@@ -41,27 +41,27 @@ foreach( _lib "icu*" Qt5CLucene Qt5XcbQpa )
 endforeach()
 
 foreach( lib
-    Qt5::Core
-    Qt5::DBus
-    Qt5::Gui
-    Qt5::Multimedia
-    Qt5::MultimediaWidgets
-    Qt5::Network
-    Qt5::OpenGL
-    Qt5::PrintSupport
-    Qt5::Sensors
-    Qt5::Sql
-    Qt5::Svg
-    Qt5::Positioning
-    Qt5::Widgets
+    Qt::Core
+    Qt::DBus
+    Qt::Gui
+    Qt::Multimedia
+    Qt::MultimediaWidgets
+    Qt::Network
+    Qt::OpenGL
+    Qt::PrintSupport
+    Qt::Sensors
+    Qt::Sql
+    Qt::Svg
+    Qt::Positioning
+    Qt::Widgets
     ${_webkits}
-    Qt5::Xml
-    Qt5::XmlPatterns )
-  
+    Qt::Xml
+    Qt::XmlPatterns )
+
   get_target_property( _loc ${lib} LOCATION )
 
   # message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} --> ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} )
-  
+
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
   else()
@@ -70,7 +70,7 @@ foreach( lib
     file( GLOB files "${path}/${name}.${SO}.*" )
     install( PROGRAMS ${files} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
   endif()
-  
+
 endforeach()
 
 if ( QT_INSTALL_PLUGINS )

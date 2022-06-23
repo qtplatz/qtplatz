@@ -2,12 +2,12 @@ cmake_minimum_required ( VERSION 3.18.2 )
 
 project ( ws_adprocessor )
 
-find_package( Qt5 CONFIG REQUIRED Core )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core )
 
 include_directories(
   ${WSTP_INCLUDE_DIRS}
   ${LIBRARYLINK_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 link_directories( ${WSTP_LIBRARY_DIRS} )
@@ -37,7 +37,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adprocessor
   acqrscontrols
   adportable
-  Qt5::Core
+  Qt::Core
   ${Boost_LIBRARIES}
   ${WSTP_LIBRARIES}
   )
@@ -59,7 +59,7 @@ target_link_libraries( wsadprocessor LINK_PUBLIC
   adprocessor
   acqrscontrols
   adportable
-  Qt5::Core
+  Qt::Core
   ${Boost_LIBRARIES}
   ${WSTP_LIBRARIES}
   )

@@ -22,8 +22,8 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/plugins
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/multum/libs
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_definitions( -DINFITOFSPECTROMETER_LIBRARY )

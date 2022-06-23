@@ -130,7 +130,7 @@ if ( WITH_QT5 )
     message( STATUS "###### Qt${QT_VERSION_MAJOR}_FOUND: " ${Qt${QT_VERSION_MAJOR}_FOUND} )
 
     # get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
-    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
+    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
     # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
     if ( NOT XMLPATTERNS )
       message( FATAL_ERROR "xmlpatterns command not found" )

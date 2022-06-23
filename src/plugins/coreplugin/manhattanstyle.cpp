@@ -246,11 +246,11 @@ QPalette panelPalette(const QPalette &oldPalette, bool lightColored = false)
     QPalette pal = oldPalette;
     pal.setBrush(QPalette::All, QPalette::WindowText, color);
     pal.setBrush(QPalette::All, QPalette::ButtonText, color);
-    pal.setBrush(QPalette::All, QPalette::Foreground, color);
+    // pal.setBrush(QPalette::All, QPalette::Foreground, color);
     color.setAlpha(100);
     pal.setBrush(QPalette::Disabled, QPalette::WindowText, color);
     pal.setBrush(QPalette::Disabled, QPalette::ButtonText, color);
-    pal.setBrush(QPalette::Disabled, QPalette::Foreground, color);
+    // pal.setBrush(QPalette::Disabled, QPalette::Foreground, color);
     return pal;
 }
 
@@ -540,7 +540,7 @@ void ManhattanStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
                             rect.topLeft().y() + margin);
             } else { //Draw vertical separator
                 const int offset = rect.height()/2;
-                painter->setPen(QPen(option->palette.background().color().darker(110)));
+                painter->setPen(QPen(option->palette.window().color().darker(110)));
                 painter->drawLine(rect.topLeft().x() + margin ,
                             rect.topLeft().y() + offset,
                             rect.topRight().x() - margin,
@@ -717,11 +717,11 @@ void ManhattanStyle::drawControl(ControlElement element, const QStyleOption *opt
 
                 bool notElideAsterisk = widget && widget->property("notelideasterisk").toBool()
                                         && cb->currentText.endsWith(asterisk)
-                                        && option->fontMetrics.width(cb->currentText) > elideWidth;
+                                        && option->fontMetrics.horizontalAdvance(cb->currentText) > elideWidth;
 
                 QString text;
                 if (notElideAsterisk) {
-                    elideWidth -= option->fontMetrics.width(asterisk);
+                    elideWidth -= option->fontMetrics.horizontalAdvance(asterisk);
                     text = asterisk;
                 }
                 text.prepend(option->fontMetrics.elidedText(cb->currentText, Qt::ElideRight, elideWidth));
@@ -952,7 +952,7 @@ void ManhattanStyle::drawComplexControl(ComplexControl control, const QStyleOpti
             QRect arrowRect((left + right) / 2 + (reverse ? 6 : -6), rect.center().y() - 3, 9, 9);
 
             if (!alignarrow) {
-                int labelwidth = option->fontMetrics.width(cb->currentText);
+                int labelwidth = option->fontMetrics.horizontalAdvance(cb->currentText);
                 if (reverse)
                     arrowRect.moveLeft(qMax(rect.width() - labelwidth - menuButtonWidth - 2, 4));
                 else

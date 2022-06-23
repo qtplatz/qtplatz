@@ -5,10 +5,10 @@ find_package( qwt )
 include_directories(
 	"${PROJECT_SOURCE_DIR}/src/libs"
 	${QWT_INCLUDE_DIR}
-	${Qt5PrintSupport_INCLUDE_DIRS}
+	${QtPrintSupport_INCLUDE_DIRS}
 	)
 
-set( lrpviewer_SOURCES 
+set( lrpviewer_SOURCES
   main.cpp
   mainwindow.cpp
   mainwindow.hpp
@@ -26,12 +26,12 @@ file(GLOB Resources *.qrc)
 include_directories(
 	"${PROJECT_SOURCE_DIR}/src/libs"
 	${QWT_INCLUDE_DIRS}
-	${Qt5PrintSupport_INCLUDE_DIRS}
+	${QtPrintSupport_INCLUDE_DIRS}
 	)
 
 link_directories( ${QWT}/lib )
 
-find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg PrintSupport )
+#find_package(Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets Gui Svg PrintSupport )
 
 add_executable( lrpviewer ${lrpviewer_SOURCES} ${Resources} )
 
@@ -41,9 +41,8 @@ target_link_libraries( lrpviewer LINK_PUBLIC
 		       adplot
 		       adwidgets
 		       ${QWT_LIBRARIES}
-		       Qt5::Widgets
-		       Qt5::Svg
-		       Qt5::PrintSupport
-		       Qt5::Widgets
+		       Qt::Widgets
+		       Qt::Svg
+		       Qt::PrintSupport
+		       Qt::Widgets
 		       ${Boost_LIBRARIES} )
-

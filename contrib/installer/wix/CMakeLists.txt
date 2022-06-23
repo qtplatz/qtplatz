@@ -85,9 +85,9 @@ configure_file(
 file( GLOB XSLTFILES ${PROJECT_SOURCE_DIR}/*.xslt )
 file( COPY ${XSLTFILES} DESTINATION ${PROJECT_BINARY_DIR} )
 
-find_package( Qt5 REQUIRED Gui Svg Sql )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Gui Svg Sql )
 
-foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
+foreach(plugin ${QtGui_PLUGINS} ${QtSvg_PLUGINS} ${QtSql_PLUGINS} )
   get_target_property( _loc ${plugin} LOCATION )
   file( RELATIVE_PATH _rname ${QTDIR}/plugins ${_loc} )
   get_filename_component(_rpath ${_rname} DIRECTORY )
@@ -95,5 +95,3 @@ foreach(plugin ${Qt5Gui_PLUGINS} ${Qt5Svg_PLUGINS} ${Qt5Sql_PLUGINS} )
 endforeach()
 
 add_custom_target( makefile DEPENDS makefile.in )
-
-

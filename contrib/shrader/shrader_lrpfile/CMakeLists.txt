@@ -2,7 +2,7 @@ cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
 add_definitions(-DSHRADER_LRPFILE_LIBRARY)
-find_package( Qt5 CONFIG REQUIRED Widgets ) # <-- adplugin depend on it
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets ) # <-- adplugin depend on it
 
 add_library( shrader_lrpfile SHARED
   shrader_lrpfile.cpp
@@ -14,9 +14,7 @@ add_library( shrader_lrpfile SHARED
 
 target_link_libraries( shrader_lrpfile LINK_PUBLIC
   ${Boost_LIBRARIES}
-  lrpfile  
+  lrpfile
   adplugin
   adcontrols
   portfolio )
-
-

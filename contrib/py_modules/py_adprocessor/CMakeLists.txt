@@ -33,8 +33,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   ${Python3_LIBRARIES}
   ${Boost_LIBRARIES}
-  Qt5::Widgets
-  Qt5::Core
+  Qt::Widgets
+  Qt::Core
   )
 
 if ( WIN32 )

@@ -8,7 +8,7 @@ set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 #QT += core svg printsupport widgets
-find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -45,8 +45,8 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
   ${QWT_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src         # version.h
   )
 
@@ -103,8 +103,8 @@ target_link_libraries(
   Core
   extensionsystem
   utils
-  Qt5::Svg
-  Qt5::Widgets
+  Qt::Svg
+  Qt::Widgets
   acqrscontrols
   #  u5303a
   qtwrapper

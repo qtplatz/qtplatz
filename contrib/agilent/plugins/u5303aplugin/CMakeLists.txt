@@ -8,7 +8,7 @@ set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 #QT += core svg printsupport widgets
-find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -24,7 +24,7 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
@@ -42,8 +42,8 @@ include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${ACE+TAO_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
@@ -109,6 +109,5 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"  
+  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
-  

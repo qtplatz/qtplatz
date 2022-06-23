@@ -1,7 +1,7 @@
 
 add_subdirectory( libs )
 
-if ( Qt5_FOUND )
+if ( QT_FOUND )
   add_subdirectory( plugins )
 endif()
 

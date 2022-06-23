@@ -10,12 +10,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 REQUIRED PrintSupport Sql Svg Widgets Gui Core )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED PrintSupport Sql Svg Widgets Gui Core )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/..
   )
 
@@ -47,8 +47,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adwidgets
   qtwrapper
   ${QWT_LIBRARIES}
-  Qt5::Widgets
-  Qt5::PrintSupport
+  Qt::Widgets
+  Qt::PrintSupport
   )
 
 install( TARGETS ${PROJECT_NAME}

@@ -3,7 +3,7 @@ project( socfpga )
 
 add_definitions( -DSOCFPGA_LIBRARY )
 
-#find_package( Qt5 REQUIRED Core )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Core )
 
 add_library( socfpga SHARED
 #  socfpga_global.hpp
@@ -18,7 +18,7 @@ add_library( socfpga SHARED
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/contrib/linux
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 target_link_libraries( ${PROJECT_NAME}
@@ -30,7 +30,7 @@ target_link_libraries( ${PROJECT_NAME}
   adurl
   ${Boost_LIBRARIES}
   Threads::Threads
-  Qt5::Core
+  Qt::Core
   )
 
 install(
