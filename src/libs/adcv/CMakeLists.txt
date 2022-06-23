@@ -43,7 +43,7 @@ find_package( qwt )
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${QtWidgets_INCLUDE_DIRS}
-  ${QtOpenGL_INCLUDE_DIRS}
+  "${Qt${QT_VERSION_MAJOR}OpenGL_INCLUDE_DIRS}"
   )
 
 add_definitions(-DADCV_LIBRARY)

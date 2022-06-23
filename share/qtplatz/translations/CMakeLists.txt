@@ -6,7 +6,7 @@ if ( NOT Qt5LinguistTools_FOUND )
   return()
 endif()
 
-set( UPDATE_TRANSLATIONS CACHE BOOL OFF )
+set( UPDATE_TRANSLATIONS CACHE BOOL ON )
 
 set( LANGUAGES cs de fr it ja pl ru sl uk zh_CN zh_TW )
 
