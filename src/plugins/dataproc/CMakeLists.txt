@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( dataproc )
 
 set( PROVIDER MS-Cheminformatics )
-find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets PrintSupport Svg Sql )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -45,7 +45,7 @@ set ( _SOURCE surface.cpp surface.hpp )
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}        # version.h
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
@@ -167,7 +167,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   utils
   xmlparser
   Core
-  Qt5::Core
+  Qt::Core
   ${Boost_LIBRARIES}
   ${BCRYPT}
 )

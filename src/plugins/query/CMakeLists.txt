@@ -6,18 +6,7 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
-
-set( WITH_CHARTS OFF )
-
-if ( WITH_CHARTS )
-  find_package( Qt5 CONFIG OPTIONAL_COMPONENTS Charts )
-  if ( Qt5Charts_CONFIG )
-    list( APPEND _charts_libraries "Qt5::Charts" )
-    list( APPEND _charts_sources charts/chartview.cpp charts/chartview.hpp )
-    add_definitions( "-DQT5_CHARTS=1" )
-  endif()
-endif()
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
 find_package( qwt )
 
@@ -50,7 +39,7 @@ add_definitions(
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
