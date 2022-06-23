@@ -1696,9 +1696,6 @@ MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
 {
     using namespace adextension;// ::iEditorFactory;
 
-    // if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidForm > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
-    //     impl << p;
-    // };
     if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidWidget > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
         impl << p;
     };

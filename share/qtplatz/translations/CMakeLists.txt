@@ -32,10 +32,6 @@ else()
   QT5_ADD_TRANSLATION( qm_files ${ts_files} )
 endif()
 
-#foreach( qm_file ${qm_files} )
-#  message( "qm_file: " ${qm_file} )
-#endforeach()
-
 file( WRITE phony.c "int main() { return 0; }" )
 
 add_executable( translations phony.c ${qm_files} )

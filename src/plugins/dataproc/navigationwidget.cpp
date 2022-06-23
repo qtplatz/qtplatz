@@ -903,8 +903,7 @@ NavigationWidget::handleAllCheckState( bool checked, const QString& node )
                 auto sp = model.itemFromIndex( model.index( n, 0, parent->index() ) );
                 for ( int isp = 0; isp < sp->rowCount(); ++isp ) {
                     if ( auto item = model.itemFromIndex(model.index(isp, 0, sp->index())) ) {
-
-                        ADDEBUG() << "-----> " << item->data( Qt::EditRole ).toString().toStdString();
+                        // ADDEBUG() << "-----> " << item->data( Qt::EditRole ).toString().toStdString();
                         if ( item->isCheckable() )
                             item->setCheckState( checked ? Qt::Checked : Qt::Unchecked );
                     }

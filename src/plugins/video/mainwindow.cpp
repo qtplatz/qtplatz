@@ -40,7 +40,6 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adextension/ieditorfactory_t.hpp>
 #include <adwidgets/adcv/contoursform.hpp>
-#include <adwidgets/centroidform.hpp>
 #include <adwidgets/playercontrols.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/mspeaktable.hpp>
