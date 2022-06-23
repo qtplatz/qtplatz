@@ -65,7 +65,19 @@ endif()
 
 if ( WITH_QT5 )
 
-  if ( NOT QMAKE )
+  find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+  message( STATUS "#### QT VERSION: " ${QT_VERSION_MAJOR} )
+  message( STATUS "#### QT_FOUND: "  ${QT_FOUND} )
+  message( STATUS "#### QT_DIR: "  ${QT_DIR} )
+  if ( QT_FOUND )
+    find_program( QMAKE NAMES qmake )
+    message( STATUS "#### QMAKE: "  ${QMAKE} )
+  endif()
+  if ( QT_DIR )
+    set( QTDIR ${QT_DIR} )
+  endif()
+
+  if ( NOT QT_FOUND AND NOT QMAKE )
     set ( __qt5_versions
       "5.15.2" "5.15.1" "5.15.0"
       "5.14.2" "5.14.1" "5.14.0"
@@ -103,38 +115,27 @@ if ( WITH_QT5 )
       OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
       OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-    list( APPEND CMAKE_PREFIX_PATH "${QTDIR}/lib/cmake" )
-    set( QTDIR ${__prefix} )
-    execute_process( COMMAND ${QMAKE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION )
+#    list( APPEND CMAKE_PREFIX_PATH "${QTDIR}/lib/cmake" )
+#    set( QTDIR ${__prefix} )
+#    execute_process( COMMAND ${QMAKE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION )
   else()
     message( STATUS "=============================================================" )
     message( STATUS "====== No QMAKE FOUND =======================================" )
     message( STATUS "=============================================================" )
   endif()
 
-  if ( ${QT_VERSION} VERSION_GREATER_EQUAL "6.0.0" )
-    find_package( Qt6 OPTIONAL_COMPONENTS Core QUIET )
-    if ( Qt6_FOUND )
-      find_package( Qt6 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
-    else()
-      message( STATUS "# Qt6_DIR = ${Qt6_DIR}" )
-    endif()
-  else()
-    find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-    if ( Qt5_FOUND )
-      find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
-      get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
-      find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
-      # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
-      if ( NOT XMLPATTERNS )
-        message( FATAL_ERROR "xmlpatterns command not found" )
-      endif()
-    else()
-      message( STATUS "# Qt5_DIR = ${Qt5_DIR}" )
-      message( STATUS "# Disable QT5" )
+  if ( QT_FOUND )
+    #find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED PrintSupport Svg Core Sql Widgets Gui OpenGL )
+    find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+    message( STATUS "###### Qt${QT_VERSION_MAJOR}_FOUND: " ${Qt${QT_VERSION_MAJOR}_FOUND} )
+
+    # get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
+    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
+    # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
+    if ( NOT XMLPATTERNS )
+      message( FATAL_ERROR "xmlpatterns command not found" )
     endif()
   endif()
-
 
 endif()
 

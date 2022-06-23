@@ -8,7 +8,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Network Core Widgets PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Network Core Widgets PrintSupport )
 
 file(GLOB ${PROJECT_NAME}_Resources *.qrc)
 
@@ -16,9 +16,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/shared/qtsingleapplication
   ${CMAKE_SOURCE_DIR}/src/shared/qtlockedfile
   ${CMAKE_SOURCE_DIR}/src
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Network_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtNetwork_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 if (WIN32 )
@@ -59,8 +59,8 @@ target_link_libraries(
   extensionsystem
   aggregation
   utils
-  Qt5::Core
-  Qt5::Network
+  Qt::Core
+  Qt::Network
 )
 
 if (APPLE)

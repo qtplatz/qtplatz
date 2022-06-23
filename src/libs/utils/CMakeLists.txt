@@ -10,11 +10,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package( Qt5 REQUIRED Widgets Gui Network Core PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Widgets Gui Network Core PrintSupport )
 
 include_directories(
-  ${Qt5Network_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtNetwork_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_definitions(-DQTCREATOR_UTILS_LIB)
@@ -131,9 +131,9 @@ add_library(
 
 target_link_libraries(
   utils LINK_PUBLIC
-  Qt5::Widgets
-  Qt5::Network
-  Qt5::PrintSupport
+  Qt::Widgets
+  Qt::Network
+  Qt::PrintSupport
   )
 
 install( TARGETS ${PROJECT_NAME}

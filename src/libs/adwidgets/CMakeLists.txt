@@ -10,16 +10,21 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multimedia )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multimedia )
+find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED Multimedia )
+
+if ( NOT QtMultimedia_INCLUDE_DIRS} )
+  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Multimedia )
+endif()
 
 include_directories(
   ${QWT_INCLUDE_DIR}
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5Sql_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5OpenGL_INCLUDE_DIRS}
-  ${Qt5Multimedia_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
+  ${QtSvg_INCLUDE_DIRS}
+  ${QtSql_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtOpenGL_INCLUDE_DIRS}
+  "${Qt${QT_VERSION_MAJOR}Multimedia_INCLUDE_DIRS}" # strange but it requres Qt5, which seems version less not working for this
   )
 
 if ( rdkit_FOUND )
@@ -216,12 +221,12 @@ target_link_libraries( adwidgets LINK_PUBLIC
   qtwrapper
   adportable
   ${QWT_LIBRARIES}
-  Qt5::PrintSupport
-  Qt5::Svg
-  Qt5::Sql
-  Qt5::Widgets
-  Qt5::Core
-  Qt5::OpenGL
+  Qt::PrintSupport
+  Qt::Svg
+  Qt::Sql
+  Qt::Widgets
+  Qt::Core
+  Qt::OpenGL
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   )
