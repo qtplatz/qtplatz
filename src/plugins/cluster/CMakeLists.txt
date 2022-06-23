@@ -6,7 +6,7 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network OpenGL )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network OpenGL )
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -44,10 +44,10 @@ endif()
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5OpenGL_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5PrintSupport_INCLUDE_DIRS}
+  ${QtOpenGL_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   ${CMAKE_BINARY_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/src/libs
@@ -131,10 +131,10 @@ target_link_libraries(
   Core
   extensionsystem
   utils
-  Qt5::PrintSupport
-  Qt5::Svg
-  Qt5::Widgets
-  Qt5::OpenGL
+  Qt::PrintSupport
+  Qt::Svg
+  Qt::Widgets
+  Qt::OpenGL
   Threads::Threads
   )
 

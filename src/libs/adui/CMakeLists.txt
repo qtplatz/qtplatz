@@ -1,7 +1,7 @@
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
-#find_package( Qt5 CONFIG REQUIRED Widgets )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets )
 
 project( adui )
 

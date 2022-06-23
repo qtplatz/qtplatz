@@ -7,7 +7,7 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-find_package( Qt5 CONFIG REQUIRED Core Network Widgets PrintSupport Sql Svg )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Network Widgets PrintSupport Sql Svg )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -18,11 +18,11 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/pluginspec.in"  
+  "${PROJECT_SOURCE_DIR}/pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
@@ -31,14 +31,14 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
 set( peptide_SOURCES
   peptideplugin.cpp
   mainwindow.cpp
-  peptidemode.cpp 
+  peptidemode.cpp
   proteintable.cpp
   proteinwnd.cpp
   digestedpeptidetable.cpp
@@ -75,7 +75,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Core
   extensionsystem
   utils
-  Qt5::Core
+  Qt::Core
   ${Boost_LIBRARIES}
 )
 

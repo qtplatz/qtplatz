@@ -24,7 +24,7 @@ include_directories(
   ${QtSql_INCLUDE_DIRS}
   ${QtWidgets_INCLUDE_DIRS}
   ${QtOpenGL_INCLUDE_DIRS}
-  "${Qt${QT_VERSION_MAJOR}Multimedia_INCLUDE_DIRS}" # strange but it requres Qt5, which seems version less not working for this
+  "${Qt${QT_VERSION_MAJOR}Multimedia_INCLUDE_DIRS}" # strange
   )
 
 if ( rdkit_FOUND )

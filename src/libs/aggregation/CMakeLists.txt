@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 
 add_definitions(-DAGGREGATION_LIBRARY)
 
-#find_package( Qt5 REQUIRED Core )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Core )
 include_directories( ${QtCore_INCLUDE_DIRS} )
 
 add_library(

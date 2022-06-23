@@ -6,7 +6,7 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
 find_package( qwt )
 
@@ -37,7 +37,7 @@ add_definitions(
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 

@@ -29,7 +29,7 @@ set ( VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK
 
 add_definitions( -D_LINUX -D_ACQIRIS -DVERSION="${VERSION}")
 
-find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
 find_package( Threads REQUIRED )
 
@@ -38,7 +38,7 @@ add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )
 if ( USING_PROTOBUF )
   find_package( Protobuf REQUIRED )
   include_directories( ${PROTOBUF_INCLUDE_DIRS} )
-  protobuf_generate_cpp( proto_sources proto_headers acqiris.proto )  
+  protobuf_generate_cpp( proto_sources proto_headers acqiris.proto )
 endif()
 
 if ( APPLE )
@@ -48,7 +48,7 @@ if ( APPLE )
   else()
     include_directories( "${CMAKE_SOURCE_DIR}/contrib/agilent/include" )
   endif()
-  set( aqdrv4_sources )  
+  set( aqdrv4_sources )
 else() #Linux
   if ( AqDrv4_FOUND )
     add_definitions( -DHAVE_AqDrv4=1 )
@@ -88,7 +88,7 @@ add_executable( ${PROJECT_NAME}
   mediator.hpp
   ${aqdrv4_sources}
   tcp_connection.cpp
-  tcp_connection.hpp  
+  tcp_connection.hpp
   tcp_connection_manager.cpp
   tcp_connection_manager.hpp
   tcp_server.cpp
@@ -113,15 +113,15 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${QWT_LIBRARIES}
   ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
-  Qt5::Widgets
-  Qt5::Svg
+  Qt::Widgets
+  Qt::Svg
   Threads::Threads
   ${CMAKE_DL_LIBS}
   )
 
-install( TARGETS ${PROJECT_NAME} 
+install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
 
@@ -140,7 +140,7 @@ if ( AqDrv4_FOUND )
     task.cpp
     task.hpp
     tcp_connection.cpp
-    tcp_connection.hpp  
+    tcp_connection.hpp
     tcp_connection_manager.cpp
     tcp_connection_manager.hpp
     tcp_server.cpp
@@ -159,16 +159,15 @@ if ( AqDrv4_FOUND )
     ${acqirisd_libraries}
     ${PROTOBUF_LIBRARIES}
     ${Boost_LIBRARIES}
-    Qt5::Core
+    Qt::Core
     Threads::Threads
     dl
     )
 
   install( TARGETS ${PROJECT_NAME}d
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
-    LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+    LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
     ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
     )
-  
-endif()
 
+endif()

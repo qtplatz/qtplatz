@@ -3,7 +3,7 @@ cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0028 NEW)
 
-set( eventtool_SOURCES 
+set( eventtool_SOURCES
   document.cpp
   document.hpp
   main.cpp
@@ -25,7 +25,7 @@ file(GLOB Resources *.qrc)
 include_directories( ${QWT}/include )
 link_directories( ${QWT}/lib )
 
-find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
+#find_package(Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
 if ( WIN32 )
   add_executable( eventtool WIN32 ${eventtool_SOURCES} ${Resources} )
@@ -40,10 +40,10 @@ target_link_libraries( eventtool LINK_PUBLIC
 		       adportable
 		       adwidgets
 		       acewrapper
-		       Qt5::Widgets
+		       Qt::Widgets
 		       ${Boost_LIBRARIES} ${libs} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

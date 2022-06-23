@@ -12,16 +12,16 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
-#include_directories( ${Qt5Core_INCLUDE_DIRS}  )
+#include_directories( ${QtCore_INCLUDE_DIRS}  )
 include_directories(
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
 
@@ -60,8 +60,8 @@ target_link_libraries( adtextfile LINK_PUBLIC
   portfolio
   adplugin
   adfs
-  Qt5::Core
-  Qt5::Widgets
+  Qt::Core
+  Qt::Widgets
   )
 
 set_target_properties( ${PROJECT_NAME}

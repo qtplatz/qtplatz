@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( batchproc )
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -22,10 +22,10 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec  
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 add_definitions(
@@ -33,11 +33,9 @@ add_definitions(
   -D_SCL_SECURE_NO_WARNINGS
   )
 
-message( "Qt5_INCLUDE_DIRS: "   ${Qt5Widgets_INCLUDE_DIRS} )
-
 include_directories(
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}  
+  ${QtCore_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src         # version.h
@@ -49,8 +47,8 @@ link_directories(
 
 set( SOURCES
   batchprocplugin.cpp
-  mainwindow.cpp 
-  batchmode.cpp 
+  mainwindow.cpp
+  batchmode.cpp
   droptargetform.cpp
   dropwidget.cpp
   batchprocdelegate.cpp
@@ -61,7 +59,7 @@ set( SOURCES
   massspectrometerfactory.cpp
   massspectrometer.cpp
   )
-  
+
 set( HEADERS
   batchprocplugin.hpp
   batchproc_global.hpp
@@ -127,5 +125,3 @@ install( TARGETS ${PROJECT_NAME}
 install( FILES
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
-
-

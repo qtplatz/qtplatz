@@ -22,11 +22,10 @@ file(GLOB Resources *.qrc)
 
 find_package( Threads REQUIRED )
 
-#find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-find_package( Qt5 CONFIG REQUIRED Core Widgets Gui PrintSupport )
-find_package( Qt5 OPTIONAL_COMPONENTS DataVisualization )
+find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Gui PrintSupport )
+find_package( Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS DataVisualization )
 
-if ( NOT ${Qt5DataVisualization_FOUND} )
+if ( NOT "${Qt${QT_VERSION_MAJOR}DataVisualization_FOUND}" )
   message( FATAL_ERROR "Qt5Datavisualization NOT FOUND" )
   return()
 endif()
@@ -51,14 +50,14 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adprocessor
   ${Boost_LIBRARIES}
-  ${Qt5DataVisualization_LIBRARIES}
-  ${Qt5Widgets_LIBRARIES}
+  ${QtDataVisualization_LIBRARIES}
+  ${QtWidgets_LIBRARIES}
   Threads::Threads
   ${CMAKE_DL_LIBS}
   )
 
-install( TARGETS ${PROJECT_NAME} 
+install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )

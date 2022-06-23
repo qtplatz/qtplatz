@@ -24,7 +24,7 @@ endif()
 include( version )
 set ( VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
 
-find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
 
 add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )
@@ -32,9 +32,9 @@ add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${RDKit_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5Sql_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
+  ${QtSvg_INCLUDE_DIRS}
+  ${QtSql_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/src/app           # app_version.h
@@ -64,9 +64,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adwidgets
   utils
   Core
-  Qt5::Widgets
-  Qt5::Svg
-  Qt5::Sql
+  Qt::Widgets
+  Qt::Svg
+  Qt::Sql
   ${Boost_LIBRARIES}
   ${RDKit_LIBRARIES}
   ${CMAKE_DL_LIBS}

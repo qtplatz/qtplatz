@@ -25,7 +25,7 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
   )
 
-find_package( Qt5 CONFIG REQUIRED PrintSupport Network Sql Widgets Gui Core )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED PrintSupport Network Sql Widgets Gui Core )
 
 add_definitions(  -DCORE_LIBRARY )
 
@@ -39,13 +39,13 @@ endif()
 include_directories(
   ${CMAKE_SOURCE_DIR}/src		# app/app_version.h
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Sql_INCLUDE_DIRS}
-  ${Qt5Gui_INCLUDE_DIRS}
-  ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Network_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
+  ${QtSql_INCLUDE_DIRS}
+  ${QtGui_INCLUDE_DIRS}
+  ${QtGui_PRIVATE_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtNetwork_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 if ( MSVC )
@@ -316,11 +316,11 @@ target_link_libraries(
   utils
   extensionsystem
   aggregation
-  Qt5::PrintSupport
-  Qt5::Sql
-  Qt5::Widgets
-  Qt5::Gui
-  Qt5::Core
+  Qt::PrintSupport
+  Qt::Sql
+  Qt::Widgets
+  Qt::Gui
+  Qt::Core
   ${MHDVIEWER_EXE_NAME}
   ${EXTRA_LIBS}
   adportable

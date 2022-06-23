@@ -5,7 +5,7 @@ project( servant )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
 
 set(CMAKE_AUTOMOC ON)
 
@@ -17,15 +17,15 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"  
+  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 add_definitions( -DSERVANT_LIBRARY )
@@ -57,7 +57,7 @@ target_link_libraries( servant LINK_PUBLIC
   xmlparser
   Core
   extensionsystem
-  Qt5::Core
+  Qt::Core
 )
 
 set_target_properties( ${PROJECT_NAME}
@@ -72,6 +72,5 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"  
+  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
-

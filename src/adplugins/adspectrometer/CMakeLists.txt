@@ -15,8 +15,8 @@ configure_file(
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/src/adplugins
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${QtPrintSupport_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
   )
 
 add_definitions( -DADSPECTROMETER_LIBRARY )

@@ -11,11 +11,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Core )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   )
 
 add_executable( ${PROJECT_NAME}
@@ -32,7 +32,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   acqrscontrols
   adportable
   ${Boost_LIBRARIES}
-  Qt5::Core
+  Qt::Core
   )
 
 install( TARGETS ${PROJECT_NAME}

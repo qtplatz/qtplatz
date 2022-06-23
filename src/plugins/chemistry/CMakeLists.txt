@@ -5,7 +5,7 @@ project( chemistry )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Network Widgets Svg Sql PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Network Widgets Svg Sql PrintSupport )
 find_package( rdkit )
 find_package( qwt )
 
@@ -25,7 +25,7 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
@@ -36,15 +36,15 @@ add_definitions( -DDATAPROC_LIBRARY  )
 if ( MSVC )
   add_definitions(
     -D_SCL_SECURE_NO_WARNINGS
-    ) 
+    )
 endif()
 
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${RDKit_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}  
+  ${QtCore_INCLUDE_DIRS}
+  ${QtSvg_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
@@ -88,8 +88,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   qtwrapper
   Core
   ${RDKit_LIBRARIES}
-  Qt5::Core
-  Qt5::Svg
+  Qt::Core
+  Qt::Svg
   ${Boost_LIBRARIES}
 )
 

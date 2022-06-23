@@ -12,7 +12,7 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
@@ -50,14 +50,14 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${OpenCV_LIBRARIES}
   ${HDF5_LIBRARIES}
   ${Resources}
-  Qt5::Widgets
-  Qt5::Svg
+  Qt::Widgets
+  Qt::Svg
   Threads::Threads
   ${CMAKE_DL_LIBS}
   )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )

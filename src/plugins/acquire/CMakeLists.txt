@@ -9,7 +9,7 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Threads REQUIRED )
 
-find_package( Qt5 REQUIRED Core Gui PrintSupport Sql Svg Widgets )
+#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Core Gui PrintSupport Sql Svg Widgets )
 
 find_package( qwt )
 
@@ -46,8 +46,8 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
   ${QWT_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
+  ${QtWidgets_INCLUDE_DIRS}
+  ${QtCore_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src         # version.h
   )
 
@@ -93,8 +93,8 @@ target_link_libraries(
   extensionsystem
   socfpga
   utils
-  Qt5::Svg
-  Qt5::Widgets
+  Qt::Svg
+  Qt::Widgets
   Threads::Threads
   xmlparser
   ${Boost_LIBRARIES}
