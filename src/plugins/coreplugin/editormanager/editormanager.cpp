@@ -1961,7 +1961,7 @@ bool EditorManager::closeEditors(const QList<IEditor*> &editorsToClose, bool ask
         }
         if (editorAccepted) {
             const auto& list = DocumentModel::editorsForDocument(editor->document());
-            acceptedEditors += QSet(list.begin(), list.end()); //DocumentModel::editorsForDocument(editor->document()).toSet();
+            acceptedEditors += QSet<IEditor*>(list.begin(), list.end()); //DocumentModel::editorsForDocument(editor->document()).toSet();
             acceptedDocuments.insert(editor->document());
         }
     }
@@ -1976,9 +1976,9 @@ bool EditorManager::closeEditors(const QList<IEditor*> &editorsToClose, bool ask
             return false;
         if (!list.isEmpty()) {
             closingFailed = true;
-            acceptedDocuments.subtract( QSet( list.begin(), list.end() ) ); //toSet());
+            acceptedDocuments.subtract( QSet<IDocument*>( list.begin(), list.end() ) ); //toSet());
             const auto& tlist = DocumentModel::editorsForDocuments(list);
-            QSet<IEditor*> skipSet = QSet( tlist.begin(), tlist.end() ); //DocumentModel::editorsForDocuments(list).toSet();
+            QSet<IEditor*> skipSet = QSet<IEditor*>( tlist.begin(), tlist.end() ); //DocumentModel::editorsForDocuments(list).toSet();
             acceptedEditors = acceptedEditors.subtract(skipSet);
         }
     }
