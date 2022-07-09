@@ -34,7 +34,7 @@ using namespace lipidid;
 
 Mode::Mode(QObject *parent) : Core::IMode(parent)
 {
-    setDisplayName( tr( "Processing" ) );
+    setDisplayName( tr( "LipidID" ) );
 
     // <a href="https://www.flaticon.com/free-icons/cell" title="cell icons">Cell icons created by Freepik - Flaticon</a>
     setIcon(QIcon(":/lipidid/image/cell.png"));
