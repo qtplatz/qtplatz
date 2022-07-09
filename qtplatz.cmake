@@ -66,6 +66,12 @@ endif()
 if ( WITH_QT5 )
 
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+  if ( NOT QT AND QMAKE )
+    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
+      OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+    list ( APPEND CMAKE_PREFIX_PATH ${QTDIR} )
+    find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+  endif()
   message( STATUS "#### QT VERSION: " ${QT_VERSION_MAJOR} )
   message( STATUS "#### QT_FOUND: "  ${QT_FOUND} )
   message( STATUS "#### QT_DIR: "  ${QT_DIR} )

@@ -22,12 +22,11 @@ find_package( Qt${QT_VERSION_MAJOR}
   XmlPatterns
   )
 
-if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
-  find_package( Qt${QT_VERSION_MAJOR} REQUIRED WebKit WebKitWidgets WebEngineWidgets )
-  set( _webkits Qt::WebKit Qt::WebKitWidgets )
+get_target_property( _loc Qt${QT_VERSION_MAJOR}::Core LOCATION )
+if ( NOT _loc )
+  message( FATAL "##### Qt${QT_VERSION_MAJOR}::Core LOCATION " ${_loc} " cannot be found")
 endif()
 
-get_target_property( _loc Qt::Core LOCATION )
 get_filename_component( _dir ${_loc} DIRECTORY )
 
 foreach( _lib "icu*" Qt${QT_VERSION_MAJOR}CLucene Qt${QT_VERSION_MAJOR}XcbQpa )
@@ -41,26 +40,25 @@ foreach( _lib "icu*" Qt${QT_VERSION_MAJOR}CLucene Qt${QT_VERSION_MAJOR}XcbQpa )
 endforeach()
 
 foreach( lib
-    Qt::Core
-    Qt::DBus
-    Qt::Gui
-    Qt::Multimedia
-    Qt::MultimediaWidgets
-    Qt::Network
-    Qt::OpenGL
-    Qt::PrintSupport
-    Qt::Sensors
-    Qt::Sql
-    Qt::Svg
-    Qt::Positioning
-    Qt::Widgets
-    ${_webkits}
-    Qt::Xml
-    Qt::XmlPatterns )
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::DBus
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Multimedia
+    Qt${QT_VERSION_MAJOR}::MultimediaWidgets
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::OpenGL
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+    Qt${QT_VERSION_MAJOR}::Sensors
+    Qt${QT_VERSION_MAJOR}::Sql
+    Qt${QT_VERSION_MAJOR}::Svg
+    Qt${QT_VERSION_MAJOR}::Positioning
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Xml
+    Qt${QT_VERSION_MAJOR}::XmlPatterns )
 
   get_target_property( _loc ${lib} LOCATION )
 
-  # message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} --> ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} )
+  message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} --> ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} )
 
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
