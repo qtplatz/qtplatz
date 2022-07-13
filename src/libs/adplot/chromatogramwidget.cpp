@@ -431,7 +431,7 @@ ChromatogramWidget::~ChromatogramWidget()
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
                                                         , impl_( new impl() )
 {
-    setAxisTitle(QwtPlot::xBottom, QwtText( "Time[seconds]", QwtText::RichText ) );
+    setAxisTitle(QwtPlot::xBottom, QwtText( "Time (s)", QwtText::RichText ) );
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
 
     // -----------
