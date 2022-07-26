@@ -112,8 +112,12 @@ namespace chemistry {
         , { "C[C@H](CCC(=C)C(C)C)[C@H]1CCC2[C@@]1(CC[C@]34[C@]2(CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "Oryzanol B" } }
         , { "CC(C)C(C)CCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)OC(=O)C=CC5=CC(=C(C=C5)O)OC)C)C", { "Campesteryl ferulate" } }
         , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "a-Tocopherol" } }
-        , { "CC1=C(C(=O)C(=C(C1=O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)C", { "a-TQ", "α-tocopherol-quinone" } }
-        , { "CC(C)CCCC(C)CCCC(C)CCCC1(CCC2=CC(=O)C=CC2(O1)OO)C",        { "a-TOOH", "a-Tocopherol Hydroperoxide" } }
+        , { "CC1=C(C(=O)C(=C(C1=O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)C",        { "a-TQ",   "α-Tocopherol-quinone" } }
+        , { "CC1=C(C(=C(C(=C1O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)O)C",         { "a-THQ",  "a-Tocopherylhydroquinone" } }
+        , { "CC(C)CCCC(C)CCCC(C)CCCC1(CCC2=CC(=O)C=CC2(O1)OO)C",               { "a-TOOH", "a-Tocopherol Hydroperoxide" } }
+        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(C)C(C)=C2O1",  { "5-f-g-T", "5-formyl-g-tocopherol" } }
+        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(CO)C(C)=C2O1",  { "5-f-g-TOH" } }
+        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(CO)C(CO)=C2O1",  { "5-f-g-T(OH)2" } }
         , { "Cc1cc(c(c2c1O[C@](CC2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C)O", { "beta-Tocopherol" } }
         , { "Oc1cc(O)c2C(=O)C(O)= C(Oc2c1)c3ccc(O)c(O)c3", { "quercetin" } }
         , { R"**(O=C(O)[C@]2(O)C[C@@H](O)[C@@H](O)[C@H](OC(=O)\C=C\c1ccc(O)c(O)c1)C2)**", { "Chlorogenic acid" } }

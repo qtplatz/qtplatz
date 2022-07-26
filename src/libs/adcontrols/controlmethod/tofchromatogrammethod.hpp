@@ -26,7 +26,7 @@
 #pragma once
 
 #include "../adcontrols_global.h"
-#include "constants_fwd.hpp"
+#include "../constants_fwd.hpp"
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
 #include <string>
