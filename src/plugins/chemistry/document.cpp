@@ -179,6 +179,7 @@ namespace chemistry {
         , { R"(c1ccc(c(c1)C(=O)OC2CCCCC2)C(=O)OC3CCCCC3)",    { "DCHP", "dicycrohexyl pthalate" } } // 330.183
         , { R"(CCCCCCOC(=O)c1ccccc1C(=O)OCCCCCC)",            { "DHP" } } // 334.214
         , { R"(O=C(OCC(CC)CCCC)C1=CC=CC=C1C(OCC(CC)CCCC)=O)", { "DEHP", "Bis(2-ethylhexyl) phthalate", "diethylhexyl phthalate", "DOP" } } // 390.277
+        , { R"(CC(C)CCC[C@@H](C)CCC[C@@H](C)CCCC(C)CCC1=C(C)C(=O)C(C)=C(C)C1=O)", { "a-TQ-OH" } } // 390.277
     };
 
 }
