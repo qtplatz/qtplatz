@@ -388,7 +388,6 @@ Targeting::setup( const TargetingMethod& m )
 
     for ( auto& x : m.molecules().data() ) {
         if ( x.enable() ) {
-
             // if moltable has a designated adduct
             if ( !std::string( x.adducts(pol) ).empty() ) {
 
@@ -397,8 +396,19 @@ Targeting::setup( const TargetingMethod& m )
                 std::tie( mass, scharge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts(pol) ), 0 );
                 impl_->active_formula_.emplace_back( formula, mass, scharge, x.formula(), x.synonym() );
 
+            } else if ( addlose_global.empty() ) { // historical infiTOF -- all global checke is off
+                auto formula = x.formula();
+                for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
+                    int scharge = m.molecules().polarity() == polarity_positive ? charge : -static_cast<int>(charge);
+                    impl_->active_formula_.emplace_back(
+                        formula
+                        , cf.getMonoIsotopicMass( ChemicalFormula::split( formula ), scharge ).first
+                        , scharge
+                        , x.formula()
+                        , x.synonym() );
+                    ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back();
+                }
             } else {
-
                 for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
                     int scharge = m.molecules().polarity() == polarity_positive ? charge : -static_cast<int>(charge);
                     for ( const auto& addlose: targeting::make_combination( charge, addlose_global, pol ) ) {

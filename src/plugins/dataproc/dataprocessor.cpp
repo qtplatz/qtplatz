@@ -1262,8 +1262,6 @@ DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium
                                 , const adcontrols::TargetingMethod& m )
 {
-    // ADDEBUG() << "doSpectraolProcess -- Targeting";
-
     if ( auto fCentroid = portfolio::find_first_of(
              folium.attachments()
              , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -1271,6 +1269,8 @@ DataprocessorImpl::applyMethod( Dataprocessor *
         if ( adcontrols::MassSpectrumPtr centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fCentroid ) ) {
 
             if ( auto targeting = std::make_shared< adcontrols::Targeting >(m) ) {
+
+                ADDEBUG() << "doSpectraolProcess -- Targeting";
 
                 if ( (*targeting)(*centroid) ) {
 
