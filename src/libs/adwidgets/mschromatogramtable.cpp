@@ -178,6 +178,11 @@ MSChromatogramTable::MSChromatogramTable(QWidget *parent) : TableView( parent )
     setItemDelegate( new delegate() );
 
     impl_->model_->setColumnCount( std::tuple_size< column_list >() );
+    connect( this, &TableView::rowsDeleted, [&]{
+        ADDEBUG() << "rows deleted" << impl_->model_->rowCount();
+        if ( impl_->model_->rowCount() == 0 )
+            impl_->model_->setRowCount( 1 );
+    });
 }
 
 MSChromatogramTable::~MSChromatogramTable()
@@ -195,8 +200,6 @@ void
 MSChromatogramTable::setValue( const adcontrols::moltable& t )
 {
     auto model = impl_->model_.get();
-
-    QSignalBlocker block( model );
 
     model->setRowCount( int( t.data().size() + 1 ) ); // add one free line for add formula
     impl_->current_polarity_ = t.polarity();
@@ -280,6 +283,7 @@ MSChromatogramTable::impl::setValue( int row, const adcontrols::moltable::value_
 {
     auto smiles = QString::fromStdString( value.smiles() );
     adducts_type adducts( value.adducts_ );
+
     model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ),    QVariant::fromValue( adducts ), Qt::UserRole + 1 );
     model_->setData( model_->index( row, index_of< col_adducts, column_list >::value ),    adducts.get( current_polarity_ ), Qt::EditRole );
     model_->setData( model_->index( row, index_of< col_smiles,  column_list >::value ),    smiles );
@@ -391,4 +395,11 @@ MSChromatogramTable::getContents( adcontrols::moltable& m )
             m << moltable::value_from( model, row, column_list{} );
     }
 
+}
+
+void
+MSChromatogramTable::addActionsToContextMenu( QMenu& menu, const QPoint& pt ) const
+{
+    TableView::addActionsToContextMenu( menu, pt );
+    menu.addAction( tr( "Add a line" ), this, [&]{ impl_->model_->setRowCount( impl_->model_->rowCount() + 1 ); } );
 }

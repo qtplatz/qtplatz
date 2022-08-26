@@ -71,6 +71,7 @@ namespace adwidgets {
         void getContents( adcontrols::moltable& );
 
     private:
+        void addActionsToContextMenu( QMenu&, const QPoint& ) const override;
 
     signals:
         void valueChanged();

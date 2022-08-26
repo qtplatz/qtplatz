@@ -161,6 +161,7 @@ MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
     if ( auto table = findChild< MSChromatogramTable * >() ) {
         table->setColumnHidden( col_msref{}, !m.lockmass() );
         table->setValue( m.molecules() );
+        table->handleAutoTagetingEnabled( m.enableAutoTargeting() );
     }
 }
 
