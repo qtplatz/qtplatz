@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2022 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -53,7 +53,7 @@
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/semaphore.hpp>
+//#include <adportable/semaphore.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
@@ -87,7 +87,7 @@ DataprocessWorker::DataprocessWorker() : work_( io_service_ )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     if ( threads_.empty() )
-        threads_.push_back( adportable::asio::thread( [this] { io_service_.run(); } ) );
+        threads_.emplace_back( adportable::asio::thread( [this] { io_service_.run(); } ) );
 }
 
 DataprocessWorker::~DataprocessWorker()
@@ -239,14 +239,8 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
                     auto readers = rawfile->dataReaders();
                     auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
                     if ( it != readers.end() ) {
-                        adportable::semaphore sem;
                         auto reader = (*it);
-                        threads_.emplace_back( std::thread(
-                                                   [=,&sem] {
-                                                       handleChromatogramsByMethod3( processor, *tm, pm, reader, p );
-                                                       sem.signal();
-                                                   } ) );
-                        sem.wait();
+                        threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 }
 
