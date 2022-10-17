@@ -197,7 +197,6 @@ MSChromatogramExtractor::~MSChromatogramExtractor()
 {
     delete impl_;
 }
-
 MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset * raw ) : impl_( new impl( raw ) )
 {
 }
@@ -328,6 +327,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         }
     }
 
+    ADDEBUG() << "##################### extract_by_mols ##########################";
+
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
         std::vector< cXtractor > temp;
@@ -344,7 +345,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     double uMass = mol.mass() + width / 2;
 
                     std::wstring desc = ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
-                                          % adportable::utf::to_wstring( mol.formula() )
+                                          % adportable::utf::to_wstring( mol.synonym().empty() ? mol.formula() : mol.synonym() )
                                           % mol.mass()
                                           % ( width * 1000 )
                                           % adportable::utf::to_wstring( reader->display_name() )
@@ -359,7 +360,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                 lMass = candidate->mass - width / 2;
                                 uMass = candidate->mass + width / 2;
                                 desc = ( boost::wformat( L"%s %.4f AT (W:%.4gmDa) %s %d" )
-                                         % adportable::utf::to_wstring( mol.formula() )
+                                         % adportable::utf::to_wstring( mol.synonym().empty() ? mol.formula() : mol.synonym() )
                                          % candidate->mass
                                          % ( width * 1000 )
                                          % adportable::utf::to_wstring( reader->display_name() )
@@ -398,8 +399,11 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         }
                     };
 
+                    ADDEBUG() << "----- temp add: " << mol.mass() << ", " << mol.synonym() << ", " << temp.size();
+
                     temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                     temp.back().pChr->setGeneratorProperty( boost::json::serialize( top ) );
+                    temp.back().pChr->set_display_name( mol.synonym() );
                     //
                     temp.back().pChr->set_time_of_injection( std::move( time_of_injection ) );
                     if ( sp->isHistogram() ) {
@@ -412,6 +416,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                 }
             }
         }
+
+        ADDEBUG() << "--------------- temp : " << temp.size();
 
         if ( temp.empty() )
             return false;
