@@ -36,24 +36,37 @@
 #include <QRect>
 #include <QWidget>
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QtGlobal>
+#if QT_VERSION < 0x060000
+# include <QDesktopWidget>
+#else
+# include <QScreen>
+#endif
 
 namespace Utils {
 namespace Internal {
 
 inline int screenNumber(const QPoint &pos, QWidget *w)
 {
+#if QT_VERSION < 0x060000
     if (QApplication::desktop()->isVirtualDesktop())
         return QApplication::desktop()->screenNumber(pos);
     else
         return QApplication::desktop()->screenNumber(w);
+#else
+    return 0;
+#endif
 }
 
 inline QRect screenGeometry(const QPoint &pos, QWidget *w)
 {
+#if QT_VERSION < 0x060000
     if (HostOsInfo::isMacHost())
         return QApplication::desktop()->availableGeometry(screenNumber(pos, w));
     return QApplication::desktop()->screenGeometry(screenNumber(pos, w));
+#else
+    return QGuiApplication::primaryScreen()->geometry();
+#endif
 }
 
 } // namespace Internal

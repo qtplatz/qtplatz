@@ -34,7 +34,12 @@
 
 #include <QProcess>
 #include <QSharedPointer>
+#include <QtGlobal>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QTextCodec>
+#else
+#include <QtCore5Compat/QTextCodec>
+#endif
 
 QT_FORWARD_DECLARE_CLASS(QDebug)
 
@@ -95,10 +100,10 @@ public:
      * occurs on stderr/stdout). */
     void setTimeout(int timeoutMS);
     int timeout() const;
-
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     void setCodec(QTextCodec *c);
     QTextCodec *codec() const;
-
+#endif
     QProcess::ProcessChannelMode processChannelMode () const;
     void setProcessChannelMode(QProcess::ProcessChannelMode m);
 
@@ -169,8 +174,9 @@ private slots:
 private:
     void processStdOut(bool emitSignals);
     void processStdErr(bool emitSignals);
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QString convertOutput(const QByteArray &, QTextCodec::ConverterState *state) const;
-
+#endif
     SynchronousProcessPrivate *d;
 };
 

@@ -35,7 +35,7 @@
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
-class QStringList;
+//class QStringList;
 QT_END_NAMESPACE
 
 namespace Utils {

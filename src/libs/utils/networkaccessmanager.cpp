@@ -68,6 +68,7 @@ NetworkAccessManager *NetworkAccessManager::instance()
     return namInstance;
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 static const QString getOsString()
 {
     QString osString;
@@ -132,7 +133,7 @@ static const QString getOsString()
 #endif
     return osString;
 }
-
+#endif
 
 NetworkAccessManager::NetworkAccessManager(QObject *parent)
     : QNetworkAccessManager(parent)
@@ -153,7 +154,8 @@ QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkR
                     .arg(QCoreApplication::applicationName(),
                          QCoreApplication::applicationVersion(),
                          QLatin1String(qVersion()),
-                         getOsString(), QLocale::system().name())
+                         QSysInfo::prettyProductName(), //getOsString(),
+                         QLocale::system().name())
                     .arg(QSysInfo::WordSize);
     QNetworkRequest req(request);
     req.setRawHeader("User-Agent", agentStr.toLatin1());

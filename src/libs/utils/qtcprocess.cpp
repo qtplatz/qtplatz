@@ -37,11 +37,11 @@
 #include <QDebug>
 #include <QCoreApplication>
 #include <QStack>
-
+#include <QRegularExpression>
 #ifdef Q_OS_WIN
 #include <qt_windows.h>
 #endif
-
+#include <QtGlobal>
 
 // The main state of the Unix shell parser
 enum MxQuoting { MxBasic, MxSingleQuote, MxDoubleQuote, MxParen, MxSubst, MxGroup, MxMath };
@@ -452,7 +452,7 @@ static QStringList splitArgsUnix(const QString &args, bool abortOnMeta,
                 }
                 for (int i = 0; i < val.length(); i++) {
                     QChar cc = val.unicode()[i];
-                    if (cc == 9 || cc == 10 || cc == 32) {
+                    if (cc == QChar(9) || cc == QChar(10) || cc == QChar(32) ) {
                         if (hadWord) {
                             ret += cret;
                             cret.clear();
@@ -582,7 +582,11 @@ static QString quoteArgWin(const QString &arg)
         // Quotes are escaped and their preceding backslashes are doubled.
         // It's impossible to escape anything inside a quoted string on cmd
         // level, so the outer quoting must be "suspended".
+#if QT_VERSION < 0x006000
         ret.replace(QRegExp(QLatin1String("(\\\\*)\"")), QLatin1String("\"\\1\\1\\^\"\""));
+#else
+        ret.replace(QRegularExpression(QLatin1String("(\\\\*)\"")), QLatin1String("\"\\1\\1\\^\"\""));
+#endif
         // The argument must not end with a \ since this would be interpreted
         // as escaping the quote -- rather put the \ behind the quote: e.g.
         // rather use "foo"\ than "foo\"
@@ -729,7 +733,11 @@ void QtcProcess::start()
             setErrorString(tr("Error in command line."));
             // Should be FailedToStart, but we cannot set the process error from the outside,
             // so it would be inconsistent.
+#if QT_VERSION < 0x060000
             emit error(QProcess::UnknownError);
+#else
+            emit error();
+#endif
             return;
         }
         QProcess::start(command, arguments.toUnixArgs());
@@ -1051,7 +1059,7 @@ bool QtcProcess::expandMacros(QString *cmd, AbstractMacroExpander *mx, OsType os
                 // Our expansion rules trigger in any context
                 if (state.dquote) {
                     // We are within a double-quoted string. Escape relevant meta characters.
-                    rsts.replace(QRegExp(QLatin1String("([$`\"\\\\])")), QLatin1String("\\\\1"));
+                    rsts.replace(QRegularExpression(QLatin1String("([$`\"\\\\])")), QLatin1String("\\\\1"));
                 } else if (state.current == MxSingleQuote) {
                     // We are within a single-quoted string. "Suspend" single-quoting and put a
                     // single escaped quote for each single quote inside the string.
@@ -1485,7 +1493,11 @@ void QtcProcess::ArgIterator::appendArg(const QString &str)
     m_pos += qstr.length() + 1;
 }
 
+#if QT_VERSION < 0x060000
 QTCREATOR_UTILS_EXPORT unsigned long qPidToPid(const Q_PID qpid)
+#else
+QTCREATOR_UTILS_EXPORT unsigned long qPidToPid(const qint64 qpid)
+#endif
 {
 #ifdef Q_OS_WIN
     const PROCESS_INFORMATION *processInfo = reinterpret_cast<const PROCESS_INFORMATION*>(qpid);

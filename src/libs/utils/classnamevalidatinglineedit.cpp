@@ -32,8 +32,10 @@
 #include <utils/qtcassert.h>
 
 #include <QDebug>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QRegExp>
-
+#endif
+#include <QRegularExpression>
 /*!
     \class Utils::ClassNameValidatingLineEdit
 
@@ -46,8 +48,11 @@ namespace Utils {
 
 struct ClassNameValidatingLineEditPrivate {
     ClassNameValidatingLineEditPrivate();
-
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QRegExp m_nameRegexp;
+#else
+    QRegularExpression m_nameRegexp;
+#endif
     QString m_namespaceDelimiter;
     bool m_namespacesEnabled;
     bool m_lowerCaseFileName;
@@ -115,7 +120,12 @@ bool ClassNameValidatingLineEdit::validate(const QString &value, QString *errorM
         if (errorMessage)
             *errorMessage = tr("Please enter a class name.");
         return false;
-    } else if (!d->m_nameRegexp.exactMatch(value)) {
+    }
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+    else if (!d->m_nameRegexp.exactMatch(value)) {
+#else
+    else if (! (d->m_nameRegexp.match(value).hasMatch()) ) { // <- this is workaround, and is not compatible to exactMatch
+#endif
         if (errorMessage)
             *errorMessage = tr("The class name contains invalid characters.");
         return false;
@@ -153,13 +163,14 @@ void ClassNameValidatingLineEdit::updateRegExp() const
 {
     const QString pattern(QLatin1String("%1(%2%1)*"));
     d->m_nameRegexp.setPattern(pattern.arg(QLatin1String("[a-zA-Z_][a-zA-Z0-9_]*"))
-                               .arg(QRegExp::escape(d->m_namespaceDelimiter)));
+                               .arg(QRegularExpression::escape(d->m_namespaceDelimiter)));
 }
 
 QString ClassNameValidatingLineEdit::createClassName(const QString &name)
 {
     // Remove spaces and convert the adjacent characters to uppercase
     QString className = name;
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QRegExp spaceMatcher(QLatin1String(" +(\\w)"), Qt::CaseSensitive, QRegExp::RegExp2);
     QTC_CHECK(spaceMatcher.isValid());
     int pos;
@@ -178,7 +189,27 @@ QString ClassNameValidatingLineEdit::createClassName(const QString &name)
         // Convert the first character to uppercase
         className.replace(0, 1, className.left(1).toUpper());
     }
+#else
+   const QRegularExpression spaceMatcher(" +(\\w)");
+    QTC_CHECK(spaceMatcher.isValid());
+    while (true) {
+        const QRegularExpressionMatch match = spaceMatcher.match(className);
+        if (!match.hasMatch())
+            break;
+        className.replace(match.capturedStart(), match.capturedLength(), match.captured(1).toUpper());
+    }
 
+    // Filter out any remaining invalid characters
+    className.remove(QRegularExpression("[^a-zA-Z0-9_]"));
+
+    // If the first character is numeric, prefix the name with a "_"
+    if (className.at(0).isNumber()) {
+        className.prepend(QLatin1Char('_'));
+    } else {
+        // Convert the first character to uppercase
+        className.replace(0, 1, className.left(1).toUpper());
+    }
+#endif
     return className;
 }
 

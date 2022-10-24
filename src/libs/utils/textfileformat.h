@@ -34,7 +34,9 @@
 
 QT_BEGIN_NAMESPACE
 class QTextCodec;
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 class QStringList;
+#endif
 class QString;
 class QByteArray;
 QT_END_NAMESPACE

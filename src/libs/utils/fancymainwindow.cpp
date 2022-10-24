@@ -77,8 +77,11 @@ public:
     }
 
     QSize minimumSizeHint() const { return sizeHint(); }
-
+#if QT_VERSION < 0x060000
     void enterEvent(QEvent *event)
+#else
+    void enterEvent(QEnterEvent *event)
+#endif
     {
         if (isEnabled()) update();
         QAbstractButton::enterEvent(event);
@@ -98,7 +101,11 @@ void DockWidgetTitleButton::paintEvent(QPaintEvent *)
     QPainter p(this);
 
     QStyleOptionToolButton opt;
+#if QT_VERSION < 0x060000
     opt.init(this);
+#else
+    opt.initFrom(this);
+#endif
     opt.state |= QStyle::State_AutoRaise;
     opt.icon = icon();
     opt.subControls = {};
@@ -142,7 +149,7 @@ public:
         m_maximumActiveSize   = QSize(maxWidth, activeHeight);
 
         auto layout = new QHBoxLayout(this);
-        layout->setMargin(0);
+        // layout->setMargin(0);
         layout->setSpacing(0);
         layout->setContentsMargins(4, 0, 0, 0);
         layout->addWidget(m_titleLabel);

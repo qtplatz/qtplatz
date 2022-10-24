@@ -27,7 +27,9 @@
 
 #include "adpublisher_global.hpp"
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 class QStringList;
+#endif
 
 namespace adpublisher {
 

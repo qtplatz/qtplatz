@@ -31,9 +31,13 @@
 #define STRINGUTILS_H
 
 #include "utils_global.h"
+#include <QtGlobal>
 
 QT_BEGIN_NAMESPACE
+
+#if QT_VERSION < 0x060000
 class QStringList;
+#endif
 QT_END_NAMESPACE
 
 namespace Utils {

@@ -31,8 +31,8 @@
 #define QTCPROCESS_H
 
 #include "environment.h"
-
 #include <QProcess>
+#include <QtGlobal>
 
 namespace Utils {
 class AbstractMacroExpander;
@@ -158,7 +158,11 @@ private:
 
 // Converts the Q_PID into a integer value. This is a no-op
 // except on Windows.
+#if QT_VERSION < 0x060000
 QTCREATOR_UTILS_EXPORT unsigned long qPidToPid(const Q_PID qpid);
+#else
+QTCREATOR_UTILS_EXPORT unsigned long qPidToPid(const qint64 qpid);
+#endif
 
 } // namespace Utils
 

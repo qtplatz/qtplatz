@@ -32,7 +32,7 @@
 #include <utils/qtcassert.h>
 #include <utils/pathchooser.h>
 #include <utils/pathlisteditor.h>
-
+#include <QActionGroup>
 #include <QDebug>
 #include <QSettings>
 
@@ -454,4 +454,3 @@ void SavedActionSet::finish()
     foreach (SavedAction *action, m_list)
         action->disconnectWidget();
 }
-

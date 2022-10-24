@@ -30,7 +30,10 @@
 #include "execmenu.h"
 
 #include <QApplication>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QDesktopWidget>
+#endif
+#include <QScreen>
 #include <QMenu>
 #include <QPoint>
 #include <QRect>
@@ -47,7 +50,11 @@ namespace Utils {
 QAction *execMenuAtWidget(QMenu *menu, QWidget *widget)
 {
     QPoint p;
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QRect screen = qApp->desktop()->availableGeometry(widget);
+#else
+    QRect screen = qApp->primaryScreen()->geometry();
+#endif
     QSize sh = menu->sizeHint();
     QRect rect = widget->rect();
     if (widget->isRightToLeft()) {

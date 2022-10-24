@@ -42,7 +42,7 @@
 #include <QMouseEvent>
 #include <QWidget>
 #include <QMenu>
-
+#include <QtGlobal>
 #include <QDebug>
 
 using namespace Utils;
@@ -196,11 +196,14 @@ void ToolTip::showInternal(const QPoint &pos, const TipContent &content, QWidget
 {
     if (acceptShow(content, pos, w, rect)) {
         QWidget *target = 0;
+#if QT_VERSION < 0x060000
         if (HostOsInfo::isWindowsHost())
             target = QApplication::desktop()->screen(Internal::screenNumber(pos, w));
         else
             target = w;
-
+#else
+        target = w;
+#endif
         switch (content.typeId()) {
             case TextContent::TEXT_CONTENT_ID:
                 m_tip = new TextTip(target);

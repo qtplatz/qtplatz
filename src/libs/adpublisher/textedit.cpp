@@ -60,7 +60,9 @@
 #include <QFontDatabase>
 #include <QMenu>
 #include <QMenuBar>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QTextCodec>
+#endif
 #include <QTextEdit>
 #include <QStatusBar>
 #include <QToolBar>
@@ -209,7 +211,7 @@ void TextEdit::setupFileActions()
     const QIcon exportPdfIcon = QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png"));
     a = menu->addAction(exportPdfIcon, tr("&Export PDF..."), this, &TextEdit::filePrintPdf);
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(Qt::CTRL + Qt::Key_D);
+    a->setShortcut(Qt::CTRL | Qt::Key_D);
     tb->addAction(a);
 
     menu->addSeparator();
@@ -303,17 +305,17 @@ void TextEdit::setupTextActions()
     actionAlignLeft->setPriority(QAction::LowPriority);
     const QIcon centerIcon = QIcon::fromTheme("format-justify-center", QIcon(rsrcPath + "/textcenter.png"));
     actionAlignCenter = new QAction(centerIcon, tr("C&enter"), this);
-    actionAlignCenter->setShortcut(Qt::CTRL + Qt::Key_E);
+    actionAlignCenter->setShortcut(Qt::CTRL | Qt::Key_E);
     actionAlignCenter->setCheckable(true);
     actionAlignCenter->setPriority(QAction::LowPriority);
     const QIcon rightIcon = QIcon::fromTheme("format-justify-right", QIcon(rsrcPath + "/textright.png"));
     actionAlignRight = new QAction(rightIcon, tr("&Right"), this);
-    actionAlignRight->setShortcut(Qt::CTRL + Qt::Key_R);
+    actionAlignRight->setShortcut(Qt::CTRL | Qt::Key_R);
     actionAlignRight->setCheckable(true);
     actionAlignRight->setPriority(QAction::LowPriority);
     const QIcon fillIcon = QIcon::fromTheme("format-justify-fill", QIcon(rsrcPath + "/textjustify.png"));
     actionAlignJustify = new QAction(fillIcon, tr("&Justify"), this);
-    actionAlignJustify->setShortcut(Qt::CTRL + Qt::Key_J);
+    actionAlignJustify->setShortcut(Qt::CTRL | Qt::Key_J);
     actionAlignJustify->setCheckable(true);
     actionAlignJustify->setPriority(QAction::LowPriority);
 

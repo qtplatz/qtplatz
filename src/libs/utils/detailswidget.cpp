@@ -284,9 +284,13 @@ void DetailsWidget::paintEvent(QPaintEvent *paintEvent)
     }
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 void DetailsWidget::enterEvent(QEvent * event)
+#else
+void DetailsWidget::enterEvent(QEnterEvent * event)
+#endif
 {
-    QWidget::enterEvent(event);
+    QWidget::enterEvent( event );
     d->changeHoverState(true);
 }
 

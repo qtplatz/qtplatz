@@ -34,6 +34,7 @@
 #include <QDir>
 #include <QDateTime>
 #include <QDebug>
+#include <QRegularExpression>
 
 namespace Utils {
 
@@ -116,6 +117,7 @@ QString BuildableHelperLibrary::qtVersionForQMake(const QString &qmakePath, bool
     }
 
     const QString output = QString::fromLocal8Bit(qmake.readAllStandardOutput());
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     static QRegExp regexp(QLatin1String("(QMake version|QMake version:)[\\s]*([\\d.]*)"),
                           Qt::CaseInsensitive);
     regexp.indexIn(output);
@@ -128,6 +130,20 @@ QString BuildableHelperLibrary::qtVersionForQMake(const QString &qmakePath, bool
         const QString version = regexp2.cap(1);
         return version;
     }
+#else
+    static const QRegularExpression regexp("(QMake version:?)[\\s]*([\\d.]*)",
+                                           QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpressionMatch match = regexp.match(output);
+    const QString qmakeVersion = match.captured(2);
+    if (qmakeVersion.startsWith(QLatin1String("2."))
+            || qmakeVersion.startsWith(QLatin1String("3."))) {
+        static const QRegularExpression regexp2("Using Qt version[\\s]*([\\d\\.]*)",
+                                                QRegularExpression::CaseInsensitiveOption);
+        const QRegularExpressionMatch match2 = regexp2.match(output);
+        const QString version = match2.captured(1);
+        return version;
+    }
+#endif
     return QString();
 }
 

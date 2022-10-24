@@ -29,8 +29,11 @@
 
 #include "filenamevalidatinglineedit.h"
 #include "qtcassert.h"
-
+#include <QtGlobal>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QRegExp>
+#endif
+#include <QRegularExpression>
 #include <QDebug>
 
 /*!
@@ -50,6 +53,7 @@ namespace Utils {
 // Naming a file like a device name will break on Windows, even if it is
 // "com1.txt". Since we are cross-platform, we generally disallow such file
 //  names.
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 static QRegExp &windowsDeviceNoSubDirPattern()
 {
     static QRegExp rc(QLatin1String(WINDOWS_DEVICES), Qt::CaseInsensitive);
@@ -63,6 +67,29 @@ static QRegExp &windowsDeviceSubDirPattern()
     QTC_ASSERT(rc.isValid(), return rc);
     return rc;
 }
+#else
+#define WINDOWS_DEVICES_PATTERN "(CON|AUX|PRN|NUL|COM[1-9]|LPT[1-9])(\\..*)?"
+
+// Naming a file like a device name will break on Windows, even if it is
+// "com1.txt". Since we are cross-platform, we generally disallow such file
+//  names.
+static const QRegularExpression &windowsDeviceNoSubDirPattern()
+{
+    static const QRegularExpression rc(QString("^" WINDOWS_DEVICES_PATTERN "$"),
+                                       QRegularExpression::CaseInsensitiveOption);
+    QTC_ASSERT(rc.isValid(), return rc);
+    return rc;
+}
+
+static const QRegularExpression &windowsDeviceSubDirPattern()
+{
+    static const QRegularExpression rc(QString("^.*[/\\\\]" WINDOWS_DEVICES_PATTERN "$"),
+                                       QRegularExpression::CaseInsensitiveOption);
+    QTC_ASSERT(rc.isValid(), return rc);
+    return rc;
+}
+#endif
+
 
 // ----------- FileNameValidatingLineEdit
 FileNameValidatingLineEdit::FileNameValidatingLineEdit(QWidget *parent) :
@@ -134,6 +161,7 @@ bool FileNameValidatingLineEdit::validateFileName(const QString &name,
             return false;
         }
     }
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     // Windows devices
     bool matchesWinDevice = windowsDeviceNoSubDirPattern().exactMatch(name);
     if (!matchesWinDevice && allowDirectories)
@@ -145,6 +173,20 @@ bool FileNameValidatingLineEdit::validateFileName(const QString &name,
         return false;
     }
     return true;
+#else
+    bool matchesWinDevice = name.contains(windowsDeviceNoSubDirPattern());
+    if (!matchesWinDevice && allowDirectories)
+        matchesWinDevice = name.contains(windowsDeviceSubDirPattern());
+    if (matchesWinDevice) {
+        if (errorMessage)
+            *errorMessage = tr("Name matches MS Windows device"
+                               " (CON, AUX, PRN, NUL,"
+                               " COM1, COM2, ..., COM9,"
+                               " LPT1, LPT2, ..., LPT9)");
+        return false;
+    }
+    return true;
+#endif
 }
 
 bool  FileNameValidatingLineEdit::validate(const QString &value, QString *errorMessage) const

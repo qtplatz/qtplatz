@@ -37,7 +37,10 @@
 #include <QXmlStreamWriter>
 #include <QDateTime>
 #include <QTextStream>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QRegExp>
+#endif
+#include <QRegularExpression>
 #include <QRect>
 
 #include <utils/qtcassert.h>
@@ -52,12 +55,21 @@ static QString rectangleToString(const QRect &r)
 
 static QRect stringToRectangle(const QString &v)
 {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     static QRegExp pattern(QLatin1String("(\\d+)x(\\d+)([-+]\\d+)([-+]\\d+)"));
     Q_ASSERT(pattern.isValid());
     return pattern.exactMatch(v) ?
         QRect(QPoint(pattern.cap(3).toInt(), pattern.cap(4).toInt()),
               QSize(pattern.cap(1).toInt(), pattern.cap(2).toInt())) :
         QRect();
+#else
+    static QRegularExpression pattern(QLatin1String("(\\d+)x(\\d+)([-+]\\d+)([-+]\\d+)"));
+    auto match = pattern.match( v );
+    return match.hasMatch() ?
+        QRect(QPoint(match.captured(3).toInt(), match.captured(4).toInt()),
+              QSize(match.captured(1).toInt(), match.captured(2).toInt())) :
+        QRect();
+#endif
 }
 
 /*!

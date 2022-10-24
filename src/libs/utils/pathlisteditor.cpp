@@ -119,7 +119,11 @@ PathListEditorPrivate::PathListEditorPrivate()   :
         edit(new PathListPlainTextEdit),
         envVarMapper(0)
 {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     layout->setMargin(0);
+#else
+    layout->setContentsMargins(0, 0, 0, 0);
+#endif
     layout->addWidget(edit);
     buttonLayout->addWidget(toolButton);
     buttonLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Ignored, QSizePolicy::MinimumExpanding));

@@ -191,7 +191,11 @@ void TextTip::paintEvent(QPaintEvent *event)
 {
     QStylePainter p(this);
     QStyleOptionFrame opt;
+#if QT_VERSION < 0x060000
     opt.init(this);
+#else
+    opt.initFrom(this);
+#endif
     p.drawPrimitive(QStyle::PE_PanelTipLabel, opt);
     p.end();
 
@@ -202,7 +206,7 @@ void TextTip::resizeEvent(QResizeEvent *event)
 {
     QStyleHintReturnMask frameMask;
     QStyleOption option;
-    option.init(this);
+    option.initFrom(this);
     if (style()->styleHint(QStyle::SH_ToolTip_Mask, &option, this, &frameMask))
         setMask(frameMask.region);
 

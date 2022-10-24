@@ -11,11 +11,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 #find_package( Qt${QT_VERSION_MAJOR} REQUIRED Widgets Gui Network Core PrintSupport )
+#message( STATUS "-------------> " ${Core5Compat_INCLUDE_DIRS})
+#message( STATUS "-------------> " ${QtWidgets_INCLUDE_DIRS} )
+#message( STATUS "-------------> " ${QtNetwork_INCLUDE_DIRS} )
 
-include_directories(
-  ${QtNetwork_INCLUDE_DIRS}
-  ${QtWidgets_INCLUDE_DIRS}
-  )
+#include_directories(
+#  ${QtNetwork_INCLUDE_DIRS}
+#  ${QtWidgets_INCLUDE_DIRS}
+#  )
 
 add_definitions(-DQTCREATOR_UTILS_LIB)
 
@@ -129,11 +132,16 @@ add_library(
   ${utils_RESOURCES}
   )
 
+if ( ${QT_VERSION_MAJOR} EQUAL 6 )
+  set ( CORE5COMPAT_LIBS "Qt6::Core5Compat" )
+endif()
+
 target_link_libraries(
   utils LINK_PUBLIC
   Qt::Widgets
   Qt::Network
   Qt::PrintSupport
+  ${CORE5COMPAT_LIBS}
   )
 
 install( TARGETS ${PROJECT_NAME}
