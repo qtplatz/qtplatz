@@ -94,9 +94,10 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
     using namespace spin_initializer;
 
     if ( auto hTopLayout = new QHBoxLayout( this ) ) { // ui->horizontalLayout_2 ) {
-
+        hTopLayout->setContentsMargins( 0, 0, 0, 0 );
+        hTopLayout->setSpacing( 2 );
         if ( auto vLeft = add_layout( hTopLayout, create_widget< QVBoxLayout >("vLayout") ) ) {
-            // vLeft->setContentsMargins( 0, 0, 0, 0 );
+            vLeft->setContentsMargins( 0, 0, 0, 0 );
             if ( auto gbx = add_widget( vLeft, create_widget< QGroupBox >( "globalGroup", "Global" ) ) ) {
                 if ( auto grid = create_widget< QGridLayout >( "grid", gbx ) ) {
                     grid->setSpacing( 2 );
@@ -130,7 +131,7 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
                         if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMH"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             spin_init( spin, std::make_tuple(
-                                           Decimals{1}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}, Value<>{1.0},Alignment{Qt::AlignRight} ) );
+                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}, Value<>{1.0},Alignment{Qt::AlignRight} ) );
                         }
                     }
                     ++xy;
@@ -176,8 +177,10 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
             }
         }
         if ( auto vRight = add_layout( hTopLayout, create_widget< QVBoxLayout >("vLayout") ) ) {
+            vRight->setContentsMargins( 0, 0, 0, 0 );
             if ( auto gbx = add_widget( vRight, create_widget< QGroupBox >( "timedEventsGroup", "Timed event" ) ) ) {
                 auto layout = new QVBoxLayout( gbx );
+                layout->setContentsMargins( 0, 0, 0, 0 );
                 if ( auto table = add_widget( layout, create_widget< adwidgets::TableView >( "timedEventTable", gbx ) ) ) {
                     table->setModel( impl_->model_.get() );
                     table->setItemDelegate( new teDelegate( this ) );
@@ -218,7 +221,7 @@ PeakMethodForm::OnInitialUpdate()
     if ( auto table = findChild< TableView * >( "timedEventTable" ) ) {
         QStandardItemModel& model = *impl_->model_;
         model.setColumnCount( 3 );
-        model.setHeaderData( c_time, Qt::Horizontal, "Time(min)" );
+        model.setHeaderData( c_time, Qt::Horizontal, "Time (s)" );
         model.setHeaderData( c_function, Qt::Horizontal, "Func" );
         model.setHeaderData( c_event_value, Qt::Horizontal, "Value" );
         table->setSortingEnabled( true );
@@ -368,12 +371,12 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
-        double minutes = model.data( model.index( row, c_time ) ).toDouble();
+        double seconds = model.data( model.index( row, c_time ) ).toDouble();
         adcontrols::chromatography::ePeakEvent func
             = static_cast< adcontrols::chromatography::ePeakEvent >( model.data( model.index( row, c_function ) ).toInt() );
         if ( func != ePeakEvent_Nothing ) {
             const QVariant value = model.data( model.index( row, c_event_value ) );
-            adcontrols::PeakMethod::TimedEvent e( adcontrols::timeutil::toSeconds( minutes ), func );
+            adcontrols::PeakMethod::TimedEvent e( seconds, func );
             if ( e.isBool() )
                 e.setValue( value.toBool() );
             else

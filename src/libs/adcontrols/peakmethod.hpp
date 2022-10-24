@@ -46,12 +46,12 @@ namespace adcontrols {
             , ePeakWidth_Tangent
             , ePeakWidth_AreaHeight
         };
-        
+
         enum ePeakResolutionMethod {
             ePeakResolution_5PercentHeight
             , ePeakResolution_Tangent,
         };
-        
+
         enum ePharmacopoeia {
             ePHARMACOPOEIA_NotSpcified
             , ePHARMACOPOEIA_EP
@@ -81,7 +81,7 @@ namespace adcontrols {
             , ePeakEvent_Elimination
             , ePeakEvent_Manual
         };
-        
+
         enum eNoiseFilterMethod {
             eNoFilter
             , eDFTLowPassFilter
@@ -130,6 +130,9 @@ namespace adcontrols {
         double cutoffFreqHz() const;
         void cutoffFreqHz( double );
 
+        void setIsTimeInMinutes( bool );
+        bool isTimeInMinutes() const;
+
         class ADCONTROLSSHARED_EXPORT TimedEvent {
         public:
             ~TimedEvent();
@@ -137,8 +140,8 @@ namespace adcontrols {
             TimedEvent( seconds_t t, adcontrols::chromatography::ePeakEvent );
             TimedEvent( const TimedEvent& );
 
-			double time( bool asMinutes = true ) const;
-			void setTime( double time, bool asMinutes = true );
+			double time( bool asMinutes = false ) const;
+			void setTime( double time, bool asMinutes = false );
             chromatography::ePeakEvent peakEvent() const;
             void setPeakEvent( chromatography::ePeakEvent );
 			bool isBool() const;
@@ -150,7 +153,7 @@ namespace adcontrols {
 
             static bool isBool( adcontrols::chromatography::ePeakEvent );
             static bool isDouble( adcontrols::chromatography::ePeakEvent );
-			
+
         private:
             double time_;
             adcontrols::chromatography::ePeakEvent event_;
@@ -169,7 +172,7 @@ namespace adcontrols {
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version);
         };
-        
+
         typedef std::vector< TimedEvent >::iterator iterator_type;
         typedef std::vector< TimedEvent >::const_iterator const_iterator_type;
         typedef std::vector< TimedEvent >::size_type size_type;
@@ -194,6 +197,8 @@ namespace adcontrols {
         adcontrols::chromatography::ePharmacopoeia pharmacopoeia_;
         adcontrols::chromatography::ePeakWidthMethod peakWidthMethod_;
         adcontrols::chromatography::ePeakWidthMethod theoreticalPlateMethod_;
+        bool timeInMinutes_;
+
 #if defined _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4251)
@@ -206,12 +211,12 @@ namespace adcontrols {
         chromatography::eNoiseFilterMethod noiseFilterMethod_;
         double cutoffFreqHz_; // Hz
         friend class PeakMethod_archive < PeakMethod > ;
-        friend class PeakMethod_archive < const PeakMethod > ;        
+        friend class PeakMethod_archive < const PeakMethod > ;
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
 	};
-    
+
 }
 
 BOOST_CLASS_VERSION( adcontrols::PeakMethod::TimedEvent,  2 )
-BOOST_CLASS_VERSION( adcontrols::PeakMethod,  3 )
+BOOST_CLASS_VERSION( adcontrols::PeakMethod,  4 )

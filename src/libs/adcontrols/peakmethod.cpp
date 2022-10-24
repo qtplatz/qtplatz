@@ -99,6 +99,9 @@ namespace adcontrols {
             if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( _.timedEvents_ );
             }
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.timeInMinutes_ );
+            }
         }
     };
 
@@ -155,6 +158,7 @@ PeakMethod::PeakMethod(void) : minimumHeight_( 10 )
                              , pharmacopoeia_( ePHARMACOPOEIA_NotSpcified )
                              , peakWidthMethod_( ePeakWidth_HalfHeight )
                              , theoreticalPlateMethod_( ePeakWidth_HalfHeight )
+                             , timeInMinutes_( false )
 {
 }
 
@@ -176,6 +180,7 @@ PeakMethod::operator = ( const PeakMethod & rhs )
     pharmacopoeia_          = rhs.pharmacopoeia_;
     peakWidthMethod_        = rhs.peakWidthMethod_;
     theoreticalPlateMethod_ = rhs.theoreticalPlateMethod_;
+    timeInMinutes_          = rhs.timeInMinutes_;
     timedEvents_            = rhs.timedEvents_;
     return * this;
 }
@@ -326,6 +331,19 @@ PeakMethod::theoreticalPlateMethod( chromatography::ePeakWidthMethod t )
 {
     theoreticalPlateMethod_ = t;
 }
+
+void
+PeakMethod::setIsTimeInMinutes( bool isMinutes )
+{
+    timeInMinutes_ = isMinutes;
+}
+
+bool
+PeakMethod::isTimeInMinutes() const
+{
+    return timeInMinutes_;
+}
+
 
 PeakMethod::size_type
 PeakMethod::size() const
