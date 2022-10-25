@@ -92,7 +92,7 @@ namespace adprocessor {
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod&, const std::string& );
 
         // [1]
-        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSPeakInfo&, const std::string& );
+        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSPeakInfo&, const std::string&, double width );
 
         // [2]
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis, const std::pair<double, double>& range, const std::string& );
@@ -216,17 +216,19 @@ bool
 MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                                       , std::shared_ptr< const adcontrols::DataReader > reader
                                       , int fcn
-                                      , std::function<bool( size_t, size_t )> progress )
+                                      , std::function<bool( size_t, size_t )> progress
+                                      , size_t nCount
+                                      , size_t& nProg )
 {
     const size_t nSpectra = reader->size( fcn );
-    const bool isProfile = ( reader->objtext().find( "waveform" ) != std::string::npos ) ||
-        std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
-    (void)isProfile;
+    // const bool isProfile = ( reader->objtext().find( "waveform" ) != std::string::npos ) ||
+    //     std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
+    // (void)isProfile;
 
     if ( nSpectra == 0 )
         return false;
 
-    progress( 0, nSpectra );
+    progress( nProg, nCount );
 
     impl_->results_.clear();
     impl_->msLocker_.reset();
@@ -235,8 +237,6 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
         impl_->msLocker_ = std::make_unique< msLocker > ( *cm, *pm );
 
     adcontrols::lockmass::mslock mslock;
-
-    size_t n( 0 );
 
     for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
 
@@ -263,8 +263,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                   << " pos: " << it->pos() << ", " << it->rowid() << ", " << o.str();
 #endif
         impl_->spectra_[ it->pos() ] = ms; // (:= pos sort order) keep mass locked spectral series
-
-        if ( progress( ++n, nSpectra ) )
+        if ( progress( ++nProg, nCount ) )
             return false;
     }
     return ! impl_->spectra_.empty();
@@ -417,13 +416,13 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
             }
         }
 
-        ADDEBUG() << "--------------- temp : " << temp.size();
-
         if ( temp.empty() )
             return false;
 
+        size_t nCount = reader->size( -1 ) * 2;
+        size_t nProg(0);
         // Generate chromatograms
-        if ( loadSpectra( &pm, reader, -1, progress ) ) {
+        if ( loadSpectra( &pm, reader, -1, progress, nCount, nProg ) ) {
 
             for ( auto& ms : impl_->spectra_ ) {
                 for (auto& xc: temp ) {
@@ -439,6 +438,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         return false;
                     }
                 }
+                progress( ++nProg, nCount );
             }
 
             std::pair< double, double > time_range =
@@ -470,14 +470,22 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     if ( impl_->raw_->dataformat_version() <= 2 )
         return false;
 
-    if ( loadSpectra( &pm, reader, -1, progress ) ) {
+    double width = 0;
+    if ( const adcontrols::MSChromatogramMethod * cm = pm.find< adcontrols::MSChromatogramMethod >() )
+        width = cm->width( cm->widthMethod() );
+
+    const size_t nCounts = reader->size( -1 ) * 2;
+    size_t nProg(0);
+
+    if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
                 if ( info.protocolId() == ms.second->protocolId() ) {
-                    impl_->append_to_chromatogram( ms.first, *ms.second, info, reader->abbreviated_display_name() );
+                    impl_->append_to_chromatogram( ms.first, *ms.second, info, reader->abbreviated_display_name(), width );
                 }
             }
+            progress( ++nProg, nCounts );
         }
 
         std::pair< double, double > time_range =
@@ -509,11 +517,14 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
 {
     ADDEBUG() << "extract_by_axis_range";
 
-    if ( loadSpectra( &pm, reader, fcn, progress ) ) {
+    size_t nCounts = reader->size( fcn ) * 2;
+    size_t nProg(0);
+    if ( loadSpectra( &pm, reader, fcn, progress, nCounts, nProg ) ) {
 
         for ( auto& ms : impl_->spectra_ ) {
             // [2]
             impl_->append_to_chromatogram( ms.first /*pos */, *ms.second, axis, range, reader->abbreviated_display_name() );
+            progress( ++nProg, nCounts );
         }
 
         std::pair< double, double > time_range =
@@ -615,7 +626,10 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
         }
     }
 
-    if ( loadSpectra( &pm, reader, -1, progress ) ) {
+    size_t nCounts = reader->size( -1 );
+    size_t nProg(0);
+
+    if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 
         const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
         // ADDEBUG() << "########## isCounting: " << isCounting << ", list.size = " << list.size();
@@ -667,6 +681,7 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                 }
                 ++cid;
             }
+            progress( ++nProg, nCounts );
         }
 
         std::pair< double, double > time_range =
@@ -801,7 +816,8 @@ void
 MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                                                        , const adcontrols::MassSpectrum& ms
                                                        , const adcontrols::MSPeakInfo& pkinfo
-                                                       , const std::string& display_name )
+                                                       , const std::string& display_name
+                                                       , double width )
 {
     using namespace mschromatogramextractor;
     using adportable::utf;
@@ -816,8 +832,8 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
 
     for ( auto& pk : pkinfo ) {
 
-        double lMass = pk.mass() - pk.widthHH() / 2;
-        double uMass = pk.mass() + pk.widthHH() / 2;
+        double lMass = (width < 0.001) ? pk.mass() - pk.widthHH() / 2 : pk.mass() - width / 2.0;
+        double uMass = (width < 0.001) ? pk.mass() + pk.widthHH() / 2 : pk.mass() + width / 2.0;
 
         if ( auto y = computeIntensity( ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
 
@@ -830,7 +846,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                     adcontrols::description(
                         {"create"
                          , ( boost::format( "m/z %.3lf(W %.1fmDa),%s,p%d" )
-                             % pk.mass() % (pk.widthHH() * 1000) % display_name % protocol ).str()} ) );
+                             % pk.mass() % ((uMass - lMass) * 1000) % display_name % protocol ).str()} ) );
                     //--------- add property ---------
                 boost::system::error_code ec;
                 auto jv = boost::json::parse( pk.toJson(), ec );

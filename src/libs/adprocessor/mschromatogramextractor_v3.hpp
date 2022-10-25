@@ -114,7 +114,9 @@ namespace adprocessor {
             bool loadSpectra( const adcontrols::ProcessMethod *
                               , std::shared_ptr< const adcontrols::DataReader >
                               , int fcn
-                              , std::function<bool( size_t, size_t )> progress );
+                              , std::function<bool( size_t, size_t )> progress
+                              , size_t
+                              , size_t& );
 
             class impl;
             impl * impl_;

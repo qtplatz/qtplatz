@@ -119,9 +119,7 @@ DataprocessWorker::createChromatogramsByPeakInfo3( Dataprocessor* processor
 
     threads_.emplace_back( adportable::asio::thread( [=] {
         handleChromatogramsByPeakInfo3( processor, pm, pkinfo, reader->shared_from_this(), p );
-        ADDEBUG() << "<------------- end handleChromatogramsbypeakinfo3";
     }));
-    ADDEBUG() << "<------------- createChromatogramsByPeakInfo3 returning ---------------";
 }
 
 // [3]

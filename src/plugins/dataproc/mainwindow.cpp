@@ -1581,7 +1581,6 @@ MainWindow::handleImportChecked()
 void
 MainWindow::actionApply()
 {
-    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod pm;
