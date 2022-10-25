@@ -46,6 +46,7 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/peaks.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targeting.hpp>
@@ -83,6 +84,7 @@ Q_DECLARE_METATYPE( portfolio::Folium )
 
 using namespace dataproc;
 
+
 DataprocessWorker::DataprocessWorker() : work_( io_service_ )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -116,8 +118,10 @@ DataprocessWorker::createChromatogramsByPeakInfo3( Dataprocessor* processor
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
     threads_.emplace_back( adportable::asio::thread( [=] {
-                handleChromatogramsByPeakInfo3( processor, pm, pkinfo, reader->shared_from_this(), p );
-            } ) );
+        handleChromatogramsByPeakInfo3( processor, pm, pkinfo, reader->shared_from_this(), p );
+        ADDEBUG() << "<------------- end handleChromatogramsbypeakinfo3";
+    }));
+    ADDEBUG() << "<------------- createChromatogramsByPeakInfo3 returning ---------------";
 }
 
 // [3]
@@ -394,7 +398,7 @@ DataprocessWorker::exportMatchedMasses( Dataprocessor * processor
 
 
 void
-DataprocessWorker::join( const adportable::asio::thread::id& id )
+DataprocessWorker::join( adportable::asio::thread::id id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
@@ -481,11 +485,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
             tgtm = *tm;
 
         // ADDEBUG() << boost::json::object{ { "auto_targeting", true }, { "tolerance", tgtm.tolerance( tgtm.toleranceMethod() ) } };
-#if 0
-        boost::json::array jArray;
-#else
         std::vector< adcontrols::GenChromatogram > genChromatograms;
-#endif
 
         for ( auto mol: cm.molecules().data() ) {
             if ( mol.tR() && mol.enable() ) {
@@ -510,19 +510,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                                 found = true;
 
                                 for ( const auto& c : targeting->candidates() ) {
-#if 0
-                                    jArray.emplace_back( boost::json::object{
-                                            { "formula", c.formula }
-                                            , { "exact_mass", c.exact_mass }
-                                            , { "exact_abundance", 100 }
-                                            , { "mass", c.mass }
-                                            , { "time", -1 }
-                                            , { "index", static_cast< int >(c.idx) }
-                                            , { "proto", static_cast< int >(c.fcn) }
-                                            , { "selected", true } } );
-#else
                                     genChromatograms.emplace_back( adcontrols::GenChromatogram( c, true ) );
-#endif
                                 }
                             }
                         }
@@ -534,14 +522,10 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                 }
             }
         }
-#if 0
-        auto json = boost::json::serialize( boost::json::object{ { "formulae", jArray } } );
-        ADDEBUG() << json;
-#else
+
         auto jv = boost::json::value_from( boost::json::object{{ "formulae", genChromatograms }} );
         ADDEBUG() << jv;
         auto json = boost::json::serialize( jv );
-#endif
 
         double width = cm.width( cm.widthMethod() );
         if ( auto dset = processor->rawdata() ) {
@@ -593,6 +577,7 @@ DataprocessWorker::handleChromatogramByAxisRange3( Dataprocessor * processor
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
+
 void
 DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
                                                    , std::shared_ptr< const adcontrols::ProcessMethod > pm
@@ -615,6 +600,11 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
     portfolio::Folium folium;
     for ( auto c: vec ) {
         folium = processor->addChromatogram( *c, *pm );
+        if ( auto pchr = folium.get< std::shared_ptr< adcontrols::Chromatogram > >() ) {
+            if ( (*pchr)->peaks().size() > 0 ) {
+                folium.setAttribute( L"isChecked", L"true" );
+            }
+        }
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 

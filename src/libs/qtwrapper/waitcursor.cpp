@@ -44,19 +44,17 @@ waitCursor::unblock()
 waitCursor::waitCursor()
 {
     QApplication::setOverrideCursor( Qt::WaitCursor );
-
     if ( ! blocked_.test_and_set() ) {
         QApplication::processEvents();
         blocked_.clear();
     }
 
 }
-        
+
 waitCursor::~waitCursor()
 {
     QApplication::restoreOverrideCursor();
-
-    if ( ! blocked_.test_and_set() ) {    
+    if ( ! blocked_.test_and_set() ) {
         QApplication::processEvents();
         blocked_.clear();
     }

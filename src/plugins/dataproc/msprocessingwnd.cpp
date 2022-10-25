@@ -518,7 +518,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                         if ( folium.nil() ) {
                             adcontrols::Chromatogram c = *tic;
                             c.addDescription( adcontrols::description( {"acquire.title", ( boost::format( "TIC.%1%" ) % ( fcn + 1 ) ).str() }) );
-                            portfolio::Folium folium = processor->addChromatogram( c, m, true );
+                            portfolio::Folium folium = processor->addChromatogram( c, m ); //, true );
                         }
                         processor->setCurrentSelection( folium );
                     }
@@ -538,7 +538,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                     std::wstring name = adcontrols::Chromatogram::make_folder_name( pChro->getDescriptions() );
                                     auto folium = folder.findFoliumByName( name );
                                     if ( folium.nil() ) {
-                                        folium = processor->addChromatogram( *pChro, m, true );
+                                        folium = processor->addChromatogram( *pChro, m ); //, true );
                                         processor->setCurrentSelection( folium );
                                     }
                                 }
@@ -561,7 +561,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                         c.addDescription( adcontrols::description( L"acquire.title", title ) );
                         adcontrols::ProcessMethod m;
                         MainWindow::instance()->getProcessMethod( m );
-                        folium = processor->addChromatogram( c, m, true );  // force checked
+                        folium = processor->addChromatogram( c, m );//, true );  // force checked
                     }
                 }
                 if ( folium.attribute( L"protoId" ).empty() )

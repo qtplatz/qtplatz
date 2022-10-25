@@ -178,7 +178,7 @@ namespace dataproc {
                                         , const adcontrols::MSLockMethod&
                                         , std::shared_ptr<adwidgets::Progress> );
 
-        void join( const adportable::asio::thread::id& );
+        void join( adportable::asio::thread::id );
     };
 
 }

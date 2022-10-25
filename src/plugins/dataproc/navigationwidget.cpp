@@ -163,7 +163,6 @@ public:
     }
 
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
-
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true, folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
 
@@ -382,6 +381,7 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
 
     if ( QStandardItem * procItem = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
         if ( QStandardItem * folderItem = StandardItemHelper::findFolder( procItem, foldername.toStdWString() ) ) {
+            pTreeView_->setUpdatesEnabled( false );
             for ( auto folium: folio ) {
                 if ( QStandardItem * item = StandardItemHelper::findFolium( procItem, folium.id() ) ) {
                     item->setData( QVariant::fromValue< portfolio::Folium >( folium ), Qt::UserRole );
@@ -389,6 +389,7 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
                     PortfolioHelper::appendFolium( *folderItem, folium );
                 }
             }
+            pTreeView_->setUpdatesEnabled( true );
         }
     }
 }
@@ -406,6 +407,8 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
     QString filename = processor->filePath();
 
     QStandardItemModel& model = *pModel_;
+
+    ADDEBUG() << "\thandleSessionUpdated: " << folium.name();
 
     if ( QStandardItem * processorItem = StandardItemHelper::findRow< Dataprocessor * >( model, processor ) ) {
 
@@ -476,8 +479,8 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
 		if ( data.canConvert< portfolio::Folder >() ) {
 			// folder (Spectra|Chromatograms)
-            qtwrapper::waitCursor wait;
 			portfolio::Folder folder = data.value< portfolio::Folder >();
+            qtwrapper::waitCursor wait;
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			processor->setCurrentSelection( folder );
 
@@ -487,8 +490,8 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			if ( processor ) {
-                qtwrapper::waitCursor wait;
 				std::string tname = static_cast<boost::any&>( folium ).type().name();
+                qtwrapper::waitCursor wait;
 				processor->setCurrentSelection( folium );
 			}
         }

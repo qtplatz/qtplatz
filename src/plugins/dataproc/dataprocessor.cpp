@@ -104,6 +104,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <chrono>
 #include <stack>
 #include <fstream>
 #include <QApplication>
@@ -1016,14 +1017,12 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > pt
 	return folium;
 }
 
-
 portfolio::Folium
-Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m, bool checked )
+Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
     std::wstring name = adcontrols::Chromatogram::make_folder_name( src.getDescriptions() );
-    ADDEBUG() << "addChromatogram: " << name;
 
     portfolio::Folium folium = folder.addFolium( name );
     adutils::ChromatogramPtr c = std::make_shared< adcontrols::Chromatogram >( src );  // profile, deep copy
@@ -1043,11 +1042,8 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
             }
         }
     }
-
-    // if ( checked )
-    //     folium.setAttribute( L"isChecked", L"true" );
-
-    SessionManager::instance()->updateDataprocessor( this, folium );
+    // following line get slow down the treeview update;
+    // SessionManager::instance()->updateDataprocessor( this, folium );
 
     setModified( true );
 

@@ -395,6 +395,7 @@ document::findScanLaw( const QString& model, double& flength, double& accv, doub
 void
 document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
+    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
 	qtwrapper::waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
@@ -534,6 +535,7 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
 void
 document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 {
+    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
 	qtwrapper::waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
@@ -564,6 +566,7 @@ document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 void
 document::handle_folium_added( const QString& fname, const QString& path, const QString& id )
 {
+    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursorBlocker block;
 
 	std::wstring filename = fname.toStdWString();

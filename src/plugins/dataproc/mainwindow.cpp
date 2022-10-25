@@ -1326,6 +1326,7 @@ MainWindow::OnFinalClose()
 void
 MainWindow::handleProcessChecked()
 {
+    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursor wait;
     adcontrols::ProcessMethod m;
     getProcessMethod( m );
@@ -1580,6 +1581,7 @@ MainWindow::handleImportChecked()
 void
 MainWindow::actionApply()
 {
+    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod pm;
