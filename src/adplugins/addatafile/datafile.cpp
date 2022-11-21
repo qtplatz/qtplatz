@@ -266,7 +266,6 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
             rawdata_ = std::make_unique< v3::rawdata >( dbf_, *this );
         }
-
         if ( boost::apply_visitor( detail::is_valid_rawdata(), rawdata_ ) ) {
 
             boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
@@ -296,13 +295,14 @@ datafile::accept( adcontrols::dataSubscriber& sub )
                 sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, boost::json::serialize( ptop ) );
             }
         }
-
         // publish processed dataset
         portfolio::Portfolio portfolio;
         if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
+            ADDEBUG() << "################### " << __FUNCTION__ << " ##############";
             processedDataset_->xml( portfolio.xml() );
             sub.subscribe( *processedDataset_ );
         } else {
+            ADDEBUG() << "################### " << __FUNCTION__ << " ##############";
             portfolio.create_with_fullpath( filename_ );
             portfolio.addFolder( L"Chromatograms" );
             portfolio.addFolder( L"Spectra" );
@@ -480,6 +480,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 bool
 datafile::loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& sub )
 {
+    ADDEBUG() << "##################################### " << __FUNCTION__ << " ##########################";
     if ( ! mounted_ )
         return false;
     adfs::folder folder = dbf_.findFolder( path );
@@ -499,6 +500,8 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     if ( ! mounted_ )
         return false;
 
+    ADDEBUG() << "########### " << __FUNCTION__ << " create_with_fullpath(" << filename_ << ")";
+
     portfolio.create_with_fullpath( filename_ );
     adfs::folder processed = dbf_.findFolder( query );  // L"/Processed"
     if ( ! processed )
@@ -507,6 +510,7 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     // top folder should be L"Spectra" | L"Chromatograms"
     for ( const adfs::folder& folder: processed.folders() ) {
         const std::wstring& name = folder.name();
+        ADDEBUG() << "folder: " << name;
         portfolio::Folder xmlfolder = portfolio.addFolder( name );
         detail::folder::load( xmlfolder, folder );
     }

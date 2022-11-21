@@ -53,7 +53,7 @@ PeakList::PeakList( QWidget *parent ) : adwidgets::TableView( parent )
 void
 PeakList::handleDataChanged( const portfolio::Folium& folium )
 {
-   using portfolio::is_any_shared_of;
+    using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
         if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
@@ -63,13 +63,14 @@ PeakList::handleDataChanged( const portfolio::Folium& folium )
                     int col(0);
                     auto [ time, mass, abundance, color ] = ptr->value( i );
                     (void)time;
+                    // ADDEBUG() << ptr->value(i);
                     model()->setData( model()->index( i, col++ ), int( i ) );
                     model()->setData( model()->index( i, col++ ), mass );
                     model()->setData( model()->index( i, col++ ), abundance );
                     model()->setData( model()->index( i, col++ ), color );
-                    if ( color != 15 ) {
-                        this->hideRow( i );
-                    }
+                    // if ( color != 15 ) {
+                    //    this->hideRow( i );
+                    // }
                 }
             }
         }

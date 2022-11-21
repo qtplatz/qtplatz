@@ -67,6 +67,7 @@ namespace dataproc {
         void handleAxisChanged( adcontrols::hor_axis );
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
         void handleSpectrumYScale( bool, double, double );
+        void handleFoliumChanged( Dataprocessor *, const portfolio::Folium& );
 
     private:
         void init();

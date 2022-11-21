@@ -594,6 +594,30 @@ namespace dataproc {
         }
     };
 
+    template< Qt::CheckState CheckState >
+    struct RemoveAllFunctor {
+        Dataprocessor * processor;
+        QStandardItemModel& model;
+        QModelIndex index;
+        RemoveAllFunctor( Dataprocessor * dp, QStandardItemModel& m, QModelIndex& idx ) : processor( dp ), model( m ), index( idx ) {};
+        void operator()() {
+            if ( processor ) {
+                auto parent = model.itemFromIndex( index ); // ex. Spectra
+                for ( int row = 0; row < parent->rowCount(); ++row ) {
+                    if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
+                        if ( item->isCheckable() && ( item->checkState() == CheckState )) {
+                            QVariant data = item->data( Qt::UserRole );
+                            if ( data.canConvert< portfolio::Folium >() ) {
+                                auto folium = data.value< portfolio::Folium >();
+                                processor->setAttribute( folium, {"remove", "true"} );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     struct SaveSpectrumAs {
         ActionType idAction;
         portfolio::Folium folium;
@@ -794,6 +818,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                     , CheckAllFunctor( false, *pModel_, index ) );
                     menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() )
                                     , CheckAllFunctor( true, *pModel_, index ) );
+                    menu.addAction( QString( tr("Remove all unchecked %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                    , RemoveAllFunctor< Qt::Unchecked >( processor, *pModel_, index ) );
+
                     if ( folder.name() == L"Chromatograms" ) {
                         menu.addAction( QString( tr("List m/z list for %1") ).arg( index.data( Qt::EditRole ).toString() )
                                         , xicMassList( *pModel_, index, processor ) );

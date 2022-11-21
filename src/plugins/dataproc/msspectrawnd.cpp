@@ -66,6 +66,7 @@
 #include <qwt_symbol.h>
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -124,7 +125,6 @@ namespace dataproc {
             for ( size_t idx = 0; idx < ms.size(); ++idx ) {
                 if ( ms.color( idx ) || ( ms.intensity( idx ) > th ) ) {
                     a.emplace_back( ms.mass( idx ) );
-                    ADDEBUG() << "reference mass: " << ms.mass( idx ) << ms.intensity( idx ) << ", th=" << th;
                 }
             }
             return a;
@@ -135,6 +135,7 @@ namespace dataproc {
     // -------------------------------
     struct findCentroid {
         std::shared_ptr< adcontrols::MassSpectrum > operator()( portfolio::Folium&& folium ) const {
+            ADDEBUG() << "findCentroid: " << folium.name() << ", " << portfolio::is_type< adcontrols::MassSpectrumPtr >( folium );
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
                 if ( auto fi = portfolio::find_last_of( folium.attachments()
                                                         , [](const auto& a){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -152,7 +153,8 @@ namespace dataproc {
         portfolio::Folium find( const boost::uuids::uuid& uuid ) const {
             for ( auto session: *dataproc::SessionManager::instance() ) {
                 if ( auto dp = session.processor() ) {
-                    return dp->getPortfolio().findFolium( uuid );
+                    if ( auto folium = dp->getPortfolio().findFolium( uuid ) )
+                        return folium;
                 }
             }
             return {};
@@ -170,7 +172,6 @@ namespace dataproc {
 
         void operator()( const boost::uuids::uuid& idfolium, std::vector< double >&& reference ) const {
             if ( auto ptr = findCentroid()( find( idfolium ) ) ) {
-                ADDEBUG() << "<----- " << __FUNCTION__;
                 qtwrapper::waitCursor wait;
                 adportable::array_wrapper<const double> a( ptr->getMassArray(), ptr->size() );
                 auto it = a.begin();
@@ -180,9 +181,10 @@ namespace dataproc {
                         auto beg = it != a.begin() ? it - 1 : it;
                         auto end = (it + 1) != a.end() ? it + 1 : it;
                         auto tIt = std::min_element( beg, end, [&](auto a, auto b){ return std::abs( a - m ) < std::abs( b - m );} );
-                        // ADDEBUG() << "found: " << m << ", " << *tIt << "\tdm=" << ((*tIt - m) * 1000) << "mDa";
-                        if ( std::abs( *tIt - m ) < 0.005 ) // 5 mDa
+                        if ( std::abs( *tIt - m ) < 0.005 ) { // 5 mDa
+                            ADDEBUG() << "intersection found: " << m << ", " << *tIt << "\tdm=" << ((*tIt - m) * 1000) << "mDa";
                             ptr->setColor( std::distance( a.begin(), tIt ), 10 ); // dark gray
+                        }
                     }
                 }
                 foliumChanged( idfolium );
@@ -221,6 +223,8 @@ MSSpectraWnd::init()
             connect( plot.get()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
                      , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
+
+            connect( SessionManager::instance(), &SessionManager::foliumChanged, this, &MSSpectraWnd::handleFoliumChanged );
 
             // plot->enableAxis( QwtPlot::yRight );
             plot->setMinimumHeight( 80 );
@@ -274,14 +278,17 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
+    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
+        ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name() << ". it does not a massSpectrum";
         return;
+    }
 
     auto data = datafolder( processor->filename(), folium );
 
     bool isChecked = folium.attribute( L"isChecked" ) == L"true";
-    if ( isChecked )
+    if ( isChecked ) {
         impl_->selProcessed_ = false;
+    }
     if ( auto pf = folium.parentFolium() ) {
         isChecked = pf.attribute( L"isChecked" ) == L"true";
         data = datafolder( processor->filename(), pf );
@@ -302,38 +309,31 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         impl_->data_.emplace_back( data );
         impl_->plots_[ 0 ]->clear();
         impl_->plots_[ 0 ]->replot();
-        impl_->currData_ = {};
     } else {
         impl_->currData_ = data;
     }
+}
 
-    // temporary disable for overlay spectra
-    // --> this maybe revoke if selection is not processed (centroid) spectra
-    // auto it = std::find_if( impl_->data_.begin(), impl_->data_.end(), [&]( const auto& a ){ return a.id() == folium.uuid(); } );
-
-    // if ( folium.attribute( L"isChecked" ) == L"false" ) {
-    //     if ( it != impl_->data_.end() ) {
-    //         impl_->data_.erase( it );
-    //         impl_->dirty_ = true;
-    //     }
-    // } else {
-    //     if ( it == impl_->data_.end() ) {
-    //         if ( auto profile = data.get_profile() ) {
-    //             if (( data.overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *profile->first ) )) {
-    //                 double yMax = adcontrols::segments_helper::max_intensity( *data.overlaySpectrum_ );
-    //                 for ( auto& sp: adcontrols::segment_wrapper<>( *data.overlaySpectrum_ ) ) {
-    //                     for ( size_t i = 0; i < sp.size(); ++i )
-    //                         sp.setIntensity( i, 100 * sp.intensity( i ) / yMax );
-    //                 }
-    //             }
-    //         }
-    //         impl_->data_.emplace_back( data );
-    //         impl_->dirty_ = true;
-    //     }
-    // }
-    // if ( impl_->dirty_ ) {
-    //     redraw();
-    // }
+void
+MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
+{
+    if ( impl_->currData_ && impl_->currData_.id() == folium.uuid() ) {
+        auto& data = impl_->currData_;
+        auto& plot = impl_->plots_[ 0 ];
+        plot->clear();
+        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
+            plot->setData( ms->first, 0, QwtPlot::yLeft );
+            plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+        }
+    }
+    if ( !impl_->data_.empty() && impl_->data_.back().id() == folium.uuid() ) {
+        auto& data = impl_->data_.back();
+        auto& plot = impl_->plots_[ 1 ];
+        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
+            plot->setData( ms->first, 0, QwtPlot::yLeft );
+            plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+        }
+    }
 }
 
 void
@@ -371,9 +371,7 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
             if ( it != actions.end() )
                 (it->second)();
         }
-
     }
-
 }
 
 void

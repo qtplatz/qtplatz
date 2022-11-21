@@ -108,7 +108,8 @@ MetIdProcessor::find_all( adfs::sqlite& db
     tms->populate( *ms, [](auto value){ return mass_value_t::color( value ) == 15; });
     if ( tms->size() == 0 ) {
         ADDEBUG() << "no colored peak.";
-        return {};
+        tms->populate( *ms, [](auto value){ return mass_value_t::color( value ) >= 0; });
+        // return {};
     }
     tms->set_method( std::make_unique< adcontrols::MetIdMethod > ( method ) );
 

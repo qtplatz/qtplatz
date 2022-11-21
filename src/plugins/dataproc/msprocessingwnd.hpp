@@ -87,6 +87,7 @@ namespace dataproc {
         void handleAxisChanged( adcontrols::hor_axis );
         void handleFoliumDataChanged( const QString& );
         void handleSpectrumYScale( bool, double, double );
+        void handleFoliumChanged( Dataprocessor *, const portfolio::Folium& );
 
         // slot for MSPeakTable
         void handleCurrentChanged( int idx, int fcn );

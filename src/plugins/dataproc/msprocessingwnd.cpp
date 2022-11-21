@@ -494,13 +494,16 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
+    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
     portfolio::Portfolio portfolio = processor->getPortfolio();
 
     if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
 
         portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
-        if ( folder.nil() )
+        if ( folder.nil() ) {
             folder = processor->getPortfolio().addFolder( L"Chromatograms" );
+            ADDEBUG() << "##### " << __FUNCTION__ << " ##### folder " << folder.name() << " added";
+        }
 
         if ( dset->dataformat_version() >= 3 ) {
 
@@ -781,6 +784,12 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
             pImpl_->currentChanged( segs[ fcn ], idx );
         }
     }
+}
+
+void
+MSProcessingWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
+{
+
 }
 
 void

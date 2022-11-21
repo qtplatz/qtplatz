@@ -56,7 +56,6 @@ namespace {
         void operator () ( std::shared_ptr< adcontrols::MassSpectrum > ptr ) const {
             if ( folium_.name() == Constants::F_PROFILED_HISTOGRAM ) {
                 this_->profiledHistogram_ = ptr;
-                // ADDEBUG() << "\t-- attachment Profiled histogram: " << folium_.name();
             } else if ( folium_.name() == Constants::F_CENTROID_SPECTRUM ) {
                 this_->centroid_ = ptr;
             } else {
@@ -112,7 +111,8 @@ datafolder::datafolder( const std::wstring& fullpath
 datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
                                               , filename_( t.filename_ )
                                               , display_name_( t.display_name_ )
-                                              , idFolium_( t.idFolium_ )
+                                              , idFolium_( t.idFolium_ ) // wstring
+                                              , idfolium_( t.idfolium_ ) // uuid
                                               , idCentroid_( t.idCentroid_ )
                                               , profile_( t.profile_ )
                                               , profiledHistogram_( t.profiledHistogram_ )
