@@ -34,6 +34,7 @@ namespace {
     boost::filesystem::path make_filename_string( const portfolio::Folium& folium ) {
         auto name = folium.name();
         std::replace( name.begin(), name.end(), '/', '_' );
+        std::replace( name.begin(), name.end(), ' ', '_' );
         boost::algorithm::trim( name ); // remove leading and trailing spaces
         return name; // add temporary extension for avoiding wrong extension substitution on replace_extension call
     }
@@ -55,6 +56,9 @@ namespace {
         o << boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf().string(); // leaf
         o << (insertor.empty() ? "_" : insertor);
         o << boost::filesystem::path( folium.portfolio_fullpath() ).stem().string();               // stem "pareint_dir__filename"
+        o << (insertor.empty() ? "_" : insertor);
+        o << (insertor.empty() ? "_" : insertor);
+        o << make_filename_string( folium ).string(); // replace '/' -> '_'
         o << extension;
         auto dir  = make_directory_string( lastDir );
         if ( dir.empty() ) {
@@ -68,7 +72,6 @@ namespace {
                 destname = ( boost::format("%s(%d)%s") % name.string() % n++ % extension ).str();
             } while ( boost::filesystem::exists( destname ) );
         }
-        ADDEBUG() << "make_filename<svg>: " << destname;
         return destname;
     }
 }
@@ -88,6 +91,12 @@ namespace dataproc {
     QString make_filename< PDF >::operator()( const portfolio::Folium& folium, std::string&& insertor, const QString& lastDir )
     {
         return QString::fromStdString( __make_filename( folium, std::move( insertor ), lastDir, ".pdf" ).string() );
+    }
+
+    template<>
+    QString make_filename< TXT >::operator()( const portfolio::Folium& folium, std::string&& insertor, const QString& lastDir )
+    {
+        return QString::fromStdString( __make_filename( folium, std::move( insertor ), lastDir, ".txt" ).string() );
     }
 
 }

@@ -28,8 +28,11 @@
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "document.hpp"
+#include "export_chromatogram.hpp"
+#include "export_spectrum.hpp"
 #include "sessionmanager.hpp"
 #include "actionmanager.hpp"
+#include "utility.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -525,49 +528,6 @@ NavigationWidget::handle_pressed( const QModelIndex& index )
 
 namespace dataproc {
 
-	struct export_spectrum {
-		static bool write( std::ostream& o, const adcontrols::MassSpectrum& _ms ) {
-			adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( _ms );
-			for ( auto& ms : segments ) { // size_t n = 0; n < segments.size(); ++n ) {
-				//const adcontrols::MassSpectrum& ms = segments[ n ];
-				for ( size_t n = 0; n < ms.size(); ++n ) {
-					o << std::scientific << std::setprecision( 15 ) << ms.time( n ) << ",\t"
-                      << std::fixed << std::setprecision( 15 ) << ms.mass( n ) << ",\t"
-                      << std::scientific << std::setprecision(15) << ms.intensity( n );
-                    if ( ms.isCentroid() ) {
-                        o << ",\t" << ms.color( n );
-                    }
-                    o << std::endl;
-				}
-			}
-			return true;
-		}
-	};
-
-	struct export_chromatogram {
-		static bool write( std::ostream& o, const adcontrols::Chromatogram& c ) {
-            if ( c.tofArray().empty() && c.massArray().empty() ) {
-                for ( size_t n = 0; n < c.size(); ++n ) {
-                    o << std::scientific << std::setprecision( 15 ) << c.time( n )
-                      << "\t"
-                      << std::fixed << std::setprecision( 13 ) << c.intensity( n ) << std::endl;
-                }
-            } else {
-                for ( size_t n = 0; n < c.size(); ++n ) {
-                    o << std::scientific << std::setprecision( 15 ) << c.time( n )
-                      << "\t"
-                      << std::fixed << std::setprecision( 13 ) << c.intensity( n )
-                      << "\t"
-                      << std::scientific << std::setprecision( 15 ) << c.tof( n )
-                      << "\t"
-                      << std::fixed << std::setprecision( 8 ) << c.mass( n )
-                      << std::endl;
-                }
-            }
-            return true;
-		}
-	};
-
     enum ActionType { checkAll, unCheckAll, asProfile, asCentroid, doCalibration, removedChecked, asDFTProfile };
 
     struct CheckAllFunctor {
@@ -618,35 +578,45 @@ namespace dataproc {
 
     struct SaveSpectrumAs {
         ActionType idAction;
+        portfolio::Folium parent;
         portfolio::Folium folium;
         Dataprocessor * processor;
-        SaveSpectrumAs( ActionType id, portfolio::Folium& f, Dataprocessor * p ) : idAction( id ), folium( f ), processor( p ) {}
+        SaveSpectrumAs( ActionType id, portfolio::Folium& pf, portfolio::Folium& f, Dataprocessor * p )
+            : idAction( id ), parent( pf ), folium( f ), processor( p ) {}
 
         void operator()() {
-
-            boost::filesystem::path path( processor->file()->filename() );
-            std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
-            while ( !boost::filesystem::is_directory( path ) )
-                path = path.branch_path();
-
-            QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
-                                                                        , QObject::tr( "Save spectrum" )
-                                                                        , QString::fromStdWString( path.wstring() )
-                                                                        , QString::fromStdWString( folium.name() )
-                                                                        , QObject::tr( "qtplatz (*.adfs);;Text files (*.txt)" ) );
-
-            boost::filesystem::path dstfile( filename.toStdWString() );
-
-            if ( dstfile.extension() == ".adfs" ) {
-                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
-            } else {
-                boost::filesystem::ofstream of( dstfile );
-
-                auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-                export_spectrum::write( of, *ms );
+            if ( auto path = utility::save_spectrum_as()( parent, folium ) ) {
+                if ( path->extension() == ".adfs" ) {
+                    adutils::fsio2::appendOnFile( path->wstring(), folium, *processor->file() );
+                } else {
+                    std::ofstream of( *path );
+                    auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+                    export_spectrum::write( of, *ms );
+                }
             }
         }
     };
+
+    struct SaveChromatogramAs {
+        portfolio::Folium folium;
+        Dataprocessor * processor;
+
+        SaveChromatogramAs( portfolio::Folium& f, Dataprocessor * p ) : folium( f ), processor( p )
+            {}
+        void operator()() {
+            if ( auto path = utility::save_chromatogram_as()( folium ) ) {
+                if ( path->extension() == ".adfs" ) {
+                    adutils::fsio2::appendOnFile( path->wstring(), folium, *processor->file() );
+                } else {
+                    std::ofstream of( *path );
+                    if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )
+                        export_chromatogram::write( of, *c );
+                }
+            }
+        }
+    };
+
+
 
     struct xicMassList {
         QStandardItemModel& model;
@@ -698,45 +668,6 @@ namespace dataproc {
                         processor->markupMassesFromChromatograms( std::move( folium ) );
                     }
                 }
-            }
-        }
-    };
-
-    struct SaveChromatogramAs {
-        portfolio::Folium folium;
-        Dataprocessor * processor;
-
-        SaveChromatogramAs( portfolio::Folium& f, Dataprocessor * p ) : folium( f ), processor( p )
-            {}
-        void operator()() {
-
-            boost::filesystem::path path( processor->file()->filename() );
-            std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
-            while ( !boost::filesystem::is_directory( path ) )
-                path = path.branch_path();
-
-            QString fSel;
-            QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
-                                                                        , QObject::tr( "Save Chromatogarm" )
-                                                                        , QString::fromStdWString( path.wstring() )
-                                                                        , QString::fromStdWString( folium.name() )
-                                                                        , QObject::tr( "Text files (*.txt);;qtplatz (*.adfs)" )
-                                                                        , &fSel );
-
-            boost::filesystem::path dstfile( filename.toStdWString() );
-            if ( dstfile.extension() == "" ) {
-                if ( fSel == "Text files (*.txt)" )
-                    dstfile.replace_extension( "txt" );
-                else if ( fSel == "qtplatz (*.adfs)" )
-                    dstfile.replace_extension( "adfs" );
-            }
-
-            if ( dstfile.extension() == ".adfs" ) {
-                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
-            } else {
-                boost::filesystem::ofstream of( dstfile );
-                if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )
-                    export_chromatogram::write( of, *c );
             }
         }
     };
@@ -851,16 +782,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             } );
                         bool hasFilterd = itFiltered != atts.end();
 
-                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, processor ) ) )
+                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, processor ) ) )
                             a->setEnabled( isSpectrum );
 
                         portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
 
-                        if ( auto a = menu.addAction( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, centroid, processor ) ) )
+                        if ( auto a = menu.addAction( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, folium, centroid, processor ) ) )
                             a->setEnabled( hasCentroid );
 
                         portfolio::Folium filtered = itFiltered != atts.end() ? *itFiltered : portfolio::Folium();
-                        if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, filtered, processor ) ) )
+                        if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, folium, filtered, processor ) ) )
                             a->setEnabled( hasFilterd );
 
                         menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( processor ) );

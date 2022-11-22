@@ -66,6 +66,52 @@ namespace dataproc {
         }
         //<----------
 
+        std::optional< std::filesystem::path >
+        save_spectrum_as::operator ()( const portfolio::Folium& parent, const portfolio::Folium& folium, std::string&& insertor ) const
+        {
+            if ( folium ) {
+                QFileDialog dlg( nullptr, QObject::tr( "Save Spectrum As" ) );
+                dlg.setDirectory( make_filename<TXT>()( parent, std::move(insertor), document::instance()->recentFile( Constants::GRP_SAVEAS_FILES ) ) );
+                dlg.setAcceptMode( QFileDialog::AcceptSave );
+                dlg.setFileMode( QFileDialog::AnyFile );
+                dlg.setNameFilters( QStringList{ "TXT (*.txt)", "QtPlatz (*.adfs)"} );
+                if ( dlg.exec() ) {
+                    auto files = dlg.selectedFiles();
+                    if ( !files.isEmpty() ) {
+                        auto name = files.at( 0 );
+                        document::instance()->addToRecentFiles( name, Constants::GRP_SAVEAS_FILES );
+                        return name.toStdString();
+                    }
+                }
+            }
+            return {};
+        }
+        //<----------
+
+        std::optional< std::filesystem::path >
+        save_chromatogram_as::operator ()( const portfolio::Folium& folium, std::string&& insertor ) const
+        {
+            if ( folium ) {
+                QFileDialog dlg( nullptr, QObject::tr( "Save Chromatogram As" ) );
+                dlg.setDirectory( make_filename<TXT>()( folium, std::move(insertor), document::instance()->recentFile( Constants::GRP_SAVEAS_FILES ) ) );
+                dlg.setAcceptMode( QFileDialog::AcceptSave );
+                dlg.setFileMode( QFileDialog::AnyFile );
+                dlg.setNameFilters( QStringList{ "TXT (*.txt)", "QtPlatz (*.adfs)"} );
+                if ( dlg.exec() ) {
+                    auto files = dlg.selectedFiles();
+                    if ( !files.isEmpty() ) {
+                        auto name = files.at( 0 );
+                        document::instance()->addToRecentFiles( name, Constants::GRP_SAVEAS_FILES );
+                        return name.toStdString();
+                    }
+                }
+            }
+            return {};
+        }
+        //<----------
+
+
+
 
     } // namespace utility
 }

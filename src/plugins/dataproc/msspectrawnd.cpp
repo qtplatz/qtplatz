@@ -300,7 +300,6 @@ void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
     if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
-        // ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name() << ". it does not a massSpectrum";
         return;
     }
 
