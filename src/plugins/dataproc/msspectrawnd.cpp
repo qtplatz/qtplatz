@@ -66,7 +66,6 @@
 #include <qwt_symbol.h>
 #include <algorithm>
 #include <cmath>
-#include <optional>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
