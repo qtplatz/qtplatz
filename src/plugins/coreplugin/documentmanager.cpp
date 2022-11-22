@@ -872,7 +872,7 @@ QStringList DocumentManager::getOpenFileNames(const QString &filters,
                                               const QString &pathIn,
                                               QString *selectedFilter)
 {
-    ADDEBUG() << "getOpenFileNames filters: " << filters.toStdString() << "\npathIn: \t" << pathIn.toStdString();
+    // ADDEBUG() << "getOpenFileNames filters: " << filters.toStdString() << "\npathIn: \t" << pathIn.toStdString();
 
     QString path = pathIn;
     if (path.isEmpty()) {

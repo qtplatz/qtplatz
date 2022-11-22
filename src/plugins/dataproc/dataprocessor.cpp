@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -360,6 +360,7 @@ Dataprocessor::open(const QString &filename, QString& emsg )
 bool
 Dataprocessor::load( const std::wstring& path, const std::wstring& id )
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " path: " << path << " id: " << id;
     // this is used for reload 'acquire' when shanpshot spectrum was added.
     return this->file()->loadContents( path, id, *this );
 }
@@ -540,6 +541,7 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
@@ -616,7 +618,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         }
 
         // if folium == profile spectrum && process == centroid|targeting, then copy annotation to profile
-
+        ADDEBUG() << "################### " << __FUNCTION__ << " ##";
         setModified( true );
 
         SessionManager::instance()->processed( this, folium );
@@ -640,19 +642,6 @@ Dataprocessor::remove( portfolio::Folium folium )
     }
 #endif
 }
-
-// void
-// Dataprocessor::removeCheckedItems()
-// {
-//     for ( auto& folder: portfolio_->folders() ) {
-//         for ( auto& folium: folder.folio() ) {
-//             if ( folium.attribute( L"isChecked" ) == L"false" ) {
-//                 folder.removeFolium( folium );
-//                 setModified( true );
-//             }
-//         }
-//     }
-// }
 
 void
 Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
@@ -916,15 +905,6 @@ Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
     if ( !adprocessor::dataprocessor::applyCalibration( calibration ) ) {
         ADDEBUG() << "applyCalibration faild";
     }
-
-    // move to parent class
-	// if ( file()->applyCalibration( std::wstring(), calibration ) ) {
-    //     setModified( true );
-    //     if ( auto spectrometer = this->massSpectrometer() )
-    //         spectrometer->initialSetup( *db(), {{0}} );
-    // } else {
-    //     ADDEBUG() << "applyCalibration faild";
-    // }
 }
 
 void
@@ -977,6 +957,7 @@ Dataprocessor::formulaChanged()
 portfolio::Folium
 Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
@@ -999,6 +980,7 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
 portfolio::Folium
 Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
@@ -1018,7 +1000,8 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > pt
 }
 
 portfolio::Folium
-Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m )
+Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src
+                                , const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
@@ -1057,7 +1040,8 @@ Dataprocessor::addContour( std::shared_ptr< adcontrols::MassSpectra > spectra )
 
     const auto& desc = spectra->getDescriptions();
     std::wstring name =
-        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Contour " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text<wchar_t>(); } );
+        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Contour " },
+                         [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text<wchar_t>(); } );
 
     portfolio::Folium folium = folder.addFolium( name );  // "Contours/Contour"
 	folium.assign( spectra, spectra->dataClass() );

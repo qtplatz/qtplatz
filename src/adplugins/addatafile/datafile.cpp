@@ -298,11 +298,9 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         // publish processed dataset
         portfolio::Portfolio portfolio;
         if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
-            ADDEBUG() << "################### " << __FUNCTION__ << " ##############";
             processedDataset_->xml( portfolio.xml() );
             sub.subscribe( *processedDataset_ );
         } else {
-            ADDEBUG() << "################### " << __FUNCTION__ << " ##############";
             portfolio.create_with_fullpath( filename_ );
             portfolio.addFolder( L"Chromatograms" );
             portfolio.addFolder( L"Spectra" );
@@ -500,17 +498,16 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     if ( ! mounted_ )
         return false;
 
-    ADDEBUG() << "########### " << __FUNCTION__ << " create_with_fullpath(" << filename_ << ")";
-
     portfolio.create_with_fullpath( filename_ );
     adfs::folder processed = dbf_.findFolder( query );  // L"/Processed"
-    if ( ! processed )
+    if ( ! processed ) {
+        ADDEBUG() << "## " << __FUNCTION__ << " into portfolio via query: " << query << " ==> no result found.";
         return false;
+    }
 
     // top folder should be L"Spectra" | L"Chromatograms"
     for ( const adfs::folder& folder: processed.folders() ) {
         const std::wstring& name = folder.name();
-        ADDEBUG() << "folder: " << name;
         portfolio::Folder xmlfolder = portfolio.addFolder( name );
         detail::folder::load( xmlfolder, folder );
     }

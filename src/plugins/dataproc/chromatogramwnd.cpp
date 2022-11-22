@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2022 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -123,28 +123,28 @@ namespace dataproc {
         }
 
         void setChromatogram( adcontrols::ChromatogramPtr& ptr ) {
-            data_ = ptr;
+            // clear existing data
             plots_[ 0 ]->clear();
-            plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
-            auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
-            // for ( const auto& x: ptr->getDescriptions() ) {
-            //     ADDEBUG() << x.keyValue();
-            // }
-
-            plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
+            plots_[ 0 ]->setTitle( QString{} );
             peakResult_.reset();
-            // ADDEBUG() << "==== chromatogram.peaks.size: " << ptr->peaks().size();
-            if ( ptr->peaks().size() ) {
-                peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
+            if (( data_ = ptr )) {
+                plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
+                auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
+
+                plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
+                if ( ptr->peaks().size() ) {
+                    peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
+                }
             }
         }
 
         void setPeakResult( adcontrols::PeakResultPtr& ptr ) {
-            peakResult_ = ptr;
-            // ADDEBUG() << "==== peakResult.peaks.size: " << ptr->peaks().size();
-            plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
-            // add to table
-            peakTable_->setData( *ptr );
+            if (( peakResult_ = ptr )) {
+                plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
+                peakTable_->setData( *ptr );
+            } else { // clear
+                peakTable_->setData( adcontrols::PeakResult{} );
+            }
         }
 
         void handleCurrentChanged( int peakId ) {
@@ -175,7 +175,8 @@ namespace dataproc {
 
         void addFIPeak( double t1, double t2 ) {
             if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                auto folium = dp->getPortfolio().findFolium( std::get< 1 >( selected_folder_ ) ); // idActiveFolium_ );
+                //auto folium = dp->getPortfolio().findFolium( std::get< 1 >( selected_folder_ ) ); // idActiveFolium_ );
+                auto folium = dp->getPortfolio().findFolium( datum_.id() );
                 dp->findSinglePeak( folium, { t1, t2 } );
             }
         }
@@ -203,13 +204,14 @@ namespace dataproc {
         void redraw();
 
         ChromatogramWnd * this_;
-        std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > plots_;
+        std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > plots_; // 0 := current data; 1 := reference
         adwidgets::PeakTable * peakTable_;
         std::unique_ptr< adplot::PeakMarker > marker_;
         // plot[0] data
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
-        std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
+        // std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
+        datafolder datum_; // current data <-- replacement of data_
         // std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
         std::tuple< bool, double, double, bool > yScale_;
@@ -287,14 +289,29 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 }
 
 void
-ChromatogramWnd::handleSessionRemoved( const QString& filename )
+ChromatogramWnd::handleRemoveSession( Dataprocessor * processor )
 {
     auto it = std::remove_if( impl_->overlays_.begin()
                               , impl_->overlays_.end()
-                              , [&](const auto& a){ return a.filename_ == filename.toStdWString(); });
+                              , [&](const auto& a){ return a.filename_ == processor->filename(); });
     if ( it != impl_->overlays_.end() )
         impl_->overlays_.erase( it, impl_->overlays_.end() );
+
+    if ( impl_->datum_.filename_ == processor->filename() ) {
+        impl_->data_.reset();
+        impl_->peakResult_.reset();
+        impl_->setChromatogram( impl_->data_ );
+        impl_->setPeakResult( impl_->peakResult_ );
+        impl_->datum_ = {};
+    }
+
     impl_->redraw();
+}
+
+void
+ChromatogramWnd::handleSessionRemoved( const QString& filename )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << " ## (" << filename.toStdString() << ")";
 }
 
 void
@@ -344,11 +361,10 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     auto datum = datafolder( processor->filename(), folium );
-    // ADDEBUG() << __FUNCTION__ << ", " << folium.name() << ", isChecked: " << folium.attribute( L"isChecked" );
 
     if ( auto chr = datum.get_chromatogram() ) {
 
-        impl_->selected_folder_ = { folium.uuid(), folium.id() }; // current selection
+        //impl_->selected_folder_ = { folium.uuid(), folium.id() }; // current selection
 
         auto& plot = impl_->plots_[ 0 ];
 
@@ -366,11 +382,10 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         } else {
             ADDEBUG() << "############## no peak result containd in datafolder ################";
         }
+        impl_->datum_ = std::move( datum );
     } else {
         return;
     }
-
-    // auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium_; } );
 
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
         impl_->eraseOverlay( folium );
@@ -403,7 +418,8 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 	portfolio::Folium folium;
     printer.setDocName( "QtPlatz Chromatogram Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        folium = dp->getPortfolio().findFolium( std::get< 1 >( impl_->selected_folder_ ) );
+        folium = dp->getPortfolio().findFolium( impl_->datum_.id() ); // std::get< 1 >( impl_->selected_folder_ ) );
+        // folium = dp->getPortfolio().findFolium( std::get< 1 >( impl_->selected_folder_ ) );
     }
 
     printer.setOutputFileName( pdfname );
@@ -497,7 +513,13 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
                     } );
 
     menu.addAction( tr( "Save SVG File" ), [index,this](){
-        auto idFolium = (index == 1 && !overlays_.empty()) ? overlays_.at( 0 ).idFolium_ : std::get<1>( selected_folder_ );
+        std::wstring idFolium;
+        if ( index == 1 && !overlays_.empty() ) {
+            idFolium = overlays_.at( 0 ).idFolium_;
+        }
+        if ( index == 0 && datum_ ) {
+            idFolium = datum_.idFolium();
+        }
         utility::save_image_as< SVG >()( plots_[ index ].get(), idFolium );
     });
 
@@ -551,8 +573,7 @@ ChromatogramWnd::impl::redraw()
                         plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
                 }
 
-                if ( datum.id() != std::get<0>(selected_folder_)
-                     && datum.idFolium_ != std::get< 1 >( selected_folder_ ) ) { // this is not currently focused chromatogram
+                if (( datum.id() != datum_.id() ) && ( datum.idFolium_ != datum_.idFolium() )) { // this is not currently focused chromatogram
                     if ( auto pks = datum.get_peakResult() ) {
                         peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx, idx == 0 );
                     }

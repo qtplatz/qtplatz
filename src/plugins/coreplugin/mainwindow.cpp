@@ -754,7 +754,7 @@ void MainWindow::newFile()
 
 void MainWindow::openFile()
 {
-    ADDEBUG() << "------- openFile ---------";
+    //ADDEBUG() << "------- openFile ---------";
     openFiles(EditorManager::getOpenFileNames(), ICore::SwitchMode);
 }
 

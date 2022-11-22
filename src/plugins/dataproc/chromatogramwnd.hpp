@@ -61,6 +61,7 @@ namespace dataproc {
     public slots :
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
         void handleSessionAdded( Dataprocessor* );
+        void handleRemoveSession( Dataprocessor* );
         void handleSessionRemoved( const QString& filename );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );

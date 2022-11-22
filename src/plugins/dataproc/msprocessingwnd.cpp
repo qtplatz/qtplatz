@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2020 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2020 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -369,6 +369,8 @@ MSProcessingWnd::init()
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
+
+    connect( SessionManager::instance(), &SessionManager::foliumChanged, this, &MSProcessingWnd::handleFoliumChanged );
 }
 
 void
@@ -473,12 +475,6 @@ MSProcessingWnd::draw( adutils::ChromatogramPtr ptr, int idx )
     }
 }
 
-// void
-// MSProcessingWnd::draw( adutils::PeakResultPtr ptr )
-// {
-//     pImpl_->ticPlot_->setPeakResult( *ptr, QwtPlot::yLeft );
-// }
-
 void
 MSProcessingWnd::idSpectrumFolium( const std::wstring& id )
 {
@@ -492,9 +488,22 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 }
 
 void
+MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << "(" << processor->filename() << ")";
+    if ( processor == SessionManager::instance()->getActiveDataprocessor() ) {
+        ADDEBUG() << "## " << __FUNCTION__ << "(" << processor->filename() << ") -- matched to active processor";
+        pImpl_->ticPlot_->clear();
+        pImpl_->profileSpectrum_->clear();
+        pImpl_->processedSpectrum_->clear();
+    } else {
+        ADDEBUG() << "active processor: " << SessionManager::instance()->getActiveDataprocessor();
+    }
+}
+
+void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
     portfolio::Portfolio portfolio = processor->getPortfolio();
 
     if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
@@ -502,7 +511,6 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
         portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
         if ( folder.nil() ) {
             folder = processor->getPortfolio().addFolder( L"Chromatograms" );
-            ADDEBUG() << "##### " << __FUNCTION__ << " ##### folder " << folder.name() << " added";
         }
 
         if ( dset->dataformat_version() >= 3 ) {
@@ -521,7 +529,8 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                         if ( folium.nil() ) {
                             adcontrols::Chromatogram c = *tic;
                             c.addDescription( adcontrols::description( {"acquire.title", ( boost::format( "TIC.%1%" ) % ( fcn + 1 ) ).str() }) );
-                            portfolio::Folium folium = processor->addChromatogram( c, m ); //, true );
+                            portfolio::Folium folium = processor->addChromatogram( c, m );
+                            SessionManager::instance()->updateDataprocessor( processor, folium ); // added 2022-11-22
                         }
                         processor->setCurrentSelection( folium );
                     }
@@ -541,6 +550,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                     std::wstring name = adcontrols::Chromatogram::make_folder_name( pChro->getDescriptions() );
                                     auto folium = folder.findFoliumByName( name );
                                     if ( folium.nil() ) {
+                                        ADDEBUG() << "---------- addChromatogram ---------------";
                                         folium = processor->addChromatogram( *pChro, m ); //, true );
                                         processor->setCurrentSelection( folium );
                                     }
@@ -550,7 +560,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                     }
                 }
             }
-        } else {
+        } else { // v2 format data
             size_t nfcn = dset->getFunctionCount();
             for ( size_t fcn = 0; fcn < nfcn; ++fcn ) {
                 std::wstring title = ( boost::wformat( L"TIC.%1%" ) % ( fcn + 1 ) ).str();
@@ -789,7 +799,7 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 void
 MSProcessingWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
-
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
 }
 
 void

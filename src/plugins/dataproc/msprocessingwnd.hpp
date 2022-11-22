@@ -79,6 +79,7 @@ namespace dataproc {
         void onInitialUpdate();
 
     public slots:
+        void handleRemoveSession( Dataprocessor* );
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );

@@ -261,6 +261,11 @@ namespace {
                             , p->findChild< Args *>(), &Args::handleSessionAdded ), ...);
     }
 
+    template< typename ...Args> void removeSessionConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::onRemoveSession
+                            , p->findChild< Args *>(), &Args::handleRemoveSession ), ...);
+    }
+
     template< typename ...Args> void sessionRemovedConnector( QObject * p ) {
         ( QObject::connect( SessionManager::instance(), &SessionManager::onSessionRemoved
                             , p->findChild< Args *>(), &Args::handleSessionRemoved ), ...);
@@ -740,6 +745,7 @@ MainWindow::createContents( Core::IMode * mode )
     } );
 #if __cplusplus >= 201703L
     sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    removeSessionConnector   < MSProcessingWnd, ChromatogramWnd >( stack_ );
     sessionRemovedConnector  < ChromatogramWnd >( stack_ );
     selectionChangedConnector< MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     processedConnector       < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );

@@ -59,6 +59,7 @@ namespace dataproc {
 
         QString display_name() const { return display_name_; }
         boost::uuids::uuid id() const { return idfolium_; }
+        std::wstring idFolium() const { return idFolium_; }
         operator bool () const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_profile() const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_processed() const;

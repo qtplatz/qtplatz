@@ -229,6 +229,7 @@ rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterCls
 size_t
 rawdata::getSpectrumCount( int fcn ) const
 {
+    ADDEBUG() << "################## " << __FUNCTION__ << " ##";
     int tfcn(0);
     if ( auto reader = findDataReader( fcn, tfcn ) ) {
         if ( auto tic = reader->TIC( tfcn ) )
@@ -371,6 +372,7 @@ rawdata::make_index( size_t pos, int& fcn ) const
 bool
 rawdata::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     int tfcn( 0 );
     if ( auto reader = findDataReader( fcn, tfcn ) ) {
         if ( auto pchro = reader->TIC( tfcn ) ) {
@@ -396,6 +398,7 @@ rawdata::getFunctionCount() const
 size_t
 rawdata::posFromTime( double seconds ) const
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     for ( auto& reader : readers_ ) {
         if ( auto tpos = reader.first->findPos( seconds ) )
             return tpos->time_since_inject();
@@ -406,6 +409,7 @@ rawdata::posFromTime( double seconds ) const
 double
 rawdata::timeFromPos( size_t pos ) const
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     if ( !times_.empty() && pos < times_.size() )
         return times_[ pos ].first;
 	return 0;
@@ -426,7 +430,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 bool
 rawdata::fetchTraces( int64_t objid, const adcontrols::DataInterpreter& interpreter, adcontrols::TraceAccessor& accessor )
 {
-
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
     adfs::stmt sql( dbf_.db() );
 
     if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
