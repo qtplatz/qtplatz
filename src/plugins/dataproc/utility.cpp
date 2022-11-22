@@ -66,7 +66,7 @@ namespace dataproc {
         }
         //<----------
 
-        std::optional< std::filesystem::path >
+        adportable::optional< boost::filesystem::path >
         save_spectrum_as::operator ()( const portfolio::Folium& parent, const portfolio::Folium& folium, std::string&& insertor ) const
         {
             if ( folium ) {
@@ -88,7 +88,7 @@ namespace dataproc {
         }
         //<----------
 
-        std::optional< std::filesystem::path >
+        adportable::optional< boost::filesystem::path >
         save_chromatogram_as::operator ()( const portfolio::Folium& folium, std::string&& insertor ) const
         {
             if ( folium ) {

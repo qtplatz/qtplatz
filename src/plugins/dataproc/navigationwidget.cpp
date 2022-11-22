@@ -589,7 +589,7 @@ namespace dataproc {
                 if ( path->extension() == ".adfs" ) {
                     adutils::fsio2::appendOnFile( path->wstring(), folium, *processor->file() );
                 } else {
-                    std::ofstream of( *path );
+                    boost::filesystem::ofstream of( *path );
                     auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                     export_spectrum::write( of, *ms );
                 }
@@ -608,7 +608,7 @@ namespace dataproc {
                 if ( path->extension() == ".adfs" ) {
                     adutils::fsio2::appendOnFile( path->wstring(), folium, *processor->file() );
                 } else {
-                    std::ofstream of( *path );
+                    boost::filesystem::ofstream of( *path );
                     if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )
                         export_chromatogram::write( of, *c );
                 }

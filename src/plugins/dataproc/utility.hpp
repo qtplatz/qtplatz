@@ -26,8 +26,9 @@
 
 #include <QString>
 #include "make_filename.hpp"
-#include <optional>
-#include <filesystem>
+#include <adportable/optional.hpp>
+#include <boost/filesystem.hpp>
+
 
 namespace portfolio {
     class Folium;
@@ -50,17 +51,19 @@ namespace dataproc {
     }
 
     namespace utility {
+
         enum MSDataOutType { Profile, Centrooid };
 
+
         struct save_spectrum_as {
-            std::optional< std::filesystem::path > operator ()( const portfolio::Folium& name
-                                                                , const portfolio::Folium& target
-                                                                , std::string&& insertor = {} ) const;
+            adportable::optional< boost::filesystem::path > operator ()( const portfolio::Folium& name
+                                                                         , const portfolio::Folium& target
+                                                                         , std::string&& insertor = {} ) const;
         };
 
         struct save_chromatogram_as {
-            std::optional< std::filesystem::path > operator ()( const portfolio::Folium&
-                                                                , std::string&& insertor = {} ) const;
+            adportable::optional< boost::filesystem::path > operator ()( const portfolio::Folium&
+                                                                         , std::string&& insertor = {} ) const;
         };
 
     }
