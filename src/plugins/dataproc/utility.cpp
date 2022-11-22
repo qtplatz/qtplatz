@@ -80,7 +80,7 @@ namespace dataproc {
                     if ( !files.isEmpty() ) {
                         auto name = files.at( 0 );
                         document::instance()->addToRecentFiles( name, Constants::GRP_SAVEAS_FILES );
-                        return name.toStdString();
+                        return boost::filesystem::path( name.toStdString() );
                     }
                 }
             }
@@ -102,7 +102,7 @@ namespace dataproc {
                     if ( !files.isEmpty() ) {
                         auto name = files.at( 0 );
                         document::instance()->addToRecentFiles( name, Constants::GRP_SAVEAS_FILES );
-                        return name.toStdString();
+                        return boost::filesystem::path( name.toStdString() );
                     }
                 }
             }
