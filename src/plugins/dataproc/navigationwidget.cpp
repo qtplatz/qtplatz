@@ -408,8 +408,6 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 
     QStandardItemModel& model = *pModel_;
 
-    ADDEBUG() << "\thandleSessionUpdated: " << folium.name();
-
     if ( QStandardItem * processorItem = StandardItemHelper::findRow< Dataprocessor * >( model, processor ) ) {
 
         if ( QStandardItem * folderItem

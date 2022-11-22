@@ -957,7 +957,6 @@ Dataprocessor::formulaChanged()
 portfolio::Folium
 Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
-    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
@@ -974,13 +973,14 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 
+    setModified( true );
+
 	return folium;
 }
 
 portfolio::Folium
 Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
-    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
@@ -996,6 +996,9 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > pt
         boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
+
+    setModified( true );
+
 	return folium;
 }
 

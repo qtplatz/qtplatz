@@ -745,7 +745,7 @@ MainWindow::createContents( Core::IMode * mode )
     } );
 #if __cplusplus >= 201703L
     sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    removeSessionConnector   < MSProcessingWnd, ChromatogramWnd >( stack_ );
+    removeSessionConnector   < MSProcessingWnd, MSSpectraWnd, ElementalCompWnd, ChromatogramWnd >( stack_ );
     sessionRemovedConnector  < ChromatogramWnd >( stack_ );
     selectionChangedConnector< MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     processedConnector       < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
@@ -767,6 +767,8 @@ MainWindow::createContents( Core::IMode * mode )
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &MSProcessingWnd::handleChromatogramYScale );
         connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &MSProcessingWnd::handleChromatogramXScale );
         connect( this, &MainWindow::onScaleYChanged, wnd, &MSProcessingWnd::handleSpectrumYScale );
+        connect( SessionManager::instance(), &SessionManager::onRemoveSession, wnd, &MSProcessingWnd::handleRemoveSession );
+
     }
     if ( auto wnd = stack_->findChild< MSSpectraWnd * >() ) {
         connect( this, &MainWindow::onScaleYChanged, wnd, &MSSpectraWnd::handleSpectrumYScale );
@@ -774,6 +776,7 @@ MainWindow::createContents( Core::IMode * mode )
     if ( auto wnd = stack_->findChild< ChromatogramWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramYScale );
         connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &ChromatogramWnd::handleChromatogramXScale );
+        connect( SessionManager::instance(), &SessionManager::onRemoveSession, wnd, &ChromatogramWnd::handleRemoveSession );
     }
     if ( auto wnd = stack_->findChild< ContourWnd * >() ) {
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramYScale );

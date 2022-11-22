@@ -65,6 +65,7 @@ namespace dataproc {
 
     public slots:
         void handleSessionAdded( Dataprocessor* );
+        void handleRemoveSession( Dataprocessor* );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );

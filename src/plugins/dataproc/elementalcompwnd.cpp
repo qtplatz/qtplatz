@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -245,6 +245,25 @@ ElementalCompWnd::handleAxisChanged( unsigned int axis )
 }
 
 void
+ElementalCompWnd::handleRemoveSession( Dataprocessor * processor )
+{
+    for ( auto& datum: impl_->data_ ) {
+        if ( processor->filename() == datum.filename_ ) {
+            for ( auto i : { impl::idProfile, impl::idProcessed } ) {
+                impl_->plots_[ i ]->setTitle( QString() );
+                impl_->plots_[ i ]->clear();
+                impl_->plots_[ i ]->replot();
+            }
+            datum = {};
+        }
+    }
+    impl_->data_.erase(
+        std::remove_if( impl_->data_.begin(), impl_->data_.end()
+                        , [](const auto& d){ return d.filename_.empty(); } )
+        , impl_->data_.end() );
+}
+
+void
 ElementalCompWnd::handleSessionAdded( Dataprocessor * )
 {
 }
@@ -258,7 +277,6 @@ ElementalCompWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& 
 void
 ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
-    // adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
     if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
         auto datum = datafolder( processor->filename(), folium );
@@ -266,6 +284,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             auto& plot = impl_->plots_[ impl::idProfile ];
             if ( auto profile = datum.get_profile() ) {
                 plot->clear();
+                plot->setTitle( datum.display_name() );
                 plot->setData( profile->first, 0, QwtPlot::yLeft );
                 plot->setAxisTitle( QwtPlot::yLeft, profile->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
             }
@@ -279,14 +298,8 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             }
         } while ( 0 );
 
-        auto it = datafolder::find( impl_->data_, datum.id() );
-        if ( folium.attribute( L"isChecked" ) == L"false" ) {
-            if ( it != impl_->data_.end() )
-                impl_->data_.erase( it );
-        } else { // checked
-            if ( it == impl_->data_.end() )
-                impl_->data_.emplace_back( datum );
-        }
+        impl_->data_.clear();
+        impl_->data_.emplace_back( std::move( datum ) );
     }
 }
 

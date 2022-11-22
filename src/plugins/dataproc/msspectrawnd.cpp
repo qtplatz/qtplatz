@@ -102,7 +102,7 @@ namespace dataproc {
 
         MSSpectraWnd * pThis_;
 
-        std::vector< datafolder > data_; // reference spectra on plot[0]
+        std::vector< datafolder > data_; // reference spectra on plot[0] (expecting overlay)
         datafolder currData_;
 
         std::pair< std::wstring, datafolder > profile_;
@@ -273,6 +273,27 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 {
     // if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
     //     return;
+}
+
+void
+MSSpectraWnd::handleRemoveSession( Dataprocessor * processor )
+{
+    for ( auto& datum: impl_->data_ ) {
+        if ( processor->filename() == datum.filename_ ) {
+            datum = {};
+            impl_->plots_[ 1 ]->setTitle( QString{} );
+            impl_->plots_[ 1 ]->clear();
+            impl_->plots_[ 1 ]->replot();
+        }
+    }
+    impl_->data_.erase( std::remove_if( impl_->data_.begin(), impl_->data_.end(), [](const auto& d){ return d.filename_.empty(); } )
+                        , impl_->data_.end() );
+    if ( processor->filename() == impl_->currData_.filename_ ) {
+        impl_->currData_ = {};
+        impl_->plots_[ 0 ]->setTitle( QString{} );
+        impl_->plots_[ 0 ]->clear();
+        impl_->plots_[ 0 ]->replot();
+    }
 }
 
 void

@@ -311,7 +311,6 @@ ChromatogramWnd::handleRemoveSession( Dataprocessor * processor )
 void
 ChromatogramWnd::handleSessionRemoved( const QString& filename )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## (" << filename.toStdString() << ")";
 }
 
 void

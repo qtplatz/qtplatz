@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include "datafolder.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
@@ -275,6 +276,7 @@ namespace dataproc {
         bool yRightEnabled_;
         std::tuple< bool, double, double > yScaleChromatogram_;
         std::tuple< bool, double, double > xScaleChromatogram_;
+        std::array< datafolder, 2 > datum_; // chromatogram, spectrum
     };
 
 }
@@ -490,14 +492,16 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 void
 MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "(" << processor->filename() << ")";
-    if ( processor == SessionManager::instance()->getActiveDataprocessor() ) {
-        ADDEBUG() << "## " << __FUNCTION__ << "(" << processor->filename() << ") -- matched to active processor";
+    if ( pImpl_->datum_[ 0 ].filename_ == processor->filename() ) {
         pImpl_->ticPlot_->clear();
-        pImpl_->profileSpectrum_->clear();
-        pImpl_->processedSpectrum_->clear();
-    } else {
-        ADDEBUG() << "active processor: " << SessionManager::instance()->getActiveDataprocessor();
+        pImpl_->ticPlot_->replot();
+    }
+    if ( pImpl_->datum_[ 1 ].filename_ == processor->filename() ) {
+        for ( auto plot: { pImpl_->profileSpectrum_, pImpl_->profileSpectrum_ } ) {
+            plot->setTitle( QString{} );
+            plot->clear();
+            plot->replot();
+        }
     }
 }
 
@@ -636,6 +640,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
+                    pImpl_->datum_[ 1 ] = datafolder( processor->filename(), folium );
 
                     pImpl_->processedSpectrum_->clear();
                     pImpl_->processedSpectrum_->replot();
@@ -703,6 +708,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     draw( ptr, ptr->protocol() );
                     idActiveFolium_ = folium.id();
                     idChromatogramFolium( folium.id() );
+                    pImpl_->datum_[ 0 ] = datafolder( processor->filename(), folium );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                         return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
@@ -799,7 +805,6 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
 void
 MSProcessingWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
 }
 
 void

@@ -395,7 +395,6 @@ document::findScanLaw( const QString& model, double& flength, double& accv, doub
 void
 document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
-    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
 	qtwrapper::waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
