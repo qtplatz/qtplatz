@@ -92,7 +92,7 @@ function make_user_config_cross_armhf {
 
 	if [ ! -f ~/user-config.jam ]; then
 		cat << END > ~/user-config.jam
-using gcc :	arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
+using gcc :	arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++17 -fPIC" ;
 using python : 2.7 ;
 END
 	fi

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -52,6 +52,7 @@
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
@@ -187,7 +188,7 @@ main(int argc, char *argv[])
     tools::resultwriter resultwriter( fs.db() );
 
     boost::filesystem::path outfile( vm[ "output" ].as< std::string >() );
-    
+
     if ( vm.count("args") ) {
 
         std::shared_ptr< adcontrols::MassSpectrum > avrg, pkd;
