@@ -127,6 +127,9 @@ namespace dataproc {
         // apply calibration to entire dataset
         void applyCalibration( const adcontrols::MSCalibrateResult& );
 		void lockMassHandled( const std::wstring& foliumId, const std::shared_ptr< adcontrols::MassSpectrum >&, const adcontrols::lockmass::mslock& );
+        adcontrols::lockmass::mslock doMSLock( portfolio::Folium&
+                                               , std::shared_ptr< adcontrols::MassSpectrum >
+                                               , const std::vector< std::pair< int, int > >& );
         void formulaChanged();
 
         void sendCheckedSpectraToCalibration( Dataprocessor * );

@@ -961,25 +961,25 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 {
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
 
-        adcontrols::lockmass::mslock lockmass;
+        // Qt -> std
+        std::vector< std::pair< int, int > > refList;  // vector of { idx, fcn }
+        std::for_each( refs.begin(), refs.end(), [&](const auto ref){ refList.emplace_back( ref.first, ref.second ); } );
 
-        for ( auto ref : refs ) {
-            adcontrols::lockmass::mslock::findReferences( lockmass, *ms, ref.first, ref.second );
-        }
+        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            if ( auto folium = dp->getPortfolio().findFolium( idSpectrumFolium_ ) ) {
 
-        if ( lockmass.fit() ) {
-            if ( lockmass( *ms ) ) {
-                ms->addDescription( adcontrols::description( L"Process", L"Mass locked" ) );
-                pImpl_->processedSpectrum_->setZoomBase( ms->getAcquisitionMassRange() );
-                pImpl_->processedSpectrum_->update_annotation();
+                if ( auto mslock = dp->doMSLock( folium, ms, refList ) ) {
+                    ADDEBUG() << "###\n" << boost::json::value_from( mslock );
+                    dp->setAttribute( folium, { "mslock", "true" } );
 
-                if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
-					dp->lockMassHandled( idSpectrumFolium_, ms, lockmass ); // update profile, attribute data
+                    // pImpl_->processedSpectrum_->setZoomBase( ms->getAcquisitionMassRange() );
+                    pImpl_->processedSpectrum_->update_annotation();
 
-                MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
-                handleDataMayChanged();
-
-                emit dataChanged( QString::fromStdWString( idSpectrumFolium_ ), QString(), -1, -1 );
+                    MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
+                    // handleDataMayChanged();
+                    pImpl_->processedSpectrum_->replot();
+                    emit dataChanged( QString::fromStdWString( idSpectrumFolium_ ), QString(), -1, -1 );
+                }
             }
         }
     }

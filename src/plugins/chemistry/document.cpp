@@ -182,6 +182,9 @@ namespace chemistry {
         , { R"(CC(C)CCC[C@@H](C)CCC[C@@H](C)CCCC(C)CCC1=C(C)C(=O)C(C)=C(C)C1=O)", { "a-TQ-OH" } } // 390.277
         , { R"(NC(C1=CC=CC=C1)(C2=CC=CC=C2)C3=CC=CC=C3)", { "TPMA" } }
         , { R"(O=S(C1=CC=C(C2=CC3=C(C4=C(C53C6=C(C=CC(C7=CC=C(S(=O)(O)=O)C=C7)=C6)C8=C5C=C(C9=CC=C(S(=O)(O)=O)C=C9)C=C8)C=C(C%10=CC=C(S(=O)(O)=O)C=C%10)C=C4)C=C2)C=C1)(O)=O)", { "spiroBPS" } }
+        , { R"(CCCCCCCC/C=C\CCCCCCCC(=O)N)", { "Oleamide" } }
+        , { R"(CCCCCCCCCCCCC/C=C/[C@H]([C@H](CO)N)O)", { "Sphingosine" } }
+
     };
 
 }

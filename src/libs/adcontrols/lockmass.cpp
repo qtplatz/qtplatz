@@ -32,6 +32,9 @@
 #include "mspeakinfoitem.hpp"
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
+#include <boost/json.hpp> // #if BOOST_VERSION >= 107500
+#include <adportable/json/extract.hpp>
+#include <cstring>
 
 using namespace adcontrols;
 using namespace adcontrols::lockmass;
@@ -128,6 +131,9 @@ reference::time() const
 {
     return time_;
 }
+
+
+
 
 //////////////////////
 void
@@ -387,4 +393,86 @@ void
 fitter::clear()
 {
     coeffs_.clear();
+}
+
+////////////////
+
+namespace adcontrols {
+    namespace lockmass {
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const reference& t )
+        {
+            jv = {
+                { "formula", t.formula_ }
+                , { "exactMass", t.exactMass_ }
+                , { "matchedMass", t.matchedMass_ }
+                , { "time", t.time_ }
+            };
+        }
+
+        reference
+        tag_invoke( boost::json::value_to_tag< reference >&, const boost::json::value& jv )
+        {
+            using namespace adportable::json;
+
+            if ( jv.kind() == boost::json::kind::object ) {
+                reference t;
+                auto obj = jv.as_object();
+                extract( obj, t.formula_         , "formula"               );
+                extract( obj, t.exactMass_       , "exactMass"             );
+                extract( obj, t.time_            , "time"                  );
+                return t;
+            }
+            return {};
+        }
+
+        ////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const fitter& t )
+        {
+            jv = {{ "coeffs", t.coeffs_ }};
+        }
+
+        fitter
+        tag_invoke( boost::json::value_to_tag< fitter >&, const boost::json::value& jv )
+        {
+            using namespace adportable::json;
+
+            if ( jv.kind() == boost::json::kind::object ) {
+                fitter t;
+                auto obj = jv.as_object();
+                extract( obj, t.coeffs_, "coeffs" );
+                return t;
+            }
+            return {};
+        }
+
+        ////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const mslock& t )
+        {
+            jv = {{ "fitter",       t.fitter_ }
+                  ,{ "references",  t.references_ }
+            };
+        }
+
+
+        mslock
+        tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& jv )
+        {
+            if ( jv.kind() == boost::json::kind::object ) {
+                mslock t;
+                using namespace adportable::json;
+                auto obj = jv.as_object();
+                extract( obj, t.fitter_         , "fitter"               );
+                extract( obj, t.references_     , "references"           );
+                return t;
+            }
+            return {};
+        }
+
+    }
 }

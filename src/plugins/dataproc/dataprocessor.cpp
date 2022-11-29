@@ -907,6 +907,55 @@ Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
     }
 }
 
+adcontrols::lockmass::mslock
+Dataprocessor::doMSLock( portfolio::Folium& folium
+                         , std::shared_ptr< adcontrols::MassSpectrum > ms
+                         , const std::vector< std::pair< int, int > >& indecies ) // idx, fcn
+{
+    if ( auto sp = this->massSpectrometer() ) {
+        sp->assignMasses( *ms, 0 ); // clear lock mass if already been applied
+    }
+
+    adcontrols::lockmass::mslock mslock;
+    std::for_each( indecies.begin(), indecies.end(), [&]( const auto& a ){
+        adcontrols::lockmass::mslock::findReferences( mslock, *ms, a.first, a.second );
+    });
+
+    // apply profile and peakinfo contained in the folium
+    if ( mslock.fit() ) {
+        if ( mslock( *ms ) ) {
+            ms->addDescription( adcontrols::description( L"process", L"mslock" ) );
+
+            setModified( true );
+
+            if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+                mslock( *profile );
+            }
+
+            portfolio::Folio atts = folium.attachments();
+            for ( auto& a: atts ) {
+                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( a ) ) {
+                    if ( ptr == ms ) {  // 'ptr' is mass locked source, don't apply lock mass twince
+                        // update attached peakinfo
+                        if ( auto fchild = portfolio::find_first_of( a.attachments()
+                                                                     , []( const auto& child ){
+                                                                         return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child ); })) {
+                            if ( auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild ) ) {
+                                // DataprocHandler::reverse_copy( *pkinfo, *ptr );
+                                mslock( *pkinfo );
+                            }
+                        }
+                    } else {
+                        mslock( *ptr );
+                    }
+                }
+            }
+        }
+        return mslock;
+    }
+    return {};
+}
+
 void
 Dataprocessor::lockMassHandled( const std::wstring& foliumId
                                 , const adcontrols::MassSpectrumPtr& ms
