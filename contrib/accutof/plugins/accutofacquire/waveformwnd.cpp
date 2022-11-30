@@ -46,6 +46,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/trace.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/peakmarker.hpp>

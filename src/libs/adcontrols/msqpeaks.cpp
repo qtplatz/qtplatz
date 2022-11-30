@@ -22,14 +22,15 @@
 **
 **************************************************************************/
 
-#include "msqpeak.hpp"
-#include "msqpeaks.hpp"
-#include "massspectrum.hpp"
-#include "msproperty.hpp"
-#include "descriptions.hpp"
-#include "description.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
+#include "description.hpp"
+#include "descriptions.hpp"
+#include "massspectrum.hpp"
+#include "msproperty.hpp"
+#include "msqpeak.hpp"
+#include "msqpeaks.hpp"
+#include "segment_wrapper.hpp"
 
 using namespace adcontrols;
 

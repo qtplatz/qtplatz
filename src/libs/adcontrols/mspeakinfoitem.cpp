@@ -353,6 +353,18 @@ MSPeakInfoItem::mode() const
     // return mode_ ? std::optional<int>(*mode_) : std::nullopt;
 }
 
+bool
+MSPeakInfoItem::is_reference() const
+{
+    return is_reference_;
+}
+
+void
+MSPeakInfoItem::is_reference( bool f )
+{
+    is_reference_ = f;
+}
+
 void
 MSPeakInfoItem::set_mode( boost::optional< int >&& mode )
 {

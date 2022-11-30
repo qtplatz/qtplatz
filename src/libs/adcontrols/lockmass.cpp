@@ -30,6 +30,7 @@
 #include "massspectrum.hpp"
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
+#include "segment_wrapper.hpp"
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <boost/json.hpp> // #if BOOST_VERSION >= 107500

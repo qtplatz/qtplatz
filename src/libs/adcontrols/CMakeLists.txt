@@ -218,6 +218,7 @@ add_library( adcontrols SHARED
   samplerun.cpp
   samplerun.hpp
   scanlaw.hpp
+  segment_wrapper.hpp
   spectrogram.cpp
   spectrogram.hpp
   tableofelement.cpp

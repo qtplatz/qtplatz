@@ -42,6 +42,7 @@
 #include "msproperty.hpp"
 #include "processmethod.hpp"
 #include <adcontrols/constants.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include "waveform_filter.hpp"
 #include <boost/format.hpp>

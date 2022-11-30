@@ -35,6 +35,7 @@
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>

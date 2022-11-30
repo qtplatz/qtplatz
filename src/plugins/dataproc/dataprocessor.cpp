@@ -38,46 +38,45 @@
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
-#include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/histogram.hpp>
-#include <adcontrols/lockmass.hpp>
+#include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
-#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msfractuation.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
+#include <adcontrols/peak.hpp>
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/peakresolution.hpp>
-#include <adcontrols/peak.hpp>
-#include <adcontrols/peaks.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/processeddataset.hpp>
-#include <adcontrols/samplinginfo.hpp>
-#include <adcontrols/waveform_filter.hpp>
 #include <adcontrols/peakresult.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/processeddataset.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/tofprotocol.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/attributes.hpp>
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
-#include <adutils/acquiredconf_v3.hpp>
-#include <adutils/processeddata_t.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
@@ -88,11 +87,13 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/xml_serializer.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adutils/acquiredconf_v3.hpp>
 #include <adutils/fsio.hpp>
 #include <adutils/processeddata.hpp>
-#include <adportfolio/portfolio.hpp>
-#include <adportfolio/folium.hpp>
-#include <adportfolio/folder.hpp>
+#include <adutils/processeddata_t.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/id.h>
@@ -943,6 +944,7 @@ Dataprocessor::doMSLock( portfolio::Folium& folium
                             if ( auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild ) ) {
                                 // DataprocHandler::reverse_copy( *pkinfo, *ptr );
                                 mslock( *pkinfo );
+                                adcontrols::MSPeakInfo::setReferences( *pkinfo, indecies );
                             }
                         }
                     } else {

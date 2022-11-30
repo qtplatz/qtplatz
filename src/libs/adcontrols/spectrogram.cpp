@@ -26,6 +26,7 @@
 #include "massspectra.hpp"
 #include "massspectrum.hpp"
 #include "spectrogram.hpp"
+#include "segment_wrapper.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <adportable_serializer/portable_binary_oarchive.hpp>

@@ -26,6 +26,7 @@
 #pragma once
 
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 
 namespace dataproc {
 

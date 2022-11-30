@@ -85,6 +85,8 @@ namespace adcontrols {
         void setIsAreaIntensity( bool );
         bool isAreaIntensity() const;
 
+        static void setReferences( MSPeakInfo&, const std::vector< std::pair< int, int > >& ); // {idx,fcn}
+
         static bool archive( std::ostream&, const MSPeakInfo& );
         static bool restore( std::istream&, MSPeakInfo& );
 

@@ -53,6 +53,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adcontrols/scanlaw.hpp>
@@ -969,15 +970,14 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
             if ( auto folium = dp->getPortfolio().findFolium( idSpectrumFolium_ ) ) {
 
                 if ( auto mslock = dp->doMSLock( folium, ms, refList ) ) {
-                    ADDEBUG() << "###\n" << boost::json::value_from( mslock );
+                    // ADDEBUG() << "###\n" << boost::json::value_from( mslock );
                     dp->setAttribute( folium, { "mslock", "true" } );
 
-                    // pImpl_->processedSpectrum_->setZoomBase( ms->getAcquisitionMassRange() );
                     pImpl_->processedSpectrum_->update_annotation();
 
                     MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
-                    // handleDataMayChanged();
                     pImpl_->processedSpectrum_->replot();
+                    pImpl_->profileSpectrum_->replot();
                     emit dataChanged( QString::fromStdWString( idSpectrumFolium_ ), QString(), -1, -1 );
                 }
             }

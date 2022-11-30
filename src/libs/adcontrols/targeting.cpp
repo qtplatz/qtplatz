@@ -34,6 +34,7 @@
 #include "molecule.hpp"
 #include "msproperty.hpp"
 #include "samplinginfo.hpp"
+#include "segment_wrapper.hpp"
 #include <adcontrols/moltable.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/combination.hpp>

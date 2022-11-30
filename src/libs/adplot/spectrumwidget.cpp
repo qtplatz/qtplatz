@@ -36,9 +36,10 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/tuple_arith.hpp>
 #include <qtwrapper/font.hpp>

@@ -42,6 +42,7 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>

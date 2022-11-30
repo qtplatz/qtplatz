@@ -30,6 +30,7 @@
 #include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <adutils/constants.hpp> // clsid for massspectrometer
 

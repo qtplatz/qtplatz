@@ -34,6 +34,7 @@
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>

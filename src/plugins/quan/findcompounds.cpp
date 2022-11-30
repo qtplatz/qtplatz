@@ -54,6 +54,7 @@
 #include <adcontrols/quanresponse.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/debug.hpp>

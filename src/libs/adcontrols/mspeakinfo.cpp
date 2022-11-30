@@ -24,6 +24,7 @@
 
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
+#include "segment_wrapper.hpp"
 #include <adportable/debug.hpp>
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
@@ -265,4 +266,19 @@ bool
 MSPeakInfo::isAreaIntensity() const
 {
     return isAreaIntensity_;
+}
+
+void
+MSPeakInfo::setReferences( MSPeakInfo& pkinfo, const std::vector< std::pair< int, int > >& indecies ) // {idx,fcn}
+{
+    for ( auto& info: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >(pkinfo) ) {
+        for ( auto& pk: info )
+            pk.is_reference( false );
+    }
+    std::for_each( indecies.begin(), indecies.end(), [&]( const auto& a ){
+        auto& info = pkinfo.getSegment( a.second );
+        auto it = std::find_if( info.begin(), info.end(), [&](const auto& i){ return i.peak_index() == a.first; } );
+        if ( it != info.end() )
+            it->is_reference( true );
+    });
 }

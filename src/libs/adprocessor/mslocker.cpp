@@ -27,6 +27,7 @@
 #include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 
 using namespace adprocessor;
 

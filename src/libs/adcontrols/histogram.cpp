@@ -28,6 +28,7 @@
 #include "msproperty.hpp"
 #include "samplinginfo.hpp"
 #include "scanlaw.hpp"
+#include "segment_wrapper.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/scanlaw_solver.hpp>
 #include <boost/format.hpp>

@@ -40,6 +40,7 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>

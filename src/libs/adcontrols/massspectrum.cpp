@@ -31,6 +31,7 @@
 #include "massspectra.hpp"
 #include "samplinginfo.hpp"
 #include "tofprotocol.hpp"
+#include "segment_wrapper.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>

@@ -43,6 +43,7 @@
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>

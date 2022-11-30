@@ -35,6 +35,7 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>

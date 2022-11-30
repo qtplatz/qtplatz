@@ -39,6 +39,7 @@
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/targeting.hpp>
 
 #include <adportable/float.hpp>

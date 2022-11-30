@@ -34,6 +34,7 @@
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>

@@ -30,6 +30,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>

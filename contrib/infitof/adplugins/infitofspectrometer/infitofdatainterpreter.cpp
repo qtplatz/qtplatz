@@ -27,6 +27,7 @@
 #include "ap240translator.hpp"
 #include "u5303a_translator.hpp"
 #include "textfile.hpp"
+#include "segment_wrapper.hpp"
 #include <compiler/boost/workaround.hpp>
 #include <infitofdefns/serializer.hpp>
 #include <infitofdefns/avgrdata.hpp>

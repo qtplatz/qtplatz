@@ -246,7 +246,8 @@ namespace adcontrols {
 
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
-
+#if 0
+    // move to stand alone segment_wrapper.hpp
     template<class T> class segment_iterator {
         size_t pos_;
         T& ms_;
@@ -279,5 +280,5 @@ namespace adcontrols {
 		inline size_type size() const { return ms_.numSegments() + 1; }
 		inline size_type max_size() const { return ms_.numSegments() + 1; }
     };
-
+#endif
 }

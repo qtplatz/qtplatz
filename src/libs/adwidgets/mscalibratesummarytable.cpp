@@ -37,6 +37,7 @@
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adlog/logger.hpp>
 #include <adutils/processeddata.hpp>

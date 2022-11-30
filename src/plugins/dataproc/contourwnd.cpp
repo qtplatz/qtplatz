@@ -32,9 +32,10 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adcontrols/mschromatogrammethod.hpp>
-#include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/spectrogram.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adlog/logger.hpp>
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/spectrogramdata.hpp>

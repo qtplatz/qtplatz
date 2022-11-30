@@ -30,25 +30,22 @@
 #include "qtwidgets_name.hpp"
 #include "mass_calibrator.hpp"
 #include "sessionmanager.hpp"
-#include <adportfolio/folium.hpp>
-#include <adportfolio/folder.hpp>
+#include <adcontrols/computemass.hpp>
 #include <adcontrols/descriptions.hpp>
-#include <adcontrols/msassignedmass.hpp>
-#include <adcontrols/msproperty.hpp>
-#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/mspeaks.hpp>
-#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/mscalibratemethod.hpp>
-#include <adcontrols/computemass.hpp>
-#include <adwidgets/mscalibratesummarytable.hpp>
-
+#include <adcontrols/segment_wrapper.hpp>
 #include <adlog/logger.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adplot/plot_stderror.hpp>
@@ -59,8 +56,11 @@
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/xml_serializer.hpp> // for quick print
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/lifecycle.hpp>
+#include <adwidgets/mscalibratesummarytable.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qtwrapper/font.hpp>
 #include <qwt_plot_marker.h>
