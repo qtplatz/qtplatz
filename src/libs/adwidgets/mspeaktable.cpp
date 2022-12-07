@@ -88,6 +88,7 @@ namespace adwidgets {
         , c_mspeaktable_description
         , c_mspeaktable_index
         , c_mspeaktable_fcn
+        , c_mspeaktable_is_reference
         , c_mspeaktable_num_columns
     };
 
@@ -139,7 +140,6 @@ namespace adwidgets {
             painter->fillRect( option.rect, colors[ cid ] );
             painter->restore();
         }
-
         switch( index.column() ) {
         case c_mspeaktable_time:
             op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
@@ -255,7 +255,6 @@ namespace adwidgets {
         }
 
         std::shared_ptr< adcontrols::MSPeakInfo > __getMSPeakInfo() {
-            // ADDEBUG() << "__getMSPeakInfo() which: " << data_source_.which();
             if ( data_source_.which() == 0 ) {
                 auto wptr = boost::get< std::weak_ptr< adcontrols::MSPeakInfo > >( data_source_ );
                 return wptr.lock();
@@ -332,7 +331,6 @@ MSPeakTable::onUpdate( boost::any&& a )
             setPeakInfo( *ptr );
         }
     } else if ( a.type() == typeid(int) ) {
-        // dataMayChanged on MainWindow invoke this method over applyCalibration()
         int id = boost::any_cast<int>( a );
         if ( id == 0 ) { // data may changed
             boost::apply_visitor( detail::dataMayChanged( this ), impl_->data_source_ );
@@ -442,6 +440,7 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_mass_width,  Qt::Horizontal, QObject::tr( "width(mDa)" ) );
     model.setHeaderData( c_mspeaktable_time_width,  Qt::Horizontal, QObject::tr( "width(ns)" ) );
 
+    setColumnHidden( c_mspeaktable_is_reference, true );
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
@@ -516,7 +515,10 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
         int idx = 0;
         for ( auto& pk: pkinfo ) {
-
+            if ( pk.is_reference() ) { // index.model()->data( index.model()->index( index.row(), c_mspeaktable_is_reference ) ).toBool();
+                model.setHeaderData( row,   Qt::Vertical, QString("*%1").arg( row + 1 ) );
+            }
+            model.setData( model.index( row, c_mspeaktable_is_reference ), pk.is_reference() ); // hidden
             model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // hidden
             model.setData( model.index( row, c_mspeaktable_index ), idx++ ); // hidden
 
@@ -524,6 +526,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
             model.setData( model.index( row, c_mspeaktable_time ), pk.time() );
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
+
             auto abundance = is_area ? pk.area() : pk.height();
             model.setData( model.index( row, c_mspeaktable_intensity ), abundance );
             if ( !this->isColumnHidden( c_mspeaktable_relative_intensity ) ) {
@@ -531,7 +534,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             }
             if ( auto mode = pk.mode() ) { // if peak has modified mode value
                 model.setData( model.index( row, c_mspeaktable_mode ), *mode );
-                ADDEBUG() << "--------- local mode found: " << *mode << " <- " << pkinfo.mode() << "(" << pk.mass() << ")";
+                // ADDEBUG() << "--------- local mode found: " << *mode << " <- " << pkinfo.mode() << "(" << pk.mass() << ")";
             } else {
                 model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
             }
@@ -685,9 +688,6 @@ void
 MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
-    // size_t total_size = 0;
-    // for( auto& t: segs )
-    //     total_size += t.size();
 
     setPeakInfo( ms );
     return;
@@ -713,7 +713,6 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
     setUpdatesEnabled( false );
 
     for ( int row = 0; row < int(total_size); ++row ) {
-
 
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();

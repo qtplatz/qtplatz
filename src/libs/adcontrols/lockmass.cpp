@@ -31,6 +31,7 @@
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
 #include "segment_wrapper.hpp"
+#include <adportable/debug.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <boost/json.hpp> // #if BOOST_VERSION >= 107500
@@ -132,9 +133,6 @@ reference::time() const
 {
     return time_;
 }
-
-
-
 
 //////////////////////
 void
@@ -474,6 +472,29 @@ namespace adcontrols {
             }
             return {};
         }
-
     }
+}
+
+bool
+mslock::archive( std::ostream& os, const mslock& t )
+{
+    // portable_binary_oarchive ar( os );
+    // ar << t;
+    ADDEBUG() << "---------------- adcontrols::lockmass::mslock::archive -------------------\n"
+              << boost::json::value_from( t );
+    os << boost::json::value_from( t );
+    return true;
+}
+
+bool
+mslock::restore( std::istream& is, mslock& t )
+{
+    ADDEBUG() << "---------------- adcontrols::lockmass::mslock::restore -------------------\n"
+              << boost::json::value_from( t );
+    // portable_binary_iarchive ar( is );
+    // ar >> t;
+    std::string s( std::istreambuf_iterator< char >( is ), {} );
+    auto v = boost::json::parse( s );
+    t = boost::json::value_to< mslock >( v );
+    return true;
 }

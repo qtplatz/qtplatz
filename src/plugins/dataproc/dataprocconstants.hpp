@@ -56,6 +56,7 @@ namespace Constants {
     const wchar_t * const F_TARGETING          = adcontrols::constants::F_TARGETING;
     const wchar_t * const F_PROFILED_HISTOGRAM = adcontrols::constants::F_PROFILED_HISTOGRAM;
     const wchar_t * const F_PEAKRESULT         = adcontrols::constants::F_PEAKRESULT;
+    const wchar_t * const F_MSLOCK             = adcontrols::constants::F_MSLOCK;
 
     // settings
     const char * const GRP_DATA_FILES       = "DataFiles";

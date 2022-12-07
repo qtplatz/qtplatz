@@ -65,14 +65,14 @@
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/tracewidget.hpp>
 #include <adplot/zoomer.hpp>
-#include <adportable/scoped_debug.hpp>
-#include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/xml_serializer.hpp>
 #include <adportable/fft.hpp>
-#include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/float.hpp>
 #include <adportable/json_helper.hpp>
+#include <adportable/scoped_debug.hpp>
+#include <adportable/spectrum_processor.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
+#include <adportable/xml_serializer.hpp>
 #include <adpublisher/printer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/filedialog.hpp>
@@ -624,6 +624,8 @@ MSProcessingWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& f
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
+    // ScopedDebug() << "## " << __FUNCTION__ << " ##";
+
     drawIdx1_ = 0;
 
     if ( portfolio::Folder folder = folium.parentFolder() ) {

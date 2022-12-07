@@ -40,6 +40,7 @@ namespace adcontrols {
         const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
         const wchar_t * const F_PROFILED_HISTOGRAM = L"Profiled Histogram";
         const wchar_t * const F_PEAKRESULT         = L"Peak Result";
+        const wchar_t * const F_MSLOCK             = L"MSLock";
 
         // (attachment) dataType
         // const wchar_t * const DT_PEAKRESULT        = L"PeakResult";

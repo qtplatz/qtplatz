@@ -275,10 +275,13 @@ MSPeakInfo::setReferences( MSPeakInfo& pkinfo, const std::vector< std::pair< int
         for ( auto& pk: info )
             pk.is_reference( false );
     }
+
     std::for_each( indecies.begin(), indecies.end(), [&]( const auto& a ){
-        auto& info = pkinfo.getSegment( a.second );
-        auto it = std::find_if( info.begin(), info.end(), [&](const auto& i){ return i.peak_index() == a.first; } );
-        if ( it != info.end() )
-            it->is_reference( true );
+        if ( a.second < adcontrols::segment_wrapper< adcontrols::MSPeakInfo >(pkinfo).size() ) {
+            auto& info = adcontrols::segment_wrapper< adcontrols::MSPeakInfo >(pkinfo)[ a.second ];
+            auto it = ( a.first < info.size() ) ? info.begin() + a.first : info.end();
+            if ( it != info.end() )
+                it->is_reference( true );
+        }
     });
 }

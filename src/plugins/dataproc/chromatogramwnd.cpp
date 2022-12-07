@@ -53,6 +53,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/is_same.hpp>
 #include <adportable/is_type.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -181,6 +182,9 @@ namespace dataproc {
             }
         }
         void addOverlay( datafolder&& datum ) {
+            ScopedDebug() << "## " << __FUNCTION__ << " ## size = " << overlays_.size();
+            while ( overlays_.size() >= 8 )
+                overlays_.pop_back();
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
                                       , [&](const auto& a){ return a.idFolium_ == datum.idFolium_ || a.idfolium_ == datum.idfolium_; });
             if ( it != overlays_.end() )
@@ -189,6 +193,7 @@ namespace dataproc {
             dirty_ = true;
         }
         void eraseOverlay( const portfolio::Folium& folium ) {
+            ScopedDebug() << "## " << __FUNCTION__ << " ##";
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
                                       , [&](const auto& a){ return a.idFolium_ == folium.id() || a.idfolium_ == folium.uuid(); });
             if ( it != overlays_.end() ) {
@@ -321,6 +326,8 @@ ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, b
 void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
+    ScopedDebug() << "## " << __FUNCTION__ << " ##";
+
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
                                   , std::shared_ptr< adcontrols::Chromatogram >
                                   , std::shared_ptr< adcontrols::MassSpectrum > >;
@@ -345,6 +352,8 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
+    ScopedDebug() << "## " << __FUNCTION__ << " ##";
+
     try {
         using dataTuple = std::tuple< std::shared_ptr< adcontrols::Chromatogram > >;
 

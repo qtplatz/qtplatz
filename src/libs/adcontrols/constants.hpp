@@ -51,6 +51,9 @@ namespace adcontrols {
         // (attachment) dataType
         ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const DT_PEAKRESULT;       //        = L"PeakResult";
+
+        ADCONTROLSSHARED_EXPORT
+        extern const wchar_t * const F_MSLOCK;            //
     }
 
     namespace iids {

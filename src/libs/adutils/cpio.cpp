@@ -24,6 +24,7 @@
 
 #include "cpio.hpp"
 #include <adfs/cpio.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adutils/processeddata.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -35,6 +36,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/elementalcompositioncollection.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
@@ -60,7 +62,7 @@ namespace adutils {
 				dbf.dataClass( T::dataClass() );
                 return dbf.save( *p ); // adfs::cpio< T >::save( *p, dbf );
             }
-            
+
         };
 
     }
@@ -110,7 +112,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
     } else if ( adportable::a_type< adcontrols::SpectrogramClustersPtr >::is_a( a ) ) {
 
         return internal::cpio_handler< adcontrols::SpectrogramClusters >::save( dbf, a );
-        
+
     }
     else if ( adportable::a_type< adcontrols::TargetingPtr >::is_a( a ) ) {
 
@@ -121,11 +123,14 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         return internal::cpio_handler< adcontrols::QuanSample >::save( dbf, a );
     }
-
     else if ( adportable::a_type< adcontrols::QuanSequencePtr >::is_a( a ) ) {
 
         return internal::cpio_handler< adcontrols::QuanSequence >::save( dbf, a );
 
+    }
+    else if ( adportable::a_type< std::shared_ptr< adcontrols::lockmass::mslock > >::is_a( a ) ) {
+        ADDEBUG() << "---------------- adcontrols::lockmass::mslock -------------------";
+        return internal::cpio_handler< adcontrols::lockmass::mslock >::save( dbf, a );
     }
 
 	struct cpio_error : virtual boost::exception, virtual std::exception {};

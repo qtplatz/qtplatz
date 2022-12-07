@@ -39,11 +39,29 @@ namespace adportable {
                                            , trig_point_( std::chrono::steady_clock::now() ) {
         }
         ~scoped_debug(void) {
+            using namespace std::literals::chrono_literals;
             auto duration = std::chrono::steady_clock::now() - trig_point_;
-            static_cast< T& >(*this)
-                << "\t"
-                << double(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()) * 1e-6
-                << "s.";
+            if ( duration > 1s ) {
+                static_cast< T& >(*this)
+                    << "\t"
+                    << double(std::chrono::duration_cast< std::chrono::milliseconds >( duration ).count()) * 1e-3 << " s.";
+            } else if ( duration > 1ms ) {
+                static_cast< T& >(*this)
+                    << "\t"
+                    << double(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()) * 1e-3 << " ms.";
+            } else if ( duration > 1us ) {
+                static_cast< T& >(*this)
+                    << "\t"
+                    << double(std::chrono::duration_cast< std::chrono::nanoseconds >( duration ).count()) * 1e-3 << " us.";
+            } else if ( duration > 1ns ) {
+                static_cast< T& >(*this)
+                    << "\t"
+                    << double(std::chrono::duration_cast< std::chrono::nanoseconds >( duration ).count()) << " ns.";
+            } else {
+                static_cast< T& >(*this)
+                    << "\t"
+                    << double(std::chrono::duration_cast< std::chrono::microseconds >( duration ).count()) * 1e-6 << " s.";
+            }
         }
     };
 }

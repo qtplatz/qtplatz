@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -35,6 +35,7 @@
 #include "utility.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -597,6 +598,30 @@ namespace dataproc {
         }
     };
 
+    struct ExportMSLock {
+        portfolio::Folium folium;
+        ExportMSLock( portfolio::Folium& f ) : folium( f ) {}
+        void operator()() {
+            ADDEBUG() << folium.portfolio_fullpath();
+            std::shared_ptr< adcontrols::lockmass::mslock > mslock;
+            if ( auto att = portfolio::find_first_of(
+                     folium.attachments()
+                     , []( const auto& a ){ return a.name() == Constants::F_MSLOCK; }) ) {
+                mslock = portfolio::get< std::shared_ptr< adcontrols::lockmass::mslock > >( att );
+                if ( mslock )
+                    ADDEBUG() << boost::json::value_from( *mslock );
+                else
+                    ADDEBUG() << "------- mslock is null -----";
+            }
+
+            if ( auto path = utility::export_mslock_as()( folium ) ) {
+                     boost::filesystem::ofstream of( *path );
+                     // of << boost::json::value_from( mslock );
+            }
+        }
+
+    };
+
     struct SaveChromatogramAs {
         portfolio::Folium folium;
         Dataprocessor * processor;
@@ -615,7 +640,6 @@ namespace dataproc {
             }
         }
     };
-
 
 
     struct xicMassList {
@@ -772,15 +796,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                     if ( bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
                         portfolio::Folio atts = folium.attachments();
-                        auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
-                                return a.name() == Constants::F_CENTROID_SPECTRUM;
-                            } );
+                        auto itCentroid = std::find_if( atts.begin(), atts.end()
+                                                        , [] ( const portfolio::Folium& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; });
                         bool hasCentroid = itCentroid != atts.end();
-
-                        auto itFiltered = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
-                                return a.name() == Constants::F_DFT_FILTERD;
-                            } );
+                        auto itFiltered = std::find_if( atts.begin(), atts.end()
+                                                        , [] ( const portfolio::Folium& a ){ return a.name() == Constants::F_DFT_FILTERD; });
                         bool hasFilterd = itFiltered != atts.end();
+
+                        if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
+                            a->setEnabled( folium.attribute( "mslock" ) == "true" );
+                        }
 
                         if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, processor ) ) )
                             a->setEnabled( isSpectrum );
@@ -906,7 +931,6 @@ NavigationWidget::handleUncheckAllSpectra()
 {
     handleAllCheckState( false, "Spectra" );
 }
-
 
 void
 NavigationWidget::handleCheckAllXICs()

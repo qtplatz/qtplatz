@@ -27,6 +27,7 @@
 #include "sessionmanager.hpp"
 #include "utility.hpp"
 #include <adplot/plot.hpp>
+#include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <QFileDialog>
@@ -110,6 +111,27 @@ namespace dataproc {
         }
         //<----------
 
+        adportable::optional< boost::filesystem::path >
+        export_mslock_as::operator ()( const portfolio::Folium& folium, std::string&& insertor ) const
+        {
+            if ( folium ) {
+                QFileDialog dlg( nullptr, QObject::tr( "Export MSLock As" ) );
+                dlg.setDirectory( make_filename<TXT>()( folium, std::move(insertor), document::instance()->recentFile( Constants::GRP_SAVEAS_FILES ) ) );
+                dlg.setAcceptMode( QFileDialog::AcceptSave );
+                dlg.setFileMode( QFileDialog::AnyFile );
+                dlg.setNameFilters( QStringList{ "JSON (*.json)"} );
+                if ( dlg.exec() ) {
+                    auto files = dlg.selectedFiles();
+                    if ( !files.isEmpty() ) {
+                        auto name = files.at( 0 );
+                        document::instance()->addToRecentFiles( name, Constants::GRP_SAVEAS_FILES );
+                        return boost::filesystem::path( name.toStdString() );
+                    }
+                }
+            }
+            return {};
+        }
+        //<----------
 
 
 

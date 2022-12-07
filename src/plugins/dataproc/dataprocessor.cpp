@@ -85,6 +85,7 @@
 #include <adportable/json_helper.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportfolio/folder.hpp>
@@ -381,6 +382,7 @@ Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
+    ScopedDebug() << "## " << __FUNCTION__ << " ## " << folium.name();
 	fetch( folium );
     idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );
@@ -683,7 +685,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
                     portfolio::Folio atts2 = itCentroid->attachments();
 					if ( portfolio::Folium fmethod
                          = portfolio::find_first_of( itCentroid->attachments(), []( portfolio::Folium& a ){
-                                 return portfolio::is_type< adcontrols::ProcessMethodPtr >( a );
+                             return portfolio::is_type< adcontrols::ProcessMethodPtr >( a );
                              }) ) {
                         if ( auto ptr = portfolio::get< adcontrols::ProcessMethodPtr>( fmethod ) )
                             hasCentroidMethod = ptr->find< adcontrols::CentroidMethod >();
@@ -942,7 +944,6 @@ Dataprocessor::doMSLock( portfolio::Folium& folium
                                                                      , []( const auto& child ){
                                                                          return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child ); })) {
                             if ( auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild ) ) {
-                                // DataprocHandler::reverse_copy( *pkinfo, *ptr );
                                 mslock( *pkinfo );
                                 adcontrols::MSPeakInfo::setReferences( *pkinfo, indecies );
                             }
@@ -952,6 +953,8 @@ Dataprocessor::doMSLock( portfolio::Folium& folium
                     }
                 }
             }
+            auto a = folium.addAttachment( adcontrols::constants::F_MSLOCK );
+            a.assign( std::make_shared< adcontrols::lockmass::mslock >( mslock ), adcontrols::lockmass::mslock::dataClass() );
         }
         return mslock;
     }

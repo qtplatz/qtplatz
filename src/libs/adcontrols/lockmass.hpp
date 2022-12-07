@@ -141,6 +141,10 @@ namespace adcontrols {
 
             // static void tag_invoke( boost::json::value& jv, const mslock& );
             // static mslock tag_invoke( const boost::json::value& jv );
+            static constexpr const wchar_t * const __dataClass__ = L"adcontrols::lockmass::mslock";
+            static const wchar_t * const dataClass() { return __dataClass__; }
+            static bool archive( std::ostream&, const mslock& );
+            static bool restore( std::istream&, mslock& );
 
         private:
             std::vector< reference > references_;
