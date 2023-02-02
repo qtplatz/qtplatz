@@ -8,8 +8,8 @@ add_definitions( -DADCHEM_LIBRARY )
 find_package(TBB QUIET)
 
 if ( TBB_FOUND )
-  add_definitions( -DHAVE_TBB=1 )
-  set ( TBB_LIBRARIES "TBB::tbb" )
+#  add_definitions( -DHAVE_TBB=1 )
+#  set ( TBB_LIBRARIES "TBB::tbb" )
 endif()
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
@@ -40,7 +40,7 @@ add_library( adchem SHARED
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable
-  ${TBB_LIBRARIES}
+#  ${TBB_LIBRARIES}
   ${Boost_LIBRARIES}
   ${RDKit_LIBRARIES}
   )

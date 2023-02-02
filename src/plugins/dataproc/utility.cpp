@@ -60,11 +60,36 @@ namespace dataproc {
                             return { true, name };
                         }
                     }
-
                 }
             }
             return { false, {} };
         }
+
+
+        template<> std::pair<bool, QString>
+        save_image_as< SVG >::operator ()( adplot::plot* plot ) const
+        {
+            ADDEBUG() << "=========================== save svg ================= " << document::instance()->recentFile( Constants::GRP_SVG_FILES ).toStdString();
+            if ( plot ) {
+                QFileDialog dlg( nullptr, QObject::tr( "Save SVG file" ) );
+
+                dlg.setDirectory( document::instance()->recentFile( Constants::GRP_SVG_FILES ) );
+                dlg.setAcceptMode( QFileDialog::AcceptSave );
+                dlg.setFileMode( QFileDialog::AnyFile );
+                dlg.setNameFilters( QStringList{ "SVG(*.svg)"} );
+                if ( dlg.exec() ) {
+                    auto files = dlg.selectedFiles();
+                    if ( !files.isEmpty() ) {
+                        auto name = files.at( 0 );
+                        adplot::plot::copyImageToFile( plot, name, "svg" );
+                        document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
+                        return { true, name };
+                    }
+                }
+            }
+            return { false, {} };
+        }
+
         //<----------
 
         adportable::optional< boost::filesystem::path >
@@ -116,7 +141,7 @@ namespace dataproc {
         {
             if ( folium ) {
                 QFileDialog dlg( nullptr, QObject::tr( "Export MSLock As" ) );
-                dlg.setDirectory( make_filename<TXT>()( folium, std::move(insertor), document::instance()->recentFile( Constants::GRP_SAVEAS_FILES ) ) );
+                dlg.setDirectory( make_filename<JSON>()( folium, std::move(insertor), document::instance()->recentFile( Constants::GRP_SAVEAS_FILES ) ) );
                 dlg.setAcceptMode( QFileDialog::AcceptSave );
                 dlg.setFileMode( QFileDialog::AnyFile );
                 dlg.setNameFilters( QStringList{ "JSON (*.json)"} );

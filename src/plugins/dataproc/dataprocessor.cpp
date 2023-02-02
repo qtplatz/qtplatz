@@ -382,7 +382,7 @@ Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
-    ScopedDebug() << "## " << __FUNCTION__ << " ## " << folium.name();
+    // ScopedDebug() << "## " << __FUNCTION__ << " ## " << folium.name();
 	fetch( folium );
     idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );

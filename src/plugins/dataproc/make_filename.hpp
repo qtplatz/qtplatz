@@ -32,7 +32,7 @@ namespace portfolio {
 
 namespace dataproc {
 
-    enum PrintFormatType { PDF, SVG, Image, TXT };
+    enum PrintFormatType { PDF, SVG, Image, TXT, JSON };
 
     template< PrintFormatType >
     struct make_filename {
@@ -42,5 +42,6 @@ namespace dataproc {
     template<> QString make_filename< PDF >::operator ()( const portfolio::Folium&, std::string&&, const QString& lastDir );
     template<> QString make_filename< SVG >::operator ()( const portfolio::Folium&, std::string&&, const QString& lastDir );
     template<> QString make_filename< TXT >::operator ()( const portfolio::Folium&, std::string&&, const QString& lastDir );
+    template<> QString make_filename< JSON >::operator ()( const portfolio::Folium&, std::string&&, const QString& lastDir );
 
 }

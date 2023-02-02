@@ -372,15 +372,12 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         std::vector < action_type > actions;
 
         menu.addAction( tr("Copy image to clipboard"), [=](){ adplot::plot::copyToClipboard( plot ); } );
-        menu.addAction( tr("Save as SVG File"), [plot,this](){
-            utility::save_image_as<SVG>()( plot, impl_->idSpectrumFolium_ );
-            // QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-            //                                              , MainWindow::makePrintFilename( impl_->idSpectrumFolium_, L"_" )
-            //                                              , tr( "SVG (*.svg)" ) );
-            // if ( ! name.isEmpty() ) {
-            //     adplot::plot::copyImageToFile( plot, name, "svg" );
-            //     MainWindow::addPrintFileToSettings( name );
-            // }
+        menu.addAction( tr("Save as SVG File"), [plot,this,id](){
+            if ( id == 2 ) { // simulated isotope pattern
+                utility::save_image_as<SVG>()( plot );
+            } else {
+                utility::save_image_as<SVG>()( plot, impl_->idSpectrumFolium_ );
+            }
         });
 
         if ( id == impl::idProcessed ) {

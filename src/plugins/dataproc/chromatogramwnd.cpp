@@ -182,7 +182,7 @@ namespace dataproc {
             }
         }
         void addOverlay( datafolder&& datum ) {
-            ScopedDebug() << "## " << __FUNCTION__ << " ## size = " << overlays_.size();
+            // ScopedDebug() << "## " << __FUNCTION__ << " ## size = " << overlays_.size();
             while ( overlays_.size() >= 8 )
                 overlays_.pop_back();
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
@@ -193,7 +193,7 @@ namespace dataproc {
             dirty_ = true;
         }
         void eraseOverlay( const portfolio::Folium& folium ) {
-            ScopedDebug() << "## " << __FUNCTION__ << " ##";
+            // ScopedDebug() << "## " << __FUNCTION__ << " ##";
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
                                       , [&](const auto& a){ return a.idFolium_ == folium.id() || a.idfolium_ == folium.uuid(); });
             if ( it != overlays_.end() ) {
@@ -352,8 +352,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    ScopedDebug() << "## " << __FUNCTION__ << " ##";
-
+    // ScopedDebug() << "## " << __FUNCTION__ << " ##";
     try {
         using dataTuple = std::tuple< std::shared_ptr< adcontrols::Chromatogram > >;
 

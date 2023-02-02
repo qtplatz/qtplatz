@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -56,6 +56,7 @@ using namespace adutils;
 namespace adutils {
     namespace internal {
 
+        // copy out (binary -> serialized)
         template<class T> struct cpio_handler {
             static bool save( adfs::file& dbf, const boost::any& a ) {
                 const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
@@ -129,9 +130,11 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
     }
     else if ( adportable::a_type< std::shared_ptr< adcontrols::lockmass::mslock > >::is_a( a ) ) {
-        ADDEBUG() << "---------------- adcontrols::lockmass::mslock -------------------";
+
         return internal::cpio_handler< adcontrols::lockmass::mslock >::save( dbf, a );
     }
+
+    // Don't forget to add fetch function in addatafile/datafile.cpp
 
 	struct cpio_error : virtual boost::exception, virtual std::exception {};
 	typedef boost::error_info< struct tag_errmsg, std::string > info;

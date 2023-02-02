@@ -32,6 +32,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
@@ -340,9 +341,9 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
     sql.prepare( "SELECT rowid FROM file WHERE fileid = (SELECT rowid FROM directory WHERE name = ?)" );
     sql.bind( 1 ) = dataId;
 
-#if defined DEBUG && 0
-    adportable::debug(__FILE__, __LINE__) << "==> fetch(" << dataId << ", " << dataType << ")";
-#endif
+//#if defined DEBUG && 0
+    // ADDEBUG() << "==> fetch(" << dataId << ", " << dataType << ")";
+//#endif
 
     boost::any any;
     size_t n = 0;
@@ -354,6 +355,7 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
 
         adfs::blob blob;
         if ( rowid && blob.open( dbf_.db(), "main", "file", "data", rowid, adfs::readonly ) ) {
+
             if ( blob.size() ) {
                 std::vector< char > obuf( blob.size() );
                 if ( blob.read( reinterpret_cast<int8_t *>(obuf.data()), blob.size() ) ) {
@@ -398,12 +400,17 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
 
                         any = detail::serializer< adcontrols::QuanSequence >::deserialize( obuf );
 
+					} else if ( dataType == adcontrols::lockmass::mslock::dataClass() ) {
+
+                        any = detail::serializer< adcontrols::lockmass::mslock >::deserialize( obuf );
 
                     } else {
-                        ADERROR() << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType << ")";
+                        ADERROR() << "Error: unknown data type in datafile::fetch(" << dataType << ", " << dataId << ")";
                         BOOST_THROW_EXCEPTION( std::bad_typeid() );
                     }
                 }
+            } else {
+                ADDEBUG() << "==> fetch(" << dataId << ", " << dataType << ") rowid=" << rowid << ", size: " << blob.size();
             }
         }
     }

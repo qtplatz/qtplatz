@@ -44,10 +44,14 @@ namespace dataproc {
         template< PrintFormatType >
         struct save_image_as {
             std::pair<bool, QString> operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& insertor = {} ) const;
+            std::pair<bool, QString> operator ()( adplot::plot* ) const;
         };
 
         template<> std::pair<bool, QString>
         save_image_as< SVG >::operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& ) const;
+
+        template<> std::pair<bool, QString>
+        save_image_as< SVG >::operator ()( adplot::plot* ) const;
     }
 
     namespace utility {

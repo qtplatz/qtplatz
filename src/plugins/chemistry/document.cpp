@@ -122,14 +122,6 @@ namespace chemistry {
         , { "Oc1cc(O)c2C(=O)C(O)= C(Oc2c1)c3ccc(O)c(O)c3", { "quercetin" } }
         , { R"**(O=C(O)[C@]2(O)C[C@@H](O)[C@@H](O)[C@H](OC(=O)\C=C\c1ccc(O)c(O)c1)C2)**", { "Chlorogenic acid" } }
         , { "CCCCCCCCCCCCCCCC(=O)O",                  { "Palmitic acid" } }
-        , { "C1=CC=C2C=C3C=CC=CC3=CC2=C1",            { "Anthracene" } }
-        , { "c1ccc2c(c1)ccc3c2cccc3",                 { "Phenanthrene" } }
-        , { "c1cc2ccc3ccc4ccc5ccc6ccc1c7c2c3c4c5c67", { "Coronene" } }
-        , { "c1ccc2c3ccccc3Cc2c1",                    { "Fluorene" } }
-        , { "c1ccc-2c(c1)-c3cccc4c3c2ccc4",           { "Fluoranthene" } }
-        , { "c1cc2cccc3ccc4cccc1c4c32",               { "Pyrene" } }
-        , { "C1=CC=C2C=CC=CC2=C1",                    { "Naphthalene" } }
-        , { "c1ccc2ccccc2c1",                         { "Naphthalene" } }
         , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
         , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
@@ -184,8 +176,33 @@ namespace chemistry {
         , { R"(O=S(C1=CC=C(C2=CC3=C(C4=C(C53C6=C(C=CC(C7=CC=C(S(=O)(O)=O)C=C7)=C6)C8=C5C=C(C9=CC=C(S(=O)(O)=O)C=C9)C=C8)C=C(C%10=CC=C(S(=O)(O)=O)C=C%10)C=C4)C=C2)C=C1)(O)=O)", { "spiroBPS" } }
         , { R"(CCCCCCCC/C=C\CCCCCCCC(=O)N)", { "Oleamide" } }
         , { R"(CCCCCCCCCCCCC/C=C/[C@H]([C@H](CO)N)O)", { "Sphingosine" } }
-
+        , { R"(C1=CC=C2C=C3C=CC=CC3=CC2=C1)",                            { "Anthracene" } }
+        , { R"(c1ccc2c(c1)ccc3c2cccc3)",                                 { "Phenanthrene" } }
+        , { R"(c1cc2ccc3ccc4ccc5ccc6ccc1c7c2c3c4c5c67)",                 { "Coronene" } }
+        , { R"(c1ccc2c3ccccc3Cc2c1)",                                    { "Fluorene" } }
+        , { R"(c1ccc-2c(c1)-c3cccc4c3c2ccc4)",                           { "Fluoranthene" } }
+        , { R"(c1cc2cccc3ccc4cccc1c4c32)",                               { "Pyrene" } }
+        , { R"(C1=CC=C2C=CC=CC2=C1)",                                    { "Naphthalene" } }
+        , { R"(C1CC2=CC=CC3=C2C1=CC=C3)",                                { "Acenaphthene" }}
+        , { R"(C1=CC2=C3C(=C1)C=CC3=CC=C2)",                             { "Acenaphthylene" }}
+        , { R"(C1C2=CC=CC=C2C3=CC=CC=C31)",                              { "Fluorene"}}
+        , { R"(C1=CC=C2C=C3C=CC=CC3=CC2=C1)",                            { "Anthracene" }}
+        , { R"(C1=CC=C2C(=C1)C=CC3=CC=CC=C32)",                          { "Phenanthrene" }}
+        , { R"(C1=CC=C2C(=C1)C3=CC=CC4=C3C2=CC=C4)",                     { "Fluoranthene" }}
+        , { R"(C1=CC2=C3C(=C1)C=CC4=CC=CC(=C43)C=C2)",                   { "Pyrene" }}
+        , { R"(C1=CC=C2C(=C1)C=CC3=CC4=CC=CC=C4C=C32)",                  { "Benz(a)anthracene" }}
+        , { R"(C1=CC=C2C(=C1)C=CC3=C2C=CC4=CC=CC=C43)",                  { "Chrysene" }}
+        , { R"(C1=CC=C2C3=C4C(=CC=C3)C5=CC=CC=C5C4=CC2=C1)",             { "Benzo(b)fluoranthene" }}
+        , { R"(C1=CC=C2C=C3C4=CC=CC5=C4C(=CC=C5)C3=CC2=C1)",             { "Benzo(k)fluoranthene" }}
+        , { R"(C1=CC2=C3C(=C1)C4=CC=CC5=C4C(=CC=C5)C3=CC=C2)",           {  "Perylene" }}
+        , { R"(C1=CC=C2C3=C4C(=CC2=C1)C=CC5=C4C(=CC=C5)C=C3)",           { "Benzo(a)pyrene" }}
+        , { R"(C1=CC=C2C(=C1)C3=CC=CC4=C3C5=C(C=CC=C25)C=C4)",           { "Benzo(e)pyrene" }}
+        , { R"(C1=CC2=C3C(=C1)C4=CC=CC5=C4C6=C(C=C5)C=CC(=C36)C=C2)",    { "Benzo(g,h,i)perylene" }}
+        , { R"(C1=CC=C2C(=C1)C3=C4C2=CC5=CC=CC6=C5C4=C(C=C6)C=C3)",      { "Indeno(1,2,3-cd)pyrene" }}
+        , { R"(C1=CC=C2C(=C1)C=CC3=CC4=C(C=CC5=CC=CC=C54)C=C32)",        { "Dibenz(a,h)anthracene" }}
+        , { R"(C1=CC2=C3C4=C1C=CC5=C4C6=C(C=C5)C=CC7=C6C3=C(C=C2)C=C7)", { "Coronene" }}
     };
+
 
 }
 

@@ -99,4 +99,10 @@ namespace dataproc {
         return QString::fromStdString( __make_filename( folium, std::move( insertor ), lastDir, ".txt" ).string() );
     }
 
+    template<>
+    QString make_filename< JSON >::operator()( const portfolio::Folium& folium, std::string&& insertor, const QString& lastDir )
+    {
+        return QString::fromStdString( __make_filename( folium, std::move( insertor ), lastDir, ".json" ).string() );
+    }
+
 }

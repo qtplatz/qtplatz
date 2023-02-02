@@ -64,6 +64,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/json.hpp>
+#include <boost/json/value_from.hpp>
 #include <iomanip>
 #include <array>
 
@@ -608,15 +609,14 @@ namespace dataproc {
                      folium.attachments()
                      , []( const auto& a ){ return a.name() == Constants::F_MSLOCK; }) ) {
                 mslock = portfolio::get< std::shared_ptr< adcontrols::lockmass::mslock > >( att );
-                if ( mslock )
-                    ADDEBUG() << boost::json::value_from( *mslock );
-                else
-                    ADDEBUG() << "------- mslock is null -----";
             }
-
-            if ( auto path = utility::export_mslock_as()( folium ) ) {
-                     boost::filesystem::ofstream of( *path );
-                     // of << boost::json::value_from( mslock );
+            if ( mslock ) {
+                if ( auto path = utility::export_mslock_as()( folium ) ) {
+                    boost::filesystem::ofstream of( *path );
+                    of << boost::json::value_from( *mslock ) << std::endl;
+                }
+            } else {
+                ADDEBUG() << "------- mslock is null -----";
             }
         }
 

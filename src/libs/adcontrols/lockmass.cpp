@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -34,6 +34,9 @@
 #include <adportable/debug.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
+#include <adportable_serializer/portable_binary_archive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <boost/json.hpp> // #if BOOST_VERSION >= 107500
 #include <adportable/json/extract.hpp>
 #include <cstring>
@@ -480,21 +483,21 @@ mslock::archive( std::ostream& os, const mslock& t )
 {
     // portable_binary_oarchive ar( os );
     // ar << t;
-    ADDEBUG() << "---------------- adcontrols::lockmass::mslock::archive -------------------\n"
-              << boost::json::value_from( t );
-    os << boost::json::value_from( t );
+
+    os << boost::json::value_from( t ) << std::endl;
+
     return true;
 }
 
 bool
 mslock::restore( std::istream& is, mslock& t )
 {
-    ADDEBUG() << "---------------- adcontrols::lockmass::mslock::restore -------------------\n"
-              << boost::json::value_from( t );
     // portable_binary_iarchive ar( is );
     // ar >> t;
+
     std::string s( std::istreambuf_iterator< char >( is ), {} );
     auto v = boost::json::parse( s );
     t = boost::json::value_to< mslock >( v );
+
     return true;
 }
