@@ -971,17 +971,19 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     bool interleave = ( options.find("INT") != options.npos ) && ( m._device_method().samp_rate > input_rate );
     const bool pkd_enabled = m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
 
-    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) )
+    ADDEBUG() << "device_method.pkd_enabled: " << m._device_method().pkd_enabled << ", " << ( options.find( "PKD" ) != options.npos );
+
+    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) == options.npos ) )
         adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
 
     if ( pkd_enabled )
         interleave = false;  // force disable interleaving
 
     double max_rate = interleave ? input_rate * 2 : input_rate;
-#if !defined NDEBUG && 0
+//#if !defined NDEBUG && 0
     ADINFO() << "##### Supported max. sample rate: " << max_rate << "\tChannel rate: " << input_rate;
     ADINFO() << "##### User specified sample rate: " << m._device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
-#endif
+//#endif
     if ( interleave ) {
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
     } else {
@@ -1023,6 +1025,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         // PKD - POC
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
 
+            ADDEBUG() << "================================== PKD ==========================================";
             ADINFO() << "##### PKD ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" )
                      << "; Amplitude accum. " << (m._device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
 
