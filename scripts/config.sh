@@ -16,7 +16,7 @@ if [ -z $BOOST_ROOT ]; then
 fi
 
 if [ -z $CMAKE_VERSION ]; then
-	CMAKE_VERSION=3.22.1
+	CMAKE_VERSION=3.25.2
 fi
 
 if [ -z $SRC ]; then
