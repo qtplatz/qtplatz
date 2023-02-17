@@ -92,6 +92,12 @@ add_library( ${PROJECT_NAME} MODULE
   ${Resources}
   )
 
+# for debian 10 suport
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS_EQUAL "8.3.0" )
+  set (LIBCPPFS "stdc++fs")
+endif()
+message( STATUS "## LIBCPPFS: " ${LIBCPPFS} )
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adextension
@@ -108,6 +114,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Core
   Qt::Core
   ${Boost_LIBRARIES}
+  ${LIBCPPFS}
 )
 
 set_target_properties( ${PROJECT_NAME}
