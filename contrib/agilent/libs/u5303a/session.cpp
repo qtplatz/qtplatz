@@ -104,7 +104,8 @@ namespace u5303a { namespace Instrument {
                 } else if ( method == "DarkAcquired" ) {
                     reply_message( adi::Receiver::DARK_ACQUIRED, 0 );
                 } else {
-                    if ( method == "Temperature" )
+                    static int counter = 0;
+                    if ( method == "Temperature" && ((counter++ % 10) == 0))
                         ADINFO() << method << reply; // json
                     else if ( method == "Temperature.simulated" )
                         ; // ignore
