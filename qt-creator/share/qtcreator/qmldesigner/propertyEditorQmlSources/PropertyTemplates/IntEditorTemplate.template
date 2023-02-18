@@ -1,0 +1,16 @@
+PropertyLabel {
+    text: "%1"
+    tooltip: "%1"
+}
+
+SecondColumnLayout {
+    SpinBox {
+        maximumValue: 9999999
+        minimumValue: -9999999
+        backendValue: backendValues.%2
+        implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                       + StudioTheme.Values.actionIndicatorWidth
+    }
+
+    ExpandingSpacer {}
+}

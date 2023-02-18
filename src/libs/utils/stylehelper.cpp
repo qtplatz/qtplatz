@@ -185,7 +185,7 @@ void StyleHelper::verticalGradient(QPainter *painter, const QRect &spanRect, con
     if (StyleHelper::usePixmapCache()) {
         QString key;
         QColor keyColor = baseColor(lightColored);
-        key.sprintf("mh_vertical %d %d %d %d %d",
+        key.asprintf("mh_vertical %d %d %d %d %d",
             spanRect.width(), spanRect.height(), clipRect.width(),
             clipRect.height(), keyColor.rgb());
 
@@ -243,7 +243,7 @@ void StyleHelper::horizontalGradient(QPainter *painter, const QRect &spanRect, c
     if (StyleHelper::usePixmapCache()) {
         QString key;
         QColor keyColor = baseColor(lightColored);
-        key.sprintf("mh_horizontal %d %d %d %d %d %d",
+        key.asprintf("mh_horizontal %d %d %d %d %d %d",
             spanRect.width(), spanRect.height(), clipRect.width(),
             clipRect.height(), keyColor.rgb(), spanRect.x());
 
@@ -283,7 +283,7 @@ void StyleHelper::drawArrow(QStyle::PrimitiveElement element, QPainter *painter,
     int size = qMin(r.height(), r.width());
     QPixmap pixmap;
     QString pixmapName;
-    pixmapName.sprintf("arrow-%s-%d-%d-%d-%lld-%f",
+    pixmapName.asprintf("arrow-%s-%d-%d-%d-%lld-%f",
                        "$qt_ia",
                        uint(option->state), element,
                        size, option->palette.cacheKey(),
@@ -329,7 +329,7 @@ void StyleHelper::menuGradient(QPainter *painter, const QRect &spanRect, const Q
 {
     if (StyleHelper::usePixmapCache()) {
         QString key;
-        key.sprintf("mh_menu %d %d %d %d %d",
+        key.asprintf("mh_menu %d %d %d %d %d",
             spanRect.width(), spanRect.height(), clipRect.width(),
             clipRect.height(), StyleHelper::baseColor().rgb());
 

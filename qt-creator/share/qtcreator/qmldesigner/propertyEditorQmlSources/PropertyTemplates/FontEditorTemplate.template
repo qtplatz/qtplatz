@@ -1,0 +1,10 @@
+FontSection {
+    anchors.left: parent.left
+    anchors.right: parent.right
+    leftPadding: 8
+    rightPadding: 0
+    caption: "%1" + " - " + qsTr("Font")
+    fontName: "%2"
+    expanded: false
+    level: 1
+}

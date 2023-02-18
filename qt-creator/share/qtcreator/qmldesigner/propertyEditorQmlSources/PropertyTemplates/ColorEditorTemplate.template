@@ -1,0 +1,9 @@
+PropertyLabel {
+    text: "%1"
+    tooltip: "%1"
+}
+
+ColorEditor {
+    backendValue: backendValues.%2
+    supportGradient: false
+}

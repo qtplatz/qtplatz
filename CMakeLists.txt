@@ -71,6 +71,7 @@ if ( WITH_QT5 )
   endif()
 endif()
 
+
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 if ( WIN32 )
   list ( APPEND CMAKE_MODULE_PATH "C:/Eigen3/share/eigen3/cmake" )
@@ -333,6 +334,11 @@ endif()
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_definitions(-DUNICODE -D_UNICODE)
+
+### on trial
+add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+###
+
 add_subdirectory ( src )
 if ( ${QT_VERSION_MAJOR} EQUAL 5 )
   add_subdirectory ( contrib )

@@ -1,0 +1,222 @@
+Section {
+    anchors.left: parent.left
+    anchors.right: parent.right
+    leftPadding: 8
+    rightPadding: 0
+    caption: "%1" + " - " + qsTr("Image")
+    expanded: false
+    level: 1
+
+    SectionLayout {
+        PropertyLabel { text: qsTr("Source") }
+
+        SecondColumnLayout {
+            UrlChooser {
+                backendValue: backendValues.%2_source
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel { text: qsTr("Fill mode") }
+
+        SecondColumnLayout {
+            ComboBox {
+                scope: "Image"
+                model: ["Stretch", "PreserveAspectFit", "PreserveAspectCrop", "Tile", "TileVertically", "TileHorizontally", "Pad"]
+                backendValue: backendValues.%2_fillMode
+                implicitWidth: StudioTheme.Values.singleControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                width: implicitWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Source size")
+            blockedByTemplate: !backendValues.%2_sourceSize_height.isAvailable
+                               && !backendValues.%2_sourceSize_width.isAvailable
+        }
+
+        SecondColumnLayout {
+            SpinBox {
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                backendValue: backendValues.%2_sourceSize_width
+                minimumValue: 0
+                maximumValue: 8192
+                decimals: 0
+                enabled: backendValue.isAvailable
+            }
+
+            Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
+
+            ControlLabel {
+                //: The width of the object
+                text: qsTr("W", "width")
+                enabled: !backendValues.%2_sourceSize_width.isAvailable
+            }
+
+            Spacer { implicitWidth: StudioTheme.Values.controlGap }
+
+            SpinBox {
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                backendValue: backendValues.%2_sourceSize_height
+                minimumValue: 0
+                maximumValue: 8192
+                decimals: 0
+                enabled: backendValue.isAvailable
+            }
+
+            Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
+
+            ControlLabel {
+                //: The height of the object
+                text: qsTr("H", "height")
+                enabled: !backendValues.%2_sourceSize_height.isAvailable
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel { text: qsTr("Alignment H") }
+
+        SecondColumnLayout {
+            ComboBox {
+                implicitWidth: StudioTheme.Values.singleControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                width: implicitWidth
+                scope: "Image"
+                model: ["AlignLeft", "AlignRight", "AlignHCenter"]
+                backendValue: backendValues.%2_horizontalAlignment
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel { text: qsTr("Alignment V") }
+
+        SecondColumnLayout {
+            ComboBox {
+                implicitWidth: StudioTheme.Values.singleControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                width: implicitWidth
+                scope: "Image"
+                model: ["AlignTop", "AlignBottom", "AlignVCenter"]
+                backendValue: backendValues.%2_verticalAlignment
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Asynchronous")
+            tooltip: qsTr("Loads images on the local filesystem asynchronously in a separate thread.")
+            blockedByTemplate: !backendValues.%2_asynchronous.isAvailable
+        }
+
+        SecondColumnLayout {
+            CheckBox {
+                enabled: backendValues.%2_asynchronous.isAvailable
+                text: backendValues.%2_asynchronous.valueToString
+                backendValue: backendValues.%2_asynchronous
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Auto transform")
+            tooltip: qsTr("Automatically applies image transformation metadata such as EXIF orientation.")
+            blockedByTemplate: !backendValues.%2_autoTransform.isAvailable
+        }
+
+        SecondColumnLayout {
+            CheckBox {
+                enabled: backendValues.%2_autoTransform.isAvailable
+                text: backendValues.%2_autoTransform.valueToString
+                backendValue: backendValues.%2_autoTransform
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Cache")
+            tooltip: qsTr("Caches the image.")
+            blockedByTemplate: !backendValues.%2_cache.isAvailable
+        }
+
+        SecondColumnLayout {
+            CheckBox {
+                enabled: backendValues.%2_cache.isAvailable
+                text: backendValues.%2_cache.valueToString
+                backendValue: backendValues.%2_cache
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Mipmap")
+            tooltip: qsTr("Uses mipmap filtering when the image is scaled or transformed.")
+            blockedByTemplate: !backendValues.%2_mipmap.isAvailable
+        }
+
+        SecondColumnLayout {
+            CheckBox {
+                enabled: backendValues.%2_mipmap.isAvailable
+                text: backendValues.%2_mipmap.valueToString
+                backendValue: backendValues.%2_mipmap
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Mirror")
+            tooltip: qsTr("Inverts the image horizontally.")
+            blockedByTemplate: !backendValues.%2_mirror.isAvailable
+        }
+
+        SecondColumnLayout {
+            CheckBox {
+                enabled: backendValues.%2_mirror.isAvailable
+                text: backendValues.%2_mirror.valueToString
+                backendValue: backendValues.%2_mirror
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel {
+            text: qsTr("Smooth")
+            tooltip: qsTr("Smoothly filters the image when it is scaled or transformed.")
+            blockedByTemplate: !backendValues.%2_smooth.isAvailable
+        }
+
+        SecondColumnLayout {
+            CheckBox {
+                enabled: backendValues.%2_smooth.isAvailable
+                text: backendValues.%2_smooth.valueToString
+                backendValue: backendValues.%2_smooth
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+            }
+
+            ExpandingSpacer {}
+        }
+    }
+}

@@ -10,10 +10,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Widgets Gui Network Core PrintSupport )
-#message( STATUS "-------------> " ${Core5Compat_INCLUDE_DIRS})
-#message( STATUS "-------------> " ${QtWidgets_INCLUDE_DIRS} )
-#message( STATUS "-------------> " ${QtNetwork_INCLUDE_DIRS} )
+if ( QT_VERSION_MAJOR GREATER 5 )
+  find_package( Qt6 REQUIRED COMPONENTS Core5Compat )
+endif()
+find_package( Qt${QT_VERSION_MAJOR} REQUIRED Widgets Gui Network Core PrintSupport )
+message( STATUS "-------------> " ${Core5Compat_INCLUDE_DIRS})
+message( STATUS "-------------> " ${QtWidgets_INCLUDE_DIRS} )
+message( STATUS "-------------> " ${QtNetwork_INCLUDE_DIRS} )
 
 #include_directories(
 #  ${QtNetwork_INCLUDE_DIRS}
