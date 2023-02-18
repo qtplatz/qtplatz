@@ -11,6 +11,14 @@ cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
 
+### on trial
+##if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  message( STATUS "============= Qt6 ========== on trial" )
+  add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+##endif()
+###
+
+
 if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 endif()
@@ -334,10 +342,6 @@ endif()
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_definitions(-DUNICODE -D_UNICODE)
-
-### on trial
-add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-###
 
 add_subdirectory ( src )
 if ( ${QT_VERSION_MAJOR} EQUAL 5 )

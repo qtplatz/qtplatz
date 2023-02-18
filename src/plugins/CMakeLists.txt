@@ -1,7 +1,9 @@
 
 include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 
-add_subdirectory( coreplugin )
+if ( ${QT_VERSION_MAJOR} EQUAL 5 )
+  add_subdirectory( coreplugin )
+endif()
 add_subdirectory( servant )
 
 if ( QTPLATZ_CONFIG_Acquire )
