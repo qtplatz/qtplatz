@@ -147,7 +147,7 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin(0);
+        layout->setContentsMargins( {} );
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {

@@ -28,13 +28,12 @@
 #include <QDialog>
 #include <QSettings>
 #include <QSet>
+#include <QStringList>
 #include <adcontrols/metric/prefix.hpp>
 
 namespace Ui {
 class Dialog;
 }
-
-class QStringList;
 
 namespace adtextfile {
 
@@ -46,7 +45,7 @@ namespace adtextfile {
         ~Dialog();
         enum data_type { data_chromatogram, data_spectrum, counting_time_data };
         enum scan_type { time_squared_scan_law, linear_scan_law };
-        
+
         void setDataType( data_type t );
         data_type dataType() const;
 

@@ -75,7 +75,6 @@ set( adplot_SOURCES
   timingchart.hpp
   xyseriesdata.cpp
   xyseriesdata.hpp
-  # ${CMAKE_SOURCE_DIR}/../qwt-6.1/src/qwt_plot_axis.cpp
 )
 
 add_library( adplot SHARED ${adplot_SOURCES} )

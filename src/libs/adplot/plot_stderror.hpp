@@ -29,12 +29,13 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <QVector>
 
 class QwtPlotCurve;
 class QwtPlotMarker;
 class QwtPlot;
 class QPointF;
-template<class T> class QVector;
+// template<class T> class QVector;
 
 namespace adplot {
 

@@ -27,8 +27,14 @@ add_library( ${PROJECT_NAME} SHARED
   ${RC_SRC}
   )
 
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  set (UTILS "Utils")
+else()
+  set (UTILS "utils")
+endif()
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  utils
+  ${UTILS}
   Qt::Core
   Qt::Widgets
   )

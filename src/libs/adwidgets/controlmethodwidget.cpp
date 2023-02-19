@@ -103,7 +103,7 @@ ControlMethodWidget::ControlMethodWidget(QWidget *parent) : QWidget(parent)
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin(0);
+        layout->setContentsMargins( {} );
         layout->setSpacing(0);
         layout->addWidget( impl_->tab_ );
         impl_->tab_->addTab( impl_->table_, "Time Events" );

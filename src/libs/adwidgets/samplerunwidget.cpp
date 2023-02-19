@@ -244,7 +244,7 @@ SampleRunWidget::SampleRunWidget(QWidget *parent) :  QWidget(parent)
             splitter->setStretchFactor( 1, 1 );
 
             if ( QVBoxLayout * layout = new QVBoxLayout ) {
-                layout->setMargin( 0 );
+                layout->setContentsMargins( {} );
                 layout->setSpacing( 0 );
                 layout->addWidget( splitter );
                 topLayout->addLayout( layout );

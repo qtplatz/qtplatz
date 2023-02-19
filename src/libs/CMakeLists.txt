@@ -45,7 +45,9 @@ if ( NOT CMAKE_CROSSCOMPILING AND QT_FOUND )
   endif()
   find_package( Qt${QT_VERSION_MAJOR} COMPONENTS XmlPatterns QUIET )
   find_package( Qt${QT_VERSION_MAJOR} COMPONENTS WebEngineWidgets QUIET )
-  add_subdirectory (adpublisher)
+  if ( QT_VERSION_MAJOR EQUAL 5 )
+    add_subdirectory (adpublisher)
+  endif()
 
 endif()
 

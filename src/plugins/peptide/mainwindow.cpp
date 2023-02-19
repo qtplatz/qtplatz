@@ -91,7 +91,7 @@ MainWindow::createContents( Core::IMode * mode )
     setDockNestingEnabled( true );
 
     QBoxLayout * editorHolderLayout = new QVBoxLayout;
-	editorHolderLayout->setMargin( 0 );
+	editorHolderLayout->setContentsMargins( {} );
 	editorHolderLayout->setSpacing( 0 );
 
     if ( QWidget * editorWidget = new QWidget ) {
@@ -109,7 +109,7 @@ MainWindow::createContents( Core::IMode * mode )
 
             QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
             centralWidget->setLayout( centralLayout );
-            centralLayout->setMargin( 0 );
+            centralLayout->setContentsMargins( {} );
             centralLayout->setSpacing( 0 );
             // ----------------- top tool bar -------------------
             centralLayout->addWidget( toolBar1 );              // [1]
@@ -158,7 +158,7 @@ MainWindow::createTopStyledBar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         // Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( auto am = Core::ActionManager::instance() ) {
@@ -182,7 +182,7 @@ MainWindow::createMidStyledBar()
 
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing(0);
         // Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if( auto am = Core::ActionManager::instance() ) {
@@ -397,7 +397,7 @@ MainWindow::setDemoData()
                                     , { ">sp|P62894|CYC_BOVIN Cytochrome c OS=Bos taurus OX=9913 GN=CYCS PE=1 SV=2"
                                         , "MGDVEKGKKIFVQKCAQCHTVEKGGKHKTGPNLHGLFGRKTGQAPGFSYTDANKNKGITW"
                                         "GEETLMEYLENPKKYIPGTKMIFAGIKKKGEREDLIAYLKKATNE" }
-                                    
+
     };
 
 

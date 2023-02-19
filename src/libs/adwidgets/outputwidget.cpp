@@ -38,7 +38,7 @@
 #include <mutex>
 
 namespace adwidgets {
-    
+
     class OutputWidget::impl : public QTextEdit, public std::basic_streambuf < char > {
         Q_OBJECT
     public:
@@ -67,19 +67,19 @@ namespace adwidgets {
         ~impl() {
             stream_.rdbuf( old_buf_ );
         }
-        
+
     protected:
         // this can be called from several threads
         virtual int_type overflow(int_type v) override {
             std::lock_guard< std::mutex > lock( mutex_ );
-            linebuf_.push_back( v );
+            linebuf_.push_back( QChar(v) );
             if ( v == '\n' ) {
                 emit onText( linebuf_ );
                 linebuf_.clear();
             }
             return v;
         }
-        
+
         virtual std::streamsize xsputn( const char *p, std::streamsize n ) override {
             size_t nchars = n;
             while ( nchars-- )
@@ -130,7 +130,7 @@ OutputWidget::OutputWidget( std::ostream& os, QWidget * parent ) : QWidget( pare
                                                                  , impl_( new impl( os ) )
 {
     auto layout = new QVBoxLayout( this );
-    layout->setMargin( 0 );
+    layout->setContentsMargins( {} );
     layout->setSpacing( 0 );
     layout->addWidget( impl_ );
 }

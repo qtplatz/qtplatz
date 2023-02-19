@@ -1,7 +1,9 @@
 
 include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 
+message( STATUS "######################### CMAKE_INCLUDE_DIRS: ${INCLUDE_DIRECTORIES}" )
 if ( ${QT_VERSION_MAJOR} EQUAL 5 )
+  message( STATUS "================== Qt5 core plugins ======================" )
   add_subdirectory( coreplugin )
 endif()
 add_subdirectory( servant )

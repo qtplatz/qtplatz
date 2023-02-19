@@ -35,7 +35,7 @@
 #include "molview.hpp"
 
 #ifndef QT_NO_OPENGL
-#include <QGLWidget>
+//#include <QGLWidget>
 #endif
 
 using namespace adwidgets;

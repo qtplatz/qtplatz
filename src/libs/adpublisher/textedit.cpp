@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QClipboard>
 #include <QColorDialog>
@@ -218,7 +219,7 @@ void TextEdit::setupFileActions()
 #endif
 
     a = menu->addAction(tr("&Quit"), this, &QWidget::close);
-    a->setShortcut(Qt::CTRL + Qt::Key_Q);
+    a->setShortcut(Qt::CTRL | Qt::Key_Q);
 }
 
 void TextEdit::setupEditActions()
@@ -268,7 +269,7 @@ void TextEdit::setupTextActions()
 
     const QIcon boldIcon = QIcon::fromTheme("format-text-bold", QIcon(rsrcPath + "/textbold.png"));
     actionTextBold = menu->addAction(boldIcon, tr("&Bold"), this, &TextEdit::textBold);
-    actionTextBold->setShortcut(Qt::CTRL + Qt::Key_B);
+    actionTextBold->setShortcut(Qt::CTRL | Qt::Key_B);
     actionTextBold->setPriority(QAction::LowPriority);
     QFont bold;
     bold.setBold(true);
@@ -279,7 +280,7 @@ void TextEdit::setupTextActions()
     const QIcon italicIcon = QIcon::fromTheme("format-text-italic", QIcon(rsrcPath + "/textitalic.png"));
     actionTextItalic = menu->addAction(italicIcon, tr("&Italic"), this, &TextEdit::textItalic);
     actionTextItalic->setPriority(QAction::LowPriority);
-    actionTextItalic->setShortcut(Qt::CTRL + Qt::Key_I);
+    actionTextItalic->setShortcut(Qt::CTRL | Qt::Key_I);
     QFont italic;
     italic.setItalic(true);
     actionTextItalic->setFont(italic);
@@ -288,7 +289,7 @@ void TextEdit::setupTextActions()
 
     const QIcon underlineIcon = QIcon::fromTheme("format-text-underline", QIcon(rsrcPath + "/textunder.png"));
     actionTextUnderline = menu->addAction(underlineIcon, tr("&Underline"), this, &TextEdit::textUnderline);
-    actionTextUnderline->setShortcut(Qt::CTRL + Qt::Key_U);
+    actionTextUnderline->setShortcut(Qt::CTRL | Qt::Key_U);
     actionTextUnderline->setPriority(QAction::LowPriority);
     QFont underline;
     underline.setUnderline(true);
@@ -300,7 +301,7 @@ void TextEdit::setupTextActions()
 
     const QIcon leftIcon = QIcon::fromTheme("format-justify-left", QIcon(rsrcPath + "/textleft.png"));
     actionAlignLeft = new QAction(leftIcon, tr("&Left"), this);
-    actionAlignLeft->setShortcut(Qt::CTRL + Qt::Key_L);
+    actionAlignLeft->setShortcut(Qt::CTRL | Qt::Key_L);
     actionAlignLeft->setCheckable(true);
     actionAlignLeft->setPriority(QAction::LowPriority);
     const QIcon centerIcon = QIcon::fromTheme("format-justify-center", QIcon(rsrcPath + "/textcenter.png"));
@@ -576,7 +577,7 @@ void TextEdit::textItalic()
 void TextEdit::textFamily(const QString &f)
 {
     QTextCharFormat fmt;
-    fmt.setFontFamily(f);
+    fmt.setFontFamilies( {f} );
     mergeFormatOnWordOrSelection(fmt);
 }
 

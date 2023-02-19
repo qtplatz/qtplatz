@@ -62,7 +62,7 @@ ProteinWnd::init()
 {
     if ( QBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->setSpacing( 0 );
 
         if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum

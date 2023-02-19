@@ -26,10 +26,10 @@
 #define DUALSPINSLIDER_HPP
 
 #include <QWidget>
+#include <QStringList>
 #include "adwidgets_global.hpp"
-
-class QString;
-class QStringList;
+//class QString;
+//class QStringList;
 
 namespace adwidgets {
 
@@ -50,7 +50,7 @@ namespace adwidgets {
         void setTitles( const QString&, const QStringList& );
         void setRange( idPair, const QPair<double, double>& );
         void setActualValues( const QPair<double, double>& );
-        void setActualValue( idPair, double );        
+        void setActualValue( idPair, double );
         void setValue( idPair, double );
         void setValues( const QPair<double, double>& );
         double value( idPair ) const;

@@ -12,6 +12,9 @@ set(CMAKE_AUTORCC ON)
 
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multimedia )
 find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED Multimedia )
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED SvgWidgets )
+endif()
 
 if ( NOT QtMultimedia_INCLUDE_DIRS} )
   find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Multimedia )
@@ -23,9 +26,16 @@ include_directories(
   ${QtSvg_INCLUDE_DIRS}
   ${QtSql_INCLUDE_DIRS}
   ${QtWidgets_INCLUDE_DIRS}
-  ${QtOpenGL_INCLUDE_DIRS}
+  "${Qt${QT_VERSION_MAJOR}OpenGL_INCLUDE_DIRS}"
   "${Qt${QT_VERSION_MAJOR}Multimedia_INCLUDE_DIRS}" # strange
   )
+
+if ( QT_VERSION_MAJOR EQUAL 6 )
+  include_directories(
+    "${Qt6SvgWidgets_INCLUDE_DIRS}" # Qt6
+    )
+  set (SVGWIDGETS_LIBRARIES "Qt::SvgWidgets" )
+endif()
 
 if ( rdkit_FOUND )
   include_directories( ${RDKit_INCLUDE_DIRS} )
@@ -227,6 +237,7 @@ target_link_libraries( adwidgets LINK_PUBLIC
   Qt::Widgets
   Qt::Core
   Qt::OpenGL
+  ${SVGWIDGETS_LIBRARIES} # <-- Qt6
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   )

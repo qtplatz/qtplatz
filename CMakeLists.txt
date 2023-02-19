@@ -11,14 +11,6 @@ cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
 
-### on trial
-##if ( ${QT_VERSION_MAJOR} GREATER 5 )
-  message( STATUS "============= Qt6 ========== on trial" )
-  add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-##endif()
-###
-
-
 if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 endif()
@@ -76,6 +68,13 @@ set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 if ( WITH_QT5 )
   if ( QTDIR STREQUAL "" AND DEFINED $ENV{QTDIR} )
     set( QTDIR $ENV{QTDIR} )
+  endif()
+  find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+  ##### on trial #####
+  if ( ${QT_VERSION_MAJOR} GREATER 5 )
+    message( STATUS "============= Qt6 ========== on trial" )
+    add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+    include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins" )
   endif()
 endif()
 
@@ -235,6 +234,7 @@ if ( Boost_FOUND )
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()
+
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs"

@@ -7,8 +7,6 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Network Widgets PrintSupport Sql Svg )
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)

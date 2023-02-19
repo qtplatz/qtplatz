@@ -48,7 +48,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
         });
 
     connect( ui->lineEdit, &QLineEdit::textChanged, this, [&]( const QString& text ){
-            QRegExp sep( "(\\ |\\,|\\t)"); // ' '|','|\t
+        QRegularExpression sep( "(\\ |\\,|\\t)"); // ' '|','|\t
             QStringList list = text.split( sep );
             QSet< int > lines;
             for ( const auto& str: list ) {
@@ -62,7 +62,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
     settings_.beginGroup( "Dialog" );
     ui->checkBox->setChecked( settings_.value( "CheckBoxFileCreatedBy", true ).toBool() );
-    setDataType( static_cast< data_type >( settings_.value( "RadioButtonDataType", data_spectrum ).toInt() ) ); 
+    setDataType( static_cast< data_type >( settings_.value( "RadioButtonDataType", data_spectrum ).toInt() ) );
     ui->checkBox_4->setChecked( settings_.value( "CheckBoxPeakList", false ).toBool() );
     auto data_pair = settings_.value( "RadioButtonDataPair", "Time,Intensity" ).toString();
     if ( data_pair == "Time,Intensity" )
@@ -113,7 +113,7 @@ Dialog::~Dialog()
     settings_.setValue( "ScanLaw/T0", ui->doubleSpinBox_3->value() );
 
     settings_.endGroup();
-    
+
     delete ui;
 }
 
@@ -245,7 +245,7 @@ Dialog::appendLine( const QStringList& list )
 {
     size_t number_counts(0);
     int row;
-    
+
     if ( auto model = static_cast<QStandardItemModel *>( ui->tableView->model() ) ) {
         model->setColumnCount( list.size() );
         row = model->rowCount();
@@ -281,16 +281,16 @@ Dialog::setActiveColumns( size_t nColumns )
         ui->radioButton_3->setEnabled( false );
         ui->radioButton_4->setEnabled( false );
         ui->radioButton_5->setChecked( true );
-        // 
+        //
         ui->doubleSpinBox->setEnabled( false );   // flight length
         ui->doubleSpinBox_2->setEnabled( false ); // accelerator voltage
     } else {
         ui->radioButton_3->setEnabled( true );
         ui->radioButton_4->setEnabled( true );
         ui->radioButton_5->setChecked( false );
-        // 
+        //
         ui->doubleSpinBox->setEnabled( true );   // flight length
-        ui->doubleSpinBox_2->setEnabled( true ); // accelerator voltage        
+        ui->doubleSpinBox_2->setEnabled( true ); // accelerator voltage
     }
 }
 
@@ -321,7 +321,7 @@ Dialog::isTimeMassIntensity() const
 bool
 Dialog::isTimeIntensity() const
 {
-    return ui->radioButton_3->isChecked();    
+    return ui->radioButton_3->isChecked();
 }
 
 size_t
@@ -351,4 +351,3 @@ Dialog::ignoreColumns() const
 {
     return ignoreColumns_;
 }
-

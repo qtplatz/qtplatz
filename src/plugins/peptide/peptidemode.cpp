@@ -57,4 +57,3 @@ PeptideMode::grabEditorManager(Core::IMode *mode)
     // if ( Core::EditorManager::instance()->currentEditor() )
     //     Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
 }
-

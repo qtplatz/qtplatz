@@ -45,6 +45,8 @@ namespace adcontrols {
             voltage_type( double _1 = 0, std::pair<double, double>&& _2 = { 0,0 } ) : value( _1 ), limits( _2 ) {}
             voltage_type( const voltage_type& t ) : value( t.value ), limits( t.limits ) {}
         };
+        bool operator==(const voltage_type& lhs, const voltage_type& rhs);
+        bool operator<(const voltage_type& lhs, const voltage_type& rhs);
 
         struct ADCONTROLSSHARED_EXPORT duration_type {
             double value;
@@ -52,6 +54,8 @@ namespace adcontrols {
             duration_type( double _1 = 0, std::pair<double, double>&& _2 = { 0,0 } ) : value( _1 ), limits( _2 ) {}
             duration_type( const duration_type& t ) : value( t.value ), limits( t.limits ) {}
         };
+        bool operator==(const duration_type& lhs, const duration_type& rhs);
+        bool operator<(const duration_type& lhs, const duration_type& rhs);
 
         struct ADCONTROLSSHARED_EXPORT switch_type {
             bool value;
@@ -59,19 +63,25 @@ namespace adcontrols {
             switch_type( bool _1 = false, std::pair<std::string, std::string>&& _2 = { "ON", "OFF" } ) : value( _1 ), choice( _2 ) {}
             switch_type( const switch_type& t ) : value( t.value ), choice( t.choice ) {}
         };
+        bool operator==(const switch_type& lhs, const switch_type& rhs);
+        bool operator<(const switch_type& lhs, const switch_type& rhs);
 
         struct ADCONTROLSSHARED_EXPORT choice_type {
             uint32_t value;
-            std::vector< std::string > choice; 
+            std::vector< std::string > choice;
             choice_type( uint32_t _1 = 0 ) : value( _1 ) {}
             choice_type( const choice_type& t ) : value( t.value ), choice( t.choice ) {}
         };
+        bool operator==(const choice_type& lhs, const choice_type& rhs);
+        bool operator<(const choice_type& lhs, const choice_type& rhs);
 
         struct ADCONTROLSSHARED_EXPORT delay_width_type {
             std::pair<double, double> value;
             delay_width_type( std::pair<double, double>&& _1 = { 0, 1.0e-8 } ) : value( _1 ) {}
             delay_width_type( const delay_width_type& t ) : value( t.value ) {}
         };
+        bool operator==(const delay_width_type& lhs, const delay_width_type& rhs);
+        bool operator<(const delay_width_type& lhs, const delay_width_type& rhs);
 
         struct ADCONTROLSSHARED_EXPORT any_type {
             std::string value;   // serialized archive either xml or binary
@@ -80,7 +90,9 @@ namespace adcontrols {
             any_type( std::string&& _1, const boost::uuids::uuid& editor ) : value( _1 ), editor_( editor ) {}
             any_type( const any_type& t ) : value( t.value ), editor_( t.editor_ ) {}
         };
-        
+        bool operator==(const any_type& lhs, const any_type& rhs);
+        bool operator<(const any_type& lhs, const any_type& rhs);
+
         class ADCONTROLSSHARED_EXPORT EventCap {
         public:
             typedef boost::variant< duration_type, voltage_type, switch_type, choice_type, delay_width_type, any_type > value_type;
@@ -90,9 +102,9 @@ namespace adcontrols {
             EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& );
 
             EventCap( const std::string& item_name
-                      , const std::string& item_display_name 
+                      , const std::string& item_display_name
                       , const value_type& value
-                      , std::function< bool( any_type&, commit_type )>&& f 
+                      , std::function< bool( any_type&, commit_type )>&& f
                       , std::function< std::string( const any_type& ) > d = std::function< std::string( const any_type& ) >() );
 
             EventCap( const EventCap& );
@@ -114,7 +126,6 @@ namespace adcontrols {
             std::function< bool( any_type&, commit_type ) > edit_any_;
             std::function< std::string( const any_type& ) > display_any_;
         };
-        
+
     }
 }
-
