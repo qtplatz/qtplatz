@@ -55,6 +55,12 @@ add_executable( ${PROJECT_NAME}
   ${Resources}
   )
 
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  set (UTILS "Utils")
+else()
+  set (UTILS "utils")
+endif()
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adchem
   adcontrols
@@ -62,7 +68,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adui
   adwidgets
-  utils
+  ${UTILS}
   Core
   Qt::Widgets
   Qt::Svg

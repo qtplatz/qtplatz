@@ -237,6 +237,7 @@ target_link_libraries( adwidgets LINK_PUBLIC
   Qt::Widgets
   Qt::Core
   Qt::OpenGL
+  Qt::Multimedia
   ${SVGWIDGETS_LIBRARIES} # <-- Qt6
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}

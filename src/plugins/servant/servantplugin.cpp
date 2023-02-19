@@ -102,11 +102,16 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     adlog::logger::enable( adlog::logger::logging_file ); // process_name + ".log"
 
     if ( ( outputWindow_ = new OutputWindow ) ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         addAutoReleasedObject( outputWindow_ );
+#endif
 
         if ( ( logger_ = new Logger ) ) {
             connect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
+#if QT_VERSION > QT_VERSION_CHECK(5, 0, 0)
+#else
             addAutoReleasedObject( logger_ );
+#endif
             adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
         }
     }
@@ -114,10 +119,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     ADLOG(adlog::LOG_INFO) << "Startup " << QCoreApplication::applicationFilePath().toStdString();
 
     ///////////////////////////////////
+#if 0
     Core::Context context;
     context.add( Core::Id( "Servant.MainView" ) );
     context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
-
+#endif
     adplugin::manager::standalone_initialize();
 
     return true;

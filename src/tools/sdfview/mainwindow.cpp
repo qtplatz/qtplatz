@@ -105,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setCentralWidget( new QWidget );
     auto layout = new QVBoxLayout( centralWidget() );
     layout->addWidget( new sdfview::MolTableWnd() );
-    layout->setMargin( 0 );
+    layout->setContentsMargins( {} );
     layout->setSpacing( 0 );
 
     grabGesture( Qt::PanGesture );
@@ -189,7 +189,7 @@ MainWindow::setupFileActions()
 #endif
 
     a = new QAction(tr("&Quit"), this);
-    a->setShortcut(Qt::CTRL + Qt::Key_Q);
+    a->setShortcut(Qt::CTRL | Qt::Key_Q);
 
     connect(a, &QAction::triggered, this, [&](){
         ADDEBUG() << "close...";

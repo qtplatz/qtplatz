@@ -44,6 +44,12 @@ add_library( servant MODULE
   logger.hpp
   )
 
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  set( EXTENSIONSYSTEM "ExtensionSystem" )
+else()
+  set( EXTENSIONSYSTEM "extensionsystem" )
+endif()
+
 target_link_libraries( servant LINK_PUBLIC
   ${Boost_LIBRARIES}
   adcontrols
@@ -56,7 +62,7 @@ target_link_libraries( servant LINK_PUBLIC
   adextension
   xmlparser
   Core
-  extensionsystem
+  ${EXTENSIONSYSTEM}
   Qt::Core
 )
 

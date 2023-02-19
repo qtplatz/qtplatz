@@ -6,6 +6,7 @@ if ( ${QT_VERSION_MAJOR} EQUAL 5 )
   message( STATUS "================== Qt5 core plugins ======================" )
   add_subdirectory( coreplugin )
 endif()
+
 add_subdirectory( servant )
 
 if ( QTPLATZ_CONFIG_Acquire )

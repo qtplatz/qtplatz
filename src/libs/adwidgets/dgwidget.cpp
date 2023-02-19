@@ -107,7 +107,11 @@ dgWidget::dgWidget( QWidget * parent ) : QFrame( parent )
                                         emit hostChanged( dlg.hostAddr().first, dlg.hostAddr().second );
                                 }
                             });
+#if QT_VERSION >= 0x060000
+                        menu.exec( ev->globalPosition().toPoint() );
+#else
                         menu.exec( ev->globalPos() );
+#endif
                     });
             }
 

@@ -291,7 +291,7 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
 {
     if ( QVBoxLayout * topLayout = new QVBoxLayout( this ) ) {
 
-        topLayout->setMargin(5);
+        topLayout->setContentsMargins(5, 5, 5, 5);
         topLayout->setSpacing(4);
 
         auto gbox = new QGroupBox;
@@ -307,7 +307,7 @@ MolTableWidget::MolTableWidget(QWidget *parent) : QWidget(parent)
         topLayout->addWidget( gbox );
 
         if ( QVBoxLayout * vboxLayout = new QVBoxLayout( gbox ) ) {
-            vboxLayout->setMargin( 2 );
+            vboxLayout->setContentsMargins( 2, 2, 2, 2 );
             vboxLayout->setSpacing( 2 );
 
             auto table = new MolTableView();

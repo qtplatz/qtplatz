@@ -4,11 +4,15 @@ add_subdirectory (eventbroker)
 
 if ( NOT CMAKE_CROSSCOMPILING )
 
-  add_subdirectory (adfile)
-  if ( NOT WIN32 )
+  if ( AqDrv4_FOUND )
+    add_subdirectory (adfile)
+  endif()
+  if ( NOT WIN32 AND AqDrv4_FOUND )
     add_subdirectory (adimport) #-- issue (direct liniing with adtextfiles .cpp files) need to be resolved
   endif()
-  add_subdirectory (adexport)
+  if ( AqDrv4_FOUND )
+    add_subdirectory (adexport)
+  endif()
   #  add_subdirectory (adhist)
 
   if ( QT_FOUND )
@@ -24,7 +28,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
       add_subdirectory (counting2d)
     endif()
 
-    if ( NOT WIN32 )
+    if ( NOT WIN32 AND AqDrv4_FOUND )
       add_subdirectory (acqiris)
     endif()
 
