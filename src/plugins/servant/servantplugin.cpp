@@ -153,4 +153,4 @@ ServantPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-Q_EXPORT_PLUGIN( ServantPlugin )
+Q_EXPORT_PLUGIN( ServantPlugin );

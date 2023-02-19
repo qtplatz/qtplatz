@@ -74,10 +74,12 @@ if ( WITH_QT5 )
   if ( ${QT_VERSION_MAJOR} GREATER 5 )
     message( STATUS "============= Qt6 ========== on trial" )
     add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-    include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins" )
+    include_directories(
+      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
+      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
+      )
   endif()
 endif()
-
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 if ( WIN32 )

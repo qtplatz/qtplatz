@@ -14,6 +14,11 @@ Build
 
 Above command creates "Qt Creator.app" on macOS.
 
+Change IDE output name
+----------------------
+Change name in ./qt-creator/cmake/QtCreatorIDEBranding.cmake:
+
+
 Exclude unused modules
 ------------
 1. Exclude tools from src/CMakeLists.txt

@@ -4,7 +4,7 @@ set(IDE_VERSION_DISPLAY "9.0.1")                      # The IDE display version.
 set(IDE_COPYRIGHT_YEAR "2022")                        # The IDE current copyright year.
 
 set(IDE_SETTINGSVARIANT "QtProject")                  # The IDE settings variation.
-set(IDE_DISPLAY_NAME "QtPlatz")                       # The IDE display name.
+set(IDE_DISPLAY_NAME "qtplatz")                       # The IDE display name.
 set(IDE_ID "qtplatz")                                 # The IDE id (no spaces, lowercase!)
 set(IDE_CASED_ID "QtPlatz")                           # The cased IDE id (no spaces!)
 set(IDE_BUNDLE_IDENTIFIER "org.qt-project.${IDE_ID}") # The macOS application bundle identifier.

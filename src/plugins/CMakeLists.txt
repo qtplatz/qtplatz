@@ -1,13 +1,19 @@
 
 include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 
-message( STATUS "######################### CMAKE_INCLUDE_DIRS: ${INCLUDE_DIRECTORIES}" )
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  message( STATUS "================== Qt6 example ======================" )
+  add_subdirectory( example )
+endif()
+
 if ( ${QT_VERSION_MAJOR} EQUAL 5 )
   message( STATUS "================== Qt5 core plugins ======================" )
   add_subdirectory( coreplugin )
 endif()
 
-add_subdirectory( servant )
+if ( ${QT_VERSION_MAJOR} EQUAL 5 )
+  add_subdirectory( servant )
+endif()
 
 if ( QTPLATZ_CONFIG_Acquire )
   if ( VERBOSE )
