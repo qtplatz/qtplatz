@@ -162,7 +162,7 @@ if (WITH_TESTS)
   add_subdirectory(tests)
 endif()
 
-add_subdirectory(doc)
+# add_subdirectory(doc)
 
 setup_dependencies_component()
 

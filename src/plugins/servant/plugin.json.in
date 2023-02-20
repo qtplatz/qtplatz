@@ -1,0 +1,11 @@
+{
+    "Name"          : "@PROJECT_NAME@",
+    "Version"       : "@VERSION@",
+    "CompatVersion" : "@IDE_VERSION_COMPAT@",
+    "Vendor"        : "@PROVIDER@",
+    "Copyright"     : "(C) MS-Cheminformatics",
+    "License"       : "Put short license information here",
+    "Description"   : "Put a short description of your plugin here",
+    "Url"           : "https://www.ms-cheminformatics.com",
+    @DEPENDENCY_STRING@
+}

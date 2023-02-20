@@ -52,7 +52,11 @@ index e7f7b39cad..25bc4e71bf 100644
 Exclude unused modules
 ======================
 
-1. qt-creator/src/CMakeLists.txt
+1. qt-creator/CMakeLists.txt
+---
+Exclude line: add_subdirectory(doc)
+
+2. qt-creator/src/CMakeLists.txt
 ---
 ```
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
