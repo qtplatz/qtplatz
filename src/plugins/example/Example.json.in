@@ -1,7 +1,7 @@
 {
     \"Name\" : \"Example\",
-    \"Version\" : \"6.0.1\",
-    \"CompatVersion\" : \"0.0.1\",
+    \"Version\" : \"9.0.1\",
+    \"CompatVersion\" : \"9.0.1\",
     \"Vendor\" : \"MS-Cheminformatics\",
     \"Copyright\" : \"(C) MS-Cheminformatics\",
     \"License\" : \"Put short license information here\",

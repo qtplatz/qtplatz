@@ -1,48 +1,53 @@
-cmake_policy( SET CMP0020 NEW )
-cmake_policy( SET CMP0028 NEW )
-
+#cmake_policy( SET CMP0020 NEW )
+#cmake_policy( SET CMP0028 NEW )
 project( servant )
 
 set( PROVIDER MS-Cheminformatics )
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+find_package(QtCreator REQUIRED COMPONENTS Core)
 
 set(CMAKE_AUTOMOC ON)
 
-set(COMPAT_VERSION 3.2.81)
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
+########## QtCreator 9 (Qt6) plugin.json #############
+if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  foreach ( i "Core" )
+    set(_v ${IDE_VERSION})
+    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
+  endforeach()
+  string(APPEND DEPENDENCY_STRING "\n    ]")
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/plugin.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+    )
+endif()
+####################### END ##########################
+
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  set(COMPAT_VERSION 3.2.81)
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    )
+
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    )
+endif()
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtCore_INCLUDE_DIRS}
   )
 
 add_definitions( -DSERVANT_LIBRARY )
-
-add_library( servant MODULE
-  outputwindow.cpp
-  servant.cpp
-  servantmode.cpp
-  servantplugin.cpp
-  logger.cpp
-  servant_global.h
-  outputwindow.hpp
-  servant.hpp
-  servantmode.hpp
-  servantplugin.hpp
-  logger.hpp
-  )
 
 if ( ${QT_VERSION_MAJOR} GREATER 5 )
   set( EXTENSIONSYSTEM "ExtensionSystem" )
@@ -50,21 +55,35 @@ else()
   set( EXTENSIONSYSTEM "extensionsystem" )
 endif()
 
-target_link_libraries( servant LINK_PUBLIC
-  ${Boost_LIBRARIES}
-  adcontrols
-  adextension
-  adportable
-  adplugin
-  adplugin_manager
-  adlog
-  qtwrapper
-  adextension
-  xmlparser
-  Core
-  ${EXTENSIONSYSTEM}
-  Qt::Core
-)
+add_library( servant MODULE
+    outputwindow.cpp
+    servant.cpp
+    servantmode.cpp
+    servantplugin.cpp
+    logger.cpp
+    servant_global.h
+    outputwindow.hpp
+    servant.hpp
+    servantmode.hpp
+    servantplugin.hpp
+    logger.hpp
+    )
+
+  target_link_libraries( servant LINK_PUBLIC
+    ${Boost_LIBRARIES}
+    adcontrols
+    adextension
+    adportable
+    adplugin
+    adplugin_manager
+    adlog
+    qtwrapper
+    adextension
+    xmlparser
+    Core
+    ${EXTENSIONSYSTEM}
+    Qt::Core
+  )
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
@@ -77,6 +96,8 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+if ( ${QT_VERSION_MAJOR} LESS_EQUAL 5 )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+endif()

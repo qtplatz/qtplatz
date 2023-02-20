@@ -285,4 +285,3 @@ tmp/
 # qbs builds
 /*-debug/
 /*-release/
-dot.*

@@ -20,11 +20,13 @@ endif()
 #  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Multimedia )
 #endif()
 
-message( STATUS "### adwidgets ### QWT_INCLUDE_DIR: ${QWT_INCLUDE_DIR}" )
-message( STATUS "### adwidgets ### QtPrintSupport_INCLUDE_DIRS: ${QtPrintSupport_INCLUDE_DIRS}" )
-message( STATUS "### adwidgets ### QtSvg_INCLUDE_DIRS: ${QtSvg_INCLUDE_DIRS}" )
-message( STATUS "### adwidgets ### QtSql_INCLUDE_DIRS: ${QtSql_INCLUDE_DIRS}" )
-message( STATUS "### adwidgets ### QtWidgets_INCLUDE_DIRS: ${QtWidgets_INCLUDE_DIRS}" )
+if ( FALSE )
+  message( STATUS "### adwidgets ### QWT_INCLUDE_DIR: ${QWT_INCLUDE_DIR}" )
+  message( STATUS "### adwidgets ### QtPrintSupport_INCLUDE_DIRS: ${QtPrintSupport_INCLUDE_DIRS}" )
+  message( STATUS "### adwidgets ### QtSvg_INCLUDE_DIRS: ${QtSvg_INCLUDE_DIRS}" )
+  message( STATUS "### adwidgets ### QtSql_INCLUDE_DIRS: ${QtSql_INCLUDE_DIRS}" )
+  message( STATUS "### adwidgets ### QtWidgets_INCLUDE_DIRS: ${QtWidgets_INCLUDE_DIRS}" )
+endif()
 
 include_directories(
   "${QWT_INCLUDE_DIR}"

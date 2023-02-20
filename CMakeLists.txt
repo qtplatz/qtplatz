@@ -85,11 +85,10 @@ include (version)
 if ( WITH_QT5 )
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
 endif()
-######################### Qt6/QtCreator 9 ######################
 if ( ${QT_VERSION_MAJOR} GREATER 5 )
   message( STATUS "============= Qt6 ========== on trial" )
   add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-  include_directories(
+  include_directories( BEFORE
     "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
     "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
     )

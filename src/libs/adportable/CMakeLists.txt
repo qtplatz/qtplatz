@@ -76,7 +76,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 # message( STATUS "Boost_LIBRARIES = " ${Boost_LIBRARIES} )
 
 install( TARGETS ${PROJECT_NAME}
-  EXPORT  ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )

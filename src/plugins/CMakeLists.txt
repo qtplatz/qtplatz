@@ -2,7 +2,6 @@
 include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 
 if ( ${QT_VERSION_MAJOR} GREATER 5 AND QTPLATZ_CONFIG_Example )
-  message( STATUS "================== Qt6 example ======================" )
   add_subdirectory( example )
 endif()
 
@@ -11,9 +10,7 @@ if ( ${QT_VERSION_MAJOR} EQUAL 5 )
   add_subdirectory( coreplugin )
 endif()
 
-if ( ${QT_VERSION_MAJOR} EQUAL 5 )
-  add_subdirectory( servant )
-endif()
+add_subdirectory( servant )
 
 if ( QTPLATZ_CONFIG_Acquire )
   if ( VERBOSE )

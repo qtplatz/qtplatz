@@ -5,7 +5,7 @@ target_include_directories(app_version
 install(TARGETS app_version EXPORT QtCreator)
 
 add_subdirectory(libs)
-#add_subdirectory(share)
+add_subdirectory(share)
 add_subdirectory(shared)
 add_subdirectory(plugins)
 add_subdirectory(app)

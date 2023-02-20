@@ -13,9 +13,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 
-#find_package(QtCreator REQUIRED COMPONENTS Core)
-#find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-#set(QtX Qt${QT_VERSION_MAJOR})
+find_package(QtCreator REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 
 add_qtc_plugin(Example
   PLUGIN_DEPENDS
@@ -35,6 +34,7 @@ add_qtc_plugin(Example
     exampleconstants.hpp
 )
 
+set( PROVIDER MS-Cheminformatics )
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}

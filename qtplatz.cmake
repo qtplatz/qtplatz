@@ -63,7 +63,6 @@ endif()
 #####################
 # Qt5 setup
 #
-
 if ( WITH_QT5 AND ${QT_VERSION_MAJOR} LESS 6 )
 
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )

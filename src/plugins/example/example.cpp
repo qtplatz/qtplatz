@@ -20,14 +20,14 @@ namespace Internal {
 
 ExamplePlugin::ExamplePlugin()
 {
-    ADDEBUG() << "---------------- ExamplePlugin ctor -------------------------\n";
+    ADDEBUG() << "---------------- ExamplePlugin ctor -------------------------";
 }
 
 ExamplePlugin::~ExamplePlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
-    std::cout << "---------------- ExamplePlugin dtor -------------------------\n";
+    ADDEBUG() << "---------------- ExamplePlugin dtor -------------------------";
 }
 
 bool ExamplePlugin::initialize(const QStringList &arguments, QString *errorString)
@@ -38,7 +38,7 @@ bool ExamplePlugin::initialize(const QStringList &arguments, QString *errorStrin
     // Connect to other plugins' signals
     // In the initialize function, a plugin can be sure that the plugins it
     // depends on have initialized their members.
-    std::cout << "---------------- ExamplePlugin::initialize -------------------------\n";
+    ADDEBUG() << "---------------- ExamplePlugin::initialize -------------------------";
 
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
@@ -59,7 +59,7 @@ bool ExamplePlugin::initialize(const QStringList &arguments, QString *errorStrin
 
 void ExamplePlugin::extensionsInitialized()
 {
-    std::cout << "---------------- ExamplePlugin::extensionsInitialized -------------------------\n";
+    ADDEBUG() << "---------------- ExamplePlugin::extensionsInitialized -------------------------";
     // Retrieve objects from the plugin manager's object pool
     // In the extensionsInitialized function, a plugin can be sure that all
     // plugins that depend on it are completely initialized.
@@ -67,7 +67,7 @@ void ExamplePlugin::extensionsInitialized()
 
 ExtensionSystem::IPlugin::ShutdownFlag ExamplePlugin::aboutToShutdown()
 {
-    std::cout << "---------------- ExamplePlugin::aboutToShutdown -------------------------\n";
+    ADDEBUG() << "---------------- ExamplePlugin::aboutToShutdown -------------------------";
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)

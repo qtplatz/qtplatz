@@ -37,7 +37,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/mimedatabase.h>
+//#include <coreplugin/mimedatabase.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/id.h>
 #include <coreplugin/minisplitter.h>
@@ -68,16 +68,18 @@ ChemistryPlugin::~ChemistryPlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( mode_ )
 		removeObject( mode_.get() );
+#endif
 }
 
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     // ADDEBUG() << "##### ChemistryPlugin initialize...";
-    
-    // 
+
+    //
     initialize_actions();
 
     mainWindow_->activateWindow();
@@ -85,17 +87,22 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     addObject( mode_.get() );
-    
-    // ADDEBUG() << "ChemistryPlugin initialized";    
+#endif
+    // ADDEBUG() << "ChemistryPlugin initialized";
     return true;
 }
 
 void
 ChemistryPlugin::initialize_actions()
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-    
+#else
+    Core::Context gc( "Chemistry" );
+#endif
+
 	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
 
         // File->Processing
@@ -113,7 +120,7 @@ ChemistryPlugin::initialize_actions()
             menu->addAction( am->command( Constants::SDFILE_OPEN ) );
             am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
         }
-        
+
     }
 }
 
@@ -126,9 +133,9 @@ ChemistryPlugin::extensionsInitialized()
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
-{ 
+{
 	return SynchronousShutdown;
-    ADLOG(adlog::LOG_INFO) << "Shutdown " << boost::dll::this_line_location();        
+    ADLOG(adlog::LOG_INFO) << "Shutdown " << boost::dll::this_line_location();
 	mainWindow_->OnClose();
 }
 
@@ -140,4 +147,6 @@ ChemistryPlugin::triggerAction()
                              tr("This is an action from Chemistry."));
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 Q_EXPORT_PLUGIN2(Chemistry, ChemistryPlugin)
+#endif

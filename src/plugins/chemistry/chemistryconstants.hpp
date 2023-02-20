@@ -30,9 +30,9 @@ namespace Constants {
     const char ACTION_ID[] = "Chemistry.Action";
     const char MENU_ID[]   = "Chemistry.Menu";
     const char SDFILE_OPEN[] = "Chemistry.SDFileOpen";
+    const char MODE_CHEMISTRY [] = "Mode.Chemistry";
 
 } // namespace Chemistry
 } // namespace Constants
 
 #endif // CHEMISTRYCONSTANTS_H
-
