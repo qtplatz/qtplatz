@@ -10,7 +10,7 @@ function find_qmake() {
 									   "/Qt/5.14.2" "/Qt/5.14.1" )
 			;;
 		*)
-			local hints=( "/Qt6/6.4.0/macos" \
+			local hints=( #"/Qt6/6.4.0/macos" \
 							  "/Qt/5.15.2" "/Qt/5.15.1" "/Qt/5.15.0" \
 							  "/Qt/5.14.2" "/Qt/5.14.1" )
 			;;

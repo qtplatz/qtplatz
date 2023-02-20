@@ -30,18 +30,22 @@
 
 class QAction;
 
-namespace chemistry { 
+namespace chemistry {
 
   class Mode;
   class MainWindow;
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
-	  Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "chemistry.json")
+      //#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+      //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "chemistry.json")
+      //#else
+      Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "chemistry.json")
+      //#endif
   public:
 	  ChemistryPlugin();
 	  ~ChemistryPlugin();
-	  
+
 	  bool initialize(const QStringList &arguments, QString *errorString);
 	  void extensionsInitialized();
       ShutdownFlag aboutToShutdown();
@@ -49,14 +53,13 @@ namespace chemistry {
   private:
 	  std::shared_ptr< Mode > mode_;
 	  std::shared_ptr< MainWindow > mainWindow_;
-      
+
       void initialize_actions();
-	  
+
   private slots:
 	  void triggerAction();
   };
-	  
+
 } // namespace chemistry
 
 #endif // CHEMISTRY_H
-

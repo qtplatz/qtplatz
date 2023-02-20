@@ -5,7 +5,6 @@ project( chemistry )
 
 set( PROVIDER MS-Cheminformatics )
 
-find_package( QtCreator REQUIRED COMPONENTS Core )
 #find_package( rdkit )
 #find_package( qwt )
 
@@ -24,6 +23,8 @@ set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 ########## QtCreator 9 (Qt6) plugin.json #############
 if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
   foreach ( i "Core" )
     set(_v ${IDE_VERSION})
@@ -69,12 +70,12 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
 
-if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
-  include_directories( BEFORE
-    "${CMAKE_SOURCE_DIR}/qt-creator/src/libs"
-    "${CMAKE_SOURCE_DIR}/qt-creator/src/plugins"
-    )
-endif()
+#if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+#  include_directories( BEFORE
+#    "${CMAKE_SOURCE_DIR}/qt-creator/src/libs"
+#    "${CMAKE_SOURCE_DIR}/qt-creator/src/plugins"
+#    )
+#endif()
 
 add_library( ${PROJECT_NAME} MODULE
   chemconnection.cpp
@@ -132,6 +133,8 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+if ( QT_VERSION_MAJOR LESS 6 )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+endif()

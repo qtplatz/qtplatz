@@ -1,15 +1,24 @@
-
-set ( QTPLATZ_CONFIG_Acquire   OFF ) #AND ${QT_VERSION_MAJOR} LESS 6 )
-set ( QTPLATZ_CONFIG_Dataproc  OFF ) #AND ${QT_VERSION_MAJOR} LESS 6 )
-set ( QTPLATZ_CONFIG_Quan      OFF ) #AND ${QT_VERSION_MAJOR} LESS 6 )
-
-set ( QTPLATZ_CONFIG_Chemistry ${rdkit_FOUND} )
-set ( QTPLATZ_CONFIG_Peptide   OFF ) #${QT_VERSION_MAJOR} LESS 6 )
-set ( QTPLATZ_CONFIG_Query     OFF ) #${QT_VERSION_MAJOR} LESS 6 )
-
 set ( QTPLATZ_CONFIG_Batch     OFF )
 set ( QTPLATZ_CONFIG_Sequence  OFF )
 set ( QTPLATZ_CONFIG_Cluster   OFF )
+
+if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
+  set ( QTPLATZ_CONFIG_Acquire   OFF ) #AND ${QT_VERSION_MAJOR} LESS 6 )
+  set ( QTPLATZ_CONFIG_Dataproc  OFF ) #AND ${QT_VERSION_MAJOR} LESS 6 )
+  set ( QTPLATZ_CONFIG_Quan      OFF ) #AND ${QT_VERSION_MAJOR} LESS 6 )
+
+  set ( QTPLATZ_CONFIG_Chemistry ${rdkit_FOUND} )
+  set ( QTPLATZ_CONFIG_Peptide   OFF ) #${QT_VERSION_MAJOR} LESS 6 )
+  set ( QTPLATZ_CONFIG_Query     OFF ) #${QT_VERSION_MAJOR} LESS 6 )
+else()
+  set ( QTPLATZ_CONFIG_Acquire   ON ) #AND ${QT_VERSION_MAJOR} LESS 6 )
+  set ( QTPLATZ_CONFIG_Dataproc  ON ) #AND ${QT_VERSION_MAJOR} LESS 6 )
+  set ( QTPLATZ_CONFIG_Quan      ON ) #AND ${QT_VERSION_MAJOR} LESS 6 )
+
+  set ( QTPLATZ_CONFIG_Chemistry ${rdkit_FOUND} )
+  set ( QTPLATZ_CONFIG_Peptide   ON ) #${QT_VERSION_MAJOR} LESS 6 )
+  set ( QTPLATZ_CONFIG_Query     ON ) #${QT_VERSION_MAJOR} LESS 6 )
+endif()
 
 if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
   set ( QTPLATZ_CONFIG_Lipidid OFF )

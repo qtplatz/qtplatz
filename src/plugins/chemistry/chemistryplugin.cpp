@@ -59,13 +59,15 @@
 using namespace chemistry;
 
 ChemistryPlugin::ChemistryPlugin() : mode_( std::make_shared< Mode >( this ) )
-                                   , mainWindow_( std::make_shared< MainWindow >() )
+                                     //, mainWindow_( std::make_shared< MainWindow >() )
 {
+    ADDEBUG() << "===================== ChemistryPlugin::ctor =========================";
     // Create your members
 }
 
 ChemistryPlugin::~ChemistryPlugin()
 {
+    ADDEBUG() << "===================== ChemistryPlugin::dtor =========================";
     // Unregister objects from the plugin manager's object pool
     // Delete members
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -77,9 +79,8 @@ ChemistryPlugin::~ChemistryPlugin()
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    // ADDEBUG() << "##### ChemistryPlugin initialize...";
-
-    //
+    ADDEBUG() << "===================== ChemistryPlugin::initialize =========================";
+#if 0
     initialize_actions();
 
     mainWindow_->activateWindow();
@@ -90,7 +91,8 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     addObject( mode_.get() );
 #endif
-    // ADDEBUG() << "ChemistryPlugin initialized";
+    ADDEBUG() << "ChemistryPlugin initialized";
+#endif
     return true;
 }
 
@@ -127,7 +129,9 @@ ChemistryPlugin::initialize_actions()
 void
 ChemistryPlugin::extensionsInitialized()
 {
+#if 0
 	mainWindow_->OnInitialUpdate();
+#endif
     // ADDEBUG() << "ChemistryPlugin extensionsInitialized.";
 }
 

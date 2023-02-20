@@ -5,7 +5,9 @@ project( servant )
 set( PROVIDER MS-Cheminformatics )
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
-find_package(QtCreator REQUIRED COMPONENTS Core)
+if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+endif()
 
 set(CMAKE_AUTOMOC ON)
 
