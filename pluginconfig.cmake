@@ -16,4 +16,7 @@ if ( ${QT_VERSION_MAJOR} LESS 6 )
     set ( QTPLATZ_CONFIG_Lipidid ${COMPILER_SUPPORTS_CXX17} )
   endif()
 
+else()
+  set ( QTPLATZ_CONFIG_Example OFF )
+  #set ( QTPLATZ_CONFIG_Chemistry ${rdkit_FOUND} )
 endif()

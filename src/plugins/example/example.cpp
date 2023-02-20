@@ -1,5 +1,6 @@
 #include "example.hpp"
 #include "exampleconstants.hpp"
+#include <adportable/debug.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -19,7 +20,7 @@ namespace Internal {
 
 ExamplePlugin::ExamplePlugin()
 {
-    std::cout << "---------------- ExamplePlugin ctor -------------------------\n";
+    ADDEBUG() << "---------------- ExamplePlugin ctor -------------------------\n";
 }
 
 ExamplePlugin::~ExamplePlugin()

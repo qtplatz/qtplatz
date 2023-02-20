@@ -64,7 +64,7 @@ endif()
 # Qt5 setup
 #
 
-if ( WITH_QT5 )
+if ( WITH_QT5 AND ${QT_VERSION_MAJOR} LESS 6 )
 
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
   if ( NOT QT AND QMAKE )
@@ -158,7 +158,6 @@ if ( MSVC )
   endif()
 endif()
 
-
 #####################
 # Compiler setup
 #
@@ -211,40 +210,42 @@ endif()
 
 remove_definitions( "-DBOOST_NO_AUTO_PTR" )
 
-add_library( QTC::Core SHARED IMPORTED )
-add_library( QTC::ExtensionSystem SHARED IMPORTED )
-add_library( QTC::Utils SHARED IMPORTED )
-if (WIN32)
-  set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
+if ( WITH_QT5 AND ${QT_VERSION_MAJOR} LESS 6 )
+  add_library( QTC::Core SHARED IMPORTED )
+  add_library( QTC::ExtensionSystem SHARED IMPORTED )
+  add_library( QTC::Utils SHARED IMPORTED )
+  if (WIN32)
+    set_target_properties( QTC::Core PROPERTIES
+      IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
+      IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
 
-  set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
+    set_target_properties( QTC::ExtensionSystem PROPERTIES
+      IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
+      IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
 
-  set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utilsd.lib )
-elseif ( APPLE )
-  set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore_debug.dylib )
+    set_target_properties( QTC::Utils PROPERTIES
+      IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
+      IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utilsd.lib )
+  elseif ( APPLE )
+    set_target_properties( QTC::Core PROPERTIES
+      IMPORTED_LOCATION       ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore.dylib
+      IMPORTED_LOCATION_DEBUG ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore_debug.dylib )
 
-  set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem_debug.dylib )
+    set_target_properties( QTC::ExtensionSystem PROPERTIES
+      IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.dylib
+      IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem_debug.dylib )
 
-  set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils_debug.dylib )
-else()  #Linux
-  set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/plugins/QtProject/libCore.so )
+    set_target_properties( QTC::Utils PROPERTIES
+      IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils.dylib
+      IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils_debug.dylib )
+  else()  #Linux
+    set_target_properties( QTC::Core PROPERTIES
+      IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/plugins/QtProject/libCore.so )
 
-  set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.so )
+    set_target_properties( QTC::ExtensionSystem PROPERTIES
+      IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.so )
 
-  set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libutils.so )
+    set_target_properties( QTC::Utils PROPERTIES
+      IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libutils.so )
+  endif()
 endif()

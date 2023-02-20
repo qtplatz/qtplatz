@@ -10,22 +10,28 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL Multimedia )
+#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
 find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED Multimedia )
 if ( ${QT_VERSION_MAJOR} GREATER 5 )
   find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED SvgWidgets )
 endif()
 
-if ( NOT QtMultimedia_INCLUDE_DIRS} )
-  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Multimedia )
-endif()
+#if ( NOT QtMultimedia_INCLUDE_DIRS} )
+#  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Multimedia )
+#endif()
+
+message( STATUS "### adwidgets ### QWT_INCLUDE_DIR: ${QWT_INCLUDE_DIR}" )
+message( STATUS "### adwidgets ### QtPrintSupport_INCLUDE_DIRS: ${QtPrintSupport_INCLUDE_DIRS}" )
+message( STATUS "### adwidgets ### QtSvg_INCLUDE_DIRS: ${QtSvg_INCLUDE_DIRS}" )
+message( STATUS "### adwidgets ### QtSql_INCLUDE_DIRS: ${QtSql_INCLUDE_DIRS}" )
+message( STATUS "### adwidgets ### QtWidgets_INCLUDE_DIRS: ${QtWidgets_INCLUDE_DIRS}" )
 
 include_directories(
-  ${QWT_INCLUDE_DIR}
-  ${QtPrintSupport_INCLUDE_DIRS}
-  ${QtSvg_INCLUDE_DIRS}
-  ${QtSql_INCLUDE_DIRS}
-  ${QtWidgets_INCLUDE_DIRS}
+  "${QWT_INCLUDE_DIR}"
+  "${Qt${QT_VERSION_MAJOR}PrintSupport_INCLUDE_DIRS}"
+  "${Qt${QT_VERSION_MAJOR}Svg_INCLUDE_DIRS}"
+  "${Qt${QT_VERSION_MAJOR}Sql_INCLUDE_DIRS}"
+  "${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}"
   "${Qt${QT_VERSION_MAJOR}OpenGL_INCLUDE_DIRS}"
   "${Qt${QT_VERSION_MAJOR}Multimedia_INCLUDE_DIRS}" # strange
   )

@@ -61,6 +61,8 @@ add_library( ${PROJECT_NAME} SHARED
   tuple_arith.hpp
   )
 
+add_library( QtPlatz::${PROJECT_NAME} ALIAS ${PROJECT_NAME} )
+
 target_include_directories( adportable PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   )

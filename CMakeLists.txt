@@ -71,14 +71,6 @@ if ( WITH_QT5 )
   endif()
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
   ##### on trial #####
-  if ( ${QT_VERSION_MAJOR} GREATER 5 )
-    message( STATUS "============= Qt6 ========== on trial" )
-    add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-    include_directories(
-      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
-      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
-      )
-  endif()
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
@@ -88,6 +80,26 @@ endif()
 
 include (qtplatz.cmake)
 include (version)
+
+################################################################
+if ( WITH_QT5 )
+  find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+endif()
+######################### Qt6/QtCreator 9 ######################
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  message( STATUS "============= Qt6 ========== on trial" )
+  add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+  include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
+    "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
+    )
+endif()
+################################################################
+if ( QT_FOUND )
+  message( STATUS "### QT_FOUND ${QT_FOUND} ")
+  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+endif()
+################################################################
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
