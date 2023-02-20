@@ -31,7 +31,6 @@ endif()
 
 if ( QTPLATZ_CONFIG_Chemistry AND rdkit_FOUND )
   add_subdirectory( chemistry )
-  endif()
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND QTPLATZ_CONFIG_Cluster AND OpenCV_FOUND )
