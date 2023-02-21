@@ -13,9 +13,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(QtCreator REQUIRED COMPONENTS Core)
+#find_package(QtCreator REQUIRED COMPONENTS Core)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 set( PROVIDER "MS-Cheminformatics" )
 set( DESCRIPTION "Example qt-creator plugin" )
@@ -39,7 +38,6 @@ endif()
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   )
-
 
 if ( FALSE )
   add_qtc_plugin(Example
