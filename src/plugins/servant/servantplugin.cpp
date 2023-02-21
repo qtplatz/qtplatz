@@ -28,7 +28,9 @@
 #include "outputwindow.hpp"
 #include "logger.hpp"
 #include <coreplugin/icore.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
+#endif
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>

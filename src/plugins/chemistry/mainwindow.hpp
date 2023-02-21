@@ -43,7 +43,7 @@ class QAction;
 class QLineEdit;
 class QProgressBar;
 
-namespace chemistry { 
+namespace chemistry {
 
     class MolTableDelegate;
 
@@ -52,8 +52,11 @@ namespace chemistry {
 	public:
         ~MainWindow();
 		explicit MainWindow( QWidget * parent = 0 );
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		QWidget * createContents( Core::IMode * );
+#else
+        QWidget * createContents();
+#endif
 		void createActions();
 
 		void OnInitialUpdate();
@@ -64,9 +67,9 @@ namespace chemistry {
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
 		static MainWindow * instance();
-    
+
     signals:
-    
+
 	public slots:
 		void actionSearch();
         void actSDFileOpen();

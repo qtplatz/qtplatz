@@ -1,8 +1,10 @@
 #cmake_policy( SET CMP0020 NEW )
 #cmake_policy( SET CMP0028 NEW )
-project( servant )
-
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  project( servant )
+else()
+  project( Servant )
+endif()
 
 set( CMAKE_AUTOMOC ON )
 set( PROVIDER MS-Cheminformatics )
@@ -12,6 +14,7 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 ########## QtCreator 9 (Qt6) plugin.json #############
 if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
   find_package(QtCreator REQUIRED COMPONENTS Core)
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
@@ -55,7 +58,7 @@ else()
   set( EXTENSIONSYSTEM "extensionsystem" )
 endif()
 
-add_library( servant MODULE
+add_library( ${PROJECT_NAME} MODULE
     outputwindow.cpp
     servant.cpp
     servantmode.cpp
@@ -69,7 +72,7 @@ add_library( servant MODULE
     logger.hpp
     )
 
-  target_link_libraries( servant LINK_PUBLIC
+  target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
     ${Boost_LIBRARIES}
     adcontrols
     adextension

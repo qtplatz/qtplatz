@@ -144,7 +144,11 @@ MainWindow::createActions()
 }
 
 QWidget *
-MainWindow::createContents( Core::IMode * mode )
+MainWindow::createContents(
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    Core::IMode * mode
+#endif
+    )
 {
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
     setDocumentMode( true );

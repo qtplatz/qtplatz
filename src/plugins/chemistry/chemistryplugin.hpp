@@ -37,11 +37,11 @@ namespace chemistry {
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
-      //#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-      //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "chemistry.json")
-      //#else
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+      Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Chemistry.json")
+#else
       Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "chemistry.json")
-      //#endif
+#endif
   public:
 	  ChemistryPlugin();
 	  ~ChemistryPlugin();

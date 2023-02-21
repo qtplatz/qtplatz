@@ -1,7 +1,10 @@
 #cmake_policy( SET CMP0020 NEW )
 #cmake_policy( SET CMP0028 NEW )
-
-project( chemistry )
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  project( chemistry )
+else()
+  project( Chemistry )
+endif()
 
 set( PROVIDER MS-Cheminformatics )
 
@@ -19,10 +22,12 @@ file(GLOB Resources *.qrc)
 if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
   set(COMPAT_VERSION 3.2.81)
 endif()
+set( DESCRIPTION "Chemistry plugin" )
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 ########## QtCreator 9 (Qt6) plugin.json #############
 if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
   find_package( QtCreator REQUIRED COMPONENTS Core )
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")

@@ -39,8 +39,11 @@ namespace servant {
 
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
-        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "servant.json")
-		// Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Servant.json")
+#else
+		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
+#endif
         public:
         explicit ServantPlugin();
         ~ServantPlugin();

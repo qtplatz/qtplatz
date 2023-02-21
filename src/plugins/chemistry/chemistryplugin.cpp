@@ -39,7 +39,9 @@
 #include <coreplugin/coreconstants.h>
 //#include <coreplugin/mimedatabase.h>
 #include <coreplugin/modemanager.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
+#endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 
@@ -58,18 +60,14 @@
 
 using namespace chemistry;
 
-ChemistryPlugin::ChemistryPlugin() : mode_( std::make_shared< Mode >( this ) )
-                                     //, mainWindow_( std::make_shared< MainWindow >() )
+ChemistryPlugin::ChemistryPlugin()
 {
     ADDEBUG() << "===================== ChemistryPlugin::ctor =========================";
-    // Create your members
 }
 
 ChemistryPlugin::~ChemistryPlugin()
 {
     ADDEBUG() << "===================== ChemistryPlugin::dtor =========================";
-    // Unregister objects from the plugin manager's object pool
-    // Delete members
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( mode_ )
 		removeObject( mode_.get() );
@@ -80,19 +78,23 @@ bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     ADDEBUG() << "===================== ChemistryPlugin::initialize =========================";
-#if 0
+
     initialize_actions();
 
-    mainWindow_->activateWindow();
-    mainWindow_->createActions();
+    if ((mainWindow_ = std::make_unique< MainWindow >() )) {
+        mainWindow_->activateWindow();
+        mainWindow_->createActions();
 
-    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
-        mode_->setWidget( widget );
+        if ( QWidget * widget = mainWindow_->createContents( /* mode_.get() */ ) ) {
+            if (( mode_ = std::make_unique< Mode >() )) {
+                mode_->setWidget( widget );
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    addObject( mode_.get() );
+                addObject( mode_.get() );
 #endif
-    ADDEBUG() << "ChemistryPlugin initialized";
-#endif
+            }
+        }
+        ADDEBUG() << "ChemistryPlugin initialized";
+    }
     return true;
 }
 
@@ -108,7 +110,7 @@ ChemistryPlugin::initialize_actions()
 	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
 
         // File->Processing
-        if ( Core::ActionContainer * menu = am->createMenu( "chemistry.menu" ) ) {
+        if ( Core::ActionContainer * menu = am->createMenu( "Chemistry.menu" ) ) {
             do {
                 QIcon iconOpen;
                 iconOpen.addFile( ":/dataproc/image/fileopen.png" );
@@ -129,10 +131,7 @@ ChemistryPlugin::initialize_actions()
 void
 ChemistryPlugin::extensionsInitialized()
 {
-#if 0
 	mainWindow_->OnInitialUpdate();
-#endif
-    // ADDEBUG() << "ChemistryPlugin extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
