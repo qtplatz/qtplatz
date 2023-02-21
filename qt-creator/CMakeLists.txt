@@ -173,5 +173,5 @@ feature_summary(INCLUDE_QUIET_PACKAGES WHAT
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Only for non super repo builds
-#  add_subdirectory(packaging)
+  add_subdirectory(packaging)
 endif()
