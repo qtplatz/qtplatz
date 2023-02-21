@@ -1,0 +1,110 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5067c46ebd..aed6402da2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -162,7 +162,7 @@ if (WITH_TESTS)
+   add_subdirectory(tests)
+ endif()
+ 
+-add_subdirectory(doc)
++#add_subdirectory(doc)
+ 
+ setup_dependencies_component()
+ 
+diff --git a/cmake/QtCreatorIDEBranding.cmake b/cmake/QtCreatorIDEBranding.cmake
+index e7f7b39cad..3fb53ad13c 100644
+--- a/cmake/QtCreatorIDEBranding.cmake
++++ b/cmake/QtCreatorIDEBranding.cmake
+@@ -4,9 +4,9 @@ set(IDE_VERSION_DISPLAY "9.0.1")                      # The IDE display version.
+ set(IDE_COPYRIGHT_YEAR "2022")                        # The IDE current copyright year.
+ 
+ set(IDE_SETTINGSVARIANT "QtProject")                  # The IDE settings variation.
+-set(IDE_DISPLAY_NAME "Qt Creator")                    # The IDE display name.
+-set(IDE_ID "qtcreator")                               # The IDE id (no spaces, lowercase!)
+-set(IDE_CASED_ID "QtCreator")                         # The cased IDE id (no spaces!)
++set(IDE_DISPLAY_NAME "qtplatz")                       # The IDE display name.
++set(IDE_ID "qtplatz")                                 # The IDE id (no spaces, lowercase!)
++set(IDE_CASED_ID "QtPlatz")                           # The cased IDE id (no spaces!)
+ set(IDE_BUNDLE_IDENTIFIER "org.qt-project.${IDE_ID}") # The macOS application bundle identifier.
+ 
+ set(PROJECT_USER_FILE_EXTENSION .user)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index b567bbe120..d07a41ea86 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -9,7 +9,7 @@ add_subdirectory(share)
+ add_subdirectory(shared)
+ add_subdirectory(plugins)
+ add_subdirectory(app)
+-add_subdirectory(tools)
++#add_subdirectory(tools)
+ 
+ install(
+   FILES
+diff --git a/src/libs/CMakeLists.txt b/src/libs/CMakeLists.txt
+index 7265810737..9aaae4c792 100644
+--- a/src/libs/CMakeLists.txt
++++ b/src/libs/CMakeLists.txt
+@@ -1,9 +1,10 @@
+-add_subdirectory(3rdparty)
++#add_subdirectory(3rdparty)
+ 
+-add_subdirectory(advanceddockingsystem)
++#add_subdirectory(advanceddockingsystem)
+ add_subdirectory(aggregation)
+ add_subdirectory(extensionsystem)
+ add_subdirectory(utils)
++if ( FALSE )
+ add_subdirectory(languageutils)
+ add_subdirectory(cplusplus)
+ add_subdirectory(modelinglib)
+@@ -52,3 +53,4 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qlitehtml/src/CMakeLists.txt)
+     )
+   endif()
+ endif()
++endif()
+diff --git a/src/plugins/CMakeLists.txt b/src/plugins/CMakeLists.txt
+index 8051db6e59..117bd9af80 100644
+--- a/src/plugins/CMakeLists.txt
++++ b/src/plugins/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ # Level 0:
+ add_subdirectory(coreplugin)
+-
++if ( FALSE )
+ # Level 1: (only depends of Level 0)
+ add_subdirectory(texteditor)
+ add_subdirectory(serialterminal)
+@@ -97,3 +97,4 @@ add_subdirectory(studiowelcome)
+ add_subdirectory(qnx)
+ add_subdirectory(webassembly)
+ add_subdirectory(mcusupport)
++endif()
+diff --git a/src/share/CMakeLists.txt b/src/share/CMakeLists.txt
+index 57850ff783..4975db9644 100644
+--- a/src/share/CMakeLists.txt
++++ b/src/share/CMakeLists.txt
+@@ -1,2 +1,2 @@
+ add_subdirectory(3rdparty)
+-add_subdirectory(qtcreator)
++#add_subdirectory(qtcreator)
+diff --git a/src/shared/CMakeLists.txt b/src/shared/CMakeLists.txt
+index 93409b0bf4..e02563eab8 100644
+--- a/src/shared/CMakeLists.txt
++++ b/src/shared/CMakeLists.txt
+@@ -1,7 +1,8 @@
+-add_subdirectory(designerintegrationv2)
+-add_subdirectory(proparser)
++#add_subdirectory(designerintegrationv2)
++#add_subdirectory(proparser)
+ add_subdirectory(qtsingleapplication)
+ add_subdirectory(qtlockedfile)
++if ( FALSE )
+ add_subdirectory(help)
+ add_subdirectory(registryaccess)
+ 
+@@ -30,3 +31,4 @@ if (BUILD_QBS)
+   set(QBS_INSTALL_QCH_DOCS ${WITH_DOCS} CACHE BOOL "")
+   add_subdirectory(qbs)
+ endif()
++endif()
