@@ -15,7 +15,9 @@ if ( ${QT_VERSION_MAJOR} EQUAL 5 )
   add_subdirectory( coreplugin )
 endif()
 
-add_subdirectory( servant )
+if ( QTPLATZ_CONFIG_Servant )
+  add_subdirectory( servant )
+endif()
 
 if ( QTPLATZ_CONFIG_Acquire )
   add_subdirectory( acquire )
