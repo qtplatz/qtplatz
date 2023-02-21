@@ -40,7 +40,9 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/id.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+# include <coreplugin/id.h>
+#endif
 #include <coreplugin/modemanager.h>
 
 #include <QAction>
@@ -55,7 +57,7 @@
 using namespace acquire;
 
 acquireplugin::acquireplugin() : mainWindow_( new MainWindow() )
-                               , mode_( std::make_unique< Mode >(this) )
+                                 // , mode_( std::make_unique< Mode >(this) )
 {
 }
 
@@ -77,24 +79,30 @@ acquireplugin::initialize( const QStringList &arguments, QString *errorString )
 
     const Core::Context context( ( "ACQUIRE.MainView" ) );
 
+    mode_ = std::make_unique< Mode >();
     mode_->setId( "ACQUIRE.MainView" );
     mode_->setContext( context );
 
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     addObject( mode_.get() );
+#endif
 
     // add instrument controller
     for ( auto iController : document::instance()->iControllers() ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         addObject( iController );
+#endif
         connect( iController, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
 
     // no time function supported.
     if ( auto iExtension = document::instance()->iSequence() ) {
         MainWindow::instance()->getEditorFactories( *iExtension );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         addObject( iExtension );
+#endif
     }
 
     QAction *action = new QAction(tr("acquire action"), this);
@@ -127,6 +135,7 @@ acquireplugin::aboutToShutdown()
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( auto iExtension = document::instance()->iSequence() )
         removeObject( iExtension );
 
@@ -135,7 +144,8 @@ acquireplugin::aboutToShutdown()
 
     if ( mode_ )
         removeObject( mode_.get() );
-    
+#endif
+
 #if ! defined NDEBUG
     ADDEBUG() << "\t## Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
@@ -153,4 +163,6 @@ acquireplugin::triggerAction()
                              tr("This is an action from acquire."));
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 Q_EXPORT_PLUGIN2(acquire, acquireplugin)
+#endif

@@ -1,16 +1,35 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-project( acquireplugin )
+if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  project( Acquire )
+else()
+  project( acquireplugin )
+endif()
 
 set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
+########## QtCreator 9 (Qt6) plugin.json #############
+if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  foreach ( i "Core" )
+    set(_v ${IDE_VERSION})
+    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
+  endforeach()
+  string(APPEND DEPENDENCY_STRING "\n    ]")
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/../servant/plugin.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+    )
+endif()
+####################### END ##########################
+
 find_package( Threads REQUIRED )
-
-#find_package( Qt${QT_VERSION_MAJOR} REQUIRED Core Gui PrintSupport Sql Svg Widgets )
-
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -21,16 +40,18 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
+    )
+endif()
 
 if (WIN32)
   add_definitions(
@@ -40,6 +61,7 @@ if (WIN32)
 endif()
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QTPLATZ_SOURCE_DIR}/contrib/socfpga/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/accutof/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
@@ -73,8 +95,19 @@ add_library( ${PROJECT_NAME} MODULE
   ${Resources}
   )
 
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  set( EXTENSIONSYSTEM "ExtensionSystem" )
+else()
+  set( EXTENSIONSYSTEM "extensionsystem" )
+endif()
+if ( ${QT_VERSION_MAJOR} GREATER 5 )
+  set( UTILS "Utils" )
+else()
+  set( UTILS "utils" )
+endif()
+
 target_link_libraries(
-  acquireplugin LINK_PUBLIC
+  ${PROJECT_NAME} LINK_PUBLIC
   adacquire
   adcontrols
   adextension
@@ -90,9 +123,9 @@ target_link_libraries(
   adwidgets
   qtwrapper
   Core
-  extensionsystem
+  ${EXTENSIONSYSTEM}
+  ${UTILS}
   socfpga
-  utils
   Qt::Svg
   Qt::Widgets
   Threads::Threads

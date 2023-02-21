@@ -357,9 +357,8 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 add_definitions(-DUNICODE -D_UNICODE)
 
 add_subdirectory ( src )
-if ( ${QT_VERSION_MAJOR} EQUAL 5 )
-  add_subdirectory ( contrib )
-endif()
+add_subdirectory ( contrib )
+
 if ( Qt5_FOUND )
   add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
   add_subdirectory ( share )
