@@ -2,28 +2,26 @@
 #cmake_policy( SET CMP0028 NEW )
 project( servant )
 
-set( PROVIDER MS-Cheminformatics )
-
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
-if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
-  find_package(QtCreator REQUIRED COMPONENTS Core)
-endif()
 
-set(CMAKE_AUTOMOC ON)
+set( CMAKE_AUTOMOC ON )
+set( PROVIDER MS-Cheminformatics )
+set( DESCRIPTION "Servant plugin" )
 
-set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 ########## QtCreator 9 (Qt6) plugin.json #############
 if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
   foreach ( i "Core" )
     set(_v ${IDE_VERSION})
     string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
   endforeach()
   string(APPEND DEPENDENCY_STRING "\n    ]")
-
   configure_file(
-    "${PROJECT_SOURCE_DIR}/plugin.json.in"
+    "${PROJECT_SOURCE_DIR}/../servant/plugin.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
     )
 endif()
