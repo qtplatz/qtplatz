@@ -56,6 +56,9 @@ Exclude unused modules
 ---
 Exclude line: add_subdirectory(doc)
 
+add_subdirectory(share) <-- not included in patch
+add_subdirectory(packaging) <-- not included in patch
+
 2. qt-creator/src/CMakeLists.txt
 ---
 ```
