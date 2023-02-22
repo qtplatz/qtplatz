@@ -60,9 +60,9 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 
 
     // Software TDC (Slope Time Converter) UI
-    if ( auto layout = new QVBoxLayout( ui->groupBox_2 ) ) {    
+    if ( auto layout = new QVBoxLayout( ui->groupBox_2 ) ) {
         layout->setSpacing( 0 );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         ///////////// Slope detect ////////////////
         if ( auto tab = new QTabWidget() ) {
             layout->addWidget( tab );
@@ -87,7 +87,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 
     if ( auto layout = new QVBoxLayout( ui->groupBox_3 ) ) {
         layout->setSpacing( 0 );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         if ( auto widget = new AcqirisWidget() ) {
             layout->addWidget( widget );
             widget->setStyleSheet( "QTreeView { background: #e8f4fc; }\n"
@@ -97,11 +97,11 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                 });
             connect( widget, &AcqirisWidget::stateChanged, [&]( const QModelIndex& index, bool ){
                     emit valueChanged( idChannels, index.row() - 2 );
-                });            
+                });
         }
 
         if ( auto gbx = qtwrapper::make_widget< QGroupBox >( "RemoteAccess", tr("Digitizer Remote Access") ) ) {
-            
+
             gbx->setFlat( true );
             layout->addWidget( gbx );
             gbx->setCheckable( true );
@@ -109,13 +109,13 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
             if ( auto hLayout = new QHBoxLayout( gbx ) ) {
 
                 hLayout->setSpacing( 0 );
-                hLayout->setMargin( 0 );
+                hLayout->setContentsMargins( {} );
 
                 hLayout->addWidget( qtwrapper::make_widget< QLabel >( "url", tr( "URL" ) ) );
-                
+
                 auto edit = qtwrapper::make_widget< QLineEdit >( "url" );
                 hLayout->addWidget( edit );
-                
+
 
                 if ( ( eventFilter_ = std::make_unique< adwidgets::MouseRButtonFilter >() ) ) {
                     eventFilter_->installOn( edit );
@@ -151,11 +151,11 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                               "color: #808080;"
                               "background-color: #F0F0F0;"
                               "border: 1px solid #B0B0B0;"
-                              "border-radius: 2px;}");    
+                              "border-radius: 2px;}");
             }
         }
     }
-    
+
     set( std::make_shared< acqrscontrols::ap240::method >() );
 }
 
@@ -191,19 +191,19 @@ ap240form::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
-        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
-        
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);
+
         auto m = std::make_shared< acqrscontrols::ap240::method>();
         get( m );
         adcontrols::ControlMethod::MethodItem item( m->clsid(), m->modelClass() );
         item.setItemLabel( "ap240" );
         item.set<>( item, *m ); // serialize
         ptr->insert( item );
-        
+
         return true;
-        
+
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
-        
+
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         auto m = std::make_shared< acqrscontrols::ap240::method>();
         get( m );
@@ -233,9 +233,9 @@ ap240form::setContents( boost::any&& a )
 
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
 
-        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );             
+        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );
 
-    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {   
+    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {
 
         pi = &boost::any_cast<const adcontrols::ControlMethod::MethodItem& >( a );
     }
@@ -284,7 +284,7 @@ ap240form::set( std::shared_ptr< const acqrscontrols::ap240::method> m )
         set( 0, m->slope1_ );
         set( 1, m->slope2_ );
         set( m->action_ );
-    }    
+    }
 }
 
 void
@@ -327,7 +327,7 @@ ap240form::setRemoteAccess( bool remote, const QString& host, const QString& por
     remote_ = remote;
     host_ = host;
     port_ = port;
-    
+
     if ( auto gbx = findChild< QGroupBox * >( "RemoteAccess" ) ) {
         gbx->setChecked( remote );
         if ( auto edit = gbx->findChild< QLineEdit * >() )
@@ -348,4 +348,3 @@ ap240form::remoteAccess( QString& host, QString& port ) const
     }
     return remote;
 }
-

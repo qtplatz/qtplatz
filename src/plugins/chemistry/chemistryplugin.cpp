@@ -44,7 +44,7 @@
 #endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
-
+#include <extensionsystem/pluginmanager.h>
 #include <QAction>
 #include <QMessageBox>
 #include <QMainWindow>
@@ -62,23 +62,17 @@ using namespace chemistry;
 
 ChemistryPlugin::ChemistryPlugin()
 {
-    ADDEBUG() << "===================== ChemistryPlugin::ctor =========================";
 }
 
 ChemistryPlugin::~ChemistryPlugin()
 {
-    ADDEBUG() << "===================== ChemistryPlugin::dtor =========================";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( mode_ )
-		removeObject( mode_.get() );
-#endif
+        ExtensionSystem::PluginManager::removeObject( mode_.get() );
 }
 
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    ADDEBUG() << "===================== ChemistryPlugin::initialize =========================";
-
     initialize_actions();
 
     if ((mainWindow_ = std::make_unique< MainWindow >() )) {
@@ -88,9 +82,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
         if ( QWidget * widget = mainWindow_->createContents( /* mode_.get() */ ) ) {
             if (( mode_ = std::make_unique< Mode >() )) {
                 mode_->setWidget( widget );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-                addObject( mode_.get() );
-#endif
+                ExtensionSystem::PluginManager::addObject( mode_.get() );
             }
         }
         ADDEBUG() << "ChemistryPlugin initialized";

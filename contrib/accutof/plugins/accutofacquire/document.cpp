@@ -871,9 +871,10 @@ document::recentFile( const char * group, bool dir_on_fail )
     QString file = qtwrapper::settings( *impl_->settings_ ).recentFile( group, Constants::KEY_FILES );
     if ( !file.isEmpty() )
         return file;
-
     if ( dir_on_fail ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         file = Core::DocumentManager::currentFile();
+#endif
         if ( file.isEmpty() )
             file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
 
@@ -1314,9 +1315,17 @@ document::impl::takeSnapshot()
             QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
             QString folderId;
             if ( appendOnFile( path, title, *ms, folderId ) ) {
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
                 for ( auto handler: vec )
                     handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+#else
+                for ( auto v : ExtensionSystem::PluginManager::allObjects() ) {
+                    if ( auto handler = qobject_cast< adextension::iSnapshotHandler * >( v ) ) {
+                        handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+                    }
+                }
+#endif
             }
         }
         ++ch;
@@ -1328,9 +1337,17 @@ document::impl::takeSnapshot()
         QString title = QString( "Histogram %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
         QString folderId;
         if ( document::appendOnFile( path, title, *histogram, folderId ) ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
             for ( auto handler: vec )
                 handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+#else
+            for ( auto v : ExtensionSystem::PluginManager::allObjects() ) {
+                if ( auto handler = qobject_cast< adextension::iSnapshotHandler * >( v ) ) {
+                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+                }
+            }
+#endif
         }
     }
 

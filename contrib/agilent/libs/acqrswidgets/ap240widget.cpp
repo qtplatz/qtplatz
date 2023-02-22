@@ -54,13 +54,13 @@ ap240widget::ap240widget( QWidget *parent ) : QWidget( parent )
 {
     if ( auto topLayout = new QVBoxLayout( this ) ) {
         topLayout->setSpacing( 0 );
-        topLayout->setMargin( 0 );
+        topLayout->setContentsMargins( {} );
 
         if ( auto gbox = qtwrapper::make_widget< QGroupBox >( "GroupBox", "AP240" ) ) {
             gbox->setStyleSheet( "QGroupBox { margin-top: 2ex; margin-bottom: 0ex; margin-left: 0ex; margin-right: 0ex; }" );
             if ( auto layout = new QVBoxLayout( gbox ) ) {
                 layout->setSpacing( 0 );
-                layout->setMargin( 0 );
+                layout->setContentsMargins( {} );
                 if ( auto widget = new AcqirisWidget() ) {
                     layout->addWidget( widget );
                 }
@@ -74,7 +74,7 @@ ap240widget::ap240widget( QWidget *parent ) : QWidget( parent )
             topLayout->addLayout( layout );
         }
     }
-    
+
     set( acqrscontrols::ap240::method() );
 }
 
@@ -111,7 +111,7 @@ ap240widget::onInitialUpdate()
         connect( w, &AcqirisWidget::stateChanged, [&]( const QModelIndex& index, bool ){
                 emit valueChanged( idChannels, index.row() - 2 );
                 emit dataChanged();
-            });            
+            });
     }
     if ( auto edit = findChild< QLineEdit * >( "external_delay" ) )
         edit->setReadOnly( true );
@@ -127,19 +127,19 @@ ap240widget::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
-        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
-        
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);
+
         auto m = std::make_shared< acqrscontrols::ap240::method>();
         if ( get( *m ) )
             ptr->append( *m );
         return true;
-        
+
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
-        
+
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         auto m = std::make_shared< acqrscontrols::ap240::method>();
         if ( get( *m ) )
-            pi->set<>( *pi, *m ); // serialize            
+            pi->set<>( *pi, *m ); // serialize
 
         return true;
     } else if ( adportable::a_type< acqrscontrols::ap240::method >::is_pointer( a ) ) {
@@ -167,9 +167,9 @@ ap240widget::setContents( boost::any&& a )
 
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
 
-        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );             
+        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );
 
-    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {   
+    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {
 
         pi = &boost::any_cast<const adcontrols::ControlMethod::MethodItem& >( a );
     }

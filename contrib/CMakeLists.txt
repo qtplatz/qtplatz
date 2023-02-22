@@ -3,14 +3,18 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( socfpga )
 endif()
 
+if ( NOT CMAKE_CROSSCOMPILING ) #AND NOT RTC_ARCH_ARM )
+  add_subdirectory( accutof )
+endif()
+
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+  # message( STATUS "------------ contrib/agilent ----------------" )
+  add_subdirectory( agilent )
+endif()
+
 if ( ${QT_VERSION_MAJOR} LESS_EQUAL 5 )
   if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
     add_subdirectory( shrader )
-  endif()
-
-  if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-    # message( STATUS "------------ contrib/agilent ----------------" )
-    add_subdirectory( agilent )
   endif()
 
   if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM AND AqMD3_FOUND )
@@ -19,10 +23,6 @@ if ( ${QT_VERSION_MAJOR} LESS_EQUAL 5 )
 
   if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
     add_subdirectory( infitof )
-  endif()
-
-  if ( NOT CMAKE_CROSSCOMPILING ) #AND NOT RTC_ARCH_ARM )
-    add_subdirectory( accutof )
   endif()
 
   if ( WITH_Wolfram AND NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
