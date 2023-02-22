@@ -369,7 +369,7 @@ MSProcessingWnd::init()
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setContentsMargins( {} );
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
 
@@ -1461,8 +1461,12 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                     adcontrols::ProcessMethod::xml_archive( o, *pm );
                     pugi::xml_document dom;
                     auto result = dom.load_string( pugi::as_utf8( o.str() ).c_str() );
-                    if ( result )
+                    if ( result ) {
+                        ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                         adpublisher::printer::print( printer, painter, drawRect, dom, "process-method-html.xsl" );
+#endif
+                    }
                 }
             }
         }

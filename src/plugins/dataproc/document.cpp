@@ -162,9 +162,11 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
     // fake project directory for help initial openfiledialog location
+    ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     Core::DocumentManager::setProjectsDirectory( path );
     Core::DocumentManager::setUseProjectsDirectory( true );
-
+#endif
     boost::filesystem::path mfile( dir / "default.pmth" );
     adcontrols::ProcessMethod pm;
     if ( load( QString::fromStdWString( mfile.wstring() ), pm ) )
@@ -220,10 +222,12 @@ document::recentFile( const char * group, bool dir_on_fail )
         return file;
 
     if ( dir_on_fail ) {
+        ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
             file = qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
-
+#endif
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();
@@ -572,7 +576,10 @@ document::handle_folium_added( const QString& fname, const QString& path, const 
 
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
     if ( it == SessionManager::instance()->end() ) {
+        ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		Core::EditorManager::instance()->openEditor( fname );
+#endif
         it = SessionManager::instance()->find( filename );
     }
 
@@ -590,6 +597,8 @@ document::handle_portfolio_created( const QString& filename )
     if ( core ) {
         auto em = Core::EditorManager::instance();
         // Core::EditorManager * em = core->editorManager();
+        ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         if ( em && dataprocFactory_ ) {
             if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
                 if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
@@ -598,6 +607,7 @@ document::handle_portfolio_created( const QString& filename )
                 }
             }
         }
+#endif
     }
 }
 

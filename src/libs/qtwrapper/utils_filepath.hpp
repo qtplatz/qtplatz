@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,37 +23,16 @@
 **
 **************************************************************************/
 
-#ifndef DATAPROCESSORFACTORY_H
-#define DATAPROCESSORFACTORY_H
+#pragma once
 
-#include <coreplugin/editormanager/ieditorfactory.h>
-#include <QStringList>
-#include <memory>
+#include <QtGlobal>
+#include <utils/filepath.h>
 
-namespace Core {
-    class IEditor;
-}
-
-namespace dataproc {
-
-    class DataprocPlugin;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    class DataprocessorFactory : public Core::IEditorFactory {
-        Q_OBJECT
-    public:
-        ~DataprocessorFactory();
-        explicit DataprocessorFactory( QObject * owner, const QStringList& );
-
-        // implement IEditorFactory
-        Core::IEditor *createEditor() override;
-    signals:
-
-    public slots:
-
-    private:
-
-    };
+namespace qtwrapper {
+    struct filepath {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        static QString toString( const Utils::FilePath& t ) { return t.toString(); }
 #endif
+        static QString toString( QString&& t )              { return t; }
+    };
 }
-
-#endif // DATAPROCESSORFACTORY_H

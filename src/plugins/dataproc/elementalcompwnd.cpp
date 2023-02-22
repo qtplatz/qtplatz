@@ -154,7 +154,7 @@ ElementalCompWnd::init()
         splitter->setOrientation( Qt::Vertical );
 
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-        toolBarAddingLayout->setMargin(0);
+        toolBarAddingLayout->setContentsMargins( {} );
         toolBarAddingLayout->setSpacing(0);
         toolBarAddingLayout->addWidget( splitter );
     }
@@ -329,7 +329,12 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 
     QString fullpath;
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         fullpath = processor->filePath();
+#else
+        fullpath = processor->filePath().toString(); // Utils::FilePath
+#endif
     }
 
 	painter.drawText( drawRect, Qt::TextWordWrap, fullpath, &boundingRect );

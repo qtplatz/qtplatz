@@ -49,6 +49,7 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/utils_filepath.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/modemanager.h>
@@ -258,10 +259,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         );
 
     // pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
-
+    ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
-
+#endif
     setFocusProxy( pTreeView_ );
     initView();
 
@@ -343,7 +345,11 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QString filename( processor->filePath() );
+#else
+    QString filename( processor->filePath().toString() );
+#endif
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
@@ -409,7 +415,11 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QString filename = processor->filePath();
+#else
+    QString filename = processor->filePath().toString();
+#endif
 
     QStandardItemModel& model = *pModel_;
 
@@ -454,7 +464,7 @@ void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     // adcontrols::datafile * file = processor->file();
-    QString filename = processor->filePath();
+    QString filename = qtwrapper::filepath::toString( processor->filePath() );
 
     QStandardItemModel& model = *pModel_;
 

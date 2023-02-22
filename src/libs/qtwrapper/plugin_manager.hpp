@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,37 +23,29 @@
 **
 **************************************************************************/
 
-#ifndef DATAPROCESSORFACTORY_H
-#define DATAPROCESSORFACTORY_H
+#pragma once
 
-#include <coreplugin/editormanager/ieditorfactory.h>
-#include <QStringList>
-#include <memory>
+#include <QtGlobal>
+#include <aggregation/aggregate.h>
+#include <extensionsystem/pluginmanager.h>
 
-namespace Core {
-    class IEditor;
-}
+namespace qtwrapper {
 
-namespace dataproc {
-
-    class DataprocPlugin;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    class DataprocessorFactory : public Core::IEditorFactory {
-        Q_OBJECT
-    public:
-        ~DataprocessorFactory();
-        explicit DataprocessorFactory( QObject * owner, const QStringList& );
-
-        // implement IEditorFactory
-        Core::IEditor *createEditor() override;
-    signals:
-
-    public slots:
-
-    private:
-
-    };
+    template< typename PluginManager = ExtensionSystem::PluginManager >
+    struct plugin_manager_t {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        template <typename T> static QList<T *> getObjects() {
+            QReadLocker lock( PluginManager::listLock() );
+            QList<T *> results;
+            QList<QObject *> all = PluginManager::allObjects();
+            foreach (QObject *obj, all) {
+                if ( auto result = qobject_cast<T *>(obj) )
+                    results += result;
+        }
+        return results;
+    }
+#else
+        return PluginManager::getObjects< T >();
 #endif
+    };
 }
-
-#endif // DATAPROCESSORFACTORY_H

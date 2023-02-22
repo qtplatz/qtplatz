@@ -55,16 +55,19 @@ namespace dataproc {
     class DataprocessorFactory;
     class iSnapshotHandlerImpl;
 	class iPeptideHandlerImpl;
-    
+
     class DataprocPlugin : public ExtensionSystem::IPlugin {
-        
         Q_OBJECT
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "dataproc.json")
+#else
+		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "dataproc.json")
+#endif
 
     public:
         ~DataprocPlugin();
         explicit DataprocPlugin();
-        
+
         // implement ExtensionSystem::IPlugin
         bool initialize(const QStringList &arguments, QString *error_message);
         void extensionsInitialized();
@@ -73,7 +76,7 @@ namespace dataproc {
         // <--
         inline static DataprocPlugin * instance() { return instance_; }
         inline static MainWindow * mainWindow() { return instance_ ? instance_->mainWindow_ : 0; }
-        
+
         void applyMethod( const adcontrols::ProcessMethod& );
 
         //DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
@@ -81,35 +84,34 @@ namespace dataproc {
         dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
 
         //void handleFileCreated( const QString& filename );
-        
+
     signals:
         void onApplyMethod( const adcontrols::ProcessMethod& );
-                                                              
+
     public slots:
-            
+
     private:
         enum { idActSpectrogram, nActions };
-        
+
     private:
         dataproc::MainWindow * mainWindow_;
         std::unique_ptr< dataproc::Mode > mode_;
 
         // std::unique_ptr< SessionManager > pSessionManager_;
         std::unique_ptr< ActionManager > pActionManager_;
-        
+
         std::unique_ptr< adextension::iSequenceImpl > iSequence_;
         std::unique_ptr< iSnapshotHandlerImpl > iSnapshotHandler_;
         std::unique_ptr< iPeptideHandlerImpl > iPeptideHandler_;
 
         static DataprocPlugin * instance_;
-        
+
         // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
         //static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );
         //static void delete_editorfactories( std::vector< EditorFactory * >& );
-        
+
         bool connect_isnapshothandler_signals();
         void disconnect_isnapshothandler_signals();
-        
+
     };
 }
-

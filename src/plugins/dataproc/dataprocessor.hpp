@@ -86,15 +86,27 @@ namespace dataproc {
         inline Core::IDocument * document() { return this; };
 
         // Core::IDocument
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
-
         QString defaultPath() const override;
         QString suggestedFileName() const override;
         bool isModified() const override;
         bool isSaveAsAllowed() const override;
         bool isFileReadOnly() const override;
         IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
+#else
+        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false );
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+        bool isModified() const override;
+        bool isSaveAsAllowed() const override;
+        IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
+        QString defaultPath() const;
+        QString suggestedFileName() const;
+        bool isFileReadOnly() const;
+#endif
+        // qt5 -> qt6 transition
+        QString filepath() const;
 
         // Dataprocessor
         void xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info ) override;

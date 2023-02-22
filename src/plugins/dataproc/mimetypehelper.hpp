@@ -26,7 +26,11 @@
 #define MIMEHELPER_HPP
 
 #include <QtCore>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/mimedatabase.h>
+#else
+#include <utils/mimetypes/mimedatabase.h>
+#endif
 #include <pugixml.hpp>
 
 namespace dataproc {

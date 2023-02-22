@@ -57,7 +57,7 @@ if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
     )
 endif()
 
-add_definitions( -DDATAPROC_LIBRARY  )
+add_definitions( -DCHEMISTRY_LIBRARY )
 
 if ( MSVC )
   add_definitions(

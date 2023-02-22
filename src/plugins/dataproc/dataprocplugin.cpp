@@ -27,14 +27,18 @@
 #include "actionmanager.hpp"
 #include "constants.hpp"
 #include "document.hpp"
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
+#endif
 #include <adextension/isequenceimpl.hpp>
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
 #include "mainwindow.hpp"
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "mimetypehelper.hpp"
+#endif
 #include "mode.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
@@ -76,11 +80,19 @@
 #include <pugixml.hpp>
 
 #include <coreplugin/icore.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/mimedatabase.h>
+#else
+#include <utils/mimetypes/mimedatabase.h>
+#endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
@@ -125,18 +137,18 @@ DataprocPlugin * DataprocPlugin::instance_ = 0;
 DataprocPlugin::~DataprocPlugin()
 {
     if ( mode_ )
-        removeObject( mode_.get() );
+        ExtensionSystem::PluginManager::removeObject( mode_.get() );
 
     if ( iSequence_ )
-        removeObject( iSequence_.get() );
+        ExtensionSystem::PluginManager::removeObject( iSequence_.get() );
 
     if ( iSnapshotHandler_ ) {
         disconnect_isnapshothandler_signals();
-        removeObject( iSnapshotHandler_.get() );
+        ExtensionSystem::PluginManager::removeObject( iSnapshotHandler_.get() );
     }
 
     if ( iPeptideHandler_ )
-        removeObject( iPeptideHandler_.get() );
+        ExtensionSystem::PluginManager::removeObject( iPeptideHandler_.get() );
 
 #if ! defined NDEBUG
     ADDEBUG() << "## DTOR ##";
@@ -187,12 +199,15 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         QStringList mTypes;
 
         // core mime-types
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
             ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
-
+#else
+        ADDEBUG() << "############### Core::MimeDatabase::addMimeTypes from xml in the resouce need to be resolved ############";
+#endif
         // externally installed mime-types
         std::wstring mimefile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         if ( Core::MimeDatabase::addMimeTypes( QString::fromStdWString( mimefile ), error_message ) ) {
 
             pugi::xml_document doc;
@@ -207,44 +222,49 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
                 if ( mimeTypeHelper::add( xml.c_str(), static_cast<int>(xml.size()), error_message ) )
 					mimeTypeHelper::populate( mTypes, xml.c_str() );
             });
-
-
+#else
+        ADDEBUG() << "############### Core::MimeDatabase::addMimeTypes from xml in the resouce need to be resolved ############";
+#endif
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         addAutoReleasedObject( new DataprocessorFactory( this, mTypes ) );
-
+#else
+        ADDEBUG() << "############### TODO: DataprocessorFactory need to be revoked ###################";
+#endif
     } while ( 0 );
 
-    mode_.reset( new dataproc::Mode( this ) );
-    if ( ! mode_ )
-        return false;
-    // mode_->setContext( context );
-
-    pActionManager_->initialize_actions( mode_->context() );
-    mainWindow_->activateLayout();
-    QWidget * widget = mainWindow_->createContents( mode_.get() );
-    widget->setObjectName( QLatin1String( "DataprocessingPage") );
-    mode_->setWidget( widget );
-
-    // iSequence_.reset( new iSequenceImpl );
-    // if ( iSequence_ && mainWindow_->editor_factories( *iSequence_ ) )
-    //     addObject( iSequence_.get() );
+    if (( mode_ = std::make_unique< dataproc::Mode >( this ) )) {
+        pActionManager_->initialize_actions( mode_->context() );
+        mainWindow_->activateLayout();
+        QWidget * widget = mainWindow_->createContents( mode_.get() );
+        widget->setObjectName( QLatin1String( "DataprocessingPage") );
+        mode_->setWidget( widget );
+    }
 
     iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
     if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )
-        addObject( iSnapshotHandler_.get() );
+        ExtensionSystem::PluginManager::addObject( iSnapshotHandler_.get() );
 
     iPeptideHandler_.reset( new iPeptideHandlerImpl );
 	if ( iPeptideHandler_ )
-        addObject( iPeptideHandler_.get() );
+        ExtensionSystem::PluginManager::addObject( iPeptideHandler_.get() );
 
     if ( adextension::iSessionManager * mgr = SessionManager::instance() )
-        addObject( mgr );
+        ExtensionSystem::PluginManager::addObject( mgr );
 
-    addObject( mode_.get() );
+    ExtensionSystem::PluginManager::addObject( mode_.get() );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     addAutoReleasedObject( new NavigationWidgetFactory );
-
+#else
+    ExtensionSystem::PluginManager::addObject( new NavigationWidgetFactory );
+#endif
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     connect( Core::ICore::instance(), &Core::ICore::coreAboutToOpen, this, [](){
             Core::NavigationWidget::instance()->activateSubWidget( Constants::C_DATAPROC_NAVI ); });
-
+#else
+    connect( Core::ICore::instance(), &Core::ICore::coreAboutToOpen, this, [](){
+        Core::NavigationWidget::activateSubWidget( Constants::C_DATAPROC_NAVI, Core::Side::Left );
+    });
+#endif
     return true;
 }
 
@@ -271,7 +291,7 @@ DataprocPlugin::aboutToShutdown()
     mainWindow_->OnFinalClose();
 
     if ( adextension::iSessionManager * mgr = SessionManager::instance() ) {
-        removeObject( mgr );
+        ExtensionSystem::PluginManager::removeObject( mgr );
         delete mgr;
     }
 
@@ -305,4 +325,6 @@ DataprocPlugin::disconnect_isnapshothandler_signals()
     //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &dataproc_document::handle_folium_added );
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 Q_EXPORT_PLUGIN( DataprocPlugin )
+#endif

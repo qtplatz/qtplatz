@@ -97,7 +97,12 @@
 #include <adutils/processeddata_t.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/idocument.h>
 #include <qtwrapper/waitcursor.hpp>
 
@@ -193,8 +198,11 @@ Dataprocessor::Dataprocessor() : modified_( false )
 void
 Dataprocessor::setDisplayName( const QString& fullpath )
 {
+    ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QFontMetrics fm( QApplication::fontMetrics() );
     IDocument::setDisplayName( fm.elidedText( fullpath, Qt::ElideLeft, 200 ) );
+#endif
 }
 
 void
@@ -343,8 +351,11 @@ Dataprocessor::open(const std::wstring &filename, std::wstring& emsg )
 {
     emsg = std::wstring{};
     if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
+    ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         Core::IDocument::setFilePath( QString::fromStdWString( filename ) );
         Core::DocumentManager::setCurrentFile( QString::fromStdWString( filename ) );
+#endif
         return true;
     }
     return false;
@@ -1763,4 +1774,22 @@ Dataprocessor::clearMarkup( portfolio::Folium&& folium )
         setModified( true );
         SessionManager::instance()->updateDataprocessor( this, folium );
     }
+}
+
+namespace dataproc
+ {
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+     QString
+     Dataprocessor::filepath() const
+     {
+         return this->filePath();
+     }
+#else
+     QString
+     Dataprocessor::filepath() const
+     {
+         return this->filePath().toString();
+     }
+#endif
 }

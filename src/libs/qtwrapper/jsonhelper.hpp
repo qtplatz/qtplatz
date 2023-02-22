@@ -34,8 +34,13 @@ namespace qtwrapper {
 #if __cplusplus >= 201703
         template< typename T > static std::optional<T> value( const QJsonObject& obj, const QString& key ) {
             auto it = obj.find( key );
-            if ( it != obj.end() )
+            if ( it != obj.end() ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 return qvariant_cast<T>(*it);
+#else
+                return qvariant_cast<T>(it->toObject());
+#endif
+            }
             return std::nullopt;
         }
 #else

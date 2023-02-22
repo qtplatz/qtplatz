@@ -30,6 +30,7 @@
 #include <adportfolio/folium.hpp>
 #include <coreplugin/editormanager/editormanager.h>
 #include <adlog/logger.hpp>
+#include <qtwrapper/utils_filepath.hpp>
 #include <boost/any.hpp>
 #include <QSignalBlocker>
 #include <mutex>
@@ -95,7 +96,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
     emit onSessionAdded( proc.get() );
 
     // iSessionManager
-    emit addProcessor( this, proc->filePath() );
+    emit addProcessor( this, qtwrapper::filepath::toString( proc->filePath() ) );
 
     loadInprogress_ = false;
 }
@@ -121,7 +122,7 @@ SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Fol
 {
     if ( ! loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
-        emit onCheckStateChanged( this, dataprocessor->filePath(), folium, isChecked );
+        emit onCheckStateChanged( this, dataprocessor->filepath(), folium, isChecked );
     }
 }
 
@@ -154,7 +155,7 @@ SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& foli
     emit onProcessed( dataprocessor, folium );
 
     // iSessionManager
-    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filePath(), folium );
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filepath(), folium );
 }
 
 void
@@ -172,7 +173,7 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
     emit signalSelectionChanged( dataprocessor, folium );
 
     // iSessionManager
-    emit onSelectionChanged( this, dataprocessor->filePath(), folium );
+    emit onSelectionChanged( this, dataprocessor->filepath(), folium );
 }
 
 Dataprocessor *
@@ -185,7 +186,7 @@ SessionManager::getActiveDataprocessor()
 std::shared_ptr< adprocessor::dataprocessor >
 SessionManager::getDataprocessor( const QString& name )
 {
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath() == name; } );
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filepath() == name; } );
     if ( it != end() )
         return it->processor()->shared_from_this();
 

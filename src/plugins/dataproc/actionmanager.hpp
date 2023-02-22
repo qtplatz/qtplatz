@@ -30,10 +30,10 @@
 #include <QAction>
 #include <memory>
 #include <array>
-
+#include <coreplugin/icontext.h>
 class QAction;
 
-namespace Core { class IContext; class Context; }
+// namespace Core { class IContext; class Context; }
 
 namespace dataproc {
 

@@ -37,6 +37,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
@@ -44,7 +45,12 @@
 #include <adportfolio/portfolio.hpp>
 #include <qtwrapper/settings.hpp>
 #include <coreplugin/icore.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
+#include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
@@ -57,6 +63,7 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
+#include <QMenu>
 #include <QStandardPaths>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -222,8 +229,10 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
         } while ( 0 );
     }
-
+    ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );
+#endif
 
     return  install_toolbar_actions() && install_file_actions();
 }
@@ -387,7 +396,11 @@ ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Co
 {
     for ( auto& context : t1 ) {
         if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath() );
+#else
+            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath().toString() );
+#endif
             actions_[ idActSaveAs ]->setText( text );
         }
     }

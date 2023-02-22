@@ -215,7 +215,7 @@ MSPeaksWnd::init()
         splitter->setOrientation( Qt::Horizontal );
 
         QBoxLayout * layout = new QVBoxLayout( this );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->setSpacing( 0 );
         layout->addWidget( splitter );
     }

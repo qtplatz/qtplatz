@@ -78,7 +78,11 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
     if ( data.canConvert< Dataprocessor * >() ) {
         if ( Dataprocessor * processor = data.value< Dataprocessor * >() ) {
             QStyledItemDelegate::paint( painter, opt, index );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             painter->drawText( option.rect, option.displayAlignment, processor->filePath() );
+#else
+            painter->drawText( option.rect, option.displayAlignment, processor->filePath().toString() );
+#endif
         }
     } else if ( data.canConvert< portfolio::Folder >() ) {
         portfolio::Folder folder = data.value< portfolio::Folder >();

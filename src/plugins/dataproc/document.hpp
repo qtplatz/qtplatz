@@ -47,19 +47,19 @@ namespace adcontrols {
 namespace dataproc {
 
     class Dataprocessor;
-    class DataprocessorFactory;
+    //class DataprocessorFactory;
 
     class document : public QObject
     {
         Q_OBJECT
-        
+
         explicit document(QObject *parent = 0);
-        
+
         static std::atomic<document * > instance_;
         static std::mutex mutex_;
     public:
         static document * instance();
-        
+
         void initialSetup();
         void finalClose();
 
@@ -98,14 +98,16 @@ namespace dataproc {
         void handle_portfolio_created( const QString& token );
         void handleSelectTimeRangeOnChromatogram( double x1, double x2 );
 
-    private:    
+    private:
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ProcessMethod > pm_;
         QString procmethod_filename_;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         std::unique_ptr< DataprocessorFactory > dataprocFactory_;
+#endif
         std::map< Plot, adcontrols::axis::AxisH > horAxis_;
-        
+
         void handleSelectTimeRangeOnChromatogram_v2( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
         void handleSelectTimeRangeOnChromatogram_v3( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
 

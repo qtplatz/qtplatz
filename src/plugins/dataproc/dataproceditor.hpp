@@ -42,6 +42,7 @@ namespace dataproc {
     public:
         ~DataprocEditor();
         DataprocEditor( Core::IEditorFactory * );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         void setDataprocessor( Dataprocessor * );
 
         bool portfolio_create( const QString &token );
@@ -69,6 +70,7 @@ namespace dataproc {
         QString displayName_;
 
         bool eventFilter( QObject * object, QEvent * event ) override;
+#endif
     };
 
 }
