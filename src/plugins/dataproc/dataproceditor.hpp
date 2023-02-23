@@ -41,7 +41,12 @@ namespace dataproc {
         Q_OBJECT
     public:
         ~DataprocEditor();
-        DataprocEditor( Core::IEditorFactory * );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        DataprocEditor( Core::IEditorFactory * ); // for Qt5/QtCreator4
+#else
+        DataprocEditor();  // for Qt6/QtCreator9
+#endif
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         void setDataprocessor( Dataprocessor * );
 
@@ -69,8 +74,17 @@ namespace dataproc {
         Core::Context context_;
         QString displayName_;
 
-        bool eventFilter( QObject * object, QEvent * event ) override;
+#else
+        ////////////// Qt6/QtCreator9 ///////////////////
+    public:
+        Core::IDocument * document() const override;
+        QWidget *toolBar() override;
+        Core::IEditor *duplicate() override;
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
 #endif
+        bool eventFilter( QObject * object, QEvent * event ) override;
     };
 
 }

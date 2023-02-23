@@ -680,7 +680,7 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
 #endif
 
     std::for_each( m.begin(), m.end(), [&] ( const adcontrols::ControlMethod::TimedEvent& e ) {
-#if !defined NDEBUG
+#if !defined NDEBUG && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         auto obj = QJsonDocument::fromJson( e.json().data() ).object();
         qDebug() << obj;
 #endif

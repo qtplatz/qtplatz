@@ -187,11 +187,13 @@ namespace {
 
 Dataprocessor::~Dataprocessor()
 {
+    ADDEBUG() << "###### Dataprocessor::dtor ########";
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
 Dataprocessor::Dataprocessor() : modified_( false )
 {
+    setId( Utils::Id( Constants::C_DATAPROCESSOR ) );
     connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
@@ -231,6 +233,34 @@ Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
     return IDocument::BehaviorSilent;
 }
 
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+Core::IDocument::OpenResult
+Dataprocessor::open( QString *errorString
+                    , const Utils::FilePath &filePath
+                    , const Utils::FilePath &realFilePath)
+{
+    ADDEBUG() << "##### Dataprocessor::open ##### filePath: "     << filePath.toString().toStdString();
+    ADDEBUG() << "##### Dataprocessor::open ##### realFilePath: " << realFilePath.toString().toStdString();
+	qtwrapper::waitCursor wait;
+
+    std::wstring emsg;
+    if ( adprocessor::dataprocessor::open( filePath.toString().toStdWString(),  emsg ) ) {
+        auto ptr = std::static_pointer_cast<Dataprocessor>(shared_from_this());
+        SessionManager::instance()->addDataprocessor( ptr, nullptr ); // IEditor
+
+        Core::DocumentManager::addDocument( this );
+        Core::DocumentManager::addToRecentFiles( filePath );
+        document::instance()->addToRecentFiles( filePath.toString() );
+
+        return Core::IDocument::OpenResult::Success;
+    }
+
+    *errorString = QString( "DataprocEditor:\nfile %1 could not be opend.\nReason: %2." )
+        .arg( filePath.toString(), QString::fromStdWString( emsg ) );
+    return Core::IDocument::OpenResult::ReadError;
+}
+#endif
 
 bool
 Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
@@ -1644,12 +1674,20 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
             bool interporate( false );
 
             if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 int result = QMessageBox::question( MainWindow::instance()
                                                     , QObject::tr("Lock mass")
                                                     , QObject::tr( "Blacketing ?" )
                                                     , QMessageBox::Yes
                                                     , QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+#else
+                QMessageBox mbox;
+                mbox.setText( "Lock mass" );
+                mbox.setInformativeText( "Blacketing?" );
+                mbox.setStandardButtons( QMessageBox::Yes | QMessageBox::No ); // |QMessageBox::Default|QMessageBox::Escape );
+                mbox.setDefaultButton( QMessageBox::No ); //|QMessageBox::Default|QMessageBox::Escape );
+                int result = mbox.exec();
+#endif
                 if ( result == QMessageBox::Yes )
                     interporate = true;
             }

@@ -33,6 +33,8 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include <adportable/debug.hpp>
+
 using namespace Core;
 using namespace Utils;
 
@@ -373,8 +375,24 @@ ImageViewerFactory::ImageViewerFactory()
     setEditorCreator([] { return new ImageViewer; });
 
     const QList<QByteArray> supportedMimeTypes = QImageReader::supportedMimeTypes();
-    for (const QByteArray &format : supportedMimeTypes)
+
+    for (const QByteArray &format : supportedMimeTypes) {
         addMimeType(QString::fromLatin1(format));
+        /*
+          image/bmp
+          image/gif
+          image/jpeg
+          image/png
+          image/svg+xml
+          image/svg+xml-compressed
+          image/vnd.microsoft.icon
+          image/x-portable-bitmap
+          image/x-portable-graymap
+          image/x-portable-pixmap
+          image/x-xbitmap
+          image/x-xpixmap
+        */
+    }
 }
 
 } // ImageViewer::Internal

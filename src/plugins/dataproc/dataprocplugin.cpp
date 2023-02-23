@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,9 +29,10 @@
 #include "document.hpp"
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "dataprocessor.hpp"
-#include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
 #endif
+#include "dataprocfactory.hpp"
+
 #include <adextension/isequenceimpl.hpp>
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
@@ -39,6 +40,7 @@
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "mimetypehelper.hpp"
 #endif
+
 #include "mode.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
@@ -130,36 +132,108 @@
 #include <functional>
 #include <thread>
 
-using namespace dataproc;
+namespace dataproc {
 
-DataprocPlugin * DataprocPlugin::instance_ = 0;
+    class DataprocPlugin::impl {
+    public:
+        impl( DataprocPlugin * p ) : pThis_( p )
+                                   , editorFactory_( std::make_unique< DataprocFactory >() ) {
+        }
+        DataprocPlugin * pThis_;
+        std::unique_ptr< DataprocFactory > editorFactory_;
+
+        std::unique_ptr< ActionManager > actionManager_;
+        std::unique_ptr< MainWindow > mainWindow_;
+        std::unique_ptr< dataproc::Mode > mode_;
+
+        std::unique_ptr< adextension::iSequenceImpl > iSequence_;
+        std::unique_ptr< iSnapshotHandlerImpl > iSnapshotHandler_;
+        std::unique_ptr< iPeptideHandlerImpl > iPeptideHandler_;
+
+        bool init_mode() {
+            if (( mode_ = std::make_unique< dataproc::Mode >( pThis_ ) )) {
+                actionManager_->initialize_actions( mode_->context() );
+                mainWindow_->activateLayout();
+                QWidget * widget = mainWindow_->createContents( mode_.get() );
+                widget->setObjectName( QLatin1String( "DataprocessingPage") );
+                mode_->setWidget( widget );
+                init_handlers();
+                // ExtensionSystem::PluginManager::addObject( mode_.get() ); <- may not be necessary ??
+                return true;
+            }
+            return false;
+        }
+
+        void fin_handlers() {
+            ExtensionSystem::PluginManager::removeObject( iSequence_.get() );
+            ExtensionSystem::PluginManager::removeObject( iSnapshotHandler_.get() );
+            ExtensionSystem::PluginManager::removeObject( iPeptideHandler_.get() );
+        }
+
+    private:
+        void init_handlers() {
+            if (( iSnapshotHandler_ = std::make_unique< iSnapshotHandlerImpl >() )) {
+                connect_isnapshothandler_signals();
+                ExtensionSystem::PluginManager::addObject( iSnapshotHandler_.get() );
+            }
+            if (( iPeptideHandler_ = std::make_unique< iPeptideHandlerImpl >() )) {
+                ExtensionSystem::PluginManager::addObject( iPeptideHandler_.get() );
+            }
+
+            if ( adextension::iSessionManager * mgr = SessionManager::instance() ) {
+                ExtensionSystem::PluginManager::addObject( mgr );
+            }
+        }
+
+        // this may move to document ???
+        void connect_isnapshothandler_signals() {
+            auto p = DataprocPlugin::instance();
+            p->connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, p, [] ( const QString& _1 ) {
+                document::instance()->handle_portfolio_created( _1 );
+            } );
+            p->connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, p, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
+                document::instance()->handle_folium_added( _1, _2, _3 );
+            } );
+        }
+    };
+
+    DataprocPlugin * DataprocPlugin::instance_ = 0;
+}
+
+
+
+using namespace dataproc;
 
 DataprocPlugin::~DataprocPlugin()
 {
-    if ( mode_ )
-        ExtensionSystem::PluginManager::removeObject( mode_.get() );
-
-    if ( iSequence_ )
-        ExtensionSystem::PluginManager::removeObject( iSequence_.get() );
-
-    if ( iSnapshotHandler_ ) {
-        disconnect_isnapshothandler_signals();
-        ExtensionSystem::PluginManager::removeObject( iSnapshotHandler_.get() );
-    }
-
-    if ( iPeptideHandler_ )
-        ExtensionSystem::PluginManager::removeObject( iPeptideHandler_.get() );
-
-#if ! defined NDEBUG
-    ADDEBUG() << "## DTOR ##";
-#endif
-
+    impl_->fin_handlers();
 }
 
-DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
-                                 , pActionManager_( std::make_unique< ActionManager >( this ) )
+DataprocPlugin::DataprocPlugin() : impl_( std::make_unique< impl >( this ) )
 {
     instance_ = this;
+    impl_->mainWindow_ = std::make_unique< MainWindow >();
+    impl_->actionManager_ = std::make_unique< ActionManager >( this );
+}
+
+//static
+DataprocPlugin *
+DataprocPlugin::instance()
+{
+    return instance_;
+}
+
+//static
+MainWindow *
+DataprocPlugin::mainWindow()
+{
+    return instance()->impl_->mainWindow_.get();
+}
+
+ActionManager *
+DataprocPlugin::actionManager()
+{
+    return impl_->actionManager_.get();
 }
 
 bool
@@ -191,7 +265,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
                                              mime.push_back( factory->mimeTypes() );
                                      }
                                  } );
-                //long x = 0;
             }
         } while ( 0 );
 
@@ -227,31 +300,12 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 #endif
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         addAutoReleasedObject( new DataprocessorFactory( this, mTypes ) );
-#else
-        ADDEBUG() << "############### TODO: DataprocessorFactory need to be revoked ###################";
 #endif
     } while ( 0 );
 
-    if (( mode_ = std::make_unique< dataproc::Mode >( this ) )) {
-        pActionManager_->initialize_actions( mode_->context() );
-        mainWindow_->activateLayout();
-        QWidget * widget = mainWindow_->createContents( mode_.get() );
-        widget->setObjectName( QLatin1String( "DataprocessingPage") );
-        mode_->setWidget( widget );
-    }
+    if ( ! impl_->init_mode() )
+        return false;
 
-    iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
-    if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )
-        ExtensionSystem::PluginManager::addObject( iSnapshotHandler_.get() );
-
-    iPeptideHandler_.reset( new iPeptideHandlerImpl );
-	if ( iPeptideHandler_ )
-        ExtensionSystem::PluginManager::addObject( iPeptideHandler_.get() );
-
-    if ( adextension::iSessionManager * mgr = SessionManager::instance() )
-        ExtensionSystem::PluginManager::addObject( mgr );
-
-    ExtensionSystem::PluginManager::addObject( mode_.get() );
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     addAutoReleasedObject( new NavigationWidgetFactory );
 #else
@@ -277,9 +331,9 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 void
 DataprocPlugin::extensionsInitialized()
 {
-    mainWindow_->OnInitialUpdate();
+    impl_->mainWindow_->OnInitialUpdate();
     document::instance()->initialSetup();
-    Core::ModeManager::activateMode( mode_->id() );
+    Core::ModeManager::activateMode( impl_->mode_->id() );
 }
 
 
@@ -288,7 +342,7 @@ DataprocPlugin::aboutToShutdown()
 {
     document::instance()->finalClose();
 
-    mainWindow_->OnFinalClose();
+    impl_->mainWindow_->OnFinalClose();
 
     if ( adextension::iSessionManager * mgr = SessionManager::instance() ) {
         ExtensionSystem::PluginManager::removeObject( mgr );
@@ -304,26 +358,29 @@ DataprocPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-bool
-DataprocPlugin::connect_isnapshothandler_signals()
-{
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, [] ( const QString& _1 ) {
-            document::instance()->handle_portfolio_created( _1 );
-        } );
+// bool
+// DataprocPlugin::connect_isnapshothandler_signals()
+// {
+//     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, [] ( const QString& _1 ) {
+//             document::instance()->handle_portfolio_created( _1 );
+//         } );
 
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
-            document::instance()->handle_folium_added( _1, _2, _3 );
-        } );
+//     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
+//             document::instance()->handle_folium_added( _1, _2, _3 );
+//         } );
 
-    return true;
-}
+//     return true;
+// }
 
-void
-DataprocPlugin::disconnect_isnapshothandler_signals()
-{
-    //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
-    //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &dataproc_document::handle_folium_added );
-}
+// void
+// DataprocPlugin::disconnect_isnapshothandler_signals()
+// {
+//     //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
+//     //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &dataproc_document::handle_folium_added );
+// }
+
+//////////////
+
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 Q_EXPORT_PLUGIN( DataprocPlugin )

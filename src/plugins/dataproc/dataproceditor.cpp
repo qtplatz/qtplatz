@@ -26,12 +26,16 @@
 #include "dataproceditor.hpp"
 #include "document.hpp"
 #include "dataprocessor.hpp"
-#include "dataprocessorfactory.hpp"
+#include "dataprocfactory.hpp"
 #include "dataprocconstants.hpp"
 #include "mainwindow.hpp"
 #include "msprocessingwnd.hpp"
 #include "sessionmanager.hpp"
-#include <coreplugin/id.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+# include <coreplugin/id.h>
+#else
+# include <utils/id.h>
+#endif
 #include <coreplugin/modemanager.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/icore.h>
@@ -39,30 +43,85 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <QTextEdit>
 #include <QEvent>
+#include <adportable/debug.hpp>
+
+namespace dataproc {
+
+    class DataprocEditor::impl {
+    public:
+        std::shared_ptr< Dataprocessor > file_;
+        QWidget * widget_;
+        impl() : widget_( new QWidget )
+               , file_( Dataprocessor::make_dataprocessor() ) {
+        }
+        ~impl() {
+            delete widget_;
+        }
+    };
+}
 
 using namespace dataproc;
 
-DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
-                                                                 , widget_( new QWidget )
-                                                                 , factory_(factory)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)  // QTC9
+DataprocEditor::~DataprocEditor()
+{
+    SessionManager::instance()->removeEditor( this );
+    //delete widget_;
+}
+
+DataprocEditor::DataprocEditor() : impl_( std::make_unique< impl >() )
+{
+    ADDEBUG() << "########### DataprocEditor::ctor ####################";
+    impl_->widget_->installEventFilter( this );
+    setWidget( impl_->widget_ );
+    // context_.add( Constants::C_DATAPROCESSOR );
+}
+
+Core::IDocument *
+DataprocEditor::document() const
+{
+    return impl_->file_.get();
+}
+
+QWidget *
+DataprocEditor::toolBar()
+{
+    ADDEBUG() << "########### DataprocEditor::" << __FUNCTION__ << " ####################";
+    return 0;
+}
+
+Core::IEditor *
+DataprocEditor::duplicate()
+{
+    ADDEBUG() << "########### DataprocEditor::" << __FUNCTION__ << " ####################";
+    return 0;
+}
+
+#endif
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
+DataprocEditor::DataprocEditor( Core::IEditorFactory * factory )
+    : Core::IEditor( 0 )
+    , widget_( new QWidget )
+    , factory_(factory)
 {
     widget_->installEventFilter( this );
     setWidget( widget_ );
     context_.add( Constants::C_DATAPROCESSOR );
 }
 
-DataprocEditor::~DataprocEditor()
-{
-    SessionManager::instance()->removeEditor( this );
-    delete widget_;
-}
-
+// QTC4
 void
 DataprocEditor::setDataprocessor( Dataprocessor * processor )
 {
     processor_ = std::static_pointer_cast< Dataprocessor >( processor->shared_from_this() );
 }
 
+// QTC4
 bool
 DataprocEditor::portfolio_create( const QString& filename )
 {
@@ -73,6 +132,7 @@ DataprocEditor::portfolio_create( const QString& filename )
     return false;
 }
 
+// QTC4
 bool
 DataprocEditor::open( QString* errorMessage, const QString &filename, const QString& )
 {
@@ -93,44 +153,53 @@ DataprocEditor::open( QString* errorMessage, const QString &filename, const QStr
     return false;
 }
 
+// QTC4
 Core::IDocument *
 DataprocEditor::document()
 {
     return processor_ ? processor_->document() : 0;
 }
 
+// QTC4
 void
 DataprocEditor::handleTitleChanged( const QString & /* title */ )
 {
 }
 
+// QTC4
 QByteArray
 DataprocEditor::saveState() const
 {
     return QByteArray();
 }
 
+// QTC4
 bool
 DataprocEditor::restoreState(const QByteArray & /* state */ )
 {
     return true;
 }
 
+// QTC4
 QWidget *
 DataprocEditor::toolBar()
 {
     return 0;
 }
 
+// QTC4
 Core::Context
 DataprocEditor::context() const
 {
     return context_;
 }
+#endif
 
+// QTC4, 9
 bool
 DataprocEditor::eventFilter( QObject * object, QEvent * event )
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( object == widget_ ) {
         if ( event->type() == QEvent::ShowToParent ) {
             int mode(0);
@@ -138,5 +207,13 @@ DataprocEditor::eventFilter( QObject * object, QEvent * event )
                 Core::ModeManager::activateMode( Core::Id( mode ) ); // Constants::C_DATAPROCESSOR ) );
         }
     }
+#else
+    if ( object == impl_->widget_ ) {
+        if ( event->type() == QEvent::Show ) {
+            if ( impl_->file_ )
+                Core::ModeManager::activateMode( Utils::Id( Constants::C_DATAPROCESSOR ) ); // Constants::C_DATAPROCESSOR ) );
+        }
+    }
+#endif
     return false;
 }

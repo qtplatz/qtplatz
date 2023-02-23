@@ -27,6 +27,8 @@ add_qtc_plugin(ImageViewer
   EXPLICIT_MOC imageviewer.h
 )
 
+#target_link_libraries( ImageViewer LINK_PUBLIC adportable )
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}

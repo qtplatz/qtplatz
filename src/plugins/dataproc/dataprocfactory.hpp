@@ -23,8 +23,10 @@
 **
 **************************************************************************/
 
-#ifndef DATAPROCESSORFACTORY_H
-#define DATAPROCESSORFACTORY_H
+#ifndef DATAPROCFACTORY_H
+#define DATAPROCFACTORY_H
+
+#pragma once
 
 #include <coreplugin/editormanager/ieditorfactory.h>
 #include <QStringList>
@@ -37,23 +39,19 @@ namespace Core {
 namespace dataproc {
 
     class DataprocPlugin;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    class DataprocessorFactory : public Core::IEditorFactory {
+
+    class DataprocFactory : public Core::IEditorFactory {
         Q_OBJECT
     public:
-        ~DataprocessorFactory();
-        explicit DataprocessorFactory( QObject * owner, const QStringList& );
+        ~DataprocFactory();
+        explicit DataprocFactory();
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        explicit DataprocFactory( QObject * owner, const QStringList& );
         // implement IEditorFactory
         Core::IEditor *createEditor() override;
-    signals:
-
-    public slots:
-
-    private:
-
-    };
 #endif
+    };
 }
 
-#endif // DATAPROCESSORFACTORY_H
+#endif // DATAPROCFACTORY_H

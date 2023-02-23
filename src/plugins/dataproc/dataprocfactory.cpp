@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "dataprocessorfactory.hpp"
+#include "dataprocfactory.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
 #include "dataproceditor.hpp"
@@ -36,15 +36,38 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>
 #include <QStringList>
+
+#include <adportable/debug.hpp>
 #include <adcontrols/datafile.hpp>
 
 using namespace dataproc;
 
-DataprocessorFactory::~DataprocessorFactory()
+DataprocFactory::~DataprocFactory()
 {
 }
 
-DataprocessorFactory::DataprocessorFactory( QObject * owner,
+DataprocFactory::DataprocFactory()
+{
+    ADDEBUG() << "########### DataprocFactory::ctor ##############";
+    setId( Constants::C_DATAPROCESSOR );
+
+    setDisplayName( tr("Dataprocessor") );
+    setEditorCreator( [] {
+        ADDEBUG() << "########### DataprocFactory::editorCreator ##############";
+        return new DataprocEditor();
+    });
+
+    for ( auto &format : { "application/adfs"
+                           , "application/txt"
+                           , "application/csv"
+                           , "application/octet-stream" } ) {
+        addMimeType( QString::fromLatin1(format) );
+    }
+
+}
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+DataprocFactory::DataprocFactory( QObject * owner,
 										    const QStringList& ) : Core::IEditorFactory( owner )
 {
     setId( Constants::C_DATAPROCESSOR );
@@ -58,7 +81,7 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner,
 
 // implementation for IEditorFactory
 Core::IEditor *
-DataprocessorFactory::createEditor()
+DataprocFactory::createEditor()
 {
     auto doc = Dataprocessor::make_dataprocessor(); // std::make_shared< Dataprocessor >();
     doc->setId( Constants::C_DATAPROCESSOR );
@@ -66,3 +89,4 @@ DataprocessorFactory::createEditor()
     editor->setDataprocessor( doc.get() );
     return editor;
 }
+#endif

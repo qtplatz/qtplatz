@@ -26,7 +26,9 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#include "dataprocessorfactory.hpp"
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include "dataprocfactory.hpp"
+#endif
 #include "dataproceditor.hpp"
 #include <adcontrols/axis.hpp>
 #include <adcontrols/chromatogram.hpp>

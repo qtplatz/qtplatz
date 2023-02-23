@@ -83,8 +83,9 @@ namespace dataproc {
             return std::make_shared< make_shared_enabler >();
         }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         inline Core::IDocument * document() { return this; };
-
+#endif
         // Core::IDocument
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
@@ -96,11 +97,13 @@ namespace dataproc {
         bool isFileReadOnly() const override;
         IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
 #else
+        OpenResult open(QString *errorString, const Utils::FilePath &filePath,
+                        const Utils::FilePath &realFilePath) override;
+        ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
         bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false );
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
         bool isModified() const override;
         bool isSaveAsAllowed() const override;
-        IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
         QString defaultPath() const;
         QString suggestedFileName() const;
         bool isFileReadOnly() const;

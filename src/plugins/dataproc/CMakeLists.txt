@@ -90,7 +90,7 @@ if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
     dataprocconstants.hpp
     dataproceditor.cpp          dataproceditor.hpp
     dataprocessor.cpp           dataprocessor.hpp
-    dataprocessorfactory.cpp    dataprocessorfactory.hpp
+    dataprocfactory.cpp         dataprocfactory.hpp
     dataprocessworker.cpp       dataprocessworker.hpp
     dataprochandler.cpp         dataprochandler.hpp
     dataprocplugin.cpp          dataprocplugin.hpp
@@ -135,9 +135,9 @@ else()
     chromatogramwnd.cpp         chromatogramwnd.hpp
     contourwnd.cpp              contourwnd.hpp
     datafolder.cpp              datafolder.hpp
-#    dataproceditor.cpp          dataproceditor.hpp
+    dataproceditor.cpp          dataproceditor.hpp
     dataprocessor.cpp           dataprocessor.hpp
-#    dataprocessorfactory.cpp    dataprocessorfactory.hpp
+    dataprocfactory.cpp         dataprocfactory.hpp
     dataprocessworker.cpp       dataprocessworker.hpp
     dataprochandler.cpp         dataprochandler.hpp
     dataprocplugin.cpp          dataprocplugin.hpp

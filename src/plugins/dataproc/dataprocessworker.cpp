@@ -341,10 +341,20 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
 		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
     if ( spectra->mslocked() ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         int result = QMessageBox::question( MainWindow::instance()
                                             , QObject::tr("Already mass locked")
                                             , QObject::tr( "delete assigned masses?" )
                                             , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+#else
+        QMessageBox mbox( MainWindow::instance() );;
+        mbox.setText("Already mass locked.");
+        mbox.setInformativeText("delete assigned masses?");
+        mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No ); //|QMessageBox::Default|QMessageBox::Escape );
+        mbox.setDefaultButton(QMessageBox::Yes);
+        int result = mbox.exec();
+#endif
+
         if ( result == QMessageBox::No )
             return;
     }
