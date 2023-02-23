@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,20 +23,17 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "aboutdlg.hpp"
-#endif
+//#endif
 #include "chromatogramwnd.hpp"
 #include "document.hpp"
 #include "dataprocconstants.hpp"
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
-#endif
 #include "dataprocplugin.hpp"
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include "dataprocessorfactory.hpp"
-#endif
+#include "dataprocfactory.hpp"
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
 #include "mspeaktable.hpp"
@@ -44,7 +41,7 @@
 #include <adwidgets/mspeaktree.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/settings.hpp>
-//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mspeakswnd.hpp"
@@ -54,7 +51,7 @@
 #include "rms_export.hpp"
 #include "sessionmanager.hpp"
 #include "contourwnd.hpp"
-//#endif
+
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/constants.hpp>
@@ -96,9 +93,7 @@
 #include <qtwrapper/jsonhelper.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-# include <qtwrapper/plugin_manager.hpp>
-#endif
+#include <qtwrapper/plugin_manager.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
@@ -358,7 +353,6 @@ MainWindow::createStyledBarTop()
 #else
             Core::Context context( ( Utils::Id( "dataproc.MainView" ) ) );
 #endif
-
             if ( auto p = new QAction( tr("MS Process"), this ) ) {
                 connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelMSProcess ); } );
                 am->registerAction( p, "dataproc.selMSProcess", context );
@@ -435,8 +429,8 @@ MainWindow::createStyledBarTop()
 void
 MainWindow::handleDataprocessor( Dataprocessor * dp )
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//    ADDEBUG() << "########## MainWindow::" << __FUNCTION__ << " ################# TODO ";
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     auto sp = ( dp ) ? dp->massSpectrometer() : nullptr;
     if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
         w->setMassSpectrometer( sp );
@@ -444,7 +438,7 @@ MainWindow::handleDataprocessor( Dataprocessor * dp )
     if ( auto w = findChild< dataproc::MSPeakTable * >( "MSPeakTable" ) ) {
         w->setMassSpectrometer( sp );
     }
-#endif
+//#endif
 }
 
 void
@@ -747,8 +741,7 @@ MainWindow::createContents( Core::IMode * mode )
         if ( auto pDst = stack_->widget( idSelSpectra ) )
             connect( dynamic_cast<MSProcessingWnd *>(pSrc), &MSProcessingWnd::dataChanged, dynamic_cast<MSSpectraWnd *>(pDst), &MSSpectraWnd::onDataChanged );
     }
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     connect( SessionManager::instance(), &SessionManager::onDataprocessorChanged, this, &MainWindow::handleDataprocessor );
     connect( SessionManager::instance(), &SessionManager::onSessionAdded, this, &MainWindow::handleSessionAdded );
     connect( SessionManager::instance(), &SessionManager::onProcessed, this, &MainWindow::handleProcessed );
@@ -801,7 +794,6 @@ MainWindow::createContents( Core::IMode * mode )
         connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramYScale );
         connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &ContourWnd::handleChromatogramXScale );
     }
-#endif
 #endif
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setContentsMargins( {} );
@@ -1164,7 +1156,7 @@ void
 MainWindow::handleProcess( const QString& origin )
 {
     ADDEBUG() << "############################ TODO ##################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     auto pm = std::make_shared< adcontrols::ProcessMethod >();
     getProcessMethod( *pm );
     document::instance()->setProcessMethod( *pm );
@@ -1207,7 +1199,7 @@ MainWindow::handleProcess( const QString& origin )
             processor->applyProcess( *pm, PeakFindProcess );
         }
     }
-#endif
+//#endif
 }
 
 void
@@ -1251,14 +1243,11 @@ MainWindow::handlePeptideTarget( const QVector<QPair<QString, QString> >& peptid
     for ( auto& p: peptides )
         digested << adprot::peptide( p.first.toStdString(), p.second.toStdString(), 0 );
 
-    ADDEBUG() << "############################ TODO ##################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         processor->findPeptide( digested );
     } else {
 		QMessageBox::information( 0, "Dataproc", tr("No data exist for peptide targeting") );
     }
-#endif
 }
 
 void
@@ -1373,10 +1362,6 @@ MainWindow::OnFinalClose()
 void
 MainWindow::handleProcessChecked()
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-
-    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursor wait;
     adcontrols::ProcessMethod m;
     getProcessMethod( m );
@@ -1399,7 +1384,6 @@ MainWindow::handleProcessChecked()
             }
         }
     }
-#endif
 }
 
 void
@@ -1515,9 +1499,9 @@ MainWindow::handleExportRMSAllChecked()
 void
 MainWindow::handleExportAllChecked()
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    ADDEBUG() << __FUNCTION__;
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//    ADDEBUG() << __FUNCTION__;
     QString dataPath;
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
         dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
@@ -1594,14 +1578,14 @@ MainWindow::handleExportAllChecked()
             }
         }
     }
-#endif
+//#endif
 }
 
 void
 MainWindow::handleImportChecked()
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QString filename = QFileDialog::getSaveFileName( 0
                                                      , tr( "Import checked data into a file")
                                                      , currentDir()
@@ -1632,7 +1616,7 @@ MainWindow::handleImportChecked()
 
     if ( handled )
         document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
-#endif
+//#endif
 }
 
 void
@@ -1646,8 +1630,8 @@ MainWindow::actionApply()
 
     document::instance()->setProcessMethod( pm );
 
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 
         if ( currentFeature_ == CalibrationProcess )
@@ -1657,7 +1641,7 @@ MainWindow::actionApply()
         else
             processor->applyProcess( pm, currentFeature_ );
     }
-#endif
+//#endif
 }
 
 void
@@ -1670,10 +1654,10 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-        ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//        ADDEBUG() << "########################### TODO ###################################";
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         processor->applyCalibration( pm, assigned );
-#endif
+//#endif
     }
 }
 
@@ -1772,22 +1756,22 @@ void
 MainWindow::actCreateSpectrogram()
 {
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-        ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//        ADDEBUG() << "########################### TODO ###################################";
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         processor->createContour();
-#endif
+//#endif
     }
 }
 
 void
 MainWindow::actClusterSpectrogram()
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         processor->clusterContour();
     }
-#endif
+//#endif
 }
 
 void
@@ -1806,8 +1790,8 @@ QString
 MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int nbsp )
 {
     QString o;
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
 
         while ( nbsp-- )
@@ -1829,7 +1813,7 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
         }
         return o;
     }
-#endif
+//#endif
     return QString();
 }
 
@@ -1838,8 +1822,8 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
 std::wstring
 MainWindow::foliumName( const std::wstring& id )
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
         portfolio::Portfolio portfolio = dp->getPortfolio();
 
@@ -1849,8 +1833,8 @@ MainWindow::foliumName( const std::wstring& id )
             return name;
         }
     }
-#endif
-    return std::wstring();
+//#endif
+    return {};
 }
 
 QString
@@ -1871,14 +1855,11 @@ MainWindow::currentDir()
 void
 MainWindow::aboutQtPlatz()
 {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( !aboutDlg_ ) {
         aboutDlg_ = new AboutDlg(this);
         connect( aboutDlg_, static_cast<void(AboutDlg::*)(int)>(&AboutDlg::finished), this, [&](){ aboutDlg_->deleteLater(); aboutDlg_ = 0; });
     }
     aboutDlg_->show();
-#endif
 }
 
 void

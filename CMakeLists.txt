@@ -97,7 +97,14 @@ endif()
 if ( QT_FOUND )
   message( STATUS "### QT_FOUND ${QT_FOUND} ")
   find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+  if ( QtCreator_FOUND )
+    message( STATUS "######### QtCreator ${IDE_VERSION}" )
+    add_definitions( -DQTC_IDE_VERSION="${IDE_VERSION}" )
+  endif()
 endif()
+
 ################################################################
 
 if ( WIN32 )

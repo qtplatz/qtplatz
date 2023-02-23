@@ -37,7 +37,7 @@ if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
   configure_file(
     "${PROJECT_SOURCE_DIR}/../servant/plugin.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
-    )
+  )
 endif()
 ####################### END ##########################
 
@@ -128,7 +128,7 @@ else()
   add_library( ${PROJECT_NAME} MODULE
     dataproc_global.hpp
     dataprocconstants.hpp
-#    aboutdlg.cpp                aboutdlg.hpp
+    aboutdlg.cpp                aboutdlg.hpp
     actionmanager.cpp           actionmanager.hpp
     assign_masses.cpp           assign_masses.hpp
     assign_peaks.cpp            assign_peaks.hpp

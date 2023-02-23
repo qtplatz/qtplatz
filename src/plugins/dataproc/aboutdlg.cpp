@@ -44,7 +44,7 @@ using namespace dataproc;
 
 AboutDlg::AboutDlg(QWidget *parent) : QDialog(parent)
 {
-    ADDEBUG() << "########################### TODO ###################################";
+//    ADDEBUG() << "########################### TODO ###################################";
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)

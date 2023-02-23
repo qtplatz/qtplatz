@@ -36,7 +36,7 @@ NavigationWidgetFactory::NavigationWidgetFactory()
 {
     setId( Constants::C_DATAPROC_NAVI );
     setDisplayName( tr( "Processing files" ) );
-    setActivationSequence( QKeySequence( Qt::ALT + Qt::Key_X ) );
+    setActivationSequence( QKeySequence( Qt::ALT | Qt::Key_X ) );
     this->setPriority( 1000 );
 }
 
