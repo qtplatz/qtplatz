@@ -70,6 +70,38 @@
 #include <process.h>
 #endif
 
+namespace servant {
+
+    class ServantPlugin::impl {
+    public:
+        impl() {}
+
+        void ini() {
+            if (( outputWindow_ = std::make_unique< OutputWindow >() )) {
+                ExtensionSystem::PluginManager::addObject( outputWindow_.get() );
+                if (( logger_ = std::make_unique< Logger >() )) {
+                    QObject::connect( logger_.get(), SIGNAL( onLogging( const QString, bool ) )
+                                      , outputWindow_.get(), SLOT( handleLogging( const QString, bool ) ) );
+                    ExtensionSystem::PluginManager::addObject( logger_.get() );
+                    adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
+                }
+            }
+        }
+        void fin() {
+            if ( outputWindow_ && logger_ ) {
+                QObject::disconnect( logger_.get(), SIGNAL( onLogging( const QString, bool ) )
+                                     , outputWindow_.get(), SLOT( handleLogging( const QString, bool ) ) );
+                ExtensionSystem::PluginManager::removeObject( logger_.get() );
+                ExtensionSystem::PluginManager::removeObject( outputWindow_.get() );
+            }
+        }
+
+        std::unique_ptr< OutputWindow > outputWindow_;
+        std::unique_ptr< Logger > logger_;
+    };
+
+}
+
 using namespace servant;
 using namespace servant::internal;
 
@@ -78,17 +110,10 @@ ServantPlugin::~ServantPlugin()
     ADDEBUG() << "------------- ServantPlugin dtor ----------------";
 }
 
-ServantPlugin::ServantPlugin() : logger_(0)
-                               , outputWindow_(0)
+ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
     ADDEBUG() << "------------- ServantPlugin ctor ----------------";
 }
-
-// ServantPlugin *
-// ServantPlugin::instance()
-// {
-//     return instance_;
-// }
 
 bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -96,32 +121,12 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
 	(void)error_message;
 
-    ADDEBUG() << "------------- ServantPlugin::initialize ----------------";
-
     adlog::logger::enable( adlog::logger::logging_file ); // process_name + ".log"
 
-    if ( ( outputWindow_ = new OutputWindow ) ) {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        addAutoReleasedObject( outputWindow_ );
-#endif
-
-        if ( ( logger_ = new Logger ) ) {
-            connect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            addAutoReleasedObject( logger_ );
-#endif
-            adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
-        }
-    }
+    impl_->ini();
 
     ADLOG(adlog::LOG_INFO) << "Startup " << QCoreApplication::applicationFilePath().toStdString();
 
-    ///////////////////////////////////
-#if 0
-    Core::Context context;
-    context.add( Core::Id( "Servant.MainView" ) );
-    context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
-#endif
     adplugin::manager::standalone_initialize();
 
     return true;
@@ -139,8 +144,7 @@ ServantPlugin::aboutToShutdown()
     adcontrols::logging_hook::unregister_hook();
 	adlog::logging_handler::instance()->close();
 
-    if ( outputWindow_ && logger_ )
-        disconnect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
+    impl_->fin();
 
     ADDEBUG() << "\t------------- servantplugin ---------- Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
@@ -149,6 +153,6 @@ ServantPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION < 0x09'00'00
 Q_EXPORT_PLUGIN( ServantPlugin );
 #endif

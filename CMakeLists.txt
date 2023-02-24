@@ -65,13 +65,41 @@ set( CMAKE_WARN_DEPRECATED TRUE )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
+################################################################
+# select qt-creator version depend on QT_VERSION whether Qt5 or Qt6
 if ( WITH_QT5 )
-  if ( QTDIR STREQUAL "" AND DEFINED $ENV{QTDIR} )
-    set( QTDIR $ENV{QTDIR} )
-  endif()
+
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-  ##### on trial #####
+  message( STATUS "################ QT_FOUND: ${QT_FOUND}, QT_VERSION: ${QT_VERSION}" )
+
+  if ( QT_FOUND AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
+    add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+    list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+    include_directories( BEFORE
+      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
+      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
+    )
+  endif()
+  if ( QT_FOUND )
+    message( STATUS "### QT_FOUND ${QT_FOUND} ")
+    find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+
+    find_package( QtCreator REQUIRED COMPONENTS Core )
+    if ( QtCreator_FOUND )
+      message( STATUS "######### QtCreator ${IDE_VERSION}" )
+      string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION})
+      list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
+      list(GET IDE_VERSION_LIST 1 IDE_VERSION_MINOR)
+      list(GET IDE_VERSION_LIST 2 IDE_VERSION_MICRO)
+      math(EXPR QTC_VERSION
+        "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
+        OUTPUT_FORMAT HEXADECIMAL)
+      add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
+      message( STATUS "### QTC_VERSION ${QTC_VERSION} ")
+    endif()
+  endif()
 endif()
+################################################################
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 if ( WIN32 )
@@ -80,30 +108,7 @@ endif()
 
 include (qtplatz.cmake)
 include (version)
-
-################################################################
-if ( WITH_QT5 )
-  find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-endif()
-if ( ${QT_VERSION_MAJOR} GREATER 5 )
-  message( STATUS "============= Qt6 ========== on trial" )
-  add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-  include_directories( BEFORE
-    "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
-    "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
-    )
-endif()
-################################################################
-if ( QT_FOUND )
-  message( STATUS "### QT_FOUND ${QT_FOUND} ")
-  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
-
-  find_package( QtCreator REQUIRED COMPONENTS Core )
-  if ( QtCreator_FOUND )
-    message( STATUS "######### QtCreator ${IDE_VERSION}" )
-    add_definitions( -DQTC_IDE_VERSION="${IDE_VERSION}" )
-  endif()
-endif()
+include (boost.cmake)
 
 ################################################################
 

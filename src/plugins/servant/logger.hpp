@@ -33,10 +33,11 @@ namespace servant {
     class Logger : public adextension::iLogger {
         Q_OBJECT
     public:
+        ~Logger();
         explicit Logger(QObject *parent = 0);
 
         void appendLog( const std::string&, bool ) override;
-        
+
         void operator()( int, const std::string&, const std::string& file, int line, const std::chrono::system_clock::time_point& );
 
     signals:

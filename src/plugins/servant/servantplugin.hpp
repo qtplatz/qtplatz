@@ -27,6 +27,7 @@
 
 #include <extensionsystem/iplugin.h>
 #include <vector>
+#include <memory>
 
 namespace adportable {
     class Configuration;
@@ -39,12 +40,12 @@ namespace servant {
 
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION >= 0x09'00'01
         Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Servant.json")
 #else
 		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
 #endif
-        public:
+    public:
         explicit ServantPlugin();
         ~ServantPlugin();
 
@@ -60,7 +61,7 @@ namespace servant {
     public slots:
 
     private:
-        Logger * logger_;
-        OutputWindow * outputWindow_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 }

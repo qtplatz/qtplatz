@@ -10,7 +10,7 @@ git checkout v9.0.1
 Build
 -----
 ```bash
-% CMAKE_PREFIX_PATH=/opt/Qt6/6.4.0/macos/lib/cmake/ cmake ~/src/qt-creator
+% cmake -DCMAKE_PREFIX_PATH=/opt/Qt6/6.4.0/macos/lib/cmake/ ~/src/qt-creator
 % make -j8
 ```
 
