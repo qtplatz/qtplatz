@@ -26,7 +26,7 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION < 0x09'00'00
 #include "dataprocfactory.hpp"
 #endif
 #include "dataproceditor.hpp"
@@ -164,11 +164,13 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
     // fake project directory for help initial openfiledialog location
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION < 0x09'00'00
     Core::DocumentManager::setProjectsDirectory( path );
-    Core::DocumentManager::setUseProjectsDirectory( true );
+#else
+    Core::DocumentManager::setProjectsDirectory( Utils::FilePath::fromString( path ) );
 #endif
+    Core::DocumentManager::setUseProjectsDirectory( true );
+
     boost::filesystem::path mfile( dir / "default.pmth" );
     adcontrols::ProcessMethod pm;
     if ( load( QString::fromStdWString( mfile.wstring() ), pm ) )

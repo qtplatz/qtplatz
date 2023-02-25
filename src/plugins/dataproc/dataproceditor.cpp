@@ -55,7 +55,8 @@ namespace dataproc {
                , file_( Dataprocessor::make_dataprocessor() ) {
         }
         ~impl() {
-            delete widget_;
+            ADDEBUG() << "##### DataprocEditor::impl::dtor #####";
+            // delete widget_;
         }
     };
 }
@@ -66,15 +67,12 @@ using namespace dataproc;
 DataprocEditor::~DataprocEditor()
 {
     SessionManager::instance()->removeEditor( this );
-    //delete widget_;
 }
 
 DataprocEditor::DataprocEditor() : impl_( std::make_unique< impl >() )
 {
-    ADDEBUG() << "########### DataprocEditor::ctor ####################";
     impl_->widget_->installEventFilter( this );
     setWidget( impl_->widget_ );
-    // context_.add( Constants::C_DATAPROCESSOR );
 }
 
 Core::IDocument *
@@ -199,7 +197,7 @@ DataprocEditor::context() const
 bool
 DataprocEditor::eventFilter( QObject * object, QEvent * event )
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION < 0x090000
     if ( object == widget_ ) {
         if ( event->type() == QEvent::ShowToParent ) {
             int mode(0);

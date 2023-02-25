@@ -191,6 +191,7 @@ namespace dataproc {
 
     signals :
         void onNotify( const QString& );
+        void openFinished(bool success);
 
     private:
         // std::unique_ptr< portfolio::Portfolio > portfolio_;

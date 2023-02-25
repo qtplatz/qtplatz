@@ -28,7 +28,7 @@
 #include "outputwindow.hpp"
 #include "logger.hpp"
 #include <coreplugin/icore.h>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION < 0x09'00'00
 #include <coreplugin/id.h>
 #endif
 #include <coreplugin/coreconstants.h>
@@ -78,22 +78,18 @@ namespace servant {
 
         void ini() {
             if (( outputWindow_ = std::make_unique< OutputWindow >() )) {
-                ExtensionSystem::PluginManager::addObject( outputWindow_.get() );
                 if (( logger_ = std::make_unique< Logger >() )) {
                     QObject::connect( logger_.get(), SIGNAL( onLogging( const QString, bool ) )
                                       , outputWindow_.get(), SLOT( handleLogging( const QString, bool ) ) );
-                    ExtensionSystem::PluginManager::addObject( logger_.get() );
+                    // ExtensionSystem::PluginManager::addObject( logger_.get() );
+                    // ExtensionSystem::PluginManager::addObject( outputWindow_.get() );
                     adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
                 }
             }
         }
         void fin() {
-            if ( outputWindow_ && logger_ ) {
-                QObject::disconnect( logger_.get(), SIGNAL( onLogging( const QString, bool ) )
-                                     , outputWindow_.get(), SLOT( handleLogging( const QString, bool ) ) );
-                ExtensionSystem::PluginManager::removeObject( logger_.get() );
-                ExtensionSystem::PluginManager::removeObject( outputWindow_.get() );
-            }
+            // ExtensionSystem::PluginManager::removeObject( outputWindow_.get() );
+            // ExtensionSystem::PluginManager::removeObject( logger_.get() );
         }
 
         std::unique_ptr< OutputWindow > outputWindow_;
@@ -140,11 +136,10 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 {
+    impl_->fin();
     adportable::core::debug_core::instance()->unhook();
     adcontrols::logging_hook::unregister_hook();
 	adlog::logging_handler::instance()->close();
-
-    impl_->fin();
 
     ADDEBUG() << "\t------------- servantplugin ---------- Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()

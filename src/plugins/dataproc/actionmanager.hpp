@@ -90,9 +90,12 @@ namespace dataproc {
         void handleOpen();
         void handleSave();
         void handleSaveAs();
-
+#if QTC_VERSION < 0x09'00'00
         void handleContextChanged( const QList<Core::IContext *>&, const Core::Context& );
-
+#else
+        void handleContextAboutToChange( const QList<Core::IContext *>& );
+        void handleContextChanged( const Core::Context& );
+#endif
         bool importFile();
 
         void actMethodSave();

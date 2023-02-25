@@ -24,11 +24,13 @@
 
 #include "isnapshothandlerimpl.hpp"
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 
 using namespace dataproc;
 
 iSnapshotHandlerImpl::~iSnapshotHandlerImpl()
 {
+    ADDEBUG() << "############################ iSnapShotHandlerImpl::dtor #########################";
 }
 
 iSnapshotHandlerImpl::iSnapshotHandlerImpl()

@@ -97,6 +97,7 @@
 #include <adutils/processeddata_t.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
+#include <utils/mimeutils.h>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
@@ -234,14 +235,12 @@ Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
 }
 
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION >= 0x09'00'00
 Core::IDocument::OpenResult
 Dataprocessor::open( QString *errorString
                     , const Utils::FilePath &filePath
                     , const Utils::FilePath &realFilePath)
 {
-    ADDEBUG() << "##### Dataprocessor::open ##### filePath: "     << filePath.toString().toStdString();
-    ADDEBUG() << "##### Dataprocessor::open ##### realFilePath: " << realFilePath.toString().toStdString();
 	qtwrapper::waitCursor wait;
 
     std::wstring emsg;
@@ -253,11 +252,15 @@ Dataprocessor::open( QString *errorString
         Core::DocumentManager::addToRecentFiles( filePath );
         document::instance()->addToRecentFiles( filePath.toString() );
 
+        setFilePath(filePath);
+        setMimeType(Utils::mimeTypeForFile(filePath).name()); // application/vnd.sqlite3
+        emit openFinished( true );
         return Core::IDocument::OpenResult::Success;
     }
 
     *errorString = QString( "DataprocEditor:\nfile %1 could not be opend.\nReason: %2." )
         .arg( filePath.toString(), QString::fromStdWString( emsg ) );
+    emit openFinished( false );
     return Core::IDocument::OpenResult::ReadError;
 }
 #endif

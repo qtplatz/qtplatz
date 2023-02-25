@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,12 +26,15 @@
 #include "manager.hpp"
 #include <adportable/debug.hpp>
 #include <adplugin/constants.hpp>
+#include <adplugin/plugin.hpp>
 #include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/version.hpp>
 #include <boost/dll.hpp>
+#include <boost/dll/import.hpp>
+#include <regex>
 
 using namespace adplugin;
 
@@ -39,16 +42,32 @@ using namespace adplugin;
 # if defined WIN32
 #  define DEBUG_LIB_TRAIL "d" // xyzd.dll
 constexpr static const char * const debug_trail = "d";
+static const std::regex __self_regex(".*\\.dll" // windows build system separate binary directory
+                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
 # elif defined __MACH__ || __APPLE__
 #  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
 constexpr static const char * const debug_trail = "_debug";
+static const std::regex __self_regex("lib.*_debug((\\.dylib)|(\\.so))"
+                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
 # else
 #  define DEBUG_LIB_TRAIL ""        // xyz.so
 constexpr static const char * const debug_trail = "";
+static const std::regex __self_regex(".*\\.so"
+                                     , std::regex_constants::ECMAScript)
 # endif
-#else
+#else // NDEBUG
 # define DEBUG_LIB_TRAIL ""
 constexpr static const char * const debug_trail = "";
+# if defined WIN32
+static const std::regex __self_regex(".*\\.dll"
+                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
+# elif defined __MACH__ || __APPLE__
+static const std::regex __self_regex("lib.*((\\.dylib)|(\\.so))"
+                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
+# else
+static const std::regex __self_regex("lib.*\\.so"
+                                     , std::regex_constants::ECMAScript );
+# endif
 #endif
 
 std::string
@@ -87,21 +106,24 @@ loader::populate( const wchar_t * topdir )
         if ( !ec ) {
             while ( it != boost::filesystem::recursive_directory_iterator() ) {
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
+                    auto filename = it->path().filename().string();
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
-                        for ( auto& dir : { branch /*, sharedlibs */ } ) {
-                            auto fname = dir / (stem.string() + debug_trail);
-                            boost::system::error_code ec;
-                            boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
-                            if ( ec )
-                                ADDEBUG() << "loading\n\t" << fname << "\tError: " << ec.message();
-                            else if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
-#if defined NDEBUG && 0
-                                ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
-#endif
-                                break;
+                        auto fname = branch / (stem.string() + debug_trail);
+                        boost::system::error_code ec;
+                        boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
+                        if ( !ec ) {
+                            if ( dll.has( "adplugin_plugin_instance" ) ) {
+                                auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" );
+                                if ( auto plugin = factory() ) {
+                                    if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
+                                        ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
+                                    }
+                                }
                             }
+                        } else {
+                            ADDEBUG() << "loading\n\t" << fname << "\tError: " << ec.message();
                         }
                     }
                 }

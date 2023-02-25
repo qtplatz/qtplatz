@@ -10,7 +10,7 @@ if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
   endif()
 endif()
 
-add_subdirectory( imageviewer )
+## add_subdirectory( imageviewer )
 
 if ( ${QT_VERSION_MAJOR} EQUAL 5 )
   message( STATUS "================== Qt5 core plugins ======================" )

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -229,8 +229,10 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::hideDock );
         } while ( 0 );
     }
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION < 0x09'00'00
+    connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );
+#else
+    connect( Core::ICore::instance(), &Core::ICore::contextAboutToChange, this, &ActionManager::handleContextAboutToChange );
     connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );
 #endif
 
@@ -391,17 +393,36 @@ ActionManager::handleSaveAs()
 	Core::EditorManager::instance()->saveDocumentAs();
 }
 
+#if QTC_VERSION >= 0x09'00'00
+void
+ActionManager::handleContextAboutToChange( const QList<Core::IContext *>& t1 )
+{
+    for ( auto& context : t1 ) {
+        if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
+            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath().toString() );
+            actions_[ idActSaveAs ]->setText( text );
+        }
+    }
+}
+
+void
+ActionManager::handleContextChanged( const Core::Context& context )
+{
+    ADDEBUG() << "### Core::ContextChanged: " << context.size() << " " << (context.size() ? context.begin()->toString().toStdString() : "");
+    // for ( auto id: context )
+    //     ADDEBUG() << "\t-- " << id.toString().toStdString();
+}
+
+#else
+
 void
 ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Core::Context& )
 {
     for ( auto& context : t1 ) {
         if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath() );
-#else
-            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath().toString() );
-#endif
             actions_[ idActSaveAs ]->setText( text );
         }
     }
 }
+#endif

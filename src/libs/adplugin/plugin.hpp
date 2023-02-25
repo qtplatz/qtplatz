@@ -30,6 +30,7 @@
 #include <string>
 #include <typeinfo>
 #include <compiler/pragma_warning.hpp>
+#include <boost/config.hpp>
 
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -45,7 +46,7 @@ namespace adplugin {
 #endif
 
     ////////////////////////
-    
+
     class ADPLUGINSHARED_EXPORT plugin : public std::enable_shared_from_this<plugin> {
 
         plugin( const plugin& ) = delete;
@@ -79,9 +80,7 @@ namespace adplugin {
         }
 
         virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
-        
+
     };
 
 }
-
-

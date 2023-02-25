@@ -24,8 +24,7 @@ set( adextension_SOURCES
   ieditorfactory.cpp
   ieditorfactory.hpp
   ieditorfactory_t.hpp
-  ilogger.cpp
-  ilogger.hpp
+  ilogger.cpp  ilogger.hpp
   imonitorfactory.cpp
   imonitorfactory.hpp
   ipeptide.cpp

@@ -129,9 +129,9 @@ ChemistryPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
 {
-	return SynchronousShutdown;
     ADLOG(adlog::LOG_INFO) << "Shutdown " << boost::dll::this_line_location();
 	mainWindow_->OnClose();
+	return SynchronousShutdown;
 }
 
 void

@@ -13,5 +13,8 @@
     ],
     "Description"   : "@DESCRIPTION@",
     "Url"           : "https://www.ms-cheminformatics.com",
-    @DEPENDENCY_STRING@
+    "Dependencies" : [
+        {  "Name" : "Core", "Version" : "@IDE_VERSION@" }
+        ,{ "Name" : "Servant", "Version" : "@VERSION@" }
+    ]
 }

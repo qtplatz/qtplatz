@@ -29,6 +29,8 @@
 #include <adplugin/visitor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/config.hpp>
+#include <boost/dll/alias.hpp>
 #include <mutex>
 
 using namespace addatafile;
@@ -110,4 +112,11 @@ datafile_factory::query_interface_workaround( const char * typenam )
     if ( std::string( typenam ) == typeid( adcontrols::datafile_factory ).name() )
         return static_cast< adcontrols::datafile_factory *>(this);
     return 0;
+}
+
+namespace addatafile {
+    BOOST_DLL_ALIAS(
+        datafile_factory::instance, // <-- this function is exported with...
+        adplugin_plugin_instance                             // <-- ...this alias name
+        );
 }

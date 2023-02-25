@@ -58,6 +58,8 @@ namespace dataproc {
         Core::IEditor * editor_;
     };
 
+    ////////////////////////////////
+    ////////////////////////////////
     class SessionManager : public adextension::iSessionManager { // public QObject {
 
         Q_OBJECT
