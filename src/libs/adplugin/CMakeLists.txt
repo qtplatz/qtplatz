@@ -31,10 +31,11 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adlog
   adportable
   ${Boost_LIBRARIES}
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib COMPONENT libraries
-  )
+)

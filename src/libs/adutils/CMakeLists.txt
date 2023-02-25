@@ -38,9 +38,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   portfolio
   ${Boost_LIBRARIES}
   Threads::Threads
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )

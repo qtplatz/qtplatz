@@ -249,10 +249,11 @@ target_link_libraries( adwidgets LINK_PUBLIC
   ${SVGWIDGETS_LIBRARIES} # <-- Qt6
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib COMPONENT libraries
-  )
+)

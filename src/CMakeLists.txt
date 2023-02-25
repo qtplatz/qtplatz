@@ -32,3 +32,12 @@ if ( VERBOSE )
   message( STATUS "------------ src/tools --------------------" )
 endif()
 add_subdirectory( tools )
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/QtPlatzConfig.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/QtPlatzConfig.cmake
+  @ONLY
+)
+
+export( EXPORT QtPlatzTargets
+  FILE ${CMAKE_BINARY_DIR}/cmake/QtPlatzTargets.cmake )

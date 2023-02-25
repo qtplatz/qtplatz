@@ -64,9 +64,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adutils
   adportable
   ${Boost_LIBRARIES}
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib COMPONENT libraries )
@@ -74,4 +75,4 @@ install( TARGETS ${PROJECT_NAME}
 install( FILES
   constants.hpp
   DESTINATION include/adacquire COMPONENT headers
-  )
+)

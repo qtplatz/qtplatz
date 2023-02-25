@@ -15,14 +15,15 @@ add_library( ${PROJECT_NAME} SHARED
   udpeventreceiver.hpp
   udpeventsender.cpp
   udpeventsender.hpp
-  )
+)
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
   adportable
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )

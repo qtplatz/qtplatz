@@ -42,7 +42,7 @@ ScanLawHistoryDialog::ScanLawHistoryDialog(QWidget *parent) : QDialog(parent)
                                                             , ui(new Ui::ScanLawHistoryDialog)
 {
     ui->setupUi(this);
-    
+
     ui->masterView->setModel( new QSqlQueryModel() );
     ui->detailsView->setModel( new QSqlQueryModel() );
 
@@ -58,10 +58,10 @@ ScanLawHistoryDialog::ScanLawHistoryDialog(QWidget *parent) : QDialog(parent)
                              ", time * 1e6 AS 'time(us)'"
                              ", width * 1e9 AS 'width(ns)'"
                              " FROM assigned WHERE id=?", *sqldb_ );
-            query.addBindValue( id );            
+            query.addBindValue( id );
             if ( !query.exec() )
                 qDebug() << query.lastError();
-            qobject_cast< QSqlQueryModel * >( ui->detailsView->model() )->setQuery( query );
+            qobject_cast< QSqlQueryModel * >( ui->detailsView->model() )->setQuery( std::move( query ) );
             ui->detailsView->resizeColumnsToContents();
         });
 
@@ -88,12 +88,12 @@ ScanLawHistoryDialog::openDatabase( const QString& file )
                          ", idCreatedBy AS 'Operator'"
                          ", idComputer AS 'Computer'"
                          " FROM ident ORDER BY dateCreated", *sqldb_ );
-        qobject_cast< QSqlQueryModel * >(ui->masterView->model() )->setQuery( query );
+        qobject_cast< QSqlQueryModel * >(ui->masterView->model() )->setQuery( std::move( query ) );
         ui->masterView->resizeColumnsToContents();
 
         if ( ui->masterView->model()->columnCount() > 0 )
             ui->masterView->setCurrentIndex( ui->masterView->model()->index( 0, 0 ) );
-        
+
         return true;
     }
     return false;
@@ -118,4 +118,3 @@ ScanLawHistoryDialog::selectedData()
     }
     return nullptr;
 }
-

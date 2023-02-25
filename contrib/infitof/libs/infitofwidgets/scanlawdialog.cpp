@@ -172,7 +172,7 @@ ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
 
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin(4);
+        layout->setContentsMargins(4, 4, 4, 4);
         layout->setSpacing(2);
 
         if ( QSplitter * splitter1 = new QSplitter ) {

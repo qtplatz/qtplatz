@@ -46,7 +46,7 @@ add_library( ${PROJECT_NAME} SHARED
   ${adfs_SOURCE}
   )
 
-target_link_libraries( adfs LINK_PUBLIC
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adlog
   adportable
   adportable_serializer
@@ -62,13 +62,27 @@ add_executable( sqlite3 sqlite-amalgamation-3370000/sqlite3.c sqlite-amalgamatio
 find_package( Threads REQUIRED )
 target_link_libraries( sqlite3 Threads::Threads ${CMAKE_DL_LIBS} )
 
-install( TARGETS ${PROJECT_NAME} sqlite3
-  sqlite3-functions
+install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
+#  sqlite3  sqlite3-functions
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  ARCHIVE DESTINATION lib COMPONENT libraries )
+
+install( TARGETS sqlite3
+  EXPORT ${QTPLATZ_TARGETS}
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  ARCHIVE DESTINATION lib COMPONENT libraries )
+
+install( TARGETS sqlite3-functions
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
+  EXPORT ${QTPLATZ_TARGETS}
   adfs_global.h
   adfs.hpp
   apiposix.hpp

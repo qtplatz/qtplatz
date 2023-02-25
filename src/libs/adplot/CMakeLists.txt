@@ -92,11 +92,13 @@ target_link_libraries( adplot LINK_PUBLIC
 
 if( APPLE )
   install( TARGETS ${PROJECT_NAME}
+    EXPORT ${QTPLATZ_TARGETS}
     RUNTIME DESTINATION bin COMPONENT applications
     LIBRARY DESTINATION Contents/PlugIns COMPONENT libraries
     ARCHIVE DESTINATION Contents/PlugIns COMPONENT libraries )
 else()
   install( TARGETS ${PROJECT_NAME}
+    EXPORT ${QTPLATZ_TARGETS}
     RUNTIME DESTINATION bin COMPONENT applications
     LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
     ARCHIVE DESTINATION lib COMPONENT libraries )

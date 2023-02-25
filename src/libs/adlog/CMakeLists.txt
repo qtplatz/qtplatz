@@ -19,17 +19,20 @@ add_library( adlog SHARED
 
 target_include_directories( adlog PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
-target_link_libraries( adlog LINK_PUBLIC
-		       adportable
-		       ${Boost_LIBRARIES}
-		       )
+target_link_libraries(
+  adlog LINK_PUBLIC
+  adportable
+  ${Boost_LIBRARIES}
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
+  EXPORT ${QTPLATZ_TARGETS}
   adlog_global.hpp
   logger.hpp
   logging_handler.hpp

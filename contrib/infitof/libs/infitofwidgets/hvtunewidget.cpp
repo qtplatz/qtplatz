@@ -490,13 +490,13 @@ hvTuneWidget::hvTuneWidget( const QString& server
         label->setTextFormat( Qt::RichText );
     }
 
-    for ( auto widget: findChildren< QLineEdit * >( QRegExp( "act\\..*|pressure\\..*|tick|url" ) ) ) {
+    for ( auto widget: findChildren< QLineEdit * >( QRegularExpression( "act\\..*|pressure\\..*|tick|url" ) ) ) {
         widget->setReadOnly( true );
         widget->setFocusPolicy( Qt::ClickFocus );
         widget->setAlignment( Qt::AlignHCenter );
     }
 
-    for ( auto widget: findChildren< act_widget_t * >( QRegExp( "act\\..*" ) ) ) {
+    for ( auto widget: findChildren< act_widget_t * >( QRegularExpression( "act\\..*" ) ) ) {
 #if USING_QDOUBLESPINB0X
         widget->setReadOnly( true );
 #endif
@@ -550,7 +550,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
 #endif
     }
 
-    for ( auto widget: findChildren< act_widget_t * >( QRegExp( "act\\..*") ) ) {
+    for ( auto widget: findChildren< act_widget_t * >( QRegularExpression( "act\\..*") ) ) {
 #if USING_QLCDNUMBER
         widget->setDigitCount( 7 );
         widget->setSegmentStyle( QLCDNumber::Flat );
@@ -563,7 +563,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
         widget->setAlignment( Qt::AlignRight );
     }
 
-    for ( auto& button: findChildren< QPushButton * >( QRegExp( "switch\\..*" ) ) ) {
+    for ( auto& button: findChildren< QPushButton * >( QRegularExpression( "switch\\..*" ) ) ) {
         button->setCheckable( true );
         button->setChecked( false );
         handleSwitchToggled( button, false );

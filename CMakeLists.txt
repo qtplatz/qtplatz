@@ -10,6 +10,7 @@ cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
+set ( QTPLATZ_TARGETS "QtPlatzTargets" )
 
 if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")

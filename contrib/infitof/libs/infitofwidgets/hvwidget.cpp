@@ -260,12 +260,12 @@ hvWidget::hvWidget( const QString& server
         }
     }
 
-    for ( auto widget: findChildren< QLineEdit * >( QRegExp( "act\\..*|pressure\\..*" ) ) ) {
+    for ( auto widget: findChildren< QLineEdit * >( QRegularExpression( "act\\..*|pressure\\..*" ) ) ) {
         widget->setReadOnly( true );
         widget->setFocusPolicy( Qt::ClickFocus );
     }
 
-    for ( auto widget: findChildren< QAbstractSpinBox * >( QRegExp( "act\\..*|pressure\\..*" ) ) ) {
+    for ( auto widget: findChildren< QAbstractSpinBox * >( QRegularExpression( "act\\..*|pressure\\..*" ) ) ) {
         widget->setReadOnly( true );
         widget->setFocusPolicy( Qt::ClickFocus );
     }
@@ -275,7 +275,7 @@ hvWidget::hvWidget( const QString& server
         widget->setFocusPolicy( Qt::ClickFocus );
     }
 
-    for ( auto& button: findChildren< QPushButton * >( QRegExp( "switch\\..*" ) ) ) {
+    for ( auto& button: findChildren< QPushButton * >( QRegularExpression( "switch\\..*" ) ) ) {
         button->setCheckable( true );
         button->setChecked( false );
         handleSwitchToggled( button, false );

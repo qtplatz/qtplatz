@@ -16,7 +16,8 @@ target_include_directories( ${PROJECT_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/pugixml-1.12/src"
   )
 
-install( TARGETS ${PROJECT_NAME}
+  install( TARGETS ${PROJECT_NAME}
+    EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )

@@ -43,14 +43,16 @@ target_link_libraries( adchem LINK_PUBLIC
 #  ${TBB_LIBRARIES}
   ${Boost_LIBRARIES}
   ${RDKit_LIBRARIES}
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
+  EXPORT ${QTPLATZ_TARGETS}
   adchem_global.hpp
   sdfile.hpp
   sdmol.hpp
