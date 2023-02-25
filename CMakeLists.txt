@@ -98,6 +98,10 @@ if ( WITH_QT5 )
       add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
       message( STATUS "### QTC_VERSION ${QTC_VERSION} ")
     endif()
+    if ( NOT QTDIR AND QMAKE )
+      execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
+        OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
+    endif()
   endif()
 endif()
 ################################################################
@@ -594,6 +598,7 @@ message( STATUS "# CPACK_PACKAGE_INSTALL_DIRECTORY: " ${CPACK_PACKAGE_INSTALL_DI
 
 message( STATUS "# CMAKE_CXX STD ID VER  : " "${CMAKE_CXX_STANDARD} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 message( STATUS "# Qt5_DIR               : " ${Qt5_DIR} )
+message( STATUS "# Qt6_DIR               : " ${Qt6_DIR} )
 message( STATUS "# QTDIR                 : " ${QTDIR} )
 message( STATUS "# QMAKE                 : " ${QMAKE} )
 if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
