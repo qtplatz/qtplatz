@@ -118,7 +118,9 @@ loader::populate( const wchar_t * topdir )
                                 auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" );
                                 if ( auto plugin = factory() ) {
                                     if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
-                                        ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
+#ifndef NDEBUG
+                                        ADDEBUG() << "load\t" << dll.location() << "\tSuccess";
+#endif
                                     }
                                 }
                             }

@@ -65,7 +65,7 @@ QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
         toolBar->setSingleRow( true );
         //toolBar->setLightColored( false );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing(2);
 
         if ( auto combo = new QComboBox() ) {

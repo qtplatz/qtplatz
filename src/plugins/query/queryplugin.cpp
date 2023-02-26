@@ -43,17 +43,41 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/path.hpp>
 
+namespace query {
+
+    class QueryPlugin::impl {
+    public:
+        impl() : editorFactory_( std::make_unique< QueryFactory >() ) {
+        }
+        void ini() {
+            if (( mode_ = std::make_unique< QueryMode >() )) {
+                if (( mainWindow_ = std::make_unique< MainWindow >() )) {
+                    mainWindow_->createActions();
+                    mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
+                }
+            }
+        }
+        void fin() {
+            mainWindow_->onFinalClose();
+        }
+
+        std::unique_ptr< QueryMode > mode_;
+        std::unique_ptr< MainWindow > mainWindow_;
+        std::unique_ptr< QueryFactory > editorFactory_; // self-reg
+    };
+}
+
 using namespace query;
 
-QueryPlugin::QueryPlugin() : mode_( std::make_shared<QueryMode>( this ) )
-                           , mainWindow_( new MainWindow() )
+QueryPlugin::QueryPlugin() : impl_( std::make_unique< impl >() )
+
 {
 }
 
 QueryPlugin::~QueryPlugin()
 {
-    if ( mode_ )
-        removeObject( mode_.get() );
+    // if ( mode_ )
+    //     removeObject( mode_.get() );
     // mainWindow has been deleted at BaseMode dtor
 #if ! defined NDEBUG
     ADDEBUG() << "\t## DTOR ##";
@@ -63,42 +87,38 @@ QueryPlugin::~QueryPlugin()
 bool
 QueryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    Q_UNUSED(arguments)
-    Q_UNUSED(errorString)
+    Q_UNUSED(arguments);
+    Q_UNUSED(errorString);
 
-    mainWindow_->createActions();
-
-    mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
-
-    addObject( mode_.get() );
+    impl_->ini();
+    // addObject( mode_.get() );
 
     // it's conflict with Dataproc document factory on MIME due to both support application/adfs
     // addAutoReleasedObject( new QueryFactory( this ) );
-    
+
     return true;
 }
 
 void QueryPlugin::extensionsInitialized()
 {
-    mainWindow_->onInitialUpdate();
+    impl_->mainWindow_->onInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 QueryPlugin::aboutToShutdown()
 {
+    impl_->fin();
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
-    mainWindow_->onFinalClose();
-
 #if ! defined NDEBUG
     ADDEBUG() << "\t## Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
                                                      , boost::dll::program_location().parent_path() );
 #endif
-    
     return SynchronousShutdown;
 }
 
+#if QTC_VERSION < 0x09'00'00
 Q_EXPORT_PLUGIN2(Query, QueryPlugin)
-
+#endif

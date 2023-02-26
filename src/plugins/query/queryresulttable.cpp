@@ -200,7 +200,7 @@ void
 QueryResultTable::setQuery( const QSqlQuery& query )
 {
     model_->clear();
-    model_->setQuery( query );
+    model_->setQuery( std::move( query ) );
 
     int tIndex = query.record().indexOf( "time" ); // non-case sensitive
 

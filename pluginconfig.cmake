@@ -10,7 +10,7 @@ if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
 
   set ( QTPLATZ_CONFIG_Chemistry  ON )
   set ( QTPLATZ_CONFIG_Peptide    OFF )
-  set ( QTPLATZ_CONFIG_Query      OFF )
+  set ( QTPLATZ_CONFIG_Query      ON )
   set ( QTPLATZ_CONFIG_Lipidid    OFF )
   set ( QTPLATZ_CONFIG_Example    OFF )
   set ( QTPLATZ_CONFIG_HelloWorld OFF )

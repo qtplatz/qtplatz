@@ -18,58 +18,70 @@
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.TXT included in the
 ** packaging of this file.  Please review the following information to
-1** ensure the GNU Lesser General Public License version 2.1 requirements
+** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
 
-#include "queryeditor.hpp"
 #include "querydocument.hpp"
-#include "queryconstants.hpp"
-#include <coreplugin/modemanager.h>
-#include <QWidget>
-#include <QEvent>
-
-namespace query {
-
-    class QueryEditor::impl {
-    public:
-        impl() : file_( std::make_unique< QueryDocument >() ) {}
-        ~impl() {}
-        QWidget * widget_;
-        std::unique_ptr< QueryDocument > file_;
-    };
-
-}
 
 using namespace query;
 
-QueryEditor::~QueryEditor()
+QueryDocument::~QueryDocument()
 {
 }
 
-QueryEditor::QueryEditor( QObject * parent ) : impl_( std::make_unique< impl >() )
+QueryDocument::QueryDocument()
 {
-    impl_->widget_ = new QWidget;
-    // widget_->installEventFilter( this );
-    setWidget( impl_->widget_ );
 }
 
-Core::IDocument *
-QueryEditor::document() const
+Core::IDocument::OpenResult
+QueryDocument::open(QString *errorString, const Utils::FilePath &filePath,
+                    const Utils::FilePath &realFilePath)
 {
-    return impl_->file_.get();
+
+
+    return Core::IDocument::OpenResult::ReadError;
 }
 
-
-QWidget *
-QueryEditor::toolBar()
+Core::IDocument::ReloadBehavior
+QueryDocument::reloadBehavior(ChangeTrigger state, ChangeType type) const
 {
-    return 0;
+    return IDocument::BehaviorSilent;
 }
 
-Core::IEditor *
-QueryEditor::duplicate()
+bool
+QueryDocument::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
 {
-    return 0;
+    return true;
+}
+
+bool
+QueryDocument::isModified() const
+{
+    return false;
+}
+
+bool
+QueryDocument::isSaveAsAllowed() const
+{
+    return false;
+}
+
+QString
+QueryDocument::defaultPath() const
+{
+    return {};
+}
+
+QString
+QueryDocument::suggestedFileName() const
+{
+    return {};
+}
+
+bool
+QueryDocument::isFileReadOnly() const
+{
+    return true;
 }

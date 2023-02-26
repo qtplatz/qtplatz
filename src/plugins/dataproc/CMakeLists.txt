@@ -23,17 +23,17 @@ endif()
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 ########## QtCreator 9 (Qt6) plugin.json #############
-if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "9.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
   find_package( QtCreator REQUIRED COMPONENTS Core )
   configure_file(
-    "${PROJECT_SOURCE_DIR}/dataproc.json.in"
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
   )
 endif()
 ####################### END ##########################
 
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+if ( ${IDE_VERSION} VERSION_LESS "9.0.0" )
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
@@ -165,7 +165,7 @@ else()
   )
 endif()
 
-if ( ${QT_VERSION_MAJOR} GREATER 5 )
+if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "9.0.0" )
   set( EXTENSIONSYSTEM "ExtensionSystem" )
   set( UTILS "Utils" )
 else()

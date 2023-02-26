@@ -145,6 +145,8 @@ namespace dataproc {
                                    , editorFactory_( std::make_unique< DataprocFactory >() ) {
         }
         DataprocPlugin * pThis_;
+
+        // self-registratoin in ctor (see L203, coreplugin/editormanager/iedtorfactory.cpp )
         std::unique_ptr< DataprocFactory > editorFactory_;
 
         std::unique_ptr< ActionManager > actionManager_;
@@ -184,9 +186,6 @@ namespace dataproc {
         }
 
     private:
-        void ini_handlers() {
-        }
-
         // this may move to document ???
         void connect_isnapshothandler_signals() {
             auto p = DataprocPlugin::instance();
@@ -273,11 +272,6 @@ DataprocPlugin::aboutToShutdown()
     document::instance()->finalClose();
 
     impl_->mainWindow_->OnFinalClose();
-
-    // if ( adextension::iSessionManager * mgr = SessionManager::instance() ) {
-    //     ExtensionSystem::PluginManager::removeObject( mgr );
-    //     delete mgr;
-    // }
     impl_->fin();
 
 #if ! defined NDEBUG
@@ -288,27 +282,6 @@ DataprocPlugin::aboutToShutdown()
 
 	return SynchronousShutdown;
 }
-
-// bool
-// DataprocPlugin::connect_isnapshothandler_signals()
-// {
-//     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, [] ( const QString& _1 ) {
-//             document::instance()->handle_portfolio_created( _1 );
-//         } );
-
-//     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
-//             document::instance()->handle_folium_added( _1, _2, _3 );
-//         } );
-
-//     return true;
-// }
-
-// void
-// DataprocPlugin::disconnect_isnapshothandler_signals()
-// {
-//     //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
-//     //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &dataproc_document::handle_folium_added );
-// }
 
 //////////////
 

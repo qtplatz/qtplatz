@@ -30,6 +30,8 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
 
+#define EXCLUDE (QTC_VERSION < 0x09'00'00)
+
 using namespace dataproc;
 
 Mode::Mode(QObject *parent) : Core::IMode(parent)
@@ -40,20 +42,21 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setPriority( 80 );
 
     setId( Constants::C_DATAPROCESSOR );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
-#endif
     setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::MODE_EDIT ) );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
+#if EXCLUDE
+    setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
     connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
              , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
+#else
+    connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager);
 #endif
 }
 
 void
-Mode::grabEditorManager(Core::IMode *mode)
+Mode::grabEditorManager( Utils::Id mode )
 {
-    if (mode != this)
+    if ( mode != id() )
         return;
 
     if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )

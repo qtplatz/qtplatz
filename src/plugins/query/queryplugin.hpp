@@ -32,27 +32,25 @@ namespace query {
 
     class QueryMode;
     class MainWindow;
-    
+
     class QueryPlugin : public ExtensionSystem::IPlugin  {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Query.json")
-        
+
     public:
         QueryPlugin();
         ~QueryPlugin();
-        
+
         bool initialize(const QStringList &arguments, QString *errorString);
         void extensionsInitialized();
         ShutdownFlag aboutToShutdown();
 
     private:
-        std::shared_ptr< QueryMode > mode_;
-        MainWindow * mainWindow_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 
     private slots:
 
     };
 
 } // namespace query
-
-

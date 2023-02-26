@@ -89,7 +89,7 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
                                           , hdlg_( new SqlHistoryDialog )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 

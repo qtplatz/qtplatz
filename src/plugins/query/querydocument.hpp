@@ -18,58 +18,38 @@
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.TXT included in the
 ** packaging of this file.  Please review the following information to
-1** ensure the GNU Lesser General Public License version 2.1 requirements
+** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
 
-#include "queryeditor.hpp"
-#include "querydocument.hpp"
-#include "queryconstants.hpp"
-#include <coreplugin/modemanager.h>
-#include <QWidget>
-#include <QEvent>
+#pragma once
+
+#include <coreplugin/idocument.h>
+#include <coreplugin/editormanager/ieditor.h>
+#include <QStringList>
+
+class QEvent;
 
 namespace query {
 
-    class QueryEditor::impl {
+    class QueryDocument : public Core::IDocument {
+        Q_OBJECT
     public:
-        impl() : file_( std::make_unique< QueryDocument >() ) {}
-        ~impl() {}
-        QWidget * widget_;
-        std::unique_ptr< QueryDocument > file_;
+        ~QueryDocument();
+        QueryDocument();
+
+        // Core::IDocument
+        OpenResult open(QString *errorString, const Utils::FilePath &filePath,
+                        const Utils::FilePath &realFilePath) override;
+        ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
+        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false );
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+        bool isModified() const override;
+        bool isSaveAsAllowed() const override;
+        QString defaultPath() const;
+        QString suggestedFileName() const;
+        bool isFileReadOnly() const;
     };
 
-}
-
-using namespace query;
-
-QueryEditor::~QueryEditor()
-{
-}
-
-QueryEditor::QueryEditor( QObject * parent ) : impl_( std::make_unique< impl >() )
-{
-    impl_->widget_ = new QWidget;
-    // widget_->installEventFilter( this );
-    setWidget( impl_->widget_ );
-}
-
-Core::IDocument *
-QueryEditor::document() const
-{
-    return impl_->file_.get();
-}
-
-
-QWidget *
-QueryEditor::toolBar()
-{
-    return 0;
-}
-
-Core::IEditor *
-QueryEditor::duplicate()
-{
-    return 0;
 }

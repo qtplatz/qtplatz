@@ -26,6 +26,7 @@
 #define MODE_HPP
 
 #include <coreplugin/imode.h>
+#include <utils/id.h>
 
 namespace dataproc {
 
@@ -37,7 +38,7 @@ namespace dataproc {
     signals:
 
     public slots:
-        void grabEditorManager(Core::IMode *mode);
+        void grabEditorManager( Utils::Id mode );
     };
 
 }

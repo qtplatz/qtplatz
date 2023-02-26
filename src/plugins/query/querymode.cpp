@@ -26,22 +26,27 @@
 #include "queryconstants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
+#if QTC_VERSION < 0x09'00'00
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/modemanager.h>
 
 using namespace query;
 
 QueryMode::QueryMode(QObject *parent) : Core::IMode(parent)
 {
     setId( Constants::C_QUERY_MODE );
-    setContext( Core::Context( Constants::C_QUERY_MODE ) );
+    setContext( Core::Context( Constants::C_QUERY_MODE, Core::Constants::MODE_EDIT ) );
     setDisplayName( tr( "Query" ) );
     setIcon(QIcon(":/query/images/Sqlite-square-icon.svg"));
     setPriority( 30 );
-    
-    connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &QueryMode::grabEditorManager );
+    // connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance()), &Core::ModeManager::currentModeChanged, this, &QueryMode::grabEditorManager );
+    connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &QueryMode::grabEditorManager);
 }
 
 QueryMode::~QueryMode()
@@ -50,14 +55,17 @@ QueryMode::~QueryMode()
 }
 
 void
-QueryMode::grabEditorManager(Core::IMode *mode)
+QueryMode::grabEditorManager(Utils::Id mode)
 {
-    if (mode != this)
+    if ( mode != id() )
         return;
 
     if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
-        cmd->action()->setText( tr( "Open Query result..." ) );
+        cmd->action()->setText( tr( "Open database..." ) );
 
-    if ( Core::EditorManager::instance()->currentEditor() )
-        Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
+    if ( Core::EditorManager::currentEditor() )
+        Core::EditorManager::currentEditor()->widget()->setFocus();
+
+    // if ( Core::EditorManager::instance()->currentEditor() )
+    //     Core::EditorManager::instance()->currentEditor()->widget()->setFocus();
 }
