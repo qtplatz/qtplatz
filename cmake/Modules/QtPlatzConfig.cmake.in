@@ -9,6 +9,9 @@ set ( QTPLATZ_BINARY_DIR   "${_dir}")
 set ( QTPLATZ_INCLUDE_DIRS "${_dir}/include")
 set ( QTPLATZ_LIBRARY_DIRS "${_dir}/lib")
 set ( QTDIR                "@QTDIR@" )
+set ( QTC_IDE_VERSION      "@IDE_VERSION@" )
+
+add_definitions( "-DQTC_VERSION=@QTC_VERSION@" )
 
 list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
 
@@ -66,4 +69,4 @@ set ( RDBASE			      "@RDBASE@" )
 set ( PKG_WITH_DEV                    "@PKG_WITH_DEV@" )
 
 include( "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake" )
-include( "${QTPLATZ_SOURCE_DIR}/boost.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/boost.cmake" )

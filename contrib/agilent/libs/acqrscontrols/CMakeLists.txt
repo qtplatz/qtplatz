@@ -88,7 +88,7 @@ add_library( ${PROJECT_NAME} SHARED
   waveform_accessor.cpp
   waveform_accessor.hpp
   waveform_horizontal.hpp
-  )
+)
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adacquire
@@ -96,9 +96,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin
   adportable
   adcontrols
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

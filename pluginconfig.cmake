@@ -8,7 +8,7 @@ if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
   set ( QTPLATZ_CONFIG_Dataproc   ON )
   set ( QTPLATZ_CONFIG_Quan       OFF )
 
-  set ( QTPLATZ_CONFIG_Chemistry  OFF )
+  set ( QTPLATZ_CONFIG_Chemistry  ON )
   set ( QTPLATZ_CONFIG_Peptide    OFF )
   set ( QTPLATZ_CONFIG_Query      OFF )
   set ( QTPLATZ_CONFIG_Lipidid    OFF )

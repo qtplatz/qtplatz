@@ -61,9 +61,10 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${QWT_LIBRARIES}
   Qt::Widgets
   Qt::PrintSupport
-  )
+)
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
