@@ -238,9 +238,9 @@ ProteinWnd::protSelChanged( int row )
                 sort_and_unique( peptides );
                 setData( peptides );
 
-                for( auto handler: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iPeptideHandler >() ) {
-                    handler->onProteinSelected( digested );
-                }
+                // for( auto handler: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iPeptideHandler >() ) {
+                //     handler->onProteinSelected( digested );
+                // }
             }
         }
     }

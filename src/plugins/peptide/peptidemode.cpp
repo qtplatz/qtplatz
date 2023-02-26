@@ -24,11 +24,11 @@
 
 #include "peptidemode.hpp"
 #include "peptideconstants.hpp"
-#include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/id.h>
-#include <coreplugin/modemanager.h>
+#include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/modemanager.h>
+#include <utils/id.h>
 
 using namespace peptide;
 

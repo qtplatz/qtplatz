@@ -127,7 +127,7 @@ MainWindow::createContents( Core::IMode * mode )
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
     if ( mainWindowSplitter ) {
-        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
         outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
         mainWindowSplitter->addWidget( this );
         mainWindowSplitter->addWidget( outputPane );
@@ -139,7 +139,7 @@ MainWindow::createContents( Core::IMode * mode )
 	// Navigation and right-side window
 	Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
     if ( splitter ) {
-        splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
+        splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode->id(), Core::Side::Left) ); // navegate
         splitter->addWidget( mainWindowSplitter );                            // *this + ontput
         splitter->setStretchFactor( 0, 0 );
         splitter->setStretchFactor( 1, 1 );
@@ -194,7 +194,7 @@ MainWindow::createMidStyledBar()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
+            Core::Context context( (Utils::Id( Core::Constants::C_GLOBAL )) );
             // context << Core::Constants::C_GLOBAL_ID;
 
             // QComboBox * features = new QComboBox;
@@ -339,7 +339,7 @@ MainWindow::createActions()
     actions_[ idActFileOpen ] = createAction( Constants::ICON_FILE_OPEN, tr("Open protain file..."), this );
     connect( actions_[ idActFileOpen ], SIGNAL( triggered() ), this, SLOT( actFileOpen() ) );
 
-    Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
+    Core::Context gc( (Utils::Id( Core::Constants::C_GLOBAL )) );
 
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
 

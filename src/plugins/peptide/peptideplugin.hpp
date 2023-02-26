@@ -14,23 +14,22 @@ namespace peptide {
     class peptideplugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "peptide.json")
-        
+
         public:
         peptideplugin();
         ~peptideplugin();
-        
+
         bool initialize(const QStringList &arguments, QString *errorString);
         void extensionsInitialized();
         ShutdownFlag aboutToShutdown();
-                                      
+
     private slots:
         void triggerAction();
     private:
-        MainWindow * mainWindow_;
-        std::shared_ptr< PeptideMode > mode_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
-    
+
 } // namespace peptide
 
 #endif // PEPTIDE_HPP
-
