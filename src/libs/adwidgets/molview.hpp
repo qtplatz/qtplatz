@@ -50,17 +50,15 @@ namespace adwidgets {
         QSize svgSize() const;
         QSvgRenderer *renderer() const;
         bool setData( const QVariant& );
-        
+
     protected:
         void wheelEvent(QWheelEvent *event) override;
         void paintEvent(QPaintEvent *event) override;
-        
+
     private:
         std::unique_ptr< QSvgRenderer > renderer_;
-        QGraphicsSvgItem * svgItem_;
+        std::unique_ptr< QGraphicsSvgItem > svgItem_;
         QGraphicsRectItem * backgroundItem_;
         QGraphicsRectItem * outlineItem_;
     };
 }
-
-

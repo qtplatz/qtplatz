@@ -34,10 +34,6 @@
 #include <qmath.h>
 #include "molview.hpp"
 
-#ifndef QT_NO_OPENGL
-//#include <QGLWidget>
-#endif
-
 using namespace adwidgets;
 
 MolView::MolView(QWidget *parent) : QGraphicsView( parent )
@@ -140,7 +136,7 @@ MolView::setData( const QVariant& d )
     const bool drawBackground = ( backgroundItem_ ? backgroundItem_->isVisible() : false );
     const bool drawOutline = ( outlineItem_ ? outlineItem_->isVisible() : true );
 
-    QScopedPointer<QGraphicsSvgItem> svgItem( new QGraphicsSvgItem() );
+    auto svgItem = std::make_unique< QGraphicsSvgItem >();
     auto renderer = std::make_unique<  QSvgRenderer >( d.toByteArray() );
     svgItem->setSharedRenderer( renderer.get() );
 
@@ -157,7 +153,7 @@ MolView::setData( const QVariant& d )
     scale( factor, factor );
     // end resize
 
-    svgItem_ = svgItem.take();
+    svgItem_ = std::move( svgItem );
     renderer_ = std::move( renderer );
 
     svgItem_->setFlags( QGraphicsItem::ItemClipsToShape );
@@ -180,7 +176,7 @@ MolView::setData( const QVariant& d )
     outlineItem_->setZValue( 1 );
 
     s->addItem( backgroundItem_ );
-    s->addItem( svgItem_ );
+    s->addItem( svgItem_.get() );
     s->addItem( outlineItem_ );
 
     s->setSceneRect( outlineItem_->boundingRect().adjusted( -5, -5, 5, 5 ) );

@@ -185,7 +185,7 @@ QueryResultTable::setDatabase( QSqlDatabase& db )
 }
 
 void
-QueryResultTable::setQuery( QSqlQuery&& query, std::shared_ptr< QueryConnection > connection )
+QueryResultTable::setSQL( const QString& sql, std::shared_ptr< QueryConnection > connection )
 {
     // this is the workaround preventing segmentation violation at model_->clear();
     if ( connection_ )
@@ -193,27 +193,28 @@ QueryResultTable::setQuery( QSqlQuery&& query, std::shared_ptr< QueryConnection 
     connection_ = connection;
     // end workaound
 
-    setQuery( std::move( query ) );
+    setSQL( sql );
 }
 
 void
-QueryResultTable::setQuery( QSqlQuery&& query )
+QueryResultTable::setSQL( const QString& sql )
 {
     model_->clear();
-    model_->setQuery( std::move( query ) );
+    model_->setQuery( sql );
 
-    int tIndex = query.record().indexOf( "time" ); // non-case sensitive
+    // int tIndex = query.record().indexOf( "time" ); // non-case sensitive
 
-    if ( tIndex >= 0 ) {
-        model_->insertColumns( tIndex, 1 );
-        model_->setHeaderData( tIndex, Qt::Horizontal, tr("m/z") );
-    }
+    // if ( tIndex >= 0 ) {
+    //     model_->insertColumns( tIndex, 1 );
+    //     model_->setHeaderData( tIndex, Qt::Horizontal, tr("m/z") );
+    // }
 
-    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
-        model->computed_mass_column_ = tIndex;
+    // if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+    //     model->computed_mass_column_ = tIndex;
 
     resizeColumnsToContents();
 }
+
 
 void
 QueryResultTable::currentChanged( const QModelIndex& current, const QModelIndex& )

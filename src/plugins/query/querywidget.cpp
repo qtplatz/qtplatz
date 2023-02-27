@@ -218,8 +218,8 @@ QueryWidget::executeQuery()
 {
     if ( auto connection = document::instance()->connection() ) {
         {
-            auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
-            table_->setQuery( std::move( query ), connection->shared_from_this() );
+            // auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
+            table_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'", connection->shared_from_this() );
         }
 
         {
@@ -285,7 +285,7 @@ QueryWidget::handleQuery( const QString& sql )
             document::instance()->addSqlHistory( sql );
         }
 
-        table_->setQuery( std::move( query ) );
+        table_->setSQL( sql, connection->shared_from_this() ); //std::move( query ) );
     }
 }
 

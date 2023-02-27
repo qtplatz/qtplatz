@@ -63,6 +63,7 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/plugin_manager.hpp>
 #include <pugixml.hpp>
 
 #include <coreplugin/icore.h>
@@ -154,6 +155,8 @@ void
 LipididPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
+
+    // SessionManager is a singleton, instanciated in dataproc
     auto mgr = ExtensionSystem::PluginManager::instance()->getObject< adextension::iSessionManager >();
     using adextension::iSessionManager;
     connect( mgr, &iSessionManager::addProcessor, document::instance(), &document::handleAddProcessor );

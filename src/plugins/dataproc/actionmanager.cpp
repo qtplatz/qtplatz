@@ -408,7 +408,9 @@ ActionManager::handleContextAboutToChange( const QList<Core::IContext *>& t1 )
 void
 ActionManager::handleContextChanged( const Core::Context& context )
 {
-    ADDEBUG() << "### Core::ContextChanged: " << context.size() << " " << (context.size() ? context.begin()->toString().toStdString() : "");
+    // context is a list; first item is the currently selected one
+
+    // ADDEBUG() << "### Core::ContextChanged: " << context.size() << " " << (context.size() ? context.begin()->toString().toStdString() : "");
     // for ( auto id: context )
     //     ADDEBUG() << "\t-- " << id.toString().toStdString();
 }

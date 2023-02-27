@@ -164,7 +164,9 @@ namespace dataproc {
                 QWidget * widget = mainWindow_->createContents( mode_.get() );
                 widget->setObjectName( QLatin1String( "DataprocView") );
                 mode_->setWidget( widget );
-
+                if ( auto sessionManager = SessionManager::instance() ) {
+                    ExtensionSystem::PluginManager::addObject( sessionManager );
+                }
                 if (( iSnapshotHandler_ = std::make_unique< iSnapshotHandlerImpl >() )) {
                     connect_isnapshothandler_signals();
                     ExtensionSystem::PluginManager::addObject( iSnapshotHandler_.get() );
@@ -183,6 +185,7 @@ namespace dataproc {
             ExtensionSystem::PluginManager::removeObject( iPeptideHandler_.get() );
             ExtensionSystem::PluginManager::removeObject( iSnapshotHandler_.get() );
             ExtensionSystem::PluginManager::removeObject( navigationWidgetFactory_.get() );
+            ExtensionSystem::PluginManager::removeObject( SessionManager::instance() );
         }
 
     private:
