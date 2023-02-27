@@ -31,9 +31,10 @@
 #include <QLabel>
 #include <QPainter>
 #include <QRect>
+#include <QScrollBar>
 #include <QStyle>
-#include <QtOpenGL>
 #include <QWheelEvent>
+#include <QtOpenGL>
 
 class QPaintEvent;
 

@@ -9,17 +9,17 @@ find_package( Qt${QT_VERSION_MAJOR}
   DBus
   Gui
   Multimedia
-  MultimediaWidgets
+#  MultimediaWidgets
   Network
   OpenGL
   PrintSupport
-  Sensors
+#  Sensors
   Sql
   Svg
-  Positioning
+#  Positioning
   Widgets
   Xml
-  XmlPatterns
+#  XmlPatterns
   )
 
 get_target_property( _loc Qt${QT_VERSION_MAJOR}::Core LOCATION )
@@ -44,17 +44,18 @@ foreach( lib
     Qt${QT_VERSION_MAJOR}::DBus
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Multimedia
-    Qt${QT_VERSION_MAJOR}::MultimediaWidgets
+#    Qt${QT_VERSION_MAJOR}::MultimediaWidgets
     Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::OpenGL
     Qt${QT_VERSION_MAJOR}::PrintSupport
-    Qt${QT_VERSION_MAJOR}::Sensors
+#    Qt${QT_VERSION_MAJOR}::Sensors
     Qt${QT_VERSION_MAJOR}::Sql
     Qt${QT_VERSION_MAJOR}::Svg
-    Qt${QT_VERSION_MAJOR}::Positioning
+#    Qt${QT_VERSION_MAJOR}::Positioning
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Xml
-    Qt${QT_VERSION_MAJOR}::XmlPatterns )
+    #    Qt${QT_VERSION_MAJOR}::XmlPatterns
+    )
 
   get_target_property( _loc ${lib} LOCATION )
 
@@ -75,7 +76,7 @@ if ( QT_INSTALL_PLUGINS )
   file( GLOB _plugins RELATIVE ${QT_INSTALL_PLUGINS} "${QT_INSTALL_PLUGINS}/*" )
   list( REMOVE_ITEM _plugins audio bearer canbus designer gamepads qml1tooling qmltooling xchglintegrations )
 else()
-  message( FATAL_ERROR "plugins: " ${QT_INSTALL_PLUGINS} )
+  #message( FATAL_ERROR "plugins: " ${QT_INSTALL_PLUGINS} )
 endif()
 
 foreach( plugin ${_plugins} )
