@@ -6,11 +6,15 @@ function find_qmake() {
 
     case "${__arch}" in
 		Linux*)
-			local hints=( "/Qt/5.15.2" "/Qt/5.15.1" "/Qt/5.15.0" \
-									   "/Qt/5.14.2" "/Qt/5.14.1" )
+			local hints=( "/Qt/6.4.2" \
+							  "/Qt/6.4.0" \
+							  "/Qt/5.15.2" "/Qt/5.15.1" "/Qt/5.15.0" \
+							  "/Qt/5.14.2" "/Qt/5.14.1" )
 			;;
 		*)
-			local hints=( "/Qt6/6.4.0/macos" \
+			local hints=( "/Qt/6.4.2/macos" \
+							  "/Qt6/6.4.2/macos" \
+							  "/Qt/6.4.0/macos" "/Qt6/6.4.0/macos" \
 							  "/Qt/5.15.2" "/Qt/5.15.1" "/Qt/5.15.0" \
 							  "/Qt/5.14.2" "/Qt/5.14.1" )
 			;;
@@ -38,8 +42,9 @@ function find_qmake() {
     esac
 
     for dir in "${__dirs[@]}"; do
-		echo "-----------" $dir
+		echo "-- lookup: " $dir
 		if [ -f $dir/bin/qmake ]; then
+			echo "------ found qmake in $dir/bin"
 			if $dir/bin/qmake --version &> /dev/null ; then
 				eval $__result="'$dir/bin/qmake'"
 				return 0; #true
