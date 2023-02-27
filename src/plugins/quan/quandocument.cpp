@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,25 +23,65 @@
 **
 **************************************************************************/
 
-#ifndef QUANFACTORY_H
-#define QUANFACTORY_H
+#include "quandocument.hpp"
 
-#include <coreplugin/editormanager/ieditorfactory.h>
-#include <QStringList>
+using namespace quan;
 
-namespace Core {
-    class IEditor;
+QuanDocument::~QuanDocument()
+{
 }
 
-namespace quan {
-
-    class QuanFactory : public Core::IEditorFactory {
-        Q_OBJECT
-    public:
-        ~QuanFactory();
-        explicit QuanFactory();
-    };
-
+QuanDocument::QuanDocument()
+{
 }
 
-#endif // QUANDOCFACTORY_H
+Core::IDocument::OpenResult
+QuanDocument::open(QString *errorString, const Utils::FilePath &filePath,
+                    const Utils::FilePath &realFilePath)
+{
+
+
+    return Core::IDocument::OpenResult::ReadError;
+}
+
+Core::IDocument::ReloadBehavior
+QuanDocument::reloadBehavior(ChangeTrigger state, ChangeType type) const
+{
+    return IDocument::BehaviorSilent;
+}
+
+bool
+QuanDocument::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
+{
+    return true;
+}
+
+bool
+QuanDocument::isModified() const
+{
+    return false;
+}
+
+bool
+QuanDocument::isSaveAsAllowed() const
+{
+    return false;
+}
+
+QString
+QuanDocument::defaultPath() const
+{
+    return {};
+}
+
+QString
+QuanDocument::suggestedFileName() const
+{
+    return {};
+}
+
+bool
+QuanDocument::isFileReadOnly() const
+{
+    return true;
+}

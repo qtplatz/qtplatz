@@ -43,17 +43,39 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/path.hpp>
 
+
+namespace quan {
+
+    class QuanPlugin::impl {
+    public:
+        impl() : editorFactory_( std::make_unique< QuanFactory >() )
+               , mainWindow_( std::make_unique< MainWindow >() ) {}
+        void ini() {
+            if (( mode_ = std::make_unique< QuanMode >() )) {
+                mainWindow_->createActions();
+                mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
+            }
+        }
+        void fin() {
+            mainWindow_->onFinalClose();
+        }
+        std::unique_ptr< QuanFactory > editorFactory_; // self-reg
+        std::unique_ptr< MainWindow > mainWindow_;
+        std::unique_ptr< QuanMode > mode_;
+    };
+
+}
+
 using namespace quan;
 
-QuanPlugin::QuanPlugin() : mode_( std::make_shared<QuanMode>( this ) )
-                         , mainWindow_( new MainWindow() )
+QuanPlugin::QuanPlugin() : impl_( std::make_unique< impl >() )
 {
 }
 
 QuanPlugin::~QuanPlugin()
 {
-    if ( mode_ )
-        removeObject( mode_.get() );
+    // if ( mode_ )
+    //     removeObject( mode_.get() );
     // mainWindow has been deleted at BaseMode dtor
 #if ! defined NDEBUG
     ADDEBUG() << "\t\t## DTOR ##";
@@ -63,24 +85,22 @@ QuanPlugin::~QuanPlugin()
 bool
 QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    Q_UNUSED(arguments)
-    Q_UNUSED(errorString)
+    Q_UNUSED(arguments);
+    Q_UNUSED(errorString);
 
-    mainWindow_->createActions();
+    impl_->ini();
 
-    mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
-
-    addObject( mode_.get() );
+    // addObject( mode_.get() );
 
     // it's conflict with Dataproc document factory on MIME due to both support application/adfs
     // addAutoReleasedObject( new QuanFactory( this ) );
-    
+
     return true;
 }
 
 void QuanPlugin::extensionsInitialized()
 {
-    mainWindow_->onInitialUpdate();
+    impl_->mainWindow_->onInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -89,7 +109,7 @@ QuanPlugin::aboutToShutdown()
     // Save settings
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
-    mainWindow_->onFinalClose();
+    impl_->fin();
 
 #if ! defined NDEBUG
     ADDEBUG() << "\t\t## Shutdown: "
@@ -100,5 +120,6 @@ QuanPlugin::aboutToShutdown()
     return SynchronousShutdown;
 }
 
+#if QTC_VERSION < 0x09'00'00
 Q_EXPORT_PLUGIN2(Quan, QuanPlugin)
-
+#endif

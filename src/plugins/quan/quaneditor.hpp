@@ -32,7 +32,7 @@
 class QEvent;
 
 namespace quan {
-
+#if 0
     class QuanDocProxy : public Core::IDocument {
         Q_OBJECT
     public:
@@ -48,11 +48,17 @@ namespace quan {
         bool isSaveAsAllowed() const override;
         bool isFileReadOnly() const override;
     };
+#endif
 
     class QuanEditor : public Core::IEditor {
         Q_OBJECT
     public:
         ~QuanEditor();
+        QuanEditor( QObject * parent = 0 );
+        Core::IDocument *document() const override;
+        QWidget *toolBar() override;
+        IEditor *duplicate() override;
+#if 0
         QuanEditor( QObject * parent = 0 );
         bool eventFilter( QObject * object, QEvent * event ) override;
 
@@ -69,9 +75,11 @@ namespace quan {
     private:
         QWidget * widget_;
         QuanDocProxy * proxy_;
+#endif
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 
 }
-
-

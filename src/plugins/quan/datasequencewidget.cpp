@@ -129,7 +129,7 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
                                                         , replicates_(1)
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
@@ -177,7 +177,7 @@ DataSequenceWidget::dataSelectionBar()
 {
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
 
         // [DATA OPEN]|[SAVE][...line edit...][EXEC]

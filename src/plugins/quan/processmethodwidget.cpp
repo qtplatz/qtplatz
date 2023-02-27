@@ -48,7 +48,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
                                                           , layout_( new QGridLayout )
 {
     auto topLayout = new QHBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
     //topLayout->addStretch( 1 );

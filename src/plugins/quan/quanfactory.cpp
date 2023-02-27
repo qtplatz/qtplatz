@@ -39,21 +39,20 @@ QuanFactory::~QuanFactory()
 {
 }
 
-QuanFactory::QuanFactory( QObject * owner ) : Core::IEditorFactory( owner )
+QuanFactory::QuanFactory()
 {
-    setId( Constants::C_QUAN );
-    
-    setDisplayName( tr( "OpenWidth::Quan", "Quan processor" ) );
+   setId( Constants::C_QUAN );
 
-    addMimeType( "application/adfs" );
-    //addMimeType( "application/csv" );
-    //addMimeType( "application/txt" );
+   setDisplayName( tr("QuanView") );
+   setEditorCreator( [] {
+       return new QuanEditor();
+   });
+
+   for ( auto &format : { "application/adfs"
+                           , "application/sqlite"
+                           , "application/db" } ) {
+       addMimeType( QString::fromLatin1(format) );
+   }
+
+
 }
-
-// implementation for IEditorFactory
-Core::IEditor *
-QuanFactory::createEditor()
-{
-    return new QuanEditor;
-}
-

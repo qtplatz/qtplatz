@@ -63,6 +63,8 @@
 #include <QMenuBar>
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QTextCodec>
+#else
+#include <QtCore5Compat/QTextCodec>
 #endif
 #include <QTextEdit>
 #include <QStatusBar>
@@ -503,8 +505,13 @@ void TextEdit::filePrint()
 #if QT_CONFIG(printdialog)
     QPrinter printer(QPrinter::HighResolution);
     QPrintDialog *dlg = new QPrintDialog(&printer, this);
-    if (textEdit->textCursor().hasSelection())
+    if (textEdit->textCursor().hasSelection()) {
+#if QT_VERSION >= 0x06'00'00
+        dlg->setOption(QAbstractPrintDialog::PrintSelection);
+#else
         dlg->addEnabledOption(QAbstractPrintDialog::PrintSelection);
+#endif
+    }
     dlg->setWindowTitle(tr("Print Document"));
     if (dlg->exec() == QDialog::Accepted)
         textEdit->print(&printer);

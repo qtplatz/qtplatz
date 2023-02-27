@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,25 +23,33 @@
 **
 **************************************************************************/
 
-#ifndef QUANFACTORY_H
-#define QUANFACTORY_H
+#pragma once
 
-#include <coreplugin/editormanager/ieditorfactory.h>
+#include <coreplugin/idocument.h>
+#include <coreplugin/editormanager/ieditor.h>
 #include <QStringList>
 
-namespace Core {
-    class IEditor;
-}
+class QEvent;
 
 namespace quan {
 
-    class QuanFactory : public Core::IEditorFactory {
+    class QuanDocument : public Core::IDocument {
         Q_OBJECT
     public:
-        ~QuanFactory();
-        explicit QuanFactory();
+        ~QuanDocument();
+        QuanDocument();
+
+        // Core::IDocument
+        OpenResult open(QString *errorString, const Utils::FilePath &filePath,
+                        const Utils::FilePath &realFilePath) override;
+        ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
+        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false );
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+        bool isModified() const override;
+        bool isSaveAsAllowed() const override;
+        QString defaultPath() const;
+        QString suggestedFileName() const;
+        bool isFileReadOnly() const;
     };
 
 }
-
-#endif // QUANDOCFACTORY_H

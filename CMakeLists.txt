@@ -39,7 +39,7 @@ endif()
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
-option( WITH_QT5           "Include QT5"                ON )
+option( WITH_QT5           "Include Qt5|Qt6"            ON )
 option( WITH_QWT           "Include QWT"                ON )
 option( WITH_AqDrv4        "Keysight AP240/DC122"       OFF )
 option( WITH_AgMD2         "Keysight U5303A"            ON )

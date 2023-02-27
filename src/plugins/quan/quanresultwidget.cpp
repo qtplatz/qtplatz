@@ -51,12 +51,12 @@ QuanResultWidget::QuanResultWidget(QWidget *parent) : QWidget(parent)
                                                     , currentIndex_( 0 )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -112,7 +112,7 @@ QuanResultWidget::execQuery( const std::string& sqlString )
 
         QSqlQuery sqlQuery( QString::fromStdString( sqlString ), conn->sqlDatabase() );
         // ADDEBUG() << sqlString;
-        table_->setQuery( sqlQuery, { "uuid" } );
+        table_->setQuery( std::move( sqlQuery ), { "uuid" } );
     }
 }
 
@@ -154,7 +154,7 @@ QuanResultWidget::setCompoundSelected( const std::set< boost::uuids::uuid >& uui
                 if ( conn->query()->buildQuery( sql, currentIndex_, conn->isCounting(), conn->isISTD(), additionals.str() ) ) {
                     QSqlQuery sqlQuery( QString::fromStdString( sql ), conn->sqlDatabase() );
                     ADDEBUG() << sql;
-                    table_->setQuery( sqlQuery, { "uuid" } );
+                    table_->setQuery( std::move( sqlQuery ), { "uuid" } );
                 }
             }
             return;

@@ -342,7 +342,7 @@ DoubleTabWidget::mousePressEvent(QMouseEvent *event)
         for (int i = lastVisibleIndex_ + 1; i < tabs_.size(); ++i) {
             actions << overflowMenu.addAction(tabs_.at(currentTabIndices_.at(i)).displayName());
         }
-        if (QAction *action = overflowMenu.exec(event->globalPos())) { // todo used different position before
+        if (QAction *action = overflowMenu.exec(event->globalPosition().toPoint())) { // todo used different position before
             int index = currentTabIndices_.at(actions.indexOf(action) + lastVisibleIndex_ + 1);
             if (currentIndex_ != index) {
                 currentIndex_ = index;

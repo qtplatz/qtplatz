@@ -55,13 +55,13 @@ namespace quan {
                 // if ( auto sqlModel = qobject_cast< const QSqlQueryModel * >( index.model() ) ) {
                 //     auto field = sqlModel->record().field( index.column() );
 
-                if ( index.data().type() == QVariant::Double ) {
+                if ( index.data().metaType() == QMetaType::fromType< double >() ) { // QVariant::Double ) {
                     double value = index.data().toDouble();
                     if ( ( value <= std::numeric_limits< double >::epsilon() ) || value >= 0.01 )
                         painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
                     else
                         painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'e', 5 ) );
-                } else if ( index.data().type() == QVariant::String ) {
+                } else if ( index.data().metaType() == QMetaType::fromType< QString >() ) {
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
                     if ( !formula.empty() ) {
                         adwidgets::DelegateHelper::render_html( painter, op, QString::fromStdString( formula ) );
@@ -90,7 +90,7 @@ namespace quan {
                 QStyleOptionViewItem op( option );
                 if ( index.data().isNull() ) {
                     return QSize();
-                } else if ( index.data().type() == QVariant::Double ) {
+                } else if ( index.data().metaType() == QMetaType::fromType< double >() ) {
                     QFontMetricsF fm = op.fontMetrics;
                     double value = index.data().toDouble();
                     double width;
@@ -142,13 +142,13 @@ QuanResultTable::model()
 
 /////////////////////
 void
-QuanResultTable::setQuery( const QSqlQuery& sqlQuery, const std::vector<QString>& hidelist )
+QuanResultTable::setQuery( QSqlQuery&& sqlQuery, const std::vector<QString>& hidelist )
 {
     if ( auto delegate = dynamic_cast< ItemDelegate *>(itemDelegate()) )
         delegate->clear();
 
     if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
-        model->setQuery( sqlQuery );
+        model->setQuery( std::move( sqlQuery ) );
     }
 
     for ( auto& hide: hidelist ) {

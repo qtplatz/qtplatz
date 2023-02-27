@@ -89,7 +89,7 @@ PanelsWidget::PanelsWidget( QWidget * parent ) : QScrollArea( parent )
 
     // The layout holding the individual panels:
     QVBoxLayout *topLayout = new QVBoxLayout(root_);
-    topLayout->setMargin(0);
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing(0);
 
     layout_ = new QGridLayout;

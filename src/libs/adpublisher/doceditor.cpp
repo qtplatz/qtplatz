@@ -30,6 +30,7 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <pugixml.hpp>
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QClipboard>
@@ -54,7 +55,7 @@
 #include <QStringListModel>
 #include <QStackedWidget>
 //#include <QtConcurrent>
-#include <QTextCodec>
+//#include <QTextCodec>
 #include <QTextEdit>
 #include <QTextBrowser>
 #include <QToolBar>
@@ -102,7 +103,7 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     setCentralWidget( widget );
     auto layout = new QVBoxLayout(widget);
 
-    layout->setMargin(0);
+    layout->setContentsMargins( {} );
     layout->setSpacing(0);
 
     auto splitter = new QSplitter;
@@ -248,7 +249,7 @@ docEditor::setupTextActions( QMenu * menu )
     addToolBar(tb);
 
     actions_[ idActionTextBold ] = new QAction( QIcon::fromTheme( "format-text-bold", QIcon( qrcpath + "/textbold.png" ) ), tr( "&Bold" ), this );
-    actions_[ idActionTextBold ]->setShortcut( Qt::CTRL + Qt::Key_B );
+    actions_[ idActionTextBold ]->setShortcut( Qt::CTRL | Qt::Key_B );
     actions_[ idActionTextBold ]->setPriority( QAction::LowPriority );
     QFont bold;
     bold.setBold(true);
@@ -260,7 +261,7 @@ docEditor::setupTextActions( QMenu * menu )
 
     actions_[ idActionTextItalic ] = new QAction( QIcon::fromTheme( "format-text-italic", QIcon( qrcpath + "/textitalic.png" ) ), tr( "&Italic" ), this );
     actions_[ idActionTextItalic ]->setPriority( QAction::LowPriority );
-    actions_[ idActionTextItalic ]->setShortcut( Qt::CTRL + Qt::Key_I );
+    actions_[ idActionTextItalic ]->setShortcut( Qt::CTRL | Qt::Key_I );
     QFont italic;
     italic.setItalic(true);
     actions_[ idActionTextItalic ]->setFont( italic );
@@ -270,7 +271,7 @@ docEditor::setupTextActions( QMenu * menu )
     actions_[ idActionTextItalic ]->setCheckable( true );
 
     actions_[ idActionTextUnderline ] = new QAction( QIcon::fromTheme( "format-text-underline", QIcon( qrcpath + "/textunder.png" ) ), tr( "&Underline" ), this );
-    actions_[ idActionTextUnderline ]->setShortcut( Qt::CTRL + Qt::Key_U );
+    actions_[ idActionTextUnderline ]->setShortcut( Qt::CTRL | Qt::Key_U );
     actions_[ idActionTextUnderline ]->setPriority( QAction::LowPriority );
     QFont underline;
     underline.setUnderline(true);
@@ -297,16 +298,16 @@ docEditor::setupTextActions( QMenu * menu )
     }
     actions_[ idActionAlignJustify ] = new QAction( QIcon::fromTheme( "format-justify-fill", QIcon( qrcpath + "/textjustify.png" ) ), tr( "&Justify" ), grp );
 
-    actions_[ idActionAlignLeft ]->setShortcut( Qt::CTRL + Qt::Key_L );
+    actions_[ idActionAlignLeft ]->setShortcut( Qt::CTRL | Qt::Key_L );
     actions_[ idActionAlignLeft ]->setCheckable( true );
     actions_[ idActionAlignLeft ]->setPriority( QAction::LowPriority );
-    actions_[ idActionAlignCenter ]->setShortcut( Qt::CTRL + Qt::Key_E );
+    actions_[ idActionAlignCenter ]->setShortcut( Qt::CTRL | Qt::Key_E );
     actions_[ idActionAlignCenter ]->setCheckable( true );
     actions_[ idActionAlignCenter ]->setPriority( QAction::LowPriority );
-    actions_[ idActionAlignRight ]->setShortcut( Qt::CTRL + Qt::Key_R );
+    actions_[ idActionAlignRight ]->setShortcut( Qt::CTRL | Qt::Key_R );
     actions_[ idActionAlignRight ]->setCheckable( true );
     actions_[ idActionAlignRight ]->setPriority( QAction::LowPriority );
-    actions_[ idActionAlignJustify ]->setShortcut( Qt::CTRL + Qt::Key_J );
+    actions_[ idActionAlignJustify ]->setShortcut( Qt::CTRL | Qt::Key_J );
     actions_[ idActionAlignJustify ]->setCheckable( true );
     actions_[ idActionAlignJustify ]->setPriority( QAction::LowPriority );
 
@@ -365,8 +366,8 @@ docEditor::setupTextActions( QMenu * menu )
     tb->addWidget(comboSize);
     comboSize->setEditable(true);
 
-    QFontDatabase db;
-    foreach(int size, db.standardSizes())
+    // QFontDatabase db;
+    foreach(int size, QFontDatabase::standardSizes())
         comboSize->addItem(QString::number(size));
 
     connect(comboSize, SIGNAL(activated(QString)), this, SLOT(textSize(QString)));
@@ -499,8 +500,13 @@ void docEditor::filePrint()
 {
     QPrinter printer(QPrinter::HighResolution);
     QPrintDialog *dlg = new QPrintDialog(&printer, this);
-    if (text_->textCursor().hasSelection())
-        dlg->addEnabledOption(QAbstractPrintDialog::PrintSelection);
+    if (text_->textCursor().hasSelection()) {
+#if QT_VERSION >= 0x060000
+        dlg->setOption( QAbstractPrintDialog::PrintSelection );
+#else
+        dlg->addEnabledOption( QAbstractPrintDialog::PrintSelection );
+#endif
+    }
     dlg->setWindowTitle(tr("Print Document"));
     if (dlg->exec() == QDialog::Accepted)
         text_->print(&printer);
@@ -561,7 +567,8 @@ void docEditor::textItalic()
 void docEditor::textFamily(const QString &f)
 {
     QTextCharFormat fmt;
-    fmt.setFontFamily( f );
+    //fmt.setFontFamily( f );
+    fmt.setFontFamilies( { f } );
     mergeFormatOnWordOrSelection( fmt );
 }
 

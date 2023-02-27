@@ -12,14 +12,17 @@ set(CMAKE_AUTORCC ON)
 configure_file(
   "${PROJECT_SOURCE_DIR}/xslt/debug.xslt"
   "${PROJECT_BINARY_DIR}/share/qtplatz/xslt"  # <QtPlatz>/share/qtplatz/xslt
-  )
+)
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
+if ( QT_VERSION_MAJOR EQUAL 6)
+  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED COMPONENTS Core5Compat )
+endif()
 
 add_definitions(-DADPUBLISHER_LIBRARY)
 
 include_directories(
   ${QtConcurrent_INCLUDE_DIRS}
+  ${QtCore5Compat}
   ${QtSvg_INCLUDE_DIRS}
   ${QtPrintSupport_INCLUDE_DIRS}
   ${QtXml_INCLUDE_DIRS}
@@ -73,31 +76,20 @@ add_library( adpublisher SHARED
   textedit.hpp
   ${_xslt_sources}
   ${adpublisher_RESOURCES}
-  )
+)
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
   adportable
   qtwrapper
   xmlparser
+  Qt::Core5Compat
   Qt::Widgets
   Qt::Core
   Qt::PrintSupport
   ${_xslt_libs}
   ${Boost_LIBRARIES}
-  )
-
-if ( NOT WIN32 )
-  add_executable( adedit
-    main.cpp
-    )
-
-target_link_libraries(
-  adedit LINK_PUBLIC
-  ${PROJECT_NAME}
-  )
-endif()
-
+)
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

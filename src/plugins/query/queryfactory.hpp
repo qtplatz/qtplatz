@@ -39,18 +39,7 @@ namespace query {
         Q_OBJECT
     public:
         ~QueryFactory();
-#if QTC_VERSION >= 0x09'00'00
         explicit QueryFactory();
-#else
-        explicit QueryFactory( QObject * owner );
-        // implement IEditorFactory
-        Core::IEditor *createEditor() override;
-#endif
-        // implement IFileFactory
-        //virtual QStringList mimeTypes() const override;
-        //virtual QString kind() const override;
-        //virtual Core::IDocument * open( const QString& filename ) override;
-        // <---
     };
 
 }

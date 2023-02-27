@@ -52,7 +52,7 @@ namespace quan {
         QAbstractItemModel * model();
 
         /////////////////////////////
-        void setQuery( const QSqlQuery&, const std::vector<QString>& hide = {} );
+        void setQuery( QSqlQuery&&, const std::vector<QString>& hide = {} );
 
     private:
         std::unique_ptr< QAbstractItemModel > model_;
