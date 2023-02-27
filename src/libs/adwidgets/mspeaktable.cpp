@@ -846,7 +846,7 @@ MSPeakTable::handleCopyToClipboard()
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
         if ( idx.column() == c_mspeaktable_time )
             copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
-		else if ( model.data( idx ).type() == QVariant::Double )
+		else if ( model.data( idx ).metaType() == QMetaType::fromType< double >() )
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
         else
             copy_table.append( model.data( idx ).toString() );

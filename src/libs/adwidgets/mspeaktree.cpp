@@ -681,7 +681,7 @@ MSPeakTree::handleCopyToClipboard()
         if ( idx.column() == c_time ) {
             auto text = QString::fromStdString((boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str());
             copy_table.append( text );
-		} else if ( model.data( idx ).type() == QVariant::Double ) {
+		} else if ( model.data( idx ).metaType() == QMetaType::fromType< double >() ) {
 			copy_table.append( QString::fromStdString((boost::format("%.14g") % model.data( idx ).toDouble()).str()) );
         } else {
             copy_table.append( __remove_html( model.data( idx ).toString() ) );

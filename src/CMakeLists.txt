@@ -15,22 +15,18 @@ configure_file(
   )
 
 add_subdirectory( libs )
-# message( STATUS "************** end of src/libs *****************" )
 
 if ( WITH_QT5 AND NOT CMAKE_CROSSCOMPILING )
-  # message( STATUS "------------ src/adplugins ----------------" )
   add_subdirectory( adplugins )
-  # message( STATUS "------------ src/app ----------------------" )
+  add_subdirectory( plugins )
+
+  ############# QtCreator4 base ###############
   if ( ${QT_VERSION_MAJOR} EQUAL 5 )
     add_subdirectory( app )
   endif()
-  # message( STATUS "------------ src/plugins ------------------" )
-  add_subdirectory( plugins )
+  ############# End QtCreator4 ###############
 endif()
 
-if ( VERBOSE )
-  message( STATUS "------------ src/tools --------------------" )
-endif()
 add_subdirectory( tools )
 
 configure_file(

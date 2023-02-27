@@ -53,8 +53,8 @@ namespace query {
         void addActionsToContextMenu( QMenu& menu, const QPoint& ) const override;
         //
 
-        void setQuery( const QSqlQuery&, std::shared_ptr< QueryConnection > );
-        void setQuery( const QSqlQuery& );
+        void setQuery( QSqlQuery&&, std::shared_ptr< QueryConnection > );
+        void setQuery( QSqlQuery&& );
         void setDatabase( QSqlDatabase& );
 
         void clear();
@@ -74,7 +74,7 @@ namespace query {
 
     signals:
         void onCurrentChanged( const QModelIndex& );
-        void plot(); 
+        void plot();
 
     public slots:
 

@@ -11,10 +11,10 @@ add_subdirectory ( adfs )
 add_subdirectory ( adio )
 add_subdirectory ( adlog )
 add_subdirectory ( admethods )
+add_subdirectory ( adplugin )
+add_subdirectory ( adacquire )
 if ( QT_FOUND )
-  add_subdirectory ( adplugin )  # <-- Qt5_Core dependency (QJsonXXX)
-  add_subdirectory ( adacquire ) # <-- adplugin dependency
-  add_subdirectory ( adui )      # tools dependency
+  add_subdirectory ( adui )      # QCore, QWidget dependency
 endif()
 add_subdirectory ( adportfolio )
 add_subdirectory ( adprot )
@@ -38,16 +38,17 @@ if ( NOT CMAKE_CROSSCOMPILING AND QT_FOUND )
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
   add_subdirectory (admtwidgets)
+  add_subdirectory (adpublisher)
+
+  ######################## QtCreator4 ############################
   if ( ${QT_VERSION_MAJOR} EQUAL 5 )
     add_subdirectory (aggregation)
     add_subdirectory (extensionsystem)
     add_subdirectory (utils)
   endif()
+  ######################## END QtCreator4 ########################
   find_package( Qt${QT_VERSION_MAJOR} COMPONENTS XmlPatterns QUIET )
   find_package( Qt${QT_VERSION_MAJOR} COMPONENTS WebEngineWidgets QUIET )
-  #if ( QT_VERSION_MAJOR EQUAL 5 )
-  add_subdirectory (adpublisher)
-  #endif()
 
 endif()
 
@@ -55,12 +56,12 @@ install( FILES
   compiler/decl_export.h
   compiler/pragma_warning.hpp
   DESTINATION include/compiler COMPONENT headers
-  )
+)
 
 install( FILES
   date/date.h
   DESTINATION include/date COMPONENT headers
-  )
+)
 
 if ( UNIX AND CMAKE_CROSSCOMPILING )
   install ( FILES qtplatz.conf DESTINATION /etc/ld.so.conf.d COMPONENT runtime_libraries )

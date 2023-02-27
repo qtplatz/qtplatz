@@ -941,7 +941,7 @@ ItemDelegate::editorEvent( QEvent * event
     bool res = QStyledItemDelegate::editorEvent( event, model, option, index );
     if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
         QVariant st = index.data( Qt::CheckStateRole );
-        if ( index.data( Qt::EditRole ).type() == QVariant::Bool ) {
+        if ( index.data( Qt::EditRole ).metaType() == QMetaType::fromType< bool >() ) {
             model->setData( index, ( st == Qt::Checked ) ? true : false );
             if ( valueChanged_ )
                 valueChanged_( index );

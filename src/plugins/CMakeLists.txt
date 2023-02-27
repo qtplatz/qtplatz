@@ -11,11 +11,11 @@ if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
 endif()
 
 ## add_subdirectory( imageviewer )
-
+################### QtCreator4 #########################
 if ( ${QT_VERSION_MAJOR} EQUAL 5 )
-  message( STATUS "================== Qt5 core plugins ======================" )
   add_subdirectory( coreplugin )
 endif()
+################### END QtCreator4 #####################
 
 if ( QTPLATZ_CONFIG_Servant )
   add_subdirectory( servant )
@@ -64,5 +64,3 @@ endif()
 if ( QTPLATZ_CONFIG_Lipidid )
   add_subdirectory( lipidid )
 endif()
-
-# add_subdirectory( welcome )

@@ -470,10 +470,10 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
         model->setData( index, func );
 
         if ( adcontrols::PeakMethod::TimedEvent::isBool( func ) ) {
-            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Bool )
+            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< bool >()  )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
         } else {
-            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Double )
+            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< double >() )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(0.0), Qt::EditRole );
         }
 

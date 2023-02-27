@@ -104,7 +104,7 @@ namespace query {
                             double raw = index.data().toDouble() * 1.0e-9;
                             painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter
                                                , QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
-                        } else if ( index.data().type() == QVariant::ByteArray ) {
+                        } else if ( index.data().metaType() == QMetaType::fromType< QByteArray >() ) {
                             auto v = queryModel->record(index.row()).value( "objuuid" );
                             if ( v.isValid() ) {
                                 auto uuid = boost::uuids::string_generator()( v.toString().toStdString() );
@@ -112,7 +112,7 @@ namespace query {
                                 if ( it != __uuid_db__.end() )
                                     painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( it->second ) );
                             }
-                        } else if ( column_name == "meta" && index.data().type() == QVariant::ByteArray ) {
+                        } else if ( column_name == "meta" && index.data().metaType() == QMetaType::fromType< QByteArray >() ) {
 
                         } else {
                             QStyledItemDelegate::paint( painter, op, index );
@@ -136,7 +136,7 @@ namespace query {
                 QStyleOptionViewItem op( option );
                 if ( index.data().isNull() ) {
                     return QSize();
-                } else if ( index.data().type() == QVariant::Double ) {
+                } else if ( index.data().metaType() == QMetaType::fromType< double >() ) {
                     auto fm = op.fontMetrics;
                     double width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) ).width();
                     QSize sz = QStyledItemDelegate::sizeHint( option, index );
@@ -185,7 +185,7 @@ QueryResultTable::setDatabase( QSqlDatabase& db )
 }
 
 void
-QueryResultTable::setQuery( const QSqlQuery& query, std::shared_ptr< QueryConnection > connection )
+QueryResultTable::setQuery( QSqlQuery&& query, std::shared_ptr< QueryConnection > connection )
 {
     // this is the workaround preventing segmentation violation at model_->clear();
     if ( connection_ )
@@ -193,11 +193,11 @@ QueryResultTable::setQuery( const QSqlQuery& query, std::shared_ptr< QueryConnec
     connection_ = connection;
     // end workaound
 
-    setQuery( query );
+    setQuery( std::move( query ) );
 }
 
 void
-QueryResultTable::setQuery( const QSqlQuery& query )
+QueryResultTable::setQuery( QSqlQuery&& query )
 {
     model_->clear();
     model_->setQuery( std::move( query ) );

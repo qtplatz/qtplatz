@@ -72,7 +72,7 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
         Qt::ItemFlags flags = model()->flags( index );
         if ( flags & Qt::ItemIsUserCheckable ) {
             QVariant st = index.data( Qt::CheckStateRole );
-			if ( index.data( Qt::EditRole ).type() == QVariant::Bool )
+			if ( index.data( Qt::EditRole ).metaType() == QMetaType::fromType< bool >() )
                 model()->setData( index, ( st == Qt::Checked ) ? true : false );
         }
     }

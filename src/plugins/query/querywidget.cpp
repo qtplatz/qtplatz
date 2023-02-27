@@ -219,7 +219,7 @@ QueryWidget::executeQuery()
     if ( auto connection = document::instance()->connection() ) {
         {
             auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
-            table_->setQuery( query, connection->shared_from_this() );
+            table_->setQuery( std::move( query ), connection->shared_from_this() );
         }
 
         {
@@ -285,7 +285,7 @@ QueryWidget::handleQuery( const QString& sql )
             document::instance()->addSqlHistory( sql );
         }
 
-        table_->setQuery( query );
+        table_->setQuery( std::move( query ) );
     }
 }
 

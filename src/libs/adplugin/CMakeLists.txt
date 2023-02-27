@@ -10,9 +10,6 @@ cmake_policy(SET CMP0020 NEW)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-#find_package( Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED )
-include_directories( ${QtCore_INCLUDE_DIRS}  )
-
 add_definitions(-DADPLUGIN_LIBRARY)
 
 add_library( adplugin SHARED

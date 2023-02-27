@@ -466,7 +466,7 @@ MSPeakTree::handleCopyToClipboard()
     for ( auto idx: list ) {
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
-		if ( model.data( idx ).type() == QVariant::Double )
+		if ( model.data( idx ).metaType() == QMetaType::fromType< double >() )
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
         else
             copy_table.append( model.data( idx ).toString() );

@@ -418,9 +418,15 @@ MainWindow::run()
         if ( boost::filesystem::exists( path ) ) {
 
             QString file( QString::fromStdWString( path.normalize().wstring() ) );
-            auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
-                                                , QString("File %1% already exists, remove?").arg( file )
-                                                , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
+            QMessageBox mBox;
+            mBox.setText( "Quan Sequence Exec" );
+            mBox.setInformativeText( QString("File %1% already exists, remove?").arg( file ) );
+            mBox.setStandardButtons( QMessageBox::Yes|QMessageBox::No|QMessageBox::Ignore );
+            mBox.setDefaultButton( QMessageBox::No );
+            auto reply = mBox.exec();
+            // auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+            //                                     , QString("File %1% already exists, remove?").arg( file )
+            //                                     , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
             if ( reply == QMessageBox::No )
                 return;
 
@@ -428,9 +434,15 @@ MainWindow::run()
                 boost::system::error_code ec;
                 boost::filesystem::remove( path, ec );
                 if ( ec ) {
-                    auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
-                                                        , QString( "File %1% cannot be removed. Overwrite?" ).arg( file )
-                                                        , QMessageBox::Yes, QMessageBox::No, QMessageBox::Ignore );
+                    QMessageBox mBox;
+                    mBox.setText( "Quan Sequence Exec" );
+                    mBox.setInformativeText( QString( "File %1% cannot be removed. Overwrite?" ).arg( file ) );
+                    mBox.setStandardButtons( QMessageBox::Yes|QMessageBox::No|QMessageBox::Ignore );
+                    mBox.setDefaultButton( QMessageBox::No );
+                    auto reply = mBox.exec();
+                    // auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+                    //                                     , QString( "File %1% cannot be removed. Overwrite?" ).arg( file )
+                    //                                     , QMessageBox::Yes, QMessageBox::No, QMessageBox::Ignore );
                     if ( reply == QMessageBox::No )
                         return;
                 }
