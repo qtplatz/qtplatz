@@ -69,101 +69,52 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
 )
 
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
-  add_library( ${PROJECT_NAME} MODULE
-    aboutdlg.cpp                aboutdlg.hpp
-    actionmanager.cpp           actionmanager.hpp
-    assign_masses.cpp           assign_masses.hpp
-    assign_peaks.cpp            assign_peaks.hpp
-    chromatogramwnd.cpp         chromatogramwnd.hpp
-    contourwnd.cpp              contourwnd.hpp
-    datafolder.cpp              datafolder.hpp
-    dataproc_global.hpp
-    dataprocconstants.hpp
-    dataproceditor.cpp          dataproceditor.hpp
-    dataprocessor.cpp           dataprocessor.hpp
-    dataprocfactory.cpp         dataprocfactory.hpp
-    dataprocessworker.cpp       dataprocessworker.hpp
-    dataprochandler.cpp         dataprochandler.hpp
-    dataprocplugin.cpp          dataprocplugin.hpp
-    dialogspectrometerchoice.cpp    dialogspectrometerchoice.hpp
-    document.cpp                document.hpp
-    elementalcompwnd.cpp        elementalcompwnd.hpp
-    filepropertywidget.cpp      filepropertywidget.hpp
-    ipeptidehandlerimpl.cpp     ipeptidehandlerimpl.hpp
-    isnapshothandlerimpl.cpp    isnapshothandlerimpl.hpp
-    mainwindow.cpp              mainwindow.hpp
-    mass_calibrator.cpp         mass_calibrator.hpp
-    mimetypehelper.hpp
-    mode.cpp                    mode.hpp
-    mscalibrationwnd.cpp        mscalibrationwnd.hpp
-    mspeakswnd.cpp              mspeakswnd.hpp
-    mspeaktable.cpp             mspeaktable.hpp
-    msprocessingwnd.cpp         msprocessingwnd.hpp
-    mspropertyform.cpp          mspropertyform.hpp
-    msspectrawnd.cpp            msspectrawnd.hpp
-    navigationdelegate.cpp      navigationdelegate.hpp
-    navigationwidget.cpp        navigationwidget.hpp
-    navigationwidgetfactory.cpp navigationwidgetfactory.hpp
-    peaklist_export.cpp         peaklist_export.hpp
-    qtwidgets_name.hpp
-    rms_export.cpp              rms_export.hpp
-    selchanged.hpp
-    sessionmanager.cpp          sessionmanager.hpp
-    lapdeconvdlg.cpp            lapdeconvdlg.hpp
-    make_filename.cpp           make_filename.hpp
-    utility.cpp                 utility.hpp
-    ${_source}
-    ${Resources}
-  )
-else()
-  add_library( ${PROJECT_NAME} MODULE
-    dataproc_global.hpp
-    dataprocconstants.hpp
-    aboutdlg.cpp                aboutdlg.hpp
-    actionmanager.cpp           actionmanager.hpp
-    assign_masses.cpp           assign_masses.hpp
-    assign_peaks.cpp            assign_peaks.hpp
-    chromatogramwnd.cpp         chromatogramwnd.hpp
-    contourwnd.cpp              contourwnd.hpp
-    datafolder.cpp              datafolder.hpp
-    dataproceditor.cpp          dataproceditor.hpp
-    dataprocessor.cpp           dataprocessor.hpp
-    dataprocfactory.cpp         dataprocfactory.hpp
-    dataprocessworker.cpp       dataprocessworker.hpp
-    dataprochandler.cpp         dataprochandler.hpp
-    dataprocplugin.cpp          dataprocplugin.hpp
-    dialogspectrometerchoice.cpp    dialogspectrometerchoice.hpp
-    document.cpp                document.hpp
-    elementalcompwnd.cpp        elementalcompwnd.hpp
-    filepropertywidget.cpp      filepropertywidget.hpp
-    ipeptidehandlerimpl.cpp     ipeptidehandlerimpl.hpp
-    isnapshothandlerimpl.cpp    isnapshothandlerimpl.hpp
-    mainwindow.cpp              mainwindow.hpp
-    mass_calibrator.cpp         mass_calibrator.hpp
-    mimetypehelper.hpp
-    mode.cpp                    mode.hpp
-    mscalibrationwnd.cpp        mscalibrationwnd.hpp
-    mspeakswnd.cpp              mspeakswnd.hpp
-    mspeaktable.cpp             mspeaktable.hpp
-    msprocessingwnd.cpp         msprocessingwnd.hpp
-    mspropertyform.cpp          mspropertyform.hpp
-    msspectrawnd.cpp            msspectrawnd.hpp
-    navigationdelegate.cpp      navigationdelegate.hpp
-    navigationwidget.cpp        navigationwidget.hpp
-    navigationwidgetfactory.cpp navigationwidgetfactory.hpp
-    peaklist_export.cpp         peaklist_export.hpp
-    qtwidgets_name.hpp
-    rms_export.cpp              rms_export.hpp
-    selchanged.hpp
-    sessionmanager.cpp          sessionmanager.hpp
-    lapdeconvdlg.cpp            lapdeconvdlg.hpp
-    make_filename.cpp           make_filename.hpp
-    utility.cpp                 utility.hpp
-    ${_source}
-    ${Resources}
-  )
-endif()
+add_library( ${PROJECT_NAME} MODULE
+  dataproc_global.hpp
+  dataprocconstants.hpp
+  aboutdlg.cpp                aboutdlg.hpp
+  actionmanager.cpp           actionmanager.hpp
+  assign_masses.cpp           assign_masses.hpp
+  assign_peaks.cpp            assign_peaks.hpp
+  chromatogramwnd.cpp         chromatogramwnd.hpp
+  contourwnd.cpp              contourwnd.hpp
+  datafolder.cpp              datafolder.hpp
+  dataproceditor.cpp          dataproceditor.hpp
+  dataprocessor.cpp           dataprocessor.hpp
+  dataprocfactory.cpp         dataprocfactory.hpp
+  dataprocessworker.cpp       dataprocessworker.hpp
+  dataprochandler.cpp         dataprochandler.hpp
+  dataprocplugin.cpp          dataprocplugin.hpp
+  dialogspectrometerchoice.cpp    dialogspectrometerchoice.hpp
+  document.cpp                document.hpp
+  elementalcompwnd.cpp        elementalcompwnd.hpp
+  filepropertywidget.cpp      filepropertywidget.hpp
+  ipeptidehandlerimpl.cpp     ipeptidehandlerimpl.hpp
+  isnapshothandlerimpl.cpp    isnapshothandlerimpl.hpp
+  mainwindow.cpp              mainwindow.hpp
+  mass_calibrator.cpp         mass_calibrator.hpp
+  mimetypehelper.hpp
+  mode.cpp                    mode.hpp
+  mscalibrationwnd.cpp        mscalibrationwnd.hpp
+  mspeakswnd.cpp              mspeakswnd.hpp
+  mspeaktable.cpp             mspeaktable.hpp
+  msprocessingwnd.cpp         msprocessingwnd.hpp
+  mspropertyform.cpp          mspropertyform.hpp
+  msspectrawnd.cpp            msspectrawnd.hpp
+  navigationdelegate.cpp      navigationdelegate.hpp
+  navigationwidget.cpp        navigationwidget.hpp
+  navigationwidgetfactory.cpp navigationwidgetfactory.hpp
+  peaklist_export.cpp         peaklist_export.hpp
+  qtwidgets_name.hpp
+  rms_export.cpp              rms_export.hpp
+  selchanged.hpp
+  sessionmanager.cpp          sessionmanager.hpp
+  lapdeconvdlg.cpp            lapdeconvdlg.hpp
+  make_filename.cpp           make_filename.hpp
+  utility.cpp                 utility.hpp
+  ${_source}
+  ${Resources}
+)
 
 if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "9.0.0" )
   set( EXTENSIONSYSTEM "ExtensionSystem" )
@@ -215,7 +166,7 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
   install( FILES
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"

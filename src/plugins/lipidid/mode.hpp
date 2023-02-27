@@ -36,7 +36,7 @@ namespace lipidid {
     signals:
 
     public slots:
-        void grabEditorManager(Core::IMode *mode);
+        void grabEditorManager( Utils::Id mode );
     };
 
 }

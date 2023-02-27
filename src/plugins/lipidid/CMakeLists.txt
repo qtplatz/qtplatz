@@ -1,10 +1,9 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-project( lipidid )
+project( LipidId )
 
 set( PROVIDER MS-Cheminformatics )
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets PrintSupport Svg Sql )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -16,29 +15,43 @@ file(GLOB Resources *.qrc)
 
 set( COMPAT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-set( PLUGIN_DESCRIPTION "The lipid-id plugin for QtPlatz" )
+set( DESCRIPTION "The LipidId plugin for QtCreator 9" )
 
-configure_file(
-  "${CMAKE_SOURCE_DIR}/src/plugins/pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+########## QtCreator 9 (Qt6) plugin.json #############
+if ( IDE_VERSION VERSION_GREATER_EQUAL "9.0.0" )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+  )
+endif()
+####################### END ##########################
+
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/src/plugins/pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/mimetype.xml"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/mimetype.xml"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
+endif()
 
 add_definitions(
   -D_SCL_SECURE_NO_WARNINGS
 )
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtCore_INCLUDE_DIRS}
@@ -108,9 +121,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adutils
   adwidgets
-  extensionsystem
   qtwrapper
-  utils
+  ExtensionSystem
+  Utils
   Core
   Qt::Core
   ${Boost_LIBRARIES}
@@ -128,7 +141,9 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
-  DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
+    DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
+endif()

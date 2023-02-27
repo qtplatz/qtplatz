@@ -296,7 +296,7 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setContentsMargins( {} );
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( toolBar1 );  // top most toolbar
     toolBarAddingLayout->addWidget( splitter3 ); // Spectra|chrmatogram pane
@@ -304,7 +304,7 @@ MainWindow::createContents( Core::IMode * mode )
 
     // Right-side window with editor, output etc.
     Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
     outputPane->setObjectName( QLatin1String( "OutputPanePlaceHolder" ) );
     mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
@@ -335,10 +335,10 @@ MainWindow::impl::createTopStyledToolbar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
-            Core::Context context( ( Core::Id( "lipidid.MainWindow" ) ) );
+            Core::Context context( ( Utils::Id( "lipidid.MainWindow" ) ) );
 
             if ( auto p = new QAction( tr("Spectra"), this_ ) ) {
                 connect( p, &QAction::triggered, [this](){ stackWidget_->setCurrentIndex( idSelSpectra ); } );
@@ -370,7 +370,7 @@ MainWindow::impl::createMidStyledToolbar()
 
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {

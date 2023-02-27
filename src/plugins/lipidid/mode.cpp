@@ -42,18 +42,16 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setPriority( 60 );
 
     setId( Constants::C_LIPIDID );
-    setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
+    // setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
     setContext( Core::Context( Constants::C_LIPIDID, Core::Constants::MODE_EDIT ) );
 
-    connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
-             , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
-
+    connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager);
 }
 
 void
-Mode::grabEditorManager(Core::IMode *mode)
+Mode::grabEditorManager( Utils::Id mode)
 {
-    if (mode != this)
+    if (mode != id())
         return;
 
     if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )

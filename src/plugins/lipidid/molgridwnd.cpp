@@ -81,7 +81,7 @@ MolGridWnd::MolGridWnd(QWidget *parent) : QWidget( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
         layout->setSpacing( 0 );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->addWidget( impl_->table_ );
         impl_->table_->verticalHeader()->hide();
         impl_->table_->horizontalHeader()->hide();

@@ -6,8 +6,6 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
-
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -18,9 +16,10 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND ${XMLPATTERNS} -no-format
@@ -28,6 +27,7 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
+endif()
 
 add_definitions(
   -DQUAN_LIBRARY
