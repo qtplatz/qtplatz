@@ -58,11 +58,7 @@ namespace dataproc {
 
     class DataprocPlugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "dataproc.json")
-#else
-		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "dataproc.json")
-#endif
+		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Dataproc.json")
     public:
         ~DataprocPlugin();
         explicit DataprocPlugin();

@@ -1,10 +1,11 @@
-cmake_policy( SET CMP0020 NEW )
-cmake_policy( SET CMP0028 NEW )
 
 project( Quan )
+
 set( PROVIDER MS-Cheminformatics )
-set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+if ( ${IDE_VERSION} VERSION_LESS "9.0.0" )
+  set( COMPAT_VERSION 3.2.81 )
+endif()
 
 ########## QtCreator 9 (Qt6) plugin.json #############
 if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "9.0.0" )

@@ -57,7 +57,7 @@ if ( QTPLATZ_CONFIG_Query )
   add_subdirectory( query )
 endif()
 
-if ( NOT CMAKE_CROSSCOMPILING AND OpenCV_FOUND )
+if ( QTPLATZ_CONFIG_Video  AND NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( video )
 endif()
 

@@ -1,9 +1,22 @@
-cmake_policy( SET CMP0020 NEW )
-cmake_policy( SET CMP0028 NEW )
-project( video )
+
+project( Video )
 set( PROVIDER MS-Cheminformatics )
-set( COMPAT_VERSION 3.2.81 )
+
+if ( ${IDE_VERSION} VERSION_LESS "9.0.0" )
+  set( COMPAT_VERSION 3.2.81 )
+endif()
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+
+########## QtCreator 9 (Qt6) plugin.json #############
+if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "9.0.0" )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+  )
+endif()
+####################### END ##########################
 
 find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Svg Sql PrintSupport Widgets OpenGL Multimedia )
 
@@ -32,18 +45,18 @@ if ( ArrayFire_FOUND )
   include_directories ( ${ArrayFire_INCLUDE_DIRS} )
 endif()
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/../pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/../pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-
-find_package( qwt )
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
+    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
+    )
+endif()
 
 add_definitions(  -DVIDEO_LIBRARY  )
 
@@ -52,6 +65,7 @@ if ( WIN32 )
 endif()
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtOpenGL_INCLUDE_DIRS}
@@ -142,6 +156,8 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz/plugins/${PROVIDER} COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
+endif()

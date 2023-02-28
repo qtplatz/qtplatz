@@ -71,7 +71,6 @@ set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 if ( WITH_QT5 )
 
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-  message( STATUS "################ QT_FOUND: ${QT_FOUND}, QT_VERSION: ${QT_VERSION}" )
 
   if ( QT_FOUND AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
     add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
@@ -82,12 +81,11 @@ if ( WITH_QT5 )
     )
   endif()
   if ( QT_FOUND )
-    message( STATUS "### QT_FOUND ${QT_FOUND} ")
     find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
 
     find_package( QtCreator REQUIRED COMPONENTS Core )
     if ( QtCreator_FOUND )
-      message( STATUS "######### QtCreator ${IDE_VERSION}" )
+      message( STATUS "######### QtCreator version ${IDE_VERSION}" )
       string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION})
       list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
       list(GET IDE_VERSION_LIST 1 IDE_VERSION_MINOR)
@@ -128,35 +126,35 @@ endif()
 if ( APPLE )
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/Frameworks )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin ) #/qtplatz.app/Contents/MacOS )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin ) #/qtplatz.app/Contents/MacOS )
+  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/Frameworks )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/bin )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/bin ) #/qtplatz.app/Contents/MacOS )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin ) #/qtplatz.app/Contents/MacOS )
   set( CMAKE_SHARED_MODULE_SUFFIX             ".dylib" )
   set( CMAKE_MACOSX_RPATH                     1 )
   set( CMAKE_SKIP_BUILD_RPATH                 FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH         FALSE )
-  set( QTPLATZ_PLUGIN_DIRECTORY               ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
+  set( QTPLATZ_PLUGIN_DIRECTORY               ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
   set( QTPLATZ_PLUGIN_DESTINATION             bin/qtplatz.app/Contents/PlugIns )
 
 else()
 
-  set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
-  set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz ) #plugins
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )  # .exe | .dll
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
+   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
+   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
+   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib/qtplatz ) #plugins
+   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/lib/qtplatz )
+   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib/qtplatz )
+   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/bin )  # .exe | .dll
+   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/bin )
+   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin )
 
-  set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )
-  set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
+   set( QTPLATZ_PLUGIN_DIRECTORY ${CMAKE_BINARY_DIR}/lib/qtplatz/plugins )
+   set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
 
-  set( CMAKE_SKIP_BUILD_RPATH  FALSE )
-  set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
-  set( CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE )
-  set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib" )
+   set( CMAKE_SKIP_BUILD_RPATH  FALSE )
+   set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
+   set( CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE )
+   set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib" )
 
   if ( CMAKE_CROSSCOMPILING AND WITH_QT5 )
     set( CMAKE_PREFIX_PATH /usr/local/qt5 )
@@ -451,14 +449,20 @@ config_qtplatz_config( "FALSE" )  # in source tree
 install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
 configure_file(
-  ${QTPLATZ_SOURCE_DIR}/doxyfile.in
-  ${QTPLATZ_BINARY_DIR}/Doxyfile )
+  ${CMAKE_SOURCE_DIR}/doxyfile.in
+  ${CMAKE_BINARY_DIR}/Doxyfile )
 
 include( CPack )
 
 message( STATUS "---------- SUMMARY ------------" )
 message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION} )
-message( STATUS "# QTPLATZ_BINARY_DIR    : " ${QTPLATZ_BINARY_DIR} )
+message( STATUS "# CMAKE_BINARY_DIR      : " ${CMAKE_BINARY_DIR} )
+message( STATUS "# IDE_VERSION           : " ${IDE_VERSION} )
+message( STATUS "# IDE_APP_PATH          : " "${IDE_APP_PATH}\tIDE_APP_TARGET:\t${IDE_APP_TARGET}"  )
+message( STATUS "# IDE_PLUGIN_PATH       : " "${IDE_PLUGIN_PATH}"  )
+message( STATUS "# QtCreator_BINARY_DIR  : " "${QtCreator_BINARY_DIR}"  )
+message( STATUS "# CMAKE_INSTALL_PREFIX  : " ${CMAKE_INSTALL_PREFIX} )
+message( STATUS "# CMAKE_INSTALL_BINDIR  : " ${CMAKE_INSTALL_BINDIR} )
 if ( QTPLATZ_CORELIB_ONLY )
   message( STATUS "# QTPLATZ_CORELIB_ONLY  : " ${QTPLATZ_CORELIB_ONLY} )
 endif()

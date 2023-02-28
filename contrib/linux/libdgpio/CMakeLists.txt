@@ -1,11 +1,7 @@
 #
 cmake_minimum_required (VERSION 3.18.2)
 
-project ( libdgpio )
-
-# --> lookup qtplatz build/config
-#find_file( qtplatz_config NAMES "qtplatz-config.cmake" HINTS ${QTPLATZ_BUILD_DIR} )
-#find_package( BZip2 REQUIRED )
+project ( dgpio )
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}

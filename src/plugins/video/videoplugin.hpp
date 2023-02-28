@@ -35,7 +35,7 @@ namespace video {
 
     class VideoPlugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
-        Q_PLUGIN_METADATA( IID "com.ms-cheminfo.QtPlatzPlugin" FILE "video.json" )
+        Q_PLUGIN_METADATA( IID "com.ms-cheminfo.QtPlatzPlugin" FILE "Video.json" )
 
         public:
         VideoPlugin();
@@ -54,5 +54,3 @@ namespace video {
     };
 
 } // namespace video
-
-

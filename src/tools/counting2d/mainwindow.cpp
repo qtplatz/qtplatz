@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     statusBar()->setProperty( "p_styled", true );
     statusBar()->addWidget( new QLabel );
-    
+
     if ( auto p = statusBar()->findChild<QLabel *>() ) {
         p->setText( "STATUS:" );
     }
@@ -172,7 +172,7 @@ MainWindow::setupFileActions()
     a = new QAction(QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png")),
                     tr("&Export PDF..."), this);
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(Qt::CTRL + Qt::Key_D);
+    a->setShortcut(Qt::CTRL | Qt::Key_D);
     connect(a, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
     tb->addAction(a);
     menu->addAction(a);
@@ -181,7 +181,7 @@ MainWindow::setupFileActions()
 #endif
 
     a = new QAction(tr("&Quit"), this);
-    a->setShortcut(Qt::CTRL + Qt::Key_Q);
+    a->setShortcut(Qt::CTRL | Qt::Key_Q);
     //connect(a, SIGNAL(triggered()), this, SLOT(close()));
     connect(a, &QAction::triggered, this, [&](){
             ADDEBUG() << "close...";
@@ -212,12 +212,12 @@ MainWindow::load(const QString &f)
 
     std::wstring msg;
     auto processor = std::make_shared< adprocessor::dataprocessor >();
-    
+
     if ( processor->open( f.toStdWString(), msg ) ) {
         if ( document::instance()->setDataprocessor( processor ) )
             document::instance()->fetch();
     }
-        
+
     return true;
 }
 
@@ -296,11 +296,11 @@ MainWindow::createDockWidgets()
     //     auto dock = createDockWidget( widget, "Digitizer Config", "AcqirisWidget" );
     //     addDockWidget( Qt::RightDockWidgetArea, dock );
     // }
-    
+
     if ( auto widget = new adwidgets::OutputWidget( std::cout ) ) {
         auto dock = createDockWidget( widget, "Console", "ConsoleWidget" );
         addDockWidget( Qt::BottomDockWidgetArea, dock );
-    }    
+    }
 }
 
 QDockWidget *

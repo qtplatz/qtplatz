@@ -53,7 +53,7 @@ static const std::regex __self_regex("lib.*_debug((\\.dylib)|(\\.so))"
 #  define DEBUG_LIB_TRAIL ""        // xyz.so
 constexpr static const char * const debug_trail = "";
 static const std::regex __self_regex(".*\\.so"
-                                     , std::regex_constants::ECMAScript)
+                                     , std::regex_constants::ECMAScript);
 # endif
 #else // NDEBUG
 # define DEBUG_LIB_TRAIL ""

@@ -13,7 +13,7 @@ namespace peptide {
 
     class peptideplugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "peptide.json")
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Peptide.json")
 
         public:
         peptideplugin();

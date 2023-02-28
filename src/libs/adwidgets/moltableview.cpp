@@ -373,7 +373,7 @@ namespace adwidgets {
 				spin->setSingleStep( std::pow( 10, -state.precision ) );
                 spin->setKeyboardTracking( false );
                 connect( spin, static_cast< void( QDoubleSpinBox::* )(double) >(&QDoubleSpinBox::valueChanged)
-                         , [=]( double value ){ impl_->handleEditorValueChanged( index, value ); });
+                         , [=,this]( double value ){ impl_->handleEditorValueChanged( index, value ); });
                 return spin;
             } else if ( state.field == ColumnState::f_uint ) {
                 auto spin = new QSpinBox( parent );

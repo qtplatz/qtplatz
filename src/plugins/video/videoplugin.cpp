@@ -76,14 +76,14 @@ VideoPlugin::initialize(const QStringList &arguments, QString *errorString)
     if ( !Core::MimeDatabase::addMimeTypes( ":/video/mimetype.xml", errorString ) )
         ADWARN() << "addMimeTypes" << ":/video/mimetype.xml" << errorString->toStdString();
 
-    addAutoReleasedObject( new VideoFactory( this ) );
+    // addAutoReleasedObject( new VideoFactory( this ) );
 
     mode_->setId(  Constants::C_VIDEO_MODE ); // "video.Mode"
     mode_->setContext( Core::Context( Constants::C_VIDEO_MODE ) );
 
     mode_->setWidget( mainWindow_->createContents( mode_.get() ) );
 
-    addObject( mode_.get() );
+    // addObject( mode_.get() );
 
     return true;
 }
@@ -116,9 +116,8 @@ VideoPlugin::aboutToShutdown()
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
                                                       , boost::dll::program_location().parent_path() );
 #endif
-    
+
     return SynchronousShutdown;
 }
 
 Q_EXPORT_PLUGIN2(VIDEO, VideoPlugin)
-
