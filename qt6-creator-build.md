@@ -9,12 +9,17 @@ git checkout v9.0.1
 
 Build
 -----
+On Mac
 ```bash
 % cmake -DCMAKE_PREFIX_PATH=/opt/Qt6/6.4.0/macos/lib/cmake/ ~/src/qt-creator
 % make -j8
 ```
-
 Above command creates "Qt Creator.app" on macOS.
+
+On Linux
+```bash
+cmake -DCMAKE_PREFIX_PATH=/opt/Qt/6.4.2/gcc_64/lib/cmake/ ~/src/
+```
 
 Change IDE output name
 ----------------------

@@ -1132,12 +1132,12 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString (title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
                             } else {
                                 auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString( title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
                             }
                         }
                     }
