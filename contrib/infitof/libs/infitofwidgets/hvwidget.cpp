@@ -251,7 +251,7 @@ hvWidget::hvWidget( const QString& server
             spin->setDecimals( 0 );
             spin->setKeyboardTracking( false );
             connect( spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
-                     , [=]( double value ){ handleValueChanged( spin, value ); } );
+                     , [=,this]( double value ){ handleValueChanged( spin, value ); } );
         }
         if ( auto spin = findChild< QDoubleSpinBox * >( ( "act." + std::get< 0 >( item ) ).c_str() ) ) {
             spin->setMaximum( std::get< 2 >( item ) );
@@ -279,7 +279,7 @@ hvWidget::hvWidget( const QString& server
         button->setCheckable( true );
         button->setChecked( false );
         handleSwitchToggled( button, false );
-        connect( button, &QPushButton::toggled, this, [=]( bool checked ){ handleSwitchToggled( button, checked ); } );
+        connect( button, &QPushButton::toggled, this, [=,this]( bool checked ){ handleSwitchToggled( button, checked ); } );
     }
 
     setStyleSheet(
