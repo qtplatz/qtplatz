@@ -13,7 +13,6 @@ function find_qmake() {
 			;;
 		*)
 			local hints=( "/Qt/6.4.2/macos" \
-							  "/Qt6/6.4.2/macos" \
 							  "/Qt/6.4.0/macos" "/Qt6/6.4.0/macos" \
 							  "/Qt/5.15.2" "/Qt/5.15.1" "/Qt/5.15.0" \
 							  "/Qt/5.14.2" "/Qt/5.14.1" )
@@ -31,9 +30,10 @@ function find_qmake() {
 	    local home=~
 	    local __dirs=()
 	    for hint in "${hints[@]}"; do
+			__dirs+=("$home$hint")
 			__dirs+=("$home$hint/clang_64")
-			__dirs+=("/opt$hint/clang_64")
 			__dirs+=("/opt$hint")
+			__dirs+=("/opt$hint/clang_64")
 	    done
 	    ;;
 	*)
