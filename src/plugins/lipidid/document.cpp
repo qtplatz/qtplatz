@@ -35,6 +35,7 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/ionreactionmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -317,6 +318,13 @@ std::tuple< std::shared_ptr< const adcontrols::MassSpectrum > // acquired spectr
 document::getResultSet() const
 {
     return { impl_->ms_, impl_->refms_, impl_->simple_mass_spectrum_ };
+}
+
+bool
+document::export_ion_reactions( adcontrols::IonReactionMethod&& t )
+{
+    ADDEBUG() << boost::json::value_from( t );
+    return false;
 }
 
 bool

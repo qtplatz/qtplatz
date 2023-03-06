@@ -30,6 +30,7 @@ namespace adcontrols {
     enum hor_axis: unsigned int;
 
     enum ion_polarity: unsigned int;
+    enum i8n_method: unsigned int;
 
     namespace xic {
         enum eIntensityAlgorithm : unsigned int;

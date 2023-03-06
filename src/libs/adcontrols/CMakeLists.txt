@@ -95,6 +95,7 @@ add_library( adcontrols SHARED
   error_code.hpp
   histogram.cpp
   histogram.hpp
+  ionreactionmethod.cpp ionreactionmethod.hpp
   isocluster.cpp
   isocluster.hpp
   isotopecluster.cpp

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2022-2022 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,7 +33,7 @@
 class QSettings;
 class QSqlDatabase;
 
-namespace adcontrols   { class MetIdMethod; class MassSpectrum; }
+namespace adcontrols   { class IonReactionMethod; class MetIdMethod; class MassSpectrum; }
 namespace adextension  { class iSessionManager; }
 namespace portfolio    { class Folium; }
 
@@ -58,7 +58,7 @@ namespace lipidid {
         QSqlDatabase sqlDatabase();
         bool load( const QString& file );
         bool find_all( adcontrols::MetIdMethod&& );
-
+        bool export_ion_reactions( adcontrols::IonReactionMethod&& );
         std::shared_ptr< const adcontrols::MassSpectrum > reference_mass_spectrum() const;
         std::shared_ptr< const adcontrols::MassSpectrum > matched_mass_spectrum() const; // overlay on reference spectrum
         std::shared_ptr< const adcontrols::MassSpectrum > overlay_mass_spectrum() const; // computed isotope pattern

@@ -129,6 +129,7 @@ set( ${PROJECT_NAME}_SOURCES
   spinbox.cpp
   spinslider.cpp
   targetingform.cpp
+  ionreactionform.cpp ionreactionform.hpp
   tableview.cpp
   targetingwidget.cpp
   targetingtable.cpp

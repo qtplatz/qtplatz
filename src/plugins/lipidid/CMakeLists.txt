@@ -82,6 +82,7 @@ add_library( ${PROJECT_NAME} MODULE
   sqleditform.hpp
   sqledit.cpp
   sqledit.hpp
+  ionreactionwidget.cpp ionreactionwidget.hpp
   candidate.cpp
   candidate.hpp
   isocluster.cpp
