@@ -27,9 +27,10 @@ function find_qmake() {
 	    local home=~
 	    local __dirs=()
 	    for hint in "${hints[@]}"; do
+			__dirs+=("$home$hint")
 			__dirs+=("$home$hint/clang_64")
-			__dirs+=("/opt$hint/clang_64")
 			__dirs+=("/opt$hint")
+			__dirs+=("/opt$hint/clang_64")
 	    done
 	    ;;
 	*)
