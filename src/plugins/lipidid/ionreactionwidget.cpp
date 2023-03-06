@@ -172,8 +172,10 @@ IonReactionWidget::IonReactionWidget( QWidget * parent ) : QWidget( parent )
             }
             layout->addSpacerItem( new QSpacerItem( 20, 1, QSizePolicy::Expanding ) );
             if ( auto buttonBox = add_widget( layout, create_widget< QDialogButtonBox >( "buttonBox" ) ) ) {
-                buttonBox->setStandardButtons(QDialogButtonBox::Apply);
-                connect( buttonBox, &QDialogButtonBox::clicked, [this]() { emit triggered(); } );
+                buttonBox->addButton("Apply", QDialogButtonBox::AcceptRole);
+                buttonBox->addButton("Testing", QDialogButtonBox::RejectRole);
+                connect( buttonBox, &QDialogButtonBox::accepted, [this]() { emit triggered(); } );
+                connect( buttonBox, &QDialogButtonBox::rejected, [this]() { emit rejected(); } );
             }
         }
     }
@@ -256,6 +258,12 @@ IonReactionWidget::getContents() const
     if ( auto form = findChild< adwidgets::IonReactionForm *>( "NEG" ) ) {
         form->getContents( t );
     }
+    if ( auto edit = findChild< QLineEdit * >( "i8n" ) ) {
+        t.set_i8n( edit->text().toStdString() );
+    }
+    if ( auto edit = findChild< QLineEdit * >( "description" ) ) {
+        t.set_description( edit->text().toStdString() );
+    }
 
     for ( auto pol: { adcontrols::polarity_positive, adcontrols::polarity_negative } ) {
         const auto model = impl_->models_[ pol ];
@@ -272,7 +280,6 @@ IonReactionWidget::getContents() const
     impl_->dirty_ = false;
     auto json = boost::json::serialize( boost::json::object{{ "IonReactionMethod", impl_->method_ }} );
     document::instance()->settings()->setValue( QString(Constants::THIS_GROUP) + "/IonReactionMethod", QByteArray( json.data(), json.size() ) );
-    ADDEBUG() << json;
 
     return impl_->method_;
 }
@@ -281,12 +288,15 @@ bool
 IonReactionWidget::setContents( const adcontrols::IonReactionMethod& t )
 {
     impl_->method_ = t;
-    if ( auto form = findChild< adwidgets::IonReactionForm *>() ) {
+    if ( auto form = findChild< adwidgets::IonReactionForm *>( "POS" ) ) {
+        form->setContents( impl_->method_ );
+    }
+    if ( auto form = findChild< adwidgets::IonReactionForm *>( "NEG" ) ) {
         form->setContents( impl_->method_ );
     }
     for ( auto pol: { adcontrols::polarity_positive, adcontrols::polarity_negative } ) {
         QSignalBlocker block( impl_->models_[ pol ] );
-        const auto& adducts = impl_->method_.addlose( pol ); //adcontrols::polarity_positive );
+        const auto& adducts = impl_->method_.addlose( pol );
         auto model = impl_->models_[ pol ];
 
         model->setRowCount( adducts.size() );

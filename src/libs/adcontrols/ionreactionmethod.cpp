@@ -193,11 +193,24 @@ IonReactionMethod::i8n() const
     return impl_->i8n_;
 }
 
+void
+IonReactionMethod::set_i8n( std::string&& t )
+{
+    impl_->i8n_ = std::move( t );
+}
+
 const std::string&
 IonReactionMethod::description() const
 {
     return impl_->description_;
 }
+
+void
+IonReactionMethod::set_description( std::string&& t )
+{
+    impl_->description_ = std::move( t );
+}
+
 
 void
 IonReactionMethod::set_polarity( ion_polarity t ) const

@@ -55,7 +55,9 @@ namespace adcontrols {
         ion_polarity polarity() const;
         void set_polarity( ion_polarity ) const;
         const std::string& i8n() const;
+        void set_i8n( std::string&& );
         const std::string& description() const;
+        void set_description( std::string&& );
 
     private:
         class impl;

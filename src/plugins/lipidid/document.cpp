@@ -35,17 +35,19 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/ionreactionmethod.hpp>
+#include <adcontrols/make_combination.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
-#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/targeting.hpp>
+#include <adfs/get_column_values.hpp>
+#include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/json/extract.hpp>
-#include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
-#include <adfs/sqlite.hpp>
-#include <adfs/get_column_values.hpp>
+#include <adportfolio/folium.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h> // <-- for Core::Constants::IDE_SETTINGSVARIANT_STR
@@ -109,7 +111,6 @@ namespace lipidid {
         std::map< std::string, double > logP_;
         QString selectedFormula_;
     };
-
 }
 
 using lipidid::document;
@@ -321,28 +322,21 @@ document::getResultSet() const
 }
 
 bool
-document::export_ion_reactions( adcontrols::IonReactionMethod&& t )
+document::export_ion_reactions( adcontrols::IonReactionMethod&& t, bool testing )
 {
     // ADDEBUG() << boost::json::value_from( t );
-    std::vector< std::string > pos_list, neg_list;
-    for ( const auto& [enable, formula]: t.addlose( adcontrols::polarity_positive ) ) {
-        if ( enable )
-            pos_list.emplace_back( formula );
+    ADDEBUG() << "===== Ionization: " << t.i8n() << "\t" << t.description() << " testing: " << testing;
+    auto pos_list = adcontrols::lipidid::make_combination( t, adcontrols::polarity_positive );
+    auto neg_list = adcontrols::lipidid::make_combination( t, adcontrols::polarity_negative );
+    if ( testing ) {
+        for ( const auto& addlose: pos_list ) {
+            ADDEBUG() << addlose;
+        }
+        for ( const auto& addlose: neg_list ) {
+            ADDEBUG() << addlose;
+        }
+        return false;
     }
-
-    for ( const auto& [enable, formula]: t.addlose( adcontrols::polarity_negative ) ) {
-        if ( enable )
-            neg_list.emplace_back( formula );
-    }
-
-    ADDEBUG() << "Ionization: " << t.i8n() << "\t" << t.description();
-    ADDEBUG() << "POS: charges: " << t.chargeState( adcontrols::polarity_positive );
-    ADDEBUG() << "NEG: charges: " << t.chargeState( adcontrols::polarity_negative );
-    for ( auto t: pos_list )
-        ADDEBUG() << "\t" << t;
-
-    for ( auto t: neg_list )
-        ADDEBUG() << "\t" << t;
     return false;
 }
 

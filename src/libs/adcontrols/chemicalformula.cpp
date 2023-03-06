@@ -893,8 +893,8 @@ namespace {
 std::string
 ChemicalFormula::formatFormulae( const std::string& formula, cf::format_option_type&& option )
 {
-    auto charge = std::get<0>( option );
-    auto richText = std::get<1>( option );
+    auto charge = std::get< 0 >( option );
+    auto richText = std::get< 1 >( option );
     auto molSubst = std::get< 2 >( option );
 
     auto v = chem::addlose_splitter()( formula );

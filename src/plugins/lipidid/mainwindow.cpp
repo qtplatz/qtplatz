@@ -421,7 +421,8 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
         QObject::connect( tree, &MSPeakTree::checkStateChanged, document::instance(), &document::handleCheckState );
     }
     if ( auto widget = dock_create< IonReactionWidget >( pThis, "Ion rxn export", "IonReactionWidget" ) ) {
-        QObject::connect( widget, &IonReactionWidget::triggered, [=]{ document::instance()->export_ion_reactions( widget->getContents() ); } );
+        QObject::connect( widget, &IonReactionWidget::triggered, [=]{ document::instance()->export_ion_reactions( widget->getContents(), false ); } );
+        QObject::connect( widget, &IonReactionWidget::rejected, [=]{ document::instance()->export_ion_reactions( widget->getContents(), true ); } );
     }
 }
 

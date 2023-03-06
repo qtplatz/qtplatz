@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,32 +24,7 @@
 
 #pragma once
 
-#include <QWidget>
-#include <memory>
-
-namespace adcontrols { class IonReactionMethod; }
-
 namespace lipidid {
 
-    class IonReactionWidget : public QWidget {
-        Q_OBJECT
 
-    public:
-        explicit IonReactionWidget(QWidget *parent = 0);
-        ~IonReactionWidget();
-
-        void onInitialUpdate();
-
-        adcontrols::IonReactionMethod getContents() const;
-        bool setContents( const adcontrols::IonReactionMethod& );
-
-    signals:
-        void triggered();
-        void rejected();
-
-    private:
-        class impl;
-        std::unique_ptr< impl > impl_;
-
-    };
 }

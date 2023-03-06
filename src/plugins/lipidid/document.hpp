@@ -58,7 +58,7 @@ namespace lipidid {
         QSqlDatabase sqlDatabase();
         bool load( const QString& file );
         bool find_all( adcontrols::MetIdMethod&& );
-        bool export_ion_reactions( adcontrols::IonReactionMethod&& );
+        bool export_ion_reactions( adcontrols::IonReactionMethod&&, bool testing );
         std::shared_ptr< const adcontrols::MassSpectrum > reference_mass_spectrum() const;
         std::shared_ptr< const adcontrols::MassSpectrum > matched_mass_spectrum() const; // overlay on reference spectrum
         std::shared_ptr< const adcontrols::MassSpectrum > overlay_mass_spectrum() const; // computed isotope pattern
