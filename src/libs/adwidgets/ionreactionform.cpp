@@ -149,8 +149,6 @@ IonReactionForm::getContents( adcontrols::IonReactionMethod& m )
         if ( radio->isEnabled() )
             m.set_polarity( polarity );
     }
-    ADDEBUG() << polarity;
-    ADDEBUG() << std::make_pair( impl_->spinBoxChargeMin->value(), impl_->spinBoxChargeMax->value() );
     m.chargeState( { impl_->spinBoxChargeMin->value(), impl_->spinBoxChargeMax->value() }, polarity );
 }
 

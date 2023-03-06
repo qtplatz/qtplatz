@@ -211,7 +211,7 @@ IonReactionWidget::onInitialUpdate()
                      , [&](const QModelIndex &topLeft, const QModelIndex &bottomRight){
                          impl_->handleDataChanged( topLeft, bottomRight );
                      });
-            const auto& adducts = impl_->method_.adducts( pol );
+            const auto& adducts = impl_->method_.addlose( pol );
             model->setColumnCount( 2 );
             model->setRowCount( adducts.size() + 1 );
             model->setHeaderData( 0, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
@@ -259,12 +259,12 @@ IonReactionWidget::getContents() const
 
     for ( auto pol: { adcontrols::polarity_positive, adcontrols::polarity_negative } ) {
         const auto model = impl_->models_[ pol ];
-        t.adducts( pol ).clear();
+        t.addlose( pol ).clear();
         for ( size_t row = 0; row < model->rowCount(); ++row ) {
             auto adducts = model->data( model->index( row, 0 ), Qt::EditRole ).toString().toStdString();
             auto enable  = model->data( model->index( row, 0 ), Qt::CheckStateRole ).toBool();
             if ( !adducts.empty() ) {
-                t.adducts( pol ).emplace_back( enable, adducts );
+                t.addlose( pol ).emplace_back( enable, adducts );
             }
         }
     }
@@ -286,7 +286,7 @@ IonReactionWidget::setContents( const adcontrols::IonReactionMethod& t )
     }
     for ( auto pol: { adcontrols::polarity_positive, adcontrols::polarity_negative } ) {
         QSignalBlocker block( impl_->models_[ pol ] );
-        const auto& adducts = impl_->method_.adducts( pol ); //adcontrols::polarity_positive );
+        const auto& adducts = impl_->method_.addlose( pol ); //adcontrols::polarity_positive );
         auto model = impl_->models_[ pol ];
 
         model->setRowCount( adducts.size() );

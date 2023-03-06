@@ -323,7 +323,26 @@ document::getResultSet() const
 bool
 document::export_ion_reactions( adcontrols::IonReactionMethod&& t )
 {
-    ADDEBUG() << boost::json::value_from( t );
+    // ADDEBUG() << boost::json::value_from( t );
+    std::vector< std::string > pos_list, neg_list;
+    for ( const auto& [enable, formula]: t.addlose( adcontrols::polarity_positive ) ) {
+        if ( enable )
+            pos_list.emplace_back( formula );
+    }
+
+    for ( const auto& [enable, formula]: t.addlose( adcontrols::polarity_negative ) ) {
+        if ( enable )
+            neg_list.emplace_back( formula );
+    }
+
+    ADDEBUG() << "Ionization: " << t.i8n() << "\t" << t.description();
+    ADDEBUG() << "POS: charges: " << t.chargeState( adcontrols::polarity_positive );
+    ADDEBUG() << "NEG: charges: " << t.chargeState( adcontrols::polarity_negative );
+    for ( auto t: pos_list )
+        ADDEBUG() << "\t" << t;
+
+    for ( auto t: neg_list )
+        ADDEBUG() << "\t" << t;
     return false;
 }
 

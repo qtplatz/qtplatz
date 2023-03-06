@@ -46,14 +46,16 @@ namespace adcontrols {
         IonReactionMethod( const IonReactionMethod& );
         IonReactionMethod& operator = ( const IonReactionMethod& rhs );
 
-        std::vector< std::pair< bool, std::string > >& adducts( ion_polarity );
-        const std::vector< std::pair< bool, std::string > >& adducts( ion_polarity ) const;
+        std::vector< std::pair< bool, std::string > >& addlose( ion_polarity );
+        const std::vector< std::pair< bool, std::string > >& addlose( ion_polarity ) const;
 
 		std::pair< uint32_t, uint32_t > chargeState( ion_polarity ) const;
 		void chargeState( std::pair< uint32_t, uint32_t >&&, ion_polarity );
 
         ion_polarity polarity() const;
         void set_polarity( ion_polarity ) const;
+        const std::string& i8n() const;
+        const std::string& description() const;
 
     private:
         class impl;

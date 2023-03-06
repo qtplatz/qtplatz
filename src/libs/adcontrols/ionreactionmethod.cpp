@@ -49,7 +49,7 @@ namespace adcontrols {
         impl() : chargeRanges_( { 1, 1 }, { 1, 1 } )
                , polarity_( adcontrols::polarity_positive )
                , i8n_{ "ESI" }
-               , pos_adducts_{ { true, "+[H]+" }
+               , pos_addlose_{ { true, "+[H]+" }
                                , {  true, "-H +[H]+"   } // -e
                                , {  true, "-H2O +[H]+" } // -OH-
                                , { false, "+[Na]+"    }
@@ -62,7 +62,7 @@ namespace adcontrols {
                                , { false, "+[C3H8O H]+" }           // IPA
                                , { false, "+[C3H8O Na]+" }
             }
-               , neg_adducts_{ { true, "-[H]+"      }
+               , neg_addlose_{ { true, "-[H]+"      }
                                , {  true, "+H -[H]+" }
                                , {  true, "+[OH]-"   }
                                , { false, "+[Cl]-"   }
@@ -77,8 +77,8 @@ namespace adcontrols {
         std::string i8n_;
         std::string description_;
         std::tuple< chargeRange_t, chargeRange_t > chargeRanges_;
-        std::vector< std::pair< bool, std::string > > pos_adducts_; // if start with '-' means lose instead of add
-        std::vector< std::pair< bool, std::string > > neg_adducts_;
+        std::vector< std::pair< bool, std::string > > pos_addlose_; // if start with '-' means lose instead of add
+        std::vector< std::pair< bool, std::string > > neg_addlose_;
 
         //----------
         friend class boost::serialization::access;
@@ -90,8 +90,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( description_ );
             ar & BOOST_SERIALIZATION_NVP( std::get< 0 >( chargeRanges_ ) ); // pos
             ar & BOOST_SERIALIZATION_NVP( std::get< 1 >( chargeRanges_ ) ); // neg
-            ar & BOOST_SERIALIZATION_NVP( pos_adducts_ );
-            ar & BOOST_SERIALIZATION_NVP( neg_adducts_ );
+            ar & BOOST_SERIALIZATION_NVP( pos_addlose_ );
+            ar & BOOST_SERIALIZATION_NVP( neg_addlose_ );
         }
     };
 
@@ -151,15 +151,15 @@ IonReactionMethod::operator = ( const IonReactionMethod& rhs )
 }
 
 std::vector< std::pair< bool, std::string > >&
-IonReactionMethod::adducts( ion_polarity polarity )
+IonReactionMethod::addlose( ion_polarity polarity )
 {
-    return polarity == polarity_positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
+    return polarity == polarity_positive ? impl_->pos_addlose_ : impl_->neg_addlose_;
 }
 
 const std::vector< std::pair< bool, std::string > >&
-IonReactionMethod::adducts( ion_polarity polarity ) const
+IonReactionMethod::addlose( ion_polarity polarity ) const
 {
-    return polarity == polarity_positive ? impl_->pos_adducts_ : impl_->neg_adducts_;
+    return polarity == polarity_positive ? impl_->pos_addlose_ : impl_->neg_addlose_;
 }
 
 std::pair< uint32_t, uint32_t >
@@ -187,6 +187,18 @@ IonReactionMethod::polarity() const
     return impl_->polarity_;
 }
 
+const std::string&
+IonReactionMethod::i8n() const
+{
+    return impl_->i8n_;
+}
+
+const std::string&
+IonReactionMethod::description() const
+{
+    return impl_->description_;
+}
+
 void
 IonReactionMethod::set_polarity( ion_polarity t ) const
 {
@@ -204,11 +216,11 @@ namespace adcontrols {
             , { "description",   t.impl_->description_ }
             , { "polarity_positive"
                 , {{ "chargeRange", std::get< 0 >( t.impl_->chargeRanges_ ) }
-                   ,{ "pos_adducts", t.impl_->pos_adducts_ }}
+                   ,{ "pos_addlose", t.impl_->pos_addlose_ }}
             }
             , { "polarity_negative"
                 , {{ "chargeRange", std::get< 1 >( t.impl_->chargeRanges_ ) }
-                   ,{ "neg_adducts", t.impl_->neg_adducts_ }}
+                   ,{ "neg_addlose", t.impl_->neg_addlose_ }}
             }
         };
     }
@@ -232,10 +244,10 @@ namespace adcontrols {
 
 
             extract( tpos, std::get< 0 >(t.impl_->chargeRanges_), "chargeRange" );
-            extract( tpos, t.impl_->pos_adducts_, "pos_adducts" );
+            extract( tpos, t.impl_->pos_addlose_, "pos_addlose" );
 
             extract( tneg, std::get< 1 >(t.impl_->chargeRanges_), "chargeRange" );
-            extract( tneg, t.impl_->neg_adducts_, "neg_adducts" );
+            extract( tneg, t.impl_->neg_addlose_, "neg_addlose" );
         }
         // ADDEBUG() << "---------------------------------------\n"
         //           << boost::json::value_from( t );
