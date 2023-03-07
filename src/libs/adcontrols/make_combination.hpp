@@ -48,7 +48,7 @@ namespace adcontrols {
 
         ADCONTROLSSHARED_EXPORT
         std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >
-        marge_molecule( const std::vector< molecule_pair_t >& alist );
+        merge_molecule( const std::vector< molecule_pair_t >& alist );
     }
 
 }

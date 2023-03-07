@@ -106,7 +106,7 @@ namespace adcontrols {
         }
 
         std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >
-        marge_molecule( const std::vector< molecule_pair_t >& alist ) {
+        merge_molecule( const std::vector< molecule_pair_t >& alist ) {
             adcontrols::mol::molecule add, sub;
             for ( const auto& u: alist ) {
                 const size_t repeat = std::get< 3 >( u );
@@ -152,19 +152,12 @@ namespace adcontrols {
                             std::get< 0 >( addlose ) += ChemicalFormula::toMolecule( a.first ); // add  (ex. +H, +Na)
                         }
                     }
-                    // marge( addlose );
+                    // merge( addlose );
                     alist.emplace_back( std::move( addlose ) );
                 }
                 mlist.emplace_back( std::move( alist ) );
             }
             return mlist;
-#if 0
-            std::vector< std::pair< int, std::string > > rlist;
-            for ( const auto& alist: mlist ) {
-                rlist.emplace_back( to_string( marge_molecule( alist ) ) );
-            }
-            return rlist;
-#endif
         }
 
         //////////////
@@ -200,7 +193,7 @@ namespace adcontrols {
         //////////
         std::pair< int, std::string >
         to_string( const std::vector< molecule_pair_t >& alist ) {
-            return to_string( marge_molecule( alist ) );
+            return to_string( merge_molecule( alist ) );
         }
 
     }

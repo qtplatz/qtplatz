@@ -122,7 +122,7 @@ namespace {
         IonReaction() {}
         IonReaction( const std::string& formula ) : M_( formula ) {}
         double mass( const std::vector< adcontrols::lipidid::molecule_pair_t >& alist ) {
-            auto addlose = adcontrols::lipidid::marge_molecule( alist );
+            auto addlose = adcontrols::lipidid::merge_molecule( alist );
             std::vector< adcontrols::ChemicalFormula::formula_adduct_t > splitted
                 = { { M_, ' ' }
                     , { std::get< 0 >(addlose).formula(), '+' }
