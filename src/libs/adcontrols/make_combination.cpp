@@ -76,49 +76,47 @@ namespace {
         }
         return o.str();
     }
-    std::string to_string( const std::vector< adcontrols::ChemicalFormula::formula_adduct_t >& v ) {
-        std::ostringstream o;
-        for ( const auto& t: v )
-            o << "{" << t.first << ", " << t.second << "}";
-        return o.str();
-    }
-
-    typedef std::tuple< adcontrols::mol::molecule, adcontrols::mol::molecule, std::string, size_t > molecule_pair_t; // add, sub, key, repeat
-
+    // std::string to_string( const std::vector< adcontrols::ChemicalFormula::formula_adduct_t >& v ) {
+    //     std::ostringstream o;
+    //     for ( const auto& t: v )
+    //         o << "{" << t.first << ", " << t.second << "}";
+    //     return o.str();
+    // }
     ///////////////////////////////////////////////////////////////////
-
-    std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >
-    marge_molecule( const std::vector< molecule_pair_t >& alist ) {
-        adcontrols::mol::molecule add, sub;
-        for ( const auto& u: alist ) {
-            const size_t repeat = std::get< 3 >( u );
-            add += std::get< 0 >( u ) * ( std::get< 0 >( u ).charge() ? repeat : 1 );
-            sub += std::get< 1 >( u ) * ( std::get< 1 >( u ).charge() ? repeat : 1 );
-        }
-        return { add, sub };
-    }
-
-    std::pair< int, std::string >
-    to_string( const std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >& addsub ) {
-        const auto& [add,sub] = addsub;
-        int charge = add.charge() + sub.charge() * -1;
-        std::ostringstream o;
-        if ( add ) {
-            o << "+" << add.formula( true );
-        }
-        if ( sub ) {
-            if ( ! o.str().empty() )
-                o << " ";
-            o << "-" << sub.formula( true );
-        }
-        return { charge, o.str() };
-    }
 }
+
 
 namespace adcontrols {
     namespace lipidid {
 
-        std::vector< std::pair< int, std::string > >
+        std::pair< int, std::string >
+        to_string( const std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >& addsub ) {
+            const auto& [add,sub] = addsub;
+            int charge = add.charge() + sub.charge() * -1;
+            std::ostringstream o;
+            if ( add ) {
+                o << "+" << add.formula( true );
+            }
+            if ( sub ) {
+                if ( ! o.str().empty() )
+                    o << " ";
+                o << "-" << sub.formula( true );
+            }
+            return { charge, o.str() };
+        }
+
+        std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >
+        marge_molecule( const std::vector< molecule_pair_t >& alist ) {
+            adcontrols::mol::molecule add, sub;
+            for ( const auto& u: alist ) {
+                const size_t repeat = std::get< 3 >( u );
+                add += std::get< 0 >( u ) * ( std::get< 0 >( u ).charge() ? repeat : 1 );
+                sub += std::get< 1 >( u ) * ( std::get< 1 >( u ).charge() ? repeat : 1 );
+            }
+            return { add, sub };
+        }
+
+        std::vector< std::vector< molecule_pair_t > >
         make_combination( uint32_t charge, const std::vector< std::string >& adducts, adcontrols::ion_polarity pol )
         {
             const size_t r = charge;
@@ -126,6 +124,7 @@ namespace adcontrols {
             if ( r == 0 || n == 0 )
                 return {};
 
+            // Compute cartesian products
             std::vector< std::map< std::string, size_t > > cartesian_products;
 
             std::vector< std::vector< std::string >::const_iterator > v_iter( r, adducts.begin() );
@@ -136,6 +135,7 @@ namespace adcontrols {
                 });
                 cartesian_products.emplace_back( std::move( products ) );
             } while ( boost::next_mapping( v_iter.begin(), v_iter.end(), adducts.begin(), adducts.end() ) );
+            // <--- End compute cartesian products
 
             // --- original formula string to mol list and repeat
             std::vector< std::vector< molecule_pair_t > > mlist;
@@ -157,33 +157,50 @@ namespace adcontrols {
                 }
                 mlist.emplace_back( std::move( alist ) );
             }
+            return mlist;
+#if 0
             std::vector< std::pair< int, std::string > > rlist;
             for ( const auto& alist: mlist ) {
                 rlist.emplace_back( to_string( marge_molecule( alist ) ) );
             }
             return rlist;
+#endif
         }
 
         //////////////
 
-        std::vector< std::pair< int, std::string > > // charge, addlose
+        // std::vector< std::pair< int, std::string > > // charge, addlose
+        std::vector< std::vector< molecule_pair_t > >
         make_combination( const adcontrols::IonReactionMethod& t, ion_polarity pol )
         {
+            // extract enabled formula
             std::vector< std::string > list;
             for( const auto& [enable, formula]: t.addlose( pol ) ) {
                 if ( enable )
                     list.emplace_back( formula );
             }
-            std::vector< std::pair< int, std::string > > res;
+
+            // std::vector< std::pair< int, std::string > > res;
+            std::vector< std::vector< molecule_pair_t > > mlist;
             const auto& range = t.chargeState( pol );
             for ( uint32_t charge = range.first; charge <= range.second; ++charge ) {
-                int scharge = ( pol == adcontrols::polarity_positive ? static_cast< int >( charge ) : (-static_cast< int >(charge)) );
+                // int scharge = ( pol == adcontrols::polarity_positive ? static_cast< int >( charge ) : (-static_cast< int >(charge)) );
                 auto alist = make_combination( charge, list, pol );
-                res.insert( res.end()
-                            , std::make_move_iterator( alist.begin() )
-                            , std::make_move_iterator( alist.end() ) );
+                mlist.insert( mlist.end()
+                              , std::make_move_iterator( alist.begin() )
+                              , std::make_move_iterator( alist.end() ) );
+                // res.insert( res.end()
+                //             , std::make_move_iterator( alist.begin() )
+                //             , std::make_move_iterator( alist.end() ) );
             }
-            return res;
+            return mlist;
+            // return res;
+        }
+
+        //////////
+        std::pair< int, std::string >
+        to_string( const std::vector< molecule_pair_t >& alist ) {
+            return to_string( marge_molecule( alist ) );
         }
 
     }

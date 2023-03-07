@@ -34,6 +34,7 @@
 #include <adwidgets/htmlheaderview.hpp>
 #include <adwidgets/ionreactionform.hpp>
 #include <adwidgets/tableview.hpp>
+#include <qtwrapper/settings.hpp>
 #include <boost/json.hpp>
 #include <QAbstractButton>
 #include <QBoxLayout>
@@ -168,9 +169,16 @@ IonReactionWidget::IonReactionWidget( QWidget * parent ) : QWidget( parent )
                 edit->setMaximumWidth( 100 );
             }
             layout->addSpacing( 10 );
-            if ( auto edit = add_widget( layout, create_widget< QLineEdit >( "description", "description" ) ) ) {
+            if ( auto edit = add_widget( layout, create_widget< QLineEdit >( "description", "description" ), 2 ) ) {
+            }
+            if ( auto edit = add_widget( layout, create_widget< QLineEdit >( "dbfile" ), 4 ) ) {
+                // edit->setMaximumWidth( 400 );
+                edit->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+                setSQLiteFilename( qtwrapper::settings( *document::instance()->settings() ).recentFile( "LIPID_MAPS", "Files" ) );
+                edit->setReadOnly( true );
             }
             layout->addSpacerItem( new QSpacerItem( 20, 1, QSizePolicy::Expanding ) );
+
             if ( auto buttonBox = add_widget( layout, create_widget< QDialogButtonBox >( "buttonBox" ) ) ) {
                 buttonBox->addButton("Apply", QDialogButtonBox::AcceptRole);
                 buttonBox->addButton("Testing", QDialogButtonBox::RejectRole);
@@ -179,6 +187,13 @@ IonReactionWidget::IonReactionWidget( QWidget * parent ) : QWidget( parent )
             }
         }
     }
+}
+
+void
+IonReactionWidget::setSQLiteFilename( const QString& name )
+{
+    if ( auto edit = findChild< QLineEdit * >( "dbfile" ) )
+        edit->setText( name );
 }
 
 void

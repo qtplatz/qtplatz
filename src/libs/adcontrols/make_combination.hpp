@@ -32,11 +32,23 @@
 namespace adcontrols {
 
     class IonReactionMethod;
+    namespace mol { class molecule; }
 
     namespace lipidid {
+
+        typedef std::tuple< adcontrols::mol::molecule, adcontrols::mol::molecule, std::string, size_t > molecule_pair_t; // add, sub, key, repeat
+
         ADCONTROLSSHARED_EXPORT
-        std::vector< std::pair< int, std::string > > // charge, addlose
+        std::vector< std::vector< molecule_pair_t > >
         make_combination( const adcontrols::IonReactionMethod& t, adcontrols::ion_polarity );
+
+        ADCONTROLSSHARED_EXPORT
+        std::pair< int, std::string >
+        to_string( const std::vector< molecule_pair_t >& );
+
+        ADCONTROLSSHARED_EXPORT
+        std::pair< adcontrols::mol::molecule, adcontrols::mol::molecule >
+        marge_molecule( const std::vector< molecule_pair_t >& alist );
     }
 
 }

@@ -42,6 +42,7 @@ namespace lipidid {
 
         adcontrols::IonReactionMethod getContents() const;
         bool setContents( const adcontrols::IonReactionMethod& );
+        void setSQLiteFilename( const QString& );
 
     signals:
         void triggered();
