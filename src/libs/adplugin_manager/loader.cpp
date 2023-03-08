@@ -96,22 +96,10 @@ loader::populate( const wchar_t * topdir )
 #if defined __APPLE__
     boost::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
     boost::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
-#endif
-#if QTC_VERSION < 0x09'00'00 && defined __linux__
-    boost::filesystem::path modules(    appdir / "lib/qtplatz/plugins" );
-    boost::filesystem::path sharedlibs( appdir / "lib/qtplatz" );
 #else
-    boost::filesystem::path modules(    appdir / "lib/qtcreator/plugins" );
-    boost::filesystem::path sharedlibs( appdir / "lib/qtcreator" );
-#endif
-#if QTC_VERSION < 0x09'00'00 && defined WIN32
-    boost::filesystem::path modules(    appdir / "lib/qtcreator/plugins" );
-    boost::filesystem::path sharedlibs( appdir / "bin" );
-#endif
-
-#ifndef NDEBUG
-    static size_t count = 0;
-    ADDEBUG() << "loader populating in directory: " << topdir << "\t#" << count++;
+    // search all files under ./lib/ directory
+    // This was used to ./lib/qtplatz/plugins (QTC_VERSION < 0x090000), which was changed to ./lib/qtcreator/lib/plugins
+    boost::filesystem::path modules(    appdir / "lib" ); // /qtcreator/plugins" );
 #endif
 
     if ( boost::filesystem::is_directory( modules ) ) {
