@@ -82,6 +82,7 @@ add_library( ${PROJECT_NAME} MODULE
   sqleditform.hpp
   sqledit.cpp
   sqledit.hpp
+  sqlexport.cpp sqlexport.hpp
   ionreactionwidget.cpp ionreactionwidget.hpp
   candidate.cpp
   candidate.hpp
@@ -89,6 +90,7 @@ add_library( ${PROJECT_NAME} MODULE
   isocluster.hpp
   isopeak.cpp
   isopeak.hpp
+  ionreaction.cpp ionreaction.hpp
   mol.cpp
   mol.hpp
   molgridwnd.cpp

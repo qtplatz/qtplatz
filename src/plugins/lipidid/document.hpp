@@ -34,6 +34,7 @@ class QSettings;
 class QSqlDatabase;
 
 namespace adcontrols   { class IonReactionMethod; class MetIdMethod; class MassSpectrum; }
+namespace adfs         { class sqlite; }
 namespace adextension  { class iSessionManager; }
 namespace portfolio    { class Folium; }
 
@@ -56,6 +57,7 @@ namespace lipidid {
         void finalClose();
 
         QSqlDatabase sqlDatabase();
+        adfs::sqlite * sqlite();
         bool load( const QString& file );
         bool find_all( adcontrols::MetIdMethod&& );
         bool export_ion_reactions( adcontrols::IonReactionMethod&&, bool testing );

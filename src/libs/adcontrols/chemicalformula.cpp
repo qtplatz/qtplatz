@@ -541,8 +541,33 @@ namespace {
             return o.str();
         }
     };
+}
+
+namespace {
+
+    struct to_molecule {
+        mol::molecule operator()( const adportable::chem::icomp_type& comp ) const {
+            mol::molecule mol;
+            for ( auto& c: comp.first ) {
+                // ignore isotope
+                auto it = std::find_if( mol.elements_begin(), mol.elements_end(), [&]( const mol::element& e ){ return c.first.second == e.symbol(); });
+                if ( it != mol.elements_end() ) {
+                    it->count( it->count() + c.second );
+                } else {
+                    if ( mol::element e = TableOfElement::instance()->findElement( c.first.second ) ) {
+                        e.count( c.second );
+                        mol << std::move( e ); // .elements.emplace_back( e );
+                    }
+                }
+            }
+            mol.setMass( chem::monoIsotopicMass( comp, false ) );
+            mol.setCharge( comp.second );
+            return mol;
+        }
+    };
 
 }
+
 
 
 
@@ -720,6 +745,16 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
 
 // static
 mol::molecule
+ChemicalFormula::toMolecule( const std::string& formula, const std::string& adduct )
+{
+    auto v = ChemicalFormula::standardFormulae( formula, adduct );
+    auto mol = toMolecule( v[ 0 ] );
+    mol.set_display_formula( formula + " " + adduct );
+    return mol;
+}
+
+// static
+mol::molecule
 ChemicalFormula::toMolecule( const std::string& formula )
 {
     using namespace adportable::chem;
@@ -753,11 +788,36 @@ ChemicalFormula::toMolecule( const std::string& formula )
 }
 
 mol::molecule
-ChemicalFormula::toMolecule( const std::string& formula, const std::string& adduct )
+ChemicalFormula::toMolecule( const std::vector< std::pair< std::string, char > >& formulae, int charge )
 {
-    auto v = ChemicalFormula::standardFormulae( formula, adduct );
-    auto mol = toMolecule( v[ 0 ] );
-    mol.set_display_formula( formula + " " + adduct );
+    using namespace adportable::chem;
+    chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_parser;
+
+    adportable::chem::icomp_type comp, lose; // std::pair< std::map< atom_type, int >, int >; atom_type = std::pair< int, const char * >;
+
+    for ( auto& formula: formulae ) {
+        if ( formula.second == '-' ) { // lose
+            std::string::const_iterator it = formula.first.begin();
+            boost::spirit::qi::parse( it, formula.first.end(), comp_parser, lose );
+        } else {                       // add
+            std::string::const_iterator it = formula.first.begin();
+            boost::spirit::qi::parse( it, formula.first.end(), comp_parser, comp );
+        }
+    }
+    if ( charge == 0 ) {
+        charge = comp.second + (-lose.second);
+    }
+
+    // subtract atom from comp
+    for ( auto l: lose.first ) {
+        auto it = comp.first.find( l.first );
+        if ( it != comp.first.end() )
+            it->second -= std::min( it->second, l.second );
+    }
+
+    auto mol = to_molecule()( comp );
+    mol.setCharge( charge );
+
     return mol;
 }
 

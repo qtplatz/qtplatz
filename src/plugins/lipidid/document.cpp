@@ -27,16 +27,19 @@
 #include "simple_mass_spectrum.hpp"
 #include "candidate.hpp"
 #include "constants.hpp"
+#include "ionreaction.hpp"
 #include "isocluster.hpp"
 #include "isopeak.hpp"
 #include "make_reference_spectrum.hpp"
 #include "metidprocessor.hpp"
+#include "sqlexport.hpp"
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/ionreactionmethod.hpp>
+#include <adcontrols/isocluster.hpp>
 #include <adcontrols/make_combination.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
@@ -60,6 +63,7 @@
 #include <QSqlQuery>
 #include <boost/filesystem.hpp>
 #include <boost/json.hpp>
+#include <filesystem>
 #include <fstream>
 #include <tuple>
 #include <future>
@@ -111,26 +115,6 @@ namespace lipidid {
         adcontrols::MetIdMethod method_;
         std::map< std::string, double > logP_;
         QString selectedFormula_;
-    };
-}
-
-namespace {
-
-    class IonReaction {
-        std::string M_;
-    public:
-        IonReaction() {}
-        IonReaction( const std::string& formula ) : M_( formula ) {}
-        double mass( const std::vector< adcontrols::lipidid::molecule_pair_t >& alist ) {
-            auto addlose = adcontrols::lipidid::merge_molecule( alist );
-            std::vector< adcontrols::ChemicalFormula::formula_adduct_t > splitted
-                = { { M_, ' ' }
-                    , { std::get< 0 >(addlose).formula(), '+' }
-                    , { std::get< 1 >(addlose).formula(), '-' }
-            };
-            auto r = adcontrols::ChemicalFormula().getMonoIsotopicMass( splitted );
-            return r.first;
-        }
     };
 }
 
@@ -224,6 +208,12 @@ QSqlDatabase
 document::sqlDatabase()
 {
     return impl_->db_;
+}
+
+adfs::sqlite *
+document::sqlite()
+{
+    return impl_->sqlite_.get();
 }
 
 void
@@ -347,38 +337,15 @@ document::export_ion_reactions( adcontrols::IonReactionMethod&& t, bool testing 
 {
     // ADDEBUG() << boost::json::value_from( t );
     ADDEBUG() << "===== Ionization: " << t.i8n() << "\t" << t.description() << " testing: " << testing;
-    // std::vector< std::vector< molecule_pair_t > > internal vector is a set of add/sub
-    auto pos_list = adcontrols::lipidid::make_combination( t, adcontrols::polarity_positive );
-    auto neg_list = adcontrols::lipidid::make_combination( t, adcontrols::polarity_negative );
-    if ( testing ) {
-        // for ( const auto& addlose: pos_list ) {
-        //     ADDEBUG() << adcontrols::lipidid::to_string( addlose );
-        // }
-        // for ( const auto& addlose: neg_list ) {
-        //     ADDEBUG() << adcontrols::lipidid::to_string( addlose );
-        // }
-        if ( impl_->sqlite_ ) {
-            adfs::stmt sql( *impl_->sqlite_ );
-            if ( sql.prepare( "SELECT id, formula, mass, SlogP,inchiKey,SMILES FROM mols WHERE mass > 200 ORDER by mass LIMIT 1" ) ) {
-                ADDEBUG() << sql.expanded_sql();
-                while ( sql.step() == adfs::sqlite_row ) {
-                    auto t = adfs::get_column_values< int64_t, std::string, double, double, std::string, std::string >( sql );
-                    ADDEBUG() << t;
-                    IonReaction rxn( std::get< 1 >( t ) );
-                    for ( const auto& alist: pos_list )
-                        ADDEBUG() << "\tpos: " << rxn.mass( alist ) << "\t" << adcontrols::lipidid::to_string( alist );
-                    for ( const auto& alist: neg_list )
-                        ADDEBUG() << "\tneg: " << rxn.mass( alist ) << "\t" << adcontrols::lipidid::to_string( alist );
-                }
-            } else {
-                ADDEBUG() << "SQLite error code: " << sql.errcode();
-            }
-        } else {
-            ADDEBUG() << "------- no sqlite database --------";
-        }
-        return false;
+
+    std::filesystem::path path( qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
+    auto nfile = ( path.parent_path() / ( path.stem().string() + "_rxn" ) ).replace_extension( ".db" );
+
+    SQLExport e;
+    if ( e.create_database( nfile ) ) {
+        e.export_ion_reactions( std::move( t ), testing );
     }
-    return false;
+    return true;
 }
 
 bool

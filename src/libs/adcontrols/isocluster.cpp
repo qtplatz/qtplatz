@@ -92,13 +92,9 @@ isoCluster::operator()( mol::molecule& mol, int charge ) const
     if ( charge > 0 ) {
         std::for_each( mol.cluster_begin(), mol.cluster_end()
                        , [&]( mol::isotope& i ){ i.mass = ( i.mass - TableOfElement::instance()->electronMass() * charge ) / charge; } );
-        // std::transform( mol.cluster_begin(), mol.cluster_end(), mol.cluster_begin()
-        //                 , [&]( auto& pk ){ return mol::isotope( ( pk.mass - TableOfElement::instance()->electronMass() * charge ) / charge, pk.abundance ); });
     } else if ( charge < 0 ) {
         std::for_each( mol.cluster_begin(), mol.cluster_end()
                        , [&]( mol::isotope& i ){ i.mass = ( i.mass + TableOfElement::instance()->electronMass() * (-charge) ) / (-charge); } );
-        // std::transform( mol.cluster_begin(), mol.cluster_end(), mol.cluster_begin()
-        //                 , [&]( auto& pk ){ return mol::isotope( ( pk.mass + TableOfElement::instance()->electronMass() * (-charge) ) / (-charge), pk.abundance ); });
     }
     return true;
 }
