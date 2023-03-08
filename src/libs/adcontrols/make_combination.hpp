@@ -26,6 +26,7 @@
 
 #include "adcontrols_global.h"
 #include "constants_fwd.hpp"
+#include <string>
 #include <utility>
 #include <vector>
 
