@@ -93,8 +93,22 @@ void
 loader::populate( const wchar_t * topdir )
 {
     boost::filesystem::path appdir( topdir );
-    boost::filesystem::path modules( appdir / pluginDirectory );
-    boost::filesystem::path sharedlibs( appdir / sharedDirectory );
+#if defined __APPLE__
+    boost::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
+    boost::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
+#endif
+#if QTC_VERSION < 0x09'00'00 && defined __linux__
+    boost::filesystem::path modules(    appdir / "lib/qtplatz/plugins" );
+    boost::filesystem::path sharedlibs( appdir / "lib/qtplatz" );
+#else
+    boost::filesystem::path modules(    appdir / "lib/qtcreator/plugins" );
+    boost::filesystem::path sharedlibs( appdir / "lib/qtcreator" );
+#endif
+#if QTC_VERSION < 0x09'00'00 && defined WIN32
+    boost::filesystem::path modules(    appdir / "lib/qtcreator/plugins" );
+    boost::filesystem::path sharedlibs( appdir / "bin" );
+#endif
+
 #ifndef NDEBUG
     static size_t count = 0;
     ADDEBUG() << "loader populating in directory: " << topdir << "\t#" << count++;
