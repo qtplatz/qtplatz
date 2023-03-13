@@ -66,9 +66,16 @@ set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
 if ( WITH_QT5 )
-  if ( QTDIR STREQUAL "" AND DEFINED $ENV{QTDIR} )
-    set( QTDIR $ENV{QTDIR} )
+  find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+  message( STATUS "############# QT_FOUND : ${QT_FOUND} -- ${QT_VERSION} ###############" )
+  if ( QT_FOUND )
+    find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
+    if ( NOT XMLPATTERNS )
+      message( FATAL_ERROR "xmlpatterns command not found" )
+    endif()
   endif()
+
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )

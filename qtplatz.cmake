@@ -63,56 +63,10 @@ endif()
 #####################
 # Qt5 setup
 #
-
 if ( WITH_QT5 )
 
-  find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-  if ( NOT QT AND QMAKE )
-    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
-      OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-    list ( APPEND CMAKE_PREFIX_PATH ${QTDIR} )
-    find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-  endif()
-  #message( STATUS "#### QT VERSION: " ${QT_VERSION_MAJOR} )
-  #message( STATUS "#### QT_FOUND: "  ${QT_FOUND} )
-  #message( STATUS "#### QT_DIR: "  ${QT_DIR} )
   if ( QT_FOUND )
     find_program( QMAKE NAMES qmake )
-    message( STATUS "#### QMAKE: "  ${QMAKE} )
-  endif()
-  if ( QT_DIR )
-    set( QTDIR ${QT_DIR} )
-  endif()
-
-  if ( NOT QT_FOUND AND NOT QMAKE )
-    set ( __qt5_versions
-      "5.15.2" "5.15.1" "5.15.0"
-      "5.14.2" "5.14.1" "5.14.0"
-      "5.12.10" "5.12.5" "5.12.4" "5.12.3" "5.12.2" )
-
-    if ( WIN32 )
-      foreach( v ${__qt5_versions} )
-        list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2019_64/bin" )
-        list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2017_64/bin" )
-      endforeach()
-    elseif( APPLE )
-      foreach( v ${__qt5_versions} )
-        list ( APPEND __qmake_hints "$ENV{HOME}/Qt/${v}/clang_64/bin" )
-        list ( APPEND __qmake_hints "/opt/Qt/${v}/clang_64/bin" )
-      endforeach()
-    else()
-      if ( CMAKE_CROSSCOMPILING )
-        foreach( v ${__qt5_versions} )
-          list ( APPEND __qmake_hints "/usr/local/arm-linux-gnueabihf/opt/Qt/${v}/bin" )
-        endforeach()
-      else()
-        foreach( v ${__qt5_versions} )
-          list ( APPEND __qmake_hints "/opt/Qt/${v}/gcc_64/bin" )
-        endforeach()
-      endif()
-    endif()
-
-    find_program( QMAKE NAMES qmake HINTS ${__qmake_hints} )
   endif()
 
   if ( QMAKE )
@@ -129,13 +83,7 @@ if ( WITH_QT5 )
   endif()
 
   if ( QT_FOUND )
-    #find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED PrintSupport Svg Core Sql Widgets Gui OpenGL )
-    find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
-    #message( STATUS "###### Qt${QT_VERSION_MAJOR}_FOUND: " ${Qt${QT_VERSION_MAJOR}_FOUND} )
-
-    # get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
     find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
-    # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
     if ( NOT XMLPATTERNS )
       message( FATAL_ERROR "xmlpatterns command not found" )
     endif()
