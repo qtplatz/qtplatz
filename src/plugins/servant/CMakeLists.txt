@@ -8,6 +8,7 @@ set( PROVIDER MS-Cheminformatics )
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(COMPAT_VERSION 3.2.81)
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
@@ -18,7 +19,7 @@ configure_file(
   )
 
 execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )

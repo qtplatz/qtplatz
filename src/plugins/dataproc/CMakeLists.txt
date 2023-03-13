@@ -28,7 +28,7 @@ configure_file(
   )
 
 execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )

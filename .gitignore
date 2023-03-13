@@ -30,7 +30,7 @@ ui_*.h
 qrc_*.cpp
 *.log
 *.adfs
-*.json
+#*.json
 *.cxx
 .qmake.stash
 *.dmg
