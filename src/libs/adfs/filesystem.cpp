@@ -115,8 +115,14 @@ filesystem::mount( const wchar_t * filename )
 bool
 filesystem::mount( const char * filename )
 {
-    
+
     return mount( boost::filesystem::path( filename ) );
+}
+
+bool
+filesystem::mount( const std::filesystem::path& filepath )
+{
+    return mount( boost::filesystem::path( filepath.string() ) );
 }
 
 bool
@@ -187,4 +193,3 @@ filesystem::filename() const
     return filename_;
 }
 ////////////////////////
-

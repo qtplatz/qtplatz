@@ -122,7 +122,11 @@ SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Fol
 {
     if ( ! loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
+#if QTC_VERSION >= 0x09'00'00
+        emit onCheckStateChanged( this, dataprocessor->filePath().toString(), folium, isChecked );
+#else
         emit onCheckStateChanged( this, dataprocessor->filepath(), folium, isChecked );
+#endif
     }
 }
 
@@ -155,7 +159,11 @@ SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& foli
     emit onProcessed( dataprocessor, folium );
 
     // iSessionManager
+#if QTC_VERSION >= 0x09'00'00
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filePath().toString(), folium );
+#else
     emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filepath(), folium );
+#endif
 }
 
 void
@@ -173,7 +181,11 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
     emit signalSelectionChanged( dataprocessor, folium );
 
     // iSessionManager
+#if QTC_VERSION >= 0x09'00'00
+    emit onSelectionChanged( this, dataprocessor->filePath().toString(), folium );
+#else
     emit onSelectionChanged( this, dataprocessor->filepath(), folium );
+#endif
 }
 
 Dataprocessor *
@@ -186,7 +198,11 @@ SessionManager::getActiveDataprocessor()
 std::shared_ptr< adprocessor::dataprocessor >
 SessionManager::getDataprocessor( const QString& name )
 {
+#if QTC_VERSION >= 0x09'00'00
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath().toString() == name; } );
+#else
     auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filepath() == name; } );
+#endif
     if ( it != end() )
         return it->processor()->shared_from_this();
 

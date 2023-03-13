@@ -46,7 +46,7 @@ if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
     )
 
-  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    execute_process( COMMAND ${XMLPATTERNS} -no-format
     -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
     ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
     ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec

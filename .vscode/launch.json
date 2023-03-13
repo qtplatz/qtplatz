@@ -4,9 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-
-
         {
             "name": "(gdb) Launch",
             "type": "cppdbg",
@@ -70,7 +67,7 @@
             , "type": "lldb"
             , "request": "launch"
             , "stopOnEntry": false
-            , "program": "${workspaceFolder}/../build-Darwin-i386/qtplatz.debug/bin/qtplatz.app/Contents/MacOS/qtplatz"
+            , "program": "${workspaceFolder}/../build-Darwin-arm64/qtplatz.debug/bin/qtplatz.app/Contents/MacOS/qtplatz"
             , "args": []
             , "cwd": "${workspaceFolder}"
         }

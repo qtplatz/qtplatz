@@ -184,6 +184,77 @@ namespace {
             return true;
         }
     };
+
+    //////////////////////////////////////////////////////////////////////
+
+    struct save_as {
+        Dataprocessor& this_;
+        QString *errorString_;
+        save_as( Dataprocessor& t, QString*& sp ) : this_( t ), errorString_( sp ) {}
+
+        bool rename_backup( const std::filesystem::path& path ) const {
+            if ( std::filesystem::exists( path ) ) {
+                // rename existing files
+                int id = 1;
+                do {
+                    auto name = path.stem().generic_string() + (boost::format( "~%1%.adfs" ) % id++ ).str();
+                    auto backup( path );
+                    backup.replace_filename( name );
+                    if ( ! std::filesystem::exists( backup ) ) {
+                        std::error_code ec;
+                        std::filesystem::rename( path, backup, ec );
+                        if ( ec ) {
+                            *errorString_ = QString::fromStdString( ec.message() );
+                            return false;
+                        }
+                        break;
+                    }
+                } while ( true );
+            }
+            return true;
+        }
+
+        bool operator()( std::filesystem::path&& path ) const {
+
+            path.replace_extension( L".adfs" );
+            if ( rename_backup( path ) ) {
+                if ( auto file = adcontrols::datafile::create( path.wstring() ) ) {
+                    do {
+                        auto fs = std::make_unique< adfs::filesystem >();
+                        if ( fs->mount( path ) )
+                            adutils::v3::AcquiredConf::create_table_v3( *fs->_ptr() );
+                    } while ( 0 );
+
+                    adfs::stmt sql( *this_.db() ); // source db
+                    if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
+
+                        sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
+                        sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
+                        sql.exec( "INSERT INTO X.MetaData SELECT * FROM MetaData" );
+                        sql.exec( "INSERT INTO X.MSCalibration SELECT * FROM MSCalibration" );
+
+                        sql.exec( "DETACH DATABASE X" );
+                    }
+
+                    if ( file->saveContents( L"/Processed", this_.portfolio(), *this_.file() ) ) {
+                        this_.setModified( false );
+                    }
+                    // for debugging
+#if 0
+                    path.replace_extension( ".xml" );
+                    boost::filesystem::remove( path );
+                    pugi::xml_document dom;
+                    dom.load( portfolio_->xml().c_str() );
+                    dom.save_file( path.string().c_str() );
+#endif
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    //////////////////////////////////////////////////////////////////////
 }
 
 Dataprocessor::~Dataprocessor()
@@ -222,11 +293,13 @@ Dataprocessor::isModified() const
     return modified_;
 }
 
+#if QTC_VERSION < 0x09'00'00
 bool
 Dataprocessor::isFileReadOnly() const
 {
     return false;
 }
+#endif
 
 Core::IDocument::ReloadBehavior
 Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
@@ -265,75 +338,57 @@ Dataprocessor::open( QString *errorString
 }
 #endif
 
+#if QTC_VERSION >= 0x09'00'00
+bool
+Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, bool autoSave )
+{
+    bool isSave = filePath.isEmpty(); // or isSaveAs
+    if ( isSave ) {
+        std::filesystem::path path( file()->filename() ); // adcontrols::datafile *
+        if ( path.extension() == ".adfs" ) {
+            if ( file()->saveContents( L"/Processed", *portfolio_ ) ) {
+                setModified( false );
+                return true;
+            } else {
+                *errorString = "Save contents failed.";
+            }
+        } else {
+            *errorString = "Cannot save processed result into a file rather than .adfs file.";
+        }
+        return false;
+    } else {
+        // Save As
+        return save_as( *this, errorString )( std::filesystem::path( filePath.toString().toStdString() ) );
+    }
+    return false;
+}
+
+#else
+
 bool
 Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
 {
 	boost::filesystem::path path( file()->filename() ); // original name
 
-    if ( filename.isEmpty() && path.extension() == ".adfs" ) {
-        // Save
-        if ( file()->saveContents( L"/Processed", *portfolio_ ) ) {
-            setModified( false );
-            return true;
-        }
-    }
-
-    // save as
-    if ( !filename.isEmpty() )
-        path = filename.toStdWString();
-
-    path.replace_extension( L".adfs" );
-    if ( boost::filesystem::exists( path ) ) {
-        int id = 1;
-        do {
-            boost::filesystem::path backup( path.branch_path() / boost::filesystem::path( path.stem().string() + (boost::format( "~%1%.adfs" ) % id++).str() ) );
-            if ( !boost::filesystem::exists( backup ) ) {
-                boost::system::error_code ec;
-                boost::filesystem::rename( path, backup, ec );
-                if ( ec ) {
-                    *errorString = QString::fromStdString( ec.message() );
-                    return false;
-                }
-                break;
+    if ( filename.isEmpty() ) {
+        if ( path.extension() == ".adfs" ) {
+            if ( file()->saveContents( L"/Processed", *portfolio_ ) ) {
+                setModified( false );
+                return true;
+            } else {
+                *errorString = "Save contents failed.";
             }
-        } while ( true );
-    }
-
-    // save as 'filename
-    if ( auto file = adcontrols::datafile::create( path.wstring() ) ) {
-
-        {
-            auto fs = std::make_unique< adfs::filesystem >();
-            if ( fs->mount( path ) )
-                adutils::v3::AcquiredConf::create_table_v3( *fs->_ptr() );
+        } else {
+            *errorString = "Cannot save processed result into a file rather than .adfs file.";
         }
-
-        adfs::stmt sql( *db() );
-        if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
-
-            sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
-            sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
-
-            sql.exec( ( boost::format( "DETACH DATABASE '%1%'" ) % path.string() ).str() );
-        }
-
-        if ( file->saveContents( L"/Processed", *portfolio_, *this->file() ) ) {
-            setModified( false );
-        }
-
-        // for debugging
-#if 0
-        path.replace_extension( ".xml" );
-        boost::filesystem::remove( path );
-        pugi::xml_document dom;
-        dom.load( portfolio_->xml().c_str() );
-        dom.save_file( path.string().c_str() );
-#endif
-        return true;
-
+        return false;
+    } else {
+        // save as
+        return save_as( *this, errorString )( std::filesystem::path( filename.toStdString() ) );
     }
     return false;
 }
+#endif
 
 bool
 Dataprocessor::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
@@ -341,6 +396,7 @@ Dataprocessor::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::
     return true;
 }
 
+#if QTC_VERSION < 0x09'00'00
 QString
 Dataprocessor::defaultPath() const
 {
@@ -354,6 +410,7 @@ Dataprocessor::suggestedFileName() const
 	path.replace_extension( L".adfs" );
     return QString::fromStdWString( path.normalize().wstring() );
 }
+#endif
 
 bool
 Dataprocessor::isSaveAsAllowed() const
@@ -384,8 +441,10 @@ Dataprocessor::open(const std::wstring &filename, std::wstring& emsg )
 {
     emsg = std::wstring{};
     if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
-    ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION >= 0x09'00'00
+        auto filePath = Utils::FilePath::fromString( QString::fromStdWString( filename ) );
+        Core::IDocument::setFilePath( filePath );
+#else
         Core::IDocument::setFilePath( QString::fromStdWString( filename ) );
         Core::DocumentManager::setCurrentFile( QString::fromStdWString( filename ) );
 #endif
@@ -1827,10 +1886,10 @@ namespace dataproc
          return this->filePath();
      }
 #else
-     QString
-     Dataprocessor::filepath() const
-     {
-         return this->filePath().toString();
-     }
+     // QString
+     // Dataprocessor::filepath() const
+     // {
+     //     return this->filePath().toString();
+     // }
 #endif
 }
