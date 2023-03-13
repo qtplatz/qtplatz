@@ -51,11 +51,35 @@ done
 echo -e "$0: platform=\t"$host_system
 echo -e "$0: config  =\t"$config
 
+if [ -z "$cross_target" ]; then
+	if [ -z "$QTDIR" ]; then
+		find_qmake QMAKE
+	elif [ -f "${QTDIR}/bin/qmake" ]; then
+		QMAKE="${QTDIR}/bin/qmake"
+	fi
+	if [ ! -z ${QMAKE} ]; then
+		if ${QMAKE} --version &> /dev/null; then
+			QTDIR=$($QMAKE -query QT_HOST_PREFIX)
+			cmake_args+=("-DCMAKE_PREFIX_PATH=${QTDIR}")
+			QT_VERSION=$($QMAKE -query QT_VERSION)
+			if [[ ${QT_VERSION} =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+				QT_VERSION_MAJOR=${BASH_REMATCH[1]}
+			fi
+			#export QTDIR
+			#export PATH=$QTDIR/bin:$PATH
+			echo "QMAKE found in ${QMAKE} -- QT_VERSION_MAJOR: ${QT_VERSION_MAJOR}"
+		else
+			echo "QMAKE NOT Found."
+		fi
+	fi
+fi
+
+
 if [ -z $cross_target ]; then
     case $arch in
 	Darwin-*)
 	    source_dirs=("$cwd")
-	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
+	    build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
 	    if [ "$config" = "debug" ]; then
 			if [ "$ide" = "xcode" ]; then
 		    cmake_args=('-G' 'Xcode' '-DCMAKE_BUILD_TYPE=Debug')
@@ -66,7 +90,7 @@ if [ -z $cross_target ]; then
 	    ;;
 	*)
 	    source_dirs=( "$cwd" )
-	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
+	    build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
 	    if [ "$config" = "debug" ]; then
 			cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
 			if [ "$ide" = "eclipse" ]; then
@@ -92,22 +116,6 @@ if [ $build_clean = true ]; then
     exit
 fi
 
-if [ -z "$cross_target" ]; then
-	if [ -z "$QTDIR" ]; then
-		if find_qmake QMAKE; then
-			QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
-			echo "$0: qmake found in "$QTDIR " (qmake="${QMAKE}")"
-			cmake_args+=("-DQMAKE=${QMAKE}")
-			echo cmake "${cmake_args[@]}" $source_dir "(${build_dirs[*]})"
-			prompt
-			export PATH=$QTDIR/bin:$PATH
-		else
-			echo "$0: ## Error: QMAKE cannot be found"
-			exit 1
-		fi
-	fi
-fi
-
 echo "build_dirs: ${build_dirs[*]}"
 
 index=0
@@ -127,6 +135,7 @@ for build_dir in ${build_dirs[@]}; do
 
     if [ -z $cross_target ]; then
 		echo cmake "${cmake_args[@]}" $source_dir
+		prompt
 		cmake "${cmake_args[@]}" $source_dir
     else
 		echo "#######################################"
