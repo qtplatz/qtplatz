@@ -4,6 +4,11 @@ if ( qwt_FOUND )
   return()
 endif()
 
+if ( NOT QT_FOUND )
+  message( STATUS "######## NO QT FOUND ########" )
+  return()
+endif()
+
 if ( WIN32 )
   set ( __prefix "C:" )
 else()
@@ -12,7 +17,10 @@ endif()
 
 set ( __qwt_dirs "" )
 foreach( __qwt_version "6.2.0" )
-  list ( APPEND __qwt_dirs "${__prefix}/qwt-${__qwt_version}" "${__prefix}/qwt-${__qwt_version}-svn" )
+  list ( APPEND __qwt_dirs
+    "${__prefix}/qwt-${__qwt_version}-qt-${QT_VERSION}"
+    "${__prefix}/qwt-${__qwt_version}"
+    "${__prefix}/qwt-${__qwt_version}-svn" )
 endforeach()
 
 find_path( qwt_DIR NAMES include/qwt.h HINTS ${__qwt_dirs} "$ENV{QWT}" )

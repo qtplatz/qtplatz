@@ -17,6 +17,7 @@ function qwt_download {
 	fi
 
 	if [ ! -d ${QWT_BUILD_DIR} ]; then
+		echo tar xvf ${DOWNLOADS}/qwt-${QWT_VERSION}.tar.bz2 -C $(dirname ${QWT_BUILD_DIR})
 		prompt
 		tar xvf ${DOWNLOADS}/qwt-${QWT_VERSION}.tar.bz2 -C $(dirname ${QWT_BUILD_DIR})
 	fi
@@ -47,9 +48,12 @@ esac
 
 cd ${QWT_BUILD_DIR}
 
-cp -p qwtconfig.pri qwtconfig.pri.orig
+if [ ! -e qwtconfig.pri.orig ]; then
+	cp -p qwtconfig.pri qwtconfig.pri.orig
+fi
 
 cat qwtconfig.pri.orig | \
+	sed '/^[ \t]*QWT_INSTALL_PREFIX/s/$/-qt-$$QT_VERSION/' | \
 	sed '/QwtDll/s/^/#/' | \
 	sed '/QwtMathML/s/^/#/' | \
 	sed '/QwtDesigner/s/^/#/' | \
