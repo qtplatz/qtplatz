@@ -8,8 +8,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Network Core Widgets PrintSupport )
-
 file(GLOB ${PROJECT_NAME}_Resources *.qrc)
 
 include_directories(

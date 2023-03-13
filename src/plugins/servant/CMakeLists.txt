@@ -5,8 +5,6 @@ project( servant )
 
 set( PROVIDER MS-Cheminformatics )
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
