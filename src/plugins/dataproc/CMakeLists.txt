@@ -1,3 +1,6 @@
+# Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+# Copyright (C) 2013-2023 MS-Cheminformatics LLC
+# Contact: toshi.hondo@qtplatz.com
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
@@ -15,10 +18,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
-
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
-  set(COMPAT_VERSION 3.2.81)
-endif()
 
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
