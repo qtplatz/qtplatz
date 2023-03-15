@@ -671,7 +671,7 @@ MainWindow::createContents( Core::IMode * mode )
             w->setTimeSquaredScanLaw( length, vaccl, tdelay );
         }
     } );
-#if __cplusplus >= 201703L
+    // #if __cplusplus >= 201703L
     sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     removeSessionConnector   < MSProcessingWnd, MSSpectraWnd, ElementalCompWnd, ChromatogramWnd >( stack_ );
     sessionRemovedConnector  < ChromatogramWnd >( stack_ );
@@ -682,7 +682,7 @@ MainWindow::createContents( Core::IMode * mode )
     axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
     scaleChromatogramConnector < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
     scaleSpectrumConnector   < MSProcessingWnd, MSSpectraWnd >( this, stack_ );
-#endif
+    // #endif
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setContentsMargins( {} );
     toolBarAddingLayout->setSpacing(0);

@@ -194,13 +194,14 @@ namespace chemistry {
         , { R"(C1=CC=C2C(=C1)C=CC3=C2C=CC4=CC=CC=C43)",                  { "Chrysene" }}
         , { R"(C1=CC=C2C3=C4C(=CC=C3)C5=CC=CC=C5C4=CC2=C1)",             { "Benzo(b)fluoranthene" }}
         , { R"(C1=CC=C2C=C3C4=CC=CC5=C4C(=CC=C5)C3=CC2=C1)",             { "Benzo(k)fluoranthene" }}
-        , { R"(C1=CC2=C3C(=C1)C4=CC=CC5=C4C(=CC=C5)C3=CC=C2)",           {  "Perylene" }}
+        , { R"(C1=CC2=C3C(=C1)C4=CC=CC5=C4C(=CC=C5)C3=CC=C2)",           { "Perylene" }}
         , { R"(C1=CC=C2C3=C4C(=CC2=C1)C=CC5=C4C(=CC=C5)C=C3)",           { "Benzo(a)pyrene" }}
         , { R"(C1=CC=C2C(=C1)C3=CC=CC4=C3C5=C(C=CC=C25)C=C4)",           { "Benzo(e)pyrene" }}
         , { R"(C1=CC2=C3C(=C1)C4=CC=CC5=C4C6=C(C=C5)C=CC(=C36)C=C2)",    { "Benzo(g,h,i)perylene" }}
         , { R"(C1=CC=C2C(=C1)C3=C4C2=CC5=CC=CC6=C5C4=C(C=C6)C=C3)",      { "Indeno(1,2,3-cd)pyrene" }}
         , { R"(C1=CC=C2C(=C1)C=CC3=CC4=C(C=CC5=CC=CC=C54)C=C32)",        { "Dibenz(a,h)anthracene" }}
         , { R"(C1=CC2=C3C4=C1C=CC5=C4C6=C(C=C5)C=CC7=C6C3=C(C=C2)C=C7)", { "Coronene" }}
+        , { R"(C1=C2C(=C3C=C(C(=O)C(=C3OC2=C(C(=C1I)[O-])I)I)I)C4=C(C(=C(C(=C4Cl)Cl)Cl)Cl)C(=O)[O-].[Na+].[Na+])", { "Rose bengal", "Acid Red 94" }}
     };
 
 
