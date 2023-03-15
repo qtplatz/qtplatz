@@ -8,7 +8,7 @@ host_system=`uname`
 build_clean=false
 build_package=false
 build_root=..
-cmake_args=('-DCMAKE_BUILD_TYPE=Release')
+cmake_args=() #'-DCMAKE_BUILD_TYPE=Release')
 
 source ${cwd}/scripts/find_qmake.sh
 source ${cwd}/scripts/prompt.sh
@@ -51,6 +51,12 @@ done
 echo -e "$0: platform=\t"$host_system
 echo -e "$0: config  =\t"$config
 
+if [ "$config" = "debug" ]; then
+	cmake_args+=('-DCMAKE_BUILD_TYPE=Debug')
+else
+	cmake_args+=('-DCMAKE_BUILD_TYPE=Release')
+fi
+
 if [ -z "$cross_target" ]; then
 	if [ -z "$QTDIR" ]; then
 		find_qmake QMAKE
@@ -74,7 +80,6 @@ if [ -z "$cross_target" ]; then
 	fi
 fi
 
-
 if [ -z $cross_target ]; then
     case $arch in
 	Darwin-*)
@@ -82,9 +87,7 @@ if [ -z $cross_target ]; then
 	    build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
 	    if [ "$config" = "debug" ]; then
 			if [ "$ide" = "xcode" ]; then
-		    cmake_args=('-G' 'Xcode' '-DCMAKE_BUILD_TYPE=Debug')
-			else
-				cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
+				cmake_args+=('-G' 'Xcode')
 			fi
 	    fi
 	    ;;
@@ -92,12 +95,11 @@ if [ -z $cross_target ]; then
 	    source_dirs=( "$cwd" )
 	    build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
 	    if [ "$config" = "debug" ]; then
-			cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
 			if [ "$ide" = "eclipse" ]; then
-				cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
+				cmake_args+=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5')
 			fi
 			if [ "$ide" = "codelite" ]; then
-				cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
+				cmake_args+=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
 			fi
 	    fi
 	    ;;

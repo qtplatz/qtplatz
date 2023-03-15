@@ -39,7 +39,7 @@ function find_qmake() {
     esac
 
     for dir in "${__dirs[@]}"; do
-		echo "-- lookup: " $dir
+		#echo "-- lookup: " $dir
 		if [ -f $dir/bin/qmake ]; then
 			echo "------ found qmake in $dir/bin"
 			if $dir/bin/qmake --version &> /dev/null ; then
