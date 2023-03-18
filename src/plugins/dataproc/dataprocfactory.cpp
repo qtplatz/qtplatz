@@ -58,6 +58,7 @@ DataprocFactory::DataprocFactory()
     });
 
     for ( auto &format : { "application/adfs"
+                           , "application/x-sqlite3"
                            , "application/txt"
                            , "application/csv"
                            , "application/octet-stream" } ) {

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -35,6 +35,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
@@ -74,35 +75,54 @@
 #include <numeric>
 #include <string>
 
+namespace adprocessor {
+
+    class dataprocessor::impl {
+    public:
+        impl() : rawdata_( 0 )
+               , modified_( false )
+               , portfolio_( std::make_unique< portfolio::Portfolio >() )
+               , mode_( 0 ) {
+        }
+        ~impl() {}
+        std::unique_ptr< adfs::filesystem > fs_;
+        std::unique_ptr< adcontrols::datafile > file_;
+        const adcontrols::LCMSDataset * rawdata_;
+        bool modified_;
+        std::unique_ptr< portfolio::Portfolio > portfolio_;
+        std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
+        int mode_;
+        std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid > global_lkms_;
+    };
+
+}
+
 using namespace adprocessor;
 
 dataprocessor::~dataprocessor()
 {
 }
 
-dataprocessor::dataprocessor() : rawdata_( 0 )
-                               , modified_( false )
-                               , portfolio_( std::make_unique< portfolio::Portfolio >() )
-                               , mode_( 0 )
+dataprocessor::dataprocessor() : impl_( std::make_unique< impl >() )
 {
 }
 
 void
 dataprocessor::setMode( int id )
 {
-    mode_ = id;
+    impl_->mode_ = id;
 }
 
 int
 dataprocessor::mode() const
 {
-    return mode_;
+    return impl_->mode_;
 }
 
 void
 dataprocessor::setModified( bool modified )
 {
-    modified_ = modified;
+    impl_->modified_ = modified;
 }
 
 bool
@@ -114,15 +134,15 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
 
         auto fs = std::make_unique< adfs::filesystem >();
         if ( fs->mount( path ) ) {
-            fs_ = std::move( fs );
+            impl_->fs_ = std::move( fs );
         } else if ( fs->create( ":memory:" ) ) {
-            fs_ = std::move( fs );
+            impl_->fs_ = std::move( fs );
             adutils::v3::AcquiredConf::create_table_v3( *db() );
         } else
             return false;
-        file_ = std::move( file );
+        impl_->file_ = std::move( file );
         try {
-            file_->accept( *this );  // may access 'db' if file was imported from csv.
+            impl_->file_->accept( *this );  // may access 'db' if file was imported from csv.
         } catch ( std::exception& ex ) {
 #if __cplusplus >= 201402L
             std::wstring_convert< std::codecvt_utf8_utf16< wchar_t > > converter;
@@ -143,16 +163,16 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
 const std::wstring&
 dataprocessor::filename() const
 {
-    return file_->filename();
+    return impl_->file_->filename();
 }
 
 void
 dataprocessor::setFile( std::unique_ptr< adcontrols::datafile >&& file )
 {
-    file_ = std::move( file );
+    impl_->file_ = std::move( file );
 
-    if ( file_ ) {
-        file_->accept( *this );
+    if ( impl_->file_ ) {
+        impl_->file_->accept( *this );
     }
 
 }
@@ -160,26 +180,26 @@ dataprocessor::setFile( std::unique_ptr< adcontrols::datafile >&& file )
 adcontrols::datafile *
 dataprocessor::file()
 {
-    return file_.get();
+    return impl_->file_.get();
 }
 
 const adcontrols::datafile *
 dataprocessor::file() const
 {
-    return file_.get();
+    return impl_->file_.get();
 }
 
 const adcontrols::LCMSDataset *
 dataprocessor::rawdata()
 {
-    return rawdata_;
+    return impl_->rawdata_;
 }
 
 std::shared_ptr< adfs::sqlite >
 dataprocessor::db() const
 {
-    if ( fs_ )
-        return fs_->_ptr();
+    if ( impl_->fs_ )
+        return impl_->fs_->_ptr();
     else
         return nullptr;
 }
@@ -187,32 +207,32 @@ dataprocessor::db() const
 adfs::filesystem *
 dataprocessor::fs()
 {
-    return fs_ ? fs_.get() : nullptr;
+    return impl_->fs_ ? impl_->fs_.get() : nullptr;
 }
 
 const adfs::filesystem *
 dataprocessor::fs() const
 {
-    return fs_ ? fs_.get() : nullptr;
+    return impl_->fs_ ? impl_->fs_.get() : nullptr;
 }
 
 const portfolio::Portfolio&
 dataprocessor::portfolio() const
 {
-    return *portfolio_;
+    return *impl_->portfolio_;
 }
 
 portfolio::Portfolio&
 dataprocessor::portfolio()
 {
-    return *portfolio_;
+    return *impl_->portfolio_;
 }
 
 ///////////////////////////
 bool
 dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
-    rawdata_ = &data;
+    impl_->rawdata_ = &data;
 	return true;
 }
 
@@ -220,7 +240,7 @@ bool
 dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 {
     std::string xml = processed.xml();
-    portfolio_ = std::make_unique< portfolio::Portfolio >( xml );
+    impl_->portfolio_ = std::make_unique< portfolio::Portfolio >( xml );
 
     return true;
 }
@@ -234,7 +254,7 @@ dataprocessor::notify( adcontrols::dataSubscriber::idError, const std::string& j
 std::shared_ptr< adcontrols::MassSpectrometer >
 dataprocessor::massSpectrometer()
 {
-    if ( ! spectrometer_ && this->db() ) {
+    if ( ! impl_->spectrometer_ && this->db() ) {
 
         adfs::stmt sql( *this->db() );
 
@@ -245,20 +265,21 @@ dataprocessor::massSpectrometer()
 
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
             spectrometer->initialSetup( *this->db(), {{ 0 }} ); // load relevant to 'master observer'
-            spectrometer_ = spectrometer;
+            impl_->spectrometer_ = spectrometer;
         } else {
             if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( adcontrols::iids::adspectrometer_uuid ) ) {
                 spectrometer->initialSetup( *this->db(), {{ 0 }} ); // load relevant to 'master observer'
-                spectrometer_ = spectrometer;
+                impl_->spectrometer_ = spectrometer;
             }
         }
     }
-    return spectrometer_;
+    return impl_->spectrometer_;
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readSpectrumFromTimeCount()
 {
+    ADDEBUG() << "--------------------- " << __FUNCTION__ << " ----------------------";
     std::shared_ptr< adcontrols::MassSpectrum > ms;
 
     adfs::stmt sql( *this->db() );
@@ -367,6 +388,7 @@ dataprocessor::readSpectrumFromTimeCount()
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readCoAddedSpectrum( bool histogram, int proto )
 {
+    ADDEBUG() << "--------------------- " << __FUNCTION__ << " ----------------------";
     const std::string traceid = histogram ? "histogram.timecount.1.%" : "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
 
     adfs::stmt sql( *this->db() );
@@ -381,6 +403,10 @@ dataprocessor::readCoAddedSpectrum( bool histogram, int proto )
         if ( auto raw = this->rawdata() ) {
             if ( auto reader = raw->dataReader( objuuid ) ) {
                 auto ms = reader->coaddSpectrum( reader->begin( proto ), reader->end() );
+                if ( impl_->global_lkms_.first ) {
+                    ADDEBUG() << "----- apply data global lockmass -------";
+                    (*impl_->global_lkms_.first)( *ms );
+                }
                 return ms;
             }
         }
@@ -579,4 +605,38 @@ dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
         ADDEBUG() << "applyCalibration faild";
         return false;
     }
+}
+
+void
+dataprocessor::clearDataGlobalMSLock()
+{
+    impl_->global_lkms_ = {};
+}
+
+void
+dataprocessor::setDataGlobalMSLock( std::shared_ptr< const adcontrols::lockmass::mslock > lkms, const portfolio::Folium& folium )
+{
+    impl_->global_lkms_ = std::make_pair( lkms, folium.uuid() );
+    ADDEBUG() << "setDataGlobalMSLock -- " << folium.uuid();
+}
+
+std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid >
+dataprocessor::dataGlobalMSLock()
+{
+    return impl_->global_lkms_;
+}
+
+bool
+dataprocessor::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ms ) const
+{
+    if ( impl_->global_lkms_.first ) {
+        return mslock( *ms, *impl_->global_lkms_.first );
+    }
+    return false;
+}
+
+bool
+dataprocessor::mslock( adcontrols::MassSpectrum& ms, const adcontrols::lockmass::mslock& lkms )
+{
+    return lkms( ms );
 }

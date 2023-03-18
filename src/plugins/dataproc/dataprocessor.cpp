@@ -293,22 +293,12 @@ Dataprocessor::isModified() const
     return modified_;
 }
 
-#if QTC_VERSION < 0x09'00'00
-bool
-Dataprocessor::isFileReadOnly() const
-{
-    return false;
-}
-#endif
-
 Core::IDocument::ReloadBehavior
 Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
 {
     return IDocument::BehaviorSilent;
 }
 
-
-#if QTC_VERSION >= 0x09'00'00
 Core::IDocument::OpenResult
 Dataprocessor::open( QString *errorString
                     , const Utils::FilePath &filePath
@@ -336,9 +326,7 @@ Dataprocessor::open( QString *errorString
     emit openFinished( false );
     return Core::IDocument::OpenResult::ReadError;
 }
-#endif
 
-#if QTC_VERSION >= 0x09'00'00
 bool
 Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, bool autoSave )
 {
@@ -346,7 +334,7 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
     if ( isSave ) {
         std::filesystem::path path( file()->filename() ); // adcontrols::datafile *
         if ( path.extension() == ".adfs" ) {
-            if ( file()->saveContents( L"/Processed", *portfolio_ ) ) {
+            if ( file()->saveContents( L"/Processed", portfolio() ) ) {
                 setModified( false );
                 return true;
             } else {
@@ -363,54 +351,11 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
     return false;
 }
 
-#else
-
-bool
-Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
-{
-	boost::filesystem::path path( file()->filename() ); // original name
-
-    if ( filename.isEmpty() ) {
-        if ( path.extension() == ".adfs" ) {
-            if ( file()->saveContents( L"/Processed", *portfolio_ ) ) {
-                setModified( false );
-                return true;
-            } else {
-                *errorString = "Save contents failed.";
-            }
-        } else {
-            *errorString = "Cannot save processed result into a file rather than .adfs file.";
-        }
-        return false;
-    } else {
-        // save as
-        return save_as( *this, errorString )( std::filesystem::path( filename.toStdString() ) );
-    }
-    return false;
-}
-#endif
-
 bool
 Dataprocessor::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
 {
     return true;
 }
-
-#if QTC_VERSION < 0x09'00'00
-QString
-Dataprocessor::defaultPath() const
-{
-	return adportable::profile::user_data_dir<char>().c_str();
-}
-
-QString
-Dataprocessor::suggestedFileName() const
-{
-	boost::filesystem::path path( this->file()->filename() );
-	path.replace_extension( L".adfs" );
-    return QString::fromStdWString( path.normalize().wstring() );
-}
-#endif
 
 bool
 Dataprocessor::isSaveAsAllowed() const
@@ -424,7 +369,7 @@ Dataprocessor::create(const QString& filename )
     boost::filesystem::path path( filename.toStdString() );
     path.replace_extension( L".adfs" );
 
-    portfolio_->create_with_fullpath( path.wstring() );
+    portfolio().create_with_fullpath( path.wstring() );
 
     std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
     if ( file ) {
@@ -473,7 +418,7 @@ Dataprocessor::load( const std::wstring& path, const std::wstring& id )
 portfolio::Portfolio
 Dataprocessor::getPortfolio()
 {
-    return * portfolio_;
+    return portfolio();
 }
 
 void
@@ -494,7 +439,7 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 portfolio::Folium
 Dataprocessor::currentSelection() const
 {
-	return portfolio_->findFolium( idActiveFolium_ );
+	return portfolio().findFolium( idActiveFolium_ );
 }
 
 bool
@@ -648,7 +593,7 @@ void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
     ADDEBUG() << "################### " << __FUNCTION__ << " ##";
-    portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
     setModified( true );
@@ -769,7 +714,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
     centroidMethod.centroidAreaIntensity( false );  // force hight for overlay with profile
 
     // add to my-self
-    portfolio::Folder calibFolder = portfolio_->addFolder( L"MSCalibration" );
+    portfolio::Folder calibFolder = portfolio().addFolder( L"MSCalibration" );
 
     for ( auto& folium: spectra.folio() ) {
         if ( folium.attribute( L"isChecked" ) == L"true" ) {
@@ -814,7 +759,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 {
-    portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
     if ( folium ) {
         //----------------------- take centroid and calibration method w/ modification ---------------------
         const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
@@ -850,7 +795,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     for ( size_t i = 0; i < descs.size(); ++i )
         name += descs[i].text<wchar_t>();
 
-    portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
+    portfolio::Folder folder = portfolio().addFolder( L"MSCalibration" );
     portfolio::Folium folium = folder.addFolium( name );
 
 	SessionManager::instance()->updateDataprocessor( this, folium );
@@ -881,7 +826,7 @@ void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
                                  , const adcontrols::MSAssignedMasses& assigned )
 {
-    portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
 
     if ( folium ) {
 
@@ -911,7 +856,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
                                , const adcontrols::MSCalibrateMethod& calibMethod
                                , const adcontrols::MSAssignedMasses& assigned )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
+    portfolio::Folder folder = portfolio().addFolder( L"MSCalibration" );
     std::wstring name;
     const adcontrols::descriptions& descs = centroid.getDescriptions();
     for ( size_t i = 0; i < descs.size(); ++i )
@@ -969,7 +914,7 @@ Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
 {
     // ADDEBUG() << "applyCalibration: ";
 
-    if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
+    if ( portfolio::Folder folder = portfolio().findFolder( L"Spectra" ) ) {
 
         setModified( true );
 
@@ -1114,7 +1059,7 @@ Dataprocessor::formulaChanged()
 portfolio::Folium
 Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
+    portfolio::Folder folder = portfolio().addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
@@ -1138,7 +1083,7 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
 portfolio::Folium
 Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
+    portfolio::Folder folder = portfolio().addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$|^((?!dataReader)" );
@@ -1163,7 +1108,7 @@ portfolio::Folium
 Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src
                                 , const adcontrols::ProcessMethod& m )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
+    portfolio::Folder folder = portfolio().addFolder( L"Chromatograms" );
 
     std::wstring name = adcontrols::Chromatogram::make_folder_name( src.getDescriptions() );
 
@@ -1196,7 +1141,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src
 portfolio::Folium
 Dataprocessor::addContour( std::shared_ptr< adcontrols::MassSpectra > spectra )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Contours" );
+    portfolio::Folder folder = portfolio().addFolder( L"Contours" );
 
     const auto& desc = spectra->getDescriptions();
     std::wstring name =
@@ -1215,7 +1160,7 @@ Dataprocessor::addContour( std::shared_ptr< adcontrols::MassSpectra > spectra )
 portfolio::Folium
 Dataprocessor::addContourClusters( std::shared_ptr< adcontrols::SpectrogramClusters > clusters )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Contours" );
+    portfolio::Folder folder = portfolio().addFolder( L"Contours" );
     portfolio::Folium folium = folder.findFoliumByName( L"Contour" );  // "Contours/Contour"
     if ( folium ) {
         portfolio::Folium att = folium.addAttachment( L"Clusters" );
@@ -1288,7 +1233,7 @@ Dataprocessor::setAttribute( portfolio::Folium folium, std::pair< std::string, s
 void
 Dataprocessor::deleteRemovedItems()
 {
-    for ( auto folder: portfolio_->folders() ) {
+    for ( auto folder: portfolio().folders() ) {
         for ( auto& folium: folder.folio() ) {
             if ( folium.attribute( L"remove" ) == L"true" ) {
                 folder.erase( folium, []( const auto& t){ /* ADDEBUG() << "deleteRemovedItems: " << t; */} );
@@ -1365,7 +1310,7 @@ Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
 
     std::wstring foldername = pathname.filename().wstring();
 
-	portfolio::Folder folder = portfolio_->addFolder( foldername );
+	portfolio::Folder folder = portfolio().addFolder( foldername );
 	portfolio::Folium folium = folder.addFolium( static_cast< adfs::attributes& >(file).name() );
 
     std::for_each( file.begin(), file.end(), [&]( const adfs::attributes::vector_type::value_type& a ){
@@ -1720,7 +1665,7 @@ Dataprocessor::exportXML() const
 {
     boost::filesystem::path path( this->file()->filename() );
     path += ".xml";
-    portfolio_->save( path.wstring() );
+    portfolio().save( path.wstring() );
 }
 
 void
@@ -1809,7 +1754,7 @@ Dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
     prop.setInstMassRange( std::make_pair( 0, 1000 ) );
     ms->setMSProperty( prop );
 
-    auto folder = portfolio_->addFolder( L"Spectra" );
+    auto folder = portfolio().addFolder( L"Spectra" );
     std::wstring name = L"XIC";
 
     auto folium = folder.addFolium( name );
@@ -1823,7 +1768,7 @@ Dataprocessor::markupMassesFromChromatograms( portfolio::Folium&& folium )
     if ( auto ms = portfolio::get< std::shared_ptr< adcontrols::MassSpectrum > >( folium ) ) {
 
         adcontrols::MSPeakInfo info;
-        if ( auto folder = portfolio_->findFolder( L"Chromatograms" ) ) {
+        if ( auto folder = portfolio().findFolder( L"Chromatograms" ) ) {
             for ( auto& f: folder.folio() ) {
                 // ADDEBUG() << "Chromatogram: " << f.attribute( L"isChecked" ) << ", " << f.name();
                 if ( f.attribute( L"isChecked" ) == L"true" ) {
@@ -1875,6 +1820,7 @@ Dataprocessor::clearMarkup( portfolio::Folium&& folium )
         SessionManager::instance()->updateDataprocessor( this, folium );
     }
 }
+
 
 namespace dataproc
  {

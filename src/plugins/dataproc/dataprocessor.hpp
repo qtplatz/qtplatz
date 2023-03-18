@@ -83,21 +83,7 @@ namespace dataproc {
             return std::make_shared< make_shared_enabler >();
         }
 
-#if QTC_VERSION < 0x09'00'00
-        inline Core::IDocument * document() { return this; };
-#endif
         // Core::IDocument
-#if QTC_VERSION < 0x09'00'00
-        // QtCreator4 based code
-        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
-        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
-        QString defaultPath() const override;
-        QString suggestedFileName() const override;
-        bool isModified() const override;
-        bool isSaveAsAllowed() const override;
-        bool isFileReadOnly() const override;
-        IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
-#else
         // QtCreator9 based code
         OpenResult open(QString *errorString, const Utils::FilePath &filePath,
                         const Utils::FilePath &realFilePath) override;
@@ -107,7 +93,7 @@ namespace dataproc {
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
         bool isModified() const override;
         bool isSaveAsAllowed() const override;
-#endif
+
         // Dataprocessor
         void xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info ) override;
         void markupMassesFromChromatograms( portfolio::Folium&& folium ) override;
@@ -162,6 +148,10 @@ namespace dataproc {
         portfolio::Folium addContourClusters( std::shared_ptr< adcontrols::SpectrogramClusters > );
 
         void subtract( portfolio::Folium& base, portfolio::Folium& target );
+
+        // void clearDataGlobalMSLock();
+        // void setDataGlobalMSLock( std::shared_ptr< const adcontrols::lockmass::mslock >, const portfolio::Folium& );
+        // std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid > dataGlobalMSLock();
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool MSCalibrationLoad( const QString&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );

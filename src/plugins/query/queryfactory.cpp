@@ -50,6 +50,7 @@ QueryFactory::QueryFactory()
     });
 
     for ( auto &format : { "application/adfs"
+                           , "application/x-sqlite3"
                            , "application/sqlite"
                            , "application/db" } ) {
         addMimeType( QString::fromLatin1(format) );

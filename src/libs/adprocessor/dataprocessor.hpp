@@ -50,6 +50,7 @@ namespace adcontrols {
     class MassSpectrometer;
     class MSPeakInfo;
     class MSCalibrationResult;
+    namespace lockmass { class mslock; }
 }
 
 namespace portfolio { class Portfolio; class Folder; class Folium; }
@@ -93,7 +94,6 @@ namespace adprocessor {
 
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
         virtual std::shared_ptr< adcontrols::MassSpectrum > readCoAddedSpectrum( bool histogram = false, int proto = (-1) );
-        // virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( bool histogram = false, uint32_t pos = 0, int proto = (-1) );
 
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
@@ -135,16 +135,16 @@ namespace adprocessor {
         virtual void markupMassesFromChromatograms( portfolio::Folium&& folium ) {};
 
         bool applyCalibration( const adcontrols::MSCalibrateResult& );
-
+        //-------------->
+        void clearDataGlobalMSLock();
+        void setDataGlobalMSLock( std::shared_ptr< const adcontrols::lockmass::mslock >, const portfolio::Folium& );
+        std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid > dataGlobalMSLock();
+        //---
+        bool apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ) const; // apply mass lock if data global lockmass exists
+        static bool mslock( adcontrols::MassSpectrum&, const adcontrols::lockmass::mslock& );
     private:
-        std::unique_ptr< adfs::filesystem > fs_;
-        std::unique_ptr< adcontrols::datafile > file_;
-        const adcontrols::LCMSDataset * rawdata_;
-        bool modified_;
-    protected:
-        std::unique_ptr< portfolio::Portfolio > portfolio_;
-        std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
-        int mode_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 } // mpxcontrols

@@ -1037,7 +1037,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                         if ( auto it = reader->findPos( rect.left() ) )
                             menu.addAction( QString::fromStdString(
                                                 ( boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str() )
-                                            , [=] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
+                                            , [=] () { document::instance()->onSelectSpectrum_v3( dp, rect.left(), it ); } );
                     }
                 } else {
                     // v2 data

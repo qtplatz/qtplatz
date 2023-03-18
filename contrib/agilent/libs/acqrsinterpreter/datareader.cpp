@@ -1,6 +1,6 @@
 /**************************************************************************
- ** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
- ** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
  *
  ** Contact: toshi.hondo@qtplatz.com
  **
@@ -39,6 +39,7 @@
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adfs/filesystem.hpp>
+#include <adfs/get_column_values.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
@@ -243,26 +244,6 @@ namespace acqrsinterpreter {
         return adcontrols::TimeDigitalHistogram::translate( ms, hgrm );
     }
     //------------------ make_massspactrum visitor ----------------
-
-    // //------------------ make_title visitor ----------------
-    // struct make_title : public boost::static_visitor < std::wstring > {
-    //     std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
-    //         return ( boost::wformat( L"U5303A-T" ) ).str();
-    //     }
-    //     std::wstring operator()( std::shared_ptr< adcontrols::TimeDigitalHistogram> & ) const {
-    //         return ( boost::wformat( L"Histogram" ) ).str();
-    //     }
-    //     std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::waveform >& ) const {
-    //         return ( boost::wformat( L"U5303A-A" ) ).str();
-    //     }
-    //     std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::waveform >& ) const {
-    //         return ( boost::wformat( L"AP240-A" ) ).str();
-    //     }
-    //     std::wstring operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > & ) const {
-    //         return ( boost::wformat( L"AP240-T" ) ).str();
-    //     }
-    // };
-    // //------------------ make_title visitor ----------------
 
     //------------------ waveforms_types --> any cast ---------------->>
     struct any_cast : public boost::static_visitor < boost::any > {
@@ -1061,8 +1042,6 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
 
             int fcn = begin._fcn(); // if this is -1, query all protocols
 
-            // ADDEBUG() << "coaddSpectrum fcn=" << fcn << ", begin=" << begin->pos() << ", end=" << end->pos() << ", " << objid_;
-
             if ( fcn < 0 ) {
                 sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
                 sql.bind( 1 ) = objid_;
@@ -1080,27 +1059,20 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
             auto ptr = std::make_shared< adcontrols::MassSpectrum >();
 
             while ( sql.step() == adfs::sqlite_row ) {
-
+#if 0
                 int col = 0;
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
                 (void)elapsed_time;
                 auto proto = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+#endif
+                auto [elapsed_time, proto, xdata, xmeta] = adfs::get_column_values< int64_t, int64_t, adfs::blob, adfs::blob >( sql );
 
                 // ADDEBUG() << "coadd proto: " << proto;
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
-#if ! defined NDEBUG && 0
-                    // check if lhs and rhs waveforms are the same condition -- ignore less than 1ns initialXOffset off due to digitizer mode
-                    // has 18ps resolution
-                    if ( waveform.which() == 2 /* && proto == 1 */ ) {  // 2 = u5303a
-                        // check waveform.cpp 322
-                        auto w = boost::get< std::shared_ptr< acqrscontrols::u5303a::waveform > >( waveform );
-                        ADDEBUG() << "T0=" << w->meta_.initialXOffset * 1.0e9 << "ns\tproto#=" << w->meta_.protocolIndex;
-                    }
-#endif
                     if ( coadded[ proto ].first++ == 0 ) {
                         ptr->addDescription( adcontrols::description( {"dataReader", this->display_name()} ) );
                         boost::apply_visitor( coadd_initialize( coadded[ proto ].second ), waveform );

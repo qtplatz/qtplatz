@@ -55,9 +55,10 @@ namespace portfolio {
 
         std::vector<Folder> folders();
         const std::vector<Folder> folders() const;
-        Folium findFolium( const std::wstring& id );
-        Folium findFolium( const boost::uuids::uuid& id );
-        Folder findFolder( const std::wstring& name );
+        Folium findFolium( const std::wstring& id ) const;
+        Folium findFolium( const boost::uuids::uuid& id ) const;
+
+        Folder findFolder( const std::wstring& name ) const;
 
         // create new from scratch
         bool create_with_fullpath( const std::wstring& fullpath );

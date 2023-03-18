@@ -408,6 +408,7 @@ document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 
+
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
 
             auto cptr = document::findTIC( dp, 0 );
@@ -502,8 +503,11 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
+    ADDEBUG() << "======================= " << __FUNCTION__ << " ===========================";
+
     for ( auto reader: dset->dataReaders() ) {
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
+            dp->apply_mslock( ms );
             std::ostringstream text;
             text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;
             adcontrols::ProcessMethod m;
@@ -515,9 +519,11 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 
 
 void
-document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterator iterator )
+document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrols::DataReader_iterator iterator )
 {
     using adcontrols::DataReader;
+
+    ADDEBUG() << "======================= " << __FUNCTION__ << " ===========================";
 
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
@@ -530,6 +536,9 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
                 text << DataReader::abbreviated_name( reader->display_name() )
                      << boost::format ( " %.3fs p%d.%d " ) % iterator->time_since_inject() % ms->protocolId() % ms->nProtocols() ;
             }
+            if ( dp->apply_mslock( ms ) )
+                text << ",locked;";
+
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( {"folium.create", text.str() } ) );
 	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )

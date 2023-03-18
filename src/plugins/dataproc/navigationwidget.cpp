@@ -258,8 +258,6 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         "}"
         );
 
-    // pTreeView_->setDragDropMode( QAbstractItemView::DragOnly );
-    ADDEBUG() << "########################### TODO ###################################";
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
@@ -609,18 +607,23 @@ namespace dataproc {
         }
     };
 
+    struct mslock_data {
+        static std::shared_ptr< const adcontrols::lockmass::mslock >
+        find( const portfolio::Folium& folium ) {
+            if ( auto att = portfolio::find_first_of(
+                     folium.attachments()
+                     , []( const auto& a ){ return a.name() == Constants::F_MSLOCK; }) ) {
+                return portfolio::get< std::shared_ptr< adcontrols::lockmass::mslock > >( att );
+            }
+            return {};
+        }
+    };
+
     struct ExportMSLock {
         portfolio::Folium folium;
         ExportMSLock( portfolio::Folium& f ) : folium( f ) {}
         void operator()() {
-            ADDEBUG() << folium.portfolio_fullpath();
-            std::shared_ptr< adcontrols::lockmass::mslock > mslock;
-            if ( auto att = portfolio::find_first_of(
-                     folium.attachments()
-                     , []( const auto& a ){ return a.name() == Constants::F_MSLOCK; }) ) {
-                mslock = portfolio::get< std::shared_ptr< adcontrols::lockmass::mslock > >( att );
-            }
-            if ( mslock ) {
+            if ( auto mslock = mslock_data::find( folium ) ) {
                 if ( auto path = utility::export_mslock_as()( folium ) ) {
                     boost::filesystem::ofstream of( *path );
                     of << boost::json::value_from( *mslock ) << std::endl;
@@ -629,8 +632,22 @@ namespace dataproc {
                 ADDEBUG() << "------- mslock is null -----";
             }
         }
-
     };
+
+    struct SaveDataGlobalMSLock {
+        portfolio::Folium folium_;
+        Dataprocessor * processor_;
+        SaveDataGlobalMSLock( portfolio::Folium& f, Dataprocessor * dp ) : folium_( f ), processor_(dp) {}
+        void operator()() {
+            if ( auto mslock = mslock_data::find( folium_ ) ) {
+                if ( processor_ )
+                    processor_->setDataGlobalMSLock( mslock, folium_ );
+            } else {
+                ADDEBUG() << "------- No mslock data found -----";
+            }
+        }
+    };
+
 
     struct SaveChromatogramAs {
         portfolio::Folium folium;
@@ -814,6 +831,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         bool hasFilterd = itFiltered != atts.end();
 
                         if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
+                            a->setEnabled( folium.attribute( "mslock" ) == "true" );
+                        }
+                        if ( auto a = menu.addAction( tr("Set data global mass lock" ), SaveDataGlobalMSLock( folium, processor ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
 
