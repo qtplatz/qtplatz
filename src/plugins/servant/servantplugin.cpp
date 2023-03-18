@@ -58,7 +58,7 @@
 #include <QMessageBox>
 #include <QtCore/qplugin.h>
 #include <QtCore>
-#include <qdebug.h>
+#include <QDebug>
 
 #include <boost/dll.hpp>
 #include <boost/filesystem.hpp>
@@ -76,20 +76,22 @@ namespace servant {
     public:
         impl() {}
 
+        static void qDebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+            adportable::debug( context.file, context.line ) << msg.toStdString();
+        }
+
         void ini() {
             if (( outputWindow_ = std::make_unique< OutputWindow >() )) {
                 if (( logger_ = std::make_unique< Logger >() )) {
                     QObject::connect( logger_.get(), SIGNAL( onLogging( const QString, bool ) )
                                       , outputWindow_.get(), SLOT( handleLogging( const QString, bool ) ) );
-                    // ExtensionSystem::PluginManager::addObject( logger_.get() );
-                    // ExtensionSystem::PluginManager::addObject( outputWindow_.get() );
                     adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
                 }
             }
+            qInstallMessageHandler(qDebugHandler);
         }
+
         void fin() {
-            // ExtensionSystem::PluginManager::removeObject( outputWindow_.get() );
-            // ExtensionSystem::PluginManager::removeObject( logger_.get() );
         }
 
         std::unique_ptr< OutputWindow > outputWindow_;

@@ -56,10 +56,12 @@ namespace adwidgets {
 
     signals:
         void rowsDeleted();
+        void lineInserted( QModelIndex );
 
     public slots:
         virtual void handleCopyToClipboard();
         virtual void handlePaste();
+        virtual void handleInsertLine();
     };
 
 }

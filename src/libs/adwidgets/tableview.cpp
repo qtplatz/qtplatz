@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "tableview.hpp"
-#include <adportable/debug.hpp>
+#include <qtwrapper/debug.hpp>
 #include <adportable/algorithm.hpp>
 #include <QApplication>
 #include <QClipboard>
@@ -57,6 +57,8 @@ TableView::keyPressEvent( QKeyEvent * event )
         handlePaste();
     } else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
 		handleDeleteSelection();
+    } else if ( event->matches( QKeySequence::InsertLineSeparator ) ) { // mac:Meta+Enter|Meta+O otherwise Shift+Enter
+        handleInsertLine();
 	} else
 		QTableView::keyPressEvent( event );
 }
@@ -81,6 +83,18 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
 void
 TableView::handlePaste()
 {
+}
+
+void
+TableView::handleInsertLine()
+{
+    auto index = selectionModel()->currentIndex();
+    if ( index.isValid() ) {
+        if ( auto model = this->model() ) {
+            model->insertRow( index.row() + 1, index.parent() );
+            emit lineInserted( model->index( index.row() + 1, index.column(), index.parent() ) );
+        }
+    }
 }
 
 namespace {
@@ -123,7 +137,8 @@ TableView::copyToClipboard( bool enable_html )
     // <-------------
     std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
     while ( range.first != indices.end() ) {
-        range = equal_range( indices.begin(), indices.end(), *range.first, [](const auto& a, const auto& b){ return a.row() < b.row(); });
+        range = equal_range( indices.begin(), indices.end(), *range.first
+                             , [](const auto& a, const auto& b){ return a.row() < b.row(); });
         // per line
         for ( auto it = range.first; it != range.second; ++it ) {
             if ( ! isColumnHidden( it->column() ) ) {
@@ -178,6 +193,7 @@ TableView::addActionsToContextMenu( QMenu& menu, const QPoint& ) const
 {
     menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
     menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
+    menu.addAction( tr( "Delete" ), this, SLOT( handleDeleteSelection() ) )->setEnabled( allowDelete_ );
 }
 
 void

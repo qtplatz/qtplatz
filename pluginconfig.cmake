@@ -12,7 +12,7 @@ if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
   set ( QTPLATZ_CONFIG_Peptide    ON )
   set ( QTPLATZ_CONFIG_Query      ON )
   set ( QTPLATZ_CONFIG_Lipidid    ON )
-
+  set ( QTPLATZ_CONFIG_SDFViewer  ON )
   set ( QTPLATZ_CONFIG_Video      OFF )
   set ( QTPLATZ_CONFIG_Example    OFF )
   set ( QTPLATZ_CONFIG_HelloWorld OFF )

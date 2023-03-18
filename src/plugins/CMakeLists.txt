@@ -82,3 +82,8 @@ if ( QTPLATZ_CONFIG_Lipidid )
   print_message( "----- LipidId plugin -----" )
   add_subdirectory( lipidid )
 endif()
+
+if ( QTPLATZ_CONFIG_SDFViewer )
+  print_message( "----- SDFViewer plugin -----" )
+  add_subdirectory( sdfviewer )
+endif()
