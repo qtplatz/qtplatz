@@ -267,9 +267,10 @@ namespace {
 
 Dataprocessor::~Dataprocessor()
 {
-    auto rpath = std::filesystem::relative( filename(), adportable::profile::user_data_dir<char>() );
-
-    ADDEBUG() << "## Dataprocessor::dtor for file: " << rpath << " ##";
+    do {
+        auto rpath = std::filesystem::proximate( filename(), adportable::profile::user_data_dir<char>() );
+        ADDEBUG() << "## Dataprocessor::dtor for file: " << rpath << " ##";
+    } while(0);
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 

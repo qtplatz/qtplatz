@@ -493,12 +493,15 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 void
 MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
 {
+    ADDEBUG() << "handleRemoveSession(" << processor->filename() << ")"
+              << "\n\t" << pImpl_->datum_[ 0 ].filename_
+              << "\n\t" << pImpl_->datum_[ 1 ].filename_;
     if ( pImpl_->datum_[ 0 ].filename_ == processor->filename() ) {
         pImpl_->ticPlot_->clear();
         pImpl_->ticPlot_->replot();
     }
     if ( pImpl_->datum_[ 1 ].filename_ == processor->filename() ) {
-        for ( auto plot: { pImpl_->profileSpectrum_, pImpl_->profileSpectrum_ } ) {
+        for ( auto plot: { pImpl_->profileSpectrum_, pImpl_->processedSpectrum_ } ) {
             plot->setTitle( QString{} );
             plot->clear();
             plot->replot();
