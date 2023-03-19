@@ -106,10 +106,8 @@ namespace dataproc {
         std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) override;
 
     private:
-        static SessionManager * instance_;
-        std::vector< Session > sessions_;
-        Dataprocessor * activeDataprocessor_;
-        bool loadInprogress_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }
