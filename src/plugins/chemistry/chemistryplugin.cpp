@@ -93,11 +93,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 void
 ChemistryPlugin::initialize_actions()
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-#else
     Core::Context gc( "Chemistry" );
-#endif
 
 	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
 
@@ -129,7 +125,6 @@ ChemistryPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
 {
-    ADLOG(adlog::LOG_INFO) << "Shutdown " << boost::dll::this_line_location();
 	mainWindow_->OnClose();
 	return SynchronousShutdown;
 }
@@ -141,7 +136,3 @@ ChemistryPlugin::triggerAction()
                              tr("Action triggered"),
                              tr("This is an action from Chemistry."));
 }
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-Q_EXPORT_PLUGIN2(Chemistry, ChemistryPlugin)
-#endif

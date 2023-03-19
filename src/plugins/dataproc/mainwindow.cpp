@@ -1636,22 +1636,16 @@ void
 MainWindow::actCreateSpectrogram()
 {
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-//        ADDEBUG() << "########################### TODO ###################################";
-//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         processor->createContour();
-//#endif
     }
 }
 
 void
 MainWindow::actClusterSpectrogram()
 {
-//     ADDEBUG() << "########################### TODO ###################################";
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         processor->clusterContour();
     }
-//#endif
 }
 
 void

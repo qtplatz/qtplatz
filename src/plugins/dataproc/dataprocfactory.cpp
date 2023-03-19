@@ -48,12 +48,10 @@ DataprocFactory::~DataprocFactory()
 
 DataprocFactory::DataprocFactory()
 {
-    ADDEBUG() << "########### DataprocFactory::ctor ##############";
     setId( Constants::C_DATAPROCESSOR );
 
     setDisplayName( tr("Dataprocessor") );
     setEditorCreator( [] {
-        ADDEBUG() << "########### DataprocFactory::editorCreator ##############";
         return new DataprocEditor();
     });
 

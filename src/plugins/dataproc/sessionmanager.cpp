@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,10 +48,15 @@ namespace dataproc {
         bool loadInprogress_;
         Dataprocessor * activeDataprocessor_;
     };
-
 }
 
 using namespace dataproc;
+
+namespace {
+    static SessionManager * __instance;
+    static std::once_flag __flag;
+}
+
 
 SessionManager::SessionManager( QObject *parent ) : iSessionManager( parent )
                                                   , impl_( std::make_unique< impl >() )
@@ -60,38 +65,34 @@ SessionManager::SessionManager( QObject *parent ) : iSessionManager( parent )
 
 SessionManager::~SessionManager()
 {
+    ADDEBUG() << "============== SessionManager::dtor =================";
 }
 
 SessionManager *
 SessionManager::instance()
 {
-    static SessionManager __instance;
-    return &__instance;
-    // static std::once_flag flag;
-
-    // std::call_once( flag, [&](){
-    //         instance_ = new SessionManager();
-    //     });
-
-    // return instance_;
+    std::call_once( __flag, [&](){
+        __instance = new SessionManager();
+    });
+    return __instance;
 }
 
 void
 SessionManager::removeEditor( Core::IEditor * editor )
 {
-    auto it = std::find_if( impl_->sessions_.begin(), impl_->sessions_.end(), [=]( Session& s ){
-            return s.editor() == editor;
-        });
+    auto it = std::find_if( impl_->sessions_.begin(), impl_->sessions_.end(), [&]( const auto& s ){
+        return s.processor() == editor->document();
+    });
 
     if ( it != impl_->sessions_.end() ) {
-        auto filename = QString::fromStdWString( it->processor()->filename() );
+        auto filePath = it->processor()->filePath();
         if ( impl_->activeDataprocessor_ == it->processor() ) {
             impl_->activeDataprocessor_ = 0;
             emit onDataprocessorChanged( impl_->activeDataprocessor_ );
         }
         emit onRemoveSession( it->processor() );
         impl_->sessions_.erase( it );
-        emit onSessionRemoved( filename );
+        emit onSessionRemoved( filePath.toString() );
     }
 }
 
@@ -134,11 +135,7 @@ SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Fol
 {
     if ( ! impl_->loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
-#if QTC_VERSION >= 0x09'00'00
         emit onCheckStateChanged( this, dataprocessor->filePath().toString(), folium, isChecked );
-#else
-        emit onCheckStateChanged( this, dataprocessor->filepath(), folium, isChecked );
-#endif
     }
 }
 

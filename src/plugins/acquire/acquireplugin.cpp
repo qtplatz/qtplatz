@@ -135,17 +135,6 @@ acquireplugin::aboutToShutdown()
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    if ( auto iExtension = document::instance()->iSequence() )
-        removeObject( iExtension );
-
-    for ( auto iExtension: document::instance()->iControllers() )
-        removeObject( iExtension );
-
-    if ( mode_ )
-        removeObject( mode_.get() );
-#endif
-
 #if ! defined NDEBUG
     ADDEBUG() << "\t## Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
@@ -162,7 +151,3 @@ acquireplugin::triggerAction()
                              tr("Action triggered"),
                              tr("This is an action from acquire."));
 }
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-Q_EXPORT_PLUGIN2(acquire, acquireplugin)
-#endif

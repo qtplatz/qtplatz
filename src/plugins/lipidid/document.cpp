@@ -219,7 +219,7 @@ document::sqlite()
 void
 document::handleAddProcessor( adextension::iSessionManager *, const QString& file )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
 }
 
 // change node (folium) selection
@@ -228,7 +228,7 @@ document::handleSelectionChanged( adextension::iSessionManager *
                                   , const QString& file
                                   , const portfolio::Folium& folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
