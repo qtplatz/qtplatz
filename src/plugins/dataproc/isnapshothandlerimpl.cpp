@@ -30,7 +30,6 @@ using namespace dataproc;
 
 iSnapshotHandlerImpl::~iSnapshotHandlerImpl()
 {
-    ADDEBUG() << "############################ iSnapShotHandlerImpl::dtor #########################";
 }
 
 iSnapshotHandlerImpl::iSnapshotHandlerImpl()

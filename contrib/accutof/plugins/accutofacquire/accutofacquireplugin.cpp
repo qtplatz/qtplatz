@@ -98,14 +98,6 @@ acquirePlugin::initialize( const QStringList &arguments, QString *errorString )
         connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
 
-#if 0
-    // no time function supported.
-    if ( auto iExtension = document::instance()->iSequence() ) {
-        MainWindow::instance()->getEditorFactories( *iExtension );
-        addObject( iExtension );
-    }
-#endif
-
     QAction *action = new QAction(tr("AccuTOF action"), this);
 
     Core::ActionManager * am = Core::ActionManager::instance();
@@ -135,9 +127,6 @@ acquirePlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
-
-    if ( auto iExtension = document::instance()->iSequence() )
-        ExtensionSystem::PluginManager::removeObject( iExtension );
 
     for ( auto iExtension : document::instance()->iControllers() )
         ExtensionSystem::PluginManager::removeObject( iExtension );
