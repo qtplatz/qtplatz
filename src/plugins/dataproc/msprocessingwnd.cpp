@@ -498,7 +498,7 @@ MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
         pImpl_->ticPlot_->replot();
     }
     if ( pImpl_->datum_[ 1 ].filename_ == processor->filename() ) {
-        for ( auto plot: { pImpl_->profileSpectrum_, pImpl_->profileSpectrum_ } ) {
+        for ( auto plot: { pImpl_->profileSpectrum_, pImpl_->processedSpectrum_ } ) {
             plot->setTitle( QString{} );
             plot->clear();
             plot->replot();
