@@ -158,6 +158,14 @@ namespace dataproc {
             return false;
         }
     };
+
+    class Dataprocessor::impl {
+    public:
+        impl() : modified_( false ) {
+        }
+        std::wstring idActiveFolium_;
+        bool modified_;
+    };
 }
 
 namespace {
@@ -263,7 +271,7 @@ Dataprocessor::~Dataprocessor()
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
-Dataprocessor::Dataprocessor() : modified_( false )
+Dataprocessor::Dataprocessor() : impl_( std::make_unique< impl >() )
 {
     setId( Utils::Id( Constants::C_DATAPROCESSOR ) );
     connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
@@ -282,7 +290,7 @@ Dataprocessor::setDisplayName( const QString& fullpath )
 void
 Dataprocessor::setModified( bool modified )
 {
-    modified_ = modified;
+    impl_->modified_ = modified;
 }
 
 // IDocument
@@ -290,7 +298,7 @@ Dataprocessor::setModified( bool modified )
 bool
 Dataprocessor::isModified() const
 {
-    return modified_;
+    return impl_->modified_;
 }
 
 Core::IDocument::ReloadBehavior
@@ -424,7 +432,7 @@ Dataprocessor::getPortfolio()
 void
 Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 {
-	idActiveFolium_ = folder.id();
+	impl_->idActiveFolium_ = folder.id();
 }
 
 void
@@ -432,14 +440,14 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
     // ScopedDebug() << "## " << __FUNCTION__ << " ## " << folium.name();
 	fetch( folium );
-    idActiveFolium_ = folium.id();
+    impl_->idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );
 }
 
 portfolio::Folium
 Dataprocessor::currentSelection() const
 {
-	return portfolio().findFolium( idActiveFolium_ );
+	return portfolio().findFolium( impl_->idActiveFolium_ );
 }
 
 bool
@@ -593,7 +601,7 @@ void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
     ADDEBUG() << "################### " << __FUNCTION__ << " ##";
-    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
     setModified( true );
@@ -759,7 +767,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 {
-    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
     if ( folium ) {
         //----------------------- take centroid and calibration method w/ modification ---------------------
         const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
@@ -826,7 +834,7 @@ void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
                                  , const adcontrols::MSAssignedMasses& assigned )
 {
-    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
 
     if ( folium ) {
 

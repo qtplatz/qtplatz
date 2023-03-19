@@ -85,8 +85,9 @@ namespace dataproc {
 
         // Core::IDocument
         // QtCreator9 based code
-        OpenResult open(QString *errorString, const Utils::FilePath &filePath,
-                        const Utils::FilePath &realFilePath) override;
+        OpenResult open(QString *errorString
+                        , const Utils::FilePath &filePath
+                        , const Utils::FilePath &realFilePath) override;
         ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
         bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false) override;
 
@@ -149,10 +150,6 @@ namespace dataproc {
 
         void subtract( portfolio::Folium& base, portfolio::Folium& target );
 
-        // void clearDataGlobalMSLock();
-        // void setDataGlobalMSLock( std::shared_ptr< const adcontrols::lockmass::mslock >, const portfolio::Folium& );
-        // std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid > dataGlobalMSLock();
-
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool MSCalibrationLoad( const QString&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
         static bool MSCalibrationSave( portfolio::Folium&, const QString& file );
@@ -176,8 +173,8 @@ namespace dataproc {
         void openFinished(bool success);
 
     private:
-        std::wstring idActiveFolium_;
-        bool modified_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         void setDisplayName( const QString& );
     };
