@@ -97,11 +97,11 @@ SessionManager::removeEditor( Core::IEditor * editor )
 }
 
 void
-SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
+SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor> proc )
 {
     impl_->loadInprogress_ = true; // block check state events
 
-    impl_->sessions_.push_back( Session( proc, editor ) );
+    impl_->sessions_.emplace_back( Session( proc, nullptr ) );
 	impl_->activeDataprocessor_ = proc.get();
     emit onDataprocessorChanged( impl_->activeDataprocessor_ );
 
@@ -155,8 +155,8 @@ SessionManager::vector_type::iterator
 SessionManager::find( const std::wstring& token )
 {
     for ( SessionManager::vector_type::iterator it = impl_->sessions_.begin(); it != impl_->sessions_.end(); ++it ) {
-        Dataprocessor& proc = it->getDataprocessor();
-        if ( proc.file()->filename() == token )
+        auto proc = it->processor();
+        if ( proc && proc->filename() == token )
             return it;
     }
     return impl_->sessions_.end();
@@ -234,13 +234,7 @@ Session::Session( const Session& t ) : processor_( t.processor_ )
 {
 }
 
-Session::Session( std::shared_ptr<Dataprocessor>& p, Core::IEditor * editor ) : processor_( p )
+Session::Session( std::shared_ptr<Dataprocessor> p, Core::IEditor * editor ) : processor_( p )
 	                                                                          , editor_( editor )
 {
-}
-
-Dataprocessor&
-Session::getDataprocessor()
-{
-    return *processor_;
 }

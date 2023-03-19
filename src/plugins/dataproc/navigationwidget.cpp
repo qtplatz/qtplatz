@@ -272,7 +272,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     setLayout( layout );
 
     for ( auto& it: *SessionManager::instance() )
-        handleAddSession( &(it.getDataprocessor()) );
+        handleAddSession( it.processor() );
 
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );

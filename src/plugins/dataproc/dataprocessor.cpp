@@ -267,7 +267,9 @@ namespace {
 
 Dataprocessor::~Dataprocessor()
 {
-    ADDEBUG() << "###### Dataprocessor::dtor ########";
+    auto rpath = std::filesystem::relative( filename(), adportable::profile::user_data_dir<char>() );
+
+    ADDEBUG() << "## Dataprocessor::dtor for file: " << rpath << " ##";
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
@@ -317,7 +319,7 @@ Dataprocessor::open( QString *errorString
     std::wstring emsg;
     if ( adprocessor::dataprocessor::open( filePath.toString().toStdWString(),  emsg ) ) {
         auto ptr = std::static_pointer_cast<Dataprocessor>(shared_from_this());
-        SessionManager::instance()->addDataprocessor( ptr, nullptr ); // IEditor
+        SessionManager::instance()->addDataprocessor( ptr );
 
         Core::DocumentManager::addDocument( this );
         Core::DocumentManager::addToRecentFiles( filePath );

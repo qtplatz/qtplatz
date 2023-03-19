@@ -55,7 +55,6 @@ namespace dataproc {
                , file_( Dataprocessor::make_dataprocessor() ) {
         }
         ~impl() {
-            ADDEBUG() << "##### DataprocEditor::impl::dtor #####";
             // delete widget_;
         }
     };
@@ -63,7 +62,6 @@ namespace dataproc {
 
 using namespace dataproc;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)  // QTC9
 DataprocEditor::~DataprocEditor()
 {
     SessionManager::instance()->removeEditor( this );
@@ -95,123 +93,18 @@ DataprocEditor::duplicate()
     return 0;
 }
 
-#endif
-
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-
-DataprocEditor::DataprocEditor( Core::IEditorFactory * factory )
-    : Core::IEditor( 0 )
-    , widget_( new QWidget )
-    , factory_(factory)
-{
-    widget_->installEventFilter( this );
-    setWidget( widget_ );
-    context_.add( Constants::C_DATAPROCESSOR );
-}
-
-// QTC4
-void
-DataprocEditor::setDataprocessor( Dataprocessor * processor )
-{
-    processor_ = std::static_pointer_cast< Dataprocessor >( processor->shared_from_this() );
-}
-
-// QTC4
-bool
-DataprocEditor::portfolio_create( const QString& filename )
-{
-    if ( processor_ && processor_->create( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor_, this );
-        return true;
-    }
-    return false;
-}
-
-// QTC4
-bool
-DataprocEditor::open( QString* errorMessage, const QString &filename, const QString& )
-{
-	qtwrapper::waitCursor wait;
-
-    QString emsg;
-    if ( processor_ && processor_->open( filename,  emsg) ) {
-        SessionManager::instance()->addDataprocessor( processor_, this );
-
-        Core::DocumentManager::addDocument( processor_->document() );
-        Core::DocumentManager::addToRecentFiles( filename );
-        document::instance()->addToRecentFiles( filename );
-
-        return true;
-    }
-    *errorMessage = QString( "DataprocEditor:\nfile %1 could not be opend.\nReason: %2." ).arg( filename, emsg );
-
-    return false;
-}
-
-// QTC4
-Core::IDocument *
-DataprocEditor::document()
-{
-    return processor_ ? processor_->document() : 0;
-}
-
-// QTC4
-void
-DataprocEditor::handleTitleChanged( const QString & /* title */ )
-{
-}
-
-// QTC4
-QByteArray
-DataprocEditor::saveState() const
-{
-    return QByteArray();
-}
-
-// QTC4
-bool
-DataprocEditor::restoreState(const QByteArray & /* state */ )
-{
-    return true;
-}
-
-// QTC4
-QWidget *
-DataprocEditor::toolBar()
-{
-    return 0;
-}
-
-// QTC4
-Core::Context
-DataprocEditor::context() const
-{
-    return context_;
-}
-#endif
 
 // QTC4, 9
 bool
 DataprocEditor::eventFilter( QObject * object, QEvent * event )
 {
-#if QTC_VERSION < 0x090000
-    if ( object == widget_ ) {
-        if ( event->type() == QEvent::ShowToParent ) {
-            int mode(0);
-            if ( processor_ && (mode = processor_->mode() ) )
-                Core::ModeManager::activateMode( Core::Id( mode ) ); // Constants::C_DATAPROCESSOR ) );
-        }
-    }
-#else
     if ( object == impl_->widget_ ) {
         if ( event->type() == QEvent::Show ) {
             if ( impl_->file_ )
-                Core::ModeManager::activateMode( Utils::Id( Constants::C_DATAPROCESSOR ) ); // Constants::C_DATAPROCESSOR ) );
+                Core::ModeManager::activateMode( Utils::Id( Constants::C_DATAPROCESSOR ) );
         }
     }
-#endif
     return false;
 }

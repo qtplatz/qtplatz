@@ -49,8 +49,7 @@ namespace dataproc {
         ~Session();
         Session();
         Session( const Session& );
-        Session( std::shared_ptr<Dataprocessor>&, Core::IEditor* );
-        Dataprocessor& getDataprocessor();
+        Session( std::shared_ptr<Dataprocessor>, Core::IEditor* );
 		inline Dataprocessor * processor() const { return processor_.get(); }
 		inline Core::IEditor * editor() { return editor_; }
     private:
@@ -72,7 +71,7 @@ namespace dataproc {
         static SessionManager * instance();
 
         Dataprocessor * getActiveDataprocessor();
-        void addDataprocessor( std::shared_ptr<Dataprocessor>&, Core::IEditor * );
+        void addDataprocessor( std::shared_ptr<Dataprocessor> );
         void updateDataprocessor( Dataprocessor *, portfolio::Folium& );
         void folderChanged( Dataprocessor *, const std::wstring& foldername );
         void checkStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );

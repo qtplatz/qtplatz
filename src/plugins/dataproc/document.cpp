@@ -589,16 +589,12 @@ document::handle_folium_added( const QString& fname, const QString& path, const 
 
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
     if ( it == SessionManager::instance()->end() ) {
-        ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		Core::EditorManager::instance()->openEditor( fname );
-#endif
         it = SessionManager::instance()->find( filename );
     }
 
     if ( it != SessionManager::instance()->end() ) {
-		Dataprocessor& processor = it->getDataprocessor();
-		processor.load( path.toStdWString(), id.toStdWString() );
+		if ( auto processor = it->processor() )
+            processor->load( path.toStdWString(), id.toStdWString() );
     }
 }
 

@@ -113,8 +113,6 @@ using namespace lipidid;
 
 LipididPlugin::~LipididPlugin()
 {
-    // if ( mode_ )
-    //     removeObject( mode_.get() );
 }
 
 LipididPlugin::LipididPlugin() : mainWindow_( new MainWindow )
@@ -130,20 +128,12 @@ LipididPlugin::initialize( const QStringList& arguments, QString* error_message 
     if ( core == 0 )
         return false;
 
-    ADDEBUG() << "################ TODO : add .adfs mime type ###################";
-    // do {
-    //     //------------------------------------------------
-    //     if ( !Core::MimeDatabase::addMimeTypes( ":/lipidid/mimetype.xml", error_message ) )
-    //         ADWARN() << "addMimeTypes" << ":/lipidid/mimetype.xml" << error_message;
-    // } while ( 0 );
-
     if (( mode_ = std::make_unique< lipidid::Mode >( this ) )) {
         mainWindow_->activateLayout();
         mainWindow_->initializeActions( mode_.get() );
         QWidget * widget = mainWindow_->createContents( mode_.get() );
         widget->setObjectName( QLatin1String( "Lipidid") );
         mode_->setWidget( widget );
-        // addObject( mode_.get() );
     } else {
         ADWARN() << "lipidid::Mode allocation failed.";
         return false;
