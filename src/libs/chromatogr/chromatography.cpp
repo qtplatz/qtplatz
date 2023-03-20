@@ -136,14 +136,14 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
     integrator.slope_sensitivity( method_.slope() );  // uV/sec -> uV/sec
 	integrator.drift( method_.drift() / 60.0 );  // uV/min -> uV/sec
 
-	integrator.timeOffset( c.minimumTime() );
+	// integrator.timeOffset( c.minimumTime() );
 	const size_t nSize = c.size();
 
     // ADDEBUG() << "findPeaks size: " << nSize << ", constant sampled: " << c.isConstantSampledData();
 
     if ( c.isConstantSampledData() ) {
         double t = 0;
-        integrator.samping_interval( c.sampInterval() ); // sec
+        integrator.sampling_interval( c.sampInterval() ); // sec
         const double * y = c.getIntensityArray();
         for ( size_t i = 0; i < nSize; ++i ) {
             progress( t + i * c.sampInterval(), integrator );

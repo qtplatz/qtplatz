@@ -54,7 +54,7 @@ namespace chromatogr {
         /**
            \brief Set sampling interval for input data if data has contenious constant time interval, otherwise set zero.
         */
-        void samping_interval( double /* seconds */ );
+        void sampling_interval( double /* seconds */ );
 
         /**
            \brief Set peak width (seconds) for first elute compounds in your interst.
@@ -71,9 +71,12 @@ namespace chromatogr {
          */
         void drift(double /* uV / second */);
 
-        double currentTime() const;
+        /**
+           \brief currentTime returns most recentry processed time and average time point calculated from average sampling-interval.
+         */
+        std::pair< double, double > currentTime() const;
 
-        void timeOffset( double peaktime );
+        // void timeOffset( double peaktime );
 
         /**
            \brief add a new data intensity (ADC value).  Sampling interval must be set in advance.
