@@ -300,47 +300,10 @@ Integrator::currentTime() const
 }
 
 void
-Integrator::operator << ( const std::pair<double, double>& data )
+Integrator::operator << ( std::pair<double, double>&& data )
 {
     double d1 = impl_->adddata( data.first, data.second );
     impl_->pkfind( impl_->posc_, d1, 0 );
-}
-
-void
-Integrator::operator << ( double adval )
-{
-    if ( impl_->posg_ == 0 ) {
-        impl_->posc_ = impl_->numAverage_ / 2;
-        impl_->sgd1_ = std::make_shared< adportable::SGFilter >( impl_->ndiff_, adportable::SGFilter::Derivative1, adportable::SGFilter::Cubic );
-    }
-
-    impl_->posg_++;
-
-    double d0 = adval;
-    double d1 = 0;
-
-    Averager avgr(impl_->numAverage_);
-
-    impl_->rdata_.v_.push_back(adval);  // raw data
-
-    //  r[0][1][2][3][4]  := (size = 5)
-    // d0[0][1][X]        := (create 3rd place.  First two data has to be estimated)
-    // d1[0][X]
-
-    if ( impl_->posg_ <= ( impl_->numAverage_ / 2 ) )
-		impl_->data0_.push_back( d0 );
-
-	if ( impl_->posg_ >= impl_->numAverage_ ) {
-        d0 = avgr( &impl_->rdata_.v_[ impl_->posg_ - impl_->numAverage_ ] );
-		impl_->data0_.push_back( d0 );
-	}
-
-    if ( impl_->posg_ >= long( impl_->ndiff_ + ( impl_->numAverage_ / 2 ) ) ) {
-		int pos = impl_->posg_ - (impl_->ndiff_ + (impl_->numAverage_ / 2));
-		d1 = (*impl_->sgd1_)( &impl_->data0_[ pos ] );
-        //d2 = diff2( &impl_->data0_[ pos ] );
-        impl_->pkfind( impl_->posc_++, d1, 0.0 );
-	}
 }
 
 void
