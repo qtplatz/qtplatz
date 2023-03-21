@@ -59,6 +59,7 @@
 #include <functional>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <vector>
@@ -138,26 +139,6 @@ namespace {
             return std::get< RAW_INTENSITY >( t );
         }
     };
-#if 0
-    class chromatogram {
-        const signal_processor * signal_processor_;
-    public:
-        bool isCounting() const { return signal_processor_->isCounting(); }
-
-        inline size_t size() const {
-            return signal_processor_->d().size();
-        };
-
-        inline double getIntensity( long pos ) const {
-            return signal_processor_->getIntensity( pos );
-        }
-
-        inline double getTime( long pos ) const {
-            return signal_processor_->getTime( pos );
-        }
-        chromatogram( const signal_processor * sp, bool isCounting ) : signal_processor_( sp ) {}
-    };
-#endif
 }
 
 namespace chromatogr {
@@ -190,7 +171,6 @@ namespace chromatogr {
     class Integrator::impl {
     public:
         impl( bool isCounting ) : signal_processor_( std::make_unique< signal_processor >( isCounting, 3, 5 ) )
-                                  // , rdata_( signal_processor_.get(), isCounting )
                                 , dc_(0) /* down count */
                                 , uc_(0) /* up count */
                                 , zc_(0) /* zero count */
@@ -224,6 +204,7 @@ namespace chromatogr {
 
         std::unique_ptr< signal_processor > signal_processor_;
         // chromatogram rdata_;
+        std::optional< double > sampInterval_; // seconds
 
         stack< PEAKSTACK > stack_;
 
@@ -241,7 +222,7 @@ namespace chromatogr {
         double lzd_;
         PEAK_START_STATE stf_;
         uint32_t lockc_;
-        uint32_t mw_;
+        int32_t mw_;
         double ss_;
         unsigned long ndiff_;
         bool dirty_;
@@ -260,7 +241,7 @@ namespace chromatogr {
         int pos_g() { return signal_processor_->pos_g(); }
         int pos_c() { return signal_processor_->pos_c(); }
         //
-        double adddata( double time, double intensity );
+        void update_mw();
         void update_params();
         void pkfind(long pos, double df1, double df2);
         void assign_valley( size_t pos, size_t downpos );
@@ -315,13 +296,14 @@ Integrator::Integrator( bool isCounting ) : impl_( new Integrator::impl( isCount
 void
 Integrator::sampling_interval(double sampIntval /* seconds */)
 {
-    // impl_->rdata_.sampInterval_ = sampIntval;
+    impl_->sampInterval_ = sampIntval;
     impl_->update_params();
 }
 
 void
 Integrator::minimum_width(double minw)
 {
+    ADDEBUG() << "======== minimum_width: " << minw;
     impl_->minw_ = minw;
     impl_->update_params();
 }
@@ -353,11 +335,7 @@ Integrator::operator << ( std::pair<double, double>&& data )
     // ----- experimental ---
     (*impl_->signal_processor_) << std::move( data );
     double df1 = impl_->signal_processor_->pos_c() ? signal_processor::d1( impl_->signal_processor_->at( impl_->signal_processor_->pos_c() ) ) : 0;
-    //<---------------------
-
-    // ---- original code ----
-    impl_->adddata( data.first, data.second );
-    // <----------------------
+    impl_->update_mw();
 
     impl_->pkfind( impl_->pos_c(), df1, 0 );
 }
@@ -1112,20 +1090,28 @@ baselineHelper::baseline( const signal_processor& c, int spos, int epos )
 void
 Integrator::impl::update_params()
 {
-    mw_ = std::max( int( minw_ / signal_processor_->sampInterval() ) | 1, 3 ); // should be odd number
-    if ( mw_ < 30 ) {
+    int mw = mw_;
+    if ( sampInterval_ && *sampInterval_ > 0.01 ) {
+        mw = std::max( int( minw_ / *sampInterval_ ) | 1, 3 ); // should be odd number
+    } else if ( signal_processor_->sampInterval() > 0.01 && minw_ > 0.01 ) { // grater than 10 ms
+        mw = std::max( int( minw_ / signal_processor_->sampInterval() ) | 1, 3 ); // should be odd number
+    }
+    mw = std::min( mw, 31 ); // no larger than 31
+    if ( mw_ != mw ) {
+        mw_ = mw;
         signal_processor_->set_ndiff( mw_ );
     }
 }
 
-double
-Integrator::impl::adddata( double time, double intensity )
+void
+Integrator::impl::update_mw()
 {
     if ( signal_processor_->d().size() >= 2 ) {
-        int mw = std::max( 5, int( minw_ / signal_processor_->sampInterval() ) | 1 );
+        int mw = std::max( 3, int( minw_ / signal_processor_->sampInterval() ) | 1 );
         if ( mw != mw_ ) {
-            mw_ = mw;
+            ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
+            mw_ = mw; // should grator or equal to 3
+            signal_processor_->set_ndiff( mw_ );
         }
     }
-    return 0;
 }
