@@ -37,7 +37,7 @@ Baselines::Baselines() : nextId_(1)
 }
 
 Baselines::Baselines( const Baselines& t ) : nextId_( t.nextId_ )
-                                           , baselines_( t.baselines_ ) 
+                                           , baselines_( t.baselines_ )
 {
 }
 
@@ -59,6 +59,13 @@ Baselines::add( const Baseline& t )
 	return bs.baseId();
 }
 
+Baselines::value_type&
+Baselines::emplace_back( Baseline&& t )
+{
+    t.setBaseId( nextId_++ );
+    return baselines_.emplace_back( std::move( t ) );
+}
+
 int
 Baselines::nextId( bool increment )
 {
@@ -66,6 +73,3 @@ Baselines::nextId( bool increment )
         ++nextId_;
     return nextId_;
 }
-
-
-

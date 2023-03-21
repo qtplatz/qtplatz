@@ -603,7 +603,7 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
-    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
+    // ADDEBUG() << "################### " << __FUNCTION__ << " ##";
     portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
@@ -680,7 +680,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         }
 
         // if folium == profile spectrum && process == centroid|targeting, then copy annotation to profile
-        ADDEBUG() << "################### " << __FUNCTION__ << " ##";
+        // ADDEBUG() << "################### " << __FUNCTION__ << " ##";
         setModified( true );
 
         SessionManager::instance()->processed( this, folium );

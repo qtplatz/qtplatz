@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,6 +48,7 @@ namespace adcontrols {
         inline operator vector_type& ()                  {  return baselines_;    }
         int add(const Baseline& );
         int nextId( bool increment = false );
+        value_type& emplace_back( Baseline&& );
         inline vector_type::const_iterator begin() const { return baselines_.begin();  }
         inline vector_type::iterator begin()             { return baselines_.begin(); }
         inline vector_type::const_iterator end() const   { return baselines_.end(); }
