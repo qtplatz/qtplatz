@@ -361,11 +361,11 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 
     impl_->assignBaseline();
     // impl_->reduceBaselines();
-    helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+    // helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
     if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
         helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
-        impl_->reduceBaselines();
+        // impl_->reduceBaselines();
 	}
 
     impl_->updatePeakAreaHeight( mth );
@@ -988,18 +988,6 @@ helper::tRetention_moment(  const signal_processor& c, adcontrols::Peak& pk )
     return true;
 }
 
-namespace chromatogr {
-
-    struct idNotFind {
-         std::set<int>& idList;
-         idNotFind( std::set<int>& t ) : idList(t) {}
-         bool operator() ( const adcontrols::Baseline& bs ) {
-             return idList.find ( bs.baseId() ) == idList.end();
-         }
-     };
-}
-
-
 bool
 helper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss )
 {
@@ -1008,7 +996,8 @@ helper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& 
 	for ( adcontrols::Peaks::vector_type::const_iterator it = pks.begin(); it != pks.end(); ++it )
 		idList.insert( it->baseId() );
 
-    adcontrols::Baselines::vector_type::iterator pos = std::remove_if( bss.begin(), bss.end(), idNotFind(idList) );
+    adcontrols::Baselines::vector_type::iterator pos
+        = std::remove_if( bss.begin(), bss.end(), [&](const auto& a){ return idList.find( a.baseId() ) == idList.end(); } );
     if ( pos != bss.end() )
 		bss.erase( pos, bss.end() );
 
