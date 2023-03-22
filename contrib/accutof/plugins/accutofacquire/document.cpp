@@ -1629,12 +1629,12 @@ document::setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > m
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
             auto [enable, algo] = m->tic();
-#else
-            bool enable; xic::eIntensityAlgorithm algo;
-            std::tie( enable, algo ) = m->tic();
-#endif
+//#else
+            // bool enable; xic::eIntensityAlgorithm algo;
+            // std::tie( enable, algo ) = m->tic();
+//#endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1674,12 +1674,12 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
             auto [enable, algo] = m.tic();
-#else
-            bool enable; xic::eIntensityAlgorishm algo;
-            std::tie( enable, algo ) = m.tic();
-#endif
+// #else
+//             bool enable; xic::eIntensityAlgorishm algo;
+//             std::tie( enable, algo ) = m.tic();
+// #endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1717,12 +1717,12 @@ document::addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogra
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
         auto [enable,algo] = method->tic();
-#else
-        bool enable; adcontrols::xic::eIntensityAlgorithm algo;
-        std::tie( enable, algo ) = method->tic();
-#endif
+// #else
+//         bool enable; adcontrols::xic::eIntensityAlgorithm algo;
+//         std::tie( enable, algo ) = method->tic();
+// #endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
@@ -1788,12 +1788,12 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
         auto [enable,algo] = method.tic();
-#else
-        bool enable; adcontrols::xic::eIntensityAlgorishm algo;
-        std::tie( enable, algo ) = method.tic();
-#endif
+// #else
+//         bool enable; adcontrols::xic::eIntensityAlgorishm algo;
+//         std::tie( enable, algo ) = method.tic();
+// #endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
