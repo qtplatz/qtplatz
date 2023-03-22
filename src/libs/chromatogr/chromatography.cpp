@@ -134,7 +134,7 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
     }
 
     integrator.slope_sensitivity( method_.slope() );  // uV/sec -> uV/sec
-	integrator.drift( method_.drift() / 60.0 );  // uV/min -> uV/sec
+	integrator.drift( method_.drift() );  // uV/min -> uV/sec
 
 	// integrator.timeOffset( c.minimumTime() );
 	const size_t nSize = c.size();

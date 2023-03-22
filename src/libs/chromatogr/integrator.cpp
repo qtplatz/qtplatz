@@ -49,8 +49,11 @@
 #include <adportable/profile.hpp>
 #include <adportable/sgfilter.hpp>
 #include <boost/bind.hpp>
-#include <boost/numeric/interval.hpp>
+#include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/numeric/interval.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -260,6 +263,7 @@ namespace chromatogr {
         bool intercept(const class adcontrols::Baseline& bs, long pos, double height);
         void assignBaseline();
         void reduceBaselines();
+        void fixPenetration( adcontrols::Baseline&, const adcontrols::Peak& );
         void fixupPenetration( adcontrols::Baseline& );
         bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
         void updatePeakAreaHeight( const adcontrols::PeakMethod& );
@@ -311,7 +315,6 @@ Integrator::sampling_interval(double sampIntval /* seconds */)
 void
 Integrator::minimum_width(double minw)
 {
-    ADDEBUG() << "======== minimum_width: " << minw;
     impl_->minw_ = minw;
     impl_->update_params();
 }
@@ -356,19 +359,8 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 		}
 	}
 
-#if ! defined NDEBUG
-    ADDEBUG() << "--- integrator::close -- found " << impl_->peaks_.size() << " raw peaks";
-	for ( const auto& pk: impl_->peaks_ ) {
-        ADDEBUG() << "\t" << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
-    }
-    ADDEBUG() << "\t, and " << impl_->baselines_.size() << " baselines.";
-	for ( const auto& bs: impl_->baselines_ ) {
-        ADDEBUG() << "\t" << std::make_tuple(
-            std::make_tuple( bs.startTime(), bs.startHeight() ), std::make_tuple( bs.stopTime(), bs.stopHeight() ) );
-    }
-#endif
     impl_->assignBaseline();
-    impl_->reduceBaselines();
+    // impl_->reduceBaselines();
     helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
     if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
@@ -380,7 +372,7 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
     impl_->rejectPeaks( mth );
     helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 0
     ADDEBUG() << "integrator::close (final) -- found " << impl_->peaks_.size() << " peaks";
 	for ( const auto& pk: impl_->peaks_ ) {
         ADDEBUG() << "\t" << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
@@ -477,11 +469,8 @@ Integrator::impl::pkfind( long pos, double df1, double )
     if ( pos <= 2 )
         return;
 
-    int32_t mwup = int( ( minw_ / signal_processor_->sampInterval() ) / 2 );
-    if ( mwup < 2 )
-        mwup = 2;
-
-    auto mwdn( mwup );
+    int32_t mwup = std::max( int( ( minw_ / signal_processor_->sampInterval() ) / 2 ), 2 );
+    auto mwdn = mwup;
 
     if ( stf_ > 0 ) {
         mwdn = 3;
@@ -523,7 +512,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
             stf_ = PEAK_STATE_BASELINE;
     }
 #if ! defined NDEBUG && 0
-    ADDEBUG() << std::make_tuple(pos, rdata_.getTime(pos)) << ",\t" << uc_ << ",\t" << dc_ << ",\t" << zc_ << ",\t" << rdata_.getIntensity( pos ) << ",\t" << df1;
+    ADDEBUG() << std::make_tuple( pos, signal_processor_->at( pos ) ) << "\t" << std::make_tuple( uc_, dc_, zc_ );
 #endif
 
     if ( stf_ != prev_stf ) {
@@ -597,7 +586,7 @@ Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
 
-#if ! defined NDEBUG // || 1
+#if ! defined NDEBUG && 0
     std::string s;
     for ( int i = stack_.size() - 1; i >= 0; --i )
         s += toChar( stack_[i].stat() );
@@ -683,6 +672,38 @@ Integrator::impl::intercept(const adcontrols::Baseline & bs, long pos, double he
 	return h > height;
 }
 
+namespace {
+
+    struct baseline_levels {
+        const adcontrols::Baseline& bs_;
+        baseline_levels( const adcontrols::Baseline& bs ) : bs_( bs ) {}
+        double drift_height( double t, double drift ) const { return std::max( t - bs_.startTime(), 0.0 ) * drift + bs_.startHeight(); }
+    };
+
+    struct VertexProperty {
+        std::pair< adcontrols::Peaks::vector_type::iterator
+                   , adcontrols::Peaks::vector_type::iterator > ppks;
+        void set_properties( std::pair< adcontrols::Peaks::vector_type::iterator
+                             , adcontrols::Peaks::vector_type::iterator >&& a ) {
+            ppks = std::move( a );
+        }
+    };
+
+    struct EdgeProperty   {
+        adcontrols::Peaks::vector_type::const_iterator ppk;
+        void set_properties( adcontrols::Peaks::vector_type::const_iterator a ) {
+            ppk = a;
+        }
+    };
+
+    typedef boost::adjacency_list< boost::vecS
+                                   , boost::vecS
+                                   , boost::directedS
+                                   , VertexProperty
+                                   , EdgeProperty > VGraph;
+    typedef boost::graph_traits< VGraph >::vertex_descriptor Vertex;
+}
+
 bool
 Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss, double drift )
 {
@@ -694,24 +715,46 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
 
 	for ( Baselines::vector_type::iterator it = bss.begin(); it != bss.end(); ++it ) {
 
-		Baseline& bs = *it;
-		double slope = ( bs.stopHeight() - bs.startHeight() ) / double( bs.stopPos() - bs.startPos() + 1 ) * signal_processor_->sampInterval();
+        std::vector< adcontrols::Peaks::vector_type::iterator > shared_peaks;
+        for ( auto pk = pks.begin(); pk != pks.end(); ++pk ) {
+            if ( pk->baseId() == it->baseId() )
+                shared_peaks.emplace_back( pk );
+        }
+        if ( shared_peaks.size() <= 1 )
+            continue;
 
-		if ( ( slope < 0 && drift < slope ) || ( slope > 0 && drift > slope ) ) { // negative || positive drift
+        VGraph g;
+        VGraph::vertex_descriptor v2;
+        for ( auto pIt = shared_peaks.begin(); pIt != shared_peaks.end(); ++pIt ) {
+            auto v1 = boost::add_vertex( g );
+            if ( pIt + 1 != shared_peaks.end() ) {
+                v2 = boost::add_vertex( g );
+                g[ v1 ].set_properties( { pks.end(), *pIt } );
+                g[ v2 ].set_properties( { *pIt,      *(pIt+1) } );
+                auto [e, ok] = boost::add_edge(v1, v2, g);
+                g[ e ].set_properties( *pIt );
+            } else { // last peak := pIt+1 == end
+                g[ v1 ].set_properties( { *pIt,       pks.end() } );
+                auto [e, ok] = boost::add_edge(v2, v1, g);
+                g[ e ].set_properties( *pIt );
+            }
+        }
 
-			boost::numeric::interval<int> interval( bs.startPos(), bs.stopPos() );
-
-			for ( Peaks::vector_type::iterator pkIt = pks.begin(); pkIt != pks.end(); ++pkIt ) {
-
-				if ( boost::numeric::in<int>( pkIt->topPos(), interval ) ) {
-					int id = fixed.add( helper::baseline( *signal_processor_, pkIt->startPos(), pkIt->endPos() ) );
-					pkIt->setBaseId( id );
-				}
-
-			}
-		}
-
+        bool fixing( false );
+        baseline_levels level( *it );
+        BOOST_FOREACH( auto v, boost::vertices( g ) ) {
+            auto ppk = g[v].ppks.second;
+            if ( ppk != pks.end() ) {
+                if ( level.drift_height( ppk->endHeight(), drift ) > ppk->endHeight() || fixing ) {
+                    auto& a = fixed.emplace_back( helper::baseline( *signal_processor_, ppk->startPos(), ppk->endPos() ) );
+                    ppk->setBaseId( a.baseId() );
+                    fixPenetration( a, *ppk );
+                    fixing = true;
+                }
+            }
+        }
 	}
+
 	if ( bss.size() != fixed.size() ) {
 		bss = fixed;
 		return true;
@@ -729,7 +772,7 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 
     for ( peak_iterator ipk = peaks_.begin(); ipk != peaks_.end(); ++ipk ) {
 		if ( ipk->baseId() == bs.baseId() )
-            peaks.push_back( ipk );
+            peaks.emplace_back( ipk );
     }
 
     if ( ! peaks.empty() ) {   // if not emptry
@@ -737,8 +780,7 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 		if ( bs.startHeight() >= bs.stopHeight() ) {  // negative slope : looking for backword direction
 
             std::vector<peak_iterator>::reverse_iterator fixup = peaks.rbegin();
-
-            for ( std::vector<peak_iterator>::reverse_iterator ppk = peaks.rbegin(); ppk != peaks.rend() - 1; ++ppk) {
+            for ( std::vector<peak_iterator>::reverse_iterator ppk = peaks.rbegin(); ppk != peaks.rend() - 1; ++ppk ) {
 
 				if ( intercept(bs, (*ppk)->startPos(), (*ppk)->startHeight()) ) {
 
@@ -808,14 +850,53 @@ Integrator::impl::assignBaseline()
 }
 
 void
-Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
+Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::Peak& pk )
+{
+    std::pair< int, int > offlimits{ bs.startPos(), bs.stopPos() };
+    if ( bs.startHeight() < bs.stopHeight() ) { // positive slope -- check front
+        std::pair< int, double > t{0, 0.0};
+        for ( int pos = pk.startPos(); pos <= pk.topPos(); ++pos ) {
+            double d = signal_processor_->getIntensity( pos ) - bs.height( pos );
+            if ( d < 0 && d < std::get< 1 >( t ) ) {
+                t = { pos, d };
+            }
+        }
+        if ( t.first > 0 )
+            offlimits.first = t.first;
+    } else { // negative slope -- check tail
+        std::pair< int, double > t{0, 0.0};
+        for ( int pos = pk.topPos(); pos <= pk.endPos(); ++pos ) {
+            double d = signal_processor_->getIntensity( pos ) - bs.height( pos );
+            if ( d < 0 && d < std::get< 1 >( t ) ) {
+                t = { pos, d };
+            }
+        }
+        if ( t.first > 0 )
+            offlimits.second = t.first;
+    }
+
+    if ( offlimits.first != bs.startPos() ) {
+        bs.setStartPos( offlimits.first );
+        bs.setStartTime( signal_processor_->getTime( offlimits.first ) );
+        bs.setStartHeight( signal_processor_->getIntensity( offlimits.first ) );
+    }
+    if ( offlimits.second != bs.stopPos() ) {
+        bs.setStopPos( offlimits.second );
+        bs.setStopTime( signal_processor_->getTime( offlimits.second ) );
+        bs.setStopHeight( signal_processor_->getIntensity( offlimits.second ) );
+    }
+}
+
+void
+Integrator::impl::fixupPenetration( adcontrols::Baseline & bs )
 {
     using adcontrols::Peaks;
     using adcontrols::Peak;
 
     if ( bs.startHeight() >= bs.stopHeight() ) {  // down slope, check back side
 
-        Peaks::vector_type::reverse_iterator rpk = std::find_if( peaks_.rbegin(), peaks_.rend(), boost::bind( &Peak::baseId, _1 ) == bs.baseId() );
+        Peaks::vector_type::reverse_iterator rpk
+            = std::find_if( peaks_.rbegin(), peaks_.rend(), [&]( const auto& pk ){ return pk.baseId() == bs.baseId(); } );
         long mpos = rpk->topPos() + ( rpk->endPos() - rpk->topPos() + 1 ) / 2;  // middle of right down slope
         long xpos = rpk->endPos();
         double dHmax = 0.0;
@@ -1032,7 +1113,7 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
         sflags += toChar( f.stat() );
 
     pk.setPeakFlags( flags );
-    ADDEBUG() << "peak flag: " << sflags;
+    // ADDEBUG() << "peak flag: " << sflags;
 
     pk.setStartTime( c.getTime( s.pos() ) );
     pk.setPeakTime( c.getTime( t.pos() ) );
@@ -1149,6 +1230,9 @@ Integrator::impl::update_mw()
             ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
             mw_ = mw; // should grator or equal to 3
             signal_processor_->set_ndiff( mw_ );
+        } else {
+            if ( signal_processor_->d().size() == 2 )
+                ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
         }
     }
 }
