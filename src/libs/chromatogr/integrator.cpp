@@ -264,7 +264,7 @@ namespace chromatogr {
         void assignBaseline();
         void reduceBaselines();
         void fixPenetration( adcontrols::Baseline&, const adcontrols::Peak& );
-        void fixupPenetration( adcontrols::Baseline& );
+        // void fixupPenetration( adcontrols::Baseline& );
         bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
         void updatePeakAreaHeight( const adcontrols::PeakMethod& );
         void rejectPeaks( const adcontrols::PeakMethod& );
@@ -884,69 +884,6 @@ Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::P
         bs.setStopPos( offlimits.second );
         bs.setStopTime( signal_processor_->getTime( offlimits.second ) );
         bs.setStopHeight( signal_processor_->getIntensity( offlimits.second ) );
-    }
-}
-
-void
-Integrator::impl::fixupPenetration( adcontrols::Baseline & bs )
-{
-    using adcontrols::Peaks;
-    using adcontrols::Peak;
-
-    if ( bs.startHeight() >= bs.stopHeight() ) {  // down slope, check back side
-
-        Peaks::vector_type::reverse_iterator rpk
-            = std::find_if( peaks_.rbegin(), peaks_.rend(), [&]( const auto& pk ){ return pk.baseId() == bs.baseId(); } );
-        long mpos = rpk->topPos() + ( rpk->endPos() - rpk->topPos() + 1 ) / 2;  // middle of right down slope
-        long xpos = rpk->endPos();
-        double dHmax = 0.0;
-
-        for ( long n = rpk->endPos(); n >= mpos; --n ) {
-            double dataH = signal_processor_->getIntensity( n );
-            double baseH = bs.height( n );
-            double deltaH  = dataH - baseH;
-            if ( dHmax > deltaH ) {  // find where dHmax is minimum
-                dHmax = deltaH;
-                xpos = n;
-            }
-        }
-        if ( xpos != rpk->endPos() ) {
-            // move peak end point
-            rpk->setEndPos( xpos, signal_processor_->getIntensity( xpos ) );
-            rpk->setEndTime( signal_processor_->getTime( xpos ) );
-
-            // move baseline stop point
-            bs.setStopPos( rpk->endPos() );
-            bs.setStopTime( rpk->endTime() );
-            bs.setStopHeight( rpk->endHeight() );
-        }
-
-    } else { // up slope, check front side
-        adcontrols::Peaks::vector_type::iterator ipk = std::find_if( peaks_.begin(), peaks_.end(), boost::bind( &Peak::baseId, _1 ) == bs.baseId() );
-
-        long mpos = ipk->startPos() + ( ipk->topPos() - ipk->startPos() + 1 ) / 2;  // middle of left up slope
-        long xpos = ipk->startPos();
-        double dHmax = 0;
-
-        for (long n = ipk->startPos(); n <= mpos; ++n) {
-            double dataH = signal_processor_->getIntensity(n);
-            double baseH = bs.height(n);
-            double deltaH = dataH - baseH;
-            if ( dHmax < deltaH) {  // find where dHmax is minimum
-                dHmax = deltaH;
-                xpos = n;
-            }
-        }
-
-        if ( xpos != ipk->startPos() ) {
-            ipk->setStartPos( xpos, signal_processor_->getIntensity( xpos ) );
-            ipk->setStartTime( signal_processor_->getTime( xpos ) );
-
-            // move baseline stop point
-            bs.setStartPos( ipk->endPos() );
-            bs.setStartTime( ipk->endTime() );
-            bs.setStartHeight( ipk->endHeight() );
-        }
     }
 }
 
