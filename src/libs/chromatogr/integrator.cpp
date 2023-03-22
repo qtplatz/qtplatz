@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -49,67 +49,115 @@
 #include <adportable/profile.hpp>
 #include <adportable/sgfilter.hpp>
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_utility.hpp>
 #include <boost/numeric/interval.hpp>
 
-#include <functional>
 #include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <deque>
-#include <vector>
-#include <set>
-#include <cmath>
 #include <cassert>
+#include <cmath>
+#include <deque>
+#include <fstream>
+#include <functional>
 #include <memory>
+#include <numeric>
+#include <optional>
+#include <set>
+#include <sstream>
+#include <vector>
 
 #define HEIGHT_2_SIGMA   0.6065307
 #define HEIGHT_3_SIGMA   0.3246525
 #define HEIGHT_4_SIGMA   0.1353353
 #define HEIGHT_5_SIGMA   0.0439369
 
+namespace {
+
+    using adportable::SGFilter;
+
+    class signal_processor {
+        bool isCounting_;
+        size_t navg_;
+        size_t ndiff_;
+        size_t posc_;
+        SGFilter sgfilter_;
+        enum { TIME, RAW_INTENSITY, AVERAGED_INTENSITY, DERIVERTIVE1 };
+        std::vector< std::tuple< double, double, double, double > > d_;
+    public:
+        signal_processor( bool isCounting
+                          , size_t navg
+                          , size_t ndiff ) : isCounting_( isCounting )
+                                           , navg_( navg )
+                                           , ndiff_( ndiff )
+                                           , posc_( 0 )
+                                           , sgfilter_( ndiff, SGFilter::Derivative1, SGFilter::Cubic ) {
+        }
+
+        signal_processor& operator << ( std::pair<double, double >&& v ) {
+            d_.emplace_back( std::get< 0 >( v ), std::get< 1 >( v ), 0.0, 0.0 );
+            std::get< AVERAGED_INTENSITY >( d_.back() )
+                = std::accumulate( d_.end() - std::min(navg_, d_.size()), d_.end(), 0.0
+                                   , []( const auto& a, const auto& b ){ return a + std::get< RAW_INTENSITY >( b ); } )
+                / std::min(navg_, d_.size());
+
+            if ( d_.size() >= ndiff_ ) {
+                posc_ = d_.size() - ( 1 + ndiff_ / 2 );
+                std::get< DERIVERTIVE1 >( d_[ posc_ ] ) =
+                    sgfilter_( [&]( size_t i ){ return std::get< RAW_INTENSITY >( d_[ i ] );}, posc_ );
+            }
+            return *this;
+        }
+        bool isCounting() const { return isCounting_; }
+        size_t pos_g() const {  return d_.empty() ? 0 : d_.size() - 1; }
+        size_t pos_c() const {  return posc_;   }
+
+        void set_ndiff( size_t ndiff ) {
+            assert( ndiff < 2048 );
+            if ( ndiff != ndiff_ ) {
+                ndiff_ = ndiff;
+                sgfilter_ = SGFilter( ndiff, SGFilter::Derivative1, SGFilter::Cubic );
+            }
+        }
+        void set_number_of_average( size_t n ) { navg_ = n; }
+        size_t ndiff() const { return ndiff_; }
+
+        const std::tuple< double, double, double, double >& operator [] ( size_t i ) const { return d_.at( i ); }
+        const std::tuple< double, double, double, double >& at( size_t i ) const { return d_.at( i ); }
+        const std::vector< std::tuple< double, double, double, double > >& d() const { return d_; }
+
+        double getIntensity( size_t pos ) const { return pos < d_.size() ? std::get< RAW_INTENSITY >( d_[ pos ] ) : 0; }
+        double getTime( size_t pos ) const { return pos < d_.size() ? std::get< TIME >( d_[ pos ] ) : 0; }
+        double sampInterval() const {
+            return d_.size() >= 2 ? ( std::get< TIME >( d_.back() ) - std::get< TIME >( d_.front() ) ) / (d_.size() - 1) : 0;
+        }
+
+        static inline double d1( const std::tuple< double, double, double, double > & t ) {
+            return std::get< DERIVERTIVE1 >( t );
+        }
+        static inline double time( const std::tuple< double, double, double, double > & t ) {
+            return std::get< TIME >( t );
+        }
+        static inline double value( const std::tuple< double, double, double, double >& t ) {
+            return std::get< RAW_INTENSITY >( t );
+        }
+    };
+}
+
 namespace chromatogr {
 
-    namespace integrator {
-
-        class chromatogram {
-        public:
-            const bool isCounting_;
-            double sampInterval_;
-            double minTime_;
-            std::vector<double> v_;
-            std::vector<double> t_;
-            std::vector<double> d1_;
-
-            inline const double * get() const {
-                return v_.data();
-            };
-
-            inline size_t size() const {
-                return v_.size();
-            };
-
-            inline double getIntensity( long pos ) const {
-                if ( pos < 0 || pos >= size() )
-                    return 0;
-                return v_[pos];
-            }
-
-            inline double getTime( long pos ) const {
-                if ( pos >= 0 && pos < t_.size() )
-                    return t_.empty() ? minTime_ + pos * sampInterval_ : t_[ pos ];
-                return 0;
-            }
-            chromatogram( bool isCounting ) : isCounting_( isCounting ), sampInterval_( 0 ), minTime_( 0 ) {}
-        };
-
-    }
-
     enum PEAKSTATE {
-        PKUNDEF = (-1),
+        PKUNDEF = 0,
         PKTOP =  1,
         PKVAL =  2,
         PKSTA =  3,
         PKBAS =  4,
+    };
+
+    char toChar( PEAKSTATE s ) {
+        static const char __state_names[] = { 'x', 'T', 'V', 'S', 'B' };
+        return s < (sizeof(__state_names)/sizeof(__state_names[0])) ? __state_names[ s ] : 'X';
     };
 
     class PEAKSTACK {
@@ -131,10 +179,7 @@ namespace chromatogr {
 
     class Integrator::impl {
     public:
-        impl( bool isCounting ) : rdata_( isCounting )
-                                , posg_( 0 )
-                                , posc_( 0 )
-                                , ndata_( 0 )
+        impl( bool isCounting ) : signal_processor_( std::make_unique< signal_processor >( isCounting, 3, 5 ) )
                                 , dc_(0) /* down count */
                                 , uc_(0) /* up count */
                                 , zc_(0) /* zero count */
@@ -157,7 +202,7 @@ namespace chromatogr {
                                 , detectNegative_(false)
                                 , offIntegration_(false)
                                 , timeOffset_(0)
-                                , isCounting_( isCounting ) {
+                                , isCounting_( isCounting )  {
 #if defined _DEBUG
             std::string file = adportable::profile::user_data_dir<char>() + "/data/integrator.txt";
             outf_.open( file );
@@ -165,20 +210,16 @@ namespace chromatogr {
         }
         ~impl() {
         }
-        std::shared_ptr< adportable::SGFilter > sgd1_;
 
-        integrator::chromatogram rdata_;
+        std::unique_ptr< signal_processor > signal_processor_;
+        // chromatogram rdata_;
+        std::optional< double > sampInterval_; // seconds
 
         stack< PEAKSTACK > stack_;
 
         adcontrols::Peaks peaks_;
         adcontrols::Baselines baselines_;
 
-        std::vector<double> data0_;  // zero degree (noize reduced) data
-        int posg_; // writing pointer + 1
-        int posc_; // current pkfind pointer
-        size_t ndata_;
-        double data_[256];
         uint32_t dc_;  /* down count */
         uint32_t uc_;  /* up count */
         uint32_t zc_;  /* zero count */
@@ -190,7 +231,7 @@ namespace chromatogr {
         double lzd_;
         PEAK_START_STATE stf_;
         uint32_t lockc_;
-        uint32_t mw_;
+        int32_t mw_;
         double ss_;
         unsigned long ndiff_;
         bool dirty_;
@@ -206,12 +247,13 @@ namespace chromatogr {
 #if defined _DEBUG
         std::ofstream outf_;
 #endif
-
+        int pos_g() { return signal_processor_->pos_g(); }
+        int pos_c() { return signal_processor_->pos_c(); }
         //
-        double adddata( double time, double intensity );
+        void update_mw();
         void update_params();
         void pkfind(long pos, double df1, double df2);
-        void assign_vallay( size_t pos, size_t downpos );
+        void assign_valley( size_t pos, size_t downpos );
         void assign_pktop( size_t pos, size_t uppos );
         // void pktop(int f, int z);
         void pkbas(int t, double d);
@@ -221,7 +263,8 @@ namespace chromatogr {
         bool intercept(const class adcontrols::Baseline& bs, long pos, double height);
         void assignBaseline();
         void reduceBaselines();
-        void fixupPenetration( adcontrols::Baseline& );
+        void fixPenetration( adcontrols::Baseline&, const adcontrols::Peak& );
+        // void fixupPenetration( adcontrols::Baseline& );
         bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
         void updatePeakAreaHeight( const adcontrols::PeakMethod& );
         void rejectPeaks( const adcontrols::PeakMethod& );
@@ -229,24 +272,26 @@ namespace chromatogr {
         bool fixDrift( adcontrols::Peaks&, adcontrols::Baselines&, double drift );
         void remove( adcontrols::Baselines&, const adcontrols::Peaks& );
     };
+}
 
-    class peakHelper {
+namespace {
+
+    using chromatogr::PEAKSTACK;
+
+    class helper {
     public:
-        static void updateAreaHeight( const integrator::chromatogram& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk );
-        static bool tRetention_lsq( const integrator::chromatogram& c, adcontrols::Peak& pk );
-        static bool tRetention_moment( const integrator::chromatogram& c, adcontrols::Peak& pk );
+        static adcontrols::Peak peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags );
+        static adcontrols::Peak peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e );
+        static adcontrols::Baseline baseline( const signal_processor& c, int, int );
+
+        static void updateAreaHeight( const signal_processor& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk );
+        static bool tRetention_lsq( const signal_processor& c, adcontrols::Peak& pk );
+        static bool tRetention_moment( const signal_processor& c, adcontrols::Peak& pk );
         static bool cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss );
-        static adcontrols::Peak peak( const integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags );
-        static bool peak_width( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk );
-        static bool asymmetry( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk );
-        static bool theoreticalplate( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk );
+        static bool peak_width( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk );
+        static bool asymmetry( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk );
+        static bool theoreticalplate( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk );
     };
-
-    class baselineHelper {
-    public:
-        static adcontrols::Baseline baseline( const integrator::chromatogram& c, int, int );
-    };
-
 }
 
 using namespace chromatogr;
@@ -261,9 +306,9 @@ Integrator::Integrator( bool isCounting ) : impl_( new Integrator::impl( isCount
 }
 
 void
-Integrator::samping_interval(double sampIntval /* seconds */)
+Integrator::sampling_interval(double sampIntval /* seconds */)
 {
-    impl_->rdata_.sampInterval_ = sampIntval;
+    impl_->sampInterval_ = sampIntval;
     impl_->update_params();
 }
 
@@ -287,60 +332,21 @@ Integrator::drift(double drift)
 	impl_->drift_ = drift;
 }
 
-void
-Integrator::timeOffset( double sec )
-{
-	impl_->rdata_.minTime_ = impl_->timeOffset_ = sec;
-}
-
-double
+std::pair< double, double >
 Integrator::currentTime() const
 {
-	return impl_->rdata_.minTime_ + impl_->posg_ * impl_->rdata_.sampInterval_;
+    return { impl_->signal_processor_->getTime( impl_->signal_processor_->pos_g() )
+             , ( impl_->signal_processor_->pos_g() + 1 ) * impl_->signal_processor_->sampInterval() };
+	// return impl_->rdata_.minTime_ + impl_->posg_ * impl_->rdata_.sampInterval_;
 }
 
 void
-Integrator::operator << ( const std::pair<double, double>& data )
+Integrator::operator << ( std::pair<double, double>&& data )
 {
-    double d1 = impl_->adddata( data.first, data.second );
-    impl_->pkfind( impl_->posc_, d1, 0 );
-}
-
-void
-Integrator::operator << ( double adval )
-{
-    if ( impl_->posg_ == 0 ) {
-        impl_->posc_ = impl_->numAverage_ / 2;
-        impl_->sgd1_ = std::make_shared< adportable::SGFilter >( impl_->ndiff_, adportable::SGFilter::Derivative1, adportable::SGFilter::Cubic );
-    }
-
-    impl_->posg_++;
-
-    double d0 = adval;
-    double d1 = 0;
-
-    Averager avgr(impl_->numAverage_);
-
-    impl_->rdata_.v_.push_back(adval);  // raw data
-
-    //  r[0][1][2][3][4]  := (size = 5)
-    // d0[0][1][X]        := (create 3rd place.  First two data has to be estimated)
-    // d1[0][X]
-
-    if ( impl_->posg_ <= ( impl_->numAverage_ / 2 ) )
-		impl_->data0_.push_back( d0 );
-
-	if ( impl_->posg_ >= impl_->numAverage_ ) {
-        d0 = avgr( &impl_->rdata_.v_[ impl_->posg_ - impl_->numAverage_ ] );
-		impl_->data0_.push_back( d0 );
-	}
-
-    if ( impl_->posg_ >= long( impl_->ndiff_ + ( impl_->numAverage_ / 2 ) ) ) {
-		int pos = impl_->posg_ - (impl_->ndiff_ + (impl_->numAverage_ / 2));
-		d1 = (*impl_->sgd1_)( &impl_->data0_[ pos ] );
-        //d2 = diff2( &impl_->data0_[ pos ] );
-        impl_->pkfind( impl_->posc_++, d1, 0.0 );
-	}
+    (*impl_->signal_processor_) << std::move( data );
+    double df1 = impl_->signal_processor_->pos_c() ? signal_processor::d1( impl_->signal_processor_->at( impl_->signal_processor_->pos_c() ) ) : 0;
+    impl_->update_mw();
+    impl_->pkfind( impl_->pos_c(), df1, 0 );
 }
 
 void
@@ -348,28 +354,33 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 {
 	if ( !impl_->stack_.empty() ) {
 		if ( (impl_->stack_[0] == PKTOP) || (impl_->stack_[0] == PKVAL) ) {
-			impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->rdata_.size() - 1), 0) );
+			impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->signal_processor_->d().size() - 1), 0) );
 			impl_->pkreduce();
 		}
 	}
 
     impl_->assignBaseline();
-    impl_->reduceBaselines();
-    peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+    // impl_->reduceBaselines();
+    // helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
     if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
-        peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
-        impl_->reduceBaselines();
+        helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+        // impl_->reduceBaselines();
 	}
 
     impl_->updatePeakAreaHeight( mth );
     impl_->rejectPeaks( mth );
-    peakHelper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+    helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
 
-#if ! defined NDEBUG
-    ADDEBUG() << "Integrator::close -- found peaks";
+#if ! defined NDEBUG && 0
+    ADDEBUG() << "integrator::close (final) -- found " << impl_->peaks_.size() << " peaks";
 	for ( const auto& pk: impl_->peaks_ ) {
-        ADDEBUG() << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+        ADDEBUG() << "\t" << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+    }
+    ADDEBUG() << "\t, and " << impl_->baselines_.size() << " baselines.";
+	for ( const auto& bs: impl_->baselines_ ) {
+        ADDEBUG() << "\t" << std::make_tuple(
+            std::make_tuple( bs.startTime(), bs.startHeight() ), std::make_tuple( bs.stopTime(), bs.stopHeight() ) );
     }
 #endif
 
@@ -385,7 +396,7 @@ Integrator::offIntegration( bool flag )
     if ( ( impl_->offIntegration_ = flag ) ) {
         if ( !impl_->stack_.empty() ) {
             if ( (impl_->stack_[0] == PKTOP) || (impl_->stack_[0] == PKVAL) ) {
-                impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->rdata_.size() - 1), 0) );
+                impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->signal_processor_->d().size() - 1), 0) );
                 impl_->pkreduce();
             }
         }
@@ -403,7 +414,7 @@ Integrator::impl::updatePeakAreaHeight( const adcontrols::PeakMethod& )
 		if ( baseId >= 0 ) {
             Baselines::vector_type::iterator pbs = std::find_if(baselines_.begin(), baselines_.end(), boost::bind( &Baseline::baseId, _1 ) == baseId );
             if ( pbs != baselines_.end() )
-                peakHelper::updateAreaHeight(rdata_, *pbs, *it);
+                helper::updateAreaHeight(*signal_processor_, *pbs, *it);
 		}
 	}
 }
@@ -432,16 +443,16 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
 
         pk.setPeakId( id++ );
 
-        peakHelper::tRetention_lsq( rdata_, pk ) || peakHelper::tRetention_moment( rdata_, pk );
+        helper::tRetention_lsq( *signal_processor_, pk ) || helper::tRetention_moment( *signal_processor_, pk );
 
         // Peak width
-        peakHelper::peak_width( method, rdata_, pk );
+        helper::peak_width( method, *signal_processor_, pk );
 
         // NTP
-        peakHelper::theoreticalplate( method, rdata_, pk );
+        helper::theoreticalplate( method, *signal_processor_, pk );
 
 		// TailingFactor
-        peakHelper::asymmetry( method, rdata_, pk );
+        helper::asymmetry( method, *signal_processor_, pk );
 
         // k'
 		if ( method.t0() >= 0.001 )
@@ -458,11 +469,8 @@ Integrator::impl::pkfind( long pos, double df1, double )
     if ( pos <= 2 )
         return;
 
-    uint32_t mwup = int( ( minw_ / rdata_.sampInterval_ ) / 2 );
-    if ( mwup < 2 )
-        mwup = 2;
-
-    uint32_t /*mwflat( mwup / 2 ),*/ mwdn( mwup );
+    int32_t mwup = std::max( int( ( minw_ / signal_processor_->sampInterval() ) / 2 ), 2 );
+    auto mwdn = mwup;
 
     if ( stf_ > 0 ) {
         mwdn = 3;
@@ -476,7 +484,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
 
         if ( dc_++ == 0 ) {
             ld_ = pos; // - mw_ / 2;
-            ldd_ = rdata_.getIntensity( ld_ );
+            ldd_ = signal_processor_->getIntensity( ld_ );
         }
         uc_ = 0;
 
@@ -484,7 +492,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
 
         if ( uc_++ == 0 ) {
             lu_ = pos;
-            lud_ = rdata_.getIntensity( ld_ );
+            lud_ = signal_processor_->getIntensity( ld_ );
         }
         dc_ = 0;
 
@@ -503,13 +511,13 @@ Integrator::impl::pkfind( long pos, double df1, double )
         if ( zc_ > count && stf_ != PEAK_STATE_BASELINE )
             stf_ = PEAK_STATE_BASELINE;
     }
-#if defined _DEBUG // || 1
-    ADDEBUG() << std::make_tuple(pos, rdata_.getTime(pos)) << ",\t" << uc_ << ",\t" << dc_ << ",\t" << zc_ << ",\t" << rdata_.getIntensity( pos ) << ",\t" << df1;
+#if ! defined NDEBUG && 0
+    ADDEBUG() << std::make_tuple( pos, signal_processor_->at( pos ) ) << "\t" << std::make_tuple( uc_, dc_, zc_ );
 #endif
 
     if ( stf_ != prev_stf ) {
         if ( prev_stf == PEAK_STATE_NEGATIVE && stf_ == PEAK_STATE_POSITIVE ) {
-            assign_vallay( pos, ld_ );
+            assign_valley( pos, ld_ );
         } else if ( prev_stf == PEAK_STATE_POSITIVE && stf_ == PEAK_STATE_NEGATIVE ) {
             assign_pktop( pos, lu_ );
         } else if ( prev_stf != PEAK_STATE_BASELINE && stf_ == PEAK_STATE_BASELINE ) {
@@ -521,24 +529,33 @@ Integrator::impl::pkfind( long pos, double df1, double )
 }
 
 void
-Integrator::impl::assign_vallay( size_t pos, size_t ld )
+Integrator::impl::assign_valley( size_t pos, size_t ld )
 {
-	if ( ld > pos || rdata_.v_.size() <= pos || rdata_.v_.size() <= ld )
-		return;
-    auto it = std::min_element( rdata_.v_.begin() + ld, rdata_.v_.begin() + pos );
-    auto vallay = std::distance( rdata_.v_.begin(), it );
-    stack_.push( PEAKSTACK( PKVAL, long( vallay ), *it ) );
+    if ( ld > pos || signal_processor_->d().size() <= pos || signal_processor_->d().size() <= ld )
+        return;
+
+    auto it = std::min_element( signal_processor_->d().begin() + ld, signal_processor_->d().begin() + pos
+                                , []( const auto& a, const auto& b ){return signal_processor::value(a) < signal_processor::value(b); } );
+
+    auto valley = std::distance(  signal_processor_->d().begin(), it );
+
+    //stack_.push( PEAKSTACK( PKVAL, long( valley ), *it ) );
+    stack_.push( PEAKSTACK( PKVAL, long( valley ), signal_processor::value( *it  ) ) );
+
     pkreduce();
 }
 
 void
 Integrator::impl::assign_pktop( size_t pos, size_t uppos )
 {
-	if ( uppos > pos || rdata_.v_.size() <= pos || rdata_.v_.size() <= uppos )
+	if ( uppos > pos || signal_processor_->d().size() <= pos || signal_processor_->d().size() <= uppos )
 		return;
-    auto it = std::max_element( rdata_.v_.begin() + uppos, rdata_.v_.begin() + pos );
-    auto apex = std::distance( rdata_.v_.begin(), it );
-    stack_.push( PEAKSTACK( PKTOP, long( apex ), *it ) );
+
+    auto it = std::max_element( signal_processor_->d().begin() + uppos, signal_processor_->d().begin() + pos
+                                , [](const auto& a, const auto& b){ return signal_processor::value(a) < signal_processor::value(b); } );
+    auto apex = std::distance( signal_processor_->d().begin(), it );
+
+    stack_.push( PEAKSTACK( PKTOP, long( apex ), signal_processor::value( *it ) ) );
 }
 
 void
@@ -554,13 +571,13 @@ Integrator::impl::pksta()
     uint32_t backtrack = 3;
 
     if ( stf_ == PEAK_STATE_NEGATIVE ) {
-        while ( --backtrack && ld_ && rdata_.getIntensity( ld_ - 1 ) > rdata_.getIntensity( ld_ ) )
+        while ( --backtrack && ld_ && signal_processor_->getIntensity( ld_ - 1 ) > signal_processor_->getIntensity( ld_ ) )
             --ld_;
-        stack_.push( PEAKSTACK( PKSTA, ld_, rdata_.getIntensity( ld_ ) ) );
+        stack_.push( PEAKSTACK( PKSTA, ld_, signal_processor_->getIntensity( ld_ ) ) );
     }  else {
-        while ( --backtrack && lu_ && rdata_.getIntensity( lu_ - 1 ) < rdata_.getIntensity( lu_ ) )
+        while ( --backtrack && lu_ && signal_processor_->getIntensity( lu_ - 1 ) < signal_processor_->getIntensity( lu_ ) )
             --lu_;
-        stack_.push( PEAKSTACK( PKSTA, lu_, rdata_.getIntensity( lu_ ) ) );
+        stack_.push( PEAKSTACK( PKSTA, lu_, signal_processor_->getIntensity( lu_ ) ) );
     }
 }
 
@@ -569,19 +586,11 @@ Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
 
-#if defined _DEBUG // || 1
+#if ! defined NDEBUG && 0
     std::string s;
-    for (int i = 0; i < int(stack_.size()); ++i) {
-        if (stack_[i] == PKVAL)
-            s += "V";
-		if (stack_[i] == PKTOP)
-			s += "T";
-		if (stack_[i] == PKSTA)
-			s += "S";
-		if (stack_[i] == PKBAS)
-			s += "B";
-	}
-    ADDEBUG() << "pkreduce: stack [" << s << "]";
+    for ( int i = stack_.size() - 1; i >= 0; --i )
+        s += toChar( stack_[i].stat() );
+    ADDEBUG() << "reduce: stack [" << s << "]";
 #endif
 
 	if (stack_.size() <= 1)	 {		/* stack empty */
@@ -613,33 +622,32 @@ Integrator::impl::pkreduce()
 			if (sp0 == PKBAS && sp2 == PKSTA)	 {  /* SVB */
 				stack_.pop();  // remove sp1
 				stack_.pop();  // remove sp2
-                baselines_.add( baselineHelper::baseline( rdata_, sp2.pos(), sp1.pos() ) );
+                baselines_.emplace_back( helper::baseline( *signal_processor_, sp2.pos(), sp1.pos() ) );
 				return;
 			} else	{
 				return;
 			}
 		} else {
-			unsigned long flags = sp2.stat() << 6 | sp1.stat() | sp0.stat();
-            peaks_.add( peakHelper::peak( rdata_, sp2.pos(), sp1.pos(), sp0.pos(), flags ) );
+            peaks_.emplace_back( helper::peak( *signal_processor_, sp2, sp1, sp0 ) );
 		}
 
 		stack_.pop();	// remove sp1, PKTOP
 
 		if (sp2 == PKSTA && sp0 == PKBAS)	 { /* SxB */
-
-            baselines_.add( baselineHelper::baseline( rdata_, sp2.pos(), sp0.pos() ) );
+            baselines_.emplace_back( helper::baseline( *signal_processor_, sp2.pos(), sp0.pos() ) );
 			stack_.pop();	// remove sp2, PKSTA
 
 		} else if (sp2 == PKVAL && sp0 == PKBAS) { /* VxB */
 			stack_.pop();	// remove sp2, PKVAL
 			if (!stack_.empty()) {
+
 				PEAKSTACK sp3 = stack_.top();
 				if (sp3 == PKSTA)  { /* SVxB */
-                    baselines_.add( baselineHelper::baseline( rdata_, sp3.pos(), sp0.pos() ) );
+                    baselines_.emplace_back( helper::baseline( *signal_processor_, sp3.pos(), sp0.pos() ) );
 				}
 				stack_.pop();  // remove sp3, PKSTA
 			} else {
-				// pkerror(sra, "REDUCE : Base did not correspond to Start");
+				ADDEBUG() << "REDUCE : Base did not correspond to Start";
 			}
 		} else if (sp2 == PKSTA && sp0 == PKVAL) { /* SxV */
 			stack_.push(sp0);   // restore sp0
@@ -649,6 +657,7 @@ Integrator::impl::pkreduce()
 		}
 	}
 }
+
 
 bool
 Integrator::impl::intercept(const adcontrols::Baseline & bs, long pos, double height)
@@ -663,6 +672,38 @@ Integrator::impl::intercept(const adcontrols::Baseline & bs, long pos, double he
 	return h > height;
 }
 
+namespace {
+
+    struct baseline_levels {
+        const adcontrols::Baseline& bs_;
+        baseline_levels( const adcontrols::Baseline& bs ) : bs_( bs ) {}
+        double drift_height( double t, double drift ) const { return std::max( t - bs_.startTime(), 0.0 ) * drift + bs_.startHeight(); }
+    };
+
+    struct VertexProperty {
+        std::pair< adcontrols::Peaks::vector_type::iterator
+                   , adcontrols::Peaks::vector_type::iterator > ppks;
+        void set_properties( std::pair< adcontrols::Peaks::vector_type::iterator
+                             , adcontrols::Peaks::vector_type::iterator >&& a ) {
+            ppks = std::move( a );
+        }
+    };
+
+    struct EdgeProperty   {
+        adcontrols::Peaks::vector_type::const_iterator ppk;
+        void set_properties( adcontrols::Peaks::vector_type::const_iterator a ) {
+            ppk = a;
+        }
+    };
+
+    typedef boost::adjacency_list< boost::vecS
+                                   , boost::vecS
+                                   , boost::directedS
+                                   , VertexProperty
+                                   , EdgeProperty > VGraph;
+    typedef boost::graph_traits< VGraph >::vertex_descriptor Vertex;
+}
+
 bool
 Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss, double drift )
 {
@@ -674,24 +715,46 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
 
 	for ( Baselines::vector_type::iterator it = bss.begin(); it != bss.end(); ++it ) {
 
-		Baseline& bs = *it;
-		double slope = ( bs.stopHeight() - bs.startHeight() ) / double( bs.stopPos() - bs.startPos() + 1 ) * rdata_.sampInterval_;
+        std::vector< adcontrols::Peaks::vector_type::iterator > shared_peaks;
+        for ( auto pk = pks.begin(); pk != pks.end(); ++pk ) {
+            if ( pk->baseId() == it->baseId() )
+                shared_peaks.emplace_back( pk );
+        }
+        if ( shared_peaks.size() <= 1 )
+            continue;
 
-		if ( ( slope < 0 && drift < slope ) || ( slope > 0 && drift > slope ) ) { // negative || positive drift
+        VGraph g;
+        VGraph::vertex_descriptor v2;
+        for ( auto pIt = shared_peaks.begin(); pIt != shared_peaks.end(); ++pIt ) {
+            auto v1 = boost::add_vertex( g );
+            if ( pIt + 1 != shared_peaks.end() ) {
+                v2 = boost::add_vertex( g );
+                g[ v1 ].set_properties( { pks.end(), *pIt } );
+                g[ v2 ].set_properties( { *pIt,      *(pIt+1) } );
+                auto [e, ok] = boost::add_edge(v1, v2, g);
+                g[ e ].set_properties( *pIt );
+            } else { // last peak := pIt+1 == end
+                g[ v1 ].set_properties( { *pIt,       pks.end() } );
+                auto [e, ok] = boost::add_edge(v2, v1, g);
+                g[ e ].set_properties( *pIt );
+            }
+        }
 
-			boost::numeric::interval<int> interval( bs.startPos(), bs.stopPos() );
-
-			for ( Peaks::vector_type::iterator pkIt = pks.begin(); pkIt != pks.end(); ++pkIt ) {
-
-				if ( boost::numeric::in<int>( pkIt->topPos(), interval ) ) {
-					int id = fixed.add( baselineHelper::baseline( rdata_, pkIt->startPos(), pkIt->endPos() ) );
-					pkIt->setBaseId( id );
-				}
-
-			}
-		}
-
+        bool fixing( false );
+        baseline_levels level( *it );
+        BOOST_FOREACH( auto v, boost::vertices( g ) ) {
+            auto ppk = g[v].ppks.second;
+            if ( ppk != pks.end() ) {
+                if ( level.drift_height( ppk->endHeight(), drift ) > ppk->endHeight() || fixing ) {
+                    auto& a = fixed.emplace_back( helper::baseline( *signal_processor_, ppk->startPos(), ppk->endPos() ) );
+                    ppk->setBaseId( a.baseId() );
+                    fixPenetration( a, *ppk );
+                    fixing = true;
+                }
+            }
+        }
 	}
+
 	if ( bss.size() != fixed.size() ) {
 		bss = fixed;
 		return true;
@@ -709,20 +772,19 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 
     for ( peak_iterator ipk = peaks_.begin(); ipk != peaks_.end(); ++ipk ) {
 		if ( ipk->baseId() == bs.baseId() )
-            peaks.push_back( ipk );
+            peaks.emplace_back( ipk );
     }
 
     if ( ! peaks.empty() ) {   // if not emptry
 
-		if (bs.startHeight() >= bs.stopHeight()) {  // negative slope : looking for backword direction
+		if ( bs.startHeight() >= bs.stopHeight() ) {  // negative slope : looking for backword direction
 
             std::vector<peak_iterator>::reverse_iterator fixup = peaks.rbegin();
-
-            for ( std::vector<peak_iterator>::reverse_iterator ppk = peaks.rbegin(); ppk != peaks.rend() - 1; ++ppk) {
+            for ( std::vector<peak_iterator>::reverse_iterator ppk = peaks.rbegin(); ppk != peaks.rend() - 1; ++ppk ) {
 
 				if ( intercept(bs, (*ppk)->startPos(), (*ppk)->startHeight()) ) {
 
-					long newId = fixed.add( baselineHelper::baseline(rdata_, (*ppk)->startPos(), bs.stopPos()) );
+					long newId = fixed.add( helper::baseline( *signal_processor_, (*ppk)->startPos(), bs.stopPos()) );
 
 					// modify current baseline
 					bs.setStopPos((*ppk)->startPos());
@@ -745,7 +807,7 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 
                 if ( intercept(bs, (*ppk)->endPos(), (*ppk)->endHeight()) ) {
 
-                    long newId = fixed.add( baselineHelper::baseline(rdata_, bs.startPos(), (*ppk)->endPos()) );
+                    long newId = fixed.add( helper::baseline( *signal_processor_, bs.startPos(), (*ppk)->endPos()) );
 
 					// modify current baseline
                     while ( fixup != ppk )
@@ -773,80 +835,55 @@ Integrator::impl::assignBaseline()
     using adcontrols::Peaks;
     using adcontrols::Peak;
 
-    // Baselines & bss = basepeaks_.getBaselines();
-
 	for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
         Peak & pk = *it;
-        // Baselines::vector_type::iterator pbs = Baseline::findPos( baselines_, pk.topPos() );
-        Baselines::vector_type::iterator bsIt = std::find_if( baselines_.begin(), baselines_.end(), boost::bind( &Baseline::startPos, _1 ) >= pk.topPos() );
-        if ( bsIt != baselines_.end() && bsIt->stopPos() < pk.topPos() ) {
-			pk.setBaseId( bsIt->baseId() );
+        auto bIt = std::find_if( baselines_.begin(), baselines_.end()
+                                 , [&](const auto& b){ return b.startPos() < pk.topPos() && pk.topPos() < b.stopPos(); });
+        if ( bIt != baselines_.end() ) {
+            pk.setBaseId( bIt->baseId() );
         } else {
-            long id = baselines_.add( baselineHelper::baseline(rdata_, pk.startPos(), pk.endPos()) );
-			pk.setBaseId(id);
-		}
+            auto& baseline = baselines_.emplace_back( helper::baseline( *signal_processor_, pk.startPos(), pk.endPos()) );
+            pk.setBaseId( baseline.baseId() );
+            ADDEBUG() << "--- baseline not assigned for peak: " << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+        }
 	}
 }
 
 void
-Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
+Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::Peak& pk )
 {
-    using adcontrols::Peaks;
-    using adcontrols::Peak;
-
-    if ( bs.startHeight() >= bs.stopHeight() ) {  // down slope, check back side
-
-        Peaks::vector_type::reverse_iterator rpk = std::find_if( peaks_.rbegin(), peaks_.rend(), boost::bind( &Peak::baseId, _1 ) == bs.baseId() );
-        long mpos = rpk->topPos() + ( rpk->endPos() - rpk->topPos() + 1 ) / 2;  // middle of right down slope
-        long xpos = rpk->endPos();
-        double dHmax = 0.0;
-
-        for ( long n = rpk->endPos(); n >= mpos; --n ) {
-            double dataH = rdata_.getIntensity( n );
-            double baseH = bs.height( n );
-            double deltaH  = dataH - baseH;
-            if ( dHmax > deltaH ) {  // find where dHmax is minimum
-                dHmax = deltaH;
-                xpos = n;
+    std::pair< int, int > offlimits{ bs.startPos(), bs.stopPos() };
+    if ( bs.startHeight() < bs.stopHeight() ) { // positive slope -- check front
+        std::pair< int, double > t{0, 0.0};
+        for ( int pos = pk.startPos(); pos <= pk.topPos(); ++pos ) {
+            double d = signal_processor_->getIntensity( pos ) - bs.height( pos );
+            if ( d < 0 && d < std::get< 1 >( t ) ) {
+                t = { pos, d };
             }
         }
-        if ( xpos != rpk->endPos() ) {
-            // move peak end point
-            rpk->setEndPos( xpos, rdata_.getIntensity( xpos ) );
-            rpk->setEndTime( rdata_.getTime( xpos ) );
-
-            // move baseline stop point
-            bs.setStopPos( rpk->endPos() );
-            bs.setStopTime( rpk->endTime() );
-            bs.setStopHeight( rpk->endHeight() );
-        }
-
-    } else { // up slope, check front side
-        adcontrols::Peaks::vector_type::iterator ipk = std::find_if( peaks_.begin(), peaks_.end(), boost::bind( &Peak::baseId, _1 ) == bs.baseId() );
-
-        long mpos = ipk->startPos() + ( ipk->topPos() - ipk->startPos() + 1 ) / 2;  // middle of left up slope
-        long xpos = ipk->startPos();
-        double dHmax = 0;
-
-        for (long n = ipk->startPos(); n <= mpos; ++n) {
-            double dataH = rdata_.getIntensity(n);
-            double baseH = bs.height(n);
-            double deltaH = dataH - baseH;
-            if ( dHmax < deltaH) {  // find where dHmax is minimum
-                dHmax = deltaH;
-                xpos = n;
+        if ( t.first > 0 )
+            offlimits.first = t.first;
+    } else { // negative slope -- check tail
+        std::pair< int, double > t{0, 0.0};
+        for ( int pos = pk.topPos(); pos <= pk.endPos(); ++pos ) {
+            double d = signal_processor_->getIntensity( pos ) - bs.height( pos );
+            if ( d < 0 && d < std::get< 1 >( t ) ) {
+                t = { pos, d };
             }
         }
+        if ( t.first > 0 )
+            offlimits.second = t.first;
+    }
 
-        if ( xpos != ipk->startPos() ) {
-            ipk->setStartPos( xpos, rdata_.getIntensity( xpos ) );
-            ipk->setStartTime( rdata_.getTime( xpos ) );
-
-            // move baseline stop point
-            bs.setStartPos( ipk->endPos() );
-            bs.setStartTime( ipk->endTime() );
-            bs.setStartHeight( ipk->endHeight() );
-        }
+    if ( offlimits.first != bs.startPos() ) {
+        bs.setStartPos( offlimits.first );
+        bs.setStartTime( signal_processor_->getTime( offlimits.first ) );
+        bs.setStartHeight( signal_processor_->getIntensity( offlimits.first ) );
+    }
+    if ( offlimits.second != bs.stopPos() ) {
+        bs.setStopPos( offlimits.second );
+        bs.setStopTime( signal_processor_->getTime( offlimits.second ) );
+        bs.setStopHeight( signal_processor_->getIntensity( offlimits.second ) );
     }
 }
 
@@ -873,7 +910,7 @@ Integrator::impl::reduceBaselines()
 ///////////////////////////////
 // static
 bool
-peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak& pk )
+helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 {
 	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.5 );
     double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.5 );
@@ -930,26 +967,15 @@ peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak
 	return false;
 }
 
-namespace chromatogr { namespace internal {
-
-        struct TimeFunctor {
-            const integrator::chromatogram& c_;
-            TimeFunctor( const integrator::chromatogram& c ) : c_( c ) { }
-            double operator ()( int pos ) const { return c_.getTime( pos ); }
-        };
-    }
-}
-
 bool
-peakHelper::tRetention_moment(  const integrator::chromatogram& c, adcontrols::Peak& pk )
+helper::tRetention_moment(  const signal_processor& c, adcontrols::Peak& pk )
 {
-    internal::TimeFunctor functor( c );
-    adportable::Moment moment( functor );
+    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
 
     double h = pk.topHeight() - std::min( pk.startHeight(), pk.endHeight() );
     double threshold = pk.topHeight() - h * 0.5;
 
-    double cx = moment.centreX( &c.v_[ 0 ], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double cx = moment.centreX( [&](int pos){ return c.getIntensity( pos); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.setPeakTime( cx );
 
     adcontrols::RetentionTime tr;
@@ -959,32 +985,19 @@ peakHelper::tRetention_moment(  const integrator::chromatogram& c, adcontrols::P
 
     pk.setRetentionTime( tr );
 
-    // ADDEBUG() << "\ttRetention_moment: set " << pk.peakTime();
-
     return true;
 }
 
-namespace chromatogr {
-
-    struct idNotFind {
-        std::set<int>& idList;
-        idNotFind( std::set<int>& t ) : idList(t) {}
-        bool operator() ( const adcontrols::Baseline& bs ) {
-            return idList.find ( bs.baseId() ) == idList.end();
-        }
-    };
-}
-
-
 bool
-peakHelper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss )
+helper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss )
 {
 	std::set<int> idList;
 
 	for ( adcontrols::Peaks::vector_type::const_iterator it = pks.begin(); it != pks.end(); ++it )
 		idList.insert( it->baseId() );
 
-    adcontrols::Baselines::vector_type::iterator pos = std::remove_if( bss.begin(), bss.end(), idNotFind(idList) );
+    adcontrols::Baselines::vector_type::iterator pos
+        = std::remove_if( bss.begin(), bss.end(), [&](const auto& a){ return idList.find( a.baseId() ) == idList.end(); } );
     if ( pos != bss.end() )
 		bss.erase( pos, bss.end() );
 
@@ -993,7 +1006,7 @@ peakHelper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselin
 
 // static
 void
-peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk )
+helper::updateAreaHeight( const signal_processor& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk )
 {
     double area = 0;
     double height = c.getIntensity( pk.topPos() ) - bs.height( pk.topPos() );
@@ -1001,7 +1014,7 @@ peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrol
         double h = c.getIntensity(pos) - bs.height(pos);
         double w = c.getTime( pos + 1 ) - c.getTime( pos );
         if ( h >= 0.0 ) {
-            if ( c.isCounting_ )
+            if ( c.isCounting() )
                 area += h;
             else
                 area += h * w;
@@ -1012,7 +1025,31 @@ peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrol
 }
 
 adcontrols::Peak
-peakHelper::peak( const chromatogr::integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags )
+helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e )
+{
+    adcontrols::Peak pk;
+
+    pk.setStartPos( s.pos(), c.getIntensity( s.pos() ) );
+    pk.setTopPos( t.pos(),   c.getIntensity( t.pos() ) );
+    pk.setEndPos( e.pos(),   c.getIntensity( e.pos() ) );
+
+    const uint32_t flags{ uint32_t((s.stat() & 0x0f) << 8) | uint32_t((t.stat() & 0x0f) << 4) | uint32_t(e.stat() & 0x0f) };
+    std::string sflags;
+    for ( auto f: { s, t, e } )
+        sflags += toChar( f.stat() );
+
+    pk.setPeakFlags( flags );
+    // ADDEBUG() << "peak flag: " << sflags;
+
+    pk.setStartTime( c.getTime( s.pos() ) );
+    pk.setPeakTime( c.getTime( t.pos() ) );
+    pk.setEndTime( c.getTime( e.pos() ) );
+
+    return pk;
+}
+
+adcontrols::Peak
+helper::peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags )
 {
     adcontrols::Peak pk;
 
@@ -1029,27 +1066,24 @@ peakHelper::peak( const chromatogr::integrator::chromatogram& c, int spos, int t
 }
 
 bool
-peakHelper::peak_width( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
+helper::peak_width( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk )
 {
-    internal::TimeFunctor functor( c );
-    adportable::Moment moment( functor );
+    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
-    double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
-
+    double width = moment.width( [&](int pos){ return c.getIntensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.setPeakWidth( width );
 
     return true;
 }
 
 bool
-peakHelper::asymmetry( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
+helper::asymmetry( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk )
 {
-    internal::TimeFunctor functor( c );
-    adportable::Moment moment( functor );
+    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.95;
-    double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double width = moment.width( [&](int pos){ return c.getIntensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     double a = pk.peakTime() - moment.xLeft();
 
     adcontrols::PeakAsymmetry tf;
@@ -1063,13 +1097,12 @@ peakHelper::asymmetry( const adcontrols::PeakMethod&, const integrator::chromato
 }
 
 bool
-peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
+helper::theoreticalplate( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk )
 {
-    internal::TimeFunctor functor( c );
-    adportable::Moment moment( functor );
+    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
-    double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double width = moment.width( [&](int pos){ return c.getIntensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     double N = 5.54 * ( ( pk.peakTime() / width ) * ( pk.peakTime() / width ) );
 
     adcontrols::TheoreticalPlate ntp;
@@ -1083,7 +1116,7 @@ peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const integrator::c
 ///////////////
 
 adcontrols::Baseline
-baselineHelper::baseline( const chromatogr::integrator::chromatogram& c, int spos, int epos )
+helper::baseline( const signal_processor& c, int spos, int epos )
 {
     adcontrols::Baseline bs;
 
@@ -1101,45 +1134,31 @@ baselineHelper::baseline( const chromatogr::integrator::chromatogram& c, int spo
 void
 Integrator::impl::update_params()
 {
-    mw_ = long ( minw_ / rdata_.sampInterval_ );
-    if ( mw_ < 3 )
-        mw_ = 3;
-    mw_ |= 1;  // force 'odd'
-    numAverage_ = mw_;
+    int mw = mw_;
+    if ( sampInterval_ && *sampInterval_ > 0.01 ) {
+        mw = std::max( int( minw_ / *sampInterval_ ) | 1, 3 ); // should be odd number
+    } else if ( signal_processor_->sampInterval() > 0.01 && minw_ > 0.01 ) { // grater than 10 ms
+        mw = std::max( int( minw_ / signal_processor_->sampInterval() ) | 1, 3 ); // should be odd number
+    }
+    mw = std::min( mw, 31 ); // no larger than 31
+    if ( mw_ != mw ) {
+        mw_ = mw;
+        signal_processor_->set_ndiff( mw_ );
+    }
 }
 
-double
-Integrator::impl::adddata( double time, double intensity )
+void
+Integrator::impl::update_mw()
 {
-    rdata_.t_.push_back( time );
-    rdata_.v_.push_back( intensity );
-    rdata_.d1_.push_back( 0 );
-
-    if ( rdata_.t_.size() >= 2 ) {
-        // estimate sampling interval (average)
-        size_t advance = rdata_.t_.size() < 5 ? rdata_.t_.size() : 5;
-        rdata_.sampInterval_ = ( rdata_.t_.back() - rdata_.t_[ rdata_.t_.size() - advance ] ) / advance; // last 'advance' points or all
-
-        int mw = std::max( 5, int( minw_ / rdata_.sampInterval_ ) | 1 );
+    if ( signal_processor_->d().size() >= 2 ) {
+        int mw = std::max( 3, int( minw_ / signal_processor_->sampInterval() ) | 1 );
         if ( mw != mw_ ) {
-            mw_ = mw;
-            sgd1_.reset();
+            ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
+            mw_ = mw; // should grator or equal to 3
+            signal_processor_->set_ndiff( mw_ );
+        } else {
+            if ( signal_processor_->d().size() == 2 )
+                ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
         }
-
     }
-
-    if ( rdata_.size() >= mw_ ) {
-
-        if ( ! sgd1_ )
-            sgd1_ = std::make_shared< adportable::SGFilter >( mw_, adportable::SGFilter::Derivative1, adportable::SGFilter::Cubic );
-
-        double d1 = ( *sgd1_ )( &rdata_.v_[ rdata_.size() - ( 1 + mw_ / 2 ) ] );
-
-        posg_ = int( rdata_.size() - 1 );
-        posc_ = int( rdata_.size() - ( mw_ / 2 ) - 1 );
-
-        rdata_.d1_[ posc_ ] = d1;
-        return d1;
-    }
-    return 0;
 }

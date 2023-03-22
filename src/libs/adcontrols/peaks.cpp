@@ -53,7 +53,13 @@ Peaks::operator = ( const Peaks& t )
 void
 Peaks::add( const Peak& pk )
 {
-    peaks_.push_back( pk );
+    peaks_.emplace_back( pk );
+}
+
+Peaks::value_type&
+Peaks::emplace_back( Peak&& t )
+{
+    return peaks_.emplace_back( std::move( t ) );
 }
 
 ///////////////

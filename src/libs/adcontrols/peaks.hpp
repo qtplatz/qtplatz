@@ -50,6 +50,7 @@ namespace adcontrols {
         typedef std::vector< Peak > vector_type;
 
         void add( const Peak& );
+        value_type& emplace_back( Peak&& t );
 
         inline operator const vector_type& () const      { return peaks_;	      }
         inline operator vector_type& ()                  { return peaks_;	      }
