@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -43,8 +43,6 @@ namespace adwidgets {
         bool allowDelete() { return allowDelete_; }
         void setAllowDelete( bool f ) { allowDelete_ = f; }
 
-        virtual void handleDeleteSelection();
-
         virtual void addActionsToContextMenu( QMenu&, const QPoint& ) const;
 
         void contextMenuEvent( QContextMenuEvent * ) override;
@@ -56,12 +54,14 @@ namespace adwidgets {
 
     signals:
         void rowsDeleted();
+        void lineInserted( QModelIndex );
 
     public slots:
         virtual void handleCopyToClipboard();
         virtual void handlePaste();
+        virtual void handleInsertLine();
+        virtual void handleDeleteSelection();
     };
-
 }
 
 #endif // TABLEVIEW_HPP

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -57,6 +57,8 @@ TableView::keyPressEvent( QKeyEvent * event )
         handlePaste();
     } else if ( event->matches( QKeySequence::Delete ) && allowDelete_ ) {
 		handleDeleteSelection();
+    } else if ( event->matches( QKeySequence::InsertLineSeparator ) ) { // mac:Meta+Enter|Meta+O otherwise Shift+Enter
+        handleInsertLine();
 	} else
 		QTableView::keyPressEvent( event );
 }
@@ -81,6 +83,18 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
 void
 TableView::handlePaste()
 {
+}
+
+void
+TableView::handleInsertLine()
+{
+    auto index = selectionModel()->currentIndex();
+    if ( index.isValid() ) {
+        if ( auto model = this->model() ) {
+            model->insertRow( index.row() + 1, index.parent() );
+            emit lineInserted( model->index( index.row() + 1, index.column(), index.parent() ) );
+        }
+    }
 }
 
 namespace {
@@ -123,7 +137,8 @@ TableView::copyToClipboard( bool enable_html )
     // <-------------
     std::pair< QModelIndexList::const_iterator, QModelIndexList::const_iterator > range{ indices.begin(), {} };
     while ( range.first != indices.end() ) {
-        range = equal_range( indices.begin(), indices.end(), *range.first, [](const auto& a, const auto& b){ return a.row() < b.row(); });
+        range = equal_range( indices.begin(), indices.end(), *range.first
+                             , [](const auto& a, const auto& b){ return a.row() < b.row(); });
         // per line
         for ( auto it = range.first; it != range.second; ++it ) {
             if ( ! isColumnHidden( it->column() ) ) {
@@ -144,26 +159,20 @@ TableView::handleDeleteSelection()
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    std::sort( indices.begin(), indices.end() );
-    if ( indices.size() < 1 ) {
+    if ( indices.empty() )
         return;
-    }
 
 	std::set< int > rows;
-    for( int i = 0; i < indices.size(); ++i ) {
-        QModelIndex index = indices.at( i );
-		rows.insert( index.row() );
-	}
+    std::for_each( indices.begin(), indices.end(), [&](const auto& index){ rows.insert( index.row() ); } );
+
 	std::vector< std::pair< int, int > > ranges;
 
 	for ( auto it = rows.begin(); it != rows.end(); ++it ) {
-		std::pair< int, int > range;
-		range.first = *it;
-		range.second = *it;
-		while ( ++it != rows.end() && *it == range.second + 1 )
-			range.second = *it;
+		std::pair< int, int > range{*it, *it};
+		while ( ++it != rows.end() && *it == std::get< 1 >( range ) + 1 )
+            std::get< 1 >( range ) = *it;
 		--it;
-		ranges.push_back( range );
+		ranges.emplace_back( range );
 	}
 
 	// remove from botton to top
@@ -178,6 +187,7 @@ TableView::addActionsToContextMenu( QMenu& menu, const QPoint& ) const
 {
     menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
     menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
+    menu.addAction( tr( "Delete" ), this, SLOT( handleDeleteSelection() ) )->setEnabled( allowDelete_ );
 }
 
 void
