@@ -43,7 +43,7 @@ translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
 
 dmg: qtplatz.app translations
-	hdiutil create -size 250m ${TARGET} -srcfolder ./qtplatz.app
+	hdiutil create -size 300m ${TARGET} -srcfolder ./qtplatz.app
 
 # ---- debug helpers ----------
 
