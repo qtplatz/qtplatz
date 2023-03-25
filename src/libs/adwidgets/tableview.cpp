@@ -159,26 +159,20 @@ TableView::handleDeleteSelection()
 {
 	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    std::sort( indices.begin(), indices.end() );
-    if ( indices.size() < 1 ) {
+    if ( indices.empty() )
         return;
-    }
 
 	std::set< int > rows;
-    for( int i = 0; i < indices.size(); ++i ) {
-        QModelIndex index = indices.at( i );
-		rows.insert( index.row() );
-	}
+    std::for_each( indices.begin(), indices.end(), [&](const auto& index){ rows.insert( index.row() ); } );
+
 	std::vector< std::pair< int, int > > ranges;
 
 	for ( auto it = rows.begin(); it != rows.end(); ++it ) {
-		std::pair< int, int > range;
-		range.first = *it;
-		range.second = *it;
-		while ( ++it != rows.end() && *it == range.second + 1 )
-			range.second = *it;
+		std::pair< int, int > range{*it, *it};
+		while ( ++it != rows.end() && *it == std::get< 1 >( range ) + 1 )
+            std::get< 1 >( range ) = *it;
 		--it;
-		ranges.push_back( range );
+		ranges.emplace_back( range );
 	}
 
 	// remove from botton to top
