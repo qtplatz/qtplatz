@@ -267,11 +267,9 @@ MainWindow::createStyledBarTop()
         toolBarLayout->setSpacing( 2 );
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
-#if QTC_VERSION < 0x09'00'00
-            Core::Context context( ( Core::Id( "dataproc.MainView" ) ) );
-#else
-            Core::Context context( ( Utils::Id( "dataproc.MainView" ) ) );
-#endif
+
+            Core::Context context( ( Utils::Id( Constants::C_DATAPROCESSOR ) ) );
+
             if ( auto p = new QAction( tr("MS Process"), this ) ) {
                 connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelMSProcess ); } );
                 am->registerAction( p, "dataproc.selMSProcess", context );

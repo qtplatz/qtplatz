@@ -138,8 +138,9 @@ namespace dataproc {
     class DataprocPlugin::impl {
     public:
         impl( DataprocPlugin * p ) : pThis_( p )
-                                   , editorFactory_( std::make_unique< EditorFactory >() )
-                                   , documentFactory_( std::make_unique< DocumentFactory >() )  {
+                                     // , documentFactory_( std::make_unique< DocumentFactory >() )
+                                   , editorFactory_( std::make_unique< EditorFactory >() ) {
+
         }
         DataprocPlugin * pThis_;
 

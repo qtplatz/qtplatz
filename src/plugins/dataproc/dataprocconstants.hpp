@@ -13,8 +13,8 @@ namespace Constants {
     const char * const C_DATAPROC_MODE        = "Dataproc.Mode";
     const char * const C_DATAPROC_NAVI        = "Dataproc.Navigator";
     const char * const ABOUT_QTPLATZ          = "Dataproc.AboutQtPlatz";
-    const char * const C_DATA_TEXT_MIMETYPE   = "application/txt";
-    const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
+    //const char * const C_DATA_TEXT_MIMETYPE   = "application/txt";
+    //const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
 
     // common actions
     const char * const METHOD_OPEN          = "dataproc.MethodOpen";

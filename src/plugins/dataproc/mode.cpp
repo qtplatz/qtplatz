@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -41,7 +41,6 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setPriority( 80 );
 
     setId( Constants::C_DATAPROCESSOR );
-    // setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::MODE_EDIT ) );
 
     connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager);
 }
@@ -49,9 +48,11 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
 void
 Mode::grabEditorManager( Utils::Id mode )
 {
-    if ( mode != id() )
-        return;
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+    if ( mode == id() ) {
+        qDebug() << "\t-- currentModeChanged to " << mode << " == this mode(" << id() << ")";
+    } else {
+        qDebug() << "\t-- currentModeChanged to " << mode << " != this mode(" << id() << ")";
+    }
     // if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
     //     cmd->action()->setText( tr( "Open data files..." ) );
 }

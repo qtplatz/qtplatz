@@ -262,6 +262,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
 #endif
+    pTreeView_->setSelectionMode( QAbstractItemView::ExtendedSelection );
     setFocusProxy( pTreeView_ );
     initView();
 
@@ -766,6 +767,39 @@ namespace dataproc {
         }
     };
 
+
+    //////////////////////////////// find_processor_t<> /////////////////////////////////
+    template< typename T >
+    struct find_processor_t {
+        std::pair< Dataprocessor *, T > operator()( const QModelIndex& index ) const {
+            if ( auto processor = StandardItemHelper::findDataprocessor( index ) ) {
+                QVariant data = index.model()->data( index, Qt::UserRole );
+                if ( data.canConvert< T >() ) {
+                    return { processor, data.value< T >() };
+                }
+            }
+            return {};
+        }
+    };
+
+    //////////////////////////////// set_attribute /////////////////////////////////
+    struct set_attribute {
+        QTreeView * tv_;
+        QModelIndexList& rows_;
+        set_attribute( QTreeView * tv,  QModelIndexList& rows ) : tv_( tv ), rows_( rows )  {}
+
+        void operator()( std::pair< std::string, std::string> keyValue ) const {
+            for ( auto index: rows_ ) {
+                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
+                if ( processor && folium )
+                    processor->setAttribute( folium, { keyValue.first, keyValue.second } );
+            }
+        }
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+
 }
 
 void
@@ -775,6 +809,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 	QModelIndex index = pTreeView_->currentIndex();
 
     QMenu menu;
+    auto selRows = pTreeView_->selectionModel()->selectedRows();
 
     if ( index.isValid() ) {
         portfolio::Folium active_folium;
@@ -878,6 +913,25 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 processor->exportMatchedMasses( v, folium.id() );
                         } );
                 }
+
+                do {
+                    set_attribute set_attribute( pTreeView_, selRows );
+                    if ( selRows.size() >= 2 ) {
+                        menu.addAction( tr( "Remove"    ), [&](){ set_attribute( { "remove", "true" } ); } );
+                        menu.addAction( tr( "Unremove"  ), [&](){ set_attribute( { "remove", "false" } ); } );
+                    } else {
+                        if ( folium.attribute("remove") == "true" ) {
+                            menu.addAction( tr( "Cancel remove"), [=](){ processor->setAttribute( folium, {"remove", "false"}); });
+                        } else {
+                            menu.addAction( tr( "Remove"), [=](){        processor->setAttribute( folium, {"remove",  "true"}); });
+                        }
+                    }
+                    menu.addAction( tr( "Tag none"  ), [&](){ set_attribute( { "tag",    "none"  } ); } );
+                    menu.addAction( tr( "Tag red"   ), [&](){ set_attribute( { "tag",    "red"   } ); } );
+                    menu.addAction( tr( "Tag blue"  ), [&](){ set_attribute( { "tag",    "blue"  } ); } );
+                    menu.addAction( tr( "Tag green" ), [&](){ set_attribute( { "tag",    "green" } ); } );
+                } while ( 0 );
+#if 0
                 if ( folium.attribute("remove") == "true" ) {
                     menu.addAction( tr( "Cancel remove"), [=](){ processor->setAttribute( folium, {"remove", "false"}); });
                 } else {
@@ -887,7 +941,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 menu.addAction( tr( "Tag red"   ), [=] () { processor->setAttribute( folium, { "tag",  "red"  } ); });
                 menu.addAction( tr( "Tag blue"  ), [=] () { processor->setAttribute( folium, { "tag", "blue"  } ); });
                 menu.addAction( tr( "Tag green" ), [=] () { processor->setAttribute( folium, { "tag", "green" } ); });
-
+#endif
                 processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
 
             }
