@@ -31,12 +31,8 @@
 #include "actionmanager.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#if EXCLUDE
-#include "dataprocessor.hpp"
-#include "dataproceditor.hpp"
-#endif
-
-#include "dataprocfactory.hpp"
+#include "documentfactory.hpp"
+#include "editorfactory.hpp"
 
 #include <adextension/isequenceimpl.hpp>
 #include "isnapshothandlerimpl.hpp"
@@ -142,12 +138,14 @@ namespace dataproc {
     class DataprocPlugin::impl {
     public:
         impl( DataprocPlugin * p ) : pThis_( p )
-                                   , editorFactory_( std::make_unique< DataprocFactory >() ) {
+                                   , editorFactory_( std::make_unique< EditorFactory >() )
+                                   , documentFactory_( std::make_unique< DocumentFactory >() )  {
         }
         DataprocPlugin * pThis_;
 
         // self-registratoin in ctor (see L203, coreplugin/editormanager/iedtorfactory.cpp )
-        std::unique_ptr< DataprocFactory > editorFactory_;
+        std::unique_ptr< EditorFactory > editorFactory_;
+        std::unique_ptr< DocumentFactory > documentFactory_;
 
         std::unique_ptr< ActionManager > actionManager_;
         std::unique_ptr< MainWindow > mainWindow_;

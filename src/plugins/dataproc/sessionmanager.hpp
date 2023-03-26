@@ -71,7 +71,7 @@ namespace dataproc {
         static SessionManager * instance();
 
         Dataprocessor * getActiveDataprocessor();
-        void addDataprocessor( std::shared_ptr<Dataprocessor> );
+        void addDataprocessor( std::shared_ptr<Dataprocessor>&& );
         void updateDataprocessor( Dataprocessor *, portfolio::Folium& );
         void folderChanged( Dataprocessor *, const std::wstring& foldername );
         void checkStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );

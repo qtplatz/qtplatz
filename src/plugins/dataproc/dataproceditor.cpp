@@ -26,7 +26,6 @@
 #include "dataproceditor.hpp"
 #include "document.hpp"
 #include "dataprocessor.hpp"
-#include "dataprocfactory.hpp"
 #include "dataprocconstants.hpp"
 #include "mainwindow.hpp"
 #include "msprocessingwnd.hpp"

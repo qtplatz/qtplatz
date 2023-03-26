@@ -132,9 +132,19 @@ ActionManager::initialize_actions( const Core::Context& context )
 
 
 	if ( auto * am = Core::ActionManager::instance() ) {
-
-        if ( auto cmd = am->command( Core::Constants::OPEN ) )
+#if 0
+        if ( auto cmd = am->command( Core::Constants::OPEN ) ) {
             cmd->action()->setText( tr( "Open data files..." ) );  // override text
+        }
+#else
+        if ( auto p = actions_[ idActOpen ] = create( Constants::ICON_OPEN, tr("Open data files..."), this ) ) {
+            // if ( auto cmd = am->command( Core::Constants::OPEN ) ) {
+            auto cmd = am->registerAction( p, Core::Constants::OPEN );
+            cmd->action()->setText( tr( "Open data files..." ) );  // override text
+            cmd->setDefaultKeySequence(QKeySequence::Open);
+            connect( cmd->action(), &QAction::triggered, this, &ActionManager::handleOpen );
+        }
+#endif
 
         if ( auto p = actions_[ idActSave ] = create( Constants::ICON_SAVE, tr("Save"), this ) ) {
             am->registerAction( p, Core::Constants::SAVE, context );
@@ -378,7 +388,11 @@ ActionManager::actCalibFileApply()
 void
 ActionManager::handleOpen()
 {
-    // Core::EditorManager()
+    auto list = Core::EditorManager::getOpenFilePaths();
+    for ( const auto& filePath: list ) {
+        QFlags< Core::EditorManager::OpenEditorFlag> emFlags;
+        Core::EditorManager::openEditor(filePath, {}, emFlags);
+    }
 }
 
 void
@@ -393,7 +407,6 @@ ActionManager::handleSaveAs()
 	Core::EditorManager::instance()->saveDocumentAs();
 }
 
-#if QTC_VERSION >= 0x09'00'00
 void
 ActionManager::handleContextAboutToChange( const QList<Core::IContext *>& t1 )
 {
@@ -414,17 +427,3 @@ ActionManager::handleContextChanged( const Core::Context& context )
     // for ( auto id: context )
     //     ADDEBUG() << "\t-- " << id.toString().toStdString();
 }
-
-#else
-
-void
-ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Core::Context& )
-{
-    for ( auto& context : t1 ) {
-        if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
-            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath() );
-            actions_[ idActSaveAs ]->setText( text );
-        }
-    }
-}
-#endif

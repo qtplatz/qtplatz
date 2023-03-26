@@ -85,7 +85,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
                 ExtensionSystem::PluginManager::addObject( mode_.get() );
             }
         }
-        ADDEBUG() << "ChemistryPlugin initialized";
+        // ADDEBUG() << "ChemistryPlugin initialized";
     }
     return true;
 }

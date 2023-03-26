@@ -95,6 +95,7 @@
 #include <adutils/fsio.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/processeddata_t.hpp>
+#include <qtwrapper/debug.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
 #include <utils/mimeutils.h>
@@ -269,7 +270,7 @@ Dataprocessor::~Dataprocessor()
 {
     do {
         auto rpath = std::filesystem::proximate( filename(), adportable::profile::user_data_dir<char>() );
-        ADDEBUG() << "## Dataprocessor::dtor for file: " << rpath << " ##";
+        ADDEBUG() << "## Dataprocessor::dtor closeing file: " << rpath << " ##";
     } while(0);
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
@@ -317,10 +318,11 @@ Dataprocessor::open( QString *errorString
 {
 	qtwrapper::waitCursor wait;
 
+    QDEBUG() << "================= Dataprocessor::open(" << filePath << ")";
+
     std::wstring emsg;
     if ( adprocessor::dataprocessor::open( filePath.toString().toStdWString(),  emsg ) ) {
-        auto ptr = std::static_pointer_cast<Dataprocessor>(shared_from_this());
-        SessionManager::instance()->addDataprocessor( ptr );
+        SessionManager::instance()->addDataprocessor( std::static_pointer_cast<Dataprocessor>(shared_from_this()) );
 
         Core::DocumentManager::addDocument( this );
         Core::DocumentManager::addToRecentFiles( filePath );

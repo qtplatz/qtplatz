@@ -97,7 +97,7 @@ SessionManager::removeEditor( Core::IEditor * editor )
 }
 
 void
-SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor> proc )
+SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>&& proc )
 {
     impl_->loadInprogress_ = true; // block check state events
 

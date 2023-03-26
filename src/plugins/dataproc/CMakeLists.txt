@@ -80,7 +80,8 @@ add_library( ${PROJECT_NAME} MODULE
   datafolder.cpp              datafolder.hpp
   dataproceditor.cpp          dataproceditor.hpp
   dataprocessor.cpp           dataprocessor.hpp
-  dataprocfactory.cpp         dataprocfactory.hpp
+  editorfactory.cpp           editorfactory.hpp
+  documentfactory.cpp         documentfactory.hpp
   dataprocessworker.cpp       dataprocessworker.hpp
   dataprochandler.cpp         dataprochandler.hpp
   dataprocplugin.cpp          dataprocplugin.hpp

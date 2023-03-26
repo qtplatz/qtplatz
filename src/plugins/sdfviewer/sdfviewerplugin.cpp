@@ -78,7 +78,7 @@ SDFViewerPlugin::~SDFViewerPlugin()
 
 SDFViewerPlugin::SDFViewerPlugin() : impl_( std::make_unique< impl >() )
 {
-    ADDEBUG() << "## SDFViewerPlugin::ctor ##";
+    // ADDEBUG() << "## SDFViewerPlugin::ctor ##";
 }
 
 bool SDFViewerPlugin::initialize(const QStringList &arguments, QString *errorMessage)

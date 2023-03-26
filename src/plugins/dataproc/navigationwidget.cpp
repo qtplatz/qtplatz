@@ -271,9 +271,6 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     layout->setContentsMargins( 0, 0, 0, 0 );
     setLayout( layout );
 
-    for ( auto& it: *SessionManager::instance() )
-        handleAddSession( it.processor() );
-
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
 
@@ -461,6 +458,9 @@ NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
+#if !defined NDEBUG
+    // ADDEBUG() << "######################## " << __FUNCTION__ << " " << processor->filename();
+#endif
     // adcontrols::datafile * file = processor->file();
     QString filename = qtwrapper::filepath::toString( processor->filePath() );
 

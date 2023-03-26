@@ -64,6 +64,5 @@ SDFViewerFactory::SDFViewerFactory()
                            , "application/db" } ) {
         addMimeType( QString::fromLatin1(format) );
     }
-
-    ADDEBUG() << "## SDFViewerFactory ##";
+    // ADDEBUG() << "## SDFViewerFactory ##";
 }

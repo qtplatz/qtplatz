@@ -24,13 +24,12 @@
 
 #include "mode.hpp"
 #include "dataprocconstants.hpp"
+#include <adportable/debug.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
-
-#define EXCLUDE (QTC_VERSION < 0x09'00'00)
 
 using namespace dataproc;
 
@@ -42,15 +41,9 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setPriority( 80 );
 
     setId( Constants::C_DATAPROCESSOR );
-    setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::MODE_EDIT ) );
+    // setContext( Core::Context( Constants::C_DATAPROCESSOR, Core::Constants::MODE_EDIT ) );
 
-#if EXCLUDE
-    setContextHelpId( QLatin1String( "QtPlatz Manual " ) );
-    connect( dynamic_cast<Core::ModeManager *>(Core::ModeManager::instance())
-             , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
-#else
     connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager);
-#endif
 }
 
 void
@@ -58,7 +51,7 @@ Mode::grabEditorManager( Utils::Id mode )
 {
     if ( mode != id() )
         return;
-
-    if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
-        cmd->action()->setText( tr( "Open data files..." ) );
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+    // if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
+    //     cmd->action()->setText( tr( "Open data files..." ) );
 }

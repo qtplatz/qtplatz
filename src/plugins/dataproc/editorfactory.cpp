@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "dataprocfactory.hpp"
+#include "editorfactory.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
 #include "dataproceditor.hpp"
@@ -39,14 +39,17 @@
 
 #include <adportable/debug.hpp>
 #include <adcontrols/datafile.hpp>
+#include <qtwrapper/debug.hpp>
+
+namespace Utils { class FilePath; }
 
 using namespace dataproc;
 
-DataprocFactory::~DataprocFactory()
+EditorFactory::~EditorFactory()
 {
 }
 
-DataprocFactory::DataprocFactory()
+EditorFactory::EditorFactory()
 {
     setId( Constants::C_DATAPROCESSOR );
 
@@ -55,8 +58,9 @@ DataprocFactory::DataprocFactory()
         return new DataprocEditor();
     });
 
-    for ( auto &format : { "application/adfs"
+    for ( auto &format : { "application/vnd.sqlite3"
                            , "application/x-sqlite3"
+                           , "application/adfs"
                            , "application/txt"
                            , "application/csv"
                            , "application/octet-stream" } ) {
@@ -65,27 +69,4 @@ DataprocFactory::DataprocFactory()
 
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-DataprocFactory::DataprocFactory( QObject * owner,
-										    const QStringList& ) : Core::IEditorFactory( owner )
-{
-    setId( Constants::C_DATAPROCESSOR );
-
-    setDisplayName( tr( "OpenWidth::Dataprocessor", "Data processor" ) );
-    addMimeType( "application/adfs" );
-    addMimeType( "application/csv" );
-    addMimeType( "application/txt" );
-    addMimeType( "application/octet-stream" );
-}
-
-// implementation for IEditorFactory
-Core::IEditor *
-DataprocFactory::createEditor()
-{
-    auto doc = Dataprocessor::make_dataprocessor(); // std::make_shared< Dataprocessor >();
-    doc->setId( Constants::C_DATAPROCESSOR );
-    auto editor = new DataprocEditor( this );
-    editor->setDataprocessor( doc.get() );
-    return editor;
-}
-#endif
+///////////////////////////

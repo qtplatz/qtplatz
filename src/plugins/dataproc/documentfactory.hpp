@@ -23,35 +23,16 @@
 **
 **************************************************************************/
 
-#ifndef DATAPROCFACTORY_H
-#define DATAPROCFACTORY_H
-
 #pragma once
 
-#include <coreplugin/editormanager/ieditorfactory.h>
-#include <QStringList>
-#include <memory>
-
-namespace Core {
-    class IEditor;
-}
+#include <coreplugin/idocumentfactory.h>
 
 namespace dataproc {
 
-    class DataprocPlugin;
-
-    class DataprocFactory : public Core::IEditorFactory {
-        Q_OBJECT
+    class DocumentFactory : public Core::IDocumentFactory {
     public:
-        ~DataprocFactory();
-        explicit DataprocFactory();
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        explicit DataprocFactory( QObject * owner, const QStringList& );
-        // implement IEditorFactory
-        Core::IEditor *createEditor() override;
-#endif
+        ~DocumentFactory();
+        explicit DocumentFactory();
+        Core::IDocument * open(const Utils::FilePath &filePath);
     };
 }
-
-#endif // DATAPROCFACTORY_H

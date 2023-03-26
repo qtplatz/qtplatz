@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -90,12 +90,10 @@ namespace dataproc {
         void handleOpen();
         void handleSave();
         void handleSaveAs();
-#if QTC_VERSION < 0x09'00'00
-        void handleContextChanged( const QList<Core::IContext *>&, const Core::Context& );
-#else
+
         void handleContextAboutToChange( const QList<Core::IContext *>& );
         void handleContextChanged( const Core::Context& );
-#endif
+
         bool importFile();
 
         void actMethodSave();

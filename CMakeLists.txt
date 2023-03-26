@@ -74,6 +74,8 @@ if ( WITH_QT5 )
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
 
   if ( QT_FOUND AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
+    include_directories( "${CMAKE_SOURCE_DIR}/src/libs" ) # -- for qt-creator include qtwrapper/debug.hpp
+    add_definitions( "-DQT_MESSAGELOGCONTEXT" ) # <-- enable file, line in qDebug output
     if ( APPLE )
       ## macOS
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )

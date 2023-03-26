@@ -317,7 +317,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
 
             make_indices();
 
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 0
             ADDEBUG() << "DataReader::initailze(" << objid << ", " << objtext << ") fcnCount=" << fcnCount_;
 #endif
 
@@ -566,7 +566,7 @@ DataReader::loadTICs()
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
         if ( auto db = db_.lock() ) {
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 0
             ADDEBUG() << "loadTICs: " << objid_ << " indices: " << indices_.size();
 #endif
             indices_.clear();
