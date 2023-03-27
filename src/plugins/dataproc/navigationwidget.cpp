@@ -49,7 +49,6 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <qtwrapper/utils_filepath.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/modemanager.h>
@@ -459,15 +458,14 @@ NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
-#if !defined NDEBUG
-    // ADDEBUG() << "######################## " << __FUNCTION__ << " " << processor->filename();
-#endif
     // adcontrols::datafile * file = processor->file();
-    QString filename = qtwrapper::filepath::toString( processor->filePath() );
+#if QTC_VERSION > 0x09'00'00
+    QString filename = processor->filePath().toString();
+#else
+    QString filename = processor->filePath();
+#endif
 
-    QStandardItemModel& model = *pModel_;
-
-    QStandardItem * item = StandardItemHelper::appendRow( model, processor );
+    QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor );
     item->setEditable( false );
     item->setToolTip( filename );
 
@@ -479,7 +477,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 	pTreeView_->expand( item->index() );
     // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
 	for ( int i = 0; i < item->rowCount(); ++i)
-        pTreeView_->expand( model.index( i, 0, item->index()) );
+        pTreeView_->expand( pModel_->index( i, 0, item->index()) );
 }
 
 void
