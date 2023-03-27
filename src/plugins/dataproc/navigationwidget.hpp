@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef NAVIGATIONWIDGET_H
-#define NAVIGATIONWIDGET_H
+#pragma once
 
 #include <QWidget>
 
@@ -53,7 +52,6 @@ namespace dataproc {
     signals:
 
     public slots:
-        // void toggleAutoSynchronization();
         void handleAddSession( Dataprocessor * );
 		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
 		void handleSessionUpdated( Dataprocessor *, const QString& foliumId );
@@ -91,5 +89,3 @@ namespace dataproc {
     };
 
 }
-
-#endif // NAVIGATIONWIDGET_H
