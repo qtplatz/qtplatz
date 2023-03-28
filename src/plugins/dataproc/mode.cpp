@@ -31,28 +31,29 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
 
-using namespace dataproc;
+namespace dataproc {
 
-Mode::Mode(QObject *parent) : Core::IMode(parent)
-{
-    setDisplayName( tr( "Processing" ) );
-    setIcon(QIcon(":/dataproc/image/ViewResults.png"));
+    Mode::Mode(QObject *parent) : Core::IMode(parent)
+    {
+        setDisplayName( tr( "Processing" ) );
+        setIcon(QIcon(":/dataproc/image/ViewResults.png"));
 
-    setPriority( 80 );
+        setPriority( 80 );
 
-    setId( Constants::C_DATAPROCESSOR );
+        setId( Constants::C_DATAPROCESSOR );
 
-    connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager);
-}
-
-void
-Mode::grabEditorManager( Utils::Id mode )
-{
-    if ( mode == id() ) {
-        qDebug() << "\t-- currentModeChanged to " << mode << " == this mode(" << id() << ")";
-    } else {
-        qDebug() << "\t-- currentModeChanged to " << mode << " != this mode(" << id() << ")";
+        connect(Core::ModeManager::instance(), &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager);
     }
-    // if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
-    //     cmd->action()->setText( tr( "Open data files..." ) );
+
+    void
+    Mode::grabEditorManager( Utils::Id mode )
+    {
+        if ( mode == id() ) {
+            // qDebug() << "\t-- currentModeChanged to " << mode << " == this mode(" << id() << ")";
+        } else {
+            // qDebug() << "\t-- currentModeChanged to " << mode << " != this mode(" << id() << ")";
+        }
+        // if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
+        //     cmd->action()->setText( tr( "Open data files..." ) );
+    }
 }

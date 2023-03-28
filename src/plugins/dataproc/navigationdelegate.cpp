@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -34,17 +34,11 @@
 #include <QPainter>
 #include <qlineedit.h>
 
-Q_DECLARE_METATYPE( portfolio::Folium )
-Q_DECLARE_METATYPE( portfolio::Folder )
-Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
-
 using namespace dataproc;
 
 NavigationDelegate::NavigationDelegate(QObject *parent) :  QStyledItemDelegate(parent)
 {
     qRegisterMetaType< portfolio::Folium >();
-    //qRegisterMetaType< portfolio::Folder >();
-    //qRegisterMetaType< dataproc::Dataprocessor * >();
 }
 
 void
@@ -76,14 +70,7 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
     initStyleOption( &opt, index );
 
     if ( data.canConvert< Dataprocessor * >() ) {
-        if ( Dataprocessor * processor = data.value< Dataprocessor * >() ) {
-            QStyledItemDelegate::paint( painter, opt, index );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            painter->drawText( option.rect, option.displayAlignment, processor->filePath() );
-#else
-            painter->drawText( option.rect, option.displayAlignment, processor->filePath().toString() );
-#endif
-        }
+        QStyledItemDelegate::paint( painter, opt, index );
     } else if ( data.canConvert< portfolio::Folder >() ) {
         portfolio::Folder folder = data.value< portfolio::Folder >();
         QStyledItemDelegate::paint( painter, opt, index );
@@ -105,7 +92,7 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
         }
         if ( folium.attribute( "remove" ) == "true" ) {
             painter->fillRect( opt.rect, QColor( 0xd3, 0xd3, 0xd3, 0x80 ) ); // gray
-            painter->setPen(Qt::gray);
+            painter->setPen( Qt::gray );
             painter->drawText( opt.rect, opt.displayAlignment, index.data().toString() );
         } else {
             QStyledItemDelegate::paint( painter, opt, index );

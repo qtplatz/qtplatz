@@ -318,8 +318,6 @@ Dataprocessor::open( QString *errorString
 {
 	qtwrapper::waitCursor wait;
 
-    QDEBUG() << "================= Dataprocessor::open(" << filePath << ")";
-
     std::wstring emsg;
     if ( adprocessor::dataprocessor::open( filePath.toString().toStdWString(),  emsg ) ) {
         SessionManager::instance()->addDataprocessor( std::static_pointer_cast<Dataprocessor>(shared_from_this()) );

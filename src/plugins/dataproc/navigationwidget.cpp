@@ -192,34 +192,6 @@ public:
     }
 };
 
-QDataStream &operator<<(QDataStream& out, const portfolio::Folium& folium )
-{
-    out << QString::fromStdWString( folium.id() );
-    return out;
-}
-
-QDataStream &operator>>(QDataStream& in, portfolio::Folium& folium )
-{
-    QString id;
-    in >> id;
-    folium.id( id.toStdWString() );
-    return in;
-}
-
-QDataStream &operator<<(QDataStream& out, const portfolio::Folder& folder )
-{
-    out << QString::fromStdWString( folder.id() );
-    return out;
-}
-
-QDataStream &operator>>(QDataStream& in, portfolio::Folder& folder )
-{
-    QString id;
-    in >> id;
-    folder.id( id.toStdWString() );
-    return in;
-}
-
 using namespace dataproc;
 
 NavigationWidget::~NavigationWidget()
@@ -236,7 +208,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
 {
     pTreeView_->setModel( pModel_ );
     pTreeView_->setItemDelegate( pDelegate_ );
-	pTreeView_->setDragEnabled( true );
+	pTreeView_->setDragEnabled( false );
     pTreeView_->setTextElideMode(Qt::ElideMiddle);
     setStyleSheet(
         "QTreeView {"
@@ -458,26 +430,24 @@ NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
-    // adcontrols::datafile * file = processor->file();
-#if QTC_VERSION > 0x09'00'00
-    QString filename = processor->filePath().toString();
-#else
-    QString filename = processor->filePath();
-#endif
+    std::filesystem::path path( processor->filename() );
 
-    QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor );
-    item->setEditable( false );
-    item->setToolTip( filename );
+    if ( QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor ) ) {
+        auto ppath = path.parent_path().parent_path();
+        item->setData( QString::fromStdString( std::filesystem::relative( path, ppath ).string() ), Qt::EditRole );
+        item->setEditable( false );
+        item->setToolTip( QString::fromStdString( path.string() ) ); // full path
 
-    portfolio::Portfolio portfolio = processor->getPortfolio();
+        portfolio::Portfolio portfolio = processor->getPortfolio();
 
-	for ( auto& folder: portfolio.folders() )
-        PortfolioHelper::appendFolder( *item, folder );
+        for ( auto& folder: portfolio.folders() )
+            PortfolioHelper::appendFolder( *item, folder );
 
-	pTreeView_->expand( item->index() );
-    // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
-	for ( int i = 0; i < item->rowCount(); ++i)
-        pTreeView_->expand( pModel_->index( i, 0, item->index()) );
+        pTreeView_->expand( item->index() );
+        // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
+        for ( int i = 0; i < item->rowCount(); ++i)
+            pTreeView_->expand( pModel_->index( i, 0, item->index()) );
+    }
 }
 
 void
@@ -1050,6 +1020,34 @@ NavigationWidget::handleUncheckAllXICs()
 }
 
 
+
+QDataStream &operator<<(QDataStream& out, const portfolio::Folium& folium )
+{
+    out << QString::fromStdWString( folium.id() );
+    return out;
+}
+
+QDataStream &operator>>(QDataStream& in, portfolio::Folium& folium )
+{
+    QString id;
+    in >> id;
+    folium.id( id.toStdWString() );
+    return in;
+}
+
+QDataStream &operator<<(QDataStream& out, const portfolio::Folder& folder )
+{
+    out << QString::fromStdWString( folder.id() );
+    return out;
+}
+
+QDataStream &operator>>(QDataStream& in, portfolio::Folder& folder )
+{
+    QString id;
+    in >> id;
+    folder.id( id.toStdWString() );
+    return in;
+}
 
 Q_DECLARE_METATYPE( portfolio::Folium )
 Q_DECLARE_METATYPE( portfolio::Folder )
