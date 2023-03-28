@@ -1153,12 +1153,12 @@ Integrator::impl::update_mw()
     if ( signal_processor_->d().size() >= 2 ) {
         int mw = std::max( 3, int( minw_ / signal_processor_->sampInterval() ) | 1 );
         if ( mw != mw_ ) {
-            ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
+            // ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
             mw_ = mw; // should grator or equal to 3
             signal_processor_->set_ndiff( mw_ );
         } else {
-            if ( signal_processor_->d().size() == 2 )
-                ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
+            // if ( signal_processor_->d().size() == 2 )
+            //     ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
         }
     }
 }
