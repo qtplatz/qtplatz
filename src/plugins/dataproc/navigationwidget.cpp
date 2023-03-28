@@ -688,6 +688,9 @@ namespace dataproc {
             }
         }
     };
+} // dataproc
+
+namespace { // anonymous
 
     //////////////// find_t< portfolio::Folium | portfolio::Folder > //////////////////
     template< typename T >
@@ -708,6 +711,14 @@ namespace dataproc {
             return {};
         }
     };
+
+    template<> Dataprocessor * find_t< Dataprocessor * >::operator()( const QModelIndex& index ) const {
+        return StandardItemHelper::findDataprocessor( index );
+    }
+
+    template<> Dataprocessor * find_t< Dataprocessor * >::operator()( const QStandardItem * item ) const {
+        return StandardItemHelper::findDataprocessor( item->index() );
+    }
 
     //////////////////////////////// find_processor_t<> /////////////////////////////////
     template< typename T >
@@ -801,6 +812,52 @@ namespace dataproc {
             }
         }
     };
+
+    // --------------------------------
+    struct fetch_t {
+        static void fetch( const QModelIndex& index, portfolio::Folium folium ) {
+            if ( folium.empty() ) {
+                if ( auto processor = StandardItemHelper::findDataprocessor( index ) )
+                    processor->fetch( folium );
+            }
+        }
+    };
+
+    // --------------------------------
+    struct selected_folders {
+        static std::set< QString > populate( QModelIndexList indices ) {
+            std::set< QString > selFolders;
+            for ( const auto& index: indices ) {
+                if ( auto folder = find_t< portfolio::Folder >()( index ) )
+                    selFolders.insert( QString::fromStdWString( folder.name() ) );
+                else if ( auto folium = find_t< portfolio::Folium >()( index ) )
+                    selFolders.insert( QString::fromStdWString( folium.parentFolder().name() ) );
+            }
+            return selFolders;
+        }
+    };
+
+    // --------------------------------
+    struct attachment_walker {
+        const portfolio::Folium& folium_;
+        std::tuple< portfolio::Folium  // centroid;
+                    , portfolio::Folium  // filtered
+                    > has_a_;
+
+        attachment_walker( const portfolio::Folium& folium ) : folium_( folium ) {
+            portfolio::Folio atts = folium.attachments();
+            auto itCentroid = std::find_if( atts.begin(), atts.end()
+                                            , [] ( const auto& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; });
+            if ( itCentroid != atts.end() )
+                std::get< 0 >( has_a_ ) = *itCentroid;
+
+            auto itFiltered = std::find_if( atts.begin(), atts.end()
+                                            , [] ( const auto& a ){ return a.name() == Constants::F_DFT_FILTERD; });
+            if ( itFiltered != atts.end() ) {
+                std::get< 1 >( has_a_ ) = *itFiltered;
+            }
+        }
+    };
 }
 
 void
@@ -811,7 +868,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     QMenu menu;
     auto selRows = pTreeView_->selectionModel()->selectedRows();
-
+    auto selFolders = selected_folders::populate( selRows );
     ADDEBUG() << "selRows size = " << selRows.size();
 
     if ( selRows.size() >= 1 ) {
@@ -826,12 +883,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     };
 
     if ( selRows.size() == 1 ) {
-
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             // this indicates menu requested on folium|folder node
 
             if ( auto folder = find_t< portfolio::Folder >()( index ) ) {
-
                 auto name = index.data( Qt::EditRole ).toString().toLower();
 
                 check_all_in_folder check_all( selRows );
@@ -843,8 +898,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     menu.addAction( QString( tr("List m/z list for %1") ).arg( name ), xicMassList( *pModel_, index, processor ) );
                     menu.addAction( QString( tr("Fix all baseline levels for %1") ).arg( name ), fixBaselines( *pModel_, index, processor ) );
                 }
+            }
+        }
+    }
+    if ( selRows.size() == 1 ) {
+        if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
 
-            } else if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
+            if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
 
                 if ( (folium.parentFolder().name() == L"Spectra") ||
                      (folium.parentFolder().name() == L"MSCalibration") )  {
@@ -853,13 +913,14 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         processor->fetch( folium );
 
                     if ( bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
-                        portfolio::Folio atts = folium.attachments();
-                        auto itCentroid = std::find_if( atts.begin(), atts.end()
-                                                        , [] ( const portfolio::Folium& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; });
-                        bool hasCentroid = itCentroid != atts.end();
-                        auto itFiltered = std::find_if( atts.begin(), atts.end()
-                                                        , [] ( const portfolio::Folium& a ){ return a.name() == Constants::F_DFT_FILTERD; });
-                        bool hasFilterd = itFiltered != atts.end();
+                        attachment_walker attachments( folium );
+                        // portfolio::Folio atts = folium.attachments();
+                        // auto itCentroid = std::find_if( atts.begin(), atts.end()
+                        //                                 , [] ( const portfolio::Folium& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; });
+                        // bool hasCentroid = itCentroid != atts.end();
+                        // auto itFiltered = std::find_if( atts.begin(), atts.end()
+                        //                                 , [] ( const portfolio::Folium& a ){ return a.name() == Constants::F_DFT_FILTERD; });
+                        // bool hasFilterd = itFiltered != atts.end();
 
                         if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
@@ -871,14 +932,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, processor ) ) )
                             a->setEnabled( isSpectrum );
 
-                        portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
-
+                        auto centroid = std::get< 0 >( attachments.has_a_ );
                         if ( auto a = menu.addAction( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, folium, centroid, processor ) ) )
-                            a->setEnabled( hasCentroid );
+                            a->setEnabled( bool( centroid ) );
 
-                        portfolio::Folium filtered = itFiltered != atts.end() ? *itFiltered : portfolio::Folium();
+                        auto filtered = std::get< 1 >( attachments.has_a_ );
                         if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, folium, filtered, processor ) ) )
-                            a->setEnabled( hasFilterd );
+                            a->setEnabled( bool( filtered ) );
 
                         menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( processor ) );
                         menu.addAction( tr("Mark masses from checked chromatograms"), XIC2MS( *pModel_, index, processor ) );
@@ -888,7 +948,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         // ------------->
                     }
                 }
+            }
+        }
+    }
 
+    if ( selRows.size() == 1 ) {
+        if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
+            if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
                     menu.addAction( tr( "Baseline collection" ), [=] () { processor->baselineCollection( folium ); } );
                     menu.addAction( tr( "Find single peak" ),    [=] () { processor->findSinglePeak( folium ); } );
@@ -899,21 +965,21 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                 if ( folium.parentFolder().name() == L"Spectrograms" ) {
                     menu.addAction( tr("Apply lock mass"), [processor,folium](){
-                            if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
-                                processor->applyLockMass( v );
-                        } );
+                        if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
+                            processor->applyLockMass( v );
+                    } );
                     menu.addAction( tr("Export matched masses..."), [processor,folium](){
-                            if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
-                                processor->exportMatchedMasses( v, folium.id() );
-                        } );
+                        if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
+                            processor->exportMatchedMasses( v, folium.id() );
+                    } );
                 }
                 menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
                 processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
             }
         }
-    } // if ( selRows.size() == 1 )
+    }
+
     if ( selRows.size() == 2 ) {
-        ADDEBUG() << "--------- prepare background subtraction -------------";
         std::vector< std::tuple< QModelIndex
                                  , Dataprocessor *
                                  , portfolio::Folium
@@ -928,11 +994,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             int subtrahend = -1, minuend = -1;
             if ( auto active_processor = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto active_folium = active_processor->currentSelection() ) {
-                    ADDEBUG() << "--- active_folium: " << active_folium.name();
-                    ADDEBUG() << "--- selected[0] : " << std::get< 2 >( operand[ 0 ] ).name();
-                    ADDEBUG() << "--- selected[1] : " << std::get< 2 >( operand[ 1 ] ).name();
                     minuend = std::get< 2 >( operand[ 0 ] ).name() == active_folium.name() ? 0 : 1;
-                    ADDEBUG() << "---> minuend : " << minuend << ", " << std::get< 2 >( operand[ minuend ] ).name();
                     subtrahend = minuend == 0 ? 1 : 0 ;
                     menu.addAction(
                         QString( tr("Subtract '%1' from '%2'") ).arg( std::get< 3 >( operand[ subtrahend ] ), std::get< 3 >( operand[ minuend ] ) )
