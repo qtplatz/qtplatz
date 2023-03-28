@@ -1732,22 +1732,6 @@ Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > s
 void
 Dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
 {
-#if 0
-    boost::filesystem::path path( this->file()->filename() );
-    std::string defaultname = path.stem().string() + ".csv";
-
-    while ( !boost::filesystem::is_directory( path ) )
-        path = path.branch_path();
-
-    QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
-                                                                , QObject::tr( "Save mass peak list" )
-                                                                , QString::fromStdString( path.string() )
-                                                                , QString::fromStdString( defaultname )
-                                                                , QObject::tr( "Text files (*.cxv)" ) );
-    auto outfile = boost::filesystem::path( filename.toStdString() );
-    outfile.replace_extension( "csv" );
-    std::ofstream of( outfile.string() );
-#endif
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->resize( info.size() );
     ms->setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
