@@ -104,8 +104,13 @@ namespace {
 
             if ( d_.size() >= ndiff_ ) {
                 posc_ = d_.size() - ( 1 + ndiff_ / 2 );
+#if 0
                 std::get< DERIVERTIVE1 >( d_[ posc_ ] ) =
                     sgfilter_( [&]( size_t i ){ return std::get< RAW_INTENSITY >( d_[ i ] );}, posc_ );
+#else
+                std::get< DERIVERTIVE1 >( d_[ posc_ ] ) =
+                    sgfilter_( [&]( size_t i ){ return std::get< AVERAGED_INTENSITY >( d_[ i ] );}, posc_ );
+#endif
             }
             return *this;
         }
