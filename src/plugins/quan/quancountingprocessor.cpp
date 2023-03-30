@@ -218,7 +218,7 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
 
         if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
 #ifndef NDEBUG
-            ADDEBUG() << lkm->toJson();
+            ADDEBUG() << boost::json::value_from ( *lkm );
 #endif
             for ( auto& cm: cXmethods_ )
                 cm->setLockmass( lkm->enabled() );

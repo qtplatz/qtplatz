@@ -49,6 +49,7 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/utils_filepath.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/modemanager.h>
@@ -261,7 +262,6 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
 #endif
-    pTreeView_->setSelectionMode( QAbstractItemView::ExtendedSelection );
     setFocusProxy( pTreeView_ );
     initView();
 
@@ -270,6 +270,9 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     layout->setSpacing( 0 );
     layout->setContentsMargins( 0, 0, 0, 0 );
     setLayout( layout );
+
+    for ( auto& it: *SessionManager::instance() )
+        handleAddSession( it.processor() );
 
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
@@ -459,13 +462,11 @@ void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     // adcontrols::datafile * file = processor->file();
-#if QTC_VERSION > 0x09'00'00
-    QString filename = processor->filePath().toString();
-#else
-    QString filename = processor->filePath();
-#endif
+    QString filename = qtwrapper::filepath::toString( processor->filePath() );
 
-    QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor );
+    QStandardItemModel& model = *pModel_;
+
+    QStandardItem * item = StandardItemHelper::appendRow( model, processor );
     item->setEditable( false );
     item->setToolTip( filename );
 
@@ -477,7 +478,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 	pTreeView_->expand( item->index() );
     // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
 	for ( int i = 0; i < item->rowCount(); ++i)
-        pTreeView_->expand( pModel_->index( i, 0, item->index()) );
+        pTreeView_->expand( model.index( i, 0, item->index()) );
 }
 
 void
@@ -539,6 +540,52 @@ namespace dataproc {
 
     enum ActionType { checkAll, unCheckAll, asProfile, asCentroid, doCalibration, removedChecked, asDFTProfile };
 
+    struct CheckAllFunctor {
+        bool check;
+        QStandardItemModel& model;
+        QModelIndex index;
+        CheckAllFunctor( bool f, QStandardItemModel& m, QModelIndex& idx ) : check( f ), model( m ), index( idx ) {};
+        void operator()() {
+            auto parent = model.itemFromIndex( index ); // ex. Spectra
+            for ( int row = 0; row < parent->rowCount(); ++row ) {
+                if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
+                    if ( item->isCheckable() ) {
+                        item->setCheckState( check ? Qt::Checked : Qt::Unchecked );
+                        QVariant data = item->data( Qt::UserRole );
+                        if ( data.canConvert< portfolio::Folium >() ) {
+                            auto folium = data.value< portfolio::Folium >();
+                            folium.setAttribute( "isChecked", check ? "true" : "false" );
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    template< Qt::CheckState CheckState >
+    struct RemoveAllFunctor {
+        Dataprocessor * processor;
+        QStandardItemModel& model;
+        QModelIndex index;
+        RemoveAllFunctor( Dataprocessor * dp, QStandardItemModel& m, QModelIndex& idx ) : processor( dp ), model( m ), index( idx ) {};
+        void operator()() {
+            if ( processor ) {
+                auto parent = model.itemFromIndex( index ); // ex. Spectra
+                for ( int row = 0; row < parent->rowCount(); ++row ) {
+                    if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
+                        if ( item->isCheckable() && ( item->checkState() == CheckState )) {
+                            QVariant data = item->data( Qt::UserRole );
+                            if ( data.canConvert< portfolio::Folium >() ) {
+                                auto folium = data.value< portfolio::Folium >();
+                                processor->setAttribute( folium, {"remove", "true"} );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     struct SaveSpectrumAs {
         ActionType idAction;
         portfolio::Folium parent;
@@ -586,21 +633,25 @@ namespace dataproc {
             }
         }
     };
-#if QTC_VERSION >= 0x09'00'00
+
     struct SaveDataGlobalMSLock {
         portfolio::Folium folium_;
         Dataprocessor * processor_;
         SaveDataGlobalMSLock( portfolio::Folium& f, Dataprocessor * dp ) : folium_( f ), processor_(dp) {}
         void operator()() {
             if ( auto mslock = mslock_data::find( folium_ ) ) {
+#if QTC_VERSION >= 0x09'00'00
                 if ( processor_ )
                     processor_->setDataGlobalMSLock( mslock, folium_ );
+#else
+                ADDEBUG() << "------- Feature not implementd --------------";
+#endif
             } else {
                 ADDEBUG() << "------- No mslock data found -----";
             }
         }
     };
-#endif
+
 
     struct SaveChromatogramAs {
         portfolio::Folium folium;
@@ -719,118 +770,6 @@ namespace dataproc {
         }
     };
 
-    //////////////// find_t< portfolio::Folium | portfolio::Folder > //////////////////
-    template< typename T >
-    struct find_t {
-        T operator()( const QModelIndex& index ) const {
-            QVariant data = index.model()->data( index, Qt::UserRole );
-            if ( data.canConvert< T >() ) {
-                return data.value< T >();
-            }
-            return {};
-        }
-
-        T operator()( const QStandardItem * item ) const {
-            QVariant data = item->data( Qt::UserRole );
-            if ( data.canConvert< T >() ) {
-                return data.value< T >();
-            }
-            return {};
-        }
-    };
-
-    //////////////////////////////// find_processor_t<> /////////////////////////////////
-    template< typename T >
-    struct find_processor_t {
-        std::pair< Dataprocessor *, T > operator()( const QModelIndex& index ) const {
-            if ( auto processor = StandardItemHelper::findDataprocessor( index ) ) {
-                QVariant data = index.model()->data( index, Qt::UserRole );
-                if ( data.canConvert< T >() ) {
-                    return { processor, data.value< T >() };
-                }
-            }
-            return {};
-        }
-    };
-
-    //////////////////////////////// set_attribute /////////////////////////////////
-    struct set_attribute {
-        QModelIndexList& rows_;
-        set_attribute( QModelIndexList& rows ) : rows_( rows )  {}
-
-        void operator()( std::pair< std::string, std::string>&& keyValue ) const {
-            for ( auto index: rows_ ) {
-                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
-                if ( processor && folium )
-                    processor->setAttribute( folium, std::move( keyValue ) );
-            }
-        }
-    };
-
-    ///////////////////////////////////////////////////////////////////////////////
-    struct check_all_in_folder {
-        const QModelIndexList& rows_;
-        check_all_in_folder( const QModelIndexList& rows ) : rows_( rows ) {}
-        void operator()( bool check ) {
-            for ( auto index: rows_ ) {
-                if ( auto model = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
-                    auto parent = model->itemFromIndex( index );
-                    for ( int row = 0; row < parent->rowCount(); ++row ) {
-                        if ( auto item = model->itemFromIndex( model->index( row, 0, parent->index() ) ) ) {
-                            if ( item->isCheckable() ) {
-                                item->setCheckState( check ? Qt::Checked : Qt::Unchecked );
-                                if ( auto folium = find_t< portfolio::Folium >()( item ) ) {
-                                    folium.setAttribute( "isChecked", check ? "true" : "false" );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    //--------------------------------
-    template< Qt::CheckState CheckState >
-    struct set_attribute_all {
-        const QModelIndexList& rows_;
-        set_attribute_all( const QModelIndexList& rows ) : rows_( rows ) {}
-        void operator()( std::pair< std::string, std::string >&& keyValue ) {
-            for ( auto index: rows_ ) {
-                if ( auto model = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
-                    auto parent = model->itemFromIndex( index );
-                    for ( int row = 0; row < parent->rowCount(); ++row ) {
-                        if ( auto item = model->itemFromIndex( model->index( row, 0, parent->index() ) ) ) {
-                            if ( item->isCheckable() && ( item->checkState() == CheckState ) ) {
-                                auto [processor, folium] = find_processor_t< portfolio::Folium >()( item->index() );
-                                if ( processor && folium ) {
-                                    processor->setAttribute( folium, std::move( keyValue ) );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    // --------------------------------
-    struct delete_removed {
-        std::set< Dataprocessor * > list_;
-        NavigationWidget * pThis_;
-        delete_removed( const QModelIndexList& rows, NavigationWidget * p ) : pThis_( p ) {
-            for ( auto& index: rows ) {
-                if ( auto processor = StandardItemHelper::findDataprocessor( index ) )
-                    list_.insert( processor );
-            }
-        }
-        void operator()() const {
-            for ( auto processor: list_ ) {
-                processor->deleteRemovedItems();
-                pThis_->invalidateSession( processor );
-            }
-        }
-    };
 }
 
 void
@@ -840,44 +779,48 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 	QModelIndex index = pTreeView_->currentIndex();
 
     QMenu menu;
-    auto selRows = pTreeView_->selectionModel()->selectedRows();
 
-    ADDEBUG() << "selRows size = " << selRows.size();
-
-    if ( selRows.size() >= 1 ) {
-        set_attribute set_attribute( selRows );
-        menu.addAction( tr( "Remove"    ), [&](){ set_attribute( { "remove", "true" } ); } );
-        menu.addAction( tr( "Unremove"  ), [&](){ set_attribute( { "remove", "false" } ); } );
-        menu.addAction( tr( "Tag none"  ), [&](){ set_attribute( { "tag",    "none"  } ); } );
-        menu.addAction( tr( "Tag red"   ), [&](){ set_attribute( { "tag",    "red"   } ); } );
-        menu.addAction( tr( "Tag blue"  ), [&](){ set_attribute( { "tag",    "blue"  } ); } );
-        menu.addAction( tr( "Tag green" ), [&](){ set_attribute( { "tag",    "green" } ); } );
-        menu.addSeparator();
-    };
-
-    if ( selRows.size() == 1 ) {
+    if ( index.isValid() ) {
+        portfolio::Folium active_folium;
+        QString active_spectrum;
+        if ( auto activeProcessor = SessionManager::instance()->getActiveDataprocessor() ) {
+            if ( (active_folium = activeProcessor->currentSelection()) ) {
+                if ( active_folium.parentFolder().name() == L"Spectra" )
+                    active_spectrum = QString::fromStdWString( active_folium.name() );
+            }
+        }
 
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             // this indicates menu requested on folium|folder node
 
-            if ( auto folder = find_t< portfolio::Folder >()( index ) ) {
+            QVariant data = pModel_->data( index, Qt::UserRole );
 
-                auto name = index.data( Qt::EditRole ).toString().toLower();
+            if ( data.canConvert< portfolio::Folder >() ) {
 
-                check_all_in_folder check_all( selRows );
-                set_attribute_all< Qt::Unchecked > set_all( selRows );
-                menu.addAction( QString( tr("Uncheck all %1") ).arg( name ),      [&]{ check_all( false ); } );
-                menu.addAction( QString( tr("Check all %1") ).arg( name ),        [&]{ check_all( true ); } );
-                menu.addAction( QString( tr("Remove all unchecked %1") ).arg( name ), [&]{ set_all( { "remove", "true" } ); } );
-                if ( folder.name() == L"Chromatograms" ) {
-                    menu.addAction( QString( tr("List m/z list for %1") ).arg( name ), xicMassList( *pModel_, index, processor ) );
-                    menu.addAction( QString( tr("Fix all baseline levels for %1") ).arg( name ), fixBaselines( *pModel_, index, processor ) );
+                if ( auto folder = data.value< portfolio::Folder >() ) {
+                    menu.addAction( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                    , CheckAllFunctor( false, *pModel_, index ) );
+                    menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                    , CheckAllFunctor( true, *pModel_, index ) );
+                    menu.addAction( QString( tr("Remove all unchecked %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                    , RemoveAllFunctor< Qt::Unchecked >( processor, *pModel_, index ) );
+
+                    if ( folder.name() == L"Chromatograms" ) {
+                        menu.addAction( QString( tr("List m/z list for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                        , xicMassList( *pModel_, index, processor ) );
+                        menu.addAction( QString( tr("Fix all baseline levels for %1") ).arg( index.data( Qt::EditRole ).toString() )
+                                        , fixBaselines( *pModel_, index, processor ) );
+                    }
                 }
 
-            } else if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
+            } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
+
+                portfolio::Folium folium = data.value< portfolio::Folium >();
 
                 if ( (folium.parentFolder().name() == L"Spectra") ||
                      (folium.parentFolder().name() == L"MSCalibration") )  {
+
+                    QString selected_spectrum = QString::fromStdWString( folium.name() );
 
                     if ( folium.empty() )
                         processor->fetch( folium );
@@ -894,11 +837,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-#if QTC_VERSION >= 0x09'00'00
                         if ( auto a = menu.addAction( tr("Set data global mass lock" ), SaveDataGlobalMSLock( folium, processor ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-#endif
+
                         if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, processor ) ) )
                             a->setEnabled( isSpectrum );
 
@@ -916,7 +858,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                         menu.addSeparator();
 
-                        // ------------->
+                        if ( auto a = menu.addAction( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
+                                                      , BackgroundSubtraction( active_folium, folium, processor ) ) )
+                            a->setEnabled( !active_spectrum.isEmpty() );
                     }
                 }
 
@@ -938,47 +882,31 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 processor->exportMatchedMasses( v, folium.id() );
                         } );
                 }
-                menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
-                processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
-            }
-        }
-    } // if ( selRows.size() == 1 )
-    if ( selRows.size() == 2 ) {
-        ADDEBUG() << "--------- prepare background subtraction -------------";
-        std::vector< std::tuple< QModelIndex
-                                 , Dataprocessor *
-                                 , portfolio::Folium
-                                 , QString > > operand;
-        for ( size_t i = 0; i < selRows.size(); ++i ) {
-            auto [ processor, folium ] = find_processor_t< portfolio::Folium >()( selRows[ i ] );
-            if ( ( processor && folium ) && folium.parentFolder().name() == L"Spectra" ) {
-                operand.emplace_back( selRows[ i ], processor, folium, QString::fromStdWString( folium.name() ) );
-            }
-        }
-        if ( operand.size() == 2 ) {
-            int subtrahend = -1, minuend = -1;
-            if ( auto active_processor = SessionManager::instance()->getActiveDataprocessor() ) {
-                if ( auto active_folium = active_processor->currentSelection() ) {
-                    ADDEBUG() << "--- active_folium: " << active_folium.name();
-                    ADDEBUG() << "--- selected[0] : " << std::get< 2 >( operand[ 0 ] ).name();
-                    ADDEBUG() << "--- selected[1] : " << std::get< 2 >( operand[ 1 ] ).name();
-                    minuend = std::get< 2 >( operand[ 0 ] ).name() == active_folium.name() ? 0 : 1;
-                    ADDEBUG() << "---> minuend : " << minuend << ", " << std::get< 2 >( operand[ minuend ] ).name();
-                    subtrahend = minuend == 0 ? 1 : 0 ;
-                    menu.addAction(
-                        QString( tr("Subtract '%1' from '%2'") ).arg( std::get< 3 >( operand[ subtrahend ] ), std::get< 3 >( operand[ minuend ] ) )
-                        , BackgroundSubtraction( std::get< 2 >( operand[ subtrahend ] )
-                                                 , std::get< 2 >( operand[ minuend ] )
-                                                 , active_processor ) );
+                if ( folium.attribute("remove") == "true" ) {
+                    menu.addAction( tr( "Cancel remove"), [=](){ processor->setAttribute( folium, {"remove", "false"}); });
+                } else {
+                    menu.addAction( tr( "Remove"), [=](){        processor->setAttribute( folium, {"remove",  "true"}); });
                 }
+                menu.addAction( tr( "Tag none"  ), [=] () { processor->setAttribute( folium, { "tag", "none"  } ); });
+                menu.addAction( tr( "Tag red"   ), [=] () { processor->setAttribute( folium, { "tag",  "red"  } ); });
+                menu.addAction( tr( "Tag blue"  ), [=] () { processor->setAttribute( folium, { "tag", "blue"  } ); });
+                menu.addAction( tr( "Tag green" ), [=] () { processor->setAttribute( folium, { "tag", "green" } ); });
+
+                processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
+
             }
-        }
-    }
 
-    menu.addSeparator();
-    menu.addAction( tr( "Delete removed items"), [&]{ delete_removed( selRows, this )(); } );
+            menu.addSeparator();
+            menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
+            menu.addAction( tr( "Delete removed items"), [processor, this](){
+                processor->deleteRemovedItems();
+                invalidateSession( processor );
+            } );
 
-    menu.exec( globalPos );
+            menu.exec( globalPos );
+
+        } // if dataprocessor
+    } // if index.isValid
 }
 
 void
