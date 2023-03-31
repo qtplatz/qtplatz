@@ -24,7 +24,6 @@
 #include "task.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "mass_assignor.hpp"
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/softaveraged_waveform_accessor.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -318,17 +317,22 @@ namespace accutof { namespace acquire {
 
         struct queue_process : boost::static_visitor< void > {
             data_status& status;
-            queue_process ( data_status& t ) : status( t )
+            std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
+
+            queue_process ( data_status& t
+                            , std::shared_ptr< const adcontrols::MassSpectrometer > sp ) : status( t )
+                                                                                         , massSpectrometer_( sp )
                 {}
 
             // software threshold counting
             void operator()( threshold_array_type threshold_results ) const {
                 int channel = 0;
+                auto mass_assign = [&](double time, int){ return massSpectrometer_->assignMass( time, 0 ); };
+
                 for ( auto result: threshold_results ) {
                     if ( result ) {
                         auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                        mass_assignor assignor;
-                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *result, assignor ) ) {
+                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *result, mass_assign ) ) {
                             ms->getMSProperty().setTrigNumber( result->data()->serialnumber_, status.pos_origin_ );
                             document::instance()->setData( acqrscontrols::u5303a::waveform_observer, ms, channel );
                         }
@@ -340,11 +344,12 @@ namespace accutof { namespace acquire {
             // pkd+avg waveforms
             void operator()( waveform_array_type wforms ) const {
                 int channel = 0;
+                auto mass_assign = [&](double time, int){ return massSpectrometer_->assignMass( time, 0 ); };
 
                 for ( auto wform: wforms ) {
                     if ( wform ) {
                         auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *wform, mass_assignor() ) ) {
+                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *wform, mass_assign ) ) {
                             ms->getMSProperty().setTrigNumber( wform->serialnumber_, status.pos_origin_ );
                             document::instance()->setData( acqrscontrols::u5303a::waveform_observer, ms, channel );
                         }
@@ -367,6 +372,9 @@ task::impl::worker_thread()
         if ( worker_stopping_ )
             return;
 
+        auto massSpectrometer( document::instance()->massSpectrometer() ); // lock
+        auto mass_assign = [=](double time, int){ return massSpectrometer->assignMass( time, 0 ); };
+
         // per trigger waveform
         if ( data_status_[ acqrscontrols::u5303a::waveform_observer ].plot_ready_ ) {
 
@@ -375,10 +383,10 @@ task::impl::worker_thread()
             status.plot_ready_ = false;
             status.tp_plot_handled_ = std::chrono::system_clock::now();
 
-            boost::apply_visitor( queue_process( status ), que_ );
+            boost::apply_visitor( queue_process( status, massSpectrometer ), que_ );
 
             if ( ! histogram_clear_cycle_enabled_ ) { // draw co-added pkd waveform
-                if ( auto ms = document::instance()->tdc()->recentSpectrum( acqrscontrols::tdcbase::LongTermPkdWaveform, mass_assignor() ) )
+                if ( auto ms = document::instance()->tdc()->recentSpectrum( acqrscontrols::tdcbase::LongTermPkdWaveform, mass_assign ) )
                     document::instance()->setData( acqrscontrols::u5303a::pkd_coadd_spectrum, ms, 1 );
             }
         }

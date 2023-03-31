@@ -1466,7 +1466,7 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
         else
             return false;
     }
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
 #endif
     auto sp = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer );
@@ -1567,7 +1567,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
 bool
 document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
-#ifndef NDEBUG
+#if ! defined NDEBUG && 0
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
 #endif
 
