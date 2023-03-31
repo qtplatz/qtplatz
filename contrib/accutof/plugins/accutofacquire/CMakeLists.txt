@@ -101,6 +101,10 @@ add_library(
   ${Resources}
   )
 
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS_EQUAL "8.3.0" )
+  set (LIBCPPFS "stdc++fs")
+endif()
+
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
   acewrapper
@@ -130,6 +134,7 @@ target_link_libraries(
   ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
   Threads::Threads
+  ${LIBCPPFS}
   )
 
 set_target_properties( ${PROJECT_NAME}

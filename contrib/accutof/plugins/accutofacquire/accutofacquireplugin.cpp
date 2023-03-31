@@ -40,8 +40,13 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#if QTC_VERSION < 0x09'00'00
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/modemanager.h>
+#include <extensionsystem/pluginmanager.h>
 
 #include <QAction>
 #include <QMessageBox>
@@ -61,7 +66,7 @@ namespace accutof { namespace acquire {
 using namespace accutof::acquire;
 
 acquirePlugin::acquirePlugin() : mainWindow_( new MainWindow() )
-                             , mode_( std::make_shared< Mode >(this) )
+                               , mode_( std::make_shared< Mode >(this) )
 {
 }
 
@@ -86,10 +91,11 @@ acquirePlugin::initialize( const QStringList &arguments, QString *errorString )
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
 
-    addObject( mode_.get() );
+    // addObject( mode_.get() );
 
     for ( auto iExtension : document::instance()->iControllers() ) {
-        addObject( iExtension );
+        ExtensionSystem::PluginManager::addObject( iExtension );
+        // addObject( iExtension );
         connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
 
@@ -132,13 +138,10 @@ acquirePlugin::aboutToShutdown()
     document::instance()->finalClose();
 
     if ( auto iExtension = document::instance()->iSequence() )
-        removeObject( iExtension );
+        ExtensionSystem::PluginManager::removeObject( iExtension );
 
     for ( auto iExtension : document::instance()->iControllers() )
-        removeObject( iExtension );
-
-    if ( mode_ )
-        removeObject( mode_.get() );
+        ExtensionSystem::PluginManager::removeObject( iExtension );
 
 #if ! defined NDEBUG && 0
     ADDEBUG() << "## Shutdown "

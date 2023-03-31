@@ -65,6 +65,7 @@
 #endif
 #include <adwidgets/xchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
+#include <qtwrapper/plugin_manager.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -275,7 +276,7 @@ MainWindow::createDockWidgets()
 size_t
 MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const
 {
-    for ( auto v: ExtensionSystem::PluginManager::getObjects< adextension::iController >() ) {
+    for ( auto v: qtwrapper::plugin_manager_t<>::getObjects< adextension::iController >() ) {
         try {
             vec.push_back( v->shared_from_this() );
         } catch ( std::bad_weak_ptr& ) {
@@ -335,13 +336,13 @@ MainWindow::OnInitialUpdate()
     }
 
     // enumerate all controllers
-    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+    for ( auto iController: qtwrapper::plugin_manager_t<>::getObjects< adextension::iController >() ) {
         document::instance()->addInstController( iController );
     }
 
     // initialize module picker
     if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {
-        for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+        for ( auto iController: qtwrapper::plugin_manager_t<>::getObjects< adextension::iController >() ) {
             bool checked = document::instance()->isControllerEnabled( iController->module_name() );
             bool enabled = !document::instance()->isControllerBlocked( iController->module_name() );
             picker->addItem( iController->module_name(), iController->module_name(), checked, enabled );
@@ -483,7 +484,7 @@ MainWindow::createContents( Core::IMode * mode )
     setDockNestingEnabled( true );
 
     QBoxLayout * editorHolderLayout = new QVBoxLayout;
-	editorHolderLayout->setMargin( 0 );
+	editorHolderLayout->setContentsMargins( {} );
 	editorHolderLayout->setSpacing( 0 );
 
     // handle ControlMethod (load/save)
@@ -517,7 +518,7 @@ MainWindow::createContents( Core::IMode * mode )
 
             QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
             centralWidget->setLayout( centralLayout );
-            centralLayout->setMargin( 0 );
+            centralLayout->setContentsMargins( {} );
             centralLayout->setSpacing( 0 );
             // ----------------------------------------------------
             centralLayout->addWidget( editorWidget ); // [ToolBar + WaveformWnd]
@@ -532,7 +533,7 @@ MainWindow::createContents( Core::IMode * mode )
 
 	if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
 
-        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
         outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
 
         mainWindowSplitter->addWidget( this );        // [Central Window]
@@ -636,7 +637,7 @@ MainWindow::createTopStyledToolbar()
         toolBar->setObjectName( "topToolBar" );
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
@@ -713,7 +714,7 @@ MainWindow::createMidStyledToolbar()
         toolBar->setObjectName( "midToolBar" );
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
@@ -798,7 +799,7 @@ MainWindow::createActions()
     if ( !menu )
         return;
 
-    const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL ) ) );
+    const Core::Context context( ( Utils::Id( Core::Constants::C_GLOBAL ) ) );
 
     menu->menu()->setTitle( "U5303A" );
 
