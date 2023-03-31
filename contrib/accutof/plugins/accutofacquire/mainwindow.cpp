@@ -106,6 +106,7 @@
 #include <QTabBar>
 #include <QToolButton>
 #include <QTextEdit>
+#include <QThread>
 #include <QLabel>
 #include <QIcon>
 #include <qdebug.h>
@@ -1063,6 +1064,8 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
 std::shared_ptr< adcontrols::ControlMethod::Method >
 MainWindow::getControlMethod() const
 {
+    ADDEBUG() << "-------- getControlMethod threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     auto ptr = std::make_shared< adcontrols::ControlMethod::Method >();
     boost::any a( ptr );
     for ( auto dock: dockWidgets() ) {
@@ -1272,6 +1275,9 @@ void
 MainWindow::handleControlMethodSaveAs()
 {
     QString dstfile;
+
+    ADDEBUG() << "-------- getContents threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
 
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
         dstfile = edit->toolTip();
