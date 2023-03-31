@@ -25,7 +25,6 @@
 #include "waveformwnd.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "mass_assignor.hpp"
 #include "moleculeswidget.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/tdcdoc.hpp>
@@ -202,7 +201,7 @@ WaveformWnd::init()
     }
 
     QBoxLayout * layout = new QVBoxLayout( this );
-    layout->setContentsMargins( {} );
+    layout->setMargin( 0 );
     layout->setSpacing( 2 );
     layout->addWidget( top_splitter );
     top_splitter->setStretchFactor( 0, 2 );
@@ -248,13 +247,16 @@ WaveformWnd::handle_threshold_action()
 {
     if ( auto am = document::instance()->tdc()->threshold_action() ) {
 
+        auto massSpectrometer( document::instance()->massSpectrometer() ); // lock
+        auto mass_assign = [=](double time, int){ return massSpectrometer->assignMass( time, 0 ); };
+
         double lower(0), upper(0);
         if ( spw_->axis() == adplot::SpectrumWidget::HorizontalAxisTime ) {
             lower = ( am->delay - am->width / 2 ) * std::micro::den; // us
             upper = ( am->delay + am->width / 2 ) * std::micro::den; // us
         } else {
-            lower = mass_assignor()( am->delay - am->width / 2, 0 );
-            upper = mass_assignor()( am->delay + am->width / 2, 0 );
+            lower = mass_assign( am->delay - am->width / 2, 0 );
+            upper = mass_assign( am->delay + am->width / 2, 0 );
         }
 
         bool replot( false );

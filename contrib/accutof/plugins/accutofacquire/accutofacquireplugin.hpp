@@ -24,7 +24,7 @@ namespace accutof {
             void extensionsInitialized();
             ShutdownFlag aboutToShutdown();
         private:
-            std::unique_ptr< Mode > mode_;
+            std::shared_ptr< Mode > mode_;
             MainWindow * mainWindow_;
 
         private slots:

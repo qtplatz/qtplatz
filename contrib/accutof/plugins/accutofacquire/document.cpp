@@ -871,10 +871,9 @@ document::recentFile( const char * group, bool dir_on_fail )
     QString file = qtwrapper::settings( *impl_->settings_ ).recentFile( group, Constants::KEY_FILES );
     if ( !file.isEmpty() )
         return file;
+
     if ( dir_on_fail ) {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         file = Core::DocumentManager::currentFile();
-#endif
         if ( file.isEmpty() )
             file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
 
@@ -1315,17 +1314,9 @@ document::impl::takeSnapshot()
             QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
             QString folderId;
             if ( appendOnFile( path, title, *ms, folderId ) ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
                 for ( auto handler: vec )
                     handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
-#else
-                for ( auto v : ExtensionSystem::PluginManager::allObjects() ) {
-                    if ( auto handler = qobject_cast< adextension::iSnapshotHandler * >( v ) ) {
-                        handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
-                    }
-                }
-#endif
             }
         }
         ++ch;
@@ -1337,17 +1328,9 @@ document::impl::takeSnapshot()
         QString title = QString( "Histogram %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
         QString folderId;
         if ( document::appendOnFile( path, title, *histogram, folderId ) ) {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
             for ( auto handler: vec )
                 handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
-#else
-            for ( auto v : ExtensionSystem::PluginManager::allObjects() ) {
-                if ( auto handler = qobject_cast< adextension::iSnapshotHandler * >( v ) ) {
-                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
-                }
-            }
-#endif
         }
     }
 
@@ -1483,7 +1466,7 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
         else
             return false;
     }
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
 #endif
     auto sp = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer );
@@ -1584,7 +1567,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
 bool
 document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
-#ifndef NDEBUG
+#if ! defined NDEBUG && 0
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
 #endif
 
@@ -1646,12 +1629,12 @@ document::setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > m
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
             auto [enable, algo] = m->tic();
-#else
-            bool enable; xic::eIntensityAlgorithm algo;
-            std::tie( enable, algo ) = m->tic();
-#endif
+//#else
+            // bool enable; xic::eIntensityAlgorithm algo;
+            // std::tie( enable, algo ) = m->tic();
+//#endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1691,12 +1674,12 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
             auto [enable, algo] = m.tic();
-#else
-            bool enable; xic::eIntensityAlgorishm algo;
-            std::tie( enable, algo ) = m.tic();
-#endif
+// #else
+//             bool enable; xic::eIntensityAlgorishm algo;
+//             std::tie( enable, algo ) = m.tic();
+// #endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1734,12 +1717,12 @@ document::addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogra
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
         auto [enable,algo] = method->tic();
-#else
-        bool enable; adcontrols::xic::eIntensityAlgorithm algo;
-        std::tie( enable, algo ) = method->tic();
-#endif
+// #else
+//         bool enable; adcontrols::xic::eIntensityAlgorithm algo;
+//         std::tie( enable, algo ) = method->tic();
+// #endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
@@ -1805,12 +1788,12 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
-#if __cplusplus >= 201703L
+//#if __cplusplus >= 201703L
         auto [enable,algo] = method.tic();
-#else
-        bool enable; adcontrols::xic::eIntensityAlgorishm algo;
-        std::tie( enable, algo ) = method.tic();
-#endif
+// #else
+//         bool enable; adcontrols::xic::eIntensityAlgorishm algo;
+//         std::tie( enable, algo ) = method.tic();
+// #endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );

@@ -121,7 +121,7 @@ MoleculesWidget::MoleculesWidget(QWidget *parent) : QWidget(parent)
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setContentsMargins( {} );
+        layout->setMargin(0);
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {
