@@ -7,6 +7,24 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
+########## QtCreator 9 (Qt6) plugin.json #############
+if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  foreach ( i "Core" )
+    set(_v ${IDE_VERSION})
+    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
+  endforeach()
+  string(APPEND DEPENDENCY_STRING "\n    ]")
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/accutofacquire.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+    )
+endif()
+####################### END ##########################
+
 #QT += core svg printsupport widgets
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
 find_package( qwt )
@@ -39,6 +57,7 @@ add_definitions(
   )
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/accutof/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs

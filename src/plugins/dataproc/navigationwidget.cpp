@@ -659,6 +659,13 @@ namespace { // anonymous
         const std::set< QString >& folders() const { return selFolders_; }
         size_t foliumCounts() const { return selFoliumCounts_; }
         size_t folderCounts() const { return selFolderCounts_; }
+        bool contains( const QString& key ) const {
+#if __cplusplus >= 202002L
+            return selFolders_.contains( key );
+#ele
+            return selFolders_.find( key ) != selFolders_.end();
+#endif
+        }
     };
 
     // --------------------------------
@@ -976,7 +983,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         menu.addAction( QString( tr("Remove all unchecked %1") ).arg( name ), [&]{ set_attr( { "remove", "true" } ); } )->setEnabled( enable );
 
         // enable only Chromatograms was sepected
+#if __cplusplus >= 202002L
         enable = selFolders.folders().contains( "Chromatograms" ) && selFolders.folders().size() == 1;
+#else
+        enable = selFolders.contains( "Chromatograms" ) && selFolders.folders().size() == 1;
+#endif
         menu.addAction( QString( tr("Collect all baseline for %1") ).arg( name )
                         , collect_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
 
@@ -987,9 +998,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     } while ( 0 );
 
     if ( selFolders.folders().size() == 1 ) { // Spectra | MSCalibration -- exclusively selected
-        if ( selFolders.folders().contains( "Spectra" ) ||
-             selFolders.folders().contains( "MSCalibration" ) ) {
 
+        if ( selFolders.contains( "Spectra" ) ||
+             selFolders.contains( "MSCalibration" ) ) {
             if ( selRows.size() == 1 ) { // single selection
                 if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
                     fetch_t::fetch( index, folium );
@@ -1023,7 +1034,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
     }
 
-    if ( ( selFolders.folders().size() == 1 ) && selFolders.folders().contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
+    if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
@@ -1041,7 +1052,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
     }
 
-    if ( ( selFolders.folders().size() == 1 ) && selFolders.folders().contains( "Spectrograms" ) ) { // Chromatograms -- exclusively selected
+    if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Spectrograms" ) ) { // Chromatograms -- exclusively selected
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
                 menu.addAction( tr("Apply lock mass"), [processor,folium](){
