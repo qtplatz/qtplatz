@@ -297,7 +297,11 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 #endif
     if ( impl_->isRecording_ ) {
         impl_->data_status_[ so->objid() ].posted_data_count_++;
+#if __cplusplus >= 202002L
         impl_->io_service_.post( [=,this]{ impl_->readData( so, pos ); } );
+#else
+        impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
+#endif
     }
 }
 

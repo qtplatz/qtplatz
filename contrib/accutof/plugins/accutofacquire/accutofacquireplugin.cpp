@@ -40,14 +40,13 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#if QTC_VERSION < 0x09'00'00
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
 #else
 #include <utils/id.h>
 #endif
 #include <coreplugin/modemanager.h>
 #include <extensionsystem/pluginmanager.h>
-
 #include <QAction>
 #include <QMessageBox>
 #include <QMainWindow>
@@ -66,7 +65,7 @@ namespace accutof { namespace acquire {
 using namespace accutof::acquire;
 
 acquirePlugin::acquirePlugin() : mainWindow_( new MainWindow() )
-                               , mode_( std::make_shared< Mode >(this) )
+                                 // , mode_( std::make_shared< Mode >(this) )
 {
 }
 
@@ -85,27 +84,19 @@ acquirePlugin::initialize( const QStringList &arguments, QString *errorString )
 
     const Core::Context context( ( "AccuTOFAcquire.MainView" ) );
 
-    mode_->setId( "AccuTOFAcquire.MainView" );
-    mode_->setContext( context );
+    if (( mode_ = std::make_unique< Mode >() )) {
+        mode_->setId( "AccuTOFAcquire.MainView" );
+        mode_->setContext( context );
 
-    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
-        mode_->setWidget( widget );
-
-    // addObject( mode_.get() );
+        if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+            mode_->setWidget( widget );
+    }
+    ExtensionSystem::PluginManager::addObject( mode_.get() );
 
     for ( auto iExtension : document::instance()->iControllers() ) {
         ExtensionSystem::PluginManager::addObject( iExtension );
-        // addObject( iExtension );
         connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
-
-#if 0
-    // no time function supported.
-    if ( auto iExtension = document::instance()->iSequence() ) {
-        MainWindow::instance()->getEditorFactories( *iExtension );
-        addObject( iExtension );
-    }
-#endif
 
     QAction *action = new QAction(tr("AccuTOF action"), this);
 
@@ -137,11 +128,11 @@ acquirePlugin::aboutToShutdown()
     // Hide UI (if you add UI that is not in the main window directly)
     document::instance()->finalClose();
 
-    if ( auto iExtension = document::instance()->iSequence() )
-        ExtensionSystem::PluginManager::removeObject( iExtension );
-
     for ( auto iExtension : document::instance()->iControllers() )
         ExtensionSystem::PluginManager::removeObject( iExtension );
+
+    if ( mode_ )
+        ExtensionSystem::PluginManager::removeObject( mode_.get() );
 
 #if ! defined NDEBUG && 0
     ADDEBUG() << "## Shutdown "

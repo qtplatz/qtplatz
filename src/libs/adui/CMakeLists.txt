@@ -43,3 +43,8 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )
+
+
+set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)  # for utils/algorithms.h
+
+##########

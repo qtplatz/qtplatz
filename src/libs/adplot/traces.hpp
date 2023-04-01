@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "trace.hpp"
 #include <vector>
 #include <string>
 
@@ -54,4 +55,3 @@ namespace adplot {
     };
 
 }
-

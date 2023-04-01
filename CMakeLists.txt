@@ -126,6 +126,10 @@ include (version)
 include (boost.cmake)
 include (qtplatz_api)
 
+if ( COMPILER_SUPPORTS_CXX20 OR COMPILER_SUPPORTS_CXX17 )
+  set( CMAKE_CXX_STANDARD 20 )
+endif()
+
 ################################################################
 
 if ( WIN32 )

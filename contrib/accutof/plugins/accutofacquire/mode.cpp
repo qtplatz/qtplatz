@@ -26,7 +26,7 @@
 #include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#if QTC_VERSION < 0x09'00'00
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
 #else
 #include <utils/id.h>

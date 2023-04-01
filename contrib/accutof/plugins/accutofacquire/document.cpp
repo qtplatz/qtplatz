@@ -89,7 +89,6 @@
 #include <date/date.h>
 #include <extensionsystem/pluginmanager.h>
 #include <qtwrapper/settings.hpp>
-#include <qtwrapper/plugin_manager.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -110,7 +109,6 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/json.hpp>
-#include <QCoreApplication>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -118,7 +116,6 @@
 #include <QMetaType>
 #include <QSettings>
 #include <QStandardPaths>
-#include <QThread>
 #include <chrono>
 #include <future>
 #include <fstream>
@@ -448,8 +445,6 @@ document::actionConnect()
 
         emit onModulesFailed( failed );
 
-        assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
         tdc()->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
@@ -541,8 +536,6 @@ document::actionRun()
     auto run = MainWindow::instance()->getSampleRun();
     setSampleRun( run );
 
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     auto cm = MainWindow::instance()->getControlMethod();
     setControlMethod( cm, QString() );
 
@@ -617,7 +610,6 @@ document::prepare_for_run()
 
     save_defaults();
 
-    ADDEBUG() << "##### prepare_for_run thread: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto cm = MainWindow::instance()->getControlMethod();
 
     setControlMethod( *cm, QString() );
@@ -837,7 +829,6 @@ document::save_defaults()
         }
     }
 
-    ADDEBUG() << "##### document::save_default thread: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
         save( QString::fromStdWString( fname.wstring() ), *cm );
@@ -880,13 +871,13 @@ document::recentFile( const char * group, bool dir_on_fail )
     QString file = qtwrapper::settings( *impl_->settings_ ).recentFile( group, Constants::KEY_FILES );
     if ( !file.isEmpty() )
         return file;
-
     if ( dir_on_fail ) {
-#if QTC_VERSION < 0x09'00'00
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         file = Core::DocumentManager::currentFile();
+#endif
         if ( file.isEmpty() )
             file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
-#endif
+
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();
@@ -1085,7 +1076,6 @@ document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 {
     tdc()->set_threshold_method( ch, m );
 
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto mp = MainWindow::instance()->getControlMethod();
     setControlMethod( mp );
 
@@ -1097,7 +1087,6 @@ document::set_threshold_action( const adcontrols::threshold_action& m )
 {
     tdc()->set_threshold_action( m );
 
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto mp = MainWindow::instance()->getControlMethod();
     setControlMethod( mp );
 
@@ -1108,8 +1097,6 @@ document::set_threshold_action( const adcontrols::threshold_action& m )
 void
 document::set_method( const acqrscontrols::u5303a::method& )
 {
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         setControlMethod( cm );
 
@@ -1328,9 +1315,17 @@ document::impl::takeSnapshot()
             QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
             QString folderId;
             if ( appendOnFile( path, title, *ms, folderId ) ) {
-                auto vec = qtwrapper::plugin_manager_t<>::getObjects< adextension::iSnapshotHandler >();
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
                 for ( auto handler: vec )
                     handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+#else
+                for ( auto v : ExtensionSystem::PluginManager::allObjects() ) {
+                    if ( auto handler = qobject_cast< adextension::iSnapshotHandler * >( v ) ) {
+                        handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+                    }
+                }
+#endif
             }
         }
         ++ch;
@@ -1342,9 +1337,17 @@ document::impl::takeSnapshot()
         QString title = QString( "Histogram %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
         QString folderId;
         if ( document::appendOnFile( path, title, *histogram, folderId ) ) {
-            auto vec = qtwrapper::plugin_manager_t<>::getObjects< adextension::iSnapshotHandler >();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
             for ( auto handler: vec )
                 handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+#else
+            for ( auto v : ExtensionSystem::PluginManager::allObjects() ) {
+                if ( auto handler = qobject_cast< adextension::iSnapshotHandler * >( v ) ) {
+                    handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+                }
+            }
+#endif
         }
     }
 
@@ -1480,7 +1483,7 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
         else
             return false;
     }
-#if !defined NDEBUG && 0
+#ifndef NDEBUG
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
 #endif
     auto sp = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer );
@@ -1581,7 +1584,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
 bool
 document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
-#if ! defined NDEBUG && 0
+#ifndef NDEBUG
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
 #endif
 
@@ -1613,7 +1616,6 @@ document::impl::closingStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
 void
 document::applyTriggered()
 {
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto ptr = MainWindow::instance()->getControlMethod();
     setControlMethod( ptr );
     prepare_for_run();
@@ -1644,12 +1646,12 @@ document::setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > m
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-//#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L
             auto [enable, algo] = m->tic();
-//#else
-            // bool enable; xic::eIntensityAlgorithm algo;
-            // std::tie( enable, algo ) = m->tic();
-//#endif
+#else
+            bool enable; xic::eIntensityAlgorithm algo;
+            std::tie( enable, algo ) = m->tic();
+#endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1689,12 +1691,12 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-//#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L
             auto [enable, algo] = m.tic();
-// #else
-//             bool enable; xic::eIntensityAlgorishm algo;
-//             std::tie( enable, algo ) = m.tic();
-// #endif
+#else
+            bool enable; xic::eIntensityAlgorishm algo;
+            std::tie( enable, algo ) = m.tic();
+#endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );
@@ -1732,12 +1734,12 @@ document::addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogra
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
-//#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L
         auto [enable,algo] = method->tic();
-// #else
-//         bool enable; adcontrols::xic::eIntensityAlgorithm algo;
-//         std::tie( enable, algo ) = method->tic();
-// #endif
+#else
+        bool enable; adcontrols::xic::eIntensityAlgorithm algo;
+        std::tie( enable, algo ) = method->tic();
+#endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
@@ -1803,12 +1805,12 @@ document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& metho
 
     do {
         auto trace = impl_->traces_[ 0 ]; // TIC
-//#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L
         auto [enable,algo] = method.tic();
-// #else
-//         bool enable; adcontrols::xic::eIntensityAlgorishm algo;
-//         std::tie( enable, algo ) = method.tic();
-// #endif
+#else
+        bool enable; adcontrols::xic::eIntensityAlgorishm algo;
+        std::tie( enable, algo ) = method.tic();
+#endif
         if ( enable ) {
             if ( algo == adcontrols::xic::eCounting && pkd ) {
                 trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
