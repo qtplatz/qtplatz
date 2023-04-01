@@ -124,8 +124,8 @@ target_link_libraries(
   adwidgets
   xmlparser
   Core
-  extensionsystem
-  utils
+  ExtensionSystem
+  Utils
   Qt::Svg
   Qt::Widgets
   acqrscontrols
