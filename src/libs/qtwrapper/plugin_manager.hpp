@@ -33,7 +33,6 @@ namespace qtwrapper {
 
     template< typename PluginManager = ExtensionSystem::PluginManager >
     struct plugin_manager_t {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         template <typename T> static QList<T *> getObjects() {
             QReadLocker lock( PluginManager::listLock() );
             QList<T *> results;
@@ -41,11 +40,8 @@ namespace qtwrapper {
             foreach (QObject *obj, all) {
                 if ( auto result = qobject_cast<T *>(obj) )
                     results += result;
+            }
+            return results;
         }
-        return results;
-    }
-#else
-        return PluginManager::getObjects< T >();
-#endif
     };
 }
