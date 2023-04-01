@@ -634,6 +634,9 @@ tdcdoc::processPKD( std::shared_ptr< const acqrscontrols::u5303a::waveform > pkd
             *impl_->accumulated_pkd_waveform_ += *pkd;
         } catch ( std::exception& bad_cast ) {
 			(void)bad_cast;
+#if !defined NDEBUG
+            ADDEBUG() << "### attempt to sum imcompatible waveforms, resetting waveform ###";
+#endif
             impl_->accumulated_pkd_waveform_ = std::make_shared< acqrscontrols::u5303a::waveform >( *pkd, sizeof( uint32_t ) );
         }
     }

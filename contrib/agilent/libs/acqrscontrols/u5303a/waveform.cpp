@@ -317,8 +317,11 @@ waveform::waveform( const waveform& t, int dataType ) : method_( t.method_ )
 waveform&
 waveform::operator += ( const waveform& t )
 {
-    if ( ! is_equivalent( meta_, t.meta_ ) ) {
-        throw std::bad_cast();
+    if ( ! is_equivalent( meta_, t.meta_ ) ) { // <- this checks xInitialOffset and xIncrement, but no length check
+        throw std::bad_cast(); // this will be handled in tdcdoc::processPKD, which reset/renew waveform
+    }
+    if ( size() != t.size() ) {
+        throw std::bad_cast(); // this will be handled in tdcdoc::processPKD, which reset/renew waveform
     }
 
     meta_.actualAverages += ( t.meta_.actualAverages == 0 ) ? 1 : t.meta_.actualAverages;
@@ -359,7 +362,7 @@ waveform::operator += ( const waveform& t )
             throw std::bad_cast();
             break;
         case 4:
-            add< int32_t, rvalue_t >( t, dbase );
+            add< int32_t, rvalue_t >( t, dbase ); // <--- get clash when change waveform length
             break;
         case 8:
             add< int64_t, rvalue_t >( t, dbase );

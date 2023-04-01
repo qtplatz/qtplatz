@@ -662,8 +662,8 @@ namespace { // anonymous
         bool contains( const QString& key ) const {
 #if __cplusplus >= 202002L
             return selFolders_.contains( key );
-#ele
-            return selFolders_.find( key ) != selFolders_.end();
+#else
+            return (selFolders_.find( key ) != selFolders_.end());
 #endif
         }
     };
