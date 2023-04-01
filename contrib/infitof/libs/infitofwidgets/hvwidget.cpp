@@ -250,8 +250,13 @@ hvWidget::hvWidget( const QString& server
             spin->setMaximum( std::get< 2 >( item ) );
             spin->setDecimals( 0 );
             spin->setKeyboardTracking( false );
+#if __cplusplus >= 202002L
             connect( spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
                      , [=]( double value ){ handleValueChanged( spin, value ); } );
+#else
+            connect( spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
+                     , [=,this]( double value ){ handleValueChanged( spin, value ); } );
+#endif
         }
         if ( auto spin = findChild< QDoubleSpinBox * >( ( "act." + std::get< 0 >( item ) ).c_str() ) ) {
             spin->setMaximum( std::get< 2 >( item ) );

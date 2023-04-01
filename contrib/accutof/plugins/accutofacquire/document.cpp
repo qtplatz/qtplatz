@@ -89,6 +89,7 @@
 #include <date/date.h>
 #include <extensionsystem/pluginmanager.h>
 #include <qtwrapper/settings.hpp>
+#include <qtwrapper/plugin_manager.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -881,10 +882,11 @@ document::recentFile( const char * group, bool dir_on_fail )
         return file;
 
     if ( dir_on_fail ) {
+#if QTC_VERSION < 0x09'00'00
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
             file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
-
+#endif
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();
@@ -1326,7 +1328,7 @@ document::impl::takeSnapshot()
             QString title = QString( "Spectrum %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
             QString folderId;
             if ( appendOnFile( path, title, *ms, folderId ) ) {
-                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                auto vec = qtwrapper::plugin_manager_t<>::getObjects< adextension::iSnapshotHandler >();
                 for ( auto handler: vec )
                     handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
             }
@@ -1340,7 +1342,7 @@ document::impl::takeSnapshot()
         QString title = QString( "Histogram %1 CH-%2" ).arg( QString::fromStdString( date ), QString::number( ch ) );
         QString folderId;
         if ( document::appendOnFile( path, title, *histogram, folderId ) ) {
-            auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+            auto vec = qtwrapper::plugin_manager_t<>::getObjects< adextension::iSnapshotHandler >();
             for ( auto handler: vec )
                 handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
         }
