@@ -46,7 +46,6 @@
 #include <QJsonObject>
 #include "WolframLibrary.h"
 #include <unordered_map>
-#include <codecvt>
 #include <memory>
 #include <string>
 #include <sstream>

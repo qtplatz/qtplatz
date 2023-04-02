@@ -69,19 +69,19 @@ Portfolio::folders() const
 }
 
 Folder
-Portfolio::findFolder( const std::wstring& name )
+Portfolio::findFolder( const std::wstring& name ) const
 {
     return impl_->findFolder( name );
 }
 
 Folium
-Portfolio::findFolium( const std::wstring& id )
+Portfolio::findFolium( const std::wstring& id ) const
 {
     return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
 }
 
 Folium
-Portfolio::findFolium( const boost::uuids::uuid& id )
+Portfolio::findFolium( const boost::uuids::uuid& id ) const
 {
     std::wostringstream o;
     o << L"//folium[@dataId='" << id << L"']";

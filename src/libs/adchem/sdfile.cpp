@@ -53,7 +53,6 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/map.hpp>
 #include <atomic>
-#include <codecvt>
 #if __cplusplus__ >= 201703L
 # include <execution>
 #endif

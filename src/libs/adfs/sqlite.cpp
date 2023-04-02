@@ -290,9 +290,6 @@ stmt::prepare( const std::wstring& sql )
     if ( stmt_ )
         sqlite3_finalize( stmt_ );
 
-    // I've trying to use std::codecvt for wstring to utf8 conversion, but it raise 'range_error' exeception when sql contains janese kanji-chars.
-    // std::wstring_convert< deletable_facet<std::codecvt<wchar_t, char, std::mbstate_t> >, wchar_t> convert;
-    // auto utf8 = convert.to_bytes( sql );
     auto utf8 = adportable::utf::to_utf8( sql );
 
     const char * tail = 0;

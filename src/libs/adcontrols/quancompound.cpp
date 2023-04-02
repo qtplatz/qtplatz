@@ -27,6 +27,7 @@
 #endif
 #include "quancompound.hpp"
 #include "serializer.hpp"
+#include <adportable/utf.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/json.hpp>
@@ -38,7 +39,6 @@
 #include <boost/uuid/uuid_serialize.hpp>
 
 #include <array>
-#include <codecvt>
 #include <cstdint>
 #include <locale>
 #include <string>
@@ -405,15 +405,13 @@ QuanCompound::protocol() const
 
 QuanCompound::operator boost::json::object () const
 {
-    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-
     return boost::json::object{
         { "uuid", boost::uuids::to_string( impl_->uuid_ ) }
         , { "row",          impl_->row_ }
-        , { "display_name",	cvt.to_bytes( impl_->display_name_ ) }
+        , { "display_name",	adportable::utf::to_utf8( impl_->display_name_ ) }
         , { "formula",      impl_->formula_ }
         , { "amounts",      impl_->amounts_ }
-        , { "description",	cvt.to_bytes( impl_->description_ ) }
+        , { "description",	adportable::utf::to_utf8( impl_->description_ ) }
         , { "tR",           impl_->tR_ }
         , { "mass",         impl_->mass_ }
         , { "isISTD",       impl_->isISTD_ }
