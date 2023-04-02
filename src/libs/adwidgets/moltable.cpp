@@ -592,7 +592,7 @@ MolTable::impl::setValue( int row, const adcontrols::moltable::value_type& value
         ADDEBUG() << "-------- empty item -----------";
     }
 
-    model_->setData( model_->index( row, index_of< col_memo,      column_list >::value ), QString::fromStdWString( value.description() ) );
+    model_->setData( model_->index( row, index_of< col_memo,      column_list >::value ), QString::fromStdString( value.description() ) );
 
     if ( !smiles.isEmpty() ) {
         if ( auto d = MolTableHelper::SmilesToSVG()( smiles ) ) {

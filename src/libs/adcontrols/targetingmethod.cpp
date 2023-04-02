@@ -28,6 +28,7 @@
 #include "constants.hpp"
 #include "chemicalformula.hpp"
 #include <adportable/float.hpp>
+#include <adportable/utf.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -165,7 +166,7 @@ namespace adcontrols {
                         moltable::value_type mol;
                         mol.formula() = f.first;
                         mol.enable() = f.second.first;
-                        mol.set_description( f.second.second );
+                        mol.set_description( adportable::utf::to_utf8( f.second.second ) );
                         molecules_ << mol;
                     }
                 }

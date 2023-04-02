@@ -59,7 +59,7 @@ namespace adcontrols {
             std::tuple<std::string, std::string>  adducts_;
             std::string synonym_;
             std::string smiles_;
-            std::wstring description_;
+            std::string description_;
             boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
             boost::optional< double > tR_; // data source for mass chromatogram generation
             boost::optional< boost::uuids::uuid > molid_; // used in quan
@@ -79,7 +79,7 @@ namespace adcontrols {
             const std::string& adducts( ion_polarity ) const;
             std::string& synonym()             { return synonym_; }
             std::string& smiles()              { return smiles_; }
-            void set_description( const std::wstring& );
+            void set_description( const std::string& );
             bool enable() const                { return enable_; }
             uint32_t flags() const             { return flags_; }
             double mass() const                { return mass_; }
@@ -88,7 +88,7 @@ namespace adcontrols {
 
             const std::string& synonym() const { return synonym_; }
             const std::string& smiles() const  { return smiles_; }
-            const std::wstring& description() const { return description_; }
+            const std::string& description() const { return description_; }
 
             bool isMSRef() const;
             void setIsMSRef( bool on );
@@ -154,4 +154,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 4 )
+BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 5 )

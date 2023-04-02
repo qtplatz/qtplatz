@@ -26,6 +26,7 @@
 #include "msreferences.hpp"
 #include "msreference.hpp"
 #include "serializer.hpp"
+#include <adportable/utf.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
@@ -43,13 +44,21 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            (void)version;
-            ar & BOOST_SERIALIZATION_NVP(name_);
-            ar & BOOST_SERIALIZATION_NVP(vec_);
+            if ( version < 2 ) {
+                std::wstring name;
+                ar & boost::serialization::make_nvp( "name", name );
+                ar & BOOST_SERIALIZATION_NVP(vec_);
+                if ( Archive::is_loading::value ) {
+                    name_ = adportable::utf::to_utf8( name );
+                }
+            } else {
+                ar & BOOST_SERIALIZATION_NVP(name_);
+                ar & BOOST_SERIALIZATION_NVP(vec_);
+            }
         }
-        
+
         vector_type vec_;
-        std::wstring name_;
+        std::string name_;
     };
 }
 
@@ -130,16 +139,16 @@ MSReferences::end() const
     return impl_->vec_.end();
 }
 
-const wchar_t *
+std::string
 MSReferences::name() const
 {
-    return impl_->name_.c_str();
+    return impl_->name_;
 }
 
 void
-MSReferences::name( const wchar_t * name )
+MSReferences::set_name( const std::string& name )
 {
-    impl_->name_ = name ? name : L"";
+    impl_->name_ = name;
 }
 
 void

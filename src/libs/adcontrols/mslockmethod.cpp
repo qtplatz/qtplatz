@@ -244,7 +244,7 @@ namespace adcontrols {
                     , { "adducts", mol.adducts() }
                     , { "synonym", mol.synonym() }
                     , { "smiles",  mol.smiles() }
-                    , { "description",  adportable::utf::to_utf8( mol.description() ) }
+                    , { "description",  mol.description() }
                     , { "isMSRef",  mol.isMSRef() } // equivalent to ( mol.flags() & moltable::isMSRef )
                 } );
         }

@@ -662,7 +662,7 @@ MolTableView::handleCopyToClipboard()
             case ColumnState::f_mass:        mol.mass()        = prev.data( Qt::EditRole ).toDouble(); break;
             case ColumnState::f_abundance:   mol.abundance()   = prev.data( Qt::EditRole ).toDouble(); break;
             case ColumnState::f_synonym:     mol.synonym()     = prev.data( Qt::EditRole ).toString().toStdString();  break;
-            case ColumnState::f_description: mol.set_description( prev.data( Qt::EditRole ).toString().toStdWString() ); break;
+            case ColumnState::f_description: mol.set_description( prev.data( Qt::EditRole ).toString().toStdString() ); break;
             case ColumnState::f_smiles:      mol.smiles()      = prev.data( Qt::EditRole ).toString().toStdString();  break;
             case ColumnState::f_any:
             default: break;
@@ -746,7 +746,7 @@ MolTableView::handlePaste()
                     assign( *model, row, ColumnState::f_adducts,     QString::fromStdString( mol.adducts<adcontrols::polarity_positive>() ) );
                     assign( *model, row, ColumnState::f_smiles,      QString::fromStdString( mol.smiles() ) );
                     assign( *model, row, ColumnState::f_synonym,     QString::fromStdString( mol.synonym() ) );
-                    assign( *model, row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
+                    assign( *model, row, ColumnState::f_description, QString::fromStdString( mol.description() ) );
                     assign( *model, row, ColumnState::f_abundance,   mol.abundance() );
                     ++row;
                 }
@@ -869,7 +869,7 @@ MolTableView::setContents( const adcontrols::moltable& mols )
         assign( *model(), row, ColumnState::f_adducts, mol.adducts<adcontrols::polarity_positive>().c_str() );
         assign( *model(), row, ColumnState::f_mass,    mol.mass() );
         assign( *model(), row, ColumnState::f_abundance, mol.abundance() );
-        assign( *model(), row, ColumnState::f_description, QString::fromStdWString( mol.description() ) );
+        assign( *model(), row, ColumnState::f_description, QString::fromStdString( mol.description() ) );
         // assign( model, row, ColumnState::f_svg, svg );
         assign( *model(), row, ColumnState::f_smiles,    mol.smiles().c_str() );
         if ( auto protocol = mol.protocol() )
@@ -909,7 +909,7 @@ MolTableView::getContents( adcontrols::moltable& mols ) const
                 mol.synonym() = index.data( Qt::EditRole ).toString().toStdString();
                 break;
             case ColumnState::f_description:
-                mol.set_description( index.data( Qt::EditRole ).toString().toStdWString() );
+                mol.set_description( index.data( Qt::EditRole ).toString().toStdString() );
                 break;
             case ColumnState::f_svg:
                 //jobj[ "svg" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}

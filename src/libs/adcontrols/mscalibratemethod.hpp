@@ -34,7 +34,6 @@
 
 namespace adcontrols {
 
-    class MSReferenceDefns;
     class MSReferences;
 
     class ADCONTROLSSHARED_EXPORT MSCalibrateMethod {
@@ -58,7 +57,7 @@ namespace adcontrols {
 
         double highMass() const;
         void highMass( double );
-        
+
         MSReferences& references();
         const MSReferences& references() const;
         void references( const MSReferences& );
@@ -86,6 +85,5 @@ namespace adcontrols {
         }
 
     };
-  
-}
 
+}

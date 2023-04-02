@@ -66,7 +66,15 @@ namespace boost {
                     ar & boost::serialization::make_nvp("adduct_neg", std::get< 1 >( p.adducts_ ) );
                     ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
                     ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
-                    ar & BOOST_SERIALIZATION_NVP( p.description_ );
+                    if ( version >= 5 ) {
+                        ar & BOOST_SERIALIZATION_NVP( p.description_ );
+                    } else {
+                        std::wstring description;
+                        ar & boost::serialization::make_nvp("description", description );
+                        if ( Archive::is_loading::value ) {
+                            p.description_ = adportable::utf::to_utf8( description );
+                        }
+                    }
                     ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
                     ar & BOOST_SERIALIZATION_NVP( p.tR_ );
                     ar & BOOST_SERIALIZATION_NVP( p.molid_ );
@@ -260,7 +268,7 @@ moltable::value_type::setMolid( boost::optional< boost::uuids::uuid >&& uuid )
 }
 
 void
-moltable::value_type::set_description( const std::wstring& t )
+moltable::value_type::set_description( const std::string& t )
 {
     description_ = t;
 }

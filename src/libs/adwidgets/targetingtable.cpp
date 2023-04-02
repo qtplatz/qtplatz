@@ -193,7 +193,7 @@ TargetingTable::setContents( const adcontrols::TargetingMethod& method )
             item->setEditable( true );
             model.setData( model.index( row, c_formula ), formula.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        model.setData( model.index( row, c_description ), QString::fromStdWString( formula.description() ) );
+        model.setData( model.index( row, c_description ), QString::fromStdString( formula.description() ) );
 
         double exactMass = cformula.getMonoIsotopicMass( formula.formula() );
         model_->setData( model_->index( row, c_mass ), exactMass );
@@ -217,7 +217,7 @@ TargetingTable::getContents( adcontrols::TargetingMethod& method )
         adcontrols::moltable::value_type value;
         value.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         value.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        value.set_description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
+        value.set_description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdString() );
 
         if ( !value.formula().empty() )
             method.molecules() << value;
@@ -260,7 +260,7 @@ TargetingTable::setContents( const adcontrols::MSChromatogramMethod& m )
             model.setData( model.index( row, c_msref ), value.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
 
-        model.setData( model.index( row, c_description ), QString::fromStdWString( value.description() ) );
+        model.setData( model.index( row, c_description ), QString::fromStdString( value.description() ) );
         model.item( row, c_description )->setEditable( true );
 
         ++row;
@@ -282,7 +282,7 @@ TargetingTable::getContents( adcontrols::MSChromatogramMethod& m )
 
         mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         mol.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        mol.set_description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
+        mol.set_description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdString() );
         mol.mass() = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
         mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
 

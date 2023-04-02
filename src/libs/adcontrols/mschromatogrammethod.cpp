@@ -25,6 +25,7 @@
 #include "mschromatogrammethod.hpp"
 #include "moltable.hpp"
 #include "serializer.hpp"
+#include <adportable/utf.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
@@ -110,7 +111,7 @@ namespace adcontrols {
                         mol.enable() = f.enable;
                         mol.setIsMSRef( f.msref );
                         mol.formula() = f.formula;
-                        mol.set_description( f.memo );
+                        mol.set_description( adportable::utf::to_utf8( f.memo ) );
                         molecules_ << mol;
                     }
 

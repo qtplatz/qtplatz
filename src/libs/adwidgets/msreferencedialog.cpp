@@ -24,6 +24,7 @@
 
 #include "msreferencedialog.hpp"
 #include "ui_msreferencedialog.h"
+#include <adcontrols/constants.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/tableofelement.hpp>
 #include <adcontrols/isotopes.hpp>
@@ -95,10 +96,10 @@ namespace adwidgets {
             };
             template<> void set_text::operator() ( QComboBox * ) const {}
 
-            struct get_text : public boost::static_visitor < std::wstring > {
-                template< class T > std::wstring operator() ( T* w ) const { return w->text().toStdWString(); }
+            struct get_text : public boost::static_visitor < std::string > {
+                template< class T > std::string operator() ( T* w ) const { return w->text().toStdString(); }
             };
-            template<> std::wstring get_text::operator() ( QComboBox * ) const { return std::wstring(); }
+            template<> std::string get_text::operator() ( QComboBox * ) const { return std::string(); }
 
 
         } // namespace
@@ -220,9 +221,9 @@ MSReferenceDialog::handleAddReference()
 {
     ui_accessor accessor( ui );
 
-    std::wstring endGroup = boost::apply_visitor( get_text(), accessor( idEndGroupLineEdit ) );
-    std::wstring repeat = boost::apply_visitor( get_text(), accessor( idRepeatLineEdit ) );
-    std::wstring adduct = boost::apply_visitor( get_text(), accessor( idAdductLineEdit ) );
+    std::string endGroup = boost::apply_visitor( get_text(), accessor( idEndGroupLineEdit ) );
+    std::string repeat = boost::apply_visitor( get_text(), accessor( idRepeatLineEdit ) );
+    std::string adduct = boost::apply_visitor( get_text(), accessor( idAdductLineEdit ) );
 
     QString refname;
     if ( auto combo = boost::get<QComboBox *>( accessor( idAdductsMaterialsCombo ) ) )
@@ -230,9 +231,12 @@ MSReferenceDialog::handleAddReference()
 
     if ( reference_receiver_ ) {
 
+        using adcontrols::polarity_positive;
+        using adcontrols::polarity_negative;
+
         if ( refname == "TFANa(-)" ) {
-            reference_receiver_( adcontrols::MSReference( L"[CF3]-",        false, L"", true, 0.0, 1, L"CF3" ) );
-            reference_receiver_( adcontrols::MSReference( L"[CF3COO]-",     false, L"", true, 0.0, 1, L"C2F3O2" ) );
+            reference_receiver_( adcontrols::MSReference( "[CF3]-",       polarity_negative, "", true, 0.0, 1, "CF3" ) );
+            reference_receiver_( adcontrols::MSReference( "[CF3COO]-",    polarity_negative, "", true, 0.0, 1, "C2F3O2" ) );
         }
 
         if ( !repeat.empty() ) {
@@ -241,65 +245,65 @@ MSReferenceDialog::handleAddReference()
             int nRepeat = 1;
             adcontrols::MSReference ref;
             do {
-                std::wstring formula = ( boost::wformat( L"%1%(%2%)%3%" ) % endGroup % repeat % nRepeat++  ).str();
-                ref = adcontrols::MSReference( formula.c_str(), true /* is positive */, adduct.c_str(), true );
+                std::string formula = ( boost::format( "%1%(%2%)%3%" ) % endGroup % repeat % nRepeat++  ).str();
+                ref = adcontrols::MSReference( formula.c_str(), polarity_positive, adduct.c_str(), true );
                 if ( lMass <= ref.exact_mass() && ref.exact_mass() < hMass )
                     reference_receiver_( ref );
             } while ( ref.exact_mass() < hMass );
 
         } else {
-            if ( endGroup == L"PFTBA" ) {
-                reference_receiver_( adcontrols::MSReference( L"CF3",     true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C2F4",    true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C2F5",    true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C3F5",    true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C4F9",    true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C5F10N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C6F12N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C7F12N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C8F14N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C8F16N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C9F16N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C9F18N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C9F20N",  true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C12F22N", true,  L"", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C12F24N", true,  L"", false ) );
-            } else if ( endGroup == L"Agilent TOF Mix(-)" ) {
-                reference_receiver_( adcontrols::MSReference( L"C6F9N3",          false, L"OH", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C12F21N3",        false, L"OH", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C2F3O2NH4",       false, L"-NH4", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C12H18F12N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C18H18F24N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C24H18F36N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C30H18F48N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C36H18F60N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C42H18F72N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C48H18F84N3O6P3", false, L"C2F3O2", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C54H18F96N3O6P3", false, L"C2F3O2", false ) );
-            } else if ( endGroup == L"Agilent TOF Mix(+)" ) {
-                reference_receiver_( adcontrols::MSReference( L"C5H11NO2",        true, L"H", false, 0.0, 1, L"118.0868" ) );
-                reference_receiver_( adcontrols::MSReference( L"C6H18N3O6P3",     true, L"H", false, 0.0, 1, L"322.0486" ) );
-                reference_receiver_( adcontrols::MSReference( L"C12H18F12N3O6P3", true, L"H", false, 0.0, 1, L"622.0295" ) );
-                reference_receiver_( adcontrols::MSReference( L"C18H18F24N3O6P3", true, L"H", false, 0.0, 1, L"922.0103" ) );
-                reference_receiver_( adcontrols::MSReference( L"C24H18F36N3O6P3", true, L"H", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C30H18F48N3O6P3", true, L"H", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C36H18F60N3O6P3", true, L"H", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C42H18F72N3O6P3", true, L"H", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C48H18F84N3O6P3", true, L"H", false ) );
-                reference_receiver_( adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false ) );
+            if ( endGroup == "PFTBA" ) {
+                reference_receiver_( adcontrols::MSReference( "CF3",     polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C2F4",    polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C2F5",    polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C3F5",    polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C4F9",    polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C5F10N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C6F12N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C7F12N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C8F14N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C8F16N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C9F16N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C9F18N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C9F20N",  polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C12F22N", polarity_positive,  "", false ) );
+                reference_receiver_( adcontrols::MSReference( "C12F24N", polarity_positive,  "", false ) );
+            } else if ( endGroup == "Agilent TOF Mix(-)" ) {
+                reference_receiver_( adcontrols::MSReference( "C6F9N3",          polarity_negative, "OH", false ) );
+                reference_receiver_( adcontrols::MSReference( "C12F21N3",        polarity_negative, "OH", false ) );
+                reference_receiver_( adcontrols::MSReference( "C2F3O2NH4",       polarity_negative, "-NH4", false ) );
+                reference_receiver_( adcontrols::MSReference( "C12H18F12N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C18H18F24N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C24H18F36N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C30H18F48N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C36H18F60N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C42H18F72N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C48H18F84N3O6P3", polarity_negative, "C2F3O2", false ) );
+                reference_receiver_( adcontrols::MSReference( "C54H18F96N3O6P3", polarity_negative, "C2F3O2", false ) );
+            } else if ( endGroup == "Agilent TOF Mix(+)" ) {
+                reference_receiver_( adcontrols::MSReference( "C5H11NO2",        polarity_positive, "H", false, 0.0, 1, "118.0868" ) );
+                reference_receiver_( adcontrols::MSReference( "C6H18N3O6P3",     polarity_positive, "H", false, 0.0, 1, "322.0486" ) );
+                reference_receiver_( adcontrols::MSReference( "C12H18F12N3O6P3", polarity_positive, "H", false, 0.0, 1, "622.0295" ) );
+                reference_receiver_( adcontrols::MSReference( "C18H18F24N3O6P3", polarity_positive, "H", false, 0.0, 1, "922.0103" ) );
+                reference_receiver_( adcontrols::MSReference( "C24H18F36N3O6P3", polarity_positive, "H", false ) );
+                reference_receiver_( adcontrols::MSReference( "C30H18F48N3O6P3", polarity_positive, "H", false ) );
+                reference_receiver_( adcontrols::MSReference( "C36H18F60N3O6P3", polarity_positive, "H", false ) );
+                reference_receiver_( adcontrols::MSReference( "C42H18F72N3O6P3", polarity_positive, "H", false ) );
+                reference_receiver_( adcontrols::MSReference( "C48H18F84N3O6P3", polarity_positive, "H", false ) );
+                reference_receiver_( adcontrols::MSReference( "C54H18F96N3O6P3", polarity_positive, "H", false ) );
 
             } else {
                 // check if an element
-                if ( adcontrols::mol::element element = adcontrols::TableOfElement::instance()->findElement( adportable::utf::to_utf8( endGroup ) ) ) {
+                if ( adcontrols::mol::element element = adcontrols::TableOfElement::instance()->findElement( endGroup ) ) {
                     for ( auto& i: element.isotopes() ) {
-                        std::wstring formula = ( boost::wformat(L"%1%%2%") % int( i.mass + 0.3 ) % adportable::utf::to_wstring( element.symbol() ) ).str();
-                        std::wstring description = ( boost::wformat(L"%.4f") % i.abundance ).str();
+                        std::string formula = ( boost::format("%1%%2%") % int( i.mass + 0.3 ) % element.symbol() ).str();
+                        std::string description = ( boost::format("%.4f") % i.abundance ).str();
                         bool enable = i.abundance > 0.01;
-                        reference_receiver_( adcontrols::MSReference( formula.c_str(), true, L"", enable, i.mass, 1, description.c_str() ) );
+                        reference_receiver_( adcontrols::MSReference( formula, polarity_positive, "", enable, i.mass, 1, description ) );
                     }
                 } else {
                     // chemical formula
-                    reference_receiver_( adcontrols::MSReference( endGroup.c_str(), true, adduct.c_str() ) );
+                    reference_receiver_( adcontrols::MSReference( endGroup, polarity_positive, adduct ) );
                 }
             }
         }
