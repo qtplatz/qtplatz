@@ -188,11 +188,6 @@ MainWindow::createDockWidgets()
                             ( u.mode() == method::DigiMode::Averager && u._device_method().nbr_of_averages >= 2 );
                         sform->setDisabled( disable );
                     }
-// #if TOFCHROMATOGRAMSMETHOD
-//                     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
-//                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
-//                     }
-// #endif
                     if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
@@ -311,11 +306,6 @@ MainWindow::OnInitialUpdate()
         w->setMassSpectrometer( document::instance()->massSpectrometer() );
     }
 #endif
-// #if TOFCHROMATOGRAMSMETHOD
-//     if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
-//         w->setMassSpectrometer( document::instance()->massSpectrometer() );
-//     }
-// #endif
 
     // Set control method name on MidToolBar
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
@@ -1059,6 +1049,10 @@ MainWindow::handleInstState( int status )
 void
 MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> m )
 {
+    if ( QThread::currentThread() == QCoreApplication::instance()->thread() )
+        ADDEBUG() << "ERROR: ============ " << __FUNCTION__ << " ============ : MUST INVOKE FROM MAIN THREAD. =====";
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->setContents( boost::any(m) );
@@ -1069,7 +1063,9 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
 std::shared_ptr< adcontrols::ControlMethod::Method >
 MainWindow::getControlMethod() const
 {
-    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
+    if ( QThread::currentThread() == QCoreApplication::instance()->thread() )
+        ADDEBUG() << "ERROR: ============ " << __FUNCTION__ << " ============ : MUST INVOKE FROM MAIN THREAD. =====";
+   assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
 
     auto ptr = std::make_shared< adcontrols::ControlMethod::Method >();
     boost::any a( ptr );

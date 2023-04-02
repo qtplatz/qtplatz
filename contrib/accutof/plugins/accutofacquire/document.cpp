@@ -208,12 +208,9 @@ namespace accutof { namespace acquire {
                     if ( auto session = inst->getInstrumentSession() )
                         session->start_run();
                 }
-
+                ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
                 document::instance()->prepare_for_run();
                 task::instance()->sample_started(); // workaround::method start
-                // increment sample number <-- increment should be done at inject event
-                //if ( auto run = document::instance()->sampleRun() )
-                //    ++( *run );
             }
         };
 
@@ -263,7 +260,6 @@ namespace accutof { namespace acquire {
             std::vector< std::shared_ptr< adextension::iController > > iControllers_;
             std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
             std::map< boost::uuids::uuid, std::shared_ptr< adacquire::SignalObserver::Observer > > observers_;
-            bool isMethodDirty_;
 
             std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
             std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
@@ -308,7 +304,6 @@ namespace accutof { namespace acquire {
                    , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                    , iU5303AFacade_( std::make_shared< iU5303AFacade >() )
                    , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "AccuTOF" ) )
-                   , isMethodDirty_( true )
                    , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                    , method_( std::make_shared< acqrscontrols::u5303a::method >() )
                    , tdm_( std::make_shared< adcontrols::TimeDigitalMethod>() )
@@ -321,12 +316,6 @@ namespace accutof { namespace acquire {
                    , sse_( std::make_unique< adurl::sse_handler >( io_context_ ) )
                    , blob_( std::make_unique< adurl::blob >( io_context_ ) )
                    , hasDark_( false ) {
-#if XCHROMATOGRAMSMETHOD
-#else
-                // adcontrols::TofChromatogramsMethod tofm;
-                // tofm.setNumberOfTriggers( 1000 );
-                // tdcdoc_->setTofChromatogramsMethod( tofm );
-#endif
 
                 uint32_t id(0);
                 for ( auto& trace: traces_ )
@@ -609,21 +598,12 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+    // control method should be applied via 'applyTriggered'
+    // auto cm = MainWindow::instance()->getControlMethod();
+    // setControlMethod( *cm, QString() );
+    auto cm( impl_->cm_ ); // lock shared_ptr;
 
-    save_defaults();
-
-    ADDEBUG() << "##### prepare_for_run thread: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
-    auto cm = MainWindow::instance()->getControlMethod();
-
-    setControlMethod( *cm, QString() );
-
-    impl_->isMethodDirty_ = false;
-
-    prepare_next_sample( impl_->nextSampleRun_, *impl_->cm_ );
-
-    ADDEBUG() << "### prepare_for_run ### next = " << impl_->nextSampleRun_->runCount();
+    prepare_next_sample( impl_->nextSampleRun_, *cm );
 
     std::vector< std::future< bool > > futures;
     for ( auto& iController : impl_->iControllers_ ) {
@@ -638,6 +618,7 @@ document::prepare_for_run()
 void
 document::start_run()
 {
+    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     prepare_for_run();
 }
 
@@ -1107,6 +1088,7 @@ document::set_threshold_action( const adcontrols::threshold_action& m )
 void
 document::set_method( const acqrscontrols::u5303a::method& )
 {
+    ///////////
     assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
 
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
@@ -1495,7 +1477,7 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
         else
             return false;
     }
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
 #endif
     auto sp = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer );
@@ -1596,7 +1578,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
 bool
 document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
 #endif
 
@@ -1630,6 +1612,9 @@ document::applyTriggered()
 {
     auto ptr = MainWindow::instance()->getControlMethod();
     setControlMethod( ptr );
+    save_defaults();
+
+    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     prepare_for_run();
 }
 
@@ -1680,51 +1665,6 @@ document::setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > m
             trace->setLegend( ( boost::format( "%d[%c]" ) % idx % c ).str() );
             if ( dirty )
                 emit traceSettingChanged( idx, item.enable() );
-        }
-    }
-}
-#endif
-
-#if TOFCHROMATOGRAMSMETHOD && 0
-void
-document::setMethod( const adcontrols::TofChromatogramsMethod& m )
-{
-    namespace xic = adcontrols::xic;
-
-    tdc()->setTofChromatogramsMethod( m );
-
-    task::instance()->setHistogramClearCycleEnabled( m.refreshHistogram() );
-
-    auto xm = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
-    impl_->tofChromatogramsMethod_ = xm;
-
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-
-    for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
-        auto& trace = impl_->traces_[ idx ];
-        if ( idx == 0 ) {
-#if __cplusplus >= 201703L
-            auto [enable, algo] = m.tic();
-#else
-            bool enable; xic::eIntensityAlgorishm algo;
-            std::tie( enable, algo ) = m.tic();
-#endif
-            bool dirty = trace->enable() != enable;
-            trace->setEnable( enable );
-            trace->setIsCountingTrace( algo == xic::eCounting );
-            trace->setLegend( "TIC" );
-            if ( dirty )
-                emit traceSettingChanged( idx, enable );
-        } else if ( ( idx - 1 ) < xm->size() ) {
-            const auto item = xm->begin() + ( idx - 1 );
-            bool dirty = trace->enable() != item->enable();
-            trace->setEnable( item->enable() );
-            trace->setIsCountingTrace( item->intensityAlgorithm() == xic::eCounting );
-            char c = item->intensityAlgorithm() == xic::eCounting ? 'C' : item->intensityAlgorithm() == xic::ePeakAreaOnProfile ? 'A' : 'H';
-            auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
-            trace->setLegend( ( boost::format( "%d[%c]" ) % idx % c ).str() );
-            if ( dirty )
-                emit traceSettingChanged( idx, item->enable() );
         }
     }
 }
@@ -1798,109 +1738,6 @@ document::addChromatogramsPoint( std::shared_ptr< const adcontrols::XChromatogra
         emit traceChanged( pkd_trace_observer ); // append timed trace
         impl_->trace_check_tp_ = tp;
     }
-}
-#endif
-
-#if TOFCHROMATOGRAMSMETHOD
-void
-document::addChromatogramsPoint( const adcontrols::TofChromatogramsMethod& method
-                                 , pkdavg_waveforms_t waveforms )
-{
-    auto avg( waveforms[ 0 ] );
-    auto pkd( waveforms[ 1 ] ); // can be nullptr
-
-    // elapsed time since start
-    double seconds  = double( avg->timeSinceEpoch_ - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
-    double t_inject = double( task::instance()->injectTimeSinceEpoch() - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
-
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-
-    do {
-        auto trace = impl_->traces_[ 0 ]; // TIC
-#if __cplusplus >= 201703L
-        auto [enable,algo] = method.tic();
-#else
-        bool enable; adcontrols::xic::eIntensityAlgorishm algo;
-        std::tie( enable, algo ) = method.tic();
-#endif
-        if ( enable ) {
-            if ( algo == adcontrols::xic::eCounting && pkd ) {
-                trace->append( pkd->serialnumber(), seconds, pkd->accumulate( 0, 0 ) );
-                trace->setIsCountingTrace( true );
-            } else {
-                trace->append( avg->serialnumber(), seconds, avg->accumulate( 0, 0 ) );
-                trace->setIsCountingTrace( false );
-            }
-        } else {
-            trace->append( avg->serialnumber(), seconds, 0 );
-        }
-        trace->setInjectTime( t_inject );
-    } while ( 0 );
-
-    for ( auto item: method ) {
-        int id = item.id() + 1;
-        if ( id >= 1 && id < impl_->traces_.size() ) {
-            auto trace = impl_->traces_[ id ];
-            trace->setInjectTime( t_inject );
-            if ( item.enable() ) {
-                if ( item.intensityAlgorithm() == adcontrols::xic::eCounting ) {
-                    uint32_t pkCounts = pkd ? pkd->accumulate( item.time(), item.timeWindow() ) : 0;
-                    trace->append( pkd ? pkd->serialnumber() : avg->serialnumber(), seconds, pkCounts );
-                    impl_->countrate_calculators_[ item.id() ] << std::make_pair( pkCounts, pkd->meta_.actualAverages );
-                    trace->setIsCountingTrace( true );
-                } else if ( item.intensityAlgorithm() == adcontrols::xic::ePeakAreaOnProfile ) {
-                    trace->append( pkd->serialnumber(), seconds, avg->accumulate( item.time(), item.timeWindow() ) ); // area
-                    trace->setIsCountingTrace( false );
-                } else {
-                    trace->append( pkd->serialnumber(), seconds, avg->height( item.time(), item.timeWindow() ) ); // height
-                    trace->setIsCountingTrace( false );
-                }
-            } else {
-                trace->append( pkd->serialnumber(), seconds, 0 );
-                trace->setIsCountingTrace( false );
-            }
-        }
-    }
-
-    using namespace std::chrono_literals;
-    auto tp = std::chrono::steady_clock::now();
-    if ( (impl_->traces_[ 0 ]->size() >= 2 ) && ( tp - impl_->trace_check_tp_ ) > 0.5s ) {
-        emit traceChanged( pkd_trace_observer ); // append timed trace
-        impl_->trace_check_tp_ = tp;
-    }
-}
-#endif
-
-#if TOFCHROMATOGRAMSMETHOD
-void
-document::addCountingChromatogramPoints( const adcontrols::TofChromatogramsMethod& method
-                                         , const std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& vec )
-{
-    double t_inject = double( task::instance()->injectTimeSinceEpoch() - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
-
-    for ( auto& ptr: vec ) {
-
-        double seconds = double( ptr->timeSinceEpoch().first - task::instance()->upTimeSinceEpoch() ) / std::nano::den;
-        impl_->traces_[ 0 ]->append( ptr->serialnumber().first, seconds, ptr->accumulate( 0, -1 ) ); // TIC
-        impl_->traces_[ 0 ]->setIsCountingTrace( true );
-        impl_->traces_[ 0 ]->setInjectTime( t_inject );
-
-        for ( auto item: method ) {
-            if ( item.enable() && item.intensityAlgorithm() == adcontrols::xic::eCounting ) {
-                int id = item.id() + 1;
-                if ( id >= 1 && id < impl_->traces_.size() ) {
-                    uint32_t pkCounts = ptr->accumulate( item.time(), item.timeWindow() );
-                    impl_->countrate_calculators_[ item.id() ] << std::make_pair( pkCounts, ptr->trigger_count() );
-                    impl_->traces_[ id ]->append( ptr->serialnumber().first, seconds, pkCounts );
-                    impl_->traces_[ id ]->setIsCountingTrace( true );
-                    impl_->traces_[ id ]->setInjectTime( t_inject );
-                }
-            }
-        }
-    }
-
-    if ( impl_->traces_[ 0 ]->size() >= 2 )
-        emit dataChanged( trace_observer, 0 );
 }
 #endif
 
