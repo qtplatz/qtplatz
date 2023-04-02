@@ -5,7 +5,7 @@ endif()
 
 if ( IDE_VERSION VERSION_GREATER_EQUAL "9.0.0" )
 
-  message( STATSU "---- QtCreator 9 found -- not yet ported U5303A plugin module ----" )
+  message( STATUS "---- QtCreator 9 found -- TODO U5303A plugin module ----" )
 
 else()
   if ( WITH_AgMD2 AND AgMD2_FOUND )

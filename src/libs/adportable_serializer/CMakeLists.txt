@@ -13,6 +13,8 @@ add_library( adportable_serializer
   portable_binary_oarchive.hpp
   portable_binary_iarchive.cpp
   portable_binary_iarchive.hpp
+  ../adportable/ConvertUTF.c
+  codecvt.cpp codecvt.hpp
   )
 
 target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
