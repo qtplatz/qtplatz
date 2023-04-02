@@ -27,9 +27,10 @@
 #include "quansequence.hpp"
 #include "serializer.hpp"
 #include <adportable/debug.hpp>
-#include <adportable_serializer/portable_binary_oarchive.hpp>
-#include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adportable/utf.hpp>
 #include <adportable/uuid.hpp>
+#include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <boost/json.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -38,7 +39,6 @@
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
-#include <codecvt>
 #include <locale>
 
 namespace adcontrols {
@@ -238,7 +238,8 @@ QuanSequence::xml_restore( std::wistream& is, QuanSequence& t )
 
 QuanSequence::operator boost::json::object () const
 {
-    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+    using adportable::utf;
+
     boost::json::array v;
     for ( const auto& sample: impl_->samples_ ) {
         v.emplace_back( static_cast< boost::json::object >( sample ) );
@@ -248,8 +249,8 @@ QuanSequence::operator boost::json::object () const
             , {
                 { "ident", static_cast< boost::json::object >( impl_->ident_ ) }
                 , { "sequence", v }
-                , { "outfile",  cvt.to_bytes( impl_->outfile_ ) }
-                , { "filename", cvt.to_bytes( impl_->outfile_ ) }
+                , { "outfile",  utf::to_utf8( impl_->outfile_ ) }
+                , { "filename", utf::to_utf8( impl_->outfile_ ) }
             }
         }};
 }

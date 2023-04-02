@@ -48,8 +48,8 @@ namespace adcontrols {
 
         inline bool operator == ( const description& t ) const;
 
-        [[deprecated]] std::wstring text() const;
-        [[deprecated]] std::wstring key() const;
+        // [[deprecated]] std::wstring text() const;
+        // [[deprecated]] std::wstring key() const;
         template< typename char_type > ADCONTROLSSHARED_EXPORT std::basic_string< char_type > text() const;
         template< typename char_type > ADCONTROLSSHARED_EXPORT std::basic_string< char_type > key() const;
 

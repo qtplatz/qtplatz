@@ -162,17 +162,17 @@ namespace adcontrols {
     }
 }
 
-std::wstring
-description::text() const
-{
-    return adportable::utf::to_wstring( keyValue_.second );
-}
+// std::wstring
+// description::text() const
+// {
+//     return adportable::utf::to_wstring( keyValue_.second );
+// }
 
-std::wstring
-description::key() const
-{
-    return adportable::utf::to_wstring( keyValue_.first );
-}
+// std::wstring
+// description::key() const
+// {
+//     return adportable::utf::to_wstring( keyValue_.first );
+// }
 
 const char *
 description::xml() const

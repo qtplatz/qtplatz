@@ -100,7 +100,7 @@ namespace adcontrols {
                 if ( Archive::is_saving::value ) {
                     auto data = base64_encode( reinterpret_cast< const unsigned char * >(_.deviceData_.data()), _.deviceData_.size() );
                     // std::string data = MSProperty::encode( _.deviceData_ );
-                    ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
+                    ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8) safety
                 } else {
                     ar & BOOST_SERIALIZATION_NVP( _.deviceData_ );
                     if ( version >= 7 ) // v6 data has no encoded data

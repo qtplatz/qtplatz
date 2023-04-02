@@ -37,7 +37,6 @@
 #include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <boost/filesystem.hpp>
-#include <codecvt>
 #include <memory>
 
 #include <boost/uuid/uuid_io.hpp>

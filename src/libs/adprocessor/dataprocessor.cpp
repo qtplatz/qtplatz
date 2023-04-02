@@ -66,11 +66,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#if __cplusplus >= 201402L
-# include <codecvt>
-#else
-# include <adportable/utf.hpp>
-#endif
+#include <adportable/utf.hpp>
 #include <locale>
 #include <numeric>
 #include <string>
@@ -144,12 +140,7 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
         try {
             impl_->file_->accept( *this );  // may access 'db' if file was imported from csv.
         } catch ( std::exception& ex ) {
-#if __cplusplus >= 201402L
-            std::wstring_convert< std::codecvt_utf8_utf16< wchar_t > > converter;
-            error_message = converter.from_bytes( ex.what() );
-#else
             error_message = adportable::utf::to_wstring( ex.what() );
-#endif
             return false;
         }
         if ( auto sp = massSpectrometer() )

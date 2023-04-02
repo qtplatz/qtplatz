@@ -28,6 +28,7 @@
 #include "moltable.hpp"
 #include <adportable/is_equal.hpp>
 #include <adportable/unique_ptr.hpp>
+#include <adportable/utf.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
@@ -40,7 +41,6 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <codecvt>
 
 namespace adcontrols {
 
@@ -233,8 +233,6 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MSLockMethod& t )
     {
-        std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-
         boost::json::array mols;
         for ( const auto& mol: t.molecules_->data() ) {
             mols.emplace_back( boost::json::object{
@@ -246,7 +244,7 @@ namespace adcontrols {
                     , { "adducts", mol.adducts() }
                     , { "synonym", mol.synonym() }
                     , { "smiles",  mol.smiles() }
-                    , { "description",  cvt.to_bytes( mol.description() ) }
+                    , { "description",  adportable::utf::to_utf8( mol.description() ) }
                     , { "isMSRef",  mol.isMSRef() } // equivalent to ( mol.flags() & moltable::isMSRef )
                 } );
         }

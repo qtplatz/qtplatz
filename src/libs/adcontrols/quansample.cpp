@@ -28,6 +28,7 @@
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/date_time.hpp>
 #include <adportable/iso8601.hpp>
+#include <adportable/utf.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
@@ -36,7 +37,6 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/json.hpp>
 #include <algorithm>
-#include <codecvt>
 #include <locale>
 
 namespace adcontrols {
@@ -474,8 +474,6 @@ QuanSample::xml_restore( std::wistream& is, QuanSample& t )
 
 QuanSample::operator boost::json::object () const
 {
-    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-
     boost::json::array istds;
 
     for ( const auto& istd: impl_->istd_ ) {
@@ -486,9 +484,9 @@ QuanSample::operator boost::json::object () const
         { "uuid", boost::uuids::to_string( impl_->uuid_ ) }
         , { "sequence_uuid", boost::uuids::to_string( impl_->sequence_uuid_ ) }
         , { "rowid",          impl_->rowid_ }
-        , { "name",           cvt.to_bytes( impl_->name_ ) }
-        , { "dataType",       cvt.to_bytes( impl_->dataType_ ) }
-        , { "dataSource",     cvt.to_bytes( impl_->dataSource_ ) }
+        , { "name",           adportable::utf::to_utf8( impl_->name_ ) }
+        , { "dataType",       adportable::utf::to_utf8( impl_->dataType_ ) }
+        , { "dataSource",     adportable::utf::to_utf8( impl_->dataSource_ ) }
         , { "sampleType",     int64_t( impl_->sampleType_ ) }
         , { "inletType",      int64_t( impl_->inletType_ ) }
         , { "level",          impl_->level_ }

@@ -36,12 +36,12 @@
 #include <adportable/json/extract.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/utf.hpp>
 #include <adportable/uuid.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <chrono>
-#include <codecvt>
 #include <locale>
 
 using namespace adcontrols;
@@ -152,7 +152,6 @@ idAudit::xml_restore( std::wistream& is, idAudit& t )
 
 idAudit::operator boost::json::object () const
 {
-    std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
     return boost::json::value_from( *this ).as_object();
 }
 
@@ -161,15 +160,15 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const idAudit& t )
     {
-        std::wstring_convert< std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+        using adportable::utf;
 
         jv = boost::json::object{ { "idAudit"
             , {
                 { "uuid", boost::uuids::to_string( t.uuid_ ) }
-                , { "dateCreated", t.dateCreated_ }
-                , { "idComputer", cvt.to_bytes( t.idComputer_ ) }
-                , { "idCreatedBy", cvt.to_bytes( t.idCreatedBy_ ) }
-                , { "nameCreatedBy", cvt.to_bytes( t.nameCreatedBy_ ) }
+                , { "dateCreated",   t.dateCreated_ }
+                , { "idComputer",    utf::to_utf8( t.idComputer_ ) }
+                , { "idCreatedBy",   utf::to_utf8( t.idCreatedBy_ ) }
+                , { "nameCreatedBy", utf::to_utf8( t.nameCreatedBy_ ) }
                 , { "digest", t.digest_ }
             }
         }};
@@ -178,8 +177,6 @@ namespace adcontrols {
     idAudit
     tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv )
     {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
-
         idAudit t;
         using namespace adportable::json;
         if ( jv.is_object() ) {
