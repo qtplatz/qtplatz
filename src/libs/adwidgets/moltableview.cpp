@@ -662,7 +662,7 @@ MolTableView::handleCopyToClipboard()
             case ColumnState::f_mass:        mol.mass()        = prev.data( Qt::EditRole ).toDouble(); break;
             case ColumnState::f_abundance:   mol.abundance()   = prev.data( Qt::EditRole ).toDouble(); break;
             case ColumnState::f_synonym:     mol.synonym()     = prev.data( Qt::EditRole ).toString().toStdString();  break;
-            case ColumnState::f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
+            case ColumnState::f_description: mol.set_description( prev.data( Qt::EditRole ).toString().toStdWString() ); break;
             case ColumnState::f_smiles:      mol.smiles()      = prev.data( Qt::EditRole ).toString().toStdString();  break;
             case ColumnState::f_any:
             default: break;
@@ -909,7 +909,7 @@ MolTableView::getContents( adcontrols::moltable& mols ) const
                 mol.synonym() = index.data( Qt::EditRole ).toString().toStdString();
                 break;
             case ColumnState::f_description:
-                mol.description() = index.data( Qt::EditRole ).toString().toStdWString();
+                mol.set_description( index.data( Qt::EditRole ).toString().toStdWString() );
                 break;
             case ColumnState::f_svg:
                 //jobj[ "svg" ] = boost::json::value{{ "value", index.data( Qt::EditRole ).toString().toStdString()}

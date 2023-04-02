@@ -165,7 +165,7 @@ namespace adcontrols {
                         moltable::value_type mol;
                         mol.formula() = f.first;
                         mol.enable() = f.second.first;
-                        mol.description() = f.second.second;
+                        mol.set_description( f.second.second );
                         molecules_ << mol;
                     }
                 }

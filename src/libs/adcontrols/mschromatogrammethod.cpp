@@ -110,7 +110,7 @@ namespace adcontrols {
                         mol.enable() = f.enable;
                         mol.setIsMSRef( f.msref );
                         mol.formula() = f.formula;
-                        mol.description() = f.memo;
+                        mol.set_description( f.memo );
                         molecules_ << mol;
                     }
 

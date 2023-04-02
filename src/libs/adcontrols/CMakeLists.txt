@@ -115,8 +115,7 @@ add_library( adcontrols SHARED
   msproperty.hpp
   msreference.cpp
   msreference.hpp
-  msreferencedefns.cpp
-  msreferencedefns.hpp
+#  msreferencedefns.cpp  msreferencedefns.hpp
   msreferences.cpp
   msreferences.hpp
   msident.cpp

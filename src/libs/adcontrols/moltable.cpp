@@ -28,6 +28,7 @@
 #include <adportable/float.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
+#include <adportable/utf.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -188,13 +189,6 @@ moltable::value_type::value_type( const value_type& t )
 bool
 moltable::value_type::operator == ( const value_type& t ) const
 {
-#if 0
-    ADDEBUG() << "== enable:" << std::make_pair( enable_, t.enable_ )
-              << ", protocol:" << std::make_pair( protocol_, t.protocol_ )
-              << ", formula:" << std::make_pair( formula_, t.formula_ )
-              << ", adducts:" << std::make_pair( adducts_, t.adducts_ )
-              << ", tR:" << std::make_pair( tR_, t.tR_ );
-#endif
     return
         formula_ == t.formula_ &&
         adducts_ == t.adducts_ &&
@@ -263,6 +257,12 @@ void
 moltable::value_type::setMolid( boost::optional< boost::uuids::uuid >&& uuid )
 {
     molid_ = uuid;
+}
+
+void
+moltable::value_type::set_description( const std::wstring& t )
+{
+    description_ = t;
 }
 
 moltable::~moltable()

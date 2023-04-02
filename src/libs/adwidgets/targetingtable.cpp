@@ -217,7 +217,7 @@ TargetingTable::getContents( adcontrols::TargetingMethod& method )
         adcontrols::moltable::value_type value;
         value.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         value.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        value.description() = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        value.set_description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
 
         if ( !value.formula().empty() )
             method.molecules() << value;
@@ -282,7 +282,7 @@ TargetingTable::getContents( adcontrols::MSChromatogramMethod& m )
 
         mol.formula() = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString();
         mol.enable() = model.index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
-        mol.description() = model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString();
+        mol.set_description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
         mol.mass() = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
         mol.setIsMSRef( model.index( row, c_msref ).data( Qt::CheckStateRole ).toBool() );
 

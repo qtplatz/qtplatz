@@ -79,7 +79,7 @@ namespace adcontrols {
             const std::string& adducts( ion_polarity ) const;
             std::string& synonym()             { return synonym_; }
             std::string& smiles()              { return smiles_; }
-            std::wstring& description()        { return description_; }
+            void set_description( const std::wstring& );
             bool enable() const                { return enable_; }
             uint32_t flags() const             { return flags_; }
             double mass() const                { return mass_; }
