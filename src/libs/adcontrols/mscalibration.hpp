@@ -91,7 +91,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( t0_coeffs );
                 ar & BOOST_SERIALIZATION_NVP( time_prefix );
                 ar & BOOST_SERIALIZATION_NVP( algo );
-            } else {
+            } else { // v3
                 ar & BOOST_SERIALIZATION_NVP( process_date_ );
                 ar & BOOST_SERIALIZATION_NVP( mode_ );
                 ar & BOOST_SERIALIZATION_NVP( coeffs_ );

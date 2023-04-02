@@ -157,8 +157,16 @@ QuanResponse::idCompound()
     return idCompound_;
 }
 
+template<>
 void
 QuanResponse::setDataGuid( const std::wstring& d )
+{
+    dataGuid_ = boost::uuids::string_generator()( d );
+}
+
+template<>
+void
+QuanResponse::setDataGuid( const std::string& d )
 {
     dataGuid_ = boost::uuids::string_generator()( d );
 }
