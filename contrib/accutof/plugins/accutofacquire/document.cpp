@@ -102,13 +102,12 @@
 #include <boost/mpl/at.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-// #include <boost/property_tree/ptree.hpp>
-// #include <boost/property_tree/json_parser.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/json.hpp>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -116,6 +115,7 @@
 #include <QMetaType>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QThread>
 #include <chrono>
 #include <future>
 #include <fstream>
@@ -274,9 +274,6 @@ namespace accutof { namespace acquire {
 #if XCHROMATOGRAMSMETHOD
             std::shared_ptr< const adcontrols::XChromatogramsMethod > xicMethod_;
 #endif
-#if TOFCHROMATOGRAMSMETHOD && 0
-            std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_; // deprecated
-#endif
             mutable std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer_;
             mutable QString msCalibFile_;
             std::shared_ptr< adcontrols::MSCalibrateResult > msCalibResult_;
@@ -326,9 +323,9 @@ namespace accutof { namespace acquire {
                    , hasDark_( false ) {
 #if XCHROMATOGRAMSMETHOD
 #else
-                adcontrols::TofChromatogramsMethod tofm;
-                tofm.setNumberOfTriggers( 1000 );
-                tdcdoc_->setTofChromatogramsMethod( tofm );
+                // adcontrols::TofChromatogramsMethod tofm;
+                // tofm.setNumberOfTriggers( 1000 );
+                // tdcdoc_->setTofChromatogramsMethod( tofm );
 #endif
 
                 uint32_t id(0);
@@ -608,6 +605,9 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
+    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     save_defaults();
 
     auto cm = MainWindow::instance()->getControlMethod();
@@ -820,6 +820,8 @@ document::finalClose()
 void
 document::save_defaults()
 {
+    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
