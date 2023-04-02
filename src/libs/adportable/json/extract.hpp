@@ -59,7 +59,7 @@ namespace adportable {
                 if ( obj.at( key ).is_string() && std::is_arithmetic< T >::value ) {
                     workaround< std::is_arithmetic< T >::value >().assign( t, obj.at( key ).as_string() );
                 } else {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("adportable/json/extract<> exception"));
+                    BOOST_THROW_EXCEPTION(std::runtime_error("adportable/json/extract<> exception at key: " + std::string( key )));
                 }
             }
         }

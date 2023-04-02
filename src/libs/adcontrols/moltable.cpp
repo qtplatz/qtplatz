@@ -41,6 +41,7 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
+#include <boost/json.hpp>
 
 #include <array>
 #include <adportable/float.hpp>
@@ -413,8 +414,15 @@ namespace adcontrols {
             extract( obj, t.adducts_,     "adducts"     ); // check if array then v4 else v3 data
             extract( obj, t.synonym_,     "synonym"     );
             extract( obj, t.smiles_,      "smiles"      );
-            extract( obj, t.description_, "description" );
-
+            if ( auto desc = obj.if_contains( "description" ) ) {
+                if ( desc->is_array() ) { // workaround -- it was used be wstring by mistake
+                    std::wstring text; // workaround
+                    extract( obj, text, "description" );
+                    t.description_ = adportable::utf::to_utf8( text );
+                } else {
+                    extract( obj, t.description_, "description" );
+                }
+            }
             //
             if ( auto protocol = obj.if_contains( "protocol" ) ) {
                 t.protocol_ = boost::json::value_to< int32_t >( *protocol );

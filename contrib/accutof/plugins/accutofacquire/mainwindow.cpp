@@ -1049,7 +1049,7 @@ MainWindow::handleInstState( int status )
 void
 MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> m )
 {
-    if ( QThread::currentThread() == QCoreApplication::instance()->thread() )
+    if ( QThread::currentThread() != QCoreApplication::instance()->thread() )
         ADDEBUG() << "ERROR: ============ " << __FUNCTION__ << " ============ : MUST INVOKE FROM MAIN THREAD. =====";
     assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
 
@@ -1063,7 +1063,7 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
 std::shared_ptr< adcontrols::ControlMethod::Method >
 MainWindow::getControlMethod() const
 {
-    if ( QThread::currentThread() == QCoreApplication::instance()->thread() )
+    if ( QThread::currentThread() != QCoreApplication::instance()->thread() )
         ADDEBUG() << "ERROR: ============ " << __FUNCTION__ << " ============ : MUST INVOKE FROM MAIN THREAD. =====";
    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
 
