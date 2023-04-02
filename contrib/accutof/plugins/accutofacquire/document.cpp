@@ -208,7 +208,6 @@ namespace accutof { namespace acquire {
                     if ( auto session = inst->getInstrumentSession() )
                         session->start_run();
                 }
-                ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
                 document::instance()->prepare_for_run();
                 task::instance()->sample_started(); // workaround::method start
             }
@@ -492,7 +491,6 @@ document::actionConnect()
 void
 document::actionInject()
 {
-    ADDEBUG() << "############### actionInject #############";
     adacquire::task::instance()->fsmInject();
 
     for ( auto& iController : impl_->iControllers_ ) {
@@ -618,7 +616,6 @@ document::prepare_for_run()
 void
 document::start_run()
 {
-    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     prepare_for_run();
 }
 
@@ -763,12 +760,6 @@ document::initialSetup()
         impl_->longTermHistogramEnabled_ = settings->value( Constants::THIS_GROUP + QString("/longTermHistogramEnabled"),  true ).toBool();
     }
 
-    // { // host:port
-    //     auto settings( impl_->settings_ );
-    //     impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "httpd-map" ).toString().toStdString();
-    //     impl_->http_port_ = settings->value( Constants::THIS_GROUP + QString("/http_port"),  "http" ).toString().toStdString();
-    // }
-
     emit on_threshold_action_changed();
 
     do {
@@ -806,8 +797,6 @@ document::finalClose()
 void
 document::save_defaults()
 {
-    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
@@ -817,7 +806,6 @@ document::save_defaults()
         }
     }
 
-    ADDEBUG() << "##### document::save_default thread: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
         save( QString::fromStdWString( fname.wstring() ), *cm );
