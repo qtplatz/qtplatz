@@ -109,6 +109,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/json.hpp>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -116,6 +117,7 @@
 #include <QMetaType>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QThread>
 #include <chrono>
 #include <future>
 #include <fstream>
@@ -445,6 +447,8 @@ document::actionConnect()
 
         emit onModulesFailed( failed );
 
+        assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
         tdc()->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
@@ -536,6 +540,8 @@ document::actionRun()
     auto run = MainWindow::instance()->getSampleRun();
     setSampleRun( run );
 
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     auto cm = MainWindow::instance()->getControlMethod();
     setControlMethod( cm, QString() );
 
@@ -610,6 +616,7 @@ document::prepare_for_run()
 
     save_defaults();
 
+    ADDEBUG() << "##### prepare_for_run thread: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto cm = MainWindow::instance()->getControlMethod();
 
     setControlMethod( *cm, QString() );
@@ -829,6 +836,7 @@ document::save_defaults()
         }
     }
 
+    ADDEBUG() << "##### document::save_default thread: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
         save( QString::fromStdWString( fname.wstring() ), *cm );
@@ -1076,6 +1084,7 @@ document::set_threshold_method( int ch, const adcontrols::threshold_method& m )
 {
     tdc()->set_threshold_method( ch, m );
 
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto mp = MainWindow::instance()->getControlMethod();
     setControlMethod( mp );
 
@@ -1087,6 +1096,7 @@ document::set_threshold_action( const adcontrols::threshold_action& m )
 {
     tdc()->set_threshold_action( m );
 
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto mp = MainWindow::instance()->getControlMethod();
     setControlMethod( mp );
 
@@ -1097,6 +1107,8 @@ document::set_threshold_action( const adcontrols::threshold_action& m )
 void
 document::set_method( const acqrscontrols::u5303a::method& )
 {
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
         setControlMethod( cm );
 
