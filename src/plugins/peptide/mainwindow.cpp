@@ -97,7 +97,8 @@ MainWindow::createContents( Core::IMode * mode )
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( editorHolderLayout );
-        editorHolderLayout->addWidget( new ProteinWnd() );
+
+        editorHolderLayout->addWidget( new ProteinWnd( this ) );
 
         Utils::StyledBar * toolBar1 = createTopStyledBar();
         Utils::StyledBar * toolBar2 = createMidStyledBar();

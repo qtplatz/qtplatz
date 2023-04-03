@@ -1549,10 +1549,7 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, port
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-        ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         processor->applyCalibration( pm, assigned, folium );
-#endif
     }
 }
 
@@ -1662,8 +1659,7 @@ QString
 MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int nbsp )
 {
     QString o;
-//     ADDEBUG() << "########################### TODO ###################################";
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
 
         while ( nbsp-- )
@@ -1685,7 +1681,7 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
         }
         return o;
     }
-//#endif
+
     return QString();
 }
 
