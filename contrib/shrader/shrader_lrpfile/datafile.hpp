@@ -51,6 +51,7 @@ namespace shrader {
 		//--------- implement adcontrols::datafile ----------------
 		virtual void accept( adcontrols::dataSubscriber& ) override;
 		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+        virtual boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 		virtual adcontrols::datafile::factory_type factory() override;
 		virtual size_t getFunctionCount() const override;
 		virtual size_t getSpectrumCount( int fcn = 0 ) const override;
@@ -72,7 +73,7 @@ namespace shrader {
 	private:
         std::shared_ptr< shrader::lrpfile > lrpfile_;
 		std::shared_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        std::wstring root_filename_; 
+        std::wstring root_filename_;
         std::map< std::wstring, size_t > dataIds_;
 	};
 

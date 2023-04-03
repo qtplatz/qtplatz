@@ -28,17 +28,19 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <filesystem>
 #include <string>
 #include <boost/any.hpp>
 
 namespace portfolio { class Portfolio; }
 
 namespace adcontrols {
-    
+
     class dataSubscriber;
     class MSCalibrateResult;
+    class ADCONTROLSSHARED_EXPORT datafile;
 
-    class ADCONTROLSSHARED_EXPORT datafile { // visitable
+    class datafile { // visitable
     public:
         datafile(void);
         virtual ~datafile(void);
@@ -50,16 +52,21 @@ namespace adcontrols {
         // ----- virtual methods -----
         // 'path' parameter may accept either /Acquire and /Processed with following sub-dir structures
         // data read operations
-		virtual const std::wstring& filename() const;
+		virtual std::filesystem::path filename() const;
         virtual void accept( dataSubscriber& ) = 0; // visitable
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const = 0;
+        virtual boost::any fetch( const std::string& path, const std::string& dataType ) const = 0;
         //
         virtual int dataformat_version() const { return 0; }
 
         // data update, modify operations
-        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& );
-        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& );
-		virtual bool loadContents( const std::wstring& /* path */, const std::wstring& /* id */, dataSubscriber& ) { return false; }
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& ) { return false; }
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& )                  { return false; }
+		virtual bool loadContents( const std::wstring&, const std::wstring& /*id*/, dataSubscriber& )  { return false; }
+
+        virtual bool saveContents( const std::string&, const portfolio::Portfolio&, const datafile& )  { return false; }
+        virtual bool saveContents( const std::string&, const portfolio::Portfolio& )                   { return false; }
+		virtual bool loadContents( const std::string&, const std::string& /*id*/, dataSubscriber& )    { return false; }
         //---------
 
         virtual bool applyCalibration( const std::wstring&, const MSCalibrateResult& ) { return false; }
@@ -74,9 +81,8 @@ namespace adcontrols {
 #ifdef _MSC_VER
 # pragma warning( disable: 4251 ) // dll-linkage for
 #endif
-        std::wstring filename_;
+        std::filesystem::path filename_;
         bool readonly_;
     };
 
 }
-

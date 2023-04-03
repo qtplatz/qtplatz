@@ -334,6 +334,13 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     return false;
 }
 
+
+boost::any
+datafile::fetch( const std::string& dataId, const std::string& dataType ) const
+{
+    return fetch( adportable::utf::to_wstring( dataId ), adportable::utf::to_wstring( dataType ) );
+}
+
 boost::any
 datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) const
 {
@@ -419,6 +426,27 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
 
 ////////////////////////////////////////////////////
 // SaveFileAs come in here
+
+bool
+datafile::saveContents( const std::string& path, const portfolio::Portfolio& portfolio, const adcontrols::datafile& source )
+{
+    return saveContents( adportable::utf::to_wstring( path ), portfolio, source );
+}
+
+bool
+datafile::saveContents( const std::string& path, const portfolio::Portfolio& portfolio )
+{
+    return saveContents( adportable::utf::to_wstring( path ), portfolio );
+}
+
+bool
+datafile::loadContents( const std::string& path, const std::string& id, adcontrols::dataSubscriber& sub )
+{
+    return loadContents( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( id ), sub );
+}
+
+//----
+
 bool
 datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio, const adcontrols::datafile& source )
 {

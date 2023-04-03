@@ -151,10 +151,10 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
     return false;
 }
 
-const std::wstring&
+std::wstring
 dataprocessor::filename() const
 {
-    return impl_->file_->filename();
+    return impl_->file_->filename().wstring();
 }
 
 void

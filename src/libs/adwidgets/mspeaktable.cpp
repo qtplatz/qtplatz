@@ -1079,7 +1079,7 @@ MSPeakTable::getMSPeak( adcontrols::MSPeak& peak, int row ) const
     //peak.exit_delay( double );
     //peak.flight_length( double );
     peak.formula( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdString() );
-    peak.description( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdWString() );
+    peak.description( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdString() );
     peak.spectrumIndex( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() );
 
     return true;

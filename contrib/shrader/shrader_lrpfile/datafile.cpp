@@ -31,6 +31,7 @@
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -56,8 +57,14 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 	sub.subscribe( *this );
 
     // subscribe processed dataset
-	if ( processedDataset_ ) 
+	if ( processedDataset_ )
 		sub.subscribe( *processedDataset_ );
+}
+
+boost::any
+datafile::fetch( const std::string& foliumGuid, const std::string& dataType ) const
+{
+    return fetch( adportable::utf::to_wstring( foliumGuid ), adportable::utf::to_wstring( dataType ) );
 }
 
 // virtual
@@ -66,8 +73,8 @@ datafile::fetch( const std::wstring& foliumGuid, const std::wstring& dataType ) 
 {
 	(void)dataType;
 	boost::any any;
-    
-    auto it = dataIds_.find( foliumGuid ); 
+
+    auto it = dataIds_.find( foliumGuid );
 
     if ( it != dataIds_.end() ) {
 
@@ -83,7 +90,7 @@ datafile::fetch( const std::wstring& foliumGuid, const std::wstring& dataType ) 
 //virtual
 adcontrols::datafile::factory_type
 datafile::factory()
-{ 
+{
 	return 0;
 }
 
@@ -153,12 +160,12 @@ bool
 datafile::_open( const std::wstring& filename, bool )
 {
     boost::filesystem::path path( filename );
-    
+
     if ( boost::filesystem::exists( path ) ) {
 
         size_t fsize = boost::filesystem::file_size( path );
         boost::filesystem::ifstream in( path, std::ios_base::binary );
-        
+
         if ( (lrpfile_ = std::make_shared< shrader::lrpfile >( in, fsize )) ) {
 
             portfolio::Portfolio portfolio;
@@ -205,4 +212,3 @@ datafile::is_valid_datafile( const std::wstring& filename )
 		return true;
 	return false;
 }
-

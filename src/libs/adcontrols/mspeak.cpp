@@ -296,6 +296,12 @@ MSPeak::description( const std::wstring& v )
 }
 
 void
+MSPeak::description( const std::string& v )
+{
+    impl_->description_ = v;
+}
+
+void
 MSPeak::spectrumId( const std::string& v )
 {
     impl_->spectrumId_ = v;
