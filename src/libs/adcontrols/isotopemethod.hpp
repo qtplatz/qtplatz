@@ -41,7 +41,9 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT IsotopeMethod {
+    class ADCONTROLSSHARED_EXPORT IsotopeMethod;
+
+    class IsotopeMethod {
     public:
         ~IsotopeMethod();
         IsotopeMethod();
@@ -51,33 +53,32 @@ namespace adcontrols {
 
         struct ADCONTROLSSHARED_EXPORT Formula {
         public:
-			std::wstring description;  // name of structure, mol file name etc.
-            std::wstring formula;
-            std::wstring adduct;
+            std::string description;  // name of structure, mol file name etc.
+            std::string formula;
+            std::string adduct;
             size_t chargeState;
             double relativeAmounts;
             bool positive;
             Formula();
             Formula( const Formula& );
-			Formula( const std::wstring& desc
+			[[deprecated]] Formula( const std::wstring& desc
 				     , const std::wstring& formula
                      , const std::wstring& adduct
                      , size_t chargeState
                      , double relativeAmounts
                      , bool positive = true );
+			Formula( const std::string& desc
+				     , const std::string& formula
+                     , const std::string& adduct
+                     , size_t chargeState
+                     , double relativeAmounts
+                     , bool positive = true );
         private:
             friend class boost::serialization::access;
-            template<class Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-                using namespace boost::serialization;
-                (void)version;
-				ar & BOOST_SERIALIZATION_NVP(description);
-                ar & BOOST_SERIALIZATION_NVP(formula);
-                ar & BOOST_SERIALIZATION_NVP(adduct);
-                ar & BOOST_SERIALIZATION_NVP(chargeState);
-                ar & BOOST_SERIALIZATION_NVP(relativeAmounts);
-                ar & BOOST_SERIALIZATION_NVP(positive);
-            }
+            template<class Archive> void serialize(Archive& ar, const unsigned int version);
+            template< typename T > class archiver;
+            friend class archiver< Formula >;
+            friend class archiver< const Formula >;
         };
 
     public:
@@ -94,7 +95,7 @@ namespace adcontrols {
         inline vector_type::iterator erase( vector_type::iterator beg, vector_type::iterator end ) {
             return formulae_.erase( beg, end );
         }
- 
+
         bool polarityPositive() const;
         void polarityPositive( bool );
 
@@ -135,3 +136,6 @@ namespace adcontrols {
 #ifdef _MSC_VER
 # pragma warning( pop )
 #endif
+
+BOOST_CLASS_VERSION( adcontrols::IsotopeMethod, 1 )
+BOOST_CLASS_VERSION( adcontrols::IsotopeMethod::Formula, 2 )

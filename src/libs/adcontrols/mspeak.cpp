@@ -290,12 +290,6 @@ MSPeak::formula( const std::string& v )
 }
 
 void
-MSPeak::description( const std::wstring& v )
-{
-    impl_->description_ = adportable::utf::to_utf8( v );
-}
-
-void
 MSPeak::description( const std::string& v )
 {
     impl_->description_ = v;

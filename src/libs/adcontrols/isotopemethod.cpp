@@ -24,6 +24,45 @@
 **************************************************************************/
 
 #include "isotopemethod.hpp"
+#include "serializer.hpp"
+#include <adportable/utf.hpp>
+
+using adportable::utf;
+
+namespace adcontrols {
+
+    template< typename T = IsotopeMethod::Formula >
+    class IsotopeMethod::Formula::archiver {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            using namespace boost::serialization;
+            ADDEBUG() << "################ serailize: is loading " << Archive::is_loading::value << ", version " << version;
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(_.description);
+                ar & BOOST_SERIALIZATION_NVP(_.formula);
+                ar & BOOST_SERIALIZATION_NVP(_.adduct);
+                ar & BOOST_SERIALIZATION_NVP(_.chargeState);
+                ar & BOOST_SERIALIZATION_NVP(_.relativeAmounts);
+                ar & BOOST_SERIALIZATION_NVP(_.positive);
+            } else {
+                std::wstring description, formula, adduct;
+                ar & BOOST_SERIALIZATION_NVP(description);
+                ar & BOOST_SERIALIZATION_NVP(formula);
+                ar & BOOST_SERIALIZATION_NVP(adduct);
+                ar & BOOST_SERIALIZATION_NVP(_.chargeState);
+                ar & BOOST_SERIALIZATION_NVP(_.relativeAmounts);
+                ar & BOOST_SERIALIZATION_NVP(_.positive);
+                if ( Archive::is_loading::value ) {
+                    _.description = utf::to_utf8( description );
+                    _.formula     = utf::to_utf8( formula );
+                    _.adduct      = utf::to_utf8( adduct );
+                }
+            }
+        }
+    };
+
+}
 
 using namespace adcontrols;
 
@@ -33,7 +72,7 @@ IsotopeMethod::Formula::Formula() : chargeState(0)
 
 IsotopeMethod::Formula::Formula( const Formula& t ) : description( t.description )
                                                     , formula( t.formula )
-                                                    , adduct( t.adduct )  
+                                                    , adduct( t.adduct )
                                                     , chargeState( t.chargeState )
                                                     , relativeAmounts( t.relativeAmounts )
                                                     , positive( t.positive )
@@ -45,6 +84,20 @@ IsotopeMethod::Formula::Formula( const std::wstring& desc
                                  , const std::wstring& _adduct
                                  , size_t _chargeState
                                  , double _relativeAmounts
+                                 , bool _positive ) : description( utf::to_utf8( desc ) )
+								                    , formula( utf::to_utf8( _formula ) )
+                                                    , adduct( utf::to_utf8( _adduct ) )
+                                                    , chargeState( _chargeState )
+                                                    , relativeAmounts( _relativeAmounts )
+                                                    , positive( _positive )
+{
+}
+
+IsotopeMethod::Formula::Formula( const std::string& desc
+								 , const std::string& _formula
+                                 , const std::string& _adduct
+                                 , size_t _chargeState
+                                 , double _relativeAmounts
                                  , bool _positive ) : description( desc )
 								                    , formula( _formula )
                                                     , adduct( _adduct )
@@ -53,6 +106,35 @@ IsotopeMethod::Formula::Formula( const std::wstring& desc
                                                     , positive( _positive )
 {
 }
+
+namespace adcontrols {
+
+    template<> void
+    IsotopeMethod::Formula::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        archiver().serialize( ar, *this, version );
+    }
+
+    template<> void
+    IsotopeMethod::Formula::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        archiver().serialize( ar, *this, version );
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    IsotopeMethod::Formula::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        archiver().serialize( ar, *this, version );
+    }
+
+    template<> void
+    IsotopeMethod::Formula::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        archiver().serialize( ar, *this, version );
+    }
+}
+
 
 /////////////////////////////////////////////////////////
 
@@ -63,7 +145,7 @@ IsotopeMethod::~IsotopeMethod()
 IsotopeMethod::IsotopeMethod() : polarityPositive_( true )
                                , useElectronMass_( true )
                                , threshold_( 0.1 )
-                               , resolution_( 0.05 )   
+                               , resolution_( 0.05 )
 {
 }
 
@@ -73,7 +155,7 @@ IsotopeMethod::IsotopeMethod( const IsotopeMethod& t ) : polarityPositive_( t.po
                                                        , resolution_( t.resolution_ )
                                                        , formulae_(t.formulae_)
 {
-}    
+}
 
 IsotopeMethod&
 IsotopeMethod::operator = ( const IsotopeMethod& t )
@@ -128,7 +210,7 @@ IsotopeMethod::end()
 {
     return formulae_.end();
 }
- 
+
 bool
 IsotopeMethod::polarityPositive() const
 {
@@ -176,4 +258,3 @@ IsotopeMethod::resolution( double value )
 {
     resolution_ = value;
 }
-

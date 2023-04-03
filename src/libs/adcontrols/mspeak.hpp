@@ -79,7 +79,6 @@ namespace adcontrols {
         void exit_delay( double );
         void flight_length( double );
         void formula( const std::string& );
-        [[deprecated]] void description( const std::wstring& );
         void description( const std::string& );
         void spectrumId( const std::string& ); // uuid for a spectrum
         void spectrumIndex( int );

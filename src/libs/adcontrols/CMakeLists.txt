@@ -60,8 +60,7 @@ add_library( adcontrols SHARED
   isocluster.hpp
   isotopecluster.cpp
   isotopecluster.hpp
-  isotopemethod.cpp
-  isotopemethod.hpp
+  isotopemethod.cpp  isotopemethod.hpp
   idaudit.cpp
   idaudit.hpp
   lapfinder.cpp
