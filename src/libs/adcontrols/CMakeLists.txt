@@ -236,11 +236,18 @@ add_library( adcontrols SHARED
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS_EQUAL "8.3.0" )
+  set (LIBCPPFS "stdc++fs")
+endif()
+message( STATUS "## LIBCPPFS: " ${LIBCPPFS} )
+
+
 target_link_libraries(
   adcontrols LINK_PUBLIC
   adportable
   adportable_serializer
   ${Boost_LIBRARIES}
+  ${LIBCPPFS}
   )
 
 #set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
