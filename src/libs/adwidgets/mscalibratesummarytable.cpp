@@ -199,7 +199,6 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
     for ( int row = 0; row < model.rowCount(); ++row ) {
 
         QString formula = model.data( model.index( row, c_formula ) ).toString();
-        auto wformula = formula.toStdWString();
 
         if ( ! formula.isEmpty()  ) {
 
@@ -215,7 +214,8 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
             adcontrols::MSAssignedMass assigned( -1
                                                  , fcn
                                                  , index
-                                                 , wformula, exact_mass, time, mass, enable, 0 /* flag */, mode );
+                                                 , formula.toStdString()
+                                                 , exact_mass, time, mass, enable, 0 /* flag */, mode );
             t << assigned;
         }
     }
@@ -255,7 +255,7 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
         mass = adcontrols::detail::compute_mass< adcontrols::MSCalibration::TIMESQUARED >::compute( it->time(), calib );
     }
 
-    model.setData( model.index( row, c_formula ), QString::fromStdWString( it->formula() ) );
+    model.setData( model.index( row, c_formula ), QString::fromStdString( it->formula() ) );
     model.setData( model.index( row, c_exact_mass ), it->exactMass() );
     model.setData( model.index( row, c_mass_calibrated ), mass );
 

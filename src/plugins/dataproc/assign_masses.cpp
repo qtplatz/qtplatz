@@ -77,7 +77,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
             adcontrols::MSAssignedMass assigned( uint32_t( std::distance( references.begin(), it ) )
 				                                 , fcn
                                                  , uint32_t(idx)            // idMassSpectrum (index on centroid peak)
-                                                 , adportable::utf::to_wstring( it->display_formula() )
+                                                 , it->display_formula()
                                                  , it->exact_mass()
                                                  , centroid.time( idx )
                                                  , masses[ idx ]

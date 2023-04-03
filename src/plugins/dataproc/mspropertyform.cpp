@@ -375,7 +375,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MSCalibrateResult& re
     o << "</tr>";
     for ( const auto& a: result.assignedMasses() ) {
         o << "<tr>"
-          << "<td>" << adcontrols::ChemicalFormula().formatFormula( utf::to_utf8( a.formula() ) ) << "</td>"
+          << "<td>" << adcontrols::ChemicalFormula().formatFormula( a.formula() ) << "</td>"
           << "<td>" << a.idReference() << "</td>"
           << "<td>" << a.idPeak() << "</td>"
           << "<td>" << a.exactMass() << "</td>"

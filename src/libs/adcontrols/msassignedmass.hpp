@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef MSASSIGNEDMASS_H
-#define MSASSIGNEDMASS_H
+#pragma once
 
 #include "adcontrols_global.h"
 #include <string>
@@ -36,18 +35,22 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT MSAssignedMass {
+    class ADCONTROLSSHARED_EXPORT MSAssignedMass;
+
+    class MSAssignedMass {
     public:
+        ~MSAssignedMass();
         MSAssignedMass();
         MSAssignedMass( const MSAssignedMass& );
-        
+        const MSAssignedMass& operator = ( const MSAssignedMass& );
+
         MSAssignedMass( uint32_t idReference
                         , uint32_t idMasSpectrum
                         , uint32_t idPeak
-                        , const std::wstring& formula, double exactMass, double time, double mass
+                        , const std::string& formula, double exactMass, double time, double mass
                         , bool enable, uint32_t flags, uint32_t mode );
 
-        const std::wstring& formula() const;
+        std::string formula() const;
         uint32_t idReference() const;
         uint32_t idMassSpectrum() const; // fcn
         uint32_t idPeak() const;  // index on MassSpectrum
@@ -58,6 +61,7 @@ namespace adcontrols {
         uint32_t flags() const;
         uint32_t mode() const;
         void formula( const std::wstring& );
+        void formula( const std::string& );
         void idReference( uint32_t );
         void idMassSpectrum( uint32_t );
         void idPeak( uint32_t );
@@ -67,9 +71,11 @@ namespace adcontrols {
         void enable( bool );
         void flags( uint32_t );
         void mode( uint32_t );
- 
+
     private:
-        std::wstring formula_;
+        class impl;
+        std::unique_ptr< impl > impl_;
+        std::string formula_;
         uint32_t idReference_;
         uint32_t idMassSpectrum_; // segment# on segment_wrapper<MassSpectrum>[]
         uint32_t idPeak_;         // peak# on MassSpectrum
@@ -81,23 +87,7 @@ namespace adcontrols {
         uint32_t mode_; // number of turns for InfiTOF, linear|reflectron for MALDI and/or any analyzer mode
 
         friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive& ar, const uint32_t version) {
-            if ( version < 3 )
-                return;
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( formula_);
-            ar & BOOST_SERIALIZATION_NVP( idReference_ );
-            ar & BOOST_SERIALIZATION_NVP( idMassSpectrum_);
-            ar & BOOST_SERIALIZATION_NVP( idPeak_);
-            ar & BOOST_SERIALIZATION_NVP( exactMass_);
-            ar & BOOST_SERIALIZATION_NVP( time_);
-            ar & BOOST_SERIALIZATION_NVP( mass_);
-            ar & BOOST_SERIALIZATION_NVP( enable_);
-            ar & BOOST_SERIALIZATION_NVP( flags_ );
-            ar & BOOST_SERIALIZATION_NVP( mode_ );
-        }
-
+        template<class Archive> void serialize(Archive& ar, const uint32_t version);
     };
 
 
@@ -130,7 +120,5 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 3 )
+BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 4 ) // 2023-04-03
 BOOST_CLASS_VERSION( adcontrols::MSAssignedMasses, 1 )
-
-#endif // MSASSIGNEDMASS_H
