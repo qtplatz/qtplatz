@@ -544,7 +544,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
                 model.setData( model.index( row, c_mspeaktable_exact_mass ), mass );
                 model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - mass );
             }
-			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdWString( pk.annotation() ) );
+			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( pk.annotation() ) );
             model.setData( model.index( row, c_mspeaktable_mass_width ), pk.widthHH( false ) * std::milli::den );
             model.setData( model.index( row, c_mspeaktable_time_width ), pk.widthHH( true ) * std::nano::den );
 

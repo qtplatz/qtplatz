@@ -25,6 +25,7 @@
 
 #include "mspeakinfoitem.hpp"
 #include "serializer.hpp"
+#include <adportable/utf.hpp>
 #include <adportable/waveform_peakfinder.hpp>
 #include <adportable/json/extract.hpp>
 #include <cstring>
@@ -33,6 +34,7 @@
 #endif
 
 using namespace adcontrols;
+using adportable::utf;
 
 MSPeakInfoItem::~MSPeakInfoItem(void)
 {
@@ -289,7 +291,7 @@ MSPeakInfoItem::formula( const std::string& formula )
     formula_ = formula;
 }
 
-const std::wstring&
+const std::string&
 MSPeakInfoItem::annotation() const
 {
     return annotation_;
@@ -297,6 +299,12 @@ MSPeakInfoItem::annotation() const
 
 void
 MSPeakInfoItem::annotation( const std::wstring& v )
+{
+    annotation_ = utf::to_utf8( v );
+}
+
+void
+MSPeakInfoItem::annotation( const std::string& v )
 {
     annotation_ = v;
 }
@@ -393,17 +401,6 @@ MSPeakInfoItem::toJson() const
     return boost::json::serialize( jv );
 }
 
-// namespace {
-//     template<class T>
-//     void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
-//         try {
-//             t = boost::json::value_to<T>( obj.at( key ) );
-//         } catch ( std::exception& ex ) {
-//             ADDEBUG() << "exception: extracting key '" << key << "'\t" << ex.what();
-//         }
-//     }
-// }
-
 // static
 boost::optional< MSPeakInfoItem >
 MSPeakInfoItem::fromJson( const std::string& json )
@@ -426,6 +423,7 @@ MSPeakInfoItem::fromJson( const boost::json::value& jv )
 MSPeakInfoItem
 MSPeakInfoItem::tag_invoke( boost::json::value const& jv )
 {
+    ADDEBUG() << "===================== tag_invoke ========================";
     if ( jv.kind() == boost::json::kind::object ) {
         MSPeakInfoItem t;
         using namespace adportable::json;
@@ -450,6 +448,9 @@ MSPeakInfoItem::tag_invoke( boost::json::value const& jv )
         extract( obj, t.centroid_threshold_ , "centroid_threshold"  );
         extract( obj, t.is_visible_         , "is_visible"          );
         extract( obj, t.is_reference_       , "is_reference"        );
+        int errc;
+        extract( obj, t.formula_            , "formula",     errc   ); ADDEBUG() << errc;
+        extract( obj, t.annotation_         , "annotation",  errc   ); ADDEBUG() << errc;
         return t;
     }
     return {};
@@ -480,9 +481,12 @@ MSPeakInfoItem::tag_invoke( boost::json::value& jv, adcontrols::MSPeakInfoItem c
         , { "is_visible",           t.is_visible_         }
         , { "is_reference",         t.is_reference_       }
         , { "mode",                 t.mode() ? *t.mode() : -1 }
+        , { "formula",              t.formula_ }
+        , { "annotation",           t.annotation_ }
     };
 }
 
+//////// JSON ////////
 namespace adcontrols {
     void tag_invoke( boost::json::value_from_tag
                      , boost::json::value& jv, const adcontrols::MSPeakInfoItem& t )
@@ -496,14 +500,101 @@ namespace adcontrols {
     }
 }
 
-// void
-// tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const adcontrols::MSPeakInfoItem& t )
-// {
-//     MSPeakInfoItem::tag_invoke( jv, t );
-// }
+/////// binary|xml  serializer ///////////
+namespace adcontrols {
 
-// MSPeakInfoItem
-// tag_invoke( boost::json::value_to_tag< MSPeakInfoItem>& tag, const boost::json::value& jv )
-// {
-//     return MSPeakInfoItem::tag_invoke( jv );
-// }
+    template< typename T = MSPeakInfoItem >
+    class MSPeakInfoItem::archiver {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            ADDEBUG() << "######## serialize " << typeid(T).name() << " is loading: " << Archive::is_loading::value << ", version=" << version;
+            if ( version >= 4 ) {
+                ar  & BOOST_SERIALIZATION_NVP( _.peak_index_ )
+                    & BOOST_SERIALIZATION_NVP( _.peak_start_index_ )
+                    & BOOST_SERIALIZATION_NVP( _.peak_end_index_ )
+                    & BOOST_SERIALIZATION_NVP( _.base_height_ )
+                    & BOOST_SERIALIZATION_NVP( _.mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.area_ )
+                    & BOOST_SERIALIZATION_NVP( _.height_ )
+                    & BOOST_SERIALIZATION_NVP( _.time_from_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.time_from_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_left_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_right_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_left_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_right_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_left_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_right_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_left_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_right_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_threshold_ )
+                    ;
+                ar & BOOST_SERIALIZATION_NVP( _.is_visible_ );
+                ar & BOOST_SERIALIZATION_NVP( _.is_reference_ );
+                ar & BOOST_SERIALIZATION_NVP( _.formula_ );
+                ar & BOOST_SERIALIZATION_NVP( _.annotation_ ); // <-- chenged from std::wstring to std::string
+                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+
+            } else if ( version <= 3 ) {
+                ar  & BOOST_SERIALIZATION_NVP( _.peak_index_ )
+                    & BOOST_SERIALIZATION_NVP( _.peak_start_index_ )
+                    & BOOST_SERIALIZATION_NVP( _.peak_end_index_ )
+                    & BOOST_SERIALIZATION_NVP( _.base_height_ )
+                    & BOOST_SERIALIZATION_NVP( _.mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.area_ )
+                    & BOOST_SERIALIZATION_NVP( _.height_ )
+                    & BOOST_SERIALIZATION_NVP( _.time_from_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.time_from_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_left_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_right_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_left_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.HH_right_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_left_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_right_mass_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_left_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_right_time_ )
+                    & BOOST_SERIALIZATION_NVP( _.centroid_threshold_ )
+                    ;
+                if ( version >= 2 ) {
+                    std::wstring annotation;
+                    ar & BOOST_SERIALIZATION_NVP( _.is_visible_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.is_reference_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.formula_ );
+                    ar & BOOST_SERIALIZATION_NVP( annotation );
+                    if ( Archive::is_loading::value )
+                        _.annotation_ = utf::to_utf8( annotation );
+                }
+                if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+                }
+            }
+        }
+    };
+
+    template<> void
+    serialize( portable_binary_iarchive& ar, MSPeakInfoItem& t, const unsigned int version )
+    {
+        MSPeakInfoItem::archiver().serialize( ar, t, version );
+    }
+
+    template<> void
+    serialize( portable_binary_oarchive& ar, MSPeakInfoItem& t, const unsigned int version )
+    {
+        MSPeakInfoItem::archiver().serialize( ar, t, version );
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    serialize( boost::archive::xml_woarchive& ar, MSPeakInfoItem& t, const unsigned int version )
+    {
+        // saving
+        MSPeakInfoItem::archiver().serialize( ar, t, version );
+    }
+
+    template<> void
+    serialize( boost::archive::xml_wiarchive& ar, MSPeakInfoItem& t, const unsigned int version )
+    {
+        MSPeakInfoItem::archiver().serialize( ar, t, version );
+    }
+
+}

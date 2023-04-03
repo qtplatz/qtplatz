@@ -46,7 +46,11 @@ namespace adcontrols {
 
     namespace internal { class CentroidProcessImpl; }
 
-    class ADCONTROLSSHARED_EXPORT MSPeakInfoItem {
+    class ADCONTROLSSHARED_EXPORT MSPeakInfoItem;
+
+    template< typename Archive > void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
+
+    class MSPeakInfoItem {
     public:
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);
@@ -95,7 +99,8 @@ namespace adcontrols {
 
         const std::string& formula() const;
         void formula( const std::string& );
-        const std::wstring& annotation() const;
+        const std::string& annotation() const;
+        void annotation( const std::string& );
         void annotation( const std::wstring& );
         bool visible() const;
         void visible( bool );
@@ -139,43 +144,17 @@ namespace adcontrols {
         bool is_visible_;
         bool is_reference_;
         std::string formula_;
-        std::wstring annotation_;
+        std::string annotation_;
         boost::optional< int32_t > mode_; // use boost's optional for serialization
 
+        template< typename T > class archiver;
+        friend class archiver< MSPeakInfoItem >;
+        friend class archiver< const MSPeakInfoItem >;
+
         friend class internal::CentroidProcessImpl;
-        friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
-            ar  & BOOST_SERIALIZATION_NVP( peak_index_ )
-                & BOOST_SERIALIZATION_NVP( peak_start_index_ )
-                & BOOST_SERIALIZATION_NVP( peak_end_index_ )
-                & BOOST_SERIALIZATION_NVP( base_height_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( area_ )
-                & BOOST_SERIALIZATION_NVP( height_ )
-                & BOOST_SERIALIZATION_NVP( time_from_mass_ )
-                & BOOST_SERIALIZATION_NVP( time_from_time_ )
-                & BOOST_SERIALIZATION_NVP( HH_left_mass_ )
-                & BOOST_SERIALIZATION_NVP( HH_right_mass_ )
-                & BOOST_SERIALIZATION_NVP( HH_left_time_ )
-                & BOOST_SERIALIZATION_NVP( HH_right_time_ )
-                & BOOST_SERIALIZATION_NVP( centroid_left_mass_ )
-                & BOOST_SERIALIZATION_NVP( centroid_right_mass_ )
-                & BOOST_SERIALIZATION_NVP( centroid_left_time_ )
-                & BOOST_SERIALIZATION_NVP( centroid_right_time_ )
-                & BOOST_SERIALIZATION_NVP( centroid_threshold_ )
-                ;
-            if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP( is_visible_ )
-                    & BOOST_SERIALIZATION_NVP( is_reference_ )
-                    & BOOST_SERIALIZATION_NVP( formula_ )
-                    & BOOST_SERIALIZATION_NVP( annotation_ )
-                    ;
-            }
-            if ( version >= 3 ) {
-                ar & BOOST_SERIALIZATION_NVP( mode_ );
-            }
-        }
+        template< typename Archive > friend void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
     };
+
 
     ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag
                                              , boost::json::value&, const adcontrols::MSPeakInfoItem& );
@@ -184,4 +163,4 @@ namespace adcontrols {
 }
 
 
-BOOST_CLASS_VERSION( adcontrols::MSPeakInfoItem, 3 )
+BOOST_CLASS_VERSION( adcontrols::MSPeakInfoItem, 4 )

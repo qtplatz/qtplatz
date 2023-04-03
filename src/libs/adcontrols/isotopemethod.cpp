@@ -79,20 +79,6 @@ IsotopeMethod::Formula::Formula( const Formula& t ) : description( t.description
 {
 }
 
-IsotopeMethod::Formula::Formula( const std::wstring& desc
-								 , const std::wstring& _formula
-                                 , const std::wstring& _adduct
-                                 , size_t _chargeState
-                                 , double _relativeAmounts
-                                 , bool _positive ) : description( utf::to_utf8( desc ) )
-								                    , formula( utf::to_utf8( _formula ) )
-                                                    , adduct( utf::to_utf8( _adduct ) )
-                                                    , chargeState( _chargeState )
-                                                    , relativeAmounts( _relativeAmounts )
-                                                    , positive( _positive )
-{
-}
-
 IsotopeMethod::Formula::Formula( const std::string& desc
 								 , const std::string& _formula
                                  , const std::string& _adduct

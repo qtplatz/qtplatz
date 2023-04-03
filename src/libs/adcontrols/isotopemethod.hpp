@@ -61,12 +61,6 @@ namespace adcontrols {
             bool positive;
             Formula();
             Formula( const Formula& );
-			[[deprecated]] Formula( const std::wstring& desc
-				     , const std::wstring& formula
-                     , const std::wstring& adduct
-                     , size_t chargeState
-                     , double relativeAmounts
-                     , bool positive = true );
 			Formula( const std::string& desc
 				     , const std::string& formula
                      , const std::string& adduct

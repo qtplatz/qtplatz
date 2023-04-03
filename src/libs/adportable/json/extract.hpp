@@ -50,6 +50,14 @@ namespace adportable {
         struct workaround< false > { template< typename T > void assign( T& t, boost::json::string_view value ) {} };
 
         ////////////////
+        template<class T>
+        void extract( const boost::json::object& obj, T& t, boost::json::string_view key, int& errc )  {
+            if ( obj.contains( key ) ) {
+                t = boost::json::value_to<T>( obj.at( key ) );
+                errc = 0;
+            }
+            errc = (-1);
+        }
 
         template<class T>
         void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
