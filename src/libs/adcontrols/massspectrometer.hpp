@@ -92,8 +92,6 @@ namespace adcontrols {
         virtual adcontrols::MSFractuation * msFractuation() const;
         virtual std::pair<int, double> findLaps( double mass, int proto ) const { return {0,0}; } // nlap, tof (expected)
 
-        //virtual const char * objtext() const = 0;
-        //virtual const boost::uuids::uuid& objclsid() const = 0;
         virtual const char * const massSpectrometerName() const = 0;
         virtual const boost::uuids::uuid& massSpectrometerClsid() const = 0;
         virtual const ScanLaw * scanLaw() const = 0;
@@ -109,7 +107,7 @@ namespace adcontrols {
         // helper methods
         static std::shared_ptr< MassSpectrometer > create( const boost::uuids::uuid& massSpectrometerClsid );
         static std::shared_ptr< MassSpectrometer > create( const char * );
-        static std::vector< std::wstring > get_model_names();
+        [[deprecated("use installed_models")]] static std::vector< std::wstring > get_model_names();
         static std::vector< std::pair< boost::uuids::uuid, std::string > > installed_models();
 
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& ); // infiTOF

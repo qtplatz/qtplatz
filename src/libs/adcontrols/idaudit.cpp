@@ -45,12 +45,13 @@
 #include <locale>
 
 using namespace adcontrols;
+using adportable::utf;
 
 idAudit::idAudit() : uuid_( adportable::uuid()() )
                    , dateCreated_( adportable::date_string::logformat( std::chrono::system_clock::now(), true ) )
-                   , idComputer_( adportable::profile::computer_name<wchar_t>() )
-                   , idCreatedBy_( adportable::profile::user_login_id<wchar_t>() )
-                   , nameCreatedBy_( adportable::profile::user_login_name<wchar_t>() )
+                   , idComputer_( adportable::profile::computer_name<char>() )
+                   , idCreatedBy_( adportable::profile::user_login_id<char>() )
+                   , nameCreatedBy_( adportable::profile::user_login_name<char>() )
 {
 }
 
@@ -63,34 +64,34 @@ idAudit::idAudit( const idAudit& t ) : uuid_( t.uuid_ )
 {
 }
 
-const char *
+const std::string&
 idAudit::digest() const
 {
-    return digest_.c_str();
+    return digest_;
 }
 
-const char *
+const std::string&
 idAudit::dateCreated() const
 {
-    return dateCreated_.c_str();
+    return dateCreated_;
 }
 
-const wchar_t *
+const std::string&
 idAudit::idComputer() const
 {
-    return idComputer_.c_str();
+    return idComputer_;
 }
 
-const wchar_t *
+const std::string&
 idAudit::idCreatedBy() const
 {
-    return idCreatedBy_.c_str();
+    return idCreatedBy_;
 }
 
-const wchar_t *
+const std::string&
 idAudit::nameCreatedBy() const
 {
-    return nameCreatedBy_.c_str();
+    return nameCreatedBy_;
 }
 
 const boost::uuids::uuid&
@@ -118,21 +119,21 @@ idAudit::setDateCreated( const char * date )
 }
 
 void
-idAudit::setIdComputer( const wchar_t * value )
+idAudit::setIdComputer( const char * value )
 {
-    idComputer_ = value ? value : L"";
+    idComputer_ = value ? value : "";
 }
 
 void
-idAudit::setIdCreatedBy( const wchar_t * value )
+idAudit::setIdCreatedBy( const char * value )
 {
-    idCreatedBy_ = value ? value : L"";
+    idCreatedBy_ = value ? value : "";
 }
 
 void
-idAudit::setNameCreatedBy( const wchar_t * value )
+idAudit::setNameCreatedBy( const char * value )
 {
-    nameCreatedBy_ = value ? value : L"";
+    nameCreatedBy_ = value ? value : "";
 }
 
 
@@ -166,10 +167,10 @@ namespace adcontrols {
             , {
                 { "uuid", boost::uuids::to_string( t.uuid_ ) }
                 , { "dateCreated",   t.dateCreated_ }
-                , { "idComputer",    utf::to_utf8( t.idComputer_ ) }
-                , { "idCreatedBy",   utf::to_utf8( t.idCreatedBy_ ) }
-                , { "nameCreatedBy", utf::to_utf8( t.nameCreatedBy_ ) }
-                , { "digest", t.digest_ }
+                , { "idComputer",    t.idComputer_  }
+                , { "idCreatedBy",   t.idCreatedBy_  }
+                , { "nameCreatedBy", t.nameCreatedBy_  }
+                , { "digest",        t.digest_ }
             }
         }};
     }
@@ -179,17 +180,95 @@ namespace adcontrols {
     {
         idAudit t;
         using namespace adportable::json;
+
         if ( jv.is_object() ) {
             auto obj = jv.as_object();
             extract( obj, t.uuid_, "uuid" );
-            extract( obj, t.dateCreated_, "dateCreated" );
-            std::string idComputer, idCreatedBy, nameCreatedBy;
-            extract( obj, idComputer, "idComputer" );
-            extract( obj, idCreatedBy, "idCreatedBy" );
-            extract( obj, nameCreatedBy, "nameCreatedBy" );
-            extract( obj, t.digest_, "digest" );
+            extract( obj, t.dateCreated_,   "dateCreated" );
+
+            extract( obj, t.idComputer_,    "idComputer" );
+            extract( obj, t.idCreatedBy_,   "idCreatedBy" );
+            extract( obj, t.nameCreatedBy_, "nameCreatedBy" );
+            extract( obj, t.digest_,        "digest" );
         }
         return t;
+    }
+
+}
+
+namespace adcontrols {
+
+    template< typename T = idAudit >
+    class idAudit::archiver {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            if ( version >= 1 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.uuid_ )
+                    & BOOST_SERIALIZATION_NVP( _.digest_ )
+                    & BOOST_SERIALIZATION_NVP( _.dateCreated_ )
+                    & BOOST_SERIALIZATION_NVP( _.idComputer_ )
+                    & BOOST_SERIALIZATION_NVP( _.idCreatedBy_ )
+                    & BOOST_SERIALIZATION_NVP( _.nameCreatedBy_ )
+                    ;
+            } else if ( version == 0 ) {
+                std::wstring idComputer, idCreatedBy, nameCreatedBy;
+                ar & BOOST_SERIALIZATION_NVP( _.uuid_ )
+                    & BOOST_SERIALIZATION_NVP( _.digest_ )
+                    & BOOST_SERIALIZATION_NVP( _.dateCreated_ )
+                    & BOOST_SERIALIZATION_NVP( idComputer )
+                    & BOOST_SERIALIZATION_NVP( idCreatedBy )
+                    & BOOST_SERIALIZATION_NVP( nameCreatedBy )
+                    ;
+                if ( Archive::is_loading::value ) {
+                    _.idComputer_ = utf::to_utf8( idComputer );
+                    _.idCreatedBy_ = utf::to_utf8( idCreatedBy );
+                    _.nameCreatedBy_ = utf::to_utf8( nameCreatedBy );
+                }
+            }
+        }
+    };
+
+    template<> void
+    serialize( portable_binary_iarchive& ar, idAudit& t, const unsigned int version )
+    {
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
+        idAudit::archiver().serialize( ar, t, version );
+#endif
+    }
+
+    template<> void
+    serialize( portable_binary_oarchive& ar, idAudit& t, const unsigned int version )
+    {
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
+        idAudit::archiver().serialize( ar, t, version );
+#endif
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    serialize( boost::archive::xml_woarchive& ar, idAudit& t, const unsigned int version )
+    {
+        // saving
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
+        idAudit::archiver().serialize( ar, t, version );
+#endif
+    }
+
+    template<> void
+    serialize( boost::archive::xml_wiarchive& ar, idAudit& t, const unsigned int version )
+    {
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
+        idAudit::archiver().serialize( ar, t, version );
+#endif
     }
 
 }

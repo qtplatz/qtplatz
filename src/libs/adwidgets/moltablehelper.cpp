@@ -232,7 +232,7 @@ namespace adwidgets {
 
         template<> void __assign( moltable::col_memo& t, const QModelIndex& index, adcontrols::moltable::value_type& value )
         {
-            value.description() = index.data().value< col_memo::value_type >().toStdWString();
+            value.set_description( index.data().value< col_memo::value_type >().toStdString() );
         }
 
         template<> void __assign( moltable::col_smiles& t, const QModelIndex& index, adcontrols::moltable::value_type& value )

@@ -71,7 +71,7 @@ datafile::close( datafile *& file )
     file = 0;
 }
 
-const std::wstring&
+std::filesystem::path
 datafile::filename() const
 {
     return filename_;
@@ -84,14 +84,3 @@ datafile::readonly() const
 }
 
 //---------------
-bool
-datafile::saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& )
-{
-	return false;
-}
-
-bool
-datafile::saveContents( const std::wstring&, const portfolio::Portfolio& )
-{
-	return false;
-}

@@ -51,8 +51,6 @@
 #include <QTextEdit>
 #include <QDebug>
 
-#include <QThread>
-
 namespace adwidgets {
 
     namespace {
@@ -234,8 +232,6 @@ using namespace adwidgets;
 
 SampleRunWidget::SampleRunWidget(QWidget *parent) :  QWidget(parent)
 {
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     if ( auto topLayout = new QVBoxLayout( this ) ) {
 
         if ( QSplitter * splitter = new QSplitter ) {
@@ -248,7 +244,7 @@ SampleRunWidget::SampleRunWidget(QWidget *parent) :  QWidget(parent)
             splitter->setStretchFactor( 1, 1 );
 
             if ( QVBoxLayout * layout = new QVBoxLayout ) {
-                layout->setMargin( 0 );
+                layout->setContentsMargins( {} );
                 layout->setSpacing( 0 );
                 layout->addWidget( splitter );
                 topLayout->addLayout( layout );
@@ -290,8 +286,6 @@ SampleRunWidget::OnFinalClose()
 bool
 SampleRunWidget::getContents( boost::any& a ) const
 {
-    ADDEBUG() << "-------- getContents threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     if ( adportable::a_type< std::shared_ptr< adcontrols::SampleRun > >::is_a( a ) ) {
         if ( auto ptr = boost::any_cast<std::shared_ptr< adcontrols::SampleRun >>(a) ) {
             getSampleRun( *ptr );
@@ -310,8 +304,6 @@ SampleRunWidget::getContents( boost::any& a ) const
 bool
 SampleRunWidget::setContents( boost::any&& a )
 {
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     if ( adportable::a_type< adcontrols::SampleRun >::is_const_pointer( a ) ) {
 
         auto p = boost::any_cast< const adcontrols::SampleRun * >( a );
@@ -358,8 +350,6 @@ SampleRunWidget::getSampleRun( adcontrols::SampleRun& t ) const
 void
 SampleRunWidget::handleRunning( bool running )
 {
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
     if ( auto button = findChild< QPushButton * >( "apply" ) ) {
         button->setEnabled( !running );
     }

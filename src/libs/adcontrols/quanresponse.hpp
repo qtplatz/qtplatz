@@ -110,7 +110,8 @@ namespace adcontrols {
         void setPeakIndex( int32_t );
         boost::uuids::uuid& idTable();
         boost::uuids::uuid& idCompound();
-        void setDataGuid( const std::wstring& );
+        template< typename char_type > void setDataGuid( std::basic_string< char_type > const& );
+
         void setDataGuid( const boost::uuids::uuid& );
         void setFcn( int32_t );
         void setIntensity( double );

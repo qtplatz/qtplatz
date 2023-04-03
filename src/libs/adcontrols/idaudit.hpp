@@ -40,23 +40,27 @@ namespace boost {  namespace json { class object; } }
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT idAudit  {
+    class ADCONTROLSSHARED_EXPORT idAudit;
+
+    template< typename Archive > void serialize(Archive & ar, idAudit&, const unsigned int version);
+
+    class idAudit {
     public:
         idAudit();
         idAudit( const idAudit& );
-        const char * digest() const;
-        const char * dateCreated() const;
-        const wchar_t * idComputer() const;
-        const wchar_t * idCreatedBy() const;
-        const wchar_t * nameCreatedBy() const;
+        const std::string& digest() const;
+        const std::string& dateCreated() const;
+        const std::string& idComputer() const;
+        const std::string& idCreatedBy() const;
+        const std::string& nameCreatedBy() const;
         const boost::uuids::uuid& uuid() const;
 
         void setUuid( const boost::uuids::uuid& id );
         void setDigest( const char * );
         void setDateCreated( const char * );
-        void setIdComputer( const wchar_t * );
-        void setIdCreatedBy( const wchar_t * );
-        void setNameCreatedBy( const wchar_t * );
+        void setIdComputer( const char * );
+        void setIdCreatedBy( const char * );
+        void setNameCreatedBy( const char * );
 
         static bool xml_archive( std::wostream&, const idAudit& );
         static bool xml_restore( std::wistream&, idAudit& );
@@ -67,21 +71,16 @@ namespace adcontrols {
         boost::uuids::uuid uuid_;
         std::string digest_;
         std::string dateCreated_;
-        std::wstring idComputer_;
-        std::wstring idCreatedBy_;
-        std::wstring nameCreatedBy_;
-        friend class boost::serialization::access;
-        template<class Archive>
-            void serialize( Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( uuid_ )
-                & BOOST_SERIALIZATION_NVP( digest_ )
-                & BOOST_SERIALIZATION_NVP( dateCreated_ )
-                & BOOST_SERIALIZATION_NVP( idComputer_ )
-                & BOOST_SERIALIZATION_NVP( idCreatedBy_ )
-                & BOOST_SERIALIZATION_NVP( nameCreatedBy_ )
-                ;
-        };
+
+        std::string idComputer_;
+        std::string idCreatedBy_;
+        std::string nameCreatedBy_;
+
+        template< typename T > class archiver;
+        friend class archiver< idAudit >;
+        friend class archiver< const idAudit >;
+        template< typename Archive > friend void serialize(Archive & ar, idAudit&, const unsigned int version);
+
         friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const idAudit& );
         friend ADCONTROLSSHARED_EXPORT idAudit tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv );
     };
@@ -93,5 +92,7 @@ namespace adcontrols {
     idAudit tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv );
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::idAudit, 1 )
 
 #endif // IDAUDIT_HPP

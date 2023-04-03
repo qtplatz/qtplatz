@@ -85,6 +85,8 @@ endif()
 
 include (qtplatz.cmake)
 include (version)
+include (boost.cmake)
+include (qtplatz_api)
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )

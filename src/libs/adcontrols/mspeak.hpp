@@ -22,24 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef MSPEAK_HPP
-#define MSPEAK_HPP
+#pragma once
 
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 namespace adcontrols {
-
-    class ADCONTROLSSHARED_EXPORT MSPeak {
+    class ADCONTROLSSHARED_EXPORT MSPeak;
+    class MSPeak {
     public:
         ~MSPeak();
         MSPeak();
         MSPeak( const MSPeak& );
-        MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
+        const MSPeak& operator = (const MSPeak& );
 
+        MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
         MSPeak( const std::string& formula
                 , double mass
                 , double time = 0.0
@@ -62,7 +63,9 @@ namespace adcontrols {
         double width( bool isTime = false ) const;
         double exit_delay() const;
         const std::string& formula() const;
-        const std::wstring& description() const;
+        std::wstring wdescription() const;
+        std::string  description() const;
+
         const std::string& spectrumId() const;
         int32_t spectrumIndex() const;
         double exact_mass() const;
@@ -77,53 +80,20 @@ namespace adcontrols {
         void exit_delay( double );
         void flight_length( double );
         void formula( const std::string& );
-        void description( const std::wstring& );
+        void description( const std::string& );
         void spectrumId( const std::string& ); // uuid for a spectrum
         void spectrumIndex( int );
         void setFlags( uint32_t );
 
     private:
-        double time_;
-        double mass_;
-        int32_t mode_;  // corresponding to flight length
-        int32_t fcn_;   // protocol id
-        double flength_;
-        std::string formula_;
-        std::wstring description_;
-        std::string spectrumId_;
-        int32_t spectrumIndex_;
-        double time_width_;
-        double mass_width_;
-        double exit_delay_;
-        double exact_mass_;
-        uint32_t flags_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP( time_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( mode_ )
-                & BOOST_SERIALIZATION_NVP( flength_ )
-                & BOOST_SERIALIZATION_NVP( formula_ )
-                & BOOST_SERIALIZATION_NVP( description_ )
-                & BOOST_SERIALIZATION_NVP( spectrumId_ )
-                & BOOST_SERIALIZATION_NVP( spectrumIndex_ )
-                & BOOST_SERIALIZATION_NVP( time_width_ )
-                & BOOST_SERIALIZATION_NVP( mass_width_ )
-                ;
-            if ( version >= 1 ) {
-                ar & BOOST_SERIALIZATION_NVP( fcn_ );
-                ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
-                ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
-            }
-            if ( version >= 2 )
-                ar & BOOST_SERIALIZATION_NVP( flags_ );
-        }
+        void serialize(Archive& ar, const unsigned int version);
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeak, 2)
-
-#endif // MSPEAK_HPP
+BOOST_CLASS_VERSION( adcontrols::MSPeak, 3 )

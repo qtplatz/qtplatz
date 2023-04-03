@@ -69,6 +69,7 @@ namespace adcontrols {
 
         static mol::molecule toMolecule( const std::string& formula );
         static mol::molecule toMolecule( const std::string& formula, const std::string& adduct );
+        static mol::molecule toMolecule( const std::vector< std::pair< std::string, char > >& formulae, int charge = 0 );
 
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );

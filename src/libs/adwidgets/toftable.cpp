@@ -146,7 +146,7 @@ TOFTable::addPeak( const adcontrols::MSPeak& peak, double t0 )
 	model.setData( model.index( row, c_toftable_mode ), peak.mode() );
 	model.setData( model.index( row, c_toftable_flength ), peak.flight_length() );
 	model.setData( model.index( row, c_toftable_formula ), QString::fromStdString( peak.formula() ) );
-	model.setData( model.index( row, c_toftable_description ), QString::fromStdWString( peak.description() ) );
+	model.setData( model.index( row, c_toftable_description ), QString::fromStdString( peak.description() ) );
     model.setData( model.index( row, c_toftable_spectrumId ),  QString::fromStdString( peak.spectrumId() ) );
     double vacc = adportable::TimeSquaredScanLaw::acceleratorVoltage( peak.mass(), peak.time(), peak.flight_length(), t0 );
     model.setData( model.index( row, c_toftable_accelerator_voltage ), vacc );
@@ -176,7 +176,11 @@ TOFTable::handleCopyToClipboard()
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
         if ( idx.column() == c_toftable_time )
             copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		else if ( model.data( idx ).type() == QVariant::Double )
+#else
+		else if ( model.data( idx ).metaType() == QMetaType::fromType< double >() )
+#endif
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
         else
             copy_table.append( model.data( idx ).toString() );

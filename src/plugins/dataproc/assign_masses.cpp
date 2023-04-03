@@ -28,6 +28,7 @@
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/utf.hpp>
 #include <algorithm>
 #include <cstring>
 
@@ -76,7 +77,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
             adcontrols::MSAssignedMass assigned( uint32_t( std::distance( references.begin(), it ) )
 				                                 , fcn
                                                  , uint32_t(idx)            // idMassSpectrum (index on centroid peak)
-                                                 , it->wdisplay_formula()
+                                                 , it->display_formula()
                                                  , it->exact_mass()
                                                  , centroid.time( idx )
                                                  , masses[ idx ]

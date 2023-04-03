@@ -1,0 +1,72 @@
+# Compute installation prefix relative to this file
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+set( _dir "${CMAKE_CURRENT_LIST_DIR}" )
+#get_filename_component (_prefix "${_dir}/.." ABSOLUTE)
+
+set ( QTPLATZ_DIR "${_dir}")
+set ( QTPLATZ_SOURCE_DIR   "@QTPLATZ_SOURCE_DIR@")
+set ( QTPLATZ_BINARY_DIR   "${_dir}")
+set ( QTPLATZ_INCLUDE_DIRS "${_dir}/include")
+set ( QTPLATZ_LIBRARY_DIRS "${_dir}/lib")
+set ( QTDIR                "@QTDIR@" )
+set ( QTC_IDE_VERSION      "@IDE_VERSION@" )
+
+add_definitions( "-DQTC_VERSION=@QTC_VERSION@" )
+
+list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
+
+set ( CMAKE_INSTALL_PREFIX             "@CMAKE_INSTALL_PREFIX@" )
+set ( CPACK_WIX_SKIP_PROGRAM_FOLDER    "@CPACK_WIX_SKIP_PROGRAM_FOLDER@" )
+set ( QTPLATZ_CPACK_WIX_UPGRADE_GUID   "@CPACK_WIX_UPGRADE_GUID@" )
+set ( QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY "@QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY@" ) # .lib
+set ( QTPLATZ_LIBRARY_OUTPUT_DIRECTORY "@QTPLATZ_LIBRARY_OUTPUT_DIRECTORY@" ) # module (dll)
+set ( QTPLATZ_RUNTIME_OUTPUT_DIRECTORY "@QTPLATZ_RUNTIME_OUTPUT_DIRECTORY@" ) # exe
+set ( QTPLATZ_PLUGIN_DIRECTORY         "@QTPLATZ_PLUGIN_DIRECTORY@" )
+set ( QTPLATZ_PLUGIN_DESTINATION       "@QTPLATZ_PLUGIN_DESTINATION@" )
+set ( QTPLATZ_CORELIB_ONLY             "@QTPLATZ_CORELIB_ONLY@" )
+set ( WITH_OPENCV                      "@WITH_OPENCV@" )
+set ( WITH_AgMD2                       "@WITH_AgMD2@" )
+set ( WITH_AqDrv4                      "@WITH_AqDrv4@" )
+set ( QTPLATZ_VERSION_MAJOR            "@VERSION_MAJOR@" )
+set ( QTPLATZ_VERSION_MINOR            "@VERSION_MINOR@" )
+set ( QTPLATZ_VERSION_PATCH            "@VERSION_PATCH@" )
+set ( QTPLATZ_VERSION_TWEAK            "@VERSION_TWEAK@" )
+set ( QTPLATZ_VERSION_HASH             "@VERSION_HASH@" )
+set ( QTPLATZ_VERSION                  "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@.@VERSION_TWEAK@" )
+
+if ( APPLE )
+  set ( CMAKE_SHARED_MODULE_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@" )
+  set ( CMAKE_MACOSX_RPATH "@CMAKE_MACOSX_RPATH@" )
+endif()
+
+if ( WIN32 )
+  add_definitions(-DUNICODE -D_UNICODE)
+endif()
+
+set ( __arch "@__arch@" )
+
+set ( CMAKE_DEBUG_POSTFIX	      "@CMAKE_DEBUG_POSTFIX@" )
+set ( CPACK_SET_DESTDIR               "@CPACK_SET_DESTDIR@" )
+set ( CPACK_INSTALL_PREFIX            "@CPACK_INSTALL_PREFIX@" )
+set ( CPACK_PACKAGE_INSTALL_DIRECTORY "@CPACK_PACKAGE_INSTALL_DIRECTORY@" )
+set ( QMAKE			      "@QMAKE@" )
+set ( QTDIR			      "@QTDIR@" )
+set ( QT_INSTALL_PLUGINS	      "@QT_INSTALL_PLUGINS@" )
+set ( QT_INSTALL_LIBEXECS	      "@QT_INSTALL_LIBEXECS@" )
+set ( XMLPATTERNS		      "@XMLPATTERNS@" )
+
+set ( BOOST_ROOT		      "@BOOST_ROOT@" )
+set ( BOOST_INCLUDEDIR	              "@Boost_INCLUDE_DIRS@" )
+set ( BOOST_LIBRARYDIR	              "@Boost_LIBRARY_DIRS@" )
+
+if ( NOT __arch STREQUAL "armhf" AND NOT CMAKE_CROSSCOMPILING )
+  set ( Boost_NO_SYSTEM_PATHS	      "@Boost_NO_SYSTEM_PATHS@" )
+endif()
+
+set ( Boost_USE_STATIC_LIBS	      "@Boost_USE_STATIC_LIBS@" )
+set ( Boost_ADDITIONAL_VERSIONS       "@Boost_ADDITIONAL_VARSIONS@" )
+set ( RDBASE			      "@RDBASE@" )
+set ( PKG_WITH_DEV                    "@PKG_WITH_DEV@" )
+
+include( "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/boost.cmake" )

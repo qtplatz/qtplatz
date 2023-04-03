@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
+#include <QtGlobal>
 #include <QMediaPlayer>
 #include <QWidget>
 
@@ -41,12 +42,19 @@ namespace adwidgets {
 
     public:
         PlayerControls( QWidget *parent = 0 );
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         QMediaPlayer::State state() const;
+#else
+        QMediaPlayer::PlaybackState state() const;
+#endif
         qreal playbackRate() const;
 
     public slots:
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         void setState(QMediaPlayer::State state);
+#else
+        void setState(QMediaPlayer::PlaybackState state);
+#endif
 
         void setPlaybackRate(float rate);
         void setNumberOfFrames( size_t );
@@ -69,7 +77,11 @@ namespace adwidgets {
         void playClicked();
         void updateRate();
     private:
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         QMediaPlayer::State playerState;
+#else
+        QMediaPlayer::PlaybackState playerState;
+#endif
         bool playerMuted;
         QAbstractButton *playButton;
         QAbstractButton *stopButton;

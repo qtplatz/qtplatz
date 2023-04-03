@@ -85,7 +85,7 @@ PlayerControls::PlayerControls( QWidget *parent )
     connect(rateBox, SIGNAL(activated(int)), SLOT(updateRate()));
 
     QBoxLayout *layout = new QHBoxLayout;
-    layout->setMargin(0);
+    layout->setContentsMargins( {} );
     layout->addWidget(stopButton);
     layout->addWidget(previousButton);
     layout->addWidget(playButton);
@@ -111,14 +111,22 @@ PlayerControls::PlayerControls( QWidget *parent )
     setLayout(layout);
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 QMediaPlayer::State
+#else
+QMediaPlayer::PlaybackState
+#endif
 PlayerControls::state() const
 {
     return playerState;
 }
 
 void
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 PlayerControls::setState( QMediaPlayer::State state )
+#else
+PlayerControls::setState( QMediaPlayer::PlaybackState state )
+#endif
 {
     if (state != playerState) {
         playerState = state;

@@ -55,11 +55,17 @@ namespace addatafile {
         //--------- implement adcontrols::datafile ----------------
         void accept( adcontrols::dataSubscriber& ) override;
         boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+        boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 
         // create, modify and delete methods
         bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& ) override;
         bool saveContents( const std::wstring&, const portfolio::Portfolio& ) override;
         bool loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& ) override;
+
+        bool saveContents( const std::string&, const portfolio::Portfolio&, const adcontrols::datafile& ) override;
+        bool saveContents( const std::string&, const portfolio::Portfolio& ) override;
+        bool loadContents( const std::string&, const std::string& id, adcontrols::dataSubscriber& ) override;
+
         bool removeContents( std::vector< std::string >&& dataids );
 
         bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& ) override;

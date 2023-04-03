@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #pragma once
-
 #include <adcontrols/datafile_factory.hpp>
 #include <adplugin/plugin.hpp>
 
@@ -52,4 +51,3 @@ namespace addatafile {
     };
 
 }
-

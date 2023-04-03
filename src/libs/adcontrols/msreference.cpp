@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include "constants.hpp"
 #include "msreference.hpp"
 #include "chemicalformula.hpp"
 #include "serializer.hpp"
@@ -35,13 +36,13 @@ namespace adcontrols {
     public:
         impl() : enable_( true )
                , exactMass_(0)
-               , polarityPositive_( true )
+               , polarity_( polarity_positive )
                , chargeCount_( 1 ) {
         }
 
         impl( const impl& t ) : enable_( t.enable_ )
                               , exactMass_( t.exactMass_ )
-                              , polarityPositive_( t.polarityPositive_ )
+                              , polarity_( t.polarity_ )
                               , chargeCount_( t.chargeCount_ )
                               , formula_( t.formula_ )
                               , adduct_or_loss_( t.adduct_or_loss_ )
@@ -50,14 +51,14 @@ namespace adcontrols {
 
         bool enable_;
         double exactMass_;
-        bool polarityPositive_;
+        ion_polarity polarity_;
         uint32_t chargeCount_;
-        std::wstring formula_;
-        std::wstring adduct_or_loss_;
-        std::wstring description_;
+        std::string formula_;
+        std::string adduct_or_loss_;
+        std::string description_;
 
         // exclude from serialize
-        std::wstring display_formula_;
+        std::string display_formula_;
 
 		void compute_mass();
 
@@ -66,13 +67,31 @@ namespace adcontrols {
         void serialize( Archive& ar, const unsigned int version ) {
             (void)version;
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(enable_);
-            ar & BOOST_SERIALIZATION_NVP(exactMass_);
-            ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
-            ar & BOOST_SERIALIZATION_NVP(chargeCount_);
-            ar & BOOST_SERIALIZATION_NVP(formula_);
-            ar & BOOST_SERIALIZATION_NVP(adduct_or_loss_);
-            ar & BOOST_SERIALIZATION_NVP(description_);
+            if ( version < 2 ) {
+                std::wstring formula, adduct_or_loss, description;
+                bool polarityPositive( true );
+                ar & BOOST_SERIALIZATION_NVP(enable_);
+                ar & BOOST_SERIALIZATION_NVP(exactMass_);
+                ar & boost::serialization::make_nvp( "polarityPositive", polarityPositive );
+                ar & BOOST_SERIALIZATION_NVP(chargeCount_);
+                ar & boost::serialization::make_nvp( "formula",          formula );
+                ar & boost::serialization::make_nvp( "adduct_or_loss",   adduct_or_loss );
+                ar & boost::serialization::make_nvp( "description",      description );
+                if ( Archive::is_loading::value ) {
+                    polarity_       = polarityPositive ? polarity_positive : polarity_negative;
+                    formula_        = adportable::utf::to_utf8( formula );
+                    adduct_or_loss_ = adportable::utf::to_utf8( adduct_or_loss );
+                    description_    = adportable::utf::to_utf8( description );
+                }
+            } else {
+                ar & BOOST_SERIALIZATION_NVP(enable_);
+                ar & BOOST_SERIALIZATION_NVP(exactMass_);
+                ar & BOOST_SERIALIZATION_NVP(polarity_);
+                ar & BOOST_SERIALIZATION_NVP(chargeCount_);
+                ar & BOOST_SERIALIZATION_NVP(formula_);
+                ar & BOOST_SERIALIZATION_NVP(adduct_or_loss_);
+                ar & BOOST_SERIALIZATION_NVP(description_);
+            }
         }
 
     };
@@ -123,40 +142,20 @@ MSReference::MSReference( const MSReference& t ) : impl_( new impl( *t.impl_ ) )
 {
 }
 
-MSReference::MSReference( const wchar_t * formula
-                          , bool polarityPositive
-                          , const wchar_t * adduct_or_loss
+MSReference::MSReference( const std::string& formula
+                          , ion_polarity polarity
+                          , const std::string& adduct_or_loss
                           , bool enable
                           , double exactMass
                           , uint32_t charge
-                          , const wchar_t * description ) : impl_( new impl )
+                          , const std::string& description ) : impl_( new impl )
 {
     impl_->enable_ = enable;
     impl_->exactMass_ = exactMass;
-    impl_->polarityPositive_ = polarityPositive;
+    impl_->polarity_ = polarity;
     impl_->chargeCount_ = charge;
-    impl_->formula_ = formula ? formula : L"";
-    impl_->adduct_or_loss_ = adduct_or_loss ? adduct_or_loss : L"";
-    impl_->description_ = description ? description : L"";
-
-    if ( exactMass <= std::numeric_limits<double>::epsilon() )
-        impl_->compute_mass();
-}
-
-MSReference::MSReference( const char * formula
-             , bool polarityPositive
-             , const char * adduct_or_loss
-             , bool enable
-             , double exactMass
-             , uint32_t charge
-             , const wchar_t * description ) : impl_( new impl )
-{
-    impl_->enable_ = enable;
-    impl_->exactMass_ = exactMass;
-    impl_->polarityPositive_ = polarityPositive;
-    impl_->chargeCount_ = charge;
-    impl_->formula_ = adportable::utf::to_wstring( formula );
-    impl_->adduct_or_loss_ = adportable::utf::to_wstring( adduct_or_loss );
+    impl_->formula_ = formula;
+    impl_->adduct_or_loss_ = adduct_or_loss;
     impl_->description_ = description;
 
     if ( exactMass <= std::numeric_limits<double>::epsilon() )
@@ -178,7 +177,7 @@ MSReference::impl::compute_mass()
     exactMass_ = formula.getMonoIsotopicMass( formula_ );
 
     if ( ! adduct_or_loss_.empty() ) {
-        auto adductlist = adcontrols::ChemicalFormula::split( adportable::utf::to_utf8( adduct_or_loss_ ) );
+        auto adductlist = adcontrols::ChemicalFormula::split( adduct_or_loss_ );
         exactMass_ += adcontrols::ChemicalFormula().getMonoIsotopicMass( adductlist ).first;
     }
 }
@@ -204,57 +203,57 @@ MSReference::exact_mass() const
 bool
 MSReference::polarityPositive() const
 {
-    return impl_->polarityPositive_;
+    return impl_->polarity_ == polarity_positive;
 }
 
-const wchar_t *
-MSReference::wformula() const
-{
-    return impl_->formula_.c_str();
-}
+// const wchar_t *
+// MSReference::wformula() const
+// {
+//     return impl_->formula_.c_str();
+// }
 
-const wchar_t *
-MSReference::wdisplay_formula() const
-{
-    impl_->display_formula_ = impl_->formula_ + impl_->adduct_or_loss_;
-    return impl_->display_formula_.c_str();
-}
+// const wchar_t *
+// MSReference::wdisplay_formula() const
+// {
+//     impl_->display_formula_ = impl_->formula_ + impl_->adduct_or_loss_;
+//     return impl_->display_formula_.c_str();
+// }
 
-const wchar_t *
-MSReference::wadduct_or_loss() const
-{
-    return impl_->adduct_or_loss_.c_str();
-}
+// const wchar_t *
+// MSReference::wadduct_or_loss() const
+// {
+//     return impl_->adduct_or_loss_.c_str();
+// }
 
-const wchar_t *
-MSReference::wdescription() const
-{
-    return impl_->description_.c_str();
-}
+// const wchar_t *
+// MSReference::wdescription() const
+// {
+//     return impl_->description_.c_str();
+// }
 
 std::string
 MSReference::formula() const
 {
-    return adportable::utf::to_utf8( impl_->formula_ );
+    return impl_->formula_;
 }
 
 std::string
 MSReference::display_formula() const
 {
     impl_->display_formula_ = impl_->formula_ + impl_->adduct_or_loss_;
-    return adportable::utf::to_utf8( impl_->display_formula_ );
+    return impl_->display_formula_;
 }
 
 std::string
 MSReference::adduct_or_loss() const
 {
-    return adportable::utf::to_utf8( impl_->adduct_or_loss_ );
+    return impl_->adduct_or_loss_;
 }
 
 std::string
 MSReference::description() const
 {
-    return adportable::utf::to_utf8( impl_->description_ );
+    return impl_->description_;
 }
 
 void
@@ -284,35 +283,37 @@ MSReference::charge_count() const
 void
 MSReference::polarityPositive( bool value )
 {
-    impl_->polarityPositive_ = value;
+    // impl_->polarityPositive_ = value;
+    impl_->polarity_ = value ? polarity_positive : polarity_negative;
 }
 
 void
-MSReference::formula( const wchar_t * value )
+MSReference::set_polarity( ion_polarity t )
 {
-    impl_->formula_ = value ? value : L"";
+    impl_->polarity_ = t;
+}
+
+ion_polarity
+MSReference::polarity() const
+{
+    return impl_->polarity_;
+}
+
+
+void
+MSReference::formula( const std::string& value )
+{
+    impl_->formula_ = value;
 }
 
 void
-MSReference::formula( const char * value )
+MSReference::adduct_or_loss( const std::string& value )
 {
-    impl_->formula_ = adportable::utf::to_wstring( value ? std::string(value) : std::string() );
+    impl_->adduct_or_loss_ = value;
 }
 
 void
-MSReference::adduct_or_loss( const wchar_t * value )
+MSReference::description( const std::string& value )
 {
-    impl_->adduct_or_loss_ = value ? value : L"";
-}
-
-void
-MSReference::adduct_or_loss( const char * value )
-{
-    impl_->adduct_or_loss_ = adportable::utf::to_wstring( value ? std::string(value) : std::string() );
-}
-
-void
-MSReference::description( const wchar_t * value )
-{
-    impl_->description_ = value ? value : L"";
+    impl_->description_ = value;
 }

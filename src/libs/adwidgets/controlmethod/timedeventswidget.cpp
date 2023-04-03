@@ -50,7 +50,6 @@
 #include <QMetaType>
 #include <QDebug>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/json.hpp>
 
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 Q_DECLARE_METATYPE( adcontrols::ControlMethod::EventCap::value_type );
@@ -542,7 +541,7 @@ TimedEventsWidget::TimedEventsWidget(QWidget *parent) : QWidget(parent)
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin(0);
+        layout->setContentsMargins( {} );
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {
@@ -680,14 +679,30 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
     ADDEBUG() << "TimedEventsWidget -- setContents";
 #endif
 
-    std::for_each( m.begin(), m.end()
-                   , [&] ( const adcontrols::ControlMethod::TimedEvent& e ) {
-#if !defined NDEBUG
-                         ADDEBUG() << boost::json::value_from( e );
+    std::for_each( m.begin(), m.end(), [&] ( const adcontrols::ControlMethod::TimedEvent& e ) {
+        auto items = impl_->make_row( e );
+        model.insertRow( row++, items );
+
+#if 0
+        auto it = impl_->capList_.find( timeEvent.modelClsid() );
+        if ( it != impl_->capList_.end() ) {
+            const ModuleCap& moduleCap = it->second;
+            auto capIt = std::find_if( moduleCap.eventCaps().begin()
+                                       , moduleCap.eventCaps().end()
+                                       , [&] ( const EventCap& cap ) { return cap.item_name() == timeEvent.item_name(); } );
+
+            if ( capIt != moduleCap.eventCaps().end() ) {
+                size_t capIdx = std::distance( moduleCap.eventCaps().begin(), capIt );
+                auto items = impl_->make_row( moduleCap, capIdx, timeEvent.value(), timeEvent.time() );
+                model.insertRow( row, items );
+                ++row;
+            } else {
+                ADDEBUG() << "-------- not in the eventCap -----";
+                // assert(0);
+            }
+        }
 #endif
-                         auto items = impl_->make_row( e );
-                         model.insertRow( row++, items );
-                     } );
+    } );
     return true;
 }
 

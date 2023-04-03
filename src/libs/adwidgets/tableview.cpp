@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "tableview.hpp"
-#include <adportable/debug.hpp>
 #include <adportable/algorithm.hpp>
 #include <QApplication>
 #include <QClipboard>
@@ -74,8 +73,13 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
         Qt::ItemFlags flags = model()->flags( index );
         if ( flags & Qt::ItemIsUserCheckable ) {
             QVariant st = index.data( Qt::CheckStateRole );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 			if ( index.data( Qt::EditRole ).type() == QVariant::Bool )
                 model()->setData( index, ( st == Qt::Checked ) ? true : false );
+#else
+			if ( index.data( Qt::EditRole ).metaType() == QMetaType::fromType< bool >() )
+                model()->setData( index, ( st == Qt::Checked ) ? true : false );
+#endif
         }
     }
 }

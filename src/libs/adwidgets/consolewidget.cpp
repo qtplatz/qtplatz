@@ -34,7 +34,7 @@
 #include <iostream>
 
 namespace adwidgets {
-    
+
     class ConsoleWidget::impl {
         impl( const impl& ) = delete;
         ConsoleWidget& operator = ( const ConsoleWidget& ) = delete;
@@ -77,7 +77,7 @@ ConsoleWidget::ConsoleWidget( std::ostream& os, QWidget * parent ) : QWidget( pa
         splitter->setOrientation( Qt::Vertical );
 
         if ( auto layout = new QVBoxLayout( this ) ) {
-            layout->setMargin( 0 );
+            layout->setContentsMargins( {} );
             layout->setSpacing( 0 );
             layout->addWidget( splitter );
         }

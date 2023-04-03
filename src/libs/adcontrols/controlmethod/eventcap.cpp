@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "eventcap.hpp"
+#include <adportable/float.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
 using namespace adcontrols::ControlMethod;
@@ -142,4 +143,52 @@ std::string
 EventCap::toString( const value_type& v )
 {
     return boost::apply_visitor( value_to_string(), v );
+}
+
+namespace adcontrols {  namespace ControlMethod {
+
+        bool operator==(const duration_type& lhs, const duration_type& rhs) {
+            return adportable::compare<double>::essentiallyEqual( lhs.value, rhs.value );
+        }
+        bool operator<(const duration_type& lhs, const duration_type& rhs) {
+            return lhs.value < rhs.value;
+        }
+
+        bool operator==(const voltage_type& lhs, const voltage_type& rhs) {
+            return adportable::compare<double>::essentiallyEqual( lhs.value, rhs.value );
+        }
+        bool operator<(const voltage_type& lhs, const voltage_type& rhs) {
+            return lhs.value < rhs.value;
+        }
+
+        bool operator==(const switch_type& lhs, const switch_type& rhs) {
+            return lhs.value == rhs.value;
+        }
+        bool operator<(const switch_type& lhs, const switch_type& rhs) {
+            return lhs.value < rhs.value;
+        }
+
+        bool operator==(const choice_type& lhs, const choice_type& rhs) {
+            return lhs.value == rhs.value;
+        }
+        bool operator<(const choice_type& lhs, const choice_type& rhs) {
+            return lhs.value < rhs.value;
+        }
+
+        bool operator==(const delay_width_type& lhs, const delay_width_type& rhs) {
+            return lhs.value == rhs.value;
+        }
+
+        bool operator<(const delay_width_type& lhs, const delay_width_type& rhs) {
+            return lhs.value < rhs.value;
+        }
+
+        bool operator==(const any_type& lhs, const any_type& rhs) {
+            return lhs.value == rhs.value;
+        }
+        bool operator<(const any_type& lhs, const any_type& rhs) {
+            return lhs.value < rhs.value;
+        }
+
+    }
 }

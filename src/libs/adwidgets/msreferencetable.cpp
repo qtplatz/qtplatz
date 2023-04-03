@@ -170,9 +170,9 @@ MSReferenceTable::getContents( adcontrols::MSCalibrateMethod& m )
             double exactMass = model.data( model.index( row, c_exact_mass ), Qt::EditRole ).toDouble();
             bool enable = model.data( model.index( row, c_enable ), Qt::CheckStateRole ).toBool();
             int charge = model.data( model.index( row, c_charge ) ).toInt();
-            std::wstring description = model.data( model.index( row, c_description ) ).toString().toStdWString();
+            std::string description = model.data( model.index( row, c_description ) ).toString().toStdString();
 
-            m.references() << adcontrols::MSReference( formula.c_str(), true, adducts.c_str(), enable, exactMass, charge, description.c_str() );
+            m.references() << adcontrols::MSReference( formula, adcontrols::polarity_positive, adducts, enable, exactMass, charge, description );
         }
     }
 }
@@ -201,9 +201,9 @@ MSReferenceTable::addReference( const adcontrols::MSReference& ref, int row )
 {
     QStandardItemModel& model = *model_;
 
-    std::wstring formula = ref.wdisplay_formula();
+    std::string formula = ref.display_formula();
 
-    model.setData( model.index( row, c_formula ),     QString::fromStdWString( formula ) );
+    model.setData( model.index( row, c_formula ),     QString::fromStdString( formula ) );
     model.setData( model.index( row, c_exact_mass ),  ref.exact_mass() );
     if ( auto item = model.item( row, c_exact_mass ) )
         item->setEditable( false );
@@ -214,7 +214,7 @@ MSReferenceTable::addReference( const adcontrols::MSReference& ref, int row )
         chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
         chk->setData( ref.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
-    model.setData( model.index( row, c_description ), QString::fromStdWString( ref.wdescription() ) );
+    model.setData( model.index( row, c_description ), QString::fromStdString( ref.description() ) );
     model.setData( model.index( row, c_charge ), ref.charge_count() );
 }
 
@@ -306,10 +306,10 @@ MSReferenceTable::handlePaste()
             model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
 
             for ( auto& mol : molecules.data() ) {
-                adcontrols::MSReference ref( mol.formula().c_str()
-                                             , true
-                                             , mol.adducts( adcontrols::polarity_positive  ).c_str()
-                                             , mol.enable(), 0.0, 1, mol.description().c_str() );
+                adcontrols::MSReference ref( mol.formula()
+                                             , adcontrols::polarity_positive
+                                             , mol.adducts( adcontrols::polarity_positive  )
+                                             , mol.enable(), 0.0, 1, mol.description() );
                 addReference( ref, row++ );
             }
         }
@@ -318,7 +318,7 @@ MSReferenceTable::handlePaste()
         for ( auto text : texts ) {
             auto formulae = adcontrols::ChemicalFormula::split( text.toStdString() );
             if ( !formulae.empty() && !formulae[ 0 ].first.empty() ) {
-                adcontrols::MSReference ref( formulae[ 0 ].first.c_str(), true, adcontrols::ChemicalFormula::make_adduct_string( formulae ).c_str() );
+                adcontrols::MSReference ref( formulae[ 0 ].first.c_str(), adcontrols::polarity_positive, adcontrols::ChemicalFormula::make_adduct_string( formulae ).c_str() );
                 model_->insertRow( row );
                 addReference( ref, row );
                 ++row;

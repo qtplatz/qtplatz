@@ -23,7 +23,6 @@
 **
 **************************************************************************/
 #include "mscalibratemethod.hpp"
-#include "msreferencedefns.hpp"
 #include "msreferences.hpp"
 #include "msreference.hpp"
 
@@ -140,4 +139,3 @@ MSCalibrateMethod::references( const MSReferences& ref )
 {
     *references_ = ref;
 }
-

@@ -85,7 +85,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
     // subscribe processed dataset
     if ( processedDataset_ )
         sub.subscribe( *processedDataset_ );
-    
+
     if ( auto db = sub.db() ) {
         if ( ! model_.empty() ) { // has scan law
             auto models = adcontrols::MassSpectrometer::installed_models();
@@ -110,7 +110,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << "sqlite error";
-            
+
             sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
             sql.bind( 1 ) = misc_spectrometer;  // ScanLaw.spectrometer = Spectrometer.id
             sql.bind( 2 ) = 0;
@@ -132,14 +132,14 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     Dialog dlg;
 
     QStringList models;
-    for ( auto& model: adcontrols::MassSpectrometer::get_model_names() )
-        models << QString::fromStdWString( model );
+    for ( auto [uuid,model]: adcontrols::MassSpectrometer::installed_models() )
+        models << QString::fromStdString( model );
 
-    dlg.setDataInterpreterClsids( models );    
-    
+    dlg.setDataInterpreterClsids( models );
+
     boost::filesystem::path path( filename );
     std::string adfsname;
-    
+
     if ( time_data_reader::is_time_data( path.string(), adfsname ) ) {
         dlg.setDataType( Dialog::counting_time_data );
         double acclVoltage(0), tDelay(0), fLength(0);
@@ -150,13 +150,13 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     } else {
         dlg.setDataType( Dialog::data_spectrum );
     }
-    
+
     boost::filesystem::ifstream in( path );
     if ( in.fail() ) {
         QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
         return false;
     }
-    
+
     typedef boost::char_separator<char> separator;
     typedef boost::tokenizer< separator > tokenizer;
     separator sep( ", \t", "", boost::drop_empty_tokens );
@@ -172,7 +172,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     QApplication::changeOverrideCursor( Qt::ArrowCursor );
     dlg.show();
-    
+
     if ( dlg.exec() ) {
 
         QApplication::changeOverrideCursor( Qt::WaitCursor );
@@ -183,22 +183,22 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
             tDelay_ = dlg.tDelay();
             model_ = dlg.dataInterpreterClsid().toStdString();
         }
-        
+
         if ( dlg.dataType() == Dialog::data_chromatogram ) {
             adtextfile::TXTChromatogram txt;
             portfolio::Portfolio portfolio;
             if ( txt.load( filename ) && prepare_portfolio( txt, filename, portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
-                return true;                
+                return true;
             }
-            
+
         } else if ( dlg.dataType() == Dialog::data_spectrum ) {
             TXTSpectrum txt;
             if ( txt.load( filename, dlg ) && prepare_portfolio( txt, filename, portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
-                return true;                
+                return true;
             }
         } else if ( dlg.dataType() == Dialog::counting_time_data ) {
             time_data_reader reader;
@@ -211,18 +211,23 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
                               }) && prepare_portfolio( reader, filename, portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
-                return true;                
+                return true;
             }
         }
     }
     return false;
 }
 
+
+boost::any
+datafile::fetch( const std::string& path, const std::string& dataType ) const
+{
+    return fetch( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( dataType ) );
+}
+
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    (void)dataType;
-
     do { // find from a spectrum tree
         auto it = data_.find( path );
         if ( it != data_.end() )
@@ -234,7 +239,7 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
             return it->second;
     } while ( 0 );
 
-	return 0;
+	return {};
 }
 
 size_t
@@ -284,7 +289,7 @@ datafile::prepare_portfolio( const TXTSpectrum& txt, const std::wstring& filenam
 {
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
     boost::filesystem::path path( filename );
-    
+
     int idx = 0;
     for ( auto it: txt.spectra_ ) {
         std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
@@ -292,20 +297,20 @@ datafile::prepare_portfolio( const TXTSpectrum& txt, const std::wstring& filenam
         folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
         data_[ folium.id() ] = it;
     }
-    
+
     if ( txt.spectra_.size() > 1 ) {
         do {
             auto it = txt.spectra_.begin();
             auto ptr = std::make_shared< adcontrols::MassSpectrum >( *it->get() );
-            
+
             std::for_each( it + 1, txt.spectra_.end()
                            , [&ptr] ( std::shared_ptr< adcontrols::MassSpectrum > sub ) { *ptr << std::move( sub ); } );
-            
+
             std::wstring name = path.stem().wstring();
             portfolio::Folium folium = spectra.addFolium( name );
-            folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );        
+            folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
             data_[ folium.id() ] = ptr;
-            
+
         } while(0);
     }
 
@@ -317,7 +322,7 @@ datafile::prepare_portfolio( const TXTChromatogram& txt, const std::wstring& fil
 {
     portfolio::Folder chromatograms = portfolio.addFolder( L"Chromatograms" );
     boost::filesystem::path path( filename );
-    
+
     int idx = 0;
     for ( auto it: txt.chromatograms_ ) {
         std::wstring name( (boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
@@ -346,10 +351,10 @@ datafile::prepare_portfolio( const time_data_reader& reader, const std::wstring&
     double delay      = front.first;
     uint32_t nDelay   = delay / hgrm.xIncrement();
     uint32_t nSamples = ( back.first - front.first ) / hgrm.xIncrement();
-        
+
     adcontrols::SamplingInfo info( hgrm.xIncrement(), delay, nDelay, uint32_t( nSamples ), /* number of average */ 1, /*mode*/ 0 );
     prop.setSamplingInfo( info );
-    
+
     auto sp = std::make_shared< adcontrols::MassSpectrum >();
     sp->setMSProperty( prop );
     sp->setCentroid( adcontrols::CentroidNative );

@@ -28,6 +28,7 @@
 #include <adportable/float.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
+#include <adportable/utf.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -40,6 +41,7 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
+#include <boost/json.hpp>
 
 #include <array>
 #include <adportable/float.hpp>
@@ -65,7 +67,15 @@ namespace boost {
                     ar & boost::serialization::make_nvp("adduct_neg", std::get< 1 >( p.adducts_ ) );
                     ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
                     ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
-                    ar & BOOST_SERIALIZATION_NVP( p.description_ );
+                    if ( version >= 5 ) {
+                        ar & BOOST_SERIALIZATION_NVP( p.description_ );
+                    } else {
+                        std::wstring description;
+                        ar & boost::serialization::make_nvp("description", description );
+                        if ( Archive::is_loading::value ) {
+                            p.description_ = adportable::utf::to_utf8( description );
+                        }
+                    }
                     ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
                     ar & BOOST_SERIALIZATION_NVP( p.tR_ );
                     ar & BOOST_SERIALIZATION_NVP( p.molid_ );
@@ -188,13 +198,6 @@ moltable::value_type::value_type( const value_type& t )
 bool
 moltable::value_type::operator == ( const value_type& t ) const
 {
-#if 0
-    ADDEBUG() << "== enable:" << std::make_pair( enable_, t.enable_ )
-              << ", protocol:" << std::make_pair( protocol_, t.protocol_ )
-              << ", formula:" << std::make_pair( formula_, t.formula_ )
-              << ", adducts:" << std::make_pair( adducts_, t.adducts_ )
-              << ", tR:" << std::make_pair( tR_, t.tR_ );
-#endif
     return
         formula_ == t.formula_ &&
         adducts_ == t.adducts_ &&
@@ -263,6 +266,12 @@ void
 moltable::value_type::setMolid( boost::optional< boost::uuids::uuid >&& uuid )
 {
     molid_ = uuid;
+}
+
+void
+moltable::value_type::set_description( const std::string& t )
+{
+    description_ = t;
 }
 
 moltable::~moltable()
@@ -405,8 +414,15 @@ namespace adcontrols {
             extract( obj, t.adducts_,     "adducts"     ); // check if array then v4 else v3 data
             extract( obj, t.synonym_,     "synonym"     );
             extract( obj, t.smiles_,      "smiles"      );
-            extract( obj, t.description_, "description" );
-
+            if ( auto desc = obj.if_contains( "description" ) ) {
+                if ( desc->is_array() ) { // workaround -- it was used be wstring by mistake
+                    std::wstring text; // workaround
+                    extract( obj, text, "description" );
+                    t.description_ = adportable::utf::to_utf8( text );
+                } else {
+                    extract( obj, t.description_, "description" );
+                }
+            }
             //
             if ( auto protocol = obj.if_contains( "protocol" ) ) {
                 t.protocol_ = boost::json::value_to< int32_t >( *protocol );

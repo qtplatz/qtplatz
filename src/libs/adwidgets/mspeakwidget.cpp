@@ -58,7 +58,7 @@ MSPeakWidget::MSPeakWidget(QWidget *parent) : QWidget(parent)
         splitter->setOrientation( Qt::Horizontal );
 
         QVBoxLayout * layout = new QVBoxLayout( this );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->setSpacing( 2 );
         layout->addWidget( splitter );
     }
@@ -96,7 +96,7 @@ MSPeakWidget::OnFinalClose()
 {
     for ( auto& w: clients_ ) {
         disconnect(this, SIGNAL(onSetData( const QString&, const adcontrols::MSPeaks&)), w, SLOT(handleSetData(const QString&, const adcontrols::MSPeaks&)) );
-        disconnect(this, SIGNAL(onSetData( int, const adcontrols::MSPeaks& ) ), w, SLOT(handleSetData( int, const adcontrols::MSPeaks& )) );        
+        disconnect(this, SIGNAL(onSetData( int, const adcontrols::MSPeaks& ) ), w, SLOT(handleSetData( int, const adcontrols::MSPeaks& )) );
     }
 }
 
@@ -157,11 +157,11 @@ MSPeakWidget::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
                     x.push_back( std::sqrt( pk.mass() ) );
                     y.push_back( scale_to_micro( pk.time() ) );
                 }
-                
+
                 adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ); // sqrt(m), time(us) for each length
-                
+
                 // double t1 = length / adportable::polfit::estimate_y( coeffs, 1.0 ); // time for unit sqrt(m)
-                //------- Vacc estimation ---------                
+                //------- Vacc estimation ---------
                 t0 = adportable::polfit::estimate_y( coeffs, 0.0 );
                 double t1 = adportable::polfit::estimate_y( coeffs, 1.0 ); // tof for m/z = 1.0
                 double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, scale_to_base( t1, micro ), length, scale_to_base( t0, micro ) );
@@ -178,7 +178,7 @@ MSPeakWidget::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
         }
 
     } while(0);
-    
+
     // estimate t-delay by flength
     do {
         std::map< std::string, adcontrols::MSPeaks > d;
@@ -205,7 +205,7 @@ MSPeakWidget::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
 
     // estimate overall calibration
     if ( slopes.size() >= 2 ) {
-        std::vector<double> x, y0, y1, coeffs0, coeffs1; 
+        std::vector<double> x, y0, y1, coeffs0, coeffs1;
         for ( auto& item: slopes ) {
             x.push_back( std::get<0>(item) ); // length
             y0.push_back( std::get<1>(item) ); // intercept (a)
@@ -222,7 +222,7 @@ void
 MSPeakWidget::currentChanged( int mode )
 {
     adcontrols::MSPeaks peaks;
-    
+
     for ( auto& peak: *mspeaks_ ) {
         if ( peak.mode() == mode )
             peaks << peak;
@@ -243,7 +243,7 @@ void
 MSPeakWidget::currentChanged( const std::string& formula )
 {
     adcontrols::MSPeaks peaks;
-    
+
     for ( auto& peak: *mspeaks_ ) {
         if ( ! peak.formula().empty() && peak.formula() == formula )
             peaks << peak;

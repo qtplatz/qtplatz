@@ -54,8 +54,8 @@ namespace adcontrols {
         const_iterator end() const;
         void clear();
 
-        const wchar_t * name() const;
-        void name( const wchar_t * );
+        std::string name() const;
+        void set_name( const std::string& );
         size_t size() const;
         const MSReference& operator [] ( int idx ) const;
         MSReference& operator [] ( int idx );
@@ -72,6 +72,7 @@ namespace adcontrols {
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version );
     };
-    
+
 }
 
+BOOST_CLASS_VERSION( adcontrols::MSReferences, 2 )

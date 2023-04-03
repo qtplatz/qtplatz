@@ -35,7 +35,7 @@ ScanLawForm::ScanLawForm(QWidget *parent) : QWidget(parent)
     int id = 0;
     for ( auto spin: { ui->doubleSpinBox, ui->doubleSpinBox_2, ui->doubleSpinBox_3 } ) {
         connect( spin, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
-                 , this, [=]( double ){ emit valueChanged( id ); } );
+                 , this, [=,this]( double ){ emit valueChanged( id ); } );
         ++id;
     }
 }
@@ -68,10 +68,10 @@ ScanLawForm::setAcceleratorVoltage( double value )
 void
 ScanLawForm::setTDelay( double value )
 {
-    QSignalBlocker block( ui->doubleSpinBox_3 );    
+    QSignalBlocker block( ui->doubleSpinBox_3 );
     ui->doubleSpinBox_3->setValue( value );
 }
-        
+
 double
 ScanLawForm::length() const
 {
@@ -89,4 +89,3 @@ ScanLawForm::tDelay() const
 {
     return ui->doubleSpinBox_3->value();
 }
-

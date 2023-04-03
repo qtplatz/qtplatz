@@ -544,7 +544,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
                 model.setData( model.index( row, c_mspeaktable_exact_mass ), mass );
                 model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - mass );
             }
-			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdWString( pk.annotation() ) );
+			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( pk.annotation() ) );
             model.setData( model.index( row, c_mspeaktable_mass_width ), pk.widthHH( false ) * std::milli::den );
             model.setData( model.index( row, c_mspeaktable_time_width ), pk.widthHH( true ) * std::nano::den );
 
@@ -846,7 +846,13 @@ MSPeakTable::handleCopyToClipboard()
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
         if ( idx.column() == c_mspeaktable_time )
             copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
-		else if ( model.data( idx ).type() == QVariant::Double )
+		else if (
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+            model.data( idx ).type() == QVariant::Double
+#else
+            model.data( idx ).metaType() == QMetaType::fromType< double >()
+#endif
+            )
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
         else
             copy_table.append( model.data( idx ).toString() );
@@ -1079,7 +1085,7 @@ MSPeakTable::getMSPeak( adcontrols::MSPeak& peak, int row ) const
     //peak.exit_delay( double );
     //peak.flight_length( double );
     peak.formula( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdString() );
-    peak.description( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdWString() );
+    peak.description( model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString().toStdString() );
     peak.spectrumIndex( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() );
 
     return true;

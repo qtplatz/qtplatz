@@ -45,11 +45,11 @@ MSLockDialog::MSLockDialog( QWidget *parent ) : QDialog( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->setSpacing( 2 );
 
         if ( QSplitter * splitter = new QSplitter ) {
-            splitter->addWidget( ( new MSLockForm ) ); 
+            splitter->addWidget( ( new MSLockForm ) );
             splitter->addWidget( ( new MolTable ) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 4 );
@@ -85,11 +85,10 @@ MSLockDialog::getContents( adcontrols::MSLockMethod& cm ) const
 {
     if ( auto form = findChild< MSLockForm * >() ) {
         if ( form->getContents( cm ) ) {
-            if ( auto table = findChild< MolTable * >() ) 
+            if ( auto table = findChild< MolTable * >() )
                 table->getContents( cm.molecules() );
             return true;
         }
     }
     return false;
 }
-

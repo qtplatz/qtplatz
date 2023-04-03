@@ -66,6 +66,15 @@ namespace adcontrols {
 
     enum hor_axis: unsigned int { hor_axis_mass, hor_axis_time };
     enum ion_polarity: unsigned int { polarity_positive, polarity_negative };
+    enum i8n_method: unsigned int {
+        APCI,
+        APPI,
+        EI,
+        ESI,
+        MALDI,
+        MVCI,
+        PTR,
+    };
 
     namespace xic {
         enum eIntensityAlgorithm : unsigned int {

@@ -681,7 +681,11 @@ MSPeakTree::handleCopyToClipboard()
         if ( idx.column() == c_time ) {
             auto text = QString::fromStdString((boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str());
             copy_table.append( text );
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		} else if ( model.data( idx ).type() == QVariant::Double ) {
+#else
+		} else if ( model.data( idx ).metaType() == QMetaType::fromType< double >() ) {
+#endif
 			copy_table.append( QString::fromStdString((boost::format("%.14g") % model.data( idx ).toDouble()).str()) );
         } else {
             copy_table.append( __remove_html( model.data( idx ).toString() ) );
@@ -792,7 +796,7 @@ MSPeakTree::getMSPeak( adcontrols::MSPeak& peak, int row ) const
     //peak.exit_delay( double );
     //peak.flight_length( double );
     peak.formula( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString() );
-    peak.description( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdWString() );
+    peak.description( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString() );
     peak.spectrumIndex( model.index( row, c_index ).data( Qt::EditRole ).toInt() );
 
     return true;

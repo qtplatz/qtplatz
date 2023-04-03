@@ -166,7 +166,7 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
 
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin(4);
+        layout->setContentsMargins(4, 4, 4, 4);
         layout->setSpacing(2);
 
         if ( QSplitter * splitter1 = new QSplitter ) {
@@ -645,11 +645,11 @@ ScanLawDialog2::handlePaste()
         const auto& peaks = obj[ "peaks" ].toObject();
         impl_->model_->setRowCount( 0 );
         for ( const auto& pk: peaks ) {
-            addPeak( pk[ "id" ].toInt()
-                     , pk[ "formula" ].toString()
-                     , pk[ "time" ].toDouble()
-                     , pk[ "mass" ].toDouble()
-                     , pk[ "mode" ].toInt() );
+            addPeak( pk.toObject()[ "id" ].toInt()
+                     , pk.toObject()[ "formula" ].toString()
+                     , pk.toObject()[ "time" ].toDouble()
+                     , pk.toObject()[ "mass" ].toDouble()
+                     , pk.toObject()[ "mode" ].toInt() );
         }
     }
 }

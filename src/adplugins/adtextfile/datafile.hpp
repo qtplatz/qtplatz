@@ -48,16 +48,17 @@ namespace adtextfile {
     class time_data_reader;
 
     class datafile : public adcontrols::datafile
-                   , public adcontrols::LCMSDataset { 
+                   , public adcontrols::LCMSDataset {
     public:
         ~datafile();
         datafile();
-        
+
         bool open( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         void accept( adcontrols::dataSubscriber& ) override;
         boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+        boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 
         adcontrols::datafile::factory_type factory() override { return 0; }
 
@@ -74,7 +75,7 @@ namespace adtextfile {
                                , std::function< bool (long curr, long total ) > progress
                                , int /* begPos */
                                , int /* endPos */ ) const override { return false; }
-        
+
     private:
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::map< std::wstring, adcontrols::MassSpectrumPtr > data_;
@@ -83,7 +84,7 @@ namespace adtextfile {
         double length_;
         double tDelay_;
         std::string model_;
-        
+
         bool prepare_portfolio( const TXTSpectrum&, const std::wstring&, portfolio::Portfolio& );
         bool prepare_portfolio( const TXTChromatogram&, const std::wstring&, portfolio::Portfolio& );
         bool prepare_portfolio( const time_data_reader&, const std::wstring&, portfolio::Portfolio& );

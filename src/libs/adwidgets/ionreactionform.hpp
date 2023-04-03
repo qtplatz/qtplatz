@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,40 +25,34 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
-#include <QGraphicsView>
-#include <QSvgRenderer>
-#include <memory>
+#include <adcontrols/constants_fwd.hpp>
+#include <QWidget>
 
-QT_BEGIN_NAMESPACE
-class QGraphicsSvgItem;
-class QSvgRenderer;
-class QWheelEvent;
-class QPaintEvent;
-QT_END_NAMESPACE
+namespace adcontrols { class IonReactionMethod; }
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT MolView : public QGraphicsView {
+    class ADWIDGETSSHARED_EXPORT IonReactionForm : public QWidget
+    {
+        Q_OBJECT
+
     public:
-        explicit MolView( QWidget * parent = nullptr );
+        explicit IonReactionForm(QWidget *parent = 0);
+        ~IonReactionForm();
 
-    public slots:
-        void setHighQualityAntialiasing( bool highQualityAntialiasing );
-        void setViewBackground( bool enable );
-        void setViewOutline( bool enable );
-        void drawBackground( QPainter *p, const QRectF &rect ) override;
-        QSize svgSize() const;
-        QSvgRenderer *renderer() const;
-        bool setData( const QVariant& );
+        void setTitle( const QString& );
+        void setPolarity( adcontrols::ion_polarity, bool enable = false );
 
-    protected:
-        void wheelEvent(QWheelEvent *event) override;
-        void paintEvent(QPaintEvent *event) override;
+        void getContents( adcontrols::IonReactionMethod& );
+        void setContents( const adcontrols::IonReactionMethod& );
 
     private:
-        std::unique_ptr< QSvgRenderer > renderer_;
-        std::unique_ptr< QGraphicsSvgItem > svgItem_;
-        QGraphicsRectItem * backgroundItem_;
-        QGraphicsRectItem * outlineItem_;
+        class impl;
+        std::unique_ptr< impl > impl_;
+
+    signals:
+        void triggerProcess();
+        void polarityToggled( adcontrols::ion_polarity );
     };
+
 }

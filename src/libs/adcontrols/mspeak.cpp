@@ -24,55 +24,132 @@
 
 #include "mspeak.hpp"
 #include "chemicalformula.hpp"
+#include "serializer.hpp"
+#include <adportable/utf.hpp>
+
+namespace adcontrols {
+
+    class MSPeak::impl {
+    public:
+        ~impl() {}
+        impl() : time_( 0 )
+               , mass_( 0 )
+               , mode_( 0 )
+               , fcn_( 0 )
+               , flength_( 0 )
+               , spectrumIndex_( 0 )
+               , time_width_( 0 )
+               , mass_width_( 0 )
+               , exit_delay_( 0 )
+               , exact_mass_( 0 )
+               , flags_(0) {
+        }
+        impl( const impl& t ) : time_( t.time_ )
+                              , mass_( t.mass_ )
+                              , mode_( t.mode_ )
+                              , fcn_( t.fcn_ )
+                              , flength_( t.flength_ )
+                              , formula_( t.formula_ )
+                              , description_( t.description_ )
+                              , spectrumId_( t.spectrumId_ )
+                              , spectrumIndex_( t.spectrumIndex_ )
+                              , time_width_( t.time_width_ )
+                              , mass_width_( t.mass_width_ )
+                              , exit_delay_( t.exit_delay_ )
+                              , exact_mass_( t.exact_mass_ )
+                              , flags_( t.flags_ ) {
+        }
+
+        double time_;
+        double mass_;
+        int32_t mode_;  // corresponding to flight length
+        int32_t fcn_;   // protocol id
+        double flength_;
+        std::string formula_;
+        std::string description_;
+        std::string spectrumId_;
+        int32_t spectrumIndex_;
+        double time_width_;
+        double mass_width_;
+        double exit_delay_;
+        double exact_mass_;
+        uint32_t flags_;
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
+            using namespace boost::serialization;
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( time_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+                ar & BOOST_SERIALIZATION_NVP( flength_ );
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( description_ );
+                ar & BOOST_SERIALIZATION_NVP( spectrumId_ );
+                ar & BOOST_SERIALIZATION_NVP( spectrumIndex_ );
+                ar & BOOST_SERIALIZATION_NVP( time_width_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_width_ );
+                ar & BOOST_SERIALIZATION_NVP( fcn_ );
+                ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
+                ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
+                ar & BOOST_SERIALIZATION_NVP( flags_ );
+            } else {
+                std::wstring description;
+                ar & BOOST_SERIALIZATION_NVP( time_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+                ar & BOOST_SERIALIZATION_NVP( flength_ );
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( description );
+                ar & BOOST_SERIALIZATION_NVP( spectrumId_ );
+                ar & BOOST_SERIALIZATION_NVP( spectrumIndex_ );
+                ar & BOOST_SERIALIZATION_NVP( time_width_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_width_ );
+                if ( version >= 1 ) {
+                    ar & BOOST_SERIALIZATION_NVP( fcn_ );
+                    ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
+                    ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
+                }
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP( flags_ );
+                //----
+                if ( Archive::is_loading::value )
+                    description_ = adportable::utf::to_utf8( description );
+            }
+        }
+    };
+}
+
 using namespace adcontrols;
 
 MSPeak::~MSPeak()
 {
 }
 
-MSPeak::MSPeak() : time_( 0 )               
-                 , mass_( 0 )               
-                 , mode_( 0 )      
-                 , fcn_( 0 )
-                 , flength_( 0 )         
-                 , spectrumIndex_( 0 )
-                 , time_width_( 0 )
-                 , mass_width_( 0 )
-                 , exit_delay_( 0 )
-                 , exact_mass_( 0 )
-                 , flags_(0)
+MSPeak::MSPeak() : impl_( std::make_unique< impl >() )
 {
 }
 
-MSPeak::MSPeak( const MSPeak& t ) : time_( t.time_ )
-                                  , mass_( t.mass_ )
-                                  , mode_( t.mode_ )
-                                  , fcn_( t.fcn_ )
-                                  , flength_( t.flength_ )
-                                  , formula_( t.formula_ )
-                                  , description_( t.description_ )
-                                  , spectrumId_( t.spectrumId_ )
-                                  , spectrumIndex_( t.spectrumIndex_ )
-                                  , time_width_( t.time_width_ )
-                                  , mass_width_( t.mass_width_ )
-                                  , exit_delay_( t.exit_delay_ ) 
-                                  , exact_mass_( t.exact_mass_ )
-                                  , flags_( t.flags_ )
+MSPeak::MSPeak( const MSPeak& t ) : impl_( std::make_unique< impl >( *t.impl_ ) )
 {
 }
 
-MSPeak::MSPeak( double time, double mass, int32_t mode, double flength ) : time_( time )
-                                                                         , mass_( mass )
-                                                                         , mode_( mode )
-                                                                         , fcn_( 0 )
-                                                                         , flength_( flength )
-                                                                         , spectrumIndex_( 0 )
-                                                                         , time_width_( 0 )
-                                                                         , mass_width_( 0 )
-                                                                         , exit_delay_( 0 )
-                                                                         , exact_mass_( 0 )
-                                                                         , flags_(0)
+const MSPeak&
+MSPeak::operator = (const MSPeak& t )
 {
+    impl_ = std::make_unique< impl >(*t.impl_ );
+    return *this;
+}
+
+MSPeak::MSPeak( double time
+                , double mass
+                , int32_t mode
+                , double flength ) : impl_( std::make_unique< impl >() )
+{
+    impl_->mass_ = mass;
+    impl_->mode_ = mode;
+    impl_->fcn_ = 0;
+    impl_->flength_ = flength;
 }
 
 MSPeak::MSPeak( const std::string& formula
@@ -80,178 +157,210 @@ MSPeak::MSPeak( const std::string& formula
                 , double time
                 , int32_t mode
                 , int32_t spectrumIndex
-                , double exact_mass ) : time_( time )
-                                      , mass_( mass )
-                                      , mode_( mode )
-                                      , fcn_( 0 )
-                                      , flength_( 0 )
-                                      , formula_( formula )
-                                      , spectrumIndex_( spectrumIndex )
-                                      , time_width_( 0 )
-                                      , mass_width_( 0 )
-                                      , exit_delay_( 0 )
-                                      , exact_mass_( exact_mass )
-                                      , flags_(0)
+                , double exact_mass ) : impl_( std::make_unique< impl >() )
 {
+    impl_->mass_ = mass;
+    impl_->mode_ = mode;
+    impl_->formula_ = formula;
+    impl_->spectrumIndex_ = spectrumIndex;
+    impl_->exact_mass_ = exact_mass;
 }
 
 double
 MSPeak::time() const
 {
-    return time_;
+    return impl_->time_;
 }
 
 double
 MSPeak::mass() const
 {
-    return mass_;
+    return impl_->mass_;
 }
 
 int32_t
 MSPeak::mode() const
 {
-    return mode_;
+    return impl_->mode_;
 }
 
 int32_t
 MSPeak::fcn() const
 {
-    return fcn_;
+    return impl_->fcn_;
 }
 
 void
 MSPeak::fcn( int32_t v )
 {
-    fcn_ = v;
+    impl_->fcn_ = v;
 }
 
 double
 MSPeak::width( bool isTime ) const
 {
-    return isTime ? time_width_ : mass_width_;
+    return isTime ? impl_->time_width_ : impl_->mass_width_;
 }
 
 void
 MSPeak::width( double value, bool isTime )
 {
     if ( isTime )
-        time_width_ = value;
+        impl_->time_width_ = value;
     else
-        mass_width_ = value;
+        impl_->mass_width_ = value;
 }
 
 double
 MSPeak::exit_delay() const
 {
-    return exit_delay_;
+    return impl_->exit_delay_;
 }
 
 void
 MSPeak::exit_delay( double v )
 {
-    exit_delay_ = v;
+    impl_->exit_delay_ = v;
 }
 
 double
 MSPeak::flight_length() const
 {
-    return flength_;
+    return impl_->flength_;
 }
 
 const std::string&
 MSPeak::formula() const
 {
-    return formula_;
+    return impl_->formula_;
 }
 
-const std::wstring&
+std::wstring
+MSPeak::wdescription() const
+{
+    return adportable::utf::to_wstring( impl_->description_ );
+}
+
+std::string
 MSPeak::description() const
 {
-    return description_;
+    return impl_->description_;
 }
 
 const std::string&
 MSPeak::spectrumId() const
 {
-    return spectrumId_;
+    return impl_->spectrumId_;
 }
 
 int32_t
 MSPeak::spectrumIndex() const
 {
-    return spectrumIndex_;
+    return impl_->spectrumIndex_;
 }
 
 void
 MSPeak::time( double v )
 {
-    time_ = v;
+    impl_->time_ = v;
 }
 
 void
 MSPeak::mass( double v )
 {
-    mass_ = v;
+    impl_->mass_ = v;
 }
 
 void
 MSPeak::mode( int32_t v )
 {
-    mode_ = v;
+    impl_->mode_ = v;
 }
 
 void
 MSPeak::flight_length( double v )
 {
-    flength_ = v;
+    impl_->flength_ = v;
 }
 
 void
 MSPeak::formula( const std::string& v )
 {
-    formula_= v;
+    impl_->formula_= v;
 }
 
 void
-MSPeak::description( const std::wstring& v )
+MSPeak::description( const std::string& v )
 {
-    description_ = v;
+    impl_->description_ = v;
 }
 
 void
 MSPeak::spectrumId( const std::string& v )
 {
-    spectrumId_ = v;
+    impl_->spectrumId_ = v;
 }
 
 void
 MSPeak::spectrumIndex( int v )
 {
-    spectrumIndex_ = v;
+    impl_->spectrumIndex_ = v;
 }
 
 double
 MSPeak::exact_mass() const
 {
-    if ( !formula_.empty() && exact_mass_ < 0.7 )
-        return ChemicalFormula().getMonoIsotopicMass( formula_ );
-    return exact_mass_;
+    if ( !impl_->formula_.empty() && impl_->exact_mass_ < 0.7 )
+        return ChemicalFormula().getMonoIsotopicMass( impl_->formula_ );
+    return impl_->exact_mass_;
 }
 
 uint32_t
 MSPeak::flags() const
 {
-    return flags_;
+    return impl_->flags_;
 }
 
 void
 MSPeak::setFlags( uint32_t v )
 {
-    flags_ = v;
+    impl_->flags_ = v;
 }
 
 bool
 MSPeak::isFlag( Flags f ) const
 {
-    return flags_ & f ? true : false;
+    return impl_->flags_ & f ? true : false;
+}
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> void
+    MSPeak::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        // saving
+        impl_->serialize( ar, version );
+    }
+
+    template<> void
+    MSPeak::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        // loading
+        impl_->serialize( ar, version );
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    MSPeak::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        // saving
+        impl_->serialize( ar, version );
+    }
+
+    template<> void
+    MSPeak::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
 }

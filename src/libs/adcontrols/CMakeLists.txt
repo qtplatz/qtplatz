@@ -14,93 +14,53 @@ endif()
 add_library( adcontrols SHARED
   adcv/contoursmethod.cpp
   adcv/contoursmethod.hpp
-  acceptor.cpp
-  acceptor.hpp
-  acquireddataset.cpp
-  acquireddataset.hpp
-  adcontrols.cpp
-  adcontrols.hpp
-  annotation.cpp
-  annotation.hpp
-  annotations.cpp
-  annotations.hpp
-  axis.hpp
-  baseline.cpp
-  baseline.hpp
-  baselines.cpp
-  baselines.hpp
-  centroidmethod.cpp
-  centroidmethod.hpp
-  centroidprocess.cpp
-  centroidprocess.hpp
-  chemicalformula.cpp
-  chemicalformula.hpp
-  chromatogram.cpp
-  chromatogram.hpp
-  constants.hpp
-  constants.cpp
-  controlmethod.cpp
-  controlmethod.hpp
-  controlmethod/timedevent.hpp
-  controlmethod/timedevent.cpp
-  controlmethod/timedevents.hpp
-  controlmethod/timedevents.cpp
-  controlmethod/modulecap.hpp
-  controlmethod/modulecap.cpp
-  controlmethod/eventcap.cpp
-  controlmethod/eventcap.hpp
-  controlmethod/tofchromatogrammethod.cpp
-  controlmethod/tofchromatogrammethod.hpp
-  controlmethod/tofchromatogramsmethod.cpp
-  controlmethod/tofchromatogramsmethod.hpp
-  controlmethod/xchromatogramsmethod.cpp
-  controlmethod/xchromatogramsmethod.hpp
-  countingdata.cpp
-  countingdata.hpp
-  countingmethod.cpp
-  countingmethod.hpp
-  countingresult.cpp
-  countingresult.hpp
-  countinghistogram.cpp
+  acceptor.cpp  acceptor.hpp
+  acquireddataset.cpp  acquireddataset.hpp
+  adcontrols.cpp  adcontrols.hpp
+  annotation.cpp  annotation.hpp
+  annotations.cpp  annotations.hpp
+  axis.hpp  baseline.cpp
+  baseline.hpp  baselines.cpp
+  baselines.hpp  centroidmethod.cpp
+  centroidmethod.hpp  centroidprocess.cpp
+  centroidprocess.hpp  chemicalformula.cpp
+  chemicalformula.hpp  chromatogram.cpp
+  chromatogram.hpp  constants.hpp
+  constants.cpp  controlmethod.cpp
+  controlmethod.hpp  controlmethod/timedevent.hpp
+  controlmethod/timedevent.cpp  controlmethod/timedevents.hpp
+  controlmethod/timedevents.cpp  controlmethod/modulecap.hpp
+  controlmethod/modulecap.cpp  controlmethod/eventcap.cpp
+  controlmethod/eventcap.hpp  controlmethod/tofchromatogrammethod.cpp
+  controlmethod/tofchromatogrammethod.hpp  controlmethod/tofchromatogramsmethod.cpp
+  controlmethod/tofchromatogramsmethod.hpp  controlmethod/xchromatogramsmethod.cpp
+  controlmethod/xchromatogramsmethod.hpp  countingdata.cpp
+  countingdata.hpp  countingmethod.cpp
+  countingmethod.hpp  countingresult.cpp
+  countingresult.hpp  countinghistogram.cpp
   countinghistogram.hpp
-  ctable.cpp
-  ctable.hpp
-  ctfile.cpp
-  ctfile.hpp
-  datafile.cpp
-  datafile.hpp
-  datafilebroker.cpp
-  datafilebroker.hpp
-  datainterpreter.cpp
-  datainterpreter.hpp
-  datainterpreterbroker.cpp
-  datainterpreterbroker.hpp
-  datapublisher.cpp
-  datapublisher.hpp
-  datareader.cpp
-  datareader.hpp
-  datasubscriber.cpp
-  datasubscriber.hpp
-  description.cpp
-  description.hpp
-  descriptions.cpp
-  descriptions.hpp
-  elementalcomposition.cpp
-  elementalcomposition.hpp
-  elementalcompositioncollection.cpp
-  elementalcompositioncollection.hpp
-  elementalcompositionmethod.cpp
-  elementalcompositionmethod.hpp
-  error_code.cpp
-  error_code.hpp
-  histogram.cpp
-  histogram.hpp
+  ctable.cpp  ctable.hpp
+  ctfile.cpp  ctfile.hpp
+  datafile.cpp  datafile.hpp
+  datafilebroker.cpp  datafilebroker.hpp
+  datainterpreter.cpp  datainterpreter.hpp
+  datainterpreterbroker.cpp  datainterpreterbroker.hpp
+  datapublisher.cpp  datapublisher.hpp
+  datareader.cpp  datareader.hpp
+  datasubscriber.cpp  datasubscriber.hpp
+  description.cpp  description.hpp
+  descriptions.cpp  descriptions.hpp
+  elementalcomposition.cpp  elementalcomposition.hpp
+  elementalcompositioncollection.cpp  elementalcompositioncollection.hpp
+  elementalcompositionmethod.cpp  elementalcompositionmethod.hpp
+  error_code.cpp  error_code.hpp
+  histogram.cpp  histogram.hpp
+  ionreactionmethod.cpp ionreactionmethod.hpp
   isocluster.cpp
   isocluster.hpp
   isotopecluster.cpp
   isotopecluster.hpp
-  isotopemethod.cpp
-  isotopemethod.hpp
+  isotopemethod.cpp  isotopemethod.hpp
   idaudit.cpp
   idaudit.hpp
   lapfinder.cpp
@@ -111,6 +71,7 @@ add_library( adcontrols SHARED
   lockmass.hpp
   logging_hook.cpp
   logging_hook.hpp
+  make_combination.cpp make_combination.hpp
   mappeddataframe.cpp
   mappeddataframe.hpp
   mappedimage.cpp
@@ -153,8 +114,7 @@ add_library( adcontrols SHARED
   msproperty.hpp
   msreference.cpp
   msreference.hpp
-  msreferencedefns.cpp
-  msreferencedefns.hpp
+#  msreferencedefns.cpp  msreferencedefns.hpp
   msreferences.cpp
   msreferences.hpp
   msident.cpp
@@ -276,16 +236,24 @@ add_library( adcontrols SHARED
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS_EQUAL "8.3.0" )
+  set (LIBCPPFS "stdc++fs")
+endif()
+message( STATUS "## LIBCPPFS: " ${LIBCPPFS} )
+
+
 target_link_libraries(
   adcontrols LINK_PUBLIC
   adportable
   adportable_serializer
   ${Boost_LIBRARIES}
+  ${LIBCPPFS}
   )
 
 #set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )

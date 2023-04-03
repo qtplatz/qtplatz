@@ -34,26 +34,21 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
+    enum ion_polarity: unsigned int; // defined in constants.hpp
+
     class ADCONTROLSSHARED_EXPORT MSReference {
     public:
     ~MSReference();
         MSReference();
         MSReference( const MSReference& t );
-        MSReference( const wchar_t * formula
-                     , bool polarityPositive
-                     , const wchar_t * adduct_or_loss
-                     , bool enable = true
-                     , double exactMass = 0
-                     , uint32_t charge = 1
-                     , const wchar_t * description = L"" );
 
-        MSReference( const char * formula
-                     , bool polarityPositive
-                     , const char * adduct_or_loss
+        MSReference( const std::string& formula
+                     , ion_polarity polarity
+                     , const std::string& adduct_or_loss
                      , bool enable = true
                      , double exactMass = 0
                      , uint32_t charge = 1
-                     , const wchar_t * description = L"" );
+                     , const std::string& description = {} );
 
         MSReference& operator = ( const MSReference& );
         bool operator < ( const MSReference& ) const;
@@ -62,10 +57,7 @@ namespace adcontrols {
         double exact_mass() const;
         bool polarityPositive() const;
 		uint32_t charge_count() const;
-        const wchar_t * wformula() const;
-        const wchar_t * wadduct_or_loss() const;
-        const wchar_t * wdisplay_formula() const;
-        const wchar_t * wdescription() const;
+
         std::string formula() const;
         std::string adduct_or_loss() const;
         std::string display_formula() const;
@@ -73,13 +65,13 @@ namespace adcontrols {
 
         void enable( bool );
         void exact_mass( double );
-        void polarityPositive( bool );
+        [[deprecated]] void polarityPositive( bool );
+        void set_polarity( ion_polarity );
+        ion_polarity polarity() const;
 		void charge_count( uint32_t );
-        void formula( const wchar_t * );
-        void formula( const char * );
-        void adduct_or_loss( const wchar_t * );
-        void adduct_or_loss( const char * );
-        void description( const wchar_t * );
+        void formula( const std::string& );
+        void adduct_or_loss( const std::string& );
+        void description( const std::string& );
 
     private:
 
@@ -95,4 +87,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSReference, 1 )
+BOOST_CLASS_VERSION( adcontrols::MSReference, 2 )

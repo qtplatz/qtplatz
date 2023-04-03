@@ -330,6 +330,7 @@ MSQuanTable::handleCopyToClipboard()
     QModelIndex prev = list.first();
 	int i = 0;
     for ( auto idx: list ) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
         if ( idx.column() == c_time )
@@ -338,6 +339,16 @@ MSQuanTable::handleCopyToClipboard()
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
         else
             copy_table.append( model.data( idx ).toString() );
+#else
+		if ( i++ > 0 )
+			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
+        if ( idx.column() == c_time )
+            copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
+		else if ( model.data( idx ).metaType() == QMetaType::fromType< double >() )
+			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
+        else
+            copy_table.append( model.data( idx ).toString() );
+#endif
         prev = idx;
     }
     QApplication::clipboard()->setText( copy_table );

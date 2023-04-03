@@ -79,7 +79,7 @@ namespace adprocessor {
 
         virtual bool open( const std::wstring&, std::wstring& errmsg );
 
-		virtual const std::wstring& filename() const;
+		virtual std::wstring filename() const;
 
         virtual void setFile( std::unique_ptr< adcontrols::datafile >&& );
         virtual adcontrols::datafile * file();

@@ -13,10 +13,11 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets )
+qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
+  "${_adplugin_output_dir}/${PROJECT_NAME}.adplugin"
   )
 
 #include_directories( ${QtCore_INCLUDE_DIRS}  )
@@ -66,9 +67,7 @@ target_link_libraries( adtextfile LINK_PUBLIC
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
+  LIBRARY_OUTPUT_DIRECTORY ${_adplugin_output_dir} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins

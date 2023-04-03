@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,178 +25,259 @@
 
 #include "msassignedmass.hpp"
 #include "msproperty.hpp"
+#include "serializer.hpp"
 #include "samplinginfo.hpp"
 #include <adportable/float.hpp>
+#include <adportable/utf.hpp>
 #include <boost/bind.hpp>
 #include <algorithm>
 
+namespace adcontrols {
+
+    class MSAssignedMass::impl {
+    public:
+        ~impl() {}
+        impl() : idReference_(-1)
+               , idMassSpectrum_(0)
+               , idPeak_(-1)
+               , exactMass_( 0 )
+               , time_( 0 )
+               , mass_( 0 )
+               , enable_( false )
+               , flags_( 0 )
+               , mode_( 0 ) {
+        }
+        impl( const impl& t ) : formula_( t.formula_ )
+                              , idReference_( t.idReference_ )
+                              , idMassSpectrum_( t.idMassSpectrum_ )
+                              , idPeak_( t.idPeak_ )
+                              , exactMass_( t.exactMass_ )
+                              , time_( t.time_ )
+                              , mass_( t.mass_ )
+                              , enable_( t.enable_ )
+                              , flags_( t.flags_ )
+                              , mode_( t.mode_ ) {
+        }
+
+        std::string formula_;
+        uint32_t idReference_;
+        uint32_t idMassSpectrum_; // segment# on segment_wrapper<MassSpectrum>[]
+        uint32_t idPeak_;         // peak# on MassSpectrum
+        double exactMass_;
+        double time_;
+        double mass_;
+        bool enable_;  // if false, this peak does not use for polynomial fitting
+        uint32_t flags_;
+        uint32_t mode_; // number of turns for InfiTOF, linear|reflectron for MALDI and/or any analyzer mode
+
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, const uint32_t version) {
+            using namespace boost::serialization;
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( formula_);
+                ar & BOOST_SERIALIZATION_NVP( idReference_ );
+                ar & BOOST_SERIALIZATION_NVP( idMassSpectrum_);
+                ar & BOOST_SERIALIZATION_NVP( idPeak_);
+                ar & BOOST_SERIALIZATION_NVP( exactMass_);
+                ar & BOOST_SERIALIZATION_NVP( time_);
+                ar & BOOST_SERIALIZATION_NVP( mass_);
+                ar & BOOST_SERIALIZATION_NVP( enable_);
+                ar & BOOST_SERIALIZATION_NVP( flags_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+            }
+            if ( version == 3 )  {
+                std::wstring wformula;
+                ar & BOOST_SERIALIZATION_NVP( wformula );
+                ar & BOOST_SERIALIZATION_NVP( idReference_ );
+                ar & BOOST_SERIALIZATION_NVP( idMassSpectrum_);
+                ar & BOOST_SERIALIZATION_NVP( idPeak_);
+                ar & BOOST_SERIALIZATION_NVP( exactMass_);
+                ar & BOOST_SERIALIZATION_NVP( time_);
+                ar & BOOST_SERIALIZATION_NVP( mass_);
+                ar & BOOST_SERIALIZATION_NVP( enable_);
+                ar & BOOST_SERIALIZATION_NVP( flags_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+                if ( Archive::is_loading::value ) {
+                    formula_ = adportable::utf::to_utf8( wformula );
+                }
+            }
+            if ( version < 3 )
+                return; // ignore
+        }
+    };
+
+}
+
 using namespace adcontrols;
 
-MSAssignedMass::MSAssignedMass() : idReference_(-1)
-                                 , idMassSpectrum_(0)
-								 , idPeak_(-1)
-                                 , exactMass_( 0 )
-                                 , time_( 0 )
-                                 , mass_( 0 )
-                                 , enable_( false )
-                                 , flags_( 0 )
-                                 , mode_( 0 )
+MSAssignedMass::~MSAssignedMass()
 {
 }
 
-MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_ )
-                                                          , idReference_( t.idReference_ )
-                                                          , idMassSpectrum_( t.idMassSpectrum_ )
-														  , idPeak_( t.idPeak_ )
-                                                          , exactMass_( t.exactMass_ )
-                                                          , time_( t.time_ )
-                                                          , mass_( t.mass_ )
-                                                          , enable_( t.enable_ )
-                                                          , flags_( t.flags_ )
-                                                          , mode_( t.mode_ )
+MSAssignedMass::MSAssignedMass() : impl_( std::make_unique< impl >() )
 {
+}
+
+MSAssignedMass::MSAssignedMass( const MSAssignedMass& t )
+    : impl_( std::make_unique< impl >( *t.impl_ ) )
+{
+}
+
+const MSAssignedMass&
+MSAssignedMass::operator = ( const MSAssignedMass& t )
+{
+    impl_ = std::make_unique< impl >( *t.impl_ );
+    return *this;
 }
 
 MSAssignedMass::MSAssignedMass( uint32_t idReference
                                 , uint32_t idMassSpectrum
 								, uint32_t idPeak
-                                , const std::wstring& formula
+                                , const std::string& formula
                                 , double exactMass
                                 , double time
                                 , double mass
                                 , bool enable
                                 , uint32_t flags
-                                , uint32_t mode ) : formula_( formula )
-                                                  , idReference_( idReference )
-                                                  , idMassSpectrum_( idMassSpectrum )
-                                                  , idPeak_( idPeak )
-                                                  , exactMass_( exactMass )
-                                                  , time_( time )
-                                                  , mass_( mass )
-                                                  , enable_( enable )
-                                                  , flags_( flags )
-                                                  , mode_( mode )
+                                , uint32_t mode ) : impl_( std::make_unique< impl >() )
 {
+    impl_->idReference_       = idReference;
+    impl_->idMassSpectrum_    = idMassSpectrum;
+    impl_->idPeak_            = idPeak;
+    impl_->formula_           = formula;
+    impl_->exactMass_         = exactMass;
+    impl_->time_              = time;
+    impl_->mass_              = mass;
+    impl_->enable_            = enable;
+    impl_->flags_             = flags;
+    impl_->mode_              = mode;
 }
 
 uint32_t
 MSAssignedMass::idReference() const
 {
-    return idReference_;
+    return impl_->idReference_;
 }
 
 void
 MSAssignedMass::idReference( uint32_t value )
 {
-    idReference_ = value;
+    impl_->idReference_ = value;
 }
 
 uint32_t
 MSAssignedMass::idMassSpectrum() const
 {
-    return idMassSpectrum_;
+    return impl_->idMassSpectrum_;
 }
 
 void
 MSAssignedMass::idMassSpectrum( uint32_t value )
 {
-	idMassSpectrum_ = value;
+	impl_->idMassSpectrum_ = value;
 }
 
 uint32_t
 MSAssignedMass::idPeak() const
 {
-    return idPeak_;
+    return impl_->idPeak_;
 }
 
 void
 MSAssignedMass::idPeak( uint32_t value )
 {
-	idPeak_ = value;
+	impl_->idPeak_ = value;
 }
 
 double
 MSAssignedMass::exactMass() const
 {
-    return exactMass_;
+    return impl_->exactMass_;
 }
 
 void
 MSAssignedMass::exactMass( double value )
 {
-    exactMass_ = value;
+    impl_->exactMass_ = value;
 }
 
 double
 MSAssignedMass::time() const
 {
-    return time_;
+    return impl_->time_;
 }
 
 void
 MSAssignedMass::time( double value )
 {
-    time_ = value;
+    impl_->time_ = value;
 }
 
 double
 MSAssignedMass::mass() const
 {
-    return mass_;
+    return impl_->mass_;
 }
 
 void
 MSAssignedMass::mass( double value )
 {
-    mass_ = value;
+    impl_->mass_ = value;
 }
 
 bool
 MSAssignedMass::enable() const
 {
-    return enable_;
+    return impl_->enable_;
 }
 
 void
 MSAssignedMass::enable( bool value )
 {
-    enable_ = value;
+    impl_->enable_ = value;
 }
 
 uint32_t
 MSAssignedMass::flags() const
 {
-    return flags_;
+    return impl_->flags_;
 }
 
 uint32_t
 MSAssignedMass::mode() const
 {
-    return mode_;
+    return impl_->mode_;
 }
 
 void
 MSAssignedMass::flags( uint32_t value )
 {
-    flags_ = value;
+    impl_->flags_ = value;
 }
 
 void
 MSAssignedMass::mode( uint32_t value )
 {
-    mode_ = value;
+    impl_->mode_ = value;
 }
 
-const std::wstring&
+std::string
 MSAssignedMass::formula() const
 {
-    return formula_;
+    return impl_->formula_;
 }
 
 void
 MSAssignedMass::formula( const std::wstring& value )
 {
-    formula_ = value;
+    impl_->formula_ = adportable::utf::to_utf8( value );
+}
+
+void
+MSAssignedMass::formula( const std::string& value )
+{
+    impl_->formula_ = value;
 }
 
 /////////////////////
@@ -265,4 +346,35 @@ size_t
 MSAssignedMasses::size() const
 {
     return vec_.size();
+}
+
+namespace adcontrols {
+
+    template<> void
+    MSAssignedMass::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        // saving
+        impl_->serialize( ar, version );
+    }
+
+    template<> void
+    MSAssignedMass::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        // loading
+        impl_->serialize( ar, version );
+    }
+
+    ///////// XML archive ////////
+    template<> void
+    MSAssignedMass::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        // saving
+        impl_->serialize( ar, version );
+    }
+
+    template<> void
+    MSAssignedMass::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        impl_->serialize( ar, version );
+    }
 }

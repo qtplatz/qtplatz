@@ -468,7 +468,7 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
         adcontrols::chromatography::ePeakEvent func = static_cast< adcontrols::chromatography::ePeakEvent >( p->currentIndex() + 1 );
 
         model->setData( index, func );
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         if ( adcontrols::PeakMethod::TimedEvent::isBool( func ) ) {
             if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Bool )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
@@ -476,7 +476,15 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
             if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Double )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(0.0), Qt::EditRole );
         }
-
+#else
+        if ( adcontrols::PeakMethod::TimedEvent::isBool( func ) ) {
+            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< bool >()  )
+                model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
+        } else {
+            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< double >() )
+                model->setData( model->index( index.row(), c_event_value ), QVariant(0.0), Qt::EditRole );
+        }
+#endif
     } else {
 
         QStyledItemDelegate::setModelData( editor, model, index );

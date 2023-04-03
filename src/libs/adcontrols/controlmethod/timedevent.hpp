@@ -86,6 +86,14 @@ namespace adcontrols {
             operator bool () const; // is valid for json
 
         private:
+#if 0
+            boost::uuids::uuid clsid_; // model class id
+            std::string module_display_name_;
+            std::string item_name_;
+            std::string item_display_name_;
+            double time_;
+            value_type value_;
+#endif
             boost::uuids::uuid modelClsid_;
             std::string modelDisplayName_;
             std::string name_; // item_name_
