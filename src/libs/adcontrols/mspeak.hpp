@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef MSPEAK_HPP
-#define MSPEAK_HPP
+#pragma once
 
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
@@ -32,14 +31,15 @@
 #include <string>
 
 namespace adcontrols {
-
-    class ADCONTROLSSHARED_EXPORT MSPeak {
+    class ADCONTROLSSHARED_EXPORT MSPeak;
+    class MSPeak {
     public:
         ~MSPeak();
         MSPeak();
         MSPeak( const MSPeak& );
-        MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
+        const MSPeak& operator = (const MSPeak& );
 
+        MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
         MSPeak( const std::string& formula
                 , double mass
                 , double time = 0.0
@@ -83,6 +83,8 @@ namespace adcontrols {
         void setFlags( uint32_t );
 
     private:
+        class impl;
+        std::unique_ptr< impl > impl_;
         double time_;
         double mass_;
         int32_t mode_;  // corresponding to flight length
@@ -100,30 +102,9 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP( time_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( mode_ )
-                & BOOST_SERIALIZATION_NVP( flength_ )
-                & BOOST_SERIALIZATION_NVP( formula_ )
-                & BOOST_SERIALIZATION_NVP( description_ )
-                & BOOST_SERIALIZATION_NVP( spectrumId_ )
-                & BOOST_SERIALIZATION_NVP( spectrumIndex_ )
-                & BOOST_SERIALIZATION_NVP( time_width_ )
-                & BOOST_SERIALIZATION_NVP( mass_width_ )
-                ;
-            if ( version >= 1 ) {
-                ar & BOOST_SERIALIZATION_NVP( fcn_ );
-                ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
-                ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
-            }
-            if ( version >= 2 )
-                ar & BOOST_SERIALIZATION_NVP( flags_ );
-        }
+        void serialize(Archive& ar, const unsigned int version);
     };
 
 }
 
 BOOST_CLASS_VERSION( adcontrols::MSPeak, 2)
-
-#endif // MSPEAK_HPP
