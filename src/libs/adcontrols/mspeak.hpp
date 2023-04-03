@@ -62,7 +62,9 @@ namespace adcontrols {
         double width( bool isTime = false ) const;
         double exit_delay() const;
         const std::string& formula() const;
-        const std::wstring& description() const;
+        std::wstring wdescription() const;
+        std::string  description() const;
+
         const std::string& spectrumId() const;
         int32_t spectrumIndex() const;
         double exact_mass() const;
@@ -85,20 +87,6 @@ namespace adcontrols {
     private:
         class impl;
         std::unique_ptr< impl > impl_;
-        double time_;
-        double mass_;
-        int32_t mode_;  // corresponding to flight length
-        int32_t fcn_;   // protocol id
-        double flength_;
-        std::string formula_;
-        std::wstring description_;
-        std::string spectrumId_;
-        int32_t spectrumIndex_;
-        double time_width_;
-        double mass_width_;
-        double exit_delay_;
-        double exact_mass_;
-        uint32_t flags_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -107,4 +95,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeak, 2)
+BOOST_CLASS_VERSION( adcontrols::MSPeak, 3 )

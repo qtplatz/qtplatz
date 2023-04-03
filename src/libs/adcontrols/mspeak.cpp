@@ -25,6 +25,7 @@
 #include "mspeak.hpp"
 #include "chemicalformula.hpp"
 #include "serializer.hpp"
+#include <adportable/utf.hpp>
 
 namespace adcontrols {
 
@@ -59,47 +60,13 @@ namespace adcontrols {
                               , flags_( t.flags_ ) {
         }
 
-        impl( double time
-              , double mass
-              , int32_t mode
-              , double flength ) : time_( time )
-                                 , mass_( mass )
-                                 , mode_( mode )
-                                 , fcn_( 0 )
-                                 , flength_( flength )
-                                 , spectrumIndex_( 0 )
-                                 , time_width_( 0 )
-                                 , mass_width_( 0 )
-                                 , exit_delay_( 0 )
-                                 , exact_mass_( 0 )
-                                 , flags_(0) {
-        }
-        impl( const std::string& formula
-              , double mass
-              , double time
-              , int32_t mode
-              , int32_t spectrumIndex
-              , double exact_mass ) : time_( time )
-                                    , mass_( mass )
-                                    , mode_( mode )
-                                    , fcn_( 0 )
-                                    , flength_( 0 )
-                                    , formula_( formula )
-                                    , spectrumIndex_( spectrumIndex )
-                                    , time_width_( 0 )
-                                    , mass_width_( 0 )
-                                    , exit_delay_( 0 )
-                                    , exact_mass_( exact_mass )
-                                    , flags_(0) {
-        }
-
         double time_;
         double mass_;
         int32_t mode_;  // corresponding to flight length
         int32_t fcn_;   // protocol id
         double flength_;
         std::string formula_;
-        std::wstring description_;
+        std::string description_;
         std::string spectrumId_;
         int32_t spectrumIndex_;
         double time_width_;
@@ -111,28 +78,47 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( time_ )
-                & BOOST_SERIALIZATION_NVP( mass_ )
-                & BOOST_SERIALIZATION_NVP( mode_ )
-                & BOOST_SERIALIZATION_NVP( flength_ )
-                & BOOST_SERIALIZATION_NVP( formula_ )
-                & BOOST_SERIALIZATION_NVP( description_ )
-                & BOOST_SERIALIZATION_NVP( spectrumId_ )
-                & BOOST_SERIALIZATION_NVP( spectrumIndex_ )
-                & BOOST_SERIALIZATION_NVP( time_width_ )
-                & BOOST_SERIALIZATION_NVP( mass_width_ )
-                ;
-            if ( version >= 1 ) {
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( time_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+                ar & BOOST_SERIALIZATION_NVP( flength_ );
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( description_ );
+                ar & BOOST_SERIALIZATION_NVP( spectrumId_ );
+                ar & BOOST_SERIALIZATION_NVP( spectrumIndex_ );
+                ar & BOOST_SERIALIZATION_NVP( time_width_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_width_ );
                 ar & BOOST_SERIALIZATION_NVP( fcn_ );
                 ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
                 ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
-            }
-            if ( version >= 2 )
                 ar & BOOST_SERIALIZATION_NVP( flags_ );
+            } else {
+                std::wstring description;
+                ar & BOOST_SERIALIZATION_NVP( time_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+                ar & BOOST_SERIALIZATION_NVP( flength_ );
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( description );
+                ar & BOOST_SERIALIZATION_NVP( spectrumId_ );
+                ar & BOOST_SERIALIZATION_NVP( spectrumIndex_ );
+                ar & BOOST_SERIALIZATION_NVP( time_width_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_width_ );
+                if ( version >= 1 ) {
+                    ar & BOOST_SERIALIZATION_NVP( fcn_ );
+                    ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
+                    ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
+                }
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP( flags_ );
+                //----
+                if ( Archive::is_loading::value )
+                    description_ = adportable::utf::to_utf8( description );
+            }
         }
     };
 }
-
 
 using namespace adcontrols;
 
@@ -249,7 +235,13 @@ MSPeak::formula() const
     return impl_->formula_;
 }
 
-const std::wstring&
+std::wstring
+MSPeak::wdescription() const
+{
+    return adportable::utf::to_wstring( impl_->description_ );
+}
+
+std::string
 MSPeak::description() const
 {
     return impl_->description_;
@@ -300,7 +292,7 @@ MSPeak::formula( const std::string& v )
 void
 MSPeak::description( const std::wstring& v )
 {
-    impl_->description_ = v;
+    impl_->description_ = adportable::utf::to_utf8( v );
 }
 
 void
