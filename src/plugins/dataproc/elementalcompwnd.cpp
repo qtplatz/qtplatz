@@ -393,13 +393,12 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         }
 
         //--------------
-        std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
-        for ( auto model : models ) {
-            auto a = menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) )
-                                     , [this,model](){
-                                         estimateScanLaw( QString::fromStdWString( model ) );
+        auto models = adcontrols::MassSpectrometer::installed_models();
+        for ( const auto& m : models ) {
+            auto a = menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdString( m.second ) )
+                                     , [this,&m](){
+                                         estimateScanLaw( QString::fromStdString( m.second ) );
                                      } );
-            // if ( !centroid_.lock() )
             a->setEnabled( false );
         }
 

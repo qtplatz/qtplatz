@@ -26,6 +26,7 @@
 #include "ui_dialogspectrometerchoice.h"
 #include <adcontrols/massspectrometer.hpp>
 #include <QStandardItemModel>
+#include <boost/uuid/uuid.hpp>
 
 using namespace dataproc;
 
@@ -35,14 +36,14 @@ DialogSpectrometerChoice::DialogSpectrometerChoice(QWidget *parent) :
     , model_( std::make_shared<QStandardItemModel>() )
 {
     ui->setupUi(this);
-    
-	std::vector< std::wstring > names = adcontrols::MassSpectrometer::get_model_names();
+
+	auto models = adcontrols::MassSpectrometer::installed_models();
 
 	model_->setColumnCount( 1 );
-	model_->setRowCount( static_cast<int>(names.size()) );
+	model_->setRowCount( static_cast<int>( models.size()) );
     int row = 0;
-    for ( auto& name: names ) {
-        model_->setItem( row++, 0, new QStandardItem( QString::fromStdWString( name ) ) );
+    for ( auto [uuid,name]: models ) {
+        model_->setItem( row++, 0, new QStandardItem( QString::fromStdString( name ) ) );
     }
 
     ui->listView->setModel( model_.get() );

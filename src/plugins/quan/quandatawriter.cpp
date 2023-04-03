@@ -501,11 +501,11 @@ QuanDataWriter::insert_table( adfs::stmt& sql, const adcontrols::idAudit& t, con
     if ( sql.prepare("INSERT INTO idAudit (uuid,digest,dateCreated,idComputer,idCreatedBy,nameCreatedBy,reason) VALUES (?,?,?,?,?,?,?)" ) ) {
 
         sql.bind( 1 ) = t.uuid();
-        sql.bind( 2 ) = std::string( t.digest() );
-        sql.bind( 3 ) = std::string( t.dateCreated() );
-        sql.bind( 4 ) = std::wstring( t.idComputer() );
-        sql.bind( 5 ) = std::wstring( t.idCreatedBy() );
-        sql.bind( 6 ) = std::wstring( t.nameCreatedBy() );
+        sql.bind( 2 ) = t.digest();
+        sql.bind( 3 ) = t.dateCreated();
+        sql.bind( 4 ) = t.idComputer();
+        sql.bind( 5 ) = t.idCreatedBy();
+        sql.bind( 6 ) = t.nameCreatedBy();
         sql.bind( 7 ) = what;
 
         return sql.step() == adfs::sqlite_done;

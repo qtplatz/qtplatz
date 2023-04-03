@@ -132,8 +132,8 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     Dialog dlg;
 
     QStringList models;
-    for ( auto& model: adcontrols::MassSpectrometer::get_model_names() )
-        models << QString::fromStdWString( model );
+    for ( auto [uuid,model]: adcontrols::MassSpectrometer::installed_models() )
+        models << QString::fromStdString( model );
 
     dlg.setDataInterpreterClsids( models );
 

@@ -508,7 +508,6 @@ namespace adcontrols {
     public:
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
-            ADDEBUG() << "######## serialize " << typeid(T).name() << " is loading: " << Archive::is_loading::value << ", version=" << version;
             if ( version >= 4 ) {
                 ar  & BOOST_SERIALIZATION_NVP( _.peak_index_ )
                     & BOOST_SERIALIZATION_NVP( _.peak_start_index_ )

@@ -69,8 +69,8 @@ namespace adcontrols {
 
             os << "<p>ID: " << ident_.uuid() << "</p>" << std::endl;
             os << "<p>Created: " << ident_.dateCreated() << "</p>"
-               << "<p>Computer: <i>'" << adportable::utf::to_utf8( ident_.idComputer() ) << "'</i></p>"
-               << "<p>by <i>" << adportable::utf::to_utf8( ident_.nameCreatedBy() ) << "</i></p>" << std::endl;
+               << "<p>Computer: <i>'" << ident_.idComputer() << "'</i></p>"
+               << "<p>by <i>" << ident_.nameCreatedBy() << "</i></p>" << std::endl;
 
             description_ = os.str();
         }
