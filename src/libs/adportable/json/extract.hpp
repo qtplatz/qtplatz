@@ -50,6 +50,14 @@ namespace adportable {
         struct workaround< false > { template< typename T > void assign( T& t, boost::json::string_view value ) {} };
 
         ////////////////
+        template<class T>
+        void extract( const boost::json::object& obj, T& t, boost::json::string_view key, int& errc )  {
+            if ( obj.contains( key ) ) {
+                t = boost::json::value_to<T>( obj.at( key ) );
+                errc = 0;
+            }
+            errc = (-1);
+        }
 
         template<class T>
         void extract( const boost::json::object& obj, T& t, boost::json::string_view key )  {
@@ -59,7 +67,7 @@ namespace adportable {
                 if ( obj.at( key ).is_string() && std::is_arithmetic< T >::value ) {
                     workaround< std::is_arithmetic< T >::value >().assign( t, obj.at( key ).as_string() );
                 } else {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("adportable/json/extract<> exception"));
+                    BOOST_THROW_EXCEPTION(std::runtime_error("adportable/json/extract<> exception at key: " + std::string( key )));
                 }
             }
         }

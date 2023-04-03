@@ -35,13 +35,16 @@
     Smoothing and Differentiation of Data by Simplified Least Squares Procedures.
 
     Also an easy reference:
-    http://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter#Tables_of_selected_convolution_coefficients    
+    http://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter#Tables_of_selected_convolution_coefficients
 **/
 
 #include "sgfilter.hpp"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#if ! defined NDEBUG
+# include <adportable/debug.hpp>
+#endif
 
 using namespace adportable;
 
@@ -62,7 +65,7 @@ SGFilter::SGFilter( int m
     } else if ( filter_ == Derivative1 ) {
 
         if ( order == Quadratic )
-            norm_ = Quadratic::derivative_1st_coefficients( coefficients_, m_ );            
+            norm_ = Quadratic::derivative_1st_coefficients( coefficients_, m_ );
         else
             norm_ = Cubic::derivative_1st_coefficients( coefficients_, m_ );
 
@@ -120,14 +123,14 @@ SGFilter::Quadratic::derivative_1st_coefficients( std::vector< double >& coeffs,
     m |= 0x01; // should be odd
     int n = m / 2;
 
-    coeffs.clear();    
+    coeffs.clear();
 
     double denominator = 0;
     for ( int i = -n; i <= n; ++i )
         denominator += i * i;
 
     for ( int i = -n; i <= n; ++i ) {
-        coeffs.push_back( i );
+        coeffs.emplace_back( i );
     }
     return denominator;
 }
@@ -146,7 +149,7 @@ SGFilter::Cubic::smoothing_coefficients( std::vector< double >& coeffs, int m )
 
     for ( int i = -n; i <= n; ++i ) {
         double numerator = (3*m2 - 7 - 20*std::pow(i,2))/4.0;
-        coeffs.push_back( numerator / denominator );
+        coeffs.emplace_back( numerator / denominator );
         // std::cerr << "smooth[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator << std::endl;
     }
     return 1.0;
@@ -165,8 +168,10 @@ SGFilter::Cubic::derivative_1st_coefficients( std::vector< double >& coeffs, int
     const double denominator = m * (m2 - 1)*(3*m4 - 39*m2 + 108)/15;
     for ( int i = -n; i <= n; ++i ) {
         double numerator = 5*(3*m4 - 18*m2 + 31)*i - 28*(3*m2 - 7) * std::pow(i, 3);
-        coeffs.push_back( double(numerator) / double(denominator) );
-        // std::cerr << "1st derivative[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator << std::endl;
+        coeffs.emplace_back( double(numerator) / double(denominator) );
+#if ! defined NDEBUG
+        // ADDEBUG() << "1st derivative[" << i << "]: " << numerator / denominator << "\t" << numerator << "/" << denominator;
+#endif
     }
     return 1.0;
 }
@@ -215,11 +220,10 @@ double
 SGFilter::convolution( const std::function< double( size_t ) > fy, size_t cx, const double * C, const double& norm, int m )
 {
     double fxi = 0;
-    if ( cx <(  m / 2 ) )
+    if ( cx < ( m / 2 ) )
         return 0;
     cx -= m / 2;
     for ( int i = 0; i < m; ++i )
         fxi += fy( cx + i ) * C[ i ];
     return fxi / norm;
 }
-
