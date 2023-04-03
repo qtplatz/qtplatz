@@ -144,6 +144,9 @@ add_library( ${PROJECT_NAME} MODULE
 if ( WIN32 )
   set( BCRYPT "bcrypt" )
 endif()
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS_EQUAL "8.3.0" )
+  set (LIBCPPFS "stdc++fs")
+endif()
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
@@ -170,6 +173,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Qt::Core
   ${Boost_LIBRARIES}
   ${BCRYPT}
+  ${LIBCPPFS}
 )
 
 set_target_properties( ${PROJECT_NAME}
