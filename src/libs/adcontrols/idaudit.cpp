@@ -232,13 +232,21 @@ namespace adcontrols {
     template<> void
     serialize( portable_binary_iarchive& ar, idAudit& t, const unsigned int version )
     {
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
         idAudit::archiver().serialize( ar, t, version );
+#endif
     }
 
     template<> void
     serialize( portable_binary_oarchive& ar, idAudit& t, const unsigned int version )
     {
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
         idAudit::archiver().serialize( ar, t, version );
+#endif
     }
 
     ///////// XML archive ////////
@@ -246,13 +254,21 @@ namespace adcontrols {
     serialize( boost::archive::xml_woarchive& ar, idAudit& t, const unsigned int version )
     {
         // saving
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
         idAudit::archiver().serialize( ar, t, version );
+#endif
     }
 
     template<> void
     serialize( boost::archive::xml_wiarchive& ar, idAudit& t, const unsigned int version )
     {
+#if __GNUC__
+        idAudit::archiver<idAudit>().serialize( ar, t, version );
+#else
         idAudit::archiver().serialize( ar, t, version );
+#endif
     }
 
 }

@@ -9,7 +9,7 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include "portable_binary_iarchive.hpp"
-#include <adportable/utf.hpp>
+#include "codecvt.hpp"
 #include <boost/archive/archive_exception.hpp>
 #include <boost/serialization/throw_exception.hpp>
 #include <boost/version.hpp>
@@ -26,7 +26,7 @@ portable_binary_iarchive::debug_break()
 std::wstring
 portable_binary_iarchive::wstring( const std::string& u )
 {
-    return adportable::utf::to_wstring( u );
+    return adportable_serializer::to_wstring( u );
 }
 
 void

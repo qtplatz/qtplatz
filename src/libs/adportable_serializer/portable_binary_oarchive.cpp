@@ -10,7 +10,7 @@
 
 #include <ostream>
 #include "portable_binary_oarchive.hpp"
-#include <adportable/utf.hpp>
+#include "codecvt.hpp"
 #include <iostream>
 #include <locale>
 
@@ -83,7 +83,7 @@ portable_binary_oarchive::init(unsigned int flags) {
 std::string
 portable_binary_oarchive::utf8( const std::wstring& t )
 {
-    return adportable::utf::to_utf8( t );
+    return adportable_serializer::to_utf8( t );
 }
 
 #include <boost/archive/impl/archive_serializer_map.ipp>

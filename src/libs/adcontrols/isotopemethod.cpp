@@ -98,26 +98,42 @@ namespace adcontrols {
     template<> void
     IsotopeMethod::Formula::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
+#ifdef __GNUC__
+        archiver<IsotopeMethod::Formula>().serialize( ar, *this, version );
+#else
         archiver().serialize( ar, *this, version );
+#endif
     }
 
     template<> void
     IsotopeMethod::Formula::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
+#ifdef __GNUC__
+        archiver<IsotopeMethod::Formula>().serialize( ar, *this, version );
+#else
         archiver().serialize( ar, *this, version );
+#endif
     }
 
     ///////// XML archive ////////
     template<> void
     IsotopeMethod::Formula::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
+#ifdef __GNUC__
+        archiver<IsotopeMethod::Formula>().serialize( ar, *this, version );
+#else
         archiver().serialize( ar, *this, version );
+#endif
     }
 
     template<> void
     IsotopeMethod::Formula::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
+#ifdef __GNUC__
+        archiver<IsotopeMethod::Formula>().serialize( ar, *this, version );
+#else
         archiver().serialize( ar, *this, version );
+#endif
     }
 }
 

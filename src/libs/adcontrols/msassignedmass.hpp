@@ -26,12 +26,12 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <string>
-
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
+#include <memory>
+#include <string>
 
 namespace adcontrols {
 

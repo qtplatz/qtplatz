@@ -28,6 +28,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 namespace adcontrols {

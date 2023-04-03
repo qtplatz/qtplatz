@@ -573,27 +573,42 @@ namespace adcontrols {
     template<> void
     serialize( portable_binary_iarchive& ar, MSPeakInfoItem& t, const unsigned int version )
     {
+#if __GNUC__
+        MSPeakInfoItem::archiver<MSPeakInfoItem>().serialize( ar, t, version );
+#else
         MSPeakInfoItem::archiver().serialize( ar, t, version );
+#endif
     }
 
     template<> void
     serialize( portable_binary_oarchive& ar, MSPeakInfoItem& t, const unsigned int version )
     {
+#if __GNUC__
+        MSPeakInfoItem::archiver<MSPeakInfoItem>().serialize( ar, t, version );
+#else
         MSPeakInfoItem::archiver().serialize( ar, t, version );
+#endif
     }
 
     ///////// XML archive ////////
     template<> void
     serialize( boost::archive::xml_woarchive& ar, MSPeakInfoItem& t, const unsigned int version )
     {
-        // saving
+#if __GNUC__
+        MSPeakInfoItem::archiver<MSPeakInfoItem>().serialize( ar, t, version );
+#else
         MSPeakInfoItem::archiver().serialize( ar, t, version );
+#endif
     }
 
     template<> void
     serialize( boost::archive::xml_wiarchive& ar, MSPeakInfoItem& t, const unsigned int version )
     {
+#if __GNUC__
+        MSPeakInfoItem::archiver<MSPeakInfoItem>().serialize( ar, t, version );
+#else
         MSPeakInfoItem::archiver().serialize( ar, t, version );
+#endif
     }
 
 }
