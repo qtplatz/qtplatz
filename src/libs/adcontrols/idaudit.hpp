@@ -71,15 +71,11 @@ namespace adcontrols {
         boost::uuids::uuid uuid_;
         std::string digest_;
         std::string dateCreated_;
-#if 0
-        std::wstring idComputer_;
-        std::wstring idCreatedBy_;
-        std::wstring nameCreatedBy_;
-#else
+
         std::string idComputer_;
         std::string idCreatedBy_;
         std::string nameCreatedBy_;
-#endif
+
         template< typename T > class archiver;
         friend class archiver< idAudit >;
         friend class archiver< const idAudit >;
