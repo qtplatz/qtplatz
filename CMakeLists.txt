@@ -432,7 +432,7 @@ elseif( APPLE )
   endif()
 
 elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-  set( CPACK_DEB_COMPONENT_INSTALL 1 )
+  set( CPACK_DEB_COMPONENT_INSTALL 0 )
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )

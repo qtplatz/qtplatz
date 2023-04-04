@@ -114,7 +114,6 @@ add_library( adcontrols SHARED
   msproperty.hpp
   msreference.cpp
   msreference.hpp
-#  msreferencedefns.cpp  msreferencedefns.hpp
   msreferences.cpp
   msreferences.hpp
   msident.cpp
@@ -313,7 +312,6 @@ install( FILES
   mspeakinfoitem.hpp
   msproperty.hpp
   msreference.hpp
-  msreferencedefns.hpp
   msreferences.hpp
   msident.hpp
   msquant.hpp

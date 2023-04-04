@@ -8,6 +8,7 @@ set( CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR} )
 set( CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH} )
 set( CPACK_RESOURCE_FILE_LICENSE ${QTPLATZ_SOURCE_DIR}/license.rtf )
 
+
 include( CPackComponent )
 
 cpack_add_component( applications      DISPLAY_NAME "Applications" GROUP Runtime )

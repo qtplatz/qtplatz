@@ -82,7 +82,6 @@ install( TARGETS sqlite3-functions
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
-  EXPORT ${QTPLATZ_TARGETS}
   adfs_global.h
   adfs.hpp
   apiposix.hpp

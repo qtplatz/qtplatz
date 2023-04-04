@@ -32,7 +32,6 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
-  EXPORT ${QTPLATZ_TARGETS}
   adlog_global.hpp
   logger.hpp
   logging_handler.hpp

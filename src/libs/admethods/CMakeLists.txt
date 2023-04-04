@@ -39,7 +39,6 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
-  EXPORT ${QTPLATZ_TARGETS}
   controlmethod/adtracemethod.hpp
   DESTINATION include/admethods/controlmethod COMPONENT headers
   )
