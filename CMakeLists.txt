@@ -81,6 +81,7 @@ if ( WITH_QT5 )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
     else()
       ## Linux & Windows
+      set( CMAKE_INSTALL_RPATH        "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
       set( QTC_BINARY_DIR "qtplatz.app" )              # set qt-creator build directory
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) # <-- <binary_dir>/qqtcreator
     endif()
@@ -174,7 +175,7 @@ else()
   set( CMAKE_SKIP_BUILD_RPATH  FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
   set( CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE )
-  set( CMAKE_INSTALL_RPATH                      "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib" )
+  #set( CMAKE_INSTALL_RPATH                      "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib:" )
 
   if ( CMAKE_CROSSCOMPILING AND WITH_QT5 )
     set( CMAKE_PREFIX_PATH /usr/local/qt5 )

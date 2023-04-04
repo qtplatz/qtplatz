@@ -3,28 +3,37 @@
 
 include( "soname" )
 
+if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
+  set ( CORE5COMPAT Core5Compat )
+  set ( SVGWIDGET   SvgWidgets )
+  set ( TEST        Test )
+  set ( QML         Qml )
+endif()
+
 find_package( Qt${QT_VERSION_MAJOR}
   REQUIRED
   Core
+  PrintSupport
+  Svg
+  Widgets
+  OpenGL
   DBus
   Gui
   Multimedia
-#  MultimediaWidgets
   Network
-  OpenGL
-  PrintSupport
-#  Sensors
   Sql
-  Svg
-#  Positioning
-  Widgets
   Xml
-#  XmlPatterns
+  ${SVGWIDGET}
+  ${CORE5COMPAT}
+  ${TEST}
+  ${QML}
   )
 
 get_target_property( _loc Qt${QT_VERSION_MAJOR}::Core LOCATION )
 if ( NOT _loc )
   message( FATAL "##### Qt${QT_VERSION_MAJOR}::Core LOCATION " ${_loc} " cannot be found")
+else()
+  message( STATUS "##### Qt${QT_VERSION_MAJOR}::Core LOCATION " ${_loc} )
 endif()
 
 get_filename_component( _dir ${_loc} DIRECTORY )
@@ -39,23 +48,28 @@ foreach( _lib "icu*" Qt${QT_VERSION_MAJOR}CLucene Qt${QT_VERSION_MAJOR}XcbQpa )
   endif()
 endforeach()
 
-foreach( lib
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::DBus
-    Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::Multimedia
-#    Qt${QT_VERSION_MAJOR}::MultimediaWidgets
-    Qt${QT_VERSION_MAJOR}::Network
-    Qt${QT_VERSION_MAJOR}::OpenGL
-    Qt${QT_VERSION_MAJOR}::PrintSupport
-#    Qt${QT_VERSION_MAJOR}::Sensors
-    Qt${QT_VERSION_MAJOR}::Sql
-    Qt${QT_VERSION_MAJOR}::Svg
-#    Qt${QT_VERSION_MAJOR}::Positioning
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::Xml
-    #    Qt${QT_VERSION_MAJOR}::XmlPatterns
-    )
+list ( APPEND _qtlibs
+  Qt${QT_VERSION_MAJOR}::Core
+  Qt${QT_VERSION_MAJOR}::DBus
+  Qt${QT_VERSION_MAJOR}::Gui
+  Qt${QT_VERSION_MAJOR}::Multimedia
+  Qt${QT_VERSION_MAJOR}::Network
+  Qt${QT_VERSION_MAJOR}::OpenGL
+  Qt${QT_VERSION_MAJOR}::PrintSupport
+  Qt${QT_VERSION_MAJOR}::Sql
+  Qt${QT_VERSION_MAJOR}::Svg
+  Qt${QT_VERSION_MAJOR}::Widgets
+  Qt${QT_VERSION_MAJOR}::Xml
+  )
+
+if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
+  list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::Core5Compat )
+  list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::SvgWidgets )
+  list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::Test )
+  list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::Qml )
+endif()
+
+foreach( lib  ${_qtlibs}  )
 
   get_target_property( _loc ${lib} LOCATION )
 
