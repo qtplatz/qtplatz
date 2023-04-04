@@ -78,7 +78,10 @@ loader::populate( const wchar_t * topdir )
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
 #ifndef NDEBUG
     static size_t count = 0;
+    ADDEBUG() << "---------------------- adplugin_manager::loader ------------------------>";
     ADDEBUG() << "loader populating in directory: " << topdir << "\t#" << count++;
+#else
+    ADDEBUG() << "loader populating in directory: " << topdir;
 #endif
 
     if ( boost::filesystem::is_directory( modules ) ) {
@@ -97,8 +100,8 @@ loader::populate( const wchar_t * topdir )
                             if ( ec )
                                 ADDEBUG() << "loading\n\t" << fname << "\tError: " << ec.message();
                             else if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
-#if defined NDEBUG && 0
-                                ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
+#if 1 //! defined NDEBUG
+                                ADDEBUG() << "loading\t" << boost::filesystem::relative( dll.location(), topdir ) << "\tSuccess";
 #endif
                                 break;
                             }
