@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <string>
+#include "trace.hpp"
 
 namespace adplot {
 
@@ -54,4 +55,3 @@ namespace adplot {
     };
 
 }
-

@@ -132,8 +132,8 @@ main(int argc, char *argv[])
     adtextfile::Dialog dlg;
     do {
         QStringList models;
-        for ( auto& model: adcontrols::MassSpectrometer::get_model_names() )
-            models << QString::fromStdWString( model );
+        for ( auto& model: adcontrols::MassSpectrometer::installed_models() )
+            models << QString::fromStdString( model.second );
         dlg.setDataInterpreterClsids( models );
 
         boost::filesystem::path path( filelist[0] );

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "annotation.hpp"
 #include <vector>
 #include <string>
 #include <qnamespace.h>
