@@ -86,6 +86,13 @@ foreach( lib  ${_qtlibs}  )
 
 endforeach()
 
+if ( QMAKE )
+  execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
+    OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
+else()
+  message( FATAL "qmake not found" )
+endif()
+
 if ( QT_INSTALL_PLUGINS )
   file( GLOB _plugins RELATIVE ${QT_INSTALL_PLUGINS} "${QT_INSTALL_PLUGINS}/*" )
   list( REMOVE_ITEM _plugins audio bearer canbus designer gamepads qml1tooling qmltooling xchglintegrations )
@@ -107,3 +114,6 @@ endforeach()
 
 file( WRITE ${CMAKE_BINARY_DIR}/qt.conf "[Paths]\nPrefix=..\n" )
 install( FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION bin COMPONENT runtime_libraries )
+
+message( STATUS "###################### TODO #############################" )
+message( STATUS "## need to add ld.so.conf.d/qtplatz.conf for Qt6Test.so #" )
