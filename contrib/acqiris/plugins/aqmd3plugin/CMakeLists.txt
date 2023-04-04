@@ -119,11 +119,14 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
+
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+    )
+endif()

@@ -70,8 +70,10 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY ${_adplugin_output_dir} )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+  )
 
-install( FILES ${PROJECT_NAME}.adplugin DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+install( FILES ${PROJECT_NAME}.adplugin
+  DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins )

@@ -113,6 +113,7 @@ if ( WITH_QT5 )
         OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
     endif()
   endif()
+
 endif()
 ################################################################
 
@@ -156,8 +157,12 @@ if ( APPLE )
   set( QTPLATZ_PLUGIN_DESTINATION             "bin/qtplatz.app/Contents/PlugIns" )
 
 else()
-  ## Linux/Windows
-  set( QTPLATZ_PLUGIN_DESTINATION               "lib/qtplatz/plugins" ) # <- install destination
+  ## Linux/Windows -- install destination
+  if ( IDE_VERSION VERSION_LESS "9.0.0" )
+    set( QTPLATZ_PLUGIN_DESTINATION            "lib/qtplatz/plugins" ) # Qt5/QTC3.x
+  else()
+    set( QTPLATZ_PLUGIN_DESTINATION            "lib/qtcreator/plugins" ) # Qt6/QTC9
+  endif()
 
   # use following value in each CMakeFiles.txt for plugin project
   set( QTPLATZ_PLUGIN_DIRECTORY                 "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" )

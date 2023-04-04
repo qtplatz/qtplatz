@@ -117,3 +117,6 @@ install( FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION bin COMPONENT runtime_lib
 
 message( STATUS "###################### TODO #############################" )
 message( STATUS "## need to add ld.so.conf.d/qtplatz.conf for Qt6Test.so #" )
+message( STATUS "##" )
+message( STATUS "## qtplatz plugins need to be installed under qtcreater #" )
+message( STATUS "###################### END TODO #########################" )

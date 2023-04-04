@@ -71,9 +71,9 @@ set_target_properties( ${PROJECT_NAME}
 )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
-)
+  )
 
 #target_link_libraries( SDFViewer LINK_PUBLIC adportable )
