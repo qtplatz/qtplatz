@@ -74,6 +74,11 @@ if ( WITH_QT5 )
     if ( NOT XMLPATTERNS )
       message( FATAL_ERROR "xmlpatterns command not found" )
     endif()
+    if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+      set ( IDE_VERSION "3.2.81" ) # defined in src/app/app_version.h
+      set ( IDE_PLUGIN_PATH "lib/qtplatz/plugins" ) # <-- for qtplatz 5
+      set ( QTC_BINARY_DIR  "" )  # <-- same as CMAKE_BINARY_DIR
+    endif()
   endif()
 
 endif()
