@@ -1,0 +1,153 @@
+{
+    "version": 1,
+    "supportedProjectTypes": [ ],
+    "id": "P.PyClass",
+    "category": "U.Python",
+    "trDescription": "Creates new Python class file.",
+    "trDisplayName": "Python Class",
+    "trDisplayCategory": "Python",
+    "icon": "../../files/python/icon.png",
+    "iconKind": "Themed",
+    "enabled": "%{JS: value('Plugins').indexOf('Python') >= 0}",
+
+    "options":
+    [
+        { "key": "Base", "value":"%{JS: value('BaseCB') === '' ? value('BaseEdit') : value('BaseCB')}" },
+        { "key": "Package", "value": "%{JS: [ 'QWidget', 'QMainWindow' ].indexOf(value('Base')) >= 0 ? 'QtWidgets' : (value('Base') === 'QQuickItem' ? 'QtQuick' : (value('Base') === 'QObject' ? 'QtCore' : ''))}" },
+        { "key": "FullBase", "value": "%{JS: value('Package') === '' ? value('Base') : value('Package') + '.' + value('Base')}" }
+    ],
+
+    "pages":
+    [
+        {
+            "trDisplayName": "Define Class",
+            "trShortTitle": "Details",
+            "typeId": "Fields",
+            "data" :
+            [
+                {
+                    "name": "Class",
+                    "trDisplayName": "Class name:",
+                    "mandatory": true,
+                    "type": "LineEdit",
+                    "data": { "validator": "^(?:[^\\d\\W]\\w*|)$" }
+                },
+                {
+                    "name": "Module",
+                    "trDisplayName": "Qt for Python module:",
+                    "type": "ComboBox",
+                    "data":
+                    {
+                        "items": ["<None>", "PySide6", "PySide2", "PyQt6", "PyQt5"]
+                    }
+                },
+                {
+                    "name": "BaseCB",
+                    "trDisplayName": "Base class:",
+                    "type": "ComboBox",
+                    "data":
+                    {
+                        "items": [ { "trKey": "<Custom>", "value": "" },
+                                   "QObject", "QWidget", "QMainWindow", "QQuickItem" ]
+                    },
+                    "isComplete": "%{JS: (value('Module') === '<None>' && value('BaseCB') === '') || value('Module') !== '<None>'}",
+                    "trIncompleteMessage": "You can choose Qt classes only if you select a Qt for Python module."
+                },
+                {
+                    "name": "BaseEdit",
+                    "type": "LineEdit",
+                    "enabled": "%{JS: value('BaseCB') === ''}",
+                    "mandatory": false,
+                    "data": { "trText": "%{BaseCB}" }
+                },
+
+
+
+                {
+                    "name": "Sp1",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "ImportQtCore",
+                    "trDisplayName": "Import QtCore",
+                    "type": "CheckBox",
+                    "enabled": "%{JS: value('Module') !== '<None>'}",
+                    "data":
+                    {
+                        "checkedValue": "QtCore",
+                        "uncheckedValue": "",
+                        "checked": "%{JS: value('BaseCB') !== ''}"
+                    }
+                },
+                {
+                    "name": "ImportQtWidgets",
+                    "trDisplayName": "Import QtWidgets",
+                    "type": "CheckBox",
+                    "enabled": "%{JS: value('Module') !== '<None>'}",
+                    "data":
+                    {
+                        "checkedValue": "QtWidgets",
+                        "uncheckedValue": "",
+                        "checked": "%{JS: [ 'QWidget', 'QMainWindow' ].indexOf(value('BaseCB')) >= 0}"
+                    }
+                },
+                {
+                    "name": "ImportQtQuick",
+                    "trDisplayName": "Import QtQuick",
+                    "type": "CheckBox",
+                    "enabled": "%{JS: value('Module') !== '<None>'}",
+                    "data":
+                    {
+                        "checkedValue": "QtQuick",
+                        "uncheckedValue": "",
+                        "checked": "%{JS: value('BaseCB') === 'QQuickItem'}"
+                    }
+                },
+                {
+                    "name": "Sp2",
+                    "type": "Spacer"
+                },
+
+
+
+                {
+                    "name": "FileName",
+                    "type": "LineEdit",
+                    "trDisplayName": "Source file:",
+                    "mandatory": true,
+                    "data": { "trText": "%{JS: Util.fileName(value('Class'), Util.preferredSuffix('text/x-python'))}" }
+                },
+                {
+                    "name": "TargetPath",
+                    "type": "PathChooser",
+                    "trDisplayName": "Path:",
+                    "mandatory": true,
+                    "data":
+                    {
+                        "kind": "directory",
+                        "basePath": "%{InitialPath}",
+                        "path": "%{InitialPath}"
+                    }
+                }
+            ]
+        },
+        {
+            "trDisplayName": "Project Management",
+            "shortTitle": "Summary",
+            "typeId": "Summary"
+        }
+    ],
+
+    "generators":
+    [
+        {
+            "typeId": "File",
+            "data":
+            {
+                "source": "file.py",
+                "target": "%{FileName}",
+                "openInEditor": true
+            }
+        }
+    ]
+}

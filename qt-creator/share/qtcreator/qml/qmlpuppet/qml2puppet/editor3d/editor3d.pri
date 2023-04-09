@@ -1,0 +1,24 @@
+HEADERS += $$PWD/generalhelper.h \
+           $$PWD/mousearea3d.h \
+           $$PWD/geometrybase.h \
+           $$PWD/camerageometry.h \
+           $$PWD/lightgeometry.h \
+           $$PWD/gridgeometry.h \
+           $$PWD/selectionboxgeometry.h \
+           $$PWD/linegeometry.h \
+           $$PWD/icongizmoimageprovider.h
+
+SOURCES += $$PWD/generalhelper.cpp \
+           $$PWD/mousearea3d.cpp \
+           $$PWD/geometrybase.cpp \
+           $$PWD/camerageometry.cpp \
+           $$PWD/lightgeometry.cpp \
+           $$PWD/gridgeometry.cpp \
+           $$PWD/selectionboxgeometry.cpp \
+           $$PWD/linegeometry.cpp \
+           $$PWD/icongizmoimageprovider.cpp
+
+versionAtLeast(QT_VERSION, 6.0.0) {
+    HEADERS += $$PWD/qt5compat/qquick3darealight_p.h
+    SOURCES += $$PWD/qt5compat/qquick3darealight.cpp
+}

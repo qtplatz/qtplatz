@@ -1,0 +1,135 @@
+type: Group
+instructions:
+  - type: Group
+    instructions:
+      - type: EnvironmentVariable
+        variableName: QTC_BUILD_TYPE
+        variableValue: "RelWithDebInfo"
+      - type: EnvironmentVariable
+        variableName: LLVM_BASE_URL
+        variableValue: http://master.qt.io/development_releases/prebuilt/libclang/libclang-release_14.0.3-based
+
+  - type: Group
+    instructions:
+      - type: EnvironmentVariable
+        variableName: QTC_QT_BASE_URL
+        variableValue: "http://ci-files02-hki.intra.qt.io/packages/jenkins/archive/qt/6.3/6.3.2-final-released/Qt"
+      - type: EnvironmentVariable
+        variableName: QTC_QT_MODULES
+        variableValue: "qt5compat qtbase qtdeclarative qtimageformats qtquick3d qtquickcontrols2 qtquicktimeline qtserialport qtshadertools qtsvg qttools qttranslations qtwebengine"
+      - type: EnvironmentVariable
+        variableName: MACOSX_DEPLOYMENT_TARGET
+        variableValue: 10.14
+      - type: Group
+        instructions:
+          - type: EnvironmentVariable
+            variableName: QTC_QT_POSTFIX
+            variableValue: "-Windows-Windows_10_21H2-MSVC2019-Windows-Windows_10_21H2-X86_64.7z"
+        enable_if:
+          condition: property
+          property: target.os
+          equals_value: Windows
+      - type: Group
+        instructions:
+          - type: EnvironmentVariable
+            variableName: QTC_QT_POSTFIX
+            variableValue: "-Linux-RHEL_8_4-GCC-Linux-RHEL_8_4-X86_64.7z"
+        enable_if:
+          condition: property
+          property: target.os
+          equals_value: Linux
+      - type: Group
+        instructions:
+          - type: EnvironmentVariable
+            variableName: QTC_QT_POSTFIX
+            variableValue: "-MacOS-MacOS_12-Clang-MacOS-MacOS_12-X86_64-ARM64.7z"
+        enable_if:
+          condition: property
+          property: target.os
+          equals_value: MacOS
+    enable_if:
+      condition: property
+      property: features
+      not_contains_value: "Qt5"
+  - type: Group
+    instructions:
+      - type: EnvironmentVariable
+        variableName: QTC_QT_BASE_URL
+        variableValue: "http://ci-files02-hki.intra.qt.io/packages/jenkins/archive/qt/5.15/5.15.2-final-released/latest"
+      - type: EnvironmentVariable
+        variableName: QTC_QT_MODULES
+        variableValue: "qtbase qtdeclarative qtimageformats qtquick3d qtquickcontrols2 qtquicktimeline qtserialport qtsvg qttools qttranslations"
+      - type: EnvironmentVariable
+        variableName: MACOSX_DEPLOYMENT_TARGET
+        variableValue: 10.13
+      - type: Group
+        instructions:
+          - type: EnvironmentVariable
+            variableName: QTC_QT_POSTFIX
+            variableValue: "-Windows-Windows_10-MSVC2019-Windows-Windows_10-X86_64.7z"
+        enable_if:
+          condition: property
+          property: target.os
+          equals_value: Windows
+      - type: Group
+        instructions:
+          - type: EnvironmentVariable
+            variableName: QTC_QT_POSTFIX
+            variableValue: "-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z"
+        enable_if:
+          condition: property
+          property: target.os
+          equals_value: Linux
+      - type: Group
+        instructions:
+          - type: EnvironmentVariable
+            variableName: QTC_QT_POSTFIX
+            variableValue: "-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z"
+        enable_if:
+          condition: property
+          property: target.os
+          equals_value: MacOS
+    enable_if:
+      condition: property
+      property: features
+      contains_value: "Qt5"
+
+  - type: PrependToEnvironmentVariable
+    variableName: PATH
+    variableValue: "{{.Env.PYTHON3_PATH}};{{.Env.PIP3_PATH}};C:\\Utils\\gnuwin21\\bin;{{.InstallDir}}\\bin;"
+    enable_if:
+      condition: property
+      property: target.os
+      equals_value: Windows
+
+  - type: PrependToEnvironmentVariable
+    variableName: PATH
+    variableValue: "C:\\Utils\\gnuwin32\\bin;"
+    enable_if:
+      condition: property
+      property: target.os
+      equals_value: Windows
+
+  - type: EnvironmentVariable
+    variableName: LANG
+    variableValue: en_US.UTF-8
+    enable_if:
+      condition: property
+      property: host.os
+      in_values: [MacOS, Linux]
+
+  - type: Group
+    instructions:
+      - type: PrependToEnvironmentVariable
+        variableName: PATH
+        variableValue: "{{.InstallDir}}/bin:"
+      - type: EnvironmentVariable
+        variableName: DISPLAY
+        variableValue: ":0"
+      - type: PrependToEnvironmentVariable
+        variableName: PATH
+        variableValue: "/opt/rh/devtoolset-7/root/usr/bin:"
+    enable_if:
+      condition: property
+      property: host.os
+      equals_value: Linux

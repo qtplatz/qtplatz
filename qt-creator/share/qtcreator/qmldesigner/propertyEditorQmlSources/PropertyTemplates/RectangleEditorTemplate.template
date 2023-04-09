@@ -1,0 +1,55 @@
+Section {
+    anchors.left: parent.left
+    anchors.right: parent.right
+    leftPadding: 8
+    rightPadding: 0
+    caption: "%1" + " - " + qsTr("Rectangle")
+    expanded: false
+    level: 1
+
+    SectionLayout {
+        PropertyLabel { text: qsTr("Color") }
+
+        ColorEditor {
+            backendValue: backendValues.%2_color
+            supportGradient: true
+        }
+
+        PropertyLabel { text: qsTr("Border Color") }
+
+        ColorEditor {
+            backendValue: backendValues.%2_border_color
+            supportGradient: false
+        }
+
+        PropertyLabel { text: qsTr("Border") }
+
+        SecondColumnLayout {
+            SpinBox {
+                backendValue: backendValues.%2_border_width
+                hasSlider: true
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                width: implicitWidth
+            }
+
+            ExpandingSpacer {}
+        }
+
+        PropertyLabel { text: qsTr("Radius") }
+
+        SecondColumnLayout {
+            SpinBox {
+                implicitWidth: StudioTheme.Values.twoControlColumnWidth
+                               + StudioTheme.Values.actionIndicatorWidth
+                width: implicitWidth
+                backendValue: backendValues.%2_radius
+                hasSlider: true
+                minimumValue: 0
+                maximumValue: Math.min(backendValues.height.value, backendValues.width.value) / 2
+            }
+
+            ExpandingSpacer {}
+        }
+    }
+}

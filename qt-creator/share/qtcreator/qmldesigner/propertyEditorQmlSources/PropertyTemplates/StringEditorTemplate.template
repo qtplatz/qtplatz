@@ -1,0 +1,15 @@
+PropertyLabel {
+    text: "%1"
+    tooltip: "%1"
+}
+
+SecondColumnLayout {
+    LineEdit {
+        backendValue: backendValues.%2
+        implicitWidth: StudioTheme.Values.singleControlColumnWidth
+                       + StudioTheme.Values.actionIndicatorWidth
+        width: implicitWidth
+    }
+
+    ExpandingSpacer {}
+}
