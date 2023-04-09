@@ -206,6 +206,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
                                                     , pModel_( new QStandardItemModel )
                                                     , pDelegate_( new NavigationDelegate )
 {
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
+    qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
+#endif
+
     pTreeView_->setModel( pModel_ );
     pTreeView_->setItemDelegate( pDelegate_ );
 	pTreeView_->setDragEnabled( false );
@@ -229,10 +234,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         "}"
         );
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
-    qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
-#endif
+
     pTreeView_->setSelectionMode( QAbstractItemView::ExtendedSelection );
     setFocusProxy( pTreeView_ );
     initView();
@@ -312,7 +314,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     QString filename( processor->filePath() );
 #else
     QString filename( processor->filePath().toString() );
@@ -550,8 +552,8 @@ namespace { // anonymous
 
     //////////////////////////////// set_attribute /////////////////////////////////
     struct set_attribute {
-        QModelIndexList& rows_;
-        set_attribute( QModelIndexList& rows ) : rows_( rows )  {}
+        const QModelIndexList& rows_;
+        set_attribute( const QModelIndexList& rows ) : rows_( rows )  { }
 
         void operator()( std::pair< std::string, std::string>&& keyValue ) const {
             for ( auto index: rows_ ) {
@@ -958,16 +960,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     selected_folders selFolders( selRows );
 
     if ( selRows.size() >= 1 ) {
-        set_attribute set_attribute( selRows );
 
         bool enable = selFolders.foliumCounts() > 0;
+        set_attribute set_attr( selRows );
 
-        menu.addAction( tr( "Remove"    ), [&](){ set_attribute( { "remove", "true" } ); } )->setEnabled( enable );
-        menu.addAction( tr( "Unremove"  ), [&](){ set_attribute( { "remove", "false" } ); } )->setEnabled( enable );
-        menu.addAction( tr( "Tag none"  ), [&](){ set_attribute( { "tag",    "none"  } ); } )->setEnabled( enable );
-        menu.addAction( tr( "Tag red"   ), [&](){ set_attribute( { "tag",    "red"   } ); } )->setEnabled( enable );
-        menu.addAction( tr( "Tag blue"  ), [&](){ set_attribute( { "tag",    "blue"  } ); } )->setEnabled( enable );
-        menu.addAction( tr( "Tag green" ), [&](){ set_attribute( { "tag",    "green" } ); } )->setEnabled( enable );
+        menu.addAction( tr( "Remove"    ), [=](){ set_attr( { "remove", "true" } ); } )->setEnabled( enable );
+        menu.addAction( tr( "Unremove"  ), [=](){ set_attr( { "remove", "false" } ); } )->setEnabled( enable );
+        menu.addAction( tr( "Tag none"  ), [=](){ set_attr( { "tag",    "none"  } ); } )->setEnabled( enable );
+        menu.addAction( tr( "Tag red"   ), [=](){ set_attr( { "tag",    "red"   } ); } )->setEnabled( enable );
+        menu.addAction( tr( "Tag blue"  ), [=](){ set_attr( { "tag",    "blue"  } ); } )->setEnabled( enable );
+        menu.addAction( tr( "Tag green" ), [=](){ set_attr( { "tag",    "green" } ); } )->setEnabled( enable );
         menu.addSeparator();
     };
 

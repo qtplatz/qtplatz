@@ -1071,8 +1071,7 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
 std::shared_ptr< adcontrols::ControlMethod::Method >
 MainWindow::getControlMethod() const
 {
-    ADDEBUG() << "-------- getControlMethod threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
-
+    // ADDEBUG() << "-------- getControlMethod threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
     auto ptr = std::make_shared< adcontrols::ControlMethod::Method >();
     boost::any a( ptr );
     for ( auto dock: dockWidgets() ) {
