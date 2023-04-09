@@ -28,7 +28,9 @@
 #include "outputwindow.hpp"
 #include "logger.hpp"
 #include <coreplugin/icore.h>
+#if QTC_VERSION < 0x09'00'00
 #include <coreplugin/id.h>
+#endif
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
@@ -56,7 +58,7 @@
 #include <QMessageBox>
 #include <QtCore/qplugin.h>
 #include <QtCore>
-#include <qdebug.h>
+#include <QDebug>
 
 #include <boost/dll.hpp>
 #include <boost/filesystem.hpp>
@@ -68,29 +70,48 @@
 #include <process.h>
 #endif
 
+namespace servant {
+
+    class ServantPlugin::impl {
+    public:
+        impl() {}
+
+        static void qDebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+            adportable::debug( context.file, context.line ) << msg.toStdString();
+        }
+
+        void ini() {
+            if (( outputWindow_ = std::make_unique< OutputWindow >() )) {
+                if (( logger_ = std::make_unique< Logger >() )) {
+                    QObject::connect( logger_.get(), SIGNAL( onLogging( const QString, bool ) )
+                                      , outputWindow_.get(), SLOT( handleLogging( const QString, bool ) ) );
+                    adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
+                }
+            }
+            qInstallMessageHandler(qDebugHandler);
+            // qSetMessagePattern("[%{file}:%{line}] - %{message}"); // <-- this will be overloaded by qDebugHelper
+        }
+
+        void fin() {
+        }
+
+        std::unique_ptr< OutputWindow > outputWindow_;
+        std::unique_ptr< Logger > logger_;
+    };
+
+}
+
 using namespace servant;
 using namespace servant::internal;
 
-ServantPlugin * ServantPlugin::instance_ = 0;
-
 ServantPlugin::~ServantPlugin()
 {
-    instance_ = 0;
-#if ! defined NDEBUG && 1
-    ADDEBUG() << "\t## DTOR ##";
-#endif
+    // ADDEBUG() << "------------- ServantPlugin dtor ----------------";
 }
 
-ServantPlugin::ServantPlugin() : logger_(0)
-                               , outputWindow_(0)
+ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
-    instance_ = this;
-}
-
-ServantPlugin *
-ServantPlugin::instance()
-{
-    return instance_;
+    // ADDEBUG() << "------------- ServantPlugin ctor ----------------";
 }
 
 bool
@@ -101,22 +122,10 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     adlog::logger::enable( adlog::logger::logging_file ); // process_name + ".log"
 
-    if ( ( outputWindow_ = new OutputWindow ) ) {
-        addAutoReleasedObject( outputWindow_ );
-
-        if ( ( logger_ = new Logger ) ) {
-            connect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
-            addAutoReleasedObject( logger_ );
-            adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
-        }
-    }
+    impl_->ini();
 
     ADLOG(adlog::LOG_INFO) << "Startup " << QCoreApplication::applicationFilePath().toStdString();
-
-    ///////////////////////////////////
-    Core::Context context;
-    context.add( Core::Id( "Servant.MainView" ) );
-    context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
+    qDebug() << "Startup " << QCoreApplication::applicationFilePath();
 
     adplugin::manager::standalone_initialize();
 
@@ -131,20 +140,18 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 {
+    impl_->fin();
     adportable::core::debug_core::instance()->unhook();
     adcontrols::logging_hook::unregister_hook();
 	adlog::logging_handler::instance()->close();
 
-    if ( outputWindow_ && logger_ )
-        disconnect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
-
-#if ! defined NDEBUG
-    ADDEBUG() << "\t## Shutdown: "
+    ADDEBUG() << "\t------------- servantplugin ---------- Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
-                                                     , boost::dll::program_location().parent_path() );
-#endif
+                                                      , boost::dll::program_location().parent_path() );
 
 	return SynchronousShutdown;
 }
 
-Q_EXPORT_PLUGIN( ServantPlugin )
+#if QTC_VERSION < 0x09'00'00
+Q_EXPORT_PLUGIN( ServantPlugin );
+#endif

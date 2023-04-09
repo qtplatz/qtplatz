@@ -65,7 +65,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/json.hpp>
 #include <boost/json/value_from.hpp>
-#include <filesystem>
 #include <iomanip>
 #include <array>
 
@@ -778,7 +777,6 @@ namespace {
         }
     };
 
-#if QTC_VERSION >= 0x09'00'00
     struct SaveDataGlobalMSLock {
         Dataprocessor * processor_;
         portfolio::Folium folium_;
@@ -794,7 +792,7 @@ namespace {
             }
         }
     };
-#endif
+
 
     struct SaveChromatogramAs {
         portfolio::Folium folium;
@@ -846,10 +844,10 @@ namespace {
             for ( int row = 0; row < pitem->rowCount(); ++row ) {
                 if ( auto item = model.itemFromIndex( model.index( row, 0, parent ) ) ) {
                     if ( item->isCheckable() && item->checkState() == checkState ) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                        indices.emplace_back( item->index() );
-#else
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
                         indices.push_back( item->index() );
+#else
+                        indices.emplace_back( item->index() );
 #endif
                     }
                 }
@@ -1014,11 +1012,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-#if QTC_VERSION >= 0x09'00'00
                         if ( auto a = menu.addAction( tr("Set data global mass lock" ), SaveDataGlobalMSLock( index ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-#endif
+
                         attachment_walker attachments( folium );
                         if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, index ) ) ) {
                             a->setEnabled( true );

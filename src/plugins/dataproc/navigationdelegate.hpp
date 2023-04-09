@@ -27,7 +27,6 @@
 #define NAVIGATIONDELEGATE_H
 
 #include <QStyledItemDelegate>
-// #include <QItemDelegate>
 #if !defined Q_MOC_RUN
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>

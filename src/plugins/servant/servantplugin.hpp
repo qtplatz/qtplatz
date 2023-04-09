@@ -27,6 +27,7 @@
 
 #include <extensionsystem/iplugin.h>
 #include <vector>
+#include <memory>
 
 namespace adportable {
     class Configuration;
@@ -39,25 +40,28 @@ namespace servant {
 
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
+#if QTC_VERSION >= 0x09'00'01
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Servant.json")
+#else
 		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
-        static ServantPlugin * instance_;
-	public:
+#endif
+    public:
         explicit ServantPlugin();
         ~ServantPlugin();
 
-        static ServantPlugin * instance();
-        
+        // static ServantPlugin * instance();
+
         // ExtensionSystem::IPlugin
-        virtual bool initialize(const QStringList &arguments, QString *error_message);
-        virtual void extensionsInitialized();
-        virtual ShutdownFlag aboutToShutdown();
+        bool initialize(const QStringList &arguments, QString *error_message) override;
+        void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
     signals:
-            
+
     public slots:
-        
+
     private:
-        Logger * logger_;
-        OutputWindow * outputWindow_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 }
