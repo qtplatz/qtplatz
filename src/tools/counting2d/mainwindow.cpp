@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     statusBar()->setProperty( "p_styled", true );
     statusBar()->addWidget( new QLabel );
-    
+
     if ( auto p = statusBar()->findChild<QLabel *>() ) {
         p->setText( "STATUS:" );
     }
@@ -210,14 +210,14 @@ MainWindow::load(const QString &f)
 {
     setCurrentFileName( f );
 
-    std::wstring msg;
+    std::string msg;
     auto processor = std::make_shared< adprocessor::dataprocessor >();
-    
-    if ( processor->open( f.toStdWString(), msg ) ) {
+
+    if ( processor->open( f.toStdString(), msg ) ) {
         if ( document::instance()->setDataprocessor( processor ) )
             document::instance()->fetch();
     }
-        
+
     return true;
 }
 
@@ -296,11 +296,11 @@ MainWindow::createDockWidgets()
     //     auto dock = createDockWidget( widget, "Digitizer Config", "AcqirisWidget" );
     //     addDockWidget( Qt::RightDockWidgetArea, dock );
     // }
-    
+
     if ( auto widget = new adwidgets::OutputWidget( std::cout ) ) {
         auto dock = createDockWidget( widget, "Console", "ConsoleWidget" );
         addDockWidget( Qt::BottomDockWidgetArea, dock );
-    }    
+    }
 }
 
 QDockWidget *

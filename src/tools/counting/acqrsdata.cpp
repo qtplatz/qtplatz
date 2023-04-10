@@ -39,6 +39,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/format.hpp>
 #include <iostream>
+#include <filesystem>
 
 static const boost::uuids::uuid ap240_observer = boost::uuids::string_generator()( "{76d1f823-2680-5da7-89f2-4d2d956149bd}" );
 
@@ -54,8 +55,8 @@ bool
 acqrsdata::open( const boost::filesystem::path& path )
 {
     path_ = path;
-    std::wstring msg;
-    if ( processor_->open( path.wstring(), msg ) ) {
+    std::string msg;
+    if ( processor_->open( path.string(), msg ) ) {
         if ( auto file = processor_->rawdata() ) {
             if ( file->dataformat_version() == 3 )
                 return true;

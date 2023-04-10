@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
             boost::filesystem::path file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
 
-            std::wstring msg;
+            std::string msg;
             auto processor = std::make_shared< adprocessor::dataprocessor >();
 
             if ( processor->open( file.wstring(), msg ) ) {
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
                 }
 
             } else {
-                std::wcout << msg << std::endl;
+                std::cout << msg << std::endl;
             }
         }
     }
