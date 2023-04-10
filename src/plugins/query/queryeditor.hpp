@@ -33,27 +33,16 @@ class QEvent;
 
 namespace query {
 
-    class QueryDocProxy : public Core::IDocument {
-        Q_OBJECT
-    public:
-        inline Core::IDocument * document() { return this; };
-
-        // Core::IDocument
-        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
-        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
-
-        QString defaultPath() const override;
-        QString suggestedFileName() const override;
-        bool isModified() const override;
-        bool isSaveAsAllowed() const override;
-        bool isFileReadOnly() const override;
-    };
-
     class QueryEditor : public Core::IEditor {
         Q_OBJECT
     public:
-        ~QueryEditor();
+        ~QueryEditor() override;
         QueryEditor( QObject * parent = 0 );
+
+        Core::IDocument *document() const override;
+        QWidget *toolBar() override;
+        IEditor *duplicate() override;
+#if 0
         bool eventFilter( QObject * object, QEvent * event ) override;
 
         // Core::IEditor
@@ -65,13 +54,13 @@ namespace query {
 
         QWidget *toolBar() override;
         Core::Context context() const override;
-
+#endif
     private:
-        QWidget * widget_;
-        QueryDocProxy * proxy_;
+        // QWidget * widget_;
+        // QueryDocProxy * proxy_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 
 }
-
-

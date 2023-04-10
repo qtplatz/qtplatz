@@ -39,10 +39,30 @@ QueryFactory::~QueryFactory()
 {
 }
 
+#if QTC_VERSION >= 0x08'00'00
+
+QueryFactory::QueryFactory()
+{
+    setId( Constants::C_QUERY );
+    setDisplayName( tr("QueryView") );
+    setEditorCreator( [] {
+        return new QueryEditor();
+    });
+
+    for ( auto &format : { "application/adfs"
+                           , "application/x-sqlite3"
+                           , "application/sqlite"
+                           , "application/db" } ) {
+        addMimeType( QString::fromLatin1(format) );
+    }
+}
+
+#else
+
 QueryFactory::QueryFactory( QObject * owner ) : Core::IEditorFactory( owner )
 {
     setId( Constants::C_QUERY );
-    
+
     setDisplayName( tr( "OpenWidth::Query", "Query processor" ) );
 
     addMimeType( "application/adfs" );
@@ -56,4 +76,4 @@ QueryFactory::createEditor()
 {
     return new QueryEditor;
 }
-
+#endif

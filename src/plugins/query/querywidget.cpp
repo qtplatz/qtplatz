@@ -89,7 +89,7 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
                                           , hdlg_( new SqlHistoryDialog )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
@@ -218,8 +218,8 @@ QueryWidget::executeQuery()
 {
     if ( auto connection = document::instance()->connection() ) {
         {
-            auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
-            table_->setQuery( query, connection->shared_from_this() );
+            // auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
+            table_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'", connection->shared_from_this() );
         }
 
         {
@@ -285,7 +285,7 @@ QueryWidget::handleQuery( const QString& sql )
             document::instance()->addSqlHistory( sql );
         }
 
-        table_->setQuery( query );
+        table_->setSQL( sql, connection->shared_from_this() ); //std::move( query ) );
     }
 }
 

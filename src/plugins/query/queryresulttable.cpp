@@ -104,7 +104,11 @@ namespace query {
                             double raw = index.data().toDouble() * 1.0e-9;
                             painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter
                                                , QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+                        } else if ( index.data().metaType() == QMetaType::fromType< QByteArray >() ) {
+#else
                         } else if ( index.data().type() == QVariant::ByteArray ) {
+#endif
                             auto v = queryModel->record(index.row()).value( "objuuid" );
                             if ( v.isValid() ) {
                                 auto uuid = boost::uuids::string_generator()( v.toString().toStdString() );
@@ -112,8 +116,11 @@ namespace query {
                                 if ( it != __uuid_db__.end() )
                                     painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( it->second ) );
                             }
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+                        } else if ( column_name == "meta" && index.data().metaType() == QMetaType::fromType< QByteArray >() ) {
+#else
                         } else if ( column_name == "meta" && index.data().type() == QVariant::ByteArray ) {
-
+#endif
                         } else {
                             QStyledItemDelegate::paint( painter, op, index );
                         }
@@ -136,7 +143,11 @@ namespace query {
                 QStyleOptionViewItem op( option );
                 if ( index.data().isNull() ) {
                     return QSize();
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+                } else if ( index.data().metaType() == QMetaType::fromType< double >() ) {
+#else
                 } else if ( index.data().type() == QVariant::Double ) {
+#endif
                     auto fm = op.fontMetrics;
                     double width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) ).width();
                     QSize sz = QStyledItemDelegate::sizeHint( option, index );
@@ -185,7 +196,7 @@ QueryResultTable::setDatabase( QSqlDatabase& db )
 }
 
 void
-QueryResultTable::setQuery( const QSqlQuery& query, std::shared_ptr< QueryConnection > connection )
+QueryResultTable::setSQL( const QString& sql, std::shared_ptr< QueryConnection > connection )
 {
     // this is the workaround preventing segmentation violation at model_->clear();
     if ( connection_ )
@@ -193,27 +204,28 @@ QueryResultTable::setQuery( const QSqlQuery& query, std::shared_ptr< QueryConnec
     connection_ = connection;
     // end workaound
 
-    setQuery( query );
+    setSQL( sql );
 }
 
 void
-QueryResultTable::setQuery( const QSqlQuery& query )
+QueryResultTable::setSQL( const QString& sql )
 {
     model_->clear();
-    model_->setQuery( query );
+    model_->setQuery( sql );
 
-    int tIndex = query.record().indexOf( "time" ); // non-case sensitive
+    // int tIndex = query.record().indexOf( "time" ); // non-case sensitive
 
-    if ( tIndex >= 0 ) {
-        model_->insertColumns( tIndex, 1 );
-        model_->setHeaderData( tIndex, Qt::Horizontal, tr("m/z") );
-    }
+    // if ( tIndex >= 0 ) {
+    //     model_->insertColumns( tIndex, 1 );
+    //     model_->setHeaderData( tIndex, Qt::Horizontal, tr("m/z") );
+    // }
 
-    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
-        model->computed_mass_column_ = tIndex;
+    // if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+    //     model->computed_mass_column_ = tIndex;
 
     resizeColumnsToContents();
 }
+
 
 void
 QueryResultTable::currentChanged( const QModelIndex& current, const QModelIndex& )

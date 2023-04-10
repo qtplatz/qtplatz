@@ -36,7 +36,11 @@
 #include <adportable/debug.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
+#if QTC_VERSION < 0x03'02'81
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/rightpane.h>
@@ -91,7 +95,7 @@ MainWindow::createContents( Core::IMode * )
     setCentralWidget( centralWidget );
 
     QVBoxLayout * viewLayout = new QVBoxLayout( centralWidget );
-    viewLayout->setMargin(0);
+    viewLayout->setContentsMargins( {} );
     viewLayout->setSpacing(0);
     viewLayout->addWidget( toolBar1 );
 
@@ -112,11 +116,11 @@ MainWindow::createTopStyledBar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 2 );
 
         if ( auto am = Core::ActionManager::instance() ) {
-            Core::Context context( ( Core::Id( "query.MainView" ) ) );
+            Core::Context context( ( Utils::Id( "query.MainView" ) ) );
 
             if ( auto btnOpen = new QToolButton ) {
                 btnOpen->setDefaultAction( Core::ActionManager::instance()->command( Constants::FILE_OPEN )->action() );
@@ -241,7 +245,7 @@ MainWindow::handleOpen()
                 }
             }
 
-            Core::ModeManager::activateMode( Core::Id( Constants::C_QUERY_MODE ) );
+            Core::ModeManager::activateMode( Utils::Id( Constants::C_QUERY_MODE ) );
         }
     } catch ( ... ) {
         QMessageBox::warning( this, "Query MainWindow", boost::current_exception_diagnostic_information().c_str() );
