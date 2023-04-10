@@ -66,31 +66,32 @@ set( CMAKE_WARN_DEPRECATED TRUE )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
+################################################################
+#
 if ( WITH_QT5 )
+
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-  message( STATUS "############# QT_FOUND : ${QT_FOUND} -- ${QT_VERSION} ###############" )
-  if ( QT_FOUND )
+
+  if ( QT_FOUND AND ${QT_VERSION_MAJOR} GREATER_EQUAL 5 )
     include_directories( "${CMAKE_SOURCE_DIR}/src/libs" ) # -- for qt-creator include qtwrapper/debug.hpp
     add_definitions( "-DQT_MESSAGELOGCONTEXT" ) # <-- enable file, line in qDebug output
-
     if ( APPLE )
       ## macOS
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
     else()
       ## Linux & Windows
-      set( CMAKE_INSTALL_RPATH        "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
-      set( QTC_BINARY_DIR "qtplatz.app" )              # set qt-creator build directory
-      add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) # <-- <binary_dir>/qqtcreator
+      set( CMAKE_INSTALL_RPATH     "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
+      set( QTC_BINARY_DIR          "qtplatz.app" )              # set qt-creator build directory
+      add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
     endif()
-
     list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
     include_directories( BEFORE
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
-    )
-  endif()
-  if ( QT_FOUND )
+      )
+
     find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+
     find_package( QtCreator REQUIRED COMPONENTS Core )
     if ( QtCreator_FOUND )
       message( STATUS "##### QtCreator version ${IDE_VERSION} #####" )
@@ -103,7 +104,7 @@ if ( WITH_QT5 )
         "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
         OUTPUT_FORMAT HEXADECIMAL)
       add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
-    else()
+    else() # no QtCreator found, which is qtplatz 5.4 or earlier version
       find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
       find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
       if ( NOT XMLPATTERNS )
@@ -121,8 +122,10 @@ if ( WITH_QT5 )
       execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
         OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
     endif()
+
   endif()
 endif()
+################################################################
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 if ( WIN32 )
@@ -133,6 +136,15 @@ include (qtplatz.cmake)
 include (version)
 include (boost.cmake)
 include (qtplatz_api)
+
+if ( WIN32 )
+  set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
+elseif( APPLE )
+  set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/package/bin" )
+else()
+  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
+endif()
+################################################################
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
@@ -158,17 +170,14 @@ if ( APPLE )
 
 else()
   ## Linux/Windows -- install destination
-  if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-    set( QTPLATZ_PLUGIN_DESTINATION            "lib/qtplatz/plugins" ) # Qt5/QTC3.x
+  if ( IDE_VERSION VERSION_LESS_EQUAL         "3.2.81" )
+    set( QTPLATZ_PLUGIN_DESTINATION           "lib/qtplatz/plugins" ) # Qt5/QTC3.x
   else()
-    set( QTPLATZ_PLUGIN_DESTINATION            "lib/qtcreator/plugins" ) # Qt6/QTC9
+    set( QTPLATZ_PLUGIN_DESTINATION           "lib/qtcreator/plugins" ) # Qt6/QTC9
   endif()
 
   # use following value in each CMakeFiles.txt for plugin project
-  set( QTPLATZ_PLUGIN_DIRECTORY                 "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" )
-
-  #set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )
-  #set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
+  set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" )
 
   ## ARCHIVE := static libs & dll import lib, exp files
   ## LIBRARY := shared objects (.so, .dylib) -- MODULES
@@ -188,15 +197,14 @@ else()
     set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
   endif()
 
-  set( CMAKE_SKIP_BUILD_RPATH  FALSE )
-  set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
+  set( CMAKE_SKIP_BUILD_RPATH            FALSE )
+  set( CMAKE_BUILD_WITH_INSTALL_RPATH    FALSE )
   set( CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE )
   set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib" )
 
   if ( CMAKE_CROSSCOMPILING AND WITH_QT5 )
     set( CMAKE_PREFIX_PATH /usr/local/qt5 )
   endif()
-
 endif()
 
 if( WIN32 )
@@ -490,20 +498,32 @@ configure_file(
 include( CPack )
 
 message( STATUS "---------- SUMMARY ------------" )
-message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION} )
-message( STATUS "# QTPLATZ_BINARY_DIR    : " ${QTPLATZ_BINARY_DIR} )
+message( STATUS "# COMPILER VERSION      : ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION}" )
+message( STATUS "# CMAKE_BINARY_DIR      : ${CMAKE_BINARY_DIR}" )
+message( STATUS "# IDE_VERSION           : ${IDE_VERSION}" )
+message( STATUS "# IDE_APP_PATH          : ${IDE_APP_PATH}\tIDE_APP_TARGET:\t${IDE_APP_TARGET}"  )
+message( STATUS "# CMAKE_INSTALL_PREFIX  : ${CMAKE_INSTALL_PREFIX}" )
+message( STATUS "# CMAKE_INSTALL_BINDIR  : ${CMAKE_INSTALL_BINDIR}" )
+message( STATUS "# QtCreator_BINARY_DIR  : ${QtCreator_BINARY_DIR}"  )
+message( STATUS "# IDE_PLUGIN_PATH       : ${IDE_PLUGIN_PATH}"  )
+message( STATUS "# IDE_LIBRARY_PATH      : ${IDE_LIBRARY_PATH}"  )
+message( STATUS "# CMAKE_ARCHIVE_OUTPUT_DIRECTORY : ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" )
+message( STATUS "# CMAKE_LIBRARY_OUTPUT_DIRECTORY : ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" )
+message( STATUS "# CMAKE_RUNTIME_OUTPUT_DIRECTORY : ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" )
+message( STATUS "# CMAKE_INSTALL_LIBEXECDIR       : ${CMAKE_INSTALL_LIBEXECDIR}" )
+
 if ( QTPLATZ_CORELIB_ONLY )
-  message( STATUS "# QTPLATZ_CORELIB_ONLY  : " ${QTPLATZ_CORELIB_ONLY} )
+  message( STATUS "# QTPLATZ_CORELIB_ONLY  : ${QTPLATZ_CORELIB_ONLY}" )
 endif()
 if ( DEBUG_SYMBOL )
-  message( STATUS "# DEBUG SYMBOL          : " ${DEBUG_SYMBOL} )
+  message( STATUS "# DEBUG SYMBOL          : ${DEBUG_SYMBOL}" )
 endif()
 
-message( STATUS "# Boost_VERSION         : " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
-message( STATUS "# BOOST_ROOT            : " ${BOOST_ROOT} )
-message( STATUS "# Boost_Use_STATIC_LIBS : " ${Boost_USE_STATIC_LIBS} )
-message( STATUS "# Boost_INCLUDE_DIRS    : " ${Boost_INCLUDE_DIRS} )
-message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
+message( STATUS "# Boost_VERSION         : ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
+message( STATUS "# BOOST_ROOT            : ${BOOST_ROOT}" )
+message( STATUS "# Boost_Use_STATIC_LIBS : ${Boost_USE_STATIC_LIBS}" )
+message( STATUS "# Boost_INCLUDE_DIRS    : ${Boost_INCLUDE_DIRS}" )
+message( STATUS "# Boost_LIBRARY_DIRS    : ${Boost_LIBRARY_DIRS}" )
 if ( Boost_FOUND AND VERBOSE )
   message( STATUS "# Boost_LIBRARIES" )
   foreach( _lib ${Boost_LIBRARIES} )
@@ -517,22 +537,22 @@ endif()
 
 if ( WITH_QWT )
   get_target_property( qwt_release ${QWT_LIBRARIES} IMPORTED_LOCATION )
-  get_target_property( qwt_debug ${QWT_LIBRARIES} IMPORTED_LOCATION_DEBUG )
+  get_target_property( qwt_debug   ${QWT_LIBRARIES} IMPORTED_LOCATION_DEBUG )
   message( STATUS "# QWT                   : ${qwt_release};${qwt_debug};${QWT_INCLUDE_DIR};${QWT_VERSION_STRING}" )
   message( STATUS "# QWT VERSION           : ${QWT_VERSION}" )
 endif()
-message( STATUS "# XMLPATTERNS           : " ${XMLPATTERNS} )
+message( STATUS "# XMLPATTERNS           : ${XMLPATTERNS}" )
 if ( libxml2_FOUND )
   message( STATUS "# libxml2               : ${libxml2_LIBRARIES};${libxml2_INCLUDE_DIRS}" )
   message( STATUS "# libxslt               : ${libxslt_LIBRARIES};${libxslt_INCLUDE_DIRS}" )
 endif()
 if ( Eigen3_FOUND )
-  message( STATUS "# Eigen3                : " ${EIGEN3_INCLUDE_DIR} )
+  message( STATUS "# Eigen3                : ${EIGEN3_INCLUDE_DIR}" )
 endif()
-message( STATUS "# RDKit                 : " ${rdkit_FOUND} )
+message( STATUS "# RDKit                 : ${rdkit_FOUND}" )
 if ( rdkit_FOUND )
-  message( STATUS "# RDKit VERSION         : " ${RDKit_PACKAGE_VERSION} )
-  message( STATUS "\t# RDBASE           : " ${RDBASE} )
+  message( STATUS "# RDKit VERSION         : ${RDKit_PACKAGE_VERSION}" )
+  message( STATUS "\t# RDBASE           : ${RDBASE}" )
   if ( VERBOSE )
     foreach ( _dir ${RDKit_INCLUDE_DIRS} )
       message( STATUS "\t# INCLUDE          : " ${_dir} )

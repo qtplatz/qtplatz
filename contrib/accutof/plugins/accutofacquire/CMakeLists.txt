@@ -4,12 +4,11 @@ cmake_policy( SET CMP0028 NEW )
 project( accutofacquire )
 
 set( PROVIDER MS-Cheminformatics )
-set( COMPAT_VERSION 3.2.81 )
-set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-set( DESCRIPTION "AccuTOF Acquisition plugin" )
 
-#QT += core svg printsupport widgets
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
+set( VERSION        "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+set( COMPAT_VERSION "${VERSION}" )
+set( DESCRIPTION     "AccuTOF acquisition plugin" )
+
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
