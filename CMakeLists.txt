@@ -89,39 +89,39 @@ if ( WITH_QT5 )
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
     )
   endif()
-
-  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
-  find_package( QtCreator REQUIRED COMPONENTS Core )
-  if ( QtCreator_FOUND )
-    message( STATUS "##### QtCreator version ${IDE_VERSION} #####" )
-    set ( IDE_APP_PATH "ide_app_path" )  # <-- override qt-creator output path -- on trial
-    string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION})
-    list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
-    list(GET IDE_VERSION_LIST 1 IDE_VERSION_MINOR)
-    list(GET IDE_VERSION_LIST 2 IDE_VERSION_MICRO)
-    math(EXPR QTC_VERSION
-      "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
-      OUTPUT_FORMAT HEXADECIMAL)
-    add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
-  else()
+  if ( QT_FOUND )
     find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
-    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
-    if ( NOT XMLPATTERNS )
-      message( FATAL_ERROR "xmlpatterns command not found -- required for QtCreator 3.2.81" )
+    find_package( QtCreator REQUIRED COMPONENTS Core )
+    if ( QtCreator_FOUND )
+      message( STATUS "##### QtCreator version ${IDE_VERSION} #####" )
+      set ( IDE_APP_PATH "ide_app_path" )  # <-- override qt-creator output path -- on trial
+      string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION})
+      list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
+      list(GET IDE_VERSION_LIST 1 IDE_VERSION_MINOR)
+      list(GET IDE_VERSION_LIST 2 IDE_VERSION_MICRO)
+      math(EXPR QTC_VERSION
+        "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
+        OUTPUT_FORMAT HEXADECIMAL)
+      add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
+    else()
+      find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+      find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
+      if ( NOT XMLPATTERNS )
+        message( FATAL_ERROR "xmlpatterns command not found -- required for QtCreator 3.2.81" )
+      endif()
+      set ( IDE_VERSION "3.2.81" ) # defined in src/app/app_version.h
+      set ( IDE_VERSION_MAJOR "3")
+      set ( IDE_PLUGIN_PATH "lib/qtplatz/plugins" ) # <-- for qtplatz 5
+      set ( QTC_BINARY_DIR  "" )  # <-- same as CMAKE_BINARY_DIR
+      add_definitions( "-DQTC_VERSION=0x030281" )
     endif()
-    set ( IDE_VERSION "3.2.81" ) # defined in src/app/app_version.h
-    set ( IDE_VERSION_MAJOR "3")
-    set ( IDE_PLUGIN_PATH "lib/qtplatz/plugins" ) # <-- for qtplatz 5
-    set ( QTC_BINARY_DIR  "" )  # <-- same as CMAKE_BINARY_DIR
-    add_definitions( "-DQTC_VERSION=0x030281" )
-  endif()
 
-  if ( NOT QTDIR )
-    find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin")
-    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
-      OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
+    if ( NOT QTDIR )
+      find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin")
+      execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
+        OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
+    endif()
   endif()
-
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
@@ -157,18 +157,36 @@ if ( APPLE )
   set( QTPLATZ_PLUGIN_DESTINATION             bin/qtplatz.app/Contents/PlugIns )
 
 else()
+  ## Linux/Windows -- install destination
+  if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
+    set( QTPLATZ_PLUGIN_DESTINATION            "lib/qtplatz/plugins" ) # Qt5/QTC3.x
+  else()
+    set( QTPLATZ_PLUGIN_DESTINATION            "lib/qtcreator/plugins" ) # Qt6/QTC9
+  endif()
 
-  set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
-  set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz ) #plugins
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )  # .exe | .dll
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
+  # use following value in each CMakeFiles.txt for plugin project
+  set( QTPLATZ_PLUGIN_DIRECTORY                 "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" )
 
-  set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )
-  set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
+  #set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )
+  #set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
+
+  ## ARCHIVE := static libs & dll import lib, exp files
+  ## LIBRARY := shared objects (.so, .dylib) -- MODULES
+  ## RUNTIME := executable, .dll on windows
+  set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY           "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/lib" ) # static libs, dll's import lib/exp
+  set( CMAKE_LIBRARY_OUTPUT_DIRECTORY           "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/lib/qtplatz" ) #plugins --> qtplatz/lib/
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY           "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/bin" )  # .exe | .dll
+
+  if ( 0 )
+    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
+    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz ) #plugins
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )  # .exe | .dll
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
+  endif()
 
   set( CMAKE_SKIP_BUILD_RPATH  FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
