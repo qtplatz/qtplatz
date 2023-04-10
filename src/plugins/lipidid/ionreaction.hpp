@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,19 +24,20 @@
 
 #pragma once
 
-#include <coreplugin/imode.h>
+#include <string>
+#include <vector>
+#include <adcontrols/make_combination.hpp> // typedef molecule_pair_t
+
+namespace adcontrols { namespace mol { class molecule; } }
 
 namespace lipidid {
 
-    class Mode : public Core::IMode {
-        Q_OBJECT
-        public:
-        explicit Mode(QObject *parent = 0);
-
-    signals:
-
-    public slots:
-        void grabEditorManager( Utils::Id mode );
+    class IonReaction {
+        std::string M_;
+    public:
+        IonReaction();
+        IonReaction( const std::string& formula );
+        double mass( const std::vector< adcontrols::lipidid::molecule_pair_t >& alist ) const;
+        adcontrols::mol::molecule make_molecule( const std::vector< adcontrols::lipidid::molecule_pair_t >& alist ) const;
     };
-
 }

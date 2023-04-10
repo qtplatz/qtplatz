@@ -63,14 +63,15 @@
 #include <adportfolio/folium.hpp>
 #include <qtwrapper/application.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/plugin_manager.hpp>
 #include <pugixml.hpp>
 
 #include <coreplugin/icore.h>
-#include <coreplugin/id.h>
+#include <utils/id.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/mimedatabase.h>
+//#include <coreplugin/mimedatabase.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
@@ -112,8 +113,6 @@ using namespace lipidid;
 
 LipididPlugin::~LipididPlugin()
 {
-    if ( mode_ )
-        removeObject( mode_.get() );
 }
 
 LipididPlugin::LipididPlugin() : mainWindow_( new MainWindow )
@@ -129,19 +128,12 @@ LipididPlugin::initialize( const QStringList& arguments, QString* error_message 
     if ( core == 0 )
         return false;
 
-    do {
-        //------------------------------------------------
-        if ( !Core::MimeDatabase::addMimeTypes( ":/lipidid/mimetype.xml", error_message ) )
-            ADWARN() << "addMimeTypes" << ":/lipidid/mimetype.xml" << error_message;
-    } while ( 0 );
-
     if (( mode_ = std::make_unique< lipidid::Mode >( this ) )) {
         mainWindow_->activateLayout();
         mainWindow_->initializeActions( mode_.get() );
         QWidget * widget = mainWindow_->createContents( mode_.get() );
         widget->setObjectName( QLatin1String( "Lipidid") );
         mode_->setWidget( widget );
-        addObject( mode_.get() );
     } else {
         ADWARN() << "lipidid::Mode allocation failed.";
         return false;
@@ -153,14 +145,14 @@ void
 LipididPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
-    auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSessionManager >();
-    for ( auto mgr: vec ) {
-        using adextension::iSessionManager;
-        connect( mgr, &iSessionManager::addProcessor, document::instance(), &document::handleAddProcessor );
-        connect( mgr, &iSessionManager::onSelectionChanged, document::instance(), &document::handleSelectionChanged );
-        connect( mgr, &iSessionManager::onProcessed, document::instance(), &document::handleProcessed );
-        connect( mgr, &iSessionManager::onCheckStateChanged, document::instance(), &document::handleCheckStateChanged );
-    }
+
+    // SessionManager is a singleton, instanciated in dataproc
+    auto mgr = ExtensionSystem::PluginManager::instance()->getObject< adextension::iSessionManager >();
+    using adextension::iSessionManager;
+    connect( mgr, &iSessionManager::addProcessor, document::instance(), &document::handleAddProcessor );
+    connect( mgr, &iSessionManager::onSelectionChanged, document::instance(), &document::handleSelectionChanged );
+    connect( mgr, &iSessionManager::onProcessed, document::instance(), &document::handleProcessed );
+    connect( mgr, &iSessionManager::onCheckStateChanged, document::instance(), &document::handleCheckStateChanged );
     Core::ModeManager::activateMode( mode_->id() );
 }
 
@@ -178,4 +170,4 @@ LipididPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-Q_EXPORT_PLUGIN( LipididPlugin )
+// Q_EXPORT_PLUGIN( LipididPlugin )

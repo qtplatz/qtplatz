@@ -31,9 +31,11 @@
 #include "mspeaktree.hpp"
 #include "mspeakwidget.hpp"
 #include "sqleditform.hpp"
+#include "ionreactionwidget.hpp"
 #include "peaklist.hpp"
 #include "sdfimport.hpp"
 #include <adlog/logger.hpp>
+#include <adcontrols/ionreactionmethod.hpp>
 #include <adcontrols/metidmethod.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -209,6 +211,7 @@ MainWindow::OnInitialUpdate()
 
     onInitialUpdate< MetIdWidget >( this );
     onInitialUpdate< MSPeakTree >( this );
+    onInitialUpdate< IonReactionWidget >( this );
 
     document::instance()->initialSetup();
 }
@@ -296,7 +299,7 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setContentsMargins( {} );
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( toolBar1 );  // top most toolbar
     toolBarAddingLayout->addWidget( splitter3 ); // Spectra|chrmatogram pane
@@ -304,7 +307,7 @@ MainWindow::createContents( Core::IMode * mode )
 
     // Right-side window with editor, output etc.
     Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
     outputPane->setObjectName( QLatin1String( "OutputPanePlaceHolder" ) );
     mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
@@ -335,10 +338,10 @@ MainWindow::impl::createTopStyledToolbar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
-            Core::Context context( ( Core::Id( "lipidid.MainWindow" ) ) );
+            Core::Context context( ( Utils::Id( "lipidid.MainWindow" ) ) );
 
             if ( auto p = new QAction( tr("Spectra"), this_ ) ) {
                 connect( p, &QAction::triggered, [this](){ stackWidget_->setCurrentIndex( idSelSpectra ); } );
@@ -370,7 +373,7 @@ MainWindow::impl::createMidStyledToolbar()
 
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
@@ -397,6 +400,7 @@ MainWindow::impl::createMidStyledToolbar()
 void
 MainWindow::impl::createDockWidgets( MainWindow * pThis )
 {
+    \
     if ( auto widget = dock_create< PeakList >( pThis, "MS Peaks", "MS_Peaks" ) ) {
         QObject::connect( document::instance(), &document::dataChanged, widget, &PeakList::handleDataChanged );
     }
@@ -415,6 +419,10 @@ MainWindow::impl::createDockWidgets( MainWindow * pThis )
         QObject::connect( document::instance(), &document::idCompleted, tree, &MSPeakTree::handleIdCompleted );
         QObject::connect( document::instance(), &document::onZoomed, tree, &MSPeakTree::handleZoomedOnSpectrum );
         QObject::connect( tree, &MSPeakTree::checkStateChanged, document::instance(), &document::handleCheckState );
+    }
+    if ( auto widget = dock_create< IonReactionWidget >( pThis, "Ion rxn export", "IonReactionWidget" ) ) {
+        QObject::connect( widget, &IonReactionWidget::triggered, [=]{ document::instance()->export_ion_reactions( widget->getContents(), false ); } );
+        QObject::connect( widget, &IonReactionWidget::rejected, [=]{ document::instance()->export_ion_reactions( widget->getContents(), true ); } );
     }
 }
 

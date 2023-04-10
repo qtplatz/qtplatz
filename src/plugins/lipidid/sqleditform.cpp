@@ -26,8 +26,9 @@
 #include "sqledit.hpp"
 #include <utils/styledbar.h>
 #include <adportable/debug.hpp>
-#include <QCompleter>
 #include <QBoxLayout>
+#include <QCompleter>
+#include <QFile>
 #include <QPushButton>
 #include <QStringListModel>
 
@@ -75,7 +76,7 @@ SqlEditForm::SqlEditForm(QWidget *parent) : QWidget(parent)
             toolBar->setSingleRow( true );
             //toolBar->setLightColored( false );
             QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-            toolBarLayout->setMargin( 0 );
+            toolBarLayout->setContentsMargins( {} );
             toolBarLayout->setSpacing( 2 );
 
             toolBarLayout->addWidget( new Utils::StyledSeparator );

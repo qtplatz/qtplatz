@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,19 +24,33 @@
 
 #pragma once
 
-#include <coreplugin/imode.h>
+#include <QWidget>
+#include <memory>
+
+namespace adcontrols { class IonReactionMethod; }
 
 namespace lipidid {
 
-    class Mode : public Core::IMode {
+    class IonReactionWidget : public QWidget {
         Q_OBJECT
-        public:
-        explicit Mode(QObject *parent = 0);
+
+    public:
+        explicit IonReactionWidget(QWidget *parent = 0);
+        ~IonReactionWidget();
+
+        void onInitialUpdate();
+
+        adcontrols::IonReactionMethod getContents() const;
+        bool setContents( const adcontrols::IonReactionMethod& );
+        void setSQLiteFilename( const QString& );
 
     signals:
+        void triggered();
+        void rejected();
 
-    public slots:
-        void grabEditorManager( Utils::Id mode );
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
+
     };
-
 }

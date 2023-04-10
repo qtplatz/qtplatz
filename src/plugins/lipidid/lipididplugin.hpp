@@ -53,7 +53,11 @@ namespace lipidid {
     class LipididPlugin : public ExtensionSystem::IPlugin {
 
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "lipidid.json")
+#if QTC_VERSION <= 0x03'02'81
+        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "LipidId.json")
+#else
+		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "LipidId.json")
+#endif
 
     public:
         ~LipididPlugin();

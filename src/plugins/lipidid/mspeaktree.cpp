@@ -466,10 +466,15 @@ MSPeakTree::handleCopyToClipboard()
     for ( auto idx: list ) {
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
-		if ( model.data( idx ).type() == QVariant::Double )
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+		if ( model.data( idx ).metaType() == QMetaType::fromType< double >() ) {
+#else
+        if ( model.data( idx ).type() == QVariant::Double ) {
+#endif
 			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
-        else
+        } else {
             copy_table.append( model.data( idx ).toString() );
+        }
         prev = idx;
     }
     QApplication::clipboard()->setText( copy_table );

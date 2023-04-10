@@ -27,24 +27,31 @@
 #include "simple_mass_spectrum.hpp"
 #include "candidate.hpp"
 #include "constants.hpp"
+#include "ionreaction.hpp"
 #include "isocluster.hpp"
 #include "isopeak.hpp"
 #include "make_reference_spectrum.hpp"
 #include "metidprocessor.hpp"
+#include "sqlexport.hpp"
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/ionreactionmethod.hpp>
+#include <adcontrols/isocluster.hpp>
+#include <adcontrols/make_combination.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metidmethod.hpp>
-#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/molecule.hpp>
+#include <adcontrols/targeting.hpp>
+#include <adfs/get_column_values.hpp>
+#include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/json/extract.hpp>
-#include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
-#include <adfs/sqlite.hpp>
-#include <adfs/get_column_values.hpp>
+#include <adportfolio/folium.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h> // <-- for Core::Constants::IDE_SETTINGSVARIANT_STR
@@ -56,6 +63,7 @@
 #include <QSqlQuery>
 #include <boost/filesystem.hpp>
 #include <boost/json.hpp>
+#include <filesystem>
 #include <fstream>
 #include <tuple>
 #include <future>
@@ -108,7 +116,6 @@ namespace lipidid {
         std::map< std::string, double > logP_;
         QString selectedFormula_;
     };
-
 }
 
 using lipidid::document;
@@ -203,6 +210,12 @@ document::sqlDatabase()
     return impl_->db_;
 }
 
+adfs::sqlite *
+document::sqlite()
+{
+    return impl_->sqlite_.get();
+}
+
 void
 document::handleAddProcessor( adextension::iSessionManager *, const QString& file )
 {
@@ -215,6 +228,7 @@ document::handleSelectionChanged( adextension::iSessionManager *
                                   , const QString& file
                                   , const portfolio::Folium& folium )
 {
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
@@ -234,6 +248,7 @@ void
 document::handleProcessed( adextension::iSessionManager *
                            , const QString& file, const portfolio::Folium& folium )
 {
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
     // this may call togather with handleSelectionChanged;
 }
 
@@ -318,6 +333,22 @@ document::getResultSet() const
 }
 
 bool
+document::export_ion_reactions( adcontrols::IonReactionMethod&& t, bool testing )
+{
+    // ADDEBUG() << boost::json::value_from( t );
+    ADDEBUG() << "===== Ionization: " << t.i8n() << "\t" << t.description() << " testing: " << testing;
+
+    std::filesystem::path path( qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
+    auto nfile = ( path.parent_path() / ( path.stem().string() + "_rxn" ) ).replace_extension( ".db" );
+
+    SQLExport e;
+    if ( e.create_database( nfile ) ) {
+        e.export_ion_reactions( std::move( t ), testing );
+    }
+    return true;
+}
+
+bool
 document::find_all( adcontrols::MetIdMethod&& t )
 {
     impl_->method_ = std::move( t );
@@ -335,7 +366,7 @@ document::find_all( adcontrols::MetIdMethod&& t )
         Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::LIPIDID_TASK_FIND_ALL );
 
         auto metid = lipidid::MetIdProcessor::create( impl_->method_ );
-        auto future = std::async( std::launch::async, [=](){ return metid->find_all( *impl_->sqlite_, impl_->ms_, p );} );
+        auto future = std::async( std::launch::async, [=,this](){ return metid->find_all( *impl_->sqlite_, impl_->ms_, p );} );
 
         while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
             QCoreApplication::instance()->processEvents();

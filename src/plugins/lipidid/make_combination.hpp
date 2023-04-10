@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,19 +24,7 @@
 
 #pragma once
 
-#include <coreplugin/imode.h>
-
 namespace lipidid {
 
-    class Mode : public Core::IMode {
-        Q_OBJECT
-        public:
-        explicit Mode(QObject *parent = 0);
-
-    signals:
-
-    public slots:
-        void grabEditorManager( Utils::Id mode );
-    };
 
 }
