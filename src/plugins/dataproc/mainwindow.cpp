@@ -1033,7 +1033,7 @@ void
 MainWindow::handleProcess( const QString& origin )
 {
     ADDEBUG() << "############################ TODO ##################################";
-//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     auto pm = std::make_shared< adcontrols::ProcessMethod >();
     getProcessMethod( *pm );
     document::instance()->setProcessMethod( *pm );
@@ -1377,8 +1377,6 @@ void
 MainWindow::handleExportAllChecked()
 {
 //     ADDEBUG() << "########################### TODO ###################################";
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-//    ADDEBUG() << __FUNCTION__;
     QString dataPath;
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
         dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
@@ -1462,7 +1460,6 @@ void
 MainWindow::handleImportChecked()
 {
 //     ADDEBUG() << "########################### TODO ###################################";
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QString filename = QFileDialog::getSaveFileName( 0
                                                      , tr( "Import checked data into a file")
                                                      , currentDir()
@@ -1508,7 +1505,6 @@ MainWindow::actionApply()
     document::instance()->setProcessMethod( pm );
 
 //     ADDEBUG() << "########################### TODO ###################################";
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 
         if ( currentFeature_ == CalibrationProcess )
@@ -1518,7 +1514,6 @@ MainWindow::actionApply()
         else
             processor->applyProcess( pm, currentFeature_ );
     }
-//#endif
 }
 
 void
@@ -1531,10 +1526,8 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-//        ADDEBUG() << "########################### TODO ###################################";
-//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         processor->applyCalibration( pm, assigned );
-//#endif
+
     }
 }
 
@@ -1690,7 +1683,6 @@ std::wstring
 MainWindow::foliumName( const std::wstring& id )
 {
 //     ADDEBUG() << "########################### TODO ###################################";
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
         portfolio::Portfolio portfolio = dp->getPortfolio();
 
@@ -1700,7 +1692,6 @@ MainWindow::foliumName( const std::wstring& id )
             return name;
         }
     }
-//#endif
     return {};
 }
 

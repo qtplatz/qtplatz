@@ -18,7 +18,7 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "9.0.0" )
   set ( QTPLATZ_CONFIG_HelloWorld OFF )
 elseif( IDE_VERSION VERSION_EQUAL "8.0.2" )
   set ( QTPLATZ_CONFIG_Servant    ON )
-  set ( QTPLATZ_CONFIG_Acquire    OFF )
+  set ( QTPLATZ_CONFIG_Acquire    ON )
   set ( QTPLATZ_CONFIG_Dataproc   ON )
   set ( QTPLATZ_CONFIG_Quan       OFF )
 

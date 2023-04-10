@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -269,18 +269,31 @@ MainWindow::OnInitialUpdate()
             action->setEnabled( false );
     }
 
+#if QTC_VERSION >= 0x08'00'00
     for ( auto iController: qtwrapper::plugin_manager::getObjects< adextension::iController >() ) {
         document::instance()->addInstController( iController );
     }
-
+#else
+    for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+        document::instance()->addInstController( iController );
+    }
+#endif
     // initialize module picker
     if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {
 
+#if QTC_VERSION >= 0x08'00'00
         for ( auto iController: qtwrapper::plugin_manager::getObjects< adextension::iController >() ) {
             bool checked = document::instance()->isControllerEnabled( iController->module_name() );
             bool enabled = !document::instance()->isControllerBlocked( iController->module_name() );
             picker->addItem( iController->module_name(), iController->module_name(), checked, enabled );
         }
+#else
+        for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
+            bool checked = document::instance()->isControllerEnabled( iController->module_name() );
+            bool enabled = !document::instance()->isControllerBlocked( iController->module_name() );
+            picker->addItem( iController->module_name(), iController->module_name(), checked, enabled );
+        }
+#endif
 
         connect( document::instance(), &document::moduleConfigChanged, this
                  , [picker](){
@@ -289,6 +302,11 @@ MainWindow::OnInitialUpdate()
                        }
                    });
     }
+
+    // if ( auto widget = findChild< acquirewidgets::ThresholdWidget * >() ) {
+    //     widget->setJson( document::instance()->threshold_method().toJson( QJsonDocument::Compact ) );
+    //     widget->setJson( document::instance()->threshold_action().toJson( QJsonDocument::Compact ) );
+    // }
 
     if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
         wnd->onInitialUpdate();
@@ -388,7 +406,7 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
 	if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
-#if QTC_VERSION < 0x08'00'00
+#if QTC_VERSION <= 0x03'02'81
         QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
 #else
         QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );

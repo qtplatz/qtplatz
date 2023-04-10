@@ -40,7 +40,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#if QTC_VERSION < 0x08'00'00
+#if QTC_VERSION <= 0x03'02'81
 # include <coreplugin/id.h>
 #endif
 #include <coreplugin/modemanager.h>
@@ -85,13 +85,13 @@ acquireplugin::initialize( const QStringList &arguments, QString *errorString )
 
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
-#if QTC_VERSION < 0x08'00'00
+#if QTC_VERSION <= 0x03'02'81
     addObject( mode_.get() );
 #endif
 
     // add instrument controller
     for ( auto iController : document::instance()->iControllers() ) {
-#if QTC_VERSION < 0x08'00'00
+#if QTC_VERSION <= 0x03'02'81
         addObject( iController );
 #endif
         connect( iController, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
@@ -100,7 +100,7 @@ acquireplugin::initialize( const QStringList &arguments, QString *errorString )
     // no time function supported.
     if ( auto iExtension = document::instance()->iSequence() ) {
         MainWindow::instance()->getEditorFactories( *iExtension );
-#if QTC_VERSION < 0x08'00'00
+#if QTC_VERSION <= 0x03'02'81
         addObject( iExtension );
 #endif
     }

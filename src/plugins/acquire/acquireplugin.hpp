@@ -5,7 +5,6 @@
 #include <extensionsystem/iplugin.h>
 #include <memory>
 
-
 namespace acquire {
 
     class Mode;
@@ -14,8 +13,11 @@ namespace acquire {
 
     class acquireplugin : public ExtensionSystem::IPlugin   {
         Q_OBJECT
+#if QTC_VERSION >= 0x08'00'00
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Acquire.json")
+#else
         Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "acquireplugin.json")
-
+#endif
         public:
         acquireplugin();
         ~acquireplugin();

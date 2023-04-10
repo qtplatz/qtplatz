@@ -1,7 +1,7 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   project( Acquire )
 else()
   project( acquireplugin )
@@ -11,8 +11,8 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-########## QtCreator 9 (Qt6) plugin.json #############
-if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+########## QtCreator 8 (Qt5/6) plugin.json #############
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
   find_package(QtCreator REQUIRED COMPONENTS Core)
 
@@ -40,17 +40,16 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   configure_file(
     "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    )
-
-    execute_process( COMMAND ${XMLPATTERNS} -no-format
-    -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+  )
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
     ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
     ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-    )
+  )
 endif()
 
 if (WIN32)
@@ -93,14 +92,14 @@ add_library( ${PROJECT_NAME} MODULE
   idgmodimpl.cpp
   idgmodimpl.hpp
   ${Resources}
-  )
+)
 
-if ( IDE_VERSION VERSION_LESS "8.0.0" )
-  set( EXTENSIONSYSTEM "extensionsystem" )
-  set( UTILS "utils" )
-else()
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   set( EXTENSIONSYSTEM "ExtensionSystem" )
   set( UTILS "Utils" )
+else()
+  set( EXTENSIONSYSTEM "extensionsystem" )
+  set( UTILS "utils" )
 endif()
 
 target_link_libraries(
@@ -142,7 +141,9 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-#install( FILES
-#  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-#  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-#  )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+)
+endif()
