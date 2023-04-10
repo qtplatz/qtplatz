@@ -1,6 +1,6 @@
 #cmake_policy( SET CMP0020 NEW )
 #cmake_policy( SET CMP0028 NEW )
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   project( chemistry )
 else()
   project( Chemistry )

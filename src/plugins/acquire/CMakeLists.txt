@@ -1,10 +1,10 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
-  project( Acquire )
-else()
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   project( acquireplugin )
+else()
+  project( Acquire )
 endif()
 
 set( PROVIDER MS-Cheminformatics )
