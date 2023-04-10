@@ -1,13 +1,22 @@
 
-project( peptide )
+project( Peptide )
 set( PROVIDER MS-Cheminformatics )
-set( COMPAT_VERSION 3.2.81 )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  set( COMPAT_VERSION 3.2.81 )
+endif()
+
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-cmake_policy( SET CMP0020 NEW )
-cmake_policy( SET CMP0028 NEW )
-
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Network Widgets PrintSupport Sql Svg )
+########## QtCreator 8 (Qt5/6) plugin.json #############
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+  )
+endif()
+####################### END ##########################
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -17,18 +26,8 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
-
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtCore_INCLUDE_DIRS}
@@ -73,8 +72,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   qtwrapper
   Core
-  extensionsystem
-  utils
+  ExtensionSystem
+  Utils
   Qt::Core
   ${Boost_LIBRARIES}
 )
@@ -86,10 +85,7 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+  )

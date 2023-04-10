@@ -62,7 +62,7 @@ ProteinWnd::init()
 {
     if ( QBoxLayout * layout = new QVBoxLayout( this ) ) {
 
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->setSpacing( 0 );
 
         if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum
@@ -238,9 +238,9 @@ ProteinWnd::protSelChanged( int row )
                 sort_and_unique( peptides );
                 setData( peptides );
 
-                for( auto handler: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iPeptideHandler >() ) {
-                    handler->onProteinSelected( digested );
-                }
+                // for( auto handler: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iPeptideHandler >() ) {
+                //     handler->onProteinSelected( digested );
+                // }
             }
         }
     }

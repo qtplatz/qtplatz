@@ -37,7 +37,11 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#if QTC_VERSION < 0x03'02'81
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/modemanager.h>
 
 #include <QAction>
@@ -49,21 +53,38 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/path.hpp>
 
+namespace peptide {
+
+    class peptideplugin::impl {
+    public:
+        impl() {}
+        ~impl() {}
+
+        void ini() {
+            if (( mainWindow_ = std::make_unique< MainWindow >() )) {
+                mainWindow_->activateWindow();
+                mainWindow_->createActions();
+                if (( mode_ = std::make_unique< PeptideMode >() )) {
+                    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+                        mode_->setWidget( widget );
+                }
+            }
+        }
+        void fin() {
+        }
+        std::unique_ptr< MainWindow > mainWindow_;
+        std::unique_ptr< PeptideMode > mode_;
+    };
+}
+
 using namespace peptide;
 
-peptideplugin::peptideplugin() : mainWindow_( new MainWindow() )
-                               , mode_( std::make_shared< PeptideMode >(this) )
+peptideplugin::peptideplugin() : impl_( std::make_unique< impl >() )
 {
-    // Create your members
 }
 
 peptideplugin::~peptideplugin()
 {
-    // Unregister objects from the plugin manager's object pool
-    // Delete members
-	if ( mode_ )
-        removeObject( mode_.get() );
-    delete mainWindow_;
 }
 
 bool peptideplugin::initialize(const QStringList &arguments, QString *errorString)
@@ -71,28 +92,19 @@ bool peptideplugin::initialize(const QStringList &arguments, QString *errorStrin
     (void)arguments;
     (void)errorString;
 
-    mainWindow_->activateWindow();
-    mainWindow_->createActions();
-
-    // Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-    // mode_->setContext( gc );
-    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
-        mode_->setWidget( widget );
-    addObject( mode_.get() );
+    impl_->ini();
 
     return true;
 }
 
 void peptideplugin::extensionsInitialized()
 {
-    mainWindow_->onInitialUpdate();
+    impl_->mainWindow_->onInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag peptideplugin::aboutToShutdown()
 {
-    // Save settings
-    // Disconnect from signals that are not needed during shutdown
-    // Hide UI (if you add UI that is not in the main window directly)
+    impl_->fin();
 
 #if ! defined NDEBUG
     ADDEBUG() << "\t## Shutdown: "
@@ -110,6 +122,3 @@ peptideplugin::triggerAction()
                              tr("Action triggered"),
                              tr("This is an action from peptide."));
 }
-
-Q_EXPORT_PLUGIN2(peptide, peptideplugin)
-
