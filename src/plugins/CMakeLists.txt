@@ -20,7 +20,7 @@ endif()
 
 ##add_subdirectory( imageviewer )
 ################### QtCreator4 #########################
-if ( IDE_VERSION VERSION_LESS "8.0.0" )  # 3.2.81
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )  # 3.2.81
   add_subdirectory( coreplugin )
 endif()
 ################### END QtCreator4 #####################

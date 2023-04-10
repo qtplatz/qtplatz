@@ -3,7 +3,7 @@ project( Quan )
 
 set( PROVIDER MS-Cheminformatics )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-if ( ${IDE_VERSION} VERSION_LESS_EQUAL "3.2.81" )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   set( COMPAT_VERSION 3.2.81 )
 endif()
 

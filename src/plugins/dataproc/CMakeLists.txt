@@ -22,7 +22,7 @@ file(GLOB Resources *.qrc)
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 ########## QtCreator 8 (Qt5/6) plugin.json #############
-if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "8.0.0" )
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
   find_package( QtCreator REQUIRED COMPONENTS Core )
   configure_file(
@@ -32,7 +32,7 @@ if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "8.0.0" )
 endif()
 ####################### END ##########################
 
-if ( ${IDE_VERSION} VERSION_LESS "3.2.81" )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
@@ -121,7 +121,7 @@ add_library( ${PROJECT_NAME} MODULE
   ${Resources}
 )
 
-if ( ${IDE_VERSION} VERSION_GREATER_EQUAL "8.0.0" )
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   set( EXTENSIONSYSTEM "ExtensionSystem" )
   set( UTILS "Utils" )
 else()
@@ -172,7 +172,7 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-if ( IDE_VERSION VERSION_LESS "9.0.0" )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.18" )
   install( FILES
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"

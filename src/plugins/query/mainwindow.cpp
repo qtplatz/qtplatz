@@ -36,7 +36,7 @@
 #include <adportable/debug.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
-#if QTC_VERSION < 0x03'02'81
+#if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
 #else
 #include <utils/id.h>
