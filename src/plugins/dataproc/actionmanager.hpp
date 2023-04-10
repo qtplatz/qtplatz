@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -30,10 +30,10 @@
 #include <QAction>
 #include <memory>
 #include <array>
-
+#include <coreplugin/icontext.h>
 class QAction;
 
-namespace Core { class IContext; class Context; }
+// namespace Core { class IContext; class Context; }
 
 namespace dataproc {
 
@@ -91,7 +91,8 @@ namespace dataproc {
         void handleSave();
         void handleSaveAs();
 
-        void handleContextChanged( const QList<Core::IContext *>&, const Core::Context& );
+        void handleContextAboutToChange( const QList<Core::IContext *>& );
+        void handleContextChanged( const Core::Context& );
 
         bool importFile();
 

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -37,6 +37,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
@@ -44,7 +45,12 @@
 #include <adportfolio/portfolio.hpp>
 #include <qtwrapper/settings.hpp>
 #include <coreplugin/icore.h>
+#if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
+#include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
@@ -57,6 +63,7 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
+#include <QMenu>
 #include <QStandardPaths>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -125,9 +132,19 @@ ActionManager::initialize_actions( const Core::Context& context )
 
 
 	if ( auto * am = Core::ActionManager::instance() ) {
-
-        if ( auto cmd = am->command( Core::Constants::OPEN ) )
+#if 0
+        if ( auto cmd = am->command( Core::Constants::OPEN ) ) {
             cmd->action()->setText( tr( "Open data files..." ) );  // override text
+        }
+#else
+        if ( auto p = actions_[ idActOpen ] = create( Constants::ICON_OPEN, tr("Open data files..."), this ) ) {
+            // if ( auto cmd = am->command( Core::Constants::OPEN ) ) {
+            auto cmd = am->registerAction( p, Core::Constants::OPEN );
+            cmd->action()->setText( tr( "Open data files..." ) );  // override text
+            cmd->setDefaultKeySequence(QKeySequence::Open);
+            connect( cmd->action(), &QAction::triggered, this, &ActionManager::handleOpen );
+        }
+#endif
 
         if ( auto p = actions_[ idActSave ] = create( Constants::ICON_SAVE, tr("Save"), this ) ) {
             am->registerAction( p, Core::Constants::SAVE, context );
@@ -223,7 +240,12 @@ ActionManager::initialize_actions( const Core::Context& context )
         } while ( 0 );
     }
 
+#if QTC_VERSION <= 0x03'02'81
     connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );
+#else
+    connect( Core::ICore::instance(), &Core::ICore::contextAboutToChange, this, &ActionManager::handleContextAboutToChange );
+    connect( Core::ICore::instance(), &Core::ICore::contextChanged, this, &ActionManager::handleContextChanged );
+#endif
 
     return  install_toolbar_actions() && install_file_actions();
 }
@@ -367,7 +389,11 @@ ActionManager::actCalibFileApply()
 void
 ActionManager::handleOpen()
 {
-    // Core::EditorManager()
+    auto list = Core::EditorManager::getOpenFilePaths();
+    for ( const auto& filePath: list ) {
+        QFlags< Core::EditorManager::OpenEditorFlag> emFlags;
+        Core::EditorManager::openEditor(filePath, {}, emFlags);
+    }
 }
 
 void
@@ -383,12 +409,22 @@ ActionManager::handleSaveAs()
 }
 
 void
-ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Core::Context& )
+ActionManager::handleContextAboutToChange( const QList<Core::IContext *>& t1 )
 {
     for ( auto& context : t1 ) {
         if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
-            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath() );
+            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath().toString() );
             actions_[ idActSaveAs ]->setText( text );
         }
     }
+}
+
+void
+ActionManager::handleContextChanged( const Core::Context& context )
+{
+    // context is a list; first item is the currently selected one
+
+    // ADDEBUG() << "### Core::ContextChanged: " << context.size() << " " << (context.size() ? context.begin()->toString().toStdString() : "");
+    // for ( auto id: context )
+    //     ADDEBUG() << "\t-- " << id.toString().toStdString();
 }

@@ -314,7 +314,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+#if QTC_VERSION <= 0x03'02'81
     QString filename( processor->filePath() );
 #else
     QString filename( processor->filePath().toString() );
@@ -384,7 +384,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION <= 0x03'02'81
     QString filename = processor->filePath();
 #else
     QString filename = processor->filePath().toString();

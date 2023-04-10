@@ -29,6 +29,7 @@
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <boost/optional.hpp>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
@@ -77,7 +78,7 @@ namespace adprocessor {
 
         virtual void setModified( bool );
 
-        virtual bool open( const std::wstring&, std::wstring& errmsg );
+        virtual bool open( const std::filesystem::path&, std::string& errmsg );
 
 		virtual std::wstring filename() const;
 

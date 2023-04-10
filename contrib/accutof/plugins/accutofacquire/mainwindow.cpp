@@ -28,16 +28,17 @@
 #include "isequenceimpl.hpp"
 #include "iu5303afacade.hpp"
 #include "moleculeswidget.hpp"
+#include <qtwrapper/plugin_manager.hpp>
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrswidgets/thresholdwidget.hpp>
 #include <acqrswidgets/u5303awidget.hpp>
 #include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
-#if TOFCHROMATOGRAMSMETHOD
-# include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
-# include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
-#endif
+// #if TOFCHROMATOGRAMSMETHOD
+// # include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+// # include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+// #endif
 #include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -60,14 +61,13 @@
 #include <adwidgets/moltableview.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <adwidgets/samplerunwidget.hpp>
-#if TOFCHROMATOGRAMSMETHOD
-# include <adwidgets/tofchromatogramswidget.hpp>
-#endif
+// #if TOFCHROMATOGRAMSMETHOD
+// # include <adwidgets/tofchromatogramswidget.hpp>
+// #endif
 #include <adwidgets/xchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/trackingenabled.hpp>
-#include <qtwrapper/plugin_manager.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -95,21 +95,21 @@
 #include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
+#include <QHBoxLayout>
+#include <QIcon>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
+#include <QResizeEvent>
 #include <QSignalBlocker>
 #include <QStackedWidget>
 #include <QStatusBar>
-#include <QResizeEvent>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QTabBar>
-#include <QToolButton>
 #include <QTextEdit>
 #include <QThread>
-#include <QLabel>
-#include <QIcon>
+#include <QToolButton>
+#include <QVBoxLayout>
 #include <qdebug.h>
 #include <csignal>
 
@@ -189,11 +189,6 @@ MainWindow::createDockWidgets()
                             ( u.mode() == method::DigiMode::Averager && u._device_method().nbr_of_averages >= 2 );
                         sform->setDisabled( disable );
                     }
-#if TOFCHROMATOGRAMSMETHOD
-                    if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >() ) {
-                        widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
-                    }
-#endif
                     if ( auto widget = findChild< adwidgets::XChromatogramsWidget * >( "XICs" ) ) {
                         widget->setDigitizerMode( u.mode() == method::DigiMode::Digitizer );
                     }
@@ -217,23 +212,23 @@ MainWindow::createDockWidgets()
             connect( widget, &MoleculesWidget::valueChanged, wnd, &WaveformWnd::handleMolecules );
         }
     }
-#if TOFCHROMATOGRAMSMETHOD
-    if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
-        createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
-        if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
-            connect( widget, &adwidgets::TofChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
-                if ( index.column() == 4 || index.column() == 5 )  // time | time-window
-                    wnd->setSpanMarker( index.row(), index.column() - 4, value );
-            });
+// #if TOFCHROMATOGRAMSMETHOD
+//     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
+//         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
+//         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+//             connect( widget, &adwidgets::TofChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
+//                 if ( index.column() == 4 || index.column() == 5 )  // time | time-window
+//                     wnd->setSpanMarker( index.row(), index.column() - 4, value );
+//             });
 
-            connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [wnd,widget] () {
-                auto m = widget->method();
-                wnd->setMethod( m ); // draw markers
-                document::instance()->setMethod( m );
-            });
-        }
-    }
-#endif
+//             connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [wnd,widget] () {
+//                 auto m = widget->method();
+//                 wnd->setMethod( m ); // draw markers
+//                 document::instance()->setMethod( m );
+//             });
+//         }
+//     }
+// #endif
 //----------
     if ( auto widget = qtwrapper::make_widget< adwidgets::XChromatogramsWidget >( "XICs" ) ) {
         createDockWidget( widget, tr( "XICs" ), "XICs" );
@@ -277,7 +272,7 @@ MainWindow::createDockWidgets()
 size_t
 MainWindow::findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const
 {
-    for ( auto v: qtwrapper::plugin_manager_t<>::getObjects< adextension::iController >() ) {
+    for ( auto v: qtwrapper::plugin_manager::getObjects< adextension::iController >() ) {
         try {
             vec.push_back( v->shared_from_this() );
         } catch ( std::bad_weak_ptr& ) {
@@ -312,11 +307,6 @@ MainWindow::OnInitialUpdate()
         w->setMassSpectrometer( document::instance()->massSpectrometer() );
     }
 #endif
-#if TOFCHROMATOGRAMSMETHOD
-    if ( auto w = findChild< adwidgets::TofChromatogramsWidget * >( "Chromatograms" ) ) {
-        w->setMassSpectrometer( document::instance()->massSpectrometer() );
-    }
-#endif
 
     // Set control method name on MidToolBar
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
@@ -337,13 +327,13 @@ MainWindow::OnInitialUpdate()
     }
 
     // enumerate all controllers
-    for ( auto iController: qtwrapper::plugin_manager_t<>::getObjects< adextension::iController >() ) {
+    for ( auto iController: qtwrapper::plugin_manager::getObjects< adextension::iController >() ) {
         document::instance()->addInstController( iController );
     }
 
     // initialize module picker
     if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {
-        for ( auto iController: qtwrapper::plugin_manager_t<>::getObjects< adextension::iController >() ) {
+        for ( auto iController: qtwrapper::plugin_manager::getObjects< adextension::iController >() ) {
             bool checked = document::instance()->isControllerEnabled( iController->module_name() );
             bool enabled = !document::instance()->isControllerBlocked( iController->module_name() );
             picker->addItem( iController->module_name(), iController->module_name(), checked, enabled );
@@ -533,7 +523,8 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
 	if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
-#if QTC_VERSION < 0x09'00'00
+#if QTC_VERSION <= 0x03'02'81
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
 #else
         QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
@@ -802,12 +793,12 @@ MainWindow::createActions()
 
     if ( !menu )
         return;
-#if QTC_VERSION < 0x09'00'00
+#if QTC_VERSION <= 0x03'02'81
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     const Core::Context context( (Core::Id( Core::Constants::C_GLOBAL ) ) );
 #else
     const Core::Context context( (Utils::Id( Core::Constants::C_GLOBAL ) ) );
 #endif
-
     menu->menu()->setTitle( "U5303A" );
 
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
@@ -1061,6 +1052,10 @@ MainWindow::handleInstState( int status )
 void
 MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> m )
 {
+    if ( QThread::currentThread() != QCoreApplication::instance()->thread() )
+        ADDEBUG() << "ERROR: ============ " << __FUNCTION__ << " ============ : MUST INVOKE FROM MAIN THREAD. =====";
+    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->setContents( boost::any(m) );
@@ -1071,7 +1066,10 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
 std::shared_ptr< adcontrols::ControlMethod::Method >
 MainWindow::getControlMethod() const
 {
-    // ADDEBUG() << "-------- getControlMethod threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
+    if ( QThread::currentThread() != QCoreApplication::instance()->thread() )
+        ADDEBUG() << "ERROR: ============ " << __FUNCTION__ << " ============ : MUST INVOKE FROM MAIN THREAD. =====";
+   assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+
     auto ptr = std::make_shared< adcontrols::ControlMethod::Method >();
     boost::any a( ptr );
     for ( auto dock: dockWidgets() ) {
@@ -1282,8 +1280,7 @@ MainWindow::handleControlMethodSaveAs()
 {
     QString dstfile;
 
-    ADDEBUG() << "-------- getContents threads: " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
-    assert( QThread::currentThread() == QCoreApplication::instance()->thread() );
+    ADDEBUG() << "============ " << __FUNCTION__ << " ============> " << bool( QThread::currentThread() == QCoreApplication::instance()->thread() );
 
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
         dstfile = edit->toolTip();

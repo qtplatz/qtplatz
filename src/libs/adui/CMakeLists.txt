@@ -27,8 +27,14 @@ add_library( ${PROJECT_NAME} SHARED
   ${RC_SRC}
   )
 
+if ( ${IDE_VERSION_MAJOR} GREATER_EQUAL 8 )
+  set (UTILS "Utils")
+else()
+  set (UTILS "utils")
+endif()
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  utils
+  ${UTILS}
   Qt::Core
   Qt::Widgets
   )
@@ -37,3 +43,8 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )
+
+
+set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)  # for utils/algorithms.h
+
+##########

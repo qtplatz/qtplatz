@@ -26,12 +26,15 @@
 #include "dataproceditor.hpp"
 #include "document.hpp"
 #include "dataprocessor.hpp"
-#include "dataprocessorfactory.hpp"
 #include "dataprocconstants.hpp"
 #include "mainwindow.hpp"
 #include "msprocessingwnd.hpp"
 #include "sessionmanager.hpp"
-#include <coreplugin/id.h>
+#if QTC_VERSION < 0x08'00'00
+# include <coreplugin/id.h>
+#else
+# include <utils/id.h>
+#endif
 #include <coreplugin/modemanager.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/icore.h>
@@ -39,103 +42,67 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <QTextEdit>
 #include <QEvent>
+#include <adportable/debug.hpp>
+
+namespace dataproc {
+
+    class DataprocEditor::impl {
+    public:
+        std::shared_ptr< Dataprocessor > file_;
+        QWidget * widget_;
+        impl() : widget_( new QWidget )
+               , file_( Dataprocessor::make_dataprocessor() ) {
+        }
+        ~impl() {
+            // delete widget_;
+        }
+    };
+}
 
 using namespace dataproc;
-
-DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
-                                                                 , widget_( new QWidget )
-                                                                 , factory_(factory)
-{
-    widget_->installEventFilter( this );
-    setWidget( widget_ );
-    context_.add( Constants::C_DATAPROCESSOR );
-}
 
 DataprocEditor::~DataprocEditor()
 {
     SessionManager::instance()->removeEditor( this );
-    delete widget_;
 }
 
-void
-DataprocEditor::setDataprocessor( Dataprocessor * processor )
+DataprocEditor::DataprocEditor() : impl_( std::make_unique< impl >() )
 {
-    processor_ = std::static_pointer_cast< Dataprocessor >( processor->shared_from_this() );
-}
-
-bool
-DataprocEditor::portfolio_create( const QString& filename )
-{
-    if ( processor_ && processor_->create( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor_, this );
-        return true;
-    }
-    return false;
-}
-
-bool
-DataprocEditor::open( QString* errorMessage, const QString &filename, const QString& )
-{
-	qtwrapper::waitCursor wait;
-
-    QString emsg;
-    if ( processor_ && processor_->open( filename,  emsg) ) {
-        SessionManager::instance()->addDataprocessor( processor_, this );
-
-        Core::DocumentManager::addDocument( processor_->document() );
-        Core::DocumentManager::addToRecentFiles( filename );
-        document::instance()->addToRecentFiles( filename );
-
-        return true;
-    }
-    *errorMessage = QString( "DataprocEditor:\nfile %1 could not be opend.\nReason: %2." ).arg( filename, emsg );
-
-    return false;
+    impl_->widget_->installEventFilter( this );
+    setWidget( impl_->widget_ );
 }
 
 Core::IDocument *
-DataprocEditor::document()
+DataprocEditor::document() const
 {
-    return processor_ ? processor_->document() : 0;
-}
-
-void
-DataprocEditor::handleTitleChanged( const QString & /* title */ )
-{
-}
-
-QByteArray
-DataprocEditor::saveState() const
-{
-    return QByteArray();
-}
-
-bool
-DataprocEditor::restoreState(const QByteArray & /* state */ )
-{
-    return true;
+    return impl_->file_.get();
 }
 
 QWidget *
 DataprocEditor::toolBar()
 {
+    // ADDEBUG() << "########### DataprocEditor::" << __FUNCTION__ << " ####################";
     return 0;
 }
 
-Core::Context
-DataprocEditor::context() const
+Core::IEditor *
+DataprocEditor::duplicate()
 {
-    return context_;
+    // ADDEBUG() << "########### DataprocEditor::" << __FUNCTION__ << " ####################";
+    return 0;
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+// QTC4, 9
 bool
 DataprocEditor::eventFilter( QObject * object, QEvent * event )
 {
-    if ( object == widget_ ) {
-        if ( event->type() == QEvent::ShowToParent ) {
-            int mode(0);
-            if ( processor_ && (mode = processor_->mode() ) )
-                Core::ModeManager::activateMode( Core::Id( mode ) ); // Constants::C_DATAPROCESSOR ) );
+    if ( object == impl_->widget_ ) {
+        if ( event->type() == QEvent::Show ) {
+            if ( impl_->file_ )
+                Core::ModeManager::activateMode( Utils::Id( Constants::C_DATAPROCESSOR ) );
         }
     }
     return false;

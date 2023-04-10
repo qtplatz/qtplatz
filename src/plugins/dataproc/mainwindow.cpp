@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,20 +23,25 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "aboutdlg.hpp"
+//#endif
 #include "chromatogramwnd.hpp"
 #include "document.hpp"
 #include "dataprocconstants.hpp"
+
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
-#include "dataprocessorfactory.hpp"
+// #include "dataprocfactory.hpp"
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
 #include "mspeaktable.hpp"
+
 #include <adwidgets/mspeaktree.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/settings.hpp>
+
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mspeakswnd.hpp"
@@ -88,6 +93,7 @@
 #include <qtwrapper/jsonhelper.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/plugin_manager.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
@@ -147,80 +153,12 @@ namespace dataproc {
     typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd* //, MSCalibSpectraWnd*
                             , ChromatogramWnd*, MSPeaksWnd*, ContourWnd*, MSSpectraWnd* > wnd_ptr_t;
 
-#if __cplusplus < 201703L
-    struct session_added_connector : public boost::static_visitor < bool > {
-        QObject * this_;
-        session_added_connector( QObject * p ) : this_(p) {}
-        template<class T> bool operator () ( T* wnd ) const {
-            return
-                this_->connect( SessionManager::instance(), &SessionManager::onSessionAdded, wnd
-                                , [=]( Dataprocessor *dp ){ wnd->handleSessionAdded(dp);});
-        }
-    };
-
-    struct selection_changed_connector : public boost::static_visitor< bool > {
-        QObject * this_;
-        selection_changed_connector( QObject * p ) : this_(p) {}
-        template<class T> bool operator () ( T* wnd ) const {
-            return
-                this_->connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, wnd
-                                , [=]( Dataprocessor* dp, portfolio::Folium& f ){ wnd->handleSelectionChanged( dp, f ); });
-        }
-    };
-
-    struct processed_connector : public boost::static_visitor< bool > {
-        QObject * this_;
-        processed_connector( QObject * p ) : this_(p) {}
-        template<class T> bool operator () ( T* wnd ) const {
-            return
-                this_->connect( SessionManager::instance(), &SessionManager::onProcessed, wnd
-                                , [=]( Dataprocessor* dp, portfolio::Folium& f ){ wnd->handleProcessed( dp, f ); });
-        }
-    };
-
-    struct apply_method_connector : public boost::static_visitor< bool > {
-        QObject * this_;
-        apply_method_connector( QObject * p ) : this_(p) {}
-        template<class T> bool operator () ( T* wnd ) const {
-            return
-                this_->connect( DataprocPlugin::instance(), &DataprocPlugin::onApplyMethod, wnd
-                                , [=]( const adcontrols::ProcessMethod& pm ){ wnd->handleApplyMethod( pm ); });
-        }
-    };
-
-    struct check_state_changed_connector : public boost::static_visitor< bool > {
-        QObject * this_;
-        check_state_changed_connector( QObject * p ) : this_(p) {}
-        template< class T > bool operator () ( T* wnd ) const {
-            return
-                this_->connect( SessionManager::instance(), &SessionManager::signalCheckStateChanged, wnd
-                                , [=]( Dataprocessor* dp, portfolio::Folium& f, bool st ){ wnd->handleCheckStateChanged( dp, f, st ); });
-        }
-    };
-    template<> bool check_state_changed_connector::operator()( ElementalCompWnd * ) const { return false; }
-    template<> bool check_state_changed_connector::operator()( MSCalibrationWnd * ) const { return false; }
-    template<> bool check_state_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
-
-    struct axis_changed_connector : public boost::static_visitor< bool > {
-        QObject * this_;
-        QComboBox * sender_;
-        axis_changed_connector( QObject * p, QComboBox * choice ) : this_(p), sender_(choice) {}
-        template< class T > bool operator () ( T* receiver ) const {
-            return this_->connect( sender_, static_cast<void ( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), receiver, [=] ( int idx ) {
-                receiver->handleAxisChanged( idx == 0 ? adcontrols::hor_axis_mass : adcontrols::hor_axis_time ); } );
-        }
-    };
-    // following 3 classes has no axis change handler
-    template<> bool axis_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
-    template<> bool axis_changed_connector::operator()( MSPeaksWnd * ) const { return false; }
-    template<> bool axis_changed_connector::operator()( ContourWnd * ) const { return false; }
-#endif
 }
 
 using namespace dataproc;
 
 namespace {
-#if __cplusplus >= 201703L
+    // __cplusplus >= 201703L
     template<typename _Ty,  typename ... _Types>
     inline _Ty * make_stack_widget( QStackedWidget * stack, QString&& title, _Types&&... _Args )
     {
@@ -231,22 +169,10 @@ namespace {
         }
         return nullptr;
     }
-#else
-    template<typename _Ty,  typename ... _Types>
-    inline _Ty * make_stack_widget( QStackedWidget * stack, const QString& title, const _Types&... _Args )
-    {
-        if ( auto w = new _Ty( std::forward<_Types>(_Args)...) ) {
-            w->setWindowTitle( title );
-            stack->addWidget( w );
-            return w;
-        }
-        return nullptr;
-    }
-#endif
 }
 
 namespace {
-#if  __cplusplus >= 201703L
+    // #if  __cplusplus >= 201703L
     template< typename ...Args > void scaleSpectrumConnector( MainWindow * w, QObject * p ) {
         ( QObject::connect( w, &MainWindow::onScaleYChanged, p->findChild<Args *>(), &Args::handleSpectrumYScale ) , ... );
     }
@@ -301,7 +227,6 @@ namespace {
                                 if ( auto w = p->findChild< Args * >() )
                                     w->handleAxisChanged( id == 0 ? adcontrols::hor_axis_mass : adcontrols::hor_axis_time );}), ...);
     }
-#endif
 }
 
 MainWindow::~MainWindow()
@@ -338,11 +263,12 @@ MainWindow::createStyledBarTop()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 2 );
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
-            Core::Context context( ( Core::Id( "dataproc.MainView" ) ) );
+
+            Core::Context context( ( Utils::Id( Constants::C_DATAPROCESSOR ) ) );
 
             if ( auto p = new QAction( tr("MS Process"), this ) ) {
                 connect( p, &QAction::triggered, [&](){ stack_->setCurrentIndex( idSelMSProcess ); } );
@@ -586,7 +512,7 @@ MainWindow::createStyledBarMiddle()
     if ( toolBar2 ) {
         toolBar2->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
-        toolBarLayout->setMargin(0);
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
@@ -743,7 +669,7 @@ MainWindow::createContents( Core::IMode * mode )
             w->setTimeSquaredScanLaw( length, vaccl, tdelay );
         }
     } );
-#if __cplusplus >= 201703L
+    // #if __cplusplus >= 201703L
     sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     removeSessionConnector   < MSProcessingWnd, MSSpectraWnd, ElementalCompWnd, ChromatogramWnd >( stack_ );
     sessionRemovedConnector  < ChromatogramWnd >( stack_ );
@@ -754,37 +680,9 @@ MainWindow::createContents( Core::IMode * mode )
     axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
     scaleChromatogramConnector < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
     scaleSpectrumConnector   < MSProcessingWnd, MSSpectraWnd >( this, stack_ );
-#else
-    for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-        boost::apply_visitor( session_added_connector(this), it );
-        boost::apply_visitor( selection_changed_connector(this), it );
-        boost::apply_visitor( processed_connector(this), it );
-        boost::apply_visitor( apply_method_connector(this), it );
-        boost::apply_visitor( check_state_changed_connector(this), it );
-        boost::apply_visitor( axis_changed_connector(this, axisChoice_), it );
-    }
-    if ( auto wnd = stack_->findChild< MSProcessingWnd * >() ) {
-        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &MSProcessingWnd::handleChromatogramYScale );
-        connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &MSProcessingWnd::handleChromatogramXScale );
-        connect( this, &MainWindow::onScaleYChanged, wnd, &MSProcessingWnd::handleSpectrumYScale );
-        connect( SessionManager::instance(), &SessionManager::onRemoveSession, wnd, &MSProcessingWnd::handleRemoveSession );
-
-    }
-    if ( auto wnd = stack_->findChild< MSSpectraWnd * >() ) {
-        connect( this, &MainWindow::onScaleYChanged, wnd, &MSSpectraWnd::handleSpectrumYScale );
-    }
-    if ( auto wnd = stack_->findChild< ChromatogramWnd * >() ) {
-        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ChromatogramWnd::handleChromatogramYScale );
-        connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &ChromatogramWnd::handleChromatogramXScale );
-        connect( SessionManager::instance(), &SessionManager::onRemoveSession, wnd, &ChromatogramWnd::handleRemoveSession );
-    }
-    if ( auto wnd = stack_->findChild< ContourWnd * >() ) {
-        connect( this, &MainWindow::onScaleChromatogramYChanged, wnd, &ContourWnd::handleChromatogramYScale );
-        connect( this, &MainWindow::onScaleChromatogramXChanged, wnd, &ContourWnd::handleChromatogramXScale );
-    }
-#endif
+    // #endif
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setContentsMargins( {} );
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( toolBar1 );  // top most toolbar
     toolBarAddingLayout->addWidget( splitter3 ); // Spectra|chrmatogram pane
@@ -792,7 +690,11 @@ MainWindow::createContents( Core::IMode * mode )
 
     // Right-side window with editor, output etc.
     Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
+#if QTC_VERSION <= 0x03'02'81
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+#else
+    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
+#endif
     outputPane->setObjectName( QLatin1String( "OutputPanePlaceHolder" ) );
     mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
@@ -802,7 +704,11 @@ MainWindow::createContents( Core::IMode * mode )
 
     // Navigation and right-side window
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
+#if QTC_VERSION <= 0x03'02'81
     splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
+#else
+    splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode->id(), Core::Side::Left) );
+#endif
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
@@ -823,15 +729,7 @@ MainWindow::setSimpleDockWidgetArrangement()
         removeDockWidget( widget );
     }
     size_t npos = 0;
-#if 0
-    for ( auto widget: widgets ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-        if ( npos++ >= 2 )
-            tabifyDockWidget( widgets[1], widget );
-    }
-	widgets[1]->raise();
-#else
+
     for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
@@ -839,7 +737,7 @@ MainWindow::setSimpleDockWidgetArrangement()
             tabifyDockWidget( widgets[0], widget );
     }
 	widgets[1]->raise();
-#endif
+
     update();
 }
 
@@ -892,8 +790,11 @@ MainWindow::createDockWidgets()
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] (){ return new adwidgets::MSCalibrateWidget; } }
         , { tr( "Data property" ),  "DataProperty",      [] (){ return new dataproc::MSPropertyForm; } }
     };
-
+#if QTC_VERSION <= 0x03'02'81
     auto list = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iDataproc >();
+#else
+    auto list = qtwrapper::plugin_manager::getObjects< adextension::iDataproc >();
+#endif
     for ( auto v : list ) {
         for ( auto& wf : *v )
             widgets.push_back( widget( wf.title(), wf.objname(), [&wf] (){ return wf(); } ) );
@@ -965,7 +866,7 @@ MainWindow::createToolbar()
 {
     QWidget * toolbarContainer = new QWidget;
     QHBoxLayout * hbox = new QHBoxLayout( toolbarContainer );
-    hbox->setMargin( 0 );
+    hbox->setContentsMargins( {} );
     hbox->setSpacing( 0 );
     hbox->addWidget( toolButton( "STOP" ) ); // should create action in 'plugin' with icon
 }
@@ -1131,6 +1032,8 @@ MainWindow::selectionChanged( std::shared_ptr< adcontrols::MassSpectrum > centro
 void
 MainWindow::handleProcess( const QString& origin )
 {
+    ADDEBUG() << "############################ TODO ##################################";
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     auto pm = std::make_shared< adcontrols::ProcessMethod >();
     getProcessMethod( *pm );
     document::instance()->setProcessMethod( *pm );
@@ -1173,6 +1076,7 @@ MainWindow::handleProcess( const QString& origin )
             processor->applyProcess( *pm, PeakFindProcess );
         }
     }
+//#endif
 }
 
 void
@@ -1335,7 +1239,6 @@ MainWindow::OnFinalClose()
 void
 MainWindow::handleProcessChecked()
 {
-    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursor wait;
     adcontrols::ProcessMethod m;
     getProcessMethod( m );
@@ -1473,7 +1376,9 @@ MainWindow::handleExportRMSAllChecked()
 void
 MainWindow::handleExportAllChecked()
 {
-    ADDEBUG() << __FUNCTION__;
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//    ADDEBUG() << __FUNCTION__;
     QString dataPath;
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
         dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
@@ -1550,11 +1455,14 @@ MainWindow::handleExportAllChecked()
             }
         }
     }
+//#endif
 }
 
 void
 MainWindow::handleImportChecked()
 {
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QString filename = QFileDialog::getSaveFileName( 0
                                                      , tr( "Import checked data into a file")
                                                      , currentDir()
@@ -1585,6 +1493,7 @@ MainWindow::handleImportChecked()
 
     if ( handled )
         document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
+//#endif
 }
 
 void
@@ -1598,6 +1507,8 @@ MainWindow::actionApply()
 
     document::instance()->setProcessMethod( pm );
 
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 
         if ( currentFeature_ == CalibrationProcess )
@@ -1607,6 +1518,7 @@ MainWindow::actionApply()
         else
             processor->applyProcess( pm, currentFeature_ );
     }
+//#endif
 }
 
 void
@@ -1619,9 +1531,10 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-
+//        ADDEBUG() << "########################### TODO ###################################";
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         processor->applyCalibration( pm, assigned );
-
+//#endif
     }
 }
 
@@ -1635,9 +1548,7 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, port
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-
         processor->applyCalibration( pm, assigned, folium );
-
     }
 }
 
@@ -1726,8 +1637,9 @@ MainWindow::actCreateSpectrogram()
 void
 MainWindow::actClusterSpectrogram()
 {
-    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         processor->clusterContour();
+    }
 }
 
 void
@@ -1768,8 +1680,8 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
         }
         return o;
     }
-    return QString();
 
+    return QString();
 }
 
 
@@ -1777,6 +1689,8 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
 std::wstring
 MainWindow::foliumName( const std::wstring& id )
 {
+//     ADDEBUG() << "########################### TODO ###################################";
+// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
         portfolio::Portfolio portfolio = dp->getPortfolio();
 
@@ -1786,19 +1700,22 @@ MainWindow::foliumName( const std::wstring& id )
             return name;
         }
     }
-    return std::wstring();
+//#endif
+    return {};
 }
 
 QString
 MainWindow::currentDir()
 {
     static QString dir = QString::fromStdWString( adportable::profile::user_data_dir<wchar_t>() );
-
+    ADDEBUG() << "########################### TODO ###################################";
+#if QTC_VERSION <= 0x03'02'81
     QString currentFile = Core::DocumentManager::currentFile(); // Core::ICore::instance()->fileManager()->currentFile();
     if ( !currentFile.isEmpty() ) {
         const QFileInfo fi( currentFile );
         dir = fi.absolutePath();
     }
+#endif
     return dir;
 }
 

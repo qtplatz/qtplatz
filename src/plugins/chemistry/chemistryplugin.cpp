@@ -37,12 +37,14 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/mimedatabase.h>
+//#include <coreplugin/mimedatabase.h>
 #include <coreplugin/modemanager.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <coreplugin/id.h>
+#endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
-
+#include <extensionsystem/pluginmanager.h>
 #include <QAction>
 #include <QMessageBox>
 #include <QMainWindow>
@@ -58,48 +60,45 @@
 
 using namespace chemistry;
 
-ChemistryPlugin::ChemistryPlugin() : mode_( std::make_shared< Mode >( this ) )
-                                   , mainWindow_( std::make_shared< MainWindow >() )
+ChemistryPlugin::ChemistryPlugin()
 {
-    // Create your members
 }
 
 ChemistryPlugin::~ChemistryPlugin()
 {
-    // Unregister objects from the plugin manager's object pool
-    // Delete members
     if ( mode_ )
-		removeObject( mode_.get() );
+        ExtensionSystem::PluginManager::removeObject( mode_.get() );
 }
 
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    // ADDEBUG() << "##### ChemistryPlugin initialize...";
-    
-    // 
     initialize_actions();
 
-    mainWindow_->activateWindow();
-    mainWindow_->createActions();
+    if ((mainWindow_ = std::make_unique< MainWindow >() )) {
+        mainWindow_->activateWindow();
+        mainWindow_->createActions();
 
-    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
-        mode_->setWidget( widget );
-    addObject( mode_.get() );
-    
-    // ADDEBUG() << "ChemistryPlugin initialized";    
+        if ( QWidget * widget = mainWindow_->createContents( /* mode_.get() */ ) ) {
+            if (( mode_ = std::make_unique< Mode >() )) {
+                mode_->setWidget( widget );
+                ExtensionSystem::PluginManager::addObject( mode_.get() );
+            }
+        }
+        // ADDEBUG() << "ChemistryPlugin initialized";
+    }
     return true;
 }
 
 void
 ChemistryPlugin::initialize_actions()
 {
-    const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-    
+    Core::Context gc( "Chemistry" );
+
 	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
 
         // File->Processing
-        if ( Core::ActionContainer * menu = am->createMenu( "chemistry.menu" ) ) {
+        if ( Core::ActionContainer * menu = am->createMenu( "Chemistry.menu" ) ) {
             do {
                 QIcon iconOpen;
                 iconOpen.addFile( ":/dataproc/image/fileopen.png" );
@@ -113,7 +112,7 @@ ChemistryPlugin::initialize_actions()
             menu->addAction( am->command( Constants::SDFILE_OPEN ) );
             am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
         }
-        
+
     }
 }
 
@@ -121,15 +120,13 @@ void
 ChemistryPlugin::extensionsInitialized()
 {
 	mainWindow_->OnInitialUpdate();
-    // ADDEBUG() << "ChemistryPlugin extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
-{ 
-	return SynchronousShutdown;
-    ADLOG(adlog::LOG_INFO) << "Shutdown " << boost::dll::this_line_location();        
+{
 	mainWindow_->OnClose();
+	return SynchronousShutdown;
 }
 
 void
@@ -139,5 +136,3 @@ ChemistryPlugin::triggerAction()
                              tr("Action triggered"),
                              tr("This is an action from Chemistry."));
 }
-
-Q_EXPORT_PLUGIN2(Chemistry, ChemistryPlugin)

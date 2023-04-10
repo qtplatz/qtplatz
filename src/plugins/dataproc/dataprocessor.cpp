@@ -95,9 +95,16 @@
 #include <adutils/fsio.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/processeddata_t.hpp>
+#include <qtwrapper/debug.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
+#include <utils/mimeutils.h>
+
+#if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
+#else
+#include <utils/id.h>
+#endif
 #include <coreplugin/idocument.h>
 #include <qtwrapper/waitcursor.hpp>
 
@@ -152,6 +159,14 @@ namespace dataproc {
             return false;
         }
     };
+
+    class Dataprocessor::impl {
+    public:
+        impl() : modified_( false ) {
+        }
+        std::wstring idActiveFolium_;
+        bool modified_;
+    };
 }
 
 namespace {
@@ -178,29 +193,108 @@ namespace {
             return true;
         }
     };
+
+    //////////////////////////////////////////////////////////////////////
+
+    struct save_as {
+        Dataprocessor& this_;
+        QString *errorString_;
+        save_as( Dataprocessor& t, QString*& sp ) : this_( t ), errorString_( sp ) {}
+
+        bool rename_backup( const std::filesystem::path& path ) const {
+            if ( std::filesystem::exists( path ) ) {
+                // rename existing files
+                int id = 1;
+                do {
+                    auto name = path.stem().generic_string() + (boost::format( "~%1%.adfs" ) % id++ ).str();
+                    auto backup( path );
+                    backup.replace_filename( name );
+                    if ( ! std::filesystem::exists( backup ) ) {
+                        std::error_code ec;
+                        std::filesystem::rename( path, backup, ec );
+                        if ( ec ) {
+                            *errorString_ = QString::fromStdString( ec.message() );
+                            return false;
+                        }
+                        break;
+                    }
+                } while ( true );
+            }
+            return true;
+        }
+
+        bool operator()( std::filesystem::path&& path ) const {
+
+            path.replace_extension( L".adfs" );
+            if ( rename_backup( path ) ) {
+                if ( auto file = adcontrols::datafile::create( path.wstring() ) ) {
+                    do {
+                        auto fs = std::make_unique< adfs::filesystem >();
+                        if ( fs->mount( path ) )
+                            adutils::v3::AcquiredConf::create_table_v3( *fs->_ptr() );
+                    } while ( 0 );
+
+                    adfs::stmt sql( *this_.db() ); // source db
+                    if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
+
+                        sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
+                        sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
+                        sql.exec( "INSERT INTO X.MetaData SELECT * FROM MetaData" );
+                        sql.exec( "INSERT INTO X.MSCalibration SELECT * FROM MSCalibration" );
+
+                        sql.exec( "DETACH DATABASE X" );
+                    }
+
+                    if ( file->saveContents( L"/Processed", this_.portfolio(), *this_.file() ) ) {
+                        this_.setModified( false );
+                    }
+                    // for debugging
+#if 0
+                    path.replace_extension( ".xml" );
+                    boost::filesystem::remove( path );
+                    pugi::xml_document dom;
+                    dom.load( portfolio_->xml().c_str() );
+                    dom.save_file( path.string().c_str() );
+#endif
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    //////////////////////////////////////////////////////////////////////
 }
 
 Dataprocessor::~Dataprocessor()
 {
+    do {
+        auto rpath = std::filesystem::proximate( filename(), adportable::profile::user_data_dir<char>() );
+        ADDEBUG() << "## Dataprocessor::dtor closeing file: " << rpath << " ##";
+    } while(0);
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
-Dataprocessor::Dataprocessor() : modified_( false )
+Dataprocessor::Dataprocessor() : impl_( std::make_unique< impl >() )
 {
+    setId( Utils::Id( Constants::C_DATAPROCESSOR ) );
     connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
 void
 Dataprocessor::setDisplayName( const QString& fullpath )
 {
+    ADDEBUG() << "########################### TODO ###################################";
+#if QTC_VERSION <= 0x03'02'81
     QFontMetrics fm( QApplication::fontMetrics() );
     IDocument::setDisplayName( fm.elidedText( fullpath, Qt::ElideLeft, 200 ) );
+#endif
 }
 
 void
 Dataprocessor::setModified( bool modified )
 {
-    modified_ = modified;
+    impl_->modified_ = modified;
 }
 
 // IDocument
@@ -208,13 +302,7 @@ Dataprocessor::setModified( bool modified )
 bool
 Dataprocessor::isModified() const
 {
-    return modified_;
-}
-
-bool
-Dataprocessor::isFileReadOnly() const
-{
-    return false;
+    return impl_->modified_;
 }
 
 Core::IDocument::ReloadBehavior
@@ -223,73 +311,54 @@ Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
     return IDocument::BehaviorSilent;
 }
 
+Core::IDocument::OpenResult
+Dataprocessor::open( QString *errorString
+                    , const Utils::FilePath &filePath
+                    , const Utils::FilePath &realFilePath)
+{
+	qtwrapper::waitCursor wait;
+
+    std::string emsg;
+    if ( adprocessor::dataprocessor::open( std::filesystem::path( filePath.toString().toStdString() ),  emsg ) ) {
+        SessionManager::instance()->addDataprocessor( std::static_pointer_cast<Dataprocessor>(shared_from_this()) );
+
+        Core::DocumentManager::addDocument( this );
+        Core::DocumentManager::addToRecentFiles( filePath );
+        document::instance()->addToRecentFiles( filePath.toString() );
+
+        setFilePath(filePath);
+        setMimeType(Utils::mimeTypeForFile(filePath).name()); // application/vnd.sqlite3
+        emit openFinished( true );
+        return Core::IDocument::OpenResult::Success;
+    }
+    // following error message is being ignored by qt-creator."
+    *errorString =
+        QString( "file %1 could not be opend.\nReason: %2." ).arg( filePath.toString(), QString::fromStdString( emsg ) );
+    qDebug() << "=============" << *errorString;
+    emit openFinished( false );
+    return Core::IDocument::OpenResult::ReadError;
+}
 
 bool
-Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
+Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, bool autoSave )
 {
-	boost::filesystem::path path( file()->filename() ); // original name
-
-    if ( filename.isEmpty() && path.extension() == ".adfs" ) {
-        // Save
-        if ( file()->saveContents( L"/Processed", portfolio() ) ) {
-            setModified( false );
-            return true;
-        }
-    }
-
-    // save as
-    if ( !filename.isEmpty() )
-        path = filename.toStdWString();
-
-    path.replace_extension( L".adfs" );
-    if ( boost::filesystem::exists( path ) ) {
-        int id = 1;
-        do {
-            boost::filesystem::path backup( path.branch_path() / boost::filesystem::path( path.stem().string() + (boost::format( "~%1%.adfs" ) % id++).str() ) );
-            if ( !boost::filesystem::exists( backup ) ) {
-                boost::system::error_code ec;
-                boost::filesystem::rename( path, backup, ec );
-                if ( ec ) {
-                    *errorString = QString::fromStdString( ec.message() );
-                    return false;
-                }
-                break;
+    bool isSave = filePath.isEmpty(); // or isSaveAs
+    if ( isSave ) {
+        std::filesystem::path path( file()->filename() ); // adcontrols::datafile *
+        if ( path.extension() == ".adfs" ) {
+            if ( file()->saveContents( L"/Processed", portfolio() ) ) {
+                setModified( false );
+                return true;
+            } else {
+                *errorString = "Save contents failed.";
             }
-        } while ( true );
-    }
-
-    // save as 'filename
-    if ( auto file = adcontrols::datafile::create( path.wstring() ) ) {
-
-        {
-            auto fs = std::make_unique< adfs::filesystem >();
-            if ( fs->mount( path ) )
-                adutils::v3::AcquiredConf::create_table_v3( *fs->_ptr() );
+        } else {
+            *errorString = "Cannot save processed result into a file rather than .adfs file.";
         }
-
-        adfs::stmt sql( *db() );
-        if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
-
-            sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
-            sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
-
-            sql.exec( ( boost::format( "DETACH DATABASE '%1%'" ) % path.string() ).str() );
-        }
-
-        if ( file->saveContents( L"/Processed", portfolio(), *this->file() ) ) {
-            setModified( false );
-        }
-
-        // for debugging
-#if 0
-        path.replace_extension( ".xml" );
-        boost::filesystem::remove( path );
-        pugi::xml_document dom;
-        dom.load( portfolio_->xml().c_str() );
-        dom.save_file( path.string().c_str() );
-#endif
-        return true;
-
+        return false;
+    } else {
+        // Save As
+        return save_as( *this, errorString )( std::filesystem::path( filePath.toString().toStdString() ) );
     }
     return false;
 }
@@ -298,20 +367,6 @@ bool
 Dataprocessor::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
 {
     return true;
-}
-
-QString
-Dataprocessor::defaultPath() const
-{
-	return adportable::profile::user_data_dir<char>().c_str();
-}
-
-QString
-Dataprocessor::suggestedFileName() const
-{
-	boost::filesystem::path path( this->file()->filename() );
-	path.replace_extension( L".adfs" );
-    return QString::fromStdWString( path.normalize().wstring() );
 }
 
 bool
@@ -339,12 +394,17 @@ Dataprocessor::create(const QString& filename )
 }
 
 bool
-Dataprocessor::open(const std::wstring &filename, std::wstring& emsg )
+Dataprocessor::open(const std::filesystem::path& filename, std::string& emsg )
 {
-    emsg = std::wstring{};
+    emsg = std::string{};
     if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
+#if QTC_VERSION >= 0x08'00'00
+        auto filePath = Utils::FilePath::fromString( QString::fromStdString( filename.string() ) );
+        Core::IDocument::setFilePath( filePath );
+#else
         Core::IDocument::setFilePath( QString::fromStdWString( filename ) );
         Core::DocumentManager::setCurrentFile( QString::fromStdWString( filename ) );
+#endif
         return true;
     }
     return false;
@@ -353,9 +413,9 @@ Dataprocessor::open(const std::wstring &filename, std::wstring& emsg )
 bool
 Dataprocessor::open(const QString &filename, QString& emsg )
 {
-    std::wstring msg;
-    bool rcode = open( filename.toStdWString(), msg );
-    emsg = QString::fromStdWString( msg );
+    std::string msg;
+    bool rcode = open( std::filesystem::path( filename.toStdString() ), msg );
+    emsg = QString::fromStdString( msg );
     return rcode;
 }
 
@@ -376,7 +436,7 @@ Dataprocessor::getPortfolio()
 void
 Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 {
-	idActiveFolium_ = folder.id();
+	impl_->idActiveFolium_ = folder.id();
 }
 
 void
@@ -384,14 +444,14 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
     // ScopedDebug() << "## " << __FUNCTION__ << " ## " << folium.name();
 	fetch( folium );
-    idActiveFolium_ = folium.id();
+    impl_->idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );
 }
 
 portfolio::Folium
 Dataprocessor::currentSelection() const
 {
-	return portfolio().findFolium( idActiveFolium_ );
+	return portfolio().findFolium( impl_->idActiveFolium_ );
 }
 
 bool
@@ -544,8 +604,8 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
-    ADDEBUG() << "################### " << __FUNCTION__ << " ##";
-    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
+    // ADDEBUG() << "################### " << __FUNCTION__ << " ##";
+    portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
     setModified( true );
@@ -621,7 +681,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         }
 
         // if folium == profile spectrum && process == centroid|targeting, then copy annotation to profile
-        ADDEBUG() << "################### " << __FUNCTION__ << " ##";
+        // ADDEBUG() << "################### " << __FUNCTION__ << " ##";
         setModified( true );
 
         SessionManager::instance()->processed( this, folium );
@@ -711,7 +771,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 {
-    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
     if ( folium ) {
         //----------------------- take centroid and calibration method w/ modification ---------------------
         const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
@@ -778,7 +838,7 @@ void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
                                  , const adcontrols::MSAssignedMasses& assigned )
 {
-    portfolio::Folium folium = portfolio().findFolium( idActiveFolium_ );
+    portfolio::Folium folium = portfolio().findFolium( impl_->idActiveFolium_ );
 
     if ( folium ) {
 
@@ -1633,12 +1693,20 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
             bool interporate( false );
 
             if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 int result = QMessageBox::question( MainWindow::instance()
                                                     , QObject::tr("Lock mass")
                                                     , QObject::tr( "Blacketing ?" )
                                                     , QMessageBox::Yes
                                                     , QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+#else
+                QMessageBox mbox;
+                mbox.setText( "Lock mass" );
+                mbox.setInformativeText( "Blacketing?" );
+                mbox.setStandardButtons( QMessageBox::Yes | QMessageBox::No ); // |QMessageBox::Default|QMessageBox::Escape );
+                mbox.setDefaultButton( QMessageBox::No ); //|QMessageBox::Default|QMessageBox::Escape );
+                int result = mbox.exec();
+#endif
                 if ( result == QMessageBox::Yes )
                     interporate = true;
             }
@@ -1665,22 +1733,6 @@ Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > s
 void
 Dataprocessor::xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info )
 {
-#if 0
-    boost::filesystem::path path( this->file()->filename() );
-    std::string defaultname = path.stem().string() + ".csv";
-
-    while ( !boost::filesystem::is_directory( path ) )
-        path = path.branch_path();
-
-    QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
-                                                                , QObject::tr( "Save mass peak list" )
-                                                                , QString::fromStdString( path.string() )
-                                                                , QString::fromStdString( defaultname )
-                                                                , QObject::tr( "Text files (*.cxv)" ) );
-    auto outfile = boost::filesystem::path( filename.toStdString() );
-    outfile.replace_extension( "csv" );
-    std::ofstream of( outfile.string() );
-#endif
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->resize( info.size() );
     ms->setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
@@ -1763,4 +1815,16 @@ Dataprocessor::clearMarkup( portfolio::Folium&& folium )
         setModified( true );
         SessionManager::instance()->updateDataprocessor( this, folium );
     }
+}
+
+
+namespace dataproc
+{
+#if QTC_VERSION <= 0x03'02'81
+    QString
+    Dataprocessor::filepath() const
+    {
+        return this->filePath();
+    }
+#endif
 }

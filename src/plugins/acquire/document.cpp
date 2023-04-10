@@ -881,10 +881,13 @@ document::recentFile( const char * group, bool dir_on_fail )
         return file;
 
     if ( dir_on_fail ) {
+#if QTC_VERSION < 0x08'00'00
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
             file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
-
+#else
+        file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+#endif
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();

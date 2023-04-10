@@ -83,18 +83,17 @@ namespace dataproc {
             return std::make_shared< make_shared_enabler >();
         }
 
-        inline Core::IDocument * document() { return this; };
-
         // Core::IDocument
-        bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
-        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+        // QtCreator9 based code
+        OpenResult open(QString *errorString
+                        , const Utils::FilePath &filePath
+                        , const Utils::FilePath &realFilePath) override;
+        ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
+        bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false) override;
 
-        QString defaultPath() const override;
-        QString suggestedFileName() const override;
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
         bool isModified() const override;
         bool isSaveAsAllowed() const override;
-        bool isFileReadOnly() const override;
-        IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
 
         // Dataprocessor
         void xicSelectedMassPeaks( adcontrols::MSPeakInfo&& info ) override;
@@ -103,7 +102,7 @@ namespace dataproc {
 
         void setModified( bool ) override;
         bool create( const QString& token );
-        bool open( const std::wstring&, std::wstring& errmsg ) override;
+        bool open( const std::filesystem::path&, std::string& errmsg ) override;
         bool open( const QString&, QString& errmsg );
 
         void exportXML() const;
@@ -133,7 +132,6 @@ namespace dataproc {
         void formulaChanged();
 
         void sendCheckedSpectraToCalibration( Dataprocessor * );
-        // void removeCheckedItems();
         void remove( portfolio::Folium );
         void createContour();
         void clusterContour();
@@ -152,11 +150,7 @@ namespace dataproc {
 
         void subtract( portfolio::Folium& base, portfolio::Folium& target );
 
-        // portfolio::Portfolio& portfolio() { return *portfolio_; }
-
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
-        //static bool saveMSCalibration( portfolio::Folium& );
-        //static bool saveMSCalibration( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
         static bool MSCalibrationLoad( const QString&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
         static bool MSCalibrationSave( portfolio::Folium&, const QString& file );
 
@@ -176,11 +170,11 @@ namespace dataproc {
 
     signals :
         void onNotify( const QString& );
+        void openFinished(bool success);
 
     private:
-        // std::unique_ptr< portfolio::Portfolio > portfolio_;
-        std::wstring idActiveFolium_;
-        bool modified_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         void setDisplayName( const QString& );
     };

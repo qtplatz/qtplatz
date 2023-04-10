@@ -26,7 +26,6 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-#include <vector>
 #include <memory>
 
 namespace adportable {
@@ -35,21 +34,13 @@ namespace adportable {
 
 namespace servant {
 
-    class Logger;
-    class OutputWindow;
-
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
-#if QTC_VERSION >= 0x09'00'01
         Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Servant.json")
-#else
-		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
-#endif
+
     public:
         explicit ServantPlugin();
         ~ServantPlugin();
-
-        // static ServantPlugin * instance();
 
         // ExtensionSystem::IPlugin
         bool initialize(const QStringList &arguments, QString *error_message) override;

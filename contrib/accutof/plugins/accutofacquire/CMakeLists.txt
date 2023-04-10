@@ -6,6 +6,7 @@ project( accutofacquire )
 set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+set( DESCRIPTION "AccuTOF Acquisition plugin" )
 
 #QT += core svg printsupport widgets
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
@@ -19,16 +20,35 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-configure_file(
-  "${QTPLATZ_SOURCE_DIR}/src/plugins/pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
+########## QtCreator 8 (Qt5/6) plugin.json #############
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  foreach ( i "Core" )
+    set(_v ${IDE_VERSION})
+    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
+  endforeach()
+  string(APPEND DEPENDENCY_STRING "\n    ]")
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/src/plugins/servant/plugin.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+    )
+endif()
+####################### END ##########################
+
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
+  configure_file(
+    "${QTPLATZ_SOURCE_DIR}/src/plugins/pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    )
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
+    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
+    )
+endif()
 
 add_definitions(
   -DACCUTOFACQUIRE_LIBRARY
@@ -39,6 +59,7 @@ add_definitions(
   )
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/accutof/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
@@ -80,7 +101,15 @@ add_library(
   moleculeswidget.cpp
   moleculeswidget.hpp
   ${Resources}
-  )
+)
+
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
+  set( EXTENSIONSYSTEM "ExtensionSystem" )
+  set( UTILS "Utils" )
+else()
+  set( EXTENSIONSYSTEM "extensionsystem" )
+  set( UTILS "utils" )
+endif()
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
@@ -101,8 +130,8 @@ target_link_libraries(
   adwidgets
   xmlparser
   Core
-  extensionsystem
-  utils
+  ${EXTENSIONSYSTEM}
+  ${UTILS}
   Qt::Svg
   Qt::Widgets
   acqrscontrols
@@ -120,10 +149,12 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+endif()

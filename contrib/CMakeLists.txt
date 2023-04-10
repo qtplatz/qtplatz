@@ -1,19 +1,6 @@
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  add_subdirectory( shrader )
-endif()
-
-if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  # message( STATUS "------------ contrib/agilent ----------------" )
-  add_subdirectory( agilent )
-endif()
-
-if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM AND AqMD3_FOUND )
-  add_subdirectory( acqiris )
-endif()
-
-if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  add_subdirectory( infitof )
+  add_subdirectory( socfpga )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING ) #AND NOT RTC_ARCH_ARM )
@@ -21,25 +8,29 @@ if ( NOT CMAKE_CROSSCOMPILING ) #AND NOT RTC_ARCH_ARM )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  add_subdirectory( socfpga )
+  # message( STATUS "------------ contrib/agilent ----------------" )
+  add_subdirectory( agilent )
+endif()
+
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+#  add_subdirectory( infitof )
+endif()
+
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+#  add_subdirectory( shrader )
+endif()
+
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM AND AqMD3_FOUND )
+  add_subdirectory( acqiris )
 endif()
 
 if ( WITH_Wolfram AND NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
-  if ( VERBOSE )
-    message( STATUS "------------ contrib/Wolfram ----------------" )
-  endif()
-  add_subdirectory( wolfram )
+#  add_subdirectory( wolfram )
 endif()
 
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-  if ( VERBOSE )
-    message( STATUS "------------ contrib/linux ----------------" )
-  endif()
   add_subdirectory( linux )
 elseif( WIN32 )
-  if ( VERBOSE )
-    message( STATUS "------------ contrib/windows ----------------" )
-  endif()
   add_subdirectory( windows )
 endif()
 

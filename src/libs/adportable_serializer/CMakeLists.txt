@@ -20,5 +20,6 @@ add_library( adportable_serializer
 target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
 install( TARGETS ${PROJECT_NAME}
+  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION bin COMPONENT applications
   ARCHIVE DESTINATION lib COMPONENT libraries ) # .a

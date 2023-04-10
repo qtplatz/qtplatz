@@ -48,6 +48,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <memory>
 #include <mutex>
+#include <filesystem>
 
 using namespace py_module;
 
@@ -64,8 +65,8 @@ dataProcessor::dataProcessor() : processor_( std::make_shared< adprocessor::data
 bool
 dataProcessor::open( const std::wstring& filename )
 {
-    std::wstring emsg;
-    return processor_->open( filename, emsg );
+    std::string emsg;
+    return processor_->open( std::filesystem::path( filename ), emsg );
 }
 
 std::vector< boost::python::tuple >
@@ -142,7 +143,7 @@ dataProcessor::findFolder( const std::wstring& name ) const
 {
     if ( processor_ && processor_->fs() )
         return processor_->fs()->findFolder( name );
-    return {};    
+    return {};
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >

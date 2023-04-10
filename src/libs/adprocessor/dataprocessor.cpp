@@ -122,9 +122,9 @@ dataprocessor::setModified( bool modified )
 }
 
 bool
-dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
+dataprocessor::open( const std::filesystem::path& filename, std::string& error_message )
 {
-    if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename, false ) ) ) {
+    if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename.wstring(), false ) ) ) {
 
         boost::filesystem::path path( filename );
 
@@ -140,12 +140,12 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
         try {
             impl_->file_->accept( *this );  // may access 'db' if file was imported from csv.
         } catch ( std::exception& ex ) {
-            error_message = adportable::utf::to_wstring( ex.what() );
+            error_message = ex.what();
             return false;
         }
+
         if ( auto sp = massSpectrometer() )
             ProcessMediator::instance()->onCreate( sp->massSpectrometerClsid(), this->shared_from_this() );
-
         return true;
     }
     return false;

@@ -87,12 +87,10 @@ namespace accutof {
             void prepare_for_run();
             void start_run();
             void stop();
-
             void save_defaults();
 
             static bool appendOnFile( const boost::filesystem::path& path
                                       , const QString& title, const adcontrols::MassSpectrum&, QString& id );
-
             void addToRecentFiles( const QString& );
             QString recentFile( const char * group = 0, bool dir_on_fail = false );
             std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod() const;

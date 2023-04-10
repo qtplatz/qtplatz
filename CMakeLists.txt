@@ -10,13 +10,14 @@ cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
+set ( QTPLATZ_TARGETS "QtPlatzTargets" )
 
 if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 endif()
 
 set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-set ( VERBOSE OFF )
+set ( VERBOSE ON )
 set ( CMAKE_ECLIPSE_VERSION 4.5 )
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
@@ -69,17 +70,56 @@ if ( WITH_QT5 )
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
   message( STATUS "############# QT_FOUND : ${QT_FOUND} -- ${QT_VERSION} ###############" )
   if ( QT_FOUND )
+    include_directories( "${CMAKE_SOURCE_DIR}/src/libs" ) # -- for qt-creator include qtwrapper/debug.hpp
     add_definitions( "-DQT_MESSAGELOGCONTEXT" ) # <-- enable file, line in qDebug output
+
+    if ( APPLE )
+      ## macOS
+      add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+    else()
+      ## Linux & Windows
+      set( CMAKE_INSTALL_RPATH        "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
+      set( QTC_BINARY_DIR "qtplatz.app" )              # set qt-creator build directory
+      add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) # <-- <binary_dir>/qqtcreator
+    endif()
+
+    list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+    include_directories( BEFORE
+      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
+      "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
+    )
+  endif()
+
+  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+  if ( QtCreator_FOUND )
+    message( STATUS "##### QtCreator version ${IDE_VERSION} #####" )
+    set ( IDE_APP_PATH "ide_app_path" )  # <-- override qt-creator output path -- on trial
+    string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION})
+    list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
+    list(GET IDE_VERSION_LIST 1 IDE_VERSION_MINOR)
+    list(GET IDE_VERSION_LIST 2 IDE_VERSION_MICRO)
+    math(EXPR QTC_VERSION
+      "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
+      OUTPUT_FORMAT HEXADECIMAL)
+    add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
+  else()
     find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
     find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
     if ( NOT XMLPATTERNS )
-      message( FATAL_ERROR "xmlpatterns command not found" )
+      message( FATAL_ERROR "xmlpatterns command not found -- required for QtCreator 3.2.81" )
     endif()
-    if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
-      set ( IDE_VERSION "3.2.81" ) # defined in src/app/app_version.h
-      set ( IDE_PLUGIN_PATH "lib/qtplatz/plugins" ) # <-- for qtplatz 5
-      set ( QTC_BINARY_DIR  "" )  # <-- same as CMAKE_BINARY_DIR
-    endif()
+    set ( IDE_VERSION "3.2.81" ) # defined in src/app/app_version.h
+    set ( IDE_VERSION_MAJOR "3")
+    set ( IDE_PLUGIN_PATH "lib/qtplatz/plugins" ) # <-- for qtplatz 5
+    set ( QTC_BINARY_DIR  "" )  # <-- same as CMAKE_BINARY_DIR
+    add_definitions( "-DQTC_VERSION=0x030281" )
+  endif()
+
+  if ( NOT QTDIR )
+    find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin")
+    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
+      OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
   endif()
 
 endif()
@@ -349,9 +389,8 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_definitions(-DUNICODE -D_UNICODE)
 add_subdirectory ( src )
-if ( ${QT_VERSION_MAJOR} EQUAL 5 )
-  add_subdirectory ( contrib )
-endif()
+add_subdirectory ( contrib )
+
 if ( Qt5_FOUND )
   add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
   add_subdirectory ( share )

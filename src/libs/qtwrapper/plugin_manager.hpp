@@ -31,17 +31,22 @@
 
 namespace qtwrapper {
 
-    template< typename PluginManager = ExtensionSystem::PluginManager >
-    struct plugin_manager_t {
+    struct plugin_manager {
+#if QTC_VERSION >= 0x08'00'00
         template <typename T> static QList<T *> getObjects() {
-            QReadLocker lock( PluginManager::listLock() );
+            QReadLocker lock( ExtensionSystem::PluginManager::listLock() );
             QList<T *> results;
-            QList<QObject *> all = PluginManager::allObjects();
+            auto all = ExtensionSystem::PluginManager::allObjects();
             foreach (QObject *obj, all) {
                 if ( auto result = qobject_cast<T *>(obj) )
                     results += result;
             }
             return results;
         }
+#else
+        template <typename T> static QList<T *> getObjects() {
+            return ExtensionSystem::PluginManager::getObjects< T >();
+        }
+#endif
     };
 }

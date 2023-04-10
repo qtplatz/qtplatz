@@ -26,7 +26,9 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#include "dataprocessorfactory.hpp"
+#if QTC_VERSION <= 0x03'02'81
+#include "dataprocfactory.hpp"
+#endif
 #include "dataproceditor.hpp"
 #include <adcontrols/axis.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -162,7 +164,11 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
     // fake project directory for help initial openfiledialog location
+#if QTC_VERSION <= 0x03'02'81
     Core::DocumentManager::setProjectsDirectory( path );
+#else
+    Core::DocumentManager::setProjectsDirectory( Utils::FilePath::fromString( path ) );
+#endif
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     boost::filesystem::path mfile( dir / "default.pmth" );
@@ -220,10 +226,11 @@ document::recentFile( const char * group, bool dir_on_fail )
         return file;
 
     if ( dir_on_fail ) {
+#if QTC_VERSION <= 0x03'02'81
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
             file = qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
-
+#endif
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();
@@ -400,6 +407,7 @@ document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 
+
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
 
             auto cptr = document::findTIC( dp, 0 );
@@ -494,8 +502,11 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
+    ADDEBUG() << "======================= " << __FUNCTION__ << " ===========================";
+
     for ( auto reader: dset->dataReaders() ) {
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
+            dp->apply_mslock( ms );
             std::ostringstream text;
             text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;
             adcontrols::ProcessMethod m;
@@ -507,9 +518,11 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 
 
 void
-document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterator iterator )
+document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrols::DataReader_iterator iterator )
 {
     using adcontrols::DataReader;
+
+    ADDEBUG() << "======================= " << __FUNCTION__ << " ===========================";
 
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
@@ -522,6 +535,9 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
                 text << DataReader::abbreviated_name( reader->display_name() )
                      << boost::format ( " %.3fs p%d.%d " ) % iterator->time_since_inject() % ms->protocolId() % ms->nProtocols() ;
             }
+            if ( dp->apply_mslock( ms ) )
+                text << ",locked;";
+
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( {"folium.create", text.str() } ) );
 	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
@@ -572,13 +588,12 @@ document::handle_folium_added( const QString& fname, const QString& path, const 
 
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
     if ( it == SessionManager::instance()->end() ) {
-		Core::EditorManager::instance()->openEditor( fname );
         it = SessionManager::instance()->find( filename );
     }
 
     if ( it != SessionManager::instance()->end() ) {
-		Dataprocessor& processor = it->getDataprocessor();
-		processor.load( path.toStdWString(), id.toStdWString() );
+		if ( auto processor = it->processor() )
+            processor->load( path.toStdWString(), id.toStdWString() );
     }
 }
 
@@ -590,6 +605,8 @@ document::handle_portfolio_created( const QString& filename )
     if ( core ) {
         auto em = Core::EditorManager::instance();
         // Core::EditorManager * em = core->editorManager();
+        ADDEBUG() << "########################### TODO ###################################";
+#if QTC_VERSION <= 0x03'02'81
         if ( em && dataprocFactory_ ) {
             if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
                 if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
@@ -598,6 +615,7 @@ document::handle_portfolio_created( const QString& filename )
                 }
             }
         }
+#endif
     }
 }
 

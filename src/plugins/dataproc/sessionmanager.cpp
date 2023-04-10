@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -30,82 +30,96 @@
 #include <adportfolio/folium.hpp>
 #include <coreplugin/editormanager/editormanager.h>
 #include <adlog/logger.hpp>
+#include <qtwrapper/utils_filepath.hpp>
 #include <boost/any.hpp>
 #include <QSignalBlocker>
 #include <mutex>
 #include <thread>
 #include <adportable/debug.hpp>
 
+namespace dataproc {
+
+    class SessionManager::impl {
+    public:
+        impl() : loadInprogress_( false )
+               , activeDataprocessor_( 0 ) {
+        }
+        std::vector< Session > sessions_;
+        bool loadInprogress_;
+        Dataprocessor * activeDataprocessor_;
+    };
+}
+
 using namespace dataproc;
 
-SessionManager * SessionManager::instance_ = 0;
+namespace {
+    static SessionManager * __instance;
+    static std::once_flag __flag;
+}
+
 
 SessionManager::SessionManager( QObject *parent ) : iSessionManager( parent )
-                                                  , activeDataprocessor_( 0 )
-                                                  , loadInprogress_( false )
+                                                  , impl_( std::make_unique< impl >() )
 {
 }
 
 SessionManager::~SessionManager()
 {
-    instance_ = 0;
+    ADDEBUG() << "============== SessionManager::dtor =================";
 }
 
 SessionManager *
 SessionManager::instance()
 {
-    static std::once_flag flag;
-
-    std::call_once( flag, [&](){
-            instance_ = new SessionManager();
-        });
-
-    return instance_;
+    std::call_once( __flag, [&](){
+        __instance = new SessionManager();
+    });
+    return __instance;
 }
 
 void
 SessionManager::removeEditor( Core::IEditor * editor )
 {
-    auto it = std::find_if( sessions_.begin(), sessions_.end(), [=]( Session& s ){
-            return s.editor() == editor;
-        });
+    auto it = std::find_if( impl_->sessions_.begin(), impl_->sessions_.end(), [&]( const auto& s ){
+        return s.processor() == editor->document();
+    });
 
-    if ( it != sessions_.end() ) {
-        auto filename = QString::fromStdWString( it->processor()->filename() );
-        if ( activeDataprocessor_ == it->processor() ) {
-            activeDataprocessor_ = 0;
-            emit onDataprocessorChanged( activeDataprocessor_ );
+    if ( it != impl_->sessions_.end() ) {
+        auto filePath = it->processor()->filePath();
+        if ( impl_->activeDataprocessor_ == it->processor() ) {
+            impl_->activeDataprocessor_ = 0;
+            emit onDataprocessorChanged( impl_->activeDataprocessor_ );
         }
         emit onRemoveSession( it->processor() );
-        sessions_.erase( it );
-        emit onSessionRemoved( filename );
+        impl_->sessions_.erase( it );
+        emit onSessionRemoved( filePath.toString() );
     }
 }
 
 void
-SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
+SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>&& proc )
 {
-    loadInprogress_ = true; // block check state events
+    impl_->loadInprogress_ = true; // block check state events
 
-    sessions_.push_back( Session( proc, editor ) );
-	activeDataprocessor_ = proc.get();
-    emit onDataprocessorChanged( activeDataprocessor_ );
+    impl_->sessions_.emplace_back( Session( proc, nullptr ) );
+	impl_->activeDataprocessor_ = proc.get();
+    emit onDataprocessorChanged( impl_->activeDataprocessor_ );
 
 	emit signalAddSession( proc.get() );
     emit onSessionAdded( proc.get() );
 
     // iSessionManager
-    emit addProcessor( this, proc->filePath() );
+    emit addProcessor( this, qtwrapper::filepath::toString( proc->filePath() ) );
 
-    loadInprogress_ = false;
+    impl_->loadInprogress_ = false;
 }
 
 void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
-    if ( activeDataprocessor_ != dataprocessor ) {
-        activeDataprocessor_ = dataprocessor;
-        emit onDataprocessorChanged( activeDataprocessor_ );
+    if ( impl_->activeDataprocessor_ != dataprocessor ) {
+        impl_->activeDataprocessor_ = dataprocessor;
+        emit onDataprocessorChanged( impl_->activeDataprocessor_ );
     }
     emit onSessionUpdated( dataprocessor, QString::fromStdWString( folium.id() ) );
 }
@@ -119,33 +133,33 @@ SessionManager::folderChanged( Dataprocessor* dataprocessor, const std::wstring&
 void
 SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Folium& folium, bool isChecked )
 {
-    if ( ! loadInprogress_ ) {
+    if ( ! impl_->loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
-        emit onCheckStateChanged( this, dataprocessor->filePath(), folium, isChecked );
+        emit onCheckStateChanged( this, dataprocessor->filePath().toString(), folium, isChecked );
     }
 }
 
 SessionManager::vector_type::iterator
 SessionManager::begin()
 {
-    return sessions_.begin();
+    return impl_->sessions_.begin();
 }
 
 SessionManager::vector_type::iterator
 SessionManager::end()
 {
-    return sessions_.end();
+    return impl_->sessions_.end();
 }
 
 SessionManager::vector_type::iterator
 SessionManager::find( const std::wstring& token )
 {
-    for ( SessionManager::vector_type::iterator it = sessions_.begin(); it != sessions_.end(); ++it ) {
-        Dataprocessor& proc = it->getDataprocessor();
-        if ( proc.file()->filename() == token )
+    for ( SessionManager::vector_type::iterator it = impl_->sessions_.begin(); it != impl_->sessions_.end(); ++it ) {
+        auto proc = it->processor();
+        if ( proc && proc->filename() == token )
             return it;
     }
-    return sessions_.end();
+    return impl_->sessions_.end();
 }
 
 void
@@ -154,38 +168,50 @@ SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& foli
     emit onProcessed( dataprocessor, folium );
 
     // iSessionManager
-    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filePath(), folium );
+#if QTC_VERSION >= 0x08'00'00
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filePath().toString(), folium );
+#else
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filepath(), folium );
+#endif
 }
 
 void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
-	if ( activeDataprocessor_ != dataprocessor ) {
-        activeDataprocessor_ = dataprocessor;
-        emit onDataprocessorChanged( activeDataprocessor_ );
-		auto it = std::find_if( sessions_.begin(), sessions_.end(), [dataprocessor]( dataproc::Session& s ){
+	if ( impl_->activeDataprocessor_ != dataprocessor ) {
+        impl_->activeDataprocessor_ = dataprocessor;
+        emit onDataprocessorChanged( impl_->activeDataprocessor_ );
+		auto it = std::find_if( impl_->sessions_.begin(), impl_->sessions_.end(), [dataprocessor]( dataproc::Session& s ){
                 return dataprocessor == s.processor();
             });
-		if ( it != sessions_.end() )
+		if ( it != impl_->sessions_.end() )
 			Core::EditorManager::instance()->activateEditor( it->editor() );
 	}
     emit signalSelectionChanged( dataprocessor, folium );
 
     // iSessionManager
-    emit onSelectionChanged( this, dataprocessor->filePath(), folium );
+#if QTC_VERSION >= 0x08'00'00
+    emit onSelectionChanged( this, dataprocessor->filePath().toString(), folium );
+#else
+    emit onSelectionChanged( this, dataprocessor->filepath(), folium );
+#endif
 }
 
 Dataprocessor *
 SessionManager::getActiveDataprocessor()
 {
-    return activeDataprocessor_;
+    return impl_->activeDataprocessor_;
 }
 
 // iSessionManager implementation
 std::shared_ptr< adprocessor::dataprocessor >
 SessionManager::getDataprocessor( const QString& name )
 {
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath() == name; } );
+#if QTC_VERSION >= 0x08'00'00
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath().toString() == name; } );
+#else
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filepath() == name; } );
+#endif
     if ( it != end() )
         return it->processor()->shared_from_this();
 
@@ -208,13 +234,7 @@ Session::Session( const Session& t ) : processor_( t.processor_ )
 {
 }
 
-Session::Session( std::shared_ptr<Dataprocessor>& p, Core::IEditor * editor ) : processor_( p )
+Session::Session( std::shared_ptr<Dataprocessor> p, Core::IEditor * editor ) : processor_( p )
 	                                                                          , editor_( editor )
 {
-}
-
-Dataprocessor&
-Session::getDataprocessor()
-{
-    return *processor_;
 }

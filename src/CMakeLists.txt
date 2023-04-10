@@ -15,18 +15,30 @@ configure_file(
   )
 
 add_subdirectory( libs )
-# message( STATUS "************** end of src/libs *****************" )
 
 if ( WITH_QT5 AND NOT CMAKE_CROSSCOMPILING )
-  # message( STATUS "------------ src/adplugins ----------------" )
   add_subdirectory( adplugins )
-  # message( STATUS "------------ src/app ----------------------" )
-  add_subdirectory( app )
-  # message( STATUS "------------ src/plugins ------------------" )
   add_subdirectory( plugins )
+
+  ############# QtCreator3 base ###############
+  if ( IDE_VERSION VERSION_LESS "8.0.0" )
+    add_subdirectory( app )
+  endif()
+
 endif()
 
-if ( VERBOSE )
-  message( STATUS "------------ src/tools --------------------" )
-endif()
 add_subdirectory( tools )
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/QtPlatzConfig.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/QtPlatzConfig.cmake
+  @ONLY
+)
+
+export( EXPORT QtPlatzTargets
+  FILE ${CMAKE_BINARY_DIR}/cmake/QtPlatzTargets.cmake )
+
+file( COPY
+  ${CMAKE_SOURCE_DIR}/boost.cmake
+  DESTINATION ${CMAKE_BINARY_DIR}/cmake
+)

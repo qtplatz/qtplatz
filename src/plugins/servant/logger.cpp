@@ -24,10 +24,15 @@
 
 #include "logger.hpp"
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <qcolor.h>
 #include <boost/format.hpp>
 
 using namespace servant;
+
+Logger::~Logger()
+{
+}
 
 Logger::Logger(QObject *parent) :  adextension::iLogger(parent)
 {

@@ -47,19 +47,19 @@ namespace adcontrols {
 namespace dataproc {
 
     class Dataprocessor;
-    class DataprocessorFactory;
+    //class DataprocessorFactory;
 
     class document : public QObject
     {
         Q_OBJECT
-        
+
         explicit document(QObject *parent = 0);
-        
+
         static std::atomic<document * > instance_;
         static std::mutex mutex_;
     public:
         static document * instance();
-        
+
         void initialSetup();
         void finalClose();
 
@@ -91,21 +91,23 @@ namespace dataproc {
         static const std::shared_ptr< adcontrols::Chromatogram > findTIC( Dataprocessor *, int );
 
         void onSelectSpectrum_v2( double minutes, size_t pos, int fcn );
-        void onSelectSpectrum_v3( double minutes, adcontrols::DataReader_iterator );
+        void onSelectSpectrum_v3( Dataprocessor *, double minutes, adcontrols::DataReader_iterator );
 
     public slots:
         void handle_folium_added( const QString& fname, const QString& path, const QString& id );
         void handle_portfolio_created( const QString& token );
         void handleSelectTimeRangeOnChromatogram( double x1, double x2 );
 
-    private:    
+    private:
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ProcessMethod > pm_;
         QString procmethod_filename_;
+#if QTC_VERSION < 0x08'00'00
         std::unique_ptr< DataprocessorFactory > dataprocFactory_;
+#endif
         std::map< Plot, adcontrols::axis::AxisH > horAxis_;
-        
+
         void handleSelectTimeRangeOnChromatogram_v2( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
         void handleSelectTimeRangeOnChromatogram_v3( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
 

@@ -26,13 +26,13 @@
 #pragma once
 
 #include <QtGlobal>
-#if QTC_VERSION >= 0x09'00'00
+#if QTC_VERSION >= 0x08'00'00
 #include <utils/filepath.h>
 #endif
 
 namespace qtwrapper {
     struct filepath {
-#if QTC_VERSION >= 0x09'00'00
+#if QTC_VERSION >= 0x08'00'00
         static QString toString( const Utils::FilePath& t ) { return t.toString(); }
 #endif
         static QString toString( QString&& t )              { return t; }

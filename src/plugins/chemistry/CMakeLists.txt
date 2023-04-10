@@ -1,13 +1,15 @@
-cmake_policy( SET CMP0020 NEW )
-cmake_policy( SET CMP0028 NEW )
-
-project( chemistry )
+#cmake_policy( SET CMP0020 NEW )
+#cmake_policy( SET CMP0028 NEW )
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  project( chemistry )
+else()
+  project( Chemistry )
+endif()
 
 set( PROVIDER MS-Cheminformatics )
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Network Widgets Svg Sql PrintSupport )
-find_package( rdkit )
-find_package( qwt )
+#find_package( rdkit )
+#find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -17,21 +19,45 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-set(COMPAT_VERSION 3.2.81)
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  set(COMPAT_VERSION 3.2.81)
+endif()
+set( DESCRIPTION "Chemistry plugin" )
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
+########## QtCreator 9 (Qt6) plugin.json #############
+if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  foreach ( i "Core" )
+    set(_v ${IDE_VERSION})
+    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
+  endforeach()
+  string(APPEND DEPENDENCY_STRING "\n    ]")
 
-add_definitions( -DDATAPROC_LIBRARY  )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/../servant/plugin.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
+    )
+endif()
+####################### END ##########################
+
+if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    )
+
+  execute_process( COMMAND ${XMLPATTERNS} -no-format
+    -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
+    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
+    )
+endif()
+
+add_definitions( -DCHEMISTRY_LIBRARY )
 
 if ( MSVC )
   add_definitions(
@@ -40,6 +66,7 @@ if ( MSVC )
 endif()
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${QWT_INCLUDE_DIRS}
   ${RDKit_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
@@ -47,6 +74,13 @@ include_directories(
   ${QtSvg_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
+
+#if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+#  include_directories( BEFORE
+#    "${CMAKE_SOURCE_DIR}/qt-creator/src/libs"
+#    "${CMAKE_SOURCE_DIR}/qt-creator/src/plugins"
+#    )
+#endif()
 
 add_library( ${PROJECT_NAME} MODULE
   chemconnection.cpp
@@ -100,10 +134,12 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-install( FILES
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+if ( IDE_VERSION VERSION_LESS "9.0.0" )
+  install( FILES
+    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+    DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+endif()

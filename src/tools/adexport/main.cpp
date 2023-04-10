@@ -84,8 +84,8 @@ main(int argc, char *argv[])
         if ( ( path.extension() == ".adfs" ) && boost::filesystem::exists( path, ec ) ) {
 
             if ( auto dp = std::make_shared< adprocessor::dataprocessor >() ) {
-                std::wstring msg;
-                if ( dp->open( path.wstring(), msg ) ) {
+                std::string msg;
+                if ( dp->open( path.string(), msg ) ) {
                     if ( vm.count( "list-readers" ) ) {
                         if ( auto raw = dp->rawdata() ) {
                             for ( auto reader: raw->dataReaders() )

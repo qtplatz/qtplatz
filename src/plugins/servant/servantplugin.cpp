@@ -28,7 +28,7 @@
 #include "outputwindow.hpp"
 #include "logger.hpp"
 #include <coreplugin/icore.h>
-#if QTC_VERSION < 0x09'00'00
+#if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
 #endif
 #include <coreplugin/coreconstants.h>
@@ -152,6 +152,6 @@ ServantPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-#if QTC_VERSION < 0x09'00'00
+#if QTC_VERSION < 0x08'00'00
 Q_EXPORT_PLUGIN( ServantPlugin );
 #endif

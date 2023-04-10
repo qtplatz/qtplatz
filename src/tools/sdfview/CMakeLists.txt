@@ -53,7 +53,13 @@ add_executable( ${PROJECT_NAME}
   moltabledelegate.cpp
   moltabledelegate.hpp
   ${Resources}
-  )
+)
+
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
+  set (UTILS "Utils")
+else()
+  set (UTILS "utils")
+endif()
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adchem
@@ -62,7 +68,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adui
   adwidgets
-  utils
+  ${UTILS}
   Core
   Qt::Widgets
   Qt::Svg

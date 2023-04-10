@@ -102,6 +102,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPainter>
 #include <QPrinter>
 #include <QSettings>
@@ -133,19 +134,19 @@ using namespace dataproc;
 
 namespace dataproc {
 
-    class MSProcessingWndImpl {
+    class MSProcessingWnd::impl {
     public:
-        MSProcessingWndImpl() : ticPlot_(0)
-                              , profileSpectrum_(0)
-                              , processedSpectrum_(0)
-                              , pwplot_( new adplot::TraceWidget )
-                              , is_time_axis_( false )
-                              , hasHistogram_( false )
-                              , scaleYAuto_( true )
-                              , scaleY_( {0, 0} )
-                              , yRightEnabled_( false )
-                              , yScaleChromatogram_{ true, 0,  100.0 }
-                              , xScaleChromatogram_{ true, 0, 1000.0 } {
+        impl() : ticPlot_(0)
+               , profileSpectrum_(0)
+               , processedSpectrum_(0)
+               , pwplot_( new adplot::TraceWidget )
+               , is_time_axis_( false )
+               , hasHistogram_( false )
+               , scaleYAuto_( true )
+               , scaleY_( {0, 0} )
+               , yRightEnabled_( false )
+               , yScaleChromatogram_{ true, 0,  100.0 }
+               , xScaleChromatogram_{ true, 0, 1000.0 } {
         }
 
         void currentChanged( const adcontrols::MSPeakInfoItem& pk ) {
@@ -179,59 +180,6 @@ namespace dataproc {
             processedSpectrum_->setFocusedFcn( fcn );
         }
 
-        bool ticFinder3( const adcontrols::LCMSDataset * rawfile, double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
-            size_t idx = 0;
-            double error = 999.0;
-            double seconds = adcontrols::Chromatogram::toSeconds( x );
-            while ( auto reader = rawfile->dataReader( idx++ ) ) {
-                if ( reader->fcnCount() ) {
-                    if ( auto it = reader->findPos( seconds ) ) {
-                        if ( error > std::abs( it->time_since_inject() - seconds ) ) {
-                            error = std::abs( it->time_since_inject() - seconds );
-                            pos = it->pos();
-                            minutes = it->time_since_inject();
-                            rep = 0;
-                            fcn = it->fcn();
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-
-        bool ticFinder2( const adcontrols::LCMSDataset * rawfile, double x, size_t& pos, int& index, int& rep, int& fcn, double& seconds ) {
-            index = 0;
-            fcn = (-1);
-            seconds = 0;
-
-            pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
-            if ( rawfile->index( pos, index, fcn, rep ) ) {
-                seconds = rawfile->timeFromPos( pos ); // adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
-                return true;
-            }
-
-            int traceId = -1;
-            index = -1;
-
-            double s = adcontrols::Chromatogram::toSeconds( x );
-            double t = std::numeric_limits<double>::max();
-            for ( auto& chro: checkedChromatograms_ ) {
-                if ( auto pchr = chro.second.lock() ) {
-                    if ( const double * times = pchr->getTimeArray() ) {
-                        int idx = int( std::distance( times, std::lower_bound( times, times + pchr->size(), s ) ) );
-                        if ( std::abs( t - s ) > std::abs( times[ idx ] - s ) ) {
-                            traceId = chro.first;
-                            index = idx;
-                            fcn = pchr->protocol();
-                            t = times[ idx ];
-                        }
-                    }
-                }
-            }
-            seconds = t; // adcontrols::Chromatogram::toMinutes( t );
-            return ( traceId >= 0 ) && ( index >= 0 );
-        }
-
         bool ticTracker( const QPointF& pos, QwtText& text ) {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto rawfile = dp->rawdata() ) {
@@ -243,12 +191,7 @@ namespace dataproc {
                     if ( rawfile->dataformat_version() >= 3 ) {
                         return true;
                     } else {
-                        if ( ticFinder2( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
-                            QString ammend = QString::fromStdString(
-                                ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
-                            text.setText( QString( "%1 %2" ).arg( text.text(), ammend ), QwtText::RichText );
-                            return true;
-                        }
+                        ADDEBUG() << "V2 format data are no longer supported.";
                     }
                 }
             }
@@ -289,7 +232,7 @@ MSProcessingWnd::~MSProcessingWnd()
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
                                                   , drawIdx1_( 0 )
-                                                  , pImpl_( new MSProcessingWndImpl() )
+                                                  , pImpl_( new impl() )
                                                   , axis_(adcontrols::hor_axis_mass)
 {
     init();
@@ -369,7 +312,7 @@ MSProcessingWnd::init()
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setContentsMargins( {} );
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
 
@@ -493,6 +436,9 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 void
 MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
 {
+    ADDEBUG() << "handleRemoveSession(" << processor->filename() << ")"
+              << "\n\t" << pImpl_->datum_[ 0 ].filename_
+              << "\n\t" << pImpl_->datum_[ 1 ].filename_;
     if ( pImpl_->datum_[ 0 ].filename_ == processor->filename() ) {
         pImpl_->ticPlot_->clear();
         pImpl_->ticPlot_->replot();
@@ -1029,7 +975,6 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
             if ( auto rawfile = dp->rawdata() ) {
-                //--- v3 support -->
                 if ( rawfile->dataformat_version() >= 3 ) {
                     // v3 data
                     auto readers = rawfile->dataReaders();
@@ -1037,27 +982,10 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                         if ( auto it = reader->findPos( rect.left() ) )
                             menu.addAction( QString::fromStdString(
                                                 ( boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str() )
-                                            , [=] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
+                                            , [=] () { document::instance()->onSelectSpectrum_v3( dp, rect.left(), it ); } );
                     }
                 } else {
-                    // v2 data
-                    size_t pos;
-                    int index, rep, fcn;
-                    double seconds;
-                    if ( ! pImpl_->ticFinder2( rawfile, rect.left(), pos, index, rep, fcn, seconds ) ) {
-                        seconds = 0;
-                        index = fcn = -1;
-                    }
-                    menu.addAction( QString::fromStdString(
-                                        (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str() )
-                                    , [=] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } );
-
-                    if ( index < 0 || fcn < 0 )
-                        menu.actions().back()->setEnabled( false );
-
-                    menu.addAction( QString::fromStdString(
-                                        ( boost::format( "Select a spectrum @%.3f s" ) % rect.left() ).str() )
-                                    , [&] () { document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); } );
+                    QMessageBox::information( 0, "Dataprocessor", "QtPlatz 6.0 and later versions do not support v2 format data file.  Use QtPlatz 5.4" );
                 }
             }
         }
@@ -1066,6 +994,10 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         menu.addAction( tr( "Save as SVG File..." ), [&] () {
             utility::save_image_as<SVG>()( pImpl_->ticPlot_, idChromatogramFolium_ );
         });
+        menu.addAction( tr("Clear overlay" ), [&]{
+            pImpl_->clearCheckedChromatograms();
+            pImpl_->ticPlot_->replot();
+        })->setEnabled( pImpl_->checkedChromatograms_.size() );
         menu.addAction( tr("Frequency analysis"), [&] () {
                 if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                     auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
@@ -1137,7 +1069,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                 auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString( title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
                             }
                         }
                     }
@@ -1461,8 +1393,12 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                     adcontrols::ProcessMethod::xml_archive( o, *pm );
                     pugi::xml_document dom;
                     auto result = dom.load_string( pugi::as_utf8( o.str() ).c_str() );
-                    if ( result )
+                    if ( result ) {
+                        ADDEBUG() << "########################### TODO ###################################";
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                         adpublisher::printer::print( printer, painter, drawRect, dom, "process-method-html.xsl" );
+#endif
+                    }
                 }
             }
         }

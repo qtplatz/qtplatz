@@ -41,7 +41,13 @@ namespace dataproc {
         Q_OBJECT
     public:
         ~DataprocEditor();
-        DataprocEditor( Core::IEditorFactory * );
+#if QTC_VERSION < 0x08'00'00
+        DataprocEditor( Core::IEditorFactory * ); // for Qt5/QtCreator3
+#else
+        DataprocEditor();  // for QtCreator8
+#endif
+
+#if QTC_VERSION < 0x08'00'00
         void setDataprocessor( Dataprocessor * );
 
         bool portfolio_create( const QString &token );
@@ -67,8 +73,18 @@ namespace dataproc {
         Core::IEditorFactory * factory_;
         Core::Context context_;
         QString displayName_;
-
+#endif
         bool eventFilter( QObject * object, QEvent * event ) override;
+#if QTC_VERSION >= 0x08'00'00
+        ////////////// Qt6/QtCreator9 ///////////////////
+    public:
+        Core::IDocument * document() const override;
+        QWidget *toolBar() override;
+        Core::IEditor *duplicate() override;
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
+#endif
     };
 
 }

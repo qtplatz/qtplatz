@@ -132,10 +132,10 @@ public:
 };
 
 ManhattanStylePrivate::ManhattanStylePrivate() :
-    lineeditImage(Utils::StyleHelper::dpiSpecificImageFile(QStringLiteral(":/core/images/inputfield.png")))
-    , lineeditImage_disabled(Utils::StyleHelper::dpiSpecificImageFile(QStringLiteral(":/core/images/inputfield_disabled.png")))
-    , extButtonPixmap(QLatin1String(":/core/images/extension.png"))
-    , closeButtonPixmap(QLatin1String(Core::Constants::ICON_CLOSE_BUTTON))
+    lineeditImage(Utils::StyleHelper::dpiSpecificImageFile(QStringLiteral(":/adui/images/inputfield.png")))
+    , lineeditImage_disabled(Utils::StyleHelper::dpiSpecificImageFile(QStringLiteral(":/adui/images/inputfield_disabled.png")))
+    , extButtonPixmap(QLatin1String(":/adui/images/extension.png"))
+    , closeButtonPixmap(QLatin1String(":/adui/images/closebutton.png")) // Core::Constants::ICON_CLOSE_BUTTON))
 {
 }
 

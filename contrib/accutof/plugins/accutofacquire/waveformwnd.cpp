@@ -201,7 +201,7 @@ WaveformWnd::init()
     }
 
     QBoxLayout * layout = new QVBoxLayout( this );
-    layout->setMargin( 0 );
+    layout->setContentsMargins( {} );
     layout->setSpacing( 2 );
     layout->addWidget( top_splitter );
     top_splitter->setStretchFactor( 0, 2 );
@@ -247,7 +247,7 @@ WaveformWnd::handle_threshold_action()
 {
     if ( auto am = document::instance()->tdc()->threshold_action() ) {
 
-        auto massSpectrometer( document::instance()->massSpectrometer() ); // lock
+        auto massSpectrometer( document::instance()->massSpectrometer() ); // lock pointer
         auto mass_assign = [=](double time, int){ return massSpectrometer->assignMass( time, 0 ); };
 
         double lower(0), upper(0);

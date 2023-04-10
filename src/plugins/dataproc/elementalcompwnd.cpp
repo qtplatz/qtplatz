@@ -154,7 +154,7 @@ ElementalCompWnd::init()
         splitter->setOrientation( Qt::Vertical );
 
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-        toolBarAddingLayout->setMargin(0);
+        toolBarAddingLayout->setContentsMargins( {} );
         toolBarAddingLayout->setSpacing(0);
         toolBarAddingLayout->addWidget( splitter );
     }
@@ -329,7 +329,12 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 
     QString fullpath;
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        ADDEBUG() << "########################### TODO ###################################";
+#if QTC_VERSION <= 0x03'02'81
         fullpath = processor->filePath();
+#else
+        fullpath = processor->filePath().toString(); // Utils::FilePath
+#endif
     }
 
 	painter.drawText( drawRect, Qt::TextWordWrap, fullpath, &boundingRect );
@@ -388,13 +393,12 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         }
 
         //--------------
-        std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
-        for ( auto model : models ) {
-            auto a = menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) )
-                                     , [this,model](){
-                                         estimateScanLaw( QString::fromStdWString( model ) );
+        auto models = adcontrols::MassSpectrometer::installed_models();
+        for ( const auto& m : models ) {
+            auto a = menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdString( m.second ) )
+                                     , [this,&m](){
+                                         estimateScanLaw( QString::fromStdString( m.second ) );
                                      } );
-            // if ( !centroid_.lock() )
             a->setEnabled( false );
         }
 

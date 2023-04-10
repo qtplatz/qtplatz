@@ -30,6 +30,7 @@
 #include <cstdint>
 #include <vector>
 #include <mutex>
+#include <filesystem>
 
 namespace boost { namespace filesystem { class path; } }
 
@@ -53,10 +54,11 @@ namespace adfs {
 
         bool create( const boost::filesystem::path&, size_t alloc = 0, size_t page_size = 8192 );
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
-        bool create( const char * filename, size_t alloc = 0, size_t page_size = 8192 );        
+        bool create( const char * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool mount( const boost::filesystem::path& filename );
+        bool mount( const std::filesystem::path& filename );
         bool mount( const wchar_t * filename );
-        bool mount( const char * filename );        
+        bool mount( const char * filename );
         bool close();
         const std::string& filename() const;
         //
@@ -72,4 +74,3 @@ namespace adfs {
     };
 
 } // adfs
-

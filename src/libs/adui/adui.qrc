@@ -56,5 +56,9 @@
         <file>images/Button Rewind.png</file>
         <file>images/Button Stop.png</file>
         <file>images/RunControl.png</file>
+        <file>images/inputfield.png</file>
+        <file>images/inputfield_disabled.png</file>
+        <file>images/extension.png</file>
+	<file>images/closebutton.png</file>
     </qresource>
 </RCC>

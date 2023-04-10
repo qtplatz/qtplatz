@@ -58,8 +58,6 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    class MSProcessingWndImpl;
-
     class MSProcessingWnd : public QWidget {
         Q_OBJECT
         public:
@@ -114,7 +112,8 @@ namespace dataproc {
 
     private:
         int drawIdx1_;
-        MSProcessingWndImpl * pImpl_;
+        class impl;
+        impl * pImpl_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileHistogram_;

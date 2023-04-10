@@ -3,7 +3,7 @@
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
@@ -55,61 +55,41 @@ namespace dataproc {
     class DataprocessorFactory;
     class iSnapshotHandlerImpl;
 	class iPeptideHandlerImpl;
-    
-    class DataprocPlugin : public ExtensionSystem::IPlugin {
-        
-        Q_OBJECT
-        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "dataproc.json")
 
+    class DataprocPlugin : public ExtensionSystem::IPlugin {
+        Q_OBJECT
+		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Dataproc.json")
     public:
         ~DataprocPlugin();
         explicit DataprocPlugin();
-        
+
         // implement ExtensionSystem::IPlugin
-        bool initialize(const QStringList &arguments, QString *error_message);
-        void extensionsInitialized();
-        ShutdownFlag aboutToShutdown();
+        bool initialize(const QStringList &arguments, QString *error_message) override;
+        void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
         // <--
-        inline static DataprocPlugin * instance() { return instance_; }
-        inline static MainWindow * mainWindow() { return instance_ ? instance_->mainWindow_ : 0; }
-        
+        static DataprocPlugin * instance();
+        static MainWindow * mainWindow();
+
         void applyMethod( const adcontrols::ProcessMethod& );
+        ActionManager * actionManager();
 
-        //DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
-
-        dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
-
-        //void handleFileCreated( const QString& filename );
-        
     signals:
         void onApplyMethod( const adcontrols::ProcessMethod& );
-                                                              
+
     public slots:
-            
+
     private:
         enum { idActSpectrogram, nActions };
-        
+
     private:
-        dataproc::MainWindow * mainWindow_;
-        std::unique_ptr< dataproc::Mode > mode_;
-
-        // std::unique_ptr< SessionManager > pSessionManager_;
-        std::unique_ptr< ActionManager > pActionManager_;
-        
-        std::unique_ptr< adextension::iSequenceImpl > iSequence_;
-        std::unique_ptr< iSnapshotHandlerImpl > iSnapshotHandler_;
-        std::unique_ptr< iPeptideHandlerImpl > iPeptideHandler_;
-
         static DataprocPlugin * instance_;
-        
-        // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
-        //static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );
-        //static void delete_editorfactories( std::vector< EditorFactory * >& );
-        
+
         bool connect_isnapshothandler_signals();
         void disconnect_isnapshothandler_signals();
-        
+
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 }
-
