@@ -64,7 +64,7 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
                                                                         , marker_( new adplot::PeakMarker )
 {
     auto layout = new QHBoxLayout(this);
-    layout->setMargin(0);
+    layout->setContentsMargins( {} );
     layout->setSpacing(0);
 
     if ( isChromatogram_ )

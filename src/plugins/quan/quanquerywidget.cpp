@@ -58,7 +58,7 @@ QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
                                                   , table_( new QuanResultTable )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
@@ -69,7 +69,7 @@ QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
         layout_->addWidget( toolBar );
 
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 2 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 2 );
 
         if ( auto btnOpen = new QToolButton ) {

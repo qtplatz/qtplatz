@@ -20,7 +20,7 @@ elseif( IDE_VERSION VERSION_EQUAL "8.0.2" )
   set ( QTPLATZ_CONFIG_Servant    ON )
   set ( QTPLATZ_CONFIG_Acquire    ON )
   set ( QTPLATZ_CONFIG_Dataproc   ON )
-  set ( QTPLATZ_CONFIG_Quan       OFF )
+  set ( QTPLATZ_CONFIG_Quan       ON )
 
   set ( QTPLATZ_CONFIG_Chemistry  OFF )
   set ( QTPLATZ_CONFIG_Peptide    OFF )

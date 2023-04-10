@@ -53,7 +53,7 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
                                                   , table_( new CompoundsTable )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
@@ -61,7 +61,7 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         if ( auto btnOpen = new QToolButton ) {
             btnOpen->setIcon( QIcon( ":/quan/images/fileopen.png" ) );

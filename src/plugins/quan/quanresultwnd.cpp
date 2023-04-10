@@ -112,7 +112,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     splitter->setStretchFactor( 1, 1 );
 
     auto layout = new QVBoxLayout( this );
-    layout->setMargin( 0 );
+    layout->setContentsMargins( {} );
     layout->setSpacing( 0 );
     layout->addWidget( splitter );
 
@@ -136,19 +136,7 @@ QuanResultWnd::handleConnectionChanged()
 
         // make compounds table (right bar)
         QSqlQuery sqlQuery( "SELECT uuid, formula, description FROM QuanCompound", connection->sqlDatabase() );
-        cmpdWidget_->table().setQuery( sqlQuery, { "uuid" } );
-
-#if 0
-        if ( auto query = connection->query() ) {
-            if ( query->prepare( std::wstring ( L"SELECT uuid, formula, description FROM QuanCompound" ) ) ) {
-                cmpdWidget_->table().setColumnHide( "uuid" );
-                cmpdWidget_->table().prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    cmpdWidget_->table().addRecord( *query );
-                }
-            }
-        }
-#endif
+        cmpdWidget_->table().setQuery( std::move( sqlQuery ), { "uuid" } );
 
         isCounting_ = isISTD_ = false;
         adfs::stmt sql( connection->db() );

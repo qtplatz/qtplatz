@@ -164,7 +164,7 @@ QuanReportWidget::filePublish()
                                     , "Quan connecting database..."
                                     , Constants::QUAN_TASK_OPEN );
 
-    auto future = std::async( std::launch::async, [=](){
+    auto future = std::async( std::launch::async, [=,this](){
             return publishTask( xslfile, progress );
         } );
 

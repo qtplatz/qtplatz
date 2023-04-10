@@ -50,7 +50,7 @@
 #include <adwidgets/htmlheaderview.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/id.h>
+#include <utils/id.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/rightpane.h>
@@ -98,7 +98,7 @@ QWidget *
 MainWindow::createContents( Core::IMode * )
 {
     QVBoxLayout * viewLayout = new QVBoxLayout( this );
-    viewLayout->setMargin(0);
+    viewLayout->setContentsMargins( {} );
     viewLayout->setSpacing(0);
 
     auto tabWidget = new DoubleTabWidget( this );
@@ -203,7 +203,7 @@ MainWindow::createTopStyledBar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         Core::ActionManager * am = Core::ActionManager::instance(); // ->actionManager();
         if ( am ) {
@@ -300,7 +300,7 @@ MainWindow::createActions()
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Quan") );
 
-        Core::Context context( Core::Id( "Quan.MainView" ) );
+        Core::Context context( Utils::Id( "Quan.MainView" ) );
 
         if ( auto p = new QAction( QIcon( ":/quan/images/fileopen.png" ), tr( "Open Quan Result..." ), this ) ) {
             am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools->Quan->Open
@@ -418,9 +418,15 @@ MainWindow::run()
         if ( boost::filesystem::exists( path ) ) {
 
             QString file( QString::fromStdWString( path.normalize().wstring() ) );
-            auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
-                                                , QString("File %1% already exists, remove?").arg( file )
-                                                , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
+            QMessageBox mBox;
+            mBox.setText( "Quan Sequence Exec" );
+            mBox.setInformativeText( QString("File %1% already exists, remove?").arg( file ) );
+            mBox.setStandardButtons( QMessageBox::Yes|QMessageBox::No|QMessageBox::Ignore );
+            mBox.setDefaultButton( QMessageBox::No );
+            auto reply = mBox.exec();
+            // auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+            //                                     , QString("File %1% already exists, remove?").arg( file )
+            //                                     , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
             if ( reply == QMessageBox::No )
                 return;
 
@@ -428,9 +434,15 @@ MainWindow::run()
                 boost::system::error_code ec;
                 boost::filesystem::remove( path, ec );
                 if ( ec ) {
-                    auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
-                                                        , QString( "File %1% cannot be removed. Overwrite?" ).arg( file )
-                                                        , QMessageBox::Yes, QMessageBox::No, QMessageBox::Ignore );
+                    QMessageBox mBox;
+                    mBox.setText( "Quan Sequence Exec" );
+                    mBox.setInformativeText( QString( "File %1% cannot be removed. Overwrite?" ).arg( file ) );
+                    mBox.setStandardButtons( QMessageBox::Yes|QMessageBox::No|QMessageBox::Ignore );
+                    mBox.setDefaultButton( QMessageBox::No );
+                    auto reply = mBox.exec();
+                    // auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
+                    //                                     , QString( "File %1% cannot be removed. Overwrite?" ).arg( file )
+                    //                                     , QMessageBox::Yes, QMessageBox::No, QMessageBox::Ignore );
                     if ( reply == QMessageBox::No )
                         return;
                 }
@@ -445,7 +457,7 @@ MainWindow::run()
         stop->setEnabled( false );
 
     boost::filesystem::path path = document::instance()->quanSequence()->outfile();
-    Core::DocumentManager::setProjectsDirectory( QString::fromStdWString( path.parent_path().wstring() ) );
+    Core::DocumentManager::setProjectsDirectory( Utils::FilePath::fromString( QString::fromStdWString( path.parent_path().wstring() ) ) );
 
     if ( inlet == adcontrols::Quan::ExportData )
         document::instance()->execute_spectrogram_export();
@@ -496,7 +508,7 @@ MainWindow::handleOpenQuanResult()
 
             if ( auto tab = findChild< DoubleTabWidget * >() )
                 tab->setCurrentIndex( -1, 2 );
-            Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
+            Core::ModeManager::activateMode( Utils::Id( Constants::C_QUAN_MODE ) );
         }
     }
     catch ( ... ) {

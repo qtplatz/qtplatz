@@ -165,8 +165,8 @@ QuanExportProcessor::QuanExportProcessor( QuanProcessor * processor
         size_t n_spectra( 0 );
         for ( const auto& sample: samples ) {
             if ( auto dp = std::make_shared< adprocessor::dataprocessor >() ) {
-                std::wstring errmsg;
-                if ( dp->open( sample.dataSource(), errmsg ) ) {
+                std::string errmsg;
+                if ( dp->open( std::filesystem::path( sample.dataSource() ), errmsg ) ) {
                     adfs::stmt sql( *(dp->db()) );
                     if ( sql.prepare( "SELECT COUNT(*) as C FROM AcquiredData GROUP BY fcn ORDER BY C DESC" ) ) {
                         if ( sql.step() == adfs::sqlite_row ) {
@@ -216,9 +216,9 @@ QuanExportProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
         const boost::filesystem::path stem = boost::filesystem::path( sample.dataSource() ).stem();
         auto dp = std::make_shared< adprocessor::dataprocessor >();
-        std::wstring emsg;
+        std::string emsg;
 
-        if ( dp->open( sample.dataSource(), emsg ) ) {
+        if ( dp->open( std::filesystem::path( sample.dataSource() ), emsg ) ) {
             if ( auto raw = dp->rawdata() ) {
                 if ( raw->dataformat_version() < 3 )
                     return false;

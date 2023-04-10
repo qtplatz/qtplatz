@@ -50,12 +50,12 @@ QuanCmpdWidget::QuanCmpdWidget( QWidget * parent ) : QWidget( parent )
                                                    , table_( new QuanResultTable )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         auto label = new QLabel;
         label->setText( "Compounds" );
@@ -85,7 +85,7 @@ QuanCmpdWidget::uuid( int row )
                 QMessageBox::warning( this, "QuanCmpdWidget", QString( "Can't convert to uuid from '%1'" ).arg( data.c_str() ) );
             }
         }
-        
+
     }
 #if 0
     // else {
@@ -102,5 +102,5 @@ QuanCmpdWidget::uuid( int row )
     //     }
     // }
 #endif
-    return boost::uuids::uuid(); // null 
+    return boost::uuids::uuid(); // null
 }

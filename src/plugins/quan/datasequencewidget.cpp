@@ -129,7 +129,7 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
                                                         , replicates_(1)
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
@@ -177,7 +177,7 @@ DataSequenceWidget::dataSelectionBar()
 {
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
 
         // [DATA OPEN]|[SAVE][...line edit...][EXEC]
@@ -340,17 +340,16 @@ DataSequenceWidget::handleSampleInletChanged( adcontrols::Quan::QuanInlet inlet 
 void
 DataSequenceWidget::handlePlot( const QString& file )
 {
-    boost::filesystem::path path( file.toStdString() );
+    std::filesystem::path path( file.toStdString() );
+    std::string errmsg;
 
-    std::wstring errmsg;
-
-    if ( boost::filesystem::exists( path ) ) {
+    if ( std::filesystem::exists( path ) ) {
 
         qtwrapper::waitCursor wait;
 
         auto dp = std::make_shared< adprocessor::dataprocessor >();
 
-        if ( dp->open( path.wstring(), errmsg ) ) {
+        if ( dp->open( path, errmsg ) ) {
             if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
 
                 // counting profile

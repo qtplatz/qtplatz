@@ -218,7 +218,7 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
 
         if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
 #ifndef NDEBUG
-            ADDEBUG() << boost::json::value_from ( *lkm );
+            // ADDEBUG() << lkm->toJson();
 #endif
             for ( auto& cm: cXmethods_ )
                 cm->setLockmass( lkm->enabled() );
@@ -277,9 +277,9 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
         const boost::filesystem::path stem = boost::filesystem::path( sample.dataSource() ).stem();
         auto dp = std::make_shared< adprocessor::dataprocessor >();
-        std::wstring emsg;
+        std::string emsg;
 
-        if ( dp->open( sample.dataSource(), emsg ) ) {
+        if ( dp->open( std::filesystem::path( sample.dataSource() ), emsg ) ) {
             if ( auto raw = dp->rawdata() ) {
                 if ( raw->dataformat_version() < 3 )
                     return false;

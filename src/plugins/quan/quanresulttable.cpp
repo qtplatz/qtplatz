@@ -51,17 +51,21 @@ namespace quan {
 
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
-
-                // if ( auto sqlModel = qobject_cast< const QSqlQueryModel * >( index.model() ) ) {
-                //     auto field = sqlModel->record().field( index.column() );
-
-                if ( index.data().type() == QVariant::Double ) {
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+                if ( index.data().metaType() == QMetaType::fromType< double >() ) { // QVariant::Double ) {
+#else
+                if ( index.data().type() == QVariant::Double ) { // QVariant::Double ) {
+#endif
                     double value = index.data().toDouble();
                     if ( ( value <= std::numeric_limits< double >::epsilon() ) || value >= 0.01 )
                         painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
                     else
                         painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'e', 5 ) );
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+                } else if ( index.data().metaType() == QMetaType::fromType< QString >() ) {
+#else
                 } else if ( index.data().type() == QVariant::String ) {
+#endif
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
                     if ( !formula.empty() ) {
                         adwidgets::DelegateHelper::render_html( painter, op, QString::fromStdString( formula ) );
@@ -90,7 +94,11 @@ namespace quan {
                 QStyleOptionViewItem op( option );
                 if ( index.data().isNull() ) {
                     return QSize();
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+                } else if ( index.data().metaType() == QMetaType::fromType< double >() ) {
+#else
                 } else if ( index.data().type() == QVariant::Double ) {
+#endif
                     QFontMetricsF fm = op.fontMetrics;
                     double value = index.data().toDouble();
                     double width;
@@ -142,13 +150,13 @@ QuanResultTable::model()
 
 /////////////////////
 void
-QuanResultTable::setQuery( const QSqlQuery& sqlQuery, const std::vector<QString>& hidelist )
+QuanResultTable::setQuery( QSqlQuery&& sqlQuery, const std::vector<QString>& hidelist )
 {
     if ( auto delegate = dynamic_cast< ItemDelegate *>(itemDelegate()) )
         delegate->clear();
 
     if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
-        model->setQuery( sqlQuery );
+        model->setQuery( std::move( sqlQuery ) );
     }
 
     for ( auto& hide: hidelist ) {

@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,10 +24,28 @@
 **************************************************************************/
 
 #include "quaneditor.hpp"
+#include "quandocument.hpp"
 #include "quanconstants.hpp"
 #include <coreplugin/modemanager.h>
 #include <QWidget>
 #include <QEvent>
+
+namespace quan {
+
+    class QuanEditor::impl {
+    public:
+        impl() : file_( std::make_unique< QuanDocument >() )
+               , widget_( 0 ) {
+        }
+        ~impl() {
+            delete widget_;
+        }
+        QWidget * widget_;
+        std::unique_ptr< QuanDocument > file_;
+    };
+
+}
+
 
 using namespace quan;
 
@@ -35,14 +53,34 @@ QuanEditor::~QuanEditor()
 {
 }
 
-QuanEditor::QuanEditor( QObject * parent ) : Core::IEditor( parent )
-                                           , widget_( new QWidget ) 
-                                           , proxy_( new QuanDocProxy )
+QuanEditor::QuanEditor( QObject * parent ) : impl_( std::make_unique< impl >() )
 {
-    widget_->installEventFilter( this );
-    setWidget( widget_ );
+    impl_->widget_ = new QWidget;
+    // widget_->installEventFilter( this );
+    setWidget( impl_->widget_ );
 }
 
+
+Core::IDocument *
+QuanEditor::document() const
+{
+    return impl_->file_.get();
+}
+
+
+QWidget *
+QuanEditor::toolBar()
+{
+    return 0;
+}
+
+Core::IEditor *
+QuanEditor::duplicate()
+{
+    return 0;
+}
+
+#if 0
 bool
 QuanEditor::eventFilter( QObject * object, QEvent * event )
 {
@@ -131,4 +169,4 @@ QuanDocProxy::isFileReadOnly() const
 {
     return false;
 }
-
+#endif

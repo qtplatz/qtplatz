@@ -55,13 +55,13 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QGridLayout )
 {
     auto topLayout = new QVBoxLayout( this );
-    topLayout->setMargin( 0 );
+    topLayout->setContentsMargins( {} );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         auto label = new QLabel;
         label->setText( "Configuration" );
