@@ -39,7 +39,7 @@
 #include <coreplugin/coreconstants.h>
 //#include <coreplugin/mimedatabase.h>
 #include <coreplugin/modemanager.h>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
 #endif
 #include <coreplugin/minisplitter.h>

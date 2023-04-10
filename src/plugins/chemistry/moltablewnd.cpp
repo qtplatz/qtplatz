@@ -78,7 +78,7 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
         layout->setSpacing( 0 );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( {} );
         layout->addWidget( table_ );
     }
 
@@ -141,7 +141,7 @@ MolTableWnd::setQuery( const QString& sqlstmt )
                 table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
         }
 
-        model_->setQuery( query );
+        model_->setQuery( std::move( query ) );
 
         for ( auto& hidden: hideColumns_ ) {
             int col;

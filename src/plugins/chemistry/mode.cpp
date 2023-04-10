@@ -26,7 +26,9 @@
 #include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
+#if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
+#endif
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
@@ -38,7 +40,7 @@ Mode::Mode( QObject * /* parent */ )
 
     setIcon( QIcon( ":/chemistry/images/applications-science-3.png" ) );
 	setPriority( 40 );
-	
+
     setId( chemistry::Constants::C_CHEM_MODE );
     setContext( Core::Context( "Chemistry.MainView" ) );
 }
@@ -46,4 +48,3 @@ Mode::Mode( QObject * /* parent */ )
 Mode::~Mode()
 {
 }
-

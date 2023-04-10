@@ -144,14 +144,18 @@ MainWindow::createActions()
 }
 
 QWidget *
-MainWindow::createContents( Core::IMode * mode )
+MainWindow::createContents(
+#if QTC_VERSION <= 0x03'02'81
+    Core::IMode * mode
+#endif
+    )
 {
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
     QBoxLayout * editorHolderLayout = new QVBoxLayout;
-	editorHolderLayout->setMargin( 0 );
+	editorHolderLayout->setContentsMargins( {} );
 	editorHolderLayout->setSpacing( 0 );
 
     if ( auto wnd = findChild< MolTableWnd * >() ) {
@@ -171,7 +175,11 @@ MainWindow::createContents( Core::IMode * mode )
     Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
     if ( documentAndRightPane ) {
         documentAndRightPane->addWidget( editorAndFindWidget );
+#if QTC_VERSION >= 0x08'00'00
+        documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( Utils::Id( Constants::MODE_CHEMISTRY ) ) );
+#else
         documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( mode ) );
+#endif
         documentAndRightPane->setStretchFactor( 0, 1 );
         documentAndRightPane->setStretchFactor( 1, 0 );
     }
@@ -184,7 +192,7 @@ MainWindow::createContents( Core::IMode * mode )
 	setCentralWidget( centralWidget );
 
 	QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-	centralLayout->setMargin( 0 );
+	centralLayout->setContentsMargins( {} );
 	centralLayout->setSpacing( 0 );
     centralLayout->addWidget( toolBar1 );
     centralLayout->addWidget( documentAndRightPane );
@@ -192,7 +200,11 @@ MainWindow::createContents( Core::IMode * mode )
 
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
+#if QTC_VERSION >= 0x08'00'00
+    QWidget * outputPane = new Core::OutputPanePlaceHolder( Utils::Id( Constants::MODE_CHEMISTRY ), mainWindowSplitter );
+#else
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+#endif
     outputPane->setObjectName( QLatin1String( "ChemistryOutputPanePlaceHolder" ) );
 	mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
@@ -202,7 +214,11 @@ MainWindow::createContents( Core::IMode * mode )
 
 	// Navigation and right-side window
 	Core::MiniSplitter * splitter = new Core::MiniSplitter;
+#if QTC_VERSION >= 0x08'00'00
+    splitter->addWidget( new Core::NavigationWidgetPlaceHolder( Constants::MODE_CHEMISTRY, Core::Side::Left ) );
+#else
 	splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
+#endif
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
@@ -295,7 +311,7 @@ MainWindow::createToolbar()
 {
 	QWidget * toolbarContainer = new QWidget;
 	QHBoxLayout * hbox = new QHBoxLayout( toolbarContainer );
-    hbox->setMargin( 0 );
+    hbox->setContentsMargins( {} );
     hbox->setSpacing( 0 );
     hbox->addWidget( toolButton( "STOP" ) ); // should create action in 'plugin' with icon
 }
@@ -347,7 +363,7 @@ MainWindow::createMidStyledBar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
 
         if ( auto am = Core::ActionManager::instance() ) {
@@ -371,7 +387,7 @@ MainWindow::createTopStyledBar()
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
     }
     return toolBar;

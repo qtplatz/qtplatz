@@ -25,8 +25,8 @@ endif()
 set( DESCRIPTION "Chemistry plugin" )
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-########## QtCreator 9 (Qt6) plugin.json #############
-if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
+########## QtCreator 8 (Qt5/6) plugin.json #############
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
   find_package( QtCreator REQUIRED COMPONENTS Core )
 
@@ -44,14 +44,13 @@ if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
 endif()
 ####################### END ##########################
 
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   configure_file(
     "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
     )
-
   execute_process( COMMAND ${XMLPATTERNS} -no-format
-    -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
+    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
     ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
     ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
     )
@@ -138,7 +137,7 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
-if ( IDE_VERSION VERSION_LESS "9.0.0" )
+if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   install( FILES
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
     DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
