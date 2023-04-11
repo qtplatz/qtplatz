@@ -80,7 +80,8 @@ if ( WITH_QT5 )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
     else()
       ## Linux & Windows
-      set( CMAKE_INSTALL_RPATH     "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
+      set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz" )
+      #set( CMAKE_INSTALL_RPATH     "\$ORIGIN/../lib" )
       set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
     endif()
@@ -189,7 +190,6 @@ else()
   set( CMAKE_SKIP_BUILD_RPATH            FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH    FALSE )
   set( CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE )
-  #set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib" )
 
   if ( CMAKE_CROSSCOMPILING AND WITH_QT5 )
     set( CMAKE_PREFIX_PATH /usr/local/qt5 )
@@ -214,8 +214,8 @@ elseif ( APPLE )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )
-  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formaly lib/qtplatz
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib/Qt/lib" )  # <-- formerly lib
+  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formerly lib/qtplatz
 endif()
 
 if ( WITH_PYTHON3 )
@@ -240,7 +240,6 @@ if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
 else()
 endif()
-
 
 ##############################################
 ### find rdkit will include rdkit-config.cmake that removes Boost_LIBRARIES,
@@ -294,7 +293,7 @@ if ( Boost_FOUND )
   add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 )
   add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
 else()
-  message( FATAL_ERROR "#################### " ${Boost_FOUND} )
+  message( FATAL_ERROR "#### boost not found #### " )
 endif()
 
 include_directories(

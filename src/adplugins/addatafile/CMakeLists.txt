@@ -8,11 +8,6 @@ set( PROVIDER MS-Cheminformatics )
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 
-message( STATUS "#################################################################" )
-message( STATUS "##### _adplugin_output_dir : ${_adplugin_output_dir} ############" )
-message( STATUS "##### _adplugin_install_dir : ${_adplugin_install_dir} ############" )
-message( STATUS "#################################################################" )
-
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
 configure_file(

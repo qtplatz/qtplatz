@@ -39,14 +39,11 @@ if ( NOT CMAKE_CROSSCOMPILING AND QT_FOUND )
   add_subdirectory (adwidgets)
   add_subdirectory (admtwidgets)
 
-  if ( IDE_VERSION VERSION_LESS "8.0.0" )
+  if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
     ######################## QtCreator3 ############################
-    message( STATUS "######################## QtCreator3 ############################" )
     add_subdirectory (aggregation)
     add_subdirectory (extensionsystem)
     add_subdirectory (utils)
-  else()
-    message( STATUS "######################## QtCreator 8 or higher ############################" )
   endif()
 
   find_package( Qt${QT_VERSION_MAJOR} COMPONENTS XmlPatterns QUIET )

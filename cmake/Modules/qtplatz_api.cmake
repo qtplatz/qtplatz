@@ -34,11 +34,15 @@ function( qtplatz_plugin_install_dir varName provider )
 endfunction()
 
 ################## install runpath ##############
-function( qtplatz_install_rpath varName install_dir )
+function( qtplatz_install_rpath varName library install_dir )
   if ( APPLE )
-    set( ${varName} )
+    set( ${varName} PARENT_SCOPE )
   else()
-    set( ${varName} "$ORIGIN:$ORIGIN/../:$ORIGIN/../../:$ORIGIN/../lib:\$ORIGIN/../../qtplatz/:${CMAKE_INSTALL_RPATH}" PARENT_SCOPE)
+    set( ${varName} "${CMAKE_INSTALL_RPATH}" PARENT_SCOPE )
+    if ( "${install_dir}" STREQUAL "${IDE_PLUGIN_PATH}" )
+      message( STATUS "################## rpath library: ${library}  install_dir: ${install_dir}" )
+      set( ${varName} "\${ORIGIN}/../../qtplatz:\${ORIGIN}/../../" PARENT_SCOPE )
+    endif()
   endif()
 endfunction()
 
@@ -47,12 +51,16 @@ function( runtime_install_path varName library )
   set( ${varName} "bin" PARENT_SCOPE)
 endfunction()
 
-################## library_install_path ##############
+################## library_install_path (.so .dylib files) ##############
 function( library_install_path varName library )
   if ( APPLE )
     set( ${varName} "lib/qtplatz" PARENT_SCOPE)
   else()
-    set( ${varName} "lib"  PARENT_SCOPE)
+    if ( ${library} STREQUAL "adplugin_manager" OR ${library} STREQUAL "adplugin" )
+      set( ${varName} "lib/qtplatz"  PARENT_SCOPE)
+    else()
+      set( ${varName} "lib"  PARENT_SCOPE) # <- formarly lib/qtplatz
+    endif()
   endif()
 endfunction()
 
