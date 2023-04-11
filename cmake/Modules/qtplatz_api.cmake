@@ -32,3 +32,31 @@ function( qtplatz_plugin_install_dir varName provider )
     set( ${varName} "${IDE_PLUGIN_PATH}" PARENT_SCOPE)
   endif()
 endfunction()
+
+################## install runpath ##############
+function( qtplatz_install_rpath varName install_dir )
+  if ( APPLE )
+    set( ${varName} )
+  else()
+    set( ${varName} "$ORIGIN:$ORIGIN/../:$ORIGIN/../../:$ORIGIN/../lib:\$ORIGIN/../../qtplatz/:${CMAKE_INSTALL_RPATH}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+################## runtime_install_path ##############
+function( runtime_install_path varName library )
+  set( ${varName} "bin" PARENT_SCOPE)
+endfunction()
+
+################## library_install_path ##############
+function( library_install_path varName library )
+  if ( APPLE )
+    set( ${varName} "lib/qtplatz" PARENT_SCOPE)
+  else()
+    set( ${varName} "lib"  PARENT_SCOPE)
+  endif()
+endfunction()
+
+################## library_install_path ##############
+function( archive_install_path varName library )
+  set( ${varName} "lib" PARENT_SCOPE)
+endfunction()

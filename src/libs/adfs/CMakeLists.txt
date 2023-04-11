@@ -62,18 +62,23 @@ add_executable( sqlite3 sqlite-amalgamation-3370000/sqlite3.c sqlite-amalgamatio
 find_package( Threads REQUIRED )
 target_link_libraries( sqlite3 Threads::Threads ${CMAKE_DL_LIBS} )
 
+runtime_install_path( _runtime_destination ${PROJECT_NAME} )
+library_install_path( _library_destination ${PROJECT_NAME} )
+archive_install_path( _archive_destination ${PROJECT_NAME} )
+
 install( TARGETS ${PROJECT_NAME}
   EXPORT ${QTPLATZ_TARGETS}
-#  sqlite3  sqlite3-functions
-  RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
-  ARCHIVE DESTINATION lib COMPONENT libraries )
+  RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
+  LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
+  ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
+  )
 
 install( TARGETS sqlite3
   EXPORT ${QTPLATZ_TARGETS}
-  RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
-  ARCHIVE DESTINATION lib COMPONENT libraries )
+  RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
+  LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
+  ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
+)
 
 install( TARGETS sqlite3-functions
   EXPORT ${QTPLATZ_TARGETS}
