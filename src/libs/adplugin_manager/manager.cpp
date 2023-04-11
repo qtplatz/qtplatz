@@ -326,7 +326,8 @@ manager::standalone_initialize()
     auto tpath = boost::dll::this_line_location().parent_path().parent_path();
 #else
     // Mac/Linux --> qtplatz.release/lib/qtplatz/libadplugin_manager.so
-    auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+    // auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+    auto tpath = boost::dll::program_location().parent_path().parent_path();  // <-- install dir (/opt/qtplatz/bin/qtplatz/../..)
 #endif
     adplugin::loader::populate( tpath.wstring().c_str() );
 

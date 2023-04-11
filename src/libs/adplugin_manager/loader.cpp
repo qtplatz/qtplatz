@@ -93,6 +93,8 @@ void
 loader::populate( const wchar_t * topdir )
 {
     boost::filesystem::path appdir( topdir );
+    ADDEBUG() << "populating : " << appdir;
+
 #if defined __APPLE__
     boost::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
     boost::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
@@ -121,7 +123,8 @@ loader::populate( const wchar_t * topdir )
                                 if ( auto plugin = factory() ) {
                                     if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
 #ifndef NDEBUG
-                                        ADDEBUG() << "load\t" << dll.location() << "\tSuccess";
+                                        auto loc = boost::filesystem::relative( dll.location(), appdir );
+                                        ADDEBUG() << "load\t" << loc << "\tSuccess";
 #endif
                                     }
                                 }
@@ -136,7 +139,9 @@ loader::populate( const wchar_t * topdir )
         }
     } else {
         ADDEBUG() << boost::format( "## Error: loader %1% is not a directory" ) % modules.generic_string();
+#ifdef NDEBUG
         BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "loader %1% is not directory" ) % modules.generic_string() ).str() ) );
+#endif
     }
 }
 

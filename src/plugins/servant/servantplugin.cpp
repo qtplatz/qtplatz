@@ -106,12 +106,12 @@ using namespace servant::internal;
 
 ServantPlugin::~ServantPlugin()
 {
-    // ADDEBUG() << "------------- ServantPlugin dtor ----------------";
+    ADDEBUG() << "------------- ServantPlugin dtor ----------------";
 }
 
 ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
-    // ADDEBUG() << "------------- ServantPlugin ctor ----------------";
+    ADDEBUG() << "------------- ServantPlugin ctor ----------------";
 }
 
 bool
@@ -125,7 +125,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     impl_->ini();
 
     ADLOG(adlog::LOG_INFO) << "Startup " << QCoreApplication::applicationFilePath().toStdString();
-    qDebug() << "Startup " << QCoreApplication::applicationFilePath();
 
     adplugin::manager::standalone_initialize();
 
