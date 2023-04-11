@@ -78,11 +78,10 @@ if ( WITH_QT5 )
     if ( APPLE )
       ## macOS
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
-      set( QTC_BINARY_DIR          "bin" )              # <- ${CMAKE_BINARY_DIR}/bin (see qtplatz_api.cmake)
     else()
       ## Linux & Windows
       set( CMAKE_INSTALL_RPATH     "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
-      set( QTC_BINARY_DIR          "qtplatz.app" )      # <- ${CMAKE_BINARY_DIR}/qtplatz.app
+      set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
     endif()
     list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
@@ -458,7 +457,7 @@ elseif( APPLE )
   endif()
 
 elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-  set( CPACK_DEB_COMPONENT_INSTALL 1 )
+  set( CPACK_DEB_COMPONENT_INSTALL 0 ) ## <- make single .deb installer
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )

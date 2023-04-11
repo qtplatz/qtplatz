@@ -7,10 +7,15 @@ set( PROVIDER MS-Cheminformatics )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
+qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
+
+set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
+
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
-  )
+  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
+  "${OUTPUT_DIR}/${PROJECT_NAME}.adplugin"
+)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/libs
@@ -47,13 +52,13 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
+  LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR}
+  )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  RUNTIME DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
+  LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
+  ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
+)
 
-install( FILES ${PROJECT_NAME}.adplugin DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+install( FILES "${OUTPUT_DIR}/${PROJECT_NAME}.adplugin" DESTINATION "${_adplugin_install_dir}" COMPONENT plugins )

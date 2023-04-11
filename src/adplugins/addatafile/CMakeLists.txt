@@ -6,17 +6,19 @@ project( addatafile )
 set( PROVIDER MS-Cheminformatics )
 
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
+qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
+
+message( STATUS "#################################################################" )
+message( STATUS "##### _adplugin_output_dir : ${_adplugin_output_dir} ############" )
+message( STATUS "##### _adplugin_install_dir : ${_adplugin_install_dir} ############" )
+message( STATUS "#################################################################" )
+
+set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
   "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}/${PROJECT_NAME}.adplugin"
 )
-
-set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
-# should be './bin/qtplatz.app/Contents/PlugIns/MS-Cheminformatics/libadtextfile.dylib'
-
-message( STATUS "############ OUTPUT_DIR:               ${_adplugin_output_dir}" )
-message( STATUS "############ OUTPUT_DIR:               ${OUTPUT_DIR}" )
 
 add_definitions(-DADDATAFILE_LIBRARY)
 
@@ -48,17 +50,13 @@ target_link_libraries( addatafile LINK_PUBLIC
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}"
-#  LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-#  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
+  LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR}
   )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION "${_adplugin_output_dir}" COMPONENT plugins
-  LIBRARY DESTINATION "${_adplugin_output_dir}" COMPONENT plugins
+  RUNTIME DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
+  LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
-#  LIBRARY DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
-#  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
 )
 
-install( FILES ${PROJECT_NAME}.adplugin DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins )
+install( FILES "${OUTPUT_DIR}/${PROJECT_NAME}.adplugin" DESTINATION "${_adplugin_install_dir}" COMPONENT plugins )
