@@ -19,6 +19,9 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
+qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
+qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
+
 ########## QtCreator 8 (Qt5/6) plugin.json #############
 if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
@@ -141,15 +144,22 @@ target_link_libraries(
   Threads::Threads
   )
 
-set_target_properties( ${PROJECT_NAME}
-  PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
-  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )
+if ( APPLE )
+  set_target_properties( ${PROJECT_NAME}
+    PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}"
+    )
+else()
+  set_target_properties( ${PROJECT_NAME}
+    PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${_plugin_output_dir}"
+    INSTALL_RPATH "\$ORIGIN:\$ORIGIN/..:\$ORIGIN/../..:\$ORIGIN/../../..:\$ORIGIN/../../../qtplatz:${CMAKE_INSTALL_RPATH}"
+    )
+endif()
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
-  LIBRARY DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins
+  RUNTIME DESTINATION "${_plugin_install_dir}" COMPONENT plugins
+  LIBRARY DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 if ( IDE_VERSION VERSION_LESS "8.0.0" )

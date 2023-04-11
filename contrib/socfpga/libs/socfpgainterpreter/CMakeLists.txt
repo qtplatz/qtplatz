@@ -31,8 +31,6 @@ add_library( ${PROJECT_NAME}
   socfpgainterpreter.cpp
   datainterpreter.cpp
   datainterpreter.hpp
-#  datainterpreter_waveform.cpp
-#  datainterpreter_waveform.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
