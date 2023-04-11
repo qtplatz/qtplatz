@@ -324,11 +324,15 @@ manager::standalone_initialize()
 #if defined WIN32
     // Windows -->   qtplatz.rekiease/bin/adplugin_manager.dll
     auto tpath = boost::dll::this_line_location().parent_path().parent_path();
+#elif defined __APPLE__
+    // macOS --> ./bin/qtplatz.app/Contents/Frameworks/libadplugin_manager.dylib
+    auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
 #else
-    // Mac/Linux --> qtplatz.release/lib/qtplatz/libadplugin_manager.so
-    // auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+    // Linux --> ./qtplatz/lib/qtplatz/libadplugin_manager.so|./qtplatz/lib/libadplugin_manager.so
+    // Linux --> ./qtplatz/bin/qtplatz
     auto tpath = boost::dll::program_location().parent_path().parent_path();  // <-- install dir (/opt/qtplatz/bin/qtplatz/../..)
 #endif
+
     adplugin::loader::populate( tpath.wstring().c_str() );
 
     // spectrometers
