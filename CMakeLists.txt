@@ -78,10 +78,11 @@ if ( WITH_QT5 )
     if ( APPLE )
       ## macOS
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+      set( QTC_BINARY_DIR          "bin" )              # <- ${CMAKE_BINARY_DIR}/bin (see qtplatz_api.cmake)
     else()
       ## Linux & Windows
       set( CMAKE_INSTALL_RPATH     "\$ORIGIN/../lib:\$ORIGIN/../lib/qtplatz:" )
-      set( QTC_BINARY_DIR          "qtplatz.app" )              # set qt-creator build directory
+      set( QTC_BINARY_DIR          "qtplatz.app" )      # <- ${CMAKE_BINARY_DIR}/qtplatz.app
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
     endif()
     list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
@@ -653,6 +654,8 @@ message( STATUS "# CMAKE_CXX STD ID VER  : " "${CMAKE_CXX_STANDARD} ${CMAKE_CXX_
 message( STATUS "# Qt5_DIR               : " ${Qt5_DIR} )
 message( STATUS "# QTDIR                 : " ${QTDIR} )
 message( STATUS "# QMAKE                 : " ${QMAKE} )
+message( STATUS "# IDE_PLUGIN_PATH       : ${IDE_PLUGIN_PATH}" )
+message( STATUS "# QTC_BINARY_DIR        : ${QTC_BINARY_DIR}" )
 if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
   message( STATUS "################## WARNING ###################" )
   message( STATUS "QT_PLUGIN_PATH has set to $ENV{QT_PLUGIN_PATH}" )
