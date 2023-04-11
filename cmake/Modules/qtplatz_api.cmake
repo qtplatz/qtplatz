@@ -3,7 +3,8 @@ function( qtplatz_adplugin_output_dir varName provider )
   if ( APPLE )
     set( ${varName} "bin/${IDE_PLUGIN_PATH}/${provider}" PARENT_SCOPE) # := QTPLATZ
   else()
-    set( ${varName} "${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" PARENT_SCOPE) # 'qtplatz'/'lib/qtcreator/plugins ; /'provider
+    #set( ${varName} "${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" PARENT_SCOPE) # 'qtplatz'/'lib/qtcreator/plugins ; /'provider
+    set( ${varName} "${QTC_BINARY_DIR}/lib/qtplatz/plugins" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -11,7 +12,8 @@ function( qtplatz_adplugin_install_dir varName provider )
   if ( APPLE )
     set( ${varName} "bin/${IDE_PLUGIN_PATH}/${provider}" PARENT_SCOPE)
   else()
-    set( ${varName} "${IDE_PLUGIN_PATH}" PARENT_SCOPE)     # lib/qtcreator/plugins/ ; + provider
+    #set( ${varName} "${IDE_PLUGIN_PATH}" PARENT_SCOPE)     # lib/qtcreator/plugins/ ; + provider
+    set( ${varName} "lib/qtplatz/plugins" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -56,7 +58,7 @@ function( library_install_path varName library )
   if ( APPLE )
     set( ${varName} "lib/qtplatz" PARENT_SCOPE)
   else()
-    if ( ${library} STREQUAL "adplugin_manager" OR ${library} STREQUAL "adplugin" )
+    if ( ${library} STREQUAL "adplugin_manager" ) #OR ${library} STREQUAL "adplugin" )
       set( ${varName} "lib/qtplatz"  PARENT_SCOPE)
     else()
       set( ${varName} "lib"  PARENT_SCOPE) # <- formarly lib/qtplatz
