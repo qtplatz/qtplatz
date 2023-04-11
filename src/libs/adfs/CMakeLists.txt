@@ -82,9 +82,10 @@ install( TARGETS sqlite3
 
 install( TARGETS sqlite3-functions
   EXPORT ${QTPLATZ_TARGETS}
-  RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
-  ARCHIVE DESTINATION lib COMPONENT libraries )
+  RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
+  LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
+  ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
+)
 
 install( FILES
   adfs_global.h
