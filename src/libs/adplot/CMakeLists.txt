@@ -91,14 +91,21 @@ target_link_libraries( adplot LINK_PUBLIC
   Qt::Core
   )
 
+runtime_install_path( _runtime_destination ${PROJECT_NAME} )
+library_install_path( _library_destination ${PROJECT_NAME} )
+archive_install_path( _archive_destination ${PROJECT_NAME} )
+
 if( APPLE )
   install( TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION bin COMPONENT applications
+    EXPORT ${QTPLATZ_TARGETS}
+    RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
     LIBRARY DESTINATION Contents/PlugIns COMPONENT libraries
     ARCHIVE DESTINATION Contents/PlugIns COMPONENT libraries )
 else()
   install( TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION bin COMPONENT applications
-    LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
-    ARCHIVE DESTINATION lib COMPONENT libraries )
+    EXPORT ${QTPLATZ_TARGETS}
+    RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
+    LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
+    ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
+    )
 endif()

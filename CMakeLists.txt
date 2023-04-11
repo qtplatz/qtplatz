@@ -215,7 +215,7 @@ else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )
-  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
+  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formaly lib/qtplatz
 endif()
 
 if ( WITH_PYTHON3 )
