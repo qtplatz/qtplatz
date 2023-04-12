@@ -35,19 +35,6 @@ function( qtplatz_plugin_install_dir varName provider )
   endif()
 endfunction()
 
-################## install runpath ##############
-function( qtplatz_install_rpath varName library install_dir )
-  if ( APPLE )
-    set( ${varName} PARENT_SCOPE )
-  else()
-    set( ${varName} "${CMAKE_INSTALL_RPATH}" PARENT_SCOPE )
-    if ( "${install_dir}" STREQUAL "${IDE_PLUGIN_PATH}" )
-      message( STATUS "################## rpath library: ${library}  install_dir: ${install_dir}" )
-      set( ${varName} "\${ORIGIN}/../../qtplatz:\${ORIGIN}/../../" PARENT_SCOPE )
-    endif()
-  endif()
-endfunction()
-
 ################## runtime_install_path ##############
 function( runtime_install_path varName library )
   set( ${varName} "bin" PARENT_SCOPE)
@@ -56,17 +43,29 @@ endfunction()
 ################## library_install_path (.so .dylib files) ##############
 function( library_install_path varName library )
   if ( APPLE )
-    set( ${varName} "lib/qtplatz" PARENT_SCOPE)
+    set( ${varName} "Contents/Frameworks" PARENT_SCOPE )
   else()
-    if ( ${library} STREQUAL "adplugin_manager" ) #OR ${library} STREQUAL "adplugin" )
-      set( ${varName} "lib/qtplatz"  PARENT_SCOPE)
-    else()
-      set( ${varName} "lib"  PARENT_SCOPE) # <- formarly lib/qtplatz
-    endif()
+    set( ${varName} "lib"  PARENT_SCOPE ) # <- formerly lib/qtplatz
   endif()
 endfunction()
 
 ################## library_install_path ##############
 function( archive_install_path varName library )
   set( ${varName} "lib" PARENT_SCOPE)
+endfunction()
+
+################## install runpath ##############
+function( qtplatz_install_rpath varName library install_dir )
+  if ( APPLE )
+    set( ${varName} PARENT_SCOPE )
+  else()
+    set( ${varName} "${CMAKE_INSTALL_RPATH}" PARENT_SCOPE )
+    message( STATUS "################## rpath library: ${library}  install_dir: ${install_dir}" )
+    if ( "${install_dir}" STREQUAL "${IDE_PLUGIN_PATH}" )
+      message( STATUS "     -----> rpath library: ${library}  install_dir: ${install_dir}" )
+      #set ( ${varName} "\${ORIGIN}/../../qtplatz:\${ORIGIN}/../../" PARENT_SCOPE )
+      #set ( ${varName} "\${ORIGIN}:\${ORIGIN}/../../qtplatz:\${ORIGIN}/../..:\${ORIGIN}/..:${CMAKE_INSTALL_RPATH}" PARENT_SCOPE )
+      set ( ${varName} "\${ORIGIN}:\${ORIGIN}/../../qtplatz:\${ORIGIN}/../.." PARENT_SCOPE )
+    endif()
+  endif()
 endfunction()

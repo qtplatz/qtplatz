@@ -139,10 +139,12 @@ if ( APPLE )
     LIBRARY_OUTPUT_DIRECTORY "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}"
     )
 else()
+  qtplatz_install_rpath( _rpath ${PROJECT_NAME} "${_plugin_install_dir}" )
   set_target_properties( ${PROJECT_NAME}
     PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${_plugin_output_dir}"
-    INSTALL_RPATH "\$ORIGIN:\$ORIGIN/..:\$ORIGIN/../..:\$ORIGIN/../../..:\$ORIGIN/../../../qtplatz:${CMAKE_INSTALL_RPATH}"
+    INSTALL_RPATH "${_rpath}"
+    #INSTALL_RPATH "\${ORIGIN}:\${ORIGIN}/..:\${ORIGIN}/../..:\${ORIGIN}/../../..:\${ORIGIN}/../../../qtplatz:${CMAKE_INSTALL_RPATH}"
     )
 endif()
 

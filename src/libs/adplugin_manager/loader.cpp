@@ -123,14 +123,15 @@ loader::populate( const wchar_t * topdir )
                                 if ( auto plugin = factory() ) {
                                     if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
 #ifndef NDEBUG
-                                        auto loc = boost::filesystem::relative( dll.location(), appdir );
-                                        ADDEBUG() << "load\t" << loc << "\tSuccess";
+                                        ADDEBUG() << "load\t" << boost::filesystem::relative( dll.location(), appdir ) << "\tSuccess";
 #endif
                                     }
                                 }
+                            } else {
+                                ADDEBUG() << "library\t" << boost::filesystem::relative( dll.location(), appdir ) << " has no interface. Load failed.";
                             }
                         } else {
-                            ADDEBUG() << "loading\n\t" << fname << "\tError: " << ec.message();
+                            ADDEBUG() << "failed to load " << boost::filesystem::relative( fname, appdir ) << "\t: " << ec.message();
                         }
                     }
                 }

@@ -80,7 +80,7 @@ if ( WITH_QT5 )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
     else()
       ## Linux & Windows
-      set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz" )
+      set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz:\${ORIGIN}/../../" )
       #set( CMAKE_INSTALL_RPATH     "\$ORIGIN/../lib" )
       set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
