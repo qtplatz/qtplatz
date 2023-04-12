@@ -99,13 +99,15 @@ CountingMethod::CountingMethod() : enable_( false )
 {
 }
 
-CountingMethod::CountingMethod( const CountingMethod& t ) : values_( t.values_ )
+CountingMethod::CountingMethod( const CountingMethod& t ) : enable_( t.enable_ )
+                                                          , values_( t.values_ )
 {
 }
 
 CountingMethod&
 CountingMethod::operator = ( const CountingMethod& rhs )
 {
+    enable_ = rhs.enable_;
     values_ = rhs.values_;
 	return *this;
 }
