@@ -30,7 +30,7 @@ if ( APPLE )
   # -- uncomment following line, is you would like to build a universal binary --
   # set( CMAKE_OSX_ARCHITECTURES "arm64;x86_64" )
   #
-  # set( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # Catalina
+  #set( CMAKE_OSX_DEPLOYMENT_TARGET "12.1" CACHE STRING "Minimum OS X deployment version" FORCE )
 endif()
 
 if ( CMAKE_COMPILER_IS_GNUCC )
