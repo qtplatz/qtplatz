@@ -23,6 +23,7 @@ function find_qmake() {
 	    for hint in "${hints[@]}"; do
 			__dirs+=("/opt$hint/gcc_64")
 	    done
+	    __dirs+=("/usr")
 	    ;;
 	Darwin*)
 	    local home=~

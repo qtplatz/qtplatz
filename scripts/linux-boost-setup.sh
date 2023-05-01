@@ -134,7 +134,7 @@ function boost_build {
 					   install
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
-			  	  ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
+			  	  sudo ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
 					   threading=multi \
 					   link=shared \
 					   include="${PYTHON_INCLUDE}" \
