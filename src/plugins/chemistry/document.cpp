@@ -202,6 +202,18 @@ namespace chemistry {
         , { R"(C1=CC=C2C(=C1)C=CC3=CC4=C(C=CC5=CC=CC=C54)C=C32)",        { "Dibenz(a,h)anthracene" }}
         , { R"(C1=CC2=C3C4=C1C=CC5=C4C6=C(C=C5)C=CC7=C6C3=C(C=C2)C=C7)", { "Coronene" }}
         , { R"(C1=C2C(=C3C=C(C(=O)C(=C3OC2=C(C(=C1I)[O-])I)I)I)C4=C(C(=C(C(=C4Cl)Cl)Cl)Cl)C(=O)[O-].[Na+].[Na+])", { "Rose bengal", "Acid Red 94" }}
+        , { R"(C(=O)(C(C(C(C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F)O)", { "PSAF", "Perfluorooctanoic acid" }}
+        , { R"(O=C(O)C(F)(F)C(F)(F)F)", { "C2-COOH" }}
+        , { R"(O=C(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "C7-COOH(PFOA)" }}
+        , { R"(O=C(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "C13-COOH" }}
+        , { R"(O=S(=O)(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "C4-SO3H" }}
+        , { R"(O=S(=O)(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "C8-SO3H(PFOS)" }}
+        , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C4-C2-OH" }}
+        , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C6-C2-OH" }}
+        , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C8-C2-OH" }}
+        , { R"(FC=1C(F)=C(F)C(O)=C(F)C1F)", { "F5-Ph-OH" }}
+        , { R"(O=C(OCC(COC(=O)CCC=1C=C(C(O)=C(C1)C(C)(C)C)C(C)(C)C)(COC(=O)CCC=2C=C(C(O)=C(C2)C(C)(C)C)C(C)(C)C)COC(=O)CCC=3C=C(C(O)=C(C3)C(C)(C)C)C(C)(C)C)CCC=4C=C(C(O)=C(C4)C(C)(C)C)C(C)(C)C)", { "Irganox1010" }}
+        , { R"(OC=1C(=CC(=CC1C(C)(C)C)C)C(C)(C)C)", { "BHT" }}
     };
 
 
