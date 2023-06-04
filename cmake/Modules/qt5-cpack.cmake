@@ -6,27 +6,26 @@ include( "soname" )
 if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
   set ( CORE5COMPAT Core5Compat )
   set ( SVGWIDGET   SvgWidgets )
-  set ( TEST        Test )
-  set ( QML         Qml )
 endif()
 
 find_package( Qt${QT_VERSION_MAJOR}
   REQUIRED
+  Concurrent
   Core
-  PrintSupport
-  Svg
-  Widgets
-  OpenGL
   DBus
   Gui
   Multimedia
   Network
+  OpenGL
+  PrintSupport
+  Qml
   Sql
+  Svg
+  Test
+  Widgets
   Xml
   ${SVGWIDGET}
   ${CORE5COMPAT}
-  ${TEST}
-  ${QML}
   )
 
 get_target_property( _loc Qt${QT_VERSION_MAJOR}::Core LOCATION )
@@ -50,6 +49,7 @@ endforeach()
 
 list ( APPEND _qtlibs
   Qt${QT_VERSION_MAJOR}::Core
+  Qt${QT_VERSION_MAJOR}::Concurrent
   Qt${QT_VERSION_MAJOR}::DBus
   Qt${QT_VERSION_MAJOR}::Gui
   Qt${QT_VERSION_MAJOR}::Multimedia
@@ -60,13 +60,13 @@ list ( APPEND _qtlibs
   Qt${QT_VERSION_MAJOR}::Svg
   Qt${QT_VERSION_MAJOR}::Widgets
   Qt${QT_VERSION_MAJOR}::Xml
+  Qt${QT_VERSION_MAJOR}::Test
+  Qt${QT_VERSION_MAJOR}::Qml
   )
 
 if ( ${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
   list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::Core5Compat )
   list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::SvgWidgets )
-  list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::Test )
-  list( APPEND _qtlibs Qt${QT_VERSION_MAJOR}::Qml )
 endif()
 
 foreach( lib  ${_qtlibs}  )

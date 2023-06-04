@@ -29,6 +29,7 @@
 #include <fstream>
 #include <boost/format.hpp>
 #include "profile.hpp"
+#include <filesystem>
 
 using namespace adportable::core;
 
