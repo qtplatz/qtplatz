@@ -126,6 +126,8 @@ namespace chemistry {
         , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
         , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
+        , { R"(CCCCC/C=C\C/C=C\CCCCCCCC(=O)O)",       { "LA", "Linolic acid", "C18:2" } }
+        , { R"(O=C(O)CCCCCCCCCCCCCCCCCC)",            { "C19:0", "nonadecanoic acid" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC",      { "Hexamethoxyphosphazine" } }
         , { "CC1=C(C(=O)C2=CC=CC=C2C1=O)CC=C(C)CCCC(C)CCCC(C)CCCC(C)C", { "VK-1", "Phylloquinone" } }
         , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK1-oxide", "PHYLLOQUINONE OXIDE" } }
