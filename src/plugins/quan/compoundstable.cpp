@@ -194,7 +194,7 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &CompoundsTable::handleContextMenu );
-    connect( document::instance(), &document::onMSLockEnabled, this, [=,this] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
+    connect( document::instance(), &document::onMSLockEnabled, this, [=] ( bool checked ){ setColumnHidden( c_isLKMSReference, !checked ); } );
 
     setEditTriggers( QAbstractItemView::AllEditTriggers );
 

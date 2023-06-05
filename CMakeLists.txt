@@ -37,6 +37,11 @@ if ( CMAKE_COMPILER_IS_GNUCC )
 #  add_definitions( "-Wno-deprecated-declarations" )
 endif()
 
+if ( MSVC )
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  add_definitions( -wd4251 -wd4244 -wd4819 )
+endif()
+
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
 option( WITH_QT5           "Include QT5"                ON )

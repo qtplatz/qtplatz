@@ -1,0 +1,63 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 34593390a..3dce1ee24 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,6 +20,10 @@ set(CMAKE_MODULE_PATH
+ add_library(rdkit_base INTERFACE)
+ add_dependencies(rdkit_base catch)
+ 
++if ( MSVC )
++  add_definitions( -wd4819 -wd4251 -wd4244 )
++endif()
++
+ option(RDK_BUILD_SWIG_WRAPPERS "build the SWIG wrappers" OFF )
+ option(RDK_BUILD_PYTHON_WRAPPERS "build the standard python wrappers" ON )
+ option(RDK_BUILD_COMPRESSED_SUPPLIERS "build in support for compressed MolSuppliers" OFF )
+@@ -261,7 +265,7 @@ if(RDK_BUILD_PYTHON_WRAPPERS)
+   if(WIN32 OR "${Py_ENABLE_SHARED}" STREQUAL "1")
+     target_link_libraries(rdkit_py_base INTERFACE ${PYTHON_LIBRARIES} )
+   endif()
+-  
++
+   find_package(NumPy REQUIRED)
+   target_include_directories(rdkit_base INTERFACE ${PYTHON_NUMPY_INCLUDE_PATH})
+ 
+diff --git a/Code/GraphMol/FileParsers/CMakeLists.txt b/Code/GraphMol/FileParsers/CMakeLists.txt
+index 715aefd86..3c25636f7 100644
+--- a/Code/GraphMol/FileParsers/CMakeLists.txt
++++ b/Code/GraphMol/FileParsers/CMakeLists.txt
+@@ -2,8 +2,8 @@
+ 
+ if(RDK_USE_BOOST_IOSTREAMS)
+ if(WIN32)
+-  find_package(Boost ${RDK_BOOST_VERSION} COMPONENTS system iostreams REQUIRED)
+-  find_package(Boost ${RDK_BOOST_VERSION} COMPONENTS zlib)
++  find_package(Boost ${RDK_BOOST_VERSION} COMPONENTS system iostreams zlib REQUIRED)
++  #find_package(Boost ${RDK_BOOST_VERSION} COMPONENTS zlib)
+   set (link_iostreams ${Boost_LIBRARIES})
+   if (NOT Boost_USE_STATIC_LIBS)
+      add_definitions("-DBOOST_IOSTREAMS_DYN_LINK")
+@@ -101,8 +101,8 @@ rdkit_test(testSequence testSequence.cpp LINK_LIBRARIES FileParsers )
+ rdkit_test(testExtendedStereoParsing testExtendedStereoParsing.cpp
+            LINK_LIBRARIES FileParsers )
+ 
+-rdkit_catch_test(fileParsersCatchTest file_parsers_catch.cpp catch_main.cpp 
++rdkit_catch_test(fileParsersCatchTest file_parsers_catch.cpp catch_main.cpp
+            LINK_LIBRARIES FileParsers )
+ 
+-rdkit_catch_test(testPropertyLists testPropertyLists.cpp catch_main.cpp 
++rdkit_catch_test(testPropertyLists testPropertyLists.cpp catch_main.cpp
+            LINK_LIBRARIES FileParsers )
+diff --git a/Code/GraphMol/FileParsers/PNGParser.cpp b/Code/GraphMol/FileParsers/PNGParser.cpp
+index d2b4d525e..0eea570be 100644
+--- a/Code/GraphMol/FileParsers/PNGParser.cpp
++++ b/Code/GraphMol/FileParsers/PNGParser.cpp
+@@ -22,7 +22,7 @@
+ 
+ #include "FileParsers.h"
+ #ifdef RDK_USE_BOOST_IOSTREAMS
+-#include <zlib.h>
++//#include <zlib.h>
+ #include <boost/iostreams/filtering_streambuf.hpp>
+ #include <boost/iostreams/copy.hpp>
+ #include <boost/iostreams/filter/zlib.hpp>

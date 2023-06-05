@@ -23,6 +23,11 @@ set ( EIGEN3_INCLUDE_DIR "${EIGEN_INSTALL_PREFIX}/include/eigen3" ) # reference 
 
 #----------------- maeparser ---------------
 # RDKit 2020_09_3 (Q3 2020) Release require maeparser shared object as reported in https://github.com/rdkit/rdkit/issues/3648
+# ----------- zlib ------------
+#    ---------------- on build-x86_64/windows directory
+#       cmake -DCMAKE_INSTALL_PREFIX=c:/opt ..\..\..\zlib-1.2.13
+#       cmake --build . --config Release
+#       cmake --install .
 set ( MAEPARSER_SOURCE_DIR ${SRCDIR}/maeparser )
 set ( MAEPARSER_BINARY_DIR ${BUILD_ROOT}/maeparser.build )
 set ( MAEPARSER_INSTALL_PREFIX "C:/opt/maeparser" )
@@ -50,8 +55,8 @@ set ( OPENCV_INSTALL_PREFIX "C:/opt/OpenCV" )
 set ( BOOST_SOURCE_DIR ${BUILD_ROOT}/boost_${BOOST_VERSION} )
 set ( BZIP2_SOURCE_DIR ${SRCDIR}/bzip2-1.0.6 )
 
-set ( ZLIB_SOURCE_DIR ${SRCDIR}/zlib-1.2.11 )
-set ( ZLIB_BINARY_DIR ${BUILD_ROOT}/zlib.build )
+set ( ZLIB_SOURCE_DIR "${SRCDIR}/zlib-1.2.13" )
+set ( ZLIB_BINARY_DIR "${BUILD_ROOT}/zlib.build" )
 set ( ZLIB_INSTALL_PREFIX "C:/opt/zlib" )
 
 set ( QWT_VERSION "6.2.0" )
@@ -236,15 +241,13 @@ configure_file(
   )
 
 ######################### zlib #######################
-if ( OFF )
-  add_custom_target( zlib
-    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}" -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
-    WORKING_DIRECTORY ${ZLIB_BINARY_DIR}
-    )
+add_custom_target( zlib
+  COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}" -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
+  WORKING_DIRECTORY ${ZLIB_BINARY_DIR}
+)
 
-  if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
-    file( MAKE_DIRECTORY ${ZLIB_BINARY_DIR} )
-  endif()
+if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
+  file( MAKE_DIRECTORY ${ZLIB_BINARY_DIR} )
 endif()
 
 ###########################################################

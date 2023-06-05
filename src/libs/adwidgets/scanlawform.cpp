@@ -35,7 +35,7 @@ ScanLawForm::ScanLawForm(QWidget *parent) : QWidget(parent)
     int id = 0;
     for ( auto spin: { ui->doubleSpinBox, ui->doubleSpinBox_2, ui->doubleSpinBox_3 } ) {
         connect( spin, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
-                 , this, [=,this]( double ){ emit valueChanged( id ); } );
+                 , this, [=]( double ){ emit valueChanged( id ); } );
         ++id;
     }
 }

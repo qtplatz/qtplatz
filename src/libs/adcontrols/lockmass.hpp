@@ -71,8 +71,8 @@ namespace adcontrols {
             double exactMass_;
             double matchedMass_;
             double time_;
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const reference& );
-            friend reference tag_invoke( boost::json::value_to_tag< reference >&, const boost::json::value& );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const reference& );
+            friend ADCONTROLSSHARED_EXPORT reference tag_invoke( boost::json::value_to_tag< reference >&, const boost::json::value& );
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -104,8 +104,8 @@ namespace adcontrols {
         private:
             std::vector< double > coeffs_;
 
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const fitter& );
-            friend fitter tag_invoke( boost::json::value_to_tag< fitter >&, const boost::json::value& );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const fitter& );
+            friend ADCONTROLSSHARED_EXPORT fitter tag_invoke( boost::json::value_to_tag< fitter >&, const boost::json::value& );
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -150,8 +150,8 @@ namespace adcontrols {
             std::vector< reference > references_;
             lockmass::fitter fitter_;
 
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const mslock& );
-            friend mslock tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const mslock& );
+            friend ADCONTROLSSHARED_EXPORT mslock tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& );
 
             friend class boost::serialization::access;
             template<class Archive>

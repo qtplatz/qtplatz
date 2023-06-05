@@ -32,6 +32,7 @@ extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
+/*
 adplugin::plugin *
 adplugin_plugin_instance()
 {
@@ -42,3 +43,4 @@ adplugin_plugin_instance()
 #endif
     return addatafile::datafile_factory::instance();
 }
+*/

@@ -61,9 +61,9 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 {
     // AcquireDataset <LCMSDataset>
 	sub.subscribe( *this );
-    
+
     // subscribe processed dataset
-	if ( processedDataset_ ) 
+	if ( processedDataset_ )
 		sub.subscribe( *processedDataset_ );
 }
 
@@ -80,6 +80,42 @@ tof2mass( double tof, double c1, double c2, double c3 )
         return m2 * m2;
     }
 
+}
+
+//virtual
+boost::any
+datafile::fetch( const std::string& path, const std::string& dataType ) const
+{
+	boost::any any;
+	boost::uint32_t x = 0;
+	std::vector< double > intens;
+
+    (void)dataType;
+
+	boost::filesystem::path fpath( path );
+	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
+
+	adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum() );
+    pMS->resize( static_cast< size_t >( n ) );
+
+	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
+	size_t idx;
+	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
+		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
+		pMS->setIntensity( idx, double( x ) );
+#if 0 // original code
+		double fraction = acqu_.fMax - acqu_.fMax * idx / n + acqu_.ml2;
+		double mz = acqu_.ml1 / fraction;
+#endif
+        //double tof = (acqu_.delay * 1.0e-9) + idx * (acqu_.dw * 1.0e-9);
+        double tof = (acqu_.delay) + idx * (acqu_.dw);
+        double mz = tof2mass( tof, acqu_.ml1, acqu_.ml2, acqu_.ml3 );
+		pMS->setMass( idx, mz );
+	}
+    pMS->setAcquisitionMassRange( pMS->mass( 0 ), pMS->mass( pMS->size() - 1 ) );
+	//pMS->setAcquisitionMassRange( acqu_.mlow, acqu_.mhigh );
+	any = pMS;
+	return any;
 }
 
 // virtual
@@ -114,14 +150,14 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 	}
     pMS->setAcquisitionMassRange( pMS->mass( 0 ), pMS->mass( pMS->size() - 1 ) );
 	//pMS->setAcquisitionMassRange( acqu_.mlow, acqu_.mhigh );
-	any = pMS;     
+	any = pMS;
 	return any;
 }
 
 //virtual
 adcontrols::datafile::factory_type
 datafile::factory()
-{ 
+{
 	return 0;
 }
 
@@ -172,7 +208,7 @@ datafile::_open( const std::wstring& filename, bool )
 
     portfolio::Portfolio portfolio;
 	portfolio.create_with_fullpath( filename_ );
-    
+
     bool res = false;
     if ( boost::filesystem::is_regular_file( dw.root_dir / L"acqu" ) ) {
         res = _1open( filename_, portfolio );
@@ -299,7 +335,7 @@ dirwalk::dirwalk( const std::wstring& file ) : valid( false )
     } else {
         // if "acqu" (any regular file under "1" directory has been selected
         boost::filesystem::path dir( path.branch_path() );
-        
+
         if ( boost::filesystem::is_directory( dir ) ) {
             if ( boost::filesystem::is_directory( dir / L"pdata" ) ) {
                 root_dir = dir;

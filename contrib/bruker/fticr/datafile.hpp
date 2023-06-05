@@ -50,6 +50,7 @@ namespace fticr {
 		//--------- implement adcontrols::datafile ----------------
 		virtual void accept( adcontrols::dataSubscriber& ) override;
 		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+        virtual boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 		virtual adcontrols::datafile::factory_type factory() override;
 		virtual size_t getFunctionCount() const override;
 		virtual size_t getSpectrumCount( int fcn = 0 ) const override;

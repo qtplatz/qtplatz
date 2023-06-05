@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "codecvt.hpp"
+#include "../adportable/debug.hpp"
 #include "../adportable/ConvertUTF.h"
 #include <stdexcept>
 #include <cassert>

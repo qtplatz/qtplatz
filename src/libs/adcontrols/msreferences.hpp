@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <string>
 #include <vector>
 #include <memory>
 #include <boost/serialization/version.hpp>

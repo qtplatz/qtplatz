@@ -27,14 +27,15 @@
 #include "adwidgets_global.hpp"
 #include <QGraphicsView>
 #include <QSvgRenderer>
+#include <QGraphicsSvgItem>
 #include <memory>
 
-QT_BEGIN_NAMESPACE
+//QT_BEGIN_NAMESPACE
 class QGraphicsSvgItem;
 class QSvgRenderer;
 class QWheelEvent;
 class QPaintEvent;
-QT_END_NAMESPACE
+//QT_END_NAMESPACE
 
 namespace adwidgets {
 
