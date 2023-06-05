@@ -66,6 +66,12 @@ debug::where() const
     return o.str();
 }
 
+std::string
+debug::str() const
+{
+    return o_.str();
+}
+
 
 template<> debug&
 debug::operator << ( const std::wstring& text )

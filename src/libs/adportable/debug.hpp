@@ -54,7 +54,7 @@ namespace adportable {
         ~debug(void);
         static void initialize( const std::string& filename );
         std::string where() const;
-        std::string str() const { return o_.str(); }
+        std::string str() const;
 
         template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
 
