@@ -31,8 +31,8 @@
 #include <memory>
 
 //QT_BEGIN_NAMESPACE
-class QGraphicsSvgItem;
-class QSvgRenderer;
+//class QGraphicsSvgItem;
+//class QSvgRenderer;
 class QWheelEvent;
 class QPaintEvent;
 //QT_END_NAMESPACE
