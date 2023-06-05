@@ -114,9 +114,11 @@ datafile_factory::query_interface_workaround( const char * typenam )
     return 0;
 }
 
+#if 0
 namespace addatafile {
     BOOST_DLL_ALIAS(
         datafile_factory::instance, // <-- this function is exported with...
         adplugin_plugin_instance                             // <-- ...this alias name
         );
 }
+#endif
