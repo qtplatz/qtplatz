@@ -73,7 +73,7 @@ foreach( lib  ${_qtlibs}  )
 
   get_target_property( _loc ${lib} LOCATION )
 
-  message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} --> ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} )
+  message( STATUS "## qt5-cpack install: ${lib} --> ${_loc} --> ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY}" )
 
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )

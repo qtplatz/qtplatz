@@ -80,7 +80,7 @@ if ( WITH_QT5 )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
     else()
       ## Linux & Windows
-      set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz:\${ORIGIN}/../lib/Qt/lib" )
+      set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz:\${ORIGIN}/../../lib:\${ORIGIN}/../.." )
       set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
     endif()
@@ -213,7 +213,7 @@ elseif ( APPLE )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib/Qt/lib" )  # <-- formerly lib
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )  # don't change.  This path is referencing from libqxcb in plugins directory
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formerly lib/qtplatz
 endif()
 
