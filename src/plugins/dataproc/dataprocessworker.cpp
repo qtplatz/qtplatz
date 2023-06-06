@@ -292,7 +292,7 @@ DataprocessWorker::createContour( Dataprocessor* processor )
             if ( dlg.exec() == QDialog::Accepted ) {
                 int fcn = dlg.fcn();
                 if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
+                    threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
             }
         } else {
             threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
