@@ -74,7 +74,7 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 {
     // AccuTOF ScanLaw has no acquisition parameter dependency
     if ( !scanLaw_ )
-        std::make_unique< ScanLaw >();
+        return std::make_unique< ScanLaw >();
     return std::make_shared< ScanLaw >( *scanLaw_ );
 }
 

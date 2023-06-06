@@ -55,8 +55,11 @@ if (MSVC)
   add_definitions(  -wd4251 -wd4244 -wd4819 )
   add_definitions(  -wd4141 ) # dllexport more than once
   add_definitions(  -wd4217 ) # conditional expression is constant
-  add_definitions( -wd26425 ) # uninitialized member variable
+  add_definitions(  -wd4003 ) # insufficient arguments for function style macro call
+  add_definitions(  -wd6011 ) # null pointer evaluated (caused for Q_CHECK_PTR)
   add_definitions( -wd26451 ) # integer arithmetics overflow
+  add_definitions( -wd26495 ) # uninitialized member variable
+  add_definitions( -wd26498 ) # constexpr
   set( CMAKE_CXX_STANDARD 20 )
   set( COMPILER_SUPPORTS_CXX20 TRUE )
 
