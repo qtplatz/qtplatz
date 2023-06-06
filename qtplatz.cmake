@@ -3,64 +3,6 @@
 find_package( arch )
 
 #####################
-# boost setup
-#
-set( Boost_NO_SYSTEM_PATHS ON )
-
-set ( __boost_versions
-  "boost-1_79"        # V19
-  "boost-1_78"        # V19
-  "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18)
-  )
-
-if ( WIN32 )
-  set ( __boost_dirs ${__boost_versions} )
-  list( TRANSFORM __boost_dirs PREPEND "C:/Boost/include/" )
-
-  # See 'libs/serialization/src/basic_archive.cpp library_version_type
-  find_path( _boost NAMES boost HINTS ${__boost_dirs} )
-
-  set( BOOST_ROOT ${_boost} )
-  set( BOOST_INCLUDEDIR ${_boost} )
-  set( BOOST_LIBRARYDIR "C:/Boost/lib" )
-
-  # add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
-
-  # On windows, boost::archive templates are not possible to implment across shared object boundary
-  set( Boost_USE_STATIC_LIBS ON )
-
-  if ( Boost_USE_STATIC_LIBS )
-    add_definitions(
-      #-DBOOST_LOG_DYN_LINK
-      -DBOOST_ATOMIC_DYN_LINK
-      -DBOOST_BZIP2_DYN_LINK
-      -DBOOST_CHRONO_DYN_LINK
-      -DBOOST_RANDOM_DYN_LINK
-      -DBOOST_SYSTEM_DYN_LINK
-      -DBOOST_TIMER_DYN_LINK
-      )
-  else()
-    add_definitions( -DBOOST_ALL_DYN_LINK )
-    add_definitions( -wd4141 ) # dllexport more than once
-  endif()
-
-else()
-  ## Boost setup for mac/linux
-  set( Boost_USE_STATIC_LIBS OFF )
-  set( Boost_NO_SYSTEM_PATHS ON )
-
-  set ( __boost_dirs ${__boost_versions} )
-  list( TRANSFORM __boost_dirs PREPEND "/usr/local/" )
-
-  find_path( _boost NAMES include/boost HINTS ${__boost_dirs} )
-
-  if ( _boost )
-    set( BOOST_ROOT ${_boost} )
-  endif()
-
-endif()
-
-#####################
 # Qt5 setup
 #
 if ( WITH_QT5 )
@@ -94,9 +36,9 @@ endif()
 #####################
 # Eigen3
 #
-
 if ( MSVC )
-  find_path( __eigen3_include_path signature_of_eigen3_matrix_library HINTS "C:/opt/Eigen3/include" "C:/Eigen3/include" PATH_SUFFIXES "eigen3" "eigen" )
+  find_path( __eigen3_include_path signature_of_eigen3_matrix_library
+    HINTS "C:/opt/Eigen3/include" "C:/Eigen3/include" PATH_SUFFIXES "eigen3" "eigen" )
   if ( __eigen3_include_path )
     get_filename_component( __eigen3_dir "${__eigen3_include_path}/../.." ABSOLUTE )
     list ( APPEND CMAKE_PREFIX_PATH ${__eigen3_dir} )
@@ -110,8 +52,13 @@ endif()
 if (MSVC)
 
   add_definitions( "-DUNICODE" "-D_UNICODE" "-D_WIN32_WINNT=0x0601" "-D_SCL_SECURE_NO_WARNINGS" )
-  set( CMAKE_CXX_STANDARD 17 )
-  set( COMPILER_SUPPORTS_CXX17 TRUE )
+  add_definitions(  -wd4251 -wd4244 -wd4819 )
+  add_definitions(  -wd4141 ) # dllexport more than once
+  add_definitions(  -wd4217 ) # conditional expression is constant
+  add_definitions( -wd26425 ) # uninitialized member variable
+  add_definitions( -wd26451 ) # integer arithmetics overflow
+  set( CMAKE_CXX_STANDARD 20 )
+  set( COMPILER_SUPPORTS_CXX20 TRUE )
 
 else()
 
@@ -154,42 +101,42 @@ if ( MSVC )
   add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 -wd4996 -wd4348 )
 endif()
 
-remove_definitions( "-DBOOST_NO_AUTO_PTR" )
+if ( IDE_VERSION VERSION_LESS_EQUAL         "3.2.81" )
+  add_library( QTC::Core SHARED IMPORTED )
+  add_library( QTC::ExtensionSystem SHARED IMPORTED )
+  add_library( QTC::Utils SHARED IMPORTED )
+  if (WIN32)
+    set_target_properties( QTC::Core PROPERTIES
+      IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
+      IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
 
-add_library( QTC::Core SHARED IMPORTED )
-add_library( QTC::ExtensionSystem SHARED IMPORTED )
-add_library( QTC::Utils SHARED IMPORTED )
-if (WIN32)
-  set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Core.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Cored.lib )
+    set_target_properties( QTC::ExtensionSystem PROPERTIES
+      IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
+      IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
 
-  set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/extensionsystem.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/extensionsystemd.lib )
+    set_target_properties( QTC::Utils PROPERTIES
+      IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
+      IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utilsd.lib )
+  elseif ( APPLE )
+    set_target_properties( QTC::Core PROPERTIES
+      IMPORTED_LOCATION       ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore.dylib
+      IMPORTED_LOCATION_DEBUG ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore_debug.dylib )
 
-  set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/Utils.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/Utilsd.lib )
-elseif ( APPLE )
-  set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore_debug.dylib )
+    set_target_properties( QTC::ExtensionSystem PROPERTIES
+      IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.dylib
+      IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem_debug.dylib )
 
-  set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem_debug.dylib )
+    set_target_properties( QTC::Utils PROPERTIES
+      IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils.dylib
+      IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils_debug.dylib )
+  else()  #Linux
+    set_target_properties( QTC::Core PROPERTIES
+      IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/plugins/QtProject/libCore.so )
 
-  set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libUtils_debug.dylib )
-else()  #Linux
-  set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/plugins/QtProject/libCore.so )
+    set_target_properties( QTC::ExtensionSystem PROPERTIES
+      IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.so )
 
-  set_target_properties( QTC::ExtensionSystem PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.so )
-
-  set_target_properties( QTC::Utils PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libutils.so )
+    set_target_properties( QTC::Utils PROPERTIES
+      IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libutils.so )
+  endif()
 endif()
