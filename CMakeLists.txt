@@ -267,7 +267,6 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   filesystem
   iostreams
   json
-  log
   program_options
   regex
   random
