@@ -39,7 +39,7 @@ namespace adwidgets {
             progress.reportFinished();
         }
 
-        ProgressInterface( int beg = 0, int end = 100 ) {
+        ProgressInterface( int beg = 0, int end = 100 ) : currentValue(0) {
             progress.setProgressRange( beg, end );
             progress.reportStarted();
         }

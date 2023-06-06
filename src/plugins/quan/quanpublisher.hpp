@@ -73,7 +73,7 @@ namespace quan {
             int fcn;
             size_t idx;
             int level;
-            resp_data() : respId(0), sampType(0), mass(0), mass_error(0), intensity(0), amount(0), fcn(0), idx(0), level(0) {}
+            resp_data() : cmpId({}), respId(0), sampType(0), mass(0), mass_error(0), intensity(0), amount(0), fcn(0), idx(0), level(0) {}
             resp_data( const resp_data& t ) = delete;
         };
 
@@ -89,7 +89,7 @@ namespace quan {
             std::map< int, double > std_amounts;
             std::vector< std::pair< int, int64_t > > respIds;
             std::vector< std::pair< double, double > > xy;
-            calib_curve() {}
+            calib_curve() : uuid({}), n(0), min_x(0), max_x(0) {}
             calib_curve( const calib_curve& t ) = delete;
         };
 
