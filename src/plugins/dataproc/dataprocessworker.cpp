@@ -117,7 +117,7 @@ DataprocessWorker::createChromatogramsByPeakInfo3( Dataprocessor* processor
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
-    threads_.emplace_back( adportable::asio::thread( [=] {
+    threads_.emplace_back( adportable::asio::thread( [=,this] {
         handleChromatogramsByPeakInfo3( processor, pm, pkinfo, reader->shared_from_this(), p );
     }));
 }
@@ -135,7 +135,7 @@ DataprocessWorker::createChromatogramByAxisRange3( Dataprocessor * processor
     if ( auto rawfile = processor->rawdata() ) {
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
-                threads_.emplace_back( adportable::asio::thread( [=] {
+                threads_.emplace_back( adportable::asio::thread( [=,this] {
                             handleChromatogramByAxisRange3( processor, pm, axis, range, reader->shared_from_this(), -1, p );
                         } ) );
             } else {
@@ -183,7 +183,7 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
                     double width = enableTime ? timeWidth : massWidth;
                     threads_.emplace_back(
                         adportable::asio::thread(
-                            [=]{
+                            [=,this]{
                                 handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress );
                             })
                         );
@@ -235,20 +235,20 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
                         document::instance()->setProcessMethod( tmp );
 
                         if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                            threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                            threads_.emplace_back( adportable::asio::thread( [=,this] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 } else {
                     auto readers = rawfile->dataReaders();
                     auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
                     if ( it != readers.end() ) {
                         auto reader = (*it);
-                        threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                        threads_.emplace_back( adportable::asio::thread( [=,this] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 }
 
             } else {
                 // v2
-                threads_.emplace_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
+                threads_.emplace_back( adportable::asio::thread( [=,this] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
             }
         }
     }
@@ -268,7 +268,7 @@ DataprocessWorker::createChromatogramsV2( Dataprocessor * processor
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, pm, axis, ranges, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleCreateChromatogramsV2( processor, pm, axis, ranges, p ); } ) );
 }
 
 void
@@ -279,7 +279,7 @@ DataprocessWorker::createContour( Dataprocessor* processor )
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( threads_.empty() )
-            threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+            threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
     } while ( 0 );
 
     adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();

@@ -982,7 +982,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                         if ( auto it = reader->findPos( rect.left() ) )
                             menu.addAction( QString::fromStdString(
                                                 ( boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str() )
-                                            , [=] () { document::instance()->onSelectSpectrum_v3( dp, rect.left(), it ); } );
+                                            , [=,this] () { document::instance()->onSelectSpectrum_v3( dp, rect.left(), it ); } );
                     }
                 } else {
                     QMessageBox::information( 0, "Dataprocessor", "QtPlatz 6.0 and later versions do not support v2 format data file.  Use QtPlatz 5.4" );
@@ -1064,12 +1064,12 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString (title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
                             } else {
                                 auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
                                 menu.addAction( QString::fromStdString( title.c_str() )
-                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
+                                                , [=,this] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
                             }
                         }
                     }

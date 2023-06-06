@@ -366,7 +366,7 @@ document::find_all( adcontrols::MetIdMethod&& t )
         Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::LIPIDID_TASK_FIND_ALL );
 
         auto metid = lipidid::MetIdProcessor::create( impl_->method_ );
-        auto future = std::async( std::launch::async, [=](){ return metid->find_all( *impl_->sqlite_, impl_->ms_, p );} );
+        auto future = std::async( std::launch::async, [=,this](){ return metid->find_all( *impl_->sqlite_, impl_->ms_, p );} );
 
         while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
             QCoreApplication::instance()->processEvents();
