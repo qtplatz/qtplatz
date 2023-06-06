@@ -295,7 +295,7 @@ DataprocessWorker::createContour( Dataprocessor* processor )
                     threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
             }
         } else {
-            threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
+            threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram( processor, pm, p ); } ) );
         }
     }
 }
@@ -307,12 +307,12 @@ DataprocessWorker::clusterContour( Dataprocessor * processor )
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( adportable::asio::thread( [=] { handleClusterSpectrogram( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleClusterSpectrogram( processor, pm, p ); } ) );
 }
 
 void
@@ -322,12 +322,12 @@ DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digeste
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
 
-    threads_.push_back( adportable::asio::thread( [=] { handleFindPeptide( processor, pm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleFindPeptide( processor, pm, p ); } ) );
 }
 
 void
@@ -338,7 +338,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
-		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
     if ( spectra->mslocked() ) {
         int result = QMessageBox::question( MainWindow::instance()
@@ -350,7 +350,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
     }
 
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
-    threads_.push_back( adportable::asio::thread( [=] { handleMSLock( processor, spectra, lockm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleMSLock( processor, spectra, lockm, p ); } ) );
 }
 
 void
