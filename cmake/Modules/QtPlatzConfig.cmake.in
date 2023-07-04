@@ -10,6 +10,7 @@ set ( QTPLATZ_INCLUDE_DIRS "${_dir}/include")
 set ( QTPLATZ_LIBRARY_DIRS "${_dir}/lib")
 set ( QTDIR                "@QTDIR@" )
 set ( QTC_IDE_VERSION      "@IDE_VERSION@" )
+set ( QtPlatz_FOUND        TRUE)
 
 add_definitions( "-DQTC_VERSION=@QTC_VERSION@" )
 
@@ -70,3 +71,4 @@ set ( PKG_WITH_DEV                    "@PKG_WITH_DEV@" )
 
 include( "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake" )
 include( "${CMAKE_CURRENT_LIST_DIR}/boost.cmake" )
+set ( QtPlatz_FOUND 1 )

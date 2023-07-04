@@ -8,7 +8,7 @@ set( PROVIDER MS-Cheminformatics )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 

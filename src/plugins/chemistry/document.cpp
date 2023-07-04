@@ -136,7 +136,6 @@ namespace chemistry {
         , { "CCCCCCCCCCCCCCCCCCCCCCCC(=O)O",          { "Tetracosanoic acid", "Lignoceric acid" } }
         , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
         , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
-        , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)", { "Arachidonic acid" } }
         , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC", { "Hexamethoxyphosphazene", "CAS NO: 957-13-1" } }
         , { "C(C(F)F)OP1(=NP(=NP(=N1)(OCC(F)F)OCC(F)F)(OCC(F)F)OCC(F)F)OCC(F)F", { "Hexakis(2,2-Difluoroethoxy)Phosphazene", "CAS NO: 186817-57-2" } }
@@ -216,6 +215,15 @@ namespace chemistry {
         , { R"(FC=1C(F)=C(F)C(O)=C(F)C1F)", { "F5-Ph-OH" }}
         , { R"(O=C(OCC(COC(=O)CCC=1C=C(C(O)=C(C1)C(C)(C)C)C(C)(C)C)(COC(=O)CCC=2C=C(C(O)=C(C2)C(C)(C)C)C(C)(C)C)COC(=O)CCC=3C=C(C(O)=C(C3)C(C)(C)C)C(C)(C)C)CCC=4C=C(C(O)=C(C4)C(C)(C)C)C(C)(C)C)", { "Irganox1010" }}
         , { R"(OC=1C(=CC(=CC1C(C)(C)C)C)C(C)(C)C)", { "BHT" }}
+        , { R"(OC(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCCC)=O)",       { "C22:4", "Adrenic acid", "Docosatetraenoic acid", "90300" }}
+        , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",         { "C20:4", "Arachidonic acid",      "90010" } }
+        , { R"(CCCCC\C=C/C\C=C/C\C=C/CCCCCCC(=O)O)",            { "C20:3", "Dihomo-g-linolenic acid", "90230" }}
+        , { R"(O=C(O)CC\C=C/C/C=C\C\C=C/C\C=C/C\C=C/C\C=C/CC)", { "C22:6", "Docosahexaenoic acid",  "90310" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCCCC(=O)O)",    { "C22:5", "Docosapentaenoic acid", "90165" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",      { "C20:5", "Eicosapentaenoic acid", "90110" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\CCCCCCCC(=O)O)",              { "C18:3", "a-Linoleic acid",       "90210" }}
+        , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "C18:3", "g-Linoleic acid",       "90220" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid",      "90320" }}
     };
 
 
