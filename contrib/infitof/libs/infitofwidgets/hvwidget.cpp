@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -265,12 +265,12 @@ hvWidget::hvWidget( const QString& server
         }
     }
 
-    for ( auto widget: findChildren< QLineEdit * >( QRegExp( "act\\..*|pressure\\..*" ) ) ) {
+    for ( auto widget: findChildren< QLineEdit * >( QRegularExpression( "act\\..*|pressure\\..*" ) ) ) {
         widget->setReadOnly( true );
         widget->setFocusPolicy( Qt::ClickFocus );
     }
 
-    for ( auto widget: findChildren< QAbstractSpinBox * >( QRegExp( "act\\..*|pressure\\..*" ) ) ) {
+    for ( auto widget: findChildren< QAbstractSpinBox * >( QRegularExpression( "act\\..*|pressure\\..*" ) ) ) {
         widget->setReadOnly( true );
         widget->setFocusPolicy( Qt::ClickFocus );
     }
@@ -280,7 +280,7 @@ hvWidget::hvWidget( const QString& server
         widget->setFocusPolicy( Qt::ClickFocus );
     }
 
-    for ( auto& button: findChildren< QPushButton * >( QRegExp( "switch\\..*" ) ) ) {
+    for ( auto& button: findChildren< QPushButton * >( QRegularExpression( "switch\\..*" ) ) ) {
         button->setCheckable( true );
         button->setChecked( false );
         handleSwitchToggled( button, false );
