@@ -79,6 +79,7 @@
 #include <adwidgets/scanlawdialog.hpp>
 #include <adwidgets/scanlawdialog2.hpp>
 #include <adwidgets/mspeaktree.hpp>
+#include <adwidgets/datareaderchoicedialog.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
@@ -994,18 +995,20 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         menu.addAction( tr( "Save as SVG File..." ), [&] () {
             utility::save_image_as<SVG>()( pImpl_->ticPlot_, idChromatogramFolium_ );
         });
+
         menu.addAction( tr("Clear overlay" ), [&]{
             pImpl_->clearCheckedChromatograms();
             pImpl_->ticPlot_->replot();
         })->setEnabled( pImpl_->checkedChromatograms_.size() );
+
         menu.addAction( tr("Frequency analysis"), [&] () {
-                if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                    auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
-                    if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                        power_spectrum( *chr );
-                    }
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    power_spectrum( *chr );
                 }
-            } );
+            }
+        } );
 
         menu.addAction( tr("RMS to clipboard"), [&]() {
             auto range = ( (x0 - x1) >= 2 ) ?
@@ -1177,17 +1180,22 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 {
 	double x0 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
+    bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
+    auto ptr = pProcessedSpectrum_.second.lock();
 
     QMenu menu;
 
     // [0]
     menu.addAction( tr( "y-zoom" ), [&](){ pImpl_->processedSpectrum_->yZoom( rect.left(), rect.right() ); } );
     // [1]
-    menu.addAction( tr( "Make mass chromatograms" )
-                    , [&]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
-
-    bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
-    auto ptr = pProcessedSpectrum_.second.lock();
+    if ( hasRange ) {
+        menu.addAction( tr( "Make mass chromatograms" )
+                        , [&]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
+    } else {
+        QRectF rc = pImpl_->profileSpectrum_->zoomRect();
+        menu.addAction( tr( "Make mass chromatograms (%1--%2)" ).arg( QString::number(rc.left(),'g',5) ).arg( QString::number(rc.right(),'g',5) )
+                        , [&]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rc.left(), rc.right() ); } );
+    }
 
     // [2]
     menu.addAction( tr( "Mark masses with checked chromatograms" )
@@ -1211,7 +1219,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     auto actions = menu.actions();
     if ( actions.size() >= 4 ) {
         actions[ 0 ]->setEnabled( hasRange );
-        actions[ 1 ]->setEnabled( hasRange && ptr && ptr->isCentroid() );
+        actions[ 1 ]->setEnabled( ptr && ptr->isCentroid() );
         actions[ 2 ]->setEnabled( !hasRange && ptr && ptr->isCentroid() );
         actions[ 3 ]->setEnabled( !hasRange && ptr && ptr->isCentroid() );
     }
@@ -1854,6 +1862,8 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
 {
     if ( ptr && ptr->isCentroid() ) {
 
+        const int h_threshold = left < 0 ? 1000 : 100;
+
         std::shared_ptr< adcontrols::MSPeakInfo > xpkinfo;
 
         if ( auto pkinfo = pkinfo_.second.lock() ) {
@@ -1878,7 +1888,7 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                     xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
 
                     std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){
-                        if ( a.area() > bp->area() / 100 ) // 1% or above for base peak
+                        if ( a.area() > bp->area() / h_threshold ) // 1 or 0.1% above for base peak
                             xInfo << a;
                     });
                     if ( xInfo.size() > 0 ) {
@@ -1895,10 +1905,27 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto file = processor->rawdata() ) {
                     if ( file->dataformat_version() >= 3 ) {
-                        if ( auto reader = file->dataReader( ptr->dataReaderUuid() ) ) {
-                            auto pm = std::make_shared< adcontrols::ProcessMethod >();
-                            MainWindow::instance()->getProcessMethod( *pm );
-                            DataprocessWorker::instance()->createChromatogramsByPeakInfo3( processor, pm, axis, xpkinfo, reader );
+                        //--------->
+                        auto pm = std::make_shared< adcontrols::ProcessMethod >();
+                        MainWindow::instance()->getProcessMethod( *pm );
+
+                        adwidgets::DataReaderChoiceDialog dlg( file->dataReaders() );
+                        dlg.setProtocolHidden( true );
+                        if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+                            dlg.setMassWidth( tm->width( tm->widthMethod() ) );
+                            dlg.setTimeWidth( 4e-9 ); // 4ns
+                        }
+                        if ( dlg.exec() == QDialog::Accepted ) {
+                            auto reader_params = dlg.toJson();
+                            for ( auto& sel: dlg.selection() ) {
+                                auto rdpara = QJsonDocument::fromJson( reader_params.at( sel.first ) ).object();
+                                auto enableTime = rdpara[ "enableTime" ].toBool();
+                                double massWidth = rdpara[ "massWidth" ].toDouble();
+                                double timeWidth = rdpara[ "timeWidth" ].toDouble();
+                                if ( auto reader = file->dataReaders().at( sel.first ) ) {
+                                    DataprocessWorker::instance()->createChromatogramsByPeakInfo3( processor, pm, axis, xpkinfo, reader.get() );
+                                }
+                            }
                         }
                     } else {
                         ADDEBUG() << "unsupported data file format (too old)";

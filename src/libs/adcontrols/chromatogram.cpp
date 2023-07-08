@@ -95,8 +95,8 @@ namespace adcontrols {
 
             void setTime( size_t idx, const double& );
             void setData( size_t idx, const double& );
-            void setTimeArray( const double * );
-            void setDataArray( const double * );
+            void setTimeArray( const double *, size_t );
+            void setDataArray( const double *, size_t );
             void setEventArray( const unsigned long * );
             void resize( size_t );
             void addDescription( const description& );
@@ -528,9 +528,9 @@ Chromatogram::setIntensity( size_t idx, double d )
 }
 
 void
-Chromatogram::setIntensityArray( const double * p )
+Chromatogram::setIntensityArray( const double * p, size_t sz )
 {
-    pImpl_->setDataArray( p );
+    pImpl_->setDataArray( p, sz );
 }
 
 void
@@ -540,10 +540,9 @@ Chromatogram::setTime( size_t idx, double t )
 }
 
 void
-Chromatogram::setTimeArray( const double * p )
+Chromatogram::setTimeArray( const double * p, size_t sz )
 {
-    ChromatogramImpl& d = *pImpl_;
-    d.setTimeArray( p );
+    pImpl_->setTimeArray( p, sz );
 }
 
 void
@@ -864,17 +863,18 @@ ChromatogramImpl::setTime( size_t idx, const double& d ) // array of second
 }
 
 void
-ChromatogramImpl::setDataArray( const double * p )
+ChromatogramImpl::setDataArray( const double * p, size_t sz )
 {
-    if ( p && size() ) {
-		std::copy( p, p + size(), dataArray_.begin() );
-	}
+    if ( p && sz ) {
+        size_t end = std::min( sz, size() );
+        std::copy( p, p + end, dataArray_.begin() );
+    }
 }
 
 void
-ChromatogramImpl::setTimeArray( const double * p ) // array of second
+ChromatogramImpl::setTimeArray( const double * p, size_t sz ) // array of second
 {
-    if ( p ) {
+    if ( p && sz ) {
         if ( timeArray_.size() != size() )
             timeArray_.resize( size() );
         std::copy( p, p + size(), timeArray_.begin() );

@@ -262,7 +262,7 @@ ContourWnd::handleSelected( const QRectF& rect )
         for ( auto& x: ptr->x() )
             seconds.push_back( x );
         cp->resize( seconds.size() );
-        cp->setTimeArray( seconds.data() );
+        cp->setTimeArray( seconds.data(), seconds.size() );
 
         int idx = 0;
         for ( const auto& ms: *ptr ) {

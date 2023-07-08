@@ -114,8 +114,8 @@ TraceAccessor::copy_to( Chromatogram& c, int fcn )
         }
     }
     c.resize( x.size() );
-    c.setIntensityArray( y.data() );
-    c.setTimeArray( x.data() );
+    c.setIntensityArray( y.data(), y.size() );
+    c.setTimeArray( x.data(), x.size() );
 }
 
 void

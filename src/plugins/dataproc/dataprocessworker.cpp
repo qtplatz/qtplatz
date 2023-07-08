@@ -588,6 +588,8 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
     if ( auto dset = processor->rawdata() ) {
         adprocessor::v3::MSChromatogramExtractor extract( dset );
 
+        ADDEBUG() << "## " << __FUNCTION__ << " ## reader: " << std::make_pair( reader->display_name(), reader->objtext() );
+
         extract.extract_by_peak_info( vec
                                       , *pm
                                       , pkinfo
@@ -742,8 +744,8 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
             auto drift = std::make_shared< adcontrols::Chromatogram >();
             drift->resize( masses.size() );
 
-            drift->setIntensityArray( masses.data() );
-            drift->setTimeArray( times.data() );
+            drift->setIntensityArray( masses.data(), masses.size() );
+            drift->setTimeArray( times.data(), times.size() );
 
             for ( size_t i = 0; i < drift->size(); ++i )
             outf << std::fixed << std::setprecision( 14 ) << times[i] << "," << masses[i] << std::endl;

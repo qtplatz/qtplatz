@@ -205,7 +205,7 @@ Spectrogram::ChromatogramExtractor::operator () ( Chromatogram& c, double lMass,
     int idx = 0;
 
     c.resize( spectra_.size() );
-    c.setTimeArray( seconds_.data() );
+    c.setTimeArray( seconds_.data(), seconds_.size() );
 
     for ( const auto& ms: spectra_ ) {
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );

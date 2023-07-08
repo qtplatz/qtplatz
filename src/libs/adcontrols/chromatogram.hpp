@@ -69,7 +69,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT Chromatogram;  // workaround for emacs auto indent bug
 
-    class /* ADCONTROLSSHARED_EXPORT */ Chromatogram {
+    class Chromatogram {
     public:
         static const constexpr size_t npos = std::size_t(-1);
         ~Chromatogram();
@@ -141,8 +141,8 @@ namespace adcontrols {
         double intensity( size_t idx ) const;
         void setIntensity( size_t idx, double );
         void setTime( size_t idx, double );
-        void setIntensityArray( const double * );
-        void setTimeArray( const double * );
+        void setIntensityArray( const double *, size_t sz );
+        void setTimeArray( const double *, size_t sz );
         void addEvent( const Event& );
 
         // append (time,intensity) to the end of chromatogram

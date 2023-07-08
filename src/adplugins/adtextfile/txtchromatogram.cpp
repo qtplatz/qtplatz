@@ -78,8 +78,8 @@ TXTChromatogram::load( const std::wstring& name )
                 }
             } while( ! in.eof() );
             chr->resize( intensArray.size() );
-            chr->setIntensityArray( intensArray.data() );
-            chr->setTimeArray( timeArray.data() );
+            chr->setIntensityArray( intensArray.data(), intensArray.size() );
+            chr->setTimeArray( timeArray.data(), timeArray.size() );
 
             chromatograms_.push_back( chr );
 
