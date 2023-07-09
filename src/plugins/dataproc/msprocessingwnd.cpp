@@ -480,8 +480,9 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                                                  % adcontrols::Chromatogram::make_folder_name( tic->getDescriptions() )
                                                                  % L"TIC" % ( fcn + 1 ) ).str() );
                         if ( folium.nil() ) {
-                            adcontrols::Chromatogram c = *tic;
-                            c.addDescription( adcontrols::description( {"acquire.title", ( boost::format( "TIC.%1%" ) % ( fcn + 1 ) ).str() }) );
+                            auto c = std::make_shared< adcontrols::Chromatogram >(*tic);
+                            c->addDescription( adcontrols::description(
+                                                   {"acquire.title", ( boost::format( "TIC.%1%" ) % ( fcn + 1 ) ).str() }) );
                             portfolio::Folium folium = processor->addChromatogram( c, m );
                             SessionManager::instance()->updateDataprocessor( processor, folium ); // added 2022-11-22
                         }
@@ -504,7 +505,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                     auto folium = folder.findFoliumByName( name );
                                     if ( folium.nil() ) {
                                         ADDEBUG() << "---------- addChromatogram ---------------";
-                                        folium = processor->addChromatogram( *pChro, m ); //, true );
+                                        folium = processor->addChromatogram( pChro, m ); //, true );
                                         processor->setCurrentSelection( folium );
                                     }
                                 }
@@ -520,11 +521,11 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 
                 portfolio::Folium folium = folder.findFoliumByName( std::wstring( L"TIC/" ) + title );
                 if ( folium.nil() ) {   // add TIC if not yet added
-                    adcontrols::Chromatogram c;
-                    if ( dset->getTIC( static_cast<int>( fcn ), c ) ) {
-                        if ( c.isConstantSampledData() )
-                            c.getTimeArray();
-                        c.addDescription( adcontrols::description( L"acquire.title", title ) );
+                    auto c = std::make_shared< adcontrols::Chromatogram >();
+                    if ( dset->getTIC( static_cast<int>( fcn ), *c ) ) {
+                        if ( c->isConstantSampledData() )
+                            c->getTimeArray();
+                        c->addDescription( adcontrols::description( L"acquire.title", title ) );
                         adcontrols::ProcessMethod m;
                         MainWindow::instance()->getProcessMethod( m );
                         folium = processor->addChromatogram( c, m );//, true );  // force checked
@@ -1011,16 +1012,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                 }
             }
         } );
-#if 0
-        menu.addAction( tr("Frequency analysis (4g)"), [&] () {
-            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
-                if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    power_spectrum( *chr, 1 );
-                }
-            }
-        } );
-#endif
+
         menu.addAction( tr("Low pass filter"), [&] () {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
@@ -1938,8 +1930,7 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                 if ( auto file = processor->rawdata() ) {
                     if ( file->dataformat_version() >= 3 ) {
                         //--------->
-                        auto pm = std::make_shared< adcontrols::ProcessMethod >();
-                        MainWindow::instance()->getProcessMethod( *pm );
+                        auto pm = MainWindow::instance()->processMethod();
 
                         adwidgets::DataReaderChoiceDialog dlg( file->dataReaders() );
                         dlg.setProtocolHidden( true );

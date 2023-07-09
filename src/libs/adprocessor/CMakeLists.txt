@@ -38,6 +38,7 @@ add_library( ${PROJECT_NAME} SHARED
   autotargetingcandidates.hpp
   mslocker.cpp
   mslocker.hpp
+  noise_filter.cpp noise_filter.hpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

@@ -145,7 +145,8 @@ namespace dataproc {
         // portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );
-        portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
+        portfolio::Folium addChromatogram( std::shared_ptr< adcontrols::Chromatogram >, const adcontrols::ProcessMethod& );
+        // [[deprecated]] portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         portfolio::Folium addContour( std::shared_ptr< adcontrols::MassSpectra > );
         portfolio::Folium addContourClusters( std::shared_ptr< adcontrols::SpectrogramClusters > );
 

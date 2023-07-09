@@ -427,7 +427,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( *c, *pm );
+        folium = processor->addChromatogram( c, *pm );
     }
 
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
@@ -457,7 +457,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( *c, *method );
+        folium = processor->addChromatogram( c, *method );
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -540,7 +540,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( *c, *pm );
+        folium = processor->addChromatogram( c, *pm );
     }
 
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
@@ -568,7 +568,7 @@ DataprocessWorker::handleChromatogramByAxisRange3( Dataprocessor * processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( *c, *pm );
+        folium = processor->addChromatogram( c, *pm );
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -599,7 +599,7 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( *c, *pm );
+        folium = processor->addChromatogram( c, *pm );
         if ( auto pchr = folium.get< std::shared_ptr< adcontrols::Chromatogram > >() ) {
             if ( (*pchr)->peaks().size() > 0 ) {
                 folium.setAttribute( L"isChecked", L"true" );
@@ -631,7 +631,7 @@ DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( *c, *pm );
+        folium = processor->addChromatogram( c, *pm );
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -754,7 +754,7 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
             for ( auto& desc: spectra->getDescriptions() )
                 drift->addDescription( desc );
 
-            auto folium = processor->addChromatogram( *drift, m );
+            auto folium = processor->addChromatogram( drift, m );
         }
     }
 }

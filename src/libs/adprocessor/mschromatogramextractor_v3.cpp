@@ -494,6 +494,7 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
         std::pair< double, double > time_range =
             std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
                             , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
+        ADDEBUG() << "## " << __FUNCTION__ << " ## time_range: " << time_range;
 
         for ( auto& r : impl_->results_ ) {
             r->pChr_->minimumTime( time_range.first );

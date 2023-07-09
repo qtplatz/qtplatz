@@ -54,6 +54,9 @@ namespace adcontrols {
 
         ADCONTROLSSHARED_EXPORT
         extern const wchar_t * const F_MSLOCK;            //
+
+        ADCONTROLSSHARED_EXPORT
+        extern const wchar_t * const F_CHROMATOGRAM;      //
     }
 
     namespace iids {
