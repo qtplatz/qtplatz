@@ -1235,10 +1235,27 @@ Dataprocessor::baselineCollection( portfolio::Folium folium )
 }
 
 void
-Dataprocessor::dftFilter( portfolio::Folium folium )
+Dataprocessor::dftFilter( portfolio::Folium folium
+                          , std::shared_ptr< adcontrols::ProcessMethod > pm )
 {
+    double freq = 0.4;
+    if ( auto peakm = pm->find< adcontrols::PeakMethod >() ) {
+        std::tie(std::ignore, freq) = peakm->noise_filter();
+    }
+    ADDEBUG() << "============== filter freq: " << freq;
+
     if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        std::shared_ptr< adcontrols::Chromatogram > xchr;
+        if ( auto att = portfolio::find_first_of( folium.attachments(), []( const auto& f ){ return f.name() == L"original"; } ) ) {
+            auto org = portfolio::get< adcontrols::ChromatogramPtr >( att );
+            xchr = std::make_shared< adcontrols::Chromatogram >( *org ); // deep copy of original
+        } else {
+            auto a = folium.addAttachment( L"original" );
+            a.assign( chr, chr->dataClass() );
+            xchr = std::make_shared< adcontrols::Chromatogram >( *chr ); // deep copy
+        }
         using namespace adportable;
+
         fft4g f;
         size_t N = adportable::digital_filter::make_power2::size2( chr->size() );
         std::vector< std::complex< double > > d( N );
@@ -1247,16 +1264,14 @@ Dataprocessor::dftFilter( portfolio::Folium folium )
                                                , d.begin()
                                                , [](const auto& a){ return std::complex<double>(a); } );
         f.cdft( 1, d );
-        size_t index = digital_filter::cutoff_index()( chr->sampInterval(), N, 0.35 );
+        size_t index = digital_filter::cutoff_index()( chr->sampInterval(), N, freq );
         digital_filter::filter().low_pass( d, index );
         f.cdft( -1, d );
-        auto fchr = std::make_shared< adcontrols::Chromatogram >( *chr );
-        for ( size_t i = 0; i < fchr->size(); ++i )
-            fchr->setIntensity( i, d[i].real() / N );
-        folium.assign( fchr, fchr->dataClass() ); // replace data
 
-        auto att = folium.addAttachment( L"original" );
-        att.assign( chr, chr->dataClass() );
+        for ( size_t i = 0; i < xchr->size(); ++i )
+            xchr->setIntensity( i, d[i].real() / N );
+
+        folium.assign( xchr, xchr->dataClass() ); // replace data
 
         emit SessionManager::instance()->foliumChanged( this, folium );
         SessionManager::instance()->updateDataprocessor( this, folium );

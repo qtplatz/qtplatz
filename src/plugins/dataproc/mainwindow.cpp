@@ -1133,8 +1133,16 @@ MainWindow::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
     emit onAddMSPeaks( peaks );
 }
 
+std::shared_ptr< adcontrols::ProcessMethod >
+MainWindow::processMethod() const
+{
+    auto pm = std::make_shared< adcontrols::ProcessMethod >();
+    getProcessMethod( *pm );
+    return pm;
+}
+
 void
-MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
+MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm ) const
 {
     using adcontrols::ProcessMethod;
 

@@ -1010,7 +1010,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                 }
             }
         } );
-
+#if 0
         menu.addAction( tr("Frequency analysis (4g)"), [&] () {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
@@ -1019,12 +1019,12 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                 }
             }
         } );
-
+#endif
         menu.addAction( tr("Low pass filter"), [&] () {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
                 if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    dp->dftFilter( folium );
+                    dp->dftFilter( folium, MainWindow::instance()->processMethod() );
                 }
             }
         } );

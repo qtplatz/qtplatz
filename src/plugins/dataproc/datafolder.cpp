@@ -59,8 +59,12 @@ namespace {
             } else if ( folium_.name() == Constants::F_CENTROID_SPECTRUM ) {
                 this_->centroid_ = ptr;
             } else {
-                ADDEBUG() << "\t-- attachmenr <MassSpectrum> not handled: " << folium_.name();
+                ADDEBUG() << "\t-- attachment <MassSpectrum> not handled: " << folium_.name();
             }
+        }
+
+        void operator () ( std::shared_ptr< adcontrols::Chromatogram > ptr ) const {
+            ADDEBUG() << "\t-- attachment <Chromatogram> not handled: " << folium_.name();
         }
     };
 

@@ -140,7 +140,7 @@ namespace dataproc {
         void baselineCollection( portfolio::Folium );
         void setAttribute( portfolio::Folium, std::pair< std::string, std::string >&& );
         void deleteRemovedItems();
-        void dftFilter( portfolio::Folium );
+        void dftFilter( portfolio::Folium, std::shared_ptr< adcontrols::ProcessMethod > ); // filter for chromatogram
 
         // portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );

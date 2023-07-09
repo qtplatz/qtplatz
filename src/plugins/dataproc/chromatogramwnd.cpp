@@ -80,7 +80,7 @@
 #include <QPainter>
 #include <QPrinter>
 #include <QSvgGenerator>
-#include <deque>
+
 #include <memory>
 
 using namespace dataproc;
@@ -215,7 +215,7 @@ namespace dataproc {
         // plot[0] data
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
-        // std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
+        std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
         datafolder datum_; // current data <-- replacement of data_
         // std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
@@ -352,7 +352,6 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    // ScopedDebug() << "## " << __FUNCTION__ << " ##";
     try {
         using dataTuple = std::tuple< std::shared_ptr< adcontrols::Chromatogram > >;
 
@@ -371,7 +370,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
 
     if ( auto chr = datum.get_chromatogram() ) {
 
-        //impl_->selected_folder_ = { folium.uuid(), folium.id() }; // current selection
+        impl_->selected_folder_ = { folium.uuid(), folium.id() }; // current selection
 
         auto& plot = impl_->plots_[ 0 ];
 
@@ -528,6 +527,15 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
             idFolium = datum_.idFolium();
         }
         utility::save_image_as< SVG >()( plots_[ index ].get(), idFolium );
+    });
+
+    menu.addAction( tr("Low pass filter"), [&] () {
+        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            auto folium = dp->getPortfolio().findFolium( selected_folder_.second );
+            if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                dp->dftFilter( folium, MainWindow::instance()->processMethod() );
+            }
+        }
     });
 
     menu.exec( QCursor::pos() );
