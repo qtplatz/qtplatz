@@ -572,8 +572,6 @@ MSProcessingWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& f
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
-    // ScopedDebug() << "## " << __FUNCTION__ << " ##";
-
     drawIdx1_ = 0;
 
     if ( portfolio::Folder folder = folium.parentFolder() ) {
@@ -658,7 +656,10 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     idx = std::max( idx, ptr->protocol() );
                     draw( ptr, ptr->protocol() );
                     idActiveFolium_ = folium.id();
-                    idChromatogramFolium( folium.id() );
+                    if ( processor->getPortfolio().findFolium( folium.id() ) ) { // if not searchable
+                        idChromatogramFolium( folium.id() );
+                    }
+
                     pImpl_->datum_[ 0 ] = datafolder( processor->filename(), folium );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                         return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
@@ -1023,6 +1024,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         menu.addAction( tr("Low pass filter"), [&] () {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+
                 if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
                     dp->dftFilter( folium, MainWindow::instance()->processMethod() );
                 }

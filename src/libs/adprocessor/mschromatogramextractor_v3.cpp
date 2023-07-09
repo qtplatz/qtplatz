@@ -468,6 +468,8 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
 {
     using namespace mschromatogramextractor;
 
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+
     if ( impl_->raw_->dataformat_version() <= 2 )
         return false;
 
