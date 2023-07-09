@@ -26,6 +26,8 @@
 #include "peakmethod.hpp"
 #include "serializer.hpp"
 #include <adportable/float.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/variant.hpp>
@@ -36,42 +38,43 @@
 #include <boost/archive/xml_wiarchive.hpp>
 
 namespace adcontrols {
+    namespace chromatography {
 
-    template< typename T = PeakMethod::TimedEvent >
-    class TimedEvent_archive {
-    public:
-        template<class Archive>
-        void serialize(Archive& ar, T& _, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP( _.time_ );
-            ar & BOOST_SERIALIZATION_NVP( _.event_ );
-            if ( version < 2 ) {
-                double tmp(0);
-                ar & BOOST_SERIALIZATION_NVP( tmp );
-                _.value_ = tmp;
-            } else {
-                ar & BOOST_SERIALIZATION_NVP( _.value_ );
+        template< typename T = chromatography::TimedEvent >
+        class TimedEvent_archive {
+        public:
+            template<class Archive>
+            void serialize(Archive& ar, T& _, const unsigned int version) {
+                ar & BOOST_SERIALIZATION_NVP( _.time_ );
+                ar & BOOST_SERIALIZATION_NVP( _.event_ );
+                if ( version < 2 ) {
+                    double tmp(0);
+                    ar & BOOST_SERIALIZATION_NVP( tmp );
+                    _.value_ = tmp;
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( _.value_ );
+                }
             }
+        };
+
+        template<> void TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
+        template<> void TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
         }
 
-    };
+        template<> void TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
 
-    template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-    {
-        TimedEvent_archive<>().serialize( ar, *this, version );
-    }
-    template<> void PeakMethod::TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-    {
-        TimedEvent_archive<>().serialize( ar, *this, version );
-    }
-
-    template<> void PeakMethod::TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        TimedEvent_archive<>().serialize( ar, *this, version );
-    }
-
-    template<> void PeakMethod::TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        TimedEvent_archive<>().serialize( ar, *this, version );
+        template<> void TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        {
+            TimedEvent_archive<>().serialize( ar, *this, version );
+        }
     }
 
     /////////////////////
@@ -159,6 +162,8 @@ PeakMethod::PeakMethod(void) : minimumHeight_( 10 )
                              , peakWidthMethod_( ePeakWidth_HalfHeight )
                              , theoreticalPlateMethod_( ePeakWidth_HalfHeight )
                              , timeInMinutes_( false )
+                             , noiseFilterMethod_( chromatography::eNoFilter )
+                             , cutoffFreqHz_( 0.35 )
 {
 }
 
@@ -182,6 +187,9 @@ PeakMethod::operator = ( const PeakMethod & rhs )
     theoreticalPlateMethod_ = rhs.theoreticalPlateMethod_;
     timeInMinutes_          = rhs.timeInMinutes_;
     timedEvents_            = rhs.timedEvents_;
+    noiseFilterMethod_      = rhs.noiseFilterMethod_;
+    cutoffFreqHz_           = rhs.cutoffFreqHz_;
+
     return * this;
 }
 
@@ -344,6 +352,19 @@ PeakMethod::isTimeInMinutes() const
     return timeInMinutes_;
 }
 
+std::pair< chromatography::eNoiseFilterMethod, double >
+PeakMethod::noise_filter() const
+{
+    return { noiseFilterMethod_, cutoffFreqHz_ };
+}
+
+void
+PeakMethod::set_noise_filter( std::pair< chromatography::eNoiseFilterMethod, double >&& t )
+{
+    noiseFilterMethod_ = std::get< 0 >( t );
+    cutoffFreqHz_ = std::get< 1 >( t );
+}
+
 
 PeakMethod::size_type
 PeakMethod::size() const
@@ -376,7 +397,7 @@ PeakMethod::end() const
 }
 
 PeakMethod&
-PeakMethod::operator << ( const PeakMethod::TimedEvent& t )
+PeakMethod::operator << ( const TimedEvent& t )
 {
     timedEvents_.push_back( t );
     return *this;
@@ -395,135 +416,140 @@ PeakMethod::erase( iterator_type first, iterator_type last )
 }
 
 //----------------
-PeakMethod::TimedEvent::~TimedEvent()
-{
-}
+namespace adcontrols {
+    namespace chromatography {
 
-PeakMethod::TimedEvent::TimedEvent() : time_(0)
-                                     , event_( chromatography::ePeakEvent_Nothing )
-                                     , value_( false )
-{
-}
+        TimedEvent::~TimedEvent()
+        {
+        }
 
-PeakMethod::TimedEvent::TimedEvent( seconds_t t
-                                    , chromatography::ePeakEvent e ) : time_( t )
-                                                                     , event_( e )
-{
-    if ( isBool( e ) )
-        value_ = bool( false );
-    else
-        value_ = double(0.0);
-}
+        TimedEvent::TimedEvent() : time_(0)
+                                 , event_( chromatography::ePeakEvent_Nothing )
+                                 , value_( false )
+        {
+        }
 
-PeakMethod::TimedEvent::TimedEvent( const TimedEvent& t ) : time_( t.time_ )
-                                                          , event_( t.event_ )
-														  , value_( t.value_ )
-{
-}
+        TimedEvent::TimedEvent( seconds_t t
+                                , chromatography::ePeakEvent e ) : time_( t )
+                                                                 , event_( e )
+        {
+            if ( isBool( e ) )
+                value_ = bool( false );
+            else
+                value_ = double(0.0);
+        }
 
-//static
-bool
-PeakMethod::TimedEvent::isBool( adcontrols::chromatography::ePeakEvent t )
-{
-    switch( t ) {
-    case ePeakEvent_Nothing:
-    case ePeakEvent_Off:
-    case ePeakEvent_ForcedBase:
-    case ePeakEvent_ShiftBase:
-    case ePeakEvent_VtoV:
-    case ePeakEvent_Tailing:
-    case ePeakEvent_Leading:
-    case ePeakEvent_Shoulder:
-    case ePeakEvent_NegativePeak:
-    case ePeakEvent_NegativeLock:
-    case ePeakEvent_HorizontalBase:
-    case ePeakEvent_PostHorizontalBase:
-    case ePeakEvent_ForcedPeak:
-    case ePeakEvent_Elimination:
-    case ePeakEvent_Manual:
-        return true;
-    case ePeakEvent_Slope:
-    case ePeakEvent_MinWidth:
-    case ePeakEvent_MinHeight:
-    case ePeakEvent_MinArea:
-    case ePeakEvent_Drift:
-       return false;
-    }
-    return false;
-}
+        TimedEvent::TimedEvent( const TimedEvent& t ) : time_( t.time_ )
+                                                      , event_( t.event_ )
+                                                      , value_( t.value_ )
+        {
+        }
 
 //static
-bool
-PeakMethod::TimedEvent::isDouble( adcontrols::chromatography::ePeakEvent t )
-{
-    return !isBool( t );
-}
+        bool
+        TimedEvent::isBool( adcontrols::chromatography::ePeakEvent t )
+        {
+            switch( t ) {
+            case ePeakEvent_Nothing:
+            case ePeakEvent_Off:
+            case ePeakEvent_ForcedBase:
+            case ePeakEvent_ShiftBase:
+            case ePeakEvent_VtoV:
+            case ePeakEvent_Tailing:
+            case ePeakEvent_Leading:
+            case ePeakEvent_Shoulder:
+            case ePeakEvent_NegativePeak:
+            case ePeakEvent_NegativeLock:
+            case ePeakEvent_HorizontalBase:
+            case ePeakEvent_PostHorizontalBase:
+            case ePeakEvent_ForcedPeak:
+            case ePeakEvent_Elimination:
+            case ePeakEvent_Manual:
+                return true;
+            case ePeakEvent_Slope:
+            case ePeakEvent_MinWidth:
+            case ePeakEvent_MinHeight:
+            case ePeakEvent_MinArea:
+            case ePeakEvent_Drift:
+                return false;
+            }
+            return false;
+        }
 
-double
-PeakMethod::TimedEvent::time( bool asMinutes ) const
-{
-    if ( asMinutes )
-        return timeutil::toMinutes( time_ );
-    else
-        return time_;
-}
+//static
+        bool
+        TimedEvent::isDouble( adcontrols::chromatography::ePeakEvent t )
+        {
+            return !isBool( t );
+        }
 
-void
-PeakMethod::TimedEvent::setTime( double time, bool isMinutes )
-{
-    if ( isMinutes )
-        time_ = timeutil::toSeconds( time );
-    else
-        time_ = time;
-}
+        double
+        TimedEvent::time( bool asMinutes ) const
+        {
+            if ( asMinutes )
+                return timeutil::toMinutes( time_ );
+            else
+                return time_;
+        }
 
-chromatography::ePeakEvent
-PeakMethod::TimedEvent::peakEvent() const
-{
-    return event_;
-}
+        void
+        TimedEvent::setTime( double time, bool isMinutes )
+        {
+            if ( isMinutes )
+                time_ = timeutil::toSeconds( time );
+            else
+                time_ = time;
+        }
 
-void
-PeakMethod::TimedEvent::setPeakEvent( chromatography::ePeakEvent t )
-{
-    event_ = t;
-}
+        chromatography::ePeakEvent
+        TimedEvent::peakEvent() const
+        {
+            return event_;
+        }
 
-bool
-PeakMethod::TimedEvent::isBool() const
-{
-	return value_.type() == typeid( bool );
-}
+        void
+        TimedEvent::setPeakEvent( chromatography::ePeakEvent t )
+        {
+            event_ = t;
+        }
 
-bool
-PeakMethod::TimedEvent::isDouble() const
-{
-	return value_.type() == typeid( double );
-}
+        bool
+        TimedEvent::isBool() const
+        {
+            return value_.type() == typeid( bool );
+        }
 
-double
-PeakMethod::TimedEvent::doubleValue() const
-{
-	return boost::get<double>( value_ ); // may raise bad_cast exception
-}
+        bool
+        TimedEvent::isDouble() const
+        {
+            return value_.type() == typeid( double );
+        }
 
-bool
-PeakMethod::TimedEvent::boolValue() const
-{
-	return boost::get<bool>( value_ ); // may raise bad_cast exception
-}
+        double
+        TimedEvent::doubleValue() const
+        {
+            return boost::get<double>( value_ ); // may raise bad_cast exception
+        }
 
-void
-PeakMethod::TimedEvent::setValue( bool value )
-{
-    value_ = value;
-}
+        bool
+        TimedEvent::boolValue() const
+        {
+            return boost::get<bool>( value_ ); // may raise bad_cast exception
+        }
 
-void
-PeakMethod::TimedEvent::setValue( double value )
-{
-    value_ = value;
-}
+        void
+        TimedEvent::setValue( bool value )
+        {
+            value_ = value;
+        }
+
+        void
+        TimedEvent::setValue( double value )
+        {
+            value_ = value;
+        }
+    } // namespace chromatography
+} // namespace adcontrols
 
 void
 PeakMethod::sort()
@@ -531,4 +557,91 @@ PeakMethod::sort()
     std::sort( timedEvents_.begin(), timedEvents_.end(), [] ( const TimedEvent& a, const TimedEvent& b ) {
             return a.time() < b.time();
         });
+}
+
+namespace adcontrols {
+    namespace chromatography {
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TimedEvent& t )
+        {
+            jv = boost::json::object{
+                { "time", t.time_ }
+                , { "event", int( t.event_ ) }
+                // , { "value", t.value_ }
+            };
+            if ( t.value_.type() == typeid(bool) )
+                jv.as_object()[ "value" ] = boost::get<bool>(t.value_);
+            else
+                jv.as_object()[ "value" ] = boost::get<double>(t.value_);
+        }
+
+        TimedEvent
+        tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv )
+        {
+            TimedEvent t;
+            if ( jv.is_object() ) {
+                using namespace adportable::json;
+                auto obj = jv.as_object();
+                extract( obj, t.time_, "time" );
+                int event;
+                extract( obj, event, "event" ); t.event_ = ePeakEvent( event );
+                auto v = obj[ "value" ];
+                if ( v.if_bool() )
+                    t.value_ = v.as_bool();
+                else
+                    t.value_ = v.as_double();
+            }
+            return t;
+        }
+    }
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const PeakMethod& m )
+    {
+        jv = boost::json::object{
+            { "minimumHeight",                m.minimumHeight_ }
+            , { "minimumArea",                m.minimumArea_ }
+            , { "minimumWidth",               m.minimumWidth_ }
+            , { "doubleWidthTime",            m.doubleWidthTime_ }
+            , { "slope",                      m.slope_ }
+            , { "drift",                      m.drift_ }
+            , { "t0",                         m.t0_ }
+            , { "pharmacopoeia",              int(m.pharmacopoeia_) }
+            , { "peakWidthMethod",            int(m.peakWidthMethod_) }
+            , { "theoreticalPlateMethod",     int(m.theoreticalPlateMethod_) }
+            , { "timeInMinutes",              m.timeInMinutes_ }
+            , { "noiseFilterMethod",          int(m.noiseFilterMethod_) }
+            , { "cutoffFreqHz",               m.cutoffFreqHz_ }
+            , { "timedEvents",                m.timedEvents_ }
+        };
+    }
+
+    PeakMethod
+    tag_invoke( boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv )
+    {
+        PeakMethod m;
+        if ( jv.is_object() ) {
+            using namespace adportable::json;
+
+            auto obj = jv.as_object();
+            extract( obj,  m.minimumHeight_,       "minimumHeight"   );
+            extract( obj,  m.minimumArea_,         "minimumArea"     );
+            extract( obj,  m.minimumWidth_,        "minimumWidth"    );
+            extract( obj,  m.doubleWidthTime_,     "doubleWidthTime" );
+            extract( obj,  m.slope_,               "slope"           );
+            extract( obj,  m.drift_,               "drift"           );
+            extract( obj,  m.t0_,                  "t0"              );
+            extract( obj,  m.timeInMinutes_,       "timeInMinutes"   );
+            extract( obj,  m.cutoffFreqHz_,        "cutoffFreqHz"    );
+            extract( obj,  m.timedEvents_,         "timedEvents"     );
+            int evalue;
+            extract( obj,  evalue, "pharmacopoeia" );          m.pharmacopoeia_ = chromatography::ePharmacopoeia(evalue);
+            extract( obj,  evalue, "peakWidthMethod"  );       m.peakWidthMethod_ = chromatography::ePeakWidthMethod(evalue);
+            extract( obj,  evalue, "theoreticalPlateMethod" ); m.theoreticalPlateMethod_ = chromatography::ePeakWidthMethod(evalue);
+            extract( obj,  evalue, "noiseFilterMethod" );      m.noiseFilterMethod_ = chromatography::eNoiseFilterMethod(evalue);
+        }
+        return m;
+    }
+
 }

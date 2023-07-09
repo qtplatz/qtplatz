@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -37,29 +37,18 @@
 
 namespace adportable {
 
-	class ADPORTABLESHARED_EXPORT fft {
+    class ADPORTABLESHARED_EXPORT fft4g;
+
+	class fft4g {
+        std::vector< int > ip_;  // 2 + (1<< int( (log(n)+0.5)/log(2))/2) := sqrt(N)
+        std::vector< double > w_; // N/2
+        size_t N_;
+        void ini( size_t N );
 	public:
-		static bool apodization(int napod, std::vector< std::complex<double> > &);
-		static bool apodization(int napod_zero, int napod_slope, std::vector< std::complex<double> > &);
-		static size_t zero_filling(size_t toSize, std::vector< std::complex<double> > &);
-
-		static bool fourier_transform(std::vector< std::complex<double> > & result,
-			                          std::vector< std::complex<double> > & x, bool ist);
-
-		class spectrum {
-			double m_WLstart;
-			double m_WLend;
-			long m_nBinarySize;  // should be power of two
-			std::vector< std::complex<double> > m_power_spectrum;
-			std::vector< double > m_data;
-		public:
-			spectrum();
-			spectrum(int n, double * data, double startX, double endX, size_t toSize, size_t napod);
-			bool peak_picking(std::vector< std::pair<double, double> > & peaks,
-				std::vector< std::pair<double, double> > & valays);
-			size_t get_spectrum(std::vector<double> & rdata, double & startX, double & endX);
-			operator std::vector< double > & ();
-		};
+        ~fft4g();
+        fft4g();
+        void cdft( int isgn, std::vector< std::complex< double > >& );
+        void rdft( int isgn, std::vector< double >& );
 	};
 
 }

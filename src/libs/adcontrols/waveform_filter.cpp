@@ -29,6 +29,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/fft.hpp>
+#include <adportable/fft4g.hpp>
 #include <adportable/float.hpp>
 #include <adportable/sgfilter.hpp>
 #include <algorithm>
@@ -36,11 +37,11 @@
 #include <ratio>
 #include <vector>
 
-extern "C" {
-    // Takuya OOURA's package, built on adportable static library
-    void cdft( int, int isgn, double * );
-    void rdft( int, int isgn, double * );
-}
+// extern "C" {
+//     // Takuya OOURA's package, built on adportable static library
+//     void cdft( int, int isgn, double * );
+//     void rdft( int, int isgn, double * );
+// }
 
 namespace adcontrols {
     namespace waveform_filter_helper {
@@ -209,32 +210,22 @@ waveform_filter::fft4g::lowpass_filter( size_t size, double * data, double sampI
 }
 
 //////////////////////
-bool
-waveform_filter::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
-{
-    return bandpass_filter( ms, freq, 0 );
-}
-
-bool
-waveform_filter::fft4c::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
-{
-    return bandpass_filter( size, data, sampInterval, freq, 0 );
-}
 
 bool
 waveform_filter::fft4g::bandpass_filter( adcontrols::MassSpectrum& ms, double h_freq, double l_freq )
 {
 	std::vector< double > a;
+    adportable::fft4g fft4g;
 
 	const double sampInterval = helper::sampInterval( ms );
 
     if ( const size_t N = transform()( ms.getIntensityArray(), ms.size(), a ) ) {
 
-        rdft( N, 1, a.data() );
+        fft4g.rdft( 1, a );
 
         appodization()( a, helper::cutoffIndex( sampInterval, N, h_freq, l_freq ) );
 
-        rdft( N, -1, a.data() );
+        fft4g.rdft( -1, a );
 
         std::transform( a.begin(), a.begin() + ms.size(), a.begin(), [N] ( double a ) { return a * 2.0 / N; } );
         ms.setIntensityArray( a.data() );
@@ -248,14 +239,15 @@ bool
 waveform_filter::fft4g::bandpass_filter( size_t size, double * data, double sampInterval, double h_freq, double l_freq )
 {
 	std::vector< double > a;
+    adportable::fft4g fft4g;
 
     if ( const size_t N = transform()( data, size, a ) ) {
 
-        rdft( N, 1, reinterpret_cast<double *>( a.data() ) );
+        fft4g.rdft( 1, a );
 
         appodization()( a, helper::cutoffIndex( sampInterval, N, h_freq, l_freq ) );
 
-        rdft( N, -1, reinterpret_cast<double *>( a.data() ) );
+        fft4g.rdft( -1, a );
 
         auto src = a.begin();
 
@@ -268,6 +260,20 @@ waveform_filter::fft4g::bandpass_filter( size_t size, double * data, double samp
 	return false;
 }
 
+
+////////////////////////////////////////////
+bool
+waveform_filter::fft4c::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
+{
+    return bandpass_filter( ms, freq, 0 );
+}
+
+bool
+waveform_filter::fft4c::lowpass_filter( size_t size, double * data, double sampInterval, double freq )
+{
+    return bandpass_filter( size, data, sampInterval, freq, 0 );
+}
+
 bool
 waveform_filter::fft4c::bandpass_filter( adcontrols::MassSpectrum& ms, double h_freq, double l_freq )
 {
@@ -277,15 +283,17 @@ waveform_filter::fft4c::bandpass_filter( adcontrols::MassSpectrum& ms, double h_
     if ( sampInterval == 0 )
         sampInterval = ( ms.time( ms.size() - 1 ) - ms.time( 0 ) ) / ms.size();
 
+    adportable::fft4g fft4g;
+
     if ( const size_t N = transform()( ms.getIntensityArray(), ms.size(), a ) ) {
 
-        cdft( N * 2, 1, reinterpret_cast<double *>( a.data() ) );
+        fft4g.cdft( 1, a );
 
         auto cutoff = helper::cutoffIndex( sampInterval, N, h_freq, l_freq );
 
         appodization()( a, cutoff );
 
-        cdft( N * 2, -1, reinterpret_cast<double *>( a.data() ) );
+        fft4g.cdft( -1, a );
 
         for ( size_t i = 0; i < ms.size(); ++i )
             ms.setIntensity( i, a[ i ].real() * 2.0 / ( N * 2 ) );
@@ -301,13 +309,14 @@ waveform_filter::fft4c::bandpass_filter( size_t size, double * data, double samp
 {
 	std::vector< std::complex<double> > a;
 
+    adportable::fft4g fft4g;
     if ( const size_t N = transform()( data, size, a ) ) {
 
-        cdft( N * 2, 1, reinterpret_cast<double *>( a.data() ) );
+        fft4g.cdft( 1, a );
 
         appodization()( a, helper::cutoffIndex( sampInterval, N, h_freq, l_freq ) );
 
-        cdft( N * 2, -1, reinterpret_cast<double *>( a.data() ) );
+        fft4g.cdft( -1, a );
 
         auto src = a.begin();
 
@@ -329,10 +338,11 @@ waveform_filter::fft4c::zero_filling( adcontrols::MassSpectrum& ms
         sampInterval = ( ms.time( ms.size() - 1 ) - ms.time( 0 ) ) / ms.size();
 
 	std::vector< std::complex<double> > t;
+    adportable::fft4g fft4g;
 
     if ( const size_t N = transform()( ms.getIntensityArray(), ms.size(), t ) ) {
 
-        cdft( N * 2, 1, reinterpret_cast<double *>( t.data() ) );
+        fft4g.cdft( 1, t );
 
         const double T = t.size() * sampInterval;
         double nyquist = ( t.size() / 2 ) / T;
@@ -349,7 +359,7 @@ waveform_filter::fft4c::zero_filling( adcontrols::MassSpectrum& ms
         if ( NN > N ) {
             std::vector< std::complex< double > > a = zerofilling()( t, NN );
 
-            cdft( NN * 2, -1, reinterpret_cast<double *>( a.data() ) );
+            fft4g.cdft( -1, a );
 
             ms.resize( NN );
             sampInterval /= fold;

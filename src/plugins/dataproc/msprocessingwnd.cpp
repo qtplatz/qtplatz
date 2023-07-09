@@ -84,6 +84,7 @@
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportable/json_helper.hpp>
+#include <adportable/fft4g.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -1005,7 +1006,25 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
                 if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    power_spectrum( *chr );
+                    power_spectrum( *chr, 0 );
+                }
+            }
+        } );
+
+        menu.addAction( tr("Frequency analysis (4g)"), [&] () {
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    power_spectrum( *chr, 1 );
+                }
+            }
+        } );
+
+        menu.addAction( tr("Low pass filter"), [&] () {
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    dp->dftFilter( folium );
                 }
             }
         } );
@@ -1766,29 +1785,40 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
 }
 
 void
-MSProcessingWnd::power_spectrum( const adcontrols::Chromatogram& c )
+MSProcessingWnd::power_spectrum( const adcontrols::Chromatogram& c, int algo )
 {
     const size_t size = c.size();
     if ( size >= 8 ) {
         uint32_t n = 1;
         while ( size >> n )
             ++n;
-        uint32_t N = 1 << ( n - 1 );
+        uint32_t N = 1 << n;
+        ADDEBUG() << "power_spectrum : n = " << size << " --> " << N << ", algo=" << algo;
 
         std::vector< std::complex< double > > spc(N), fft(N);
-        unsigned idx( 0 );
-        for ( auto it = c.begin(); it != c.end() && idx < N; ++it )
-            spc[ idx++ ] = std::complex< double >( it.intensity() );
+        std::transform( c.getIntensityArray(), c.getIntensityArray() + c.size()
+                        , spc.begin()
+                        , [](const auto& a){ return std::complex<double>(a); } );
+        std::fill( spc.begin() + c.size(), spc.end(), std::complex<double>( c.intensity( c.size() - 1 ) ) );
 
-        double fInterval = c.sampInterval();
+        // unsigned idx( 0 );
+        // for ( auto it = c.begin(); it != c.end() && idx < N; ++it )
+        //     spc[ idx++ ] = std::complex< double >( it.intensity() );
 
-        adportable::fft::fourier_transform( fft, spc, false );
-
+        const double fInterval = c.sampInterval();
         const double T = N * fInterval;
-        std::vector< double > x( N / 2 ), y( N / 2 );
+        std::vector< double > x( N / 2 ), y( N / 2 ); // plot data
+
+        if ( algo == 0 ) {
+            adportable::fft::fourier_transform( fft, spc, false );
+        } else {
+            fft = spc;
+            adportable::fft4g().cdft( 1, fft );
+        }
 
         std::transform( fft.begin(), fft.begin() + N / 2, y.begin(), [&]( const std::complex<double>& d ){
-                return ( ( d.real() * d.real() ) + ( d.imag() * d.imag() ) ) / ( double(N) * N ); } );
+            return ( ( d.real() * d.real() ) + ( d.imag() * d.imag() ) ) / ( double(N) * N );
+        } );
 
         //std::iota( x.begin(), x.end(), frequency(T) );
         for ( size_t i = 0; i < N / 2; ++i )

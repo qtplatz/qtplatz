@@ -46,7 +46,6 @@ add_library( ${PROJECT_NAME} SHARED
   timesquaredscanlaw.cpp
   utf.cpp
   uuid.cpp
-  fft4g_h.c
   waveform_averager.hpp
   waveform_peakfinder.cpp
   waveform_peakfinder.hpp
@@ -59,6 +58,9 @@ add_library( ${PROJECT_NAME} SHARED
   json/extract.cpp
   json/extract.hpp
   tuple_arith.hpp
+  fft4g.cpp fft4g.hpp
+  fft/fft4g.c
+  # fft4g_h.c
   )
 
 add_library( QtPlatz::${PROJECT_NAME} ALIAS ${PROJECT_NAME} )

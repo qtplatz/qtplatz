@@ -34,10 +34,12 @@
 #include <adportable/is_type.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <QAbstractButton>
 #include <QBoxLayout>
 #include <QGridLayout>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
@@ -103,72 +105,102 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                     grid->setSpacing( 2 );
                     grid->setContentsMargins( 2, 0, 2, 0 );
                     std::tuple< size_t, size_t > xy{0,0};
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelSlope", "Slope (&mu;V/min)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelSlope", "Slope (&mu;V/min)")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxSlope"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxSlope")
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
 #if __cplusplus >= 201703L // same all folloing call of spin_init
                             spin_init( spin, std::tuple{
                                     Decimals{2}, Minimum{0.0}, Maximum{99.999}, SingleStep{0.01}, Value{0.05}, Alignment{Qt::AlignRight} } );
-#else // for gcc 6.3 support
-                            spin_init( spin, std::make_tuple(
-                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{99.999}, SingleStep<>{0.01}, Value<>{0.05},Alignment{Qt::AlignRight} ) );
+#else // gcc 6.3 support
+                            spin_init( spin
+                                       , std::make_tuple( Decimals{2}, Minimum<>{0.0}, Maximum<>{99.999}, SingleStep<>{0.01}
+                                           , Value<>{0.05}, Alignment{Qt::AlignRight} ) );
 #endif
                         }
                     }
                     ++xy;
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMW", "Minimum width (s)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMW", "Minimum width (s)")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMW"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMW")
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             spin_init( spin, std::make_tuple(
-                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{99.999}, SingleStep<>{0.10}, Value<>{0.1}, Alignment{Qt::AlignRight} ) );
+                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{99.999}, SingleStep<>{0.05}
+                                           , Value<>{0.1}, Alignment{Qt::AlignRight} ) );
                         }
                     }
                     ++xy;
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMH", "Minimum height"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMH", "Minimum height")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMH"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMH")
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             spin_init( spin, std::make_tuple(
-                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}, Value<>{1.0},Alignment{Qt::AlignRight} ) );
+                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}
+                                           , Value<>{1.0},Alignment{Qt::AlignRight} ) );
                         }
                     }
                     ++xy;
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelDrift", "Drift (&mu;V/s)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelDrift", "Drift (&mu;V/s)")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxDrift"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxDrift")
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             spin_init( spin, std::make_tuple(
-                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{9999.99}, SingleStep<>{0.1}, Value<>{0.1}, Alignment{Qt::AlignRight} ) );
+                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{9999.99}, SingleStep<>{0.1}, Value<>{0.1}
+                                           , Alignment{Qt::AlignRight} ) );
                         }
                     }
                     ++xy;
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMA", "Minimum area (&mu;V&times;s)"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelMA", "Minimum area (&mu;V&times;s)")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMA"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxMA")
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             spin_init( spin, std::make_tuple(
-                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}, Value<>{1.0}, Alignment{Qt::AlignRight} ) );
+                                           Decimals{2}, Minimum<>{0.0}, Maximum<>{999999999999.9}, SingleStep<>{1.0}
+                                           , Value<>{1.0}, Alignment{Qt::AlignRight} ) );
                         }
                     }
                     ++xy;
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelT0", "<i>T<sub>0</sub>"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelT0", "<i>T<sub>0</sub>")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxT0"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doubleSpinBoxT0")
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             spin_init( spin, std::make_tuple(
-                                           Decimals{3}, Minimum<>{0.0}, Maximum<>{3600.0}, SingleStep<>{4.0}, Value<>{0.1}, Alignment{Qt::AlignRight} ) );
+                                           Decimals{3}, Minimum<>{0.0}, Maximum<>{3600.0}, SingleStep<>{4.0}
+                                           , Value<>{0.1}, Alignment{Qt::AlignRight} ) );
                         }
                     }
                     ++xy;
-                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelPC", "Pharmacopoeia"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                    if ( auto label = add_widget( grid, create_widget< QLabel >( "labelPC", "Pharmacopoeia")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                         label->setTextFormat(Qt::RichText);
                         label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-                        if ( auto combo = add_widget( grid, create_widget< QComboBox >( "comboBoxPharmacopoeia"), std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto combo = add_widget( grid, create_widget< QComboBox >( "comboBoxPharmacopoeia")
+                                                      , std::get<0>(xy), std::get<1>(xy)++ ) ) {
                             combo->addItems( {"Not specified", "EP", "JP", "USP"} );
                         }
                     }
+                    ++xy;
+                    if ( auto label = add_widget( grid, create_widget< QCheckBox >( "cbxFilter", "Low-pass (Hz)")
+                                                  , std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                        if ( auto spin = add_widget( grid, create_widget< QDoubleSpinBox >( "doublSpinBoxFilter" )
+                                                     , std::get<0>(xy), std::get<1>(xy)++ ) ) {
+                            spin_init( spin, std::tuple{ Minimum<>{0.}, Maximum<>{1'00.0}
+                                                         , Decimals{2}, SingleStep{0.05}, Alignment{Qt::AlignRight}} );
+                        }
+                    }
+
                     vLeft->addSpacerItem( new QSpacerItem( 20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding) );
                     if ( auto buttonBox = add_widget( vLeft, create_widget< QDialogButtonBox >( "buttonBox" ) ) ) {
                         buttonBox->setStandardButtons(QDialogButtonBox::Apply);
@@ -294,6 +326,16 @@ PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
         combo->setCurrentIndex( int( method.pharmacopoeia() ) );
     }
 
+    // ADDEBUG() << "## setContents:\n" << boost::json::value_from( method );
+    if ( auto cbx = findChild< QCheckBox * >( "cbxFilter" ) ) {
+        using namespace adcontrols::chromatography;
+        auto [filter,freq] = method.noise_filter();
+        cbx->setChecked( filter == eDFTLowPassFilter );
+        if ( auto spin = findChild< QDoubleSpinBox * >( "doublSpinBoxFilter" ) ) {
+            spin->setValue( freq );
+        }
+    }
+
     do {
         QStandardItemModel& model = *impl_->model_;
 
@@ -315,6 +357,7 @@ PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
 		}
 
     } while(0);
+
 }
 
 void
@@ -351,6 +394,14 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
     if ( auto combo = findChild< QComboBox * >("comboBoxPharmacopoeia") ) {
         method.pharmacopoeia( static_cast< adcontrols::chromatography::ePharmacopoeia >( combo->currentIndex() ) );
     }
+    if ( auto cbx = findChild< QCheckBox * >( "cbxFilter" ) ) {
+        using namespace adcontrols::chromatography;
+        auto filter = cbx->isChecked() ? eDFTLowPassFilter : eNoFilter;
+        if ( auto spin = findChild< QDoubleSpinBox * >( "doublSpinBoxFilter" ) ) {
+            double freq = spin->value();
+            method.set_noise_filter( { filter, freq } );
+        }
+    }
 
     switch( method.pharmacopoeia() ) {
     case ePHARMACOPOEIA_USP:
@@ -376,7 +427,7 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
             = static_cast< adcontrols::chromatography::ePeakEvent >( model.data( model.index( row, c_function ) ).toInt() );
         if ( func != ePeakEvent_Nothing ) {
             const QVariant value = model.data( model.index( row, c_event_value ) );
-            adcontrols::PeakMethod::TimedEvent e( seconds, func );
+            adcontrols::chromatography::TimedEvent e( seconds, func );
             if ( e.isBool() )
                 e.setValue( value.toBool() );
             else
@@ -384,6 +435,7 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
             method << e;
         }
     }
+    // ADDEBUG() << "## getContents:\n" << boost::json::value_from( method );
 }
 
 namespace adwidgets { namespace internal {
@@ -469,7 +521,7 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
 
         model->setData( index, func );
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        if ( adcontrols::PeakMethod::TimedEvent::isBool( func ) ) {
+        if ( adcontrols::chromatography::TimedEvent::isBool( func ) ) {
             if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Bool )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
         } else {
@@ -477,7 +529,7 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
                 model->setData( model->index( index.row(), c_event_value ), QVariant(0.0), Qt::EditRole );
         }
 #else
-        if ( adcontrols::PeakMethod::TimedEvent::isBool( func ) ) {
+        if ( adcontrols::chromatography::TimedEvent::isBool( func ) ) {
             if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< bool >()  )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
         } else {

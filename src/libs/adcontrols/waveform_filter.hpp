@@ -42,14 +42,14 @@ namespace adcontrols {
             static bool bandpass_filter( MassSpectrum&, double hfreq = 100.0e6 /* 100MHz */, double lfreq = 0 );
             static bool bandpass_filter( std::vector<double>&, double sampInterval /* seconds */, double hfreq = 100.0e6 /* 100MHz */, double lfreq = 0 );
 		};
-        
+
 		struct ADCONTROLSSHARED_EXPORT fft4g {
             static bool lowpass_filter( MassSpectrum&, double freq = 100.0e6 /* 100MHz */ );
             static bool lowpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */ );
             static bool bandpass_filter( MassSpectrum&, double hfreq = 100.0e6 /* 100MHz */, double lfreq = 0 );
             static bool bandpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */, double lfreq = 0 );
 		};
-        
+
 		struct ADCONTROLSSHARED_EXPORT fft4c {
             static bool lowpass_filter( MassSpectrum&, double freq = 100.0e6 /* 100MHz */ );
             static bool lowpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */ );
@@ -58,9 +58,8 @@ namespace adcontrols {
             static bool bandpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */, double lfreq = 0 );
 
             static bool zero_filling( MassSpectrum&, double freq, std::function<double(double)> mass_assigner );
-            
 		};
-        
+
         struct ADCONTROLSSHARED_EXPORT sg {
             static bool lowpass_filter( MassSpectrum&, double width = 5.0e-9 /* 5ns */);
             static bool lowpass_filter( size_t, double *, double sampInterval /* seconds */, double width = 5.0e-9 /* 5ns */ );
@@ -68,4 +67,3 @@ namespace adcontrols {
 	};
 
 }
-

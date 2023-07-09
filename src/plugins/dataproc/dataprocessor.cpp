@@ -80,6 +80,8 @@
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/digital_filter.hpp>
+#include <adportable/fft4g.hpp>
 #include <adportable/float.hpp>
 #include <adportable/is_same.hpp>
 #include <adportable/json_helper.hpp>
@@ -1229,6 +1231,36 @@ Dataprocessor::baselineCollection( portfolio::Folium folium )
         }
     } else {
         ADDEBUG() << "####### no data found for " << __FUNCTION__ << " #########";
+    }
+}
+
+void
+Dataprocessor::dftFilter( portfolio::Folium folium )
+{
+    if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        using namespace adportable;
+        fft4g f;
+        size_t N = adportable::digital_filter::make_power2::size2( chr->size() );
+        std::vector< std::complex< double > > d( N );
+        digital_filter::make_power2::transform(chr->getIntensityArray()
+                                               , chr->getIntensityArray() + chr->size()
+                                               , d.begin()
+                                               , [](const auto& a){ return std::complex<double>(a); } );
+        f.cdft( 1, d );
+        size_t index = digital_filter::cutoff_index()( chr->sampInterval(), N, 0.35 );
+        digital_filter::filter().low_pass( d, index );
+        f.cdft( -1, d );
+        auto fchr = std::make_shared< adcontrols::Chromatogram >( *chr );
+        for ( size_t i = 0; i < fchr->size(); ++i )
+            fchr->setIntensity( i, d[i].real() / N );
+        folium.assign( fchr, fchr->dataClass() ); // replace data
+
+        auto att = folium.addAttachment( L"original" );
+        att.assign( chr, chr->dataClass() );
+
+        emit SessionManager::instance()->foliumChanged( this, folium );
+        SessionManager::instance()->updateDataprocessor( this, folium );
+        setModified( true );
     }
 }
 
