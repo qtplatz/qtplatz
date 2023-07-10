@@ -42,8 +42,7 @@ namespace adcontrols {
         const wchar_t * const F_PEAKRESULT         = L"Peak Result";
         const wchar_t * const F_MSLOCK             = L"MSLock";
         const wchar_t * const F_CHROMATOGRAM       = L"Chromatogram";
-        // (attachment) dataType
-        // const wchar_t * const DT_PEAKRESULT        = L"PeakResult";
+        const wchar_t * const F_DFT_CHROMATOGRAM   = L"DFT Filtered Chromatogram";
     }
 
     namespace iids {

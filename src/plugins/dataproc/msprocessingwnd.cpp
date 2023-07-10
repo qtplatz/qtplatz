@@ -382,8 +382,8 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
     if ( axis_ == adcontrols::hor_axis_mass ) {
         if ( ptr->size() > 0
              && adportable::compare<double>::approximatelyEqual( ptr->mass( ptr->size() - 1 ), ptr->mass( 0 ) ) ) {
-                // Spectrum has no mass assigned
-                MainWindow::instance()->setSpectrumAxisChoice( adcontrols::hor_axis_time );
+            // Spectrum has no mass assigned
+            MainWindow::instance()->setSpectrumAxisChoice( adcontrols::hor_axis_time );
         }
     }
 
@@ -458,6 +458,7 @@ void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
     portfolio::Portfolio portfolio = processor->getPortfolio();
+    auto noise_filter = std::shared_ptr< adprocessor::noise_filter >();
 
     if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
 
@@ -483,7 +484,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                             auto c = std::make_shared< adcontrols::Chromatogram >(*tic);
                             c->addDescription( adcontrols::description(
                                                    {"acquire.title", ( boost::format( "TIC.%1%" ) % ( fcn + 1 ) ).str() }) );
-                            portfolio::Folium folium = processor->addChromatogram( c, m );
+                            portfolio::Folium folium = processor->addChromatogram( c, m, noise_filter );
                             SessionManager::instance()->updateDataprocessor( processor, folium ); // added 2022-11-22
                         }
                         processor->setCurrentSelection( folium );
@@ -505,7 +506,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                     auto folium = folder.findFoliumByName( name );
                                     if ( folium.nil() ) {
                                         ADDEBUG() << "---------- addChromatogram ---------------";
-                                        folium = processor->addChromatogram( pChro, m ); //, true );
+                                        folium = processor->addChromatogram( pChro, m, noise_filter ); //, true );
                                         processor->setCurrentSelection( folium );
                                     }
                                 }
@@ -528,7 +529,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                         c->addDescription( adcontrols::description( L"acquire.title", title ) );
                         adcontrols::ProcessMethod m;
                         MainWindow::instance()->getProcessMethod( m );
-                        folium = processor->addChromatogram( c, m );//, true );  // force checked
+                        folium = processor->addChromatogram( c, m, noise_filter );
                     }
                 }
                 if ( folium.attribute( L"protoId" ).empty() )

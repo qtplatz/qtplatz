@@ -64,6 +64,7 @@
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
 #include <adwidgets/mslockdialog.hpp>
+#include <adprocessor/noise_filter.hpp>
 #include <coreplugin/icore.h>
 #include <QCoreApplication>
 #include <QJsonArray>
@@ -427,7 +428,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( c, *pm );
+        folium = processor->addChromatogram( c, *pm, nullptr );
     }
 
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
@@ -457,7 +458,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
 
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( c, *method );
+        folium = processor->addChromatogram( c, *method, nullptr );
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -538,9 +539,10 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
         }
     }
 
+    auto noise_filter = std::make_shared< adprocessor::noise_filter >();
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( c, *pm );
+        folium = processor->addChromatogram( c, *pm, noise_filter );
     }
 
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
@@ -566,9 +568,10 @@ DataprocessWorker::handleChromatogramByAxisRange3( Dataprocessor * processor
                                   , [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
     }
 
+    auto noise_filter = std::make_shared< adprocessor::noise_filter >();
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( c, *pm );
+        folium = processor->addChromatogram( c, *pm, noise_filter );
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -598,8 +601,9 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
     }
 
     portfolio::Folium folium;
+    auto noise_filter = std::make_shared< adprocessor::noise_filter >();
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( c, *pm );
+        folium = processor->addChromatogram( c, *pm, noise_filter );
         if ( auto pchr = folium.get< std::shared_ptr< adcontrols::Chromatogram > >() ) {
             if ( (*pchr)->peaks().size() > 0 ) {
                 folium.setAttribute( L"isChecked", L"true" );
@@ -629,9 +633,10 @@ DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
         ex.extract_by_json( vec, *pm, reader, peaks_json, width, axis, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
     }
 
+    auto noise_filter = std::make_shared< adprocessor::noise_filter >();
     portfolio::Folium folium;
     for ( auto c: vec ) {
-        folium = processor->addChromatogram( c, *pm );
+        folium = processor->addChromatogram( c, *pm, noise_filter );
     }
 	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
@@ -722,6 +727,7 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
     boost::filesystem::path base =
         boost::filesystem::path( processor->filename() ).parent_path() / boost::filesystem::path( processor->filename() ).stem();
 
+    auto noise_filter = std::make_shared< adprocessor::noise_filter >();
     for ( auto& mol : lockm.molecules().data() ) {
 
         if ( mol.enable() ) {
@@ -754,7 +760,7 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
             for ( auto& desc: spectra->getDescriptions() )
                 drift->addDescription( desc );
 
-            auto folium = processor->addChromatogram( drift, m );
+            auto folium = processor->addChromatogram( drift, m, noise_filter );
         }
     }
 }

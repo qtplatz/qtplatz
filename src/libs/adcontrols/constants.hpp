@@ -33,30 +33,20 @@ namespace adcontrols {
     namespace constants {
 
         // Folium (attachment) name
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_DFT_FILTERD;       //  = L"DFT Low Pass Filtered Spectrum";
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_CENTROID_SPECTRUM; //  = L"Centroid Spectrum";
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_MSPEAK_INFO;       //        = L"MSPeakInfo";
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_TARGETING;                //           = L"Targeting";
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_QUANSAMPLE;        //         = L"QuanSample";
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_PROFILED_HISTOGRAM; // = L"Profiled Histogram";
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_PEAKRESULT;        //          = L"PeakResult";
-
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_DFT_FILTERD;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_CENTROID_SPECTRUM;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_MSPEAK_INFO;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_TARGETING;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_QUANSAMPLE;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_PROFILED_HISTOGRAM;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_PEAKRESULT;
         // (attachment) dataType
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const DT_PEAKRESULT;       //        = L"PeakResult";
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const DT_PEAKRESULT;
 
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_MSLOCK;            //
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_MSLOCK;
 
-        ADCONTROLSSHARED_EXPORT
-        extern const wchar_t * const F_CHROMATOGRAM;      //
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_CHROMATOGRAM;
+        ADCONTROLSSHARED_EXPORT extern const wchar_t * const F_DFT_CHROMATOGRAM;
     }
 
     namespace iids {

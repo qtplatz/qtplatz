@@ -119,6 +119,7 @@
 #include <chrono>
 #include <stack>
 #include <fstream>
+#include <type_traits>
 #include <QApplication>
 #include <QFontMetrics>
 #include <QMessageBox>
@@ -524,8 +525,6 @@ namespace dataproc {
         }
     };
 
-    // dispatch method
-    // // dispatch method
     struct doChromatogramProcess : public boost::static_visitor<bool> {
         std::shared_ptr< adcontrols::Chromatogram > ptr_;
         portfolio::Folium& folium;
@@ -1120,16 +1119,10 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > pt
 	return folium;
 }
 
-// portfolio::Folium
-// Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > chr
-//                                 , const adcontrols::ProcessMethod& m )
-// {
-//     return addChromatogram( *chr, m );
-// }
-
 portfolio::Folium
 Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
-                                , const adcontrols::ProcessMethod& m )
+                                , const adcontrols::ProcessMethod& m
+                                , std::shared_ptr< adprocessor::noise_filter > filter )
 {
     portfolio::Folder folder = portfolio().addFolder( L"Chromatograms" );
 
@@ -1139,20 +1132,32 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
 	folium.assign( cptr, cptr->dataClass() );
 
     if ( auto peakm = m.find< adcontrols::PeakMethod >() ) {
-        auto [filter,freq] = peakm->noise_filter();
-        if ( filter == adcontrols::chromatography::eDFTLowPassFilter ) {
-
+        auto [func,freq] = peakm->noise_filter();
+        if ( func == adcontrols::chromatography::eDFTLowPassFilter && filter ) {
+            auto pptr = (*filter)( *cptr, freq ); // chromatogram to be processed
+            folium.addAttachment( adcontrols::constants::F_DFT_CHROMATOGRAM ).assign( pptr, pptr->dataClass() ); // move to child node
+            // find peaks
+            DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *pptr );
+        } else {
+            // find peaks
+            DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *cptr );
         }
     }
 
-    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
-
-    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-		boost::apply_visitor( doChromatogramProcess( cptr, folium, this ), *it );
-
     // copy peak result into chromatogram (for annotation)
     portfolio::Folio attachments = folium.attachments();
+    auto it = std::find_if( attachments.begin(), attachments.end()
+                            , []( const auto& a ){ return a.data().type() == typeid( std::shared_ptr< adcontrols::PeakResult > ); } );
+    if ( it != attachments.end() ) {
+        ADDEBUG() << "------------------ found: " << it->name();
+        if ( auto pkres = boost::any_cast< std::shared_ptr< adcontrols::PeakResult > >( it->data() ) ) {
+            cptr->setBaselines( pkres->baselines() );
+            cptr->setPeaks( pkres->peaks() );
+        }
+    }
+#if 0
     for ( auto& a: attachments ) {
+        ADDEBUG() << "typeid: " << a.data().type().name();
         auto data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( a ) );
         if ( boost::apply_visitor( adportable::is_same< std::shared_ptr< adcontrols::PeakResult > >(), data ) ) {
             if ( auto pkres = boost::get< std::shared_ptr< adcontrols::PeakResult > >( data ) ) {
@@ -1161,9 +1166,7 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
             }
         }
     }
-    // following line get slow down the treeview update;
-    // SessionManager::instance()->updateDataprocessor( this, folium );
-
+#endif
     setModified( true );
 
 	return folium;
@@ -1636,12 +1639,7 @@ DataprocessorImpl::applyPeakMethod( Dataprocessor *
                                     , const adcontrols::PeakMethod& m
                                     , const adcontrols::Chromatogram& c )
 {
-    portfolio::Folium att = folium.addAttachment( L"Peak Result" );
-
-    auto [filter, freq] = m.noise_filter();
-    if ( filter == adcontrols::chromatography::eDFTLowPassFilter ) {
-        ///////////////////////////////////////////////////// TODO ////////////////////////////////////
-    }
+    portfolio::Folium att = folium.addAttachment( adcontrols::constants::F_PEAKRESULT );
 
     if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {
 
