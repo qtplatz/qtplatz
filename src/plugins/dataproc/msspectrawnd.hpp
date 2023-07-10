@@ -74,7 +74,7 @@ namespace dataproc {
         void init();
         void handleDataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& );
         void handleCurrentChanged( const QString& dataGuid, int idx, int fcn );
-        void handleSelected( const QRectF&, adplot::SpectrumWidget * );
+        void handleSelected( const QRectF&, adplot::SpectrumWidget *, int );
         void redraw();
 
         class impl;

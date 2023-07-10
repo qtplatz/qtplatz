@@ -1258,25 +1258,17 @@ void
 Dataprocessor::dftFilter( portfolio::Folium folium
                           , std::shared_ptr< adcontrols::ProcessMethod > pm )
 {
-    double freq = 0.4;
+    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
+    double freq = 10.0;
     if ( auto peakm = pm->find< adcontrols::PeakMethod >() ) {
         std::tie(std::ignore, freq) = peakm->noise_filter();
     }
     using namespace adcontrols::constants;
 
     if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-        if ( auto att = portfolio::find_first_of( folium.attachments()
-                                                  , []( const auto& f ){ return f.name() == F_CHROMATOGRAM; } ) ) {
-            chr = portfolio::get< adcontrols::ChromatogramPtr >( att );
-        } else {
-            auto a = folium.addAttachment( F_CHROMATOGRAM );
-            a.assign( chr, chr->dataClass() );
-        }
-        using namespace adportable;
 
         auto xchr = adprocessor::noise_filter()( *chr, freq );
-
-        folium.assign( xchr, xchr->dataClass() ); // replace data
+        folium.addAttachment( F_DFT_CHROMATOGRAM ).assign( xchr, xchr->dataClass() );
 
         emit SessionManager::instance()->foliumChanged( this, folium );
         SessionManager::instance()->updateDataprocessor( this, folium );
@@ -1639,16 +1631,13 @@ DataprocessorImpl::applyPeakMethod( Dataprocessor *
                                     , const adcontrols::PeakMethod& m
                                     , const adcontrols::Chromatogram& c )
 {
-    portfolio::Folium att = folium.addAttachment( adcontrols::constants::F_PEAKRESULT );
+    ADDEBUG() << "## applyPeakMethod ##";
 
     if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {
-
         if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
-            att.assign( pResult, pResult->dataClass() );
-
             auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
+            auto att = folium.addAttachment( adcontrols::constants::F_PEAKRESULT ).assign( pResult, pResult->dataClass() );
             att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
-
             return true;
         }
     }

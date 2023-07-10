@@ -36,8 +36,6 @@ namespace dataproc {
     public:
         explicit MSPeakTable(QWidget *parent = 0);
 
-        // adwidgets::MSPeakTable
-        // void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const override;
         void addContextMenu( QMenu&, const QPoint&, const QTableView *, const QModelIndexList& ) const override;
 
     private:

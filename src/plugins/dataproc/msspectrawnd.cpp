@@ -104,7 +104,7 @@ namespace dataproc {
         std::vector< datafolder > data_; // reference spectra on plot[0] (expecting overlay)
         datafolder currData_;
 
-        std::pair< std::wstring, datafolder > profile_;
+        // std::pair< std::wstring, datafolder > profile_;
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > plots_;
         std::array< std::unique_ptr< adplot::PeakMarker >, 2 > markers_;
         bool isTimeAxis_;
@@ -221,7 +221,7 @@ MSSpectraWnd::init()
 
             connect( plot.get()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
-                     , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
+                     , [&plot,i,this]( const QRectF& rc ) { handleSelected( rc, plot.get(), i ); } );
 
             connect( SessionManager::instance(), &SessionManager::foliumChanged, this, &MSSpectraWnd::handleFoliumChanged );
 
@@ -356,23 +356,21 @@ MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::F
 }
 
 void
-MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
+MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot, int id )
 {
-    // impl_->table_->handleSelected( rc, impl_->isTimeAxis_ );
-    auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
-    if ( d <= 2 ) {
+    // auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
+    // if ( d <= 2 ) {
+    QMenu menu;
 
-		QMenu menu;
-        typedef std::pair < QAction *, std::function<void()> > action_type;
-        std::vector < action_type > actions;
+    menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( plot ); } );
 
-        actions.emplace_back( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } );
+    menu.addAction( tr( "Save as SVG File" ), [&] () {
+        ADDEBUG() << "########### Save as SVG : " << id << ", " << impl_->currData_.idFolium_;
+        utility::save_image_as< SVG >()( plot ); //, impl_->profile_.first );
+    });
 
-        actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
-            utility::save_image_as< SVG >()( plot, impl_->profile_.first );
-        });
-
-        actions.emplace_back( menu.addAction( tr("set intersection (common ions)") ), [&]() {
+    auto action
+        = menu.addAction( tr("set intersection (common ions)"), [&]() {
             if ( impl_->currData_ && !impl_->data_.empty() ) {
                 if ( auto const ms1 = impl_->data_.at( 0 ).get_processed() ) { // reference
                     if ( auto const ms2 = impl_->currData_.get_processed() ) {
@@ -381,16 +379,9 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
                 }
             }
         });
+    action->setEnabled( impl_->selProcessed_ && !impl_->data_.empty() );
 
-        actions.back().first->setEnabled( impl_->selProcessed_ && !impl_->data_.empty() );
-
-        QAction * selected = menu.exec( QCursor::pos() );
-        if ( selected ) {
-            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
-            if ( it != actions.end() )
-                (it->second)();
-        }
-    }
+    menu.exec( QCursor::pos() );
 }
 
 void

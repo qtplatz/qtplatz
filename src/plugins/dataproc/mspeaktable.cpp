@@ -73,7 +73,8 @@ namespace {
 
         for ( const auto& rmass: refms ) {
             double delta( 0.1 );
-            auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass, [](const auto& a, const auto& b){ return a.first < b; });
+            auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass
+                                        , [](const auto& a, const auto& b){ return a.first < b; });
             if ( it != candidates.end() ) {
                 if ( it != candidates.begin() ) {
                     if ( std::abs( ( it - 1 )->first - rmass ) < std::abs( it->first - rmass ) ) {
@@ -109,7 +110,8 @@ namespace {
             double rmass = sp_->scanLaw()->getMass( rtof, n );
             double delta(0.1);
             do {
-                auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass, [](const auto& a, const auto& b){ return a.first < b; });
+                auto it = std::lower_bound( candidates.begin(), candidates.end(), rmass
+                                            , [](const auto& a, const auto& b){ return a.first < b; });
                 if ( it != candidates.end() ) {
                     if ( it != candidates.begin() ) {
                         if ( std::abs( ( it - 1 )->first - rmass ) < std::abs( it->first - rmass ) ) {
@@ -187,8 +189,8 @@ MSPeakTable::lap_deconvolution( std::shared_ptr< adcontrols::MSPeaks > pks )
                             if ( folium.empty() )
                                 processor->fetch( folium );
                             if ( auto it = portfolio::find_first_of( folium.attachments()
-                                                                    , []( const auto& a ){
-                                                                        return a.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
+                                                                     , []( const auto& a ){
+                                                                         return a.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
                                 if ( auto bar = portfolio::get< adcontrols::MassSpectrumPtr > ( it ) ) {
                                     ref = bar;
                                 }

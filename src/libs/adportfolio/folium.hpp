@@ -98,7 +98,7 @@ namespace portfolio {
         inline boost::any& data() { return operator boost::any& (); }
         inline const boost::any& data() const { return operator const boost::any& (); }
 
-        void assign( const boost::any&, const wchar_t * dataClass );
+        Folium assign( const boost::any&, const wchar_t * dataClass );
 
         std::vector< Folium > attachments();
         const std::vector< Folium > attachments() const;

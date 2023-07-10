@@ -1032,10 +1032,9 @@ MainWindow::selectionChanged( std::shared_ptr< adcontrols::MassSpectrum > centro
 void
 MainWindow::handleProcess( const QString& origin )
 {
-    ADDEBUG() << "############################ TODO ##################################";
+    qDebug() << "## " << __FUNCTION__ << " ## " << origin;
 
-    auto pm = std::make_shared< adcontrols::ProcessMethod >();
-    getProcessMethod( *pm );
+    auto pm = processMethod();
     document::instance()->setProcessMethod( *pm );
 
     if ( origin == "MSChromatogramWidget" ) {
@@ -1043,7 +1042,6 @@ MainWindow::handleProcess( const QString& origin )
         if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( cm->enableAutoTargeting() ) { // check tR & protocol
                 for ( const auto& mol: cm->molecules().data() ) {
-                    ADDEBUG() << mol.formula() << ", enable: " << mol.enable() << ", " << mol.tR();
                     if ( mol.enable() &&  mol.mass() > 0 && !mol.tR() ) {
                         QMessageBox::critical(0, QLatin1String("MS Chromatograms"), "Set tR and protocol# for auto-targeting" );
                         return;
@@ -1076,7 +1074,6 @@ MainWindow::handleProcess( const QString& origin )
             processor->applyProcess( *pm, PeakFindProcess );
         }
     }
-//#endif
 }
 
 void

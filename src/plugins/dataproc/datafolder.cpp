@@ -64,7 +64,7 @@ namespace {
         }
 
         void operator () ( std::shared_ptr< adcontrols::Chromatogram > ptr ) const {
-            ADDEBUG() << "\t-- attachment <Chromatogram> not handled: " << folium_.name();
+            // ADDEBUG() << "\t-- attachment <Chromatogram> not handled: " << folium_.name();
         }
     };
 

@@ -289,7 +289,7 @@ MSPeakTable::MSPeakTable(QWidget *parent) : TableView(parent)
     this->setModel( impl_->model_.get() );
 	this->setItemDelegate( impl_->delegate_.get() );
     this->setSortingEnabled( true );
-    this->verticalHeader()->setDefaultSectionSize( 18 );
+    this->setVerticalHeader( new QHeaderView(Qt::Vertical) );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
 
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
