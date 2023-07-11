@@ -98,6 +98,7 @@ namespace adcontrols {
         };
 
         static std::wstring make_folder_name( const adcontrols::descriptions& );
+        std::string make_title() const;
 
         typedef Chromatogram_iterator iterator;
         typedef const Chromatogram_iterator const_iterator;

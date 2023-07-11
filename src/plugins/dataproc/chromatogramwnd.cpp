@@ -130,9 +130,8 @@ namespace dataproc {
             peakResult_.reset();
             if (( data_ = ptr )) {
                 plots_[ 0 ]->setData( ptr, 0, QwtPlot::yLeft );
-                auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
-
-                plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
+                auto title = ptr->make_title();
+                plots_[ 0 ]->setTitle( QString::fromStdString( title ) );
                 if ( ptr->peaks().size() ) {
                     peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks(), ptr->isCounting() );
                 }
@@ -217,7 +216,6 @@ namespace dataproc {
         adcontrols::PeakResultPtr peakResult_;
         std::pair< boost::uuids::uuid, std::wstring > selected_folder_;
         datafolder datum_; // current data <-- replacement of data_
-        // std::wstring idActiveFolium_;
         std::deque< datafolder > overlays_;
         std::tuple< bool, double, double, bool > yScale_;
         std::tuple< bool, double, double, bool > xScale_;
@@ -326,8 +324,6 @@ ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, b
 void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
-    ScopedDebug() << "## " << __FUNCTION__ << " ##";
-
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
                                   , std::shared_ptr< adcontrols::Chromatogram >
                                   , std::shared_ptr< adcontrols::MassSpectrum > >;
@@ -337,7 +333,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
     } else {
         ADDEBUG() << "######## variant not found for " << static_cast< boost::any& >( folium ).type().name();
     }
-
+    // ------>
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
         if ( auto var = adutils::to_variant< dataTuple >()(static_cast< boost::any& >( *it )) ) {
@@ -346,6 +342,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
             ADDEBUG() << "\tattachment variant not found for " << static_cast< boost::any& >( folium ).type().name();
         }
     }
+    // <------
     impl_->redraw();
 }
 

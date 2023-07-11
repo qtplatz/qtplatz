@@ -179,6 +179,7 @@ namespace dataproc {
     signals :
         void onNotify( const QString& );
         void openFinished(bool success);
+        void invalidateSession( Dataprocessor * );
 
     private:
         class impl;

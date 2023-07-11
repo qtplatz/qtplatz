@@ -435,6 +435,9 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
     std::filesystem::path path( processor->filename() );
 
     if ( QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor ) ) {
+
+        connect( processor, &Dataprocessor::invalidateSession, this, &NavigationWidget::invalidateSession );
+
         auto ppath = path.parent_path().parent_path();
         item->setData( QString::fromStdString( std::filesystem::relative( path, ppath ).string() ), Qt::EditRole );
         item->setEditable( false );
@@ -449,6 +452,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
         // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
         for ( int i = 0; i < item->rowCount(); ++i)
             pTreeView_->expand( pModel_->index( i, 0, item->index()) );
+
     }
 }
 

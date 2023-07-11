@@ -529,6 +529,7 @@ namespace dataproc {
         std::shared_ptr< adcontrols::Chromatogram > ptr_;
         portfolio::Folium& folium;
         Dataprocessor * dataprocessor_;
+        adprocessor::noise_filter filter_;
 
         doChromatogramProcess( std::shared_ptr< adcontrols::Chromatogram > p
                                , portfolio::Folium& f
@@ -539,7 +540,18 @@ namespace dataproc {
         }
 
         bool operator () ( const adcontrols::PeakMethod& m ) const {
-            return DataprocessorImpl::applyPeakMethod( dataprocessor_, folium, m, *ptr_ );
+            using namespace adcontrols;
+            auto [func,freq] = m.noise_filter();
+            if ( func == chromatography::eDFTLowPassFilter ) {
+                auto xptr = filter_( *ptr_, freq );
+                folium.addAttachment( constants::F_DFT_CHROMATOGRAM ).assign( xptr, xptr->dataClass() );
+                emit dataprocessor_->invalidateSession( dataprocessor_ );
+                return DataprocessorImpl::applyPeakMethod( dataprocessor_, folium, m, *xptr );
+            } else {
+                folium.erase_attachment( constants::F_DFT_CHROMATOGRAM,[](auto t) { ADDEBUG() << ">> erase_attachment: " << t; });
+                emit dataprocessor_->invalidateSession( dataprocessor_ );
+                return DataprocessorImpl::applyPeakMethod( dataprocessor_, folium, m, *ptr_ );
+            }
         }
     };
 
@@ -1132,14 +1144,16 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
 	folium.assign( cptr, cptr->dataClass() );
 
     if ( auto peakm = m.find< adcontrols::PeakMethod >() ) {
+        using namespace adcontrols;
         auto [func,freq] = peakm->noise_filter();
-        if ( func == adcontrols::chromatography::eDFTLowPassFilter && filter ) {
+        if ( func == chromatography::eDFTLowPassFilter && filter ) {
+            ADDEBUG() << "========= addChromatogram w/ DFT filter " << freq << "Hz";
             auto pptr = (*filter)( *cptr, freq ); // chromatogram to be processed
-            folium.addAttachment( adcontrols::constants::F_DFT_CHROMATOGRAM ).assign( pptr, pptr->dataClass() ); // move to child node
-            // find peaks
+            folium.addAttachment( constants::F_DFT_CHROMATOGRAM ).assign( pptr, pptr->dataClass() );
             DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *pptr );
         } else {
-            // find peaks
+            ADDEBUG() << "========= addChromatogram w/o DFT filter -- deleting attachement";
+            folium.erase_attachment( constants::F_DFT_CHROMATOGRAM,[](auto t) { ADDEBUG() << ">>>>>> erase_attachment: " << t; });
             DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *cptr );
         }
     }
@@ -1147,7 +1161,8 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
     // copy peak result into chromatogram (for annotation)
     portfolio::Folio attachments = folium.attachments();
     auto it = std::find_if( attachments.begin(), attachments.end()
-                            , []( const auto& a ){ return a.data().type() == typeid( std::shared_ptr< adcontrols::PeakResult > ); } );
+                            , []( const auto& a ){ return a.data().type()
+                                    == typeid( std::shared_ptr< adcontrols::PeakResult > ); } );
     if ( it != attachments.end() ) {
         ADDEBUG() << "------------------ found: " << it->name();
         if ( auto pkres = boost::any_cast< std::shared_ptr< adcontrols::PeakResult > >( it->data() ) ) {
@@ -1155,18 +1170,7 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
             cptr->setPeaks( pkres->peaks() );
         }
     }
-#if 0
-    for ( auto& a: attachments ) {
-        ADDEBUG() << "typeid: " << a.data().type().name();
-        auto data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( a ) );
-        if ( boost::apply_visitor( adportable::is_same< std::shared_ptr< adcontrols::PeakResult > >(), data ) ) {
-            if ( auto pkres = boost::get< std::shared_ptr< adcontrols::PeakResult > >( data ) ) {
-                cptr->setBaselines( pkres->baselines() );
-                cptr->setPeaks( pkres->peaks() );
-            }
-        }
-    }
-#endif
+
     setModified( true );
 
 	return folium;
@@ -1631,9 +1635,8 @@ DataprocessorImpl::applyPeakMethod( Dataprocessor *
                                     , const adcontrols::PeakMethod& m
                                     , const adcontrols::Chromatogram& c )
 {
-    ADDEBUG() << "## applyPeakMethod ##";
-
     if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {
+        ADDEBUG() << "\t## applyPeakMethod --> doFindPeaks title: " << c.make_title();
         if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
             auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
             auto att = folium.addAttachment( adcontrols::constants::F_PEAKRESULT ).assign( pResult, pResult->dataClass() );

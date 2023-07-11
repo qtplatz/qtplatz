@@ -74,5 +74,11 @@ noise_filter::operator()( const adcontrols::Chromatogram& c, double freq ) const
     for ( size_t i = 0; i < pchr->size(); ++i )
         pchr->setIntensity( i, d[i].real() / N );
 
+    std::ostringstream dname;
+    if ( auto name = pchr->display_name() )
+        dname << *name << "; ";
+    dname << "[" << freq << " Hz filtered]";
+    pchr->set_display_name( dname.str() );
+
     return pchr;
 }

@@ -1032,8 +1032,6 @@ MainWindow::selectionChanged( std::shared_ptr< adcontrols::MassSpectrum > centro
 void
 MainWindow::handleProcess( const QString& origin )
 {
-    qDebug() << "## " << __FUNCTION__ << " ## " << origin;
-
     auto pm = processMethod();
     document::instance()->setProcessMethod( *pm );
 
