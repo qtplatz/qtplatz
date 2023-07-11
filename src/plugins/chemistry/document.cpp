@@ -224,6 +224,14 @@ namespace chemistry {
         , { R"(CC/C=C\C/C=C\C/C=C\CCCCCCCC(=O)O)",              { "C18:3", "a-Linoleic acid",       "90210" }}
         , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "C18:3", "g-Linoleic acid",       "90220" }}
         , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid",      "90320" }}
+        , { R"(CCCCCCCCCCC(=O)O)",           { "C11:0", "Undecanoic acid" }}
+        , { R"(CCCCCCCCCCCCC(=O)O)",         { "C13:0", "Tridecanoic acid" }}
+        , { R"(C=CCCCCCCCCCCCCC(=O)O)",      { "C15:1", "14-Pentadecenoic acid" }}
+        , { R"(CCCCCCCCCCCCCCC(=O)O)",       { "C15:0", "Pentadecanoic acid" }}
+        , { R"(CCCCCCCCCCCCCCC=CC(=O)O)",    { "C17:1", "cis-10-heptadecenoic acid" }}
+        , { R"(CCCCCCCCCCCCCCCCC(=O)O)",     { "C17:0", "Heptadecanoic acid" }}
+        , { R"(CCCCCCCCCCCC=CCCCCCC(=O)OC)", { "C19:1", "cis-10-Nonadecenoic acid" }}
+        , { R"(CCCCCCCCCCCCCCCCCCC(=O)O)",   { "C19:0", "Nonadecanoic acid" }}
     };
 
 
