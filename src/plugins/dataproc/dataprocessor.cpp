@@ -1147,12 +1147,10 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
         using namespace adcontrols;
         auto [func,freq] = peakm->noise_filter();
         if ( func == chromatography::eDFTLowPassFilter && filter ) {
-            ADDEBUG() << "========= addChromatogram w/ DFT filter " << freq << "Hz";
             auto pptr = (*filter)( *cptr, freq ); // chromatogram to be processed
             folium.addAttachment( constants::F_DFT_CHROMATOGRAM ).assign( pptr, pptr->dataClass() );
             DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *pptr );
         } else {
-            ADDEBUG() << "========= addChromatogram w/o DFT filter -- deleting attachement";
             folium.erase_attachment( constants::F_DFT_CHROMATOGRAM,[](auto t) { ADDEBUG() << ">>>>>> erase_attachment: " << t; });
             DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *cptr );
         }
@@ -1164,7 +1162,6 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
                             , []( const auto& a ){ return a.data().type()
                                     == typeid( std::shared_ptr< adcontrols::PeakResult > ); } );
     if ( it != attachments.end() ) {
-        ADDEBUG() << "------------------ found: " << it->name();
         if ( auto pkres = boost::any_cast< std::shared_ptr< adcontrols::PeakResult > >( it->data() ) ) {
             cptr->setBaselines( pkres->baselines() );
             cptr->setPeaks( pkres->peaks() );
@@ -1213,13 +1210,10 @@ Dataprocessor::addContourClusters( std::shared_ptr< adcontrols::SpectrogramClust
 void
 Dataprocessor::findSinglePeak( portfolio::Folium folium, std::pair< double, double > trange )
 {
-    // ADDEBUG() << "#################### " << __FUNCTION__ << trange;
     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
 
-        // ADDEBUG() << "#################### " << __FUNCTION__ << " has chro: " << trange;
         auto res = chro->find_single_peak( trange.first, trange.second );
 
-        // ADDEBUG() << "#################### " << __FUNCTION__ << " find_single_peak";
         if ( res.first && res.second ) {
             if ( auto pkres = std::make_shared< adcontrols::PeakResult >() ) {
                 *pkres << std::move( res );
