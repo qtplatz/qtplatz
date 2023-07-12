@@ -351,7 +351,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
     }
 
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
-    threads_.push_back( adportable::asio::thread( [=,this] { handleMSLock( processor, spectra, lockm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=] { handleMSLock( processor, spectra, lockm, p ); } ) );
 }
 
 void

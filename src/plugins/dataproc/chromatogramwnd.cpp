@@ -82,6 +82,7 @@
 #include <QSvgGenerator>
 
 #include <memory>
+#include <deque>
 
 using namespace dataproc;
 
