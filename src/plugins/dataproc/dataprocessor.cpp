@@ -1630,7 +1630,9 @@ DataprocessorImpl::applyPeakMethod( Dataprocessor *
                                     , const adcontrols::Chromatogram& c )
 {
     if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {
-        ADDEBUG() << "\t## applyPeakMethod --> doFindPeaks title: " << c.make_title();
+        ADDEBUG() << "\t## applyPeakMethod --> doFindPeaks title: " << c.make_title() << ", isCounting? " << c.isCounting();
+        // if ( auto prop = c.generatorProperty() )
+        //     ADDEBUG() << "\t" << *prop;
         if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
             auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
             auto att = folium.addAttachment( adcontrols::constants::F_PEAKRESULT ).assign( pResult, pResult->dataClass() );

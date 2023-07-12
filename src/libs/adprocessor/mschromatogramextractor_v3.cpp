@@ -327,7 +327,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         }
     }
 
-    ADDEBUG() << "##################### extract_by_mols ##########################";
+    // ADDEBUG() << "##################### extract_by_mols ##########################";
 
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
@@ -399,8 +399,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         }
                     };
 
-                    ADDEBUG() << "----- temp add: " << mol.mass() << ", " << mol.synonym() << ", " << temp.size();
-
+                    // ADDEBUG() << "----- temp add: " << mol.mass() << ", " << mol.synonym() << ", " << temp.size();
                     temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                     temp.back().pChr->setGeneratorProperty( boost::json::serialize( top ) );
                     temp.back().pChr->set_display_name( mol.synonym() );
@@ -424,6 +423,10 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         size_t nProg(0);
         // Generate chromatograms
         if ( loadSpectra( &pm, reader, -1, progress, nCount, nProg ) ) {
+            // histogram.timecount.1.u5303a.ms-cheminfo.com
+            // tdcdoc.waveform.1.u5303a.ms-cheminfo.com
+            const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
+            ADDEBUG() << "## " << __FUNCTION__ << " ## reader: " << reader->objtext() << "; isCounting: " << isCounting;
 
             for ( auto& ms : impl_->spectra_ ) {
                 for (auto& xc: temp ) {
@@ -447,6 +450,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                 , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
             for ( auto& xc : temp ) {
+                xc.pChr->setIsCounting( isCounting );
                 xc.pChr->minimumTime( time_range.first );
                 xc.pChr->maximumTime( time_range.second );
                 vec.emplace_back( std::move( xc.pChr ) );
@@ -481,6 +485,8 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     size_t nProg(0);
 
     if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
+        const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
+        ADDEBUG() << "## " << __FUNCTION__ << " ## reader: " << reader->objtext() << "; isCounting: " << isCounting;
 
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
@@ -497,6 +503,7 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
         ADDEBUG() << "## " << __FUNCTION__ << " ## time_range: " << time_range;
 
         for ( auto& r : impl_->results_ ) {
+            r->pChr_->setIsCounting( isCounting );
             r->pChr_->minimumTime( time_range.first );
             r->pChr_->maximumTime( time_range.second );
             r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
@@ -524,6 +531,7 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
     size_t nCounts = reader->size( fcn ) * 2;
     size_t nProg(0);
     if ( loadSpectra( &pm, reader, fcn, progress, nCounts, nProg ) ) {
+        const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
 
         for ( auto& ms : impl_->spectra_ ) {
             // [2]
@@ -536,6 +544,7 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
                           , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
         for ( auto& r : impl_->results_ ) {
+            r->pChr_->setIsCounting( isCounting );
             r->pChr_->minimumTime( time_range.first );
             r->pChr_->maximumTime( time_range.second );
             r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
@@ -635,7 +644,7 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
     if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 
-        const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ); // pkd is counting
+        const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
         // ADDEBUG() << "########## isCounting: " << isCounting << ", list.size = " << list.size();
 
         auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::format( "%s %.1f(W:%.1fmDa) %s,p%d" ) : boost::format( "%s %.4lfus(W:%.1ns) %s,p%d" );
