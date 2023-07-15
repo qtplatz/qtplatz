@@ -545,11 +545,11 @@ namespace dataproc {
             if ( func == chromatography::eDFTLowPassFilter ) {
                 auto xptr = filter_( *ptr_, freq );
                 folium.addAttachment( constants::F_DFT_CHROMATOGRAM ).assign( xptr, xptr->dataClass() );
-                emit dataprocessor_->invalidateSession( dataprocessor_ );
+                emit dataprocessor_->invalidateFolium( dataprocessor_, folium );
                 return DataprocessorImpl::applyPeakMethod( dataprocessor_, folium, m, *xptr );
             } else {
                 folium.erase_attachment( constants::F_DFT_CHROMATOGRAM,[](auto t) { ADDEBUG() << ">> erase_attachment: " << t; });
-                emit dataprocessor_->invalidateSession( dataprocessor_ );
+                emit dataprocessor_->invalidateFolium( dataprocessor_, folium );
                 return DataprocessorImpl::applyPeakMethod( dataprocessor_, folium, m, *ptr_ );
             }
         }

@@ -29,6 +29,7 @@
 #include <coreplugin/idocument.h>
 #include <adcontrols/datasubscriber.hpp>
 #include <adprocessor/dataprocessor.hpp>
+#include <adportfolio/folium.hpp>
 #include "constants.hpp"
 #include <functional>
 #include <memory>
@@ -180,6 +181,7 @@ namespace dataproc {
         void onNotify( const QString& );
         void openFinished(bool success);
         void invalidateSession( Dataprocessor * );
+        void invalidateFolium( Dataprocessor *, portfolio::Folium );
 
     private:
         class impl;

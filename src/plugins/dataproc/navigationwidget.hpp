@@ -67,6 +67,8 @@ namespace dataproc {
         void handleCheckAllXICs();
         void handleUncheckAllXICs();
 
+        void handleInvalidateFolium( Dataprocessor *, portfolio::Folium );
+
     private slots:
         void initView();
         // connecting to QAbstractItemView

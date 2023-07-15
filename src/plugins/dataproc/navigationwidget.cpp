@@ -314,11 +314,6 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-#if QTC_VERSION <= 0x03'02'81
-    QString filename( processor->filePath() );
-#else
-    QString filename( processor->filePath().toString() );
-#endif
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
@@ -331,6 +326,22 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
         pTreeView_->expand( item->index() );
         for ( int i = 0; i < item->rowCount(); ++i)
             pTreeView_->expand( model.index( i, 0, item->index()) );
+    }
+}
+
+void
+NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::Folium folium )
+{
+    if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
+        if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
+            if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
+                pModel_->removeRows( 0, item->rowCount(), item->index() );
+                for ( auto& att: folium.attachments() ) {
+                    if ( StandardItemHelper::findFolium( item, att.id() ) == nullptr )
+                        PortfolioHelper::appendAttachment( *item, att );
+                }
+            }
+        }
     }
 }
 
@@ -436,7 +447,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 
     if ( QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor ) ) {
 
-        connect( processor, &Dataprocessor::invalidateSession, this, &NavigationWidget::invalidateSession );
+        connect( processor, &Dataprocessor::invalidateFolium, this, &NavigationWidget::handleInvalidateFolium );
 
         auto ppath = path.parent_path().parent_path();
         item->setData( QString::fromStdString( std::filesystem::relative( path, ppath ).string() ), Qt::EditRole );
