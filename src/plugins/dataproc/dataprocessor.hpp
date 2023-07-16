@@ -135,7 +135,6 @@ namespace dataproc {
                                                , std::shared_ptr< adcontrols::MassSpectrum >
                                                , const std::vector< std::pair< int, int > >& );
         void formulaChanged();
-
         void sendCheckedSpectraToCalibration( Dataprocessor * );
         void remove( portfolio::Folium );
         void createContour();
@@ -169,13 +168,15 @@ namespace dataproc {
         //
 		bool onFileAdded( const std::wstring& path, adfs::file& ) override;
         // <------------------------
+    public slots:
+        void handleSetGlobalMSLock( portfolio::Folium );
+        void handleClearGlobalMSLock( portfolio::Folium );
+
     private:
         void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         void addCalibration( const adcontrols::MassSpectrum& profile
                              , const adcontrols::MassSpectrum& centroid
                              , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
-
-    private slots:
 
     signals :
         void onNotify( const QString& );

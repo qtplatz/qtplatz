@@ -60,10 +60,13 @@ namespace adutils { namespace detail {
         };
 
         struct import {
-            static void attributes( adfs::attributes&, const portfolio::attributes_type& );
+            template< typename T = std::wstring > static void attributes( adfs::attributes&, const std::vector< std::pair< T, T > >& );
             static void attributes( portfolio::Folium&, const adfs::attributes& );
             static void attributes( portfolio::Folder&, const adfs::attributes& );
         };
+
+        template<> void import::attributes< std::wstring >( adfs::attributes&, const std::vector< std::pair< std::wstring, std::wstring > >& );
+        template<> void import::attributes< std::string >( adfs::attributes&, const std::vector< std::pair< std::string, std::string > >& );
 }
 }
 
@@ -208,6 +211,7 @@ detail::attachment::load( portfolio::Folium dst, const adfs::file& src )
 }
 
 //---
+
 void
 detail::import::attributes( portfolio::Folium& d, const adfs::attributes& s )
 {
@@ -222,10 +226,17 @@ detail::import::attributes( portfolio::Folder& d, const adfs::attributes& s )
         d.setAttribute( it->first, it->second );
 }
 
-void
-detail::import::attributes( adfs::attributes& d, const portfolio::attributes_type& s )
+template<> void
+detail::import::attributes( adfs::attributes& d, const std::vector< std::pair< std::wstring, std::wstring > >& s )
 {
-    for ( const portfolio::attribute_type& a: s )
+    for ( const auto& a: s )
+        d.setAttribute( a.first, a.second );
+}
+
+template<> void
+detail::import::attributes( adfs::attributes& d, const std::vector< std::pair< std::string, std::string > >& s )
+{
+    for ( const auto& a: s )
         d.setAttribute( a.first, a.second );
 }
 

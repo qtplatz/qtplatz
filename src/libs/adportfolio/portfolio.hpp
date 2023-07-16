@@ -41,8 +41,8 @@ namespace portfolio {
     class Folium;
     class Folder;
 
-    typedef std::pair< std::wstring, std::wstring > attribute_type;
-    typedef std::vector< attribute_type > attributes_type;
+    // typedef std::pair< std::wstring, std::wstring > attribute_type;
+    // typedef std::vector< attribute_type > attributes_type;
 
     class PORTFOLIOSHARED_EXPORT Portfolio {
     public:
@@ -64,7 +64,7 @@ namespace portfolio {
         bool create_with_fullpath( const std::wstring& fullpath );
         Folder addFolder( const std::wstring& name, bool uniq = true );
 
-        attributes_type attributes() const;
+        template< typename T > std::vector< std::pair< T, T > > attributes() const;
 
         std::string xml() const;
 		std::wstring wxml() const;
@@ -80,6 +80,9 @@ namespace portfolio {
 
     private:
         std::shared_ptr< internal::PortfolioImpl > impl_;
-  };
+    };
+
+    template<> std::vector< std::pair< std::wstring, std::wstring > > Portfolio::attributes< std::wstring >() const;
+    template<> std::vector< std::pair< std::string, std::string > > Portfolio::attributes< std::string >() const;
 
 }

@@ -80,8 +80,8 @@ namespace addatafile { namespace detail {
                     d.setAttribute( it->first, it->second );
             }
 
-            void static attributes( adfs::attributes& d, const portfolio::attributes_type& s ) {
-                for ( const portfolio::attribute_type& a: s )
+            void static attributes( adfs::attributes& d, const std::vector< std::pair< std::wstring, std::wstring > >& s ) {
+                for ( const auto& a: s )
                     d.setAttribute( a.first, a.second );
             }
         };
@@ -92,7 +92,7 @@ namespace addatafile { namespace detail {
                 boost::any any = static_cast<const boost::any&>( folium );
                 if ( ! any.empty() ) {
                     adfs::file dbThis = parent.addAttachment( folium.id() );
-                    import::attributes( dbThis, folium.attributes() );
+                    import::attributes( dbThis, folium.attributes<std::wstring>() );
                     try {
                         adutils::cpio::save( dbThis, any );
                     } catch ( boost::bad_any_cast& ) {
@@ -129,7 +129,7 @@ namespace addatafile { namespace detail {
                 if ( folder && !any.empty() ) {
                     if ( adfs::file dbf = folder.addFile( folium.id() ) ) {
 
-                        import::attributes( dbf, folium.attributes() );
+                        import::attributes( dbf, folium.attributes< std::wstring >() );
                         try {
                             adutils::cpio::save( dbf, any );
                         } catch ( boost::exception& ex ) {
@@ -164,7 +164,7 @@ namespace addatafile { namespace detail {
                 boost::filesystem::path pathname = path / folder.name();
 
                 adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
-                import::attributes( dbThis, folder.attributes() );
+                import::attributes( dbThis, folder.attributes< std::wstring >() );
 
                 // save all files in this folder
                 for ( const portfolio::Folium& folium: folder.folio() ) {
@@ -604,7 +604,7 @@ namespace addatafile {
             boost::filesystem::path filename = path / folium.id();
 
             adfs::file dbThis = parent.addAttachment( folium.id() );
-            import::attributes( dbThis, folium.attributes() );
+            import::attributes( dbThis, folium.attributes< std::wstring >() );
 
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() )
@@ -639,7 +639,7 @@ namespace addatafile {
             if ( folder && !any.empty() ) {
                 if ( adfs::file dbf = folder.addFile( folium.id() ) ) {
 
-                    import::attributes( dbf, folium.attributes() );
+                    import::attributes( dbf, folium.attributes< std::wstring >() );
                     try {
                         adutils::cpio::save( dbf, any );
                     } catch ( boost::exception& ex ) {
@@ -669,7 +669,7 @@ namespace addatafile {
             boost::filesystem::path pathname = path / folder.name();
 
             adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
-            import::attributes( dbThis, folder.attributes() );
+            import::attributes( dbThis, folder.attributes< std::wstring >() );
 
             // save all files in this folder
             for ( const portfolio::Folium& folium: folder.folio() ) {

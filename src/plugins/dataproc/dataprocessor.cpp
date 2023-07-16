@@ -722,6 +722,33 @@ Dataprocessor::remove( portfolio::Folium folium )
 }
 
 void
+Dataprocessor::handleSetGlobalMSLock( portfolio::Folium folium )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name() << ", is empty: " << folium.empty();
+
+    auto folder = portfolio().addFolder( L"MSLock" );
+    if ( folium.empty() )
+        fetch( folium );
+
+    auto dst = folder.addFolium( folium.name() ).assign( folium.data(), folium.dataClass().c_str() );
+    dst.appendAttributes( folium.attributes() );
+    // dst.setAttribute( "isChecked", "true" );
+
+    for ( const auto& a: folium.attachments() ) {
+        auto att = dst.addAttachment( a.name() ).assign( a.data(), a.dataClass().c_str() );
+        att.appendAttributes( a.attributes(), false );
+    }
+    SessionManager::instance()->updateDataprocessor( this, dst );
+    setModified( true );
+}
+
+void
+Dataprocessor::handleClearGlobalMSLock( portfolio::Folium folium )
+{
+    ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name();
+}
+
+void
 Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 {
     qtwrapper::waitCursor wait;

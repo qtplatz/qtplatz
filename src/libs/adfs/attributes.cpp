@@ -125,6 +125,13 @@ attributes::setAttribute( const std::wstring& key, const std::wstring& value )
     attrib_[ key ] = value;
 }
 
+void
+attributes::setAttribute( const std::string& key, const std::string& value )
+{
+    setAttribute( adportable::utf::to_wstring( key )
+                  , adportable::utf::to_wstring( value ) );
+}
+
 //////////////////////////
 
 bool

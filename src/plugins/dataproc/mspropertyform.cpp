@@ -150,10 +150,10 @@ MSPropertyForm::render( std::ostream& o, const portfolio::Folium& folium )
     o << "<caption>File information</caption>";
     o << "<tr>";
     for ( auto att: folium.attributes() )
-        o << "<th>" << utf::to_utf8( att.first ) << "</th>";
+        o << "<th>" << att.first << "</th>";
     o << "</tr> <tr>";
     for ( auto att: folium.attributes() )
-        o << "<td>" << utf::to_utf8( att.second ) << "</th>";
+        o << "<td>" << att.second << "</th>";
     o << "</tr>";
     o << "</table>";
 

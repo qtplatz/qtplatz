@@ -65,7 +65,10 @@ namespace portfolio {
             void setAttribute( const std::wstring& key, const std::wstring& value );
             void setAttribute( const std::string& key, const std::string& value );
 
-            std::vector< std::pair<std::wstring, std::wstring> > attributes() const;
+            // std::vector< std::pair<std::wstring, std::wstring> > attributes() const;
+            template< typename T = std::string > std::vector< std::pair<T, T> > attributes() const;
+            template< typename T > void appendAttributes( const std::vector< std::pair<T, T> >&, bool dontOverride = true );
+
             std::string attributes_json() const;
 
             static boost::uuids::uuid uuidFromString( const std::string& );
@@ -83,8 +86,6 @@ namespace portfolio {
             pugi::xml_node addFolder( const std::wstring& name, PortfolioImpl* );
             pugi::xml_node addFolium( const std::wstring& name );
             pugi::xml_node addAttachment( const std::wstring& name, bool bUniq = true );
-			// bool removeAttachment( const std::wstring& name );
-			// bool removeFolium( const std::wstring& id );
 
             std::vector< std::string >
             erase( const std::string& node, std::tuple< std::wstring, std::wstring > );
@@ -95,5 +96,10 @@ namespace portfolio {
             boost::uuids::uuid uuid_;
         };
 
+        template<> std::vector< std::pair< std::wstring, std::wstring > > Node::attributes< std::wstring >() const;
+        template<> std::vector< std::pair< std::string, std::string > > Node::attributes< std::string >() const;
+
+        template<> void Node::appendAttributes( const std::vector< std::pair<std::wstring, std::wstring> >&, bool );
+        template<> void Node::appendAttributes( const std::vector< std::pair<std::string, std::string> >&, bool );
     }
 }

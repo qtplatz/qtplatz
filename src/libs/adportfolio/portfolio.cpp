@@ -88,11 +88,24 @@ Portfolio::findFolium( const boost::uuids::uuid& id ) const
     return impl_->selectFolium( o.str() );
 }
 
-attributes_type
-Portfolio::attributes() const
+
+template<> std::vector< std::pair< std::wstring, std::wstring > >
+Portfolio::attributes< std::wstring >() const
 {
-    return impl_->attributes();
+    return impl_->attributes< std::wstring >();
 }
+
+template<> std::vector< std::pair< std::string, std::string > >
+Portfolio::attributes< std::string >() const
+{
+    return impl_->attributes< std::string >();
+}
+
+// attributes_type
+// Portfolio::attributes() const
+// {
+//     return impl_->attributes();
+// }
 
 const std::vector< std::tuple< std::string, std::string > >&
 Portfolio::erased_dataIds() const

@@ -43,7 +43,7 @@ namespace adfs {
         virtual ~attributes() {}
         attributes();
         attributes( const attributes& t );
-        
+
     public:
         operator bool () const;
         bool format_version() const;
@@ -58,8 +58,9 @@ namespace adfs {
         void dataClass( const std::wstring& );
 
         std::wstring attribute( const std::wstring& ) const;
-        std::string attribute( const std::string& ) const;    
+        std::string attribute( const std::string& ) const;
         void setAttribute( const std::wstring& key, const std::wstring& value );
+        void setAttribute( const std::string& key, const std::string& value );
         bool fetch();
         bool commit();
 

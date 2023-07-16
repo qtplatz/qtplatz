@@ -794,22 +794,6 @@ namespace {
         }
     };
 
-    struct SaveDataGlobalMSLock {
-        Dataprocessor * processor_;
-        portfolio::Folium folium_;
-        SaveDataGlobalMSLock( const QModelIndex& index ) : processor_( find_t< Dataprocessor * >()( index ) )
-                                                         , folium_( find_t< portfolio::Folium >()( index ) ) {
-        }
-        void operator()() {
-            if ( auto mslock = mslock_data::find( folium_ ) ) {
-                if ( processor_ )
-                    processor_->setDataGlobalMSLock( mslock, folium_ );
-            } else {
-                ADDEBUG() << "------- No mslock data found -----";
-            }
-        }
-    };
-
 
     struct SaveChromatogramAs {
         portfolio::Folium folium;
@@ -938,6 +922,20 @@ namespace {
         }
     };
 
+    struct GlobalMSLock {
+        Dataprocessor * processor_;
+        portfolio::Folium folium_;
+        GlobalMSLock( const QModelIndex& index ) : processor_( find_t< Dataprocessor * >()( index ) )
+                                                 , folium_( find_t< portfolio::Folium >()( index ) ) {
+        }
+        void operator()() {
+            if ( auto mslock = mslock_data::find( folium_ ) ) {
+                if ( processor_ )
+                    processor_->handleSetGlobalMSLock( folium_ );
+            }
+        }
+    };
+
     struct CalibrationAction {
         const QModelIndex& index_;
         CalibrationAction( const QModelIndex& index ) : index_( index ) {}
@@ -1029,7 +1027,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-                        if ( auto a = menu.addAction( tr("Set data global mass lock" ), SaveDataGlobalMSLock( index ) ) ) {
+
+                        if ( auto a = menu.addAction( tr("Set data global mass lock" ), GlobalMSLock( index ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
 

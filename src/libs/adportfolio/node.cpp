@@ -159,7 +159,7 @@ Node::attribute( const std::wstring& key ) const
 {
     if ( node_ )
         return pugi::as_wide( node_.attribute( pugi::as_utf8( key ).c_str() ).value() );
-    return std::wstring();
+    return {};
 }
 
 std::string
@@ -167,11 +167,12 @@ Node::attribute( const std::string& key ) const
 {
     if ( node_ )
         return node_.attribute( key.c_str() ).value();
-    return std::string();
+    return {};
 }
 
-std::vector< std::pair< std::wstring, std::wstring> >
-Node::attributes() const
+template<>
+std::vector< std::pair< std::wstring, std::wstring > >
+Node::attributes< std::wstring >() const
 {
     std::vector< std::pair< std::wstring, std::wstring > > attrs;
 
@@ -179,6 +180,18 @@ Node::attributes() const
 
     for ( pugi::xml_attribute_iterator it = node_.attributes_begin(); it != node_.attributes_end(); ++it )
         attrs.emplace_back( as_wide( it->name() ), as_wide( it->value() ) );
+
+    return attrs;
+}
+
+template<>
+std::vector< std::pair< std::string, std::string > >
+Node::attributes< std::string >() const
+{
+    std::vector< std::pair< std::string, std::string > > attrs;
+
+    for ( pugi::xml_attribute_iterator it = node_.attributes_begin(); it != node_.attributes_end(); ++it )
+        attrs.emplace_back( it->name(), it->value() );
 
     return attrs;
 }
@@ -211,6 +224,36 @@ Node::setAttribute( const std::string& key, const std::string& value )
         if ( ! attrib )
             attrib = node_.append_attribute( key.c_str() );
         attrib.set_value( value.c_str() );
+    }
+}
+
+template<> void
+Node::appendAttributes( const std::vector< std::pair<std::wstring, std::wstring> >& v, bool dontOverride )
+{
+    const auto& attrs = attributes< std::wstring >();
+    for ( const auto& a: v ) {
+        if ( dontOverride ) {
+            auto it = std::find_if( attrs.begin(), attrs.end(), [&](const auto& x){ return x.first == a.first; } );
+            if ( it == attrs.end() )
+                setAttribute( a.first, a.second );
+        } else {
+            setAttribute( a.first, a.second );
+        }
+    }
+}
+
+template<> void
+Node::appendAttributes( const std::vector< std::pair<std::string, std::string> >& v, bool dontOverride )
+{
+    const auto& attrs = attributes< std::string >();
+    for ( const auto& a: v ) {
+        if ( dontOverride ) {
+            auto it = std::find_if( attrs.begin(), attrs.end(), [&](const auto& x){ return x.first == a.first; } );
+            if ( it == attrs.end() )
+                setAttribute( a.first, a.second );
+        } else {
+            setAttribute( a.first, a.second );
+        }
     }
 }
 
