@@ -98,16 +98,30 @@ Node::operator bool () const
     return impl_ != 0;
 }
 
+template<>
 std::wstring
 Node::name() const
 {
     return attribute( L"name" );
 }
 
+template<>
+std::string
+Node::name() const
+{
+    return attribute( "name" );
+}
+
 void
 Node::name( const std::wstring& value )
 {
     setAttribute( L"name", value );
+}
+
+void
+Node::name( const std::string& value )
+{
+    setAttribute( "name", value );
 }
 
 const boost::uuids::uuid&
@@ -353,48 +367,6 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
 
     return child;
 }
-
-#if 0
-bool
-Node::removeFolium( const std::wstring& id )
-{
-	std::string query = "./folium[@dataId=\"" + pugi::as_utf8( id ) + "\"]";
-    try {
-        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
-            node_.remove_child( it->node() );
-            impl_->erase_data( pugi::as_wide( it->node().attribute( "name" ).as_string() )
-                               , it->node().attribute( "dataId" ).as_string() );
-        }
-        impl_->erase( id );
-        return !nodes.empty();
-    } catch ( pugi::xpath_exception& ex ) {
-        ADDEBUG() << "xml_exception: " << ex.what();
-        BOOST_THROW_EXCEPTION( ex );
-    }
-    return false;
-}
-
-bool
-Node::removeAttachment( const std::wstring& name )
-{
-	std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
-    // ADDEBUG() << "Node::removeAttachment(" << query << ")";
-
-    try {
-        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
-            node_.remove_child( it->node() );
-            impl_->erase( pugi::as_wide( it->node().attribute( "dataId" ).as_string() ) );
-        }
-        return !nodes.empty();
-    } catch ( pugi::xpath_exception& ex ) {
-        ADDEBUG() << "xml_exception: " << ex.what();
-        BOOST_THROW_EXCEPTION( ex );
-    }
-    return false;
-}
-#endif
 
 std::wstring
 Node::portfolio_fullpath() const

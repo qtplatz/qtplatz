@@ -111,6 +111,7 @@ reference::reference( const std::string& formula
                                       , matchedMass_( matchedMass )
                                       , time_( time )
 {
+    ADDEBUG() << "reference ctor: " << std::make_tuple( formula, exactMass, matchedMass, time );
 }
 
 const std::string&
@@ -210,6 +211,8 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
 {
     static ChemicalFormula formulaParser;
 
+    ADDEBUG() << "############## findReferences( " << idx << ", " << fcn << ") ##############";
+
     if ( idx < 0 || fcn < 0 )
         return false;
 
@@ -227,6 +230,8 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
         double matchedMass = segs[ fcn ].mass( it->index() );
         double time        = segs[ fcn ].time( it->index() );
         lk << reference( formula, exactMass, matchedMass, time );
+
+        ADDEBUG() << boost::json::value_from( lk );
 
         return true;
     }
@@ -423,6 +428,7 @@ namespace adcontrols {
                 auto obj = jv.as_object();
                 extract( obj, t.formula_         , "formula"               );
                 extract( obj, t.exactMass_       , "exactMass"             );
+                extract( obj, t.matchedMass_     , "matchedMass"           );
                 extract( obj, t.time_            , "time"                  );
                 return t;
             }

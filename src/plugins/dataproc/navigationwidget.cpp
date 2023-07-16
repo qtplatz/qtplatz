@@ -936,6 +936,18 @@ namespace {
         }
     };
 
+    struct RemoveGlobalMSLock {
+        Dataprocessor * processor_;
+        portfolio::Folium folium_;
+        RemoveGlobalMSLock( const QModelIndex& index ) : processor_( find_t< Dataprocessor * >()( index ) )
+                                                       , folium_( find_t< portfolio::Folium >()( index ) ) {
+        }
+        void operator()() {
+            if ( processor_ )
+                processor_->handleRemoveGlobalMSLock( folium_ );
+        }
+    };
+
     struct CalibrationAction {
         const QModelIndex& index_;
         CalibrationAction( const QModelIndex& index ) : index_( index ) {}
@@ -1027,11 +1039,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-
-                        if ( auto a = menu.addAction( tr("Set data global mass lock" ), GlobalMSLock( index ) ) ) {
+                        if ( auto a = menu.addAction( tr("Set as file global lock mass" ), GlobalMSLock( index ) ) ) {
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
-
                         attachment_walker attachments( folium );
                         if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, index ) ) ) {
                             a->setEnabled( true );
@@ -1050,6 +1060,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( index ) );
                 menu.addAction( tr("Mark masses from checked chromatograms"), XIC2MS( *pModel_, index ) );
                 menu.addSeparator();
+            }
+        }
+        if ( selFolders.contains( "MSLock" ) ) {
+            if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
+                if ( auto a = menu.addAction( tr("Remove from global lock mass" ), RemoveGlobalMSLock( index ) ) ) {
+                    a->setEnabled( folium.attribute( "mslock" ) == "true" );
+                }
+                if ( auto a = menu.addAction( tr("Set as global lock mass" ), GlobalMSLock( index ) ) ) {
+                    a->setEnabled( folium.attribute( "mslock" ) == "false" );
+                }
             }
         }
     }

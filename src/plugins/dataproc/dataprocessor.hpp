@@ -114,7 +114,7 @@ namespace dataproc {
 
         portfolio::Portfolio getPortfolio();
         bool load( const std::wstring& path, const std::wstring& id );
-		bool fetch( portfolio::Folium& );
+		// bool fetch( portfolio::Folium& ); moved to adprocessor::dataprocessor (base class of this)
         void setCurrentSelection( portfolio::Folium& );
         void setCurrentSelection( portfolio::Folder& );
         void applyProcess( const adcontrols::ProcessMethod&, enum ProcessType );
@@ -170,7 +170,7 @@ namespace dataproc {
         // <------------------------
     public slots:
         void handleSetGlobalMSLock( portfolio::Folium );
-        void handleClearGlobalMSLock( portfolio::Folium );
+        void handleRemoveGlobalMSLock( portfolio::Folium );
 
     private:
         void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );

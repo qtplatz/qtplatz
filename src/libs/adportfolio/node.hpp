@@ -47,7 +47,9 @@ namespace portfolio {
         public:
             operator bool () const;
 
-            std::wstring name() const;
+            // std::wstring name() const;
+            template< typename T = wchar_t > std::basic_string< T > name() const;
+            void name( const std::string& name );
             void name( const std::wstring& name );
 
             const boost::uuids::uuid& uuid() const;
@@ -96,6 +98,8 @@ namespace portfolio {
             boost::uuids::uuid uuid_;
         };
 
+        template<> std::string Node::name() const;
+        template<> std::wstring Node::name() const;
         template<> std::vector< std::pair< std::wstring, std::wstring > > Node::attributes< std::wstring >() const;
         template<> std::vector< std::pair< std::string, std::string > > Node::attributes< std::string >() const;
 

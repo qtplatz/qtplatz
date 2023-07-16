@@ -333,7 +333,10 @@ Dataprocessor::open( QString *errorString
 
         setFilePath(filePath);
         setMimeType(Utils::mimeTypeForFile(filePath).name()); // application/vnd.sqlite3
+
+        handleGlobalMSLockChanged();
         emit openFinished( true );
+
         return Core::IDocument::OpenResult::Success;
     }
     // following error message is being ignored by qt-creator."
@@ -459,26 +462,6 @@ Dataprocessor::currentSelection() const
 	return portfolio().findFolium( impl_->idActiveFolium_ );
 }
 
-bool
-Dataprocessor::fetch( portfolio::Folium& folium )
-{
-	if ( folium.empty() ) {
-		try {
-			folium = file()->fetch( folium.id(), folium.dataClass() );
-			portfolio::Folio attachs = folium.attachments();
-			for ( auto att: attachs ) {
-				if ( att.empty() )
-					fetch( att ); // recursive call make sure for all blongings load up in memory.
-			}
-		} catch ( boost::exception& ex ) {
-            ADTRACE() << boost::diagnostic_information( ex );
-#if defined _DEBUG || DEBUG
-            QMessageBox::information( 0, "Dataprocessor", QString::fromStdString( boost::diagnostic_information( ex ) ) );
-#endif
-		}
-	}
-	return true;
-}
 
 namespace dataproc {
 
@@ -706,46 +689,42 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 void
 Dataprocessor::remove( portfolio::Folium folium )
 {
-#if 0
-    if ( portfolio::Folium parent = folium.parentFolium() ) {
-
-        if ( parent.removeAttachment( folium.name() ) )
-            setModified( true );
-
-    } else if ( portfolio::Folder folder = folium.parentFolder() ) {
-
-        folder.removeFolium( folium );
-        setModified( true );
-
-    }
-#endif
 }
 
 void
 Dataprocessor::handleSetGlobalMSLock( portfolio::Folium folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name() << ", is empty: " << folium.empty();
-
-    auto folder = portfolio().addFolder( L"MSLock" );
     if ( folium.empty() )
         fetch( folium );
 
-    auto dst = folder.addFolium( folium.name() ).assign( folium.data(), folium.dataClass().c_str() );
-    dst.appendAttributes( folium.attributes() );
-    // dst.setAttribute( "isChecked", "true" );
+    if ( folium.parentFolder().name<char>() == "Spectra" ) {
 
-    for ( const auto& a: folium.attachments() ) {
-        auto att = dst.addAttachment( a.name() ).assign( a.data(), a.dataClass().c_str() );
-        att.appendAttributes( a.attributes(), false );
+        auto folder = portfolio().addFolder( L"MSLock" );
+
+        auto dst = folder.addFolium( folium.name() ).assign( folium.data(), folium.dataClass().c_str() );
+        dst.appendAttributes( folium.attributes() );
+        for ( const auto& a: folium.attachments() ) {
+            auto att = dst.addAttachment( a.name() ).assign( a.data(), a.dataClass().c_str() );
+            att.appendAttributes( a.attributes(), false );
+        }
+        SessionManager::instance()->updateDataprocessor( this, dst );
+
+    } else if ( folium.parentFolder().name<char>() == "MSLock" ) {
+        folium.setAttribute( "mslock", "true" );
     }
-    SessionManager::instance()->updateDataprocessor( this, dst );
+    adprocessor::dataprocessor::handleGlobalMSLockChanged();
     setModified( true );
 }
 
 void
-Dataprocessor::handleClearGlobalMSLock( portfolio::Folium folium )
+Dataprocessor::handleRemoveGlobalMSLock( portfolio::Folium folium )
 {
     ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name();
+    if ( folium.parentFolder().name<char>() == "MSLock" ) {
+        folium.setAttribute( "mslock", "false" );
+    }
+    adprocessor::dataprocessor::handleGlobalMSLockChanged();
+    setModified( true );
 }
 
 void
@@ -1020,6 +999,8 @@ Dataprocessor::doMSLock( portfolio::Folium& folium
     if ( auto sp = this->massSpectrometer() ) {
         sp->assignMasses( *ms, 0 ); // clear lock mass if already been applied
     }
+
+    ADDEBUG() << "############## doMSLock ####################";
 
     adcontrols::lockmass::mslock mslock;
     std::for_each( indecies.begin(), indecies.end(), [&]( const auto& a ){

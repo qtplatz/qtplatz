@@ -53,20 +53,23 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
-#include <adportfolio/portfolio.hpp>
+#include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <adutils/acquiredconf_v3.hpp>
+#include <adportable/utf.hpp>
 
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/json.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <adportable/utf.hpp>
+
 #include <locale>
 #include <numeric>
 #include <string>
@@ -630,4 +633,54 @@ bool
 dataprocessor::mslock( adcontrols::MassSpectrum& ms, const adcontrols::lockmass::mslock& lkms )
 {
     return lkms( ms );
+}
+
+void
+dataprocessor::handleGlobalMSLockChanged()
+{
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+    std::vector< std::shared_ptr< adcontrols::lockmass::mslock > > vlkms;
+
+    portfolio::Folder folder = portfolio().findFolder( L"MSLock" );
+    for ( auto folium: folder.folio() ) {
+        ADDEBUG() << std::make_tuple( "name", folium.name(), "mslock", folium.attribute( "mslock" ) ) << ", size=" << vlkms.size();
+        if ( folium.empty() )
+            fetch( folium );
+        if ( folium.attribute( "mslock" ) == "true" ) {
+            if ( auto it = portfolio::find_first_of( folium.attachments()
+                                                     , []( auto& a ){ return a.name() == adcontrols::constants::F_MSLOCK; } ) ) {
+                if ( auto lkms = portfolio::get< std::shared_ptr< adcontrols::lockmass::mslock > >( it ) ) {
+                    vlkms.emplace_back( lkms );
+                } else {
+                    folium.setAttribute( "tag", "red" );
+                }
+            }
+        }
+    }
+    for ( const auto& lkms: vlkms ) {
+        ADDEBUG() << boost::json::value_from( *lkms );
+        for ( const auto& ref: *lkms )
+            ADDEBUG() << "\n\treferences: " << std::make_tuple( ref.matchedMass(), ref.exactMass(), ref.time() );
+    }
+}
+
+bool
+dataprocessor::fetch( portfolio::Folium& folium )
+{
+	if ( folium.empty() ) {
+		try {
+			folium = file()->fetch( folium.id(), folium.dataClass() );
+			portfolio::Folio attachs = folium.attachments();
+			for ( auto att: attachs ) {
+				if ( att.empty() )
+					fetch( att ); // recursive call make sure for all blongings load up in memory.
+			}
+		} catch ( boost::exception& ex ) {
+            ADTRACE() << boost::diagnostic_information( ex );
+#if defined _DEBUG || DEBUG
+            QMessageBox::information( 0, "Dataprocessor", QString::fromStdString( boost::diagnostic_information( ex ) ) );
+#endif
+		}
+	}
+	return true;
 }
