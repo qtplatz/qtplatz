@@ -506,7 +506,6 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 
     for ( auto reader: dset->dataReaders() ) {
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
-            dp->apply_mslock( ms );
             std::ostringstream text;
             text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;
             adcontrols::ProcessMethod m;
@@ -535,8 +534,8 @@ document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrol
                 text << DataReader::abbreviated_name( reader->display_name() )
                      << boost::format ( " %.3fs p%d.%d " ) % iterator->time_since_inject() % ms->protocolId() % ms->nProtocols() ;
             }
-            if ( dp->apply_mslock( ms ) )
-                text << ",locked;";
+            // if ( dp->apply_mslock( ms ) )
+            //     text << ",locked;";
 
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( {"folium.create", text.str() } ) );

@@ -289,7 +289,6 @@ Dataprocessor::Dataprocessor() : impl_( std::make_unique< impl >() )
 void
 Dataprocessor::setDisplayName( const QString& fullpath )
 {
-    ADDEBUG() << "########################### TODO ###################################";
 #if QTC_VERSION <= 0x03'02'81
     QFontMetrics fm( QApplication::fontMetrics() );
     IDocument::setDisplayName( fm.elidedText( fullpath, Qt::ElideLeft, 200 ) );
@@ -1099,35 +1098,19 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
     std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)" );
-    // if ( auto folium = folder.findFoliumByName( name ) )
-    //     return folium; // already exists
+
+    bool mslocked( false );
+    if ( auto lkms = dataGlobalMSLock() )
+        mslocked = mslock( *ptr, *lkms );
+
+    if ( mslocked )
+        name += L",mslk";
 
     portfolio::Folium folium = folder.addFolium( name );
     folium.assign( ptr, ptr->dataClass() );
 
-    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
-
-    SessionManager::instance()->updateDataprocessor( this, folium );
-
-    setModified( true );
-
-	return folium;
-}
-
-portfolio::Folium
-Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
-{
-    portfolio::Folder folder = portfolio().addFolder( L"Spectra" );
-
-    // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
-    std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$|^((?!dataReader)" );
-
-    if ( auto folium = folder.findFoliumByName( name ) )
-        return folium; // already exists
-
-    portfolio::Folium folium = folder.addFolium( name );
-    folium.assign( ptr, ptr->dataClass() );
+    if ( mslocked )
+        folium.setAttribute( "mslock_external", "true" );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
@@ -1417,7 +1400,7 @@ DataprocessorImpl::applyMethod( Dataprocessor *
 
             if ( auto targeting = std::make_shared< adcontrols::Targeting >(m) ) {
 
-                ADDEBUG() << "doSpectraolProcess -- Targeting";
+                // ADDEBUG() << "doSpectraolProcess -- Targeting";
 
                 if ( (*targeting)(*centroid) ) {
 
@@ -1638,9 +1621,6 @@ DataprocessorImpl::applyPeakMethod( Dataprocessor *
                                     , const adcontrols::Chromatogram& c )
 {
     if ( auto pResult = std::make_shared< adcontrols::PeakResult >() ) {
-        ADDEBUG() << "\t## applyPeakMethod --> doFindPeaks title: " << c.make_title() << ", isCounting? " << c.isCounting();
-        // if ( auto prop = c.generatorProperty() )
-        //     ADDEBUG() << "\t" << *prop;
         if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
             auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
             auto att = folium.addAttachment( adcontrols::constants::F_PEAKRESULT ).assign( pResult, pResult->dataClass() );

@@ -137,14 +137,12 @@ namespace adprocessor {
 
         bool applyCalibration( const adcontrols::MSCalibrateResult& );
         //-------------->
-        void clearDataGlobalMSLock();
-        void setDataGlobalMSLock( std::shared_ptr< const adcontrols::lockmass::mslock >, const portfolio::Folium& );
-        std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid > dataGlobalMSLock();
 
+        std::shared_ptr< const adcontrols::lockmass::mslock > dataGlobalMSLock() const;
         void handleGlobalMSLockChanged();
 
         //---
-        bool apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ) const; // apply mass lock if data global lockmass exists
+        // bool apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ) const; // apply mass lock if data global lockmass exists
         static bool mslock( adcontrols::MassSpectrum&, const adcontrols::lockmass::mslock& );
 
         bool fetch( portfolio::Folium& );

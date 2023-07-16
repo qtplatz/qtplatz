@@ -87,6 +87,9 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
         if ( folium.attribute( "mslock" ) == "true" ) {
             painter->fillRect( opt.rect, QColor( 0xff, 0xff, 0x00, 0x40 ) ); // yellow
         }
+        if ( folium.attribute( "mslock_external" ) == "true" ) {
+            painter->fillRect( opt.rect, QColor( 0x6a, 0xff, 0x00, 0x80 ) );
+        }
         if ( folium.attribute( "tag" ) == "red" ) {
             painter->fillRect( opt.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
         }

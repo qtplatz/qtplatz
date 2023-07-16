@@ -91,7 +91,7 @@ namespace adprocessor {
         std::unique_ptr< portfolio::Portfolio > portfolio_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
         int mode_;
-        std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid > global_lkms_;
+        std::shared_ptr< const adcontrols::lockmass::mslock > global_lkms_;
     };
 
 }
@@ -397,9 +397,9 @@ dataprocessor::readCoAddedSpectrum( bool histogram, int proto )
         if ( auto raw = this->rawdata() ) {
             if ( auto reader = raw->dataReader( objuuid ) ) {
                 auto ms = reader->coaddSpectrum( reader->begin( proto ), reader->end() );
-                if ( impl_->global_lkms_.first ) {
+                if ( impl_->global_lkms_ ) {
                     ADDEBUG() << "----- apply data global lockmass -------";
-                    (*impl_->global_lkms_.first)( *ms );
+                    (*impl_->global_lkms_)( *ms );
                 }
                 return ms;
             }
@@ -601,33 +601,22 @@ dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
     }
 }
 
-void
-dataprocessor::clearDataGlobalMSLock()
-{
-    impl_->global_lkms_ = {};
-}
-
-void
-dataprocessor::setDataGlobalMSLock( std::shared_ptr< const adcontrols::lockmass::mslock > lkms, const portfolio::Folium& folium )
-{
-    impl_->global_lkms_ = std::make_pair( lkms, folium.uuid() );
-    ADDEBUG() << "setDataGlobalMSLock -- " << folium.uuid();
-}
-
-std::pair< std::shared_ptr< const adcontrols::lockmass::mslock >, boost::uuids::uuid >
-dataprocessor::dataGlobalMSLock()
+std::shared_ptr< const adcontrols::lockmass::mslock >
+dataprocessor::dataGlobalMSLock() const
 {
     return impl_->global_lkms_;
 }
 
+#if 0
 bool
 dataprocessor::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ms ) const
 {
-    if ( impl_->global_lkms_.first ) {
-        return mslock( *ms, *impl_->global_lkms_.first );
+    if ( impl_->global_lkms_ ) {
+        return mslock( *ms, *impl_->global_lkms_ );
     }
     return false;
 }
+#endif
 
 bool
 dataprocessor::mslock( adcontrols::MassSpectrum& ms, const adcontrols::lockmass::mslock& lkms )
@@ -638,14 +627,14 @@ dataprocessor::mslock( adcontrols::MassSpectrum& ms, const adcontrols::lockmass:
 void
 dataprocessor::handleGlobalMSLockChanged()
 {
+    impl_->global_lkms_ = {};
+
     ADDEBUG() << "## " << __FUNCTION__ << " ##";
     std::vector< std::shared_ptr< adcontrols::lockmass::mslock > > vlkms;
 
     portfolio::Folder folder = portfolio().findFolder( L"MSLock" );
     for ( auto folium: folder.folio() ) {
-        ADDEBUG() << std::make_tuple( "name", folium.name(), "mslock", folium.attribute( "mslock" ) ) << ", size=" << vlkms.size();
-        if ( folium.empty() )
-            fetch( folium );
+        fetch( folium );
         if ( folium.attribute( "mslock" ) == "true" ) {
             if ( auto it = portfolio::find_first_of( folium.attachments()
                                                      , []( auto& a ){ return a.name() == adcontrols::constants::F_MSLOCK; } ) ) {
@@ -657,10 +646,14 @@ dataprocessor::handleGlobalMSLockChanged()
             }
         }
     }
+
     for ( const auto& lkms: vlkms ) {
         ADDEBUG() << boost::json::value_from( *lkms );
-        for ( const auto& ref: *lkms )
-            ADDEBUG() << "\n\treferences: " << std::make_tuple( ref.matchedMass(), ref.exactMass(), ref.time() );
+    }
+
+    if ( vlkms.size() > 1 ) {
+        ADDEBUG() << "=============== TODO merge multiple lock mass data; took last one ==============";
+        impl_->global_lkms_ = vlkms.back();
     }
 }
 
