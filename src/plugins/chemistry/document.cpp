@@ -210,7 +210,7 @@ namespace chemistry {
         , { R"(O=S(=O)(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "C4-SO3H" }}
         , { R"(O=S(=O)(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "C8-SO3H(PFOS)" }}
         , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C4-C2-OH" }}
-        , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C6-C2-OH" }}
+        , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C6-C2-OH", "Perfluorohexyl ethanol" }}
         , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C8-C2-OH" }}
         , { R"(FC=1C(F)=C(F)C(O)=C(F)C1F)", { "F5-Ph-OH" }}
         , { R"(O=C(OCC(COC(=O)CCC=1C=C(C(O)=C(C1)C(C)(C)C)C(C)(C)C)(COC(=O)CCC=2C=C(C(O)=C(C2)C(C)(C)C)C(C)(C)C)COC(=O)CCC=3C=C(C(O)=C(C3)C(C)(C)C)C(C)(C)C)CCC=4C=C(C(O)=C(C4)C(C)(C)C)C(C)(C)C)", { "Irganox1010" }}

@@ -618,12 +618,12 @@ dataprocessor::handleGlobalMSLockChanged()
 {
     impl_->global_lkms_ = {};
 
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
     std::vector< std::shared_ptr< adcontrols::lockmass::mslock > > vlkms;
 
     portfolio::Folder folder = portfolio().findFolder( L"MSLock" );
     for ( auto folium: folder.folio() ) {
         fetch( folium );
+        ADDEBUG() << "-------- " << folium.name() << "\tmslock: " << folium.attribute( "mslock" );
         if ( folium.attribute( "mslock" ) == "true" ) {
             if ( auto it = portfolio::find_first_of( folium.attachments()
                                                      , []( auto& a ){ return a.name() == adcontrols::constants::F_MSLOCK; } ) ) {
@@ -637,13 +637,19 @@ dataprocessor::handleGlobalMSLockChanged()
     }
 
     for ( const auto& lkms: vlkms ) {
-        ADDEBUG() << boost::json::value_from( *lkms );
+        ADDEBUG() << "======== vlkms list ====== " << boost::json::value_from( *lkms );
     }
 
-    if ( vlkms.size() > 1 ) {
-        ADDEBUG() << "=============== TODO merge multiple lock mass data; took last one ==============";
+    if ( !vlkms.empty() ) {
+        if ( vlkms.size() > 1 )
+            ADDEBUG() << "=============== TODO merge multiple lock mass data; took last one ==============";
         impl_->global_lkms_ = vlkms.back();
     }
+
+    if ( impl_->global_lkms_ )
+        ADDEBUG() << "################## " << __FUNCTION__ << " ############## dataGlobalmslock = " << boost::json::value_from( *impl_->global_lkms_ );
+    else
+        ADDEBUG() << "################## " << __FUNCTION__ << " ############## dataGlobalmslock empty";
 }
 
 bool

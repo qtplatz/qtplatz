@@ -298,7 +298,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 
         if ( data->chromatogram ) {
 
-            detail::append_class()( dst, data->chromatogram.get()->getDescriptions(), "class adcontrols::descriptions" );
+            detail::append_class()( dst, data->chromatogram.get()->descriptions(), "class adcontrols::descriptions" );
             QuanSvgPlot svg;
 
             if ( svg.plot( *data, idx, fcn, response.select_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {

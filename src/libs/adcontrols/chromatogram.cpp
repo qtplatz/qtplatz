@@ -61,6 +61,7 @@
 #include <adportable/float.hpp>
 #include <chrono>
 #include <numeric>
+#include <regex>
 #include <sstream>
 #include <vector>
 
@@ -645,6 +646,12 @@ Chromatogram::getDescriptions() const
     return pImpl_->getDescriptions();
 }
 
+const descriptions&
+Chromatogram::descriptions() const
+{
+    return pImpl_->getDescriptions();
+}
+
 Chromatogram::seconds_t
 Chromatogram::minimumTime() const
 {
@@ -914,29 +921,21 @@ ChromatogramImpl::getAcquisitionTimeRange() const
 std::string
 Chromatogram::make_title() const
 {
-    std::ostringstream o;
-    for ( auto& desc: pImpl_->descriptions_ ) {
-        if ( ! o.str().empty() )
-            o << "/";
-        o << desc.text<char>();
-    }
-    if ( ! pImpl_->display_name_.empty() ) {
-        o << pImpl_->display_name_;
-    }
-    return o.str();
+    return make_folder_name<char>( pImpl_->descriptions_ );
 }
 
 //static
-std::wstring
+template<> std::string
 Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
 {
-    std::wstring name;
-    for ( auto& desc: descs ) {
-        if ( ! name.empty() )
-            name += L"/";
-        name += desc.text<wchar_t>();
-    }
-    return name;
+    return descs.make_folder_name( "(MSLock)", true );
+}
+
+template<> std::wstring
+Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
+{
+    ADDEBUG() << "make_folder_name: " << boost::json::value_from( descs );
+    return descs.make_folder_name( L"(MSLock)", true );
 }
 
 // for v3 format datafile support

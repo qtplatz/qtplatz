@@ -105,6 +105,23 @@ namespace adcontrols {
     }
 }
 
+namespace {
+
+    struct encode_infer {
+        template< typename T >
+        adcontrols::TextEncode operator()( const std::basic_string< T >& t ) const {
+            if ( !t.empty() && t.at( 0 ) == '{' ) { // infer json
+                boost::system::error_code ec;
+                auto jv = boost::json::parse( t, ec );
+                if ( !ec )
+                    return adcontrols::Encode_JSON;
+            }
+            return adcontrols::Encode_TEXT;
+        }
+    };
+
+}
+
 using namespace adcontrols;
 
 description::~description()
@@ -120,16 +137,16 @@ description::description( const std::wstring& key
                           , const std::wstring& text )
     : posix_time_( std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count() )
     , keyValue_( std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) ) )
-    , encode_( adcontrols::Encode_TEXT )
+    , encode_( encode_infer()( keyValue_.second ) )
 {
-
 }
 
 description::description( std::pair< std::string, std::string >&& keyValue )
     : posix_time_( std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count() )
     , keyValue_( std::move( keyValue ) )
-    , encode_( adcontrols::Encode_TEXT )
+    , encode_( encode_infer()( keyValue_.second ) )
 {
+
 }
 
 description::description( const description& t ) : posix_time_( t.posix_time_ )
@@ -154,6 +171,7 @@ void
 description::setValue( const std::string& t )
 {
     keyValue_.second = t;
+    encode_ = encode_infer()( t );
 }
 
 adcontrols::TextEncode

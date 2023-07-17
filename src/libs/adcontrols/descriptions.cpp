@@ -82,27 +82,32 @@ namespace adcontrols {
 
     namespace {
 
-        struct __make_folder_name {
-            std::basic_regex< wchar_t > regex_;
-            const std::vector< description >& vec_;
+        template< typename T >
+        struct make_folder_name_t {
+            std::basic_regex< T > regex_;
+            bool negative_lookaround_;
 
-            __make_folder_name( const std::wstring& pattern
-                              , const std::vector< description >& vec ) : regex_( pattern ), vec_( vec ) {
+            make_folder_name_t( const std::basic_string< T >& pattern
+                                , bool negative_lookaround ) : regex_( pattern )
+                                                             , negative_lookaround_( negative_lookaround ) {
             }
 
-            std::wstring operator()() const {
-                std::wstring name;
-                std::for_each( vec_.rbegin(), vec_.rend()
+            std::basic_string< T > operator()( const std::vector< description >& vec ) const {
+                std::basic_ostringstream< T > o;
+                std::for_each( vec.rbegin(), vec.rend()
                                , [&] ( const description& d ){
-                                   std::match_results< std::wstring::const_iterator > match;
-                                   std::wstring key = d.key<wchar_t>();
-                                   if ( std::regex_match( key, match, regex_ ) ) {
-                                       if ( !name.empty() )
-                                           name += L' ';
-                                       name += d.text<wchar_t>();
+                                   std::match_results< typename std::basic_string< T >::const_iterator > match;
+                                   auto key = d.key<T>();
+                                   bool result = std::regex_match( key, match, regex_ );
+                                   if ( negative_lookaround_ )
+                                       result = !result;
+                                   if ( result ) {
+                                       if ( !o.str().empty() )
+                                           o << '/';
+                                       o << d.text<T>();
                                    }
                                } );
-                return name;
+                return o.str();
             }
         };
     }
@@ -149,7 +154,7 @@ descriptions::size() const
 const description&
 descriptions::operator [] ( size_t idx ) const
 {
-   return (*impl_)[idx];
+    return (*impl_)[idx];
 }
 
 std::wstring
@@ -186,15 +191,43 @@ descriptions::end() const
 }
 
 std::wstring
-descriptions::make_folder_name( const std::wstring& regex ) const
+descriptions::make_folder_name( const std::wstring& regex, bool negative_lookaround ) const
 {
-    return __make_folder_name( regex, impl_->vec_ )();
+    auto str = make_folder_name_t< wchar_t >( regex, negative_lookaround )( impl_->vec_ );
+    // ADDEBUG() << "make_folder_name(" << regex << ")\n" << str << "\n" << this->toJson();
+    return str;
+}
+
+std::string
+descriptions::make_folder_name( const std::string& regex, bool negative_lookaround ) const
+{
+    auto str = make_folder_name_t< char >( regex, negative_lookaround )( impl_->vec_ );
+    // ADDEBUG() << "make_folder_name(" << regex << ")\n" << str << "\n" << this->toJson();
+    return str;
 }
 
 std::string
 descriptions::toJson() const
 {
     return boost::json::serialize( boost::json::value_from( *this ) );
+}
+
+std::optional< std::string >
+descriptions::hasKey( const std::string& pattern ) const
+{
+    ADDEBUG() << "################ hasKey(" << pattern << ") ###############";
+    for ( const auto& d: impl_->vec_ ) {
+        std::match_results< std::string::const_iterator > match;
+        auto key = d.key< char >();
+        ADDEBUG() << "\tkey: " << key;
+        if ( std::regex_search( key, match, std::regex( pattern ) ) ) {
+            ADDEBUG() << "\t################ hasKey(" << pattern << ") found: " << d.keyValue();
+            return d.text< char >();
+        } else {
+            ADDEBUG() << "\t################ not match #################";
+        }
+    }
+    return {};
 }
 
 namespace adcontrols {

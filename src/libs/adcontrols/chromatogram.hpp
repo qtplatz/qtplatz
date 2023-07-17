@@ -97,7 +97,7 @@ namespace adcontrols {
             template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
         };
 
-        static std::wstring make_folder_name( const adcontrols::descriptions& );
+        template< typename T > static std::basic_string< T > make_folder_name( const adcontrols::descriptions& );
         std::string make_title() const;
 
         typedef Chromatogram_iterator iterator;
@@ -172,7 +172,8 @@ namespace adcontrols {
 
         void addDescription( const description& );
         void addDescription( description&& );
-        const descriptions& getDescriptions() const;
+        [[deprecated]] const descriptions& getDescriptions() const;
+        const descriptions& descriptions() const;
 
         boost::optional< std::string > axisLabel( plot::axis ) const;
         void setAxisLabel( plot::axis, const std::string& );
@@ -250,4 +251,8 @@ namespace adcontrols {
         inline double time() const { return chromatogram_->time( idx_ ); }
         inline double intensity() const { return chromatogram_->intensity( idx_ ); };
     };
+
+    template<> std::basic_string< char > Chromatogram::make_folder_name( const adcontrols::descriptions& );
+    template<> std::basic_string< wchar_t > Chromatogram::make_folder_name( const adcontrols::descriptions& );
+
 }

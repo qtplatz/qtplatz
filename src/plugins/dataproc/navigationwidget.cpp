@@ -1070,6 +1070,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 if ( auto a = menu.addAction( tr("Set as global lock mass" ), GlobalMSLock( index ) ) ) {
                     a->setEnabled( folium.attribute( "mslock" ) == "false" );
                 }
+                ADDEBUG() << "----------- TODO ---------- emit dagaGlobalMSLockChange --------";
             }
         }
     }

@@ -453,7 +453,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
         = portfolio::Folium::find<adcontrols::ChromatogramPtr>( attachments.begin(), attachments.end() );
     if ( it != attachments.end() ) {
         adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-        const adcontrols::descriptions& desc = impl_->data_->getDescriptions();
+        const adcontrols::descriptions& desc = impl_->data_->descriptions();
         for ( size_t i = 0; i < desc.size(); ++i ) {
             const adcontrols::description& d = desc[i];
 #if 0

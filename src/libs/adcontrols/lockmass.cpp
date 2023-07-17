@@ -62,8 +62,8 @@ mslock&
 mslock::operator << ( const reference& t )
 {
     auto it = std::find_if( references_.begin(), references_.end(), [t]( const reference& a ){
-            return adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() );
-        });
+        return adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() );
+    });
     if ( it == references_.end() )
         references_.emplace_back( t );
     else

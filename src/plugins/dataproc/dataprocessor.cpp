@@ -721,6 +721,7 @@ Dataprocessor::handleRemoveGlobalMSLock( portfolio::Folium folium )
     ADDEBUG() << "## " << __FUNCTION__ << " ## " << folium.name();
     if ( folium.parentFolder().name<char>() == "MSLock" ) {
         folium.setAttribute( "mslock", "false" );
+        SessionManager::instance()->updateDataprocessor( this, folium );
     }
     adprocessor::dataprocessor::handleGlobalMSLockChanged();
     setModified( true );
@@ -1129,10 +1130,13 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
 {
     portfolio::Folder folder = portfolio().addFolder( L"Chromatograms" );
 
-    std::wstring name = adcontrols::Chromatogram::make_folder_name( cptr->getDescriptions() );
+    std::wstring name = adcontrols::Chromatogram::make_folder_name<wchar_t>( cptr->descriptions() );
 
-    portfolio::Folium folium = folder.addFolium( name );
-	folium.assign( cptr, cptr->dataClass() );
+    portfolio::Folium folium = folder.addFolium( name ).assign( cptr, cptr->dataClass() );
+    if ( auto lock = cptr->descriptions().hasKey( "(MSLock)" ) ) {
+        ADDEBUG() << *lock;
+        folium.setAttribute( (*lock == "On-the-fly" ? "mslock" : "mslock_external"), "true" );
+    }
 
     if ( auto peakm = m.find< adcontrols::PeakMethod >() ) {
         using namespace adcontrols;

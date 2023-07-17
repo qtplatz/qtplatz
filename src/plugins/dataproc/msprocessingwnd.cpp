@@ -478,7 +478,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                 for ( int fcn = 0; fcn < reader->fcnCount(); ++fcn ) {
                     if ( auto tic = reader->TIC( fcn ) ) {
                         auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
-                                                                 % adcontrols::Chromatogram::make_folder_name( tic->getDescriptions() )
+                                                                 % adcontrols::Chromatogram::make_folder_name<wchar_t>( tic->descriptions() )
                                                                  % L"TIC" % ( fcn + 1 ) ).str() );
                         if ( folium.nil() ) {
                             auto c = std::make_shared< adcontrols::Chromatogram >(*tic);
@@ -502,7 +502,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                 if ( enable ) {
                                     pChro->addDescription( adcontrols::description({"acquire.title"
                                                 , ( boost::format( "ADC.%1%" ) % ( idx + 1 ) ).str()}) );
-                                    std::wstring name = adcontrols::Chromatogram::make_folder_name( pChro->getDescriptions() );
+                                    std::wstring name = adcontrols::Chromatogram::make_folder_name<wchar_t>( pChro->descriptions() );
                                     auto folium = folder.findFoliumByName( name );
                                     if ( folium.nil() ) {
                                         ADDEBUG() << "---------- addChromatogram ---------------";

@@ -64,10 +64,13 @@ namespace adcontrols {
        std::vector< description >::iterator end();
        std::vector< description >::const_iterator begin() const;
        std::vector< description >::const_iterator end() const;
-       std::wstring make_folder_name( const std::wstring& regex = L".*" ) const;
+       std::wstring make_folder_name( const std::wstring& regex = L".*", bool negative_lookaround = false ) const;
+       std::string make_folder_name( const std::string& regex = ".*", bool negative_lookaround = false ) const;
 
        std::wstring toString() const;
        std::string toJson() const;
+
+       std::optional< std::string > hasKey( const std::string& regex ) const;
 
        static bool xml_archive( std::wostream&, const descriptions& );
        static bool xml_restore( std::wistream&, descriptions& );
