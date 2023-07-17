@@ -91,8 +91,8 @@ QuanSampleProcessor::~QuanSampleProcessor()
 QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
                                           , std::vector< adcontrols::QuanSample >& samples
                                           , std::shared_ptr< adwidgets::ProgressInterface > p )
-    : raw_( 0 )
-    , samples_( samples )
+    : //raw_( 0 )
+    samples_( samples )
     , procmethod_( processor->procmethod() )
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
@@ -154,8 +154,8 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         switch ( sample.dataGeneration() ) {
         case adcontrols::QuanSample::GenerateChromatogram:
             ADDEBUG() << "data generation for chromatogram";
-            if ( raw_ ) {
-                if ( raw_->dataformat_version() >= 3 ) {
+            if ( auto raw = rawdata() ) {
+                if ( raw->dataformat_version() >= 3 ) {
                     auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
                     (*chromatogram_processor)( *this, sample, writer, progress_ );
                     writer->insert_table( sample ); // once per sample
@@ -166,9 +166,9 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             break; // ignore for this version
 
         case adcontrols::QuanSample::GenerateSpectrum:
-            if ( raw_ ) {
+            if ( auto raw = rawdata() ) {
                 adcontrols::MassSpectrum ms;
-                if ( generate_spectrum( raw_, sample, ms ) ) {
+                if ( generate_spectrum( raw, sample, ms ) ) {
                     adcontrols::segments_helper::normalize( ms ); // normalize to 10k average equivalent
                     auto file = processIt( sample, ms, writer.get() );
                     writer->insert_table( sample );
@@ -177,10 +177,10 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             break;
 
         case adcontrols::QuanSample::ProcessRawSpectra:
-            if ( raw_ ) {
+            if ( auto raw = rawdata() ) {
                 adcontrols::MassSpectrum ms;
                 size_t pos = 0;
-                while ( ( pos = read_raw_spectrum( pos, raw_, ms ) ) ) {
+                while ( ( pos = read_raw_spectrum( pos, raw, ms ) ) ) {
                     if ( (*progress_)() )
                         return false;
                     auto file = processIt( sample, ms, writer.get(), false );
@@ -191,7 +191,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             break;
         case adcontrols::QuanSample::ASIS:
             do {
-                if ( auto folder = portfolio_->findFolder( L"Spectra" ) ) {
+                if ( auto folder = portfolio().findFolder( L"Spectra" ) ) {
                     if ( auto folium = folder.findFoliumByName( sample.name() ) ) {
                         if ( fetch( folium ) ) {
                             if ( (*progress_)() )
@@ -221,42 +221,38 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 void
 QuanSampleProcessor::open()
 {
-    try {
-        datafile_.reset( adcontrols::datafile::open( path_, true ) );
-        if ( datafile_ )
-            datafile_->accept( *this );
-    }
-    catch ( ... ) { ADERROR() << boost::current_exception_diagnostic_information(); }
+    std::string error_message;
+    dataprocessor::open( path_, error_message );
 }
 
-bool
-QuanSampleProcessor::subscribe( const adcontrols::LCMSDataset& d )
-{
-    raw_ = &d;
-    return true;
-}
+// bool
+// QuanSampleProcessor::subscribe( const adcontrols::LCMSDataset& d )
+// {
+//     raw_ = &d;
+//     return true;
+// }
 
-bool
-QuanSampleProcessor::subscribe( const adcontrols::ProcessedDataset& d )
-{
-    portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
-    return true;
-}
+// bool
+// QuanSampleProcessor::subscribe( const adcontrols::ProcessedDataset& d )
+// {
+//     portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
+//     return true;
+// }
 
-bool
-QuanSampleProcessor::fetch( portfolio::Folium& folium )
-{
-    try {
-        folium = datafile_->fetch( folium.id(), folium.dataClass() );
-        portfolio::Folio attachs = folium.attachments();
-        for ( auto att : attachs ) {
-            if ( att.empty() )
-                fetch( att ); // recursive call make sure for all blongings load up in memory.
-        }
-    }
-    catch ( std::bad_cast& ) {}
-    return true;
-}
+// bool
+// QuanSampleProcessor::fetch( portfolio::Folium& folium )
+// {
+//     try {
+//         folium = datafile_->fetch( folium.id(), folium.dataClass() );
+//         portfolio::Folio attachs = folium.attachments();
+//         for ( auto att : attachs ) {
+//             if ( att.empty() )
+//                 fetch( att ); // recursive call make sure for all blongings load up in memory.
+//         }
+//     }
+//     catch ( std::bad_cast& ) {}
+//     return true;
+// }
 
 size_t
 QuanSampleProcessor::read_first_spectrum( const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& ms, uint32_t tidx )

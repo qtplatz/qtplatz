@@ -122,7 +122,7 @@ main( int argc, const char * const argv[] )
                         if ( value.type() == typeid( std::string ) ) {
                             auto a = boost::get< std::string >( value );
                             type_parser_list< integer, real, null >()( a, value );
-                            boost::apply_visitor( print_visitor{}, variant_type( value ) );
+                            boost::apply_visitor( print_visitor(), variant_type( value ) );
                         }
                     }
                     std::cout << std::endl;

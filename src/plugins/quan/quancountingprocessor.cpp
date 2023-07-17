@@ -166,8 +166,7 @@ QuanCountingProcessor::~QuanCountingProcessor()
 QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
                                               , std::vector< adcontrols::QuanSample >& samples
                                               , std::shared_ptr< adwidgets::ProgressInterface > p )
-    : raw_( 0 )
-    , samples_( samples )
+    : samples_( samples )
     , procm_( std::make_shared< adcontrols::ProcessMethod >( *processor->procmethod() ) ) // deep copy
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
@@ -176,9 +175,6 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
     , progress_total_( 0 )
     , cXmethods_{{ std::make_unique< adcontrols::MSChromatogramMethod >(), std::make_unique< adcontrols::MSChromatogramMethod >() }}
 {
-    if ( !samples.empty() )
-        path_ = samples[ 0 ].dataSource();
-
     progress_current_ = 0;
     progress_total_ = samples.size();
 
@@ -194,6 +190,7 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
                     bool subscribe( const adcontrols::LCMSDataset& d ) { raw = &d; return true; }
                 } subscribe;
                 file->accept( subscribe );
+
                 size_t n = 0;
                 if ( subscribe.raw && subscribe.raw->db() ) {
                     adfs::stmt sql( *subscribe.raw->db() );
@@ -217,9 +214,6 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
         pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
 
         if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
-#ifndef NDEBUG
-            // ADDEBUG() << lkm->toJson();
-#endif
             for ( auto& cm: cXmethods_ )
                 cm->setLockmass( lkm->enabled() );
         }
@@ -290,7 +284,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     if ( reader->objtext().find( "histogram" ) != std::string::npos && cXmethods_[1]->molecules().size() ) // counting
                         readers[ 1 ] = reader;
                 }
-                auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw );
+                auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw, dp.get() );
                 auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
                 if ( !pCompounds )
                     return false;
@@ -343,19 +337,5 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         processor_->complete( &sample );
     }
     document::instance()->sample_processed( this );
-    return true;
-}
-
-bool
-QuanCountingProcessor::subscribe( const adcontrols::LCMSDataset& d )
-{
-    raw_ = &d;
-    return true;
-}
-
-bool
-QuanCountingProcessor::subscribe( const adcontrols::ProcessedDataset& d )
-{
-    portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
     return true;
 }

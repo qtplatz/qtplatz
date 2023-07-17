@@ -81,10 +81,11 @@ namespace adprocessor {
 
     class v3::MSChromatogramExtractor::impl {
     public:
-        impl( const adcontrols::LCMSDataset * raw ) : raw_( raw )
+        impl( const adcontrols::LCMSDataset * raw
+              , std::shared_ptr< dataprocessor > dp) : raw_( raw )
+                                                     , processor_( dp )
             {}
 
-        // void prepare_mslock( const adcontrols::MSChromatogramMethod&, const adcontrols::ProcessMethod& );
         bool apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, adcontrols::lockmass::mslock& );
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
@@ -110,6 +111,8 @@ namespace adprocessor {
         std::unique_ptr< msLocker > msLocker_;
         adcontrols::lockmass::mslock mslock_; // mslock at auto-targeting
         std::vector< std::pair< int64_t, std::array< double, 2 > > > lkms_;  // time, coeffs
+        //
+        std::shared_ptr< dataprocessor > processor_;
     };
 
     struct protocol_finder {
@@ -198,15 +201,17 @@ MSChromatogramExtractor::~MSChromatogramExtractor()
 {
     delete impl_;
 }
-MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset * raw ) : impl_( new impl( raw ) )
+MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset * raw
+                                                  , dataprocessor * dp ) : impl_( new impl( raw, dp->shared_from_this() ) )
 {
 }
 
 std::shared_ptr< const adcontrols::MassSpectrum >
 MSChromatogramExtractor::getMassSpectrum( double tR ) const
 {
-    // depend on the timing of this call, either waveform or histogram will be returned
-    auto it = std::lower_bound( impl_->spectra_.begin(), impl_->spectra_.end(), tR
+    auto it = std::lower_bound( impl_->spectra_.begin()
+                                , impl_->spectra_.end()
+                                , tR
                                 , [&]( const auto& pair, double t ){ return pair.second->getMSProperty().timeSinceInjection() < t; });
     if ( it == impl_->spectra_.end() )
         return nullptr;
@@ -222,9 +227,6 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                                       , size_t& nProg )
 {
     const size_t nSpectra = reader->size( fcn );
-    // const bool isProfile = ( reader->objtext().find( "waveform" ) != std::string::npos ) ||
-    //     std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
-    // (void)isProfile;
 
     if ( nSpectra == 0 )
         return false;
@@ -238,6 +240,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
         impl_->msLocker_ = std::make_unique< msLocker > ( *cm, *pm );
 
     adcontrols::lockmass::mslock mslock;
+    auto global_mslock = impl_->processor_->dataGlobalMSLock();
 
     for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
 
@@ -252,6 +255,8 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                     coeffs = {{ mslock.coeffs()[ 0 ], mslock.coeffs()[ 1 ] }};
                 impl_->lkms_.emplace_back( it->epoch_time(), coeffs );
             }
+        } else if ( global_mslock ) {
+            (*global_mslock)( *ms );
         }
 
 #if ! defined NDEBUG && 0
@@ -328,6 +333,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
     }
 
     // ADDEBUG() << "##################### extract_by_mols ##########################";
+    auto global_mslock = impl_->processor_->dataGlobalMSLock();
 
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
@@ -335,6 +341,9 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         auto it = reader->begin( -1 );
 
         if ( auto sp = reader->readSpectrum( it ) ) {
+
+            if ( global_mslock )
+                (*global_mslock)( *sp );
 
             for ( auto& mol: cm->molecules().data() ) {
 
@@ -352,7 +361,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                                           % proto.get() ).str();
 
                     adcontrols::quan::extract_by_mols extract_by_mols;
-                    // boost::json::object auto_target_candidate;
+
                     if ( ! targets.empty() ) {
                         auto it = std::find_if( targets.begin(), targets.end(), [&]( const auto& t ){ return t.mol() == mol; });
                         if ( it != targets.end() ) {

@@ -42,6 +42,7 @@ main()
     auto sys_tp = std::chrono::system_clock::now();
     auto sdy_tp = std::chrono::steady_clock::now();
 
+    std::cout << "sys ns: " << adportable::date_time::to_iso< std::chrono::nanoseconds >( sys_tp, true ) << std::endl;
     std::cout << "sys us: " << adportable::date_time::to_iso< std::chrono::microseconds >( sys_tp, true ) << std::endl;
     std::cout << "sys ms: " << adportable::date_time::to_iso< std::chrono::milliseconds >( sys_tp, true ) << std::endl;
     std::cout << "sys  s: " << adportable::date_time::to_iso< std::chrono::seconds >( sys_tp, true ) << std::endl;

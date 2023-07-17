@@ -456,9 +456,11 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
         const adcontrols::descriptions& desc = impl_->data_->getDescriptions();
         for ( size_t i = 0; i < desc.size(); ++i ) {
             const adcontrols::description& d = desc[i];
-            if ( ! std::string( d.xml() ).empty() ) {
-                formattedMethod.append( d.xml() );
+#if 0
+            if ( d.encode() == adcontrols::Encode_XML ) {
+                formattedMethod.append( QString::fromStdString( d.text<char>() ) );
             }
+#endif
         }
     }
     drawRect.setTop( drawRect.bottom() + 0.5 * resolution );

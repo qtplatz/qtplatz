@@ -27,6 +27,8 @@
 
 #include "adcontrols_global.h"
 #include "description.hpp"
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <vector>
 
 namespace boost {
@@ -57,7 +59,6 @@ namespace adcontrols {
 	   void append( const description&, bool uniq = true );
 	   size_t size() const;
 	   const description& operator [] ( size_t idx ) const;
-       //descriptions& operator << ( const description& );
 
        std::vector< description >::iterator begin();
        std::vector< description >::iterator end();
@@ -72,9 +73,14 @@ namespace adcontrols {
        static bool xml_restore( std::wistream&, descriptions& );
 
    private:
+       class impl;
+       std::unique_ptr< impl > impl_;
+
 	   friend class boost::serialization::access;
 	   template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-	   internal::descriptionsImpl* pImpl_;
+
+       friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const descriptions& );
+       friend ADCONTROLSSHARED_EXPORT descriptions tag_invoke( boost::json::value_to_tag< descriptions >&, const boost::json::value& );
    };
 
     template<> void ADCONTROLSSHARED_EXPORT

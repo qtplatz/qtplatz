@@ -419,21 +419,21 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                        , std::shared_ptr< QuanDataWriter > writer
                                        , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
-    if ( auto raw = processor.getLCMSDataset() ) {
+    if ( auto raw = processor.rawdata() ) { //getLCMSDataset() ) {
 
         if ( raw->dataformat_version() < 3 )  // no support for old (before 2014) data
             return false;
 
-        auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw );
+        auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw, &processor );
         std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers;
 
         for ( auto reader: raw->dataReaders() ) {
-            if ( ( reader->objtext().find( "waveform" ) != std::string::npos ) ||  // soft average
-                 std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) ) ) {  // hard average
+            if ( ( reader->objtext().find( "waveform" ) != std::string::npos ) ||                                    // soft average
+                 std::regex_search( reader->objtext(), std::regex( "^[1-9]\\.u5303a\\.ms-cheminfo.com" ) ) ) {       // hard average
                 readers[ 0 ] = reader;
             }
 
-            if ( ( reader->objtext().find( "histogram" ) != std::string::npos ) ||  // soft counting
+            if ( ( reader->objtext().find( "histogram" ) != std::string::npos ) ||                                   // soft counting
                  std::regex_search( reader->objtext(), std::regex( "^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) ) ) { // hard counting
                 readers[ 1 ] = reader;
             }

@@ -68,7 +68,7 @@ namespace quan {
 
     ///////////////////////////////////
 
-    class QuanCountingProcessor : public adcontrols::dataSubscriber {
+    class QuanCountingProcessor { //: public adcontrols::dataSubscriber {
         QuanCountingProcessor( const QuanCountingProcessor& ) = delete;
         QuanCountingProcessor& operator = (const QuanCountingProcessor&) = delete;
     public:
@@ -80,18 +80,15 @@ namespace quan {
 
         bool operator()( std::shared_ptr< QuanDataWriter > writer );
         QuanProcessor * processor();
-        const adcontrols::LCMSDataset * getLCMSDataset() const { return raw_; }
-        adcontrols::datafile * datafile() { return datafile_.get(); }
-        portfolio::Portfolio * portfolio() { return portfolio_.get(); }
+        // const adcontrols::LCMSDataset * getLCMSDataset() const { return raw_; }
+        // adcontrols::datafile * datafile() { return datafile_.get(); }
+        // portfolio::Portfolio * portfolio() { return portfolio_.get(); }
 
     private:
         friend class QuanChromatogramProcessor;
 
-        std::wstring path_;
-        const adcontrols::LCMSDataset * raw_;
+        // std::wstring path_;
         std::vector< adcontrols::QuanSample > samples_;
-        std::shared_ptr< adcontrols::datafile > datafile_;
-        std::shared_ptr< portfolio::Portfolio > portfolio_;
         std::shared_ptr< adcontrols::ProcessMethod > procm_;
         std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
         std::shared_ptr< QuanProcessor > processor_;
@@ -102,11 +99,6 @@ namespace quan {
         int progress_total_;
         std::mutex mutex_;
         std::array< std::unique_ptr< adcontrols::MSChromatogramMethod >, 2 > cXmethods_;
-
-        void open();
-        bool subscribe( const adcontrols::LCMSDataset& d ) override;
-        bool subscribe( const adcontrols::ProcessedDataset& d ) override;
-        // bool fetch( portfolio::Folium& folium );
 
         QuanProcessor * quanProcessor();
     public:

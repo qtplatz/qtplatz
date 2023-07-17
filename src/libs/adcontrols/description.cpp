@@ -28,10 +28,16 @@
 #include <chrono>
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adcontrols/constants.hpp>
+#include <adportable/date_time.hpp>
+#include <adportable/iso8601.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <adportable/utf.hpp>
 #include <boost/any.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
+#include <boost/json.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
@@ -47,29 +53,37 @@ namespace adcontrols {
         template< typename Archive >
         void operator()( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
-            if ( version < 3 ) {
-                time_t tv_sec;
-                long tv_usec;
-                std::wstring key, value;
-                ar & BOOST_SERIALIZATION_NVP(tv_sec);
-                ar & BOOST_SERIALIZATION_NVP(tv_usec);
-                ar & BOOST_SERIALIZATION_NVP(key);
-                ar & BOOST_SERIALIZATION_NVP(value);
-                std::chrono::system_clock::time_point tp =
-                    std::chrono::system_clock::time_point() + std::chrono::seconds( tv_sec ) + std::chrono::microseconds( tv_usec );
-                _.posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( tp.time_since_epoch() ).count();
-                _.keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( value ) );
-                if ( version < 2 ) {
-                    std::wstring wxml;
-                    ar & BOOST_SERIALIZATION_NVP( wxml );
-                    _.xml_ = adportable::utf::to_utf8( wxml );
-                } else {
-                    ar & BOOST_SERIALIZATION_NVP( _.xml_ );
-                }
-            } else {
+            if ( version >= 4 ) {
                 ar & BOOST_SERIALIZATION_NVP( _.posix_time_ );
                 ar & BOOST_SERIALIZATION_NVP( _.keyValue_ );
-                ar & BOOST_SERIALIZATION_NVP( _.xml_ );
+                ar & BOOST_SERIALIZATION_NVP( _.encode_ );
+            } else {
+                if ( version < 3 ) {
+                    time_t tv_sec;
+                    long tv_usec;
+                    std::wstring key, value;
+                    ar & BOOST_SERIALIZATION_NVP(tv_sec);
+                    ar & BOOST_SERIALIZATION_NVP(tv_usec);
+                    ar & BOOST_SERIALIZATION_NVP(key);
+                    ar & BOOST_SERIALIZATION_NVP(value);
+                    std::chrono::system_clock::time_point tp =
+                        std::chrono::system_clock::time_point() + std::chrono::seconds( tv_sec ) + std::chrono::microseconds( tv_usec );
+                    _.posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( tp.time_since_epoch() ).count();
+                    _.keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( value ) );
+                    if ( version < 2 ) {
+                        std::wstring wxml;
+                        ar & BOOST_SERIALIZATION_NVP( wxml );
+                    } else {
+                        std::string xml;
+                        ar & BOOST_SERIALIZATION_NVP( xml );
+                    }
+                } else {
+                    // V3
+                    std::string xml;
+                    ar & BOOST_SERIALIZATION_NVP( _.posix_time_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.keyValue_ );
+                    ar & BOOST_SERIALIZATION_NVP( xml );
+                }
             }
         }
     };
@@ -97,27 +111,30 @@ description::~description()
 {
 }
 
-description::description()
+description::description() : encode_( adcontrols::Encode_TEXT )
 {
     posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 }
 
-description::description( const std::wstring& key, const std::wstring& text )
+description::description( const std::wstring& key
+                          , const std::wstring& text )
     : posix_time_( std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count() )
     , keyValue_( std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( text ) ) )
+    , encode_( adcontrols::Encode_TEXT )
 {
 
 }
 
 description::description( std::pair< std::string, std::string >&& keyValue )
     : posix_time_( std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count() )
-    , keyValue_( keyValue )
+    , keyValue_( std::move( keyValue ) )
+    , encode_( adcontrols::Encode_TEXT )
 {
 }
 
 description::description( const description& t ) : posix_time_( t.posix_time_ )
 						                         , keyValue_( t.keyValue_ )
-                                                 , xml_( t.xml_ )
+                                                 , encode_( t.encode_ )
 {
 }
 
@@ -137,6 +154,18 @@ void
 description::setValue( const std::string& t )
 {
     keyValue_.second = t;
+}
+
+adcontrols::TextEncode
+description::encode() const
+{
+    return encode_;
+}
+
+void
+description::setEncode( adcontrols::TextEncode encode )
+{
+    encode_ = encode;
 }
 
 namespace adcontrols {
@@ -162,26 +191,39 @@ namespace adcontrols {
     }
 }
 
-// std::wstring
-// description::text() const
-// {
-//     return adportable::utf::to_wstring( keyValue_.second );
-// }
+namespace adcontrols {
 
-// std::wstring
-// description::key() const
-// {
-//     return adportable::utf::to_wstring( keyValue_.first );
-// }
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const description& t )
+    {
+        std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp( std::chrono::nanoseconds( t.posix_time_ ) );
+        auto dt = adportable::date_time::to_iso< std::chrono::microseconds >( tp );
 
-const char *
-description::xml() const
-{
-    return xml_.c_str();
-}
+        jv = {
+            { "posix_time", dt }
+            , { "keyValue", t.keyValue_ }
+            , { "encode",   unsigned( t.encode_ ) }
+        };
+    }
 
-void
-description::xml( const char * u )
-{
-    xml_ = u;
+    description
+    tag_invoke( boost::json::value_to_tag< description >&, const boost::json::value& jv )
+    {
+        using namespace adportable::json;
+
+        if ( jv.kind() == boost::json::kind::object ) {
+            description t;
+            auto obj = jv.as_object();
+            std::string dt;
+            extract( obj, dt, "posix_time" );
+            extract( obj, t.keyValue_, "keyValue" );
+            extract( obj, reinterpret_cast< unsigned int&>(t.encode_),   "encode" );
+            if ( auto tp = adportable::iso8601::parse( dt.begin(), dt.end() ) ) {
+                t.posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( tp->time_since_epoch() ).count();
+            }
+            return t;
+        }
+        return {};
+    }
+
 }

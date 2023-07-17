@@ -1,4 +1,3 @@
-
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
@@ -45,45 +44,52 @@
 
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
-
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <boost/json.hpp>
 
 using namespace adcontrols;
 
 namespace adcontrols {
-	namespace internal {
 
-		class descriptionsImpl {
-		public:
-			~descriptionsImpl() {}
-			descriptionsImpl() {}
-			descriptionsImpl( const descriptionsImpl& t ) : vec_(t.vec_) {}
+    class descriptions::impl {
+    public:
+        ~impl() {}
+        impl() {}
+        impl( const impl& t ) : vec_(t.vec_) {}
 
-			typedef std::vector< description > vector_type;
+        typedef std::vector< description > vector_type;
 
-			void append( const description& desc, bool uniq );
-			inline size_t size() const { return vec_.size(); }
-			inline const description& operator []( size_t idx ) { return vec_[idx]; }
-            inline operator const vector_type& () const { return vec_; }
+        void append( const description& desc, bool uniq );
+        inline size_t size() const { return vec_.size(); }
+        inline const description& operator []( size_t idx ) { return vec_[idx]; }
+        inline operator const vector_type& () const { return vec_; }
 
-		private:
-            friend class adcontrols::descriptions;
-			friend class boost::serialization::access;
-			template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
-			    (void)version;
-			    ar & BOOST_SERIALIZATION_NVP(vec_);
-			}
-			vector_type vec_;
-		};
-		//
+    private:
+        vector_type vec_;
 
-        struct make_folder_name {
+        friend class adcontrols::descriptions;
+        friend class boost::serialization::access;
+
+        template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
+            ar & BOOST_SERIALIZATION_NVP(vec_);
+        }
+
+        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const descriptions& );
+        friend descriptions tag_invoke( boost::json::value_to_tag< descriptions >&, const boost::json::value& );
+    };
+    //
+
+    namespace {
+
+        struct __make_folder_name {
             std::basic_regex< wchar_t > regex_;
-            const descriptionsImpl::vector_type& vec_;
+            const std::vector< description >& vec_;
 
-            make_folder_name( const std::wstring& pattern
-                              , const descriptionsImpl::vector_type& vec ) : regex_( pattern ), vec_( vec ) {
+            __make_folder_name( const std::wstring& pattern
+                              , const std::vector< description >& vec ) : regex_( pattern ), vec_( vec ) {
             }
+
             std::wstring operator()() const {
                 std::wstring name;
                 std::for_each( vec_.rbegin(), vec_.rend()
@@ -99,23 +105,22 @@ namespace adcontrols {
                 return name;
             }
         };
+    }
 
-	}
 }
 
+
 BOOST_CLASS_VERSION(adcontrols::descriptions, 1)
-BOOST_CLASS_VERSION(adcontrols::internal::descriptionsImpl, 1)
+BOOST_CLASS_VERSION(adcontrols::descriptions::impl, 1)
 
 using namespace adcontrols::internal;
 
 descriptions::~descriptions()
 {
-    delete pImpl_;
 }
 
-descriptions::descriptions() : pImpl_(0)
+descriptions::descriptions() : impl_( std::make_unique< impl >() )
 {
-    pImpl_ = new descriptionsImpl();
 }
 
 descriptions::descriptions( const descriptions& t )
@@ -126,28 +131,25 @@ descriptions::descriptions( const descriptions& t )
 void
 descriptions::operator = ( const descriptions& t )
 {
-    if ( pImpl_ != t.pImpl_ ) {
-        delete pImpl_;
-        pImpl_ = new descriptionsImpl( *t.pImpl_ );
-    }
+    impl_->vec_ = t.impl_->vec_;
 }
 
 void
 descriptions::append( const description& desc, bool uniq )
 {
-    pImpl_->append( desc, uniq );
+    impl_->append( desc, uniq );
 }
 
 size_t
 descriptions::size() const
 {
-    return pImpl_->size();
+    return impl_->size();
 }
 
 const description&
 descriptions::operator [] ( size_t idx ) const
 {
-   return (*pImpl_)[idx];
+   return (*impl_)[idx];
 }
 
 std::wstring
@@ -162,43 +164,37 @@ descriptions::toString() const
 std::vector< description >::iterator
 descriptions::begin()
 {
-    return pImpl_->vec_.begin();
+    return impl_->vec_.begin();
 }
 
 std::vector< description >::iterator
 descriptions::end()
 {
-    return pImpl_->vec_.end();
+    return impl_->vec_.end();
 }
 
 std::vector< description >::const_iterator
 descriptions::begin() const
 {
-    return pImpl_->vec_.begin();
+    return impl_->vec_.begin();
 }
 
 std::vector< description >::const_iterator
 descriptions::end() const
 {
-    return pImpl_->vec_.end();
+    return impl_->vec_.end();
 }
 
 std::wstring
 descriptions::make_folder_name( const std::wstring& regex ) const
 {
-    return internal::make_folder_name( regex, *pImpl_ )();
+    return __make_folder_name( regex, impl_->vec_ )();
 }
 
 std::string
 descriptions::toJson() const
 {
-    boost::json::array ja;
-    for ( const auto& desc: *this ) {
-        std::string key, value;
-        std::tie(key, value) = desc.keyValue();
-        ja.emplace_back( boost::json::object{{ key, value }} );
-    }
-    return boost::json::serialize( ja );
+    return boost::json::serialize( boost::json::value_from( *this ) );
 }
 
 namespace adcontrols {
@@ -207,14 +203,14 @@ namespace adcontrols {
     descriptions::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar & *pImpl_;
+        ar & *impl_;
     }
 
     template<> void
     descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar & *pImpl_;
+        ar & *impl_;
     }
 
     /////////////////////// XML //////////////////////
@@ -222,14 +218,14 @@ namespace adcontrols {
     descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar << boost::serialization::make_nvp("descriptions", pImpl_);
+        ar << boost::serialization::make_nvp("descriptions", *impl_);
     }
 
     template<> void
     descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar >> boost::serialization::make_nvp("descriptions", pImpl_);
+        ar >> boost::serialization::make_nvp("descriptions", *impl_);
     }
 
 
@@ -242,7 +238,7 @@ namespace adcontrols {
 ////////////////////////////////////////////////////
 
 void
-descriptionsImpl::append( const description& desc, bool uniq )
+descriptions::impl::append( const description& desc, bool uniq )
 {
    if ( uniq ) {
        auto it = std::find_if( vec_.begin(), vec_.end(), [&]( const auto& t ){ return t.keyValue().first == desc.keyValue().first; } );
@@ -266,4 +262,28 @@ bool
 descriptions::xml_restore( std::wistream& is, descriptions& t )
 {
     return internal::xmlSerializer("descriptions").restore( is, t );
+}
+
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const descriptions& t )
+    {
+        jv = { { "descriptions", t.impl_->vec_ } };
+    }
+
+    descriptions
+    tag_invoke( boost::json::value_to_tag< descriptions >&, const boost::json::value& jv )
+    {
+        using namespace adportable::json;
+
+        if ( jv.kind() == boost::json::kind::object ) {
+            descriptions t;
+            auto obj = jv.as_object();
+            extract( obj, t.impl_->vec_, "descriptions" );
+            return t;
+        }
+        return {};
+    }
+
 }

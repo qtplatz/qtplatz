@@ -51,6 +51,7 @@ namespace boost { namespace json { class object; } }
 
 namespace adprocessor {
 
+    class dataprocessor;
     class AutoTargetingCandidates;
 
     namespace v3 {
@@ -62,7 +63,8 @@ namespace adprocessor {
 
         public:
             ~MSChromatogramExtractor();
-            MSChromatogramExtractor( const adcontrols::LCMSDataset * );
+            MSChromatogramExtractor( const adcontrols::LCMSDataset *
+                                     , dataprocessor * );
 
             // [0] Chromatograms from a list of mol in process method
             bool extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&

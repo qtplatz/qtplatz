@@ -127,7 +127,7 @@ OutputWidget::OutputWidget( std::ostream& os, QWidget * parent ) : QWidget( pare
                                                                  , impl_( new impl( os ) )
 {
     auto layout = new QVBoxLayout( this );
-    layout->setMargin( 0 );
+    layout->setContentsMargins( {} );
     layout->setSpacing( 0 );
     layout->addWidget( impl_ );
 }

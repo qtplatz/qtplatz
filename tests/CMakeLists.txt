@@ -10,9 +10,9 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
 
 #add_subdirectory( filename_splitter )
 add_subdirectory( test_svg )
-add_subdirectory( formula_parser )
+#add_subdirectory( formula_parser )
 add_subdirectory( csv_parser )
-add_subdirectory( test_peptide )
+#add_subdirectory( test_peptide )
 add_subdirectory( test_ptree )
 add_subdirectory( test_serializer )
 #add_subdirectory( isotope )

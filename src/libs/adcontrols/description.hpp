@@ -23,18 +23,21 @@
 **
 **************************************************************************/
 
-#ifndef DESCRIPTION_H
-#define DESCRIPTION_H
+#pragma once
 
 #include "adcontrols_global.h"
 #include <string>
 #include <time.h>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
+
 
 namespace adcontrols {
 
     template< typename T > struct description_archive;
+    enum TextEncode : unsigned int;
 
     class ADCONTROLSSHARED_EXPORT description;
     class  description {
@@ -44,7 +47,6 @@ namespace adcontrols {
         description( const description& );
         description( const std::wstring& key, const std::wstring& text );
         description( std::pair< std::string, std::string >&& keyValue );
-        // template< typename char_type > description( const std::basic_string< char_type >&& key, const std::basic_string< char_type >&& value );
 
         inline bool operator == ( const description& t ) const;
 
@@ -55,23 +57,24 @@ namespace adcontrols {
         void setKey( const std::string& );
         void setValue( const std::string& );
 
-        const char * xml() const;
-        void xml( const char * u );
+        adcontrols::TextEncode encode() const;
+        void setEncode( adcontrols::TextEncode );
 
     private:
         uint64_t posix_time_;
         std::pair< std::string, std::string > keyValue_;
-        std::string xml_;
+        adcontrols::TextEncode encode_; // xml | json | html
 
         friend struct description_archive< description >;
         friend struct description_archive< const description >;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
+
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const description& );
+        friend ADCONTROLSSHARED_EXPORT description tag_invoke( boost::json::value_to_tag< description >&, const boost::json::value& );
     };
 
 }
 
-BOOST_CLASS_VERSION(adcontrols::description, 3);
-
-#endif // DESCRIPTION_H
+BOOST_CLASS_VERSION(adcontrols::description, 4);

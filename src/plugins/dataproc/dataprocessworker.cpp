@@ -528,13 +528,13 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
 
         double width = cm.width( cm.widthMethod() );
         if ( auto dset = processor->rawdata() ) {
-            adprocessor::v3::MSChromatogramExtractor extract( dset );
+            adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
             extract.extract_by_json( vec, *pm, reader, json, width
                                      , adcontrols::hor_axis_mass, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
         }
     } else { // !autoTargeting
         if ( auto dset = processor->rawdata() ) {
-            adprocessor::v3::MSChromatogramExtractor extract( dset );
+            adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
             extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
         }
     }
@@ -563,7 +563,7 @@ DataprocessWorker::handleChromatogramByAxisRange3( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
-        adprocessor::v3::MSChromatogramExtractor ex( dset );
+        adprocessor::v3::MSChromatogramExtractor ex( dset, processor );
         ex.extract_by_axis_range( vec, *pm, reader, fcn, axis, range
                                   , [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
     }
@@ -589,7 +589,7 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
-        adprocessor::v3::MSChromatogramExtractor extract( dset );
+        adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
 
         ADDEBUG() << "## " << __FUNCTION__ << " ## reader: " << std::make_pair( reader->display_name(), reader->objtext() );
 
@@ -627,7 +627,7 @@ DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
-        adprocessor::v3::MSChromatogramExtractor ex( dset );
+        adprocessor::v3::MSChromatogramExtractor ex( dset, processor );
 
         auto axis = enableTime ? adcontrols::hor_axis_time : adcontrols::hor_axis_mass;
         ex.extract_by_json( vec, *pm, reader, peaks_json, width, axis, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );

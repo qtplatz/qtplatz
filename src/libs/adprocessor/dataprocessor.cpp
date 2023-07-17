@@ -607,17 +607,6 @@ dataprocessor::dataGlobalMSLock() const
     return impl_->global_lkms_;
 }
 
-#if 0
-bool
-dataprocessor::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ms ) const
-{
-    if ( impl_->global_lkms_ ) {
-        return mslock( *ms, *impl_->global_lkms_ );
-    }
-    return false;
-}
-#endif
-
 bool
 dataprocessor::mslock( adcontrols::MassSpectrum& ms, const adcontrols::lockmass::mslock& lkms )
 {

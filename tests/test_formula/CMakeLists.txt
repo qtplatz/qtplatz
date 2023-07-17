@@ -4,6 +4,8 @@ cmake_policy( SET CMP0042 NEW )
 
 project( test_formula )
 
+add_definitions( -Wno-deprecated-declarations )
+
 include_directories(
   ${Boost_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src/libs

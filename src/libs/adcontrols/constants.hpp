@@ -93,4 +93,11 @@ namespace adcontrols {
         };
     }
 
+    enum TextEncode : unsigned int {
+        Encode_TEXT = 0
+        , Encode_XML = 1
+        , Encode_JSON = 2
+        , Encode_HTML = 3
+    };
+
 }

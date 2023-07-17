@@ -26,6 +26,7 @@
 #define QUANSAMPLEPROCESSOR_HPP
 
 #include <adcontrols/datasubscriber.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <string>
 #include <vector>
 #include <memory>
@@ -56,7 +57,9 @@ namespace quan {
     class QuanProcessor;
     class QuanChromatogram;
 
-    class QuanSampleProcessor : public adcontrols::dataSubscriber {
+    class QuanSampleProcessor
+        : public adprocessor::dataprocessor {
+
         QuanSampleProcessor( const QuanSampleProcessor& ) = delete;
         QuanSampleProcessor& operator = (const QuanSampleProcessor&) = delete;
     public:
@@ -65,17 +68,11 @@ namespace quan {
         QuanSampleProcessor( QuanProcessor *, std::vector< adcontrols::QuanSample >&, std::shared_ptr< adwidgets::ProgressInterface > p );
         bool operator()( std::shared_ptr< QuanDataWriter > writer );
         QuanProcessor * processor();
-        const adcontrols::LCMSDataset * getLCMSDataset() const { return raw_; }
-        adcontrols::datafile * datafile() { return datafile_.get(); }
-        portfolio::Portfolio * portfolio() { return portfolio_.get(); }
-        
+
     private:
         friend class QuanChromatogramProcessor;
         std::wstring path_;
-        const adcontrols::LCMSDataset * raw_;
         std::vector< adcontrols::QuanSample > samples_;
-        std::shared_ptr< adcontrols::datafile > datafile_;
-        std::shared_ptr< portfolio::Portfolio > portfolio_;
         const std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
         std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
         std::shared_ptr< QuanProcessor > processor_;
@@ -87,9 +84,6 @@ namespace quan {
         std::mutex mutex_;
 
         void open();
-        bool subscribe( const adcontrols::LCMSDataset& d ) override;
-        bool subscribe( const adcontrols::ProcessedDataset& d ) override;
-        bool fetch( portfolio::Folium& folium );
 
         bool generate_spectrum( const adcontrols::LCMSDataset *, const adcontrols::QuanSample&, adcontrols::MassSpectrum& );
         size_t read_first_spectrum( const adcontrols::LCMSDataset *, adcontrols::MassSpectrum&, uint32_t tidx /* tic index */);
@@ -120,7 +114,7 @@ namespace quan {
         bool doMSFind( adcontrols::MSPeakInfo& pkInfo
                        , adcontrols::MassSpectrum& res
                        , adcontrols::QuanSample&
-                       , const adcontrols::QuanCompounds& 
+                       , const adcontrols::QuanCompounds&
                        , const adcontrols::TargetingMethod& m );
 
     };

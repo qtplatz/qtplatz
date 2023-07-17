@@ -37,6 +37,13 @@ namespace adportable {
         static std::string to_utf8( const std::wstring& /* utf16|utf32 */ );
         static std::wstring to_wstring( const std::string& /* utf8 */ );
         static std::wstring to_wstring( const unsigned char * /* utf8 */ );
+        template< typename T> static std::string as_utf8( const T& );
+        template< typename T> static std::wstring as_wide( const T& );
     };
-}
 
+    template<> std::string utf::as_utf8( const std::basic_string< char >& t );
+    template<> std::string utf::as_utf8( const std::basic_string< wchar_t >& t );
+
+    template<> std::wstring utf::as_wide( const std::basic_string< char >& t );
+    template<> std::wstring utf::as_wide( const std::basic_string< wchar_t >& t );
+}

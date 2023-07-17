@@ -26,7 +26,7 @@ namespace adportable {
 std::string
 utf::to_utf8( const std::wstring& t )
 {
-#if defined WIN32    
+#if defined WIN32
     assert( sizeof( wchar_t ) == sizeof( UTF16 ) );
     size_t utf16size = t.size();
 
@@ -64,7 +64,7 @@ utf::to_utf8( const std::wstring& t )
 std::wstring
 utf::to_wstring( const std::string& u8 )
 {
-#if defined WIN32    
+#if defined WIN32
     assert( sizeof( wchar_t ) == sizeof( UTF16 ) );
     size_t utf8size = u8.size();
     std::wstring target( utf8size + 1, '\0' );
@@ -107,3 +107,27 @@ utf::to_wstring( const unsigned char * u8 )
     return to_wstring( std::string( reinterpret_cast< const char *>(u8) ) );
 }
 
+template<>
+std::string
+utf::as_utf8( const std::basic_string< char >& t )
+{
+    return t;
+}
+
+template<> std::string
+utf::as_utf8( const std::basic_string< wchar_t >& t )
+{
+    return to_utf8( t );
+}
+
+template<> std::wstring
+utf::as_wide( const std::basic_string< char >& t )
+{
+    return to_wstring(t);
+}
+
+template<> std::wstring
+utf::as_wide( const std::basic_string< wchar_t >& t )
+{
+    return t;
+}
