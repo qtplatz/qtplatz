@@ -36,6 +36,7 @@ namespace adcontrols {
     class Peak;
     class MassSpectrum;
     class MSPeakInfo;
+    class ProcessMethod;
 }
 
 namespace adprocessor {
@@ -54,7 +55,7 @@ namespace adprocessor {
         class annotator {
         public:
             ~annotator();
-            annotator( const portfolio::Folium& );
+            annotator( const portfolio::Folium&, const adcontrols::ProcessMethod& );
             void operator()( std::shared_ptr< adcontrols::MassSpectrum > pCentroid );
             void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
         private:

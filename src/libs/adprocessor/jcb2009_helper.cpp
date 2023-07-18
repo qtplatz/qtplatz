@@ -29,10 +29,14 @@
 #include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msfinder.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
+#include <iterator>
 
 using namespace adprocessor;
 using namespace adprocessor::jcb2009_helper;
@@ -87,11 +91,18 @@ namespace adprocessor {
         class annotator::impl {
         public:
             portfolio::Folium folium_;
+            adcontrols::MSFinder msFinder_;
             double mass_;
             std::optional< std::string > formula_;
-            impl( const portfolio::Folium& folium )
+            impl( const portfolio::Folium& folium
+                  , const adcontrols::ProcessMethod& m )
                 : folium_( folium )
                 , mass_( 0 ) {
+
+                if ( auto lm = m.find< adcontrols::MSLockMethod >() ) {
+                    msFinder_ =
+                        adcontrols::MSFinder( lm->tolerance( lm->toleranceMethod() ), lm->algorithm(), lm->toleranceMethod() );
+                }
 
                 if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
                     auto jv = adportable::json_helper::parse( chro->generatorProperty() );
@@ -114,8 +125,9 @@ namespace adprocessor {
             delete impl_;
         }
 
-        annotator::annotator( const portfolio::Folium& folium )
-            : impl_( new impl( folium ) )
+        annotator::annotator( const portfolio::Folium& folium
+                              , const adcontrols::ProcessMethod& m )
+            : impl_( new impl( folium, m ) )
         {
         }
 
@@ -124,7 +136,13 @@ namespace adprocessor {
         {
             typedef adcontrols::MassSpectrum T;
             int fcn(0);
-            for ( auto& seg: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
+            if ( impl_->mass_ > 0 ) {
+                for ( auto& ms: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
+                    auto idx = (impl_->msFinder_)( ms, impl_->mass_ );
+                    ADDEBUG() << "### found mass[" << idx << "]=" <<
+                        std::make_tuple( ms.mass(idx), impl_->mass_ )
+                              << ", error: " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa";
+                }
             }
         }
 
@@ -132,7 +150,12 @@ namespace adprocessor {
         annotator::operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo )
         {
             typedef adcontrols::MSPeakInfo T;
-            for ( auto& seg: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *pInfo ) ) {
+            if ( impl_->mass_ > 0 ) {
+                for ( auto& info: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *pInfo ) ) {
+                    auto it = (impl_->msFinder_)( info, impl_->mass_ );
+                    if ( it != info.end() )
+                        ADDEBUG() << "### found info ###" << it->toJson(); //std::distance( info.begin(), it );
+                }
             }
         }
 
