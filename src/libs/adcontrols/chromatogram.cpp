@@ -934,7 +934,7 @@ Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
 template<> std::wstring
 Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
 {
-    ADDEBUG() << "make_folder_name: " << boost::json::value_from( descs );
+    // ADDEBUG() << "make_folder_name: " << boost::json::value_from( descs );
     return descs.make_folder_name( L"(MSLock)", true );
 }
 

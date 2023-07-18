@@ -24,8 +24,11 @@
 
 #include "jcb2009_helper.hpp"
 #include <adcontrols/chromatogram.hpp>
-#include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/segment_wrapper.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
@@ -37,24 +40,26 @@ using namespace adprocessor::jcb2009_helper;
 void
 printer::print( const portfolio::Folium& folium )
 {
+    ADDEBUG() << "==========================================================";
     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
         ADDEBUG() << folium.name() << "\tpeaks.size: " << chro->peaks().size();
 
         auto jv = adportable::json_helper::parse( chro->generatorProperty() );
         if ( jv.is_object() ) {
-            if ( auto gen = jv.as_object().if_contains( "generator" ) ) {
-                if ( auto value = gen->as_object().if_contains( "extract_by_peak_info" ) ) {
-                    auto mv = adportable::json_helper::find( *value, "pkinfo.mass" );
-                    ADDEBUG() << "extract_by_peak_info: mass = " << mv.as_double();
-                    } else if ( auto value = gen->as_object().if_contains( "extract_by_mols" ) ) {
-                    ADDEBUG() << "extract_by_mols: " << adportable::json_helper::find( *value, "moltable" );
-                } else if ( auto value = gen->as_object().if_contains( "extract_by_axis_range" ) ) {
-                    ADDEBUG() << "extract_by_axis_range: " << *value;
-                }
+            if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
+                if ( auto mv = adportable::json_helper::if_contains( *gen, "pkinfo.mass" ) )
+                    ADDEBUG() << "-------- extract_by_peak_info: mass = " << mv->as_double();
+            } else if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_mols" ) ) {
+                if ( auto mv = adportable::json_helper::if_contains( *gen, "moltable.mass" ) )
+                    ADDEBUG() << "--------- extract_by_mols: moltable.mass :" << mv->as_double();
+                if ( auto formula = adportable::json_helper::if_contains( *gen, "moltable.formula" ) )
+                    ADDEBUG() << "--------- extract_by_mols: moltable.formula :" << formula->as_string();
+            } else if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_axis_range" ) ) {
+                ADDEBUG() << "extract_by_axis_range: " << *gen;
             }
         }
     }
-
+    ADDEBUG() << "==========================================================";
 }
 
 adcontrols::Peaks
@@ -72,4 +77,64 @@ find_peaks::tR( const adcontrols::Peak& pk, double w )
     return { pk.peakTime()
                   , pk.peakTime() - std::abs(pk.startTime() - pk.peakTime()) / w
                   , pk.peakTime() + std::abs(pk.peakTime() - pk.endTime()) / w };
+}
+
+/////////////////////////
+
+namespace adprocessor {
+    namespace jcb2009_helper {
+
+        class annotator::impl {
+        public:
+            portfolio::Folium folium_;
+            double mass_;
+            std::optional< std::string > formula_;
+            impl( const portfolio::Folium& folium )
+                : folium_( folium )
+                , mass_( 0 ) {
+
+                if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    auto jv = adportable::json_helper::parse( chro->generatorProperty() );
+                    if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
+                        if ( auto value = adportable::json_helper::if_contains( *gen, "pkinfo.mass" ) )
+                            mass_ = value->as_double();
+                    } else if (  auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_mols" ) ) {
+                        if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.mass" ) )
+                            mass_ = value->as_double();
+                        if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.formula" ) )
+                            formula_ = value->as_string();
+                    }
+                }
+                ADDEBUG() << "annotator.mass = " << mass_ << "\t" << (formula_ ? *formula_ : "");
+            }
+        };
+
+        annotator::~annotator()
+        {
+            delete impl_;
+        }
+
+        annotator::annotator( const portfolio::Folium& folium )
+            : impl_( new impl( folium ) )
+        {
+        }
+
+        void
+        annotator::operator()( std::shared_ptr< adcontrols::MassSpectrum > pCentroid )
+        {
+            typedef adcontrols::MassSpectrum T;
+            int fcn(0);
+            for ( auto& seg: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
+            }
+        }
+
+        void
+        annotator::operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo )
+        {
+            typedef adcontrols::MSPeakInfo T;
+            for ( auto& seg: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *pInfo ) ) {
+            }
+        }
+
+    }
 }

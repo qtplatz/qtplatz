@@ -623,7 +623,7 @@ dataprocessor::handleGlobalMSLockChanged()
     portfolio::Folder folder = portfolio().findFolder( L"MSLock" );
     for ( auto folium: folder.folio() ) {
         fetch( folium );
-        ADDEBUG() << "-------- " << folium.name() << "\tmslock: " << folium.attribute( "mslock" );
+        // ADDEBUG() << "-------- " << folium.name() << "\tmslock: " << folium.attribute( "mslock" );
         if ( folium.attribute( "mslock" ) == "true" ) {
             if ( auto it = portfolio::find_first_of( folium.attachments()
                                                      , []( auto& a ){ return a.name() == adcontrols::constants::F_MSLOCK; } ) ) {
@@ -636,9 +636,9 @@ dataprocessor::handleGlobalMSLockChanged()
         }
     }
 
-    for ( const auto& lkms: vlkms ) {
-        ADDEBUG() << "======== vlkms list ====== " << boost::json::value_from( *lkms );
-    }
+    // for ( const auto& lkms: vlkms ) {
+    //     ADDEBUG() << "======== vlkms list ====== " << boost::json::value_from( *lkms );
+    // }
 
     if ( !vlkms.empty() ) {
         if ( vlkms.size() > 1 )

@@ -94,6 +94,23 @@ json_helper::find( const boost::json::value& jv, const std::string& keys ) // do
     return value;
 }
 
+// static
+const boost::json::value *
+json_helper::if_contains( const boost::json::value& jv, const std::string& keys ) // dot delimited key-list
+{
+    tokenizer tok( keys );
+    const boost::json::value * pv = &jv;
+    for ( const auto& key: tok ) {
+        if ( ! pv )
+            return nullptr;
+        if ( pv->kind() != boost::json::kind::object )
+            return nullptr;
+        if (( pv = pv->as_object().if_contains( key )) )
+            continue;
+    }
+    return pv;
+}
+
 boost::json::value
 json_helper::find( const std::string& s, const std::string& keys ) // dot delimited key-list
 {

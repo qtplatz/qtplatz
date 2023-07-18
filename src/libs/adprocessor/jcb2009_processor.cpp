@@ -95,7 +95,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
         auto peaks = jcb2009_helper::find_peaks().get( folium );
         for ( const auto& peak: peaks ) {
             auto tR = jcb2009_helper::find_peaks().tR( peak );
-            ADDEBUG() << tR;
+            ADDEBUG() << " ----------- peak retention time: " << tR;
             if ( auto ms = reader->coaddSpectrum( reader->findPos( std::get< 1 >(tR) )
                                                   , reader->findPos( std::get< 2 >(tR) ) ) ) {
                 auto desc = adcontrols::description( { L"create", folium.name() } );
@@ -103,12 +103,16 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
                 centroid_processor peak_detector( *impl_->procm_ );
 
+                jcb2009_helper::annotator annotate( folium );
                 auto [pCentroid, pInfo] = peak_detector( *ms );
+
                 if ( pCentroid ) {
+                    annotate( pCentroid );
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
                     top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
                 }
                 if ( pInfo ) {
+                    annotate( pInfo );
                     top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
                 }
                 // impl_->processor_->applyProcess( top, impl_->procm_, CentroidProcess );

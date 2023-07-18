@@ -41,6 +41,7 @@ namespace adportable {
     public:
         static boost::json::value parse( const std::string& );
         static boost::json::value parse( const boost::optional< std::string >& );
+        static const boost::json::value * if_contains( const boost::json::value&, const std::string& keys ); // dot delimited key-list
         static boost::json::value find( const boost::json::value&, const std::string& keys ); // dot delimited key-list
         static boost::json::value find( const std::string& json, const std::string& keys ); // parse & find
         static boost::json::value find( const boost::optional< std::string >&, const std::string& keys ); // parse & find

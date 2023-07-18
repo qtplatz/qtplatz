@@ -34,6 +34,8 @@ namespace portfolio {
 namespace adcontrols {
     class Peaks;
     class Peak;
+    class MassSpectrum;
+    class MSPeakInfo;
 }
 
 namespace adprocessor {
@@ -49,6 +51,16 @@ namespace adprocessor {
             std::tuple< double, double, double > tR( const adcontrols::Peak&, double divisor = 2.0 );
         };
 
+        class annotator {
+        public:
+            ~annotator();
+            annotator( const portfolio::Folium& );
+            void operator()( std::shared_ptr< adcontrols::MassSpectrum > pCentroid );
+            void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
+        private:
+            class impl;
+            impl * impl_;
+        };
     }
 
 
