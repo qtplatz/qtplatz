@@ -87,7 +87,6 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
     progress( nCurr, impl_->folio_.size() );
     for ( const auto& folium: impl_->folio_ ) {
-
         // debug print
         // jcb2009_helper::printer().print( folium );
         // end debug
