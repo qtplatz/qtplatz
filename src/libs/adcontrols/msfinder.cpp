@@ -143,6 +143,12 @@ MSFinder::operator()( const MassSpectrum& ms, double mass ) const
 std::vector< MSPeakInfoItem >::const_iterator
 MSFinder::operator()( const MSPeakInfo& pks, double mass ) const
 {
+    return (*this)(const_cast< MSPeakInfo& >(pks), mass );
+}
+
+std::vector< MSPeakInfoItem >::iterator
+MSFinder::operator()( MSPeakInfo& pks, double mass ) const
+{
     double tolerance = (toleranceMethod_ == idToleranceDaltons) ? width_ : (mass * width_ / 1.0e6);
 
     auto its = std::lower_bound( pks.begin(), pks.end(), mass - tolerance, []( const auto& pk, double lMass ){ return pk.mass() < lMass; } );

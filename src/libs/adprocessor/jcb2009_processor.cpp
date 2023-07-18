@@ -24,6 +24,7 @@
 
 #include "jcb2009_processor.hpp"
 #include "jcb2009_helper.hpp"
+#include "jcb2009_summarizer.hpp"
 #include "centroid_processor.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/chromatogram.hpp>
@@ -85,11 +86,12 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     size_t nCount = impl_->folio_.size();
     size_t nCurr = 0;
 
+    jcb2009_helper::summarizer summary;
+
     progress( nCurr, impl_->folio_.size() );
+
     for ( const auto& folium: impl_->folio_ ) {
-        // debug print
-        // jcb2009_helper::printer().print( folium );
-        // end debug
+
         auto peaks = jcb2009_helper::find_peaks().get( folium );
         for ( const auto& peak: peaks ) {
             auto tR = jcb2009_helper::find_peaks().tR( peak );
@@ -98,11 +100,13 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
             if ( auto ms = reader->coaddSpectrum( reader->findPos( std::get< 1 >(tR) )
                                                   , reader->findPos( std::get< 2 >(tR) ) ) ) {
+
                 auto desc = adcontrols::description( { L"create", folium.name() } );
                 ms->addDescription( desc );
-                portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
-                centroid_processor peak_detector( *impl_->procm_ );
 
+                portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
+
+                centroid_processor peak_detector( *impl_->procm_ );
                 jcb2009_helper::annotator annotate( folium, *impl_->procm_ );
                 auto [pCentroid, pInfo] = peak_detector( *ms );
 
@@ -115,14 +119,21 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                     annotate( pInfo );
                     top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
                 }
+                summary( pCentroid, pInfo );
             }
         }
 
         progress(++nCurr, nCount );
-
-        // todo ---
-        // get mass spectrum for peak retention time -- done
-        // centroid spectrum, and color code for an ion, which the mass corresponding to a mass of chromatogram extracted.
-        // re-constract an ideal mass spectrum that combines all color coded ions;
     }
+
+    auto [pSummary, pInfoSummary] = summary.get();
+
+    portfolio::Folium stop = impl_->processor_->addSpectrum( pSummary, adcontrols::ProcessMethod() );
+    stop.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pSummary, pSummary->dataClass() );
+    stop.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfoSummary, pInfoSummary->dataClass() );
+
+    // todo ---
+    // get mass spectrum for peak retention time -- done
+    // centroid spectrum, and color code for an ion, which the mass corresponding to a mass of chromatogram extracted.
+    // re-constract an ideal mass spectrum that combines all color coded ions;
 }

@@ -27,38 +27,28 @@
 #include "adprocessor_global.hpp"
 #include <memory>
 
-namespace portfolio {
-    class Folium;
-}
-
 namespace adcontrols {
-    class Peaks;
-    class Peak;
     class MassSpectrum;
     class MSPeakInfo;
-    class ProcessMethod;
 }
 
 namespace adprocessor {
 
     namespace jcb2009_helper {
 
-        struct printer {
-            void print( const portfolio::Folium& );
-        };
-
-        struct find_peaks {
-            adcontrols::Peaks get( const portfolio::Folium& );
-            std::tuple< double, double, double > tR( const adcontrols::Peak&, double divisor = 2.0 );
-        };
-
-        class annotator {
+        class summarizer {
         public:
-            ~annotator();
-            annotator( const portfolio::Folium&, const adcontrols::ProcessMethod& );
-            void operator()( std::shared_ptr< adcontrols::MassSpectrum > pCentroid );
-            void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
+            ~summarizer();
+            summarizer();
+            void operator()( std::shared_ptr< const adcontrols::MassSpectrum > pCentroid
+                             , std::shared_ptr< const adcontrols::MSPeakInfo > pInfo );
+
+            std::pair< std::shared_ptr< adcontrols::MassSpectrum >
+                       , std::shared_ptr< adcontrols::MSPeakInfo > > get() const;
         private:
+            void operator()( std::shared_ptr< const adcontrols::MassSpectrum > pCentroid );
+            void operator()( std::shared_ptr< const adcontrols::MSPeakInfo > pInfo );
+
             class impl;
             impl * impl_;
         };

@@ -142,9 +142,9 @@ namespace adprocessor {
                 for ( auto& ms: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
                     auto idx = (impl_->msFinder_)( ms, impl_->mass_ );
                     pCentroid->setColor( idx, 15 ); // magenta
-                    ADDEBUG() << "### found mass[" << idx << "]=" <<
-                        std::make_tuple( ms.mass(idx), impl_->mass_ )
-                              << ", error: " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa";
+                    // ADDEBUG() << "### found mass[" << idx << "]=" <<
+                    //     std::make_tuple( ms.mass(idx), impl_->mass_ )
+                    //           << ", error: " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa";
                     adcontrols::annotation anno( impl_->folium_.name(), ms.mass( idx ), ms.intensity( idx ), static_cast< int >(idx) );
                     ms.get_annotations() << anno;
                 }
@@ -158,8 +158,10 @@ namespace adprocessor {
             if ( impl_->mass_ > 0 ) {
                 for ( auto& info: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *pInfo ) ) {
                     auto it = (impl_->msFinder_)( info, impl_->mass_ );
-                    if ( it != info.end() )
-                        ADDEBUG() << "### found info ###" << it->toJson(); //std::distance( info.begin(), it );
+                    if ( it != info.end() ) {
+                        // ADDEBUG() << "### found info ###" << it->toJson(); //std::distance( info.begin(), it );
+                        it->annotation( impl_->folium_.name() );
+                    }
                 }
             }
         }

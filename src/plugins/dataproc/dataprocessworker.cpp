@@ -237,14 +237,16 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor
                         document::instance()->setProcessMethod( tmp );
 
                         if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                            threads_.emplace_back( adportable::asio::thread( [=,this] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                            threads_.emplace_back( adportable::asio::thread( [=,this] {
+                                handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 } else {
                     auto readers = rawfile->dataReaders();
                     auto it = std::find_if( readers.begin(), readers.end(), [&](const auto& r){ return r->objtext() == tm->dataReader(); } );
                     if ( it != readers.end() ) {
                         auto reader = (*it);
-                        threads_.emplace_back( adportable::asio::thread( [=,this] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                        threads_.emplace_back( adportable::asio::thread( [=,this] {
+                            handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                     }
                 }
 
@@ -294,7 +296,8 @@ DataprocessWorker::createContour( Dataprocessor* processor )
             if ( dlg.exec() == QDialog::Accepted ) {
                 int fcn = dlg.fcn();
                 if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                    threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
+                    threads_.push_back( adportable::asio::thread( [=,this] {
+                        handleCreateSpectrogram3( processor, pm, reader.get(), fcn, p ); } ) );
             }
         } else {
             threads_.push_back( adportable::asio::thread( [=,this] { handleCreateSpectrogram( processor, pm, p ); } ) );
@@ -515,9 +518,11 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                     processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
                     bool found( false );
                     if ( auto fCentroid = portfolio::find_first_of( folium.attachments()
-                                                                    , []( const auto& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
+                                                                    , []( const auto& f ) {
+                                                                        return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
                         if ( auto f = portfolio::find_first_of( fCentroid.attachments()
-                                                                , []( const auto& a ) { return a.name() == Constants::F_TARGETING; } ) ) {
+                                                                , []( const auto& a ) {
+                                                                    return a.name() == Constants::F_TARGETING; } ) ) {
                             if ( auto targeting = portfolio::get< std::shared_ptr< adcontrols::Targeting > >( f ) ) {
                                 found = true;
 
@@ -543,12 +548,14 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
         if ( auto dset = processor->rawdata() ) {
             adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
             extract.extract_by_json( vec, *pm, reader, json, width
-                                     , adcontrols::hor_axis_mass, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+                                     , adcontrols::hor_axis_mass, [progress]( size_t curr, size_t total ){
+                                         return (*progress)( curr, total ); } );
         }
     } else { // !autoTargeting
         if ( auto dset = processor->rawdata() ) {
             adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
-            extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+            extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){
+                return (*progress)( curr, total ); } );
         }
     }
 

@@ -58,6 +58,7 @@ namespace adcontrols {
         size_t operator()( const MassSpectrum&, double mass ) const;
 
         std::vector< MSPeakInfoItem >::const_iterator operator()( const MSPeakInfo&, double mass ) const;
+        std::vector< MSPeakInfoItem >::iterator operator()( MSPeakInfo&, double mass ) const;
 
         double width() const { return width_; }
         idToleranceMethod toleranceMethod() const { return toleranceMethod_; }

@@ -309,6 +309,19 @@ MSPeakInfoItem::annotation( const std::string& v )
     annotation_ = v;
 }
 
+bool
+MSPeakInfoItem::visible() const
+{
+    return is_visible_;
+}
+
+void
+MSPeakInfoItem::visible( bool f )
+{
+    is_visible_ = f;
+}
+
+
 void
 MSPeakInfoItem::set_mass( double mass, double left, double right )
 {
