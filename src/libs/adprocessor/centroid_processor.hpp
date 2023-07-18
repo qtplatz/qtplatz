@@ -27,28 +27,30 @@
 #include "adprocessor_global.hpp"
 #include <memory>
 
-namespace portfolio {
-    class Folium;
+namespace adcontrols {
+    class ProcessMethod;
+    class CentroidMethod;
+    class MassSpectrum;
+    class MSPeakInfo;
 }
 
 namespace adprocessor {
 
-    class ADPROCESSORSHARED_EXPORT JCB2009Processor;
-    class dataprocessor;
-
-    class JCB2009Processor {
-
-        JCB2009Processor( const JCB2009Processor& ) = delete;
-        JCB2009Processor& operator = ( const JCB2009Processor& ) = delete;
-
+    class centroid_processor {
     public:
-        ~JCB2009Processor();
-        JCB2009Processor( dataprocessor * );
+        ~centroid_processor();
+        centroid_processor();
+        centroid_processor( const adcontrols::ProcessMethod& );
 
-        void operator << ( portfolio::Folium&& folium );
+        void setup( const adcontrols::ProcessMethod& );
+        const adcontrols::CentroidMethod& centroidMethod() const;
+
+        std::pair< std::shared_ptr< adcontrols::MassSpectrum >
+                   , std::shared_ptr< adcontrols::MSPeakInfo > > operator()( const adcontrols::MassSpectrum& ) const;
 
     private:
         class impl;
         std::unique_ptr< impl > impl_;
     };
+
 }

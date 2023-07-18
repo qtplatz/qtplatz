@@ -89,7 +89,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/utf.hpp>
-#include <adprocessor/jcb2009processor.hpp>
+#include <adprocessor/jcb2009_processor.hpp>
 #include <adprocessor/noise_filter.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportfolio/folder.hpp>
@@ -99,6 +99,7 @@
 #include <adutils/fsio.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/processeddata_t.hpp>
+#include <adwidgets/datareaderchoicedialog.hpp>
 #include <qtwrapper/debug.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
@@ -125,6 +126,7 @@
 #include <QApplication>
 #include <QFontMetrics>
 #include <QMessageBox>
+#include <QJsonDocument>
 
 using namespace dataproc;
 
@@ -1855,34 +1857,40 @@ Dataprocessor::clearMarkup( portfolio::Folium&& folium )
 void
 Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Folium >&& folio )
 {
-    auto jcb2009 = std::make_shared< adprocessor::JCB2009Processor >( this );
-    for ( auto folium: folio ) {
-        fetch( folium );
-        if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-            // ADDEBUG() << folium.name() << "\tpeaks.size: " << chro->peaks().size();
-            // << "\n" << boost::json::value_from( chro->peaks() );
-#if 0
-            auto jv = adportable::json_helper::parse( chro->generatorProperty() );
-            if ( jv.is_object() ) {
-                if ( auto gen = jv.as_object().if_contains( "generator" ) ) {
-                    if ( auto value = gen->as_object().if_contains( "extract_by_peak_info" ) ) {
-                        auto mv = adportable::json_helper::find( *value, "pkinfo.mass" );
-                        ADDEBUG() << "extract_by_peak_info: mass = " << mv.as_double();
-                    } else if ( auto value = gen->as_object().if_contains( "extract_by_mols" ) ) {
-                        ADDEBUG() << "extract_by_mols: " << adportable::json_helper::find( *value, "moltable" );
-                    } else if ( auto value = gen->as_object().if_contains( "extract_by_axis_range" ) ) {
-                        ADDEBUG() << "extract_by_axis_range: " << *value;
+    if ( auto jcb2009 = std::make_shared< adprocessor::JCB2009_Processor >( this ) ) {
+
+        for ( auto folium: folio ) {
+            fetch( folium );
+            if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                if ( chro->peaks().size() ) {
+                    (*jcb2009) << std::move( folium );
+                }
+            }
+        }
+
+        if ( auto file = rawdata() ) {
+            auto pm = MainWindow::instance()->processMethod();
+            jcb2009->setProcessMethod( pm );
+
+            adwidgets::DataReaderChoiceDialog dlg( file->dataReaders() );
+            dlg.setProtocolHidden( true );
+            if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+                dlg.setMassWidth( tm->width( tm->widthMethod() ) );
+                dlg.setTimeWidth( 4e-9 ); // 4ns
+            }
+            if ( dlg.exec() == QDialog::Accepted ) {
+                auto reader_params = dlg.toJson();
+                for ( auto& sel: dlg.selection() ) {
+                    auto rdpara = QJsonDocument::fromJson( reader_params.at( sel.first ) ).object();
+                    auto enableTime = rdpara[ "enableTime" ].toBool();
+                    double massWidth = rdpara[ "massWidth" ].toDouble();
+                    double timeWidth = rdpara[ "timeWidth" ].toDouble();
+                    if ( auto reader = file->dataReaders().at( sel.first ) ) {
+                        DataprocessWorker::instance()->doIt( jcb2009, reader );
                     }
                 }
             }
-#endif
-            if ( chro->peaks().size() ) {
-                (*jcb2009) << std::move( folium );
-            }
-        } else {
-            ADDEBUG() << "\tno ChromatogramPtr in folium";
         }
-
     }
 }
 

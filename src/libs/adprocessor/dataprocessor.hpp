@@ -28,6 +28,7 @@
 #include "adprocessor_global.hpp"
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adportfolio/folium.hpp>
 #include <boost/optional.hpp>
 #include <filesystem>
 #include <functional>
@@ -141,11 +142,13 @@ namespace adprocessor {
         std::shared_ptr< const adcontrols::lockmass::mslock > dataGlobalMSLock() const;
         void handleGlobalMSLockChanged();
 
-        //---
-        // bool apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > ) const; // apply mass lock if data global lockmass exists
-        static bool mslock( adcontrols::MassSpectrum&, const adcontrols::lockmass::mslock& );
-
         bool fetch( portfolio::Folium& );
+
+        virtual portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >
+                                               , const adcontrols::ProcessMethod& ) { return {}; }
+
+        //---
+        static bool mslock( adcontrols::MassSpectrum&, const adcontrols::lockmass::mslock& );
 
     private:
         class impl;

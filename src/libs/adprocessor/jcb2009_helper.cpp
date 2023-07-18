@@ -22,49 +22,23 @@
 **
 **************************************************************************/
 
-#include "jcb2009processor.hpp"
-#include "dataprocessor.hpp"
+#include "jcb2009_helper.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
-
 #include <boost/json.hpp>
-#include <memory>
-
-namespace adprocessor {
-
-    class JCB2009Processor::impl {
-    public:
-        std::shared_ptr< adprocessor::dataprocessor > processor_;
-        std::vector< portfolio::Folium > folio_;
-
-        impl( adprocessor::dataprocessor * dp )
-            : processor_( dp->shared_from_this() ) {
-        }
-    };
-}
 
 using namespace adprocessor;
-
-JCB2009Processor::~JCB2009Processor()
-{
-}
-
-JCB2009Processor::JCB2009Processor( adprocessor::dataprocessor * processor )
-    : impl_( std::make_unique< impl >( processor ) )
-{
-}
+using namespace adprocessor::jcb2009_helper;
 
 void
-JCB2009Processor::operator << ( portfolio::Folium&& folium )
+printer::print( const portfolio::Folium& folium )
 {
-    impl_->folio_.emplace_back( std::move( folium ) );
-
-    const auto& xfolium = impl_->folio_.back();
-    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( xfolium ) ) {
-        ADDEBUG() << xfolium.name() << "\tpeaks.size: " << chro->peaks().size();
+    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        ADDEBUG() << folium.name() << "\tpeaks.size: " << chro->peaks().size();
 
         auto jv = adportable::json_helper::parse( chro->generatorProperty() );
         if ( jv.is_object() ) {
@@ -80,4 +54,22 @@ JCB2009Processor::operator << ( portfolio::Folium&& folium )
             }
         }
     }
+
+}
+
+adcontrols::Peaks
+find_peaks::get( const portfolio::Folium& folium )
+{
+    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        return chro->peaks();
+    }
+    return {};
+}
+
+std::tuple< double, double, double >
+find_peaks::tR( const adcontrols::Peak& pk, double w )
+{
+    return { pk.peakTime()
+                  , pk.peakTime() - std::abs(pk.startTime() - pk.peakTime()) / w
+                  , pk.peakTime() + std::abs(pk.peakTime() - pk.endTime()) / w };
 }

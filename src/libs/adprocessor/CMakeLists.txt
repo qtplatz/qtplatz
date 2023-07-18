@@ -39,7 +39,9 @@ add_library( ${PROJECT_NAME} SHARED
   mslocker.cpp
   mslocker.hpp
   noise_filter.cpp noise_filter.hpp
-  jcb2009processor.cpp jcb2009processor.hpp
+  jcb2009_processor.cpp jcb2009_processor.hpp
+  jcb2009_helper.cpp jcb2009_helper.hpp
+  centroid_processor.cpp centroid_processor.hpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

@@ -60,6 +60,7 @@
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
 #include <adprocessor/mschromatogramextractor.hpp>
+#include <adprocessor/jcb2009_processor.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
@@ -395,6 +396,18 @@ DataprocessWorker::exportMatchedMasses( Dataprocessor * processor
     }
 }
 
+void
+DataprocessWorker::doIt( std::shared_ptr< adprocessor::JCB2009_Processor > proc
+                         , std::shared_ptr< const adcontrols::DataReader > reader )
+{
+    auto progress( adwidgets::ProgressWnd::instance()->addbar() );
+    auto future = std::async( std::launch::async, [&](){
+        (*proc)( reader, [progress](size_t curr, size_t total){ return (*progress)( curr, total ); } );
+    } );
+
+    while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+        QCoreApplication::instance()->processEvents();
+}
 
 void
 DataprocessWorker::join( adportable::asio::thread::id id )

@@ -47,6 +47,7 @@ namespace adcontrols {
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  class DataReaderChoiceDialog; }
 namespace boost { namespace uuids { struct uuid; } }
+namespace adprocessor { class JCB2009_Processor; }
 
 class QString;
 class QByteArray;
@@ -102,6 +103,9 @@ namespace dataproc {
         void findPeptide( Dataprocessor *, const adprot::digestedPeptides& );
         void mslock( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectra >, const adcontrols::MSLockMethod& );
         void exportMatchedMasses( Dataprocessor *, std::shared_ptr< const adcontrols::MassSpectra >, const std::wstring& foliumId );
+
+        void doIt( std::shared_ptr< adprocessor::JCB2009_Processor >
+                   , std::shared_ptr< const adcontrols::DataReader > reader );
 
     private:
 
