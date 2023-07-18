@@ -36,6 +36,8 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <cstdint>
 #include <tuple>
 
@@ -175,6 +177,9 @@ namespace adcontrols {
         uint64_t userData_;
 
     private:
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const Peak& );
+        friend ADCONTROLSSHARED_EXPORT Peak tag_invoke( boost::json::value_to_tag< Peak >&, const boost::json::value& jv );
+
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
@@ -219,7 +224,6 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( userData_ );
             }
         }
-
     };
 
 }

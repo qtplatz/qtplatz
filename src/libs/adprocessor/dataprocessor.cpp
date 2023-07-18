@@ -646,10 +646,10 @@ dataprocessor::handleGlobalMSLockChanged()
         impl_->global_lkms_ = vlkms.back();
     }
 
-    if ( impl_->global_lkms_ )
-        ADDEBUG() << "################## " << __FUNCTION__ << " ############## dataGlobalmslock = " << boost::json::value_from( *impl_->global_lkms_ );
-    else
-        ADDEBUG() << "################## " << __FUNCTION__ << " ############## dataGlobalmslock empty";
+    // if ( impl_->global_lkms_ )
+    //     ADDEBUG() << "## " << __FUNCTION__ << " ## dataGlobalmslock = " << boost::json::value_from( *impl_->global_lkms_ );
+    // else
+    //     ADDEBUG() << "## " << __FUNCTION__ << " ## dataGlobalmslock empty";
 }
 
 bool

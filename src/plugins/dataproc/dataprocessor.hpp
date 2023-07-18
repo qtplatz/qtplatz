@@ -166,6 +166,8 @@ namespace dataproc {
         //
 		bool onFileAdded( const std::wstring& path, adfs::file& ) override;
         // <------------------------
+        void handleSpectraFromChromatographicPeaks( std::vector< portfolio::Folium >&& );
+
     public slots:
         void handleSetGlobalMSLock( portfolio::Folium );
         void handleRemoveGlobalMSLock( portfolio::Folium );

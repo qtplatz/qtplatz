@@ -27,6 +27,9 @@
 #include "peaks.hpp"
 #include "baseline.hpp"
 #include "baselines.hpp"
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 
 using namespace adcontrols;
@@ -129,4 +132,36 @@ void
 Peaks::noiseLevel( double v )
 {
    noiseLevel_ = v;
+}
+
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const Peaks& t )
+    {
+        jv = {{ "peaks", t.peaks_ }
+              ,{ "areaTotal", t.areaTotal_ }
+              ,{ "heightTotal", t.heightTotal_ }
+              ,{ "noiseLevel",  t.noiseLevel_ }
+        };
+    }
+
+    Peaks
+    tag_invoke( boost::json::value_to_tag< Peaks >&, const boost::json::value& jv )
+    {
+        Peaks t;
+        using namespace adportable::json;
+
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            extract( obj,     t.peaks_,                 "peaks"        );
+            extract( obj,     t.areaTotal_,             "areaTotal"    );
+            extract( obj,     t.heightTotal_,           "heightTotal"  );
+            extract( obj,     t.noiseLevel_,            "noiseLevel"   );
+        }
+
+        return t;
+    }
+
+
 }

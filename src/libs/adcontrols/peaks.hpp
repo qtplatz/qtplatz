@@ -32,6 +32,8 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace adcontrols {
 
@@ -87,6 +89,9 @@ namespace adcontrols {
         double areaTotal_;
         double heightTotal_;
         double noiseLevel_;
+
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const Peaks& );
+        friend ADCONTROLSSHARED_EXPORT Peaks tag_invoke( boost::json::value_to_tag< Peaks >&, const boost::json::value& jv );
 
         friend class boost::serialization::access;
         template<class Archive>

@@ -89,6 +89,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/utf.hpp>
+#include <adprocessor/jcb2009processor.hpp>
 #include <adprocessor/noise_filter.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportfolio/folder.hpp>
@@ -102,6 +103,7 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
 #include <utils/mimeutils.h>
+#include <boost/json.hpp>
 
 #if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
@@ -1847,6 +1849,40 @@ Dataprocessor::clearMarkup( portfolio::Folium&& folium )
         }
         setModified( true );
         SessionManager::instance()->updateDataprocessor( this, folium );
+    }
+}
+
+void
+Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Folium >&& folio )
+{
+    auto jcb2009 = std::make_shared< adprocessor::JCB2009Processor >( this );
+    for ( auto folium: folio ) {
+        fetch( folium );
+        if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+            // ADDEBUG() << folium.name() << "\tpeaks.size: " << chro->peaks().size();
+            // << "\n" << boost::json::value_from( chro->peaks() );
+#if 0
+            auto jv = adportable::json_helper::parse( chro->generatorProperty() );
+            if ( jv.is_object() ) {
+                if ( auto gen = jv.as_object().if_contains( "generator" ) ) {
+                    if ( auto value = gen->as_object().if_contains( "extract_by_peak_info" ) ) {
+                        auto mv = adportable::json_helper::find( *value, "pkinfo.mass" );
+                        ADDEBUG() << "extract_by_peak_info: mass = " << mv.as_double();
+                    } else if ( auto value = gen->as_object().if_contains( "extract_by_mols" ) ) {
+                        ADDEBUG() << "extract_by_mols: " << adportable::json_helper::find( *value, "moltable" );
+                    } else if ( auto value = gen->as_object().if_contains( "extract_by_axis_range" ) ) {
+                        ADDEBUG() << "extract_by_axis_range: " << *value;
+                    }
+                }
+            }
+#endif
+            if ( chro->peaks().size() ) {
+                (*jcb2009) << std::move( folium );
+            }
+        } else {
+            ADDEBUG() << "\tno ChromatogramPtr in folium";
+        }
+
     }
 }
 

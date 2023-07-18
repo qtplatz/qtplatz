@@ -37,19 +37,24 @@
 #include <adportable_serializer/portable_binary_archive.hpp>
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
+#include <adportable/date_time.hpp>
+#include <adportable/iso8601.hpp>
 #include <boost/json.hpp> // #if BOOST_VERSION >= 107500
 #include <adportable/json/extract.hpp>
 #include <cstring>
+#include <chrono>
 
 using namespace adcontrols;
 using namespace adcontrols::lockmass;
 
-mslock::mslock()
+mslock::mslock() : posix_time_( 0 )
 {
 }
 
 mslock::mslock( const mslock& t ) : references_( t.references_ )
                                   , fitter_( t.fitter_ )
+                                  , posix_time_( t.posix_time_ )
+                                  , property_( t.property_ )
 {
 }
 
@@ -180,6 +185,26 @@ mslock::fitter() const
     return fitter_;
 }
 
+int64_t
+mslock::posix_time() const
+{
+    return posix_time_;
+}
+
+std::optional< std::string >
+mslock::property() const
+{
+    if ( property_.empty() )
+        return {};
+    return property_;
+}
+
+void
+mslock::setProperty( std::pair< std::string, std::string >&& keyValue )
+{
+    property_ = boost::json::serialize( boost::json::value{ keyValue.first, keyValue.second } );
+}
+
 ///////////////////
 
 // static
@@ -237,6 +262,8 @@ bool
 mslock::fit()
 {
     fitter_.clear();
+
+    posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 
     if ( references_.size() == 1 ) {
         auto& ref = references_[0];
@@ -457,8 +484,15 @@ namespace adcontrols {
         void
         tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const mslock& t )
         {
-            jv = {{ "fitter",       t.fitter_ }
-                  ,{ "references",  t.references_ }
+            std::chrono::time_point< std::chrono::system_clock
+                                     , std::chrono::nanoseconds > tp( std::chrono::nanoseconds( t.posix_time_ ) );
+            auto dt = adportable::date_time::to_iso< std::chrono::microseconds >( tp );
+
+            jv = {
+                { "posix_time",  dt }
+                , { "property",    t.property_ }
+                , { "fitter",       t.fitter_ }
+                , { "references",  t.references_ }
             };
         }
 
@@ -472,6 +506,16 @@ namespace adcontrols {
                 auto obj = jv.as_object();
                 extract( obj, t.fitter_         , "fitter"               );
                 extract( obj, t.references_     , "references"           );
+                if ( obj.if_contains( "posix_time" ) ) {
+                    std::string dt;
+                    extract( obj, dt, "posix_time" );
+                    if ( auto tp = adportable::iso8601::parse( dt.begin(), dt.end() ) ) {
+                        t.posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( tp->time_since_epoch() ).count();
+                    }
+                }
+                if ( obj.if_contains( "property" ) ) {
+                    extract( obj, t.property_, "property" );
+                }
                 return t;
             }
             return {};

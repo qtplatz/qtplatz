@@ -32,8 +32,8 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-//#include <boost/serialization/string.hpp>
-//#include <boost/serialization/vector.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace adcontrols {
 
@@ -54,6 +54,9 @@ namespace adcontrols {
         double peakAsymmetryEndTime_;
 
     private:
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const PeakAsymmetry& );
+        friend ADCONTROLSSHARED_EXPORT PeakAsymmetry tag_invoke( boost::json::value_to_tag< PeakAsymmetry >&, const boost::json::value& jv );
+
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
@@ -66,4 +69,3 @@ namespace adcontrols {
     };
 
 }
-

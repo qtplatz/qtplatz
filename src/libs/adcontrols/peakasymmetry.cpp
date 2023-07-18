@@ -24,6 +24,9 @@
 **************************************************************************/
 
 #include "peakasymmetry.hpp"
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
+#include <boost/json.hpp>
 
 using namespace adcontrols;
 
@@ -70,3 +73,30 @@ PeakAsymmetry::endTime() const
     return peakAsymmetryEndTime_;
 }
 
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const PeakAsymmetry& t )
+    {
+        jv = {
+            { "Asymmetry",            t.peakAsymmetry_   }
+            ,{ "AsymmetryStartTime",  t.peakAsymmetryStartTime_ }
+            ,{ "AsymmetryEndTime",    t.peakAsymmetryEndTime_ }
+        };
+    }
+
+    PeakAsymmetry
+    tag_invoke( boost::json::value_to_tag< PeakAsymmetry >&, const boost::json::value& jv )
+    {
+        PeakAsymmetry _;
+        using namespace adportable::json;
+
+        if ( jv.is_object() ) {
+            auto obj = jv.as_object();
+            extract( obj,     _.peakAsymmetry_,        "Asymmetry"        );
+            extract( obj,     _.peakAsymmetryStartTime_,   "AsymmetryStartTime"        );
+            extract( obj,     _.peakAsymmetryEndTime_,     "AsymmetryStartTime"        );
+        }
+        return _;
+    }
+}

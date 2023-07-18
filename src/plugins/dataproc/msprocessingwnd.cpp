@@ -1,7 +1,7 @@
 /**************************************************************************
 ** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2023 MS-Cheminformatics LLC
-*
+**
 ** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
@@ -480,6 +480,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                         auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
                                                                  % adcontrols::Chromatogram::make_folder_name<wchar_t>( tic->descriptions() )
                                                                  % L"TIC" % ( fcn + 1 ) ).str() );
+
                         if ( folium.nil() ) {
                             auto c = std::make_shared< adcontrols::Chromatogram >(*tic);
                             c->addDescription( adcontrols::description(
@@ -990,7 +991,8 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                             , [=,this] () { document::instance()->onSelectSpectrum_v3( dp, rect.left(), it ); } );
                     }
                 } else {
-                    QMessageBox::information( 0, "Dataprocessor", "QtPlatz 6.0 and later versions do not support v2 format data file.  Use QtPlatz 5.4" );
+                    QMessageBox::information( 0, "Dataprocessor"
+                                              , "QtPlatz 6.0 and later versions do not support v2 format data file.  Use QtPlatz 5.4" );
                 }
             }
         }

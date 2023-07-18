@@ -139,8 +139,11 @@ namespace adcontrols {
             const std::vector< double >& coeffs() const;
             const lockmass::fitter& fitter() const;
 
-            // static void tag_invoke( boost::json::value& jv, const mslock& );
-            // static mslock tag_invoke( const boost::json::value& jv );
+            int64_t posix_time() const;
+
+            std::optional< std::string > property() const;
+            void setProperty( std::pair< std::string, std::string >&& keyValue );
+
             static constexpr const wchar_t * const __dataClass__ = L"adcontrols::lockmass::mslock";
             static const wchar_t * const dataClass() { return __dataClass__; }
             static bool archive( std::ostream&, const mslock& );
@@ -149,17 +152,23 @@ namespace adcontrols {
         private:
             std::vector< reference > references_;
             lockmass::fitter fitter_;
+            int64_t posix_time_;
+            std::string property_;
 
             friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const mslock& );
             friend ADCONTROLSSHARED_EXPORT mslock tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& );
 
             friend class boost::serialization::access;
             template<class Archive>
-                void serialize(Archive& ar, const unsigned int ) {
+            void serialize(Archive& ar, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP(references_)
                     & BOOST_SERIALIZATION_NVP(fitter_)
                     ;
+                if ( version >= 1 ) {
+                    ar & posix_time_;
+                    ar & property_;
+                }
             }
         };
 
@@ -168,3 +177,5 @@ namespace adcontrols {
 #endif
     }
 }
+
+BOOST_CLASS_VERSION( adcontrols::lockmass::mslock, 1 )

@@ -105,9 +105,9 @@ namespace adprocessor {
             if ( lkms_.size() ) {
                 return adcontrols::description( { "MSLock", "On-the-fly"} );
             } else if ( mslock_ ) {
-                return adcontrols::description( { "MSLock", "Targeting" } );
+                return adcontrols::description( { "MSLock", boost::json::serialize( boost::json::value_from(mslock_) ) } );
             } else if ( auto global_mslock = processor_->dataGlobalMSLock() ) {
-                return adcontrols::description( { "MSLock", "dataGlobal" } );
+                return adcontrols::description( { "MSLock", boost::json::serialize( boost::json::value_from(*global_mslock) ) } );
             }
             return {};
         }
@@ -556,6 +556,11 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
         std::pair< double, double > time_range =
             std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
                           , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
+        auto gen = boost::json::value{
+            { "generator"
+              , {{ "extract_by_axis_range", {{ "axis", unsigned(axis) }, { "range", range }} }}
+              , {{ "reader", { "name", reader->objtext() }, { "protocol", fcn } }}
+            }};
 
         for ( auto& r : impl_->results_ ) {
             r->pChr_->setIsCounting( isCounting );
@@ -563,6 +568,7 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
             r->pChr_->maximumTime( time_range.second );
             r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
             r->pChr_->setAxisUnit( r->isCounting_ ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
+            r->pChr_->setGeneratorProperty( boost::json::serialize( gen ) );
             if ( auto desc = impl_->desc_mslock() ) {
                 r->pChr_->addDescription( *desc );
             }
@@ -910,6 +916,7 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
     if ( mslock_ ) {
         mslock = mslock_;
         mslock_( *profile );
+        mslock_.setProperty( { "MSLock", "Targeting" } );
         return true;
     }
 

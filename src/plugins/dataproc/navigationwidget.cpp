@@ -579,6 +579,26 @@ namespace { // anonymous
         }
     };
 
+    //////////////////////////////// check selected /////////////////////////////////
+    struct set_checked {
+        const QModelIndexList& rows_;
+        set_checked( const QModelIndexList& rows ) : rows_( rows )  { }
+        void operator()( bool check ) const {
+            for ( auto index: rows_ ) {
+                if ( auto model = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
+                    if ( auto item = model->itemFromIndex( index ) ) {
+                        if ( item->isCheckable() ) {
+                            item->setCheckState( check ? Qt::Checked : Qt::Unchecked );
+                            if ( auto folium = find_t< portfolio::Folium >()( item ) ) {
+                                folium.setAttribute( "isChecked", check ? "true" : "false" );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     ///////////////////////////////////////////////////////////////////////////////
     struct check_all_in_folder {
         const QModelIndexList& rows_;
@@ -601,6 +621,22 @@ namespace { // anonymous
             }
         }
     };
+
+    //////////////////////////////// spectra_from_chromatographic_peaks JCA2009 /////////////////////////////////
+    struct spectra_from_chromatographic_peaks {
+        const QModelIndexList& rows_;
+        spectra_from_chromatographic_peaks( const QModelIndexList& rows ) : rows_( rows )  { }
+        void operator()() const {
+            std::map< Dataprocessor *, std::vector< portfolio::Folium > > list;
+            for ( auto index: rows_ ) {
+                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
+                list[ processor ].emplace_back( folium );
+            }
+            for ( auto& dp: list )
+                dp.first->handleSpectraFromChromatographicPeaks( std::move( dp.second ) );
+        }
+    };
+
 
     //--------------------------------
     template< Qt::CheckState CheckState >
@@ -888,7 +924,8 @@ namespace {
                                        if ( auto folium = find_t< portfolio::Folium >()( idx ) ) {
                                            processor->fetch( folium );
                                            if ( auto chro = portfolio::get_shared_of< adcontrols::Chromatogram >()( folium ) ) {
-                                               auto jv = adportable::json_helper::find( chro->generatorProperty(), "generator.extract_by_peak_info.pkinfo" );
+                                               auto jv = adportable::json_helper::find( chro->generatorProperty()
+                                                                                        , "generator.extract_by_peak_info.pkinfo" );
                                                if ( ! jv.is_null() ) {
                                                    auto pk = boost::json::value_to< adcontrols::MSPeakInfoItem >( jv );
                                                    info << pk; // append to pkinfo
@@ -995,6 +1032,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         menu.addAction( tr( "Tag red"   ), [=](){ set_attr( { "tag",    "red"   } ); } )->setEnabled( enable );
         menu.addAction( tr( "Tag blue"  ), [=](){ set_attr( { "tag",    "blue"  } ); } )->setEnabled( enable );
         menu.addAction( tr( "Tag green" ), [=](){ set_attr( { "tag",    "green" } ); } )->setEnabled( enable );
+        set_checked set_check( selRows );
+        menu.addAction( tr( "Check selected" ), [=](){ set_check( true ); })->setEnabled( enable );
+        menu.addAction( tr( "Uncheck selected" ), [=](){ set_check( false ); })->setEnabled( enable );
         menu.addSeparator();
     };
 
@@ -1005,15 +1045,17 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
         // enable either Spectra, Chromatograms, or both
         bool enable = selFolders.folderCounts() > 0;
+        if ( enable ) {
+            check_all_in_folder check_all( selRows );
+            menu.addAction( QString( tr("Uncheck all %1") ).arg( name ), [&]{ check_all( false ); } )->setEnabled( enable );
+            menu.addAction( QString( tr("Check all %1") ).arg( name ),   [&]{ check_all( true ); } )->setEnabled( enable );
 
-        check_all_in_folder check_all( selRows );
-        menu.addAction( QString( tr("Uncheck all %1") ).arg( name ),          [&]{ check_all( false ); } )->setEnabled( enable );
-        menu.addAction( QString( tr("Check all %1") ).arg( name ),            [&]{ check_all( true ); } )->setEnabled( enable );
+            set_attribute_all< Qt::Unchecked > set_attr( selRows );
+            menu.addAction( QString( tr("Remove all unchecked %1") ).arg( name )
+                            , [&]{ set_attr( { "remove", "true" } ); } )->setEnabled( enable );
+        }
 
-        set_attribute_all< Qt::Unchecked > set_attr( selRows );
-        menu.addAction( QString( tr("Remove all unchecked %1") ).arg( name ), [&]{ set_attr( { "remove", "true" } ); } )->setEnabled( enable );
-
-        // enable only Chromatograms was sepected
+        // enable only Chromatograms was selected
 #if __cplusplus >= 202002L
         enable = selFolders.folders().contains( "Chromatograms" ) && selFolders.folders().size() == 1;
 #else
@@ -1043,15 +1085,18 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
                         attachment_walker attachments( folium );
-                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, folium, index ) ) ) {
+                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."),
+                                                      SaveSpectrumAs( asProfile, folium, folium, index ) ) ) {
                             a->setEnabled( true );
                         }
                         auto centroid = std::get< 0 >( attachments.has_a_ );
-                        if ( auto a = menu.addAction( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, folium, centroid, index ) ) ) {
+                        if ( auto a = menu.addAction( tr("Save centroid spectrum as..."),
+                                                      SaveSpectrumAs( asCentroid, folium, centroid, index ) ) ) {
                             a->setEnabled( bool( centroid ) );
                         }
                         auto filtered = std::get< 1 >( attachments.has_a_ );
-                        if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, folium, filtered, index ) ) ) {
+                        if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."),
+                                                     SaveSpectrumAs( asDFTProfile, folium, filtered, index ) ) ) {
                             a->setEnabled( bool( filtered ) );
                         }
                     }
@@ -1070,25 +1115,29 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 if ( auto a = menu.addAction( tr("Set as global lock mass" ), GlobalMSLock( index ) ) ) {
                     a->setEnabled( folium.attribute( "mslock" ) == "false" );
                 }
-                ADDEBUG() << "----------- TODO ---------- emit dagaGlobalMSLockChange --------";
             }
         }
     }
 
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
+
+        spectra_from_chromatographic_peaks gen_spectra( selRows );
+        menu.addAction( tr( "Create mass spectra from chromatographic peaks (JCA 2009)" )
+                        , [=](){ gen_spectra(); } );
+
+
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
-            if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
-                if ( folium.parentFolder().name() == L"Chromatograms" ) {
-                    if ( auto a = menu.addAction( tr( "Baseline collection" ), [=] () { processor->baselineCollection( folium ); } ) )
-                        a->setEnabled( selRows.size() == 1 );
-                    if ( auto a = menu.addAction( tr( "Find single peak" ),    [=] () { processor->findSinglePeak( folium ); } ) )
-                        a->setEnabled( selRows.size() == 1 );
-                    if ( auto a = menu.addAction( tr( "Create Contour" ), [processor] () { processor->createContour(); } ) )
-                        a->setEnabled( selRows.size() == 1 );
-                    if ( auto a = menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) ) )
-                        a->setEnabled( selRows.size() == 1 );
-                    menu.addSeparator();
-                }
+            if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
+                if ( auto a = menu.addAction( tr( "Baseline collection" ), [=] () { processor->baselineCollection( folium ); } ) )
+                    a->setEnabled( selRows.size() == 1 );
+                if ( auto a = menu.addAction( tr( "Find single peak" ),    [=] () { processor->findSinglePeak( folium ); } ) )
+                    a->setEnabled( selRows.size() == 1 );
+
+                if ( auto a = menu.addAction( tr( "Create Contour" ), [processor] () { processor->createContour(); } ) )
+                    a->setEnabled( selRows.size() == 1 );
+                if ( auto a = menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) ) )
+                    a->setEnabled( selRows.size() == 1 );
+                menu.addSeparator();
             }
         }
     }

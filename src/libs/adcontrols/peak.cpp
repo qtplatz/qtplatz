@@ -24,6 +24,8 @@
 
 #include "peak.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
 #include <boost/json.hpp>
 
 using namespace adcontrols;
@@ -462,36 +464,7 @@ Peak::setRetentionTime( const RetentionTime& tr )
 std::string
 Peak::json() const
 {
-    boost::json::object jv{
-        { "Peak"
-          , {
-                { "name", name_ }
-                , { "formula", formula_ }
-                , { "peakId", peakid_ }
-                , { "baseId", baseid_ }
-                , { "startPos", startPos_ }
-                , { "topPos", topPos_ }
-                , { "endPos", endPos_ }
-                , { "startTime", double( startTime_ ) }
-                , { "peakTime",  double(peakTime_) }
-                , { "endTime",   double(endTime_) }
-                , { "peakFlags",  peak_flags_  }
-                , { "startHeight", startHeight_ }
-                , { "topHeight", topHeight_ }
-                , { "endHeight", endHeight_ }
-                , { "peakArea", peakArea_ }
-                , { "peakHeight", peakHeight_ }
-                , { "peakWidth", peakWidth_ }
-                , { "peakAmount", peakAmount_ }
-                , { "mannuallyModified", manuallyModified_ }
-                //, { "parentId", parentId_ }
-                //, { "appliedFunctions", appliedFunctions_ }
-
-            }
-        }
-    };
-    return boost::json::serialize( jv );
-    // return jv;
+    return boost::json::serialize( boost::json::value_from( *this ) );
 }
 
 void
@@ -500,4 +473,73 @@ Peak::yMove( double y0 )
     startHeight_ -= y0;
     topHeight_ -= y0;
     endHeight_ -= y0;
+}
+
+namespace adcontrols {
+
+    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const Peak& _ )
+    {
+        jv = {
+            { "Peak"
+              , {{   "name",                _.name_ }
+                 , { "formula",           _.formula_ }
+                 , { "peakId",            _.peakid_ }
+                 , { "baseId",            _.baseid_ }
+                 , { "startPos",          _.startPos_ }
+                 , { "topPos",            _.topPos_ }
+                 , { "endPos",            _.endPos_ }
+                 , { "startTime",         double( _.startTime_ ) }
+                 , { "peakTime",          double( _.peakTime_) }
+                 , { "endTime",           double( _.endTime_) }
+                 , { "peakFlags",         _.peak_flags_  }
+                 , { "startHeight",       _.startHeight_ }
+                 , { "topHeight",         _.topHeight_ }
+                 , { "endHeight",         _.endHeight_ }
+                 , { "peakArea",          _.peakArea_ }
+                 , { "peakHeight",        _.peakHeight_ }
+                 , { "peakWidth",         _.peakWidth_ }
+                 , { "peakAmount",        _.peakAmount_ }
+                 , { "mannuallyModified", _.manuallyModified_ }
+                 , { "peakAsymmetry",     _.asymmetry_ }
+                 //, { "parentId", parentId_ }
+                 //, { "appliedFunctions", appliedFunctions_ }
+                }
+            }};
+    }
+
+    Peak tag_invoke( boost::json::value_to_tag< Peak >&, const boost::json::value& jv )
+    {
+        Peak _;
+
+        if ( jv.is_object() ) {
+            if ( auto pv = jv.as_object().if_contains( "Peak" ) ) {
+                using namespace adportable::json;
+
+                double st(0), pt(0), et(0);
+                auto obj = pv->as_object();
+                extract( obj,     _.name_,                "name"        );
+                extract( obj,     _.formula_,              "formula"     );
+                extract( obj,     _.peakid_,               "peakId"      );
+                extract( obj,     _.baseid_,               "baseId"      );
+                extract( obj,     _.startPos_,             "startPos"    );
+                extract( obj,     _.topPos_,               "topPos"      );
+                extract( obj,     _.endPos_,               "endPos"      );
+                extract( obj,     st,                      "startTime"   );  _.startTime_ = st;
+                extract( obj,     pt,                      "peakTime"    );  _.peakTime_ = pt;
+                extract( obj,     et,                      "endTime"     );  _.endTime_ = et;
+                extract( obj,     _.peak_flags_,           "peakFlags"   );
+                extract( obj,     _.startHeight_,          "startHeight" );
+                extract( obj,     _.topHeight_,            "topHeight"   );
+                extract( obj,     _.endHeight_,            "endHeight"   );
+                extract( obj,     _.peakArea_,             "peakArea"    );
+                extract( obj,     _.peakHeight_,           "peakHeight"  );
+                extract( obj,     _.peakWidth_,            "peakWidth"   );
+                extract( obj,     _.peakAmount_,           "peakAmount"  );
+                extract( obj,     _.manuallyModified_,     "mannuallyModified" );
+                extract( obj,     _.asymmetry_,            "peakAsymmetry" );
+            }
+        }
+
+        return _;
+    }
 }
