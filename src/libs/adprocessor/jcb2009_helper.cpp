@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "jcb2009_helper.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
@@ -139,9 +141,12 @@ namespace adprocessor {
             if ( impl_->mass_ > 0 ) {
                 for ( auto& ms: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
                     auto idx = (impl_->msFinder_)( ms, impl_->mass_ );
+                    pCentroid->setColor( idx, 15 ); // magenta
                     ADDEBUG() << "### found mass[" << idx << "]=" <<
                         std::make_tuple( ms.mass(idx), impl_->mass_ )
                               << ", error: " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa";
+                    adcontrols::annotation anno( impl_->folium_.name(), ms.mass( idx ), ms.intensity( idx ), static_cast< int >(idx) );
+                    ms.get_annotations() << anno;
                 }
             }
         }
