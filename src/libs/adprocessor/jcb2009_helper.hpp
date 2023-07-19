@@ -49,7 +49,7 @@ namespace adprocessor {
 
         struct find_peaks {
             adcontrols::Peaks get( const portfolio::Folium& );
-            std::tuple< double, double, double > tR( const adcontrols::Peak&, double divisor = 2.0 );
+            std::tuple< double, double, double > tR( const adcontrols::Peak& );
         };
 
         class annotator {

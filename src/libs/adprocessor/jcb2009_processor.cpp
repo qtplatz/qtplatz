@@ -39,6 +39,7 @@
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
+#include <boost/format.hpp>
 #include <memory>
 
 namespace adprocessor {
@@ -88,7 +89,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
     jcb2009_helper::summarizer summary;
 
-    progress( nCurr, impl_->folio_.size() );
+    progress( 0, impl_->folio_.size() );
 
     for ( const auto& folium: impl_->folio_ ) {
 
@@ -96,12 +97,13 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
         for ( const auto& peak: peaks ) {
             auto tR = jcb2009_helper::find_peaks().tR( peak );
 
-            ADDEBUG() << " ----------- peak retention time: " << tR;
-
             if ( auto ms = reader->coaddSpectrum( reader->findPos( std::get< 1 >(tR) )
                                                   , reader->findPos( std::get< 2 >(tR) ) ) ) {
 
-                auto desc = adcontrols::description( { L"create", folium.name() } );
+                auto folname = (boost::format( "%s;tR=%.1f(%.1f)" )
+                                % folium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
+
+                auto desc = adcontrols::description( { "create", folname } );
                 ms->addDescription( desc );
 
                 portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
@@ -122,18 +124,26 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 summary( pCentroid, pInfo );
             }
         }
-
+        ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
         progress(++nCurr, nCount );
     }
 
     auto [pSummary, pInfoSummary] = summary.get();
 
-    portfolio::Folium stop = impl_->processor_->addSpectrum( pSummary, adcontrols::ProcessMethod() );
-    stop.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pSummary, pSummary->dataClass() );
-    stop.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfoSummary, pInfoSummary->dataClass() );
+    portfolio::Folium sfolium = impl_->processor_->addSpectrum( pSummary, adcontrols::ProcessMethod() );
+    sfolium.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pSummary, pSummary->dataClass() );
+    sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfoSummary, pInfoSummary->dataClass() );
 
+    progress(++nCurr, nCount );
+    ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
     // todo ---
     // get mass spectrum for peak retention time -- done
     // centroid spectrum, and color code for an ion, which the mass corresponding to a mass of chromatogram extracted.
     // re-constract an ideal mass spectrum that combines all color coded ions;
+}
+
+size_t
+JCB2009_Processor::num_chromatograms() const
+{
+    return impl_->folio_.size();
 }

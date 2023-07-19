@@ -100,6 +100,8 @@
 #include <adutils/processeddata.hpp>
 #include <adutils/processeddata_t.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
+#include <adwidgets/progressinterface.hpp>
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/debug.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
@@ -1100,16 +1102,14 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
 {
     portfolio::Folder folder = portfolio().addFolder( L"Spectra" );
 
-    // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
+    // name from descriptions :
+    // exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
     std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)" );
 
     bool mslocked( false );
     if ( auto lkms = dataGlobalMSLock() )
         mslocked = mslock( *ptr, *lkms );
-
-    if ( mslocked )
-        name += L",mslk";
 
     portfolio::Folium folium = folder.addFolium( name );
     folium.assign( ptr, ptr->dataClass() );
@@ -1138,7 +1138,6 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
 
     portfolio::Folium folium = folder.addFolium( name ).assign( cptr, cptr->dataClass() );
     if ( auto lock = cptr->descriptions().hasKey( "(MSLock)" ) ) {
-        ADDEBUG() << *lock;
         folium.setAttribute( (*lock == "On-the-fly" ? "mslock" : "mslock_external"), "true" );
     }
 

@@ -23,6 +23,9 @@
 **************************************************************************/
 
 #include "retentiontime.hpp"
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
+#include <boost/json.hpp>
 
 using namespace adcontrols;
 
@@ -66,7 +69,7 @@ double
 RetentionTime::threshold( int idx ) const
 {
     return ( idx == 0 ) ? threshold_.first : threshold_.second;
-        
+
 }
 
 double
@@ -96,3 +99,33 @@ RetentionTime::eq( double& a, double& b, double& c ) const
     return false;
 }
 
+
+namespace adcontrols {
+
+    void
+    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const RetentionTime& t )
+    {
+        jv = {{ "algo", unsigned( t.algo_ ) }
+              , { "threshold", t.threshold_ }
+              , { "boundary", t.boundary_ }
+              , { "eq", t.eq_ }
+        };
+    }
+
+    RetentionTime
+    tag_invoke( boost::json::value_to_tag< RetentionTime >&, const boost::json::value& jv )
+    {
+        RetentionTime _;
+        if ( jv.is_object() ) {
+            using namespace adportable::json;
+            auto obj = jv.as_object();
+            extract( obj,  reinterpret_cast< unsigned& >(_.algo_),       "algo" );
+            extract( obj,  _.threshold_, "threshold" );
+            extract( obj,  _.boundary_,  "boundary" );
+            extract( obj,  _.eq_,        "eq" );
+        }
+
+        return _;
+    }
+
+}

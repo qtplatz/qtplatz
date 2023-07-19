@@ -29,6 +29,8 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <utility>
 #include <cstdint>
 #include <vector>
@@ -62,6 +64,9 @@ namespace adcontrols {
         std::pair< double, double > threshold_;
         std::pair< double, double > boundary_;
         std::vector< double > eq_;
+
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const RetentionTime& );
+        friend ADCONTROLSSHARED_EXPORT RetentionTime tag_invoke( boost::json::value_to_tag< RetentionTime >&, const boost::json::value& jv );
 
         friend class boost::serialization::access;
         template<class Archive>

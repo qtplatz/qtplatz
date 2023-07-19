@@ -67,6 +67,8 @@
 #include <adwidgets/mslockdialog.hpp>
 #include <adprocessor/noise_filter.hpp>
 #include <coreplugin/icore.h>
+#include <coreplugin/progressmanager/progressmanager.h>
+#include <adwidgets/progressinterface.hpp>
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -403,9 +405,14 @@ void
 DataprocessWorker::doIt( std::shared_ptr< adprocessor::JCB2009_Processor > proc
                          , std::shared_ptr< const adcontrols::DataReader > reader )
 {
-    auto progress( adwidgets::ProgressWnd::instance()->addbar() );
+    // auto progress = std::make_shared< adwidgets::ProgressInterface >();
+    // Core::ProgressManager::addTask( progress->progress.future(), "JCB-2009 Processing...", "dataproc.task.jcb" );
+    auto p( adwidgets::ProgressWnd::instance()->addbar() );
+
+    (*p)( 0, proc->num_chromatograms() );
+
     auto future = std::async( std::launch::async, [&](){
-        (*proc)( reader, [progress](size_t curr, size_t total){ return (*progress)( curr, total ); } );
+        (*proc)( reader, [p](size_t curr, size_t total){ return (*p)(curr, total); } );
     } );
 
     while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )

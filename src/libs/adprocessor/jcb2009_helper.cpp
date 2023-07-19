@@ -38,6 +38,7 @@
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
+#include <algorithm>
 #include <iterator>
 
 using namespace adprocessor;
@@ -78,11 +79,10 @@ find_peaks::get( const portfolio::Folium& folium )
 }
 
 std::tuple< double, double, double >
-find_peaks::tR( const adcontrols::Peak& pk, double w )
+find_peaks::tR( const adcontrols::Peak& pk )
 {
-    return { pk.peakTime()
-                  , pk.peakTime() - std::abs(pk.startTime() - pk.peakTime()) / w
-                  , pk.peakTime() + std::abs(pk.peakTime() - pk.endTime()) / w };
+    auto [front,back] = pk.retentionTime().boundary();
+    return { pk.peakTime(), front, back };
 }
 
 /////////////////////////
@@ -118,7 +118,7 @@ namespace adprocessor {
                             formula_ = value->as_string();
                     }
                 }
-                ADDEBUG() << "annotator.mass = " << mass_ << "\t" << (formula_ ? *formula_ : "");
+                // ADDEBUG() << "annotator.mass = " << mass_ << "\t" << (formula_ ? *formula_ : "");
             }
         };
 
