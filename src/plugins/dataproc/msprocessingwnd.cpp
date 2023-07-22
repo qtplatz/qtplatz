@@ -476,10 +476,22 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
             for ( auto& reader : vec ) {
                 // ADDEBUG() << "reader->trace_method" << reader->trace_method();
                 for ( int fcn = 0; fcn < reader->fcnCount(); ++fcn ) {
+
                     if ( auto tic = reader->TIC( fcn ) ) {
+                        // name before v5.5
+                        auto name = ( boost::wformat( L"%1%/%2%.%3%" )
+                                      % adcontrols::Chromatogram::make_folder_name<wchar_t>( tic->descriptions() )
+                                      % L"TIC" % ( fcn + 1 ) ).str();
+
+                        ADDEBUG() << "find folium by name: " << name;
+#if 0 // old code
                         auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
                                                                  % adcontrols::Chromatogram::make_folder_name<wchar_t>( tic->descriptions() )
                                                                  % L"TIC" % ( fcn + 1 ) ).str() );
+#endif
+
+                        auto query = ( boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 ) ).str();
+                        auto folium = folder.findFoliumByRegex( query );
 
                         if ( folium.nil() ) {
                             auto c = std::make_shared< adcontrols::Chromatogram >(*tic);

@@ -268,8 +268,8 @@ document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
 const std::shared_ptr< adcontrols::Chromatogram >
 document::findTIC( Dataprocessor * dp, int fcn )
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     if ( dp ) {
-
         auto cfolder = dp->portfolio().findFolder( L"Chromatograms" );
         std::wstring name = ( boost::wformat( L"TIC/TIC.%d" ) % ( fcn + 1 ) ).str();
         if ( auto folium = cfolder.findFoliumByName( name ) ) {
@@ -277,13 +277,15 @@ document::findTIC( Dataprocessor * dp, int fcn )
             return cptr;
         }
 
+        // query should match both 'pkd.1.u5303a/TIC.1' 'TIC.1/pkd.1.u5303a
         std::ostringstream query;
-        query << boost::format( "./folium[contains(@name,'/TIC.%d')]" ) % ( fcn + 1 );
+        query << boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 );
         if ( auto folium = cfolder.findFoliumByRegex( query.str() ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
             return cptr;
         }
     }
+    ADDEBUG() << "## " << __FUNCTION__ << " ## " << "TIC for protocol " << fcn + 1 << " cannot be found";
     return 0;
 }
 

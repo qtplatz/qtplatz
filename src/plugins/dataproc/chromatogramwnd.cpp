@@ -183,7 +183,7 @@ namespace dataproc {
         }
         void addOverlay( datafolder&& datum ) {
             // ScopedDebug() << "## " << __FUNCTION__ << " ## size = " << overlays_.size();
-            while ( overlays_.size() >= 8 )
+            while ( overlays_.size() >= 12 )
                 overlays_.pop_back();
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
                                       , [&](const auto& a){ return a.idFolium_ == datum.idFolium_ || a.idfolium_ == datum.idfolium_; });

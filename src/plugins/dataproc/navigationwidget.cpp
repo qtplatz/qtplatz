@@ -603,10 +603,14 @@ namespace { // anonymous
     struct check_all_in_folder {
         const QModelIndexList& rows_;
         check_all_in_folder( const QModelIndexList& rows ) : rows_( rows ) {}
-        void operator()( bool check ) {
+        void operator()( bool check ) const {
+            ADDEBUG() << "----------- check_all_in_foler ----------->";
+            qDebug() << rows_;
             for ( auto index: rows_ ) {
+                qDebug() << "\t----------- check_all_in_foler ----------- " << index;
                 if ( auto model = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
                     auto parent = model->itemFromIndex( index );
+                    qDebug() << "\t----------- check_all_in_foler parent: " << parent;
                     for ( int row = 0; row < parent->rowCount(); ++row ) {
                         if ( auto item = model->itemFromIndex( model->index( row, 0, parent->index() ) ) ) {
                             if ( item->isCheckable() ) {
@@ -619,6 +623,7 @@ namespace { // anonymous
                     }
                 }
             }
+            ADDEBUG() << "<----------- check_all_in_foler -----------";
         }
     };
 
@@ -1047,8 +1052,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         bool enable = selFolders.folderCounts() > 0;
         if ( enable ) {
             check_all_in_folder check_all( selRows );
-            menu.addAction( QString( tr("Uncheck all %1") ).arg( name ), [&]{ check_all( false ); } )->setEnabled( enable );
-            menu.addAction( QString( tr("Check all %1") ).arg( name ),   [&]{ check_all( true ); } )->setEnabled( enable );
+            menu.addAction( QString( tr("Uncheck all %1") ).arg( name ), [=](){ check_all( false ); } )->setEnabled( enable );
+            menu.addAction( QString( tr("Check all %1") ).arg( name ),   [=](){ check_all( true ); } )->setEnabled( enable );
 
             set_attribute_all< Qt::Unchecked > set_attr( selRows );
             menu.addAction( QString( tr("Remove all unchecked %1") ).arg( name )
