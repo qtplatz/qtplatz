@@ -642,6 +642,20 @@ namespace { // anonymous
         }
     };
 
+    //////////////////////////////// remove duplicated chromatograms /////////////////////////////////
+    struct remove_duplicated_chromatogram {
+        const QModelIndexList& rows_;
+        remove_duplicated_chromatogram( const QModelIndexList& rows ) : rows_( rows )  {}
+        void operator()() const {
+            std::map< Dataprocessor *, std::vector< portfolio::Folium > > list;
+            for ( auto index: rows_ ) {
+                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
+                list[ processor ].emplace_back( folium );
+            }
+            for ( auto& dp: list )
+                dp.first->handleRemoveDuplicatedChromatograms( std::move( dp.second ) );
+        }
+    };
 
     //--------------------------------
     template< Qt::CheckState CheckState >
@@ -1126,10 +1140,12 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
 
+        remove_duplicated_chromatogram remover( selRows );
+        menu.addAction( tr( "Remove duplicate" ), [=](){ remover(); } );
+
         spectra_from_chromatographic_peaks gen_spectra( selRows );
         menu.addAction( tr( "Create mass spectra from chromatographic peaks (JCA 2009)" )
                         , [=](){ gen_spectra(); } );
-
 
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             if ( auto folium = find_t< portfolio::Folium >()( index ) ) {

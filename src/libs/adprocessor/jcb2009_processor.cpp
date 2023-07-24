@@ -97,18 +97,20 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
         for ( const auto& peak: peaks ) {
             auto tR = jcb2009_helper::find_peaks().tR( peak );
 
+            ADDEBUG() << "tR: " << tR << " <-- " << std::make_pair( peak.startTime(), peak.endTime() );
+
             if ( auto ms = reader->coaddSpectrum( reader->findPos( std::get< 1 >(tR) )
                                                   , reader->findPos( std::get< 2 >(tR) ) ) ) {
 
                 auto folname = (boost::format( "%s;tR=%.1f(%.1f)" )
                                 % folium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
 
-                auto desc = adcontrols::description( { "create", folname } );
-                ms->addDescription( desc );
+                ms->addDescription( adcontrols::description( { "create", folname } ) );
 
                 portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
 
                 centroid_processor peak_detector( *impl_->procm_ );
+
                 jcb2009_helper::annotator annotate( folium, *impl_->procm_ );
                 auto [pCentroid, pInfo] = peak_detector( *ms );
 

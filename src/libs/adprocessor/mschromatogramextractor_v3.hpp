@@ -103,7 +103,9 @@ namespace adprocessor {
                                   , adcontrols::hor_axis axis
                                   , std::function<bool( size_t, size_t )> progress );
 
-            static boost::optional< double > computeIntensity( const adcontrols::MassSpectrum&, adcontrols::hor_axis, const std::pair< double, double >& );
+            static boost::optional< double > computeIntensity( const adcontrols::MassSpectrum&
+                                                               , adcontrols::hor_axis
+                                                               , const std::pair< double, double >& );
 
             std::shared_ptr< const adcontrols::MassSpectrum > getMassSpectrum( double tR ) const;
 

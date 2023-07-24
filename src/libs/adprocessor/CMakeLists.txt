@@ -43,6 +43,7 @@ add_library( ${PROJECT_NAME} SHARED
   jcb2009_helper.cpp jcb2009_helper.hpp
   centroid_processor.cpp centroid_processor.hpp
   jcb2009_summarizer.cpp jcb2009_summarizer.hpp
+  generator_property.cpp generator_property.hpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

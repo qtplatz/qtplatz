@@ -29,43 +29,25 @@
 #include <memory>
 #include <optional>
 
-namespace portfolio {
-    class Folium;
-}
-
 namespace adcontrols {
-    class Peaks;
-    class Peak;
-    class MassSpectrum;
-    class MSPeakInfo;
-    class ProcessMethod;
     class Chromatogram;
 }
 
 namespace adprocessor {
 
-    namespace jcb2009_helper {
+    class ADPROCESSORSHARED_EXPORT generator_property;
 
-        struct printer {
-            void print( const portfolio::Folium& );
-        };
-
-        struct find_peaks {
-            adcontrols::Peaks get( const portfolio::Folium& );
-            std::tuple< double, double, double > tR( const adcontrols::Peak& );
-        };
-
-        class annotator {
-        public:
-            ~annotator();
-            annotator( const portfolio::Folium&, const adcontrols::ProcessMethod& );
-            void operator()( std::shared_ptr< adcontrols::MassSpectrum > pCentroid );
-            void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
-        private:
-            class impl;
-            impl * impl_;
-        };
-
-    }
+    class generator_property {
+    public:
+        ~generator_property();
+        generator_property( const adcontrols::Chromatogram& );
+        std::string generator() const;
+        std::optional< std::string > formula() const;
+        std::optional< double > mass() const;
+        std::tuple< double, std::string, std::string > get() const;
+    private:
+        class impl;
+        impl * impl_;
+    };
 
 }

@@ -90,6 +90,7 @@
 #include <adportable/scoped_debug.hpp>
 #include <adportable/utf.hpp>
 #include <adprocessor/jcb2009_processor.hpp>
+#include <adprocessor/generator_property.hpp>
 #include <adprocessor/noise_filter.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportfolio/folder.hpp>
@@ -1887,6 +1888,35 @@ Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Fo
                     double timeWidth = rdpara[ "timeWidth" ].toDouble();
                     if ( auto reader = file->dataReaders().at( sel.first ) ) {
                         DataprocessWorker::instance()->doIt( jcb2009, reader );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void
+Dataprocessor::handleRemoveDuplicatedChromatograms( std::vector< portfolio::Folium >&& folio )
+{
+    std::vector< double > masses_; // already contained
+
+    for ( auto folium: folio ) {
+        fetch( folium );
+        if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+
+            adprocessor::generator_property prop( *chro );
+
+            if ( auto mass = prop.mass() ) {
+
+                auto it = std::lower_bound( masses_.begin(), masses_.end(), *mass ); // *it > *mass is always correct
+                if ( it == masses_.end() || (*it - *mass ) > 0.002 ) {
+                    masses_.insert( it, *mass );
+                } else {
+                    ADDEBUG() << "\tduplication: " << std::make_tuple( *mass, *it, *(it + 1) );
+                    if ( ( *it - *mass ) < 0.002 ) { // found duplication
+                        this->setAttribute( folium, { "remove", "true" } );
+                    } else if ( it != masses_.begin() && (*mass - *(it - 1)) < 0.002 ) {
+                        this->setAttribute( folium, { "remove", "true" } );
                     }
                 }
             }
