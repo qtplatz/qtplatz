@@ -608,6 +608,22 @@ dataprocessor::dataGlobalMSLock() const
 }
 
 bool
+dataprocessor::mslock( adcontrols::MassSpectrum& ms, double retentionTime ) const
+{
+    if ( impl_->global_lkms_ ) {
+        if ( (*impl_->global_lkms_)( ms ) ) {
+            auto jv = boost::json::value{{ "mslock", {{"method", "external"}, {"data", boost::json::value_from(*impl_->global_lkms_)} } }};
+            ms.addDescription( adcontrols::description({ "MSLock", boost::json::serialize( jv )}) );
+            // ---
+            // see mschromatogramextractor_v3.cpp::desk_mslock()
+            // ---
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
 dataprocessor::mslock( adcontrols::MassSpectrum& ms, const adcontrols::lockmass::mslock& lkms )
 {
     return lkms( ms );

@@ -43,7 +43,7 @@ namespace adprocessor {
         generator_property( const adcontrols::Chromatogram& );
         std::string generator() const;
         std::optional< std::string > formula() const;
-        std::optional< double > mass() const;
+        double mass() const;
         std::tuple< double, std::string, std::string > get() const;
     private:
         class impl;

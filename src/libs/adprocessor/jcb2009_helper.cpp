@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "jcb2009_helper.hpp"
+#include "generator_property.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -96,10 +97,11 @@ namespace adprocessor {
             adcontrols::MSFinder msFinder_;
             double mass_;
             std::optional< std::string > formula_;
+
+        public:
             impl( const portfolio::Folium& folium
-                  , const adcontrols::ProcessMethod& m )
-                : folium_( folium )
-                , mass_( 0 ) {
+                  , const adcontrols::ProcessMethod& m ) : folium_( folium )
+                                                         , mass_( 0 ) {
 
                 if ( auto lm = m.find< adcontrols::MSLockMethod >() ) {
                     msFinder_ =
@@ -107,16 +109,9 @@ namespace adprocessor {
                 }
 
                 if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    auto jv = adportable::json_helper::parse( chro->generatorProperty() );
-                    if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
-                        if ( auto value = adportable::json_helper::if_contains( *gen, "pkinfo.mass" ) )
-                            mass_ = value->as_double();
-                    } else if (  auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_mols" ) ) {
-                        if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.mass" ) )
-                            mass_ = value->as_double();
-                        if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.formula" ) )
-                            formula_ = value->as_string();
-                    }
+                    adprocessor::generator_property gprop( *chro );
+                    std::tie( mass_, formula_, std::ignore ) = gprop.get();
+                    ADDEBUG() << gprop.get();
                 }
                 // ADDEBUG() << "annotator.mass = " << mass_ << "\t" << (formula_ ? *formula_ : "");
             }
@@ -142,9 +137,11 @@ namespace adprocessor {
                 for ( auto& ms: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
                     auto idx = (impl_->msFinder_)( ms, impl_->mass_ );
                     pCentroid->setColor( idx, 15 ); // magenta
-                    // ADDEBUG() << "### found mass[" << idx << "]=" <<
-                    //     std::make_tuple( ms.mass(idx), impl_->mass_ )
-                    //           << ", error: " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa";
+
+                    ADDEBUG() << "### annotator -- found mass[" << idx << "]\t" <<
+                        std::make_tuple( ms.mass(idx), impl_->mass_ )
+                              << ", " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa off\t" << impl_->folium_.name();
+
                     adcontrols::annotation anno( impl_->folium_.name(), ms.mass( idx ), ms.intensity( idx ), static_cast< int >(idx) );
                     ms.get_annotations() << anno;
                 }

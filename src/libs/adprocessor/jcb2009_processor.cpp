@@ -49,9 +49,11 @@ namespace adprocessor {
         std::shared_ptr< adprocessor::dataprocessor > processor_;
         std::shared_ptr< adcontrols::ProcessMethod > procm_;
         std::vector< portfolio::Folium > folio_;
+        std::shared_ptr< const adcontrols::lockmass::mslock > global_lkms_;
 
         impl( adprocessor::dataprocessor * dp )
             : processor_( dp->shared_from_this() ) {
+            global_lkms_ = processor_->dataGlobalMSLock();
         }
     };
 }
@@ -93,11 +95,13 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
     for ( const auto& folium: impl_->folio_ ) {
 
+        jcb2009_helper::annotator annotate( folium, *impl_->procm_ );
+
         auto peaks = jcb2009_helper::find_peaks().get( folium );
         for ( const auto& peak: peaks ) {
-            auto tR = jcb2009_helper::find_peaks().tR( peak );
 
-            ADDEBUG() << "tR: " << tR << " <-- " << std::make_pair( peak.startTime(), peak.endTime() );
+            auto tR = jcb2009_helper::find_peaks().tR( peak );
+            // ADDEBUG() << "tR: " << tR << " <-- " << std::make_pair( peak.startTime(), peak.endTime() );
 
             if ( auto ms = reader->coaddSpectrum( reader->findPos( std::get< 1 >(tR) )
                                                   , reader->findPos( std::get< 2 >(tR) ) ) ) {
@@ -107,13 +111,14 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
                 ms->addDescription( adcontrols::description( { "create", folname } ) );
 
+                // apply MSLock
+                impl_->processor_->mslock( *ms, std::get<0>(tR) );
+
                 portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
 
-                centroid_processor peak_detector( *impl_->procm_ );
+                // centroid_processor peak_detector( *impl_->procm_ );
 
-                jcb2009_helper::annotator annotate( folium, *impl_->procm_ );
-                auto [pCentroid, pInfo] = peak_detector( *ms );
-
+                auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid ) {
                     annotate( pCentroid );
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );

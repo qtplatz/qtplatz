@@ -471,6 +471,7 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
             }
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( L"create", text.str() ) );
+            dp->mslock( *ms, 0 );
             portfolio::Folium folium = dp->addSpectrum( ms, m );
 
             // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
@@ -512,6 +513,7 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
             text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description({"folium.create", text.str()}) );
+            dp->mslock( *ms, t1 );
             portfolio::Folium folium = dp->addSpectrum( ms, m );
         }
     }
@@ -541,8 +543,10 @@ document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrol
 
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( {"folium.create", text.str() } ) );
-	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                dp->mslock( *ms, 0 );
                 portfolio::Folium folium = dp->addSpectrum( ms, m );
+            }
         }
 
     }
@@ -568,6 +572,7 @@ document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
                     text << boost::wformat( L"Spectrum %d fcn:%d/%d @ %.3lfs" ) % pos % ms->protocolId() % ms->nProtocols() % t;
                     adcontrols::ProcessMethod m;
                     ms->addDescription( adcontrols::description( L"create", text.str() ) );
+                    dp->mslock( *ms, 0 );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );
                 }
             }

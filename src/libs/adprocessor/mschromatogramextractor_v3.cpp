@@ -103,11 +103,14 @@ namespace adprocessor {
 
         std::optional< adcontrols::description > desc_mslock() const {
             if ( lkms_.size() ) {
-                return adcontrols::description( { "MSLock", "On-the-fly"} );
+                auto jv = boost::json::value{{ "mslock", {{ "method", "internal" }} }}; // on-tye-fly
+                return adcontrols::description( { "MSLock", boost::json::serialize( jv ) } );
             } else if ( mslock_ ) {
-                return adcontrols::description( { "MSLock", boost::json::serialize( boost::json::value_from(mslock_) ) } );
+                auto jv = boost::json::value{{ "mslock", {{ "method", "internal" }, { "data", boost::json::value_from(mslock_)}} }};
+                return adcontrols::description( { "MSLock", boost::json::serialize( jv ) } );
             } else if ( auto global_mslock = processor_->dataGlobalMSLock() ) {
-                return adcontrols::description( { "MSLock", boost::json::serialize( boost::json::value_from(*global_mslock) ) } );
+                auto jv = boost::json::value{{ "mslock", {{"method", "external"}, {"data", boost::json::value_from(*global_mslock)}} }};
+                return adcontrols::description( { "MSLock", boost::json::serialize( jv ) } );
             }
             return {};
         }

@@ -215,17 +215,14 @@ descriptions::toJson() const
 std::optional< std::string >
 descriptions::hasKey( const std::string& pattern ) const
 {
-    ADDEBUG() << "################ hasKey(" << pattern << ") ###############";
     for ( const auto& d: impl_->vec_ ) {
         std::match_results< std::string::const_iterator > match;
         auto key = d.key< char >();
         if ( std::regex_search( key, match, std::regex( pattern ) ) ) {
-            ADDEBUG() << "\t################ hasKey(" << pattern << ") found: " << d.keyValue();
             return d.text< char >();
-        } else {
-            ADDEBUG() << "\t################ not match #################";
         }
     }
+    ADDEBUG() << "\t################ hasKey'" << pattern << "' NOT FOUND";
     return {};
 }
 

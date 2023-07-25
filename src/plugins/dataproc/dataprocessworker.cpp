@@ -521,6 +521,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                 if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
                     auto desc = ( boost::format( "%s %.2f(%.3fs)%s" ) % mol.formula() % mol.mass() % tR % reader->display_name() ).str();
                     ms->addDescription( adcontrols::description( { "create", desc } ) );
+                    processor->mslock( *ms, tR );
                     portfolio::Folium folium = processor->addSpectrum( ms, adcontrols::ProcessMethod() );
                     processor->applyProcess( folium, tmp, CentroidProcess ); // + targeting
                     bool found( false );

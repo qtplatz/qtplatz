@@ -147,6 +147,7 @@ namespace dataproc {
         void dftFilter( portfolio::Folium, std::shared_ptr< adcontrols::ProcessMethod > ); // filter for chromatogram
 
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& ) override;
+
         portfolio::Folium addChromatogram( std::shared_ptr< adcontrols::Chromatogram >
                                            , const adcontrols::ProcessMethod&
                                            , std::shared_ptr< adprocessor::noise_filter > );

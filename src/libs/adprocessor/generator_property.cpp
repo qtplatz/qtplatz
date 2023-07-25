@@ -34,10 +34,10 @@ namespace adprocessor {
     public:
         boost::json::value jv_;
         std::string generator_;
-        std::optional< double > mass_;
+        double mass_;
         std::optional< std::string > formula_;
 
-        impl( const adcontrols::Chromatogram& c ) {
+        impl( const adcontrols::Chromatogram& c ) : mass_( 0 ) {
 
             jv_ = adportable::json_helper::parse( c.generatorProperty() );
 
@@ -75,7 +75,7 @@ namespace adprocessor {
         return impl_->formula_;
     }
 
-    std::optional< double >
+    double
     generator_property::mass() const
     {
         return impl_->mass_;
@@ -84,7 +84,7 @@ namespace adprocessor {
     std::tuple< double, std::string, std::string >
     generator_property::get() const
     {
-        return { impl_->mass_ ? *impl_->mass_ : 0
+        return { impl_->mass_
                  , impl_->formula_ ? *impl_->formula_ : ""
                  , impl_->generator_ };
     }

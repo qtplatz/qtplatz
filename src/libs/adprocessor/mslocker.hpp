@@ -45,4 +45,5 @@ namespace adprocessor {
         msLocker( const adcontrols::MSChromatogramMethod& cm, const adcontrols::ProcessMethod& pm );
         boost::optional< adcontrols::lockmass::mslock >  operator()( const adcontrols::MassSpectrum& centroid );
     };
+
 }

@@ -1108,15 +1108,22 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
     std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)" );
 
-    bool mslocked( false );
-    if ( auto lkms = dataGlobalMSLock() )
-        mslocked = mslock( *ptr, *lkms );
-
     portfolio::Folium folium = folder.addFolium( name );
     folium.assign( ptr, ptr->dataClass() );
 
-    if ( mslocked )
-        folium.setAttribute( "mslock_external", "true" );
+    if ( auto json = ptr->getDescriptions().hasKey( "(MSLock)" ) ) {
+        auto jv = adportable::json_helper::parse( *json );
+        ADDEBUG() << "\t############## addSpectrum jv: " << jv;
+
+        if ( auto pv = adportable::json_helper::if_contains( jv, "mslock.method" ) ) {
+            if ( pv->as_string() == "external" ) {
+                folium.setAttribute( "mslock_external", "true" );
+                ADDEBUG() << "========== set as mslock_external true ==========";
+            }
+        } else {
+            ADDEBUG() << "----------- no mslock.method found";
+        }
+    }
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
@@ -1908,14 +1915,14 @@ Dataprocessor::handleRemoveDuplicatedChromatograms( std::vector< portfolio::Foli
 
             if ( auto mass = prop.mass() ) {
 
-                auto it = std::lower_bound( masses_.begin(), masses_.end(), *mass ); // *it > *mass is always correct
-                if ( it == masses_.end() || (*it - *mass ) > 0.002 ) {
-                    masses_.insert( it, *mass );
+                auto it = std::lower_bound( masses_.begin(), masses_.end(), mass ); // *it > *mass is always correct
+                if ( it == masses_.end() || (*it - mass ) > 0.002 ) {
+                    masses_.insert( it, mass );
                 } else {
-                    ADDEBUG() << "\tduplication: " << std::make_tuple( *mass, *it, *(it + 1) );
-                    if ( ( *it - *mass ) < 0.002 ) { // found duplication
+                    ADDEBUG() << "\tduplication: " << std::make_tuple( mass, *it, *(it + 1) );
+                    if ( ( *it - mass ) < 0.002 ) { // found duplication
                         this->setAttribute( folium, { "remove", "true" } );
-                    } else if ( it != masses_.begin() && (*mass - *(it - 1)) < 0.002 ) {
+                    } else if ( it != masses_.begin() && (mass - *(it - 1)) < 0.002 ) {
                         this->setAttribute( folium, { "remove", "true" } );
                     }
                 }
