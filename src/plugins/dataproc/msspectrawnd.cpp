@@ -142,6 +142,10 @@ namespace dataproc {
                         return ptr;
                     }
                 }
+                if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+                    if ( ms->isCentroid() && !ms->isHistogram() )
+                        return ms;
+                }
             }
             return nullptr;
         }
@@ -308,13 +312,18 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     if ( isChecked ) {
         impl_->selProcessed_ = false;
     }
+
+    ADDEBUG() << "handleSelectionChanged: " << std::make_pair( folium.name(), isChecked );
+
     if ( auto pf = folium.parentFolium() ) {
-        isChecked = pf.attribute( L"isChecked" ) == L"true";
-        data = datafolder( processor->filename(), pf );
-        impl_->selProcessed_ = folium.name() == Constants::F_CENTROID_SPECTRUM; // focus on centroid
+         isChecked = pf.attribute( L"isChecked" ) == L"true";
+         data = datafolder( processor->filename(), pf );
+         impl_->selProcessed_ = folium.name() == Constants::F_CENTROID_SPECTRUM; // focus on centroid
     }
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+        impl_->selProcessed_ = ( ptr->isCentroid() && !ptr->isHistogram() );
+        ADDEBUG() << "\thas mass spectrum isProcessed: " << impl_->selProcessed_;
         auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
         plot->clear();
         plot->setTitle( data.display_name() );

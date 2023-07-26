@@ -172,6 +172,10 @@ datafolder::get_processed() const
         else
             return {{ ms, false }};
     } else {
+        if ( auto profile = this->profile_.lock() ) {
+            if ( profile->isCentroid() && !profile->isHistogram() )
+                return {{ profile, false }};
+        }
         return {};
     }
 }

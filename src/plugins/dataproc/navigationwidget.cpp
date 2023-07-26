@@ -1104,9 +1104,14 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             a->setEnabled( folium.attribute( "mslock" ) == "true" );
                         }
                         attachment_walker attachments( folium );
-                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."),
-                                                      SaveSpectrumAs( asProfile, folium, folium, index ) ) ) {
-                            a->setEnabled( true );
+                        if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+                            if ( ms->isCentroid() && !ms->isHistogram() ) {
+                                menu.addAction( tr("Save centroid spectrum as..."),
+                                                SaveSpectrumAs( asCentroid, folium, folium, index ) );
+                            } else {
+                                menu.addAction( tr("Save profile spectrum as..."),
+                                                SaveSpectrumAs( asProfile, folium, folium, index ) );
+                            }
                         }
                         auto centroid = std::get< 0 >( attachments.has_a_ );
                         if ( auto a = menu.addAction( tr("Save centroid spectrum as..."),
