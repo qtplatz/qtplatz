@@ -53,7 +53,11 @@ namespace dataproc {
         } else {
             // qDebug() << "\t-- currentModeChanged to " << mode << " != this mode(" << id() << ")";
         }
-        // if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
-        //     cmd->action()->setText( tr( "Open data files..." ) );
+        if ( auto cmd = Core::ActionManager::instance()->command( Core::Constants::OPEN ) )
+            cmd->action()->setText( tr( "Open data files..." ) );
+
+        if ( Core::EditorManager::currentEditor() )
+            Core::EditorManager::currentEditor()->widget()->setFocus();
+
     }
 }

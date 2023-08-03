@@ -27,6 +27,7 @@
 #include "mspeaktree.hpp"
 #include "mol.hpp"
 #include <adportable/debug.hpp>
+#include <QDebug>
 #include <QBoxLayout>
 #include <QSplitter>
 #include <QSvgWidget>
@@ -71,7 +72,8 @@ MSPeakWidget::MSPeakWidget( QWidget * parent ) : QWidget( parent )
     }
     if ( auto tree = findChild< MSPeakTree * >() ) {
         connect( tree, &MSPeakTree::inChIKeySelected, [&](const QString& key){
-            impl_->draw( key, this );});
+            impl_->draw( key, this );
+        });
     }
 }
 

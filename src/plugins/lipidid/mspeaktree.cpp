@@ -297,8 +297,10 @@ MSPeakTree::currentChanged( const QModelIndex& index, const QModelIndex& prev )
         if ( ! key.isEmpty() ) {
             emit inChIKeySelected( key );
             auto fidx = index.model()->index( index.row(), c_formula, index.parent() );
-            if ( fidx.data( Qt::EditRole ).isNull() )
+
+            if ( fidx.data( Qt::EditRole ).isNull() ) {
                 fidx = index.model()->index( fidx.parent().row(), c_formula, fidx.parent().parent() );
+            }
             if ( fidx.data( Qt::EditRole ).isValid() ) {
                 auto formula = fidx.data( Qt::EditRole ).toString();
                 double abundance = index.model()->index( top.row(), c_intensity ).data( Qt::EditRole ).toDouble();

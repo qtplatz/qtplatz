@@ -125,9 +125,6 @@ namespace chemistry {
         , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
         , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
-        , { "CCCCCCCC\\C=C/CCCCCCCC(O)=O",            { "Oleic acid" } }
-        , { R"(CCCCC/C=C\C/C=C\CCCCCCCC(=O)O)",       { "LA", "Linolic acid", "C18:2" } }
-        , { R"(O=C(O)CCCCCCCCCCCCCCCCCC)",            { "C19:0", "nonadecanoic acid" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC",      { "Hexamethoxyphosphazine" } }
         , { "CC1=C(C(=O)C2=CC=CC=C2C1=O)CC=C(C)CCCC(C)CCCC(C)CCCC(C)C", { "VK-1", "Phylloquinone" } }
         , { "CC(C)CCCC(C)CCCC(C)CCC/C(=C/CC12C(=O)c3ccccc3C(=O)C1(O2)C)/C", { "VK1-oxide", "PHYLLOQUINONE OXIDE" } }
@@ -215,6 +212,9 @@ namespace chemistry {
         , { R"(FC=1C(F)=C(F)C(O)=C(F)C1F)", { "F5-Ph-OH" }}
         , { R"(O=C(OCC(COC(=O)CCC=1C=C(C(O)=C(C1)C(C)(C)C)C(C)(C)C)(COC(=O)CCC=2C=C(C(O)=C(C2)C(C)(C)C)C(C)(C)C)COC(=O)CCC=3C=C(C(O)=C(C3)C(C)(C)C)C(C)(C)C)CCC=4C=C(C(O)=C(C4)C(C)(C)C)C(C)(C)C)", { "Irganox1010" }}
         , { R"(OC=1C(=CC(=CC1C(C)(C)C)C)C(C)(C)C)", { "BHT" }}
+        , { R"(CCCCC/C=C\C/C=C\CCCCCCCC(=O)O)",       { "C18:2", "Linolic acid" } }
+        , { R"(O=C(O)CCC\C=C/C\C=C/C\C=C/C\C=C/C\C=C/CC)",      { "C20:5", "EPA", "Eicosapentaenoic acid" } }
+        // 17941
         , { R"(OC(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCCC)=O)",       { "C22:4", "Adrenic acid", "Docosatetraenoic acid", "90300" }}
         , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",         { "C20:4", "Arachidonic acid",      "90010" } }
         , { R"(CCCCC\C=C/C\C=C/C\C=C/CCCCCCC(=O)O)",            { "C20:3", "Dihomo-g-linolenic acid", "90230" }}
@@ -224,6 +224,17 @@ namespace chemistry {
         , { R"(CC/C=C\C/C=C\C/C=C\CCCCCCCC(=O)O)",              { "C18:3", "a-Linoleic acid",       "90210" }}
         , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "C18:3", "g-Linoleic acid",       "90220" }}
         , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid",      "90320" }}
+        // 17942 Saturated/Monounsaturated fatty acid MaxSpec LC-MS Mixture
+        , { R"(O=C(O)CCCCCCCCCCCCCCCCCCC)",           { "C20:0", "Arachidic acid",   "9000339",   "17942-1" }}
+        , { R"(O=C(O)CCCCCCCCCCC)",                   { "C12:0", "Lauric acid",      "10006626",  "17942-2" }}
+        , { R"(O=C(O)CCCCCCCCCCCCCCCCCCCCCCC)",       { "C24:0", "Lignoceric acid",  "13353",     "17942-3" }}
+        , { R"(CCCCCCCCCCCCCC(=O)O)",                 { "C14:0", "Myristic acid",    "13351",     "17942-4" }}
+        , { R"(O=C(O)CCCCCCCCCCCCC\C=C/CCCCCCCC)",    { "C24:1", "Nervonic acid",    "13940",     "17942-5" }}
+        , { R"(CCCCCCCC\\C=C/CCCCCCCC(O)=O)",         { "C18:1", "Oleic acid",       "90260",     "17942-6" }}
+        , { R"(CCCCCCCCCCCCCCCC(=O)O)",               { "C16:0", "Palmitic acid",    "10006627",  "17942-7" }}
+        , { R"(O=C(O)CCCCCCC\C=C/CCCCCC)",            { "C16:1", "Palmitoleic acid", "10009871",  "17942-8" }}
+        , { R"(CCCCCCCCCCCCCCCCCC(=O)O)",             { "C18:0", "Stearic acid",     "10011298",  "17942-9" }}
+        // 19227 Odd-chain fatty acid MaxSpec LC-MS Mixture
         , { R"(CCCCCCCCCCC(=O)O)",           { "C11:0", "Undecanoic acid" }}
         , { R"(CCCCCCCCCCCCC(=O)O)",         { "C13:0", "Tridecanoic acid" }}
         , { R"(C=CCCCCCCCCCCCCC(=O)O)",      { "C15:1", "14-Pentadecenoic acid" }}
