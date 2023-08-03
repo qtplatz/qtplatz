@@ -277,25 +277,23 @@ void
 document::handleFormulaSelected( const QString& formula, double abundance, int index )
 {
     // ADDEBUG() << "## " << __FUNCTION__ << "\t" << formula.toStdString() << ", " << abundance << ", index: " << index;
-    try {
-        if ( auto self = impl_->simple_mass_spectrum_ ) {
-            auto candidates = self->candidates( index );
-            auto it = std::find_if( candidates.begin()
-                                    , candidates.end()
-                                    , [&](const auto& c){ return ( c.formula() + c.adduct() ) == formula.toStdString(); });
-            if ( it != candidates.end() ) {
+    if ( auto self = impl_->simple_mass_spectrum_ ) {
+        auto candidates = self->candidates( index );
+        auto it = std::find_if( candidates.begin()
+                                , candidates.end()
+                                , [&](const auto& c){ return ( c.formula() + c.adduct() ) == formula.toStdString(); });
+        if ( it != candidates.end() ) {
+            try {
                 if ( auto ms = reference_mass_spectrum() ) {
                     if ( auto matched = self->make_spectrum( *it, ms ) ) {
                         impl_->matched_ = matched;
                         emit onMatchedSelected( index );
                     }
                 }
+            } catch ( std::out_of_range& ex ) {
+                ADDEBUG() << "## Exception: " << ex.what();
             }
         }
-    } catch ( std::out_of_range& ex ) {
-        ADDEBUG() << "## Exception: " << ex.what();
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << "## Exception: " << ex.what();
     }
 
     try {
