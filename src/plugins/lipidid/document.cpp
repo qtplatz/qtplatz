@@ -283,15 +283,11 @@ document::handleFormulaSelected( const QString& formula, double abundance, int i
                                 , candidates.end()
                                 , [&](const auto& c){ return ( c.formula() + c.adduct() ) == formula.toStdString(); });
         if ( it != candidates.end() ) {
-            try {
-                if ( auto ms = reference_mass_spectrum() ) {
-                    if ( auto matched = self->make_spectrum( *it, ms ) ) {
-                        impl_->matched_ = matched;
-                        emit onMatchedSelected( index );
-                    }
+            if ( impl_->refms_ ) {
+                if ( auto matched = self->make_spectrum( *it, impl_->refms_ ) ) {
+                    impl_->matched_ = matched;
+                    emit onMatchedSelected( index );
                 }
-            } catch ( std::out_of_range& ex ) {
-                ADDEBUG() << "## Exception: " << ex.what();
             }
         }
     }
