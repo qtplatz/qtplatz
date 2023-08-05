@@ -64,6 +64,7 @@
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <qwt_plot_layout.h>
 #include <qwt_plot_marker.h>
@@ -116,6 +117,13 @@ namespace dataproc {
             plots_[ 0 ]->link( plots_[ 1 ].get() );
 
             connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
+
+            connect( peakTable_, &PeakTable::valueChanged, [&]( int pid, int cid, const QModelIndex& index ){
+                if ( cid == 0 && index.column() == adwidgets::peaktable::c_name ) {
+                    handlePeakTableChanged( pid, index.data().toString().toStdString() );
+                }
+            });
+
             connect( plots_[0].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram0 );
             connect( plots_[1].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram1 );
 
@@ -148,6 +156,20 @@ namespace dataproc {
             }
         }
 
+        void handlePeakTableChanged( int pid, const std::string& name ) {
+            if ( auto pkres = datum_.get_peakResult() ) {
+                auto peaks = pkres->peaks();
+                if ( peaks.size() > pid ) {
+                    auto it = peaks.begin() + pid;
+                    ADDEBUG() << "peak name: " << it->name() << " --> " << name << "\t" << datum_.folium_.id() << ", " << datum_.folium_.uuid();
+                    it->setName( name );
+                    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                        dp->setPeakName( datum_.folium_, pid, name );
+                    }
+                }
+            }
+        }
+
         void handleCurrentChanged( int peakId ) {
             using adcontrols::Peak;
             if ( peakResult_ ) {
@@ -176,13 +198,12 @@ namespace dataproc {
 
         void addFIPeak( double t1, double t2 ) {
             if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                //auto folium = dp->getPortfolio().findFolium( std::get< 1 >( selected_folder_ ) ); // idActiveFolium_ );
                 auto folium = dp->getPortfolio().findFolium( datum_.id() );
                 dp->findSinglePeak( folium, { t1, t2 } );
             }
         }
+
         void addOverlay( datafolder&& datum ) {
-            // ScopedDebug() << "## " << __FUNCTION__ << " ## size = " << overlays_.size();
             while ( overlays_.size() >= 12 )
                 overlays_.pop_back();
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
@@ -192,6 +213,7 @@ namespace dataproc {
             overlays_.emplace_front( std::move( datum ) );
             dirty_ = true;
         }
+
         void eraseOverlay( const portfolio::Folium& folium ) {
             // ScopedDebug() << "## " << __FUNCTION__ << " ##";
             auto it = std::remove_if( overlays_.begin(), overlays_.end()

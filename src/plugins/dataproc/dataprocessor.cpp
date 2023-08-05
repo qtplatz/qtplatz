@@ -108,6 +108,7 @@
 #include <coreplugin/documentmanager.h>
 #include <utils/mimeutils.h>
 #include <boost/json.hpp>
+#include <boost/variant.hpp>
 
 #if QTC_VERSION <= 0x03'02'81
 #include <coreplugin/id.h>
@@ -1230,6 +1231,29 @@ Dataprocessor::findSinglePeak( portfolio::Folium folium, std::pair< double, doub
 
                 SessionManager::instance()->updateDataprocessor( this, folium );
                 setModified( true );
+            }
+        }
+    }
+}
+
+void
+Dataprocessor::setPeakName( portfolio::Folium folium, int pid, const std::string& name )
+{
+    using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >;
+
+    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+
+        for ( auto& a: folium.attachments() ) {
+            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a )) ) {
+                if ( auto res = boost::get< std::shared_ptr< adcontrols::PeakResult > >( *var ) ) {
+                    if ( res->peaks().size() > pid ) {
+                        auto it = res->peaks().begin() + pid;
+                        ADDEBUG() << "replace peak name from: " << it->name() << " to " << name;
+                        it->setName( name );
+                        chro->setPeaks( res->peaks() );
+                        setModified( true );
+                    }
+                }
             }
         }
     }

@@ -93,6 +93,7 @@ datafolder::datafolder( const std::wstring& fullpath
                         , const portfolio::Folium& folium ) : idx_( 0 )
                                                             , filename_( fullpath )
                                                             , display_name_( make_display_name( fullpath, folium ) )
+                                                            , folium_( folium )
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
 {

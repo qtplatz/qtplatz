@@ -176,6 +176,7 @@ MSChromatogramTable::MSChromatogramTable(QWidget *parent) : TableView( parent )
     setModel( impl_->model_.get() );
     setHorizontalHeader( new HtmlHeaderView );
     setItemDelegate( new delegate() );
+    setSortingEnabled( true );
 
     impl_->model_->setColumnCount( std::tuple_size< column_list >() );
     connect( this, &TableView::rowsDeleted, [&]{
@@ -313,7 +314,8 @@ MSChromatogramTable::impl::setValue( int row, const adcontrols::moltable::value_
     }
     if ( auto item = model_->item( row, index_of< col_formula, column_list >::value ) ) {
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-        model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), value.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        model_->setData( model_->index( row, index_of< col_formula, column_list >::value )
+                         , value.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
     if ( auto item = model_->item( row, index_of< col_svg, column_list >::value ) ) // has structure data
         item->setEditable( false );
@@ -401,5 +403,5 @@ void
 MSChromatogramTable::addActionsToContextMenu( QMenu& menu, const QPoint& pt ) const
 {
     TableView::addActionsToContextMenu( menu, pt );
-    menu.addAction( tr( "Add a line" ), this, [&]{ impl_->model_->setRowCount( impl_->model_->rowCount() + 1 ); } );
+    // menu.addAction( tr( "Add a line" ), this, [&]{ impl_->model_->setRowCount( impl_->model_->rowCount() + 1 ); } );
 }

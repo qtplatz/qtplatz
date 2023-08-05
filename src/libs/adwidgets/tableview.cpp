@@ -37,6 +37,60 @@
 #include <QRegularExpression>
 #include <set>
 
+namespace {
+
+    struct HasUserCheckableItem {
+        bool operator()( QModelIndexList&& indices ) const {
+            for ( const auto& index: indices ) {
+                auto flags = index.model()->flags( index );
+                if ( flags & (Qt::ItemIsUserCheckable | Qt::ItemIsEnabled ) )
+                    return true;
+            }
+            return false;
+        }
+
+        bool operator()( const QAbstractItemModel * model ) const {
+            for ( int row = 0; row < model->rowCount(); ++row ) {
+                for ( int col = 0; col < model->columnCount(); ++col ) {
+                    auto flags = model->flags( model->index( row, col ) );
+                    if ( flags & (Qt::ItemIsUserCheckable | Qt::ItemIsEnabled ) )
+                        return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    struct CheckStateChange {
+        CheckStateChange( QAbstractItemModel * model, QModelIndexList&& indices )
+            : model_( model )
+            , indices_( std::move( indices ) ) {}
+
+        void operator()( Qt::CheckState state ) const {
+            for ( auto& index: indices_ ){
+                auto flags = index.model()->flags( index );
+                if ( flags & Qt::ItemIsUserCheckable ) {
+                    model_->setData( index, state, Qt::CheckStateRole );
+                }
+            }
+        }
+
+        void toggle() const {
+            for ( auto& index: indices_ ){
+                auto flags = index.model()->flags( index );
+                if ( flags & Qt::ItemIsUserCheckable ) {
+                    Qt::CheckState state = Qt::CheckState( index.data( Qt::CheckStateRole ).toUInt() );
+                    model_->setData( index, state == Qt::Checked ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole );
+                }
+            }
+        }
+        QAbstractItemModel * model_;
+        QModelIndexList indices_;
+
+    };
+
+}
+
 using namespace adwidgets;
 using adportable::equal_range;
 
@@ -189,9 +243,17 @@ TableView::handleDeleteSelection()
 void
 TableView::addActionsToContextMenu( QMenu& menu, const QPoint& ) const
 {
+    if ( HasUserCheckableItem()( model() ) ) {
+        CheckStateChange checkStateChange( model(), selectionModel()->selectedIndexes() );
+        menu.addAction( tr( "Toggle checked" ),    [=](){ checkStateChange.toggle(); } );
+        menu.addAction( tr( "Check selected" ),    [=](){ checkStateChange( Qt::Checked ); } );
+        menu.addAction( tr( "Uncheck selected" ),  [=](){ checkStateChange( Qt::Unchecked ); } );
+    }
+
     menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
     menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
     menu.addAction( tr( "Delete" ), this, SLOT( handleDeleteSelection() ) )->setEnabled( allowDelete_ );
+    menu.addAction( tr( "Insert row (Shift+Enter)" ), this, SLOT( handleInsertLine() ) )->setEnabled( allowDelete_ );
 }
 
 void

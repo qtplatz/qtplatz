@@ -41,6 +41,23 @@ namespace adcontrols {
 
 namespace adwidgets {
 
+    namespace peaktable {
+        enum id_column {
+            c_id
+            , c_name
+            , c_tr
+            , c_area
+            , c_height
+            , c_width
+            , c_ntp
+            , c_rs
+            , c_asymmetry
+            , c_capacityfactor
+            , c_cid
+            , nbr_of_columns
+        };
+    }
+
     class ADWIDGETSSHARED_EXPORT PeakTable : public TableView
                     , public adplugin::LifeCycle {
         Q_OBJECT
@@ -60,7 +77,7 @@ namespace adwidgets {
         void addData( adcontrols::PeakResult&&, size_t idx, bool clearAll = false );
 
     signals:
-        void valueChanged( int row );
+        void valueChanged( int idx, int cid, const QModelIndex& );
         void currentChanged( int idx );
 
     public slots:

@@ -230,55 +230,52 @@ simple_mass_spectrum::make_spectrum( const candidate& candidate, std::shared_ptr
     // ADDEBUG() << "--------- simple_mass_spectrum::make_spectrum ---------";
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->clone( *refms, false );
-    try {
-        std::vector< double > masses, intensities;
-        std::vector< uint8_t > colors;
 
-        size_t ioffs(0);
-        try {
-            for ( const auto& ipk: candidate.isotope() ) {
-                auto [ found, index, mass_error, ra_error ] = ipk.matched_isotope_;
-                // ADDEBUG() << ipk.matched_isotope_;
-                if ( found && ( index >= impl_->data_.size() ) ) {
-                    const auto& value = (*this)[ index ];
-                    masses.emplace_back( mass_value_t::mass( value ) );
-                    intensities.emplace_back( mass_value_t::intensity( value ) );
-                    if ( ioffs == 0 ) {
-                        colors.emplace_back( 7 ); // crimson
-                        ms->get_annotations()
-                            << adcontrols::annotation( candidate.formula() + candidate.adduct()
-                                                       , masses.back()
-                                                       , intensities.back()
-                                                       , masses.size() - 1 // index
-                                                       , int( intensities.back() )
-                                                       , adcontrols::annotation::dataFormula
-                                                       , adcontrols::annotation::flag_targeting );
-                    } else {
-                        double offs = ipk.computed_isotope_.first - candidate.isotope()[ 0 ].computed_isotope_.first;
-                        colors.emplace_back( 7 ); // crimson
-                        ms->get_annotations()
-                            << adcontrols::annotation( "+" + std::to_string( int( offs + 0.7 ) )
-                                                       , masses.back()
-                                                       , intensities.back()
-                                                       , masses.size() - 1 // index
-                                                       , int( intensities.back() )
-                                                       , adcontrols::annotation::dataText
-                                                       , adcontrols::annotation::flag_targeting );
-                    }
+    std::vector< double > masses, intensities;
+    std::vector< uint8_t > colors;
+
+    size_t ioffs(0);
+    try {
+        for ( const auto& ipk: candidate.isotope() ) {
+            auto [ found, index, mass_error, ra_error ] = ipk.matched_isotope_;
+            // ADDEBUG() << ipk.matched_isotope_;
+            if ( found && ( index >= impl_->data_.size() ) ) {
+                const auto& value = (*this)[ index ];
+                masses.emplace_back( mass_value_t::mass( value ) );
+                intensities.emplace_back( mass_value_t::intensity( value ) );
+                if ( ioffs == 0 ) {
+                    colors.emplace_back( 7 ); // crimson
+                    ms->get_annotations()
+                        << adcontrols::annotation( candidate.formula() + candidate.adduct()
+                                                   , masses.back()
+                                                   , intensities.back()
+                                                   , masses.size() - 1 // index
+                                                   , int( intensities.back() )
+                                                   , adcontrols::annotation::dataFormula
+                                                   , adcontrols::annotation::flag_targeting );
+                } else {
+                    double offs = ipk.computed_isotope_.first - candidate.isotope()[ 0 ].computed_isotope_.first;
+                    colors.emplace_back( 7 ); // crimson
+                    ms->get_annotations()
+                        << adcontrols::annotation( "+" + std::to_string( int( offs + 0.7 ) )
+                                                   , masses.back()
+                                                   , intensities.back()
+                                                   , masses.size() - 1 // index
+                                                   , int( intensities.back() )
+                                                   , adcontrols::annotation::dataText
+                                                   , adcontrols::annotation::flag_targeting );
                 }
-                (void)mass_error;
-                (void)ra_error;
-                ++ioffs;
             }
-        } catch ( std::out_of_range& ex ) {
-            ADDEBUG() << "## exception: " << ex.what();
+            (void)mass_error;
+            (void)ra_error;
+            ++ioffs;
         }
-        ms->setMassArray( std::move( masses ) );
-        ms->setIntensityArray( std::move( intensities ) );
-        ms->setColorArray( std::move( colors ) );
     } catch ( std::out_of_range& ex ) {
-        ADDEBUG() << "## exception: " << ex.what();
+        ADDEBUG() << "## exception: " << ex.what(); // <----
     }
+    ms->setMassArray( std::move( masses ) );
+    ms->setIntensityArray( std::move( intensities ) );
+    ms->setColorArray( std::move( colors ) );
     return ms;
 }
 

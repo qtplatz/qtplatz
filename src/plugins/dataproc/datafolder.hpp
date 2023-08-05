@@ -27,10 +27,11 @@
 #include <QString>
 #include <boost/uuid/uuid.hpp>
 #include <boost/optional.hpp>
+#include <adportfolio/folium.hpp>
+
 
 namespace adcontrols { class MassSpectrum; class Chromatogram; class PeakResult; }
 namespace adprocessor { class dataprocessor; }
-namespace portfolio { class Folium; }
 
 namespace dataproc {
 
@@ -40,6 +41,7 @@ namespace dataproc {
         int idx_;
         std::wstring filename_;
         QString display_name_; // fileneme::folium.name
+        portfolio::Folium folium_;
         std::wstring idFolium_;
         boost::uuids::uuid idfolium_;
         std::wstring idCentroid_;

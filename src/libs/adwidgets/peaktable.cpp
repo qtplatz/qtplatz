@@ -36,6 +36,7 @@
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <functional>
 #include <set>
 
@@ -64,21 +65,6 @@ namespace {
 
 namespace adwidgets {
     namespace peaktable {
-
-        enum {
-            c_id
-            , c_name
-            , c_tr
-            , c_area
-            , c_height
-            , c_width
-            , c_ntp
-            , c_rs
-            , c_asymmetry
-            , c_capacityfactor
-            , c_cid
-            , nbr_of_columns
-        };
 
         using namespace adcontrols::metric;
 
@@ -160,7 +146,9 @@ PeakTable::PeakTable( QWidget *parent ) : TableView( parent )
     setHorizontalHeader( new HtmlHeaderView( Qt::Horizontal, this ) );
 
     if ( auto delegate = new peaktable::ItemDelegate() ) {
-        delegate->valueChanged_ = [this] ( const QModelIndex& idx ){ emit valueChanged( idx.row() ); };
+        delegate->valueChanged_ = [this] ( const QModelIndex& idx ){
+            emit valueChanged( model_->index( idx.row(), c_id ).data().toInt(), model_->index( idx.row(), c_cid).data().toInt(), idx );
+        };
         setItemDelegate( delegate );
     }
     setSortingEnabled( true );
@@ -190,10 +178,9 @@ PeakTable::OnInitialUpdate()
     model.setHeaderData( c_rs,             Qt::Horizontal, QObject::tr("<i>Rs</i>") );
     model.setHeaderData( c_asymmetry,      Qt::Horizontal, QObject::tr("Asymmetry") );
     model.setHeaderData( c_capacityfactor, Qt::Horizontal, QObject::tr("<i>k'<i>") );
-    model.setHeaderData( c_cid,            Qt::Horizontal, QObject::tr("overlay#") );
+    model.setHeaderData( c_cid,            Qt::Horizontal, QObject::tr("overlay#") );  // chromatogram id
 
     setColumnHidden( c_id, true );
-    // resizeColumnsToContents();
 }
 
 void
@@ -262,24 +249,26 @@ PeakTable::add( const adcontrols::Peak& peak, size_t idx )
     int row = model.rowCount();
     model.setRowCount( row + 1 );
 
-    model.setData( model.index( row, c_cid ), int(idx), Qt::EditRole );
-    model.setData( model.index( row, c_id ),  int( peak.peakId() ), Qt::EditRole );
-    model.setData( model.index( row, c_name ), QString::fromStdString( peak.name() ), Qt::EditRole );
-    model.setData( model.index( row, c_tr ), static_cast<double>( peak.peakTime() ), Qt::EditRole );
-   // model.setData( model.index( row, c_tr ), static_cast<double>( adcontrols::timeutil::toMinutes( peak.peakTime() ) ), Qt::EditRole );
-    model.setData( model.index( row, c_area ), peak.peakArea(), Qt::EditRole );
-    model.setData( model.index( row, c_height ), peak.peakHeight(), Qt::EditRole );
-    model.setData( model.index( row, c_width ), peak.peakWidth(), Qt::EditRole );
-    model.setData( model.index( row, c_ntp ), peak.theoreticalPlate().ntp(), Qt::EditRole );
-    model.setData( model.index( row, c_rs ), peak.resolution().resolution(), Qt::EditRole );
-    model.setData( model.index( row, c_asymmetry ), peak.asymmetry().asymmetry(), Qt::EditRole );
+    model.setData( model.index( row, c_cid ),            int(idx),             Qt::EditRole );
+    model.setData( model.index( row, c_id ),             int( peak.peakId() ), Qt::EditRole );
+    model.setData( model.index( row, c_name ),           QString::fromStdString( peak.name() ), Qt::EditRole );
+    model.setData( model.index( row, c_tr ),             static_cast<double>( peak.peakTime() ), Qt::EditRole );
+    model.setData( model.index( row, c_area ),           peak.peakArea(),      Qt::EditRole );
+    model.setData( model.index( row, c_height ),         peak.peakHeight(),    Qt::EditRole );
+    model.setData( model.index( row, c_width ),          peak.peakWidth(),     Qt::EditRole );
+    model.setData( model.index( row, c_ntp ),            peak.theoreticalPlate().ntp(), Qt::EditRole );
+    model.setData( model.index( row, c_rs ),             peak.resolution().resolution(), Qt::EditRole );
+    model.setData( model.index( row, c_asymmetry ),      peak.asymmetry().asymmetry(), Qt::EditRole );
     model.setData( model.index( row, c_capacityfactor ), peak.capacityFactor(), Qt::EditRole );
 
-    for ( int column = 0; column < model.columnCount(); ++column ) {
-        model.itemFromIndex( model.index( row, column ) )->setSelectable( true );
-        model.itemFromIndex( model.index( row, column ) )->setEditable( true );
+    for ( auto col: { c_cid, c_id, c_tr, c_area, c_height, c_width, c_ntp, c_rs, c_asymmetry, c_capacityfactor } ) {
+        model.itemFromIndex( model.index( row, col ) )->setEditable( false );
     }
-    model.itemFromIndex( model.index( row, c_name ) )->setEditable( false );
+
+    for ( auto col: { c_name } ) {
+        model.itemFromIndex( model.index( row, col ) )->setEditable( idx == 0 ); // only current focused cid can be editted
+    }
+
 }
 
 void
