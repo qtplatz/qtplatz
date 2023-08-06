@@ -79,12 +79,15 @@ namespace adwidgets {
     signals:
         void valueChanged( int idx, int cid, const QModelIndex& );
         void currentChanged( int idx );
+        void peaksAboutToBeRemoved( const std::vector< std::pair<int, int> >& rows );
 
     public slots:
 		void setData( const adcontrols::PeakResult& );
 
     private slots:
         void setData( const adcontrols::Peaks&, bool isCounting );
+
+    protected:
 
     private:
         void add( const adcontrols::Peak&, size_t idx );

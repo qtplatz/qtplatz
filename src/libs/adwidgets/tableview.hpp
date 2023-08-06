@@ -27,6 +27,7 @@
 
 #include "adwidgets_global.hpp"
 #include <QTableView>
+#include <set>
 
 namespace adwidgets {
 
@@ -46,15 +47,17 @@ namespace adwidgets {
         virtual void addActionsToContextMenu( QMenu&, const QPoint& ) const;
 
         void contextMenuEvent( QContextMenuEvent * ) override;
+    protected:
+        // virtual void rowsAboutToBeRemoved( const std::set< int >& rows ) {};
 
     private:
         bool allowDelete_;
-
         void copyToClipboard( bool remove_html );
 
     signals:
         void rowsDeleted();
         void lineInserted( QModelIndex );
+        void rowsAboutToBeRemoved( const std::set< int >& rows );
 
     public slots:
         virtual void handleCopyToClipboard();

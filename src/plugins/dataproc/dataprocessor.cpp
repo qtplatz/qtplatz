@@ -1260,6 +1260,27 @@ Dataprocessor::setPeakName( portfolio::Folium folium, int pid, const std::string
 }
 
 void
+Dataprocessor::removePeaks( portfolio::Folium folium, std::vector< int >&& ids )
+{
+    using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >;
+
+    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+        for ( auto& a: folium.attachments() ) {
+            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a )) ) {
+                if ( auto res = boost::get< std::shared_ptr< adcontrols::PeakResult > >( *var ) ) {
+                    auto it = std::remove_if( res->peaks().begin(), res->peaks().end(), [&](const auto& a){
+                        return std::find( ids.begin(), ids.end(), a.peakId() ) != ids.end();
+                    });
+                    res->peaks().erase( it, res->peaks().end() );
+                    chro->setPeaks( res->peaks() );
+                    setModified( true );
+                }
+            }
+        }
+    }
+}
+
+void
 Dataprocessor::baselineCollection( portfolio::Folium folium )
 {
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >

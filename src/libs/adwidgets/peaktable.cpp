@@ -151,7 +151,16 @@ PeakTable::PeakTable( QWidget *parent ) : TableView( parent )
         };
         setItemDelegate( delegate );
     }
+
     setSortingEnabled( true );
+
+    connect( this, &TableView::rowsAboutToBeRemoved, [&]( const std::set< int >& rows ){
+        std::vector< std::pair< int, int > > ids;
+        for ( auto row: rows ) {
+            ids.emplace_back( model_->index( row, c_cid ).data().toInt(), model_->index( row, c_id ).data().toInt() );
+        }
+        emit peaksAboutToBeRemoved( ids );
+    });
 }
 
 void
@@ -279,5 +288,20 @@ PeakTable::currentChanged( const QModelIndex& curr, const QModelIndex& prev )
         emit currentChanged( peakId );
     }
 }
+
+// void
+// PeakTable::rowsAboutToBeRemoved( const std::set< int >& rows )
+// {
+//     QVector< int > xrows;
+
+//     for ( const auto row: rows ) {
+//         auto cid = model_->index( row, c_cid ).data().toInt();
+//         auto id  = model_->index( row, c_id ).data().toInt();
+//         if ( cid == 0 ) {
+//             ADDEBUG() << "row: " << row << ", " << std::make_pair( cid, id ) << " to be removed";
+//             // xrows.push_back( QPair<int,int>(model_->index( row, c_cid ).data().toInt(), model_->index( row, c_id ).data().toInt()) );
+//         }
+//     }
+// }
 
 // #include "mschromatogramtable.moc"

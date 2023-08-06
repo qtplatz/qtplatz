@@ -124,6 +124,8 @@ namespace dataproc {
                 }
             });
 
+            connect( peakTable_, &PeakTable::peaksAboutToBeRemoved, this, &impl::handlePeaksAboutToBeRemoved );
+
             connect( plots_[0].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram0 );
             connect( plots_[1].get(), qOverload< const QRectF& >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram1 );
 
@@ -167,6 +169,14 @@ namespace dataproc {
                         dp->setPeakName( datum_.folium_, pid, name );
                     }
                 }
+            }
+        }
+
+        void handlePeaksAboutToBeRemoved( const std::vector< std::pair< int, int > >& ids ) {
+            std::vector< int > pids;
+            std::for_each( ids.begin(), ids.end(), [&](const auto& a){ if ( a.first == 0 ) pids.emplace_back( a.second ); } );
+            if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                dp->removePeaks( datum_.folium_, std::move( pids ) );
             }
         }
 
@@ -215,7 +225,6 @@ namespace dataproc {
         }
 
         void eraseOverlay( const portfolio::Folium& folium ) {
-            // ScopedDebug() << "## " << __FUNCTION__ << " ##";
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
                                       , [&](const auto& a){ return a.idFolium_ == folium.id() || a.idfolium_ == folium.uuid(); });
             if ( it != overlays_.end() ) {
@@ -244,9 +253,7 @@ namespace dataproc {
         std::tuple< bool, double, double, bool > xScale_;
         bool dirty_;
     public slots:
-        // void copy() {
-        //     peakTable_->handleCopyToClipboard();
-        // }
+
     };
 
     //----------------------------//

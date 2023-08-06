@@ -223,6 +223,8 @@ TableView::handleDeleteSelection()
 	std::set< int > rows;
     std::for_each( indices.begin(), indices.end(), [&](const auto& index){ rows.insert( index.row() ); } );
 
+    emit rowsAboutToBeRemoved( rows );
+
 	std::vector< std::pair< int, int > > ranges;
 
 	for ( auto it = rows.begin(); it != rows.end(); ++it ) {
