@@ -676,7 +676,7 @@ MainWindow::createContents( Core::IMode * mode )
     selectionChangedConnector< MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     processedConnector       < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd, ChromatogramWnd >( stack_ );
     axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
     scaleChromatogramConnector < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
     scaleSpectrumConnector   < MSProcessingWnd, MSSpectraWnd >( this, stack_ );

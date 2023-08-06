@@ -149,7 +149,7 @@ namespace dataproc {
             }
         }
 
-        void setPeakResult( adcontrols::PeakResultPtr& ptr ) {
+        void setPeakResult( adcontrols::PeakResultPtr ptr ) {
             if (( peakResult_ = ptr )) {
                 plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
                 peakTable_->setData( *ptr );
@@ -347,8 +347,12 @@ ChromatogramWnd::handleSessionRemoved( const QString& filename )
 }
 
 void
-ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
+ChromatogramWnd::handleCheckStateChanged( Dataprocessor * dp, portfolio::Folium& folium, bool isChecked )
 {
+    if ( !isChecked ) {
+        impl_->eraseOverlay( folium );
+        impl_->redraw();
+    }
 }
 
 void
@@ -410,22 +414,16 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             plot->setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity (a.u.)" ) );
         }
 
-        if ( auto pks = datum.get_peakResult() ) {
-            impl_->setPeakResult( pks );
-        } else {
-            ADDEBUG() << "############## no peak result containd in datafolder ################";
-        }
-        impl_->datum_ = std::move( datum );
-    } else {
-        return;
-    }
+        impl_->setPeakResult( datum.get_peakResult() );
+        impl_->datum_ = datum;
 
-    if ( folium.attribute( L"isChecked" ) == L"false" ) {
-        impl_->eraseOverlay( folium );
-    } else {
-        impl_->addOverlay( std::move( datum ) );
+        if ( folium.attribute( L"isChecked" ) == L"false" ) {
+            impl_->eraseOverlay( folium );
+        } else {
+            impl_->addOverlay( std::move( datum ) );
+        }
+        impl_->redraw();
     }
-    impl_->redraw();
 }
 
 void
@@ -588,16 +586,17 @@ ChromatogramWnd::impl::redraw()
 {
     if ( std::get< 3 >( yScale_ ) || std::get< 3 >( xScale_ ) ) { // scale auto flag changed
         auto& plot = plots_[ 0 ];
-        // ADDEBUG() << "##### redraw [0] " << xScale_ << ", " << yScale_;
         plot->setYScale( std::make_tuple( std::get<0>(yScale_),std::get<1>(yScale_),std::get<2>(yScale_)), false );
         plot->setXScale( std::make_tuple( std::get<0>(xScale_),std::get<1>(xScale_),std::get<2>(xScale_)), true );
     }
 
     if ( overlays_.empty() ) {
-        plots_[ 1 ]->hide();
-    } else {
-        auto& plot = plots_[ 1 ];
 
+        plots_[ 1 ]->hide();
+
+    } else {
+
+        auto& plot = plots_[ 1 ];
         plot->clear();
         plot->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( yScale_ ) && (overlays_.size() > 1) );
 
@@ -606,10 +605,9 @@ ChromatogramWnd::impl::redraw()
             if ( auto chr = datum.get_chromatogram() ) {
 
                 if ( ! datum.overlayChromatogram_ ) {
-                    // set a copy (deep)
+                    // copy for rescale
                     datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr );
                 }
-
                 plot->setChromatogram( {idx, chr, datum.get_peakResult()}, QwtPlot::yLeft );
 
                 if ( idx == 0 ) {
@@ -619,7 +617,8 @@ ChromatogramWnd::impl::redraw()
 
                 if (( datum.id() != datum_.id() ) && ( datum.idFolium_ != datum_.idFolium() )) { // this is not currently focused chromatogram
                     if ( auto pks = datum.get_peakResult() ) {
-                        peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx, idx == 0 );
+                        peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx + 1, false );
+                        datum.idx_ = idx + 1;
                     }
                 }
                 ++idx;

@@ -242,6 +242,11 @@ PeakTable::setData( const adcontrols::Peaks& peaks, bool isCounting )
         add( peak, 0 );
     }
     resizeColumnsToContents();
+    if ( peaks.size() >= 1 ) {
+        auto it = std::max_element( peaks.begin(), peaks.end()
+                                    , [](const auto& a, const auto& b){ return a.peakHeight() < b.peakHeight(); } );
+        this->selectRow( std::distance( peaks.begin(), it ) );
+    }
 }
 
 void

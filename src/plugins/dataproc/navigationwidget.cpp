@@ -298,15 +298,15 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
     // handle checkbox on tree item
     QVariant data = item->data( Qt::UserRole );
 
-    // ADDEBUG() << "handleItemChanged: " << item->data( Qt::DisplayRole ).toString().toStdString();
     if ( data.canConvert< portfolio::Folium >() ) {
 
 		Qt::CheckState state = static_cast< Qt::CheckState >( item->data( Qt::CheckStateRole ).toUInt() );
         portfolio::Folium folium = data.value< portfolio::Folium >();
         folium.setAttribute( L"isChecked", state == Qt::Checked ? L"true" : L"false" );
 
-		if ( Dataprocessor * dp = StandardItemHelper::findDataprocessor( item->index() ) )
+		if ( Dataprocessor * dp = StandardItemHelper::findDataprocessor( item->index() ) ) {
             SessionManager::instance()->checkStateChanged( dp, folium, state == Qt::Checked );
+        }
     }
 
 }
@@ -604,13 +604,9 @@ namespace { // anonymous
         const QModelIndexList& rows_;
         check_all_in_folder( const QModelIndexList& rows ) : rows_( rows ) {}
         void operator()( bool check ) const {
-            ADDEBUG() << "----------- check_all_in_foler ----------->";
-            qDebug() << rows_;
             for ( auto index: rows_ ) {
-                qDebug() << "\t----------- check_all_in_foler ----------- " << index;
                 if ( auto model = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
                     auto parent = model->itemFromIndex( index );
-                    qDebug() << "\t----------- check_all_in_foler parent: " << parent;
                     for ( int row = 0; row < parent->rowCount(); ++row ) {
                         if ( auto item = model->itemFromIndex( model->index( row, 0, parent->index() ) ) ) {
                             if ( item->isCheckable() ) {
@@ -623,7 +619,6 @@ namespace { // anonymous
                     }
                 }
             }
-            ADDEBUG() << "<----------- check_all_in_foler -----------";
         }
     };
 
