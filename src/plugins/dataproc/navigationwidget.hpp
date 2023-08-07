@@ -88,6 +88,7 @@ namespace dataproc {
         NavigationDelegate * pDelegate_;
         void handleAllCheckState( bool, const QString& );
         void handleAllCheckState( bool, const QString&, const QString& re );
+        bool eventFilter( QObject *, QEvent * );
     };
 
 }

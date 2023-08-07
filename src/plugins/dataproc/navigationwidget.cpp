@@ -275,6 +275,8 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     if ( auto am = DataprocPlugin::instance()->actionManager() ) {
         am->connect_navigation_pointer( this );
     }
+
+    pTreeView_->installEventFilter( this );
 }
 
 void
@@ -658,15 +660,16 @@ namespace { // anonymous
     };
 
     //////////////////////////////// chromatogram_generator_list /////////////////////////////////
-    struct list_chromatogram_generator {
+    struct copy_chromatogram_generator {
         QTreeView * p_;
-        list_chromatogram_generator( QTreeView * p ) : p_( p ) {}
+        copy_chromatogram_generator( QTreeView * p ) : p_( p ) {}
         void operator()() const {
             std::vector< adprocessor::generator_property > gv;
             for ( auto index: p_->selectionModel()->selectedRows() ) {
                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
                 processor->fetch( folium );
                 if ( auto v = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+                    ADDEBUG() << "-------- coping : " << folium.name();
                     gv.emplace_back( adprocessor::generator_property( *v ) );
                 }
             }
@@ -1165,8 +1168,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
 
-        list_chromatogram_generator list_generator( pTreeView_ );
-        menu.addAction( tr( "Copy masses" ), [&](){ list_generator(); } );
+        copy_chromatogram_generator copy_generator( pTreeView_ );
+        menu.addAction( tr( "Copy masses" ), [&](){ copy_generator(); } );
 
         remove_duplicated_chromatogram remover( selRows );
         menu.addAction( tr( "Remove duplicate" ), [=](){ remover(); } );
@@ -1318,6 +1321,24 @@ NavigationWidget::handleUncheckAllXICs()
     handleAllCheckState( false, "Chromatograms" );
 }
 
+bool
+NavigationWidget::eventFilter( QObject * obj, QEvent * ev )
+{
+    if ( ev->type() == QEvent::KeyPress ) {
+        auto ke = static_cast< QKeyEvent * >( ev );
+        if ( ke->matches( QKeySequence::Copy ) ) {
+            auto selRows = pTreeView_->selectionModel()->selectedRows();
+            selected_folders selFolders( selRows );
+            if ( selFolders.contains( "Chromatograms" ) ) { //  && selFolders.folders().size() == 1;
+                copy_chromatogram_generator copy_generator( pTreeView_ );
+                copy_generator();
+                qDebug() << "------- copy ------------";
+                return true;
+            }
+        }
+    }
+    return QObject::eventFilter( obj, ev );
+}
 
 QDataStream &operator<<(QDataStream& out, const portfolio::Folium& folium )
 {
