@@ -663,7 +663,6 @@ namespace { // anonymous
         list_chromatogram_generator( QTreeView * p ) : p_( p ) {}
         void operator()() const {
             std::vector< adprocessor::generator_property > gv;
-            ADDEBUG() << "list generator: " << p_->selectionModel()->selectedRows().size();
             for ( auto index: p_->selectionModel()->selectedRows() ) {
                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
                 processor->fetch( folium );
@@ -1166,11 +1165,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
 
+        list_chromatogram_generator list_generator( pTreeView_ );
+        menu.addAction( tr( "Copy masses" ), [&](){ list_generator(); } );
+
         remove_duplicated_chromatogram remover( selRows );
         menu.addAction( tr( "Remove duplicate" ), [=](){ remover(); } );
-
-        list_chromatogram_generator list_generator( pTreeView_ );
-        menu.addAction( tr( "List chromatogram generator" ), [&](){ list_generator(); } );
 
         spectra_from_chromatographic_peaks gen_spectra( selRows );
         menu.addAction( tr( "Create mass spectra from chromatographic peaks (JCA 2009)" )

@@ -96,9 +96,25 @@ namespace adprocessor {
                     if ( std::regex_match( text, match
                                            , std::regex( R"__(.*\(W[ :]*([0-9]+\.[0-9]+)mDa\).*|.*\(W[ :]*([0-9]+)mDa\).*)__" ) ) ) {
                         if ( match.size() == 3 ) {
-                            mass_width_ = std::stod( match[1].str().empty() ? match[2].str() : match[1].str() );
+                            mass_width_ = std::stod( match[1].str().empty() ? match[2].str() : match[1].str() ) / 1000.0;
                             break;
                         }
+                    }
+                }
+            }
+            ADDEBUG() << "---------- reader_name: '" << reader_name_ << "'";
+            if ( reader_name_.empty() ) {
+                for ( const auto& desc: c.descriptions() ) {
+                    auto [key,text] = desc.keyValue();
+                    std::smatch match;
+                    if ( std::regex_match( text, match
+                                           , std::regex( R"__(.*\(W[ :]*[0-9\.]+mDa\)[ ,]*([a-zA-Z]*).*([0-9]))__" ) ) ) {
+                        if ( match.size() == 3 ) {
+                            reader_name_ = match[1].str();
+                            proto_ = std::stoi( match[2].str() );
+                        }
+                        if ( !reader_name_.empty() )
+                            std::transform( reader_name_.begin(), reader_name_.end(), reader_name_.begin(), ::toupper );
                     }
                 }
             }
