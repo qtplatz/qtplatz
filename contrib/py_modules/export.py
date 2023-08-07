@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from qtplatz import adProcessor, adControls
+from qtplatz import py_adprocessor, py_adontrols
 from datetime import datetime
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 from PyQt5.QtGui import QIcon
