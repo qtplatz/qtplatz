@@ -26,11 +26,13 @@
 
 #include "adprocessor_global.hpp"
 #include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 #include <memory>
 #include <optional>
 
 namespace adcontrols {
     class Chromatogram;
+    class descriptions;
 }
 
 namespace adprocessor {
@@ -40,11 +42,21 @@ namespace adprocessor {
     class generator_property {
     public:
         ~generator_property();
+        generator_property();
+        generator_property( const generator_property& );
         generator_property( const adcontrols::Chromatogram& );
         std::string generator() const;
         std::optional< std::string > formula() const;
         double mass() const;
         std::tuple< double, std::string, std::string > get() const;
+        const boost::json::value& value() const;
+
+        friend ADPROCESSORSHARED_EXPORT void
+        tag_invoke( boost::json::value_from_tag, boost::json::value&, const generator_property& );
+
+        friend ADPROCESSORSHARED_EXPORT generator_property
+        tag_invoke( boost::json::value_to_tag< generator_property >&, const boost::json::value& );
+
     private:
         class impl;
         impl * impl_;

@@ -35,6 +35,7 @@
 #include "utility.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
@@ -47,16 +48,20 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adprocessor/generator_property.hpp>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/modemanager.h>
+#include <QApplication>
+#include <QClipboard>
 #include <QDataStream>
 #include <QDebug>
 #include <QFileDialog>
 #include <QLabel>
 #include <QMenu>
+#include <QMimeData>
 #include <QRegularExpression>
 #include <QStandardItemModel>
 #include <QTreeView>
@@ -652,6 +657,27 @@ namespace { // anonymous
         }
     };
 
+    //////////////////////////////// chromatogram_generator_list /////////////////////////////////
+    struct list_chromatogram_generator {
+        QTreeView * p_;
+        list_chromatogram_generator( QTreeView * p ) : p_( p ) {}
+        void operator()() const {
+            std::vector< adprocessor::generator_property > gv;
+            ADDEBUG() << "list generator: " << p_->selectionModel()->selectedRows().size();
+            for ( auto index: p_->selectionModel()->selectedRows() ) {
+                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
+                processor->fetch( folium );
+                if ( auto v = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+                    gv.emplace_back( adprocessor::generator_property( *v ) );
+                }
+            }
+            auto json = boost::json::serialize( boost::json::value_from( gv ) );
+            QApplication::clipboard()->setText( QString::fromStdString( json ) );
+            if ( auto md = new QMimeData() )
+                md->setData( QLatin1String( "application/json" ), QByteArray( json.data() ) );
+        };
+    };
+
     //--------------------------------
     template< Qt::CheckState CheckState >
     struct set_attribute_all {
@@ -1143,6 +1169,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         remove_duplicated_chromatogram remover( selRows );
         menu.addAction( tr( "Remove duplicate" ), [=](){ remover(); } );
 
+        list_chromatogram_generator list_generator( pTreeView_ );
+        menu.addAction( tr( "List chromatogram generator" ), [&](){ list_generator(); } );
+
         spectra_from_chromatographic_peaks gen_spectra( selRows );
         menu.addAction( tr( "Create mass spectra from chromatographic peaks (JCA 2009)" )
                         , [=](){ gen_spectra(); } );
@@ -1289,7 +1318,6 @@ NavigationWidget::handleUncheckAllXICs()
 {
     handleAllCheckState( false, "Chromatograms" );
 }
-
 
 
 QDataStream &operator<<(QDataStream& out, const portfolio::Folium& folium )

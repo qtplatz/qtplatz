@@ -406,8 +406,12 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                     boost::json::object top = {
                         { "generator"
-                          , { { "time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) }
-                              ,{ "extract_by_mols", boost::json::value_from( extract_by_mols ) }
+                          , {{ "time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) }
+                             , { "extract_by_mols", boost::json::value_from( extract_by_mols ) }
+                             , { "mass", mol.mass() }
+                             , { "mass_width", width }
+                             , { "proto",  proto ? *proto : 0 }
+                             , { "reader", reader->display_name() }
                             }
                         }
                     };
@@ -561,9 +565,15 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
                           , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
         auto gen = boost::json::value{
             { "generator"
-              , {{ "extract_by_axis_range", {{ "axis", unsigned(axis) }, { "range", range }} }}
-              , {{ "reader", { "name", reader->objtext() }, { "protocol", fcn } }}
-            }};
+              , {{ "extract_by_axis_range", {{ "axis", unsigned(axis) }, { "range", range }} }
+                 , { "reader", { "name", reader->objtext() }, { "protocol", fcn } }
+                 , { "mass", range.first + (range.second - range.first ) / 2.0 }
+                 , { "mass_width", range.second - range.first }
+                 , { "proto", fcn }
+                 , { "reader", reader->abbreviated_display_name() }
+                }
+            }
+        };
 
         for ( auto& r : impl_->results_ ) {
             r->pChr_->setIsCounting( isCounting );
@@ -850,8 +860,14 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 boost::system::error_code ec;
                 auto jv = boost::json::parse( pk.toJson(), ec );
                 if ( !ec ) {
-                    boost::json::object obj = {{ "generator"
-                            , {{ "extract_by_peak_info", {{ "pkinfo", jv }} }} }
+                    boost::json::object obj = {
+                        { "generator"
+                          ,{{ "extract_by_peak_info", {{ "pkinfo", jv }} }
+                          , { "mass", pk.mass() }
+                          , { "mass_width", width }
+                          , { "proto", protocol }
+                          , { "reader", display_name }}
+                        }
                     };
                     ( *it )->pChr_->setGeneratorProperty( boost::json::serialize( obj ) );
                 }
