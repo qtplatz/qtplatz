@@ -101,9 +101,8 @@ extract_by_generator_property::operator()( const adcontrols::ProcessMethod& pm
                 if ( auto y = extractor_->computeIntensity( *ms, adcontrols::hor_axis_mass, mass_range ) ) {
                     if ( std::get< 0 >( *it )++ == 0 ) // count++
                         std::get< 1 >( *it ) = *y;
-                    // if ( std::get< 0 >( *it )++ && pos > 0 ) // ignore first data after chromatogram condition change
-                    //     continue;
-                    (*pChr) << std::make_pair( time, *y - std::get< 1 >( *it ) );
+                    else
+                        (*pChr) << std::make_pair( time, *y - std::get< 1 >( *it ) );
                 } else {
                     ADDEBUG() << "intensity not returned at time: " << time;
                 }
