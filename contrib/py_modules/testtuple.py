@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from qtplatz import adControls, adProcessor
+from qtplatz import py_adcontrols, py_adprocessor
 
-t = adProcessor.tuple();
+t = py_adprocessor.tuple();
 print ( t );
 
-v = adProcessor.tuples();
+v = py_adprocessor.tuples();
 print ( v );
 for tt in v:
     print(tt)
