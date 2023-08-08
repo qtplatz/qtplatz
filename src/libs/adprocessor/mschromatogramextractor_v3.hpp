@@ -45,11 +45,16 @@ namespace adcontrols {
     class MSPeakInfoItem;
     class ProcessMethod;
     class DataReader;
+    class description;
 }
 
 namespace boost { namespace json { class object; } }
 
 namespace adprocessor {
+
+    namespace chromatogr_extractor {
+        class extract_by_generator_property;
+    }
 
     class dataprocessor;
     class AutoTargetingCandidates;
@@ -122,8 +127,12 @@ namespace adprocessor {
                               , size_t
                               , size_t& );
 
+            const std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra() const;
+            std::optional< adcontrols::description > mslock_description() const;
+
             class impl;
             impl * impl_;
+            friend class chromatogr_extractor::extract_by_generator_property;
         };
     }
 }

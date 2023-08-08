@@ -25,44 +25,38 @@
 #pragma once
 
 #include "adprocessor_global.hpp"
-#include <boost/json/fwd.hpp>
-#include <boost/json/value_to.hpp>
+#include "mschromatogramextractor_v3.hpp"
+#include <adcontrols/constants.hpp>
+#include <boost/optional.hpp>
+#include <chrono>
+#include <functional>
+#include <map>
 #include <memory>
-#include <optional>
-
-namespace adcontrols {
-    class Chromatogram;
-    class descriptions;
-}
+#include <string>
+#include <vector>
 
 namespace adprocessor {
 
-    class ADPROCESSORSHARED_EXPORT generator_property;
+    class generator_property;
 
-    class generator_property {
-    public:
-        ~generator_property();
-        generator_property();
-        generator_property( const generator_property& );
-        generator_property( const adcontrols::Chromatogram& );
-        std::string generator() const;
-        std::optional< std::string > formula() const;
-        double mass() const;
-        double mass_width() const;
-        const std::string& data_reader() const;
-        int protocol() const;
-        std::tuple< double, std::string, std::string > get() const;
-        const boost::json::value& value() const;
+    namespace chromatogr_extractor {
 
-        friend ADPROCESSORSHARED_EXPORT void
-        tag_invoke( boost::json::value_from_tag, boost::json::value&, const generator_property& );
+        class ADPROCESSORSHARED_EXPORT extract_by_generator_property;
 
-        friend ADPROCESSORSHARED_EXPORT generator_property
-        tag_invoke( boost::json::value_to_tag< generator_property >&, const boost::json::value& );
+        class extract_by_generator_property { //
+        public:
+            ~extract_by_generator_property();
+            extract_by_generator_property( const adcontrols::LCMSDataset *, dataprocessor * );
 
-    private:
-        class impl;
-        impl * impl_;
-    };
+            std::vector< std::shared_ptr< adcontrols::Chromatogram > >
+            operator()( const adcontrols::ProcessMethod&
+                        , std::shared_ptr< const adcontrols::DataReader > reader
+                        , const std::vector< generator_property >& properties
+                        , std::function<bool( size_t, size_t )> progress );
+        private:
+            std::unique_ptr< v3::MSChromatogramExtractor > extractor_;
+            std::vector< std::tuple< size_t, double, std::shared_ptr< adcontrols::Chromatogram > > > vec_; // count, y0, pChro
+        };
 
+    }
 }

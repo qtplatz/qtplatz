@@ -59,6 +59,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
+#include <adprocessor/extract_by_generator_property.hpp>
 #include <adprocessor/mschromatogramextractor.hpp>
 #include <adprocessor/jcb2009_processor.hpp>
 #include <adprocessor/generator_property.hpp>
@@ -688,6 +689,7 @@ DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
+// from vector of generator_property
 void
 DataprocessWorker::handleCreateChromatograms( Dataprocessor * processor
                                               , std::shared_ptr< const adcontrols::ProcessMethod > pm
@@ -703,9 +705,9 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor * processor
     }
 
     if ( auto data = processor->rawdata() ) {
-        adprocessor::v3::MSChromatogramExtractor ex( data, processor );
-
-        // ex.extract_by_json( vec, *pm, reader, peaks_json, width, axis, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+        adprocessor::chromatogr_extractor::extract_by_generator_property extractor( data, processor );
+        vec = extractor( *pm, reader, properties
+                         , [progress]( size_t curr, size_t total){ return (*progress)(curr, total );} );
     }
 
     auto noise_filter = std::make_shared< adprocessor::noise_filter >();

@@ -130,7 +130,8 @@ namespace adprocessor {
     };
 
     struct protocol_finder {
-        boost::optional< int > operator()( std::shared_ptr< const adcontrols::MassSpectrum > ms, const adcontrols::moltable::value_type& mol, double width ) {
+        boost::optional< int > operator()( std::shared_ptr< const adcontrols::MassSpectrum > ms
+                                           , const adcontrols::moltable::value_type& mol, double width ) {
             double lMass = mol.mass() - width / 2;
             double uMass = mol.mass() + width / 2;
             size_t nProto = ms->nProtocols();
@@ -808,7 +809,8 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
 
         if ( auto y = computeIntensity( ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
 
-            auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
+            auto it = std::find_if( results_.begin(), results_.end()
+                                    , [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
             if ( it == results_.end() ) {
                 results_.emplace_back( std::make_shared< xChromatogram >( m, width, protocol, cid, display_name, ms.isHistogram() ) );
@@ -846,7 +848,8 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
 
         if ( auto y = computeIntensity( ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
 
-            auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
+            auto it = std::find_if( results_.begin(), results_.end()
+                                    , [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
             if ( it == results_.end() ) {
                 results_.emplace_back( std::make_shared< xChromatogram >( protocol, cid, ms.isHistogram() ) );
@@ -988,4 +991,16 @@ const std::vector< std::pair< int64_t, std::array<double, 2> > >&
 MSChromatogramExtractor::lkms() const
 {
     return impl_->lkms_;
+}
+
+const std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > >
+MSChromatogramExtractor::spectra() const
+{
+    return impl_->spectra_;
+}
+
+std::optional< adcontrols::description >
+MSChromatogramExtractor::mslock_description() const
+{
+    return impl_->desc_mslock();
 }

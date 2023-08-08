@@ -44,6 +44,7 @@ add_library( ${PROJECT_NAME} SHARED
   centroid_processor.cpp centroid_processor.hpp
   jcb2009_summarizer.cpp jcb2009_summarizer.hpp
   generator_property.cpp generator_property.hpp
+  extract_by_generator_property.cpp  extract_by_generator_property.hpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

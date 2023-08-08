@@ -1928,10 +1928,12 @@ Dataprocessor::createChromatograms( std::vector< adprocessor::generator_property
         }
 
         for ( size_t i = 0; i < gprop.size(); ++i ) {
-            DataprocessWorker::instance()->createChromatograms( this
-                                                                , pm
-                                                                , std::move( gprop[i] )
-                                                                , readers[i] );
+            if ( ! gprop[i].empty() && readers[i] ) {
+                DataprocessWorker::instance()->createChromatograms( this
+                                                                    , pm
+                                                                    , std::move( gprop[i] )
+                                                                    , readers[i] );
+            }
         }
     }
 }

@@ -168,6 +168,12 @@ namespace adprocessor {
         return impl_->reader_name_;
     }
 
+    int
+    generator_property::protocol() const
+    {
+        return impl_->proto_;
+    }
+
     std::tuple< double, std::string, std::string >
     generator_property::get() const
     {
