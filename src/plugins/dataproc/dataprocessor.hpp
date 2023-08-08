@@ -53,6 +53,7 @@ namespace adcontrols {
 
 namespace adprocessor {
     class noise_filter;
+    class generator_property;
 }
 
 namespace adprot { class digestedPeptides; }
@@ -147,6 +148,7 @@ namespace dataproc {
         void dftFilter( portfolio::Folium, std::shared_ptr< adcontrols::ProcessMethod > ); // filter for chromatogram
         void setPeakName( portfolio::Folium, int pid, const std::string& name );
         void removePeaks( portfolio::Folium, std::vector< int >&& );
+        void createChromatograms( std::vector< adprocessor::generator_property > v );
 
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& ) override;
 

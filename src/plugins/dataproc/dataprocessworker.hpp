@@ -47,7 +47,10 @@ namespace adcontrols {
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  class DataReaderChoiceDialog; }
 namespace boost { namespace uuids { struct uuid; } }
-namespace adprocessor { class JCB2009_Processor; }
+namespace adprocessor {
+    class JCB2009_Processor;
+    class generator_property;
+}
 
 class QString;
 class QByteArray;
@@ -71,11 +74,6 @@ namespace dataproc {
         void createChromatogramsByMethod( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
 
 
-        // [1] (Support both V2&V3)
-        // void createChromatograms( Dataprocessor * processor
-        //                           , adcontrols::hor_axis axis
-        //                           , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
-        //                           , const boost::uuids::uuid& dataReaderUuid );
         // [2]
         void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& );
 
@@ -97,6 +95,11 @@ namespace dataproc {
         void genChromatograms( Dataprocessor *
                                , std::shared_ptr< const adcontrols::ProcessMethod > pm
                                , const QByteArray& json );
+
+        void createChromatograms( Dataprocessor *
+                                  , std::shared_ptr< const adcontrols::ProcessMethod >
+                                  , std::vector< adprocessor::generator_property >&& v
+                                  , std::shared_ptr< const adcontrols::DataReader > reader );
 
         void createContour( Dataprocessor * );
 		void clusterContour( Dataprocessor * );
@@ -143,6 +146,12 @@ namespace dataproc {
                                              , std::shared_ptr< const adcontrols::MSPeakInfo > pkinfo
                                              , std::shared_ptr< const adcontrols::DataReader >
                                              , std::shared_ptr<adwidgets::Progress> );
+
+        void handleCreateChromatograms( Dataprocessor *
+                                        , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                        , std::vector< adprocessor::generator_property >
+                                        , std::shared_ptr< const adcontrols::DataReader >
+                                        , std::shared_ptr< adwidgets::Progress > );
 
         // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *

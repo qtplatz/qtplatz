@@ -62,19 +62,7 @@ namespace adprocessor {
 
             jv_ = adportable::json_helper::parse( c.generatorProperty() );
             setup( jv_ );
-#if 0
-            if ( auto gen = adportable::json_helper::if_contains( jv_, "generator.extract_by_peak_info" ) ) {
-                generator_ = "extract_by_peak_info"; // gen from mass peak
-                if ( auto value = adportable::json_helper::if_contains( *gen, "pkinfo.mass" ) )
-                    mass_ = value->as_double();
-            } else if (  auto gen = adportable::json_helper::if_contains( jv_, "generator.extract_by_mols" ) ) {
-                generator_ = "extract_by_mols";  // gen from mschromatogr. parameter
-                if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.mass" ) )
-                    mass_ = value->as_double();
-                if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.formula" ) )
-                    formula_ = value->as_string();
-            }
-#endif
+
             if ( auto value = adportable::json_helper::if_contains( jv_, "mass_width" ) ) {
                 mass_width_ = value->as_double();
             }
@@ -102,7 +90,6 @@ namespace adprocessor {
                     }
                 }
             }
-            ADDEBUG() << "---------- reader_name: '" << reader_name_ << "'";
             if ( reader_name_.empty() ) {
                 for ( const auto& desc: c.descriptions() ) {
                     auto [key,text] = desc.keyValue();
@@ -167,6 +154,18 @@ namespace adprocessor {
     generator_property::mass() const
     {
         return impl_->mass_;
+    }
+
+    double
+    generator_property::mass_width() const
+    {
+        return impl_->mass_width_;
+    }
+
+    const std::string&
+    generator_property::data_reader() const
+    {
+        return impl_->reader_name_;
     }
 
     std::tuple< double, std::string, std::string >

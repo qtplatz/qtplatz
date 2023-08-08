@@ -48,6 +48,8 @@ namespace adprocessor {
         std::string generator() const;
         std::optional< std::string > formula() const;
         double mass() const;
+        double mass_width() const;
+        const std::string& data_reader() const;
         std::tuple< double, std::string, std::string > get() const;
         const boost::json::value& value() const;
 

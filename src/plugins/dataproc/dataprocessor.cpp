@@ -38,6 +38,7 @@
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
@@ -123,14 +124,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
-#include <chrono>
-#include <stack>
-#include <fstream>
-#include <type_traits>
 #include <QApplication>
 #include <QFontMetrics>
 #include <QMessageBox>
 #include <QJsonDocument>
+#include <chrono>
+#include <fstream>
+#include <regex>
+#include <stack>
+#include <type_traits>
 
 using namespace dataproc;
 
@@ -1904,6 +1906,33 @@ Dataprocessor::clearMarkup( portfolio::Folium&& folium )
         }
         setModified( true );
         SessionManager::instance()->updateDataprocessor( this, folium );
+    }
+}
+
+void
+Dataprocessor::createChromatograms( std::vector< adprocessor::generator_property > v )
+{
+    if ( auto file = rawdata() ) {
+        auto pm = MainWindow::instance()->processMethod();
+        std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers;
+        std::array< std::vector< adprocessor::generator_property >, 2 > gprop;
+
+        std::for_each( v.begin(), v.end(), [&](auto p){ gprop[(p.data_reader() == "PKD" ? 0 : 1 )].emplace_back( p ); } );
+
+        for ( auto& reader: file->dataReaders() ) {
+            ADDEBUG() << "data reader: " << std::make_pair( reader->display_name(), reader->objtext() );
+            if ( std::regex_search( reader->display_name(), std::regex( R"__(pkd\..*)__" ) ) )
+                readers[0] = reader;
+            if ( std::regex_search( reader->display_name(), std::regex( R"__(avg\..*)__" ) ) )
+                readers[1] = reader;
+        }
+
+        for ( size_t i = 0; i < gprop.size(); ++i ) {
+            DataprocessWorker::instance()->createChromatograms( this
+                                                                , pm
+                                                                , std::move( gprop[i] )
+                                                                , readers[i] );
+        }
     }
 }
 

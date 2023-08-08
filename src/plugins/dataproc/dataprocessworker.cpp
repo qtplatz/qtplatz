@@ -61,6 +61,7 @@
 #include <adportfolio/folder.hpp>
 #include <adprocessor/mschromatogramextractor.hpp>
 #include <adprocessor/jcb2009_processor.hpp>
+#include <adprocessor/generator_property.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
@@ -83,6 +84,7 @@
 #include <future>
 #include <iomanip>
 #include <thread>
+#include <regex>
 
 Q_DECLARE_METATYPE( portfolio::Folium )
 
@@ -196,6 +198,21 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
         }
 
     }
+}
+
+void
+DataprocessWorker::createChromatograms( Dataprocessor * dp
+                                        , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                        , std::vector< adprocessor::generator_property >&& v
+                                        , std::shared_ptr< const adcontrols::DataReader > reader )
+
+{
+    auto progress( adwidgets::ProgressWnd::instance()->addbar() );
+
+    threads_.emplace_back( adportable::asio::thread( [=,this] {
+        handleCreateChromatograms( dp, pm, v, reader, progress );
+    }));
+
 }
 
 
@@ -670,6 +687,38 @@ DataprocessWorker::handleGenChromatogram( Dataprocessor * processor
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
+
+void
+DataprocessWorker::handleCreateChromatograms( Dataprocessor * processor
+                                              , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                              , std::vector< adprocessor::generator_property > properties
+                                              , std::shared_ptr< const adcontrols::DataReader > reader
+                                              , std::shared_ptr< adwidgets::Progress > progress )
+{
+    std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
+
+    for ( const auto& prop: properties ) {
+        ADDEBUG() << "handleCreateChromatograms: " << std::make_tuple( prop.mass(), prop.mass_width(), prop.data_reader()
+                                                                       , reader->display_name() );
+    }
+
+    if ( auto data = processor->rawdata() ) {
+        adprocessor::v3::MSChromatogramExtractor ex( data, processor );
+
+        // ex.extract_by_json( vec, *pm, reader, peaks_json, width, axis, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+    }
+
+    auto noise_filter = std::make_shared< adprocessor::noise_filter >();
+    portfolio::Folium folium;
+    for ( auto c: vec ) {
+        folium = processor->addChromatogram( c, *pm, noise_filter );
+    }
+
+	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
+
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
+}
+
 
 
 void

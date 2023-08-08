@@ -669,16 +669,30 @@ namespace { // anonymous
                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
                 processor->fetch( folium );
                 if ( auto v = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
-                    ADDEBUG() << "-------- coping : " << folium.name();
                     gv.emplace_back( adprocessor::generator_property( *v ) );
                 }
             }
             auto json = boost::json::serialize( boost::json::value_from( gv ) );
-            QApplication::clipboard()->setText( QString::fromStdString( json ) );
-            if ( auto md = new QMimeData() )
-                md->setData( QLatin1String( "application/json" ), QByteArray( json.data() ) );
+            if ( auto md = new QMimeData() ) {
+                md->setData( "application/json", QByteArray( json.data(), json.size() ) );
+                md->setData( "text/plain", QByteArray( json.data(), json.size() ) );
+                QApplication::clipboard()->setMimeData( md );
+            }
         };
+
+        static std::vector< adprocessor::generator_property > fromClipboard() {
+            if ( auto md = QApplication::clipboard()->mimeData() ) {
+                auto data = md->data( "application/json" );
+                if ( !data.isEmpty() ) {
+                    auto jv = adportable::json_helper::parse( data.toStdString() );
+                    if ( jv != boost::json::value{} )
+                        return boost::json::value_to< std::vector< adprocessor::generator_property > >( jv );
+                }
+            }
+            return {};
+        }
     };
+
 
     //--------------------------------
     template< Qt::CheckState CheckState >
@@ -1179,16 +1193,19 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         , [=](){ gen_spectra(); } );
 
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
-            if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
-                if ( auto a = menu.addAction( tr( "Baseline collection" ), [=] () { processor->baselineCollection( folium ); } ) )
-                    a->setEnabled( selRows.size() == 1 );
-                if ( auto a = menu.addAction( tr( "Find single peak" ),    [=] () { processor->findSinglePeak( folium ); } ) )
-                    a->setEnabled( selRows.size() == 1 );
+            auto props = copy_chromatogram_generator::fromClipboard();
+            menu.addAction( tr("Create %1 extracted ion chromatograms from copied properties")
+                            .arg( props.size() )
+                            , [props,processor](){
+                                processor->createChromatograms( props ); })->setEnabled( !props.empty() );
 
-                if ( auto a = menu.addAction( tr( "Create Contour" ), [processor] () { processor->createContour(); } ) )
-                    a->setEnabled( selRows.size() == 1 );
-                if ( auto a = menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) ) )
-                    a->setEnabled( selRows.size() == 1 );
+            if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
+                menu.addAction( tr( "Baseline collection" )
+                                , [=] () { processor->baselineCollection( folium ); } )->setEnabled( selRows.size() == 1 );
+                menu.addAction( tr( "Create Contour" )
+                                , [processor] () { processor->createContour(); } )->setEnabled( selRows.size() == 1 );
+                menu.addAction( tr( "Save Chromatogram as...")
+                                , SaveChromatogramAs( folium, processor ) )->setEnabled( selRows.size() == 1 );
                 menu.addSeparator();
             }
         }
@@ -1332,7 +1349,6 @@ NavigationWidget::eventFilter( QObject * obj, QEvent * ev )
             if ( selFolders.contains( "Chromatograms" ) ) { //  && selFolders.folders().size() == 1;
                 copy_chromatogram_generator copy_generator( pTreeView_ );
                 copy_generator();
-                qDebug() << "------- copy ------------";
                 return true;
             }
         }
