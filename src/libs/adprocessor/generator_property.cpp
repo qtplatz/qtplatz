@@ -128,19 +128,25 @@ namespace adprocessor {
 
     generator_property::~generator_property()
     {
-        delete impl_;
     }
 
-    generator_property::generator_property() : impl_( new impl() )
+    generator_property::generator_property() : impl_( std::make_unique< impl >() )
     {
     }
 
-    generator_property::generator_property( const generator_property& t ) : impl_( new impl( *t.impl_ ) )
+    generator_property::generator_property( const generator_property& t )
+        : impl_( std::make_unique< impl >( *t.impl_ ) )
     {
     }
 
+    generator_property&
+    generator_property::operator = ( const generator_property& t )
+    {
+        impl_ = std::make_unique< impl >( *t.impl_ );
+        return *this;
+    }
 
-    generator_property::generator_property( const adcontrols::Chromatogram& c ) : impl_( new impl( c ) )
+    generator_property::generator_property( const adcontrols::Chromatogram& c ) : impl_( std::make_unique< impl >( c ) )
     {
     }
 

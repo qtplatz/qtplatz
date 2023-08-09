@@ -50,6 +50,7 @@ namespace adprocessor {
         ~generator_property();
         generator_property();
         generator_property( const generator_property& );
+        generator_property& operator = ( const generator_property& );
         generator_property( const adcontrols::Chromatogram& );
         std::string generator() const;
         std::optional< std::string > formula() const;
@@ -71,7 +72,7 @@ namespace adprocessor {
 
     private:
         class impl;
-        impl * impl_;
+        std::unique_ptr< impl > impl_;
     };
 
 }

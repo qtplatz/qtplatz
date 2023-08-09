@@ -54,6 +54,7 @@
 
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/moltable.hpp>
@@ -73,6 +74,10 @@
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/utf.hpp>
+#include <adportfolio/folder.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adprocessor/generator_property.hpp>
 #include <adprocessor/processmediator.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptide.hpp>
@@ -80,20 +85,17 @@
 #include <adutils/adfile.hpp>
 #include <adwidgets/centroidwidget.hpp>
 #include <adwidgets/lifecycle.hpp>
-#include <adwidgets/peptidewidget.hpp>
-#include <adwidgets/targetingwidget.hpp>
 #include <adwidgets/mscalibratewidget.hpp>
 #include <adwidgets/mschromatogramwidget.hpp>
-#include <adwidgets/peakmethodform.hpp>
 #include <adwidgets/mspeakwidget.hpp>
 #include <adwidgets/mssimulatorwidget.hpp>
-#include <adportfolio/folder.hpp>
-#include <adportfolio/folium.hpp>
-#include <adportfolio/portfolio.hpp>
+#include <adwidgets/peakmethodform.hpp>
+#include <adwidgets/peptidewidget.hpp>
+#include <adwidgets/targetingwidget.hpp>
 #include <qtwrapper/jsonhelper.hpp>
+#include <qtwrapper/plugin_manager.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
-#include <qtwrapper/plugin_manager.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
@@ -1463,7 +1465,6 @@ MainWindow::handleExportAllChecked()
 void
 MainWindow::handleImportChecked()
 {
-//     ADDEBUG() << "########################### TODO ###################################";
     QString filename = QFileDialog::getSaveFileName( 0
                                                      , tr( "Import checked data into a file")
                                                      , currentDir()
@@ -1476,7 +1477,7 @@ MainWindow::handleImportChecked()
     bool handled(false);
     do {
         adutils::adfile adfile;
-        if ( adfile.open( boost::filesystem::path( filename.toStdWString() ) ) ) {
+        if ( adfile.open( path ) ) {
             handled = true;
             for ( auto& session : *SessionManager::instance() ) {
                 if ( auto processor = session.processor() ) {
@@ -1492,16 +1493,48 @@ MainWindow::handleImportChecked()
         }
     } while ( 0 );
 
-    if ( handled )
+    if ( handled ) {
         document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
-//#endif
+    }
 }
 
 void
-MainWindow::handleMergeSelection( const std::map< Dataprocessor *, std::vector< portfolio::Folium > >& merge )
+MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
 {
-    for ( auto data: merge ) {
-        ADDEBUG() << "merge: " << std::make_pair( data.first->filename(), data.second.size() );
+    // std::vector< std::pair< double, portfolio::Folium > > tuples;
+    std::vector< std::tuple< adprocessor::generator_property, portfolio::Folium > > tuples;
+
+    for ( auto folium: merge ) {
+        if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+            auto gp = adprocessor::generator_property( *chro );
+            auto it = std::upper_bound( tuples.begin(), tuples.end(), gp
+                                        , [](const auto& a, const auto& b){ return a.mass() < std::get<0>(b).mass(); });
+            tuples.emplace( it, gp, folium );
+        }
+    }
+    // for ( auto& t: tuples ) {
+    //     ADDEBUG() << std::get<0>(t).mass();
+    // }
+
+    QString filename = QFileDialog::getSaveFileName( 0
+                                                     , tr( "Merge chromatograms into a new portfolio")
+                                                     , currentDir()
+                                                     , tr( "QtPlatz files(*.adfs)" ) );
+    if ( !filename.isEmpty() ) {
+
+        boost::filesystem::path path( filename.toStdString() );
+        path.replace_extension( "adfs" );
+        adutils::adfile adfile;
+        if ( adfile.open( path ) ) {
+            for ( auto& tuple : tuples ) {
+                const auto& src = std::get<1>( tuple );
+                auto it = SessionManager::instance()->find( src.portfolio_fullpath() );
+                if ( it != SessionManager::instance()->end() ) {
+                    adfile.append( src, *it->processor()->file() );
+                }
+            }
+        }
+        document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
     }
 }
 

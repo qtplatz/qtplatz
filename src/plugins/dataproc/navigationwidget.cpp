@@ -799,21 +799,29 @@ namespace { // anonymous
             }
         }
 
-        std::map< Dataprocessor *, std::vector< portfolio::Folium > >
+        std::vector< portfolio::Folium >
         operator()() const {
-            std::map< Dataprocessor *, std::vector< portfolio::Folium > > selected;
+            std::vector< portfolio::Folium > selected;
             for ( auto index: indices_ ) {
                 Dataprocessor * dp = find_t< Dataprocessor * >()( index );
                 if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
-                    selected[ dp ].emplace_back( folium );
+                    dp->fetch( folium );
+                    selected.emplace_back( folium );
                 } else if ( auto folder = find_t< portfolio::Folder >()( index ) ) {
                     for ( auto folium: folder.folio() ) {
-                        selected[ dp ].emplace_back( folium );
+                        dp->fetch( folium );
+                        selected.emplace_back( folium );
                     }
                 }
-                // for ( auto sel: selected ) {
-                //     ADDEBUG() << "sel: " << sel.first->filename() << ", " << sel.second.size();
-                // }
+                for ( auto folium: selected ) {
+                    auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+                    if ( chro ) {
+                        adprocessor::generator_property g( *chro );
+                        ADDEBUG() << g.mass();
+                    } else {
+                        ADDEBUG() << "chro null ptr";
+                    }
+                }
             }
             return selected;
         }

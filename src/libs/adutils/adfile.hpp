@@ -33,7 +33,7 @@ namespace boost { namespace filesystem { class path; } }
 namespace adcontrols { class datafile; }
 
 namespace adutils {
-	
+
     // high level data file io over adfs::filesystem and adfs::file
 
 	class ADUTILSSHARED_EXPORT adfile {
@@ -44,9 +44,9 @@ namespace adutils {
         operator bool () const;
         bool open( const boost::filesystem::path& );
         bool append( const portfolio::Folium&, const adcontrols::datafile& );
+        // portfolio::Folium append( const portfolio::Folium& );
     private:
         std::shared_ptr< adfs::filesystem > fs_;
     };
 
 }
-

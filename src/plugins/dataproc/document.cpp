@@ -607,12 +607,12 @@ void
 document::handle_portfolio_created( const QString& filename )
 {
     // simulate file->open()
+#if QTC_VERSION <= 0x03'02'81
     Core::ICore * core = Core::ICore::instance();
     if ( core ) {
         auto em = Core::EditorManager::instance();
         // Core::EditorManager * em = core->editorManager();
         ADDEBUG() << "########################### TODO ###################################";
-#if QTC_VERSION <= 0x03'02'81
         if ( em && dataprocFactory_ ) {
             if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
                 if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
@@ -621,8 +621,10 @@ document::handle_portfolio_created( const QString& filename )
                 }
             }
         }
-#endif
     }
+#else
+    Core::EditorManager::openEditor( Utils::FilePath::fromString( filename ) );
+#endif
 }
 
 adcontrols::axis::AxisH

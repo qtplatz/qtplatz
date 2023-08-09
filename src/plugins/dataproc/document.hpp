@@ -118,7 +118,7 @@ namespace dataproc {
     signals:
         void onProcessMethodChanged( const QString& );
         void scanLawChanged( double length, double accV, double tdelay );
-        void onMergeSelection( const std::map< Dataprocessor *, std::vector< portfolio::Folium > >& );
+        void onMergeSelection( std::vector< portfolio::Folium > );
 
     };
 

@@ -25,6 +25,7 @@
 #include "adfile.hpp"
 #include "fsio2.hpp"
 #include <adfs/filesystem.hpp>
+#include <adportfolio/folium.hpp>
 #include <boost/filesystem.hpp>
 
 using namespace adutils;
@@ -62,7 +63,15 @@ adfile::operator bool () const
 bool
 adfile::append( const portfolio::Folium& folium, const adcontrols::datafile& datasource )
 {
-    if ( fs_ ) 
+    if ( fs_ )
         return fsio2::append( *fs_, folium, datasource );
     return false;
 }
+
+// portfolio::Folium
+// adfile::append( const portfolio::Folium& folium )
+// {
+//     if ( fs_ )
+//         return fsio2::append( *fs_, folium );
+//     return {};
+// }

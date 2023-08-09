@@ -54,6 +54,9 @@ namespace adutils { namespace detail {
         struct folium {
             static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
             static bool load( portfolio::Folium dst, const adfs::file& src );
+
+            // added 2023-08-09
+            static bool save( adfs::folder&, const boost::filesystem::path&, const portfolio::Folium& );
         };
 
         struct attachment {
@@ -310,3 +313,33 @@ fsio2::append( adfs::filesystem& fs
 
     return detail::folium::save( dbf, pathname, source, xfolium );
 }
+
+#if 0
+portfolio::Folium
+fsio2::append( adfs::filesystem& fs
+               , const portfolio::Folium& folium )
+{
+	portfolio::Folder folder = folium.parentFolder();
+    boost::filesystem::path pathname = ( boost::filesystem::path( "/Processed" ) / folder.name() ).generic_string();
+
+    adfs::folder dbf = fs.addFolder( pathname.wstring() );
+    detail::import::attributes( dbf, folder.attributes() );
+
+    auto fullpath = boost::filesystem::path( folium.portfolio_fullpath() );
+
+    auto stem = fullpath.stem().string();
+    std::smatch match;
+    if ( std::regex_match( stem, match, std::regex( R"_(.*[^0-9]([0-9]+)$)_" ) ) ) {
+        if ( match.size() == 2 )
+            stem = match[1].str();
+    }
+    auto fname = ( boost::format("%1%_%2%__%3%") % fullpath.parent_path().filename() % stem %  folium.name<char>() ).str();
+
+    portfolio::Folium xfolium( folium );
+    xfolium.name( fname );
+
+    if ( detail::folium::save( dbf, pathname, xfolium ) )
+        return xfolium;
+    return {};
+}
+#endif

@@ -47,7 +47,7 @@ namespace adfs { class filesystem; class folder; class file; }
 namespace portfolio { class Portfolio; class Folium; }
 
 namespace adutils {
-	
+
 	class ADUTILSSHARED_EXPORT fsio2 {
     public:
         fsio2();
@@ -56,6 +56,8 @@ namespace adutils {
         static bool appendOnFile( const std::wstring& file, const portfolio::Folium&, const adcontrols::datafile& );
         static bool open( adfs::filesystem&, const std::wstring& );
         static bool append( adfs::filesystem&, const portfolio::Folium&, const adcontrols::datafile& );
+        // +2023-08-09
+        // static portfolio::Folium append( adfs::filesystem&, const portfolio::Folium& );
     };
 
 }
