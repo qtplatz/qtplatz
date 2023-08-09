@@ -199,4 +199,6 @@ namespace dataproc {
 
 } // dataproc
 
+// Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
+
 #endif // DATAPROCESSOR_H

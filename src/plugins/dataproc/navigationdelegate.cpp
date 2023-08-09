@@ -37,7 +37,7 @@
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 Q_DECLARE_METATYPE( portfolio::Folium )
 Q_DECLARE_METATYPE( portfolio::Folder )
-Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
+// Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
 #endif
 
 using namespace dataproc;

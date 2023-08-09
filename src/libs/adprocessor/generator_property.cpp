@@ -30,6 +30,8 @@
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
 #include <boost/json.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <regex>
 
 namespace adprocessor {
@@ -43,9 +45,11 @@ namespace adprocessor {
         int proto_;
         std::optional< std::string > formula_;
         std::string reader_name_;
+        std::pair< std::string, boost::uuids::uuid > dataSource_;
 
         impl() : mass_( 0 )
-               , mass_width_( 0 )  {
+               , mass_width_( 0 )
+               , dataSource_( { "", boost::uuids::uuid{} } ) {
         }
 
         impl( const impl& t ) : jv_( t.jv_ )
@@ -54,7 +58,8 @@ namespace adprocessor {
                               , mass_width_( t.mass_width_ )
                               , proto_( t.proto_ )
                               , formula_( t.formula_ )
-                              , reader_name_( t.reader_name_ ) {
+                              , reader_name_( t.reader_name_ )
+                              , dataSource_( t.dataSource_ ) {
         }
 
         impl( const adcontrols::Chromatogram& c ) : mass_( 0 )
@@ -174,6 +179,19 @@ namespace adprocessor {
         return impl_->proto_;
     }
 
+    void
+    generator_property::set_dataSource( std::pair< std::string, boost::uuids::uuid >&& t )
+    {
+        impl_->dataSource_ = std::move( t );
+    }
+
+    std::pair< std::string, boost::uuids::uuid >
+    generator_property::dataSource() const
+    {
+        return impl_->dataSource_;
+    }
+
+
     std::tuple< double, std::string, std::string >
     generator_property::get() const
     {
@@ -193,12 +211,15 @@ namespace adprocessor {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const generator_property& t )
     {
+        using namespace adportable;
         auto gen = t.impl_->jv_.as_object().if_contains( "generator" );
         jv = {
             { "mass",         t.impl_->mass_ }
             , { "mass_width", t.impl_->mass_width_ }
             , { "protocol",   t.impl_->proto_ }
             , { "reader",     t.impl_->reader_name_ }
+            , { "dataSource", {{ "folder_name", t.impl_->dataSource_.first,  }
+                               , { "folder_uuid", boost::uuids::to_string(t.impl_->dataSource_.second) }} }
             , { "generator",  gen ? *gen : boost::json::object{} }
         };
     }
@@ -215,9 +236,14 @@ namespace adprocessor {
             extract( obj, t.impl_->mass_width_,  "mass_width" );
             extract( obj, t.impl_->proto_,       "protocol" );
             extract( obj, t.impl_->reader_name_, "reader" );
+            // extract( obj, t.impl_->dataSource_,  "dataSource" );
             if ( auto p = obj.if_contains( "generator" ) ) {
                 t.impl_->jv_ = {{ "generator", *p }};
                 t.impl_->setup( t.impl_->jv_ );
+            }
+            if ( auto p = obj.if_contains( "dataSource" ) ) {
+                extract( p->as_object(), t.impl_->dataSource_.first, "folder_name" );
+                extract( p->as_object(), t.impl_->dataSource_.second, "folder_uuid" );
             }
             return t;
         }

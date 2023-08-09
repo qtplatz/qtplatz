@@ -134,6 +134,7 @@ namespace dataproc {
         void handleWarningMessage( const QString& );
         void aboutQtPlatz();
         void hideDock( bool );
+        void handleMergeSelection( const std::map< Dataprocessor *, std::vector< portfolio::Folium > >& );
 
     private slots:
         void handleApplyMethod();

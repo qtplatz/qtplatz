@@ -44,6 +44,10 @@ namespace adcontrols {
     namespace axis { enum AxisH : int32_t; }
 }
 
+namespace portfolio {
+    class Folium;
+}
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -114,6 +118,7 @@ namespace dataproc {
     signals:
         void onProcessMethodChanged( const QString& );
         void scanLawChanged( double length, double accV, double tdelay );
+        void onMergeSelection( const std::map< Dataprocessor *, std::vector< portfolio::Folium > >& );
 
     };
 

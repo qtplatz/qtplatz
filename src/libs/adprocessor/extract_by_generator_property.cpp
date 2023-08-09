@@ -83,6 +83,7 @@ extract_by_generator_property::operator()( const adcontrols::ProcessMethod& pm
             chro->addDescription( *desc );
         chro->setIsCounting( isCounting );
         chro->setGeneratorProperty( boost::json::serialize( boost::json::value_from( prop ) ) );
+        // ADDEBUG() << "add chromatogram: " << adcontrols::Chromatogram::make_folder_name<char>( chro->descriptions() );
     }
 
     //////////////////////////////////////////////////////////////////////////////

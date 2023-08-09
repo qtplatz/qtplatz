@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -39,6 +39,8 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/format.hpp>
+#include <regex>
 
 namespace adutils { namespace detail {
 
@@ -294,9 +296,17 @@ fsio2::append( adfs::filesystem& fs
     adfs::folder dbf = fs.addFolder( pathname.wstring() );
     detail::import::attributes( dbf, folder.attributes() );
 
-    std::wstring name = boost::filesystem::path( source.filename() ).leaf().wstring() + L":" + folium.name();
+    auto uppath = boost::filesystem::path( source.filename() ).parent_path().filename();
+    auto stem = boost::filesystem::path( source.filename() ).stem().string();
+    std::smatch match;
+    if ( std::regex_match( stem, match, std::regex( R"_(.*[^0-9]([0-9]+)$)_" ) ) ) {
+        if ( match.size() == 2 )
+            stem = match[1].str();
+    }
+    auto fname = ( boost::format("%1%_%2%__%3%") % uppath.string() % stem %  folium.name<char>() ).str();
+
     portfolio::Folium xfolium( folium );
-    xfolium.name( name );
+    xfolium.name( fname );
 
     return detail::folium::save( dbf, pathname, source, xfolium );
 }

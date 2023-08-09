@@ -30,6 +30,12 @@
 #include <memory>
 #include <optional>
 
+namespace boost {
+    namespace uuids {
+        class uuid;
+    }
+}
+
 namespace adcontrols {
     class Chromatogram;
     class descriptions;
@@ -51,6 +57,9 @@ namespace adprocessor {
         double mass_width() const;
         const std::string& data_reader() const;
         int protocol() const;
+        void set_dataSource( std::pair< std::string, boost::uuids::uuid >&& );
+        std::pair< std::string, boost::uuids::uuid > dataSource() const;
+
         std::tuple< double, std::string, std::string > get() const;
         const boost::json::value& value() const;
 

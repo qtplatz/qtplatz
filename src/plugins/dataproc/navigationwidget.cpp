@@ -70,6 +70,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/json.hpp>
 #include <boost/json/value_from.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <iomanip>
 #include <array>
 
@@ -670,6 +671,7 @@ namespace { // anonymous
                 processor->fetch( folium );
                 if ( auto v = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
                     gv.emplace_back( adprocessor::generator_property( *v ) );
+                    gv.back().set_dataSource( { folium.name<char>(), folium.uuid() } );
                 }
             }
             auto json = boost::json::serialize( boost::json::value_from( gv ) );
@@ -774,6 +776,46 @@ namespace { // anonymous
 #else
             return (selFolders_.find( key ) != selFolders_.end());
 #endif
+        }
+    };
+
+    // --------------------------------
+    struct merge_selection {
+        std::vector< QModelIndex > indices_;
+        merge_selection( QModelIndexList& indices ) { // : indices_( indices ) {
+            for ( auto index: indices ) {
+                if ( auto folder = find_t< portfolio::Folder >()( index ) ) {
+                    if ( folder.name() == L"Chromatograms" ) {
+                        indices_.emplace_back( index );
+                    }
+                }
+                if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
+                    if ( folium.dataClass() == L"Chromatogram" ) {
+                        if ( std::find( indices.begin(), indices.end(), index.parent() ) == indices.end() ) {
+                            indices_.emplace_back( index );
+                        }
+                    }
+                }
+            }
+        }
+
+        std::map< Dataprocessor *, std::vector< portfolio::Folium > >
+        operator()() const {
+            std::map< Dataprocessor *, std::vector< portfolio::Folium > > selected;
+            for ( auto index: indices_ ) {
+                Dataprocessor * dp = find_t< Dataprocessor * >()( index );
+                if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
+                    selected[ dp ].emplace_back( folium );
+                } else if ( auto folder = find_t< portfolio::Folder >()( index ) ) {
+                    for ( auto folium: folder.folio() ) {
+                        selected[ dp ].emplace_back( folium );
+                    }
+                }
+                // for ( auto sel: selected ) {
+                //     ADDEBUG() << "sel: " << sel.first->filename() << ", " << sel.second.size();
+                // }
+            }
+            return selected;
         }
     };
 
@@ -1134,12 +1176,12 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 if ( auto folium = find_t< portfolio::Folium >()( index ) ) { // an item of [Spectrum|Chrmatogram] selected
                     fetch_t::fetch( index, folium );
                     if ( bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium ) ) {
-                        if ( auto a = menu.addAction( tr("Export mass lock data..." ), ExportMSLock( folium ) ) ) {
-                            a->setEnabled( folium.attribute( "mslock" ) == "true" );
-                        }
-                        if ( auto a = menu.addAction( tr("Set as file global lock mass" ), GlobalMSLock( index ) ) ) {
-                            a->setEnabled( folium.attribute( "mslock" ) == "true" );
-                        }
+                        menu.addAction( tr("Export mass lock data..." )
+                                        , ExportMSLock( folium ) )->setEnabled( folium.attribute( "mslock" ) == "true" );
+
+                        menu.addAction( tr("Set as file global lock mass" )
+                                        , GlobalMSLock( index ) )->setEnabled( folium.attribute( "mslock" ) == "true" );
+
                         attachment_walker attachments( folium );
                         if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
                             if ( ms->isCentroid() && !ms->isHistogram() ) {
@@ -1151,15 +1193,12 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             }
                         }
                         auto centroid = std::get< 0 >( attachments.has_a_ );
-                        if ( auto a = menu.addAction( tr("Save centroid spectrum as..."),
-                                                      SaveSpectrumAs( asCentroid, folium, centroid, index ) ) ) {
-                            a->setEnabled( bool( centroid ) );
-                        }
+                        menu.addAction( tr("Save centroid spectrum as..."),
+                                        SaveSpectrumAs( asCentroid, folium, centroid, index ) )->setEnabled( bool( centroid ) );
+
                         auto filtered = std::get< 1 >( attachments.has_a_ );
-                        if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."),
-                                                     SaveSpectrumAs( asDFTProfile, folium, filtered, index ) ) ) {
-                            a->setEnabled( bool( filtered ) );
-                        }
+                        menu.addAction( tr("Save DFT filtered spectrum as..."),
+                                        SaveSpectrumAs( asDFTProfile, folium, filtered, index ) )->setEnabled( bool( filtered ) );
                     }
                 }
 
@@ -1209,6 +1248,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 menu.addSeparator();
             }
         }
+    }
+
+    if ( selFolders.contains( "Chromatograms" ) ) {
+        merge_selection merger( selRows );
+        menu.addAction( tr( "Merge selection" ), [merger,this]{
+            emit document::instance()->onMergeSelection( merger() );
+            });
     }
 
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Spectrograms" ) ) { // Chromatograms -- exclusively selected
@@ -1346,7 +1392,7 @@ NavigationWidget::eventFilter( QObject * obj, QEvent * ev )
         if ( ke->matches( QKeySequence::Copy ) ) {
             auto selRows = pTreeView_->selectionModel()->selectedRows();
             selected_folders selFolders( selRows );
-            if ( selFolders.contains( "Chromatograms" ) ) { //  && selFolders.folders().size() == 1;
+            if ( selFolders.contains( "Chromatograms" ) ) {
                 copy_chromatogram_generator copy_generator( pTreeView_ );
                 copy_generator();
                 return true;

@@ -1190,6 +1190,7 @@ MainWindow::OnInitialUpdate()
         document::instance()->setProcessMethod( m );
     }
     connect( document::instance(), &document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
+    connect( document::instance(), &document::onMergeSelection, this, &MainWindow::handleMergeSelection );
 
     adprocessor::ProcessMediator::instance()->registerProcessMethodProvider( [this]( adcontrols::ProcessMethod& pm ){
             getProcessMethod( pm );
@@ -1494,6 +1495,14 @@ MainWindow::handleImportChecked()
     if ( handled )
         document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
 //#endif
+}
+
+void
+MainWindow::handleMergeSelection( const std::map< Dataprocessor *, std::vector< portfolio::Folium > >& merge )
+{
+    for ( auto data: merge ) {
+        ADDEBUG() << "merge: " << std::make_pair( data.first->filename(), data.second.size() );
+    }
 }
 
 void
