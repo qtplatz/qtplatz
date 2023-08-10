@@ -325,15 +325,22 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
+        // pTreeView_->setUpdatesEnabled( false );
+        qDebug() << "------ removeRows: " << item->rowCount() << ", " << item->index().data();
         model.removeRows( 0, item->rowCount(), item->index() );
+        qDebug() << "------ removeRows done.";
+
         portfolio::Portfolio portfolio = processor->getPortfolio();
         for ( auto folder: portfolio.folders() ) {
+            ADDEBUG() << "adding folder: " << folder.name();
             PortfolioHelper::appendFolder( *item, folder );
         }
+
         // expanding top and 2nd levels
-        pTreeView_->expand( item->index() );
-        for ( int i = 0; i < item->rowCount(); ++i)
-            pTreeView_->expand( model.index( i, 0, item->index()) );
+        // pTreeView_->expand( item->index() );
+        // for ( int i = 0; i < item->rowCount(); ++i)
+        //     pTreeView_->expand( model.index( i, 0, item->index()) );
+        // pTreeView_->setUpdatesEnabled( true );
     }
 }
 
@@ -512,7 +519,7 @@ NavigationWidget::handle_clicked( const QModelIndex& index )
 void
 NavigationWidget::handle_doubleClicked( const QModelIndex& index )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
+    // ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     (void)index;
 }
 
@@ -630,18 +637,22 @@ namespace { // anonymous
         }
     };
 
-    //////////////////////////////// spectra_from_chromatographic_peaks JCA2009 /////////////////////////////////
+    //////////////////////////////// spectra_from_chromatographic_peaks JCB2009 /////////////////////////////////
     struct spectra_from_chromatographic_peaks {
-        const QModelIndexList& rows_;
-        spectra_from_chromatographic_peaks( const QModelIndexList& rows ) : rows_( rows )  { }
+        const QModelIndex& index_;
+        spectra_from_chromatographic_peaks( const QModelIndex& index ) : index_( index )  {
+        }
         void operator()() const {
-            std::map< Dataprocessor *, std::vector< portfolio::Folium > > list;
-            for ( auto index: rows_ ) {
-                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
-                list[ processor ].emplace_back( folium );
+            std::vector< portfolio::Folium > list;
+            if ( auto processor = find_t< Dataprocessor * >()( index_ ) ) {
+                if ( auto folder = processor->portfolio().findFolder( L"Chromatograms" ) ) {
+                    for ( const auto& folium: folder.folio() ) {
+                        if ( folium.attribute( L"isChecked" ) == L"true" )
+                            list.emplace_back( folium );
+                    }
+                }
+                processor->handleSpectraFromChromatographicPeaks( std::move( list ) );
             }
-            for ( auto& dp: list )
-                dp.first->handleSpectraFromChromatographicPeaks( std::move( dp.second ) );
         }
     };
 
@@ -1235,8 +1246,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         remove_duplicated_chromatogram remover( selRows );
         menu.addAction( tr( "Remove duplicate" ), [=](){ remover(); } );
 
-        spectra_from_chromatographic_peaks gen_spectra( selRows );
-        menu.addAction( tr( "Create mass spectra from chromatographic peaks (JCA 2009)" )
+        spectra_from_chromatographic_peaks gen_spectra( index );
+        menu.addAction( tr( "Create mass spectra from checked chromatograms (JCB 2009)" )
                         , [=](){ gen_spectra(); } );
 
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {

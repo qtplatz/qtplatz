@@ -828,38 +828,12 @@ MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc, int axis )
     }
 }
 
-void
-MSPeakTable::handleCopyToClipboard()
-{
-    QStandardItemModel& model = *impl_->model_;
-    QModelIndexList list = selectionModel()->selectedIndexes();
-
-    std::sort( list.begin(), list.end() );
-    if ( list.size() < 1 )
-        return;
-
-    QString copy_table;
-    QModelIndex prev = list.first();
-	int i = 0;
-    for ( auto idx: list ) {
-		if ( i++ > 0 )
-			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
-        if ( idx.column() == c_mspeaktable_time )
-            copy_table.append( (boost::format("%.14g") % adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() )).str().c_str() );
-		else if (
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            model.data( idx ).type() == QVariant::Double
-#else
-            model.data( idx ).metaType() == QMetaType::fromType< double >()
-#endif
-            )
-			copy_table.append( (boost::format("%.14g") % model.data( idx ).toDouble()).str().c_str() );
-        else
-            copy_table.append( model.data( idx ).toString() );
-        prev = idx;
-    }
-    QApplication::clipboard()->setText( copy_table );
-}
+// void
+// MSPeakTable::handleCopyToClipboard()
+// {
+//     ADDEBUG() << "######## handleCopyToClipboard() ##############";
+//     TableView::copyToClipboard( false );
+// }
 
 void
 MSPeakTable::showContextMenu( const QPoint& pt )
@@ -1170,6 +1144,16 @@ MSPeakTable::handleCopyAssignedPeaks()
     QStandardItemModel& model = *impl_->model_;
 
     QString selected_text;
+
+    // copy header --->
+    for ( int col = 0; col < model.columnCount(); ++col ) {
+        if ( !isColumnHidden( col ) ) {
+            selected_text.append( model.headerData( col, Qt::Horizontal ).toString() );
+            selected_text.append( '\t' );
+        }
+    }
+    selected_text.append( '\n' );
+    // <-------------
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
         auto formula = model.data( model.index( row, c_mspeaktable_formula ) ).toString();

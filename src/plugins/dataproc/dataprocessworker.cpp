@@ -425,16 +425,22 @@ DataprocessWorker::doIt( std::shared_ptr< adprocessor::JCB2009_Processor > proc
 {
     // auto progress = std::make_shared< adwidgets::ProgressInterface >();
     // Core::ProgressManager::addTask( progress->progress.future(), "JCB-2009 Processing...", "dataproc.task.jcb" );
-    auto p( adwidgets::ProgressWnd::instance()->addbar() );
+    auto progress( adwidgets::ProgressWnd::instance()->addbar() );
 
-    (*p)( 0, proc->num_chromatograms() );
+    threads_.emplace_back( adportable::asio::thread( [=,this] {
 
-    auto future = std::async( std::launch::async, [&](){
-        (*proc)( reader, [p](size_t curr, size_t total){ return (*p)(curr, total); } );
-    } );
+        (*proc)( reader, [progress](size_t curr, size_t total){ return (*progress)(curr, total); } );
 
-    while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
-        QCoreApplication::instance()->processEvents();
+        io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
+
+    }));
+
+    // auto future = std::async( std::launch::async, [&](){
+    //     (*proc)( reader, [p](size_t curr, size_t total){ return (*p)(curr, total); } );
+    // } );
+
+    // while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+    //     QCoreApplication::instance()->processEvents();
 }
 
 void

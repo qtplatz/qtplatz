@@ -111,7 +111,7 @@ namespace adwidgets {
         void rescaleY( int protocol );
 
     public slots:
-        void handleCopyToClipboard() override;
+        // void handleCopyToClipboard() override;
         void handleZoomedOnSpectrum( const QRectF&, int axis );   // zoomer zoomed
         void hideRows();
         void showRows();

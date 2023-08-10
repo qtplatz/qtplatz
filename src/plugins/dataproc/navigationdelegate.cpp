@@ -50,14 +50,14 @@ NavigationDelegate::NavigationDelegate(QObject *parent) :  QStyledItemDelegate(p
 void
 NavigationDelegate::setEditorData( QWidget * editor, const QModelIndex& index ) const
 {
-    ADDEBUG() << "---------- setEditorData -----------" << index.data( Qt::EditRole ).toString().toStdString();
+    // ADDEBUG() << "---------- setEditorData -----------" << index.data( Qt::EditRole ).toString().toStdString();
     QStyledItemDelegate::setEditorData( editor, index );
 }
 
 void
 NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, const QModelIndex& index ) const
 {
-    ADDEBUG() << "---------- setModelData -----------" << index.data( Qt::EditRole ).toString().toStdString();
+    // ADDEBUG() << "---------- setModelData -----------" << index.data( Qt::EditRole ).toString().toStdString();
     QVariant data = index.data( Qt::UserRole );
     if ( data.canConvert< portfolio::Folium >() ) {
         portfolio::Folium folium = data.value< portfolio::Folium >();

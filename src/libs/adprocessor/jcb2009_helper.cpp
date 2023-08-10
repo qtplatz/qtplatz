@@ -27,18 +27,20 @@
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
-#include <adcontrols/peak.hpp>
-#include <adcontrols/peaks.hpp>
-#include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msfinder.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
-#include <adcontrols/msfinder.hpp>
+#include <adcontrols/peak.hpp>
+#include <adcontrols/peaks.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/segment_wrapper.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
+#include <boost/format.hpp>
 #include <algorithm>
 #include <iterator>
 
@@ -103,17 +105,18 @@ namespace adprocessor {
                   , const adcontrols::ProcessMethod& m ) : folium_( folium )
                                                          , mass_( 0 ) {
 
-                if ( auto lm = m.find< adcontrols::MSLockMethod >() ) {
-                    msFinder_ =
-                        adcontrols::MSFinder( lm->tolerance( lm->toleranceMethod() ), lm->algorithm(), lm->toleranceMethod() );
+                if ( auto tm = m.find< adcontrols::TargetingMethod >() ) {
+                    auto t = tm->tolerance( tm->toleranceMethod() );
+                    auto a = tm->findAlgorithm();
+                    auto m = tm->toleranceMethod();
+                    msFinder_ = { t, a, m };
                 }
 
                 if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
                     adprocessor::generator_property gprop( *chro );
-                    std::tie( mass_, formula_, std::ignore ) = gprop.get();
-                    ADDEBUG() << gprop.get();
+                    mass_ = gprop.mass();
+                    formula_ = gprop.formula();
                 }
-                // ADDEBUG() << "annotator.mass = " << mass_ << "\t" << (formula_ ? *formula_ : "");
             }
         };
 
@@ -128,24 +131,26 @@ namespace adprocessor {
         {
         }
 
-        void
-        annotator::operator()( std::shared_ptr< adcontrols::MassSpectrum > pCentroid )
+        std::optional< adcontrols::annotation >
+        annotator::operator()( const adcontrols::MassSpectrum& centroid
+                               , const std::tuple<double,double,double>& tR )
         {
             typedef adcontrols::MassSpectrum T;
             int fcn(0);
             if ( impl_->mass_ > 0 ) {
-                for ( auto& ms: adcontrols::segment_wrapper< T >( *pCentroid ) ) {
+                for ( auto& ms: adcontrols::segment_wrapper< const T >( centroid ) ) {
                     auto idx = (impl_->msFinder_)( ms, impl_->mass_ );
-                    pCentroid->setColor( idx, 15 ); // magenta
+                    if ( idx != adcontrols::MSFinder::npos ) {
 
-                    ADDEBUG() << "### annotator -- found mass[" << idx << "]\t" <<
-                        std::make_tuple( ms.mass(idx), impl_->mass_ )
-                              << ", " << ( ms.mass(idx) - impl_->mass_ ) * 1000 << " mDa off\t" << impl_->folium_.name();
+                        auto text = (boost::format("%.3f@%.1fs") % ms.mass(idx) % std::get<0>(tR)).str();
+                        return adcontrols::annotation( text, ms.mass( idx ), ms.intensity( idx ), static_cast< int >(idx) );
 
-                    adcontrols::annotation anno( impl_->folium_.name(), ms.mass( idx ), ms.intensity( idx ), static_cast< int >(idx) );
-                    ms.get_annotations() << anno;
+                    } else {
+                        ADDEBUG() << "### annotator -- mass " << impl_->mass_ << "@" << tR << " s (W " << impl_->msFinder_.width() << ") not found.";
+                    }
                 }
             }
+            return {};
         }
 
         void

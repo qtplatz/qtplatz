@@ -313,8 +313,6 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         impl_->selProcessed_ = false;
     }
 
-    ADDEBUG() << "handleSelectionChanged: " << std::make_pair( folium.name(), isChecked );
-
     if ( auto pf = folium.parentFolium() ) {
          isChecked = pf.attribute( L"isChecked" ) == L"true";
          data = datafolder( processor->filename(), pf );
@@ -323,7 +321,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
         impl_->selProcessed_ = ( ptr->isCentroid() && !ptr->isHistogram() );
-        ADDEBUG() << "\thas mass spectrum isProcessed: " << impl_->selProcessed_;
+        // ADDEBUG() << "\thas mass spectrum isProcessed: " << impl_->selProcessed_;
         auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
         plot->clear();
         plot->setTitle( data.display_name() );

@@ -492,7 +492,7 @@ namespace dataproc {
         }
 
         template<typename T> bool operator () ( T& ) const {
-            ADTRACE() << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
+            // ADTRACE() << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
             return false;
         }
 
@@ -1116,15 +1116,15 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
 
     if ( auto json = ptr->getDescriptions().hasKey( "(MSLock)" ) ) {
         auto jv = adportable::json_helper::parse( *json );
-        ADDEBUG() << "\t############## addSpectrum jv: " << jv;
+        // ADDEBUG() << "\t############## addSpectrum jv: " << jv;
 
         if ( auto pv = adportable::json_helper::if_contains( jv, "mslock.method" ) ) {
             if ( pv->as_string() == "external" ) {
                 folium.setAttribute( "mslock_external", "true" );
-                ADDEBUG() << "========== set as mslock_external true ==========";
+                // ADDEBUG() << "========== set as mslock_external true ==========";
             }
         } else {
-            ADDEBUG() << "----------- no mslock.method found";
+            // ADDEBUG() << "----------- no mslock.method found";
         }
     }
 
@@ -1523,7 +1523,7 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
                 spectrometer->initialSetup( *dp->db(), {{ 0 }} ); // load existing calibration if any
         }
     } else {
-        ADDEBUG() << "MassSpectrometer: " << spectrometer->massSpectrometerClsid();
+        // ADDEBUG() << "MassSpectrometer: " << spectrometer->massSpectrometerClsid();
     }
 
     if ( !spectrometer ) {
@@ -1531,7 +1531,7 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
         return false;
     }
 
-    ADDEBUG() << "### " << __FUNCTION__ << " TBD";
+    // ADDEBUG() << "### " << __FUNCTION__ << " TBD";
 
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
@@ -1938,19 +1938,38 @@ Dataprocessor::createChromatograms( std::vector< adprocessor::generator_property
     }
 }
 
+///////////////// JCB 2009
 void
 Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Folium >&& folio )
 {
     if ( auto jcb2009 = std::make_shared< adprocessor::JCB2009_Processor >( this ) ) {
-
+        std::pair< size_t, size_t > pkcount{ 0, 0 };
         for ( auto folium: folio ) {
             fetch( folium );
+
             if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+
+                auto atts = folium.attachments();
+                auto it = std::find_if( atts.begin(), atts.end(), []( const auto& a ){
+                    return a.data().type() == typeid( std::shared_ptr< adcontrols::PeakResult > );
+                });
+                if ( it != atts.end() ) {
+                    if ( auto res = boost::any_cast< std::shared_ptr< adcontrols::PeakResult > >( it->data() ) ) {
+                        chro->setBaselines( res->baselines() );
+                        chro->setPeaks( res->peaks() );
+                    }
+                }
+
                 if ( chro->peaks().size() ) {
+                    pkcount.first += chro->peaks().size();
+                    pkcount.second++;
                     (*jcb2009) << std::move( folium );
+                } else {
+                    ADDEBUG() << "folium: " << folium.name() << " has no peak";
                 }
             }
         }
+        ADDEBUG() << "--------- total peak counts: " << pkcount << "\tfolio count: " << folio.size();
 
         if ( auto file = rawdata() ) {
             auto pm = MainWindow::instance()->processMethod();

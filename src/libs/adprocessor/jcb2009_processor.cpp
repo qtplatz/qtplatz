@@ -27,6 +27,8 @@
 #include "jcb2009_summarizer.hpp"
 #include "centroid_processor.hpp"
 #include "dataprocessor.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
@@ -103,8 +105,8 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
             auto tR = jcb2009_helper::find_peaks().tR( peak );
             // ADDEBUG() << "tR: " << tR << " <-- " << std::make_pair( peak.startTime(), peak.endTime() );
 
-            if ( auto ms = reader->coaddSpectrum( reader->findPos( std::get< 1 >(tR) )
-                                                  , reader->findPos( std::get< 2 >(tR) ) ) ) {
+            if ( auto ms = reader->coaddSpectrum(
+                     reader->findPos( std::get< 1 >(tR) ), reader->findPos( std::get< 2 >(tR) ) ) ) {
 
                 auto folname = (boost::format( "%s;tR=%.1f(%.1f)" )
                                 % folium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
@@ -114,14 +116,19 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 // apply MSLock
                 impl_->processor_->mslock( *ms, std::get<0>(tR) );
 
-                portfolio::Folium top = impl_->processor_->addSpectrum( ms, adcontrols::ProcessMethod() );
+                portfolio::Folium top = impl_->processor_->addSpectrum( ms, *impl_->procm_ );
 
                 // centroid_processor peak_detector( *impl_->procm_ );
 
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid ) {
-                    annotate( pCentroid );
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
+                    if ( auto anno = annotate( *pCentroid, tR ) ) {
+                        pCentroid->get_annotations() << *anno;
+                        pCentroid->setColor( anno->index(), 15 ); // magenta
+                    } else {
+                        top.setAttribute( "tag", "red" );
+                    }
                     top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
                 }
                 if ( pInfo ) {
@@ -131,7 +138,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 summary( pCentroid, pInfo );
             }
         }
-        ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
+        // ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
         progress(++nCurr, nCount );
     }
 
