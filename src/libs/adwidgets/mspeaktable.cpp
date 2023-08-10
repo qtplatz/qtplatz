@@ -620,7 +620,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
             auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
-                //ADDEBUG() << "anno.text: " << it->text();
                 if ( auto json = it->json() ) {
                     auto jv = adportable::json_helper::parse( json );
                     //ADDEBUG() << "########### find json annotation ###########\n" << jv;

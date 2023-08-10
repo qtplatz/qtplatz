@@ -118,8 +118,6 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
                 portfolio::Folium top = impl_->processor_->addSpectrum( ms, *impl_->procm_ );
 
-                // centroid_processor peak_detector( *impl_->procm_ );
-
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid ) {
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
@@ -138,7 +136,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 summary( pCentroid, pInfo );
             }
         }
-        // ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
+
         progress(++nCurr, nCount );
     }
 
