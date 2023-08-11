@@ -354,7 +354,6 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
             SessionManager::instance()->checkStateChanged( dp, folium, state == Qt::Checked );
         }
     }
-
 }
 
 void
@@ -363,10 +362,7 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
-        // pTreeView_->setUpdatesEnabled( false );
-        // qDebug() << "------ removeRows: " << item->rowCount() << ", " << item->index().data();
         model.removeRows( 0, item->rowCount(), item->index() );
-        // qDebug() << "------ removeRows done.";
 
         portfolio::Portfolio portfolio = processor->getPortfolio();
         for ( auto folder: portfolio.folders() ) {
@@ -773,23 +769,27 @@ namespace { // anonymous
         }
     };
 
-
     //--------------------------------
     template< Qt::CheckState CheckState >
     struct set_attribute_all {
-        const QModelIndexList& rows_;
-        set_attribute_all( const QModelIndexList& rows ) : rows_( rows ) {}
-        void operator()( std::pair< std::string, std::string >&& keyValue ) {
-            for ( auto index: rows_ ) {
-                if ( auto model = qobject_cast< const QStandardItemModel * >( index.model() ) ) {
-                    auto parent = model->itemFromIndex( index );
-                    for ( int row = 0; row < parent->rowCount(); ++row ) {
-                        if ( auto item = model->itemFromIndex( model->index( row, 0, parent->index() ) ) ) {
+        std::set< QModelIndex > rows_;
+        set_attribute_all( const QModelIndexList& rows ) {
+            std::for_each( rows.begin(), rows.end(), [&](auto a){
+                if ( a.data( Qt::EditRole ).toString() == "Chromatograms" ||
+                     a.data( Qt::EditRole ).toString() == "Spectra" )
+                    rows_.emplace( a );
+            });
+        }
+
+        void operator()( std::pair< std::string, std::string >&& keyValue ) const {
+            for ( auto parent: rows_ ) {
+                if ( auto model = qobject_cast< const QStandardItemModel * >( parent.model() ) ) {
+                    for ( int row = 0; row < parent.model()->rowCount( parent ); ++row ) {
+                        if ( auto item = model->itemFromIndex( parent.model()->index( row, 0, parent ) ) ) {
                             if ( item->isCheckable() && ( item->checkState() == CheckState ) ) {
                                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( item->index() );
-                                if ( processor && folium ) {
+                                if ( processor && folium )
                                     processor->setAttribute( folium, std::move( keyValue ) );
-                                }
                             }
                         }
                     }
@@ -1263,7 +1263,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
             set_attribute_all< Qt::Unchecked > set_attr( selRows );
             menu.addAction( QString( tr("Remove all unchecked %1") ).arg( name )
-                            , [&]{ set_attr( { "remove", "true" } ); } )->setEnabled( enable );
+                            , [=]{ set_attr( { "remove", "true" } ); } )->setEnabled( enable );
         }
 
         // enable only Chromatograms was selected
