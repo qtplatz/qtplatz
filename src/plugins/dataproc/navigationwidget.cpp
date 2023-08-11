@@ -172,13 +172,46 @@ public:
 
     static void appendAttachment( QStandardItem& parent, const portfolio::Folium& folium ) {
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, false );
-		item->setToolTip( QString::fromStdWString( folium.name() ) );
+		item->setToolTip( QString::fromStdWString( folium.name<wchar_t>() ) );
     }
 
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
-		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true
+		QStandardItem * item = StandardItemHelper::appendRow( parent
+                                                              , folium
+                                                              , true
                                                               , folium.attribute( L"isChecked" ) == L"true" );
-		item->setToolTip( QString::fromStdWString( folium.name() ) );
+		item->setToolTip( QString::fromStdWString( folium.name<wchar_t>() ) );
+        // set sort value
+        QRegularExpression
+            re( R"__(m\/z[ ]+([0-9\.]+).*;tR=([0-9\.]+).*$)__" // m/z 440.267(W 50.0mDa),AVG,p0;tR=38.5(3.7) S[1,2]
+                R"__(|m\/z[ ]+([0-9\.]+).*$)__"                // m/z 1011.715(W 75.0mDa),AVG,p0 C[3]
+                R"__(|[A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"     // AVG 24.679-25.485s S[4,5]
+                );
+        auto match = re.match( item->data( Qt::EditRole ).toString() );
+        std::ostringstream o;
+        if ( match.hasMatch() ) {
+            if ( !match.captured( 1 ).isEmpty() && !match.captured( 2 ).isEmpty() ) {
+                // spectra
+                o << "S";
+                o << std::setw(10) << std::setfill('0') << int( match.captured( 2 ).toDouble() * 1000 ); // tR ms
+                o << ",";
+                o << std::setw(10) << std::setfill('0') << int( match.captured( 1 ).toDouble() * 1000 ); // mass mDa
+            } else if ( !match.captured( 3 ).isEmpty() ) {
+                // chromatograms
+                o << "C";
+                o << std::setw(10) << std::setfill('0') << int( match.captured( 3 ).toDouble() * 1000 ); // mass mDa
+            } else if ( !match.captured( 4 ).isEmpty() && !match.captured( 5 ).isEmpty() ) {
+                // spectra
+                o << "_S";
+                o << std::setw(10) << std::setfill('0') << int( match.captured( 4 ).toDouble() * 1000 ); // mass t1
+                o << ",";
+                o << std::setw(10) << std::setfill('0') << int( match.captured( 5 ).toDouble() * 1000 ); // mass t2
+            }
+        } else {
+            qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
+            o << item->data( Qt::EditRole ).toString().toStdString();
+        }
+        item->setData( QString::fromStdString( o.str() ), Qt::UserRole + 1 );
 
         auto atts = folium.attachments();
         for ( auto& att: atts )
@@ -224,6 +257,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     pTreeView_->setItemDelegate( pDelegate_ );
 	pTreeView_->setDragEnabled( false );
     pTreeView_->setTextElideMode(Qt::ElideMiddle);
+
     setStyleSheet(
         "QTreeView {"
         " show-decoration-selected: 1;"
@@ -672,6 +706,28 @@ namespace { // anonymous
             }
             for ( auto& dp: list )
                 dp.first->handleRemoveDuplicatedChromatograms( std::move( dp.second ) );
+        }
+    };
+
+    //////////////////////////////// sort /////////////////////////////////
+
+    struct sort_by_value {
+        std::vector< QModelIndex >
+        populate( const QModelIndexList& rows ) const {
+            std::vector< QModelIndex > _;
+            for ( auto index: rows ) {
+                if ( (index.data().toString() == "Chromatograms")  ||
+                     (index.data().toString() == "Spectra") )
+                    _.emplace_back( index );
+            }
+            return _;
+        }
+        void operator()( const QModelIndexList& rows, QStandardItemModel * model ) const {
+            model->setSortRole( Qt::UserRole + 1 );
+            auto indecies = populate( rows );
+            for ( auto index: rows ) {
+                model->itemFromIndex( index )->sortChildren( 0, Qt::AscendingOrder );
+            }
         }
     };
 
@@ -1191,6 +1247,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
         // enable either Spectra, Chromatograms, or both
         bool enable = selFolders.folderCounts() > 0;
+
+        menu.addAction( tr( "Sort" ), [=](){ sort_by_value()( selRows, pModel_ ); } )->setEnabled( enable );
         if ( enable ) {
             check_all_in_folder check_all( selRows );
             menu.addAction( QString( tr("Uncheck all %1") ).arg( name ), [=](){ check_all( false ); } )->setEnabled( enable );
@@ -1202,17 +1260,15 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
 
         // enable only Chromatograms was selected
-#if __cplusplus >= 202002L
-        enable = selFolders.folders().contains( "Chromatograms" ) && selFolders.folders().size() == 1;
-#else
         enable = selFolders.contains( "Chromatograms" ) && selFolders.folders().size() == 1;
-#endif
+
         menu.addAction( QString( tr("Collect all baseline for %1") ).arg( name )
                         , collect_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
 
         make_spectrum_from_checked_chromatograms spectrum_from_chromatogram( *pModel_, index );
         enable = spectrum_from_chromatogram.enable();
-        menu.addAction( QString( tr("Make mass spectrum from checked chromatograms") ), spectrum_from_chromatogram )->setEnabled( enable );
+        menu.addAction( QString( tr("Make mass spectrum from checked chromatograms") )
+                        , spectrum_from_chromatogram )->setEnabled( enable );
 
     } while ( 0 );
 
@@ -1267,7 +1323,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
     }
 
-    if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) { // Chromatograms -- exclusively selected
+    if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) {
+        // Chromatograms -- exclusively selected
 
         copy_chromatogram_generator copy_generator( pTreeView_ );
         menu.addAction( tr( "Copy masses" ), [&](){ copy_generator(); } );
