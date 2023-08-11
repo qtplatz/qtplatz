@@ -86,7 +86,8 @@ public:
         return item;
     }
 
-    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value, bool isCheckable, bool isChecked = false ) {
+    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value
+                                                        , bool isCheckable, bool isChecked = false ) {
         QStandardItemModel& model = *parent.model();
 		int row = parent.rowCount();
 		parent.insertRow( row, new QStandardItem );
@@ -161,6 +162,7 @@ public:
             return parent.data( Qt::UserRole ).value< dataproc::Dataprocessor * >();
 		return 0;
 	}
+
 };
 
 
@@ -174,7 +176,8 @@ public:
     }
 
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
-		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true, folium.attribute( L"isChecked" ) == L"true" );
+		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true
+                                                              , folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
 
         auto atts = folium.attachments();
@@ -265,7 +268,8 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     if ( SessionManager * mgr = SessionManager::instance() ) {
         connect( mgr, &SessionManager::onRemoveSession, this, &NavigationWidget::handleRemoveSession );
         connect( mgr, &SessionManager::signalAddSession, this, &NavigationWidget::handleAddSession );
-        connect( mgr, &SessionManager::onSessionUpdated, this, [&] ( Dataprocessor* dp, const QString& id ){ handleSessionUpdated( dp, id ); } );
+        connect( mgr, &SessionManager::onSessionUpdated, this
+                 , [&] ( Dataprocessor* dp, const QString& id ){ handleSessionUpdated( dp, id ); } );
         connect( mgr, &SessionManager::onFolderChanged, this, &NavigationWidget::handleFolderChanged );
         connect( pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
         connect( mgr, &SessionManager::foliumChanged, this, &NavigationWidget::handleFoliumChanged );
@@ -326,9 +330,9 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
         // pTreeView_->setUpdatesEnabled( false );
-        qDebug() << "------ removeRows: " << item->rowCount() << ", " << item->index().data();
+        // qDebug() << "------ removeRows: " << item->rowCount() << ", " << item->index().data();
         model.removeRows( 0, item->rowCount(), item->index() );
-        qDebug() << "------ removeRows done.";
+        // qDebug() << "------ removeRows done.";
 
         portfolio::Portfolio portfolio = processor->getPortfolio();
         for ( auto folder: portfolio.folders() ) {
@@ -733,19 +737,44 @@ namespace { // anonymous
 
     // --------------------------------
     struct delete_removed {
-        std::set< Dataprocessor * > list_;
-        NavigationWidget * pThis_;
-        delete_removed( const QModelIndexList& rows, NavigationWidget * p ) : pThis_( p ) {
-            for ( auto& index: rows ) {
-                if ( auto processor = StandardItemHelper::findDataprocessor( index ) )
-                    list_.insert( processor );
+        std::set< QModelIndex > indecies_;
+        QAbstractItemModel * model_;
+        delete_removed( const QModelIndexList& rows, QAbstractItemModel * m ) : model_( m ) {
+            for ( auto index: rows ) {
+                while ( index.isValid() && index != index.model()->index(0,0,{}) )
+                    index = index.parent();
+                if ( index.isValid() )
+                    indecies_.emplace( index );
             }
         }
-        void operator()() const {
-            for ( auto processor: list_ ) {
-                processor->deleteRemovedItems();
-                pThis_->invalidateSession( processor );
+        std::set< int > populate( const QModelIndex& index ) const {
+            std::set< int > rows;
+            for ( size_t row = 0; row < index.model()->rowCount( index ); ++row ) {
+                auto t_index = index.model()->index( row, 0, index );
+                if ( auto folium = find_t< portfolio::Folium >()( t_index ) ) {
+                    if ( folium.attribute( L"remove" ) == L"true" )
+                        rows.emplace( row );
+                }
             }
+            return rows;
+        }
+
+        void operator()() const {
+            for ( auto index: indecies_ ) {
+                auto model = index.model();
+                if ( auto processor = find_t< Dataprocessor * >()( index ) ) {
+                    for ( size_t i = 0; i < model->rowCount( index ); ++i ) {
+                        auto p_index = model->index( i, 0, index );
+                        auto rows = populate( p_index );
+                        std::for_each( rows.rbegin(), rows.rend(),[&](int row){
+                            model_->removeRow( row, p_index );
+                        });
+                    }
+                    // delete data
+                    processor->deleteRemovedItems();
+                }
+            }
+
         }
     };
 
@@ -1317,7 +1346,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     minuend = std::get< 2 >( operand[ 0 ] ).name() == active_folium.name() ? 0 : 1;
                     subtrahend = minuend == 0 ? 1 : 0 ;
                     menu.addAction(
-                        QString( tr("Subtract '%1' from '%2'") ).arg( std::get< 3 >( operand[ subtrahend ] ), std::get< 3 >( operand[ minuend ] ) )
+                        QString( tr("Subtract '%1' from '%2'") )
+                        .arg( std::get< 3 >( operand[ subtrahend ] ), std::get< 3 >( operand[ minuend ] ) )
                         , BackgroundSubtraction( std::get< 2 >( operand[ subtrahend ] )
                                                  , std::get< 2 >( operand[ minuend ] )
                                                  , active_processor ) );
@@ -1328,7 +1358,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     menu.addSeparator();
 
-    menu.addAction( tr( "Delete removed items"), [&]{ delete_removed( selRows, this )(); } );
+    menu.addAction( tr( "Delete removed items"), [=]{ delete_removed{ selRows, pModel_ }(); } );
     menu.addAction( tr( "Collapse all"), [&]{ pTreeView_->collapseAll(); } );
 
     menu.exec( globalPos );
