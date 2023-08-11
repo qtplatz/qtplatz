@@ -699,13 +699,20 @@ namespace { // anonymous
         const QModelIndexList& rows_;
         remove_duplicated_chromatogram( const QModelIndexList& rows ) : rows_( rows )  {}
         void operator()() const {
-            std::map< Dataprocessor *, std::vector< portfolio::Folium > > list;
+            std::set< Dataprocessor * > v;
             for ( auto index: rows_ ) {
-                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
-                list[ processor ].emplace_back( folium );
+                if ( auto processor = find_t< Dataprocessor * >()( index ) )
+                    v.emplace( processor );
             }
-            for ( auto& dp: list )
-                dp.first->handleRemoveDuplicatedChromatograms( std::move( dp.second ) );
+
+            for ( auto& dp: v ) {
+                if ( auto folder = dp->portfolio().findFolder( L"Chromatograms" ) ) {
+                    std::vector< portfolio::Folium > list;
+                    for ( auto folium: folder.folio() )
+                        list.emplace_back( std::move( folium ) );
+                    dp->handleRemoveDuplicatedChromatograms( std::move( list ) );
+                }
+            }
         }
     };
 
