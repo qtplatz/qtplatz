@@ -173,6 +173,7 @@ namespace dataproc {
         QTreeView * treeView() { return this; }
         impl( NavigationWidget * p ) : QTreeView( p ) {}
         void currentChanged( const QModelIndex& current, const QModelIndex& previous ) override {
+            scrollTo( current, EnsureVisible );
             handle_activated( current );
         }
 
