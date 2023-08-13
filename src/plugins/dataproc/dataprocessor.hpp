@@ -150,7 +150,9 @@ namespace dataproc {
         void removePeaks( portfolio::Folium, std::vector< int >&& );
         void createChromatograms( std::vector< adprocessor::generator_property > v );
 
-        portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& ) override;
+        portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >
+                                       , const adcontrols::ProcessMethod&
+                                       , bool fireEvent = true ) override;
 
         portfolio::Folium addChromatogram( std::shared_ptr< adcontrols::Chromatogram >
                                            , const adcontrols::ProcessMethod&

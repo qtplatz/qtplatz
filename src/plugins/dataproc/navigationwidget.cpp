@@ -236,8 +236,8 @@ namespace {
                 }
             } else if ( parent_.data( Qt::EditRole ) == "Spectra" ) {
                 QRegularExpression
-                    re( R"__([A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"               // AVG 24.679-25.485s S[4,5]
-                        R"__(|m\/z[ ]+([0-9\.]+).*;tR=([0-9\.]+\([0-9\.]+\)$)__" // m/z 171.096(W 30mDa),PKD,tR=42.9(5.0)
+                    re( R"__(A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"               // AVG 24.679-25.485s S[4,5]
+                        R"__(|m\/z[ ]+([0-9\.]+).*;tR=([0-9\.]+)\([0-9\.]+\)$)__" // m/z 171.096(W 30mDa),PKD,tR=42.9(5.0)
                         );
                 auto match = re.match( item->data( Qt::EditRole ).toString() );
                 if ( match.hasMatch() ) {
@@ -277,6 +277,7 @@ public:
                                                               , folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name<wchar_t>() ) );
         item->setData( sort_key( parent )( item ), Qt::UserRole + 1 );
+        qDebug() << "\tadd: " << item->toolTip();
 
         auto atts = folium.attachments();
         for ( auto& att: atts )
@@ -480,6 +481,7 @@ NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfoli
 void
 NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString& foldername )
 {
+    ADDEBUG() << "---------- handleFolderChanged -------------";
     portfolio::Portfolio portfolio = processor->getPortfolio();
     portfolio::Folder folder = portfolio.findFolder( foldername.toStdWString() );
     portfolio::Folio folio = folder.folio();
@@ -732,7 +734,8 @@ namespace { // anonymous
                             list.emplace_back( folium );
                     }
                 }
-                processor->handleSpectraFromChromatographicPeaks( std::move( list ) );
+                if ( !list.empty() )
+                    processor->handleSpectraFromChromatographicPeaks( std::move( list ) );
             }
         }
     };
@@ -1303,6 +1306,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         bool enable = selFolders.folderCounts() > 0;
 
         menu.addAction( tr( "Sort" ), [=](){ sort_by_value()( selRows, pModel_ ); } )->setEnabled( enable );
+
         if ( enable ) {
             check_all_in_folder check_all( selRows );
             menu.addAction( QString( tr("Uncheck all %1") ).arg( name ), [=](){ check_all( false ); } )->setEnabled( enable );

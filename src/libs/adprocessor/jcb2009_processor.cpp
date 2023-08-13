@@ -51,6 +51,7 @@ namespace adprocessor {
         std::shared_ptr< adprocessor::dataprocessor > processor_;
         std::shared_ptr< adcontrols::ProcessMethod > procm_;
         std::vector< portfolio::Folium > folio_;
+        std::vector< portfolio::Folium > added_;
         std::shared_ptr< const adcontrols::lockmass::mslock > global_lkms_;
 
         impl( adprocessor::dataprocessor * dp )
@@ -116,7 +117,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 // apply MSLock
                 impl_->processor_->mslock( *ms, std::get<0>(tR) );
 
-                portfolio::Folium top = impl_->processor_->addSpectrum( ms, *impl_->procm_ );
+                portfolio::Folium top = impl_->processor_->addSpectrum( ms, *impl_->procm_, false );
 
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid ) {
@@ -134,6 +135,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                     top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
                 }
                 summary( pCentroid, pInfo );
+                impl_->added_.emplace_back( top );
             }
         }
 
@@ -142,9 +144,12 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
     auto [pSummary, pInfoSummary] = summary.get();
 
-    portfolio::Folium sfolium = impl_->processor_->addSpectrum( pSummary, adcontrols::ProcessMethod() );
+    portfolio::Folium sfolium = impl_->processor_->addSpectrum( pSummary, *impl_->procm_, false );
+
     sfolium.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pSummary, pSummary->dataClass() );
     sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfoSummary, pInfoSummary->dataClass() );
+
+    impl_->added_.emplace_back( sfolium );
 
     progress(++nCurr, nCount );
     ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
@@ -158,4 +163,16 @@ size_t
 JCB2009_Processor::num_chromatograms() const
 {
     return impl_->folio_.size();
+}
+
+const std::vector< portfolio::Folium >
+JCB2009_Processor::added() const
+{
+    return impl_->added_;
+}
+
+dataprocessor *
+JCB2009_Processor::dataprocessor()
+{
+    return impl_->processor_.get();
 }

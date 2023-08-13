@@ -45,6 +45,8 @@ namespace adcontrols {
 
 namespace adprocessor {
 
+    class dataprocessor;
+
     namespace jcb2009_helper {
 
         struct printer {
@@ -65,6 +67,7 @@ namespace adprocessor {
             operator()( const adcontrols::MassSpectrum& centroid
                         , const std::tuple<double,double,double>& tR );
             void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
+            adprocessor::dataprocessor * dataprocessor();
         private:
             class impl;
             impl * impl_;

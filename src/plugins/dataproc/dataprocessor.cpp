@@ -139,6 +139,7 @@ using namespace dataproc;
 namespace dataproc {
 
     struct DataprocessorImpl {
+
         static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::IsotopeMethod& );
         static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::TargetingMethod& );
 
@@ -1102,7 +1103,9 @@ Dataprocessor::formulaChanged()
 }
 
 portfolio::Folium
-Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
+Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr
+                            , const adcontrols::ProcessMethod& m
+                            , bool fireEvent )
 {
     portfolio::Folder folder = portfolio().addFolder( L"Spectra" );
 
@@ -1131,7 +1134,9 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, con
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
 
-    SessionManager::instance()->updateDataprocessor( this, folium );
+    if ( fireEvent ) {
+        SessionManager::instance()->updateDataprocessor( this, folium );
+    }
 
     setModified( true );
 
@@ -1387,7 +1392,7 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
                 xms->setIntensity( i, xms->intensity( i ) - background->intensity( i ) );
 
 			xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
-            addSpectrum( xms, adcontrols::ProcessMethod() );
+            addSpectrum( xms, adcontrols::ProcessMethod(), true );
             setModified( true );
         }
     }
@@ -1992,6 +1997,7 @@ Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Fo
                         DataprocessWorker::instance()->doIt( jcb2009, reader );
                     }
                 }
+                ADDEBUG() << "<=========== jcb2009 done ==============";
             }
         }
     }

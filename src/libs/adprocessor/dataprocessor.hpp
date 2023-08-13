@@ -145,7 +145,8 @@ namespace adprocessor {
         bool fetch( portfolio::Folium& );
 
         virtual portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >
-                                               , const adcontrols::ProcessMethod& ) { return {}; }
+                                               , const adcontrols::ProcessMethod&
+                                               , bool signal = true ) { return {}; }
         bool mslock( adcontrols::MassSpectrum&, double retentionTime ) const;
         //---
         static bool mslock( adcontrols::MassSpectrum&, const adcontrols::lockmass::mslock& );

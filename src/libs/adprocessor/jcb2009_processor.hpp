@@ -57,6 +57,8 @@ namespace adprocessor {
         void operator()( std::shared_ptr< const adcontrols::DataReader >
                          , std::function< bool( size_t, size_t ) > progress );
         size_t num_chromatograms() const;
+        dataprocessor * dataprocessor();
+        const std::vector< portfolio::Folium > added() const;
     private:
         class impl;
         std::unique_ptr< impl > impl_;
