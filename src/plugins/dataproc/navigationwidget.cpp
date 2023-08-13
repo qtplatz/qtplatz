@@ -166,6 +166,100 @@ public:
 };
 
 
+namespace dataproc {
+
+    class NavigationWidget::impl : public QTreeView {
+    public:
+        QTreeView * treeView() { return this; }
+        impl( NavigationWidget * p ) : QTreeView( p ) {}
+        void currentChanged( const QModelIndex& current, const QModelIndex& previous ) override {
+            handle_activated( current );
+        }
+
+        void
+        handle_activated( const QModelIndex& index ) {
+            if ( index.isValid() ) {
+                QVariant data = index.data( Qt::UserRole );
+                if ( data.canConvert< portfolio::Folder >() ) {
+                    // folder (Spectra|Chromatograms)
+                    portfolio::Folder folder = data.value< portfolio::Folder >();
+                    qtwrapper::waitCursor wait;
+                    Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
+                    processor->setCurrentSelection( folder );
+                } else if ( data.canConvert< portfolio::Folium >() ) {
+                    portfolio::Folium folium = data.value< portfolio::Folium >();
+                    Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
+                    if ( processor ) {
+                        std::string tname = static_cast<boost::any&>( folium ).type().name();
+                        qtwrapper::waitCursor wait;
+                        processor->setCurrentSelection( folium );
+                    }
+                }
+            }
+        }
+    };
+
+}
+
+namespace {
+
+    struct sort_key {
+        const QStandardItem& parent_;
+        sort_key( const QStandardItem& p ) : parent_( p ) {}
+
+        QString operator()( QStandardItem * item ) {
+            std::ostringstream o;
+
+            if ( parent_.data( Qt::EditRole ) == "Chromatograms" ) {
+                QRegularExpression
+                    re( R"__(m\/z[ ]+([0-9\.]+).*$)__"                // m/z 1011.715(W 75.0mDa),AVG,p0 C[3]
+                        R"__(|.*[ ]+([0-9\.]+) \(W.*\).*)__"          // C12:0 199.1704 (W:30mDa) avg.1.u5303a 0
+                        R"__(|[A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"    // AVG 24.679-25.485s S[4,5]
+                        R"__(|TIC\.[0-9].*)__"    // AVG 24.679-25.485s S[4,5]
+                        );
+                auto match = re.match( item->data( Qt::EditRole ).toString() );
+                if ( match.hasMatch() ) {
+                    if ( !match.captured( 1 ).isEmpty() )
+                        o << std::setw(10) << std::setfill('0') << int( match.captured( 1 ).toDouble() * 1000 ); // mass mDa
+                    else if ( !match.captured( 2 ).isEmpty() )
+                        o << std::setw(10) << std::setfill('0') << int( match.captured( 2 ).toDouble() * 1000 ); // mass mDa
+                    else if ( !match.captured( 3 ).isEmpty() ) {
+                        o << std::setw(10) << std::setfill('0') << int( match.captured( 3 ).toDouble() * 1000 ); // mass mDa
+                        o << "," << std::setw(10) << std::setfill('0') << int( match.captured( 4 ).toDouble() * 1000 ); // mass mDa
+                    } else if ( !match.captured( 4 ).isEmpty() ) {
+                        o << std::setw(10) << std::setfill('0') << int( 0 );
+                    }
+                } else {
+                    qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
+                    o << item->data( Qt::EditRole ).toString().toStdString();
+                }
+            } else if ( parent_.data( Qt::EditRole ) == "Spectra" ) {
+                QRegularExpression
+                    re( R"__([A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"               // AVG 24.679-25.485s S[4,5]
+                        R"__(|m\/z[ ]+([0-9\.]+).*;tR=([0-9\.]+\([0-9\.]+\)$)__" // m/z 171.096(W 30mDa),PKD,tR=42.9(5.0)
+                        );
+                auto match = re.match( item->data( Qt::EditRole ).toString() );
+                if ( match.hasMatch() ) {
+                    if ( !match.captured( 1 ).isEmpty() && !match.captured( 2 ).isEmpty() ) {
+                        o << std::setw(10) << std::setfill('0') << int( match.captured( 4 ).toDouble() * 1000 ); // ms (tR1)
+                        o << "," << std::setw(10) << std::setfill('0') << int( match.captured( 5 ).toDouble() * 1000 ); // ms (tR2)
+                    }
+                    if ( !match.captured( 3 ).isEmpty() && !match.captured( 4 ).isEmpty() ) {
+                        o << std::setw(10) << std::setfill('0') << int( match.captured( 4 ).toDouble() * 1000 ); // ms (tR1)
+                        o << "," << std::setw(10) << std::setfill('0') << int( match.captured( 3 ).toDouble() * 1000 ); // mDa
+                    }
+                } else {
+                    qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
+                    o << item->data( Qt::EditRole ).toString().toStdString();
+                }
+            }
+            return QString::fromStdString( o.str() );
+        }
+    };
+
+}
+
+
 class PortfolioHelper {
 
 public:
@@ -181,37 +275,7 @@ public:
                                                               , true
                                                               , folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name<wchar_t>() ) );
-        // set sort value
-        QRegularExpression
-            re( R"__(m\/z[ ]+([0-9\.]+).*;tR=([0-9\.]+).*$)__" // m/z 440.267(W 50.0mDa),AVG,p0;tR=38.5(3.7) S[1,2]
-                R"__(|m\/z[ ]+([0-9\.]+).*$)__"                // m/z 1011.715(W 75.0mDa),AVG,p0 C[3]
-                R"__(|[A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"     // AVG 24.679-25.485s S[4,5]
-                );
-        auto match = re.match( item->data( Qt::EditRole ).toString() );
-        std::ostringstream o;
-        if ( match.hasMatch() ) {
-            if ( !match.captured( 1 ).isEmpty() && !match.captured( 2 ).isEmpty() ) {
-                // spectra
-                o << "S";
-                o << std::setw(10) << std::setfill('0') << int( match.captured( 2 ).toDouble() * 1000 ); // tR ms
-                o << ",";
-                o << std::setw(10) << std::setfill('0') << int( match.captured( 1 ).toDouble() * 1000 ); // mass mDa
-            } else if ( !match.captured( 3 ).isEmpty() ) {
-                // chromatograms
-                o << "C";
-                o << std::setw(10) << std::setfill('0') << int( match.captured( 3 ).toDouble() * 1000 ); // mass mDa
-            } else if ( !match.captured( 4 ).isEmpty() && !match.captured( 5 ).isEmpty() ) {
-                // spectra
-                o << "_S";
-                o << std::setw(10) << std::setfill('0') << int( match.captured( 4 ).toDouble() * 1000 ); // mass t1
-                o << ",";
-                o << std::setw(10) << std::setfill('0') << int( match.captured( 5 ).toDouble() * 1000 ); // mass t2
-            }
-        } else {
-            qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
-            o << item->data( Qt::EditRole ).toString().toStdString();
-        }
-        item->setData( QString::fromStdString( o.str() ), Qt::UserRole + 1 );
+        item->setData( sort_key( parent )( item ), Qt::UserRole + 1 );
 
         auto atts = folium.attachments();
         for ( auto& att: atts )
@@ -240,11 +304,10 @@ NavigationWidget::~NavigationWidget()
 {
     delete pDelegate_;
     delete pModel_;
-    delete pTreeView_;
 }
 
 NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
-                                                    , pTreeView_( new QTreeView( this ) )
+                                                    , impl_( std::make_unique< impl >( this ) )
                                                     , pModel_( new QStandardItemModel )
                                                     , pDelegate_( new NavigationDelegate )
 {
@@ -253,10 +316,10 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
 #endif
 
-    pTreeView_->setModel( pModel_ );
-    pTreeView_->setItemDelegate( pDelegate_ );
-	pTreeView_->setDragEnabled( false );
-    pTreeView_->setTextElideMode(Qt::ElideMiddle);
+    impl_->treeView()->setModel( pModel_ );
+    impl_->treeView()->setItemDelegate( pDelegate_ );
+	impl_->treeView()->setDragEnabled( false );
+    impl_->treeView()->setTextElideMode(Qt::ElideMiddle);
 
     setStyleSheet(
         "QTreeView {"
@@ -278,12 +341,12 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         );
 
 
-    pTreeView_->setSelectionMode( QAbstractItemView::ExtendedSelection );
-    setFocusProxy( pTreeView_ );
+    impl_->treeView()->setSelectionMode( QAbstractItemView::ExtendedSelection );
+    setFocusProxy( impl_->treeView() );
     initView();
 
     QVBoxLayout * layout = new QVBoxLayout();
-    layout->addWidget( pTreeView_ );
+    layout->addWidget( impl_->treeView() );
     layout->setSpacing( 0 );
     layout->setContentsMargins( 0, 0, 0, 0 );
     setLayout( layout );
@@ -291,13 +354,14 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
 
-    connect( pTreeView_, &QTreeView::activated, this, &NavigationWidget::handle_activated );
-    connect( pTreeView_, &QTreeView::clicked, this, &NavigationWidget::handle_clicked );
-    connect( pTreeView_, &QTreeView::doubleClicked, this, &NavigationWidget::handle_doubleClicked );
-    connect( pTreeView_, &QTreeView::entered, this, &NavigationWidget::handle_entered );
+    // connect( impl_->treeView(), &QTreeView::currentChanged, [&](QModelIndex& curr, QModelIndex& prev){ handle_activated( curr ); } );)
+    connect( impl_->treeView(), &QTreeView::activated, this, &NavigationWidget::handle_activated );
+    connect( impl_->treeView(), &QTreeView::clicked, this, &NavigationWidget::handle_clicked );
+    connect( impl_->treeView(), &QTreeView::doubleClicked, this, &NavigationWidget::handle_doubleClicked );
+    connect( impl_->treeView(), &QTreeView::entered, this, &NavigationWidget::handle_entered );
 
-    pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect( pTreeView_, &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested );
+    impl_->treeView()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect( impl_->treeView(), &QTreeView::customContextMenuRequested, this, &NavigationWidget::handleContextMenuRequested );
 
     if ( SessionManager * mgr = SessionManager::instance() ) {
         connect( mgr, &SessionManager::onRemoveSession, this, &NavigationWidget::handleRemoveSession );
@@ -315,14 +379,14 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         am->connect_navigation_pointer( this );
     }
 
-    pTreeView_->installEventFilter( this );
+    impl_->treeView()->installEventFilter( this );
 }
 
 void
 NavigationWidget::initView()
 {
     QStandardItemModel& model = *pModel_;
-    QTreeView& view = *pTreeView_;
+    QTreeView& view = *impl_->treeView();
 
     view.setHeaderHidden( true );
 
@@ -371,10 +435,10 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
         }
 
         // expanding top and 2nd levels
-        // pTreeView_->expand( item->index() );
+        // impl_->treeView()->expand( item->index() );
         // for ( int i = 0; i < item->rowCount(); ++i)
-        //     pTreeView_->expand( model.index( i, 0, item->index()) );
-        // pTreeView_->setUpdatesEnabled( true );
+        //     impl_->treeView()->expand( model.index( i, 0, item->index()) );
+        // impl_->treeView()->setUpdatesEnabled( true );
     }
 }
 
@@ -421,7 +485,7 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
 
     if ( QStandardItem * procItem = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
         if ( QStandardItem * folderItem = StandardItemHelper::findFolder( procItem, foldername.toStdWString() ) ) {
-            pTreeView_->setUpdatesEnabled( false );
+            impl_->treeView()->setUpdatesEnabled( false );
             for ( auto folium: folio ) {
                 if ( QStandardItem * item = StandardItemHelper::findFolium( procItem, folium.id() ) ) {
                     item->setData( QVariant::fromValue< portfolio::Folium >( folium ), Qt::UserRole );
@@ -429,7 +493,7 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
                     PortfolioHelper::appendFolium( *folderItem, folium );
                 }
             }
-            pTreeView_->setUpdatesEnabled( true );
+            impl_->treeView()->setUpdatesEnabled( true );
         }
     }
 }
@@ -473,7 +537,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 	// set selected
 	if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
         if ( QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() ) )
-            pTreeView_->setCurrentIndex( leaf->index() );
+            impl_->treeView()->setCurrentIndex( leaf->index() );
         processor->setCurrentSelection( folium );
     }
 
@@ -508,10 +572,10 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
         for ( auto& folder: portfolio.folders() )
             PortfolioHelper::appendFolder( *item, folder );
 
-        pTreeView_->expand( item->index() );
+        impl_->treeView()->expand( item->index() );
         // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
         for ( int i = 0; i < item->rowCount(); ++i)
-            pTreeView_->expand( pModel_->index( i, 0, item->index()) );
+            impl_->treeView()->expand( pModel_->index( i, 0, item->index()) );
 
     }
 }
@@ -519,29 +583,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 void
 NavigationWidget::handle_activated( const QModelIndex& index )
 {
-    if ( index.isValid() ) {
-
-        QVariant data = index.data( Qt::UserRole );
-
-		if ( data.canConvert< portfolio::Folder >() ) {
-			// folder (Spectra|Chromatograms)
-			portfolio::Folder folder = data.value< portfolio::Folder >();
-            qtwrapper::waitCursor wait;
-			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
-			processor->setCurrentSelection( folder );
-
-		} else if ( data.canConvert< portfolio::Folium >() ) {
-
-            portfolio::Folium folium = data.value< portfolio::Folium >();
-
-			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
-			if ( processor ) {
-				std::string tname = static_cast<boost::any&>( folium ).type().name();
-                qtwrapper::waitCursor wait;
-				processor->setCurrentSelection( folium );
-			}
-        }
-    }
+    impl_->handle_activated( index );
 }
 
 void
@@ -620,10 +662,14 @@ namespace { // anonymous
         set_attribute( const QModelIndexList& rows ) : rows_( rows )  { }
 
         void operator()( std::pair< std::string, std::string>&& keyValue ) const {
-            for ( auto index: rows_ ) {
-                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
-                if ( processor && folium )
-                    processor->setAttribute( folium, std::move( keyValue ) );
+            if ( rows_.size() > 0 ) {
+                for ( auto index: rows_ ) {
+                    auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
+                    if ( processor && folium )
+                        processor->setAttribute( folium, std::move( keyValue ) );
+                }
+                auto pair = std::minmax_element( rows_.begin(), rows_.end() );
+                emit const_cast< QAbstractItemModel * >( std::get<0>(pair)->model() )->dataChanged( *std::get<0>(pair), *std::get<1>(pair) );
             }
         }
     };
@@ -1223,11 +1269,11 @@ namespace {
 void
 NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 {
-	QPoint globalPos = pTreeView_->mapToGlobal(pos);
-	QModelIndex index = pTreeView_->currentIndex();
+	QPoint globalPos = impl_->treeView()->mapToGlobal(pos);
+	QModelIndex index = impl_->treeView()->currentIndex();
 
     QMenu menu;
-    auto selRows = pTreeView_->selectionModel()->selectedRows();
+    auto selRows = impl_->treeView()->selectionModel()->selectedRows();
     selected_folders selFolders( selRows );
 
     if ( selRows.size() >= 1 ) {
@@ -1333,7 +1379,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Chromatograms" ) ) {
         // Chromatograms -- exclusively selected
 
-        copy_chromatogram_generator copy_generator( pTreeView_ );
+        copy_chromatogram_generator copy_generator( impl_->treeView() );
         menu.addAction( tr( "Copy masses" ), [&](){ copy_generator(); } );
 
         remove_duplicated_chromatogram remover( selRows );
@@ -1423,7 +1469,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     menu.addSeparator();
 
     menu.addAction( tr( "Delete removed items"), [=]{ delete_removed{ selRows, pModel_ }(); } );
-    menu.addAction( tr( "Collapse all"), [&]{ pTreeView_->collapseAll(); } );
+    menu.addAction( tr( "Collapse all"), [&]{ impl_->treeView()->collapseAll(); } );
 
     menu.exec( globalPos );
 }
@@ -1503,13 +1549,17 @@ NavigationWidget::eventFilter( QObject * obj, QEvent * ev )
     if ( ev->type() == QEvent::KeyPress ) {
         auto ke = static_cast< QKeyEvent * >( ev );
         if ( ke->matches( QKeySequence::Copy ) ) {
-            auto selRows = pTreeView_->selectionModel()->selectedRows();
+            auto selRows = impl_->treeView()->selectionModel()->selectedRows();
             selected_folders selFolders( selRows );
             if ( selFolders.contains( "Chromatograms" ) ) {
-                copy_chromatogram_generator copy_generator( pTreeView_ );
+                copy_chromatogram_generator copy_generator( impl_->treeView() );
                 copy_generator();
                 return true;
             }
+        } else if ( ke->key() == Qt::Key_Backspace ) {
+            set_attribute{ impl_->treeView()->selectionModel()->selectedRows() }( { "remove", "true" } );
+        } else if ( ke->matches( QKeySequence::Delete ) ) {
+            set_attribute{ impl_->treeView()->selectionModel()->selectedRows() }( { "remove", "true" } );
         }
     }
     return QObject::eventFilter( obj, ev );

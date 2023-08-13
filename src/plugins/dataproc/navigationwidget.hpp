@@ -83,12 +83,14 @@ namespace dataproc {
 
     private:
         bool autoSync_;
-        QTreeView * pTreeView_;
+        // QTreeView * pTreeView_;
         QStandardItemModel * pModel_;
         NavigationDelegate * pDelegate_;
         void handleAllCheckState( bool, const QString& );
         void handleAllCheckState( bool, const QString&, const QString& re );
         bool eventFilter( QObject *, QEvent * );
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }
