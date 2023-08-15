@@ -48,6 +48,7 @@
 #include <adportable/is_type.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
+#include <adcontrols/jcb2009_peakresult.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -622,9 +623,17 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             while ( it != annots.end() ) {
                 if ( auto json = it->json() ) {
                     auto jv = adportable::json_helper::parse( json );
-                    //ADDEBUG() << "########### find json annotation ###########\n" << jv;
-                    auto t = boost::json::value_to< adcontrols::annotation::peak >( jv );
-                    model.setData( model.index( row, c_mspeaktable_mode ), t.mode );
+                    try {
+                        if ( adportable::json_helper::find( jv, "peaks" ) != boost::json::value{} ) {
+                            auto t = boost::json::value_to< adcontrols::annotation::peak >( jv );
+                            model.setData( model.index( row, c_mspeaktable_mode ), t.mode );
+                        } else if ( adportable::json_helper::find( jv, "jcb2009_peakresult" ) != boost::json::value{} ) {
+                            auto t = boost::json::value_to< adcontrols::jcb2009_peakresult >( jv );
+                            ADDEBUG() << boost::json::value_from( t );
+                        }
+                    } catch ( std::exception& ex ) {
+                        ADDEBUG() << "## exception: " << ex.what();
+                    }
                 }
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
                     model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );

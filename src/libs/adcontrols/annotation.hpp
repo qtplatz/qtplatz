@@ -1,7 +1,7 @@
 /**************************************************************************
 
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -53,6 +53,7 @@ namespace adcontrols {
             flag_auto                = 0
             , flag_centroid          = 0x00000001
             , flag_targeting         = 0x00000002
+            , flag_jcb2009           = 0x00000004
             , flag_manually_assigned = 0x80000000
         };
 
@@ -67,7 +68,7 @@ namespace adcontrols {
         annotation( const annotation& );
         annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
         annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
-        annotation( boost::json::object&&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFlag flag = flag_auto );
+        annotation( boost::json::value&&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFlag flag = flag_auto );
 
         const std::string& text() const;
         void text( const std::wstring& text, DataFormat f = dataText );

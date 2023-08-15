@@ -66,6 +66,7 @@ namespace adcontrols {
 
         MSPeakInfo& operator << ( const MSPeakInfoItem& );
         MSPeakInfo& operator << ( MSPeakInfoItem&& );
+        iterator emplace( const_iterator it, const MSPeakInfoItem& );
 
         void addSegment( const MSPeakInfo& );
         MSPeakInfo& getSegment( size_t fcn );

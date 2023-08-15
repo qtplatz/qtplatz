@@ -38,6 +38,7 @@
 #include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/segment_wrapper.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/bounds.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/scoped_debug.hpp>
@@ -252,9 +253,9 @@ namespace {
     struct compare_range {
         bool operator()( const std::tuple<double, double >& range, const adcontrols::mass_value_type& value, bool isTime ) const {
             if (isTime)
-                return std::get<0>(range) < std::get< 0 >(value) && std::get< 0 >(value) < std::get<1>(range);
+                return adportable::bounds( range ).contains( std::get<0>(value) );
             else
-                return std::get<0>(range) < std::get< 1 >(value) && std::get< 1 >(value) < std::get<1>(range);
+                return adportable::bounds( range ).contains( std::get<1>(value) );
         }
     };
 }
@@ -330,7 +331,6 @@ SpectrumWidget::yZoom( double xmin, double xmax )
         setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
     }
 
-    ADDEBUG() << "******************* yZoom **************************";
     if ( hasAxes.first && ! adportable::compare<double>::approximatelyEqual( left.first, left.second ) ) {
         setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
     }
@@ -1089,17 +1089,19 @@ SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot:
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
 
         std::vector< adcontrols::annotation > avec;
-        std::vector< adcontrols::annotation > a_avec;
+        std::vector< adcontrols::annotation > a_avec; // auto-generated
 
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
             double max_y = ms.intensity( ms.max_element( std::make_pair( std::get<0>(range), std::get<1>(range) ) ) );
 
             for ( const auto& a: ms.get_annotations() ) {
-                if (( a.index() >= 0 ) && std::get<0>(range) <= a.x() && a.x() < std::get<1>(range) ) {
-                    auto tmp( a );
-                    tmp.x( isTimeAxis_ ? ms.time( a.index() ) : a.x() );
-                    avec.emplace_back( std::move( tmp ) );
+                if ( a.dataFormat() != adcontrols::annotation::dataJSON ) {
+                    if (( a.index() >= 0 ) && adportable::bounds( range ).contains( a.x() ) ) {
+                        auto tmp( a );
+                        tmp.x( isTimeAxis_ ? ms.time( a.index() ) : a.x() );
+                        avec.emplace_back( std::move( tmp ) );
+                    }
                 }
             }
 

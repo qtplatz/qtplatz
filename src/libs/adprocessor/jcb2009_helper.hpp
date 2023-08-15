@@ -25,7 +25,10 @@
 #pragma once
 
 #include "adprocessor_global.hpp"
+#include <adcontrols/mspeakinfo.hpp>
 #include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <memory>
 #include <optional>
 
@@ -46,6 +49,7 @@ namespace adcontrols {
 namespace adprocessor {
 
     class dataprocessor;
+    class generator_property;
 
     namespace jcb2009_helper {
 
@@ -53,20 +57,30 @@ namespace adprocessor {
             void print( const portfolio::Folium& );
         };
 
-        struct find_peaks {
-            adcontrols::Peaks get( const portfolio::Folium& );
-            std::tuple< double, double, double > tR( const adcontrols::Peak& );
+         struct find_peaks {
+             std::tuple< double, double, double > tR( const adcontrols::Peak& );
+         };
+
+        struct folium_accessor {
+            const portfolio::Folium& folium_;
+            folium_accessor( const portfolio::Folium& folium );
+
+            std::tuple< generator_property, adcontrols::Peaks > operator()() const;
+            adcontrols::Peaks get_peaks() const;
+            generator_property get_generator_property() const;
         };
 
-        class annotator {
+        class find_mass {
         public:
-            ~annotator();
-            annotator( const portfolio::Folium&, const adcontrols::ProcessMethod& );
+            ~find_mass();
+            find_mass( const portfolio::Folium&, const adcontrols::ProcessMethod& );
 
-            std::optional< adcontrols::annotation >
-            operator()( const adcontrols::MassSpectrum& centroid
-                        , const std::tuple<double,double,double>& tR );
-            void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
+            std::optional< std::pair< size_t, int > >
+            operator()( const adcontrols::MassSpectrum& centroid, int proto );
+
+            std::optional< adcontrols::MSPeakInfo::const_iterator >
+            operator()( const adcontrols::MSPeakInfo& pInfo, int proto );
+
             adprocessor::dataprocessor * dataprocessor();
         private:
             class impl;

@@ -348,12 +348,17 @@ MainWindow::createStyledBarTop()
 void
 MainWindow::handleDataprocessor( Dataprocessor * dp )
 {
+    ADDEBUG() << "## handleDataProcessor ##";
     auto sp = ( dp ) ? dp->massSpectrometer() : nullptr;
+    try {
     if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
         w->setMassSpectrometer( sp );
     }
     if ( auto w = findChild< dataproc::MSPeakTable * >( "MSPeakTable" ) ) {
         w->setMassSpectrometer( sp );
+    }
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << "## exception: " << ex.what();
     }
 }
 

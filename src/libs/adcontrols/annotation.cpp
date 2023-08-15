@@ -93,7 +93,7 @@ annotation::annotation( const std::string& text
 {
 }
 
-annotation::annotation( boost::json::object&& jobj
+annotation::annotation( boost::json::value&& value
                         , double x
                         , double y
                         , int idx
@@ -106,8 +106,7 @@ annotation::annotation( boost::json::object&& jobj
                                          , h_( 0 )
                                          , flags_( flg )
 {
-    text_ = boost::json::serialize( jobj );
-    format_ = dataJSON;
+    text_ = boost::json::serialize( value );
 }
 
 boost::optional< std::string >

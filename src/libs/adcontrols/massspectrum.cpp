@@ -1269,6 +1269,7 @@ segments_helper::normalize( MassSpectrum& vms, uint32_t imaginalNumAverage )
     return true;
 }
 
+
 //static
 std::pair<double, double>
 segments_helper::acquisition_time_range( const MassSpectrum& ms )
@@ -1281,6 +1282,22 @@ segments_helper::acquisition_time_range( const MassSpectrum& ms )
         range.second = std::max( range.second, x.second );
     }
     return range;
+}
+
+const annotations&
+segments_helper::get_annotations( const MassSpectrum& ms, const std::pair< int, int >& idx )
+{
+    if ( idx.second == 0 )
+        return ms.get_annotations();
+    return ms.getSegment( idx.second - 1 ).get_annotations();
+}
+
+annotations&
+segments_helper::get_annotations( MassSpectrum& ms, const std::pair< int, int >& idx )
+{
+    if ( idx.second == 0 )
+        return ms.get_annotations();
+    return ms.getSegment( idx.second - 1 ).get_annotations();
 }
 
 bool

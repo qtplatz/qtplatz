@@ -156,6 +156,12 @@ MSPeakInfo::operator << ( MSPeakInfoItem&& item )
     return *this;
 }
 
+MSPeakInfo::iterator
+MSPeakInfo::emplace( const_iterator it, const MSPeakInfoItem& t )
+{
+    return vec_.emplace( it, std::move( t ) );
+}
+
 size_t
 MSPeakInfo::size() const
 {

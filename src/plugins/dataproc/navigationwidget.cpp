@@ -737,6 +737,7 @@ namespace { // anonymous
                 if ( !list.empty() )
                     processor->handleSpectraFromChromatographicPeaks( std::move( list ) );
             }
+            ADDEBUG() << "<---- jcb2009 process done.";
         }
     };
 

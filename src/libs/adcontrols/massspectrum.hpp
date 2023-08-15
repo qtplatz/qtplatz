@@ -243,6 +243,8 @@ namespace adcontrols {
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
         static bool add( MassSpectrum&, const MassSpectrum& );
         static bool normalize( MassSpectrum&, uint32_t imaginalNumAverage = 10000 );
+        static const annotations& get_annotations( const MassSpectrum&, const std::pair< int, int >& );
+		static annotations& get_annotations( MassSpectrum&, const std::pair< int, int >& );
     };
 
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );

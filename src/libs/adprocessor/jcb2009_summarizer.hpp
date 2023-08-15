@@ -30,6 +30,8 @@
 namespace adcontrols {
     class MassSpectrum;
     class MSPeakInfo;
+    class MSPeakInfoItem;
+    class jcb2009_peakresult;
 }
 
 namespace adprocessor {
@@ -40,14 +42,16 @@ namespace adprocessor {
         public:
             ~summarizer();
             summarizer();
-            void operator()( std::shared_ptr< const adcontrols::MassSpectrum > pCentroid
-                             , std::shared_ptr< const adcontrols::MSPeakInfo > pInfo );
+            void operator()( const adcontrols::MSPeakInfoItem&, adcontrols::jcb2009_peakresult&& );
 
-            std::pair< std::shared_ptr< adcontrols::MassSpectrum >
-                       , std::shared_ptr< adcontrols::MSPeakInfo > > get() const;
+            std::shared_ptr< adcontrols::MassSpectrum > get( const adcontrols::MassSpectrum& t ) const;
+            std::shared_ptr< adcontrols::MSPeakInfo > get() const;
+
+            // std::pair< std::shared_ptr< adcontrols::MassSpectrum >
+            //            , std::shared_ptr< adcontrols::MSPeakInfo > > get() const;
         private:
             void operator()( std::shared_ptr< const adcontrols::MassSpectrum > pCentroid );
-            void operator()( std::shared_ptr< const adcontrols::MSPeakInfo > pInfo );
+            void operator()( std::shared_ptr< const adcontrols::MSPeakInfo > pInfo, const adcontrols::jcb2009_peakresult& );
 
             class impl;
             impl * impl_;

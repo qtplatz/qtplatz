@@ -26,6 +26,7 @@
 #include "jcb2009_helper.hpp"
 #include "jcb2009_summarizer.hpp"
 #include "centroid_processor.hpp"
+#include "generator_property.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -35,8 +36,10 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/jcb2009_peakresult.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
@@ -93,63 +96,74 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     size_t nCurr = 0;
 
     jcb2009_helper::summarizer summary;
+    std::shared_ptr< adcontrols::MassSpectrum > temp;
 
     progress( 0, impl_->folio_.size() );
 
-    for ( const auto& folium: impl_->folio_ ) {
+    for ( const auto& cfolium: impl_->folio_ ) {
 
-        jcb2009_helper::annotator annotate( folium, *impl_->procm_ );
+        jcb2009_helper::find_mass find_mass( cfolium, *impl_->procm_ );
 
-        auto peaks = jcb2009_helper::find_peaks().get( folium );
+        auto [gen,peaks] = jcb2009_helper::folium_accessor( cfolium )();
+
         for ( const auto& peak: peaks ) {
 
+            adcontrols::jcb2009_peakresult pkResult( { gen.mass(), gen.mass_width(), gen.protocol() }
+                                                     , peak
+                                                     , { cfolium.name<char>(), cfolium.uuid() }  );
+
+            int target_protocol = pkResult.protocol();
+
             auto tR = jcb2009_helper::find_peaks().tR( peak );
-            // ADDEBUG() << "tR: " << tR << " <-- " << std::make_pair( peak.startTime(), peak.endTime() );
 
             if ( auto ms = reader->coaddSpectrum(
                      reader->findPos( std::get< 1 >(tR) ), reader->findPos( std::get< 2 >(tR) ) ) ) {
 
                 auto folname = (boost::format( "%s;tR=%.1f(%.1f)" )
-                                % folium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
+                                % cfolium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
 
                 ms->addDescription( adcontrols::description( { "create", folname } ) );
 
                 // apply MSLock
                 impl_->processor_->mslock( *ms, std::get<0>(tR) );
 
-                portfolio::Folium top = impl_->processor_->addSpectrum( ms, *impl_->procm_, false );
-
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
-                if ( pCentroid ) {
+                if ( pCentroid && pInfo ) {
+                    temp = pCentroid;
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
-                    if ( auto anno = annotate( *pCentroid, tR ) ) {
-                        pCentroid->get_annotations() << *anno;
-                        pCentroid->setColor( anno->index(), 15 ); // magenta
+                    adcontrols::annotation anno;
+                    if ( auto idx = find_mass( *pCentroid, target_protocol ) ) {
+                        using adcontrols::segments_helper;
+                        double mass = segments_helper::get_mass( *pCentroid, *idx );
+                        double intensity = segments_helper::get_intensity( *pCentroid, *idx );
+                        anno = adcontrols::annotation( (boost::format("AA%.3f@%.1fs") % mass % std::get<0>(tR)).str(), mass, intensity, idx->first );
+                        segments_helper::get_annotations( *pCentroid, *idx ) << anno;
+                        segments_helper::set_color( *pCentroid, idx->second, idx->first, 15 );
                     } else {
-                        top.setAttribute( "tag", "red" );
+                        // top.setAttribute( "tag", "red" );
                     }
-                    top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
+                    // top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
+                    // top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
+
+                    if ( auto it = find_mass( *pInfo, target_protocol ) ) {
+                        pkResult.set_found_mass( **it );
+                        summary( **it, std::move( pkResult ) );
+                    }
+                    // impl_->added_.emplace_back( top );
                 }
-                if ( pInfo ) {
-                    annotate( pInfo );
-                    top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
-                }
-                summary( pCentroid, pInfo );
-                impl_->added_.emplace_back( top );
             }
         }
-
         progress(++nCurr, nCount );
     }
 
-    auto [pSummary, pInfoSummary] = summary.get();
+    auto pSummary = summary.get( *temp );
+    auto pInfo = summary.get();
 
-    portfolio::Folium sfolium = impl_->processor_->addSpectrum( pSummary, *impl_->procm_, false );
+    // auto [pSummary, pInfoSummary] = summary.get();
+    portfolio::Folium sfolium = impl_->processor_->addSpectrum( pSummary, *impl_->procm_, true /* update sessionManager */ );
 
     sfolium.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pSummary, pSummary->dataClass() );
-    sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfoSummary, pInfoSummary->dataClass() );
-
-    impl_->added_.emplace_back( sfolium );
+    sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
 
     progress(++nCurr, nCount );
     ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
