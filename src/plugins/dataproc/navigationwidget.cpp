@@ -236,7 +236,7 @@ namespace {
                 }
             } else if ( parent_.data( Qt::EditRole ) == "Spectra" ) {
                 QRegularExpression
-                    re( R"__(A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"               // AVG 24.679-25.485s S[4,5]
+                    re( R"__([A-Za-z ]+([0-9\.]+)-([0-9\.]+)s)__"                 // AVG 24.679-25.485s S[4,5]
                         R"__(|m\/z[ ]+([0-9\.]+).*;tR=([0-9\.]+)\([0-9\.]+\)$)__" // m/z 171.096(W 30mDa),PKD,tR=42.9(5.0)
                         );
                 auto match = re.match( item->data( Qt::EditRole ).toString() );
@@ -277,7 +277,7 @@ public:
                                                               , folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name<wchar_t>() ) );
         item->setData( sort_key( parent )( item ), Qt::UserRole + 1 );
-        qDebug() << "\tadd: " << item->toolTip();
+        // qDebug() << "\tadd: " << item->toolTip();
 
         auto atts = folium.attachments();
         for ( auto& att: atts )
