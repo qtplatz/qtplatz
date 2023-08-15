@@ -86,6 +86,7 @@ namespace adwidgets {
         , c_mspeaktable_protocol
         , c_mspeaktable_mass_width
         , c_mspeaktable_time_width
+        , c_mspeaktable_jcb2009_tR
         , c_mspeaktable_description
         , c_mspeaktable_index
         , c_mspeaktable_fcn
@@ -174,6 +175,10 @@ namespace adwidgets {
                 DelegateHelper::render_html( painter, option, QString::fromStdString( formula ) );
             } while(0);
             break;
+        case c_mspeaktable_jcb2009_tR:
+            // if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_jcb2009_tR ), Qt::EditRole ).isValid() )
+            drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+            break;
         case c_mspeaktable_mode:
         case c_mspeaktable_description:
         case c_mspeaktable_num_columns:
@@ -189,8 +194,6 @@ namespace adwidgets {
         QItemDelegate::setModelData( editor, model, index );
         emit valueChanged( index );
     }
-
-
 
     ///////////////////
 
@@ -273,6 +276,20 @@ namespace adwidgets {
         boost::signals2::signal< callback_t > callback_;
         bool inProgress_;
         std::weak_ptr< const adcontrols::MassSpectrometer > massSpectrometer_;
+    };
+}
+
+namespace {
+
+    template< int column >
+    struct row_walker {
+        std::set< QVariant > values_;
+        bool operator()( QAbstractItemModel * model ) {
+            for ( int row = 0; row < model->rowCount(); ++row )
+                values_.emplace( model->index( row, column ).data() );
+            // ADDEBUG() << "------ raw walker< " << column << "> = " << values_.size();
+            return values_.size() <= 1;
+        }
     };
 }
 
@@ -440,12 +457,14 @@ MSPeakTable::onInitialUpdate()
 
     model.setHeaderData( c_mspeaktable_mass_width,  Qt::Horizontal, QObject::tr( "width(mDa)" ) );
     model.setHeaderData( c_mspeaktable_time_width,  Qt::Horizontal, QObject::tr( "width(ns)" ) );
+    model.setHeaderData( c_mspeaktable_jcb2009_tR,  Qt::Horizontal, QObject::tr( "t<sub>R</sub> s" ) );
 
     setColumnHidden( c_mspeaktable_is_reference, true );
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
     setColumnHidden( c_mspeaktable_delta_mass, true );
+    setColumnHidden( c_mspeaktable_jcb2009_tR, true );
     setColumnHidden( c_mspeaktable_relative_intensity, true );
     //horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents ); <-- performance killer
     //horizontalHeader()->setResizeMode( QHeaderView::Stretch );
@@ -522,9 +541,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             model.setData( model.index( row, c_mspeaktable_is_reference ), pk.is_reference() ); // hidden
             model.setData( model.index( row, c_mspeaktable_fcn ), fcn ); // hidden
             model.setData( model.index( row, c_mspeaktable_index ), idx++ ); // hidden
-
             model.setData( model.index( row, c_mspeaktable_protocol ), fcn ); // protocol id (for display)
-
             model.setData( model.index( row, c_mspeaktable_time ), pk.time() );
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
 
@@ -535,7 +552,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             }
             if ( auto mode = pk.mode() ) { // if peak has modified mode value
                 model.setData( model.index( row, c_mspeaktable_mode ), *mode );
-                // ADDEBUG() << "--------- local mode found: " << *mode << " <- " << pkinfo.mode() << "(" << pk.mass() << ")";
             } else {
                 model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
             }
@@ -555,6 +571,12 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
         }
         ++fcn;
     }
+
+    setColumnHidden( c_mspeaktable_mass_width, false );
+    setColumnHidden( c_mspeaktable_time_width, false );
+    setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode >()( &model ) );
+    setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol >()( &model ) );
+
     //resizeColumnsToContents();
     //resizeRowsToContents();
     this->resizeColumnToContents( c_mspeaktable_formula );
@@ -569,7 +591,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     setUpdatesEnabled( false );
 
-    // ADDEBUG() << "=============== setPeakInfo for MassSpectrum =================";
+    setColumnHidden( c_mspeaktable_jcb2009_tR, true );
+    std::set< int > protocols, modes;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for( auto& t: segs )
@@ -612,27 +635,26 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_relative_intensity ), (fms.intensity( idx ) * 100 ) / maxIntensity );
 
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
+            modes.emplace( fms.mode() );
 
             model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
             model.setData( model.index( row, c_mspeaktable_exact_mass ), 0.0 );
 
             model.setData( model.index( row, c_mspeaktable_mass_width ), QVariant() ); // clear width
             model.setData( model.index( row, c_mspeaktable_time_width ), QVariant() ); // clear width
+            model.setData( model.index( row, c_mspeaktable_jcb2009_tR ), QVariant() );
 
             auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
                 if ( auto json = it->json() ) {
                     auto jv = adportable::json_helper::parse( json );
-                    try {
-                        if ( adportable::json_helper::find( jv, "peaks" ) != boost::json::value{} ) {
-                            auto t = boost::json::value_to< adcontrols::annotation::peak >( jv );
-                            model.setData( model.index( row, c_mspeaktable_mode ), t.mode );
-                        } else if ( adportable::json_helper::find( jv, "jcb2009_peakresult" ) != boost::json::value{} ) {
-                            auto t = boost::json::value_to< adcontrols::jcb2009_peakresult >( jv );
-                            ADDEBUG() << boost::json::value_from( t );
-                        }
-                    } catch ( std::exception& ex ) {
-                        ADDEBUG() << "## exception: " << ex.what();
+                    if ( adportable::json_helper::find( jv, "peaks" ) != boost::json::value{} ) {
+                        auto t = boost::json::value_to< adcontrols::annotation::peak >( jv );
+                        model.setData( model.index( row, c_mspeaktable_mode ), t.mode );
+                    } else if ( adportable::json_helper::find( jv, "jcb2009_peakresult" ) != boost::json::value{} ) {
+                        auto t = boost::json::value_to< adcontrols::jcb2009_peakresult >( jv );
+                        model.setData( model.index( row, c_mspeaktable_jcb2009_tR ), t.tR() );
+                        setColumnHidden( c_mspeaktable_jcb2009_tR, false );
                     }
                 }
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
@@ -654,6 +676,12 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     if ( hasFormula )
         hideRows();
+
+    setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode >()( &model ) );
+    setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol >()( &model ) );
+
+    setColumnHidden( c_mspeaktable_mass_width, true );
+    setColumnHidden( c_mspeaktable_time_width, true );
 
     //resizeColumnsToContents();
     //resizeRowsToContents();
@@ -774,7 +802,7 @@ MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
     double mass = model.index( row, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble();
     for ( int r = 0; r < model.rowCount(); ++r ) {
         double d = std::abs( model.index( r, c_mspeaktable_mass ).data( Qt::EditRole ).toDouble() - mass );
-        model.setData( model.index( r, c_mspeaktable_delta_mass ), int( d + 0.7 ) );
+        model.setData( model.index( r, c_mspeaktable_delta_mass ), d ); // int( d + 0.7 ) );
     }
     setUpdatesEnabled( true );
 
