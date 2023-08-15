@@ -70,6 +70,12 @@ namespace adprocessor {
             generator_property get_generator_property() const;
         };
 
+        struct ms_accumulator {
+            ms_accumulator();
+            std::shared_ptr< adcontrols::MassSpectrum > ms_;
+            void operator()( const adcontrols::MassSpectrum& );
+        };
+
         class find_mass {
         public:
             ~find_mass();

@@ -111,6 +111,22 @@ folium_accessor::get_generator_property() const
 
 /////////////////////////
 
+ms_accumulator::ms_accumulator()
+{
+}
+
+void
+ms_accumulator::operator()( const adcontrols::MassSpectrum& t )
+{
+    ADDEBUG() << "ms_accumurator: ";
+    if ( !ms_ )
+        ms_ = std::make_shared< adcontrols::MassSpectrum >( t );
+    else
+        *ms_ += t;
+}
+
+/////////////////////////
+
 namespace adprocessor {
     namespace jcb2009_helper {
 

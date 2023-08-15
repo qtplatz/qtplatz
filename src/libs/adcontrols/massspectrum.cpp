@@ -259,8 +259,10 @@ MassSpectrum::operator += ( const MassSpectrum& t )
         assert( 0 );
     }
 #endif
-    if ( isCentroid() || t.isCentroid() )
+    if ( isCentroid() ) {
+        ADDEBUG() << "------------ cannot add centroid spectra ----------------";
         throw std::runtime_error( "unsupported spectrum type" );
+    }
 
     const double * rhs = getIntensityArray();
     const double * lhs = t.getIntensityArray();
