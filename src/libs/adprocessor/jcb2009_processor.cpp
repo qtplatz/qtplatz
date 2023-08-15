@@ -157,6 +157,8 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     }
 
     auto pSummary = summary.get( *temp );
+    pSummary->addDescription( adcontrols::description( { "create", "SUMMARY" } ) );
+
     auto pInfo = summary.get();
 
     // auto [pSummary, pInfoSummary] = summary.get();
