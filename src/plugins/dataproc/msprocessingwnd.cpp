@@ -586,6 +586,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
         if ( folder.name() == L"Spectra" ) { //|| folder.name() == L"Chromatograms" ) {
 
+            ADDEBUG() << "------- selection changed for Spectra --------";
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
                 pProcessedSpectrum_ = std::make_pair( std::wstring(), std::shared_ptr< adcontrols::MassSpectrum >( 0 ) );
@@ -595,6 +596,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
+                    ADDEBUG() << "\t------- primary spectrum is centrod? " << ptr->isCentroid();
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
                     pImpl_->datum_[ 1 ] = datafolder( processor->filename(), folium );
@@ -602,10 +604,10 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     pImpl_->processedSpectrum_->clear();
                     pImpl_->processedSpectrum_->replot();
 
-                    if ( !ptr->isCentroid() )
-                        draw_profile( folium.id(), ptr );
-                    else if ( ptr->isHistogram() )
+                    if ( ptr->isHistogram() ) // a.k.a. pkd waveform
                         draw_histogram( folium, ptr ); // draw counting histogram
+                    else
+                        draw_profile( folium.id(), ptr );
 
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                         return a.name() == Constants::F_DFT_FILTERD; }) ) {
