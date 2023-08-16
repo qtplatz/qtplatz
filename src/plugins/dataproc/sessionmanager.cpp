@@ -197,6 +197,23 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
 #endif
 }
 
+void
+SessionManager::selectionsChanged( Dataprocessor* dataprocessor, const std::vector< portfolio::Folium >& folio )
+{
+	// if ( impl_->activeDataprocessor_ != dataprocessor ) {
+    //     impl_->activeDataprocessor_ = dataprocessor;
+    //     emit onDataprocessorChanged( impl_->activeDataprocessor_ );
+	// 	auto it = std::find_if( impl_->sessions_.begin(), impl_->sessions_.end(), [dataprocessor]( dataproc::Session& s ){
+    //             return dataprocessor == s.processor();
+    //         });
+	// 	if ( it != impl_->sessions_.end() )
+	// 		Core::EditorManager::instance()->activateEditor( it->editor() );
+	// }
+    // emit signalSelectionChanged( dataprocessor, folium );
+    emit signalSelections( dataprocessor, folio );
+}
+
+
 Dataprocessor *
 SessionManager::getActiveDataprocessor()
 {

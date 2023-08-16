@@ -170,11 +170,33 @@ namespace dataproc {
 
     class NavigationWidget::impl : public QTreeView {
     public:
+        QStandardItemModel * pModel_;
+        NavigationDelegate * pDelegate_;
+
         QTreeView * treeView() { return this; }
-        impl( NavigationWidget * p ) : QTreeView( p ) {}
+        impl( NavigationWidget * p ) : QTreeView( p )
+                                     , pModel_( new QStandardItemModel )
+                                     , pDelegate_( new NavigationDelegate ) {
+
+            this->setModel( pModel_ );
+            this->setItemDelegate( pDelegate_ );
+            this->setDragEnabled( false );
+            this->setTextElideMode( Qt::ElideMiddle );
+
+            QObject::connect( selectionModel()
+                              , &QItemSelectionModel::currentChanged
+                              , this, [&](const auto& current, const auto& previous ){
+                                  handle_activated( current );
+                              });
+        }
+
+        ~impl() {
+            delete pModel_;
+            delete pDelegate_;
+        }
+
         void currentChanged( const QModelIndex& current, const QModelIndex& previous ) override {
             scrollTo( current, EnsureVisible );
-            handle_activated( current );
         }
 
         void
@@ -189,11 +211,20 @@ namespace dataproc {
                     processor->setCurrentSelection( folder );
                 } else if ( data.canConvert< portfolio::Folium >() ) {
                     portfolio::Folium folium = data.value< portfolio::Folium >();
-                    Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
-                    if ( processor ) {
-                        std::string tname = static_cast<boost::any&>( folium ).type().name();
+                    if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
                         qtwrapper::waitCursor wait;
                         processor->setCurrentSelection( folium );
+
+                        // ---------> added for multiple selection of chromatograms
+                        std::vector< portfolio::Folium > folio;
+                        for ( const auto& row: selectionModel()->selectedRows() ) {
+                            if ( row.parent().data( Qt::EditRole ) == "Chromatograms" &&
+                                 row.data( Qt::UserRole ).canConvert< portfolio::Folium >() ) {
+                                if ( row != index )
+                                    folio.emplace_back( row.data( Qt::UserRole ).value< portfolio::Folium >() );
+                            }
+                        }
+                        processor->setSelections( std::move( folio ) );
                     }
                 }
             }
@@ -304,24 +335,15 @@ using namespace dataproc;
 
 NavigationWidget::~NavigationWidget()
 {
-    delete pDelegate_;
-    delete pModel_;
 }
 
 NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
                                                     , impl_( std::make_unique< impl >( this ) )
-                                                    , pModel_( new QStandardItemModel )
-                                                    , pDelegate_( new NavigationDelegate )
 {
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     qRegisterMetaTypeStreamOperators< portfolio::Folium >( "portfolio::Folium" );
     qRegisterMetaTypeStreamOperators< portfolio::Folder >( "portfolio::Folder" );
 #endif
-
-    impl_->treeView()->setModel( pModel_ );
-    impl_->treeView()->setItemDelegate( pDelegate_ );
-	impl_->treeView()->setDragEnabled( false );
-    impl_->treeView()->setTextElideMode(Qt::ElideMiddle);
 
     setStyleSheet(
         "QTreeView {"
@@ -354,7 +376,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     setLayout( layout );
 
     // connections
-    connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
+    connect( impl_->pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
 
     // connect( impl_->treeView(), &QTreeView::currentChanged, [&](QModelIndex& curr, QModelIndex& prev){ handle_activated( curr ); } );)
     connect( impl_->treeView(), &QTreeView::activated, this, &NavigationWidget::handle_activated );
@@ -371,7 +393,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         connect( mgr, &SessionManager::onSessionUpdated, this
                  , [&] ( Dataprocessor* dp, const QString& id ){ handleSessionUpdated( dp, id ); } );
         connect( mgr, &SessionManager::onFolderChanged, this, &NavigationWidget::handleFolderChanged );
-        connect( pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
+        connect( impl_->pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
         connect( mgr, &SessionManager::foliumChanged, this, &NavigationWidget::handleFoliumChanged );
     }
 
@@ -387,7 +409,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
 void
 NavigationWidget::initView()
 {
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *impl_->pModel_;
     QTreeView& view = *impl_->treeView();
 
     view.setHeaderHidden( true );
@@ -398,7 +420,7 @@ NavigationWidget::initView()
     view.setRootIndex(sessionIndex);
 
     // expand top level projects
-    for ( int i = 0; i < pModel_->rowCount(sessionIndex); ++i)
+    for ( int i = 0; i < impl_->pModel_->rowCount(sessionIndex); ++i)
         view.expand( model.index(i, 0, sessionIndex));
 
     view.setMouseTracking( true );
@@ -425,7 +447,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *impl_->pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
         model.removeRows( 0, item->rowCount(), item->index() );
@@ -447,10 +469,10 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
 void
 NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::Folium folium )
 {
-    if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
+    if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
-                pModel_->removeRows( 0, item->rowCount(), item->index() );
+                impl_->pModel_->removeRows( 0, item->rowCount(), item->index() );
                 for ( auto& att: folium.attachments() ) {
                     if ( StandardItemHelper::findFolium( item, att.id() ) == nullptr )
                         PortfolioHelper::appendAttachment( *item, att );
@@ -465,7 +487,7 @@ NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::
 void
 NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
-    if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
+    if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
                 item->setData( QVariant::fromValue< portfolio::Folium >( folium ), Qt::UserRole );
@@ -486,7 +508,7 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
     portfolio::Folder folder = portfolio.findFolder( foldername.toStdWString() );
     portfolio::Folio folio = folder.folio();
 
-    if ( QStandardItem * procItem = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
+    if ( QStandardItem * procItem = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( QStandardItem * folderItem = StandardItemHelper::findFolder( procItem, foldername.toStdWString() ) ) {
             impl_->treeView()->setUpdatesEnabled( false );
             for ( auto folium: folio ) {
@@ -517,7 +539,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
     QString filename = processor->filePath().toString();
 #endif
 
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *impl_->pModel_;
 
     if ( QStandardItem * processorItem = StandardItemHelper::findRow< Dataprocessor * >( model, processor ) ) {
 
@@ -549,7 +571,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 void
 NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 {
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *impl_->pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
 		model.removeRow( item->row() );
@@ -561,7 +583,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     std::filesystem::path path( processor->filename() );
 
-    if ( QStandardItem * item = StandardItemHelper::appendRow( *pModel_, processor ) ) {
+    if ( QStandardItem * item = StandardItemHelper::appendRow( *impl_->pModel_, processor ) ) {
 
         connect( processor, &Dataprocessor::invalidateFolium, this, &NavigationWidget::handleInvalidateFolium );
 
@@ -578,7 +600,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
         impl_->treeView()->expand( item->index() );
         // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
         for ( int i = 0; i < item->rowCount(); ++i)
-            impl_->treeView()->expand( pModel_->index( i, 0, item->index()) );
+            impl_->treeView()->expand( impl_->pModel_->index( i, 0, item->index()) );
 
     }
 }
@@ -851,44 +873,40 @@ namespace { // anonymous
 
     // --------------------------------
     struct delete_removed {
-        std::set< QModelIndex > indecies_;
+        QModelIndex rootIndex_;
         QAbstractItemModel * model_;
-        delete_removed( const QModelIndexList& rows, QAbstractItemModel * m ) : model_( m ) {
-            for ( auto index: rows ) {
-                while ( index.isValid() && index != index.model()->index(0,0,{}) )
-                    index = index.parent();
-                if ( index.isValid() )
-                    indecies_.emplace( index );
-            }
+
+        delete_removed( const QModelIndex& current, QAbstractItemModel * m ) : model_( m ) {
+            auto index( current );
+            while ( index.isValid() && index.parent() != QModelIndex{} )
+                index = index.parent();
+            rootIndex_ = index;
         }
-        std::set< int > populate( const QModelIndex& index ) const {
-            std::set< int > rows;
-            for ( size_t row = 0; row < index.model()->rowCount( index ); ++row ) {
-                auto t_index = index.model()->index( row, 0, index );
-                if ( auto folium = find_t< portfolio::Folium >()( t_index ) ) {
-                    if ( folium.attribute( L"remove" ) == L"true" )
-                        rows.emplace( row );
-                }
-            }
-            return rows;
+
+        std::vector< QModelIndex > populate_children( QModelIndex parent ) const {
+            std::vector< QModelIndex > indecies;
+            for ( int row = 0; row < parent.model()->rowCount( parent ); ++row )
+                indecies.emplace_back( parent.model()->index( row, 0, parent ) );
+            return indecies;
         }
 
         void operator()() const {
-            for ( auto index: indecies_ ) {
-                auto model = index.model();
-                if ( auto processor = find_t< Dataprocessor * >()( index ) ) {
-                    for ( size_t i = 0; i < model->rowCount( index ); ++i ) {
-                        auto p_index = model->index( i, 0, index );
-                        auto rows = populate( p_index );
-                        std::for_each( rows.rbegin(), rows.rend(),[&](int row){
-                            model_->removeRow( row, p_index );
-                        });
+            std::set< QModelIndex > delList;
+            if ( auto processor = find_t< Dataprocessor * >()( rootIndex_ ) ) {
+                auto folder_indecies = populate_children( rootIndex_ );
+                for ( auto folder_index: folder_indecies ) {
+                    for ( auto folium_index: populate_children( folder_index ) ) {
+                        if ( find_t< portfolio::Folium >()( folium_index ).attribute( L"remove" ) == L"true" )
+                            delList.emplace( folium_index );
                     }
-                    // delete data
-                    processor->deleteRemovedItems();
+                }
+                // delete data first, so that currentChanged event does nothing for data
+                processor->deleteRemovedItems();
+
+                for ( auto it = delList.rbegin(); it != delList.rend(); ++it ) {
+                    model_->removeRow( it->row(), it->parent() );
                 }
             }
-
         }
     };
 
@@ -1306,7 +1324,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         // enable either Spectra, Chromatograms, or both
         bool enable = selFolders.folderCounts() > 0;
 
-        menu.addAction( tr( "Sort" ), [=](){ sort_by_value()( selRows, pModel_ ); } )->setEnabled( enable );
+        menu.addAction( tr( "Sort" ), [=](){ sort_by_value()( selRows, impl_->pModel_ ); } )->setEnabled( enable );
 
         if ( enable ) {
             check_all_in_folder check_all( selRows );
@@ -1324,7 +1342,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         menu.addAction( QString( tr("Collect all baseline for %1") ).arg( name )
                         , collect_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
 
-        make_spectrum_from_checked_chromatograms spectrum_from_chromatogram( *pModel_, index );
+        make_spectrum_from_checked_chromatograms spectrum_from_chromatogram( *impl_->pModel_, index );
         enable = spectrum_from_chromatogram.enable();
         menu.addAction( QString( tr("Make mass spectrum from checked chromatograms") )
                         , spectrum_from_chromatogram )->setEnabled( enable );
@@ -1366,7 +1384,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 }
 
                 menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( index ) );
-                menu.addAction( tr("Mark masses from checked chromatograms"), XIC2MS( *pModel_, index ) );
+                menu.addAction( tr("Mark masses from checked chromatograms"), XIC2MS( *impl_->pModel_, index ) );
                 menu.addSeparator();
             }
         }
@@ -1474,7 +1492,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     menu.addSeparator();
 
-    menu.addAction( tr( "Delete removed items"), [=]{ delete_removed{ selRows, pModel_ }(); } );
+    menu.addAction( tr( "Delete removed items"), [=]{  delete_removed{ index, impl_->pModel_ }(); } );
     menu.addAction( tr( "Collapse all"), [&]{ impl_->treeView()->collapseAll(); } );
 
     menu.exec( globalPos );
@@ -1483,7 +1501,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 void
 NavigationWidget::handleAllCheckState( bool checked, const QString& node )
 {
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *impl_->pModel_;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
         auto parent = model.itemFromIndex( model.index( row, 0 ) );
@@ -1505,7 +1523,7 @@ NavigationWidget::handleAllCheckState( bool checked, const QString& node )
 void
 NavigationWidget::handleAllCheckState( bool checked, const QString& node, const QString& exclude )
 {
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *impl_->pModel_;
     QRegularExpression re(exclude);
 
     for ( int row = 0; row < model.rowCount(); ++row ) {

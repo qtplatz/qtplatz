@@ -472,6 +472,12 @@ Dataprocessor::currentSelection() const
 	return portfolio().findFolium( impl_->idActiveFolium_ );
 }
 
+void
+Dataprocessor::setSelections( std::vector< portfolio::Folium >&& folio )
+{
+    // additional (multiple) selections besides current selection
+    SessionManager::instance()->selectionsChanged( this, folio );
+}
 
 namespace dataproc {
 
@@ -1349,7 +1355,7 @@ Dataprocessor::deleteRemovedItems()
     for ( auto folder: portfolio().folders() ) {
         for ( auto& folium: folder.folio() ) {
             if ( folium.attribute( L"remove" ) == L"true" ) {
-                folder.erase( folium, []( const auto& t){ /* ADDEBUG() << "deleteRemovedItems: " << t; */} );
+                folder.erase( folium, []( const auto& t ){ /* ADDEBUG() << "deleteRemovedItems: " << t;*/ } );
                 setModified( true );
             }
         }

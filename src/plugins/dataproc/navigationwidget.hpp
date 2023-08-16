@@ -82,10 +82,6 @@ namespace dataproc {
         void handleContextMenuRequested( const QPoint& );
 
     private:
-        bool autoSync_;
-        // QTreeView * pTreeView_;
-        QStandardItemModel * pModel_;
-        NavigationDelegate * pDelegate_;
         void handleAllCheckState( bool, const QString& );
         void handleAllCheckState( bool, const QString&, const QString& re );
         bool eventFilter( QObject *, QEvent * );

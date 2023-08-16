@@ -204,6 +204,11 @@ namespace {
                             , p->findChild< Args * >(), &Args::handleSelectionChanged ), ...);
     }
 
+    template< typename ...Args> void selectionsConnector( QObject * p ) {
+        ( QObject::connect( SessionManager::instance(), &SessionManager::signalSelections
+                            , p->findChild< Args * >(), &Args::handleSelections ), ...);
+    }
+
     template< typename ...Args> void processedConnector( QObject * p ) {
         ( QObject::connect( SessionManager::instance(), &SessionManager::onProcessed
                             , p->findChild< Args * >()
@@ -677,16 +682,17 @@ MainWindow::createContents( Core::IMode * mode )
         }
     } );
     // #if __cplusplus >= 201703L
-    sessionAddedConnector    < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    removeSessionConnector   < MSProcessingWnd, MSSpectraWnd, ElementalCompWnd, ChromatogramWnd >( stack_ );
-    sessionRemovedConnector  < ChromatogramWnd >( stack_ );
-    selectionChangedConnector< MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    processedConnector       < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    applyMethodConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    checkStateChangedConnector<MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd, ChromatogramWnd >( stack_ );
-    axisChangedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
-    scaleChromatogramConnector < MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
-    scaleSpectrumConnector   < MSProcessingWnd, MSSpectraWnd >( this, stack_ );
+    sessionAddedConnector     < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    removeSessionConnector    < MSProcessingWnd, MSSpectraWnd, ElementalCompWnd, ChromatogramWnd >( stack_ );
+    sessionRemovedConnector   < ChromatogramWnd >( stack_ );
+    selectionChangedConnector < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    selectionsConnector       < MSProcessingWnd, ChromatogramWnd >( stack_ );
+    processedConnector        < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    applyMethodConnector      < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
+    checkStateChangedConnector< MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd, ChromatogramWnd >( stack_ );
+    axisChangedConnector      < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, MSSpectraWnd >( stack_, axisChoice_ );
+    scaleChromatogramConnector< MSProcessingWnd, ChromatogramWnd, ContourWnd >( this, stack_ );
+    scaleSpectrumConnector    < MSProcessingWnd, MSSpectraWnd >( this, stack_ );
     // #endif
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setContentsMargins( {} );

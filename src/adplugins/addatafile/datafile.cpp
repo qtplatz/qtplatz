@@ -568,9 +568,7 @@ datafile::removeContents( std::vector< std::string >&& dataIds )
         if ( sql.step() == adfs::sqlite_done ) {
             sql.prepare( "DELETE FROM directory WHERE name = ?" );
             sql.bind( 1 ) = dataid;
-            if ( sql.step() == adfs::sqlite_done ) {
-                ADDEBUG() << "removeContents(\"" << sql.expanded_sql() << "\" -- ok";
-            } else {
+            if ( sql.step() != adfs::sqlite_done ) {
                 ADDEBUG() << "sql error on removeContents(\"" << sql.expanded_sql() << "\" -- " << sql.errmsg();
             }
         } else {

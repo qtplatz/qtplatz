@@ -233,6 +233,11 @@ namespace dataproc {
             }
         }
 
+        void addOverlays( std::deque< datafolder >&& data ) {
+            overlays_ = std::move( data );
+            dirty_    = true;
+        }
+
         void selectedOnChromatogram( const QRectF&, int );
         void selectedOnChromatogram0( const QRectF& );
         void selectedOnChromatogram1( const QRectF& );
@@ -416,14 +421,28 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
 
         impl_->setPeakResult( datum.get_peakResult() );
         impl_->datum_ = datum;
-
+#if 0
         if ( folium.attribute( L"isChecked" ) == L"false" ) {
             impl_->eraseOverlay( folium );
         } else {
             impl_->addOverlay( std::move( datum ) );
         }
+#endif
         impl_->redraw();
     }
+}
+
+void
+ChromatogramWnd::handleSelections( Dataprocessor* processor, const std::vector< portfolio::Folium >& folio )
+{
+    std::deque< datafolder > data;
+    for ( const auto& folium: folio )
+        data.emplace_front( datafolder{ processor->filename(), folium } );
+    if ( !data.empty() )
+        data.emplace_front( impl_->datum_ );
+
+    impl_->addOverlays( std::move( data ) );
+    impl_->redraw();
 }
 
 void

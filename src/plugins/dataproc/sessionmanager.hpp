@@ -87,6 +87,7 @@ namespace dataproc {
     signals:
 		void signalAddSession( Dataprocessor * );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
+        void signalSelections( Dataprocessor *, const std::vector< portfolio::Folium >& );
         void signalCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
 		void onSessionUpdated( Dataprocessor *, const QString& foliumId );
 		void onFolderChanged( Dataprocessor *, const QString& folder );
@@ -99,6 +100,7 @@ namespace dataproc {
 
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );
+        void selectionsChanged( Dataprocessor *, const std::vector< portfolio::Folium >& );
 
     private:
         // iSessionManager
