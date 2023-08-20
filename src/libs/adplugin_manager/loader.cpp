@@ -100,8 +100,7 @@ loader::populate( const wchar_t * topdir )
     boost::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
 #else
     // search all files under ./lib/ directory
-    // This was used to ./lib/qtplatz/plugins (QTC_VERSION < 0x090000), which was changed to ./lib/qtcreator/lib/plugins
-    boost::filesystem::path modules(    appdir / "lib" ); // /qtcreator/plugins" );
+    boost::filesystem::path modules(    appdir / "lib" ); // /qtplatz/plugins" );
 #endif
 
     if ( boost::filesystem::is_directory( modules ) ) {
@@ -112,11 +111,10 @@ loader::populate( const wchar_t * topdir )
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
                     auto filename = it->path().filename().string();
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
-                        ADDEBUG() << "loader filename: " << boost::filesystem::relative( it->path(), appdir );
                         auto stem   = it->path().stem();
                         auto branch = it->path().branch_path();
                         auto fname  = branch / (stem.string() + debug_trail);
-                        ADDEBUG() << "\t-->" << boost::filesystem::relative( fname, appdir );
+                        // ADDEBUG() << "\t-->" << boost::filesystem::relative( fname, appdir );
                         boost::system::error_code ec;
                         boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
                         if ( !ec ) {
@@ -180,27 +178,30 @@ loader::loadLibrary( const std::string& stem )
         }
     }
 
-    ADDEBUG() << "### Warning: loadLibrary(" << stem << ") failed: " << ec.message();
-
+    // ADDEBUG() << "### Warning: loadLibrary(" << stem << ") failed: " << ec.message();
     return nullptr;
 }
 
 boost::dll::shared_library
 loader::loadLibrary( const std::string& stem, boost::system::error_code& ec )
 {
-    // this_line := "/home/toshi/src/build-Linux-x86_64/qtplatz.debug/lib/qtplatz/libadplugin_manager.so"
-    auto top = boost::dll::this_line_location().parent_path().parent_path().parent_path();
-    auto slib = top / sharedDirectory;
+    auto cdir = boost::filesystem::canonical( boost::dll::this_line_location() ).branch_path();
+    auto slib = cdir.parent_path() / sharedDirectory;
 
-    ADDEBUG() << "=====> loadLibrary(" << stem << ")\t" << slib;
-    ADDEBUG() << "\t" << ( slib / ( stem + debug_suffix() ) );
+    // loading library from shared directory, which is as same as native qtplatz lib (./libs/qtplatz/)
 
-    if ( auto dll = boost::dll::shared_library( slib / ( stem + debug_suffix() )
-                                                , boost::dll::load_mode::append_decorations, ec ) )
-        return dll;
+    // ADDEBUG() << "=====> loadLibrary: cdir = " << cdir;
+    // ADDEBUG() << "=====> loadLibrary(" << stem << ")\t" << slib;
+    // ADDEBUG() << "\t" << ( slib / ( stem + debug_suffix() ) );
 
-    auto plgn = top / pluginDirectory;
-    ADDEBUG() << "\t: " << ( plgn / ( stem + debug_suffix() ) );
-    return boost::dll::shared_library( plgn / ( stem + debug_suffix() )
-                                       , boost::dll::load_mode::append_decorations, ec );
+    //loader.cpp(194): =====> loadLibrary: cdir =   "/home/toshi/src/build-Linux-x86_64/qtplatz5.release/qtplatz/lib/qtplatz"
+    //loader.cpp(195): =====> loadLibrary(u5303a)	"/home/toshi/src/build-Linux-x86_64/qtplatz5.release/qtplatz/lib/lib/qtplatz"
+    //loader.cpp(196):                              "/home/toshi/src/build-Linux-x86_64/qtplatz5.release/qtplatz/lib/lib/qtplatz/u5303a"
+
+    for ( auto p: { cdir, slib } ) {
+        if ( auto dll = boost::dll::shared_library( p / ( stem + debug_suffix() )
+                                                    , boost::dll::load_mode::append_decorations, ec ) )
+            return dll;
+    }
+    return {};
 }
