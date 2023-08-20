@@ -3,6 +3,7 @@ cmake_policy( SET CMP0022 NEW )
 cmake_policy( SET CMP0028 NEW )
 
 project( u5303a )
+set( PROVIDER MS-Cheminformatics )
 
 set( DISABLE_IVI_COM TRUE )
 
@@ -75,15 +76,14 @@ target_link_libraries( u5303a PUBLIC
   ${AgMD2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${LIBRT}
-  )
+)
 
-runtime_install_path( _runtime_destination ${PROJECT_NAME} )
-library_install_path( _library_destination ${PROJECT_NAME} )
-archive_install_path( _archive_destination ${PROJECT_NAME} )
+qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
+qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 
 install( TARGETS ${PROJECT_NAME}
   EXPORT ${QTPLATZ_TARGETS}
-  RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
-  LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
-  ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
+  RUNTIME DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
+  LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
+  ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
   )
