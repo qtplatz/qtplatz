@@ -112,9 +112,11 @@ loader::populate( const wchar_t * topdir )
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
                     auto filename = it->path().filename().string();
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
-                        auto stem = it->path().stem();
+                        ADDEBUG() << "loader filename: " << boost::filesystem::relative( it->path(), appdir );
+                        auto stem   = it->path().stem();
                         auto branch = it->path().branch_path();
-                        auto fname = branch / (stem.string() + debug_trail);
+                        auto fname  = branch / (stem.string() + debug_trail);
+                        ADDEBUG() << "\t-->" << boost::filesystem::relative( fname, appdir );
                         boost::system::error_code ec;
                         boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
                         if ( !ec ) {
@@ -128,7 +130,8 @@ loader::populate( const wchar_t * topdir )
                                     }
                                 }
                             } else {
-                                ADDEBUG() << "library\t" << boost::filesystem::relative( dll.location(), appdir ) << " has no interface. Load failed.";
+                                ADDEBUG() << "library\t" << boost::filesystem::relative( dll.location(), appdir )
+                                          << " has no interface. Load failed.";
                             }
                         } else {
                             ADDEBUG() << "failed to load " << boost::filesystem::relative( fname, appdir ) << "\t: " << ec.message();
@@ -189,9 +192,15 @@ loader::loadLibrary( const std::string& stem, boost::system::error_code& ec )
     auto top = boost::dll::this_line_location().parent_path().parent_path().parent_path();
     auto slib = top / sharedDirectory;
 
-    if ( auto dll = boost::dll::shared_library( slib / ( stem + debug_suffix() ), boost::dll::load_mode::append_decorations, ec ) )
+    ADDEBUG() << "=====> loadLibrary(" << stem << ")\t" << slib;
+    ADDEBUG() << "\t" << ( slib / ( stem + debug_suffix() ) );
+
+    if ( auto dll = boost::dll::shared_library( slib / ( stem + debug_suffix() )
+                                                , boost::dll::load_mode::append_decorations, ec ) )
         return dll;
 
     auto plgn = top / pluginDirectory;
-    return boost::dll::shared_library( plgn / ( stem + debug_suffix() ), boost::dll::load_mode::append_decorations, ec );
+    ADDEBUG() << "\t: " << ( plgn / ( stem + debug_suffix() ) );
+    return boost::dll::shared_library( plgn / ( stem + debug_suffix() )
+                                       , boost::dll::load_mode::append_decorations, ec );
 }
