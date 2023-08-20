@@ -193,7 +193,7 @@ JCB2009_Processor::added() const
 }
 
 dataprocessor *
-JCB2009_Processor::dataprocessor()
+JCB2009_Processor::processor()
 {
     return impl_->processor_.get();
 }

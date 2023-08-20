@@ -480,7 +480,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                     if ( auto tic = reader->TIC( fcn ) ) {
                         // name before v5.5
                         auto name = ( boost::wformat( L"%1%/%2%.%3%" )
-                                      % adcontrols::Chromatogram::make_folder_name<wchar_t>( tic->descriptions() )
+                                      % adcontrols::Chromatogram::make_folder_name<wchar_t>( tic->getDescriptions() )
                                       % L"TIC" % ( fcn + 1 ) ).str();
 
                         auto query = ( boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 ) ).str();
@@ -508,7 +508,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                 if ( enable ) {
                                     pChro->addDescription( adcontrols::description({"acquire.title"
                                                 , ( boost::format( "ADC.%1%" ) % ( idx + 1 ) ).str()}) );
-                                    std::wstring name = adcontrols::Chromatogram::make_folder_name<wchar_t>( pChro->descriptions() );
+                                    std::wstring name = adcontrols::Chromatogram::make_folder_name<wchar_t>( pChro->getDescriptions() );
                                     auto folium = folder.findFoliumByName( name );
                                     if ( folium.nil() ) {
                                         ADDEBUG() << "---------- addChromatogram ---------------";

@@ -375,7 +375,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
     }
 
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
-    threads_.push_back( adportable::asio::thread( [=] { handleMSLock( processor, spectra, lockm, p ); } ) );
+    threads_.push_back( adportable::asio::thread( [=,this] { handleMSLock( processor, spectra, lockm, p ); } ) );
 }
 
 void
@@ -440,7 +440,7 @@ DataprocessWorker::doIt( std::shared_ptr< adprocessor::JCB2009_Processor > proc
     while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
         QCoreApplication::instance()->processEvents();
 
-    if ( auto dp = dynamic_cast< Dataprocessor * >( proc->dataprocessor() ) ) {
+    if ( auto dp = dynamic_cast< Dataprocessor * >( proc->processor() ) ) {
         emit SessionManager::instance()->onFolderChanged( dp, "Spectra" );
     }
 }

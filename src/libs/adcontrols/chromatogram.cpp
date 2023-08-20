@@ -646,11 +646,11 @@ Chromatogram::getDescriptions() const
     return pImpl_->getDescriptions();
 }
 
-const descriptions&
-Chromatogram::descriptions() const
-{
-    return pImpl_->getDescriptions();
-}
+// const descriptions&
+// Chromatogram::descriptions() const
+// {
+//     return pImpl_->getDescriptions();
+// }
 
 Chromatogram::seconds_t
 Chromatogram::minimumTime() const

@@ -1156,11 +1156,11 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
 {
     portfolio::Folder folder = portfolio().addFolder( L"Chromatograms" );
 
-    std::wstring name = adcontrols::Chromatogram::make_folder_name<wchar_t>( cptr->descriptions() );
+    std::wstring name = adcontrols::Chromatogram::make_folder_name<wchar_t>( cptr->getDescriptions() );
     ADDEBUG() << "addChromatogram(" << name << ")";
 
     portfolio::Folium folium = folder.addFolium( name ).assign( cptr, cptr->dataClass() );
-    if ( auto lock = cptr->descriptions().hasKey( "(MSLock)" ) ) {
+    if ( auto lock = cptr->getDescriptions().hasKey( "(MSLock)" ) ) {
         folium.setAttribute( (*lock == "On-the-fly" ? "mslock" : "mslock_external"), "true" );
     }
 

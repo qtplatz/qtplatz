@@ -237,7 +237,7 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
     }
 
     if ( data.chromatogram )
-        plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.chromatogram.get()->descriptions().toString() ) );
+        plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.chromatogram.get()->getDescriptions().toString() ) );
     //plot.setFooter( (boost::format( "FWHM=%.1fmDa (%.2fns)" ) % (pk.widthHH( false ) * 1000) % adcontrols::metric::scale_to_nano( pk.widthHH( true ) )).str() );
 
     QPainter painter;

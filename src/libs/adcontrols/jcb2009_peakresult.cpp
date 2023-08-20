@@ -77,25 +77,9 @@ namespace adcontrols {
     {
     }
 
-    // jcb2009_peakresult::jcb2009_peakresult( const portfolio::Folium& cfolium, const adcontrols::Peak& peak )
-    // {
-    //     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( cfolium ) ) {
-    //         generator_property gen( *chro );
-    //         chro_generator_mass_        = gen.mass();
-    //         chro_generator_mass_width_  = gen.mass_width();
-    //         chro_tR_                    = peak.peakTime();
-    //         chro_peak_width_            = peak.peakWidth();
-    //         chro_peak_area_             = peak.peakArea();
-    //         chro_peak_height_           = peak.peakHeight();
-    //         chro_peak_name_             = peak.name();
-    //         dataSource_                 = { cfolium.name<char>(), cfolium.uuid() };
-    //         protocol_                   = gen.protocol();
-    //     }
-    // }
-
     jcb2009_peakresult::jcb2009_peakresult( std::tuple< double, double, int >&& gen
                                             , const adcontrols::Peak& peak
-                                            , std::tuple< std::string, boost::uuids::uuid >&& folder )
+                                            , std::pair< std::string, boost::uuids::uuid >&& folder )
     {
         chro_generator_mass_        = std::get< 0 >( gen ); // mass
         chro_generator_mass_width_  = std::get< 1 >( gen ); // mass

@@ -48,7 +48,7 @@ namespace adcontrols {
         // jcb2009_peakresult( const portfolio::Folium&, const adcontrols::Peak& );
         jcb2009_peakresult( std::tuple< double, double, int >&& // mass, width, protocol
                             , const adcontrols::Peak& peak
-                            , std::tuple< std::string, boost::uuids::uuid >&& folder );
+                            , std::pair< std::string, boost::uuids::uuid >&& folder );
 
         void set_found_mass( const adcontrols::MSPeakInfoItem& );
         double tR() const;

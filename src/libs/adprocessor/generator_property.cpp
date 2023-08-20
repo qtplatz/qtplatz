@@ -83,7 +83,7 @@ namespace adprocessor {
 
             // workaround
             if ( mass_width_ == 0 ) {
-                for ( const auto& desc: c.descriptions() ) {
+                for ( const auto& desc: c.getDescriptions() ) {
                     auto [key,text] = desc.keyValue();
                     std::smatch match;
                     if ( std::regex_match( text, match
@@ -96,7 +96,7 @@ namespace adprocessor {
                 }
             }
             if ( reader_name_.empty() ) {
-                for ( const auto& desc: c.descriptions() ) {
+                for ( const auto& desc: c.getDescriptions() ) {
                     auto [key,text] = desc.keyValue();
                     std::smatch match;
                     if ( std::regex_match( text, match

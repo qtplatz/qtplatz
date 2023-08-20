@@ -172,8 +172,8 @@ namespace adcontrols {
 
         void addDescription( const description& );
         void addDescription( description&& );
-        [[deprecated]] const descriptions& getDescriptions() const;
-        const descriptions& descriptions() const;
+        const descriptions& getDescriptions() const;
+        // const adcontrols::descriptions& descriptions() const; <-- not be able to compile on gcc
 
         boost::optional< std::string > axisLabel( plot::axis ) const;
         void setAxisLabel( plot::axis, const std::string& );
