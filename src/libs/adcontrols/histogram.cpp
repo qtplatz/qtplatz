@@ -43,10 +43,6 @@ namespace {
         inline double operator()( double time, int mode, double t, double m ) const;
     };
 
-    template<> double mass_assigner< adcontrols::MassSpectrometer >::operator()( double time, int mode, double, double ) const {
-        return t_.assignMass( time, mode );
-    }
-
     template<> double mass_assigner< adportable::scanlaw_solver >::operator()( double time, int, double t, double m ) const {
         auto delta = std::abs( t_.mass( time ) - t_.mass( t ) );
         // if ( time < 15e-6 )
@@ -58,7 +54,6 @@ namespace {
         }
     }
     ///////
-
 }
 
 using namespace adcontrols;
@@ -115,9 +110,47 @@ histogram::histogram_to_profile( MassSpectrum& ms )
 {
     if ( ms.size() < 2 )
         return;
-    adportable::scanlaw_solver solver( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
-    mass_assigner<adportable::scanlaw_solver> assigner( solver );
-    histogram_to_profile( ms, assigner );
+
+    using adportable::scanlaw_solver;
+
+    scanlaw_solver assign( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
+
+    const auto& prop = ms.getMSProperty();
+    const auto& info = prop.samplingInfo();
+    std::vector< double > counts( info.nSamples() ), times( info.nSamples() ), masses( info.nSamples() );
+
+    counts.assign( info.nSamples(), 0 );
+    masses.assign( info.nSamples(), 0 );
+    for ( size_t i = 0; i < info.nSamples(); ++i )
+        times.at(i)  = info.delayTime() + info.fSampInterval() * i;
+
+    for ( size_t j = 0; j < ms.size(); ++j ) {
+        size_t i = (ms.time(j) - info.delayTime()) / info.fSampInterval() + 0.5;
+        counts.at(i) = ms.intensity(j);
+        masses.at(i) = ms.mass(j);
+    }
+
+    auto it = masses.begin();
+    while ( it = std::find( it, masses.end(), double(0) ), it != masses.end() ) {
+        auto ite = std::find_if(it, masses.end(), [](const double& m){ return m > 0; });
+
+        if ( it == masses.begin() || ite == masses.end() ) {
+            while ( it != ite ) {
+                *it = assign.mass( times.at( std::distance( masses.begin(), it ) ) );
+                ++it;
+            }
+        } else {
+            auto [m,n] = std::make_pair(std::distance( masses.begin(), it ), std::distance( masses.begin(), ite ));
+            for ( size_t i = m; i < n; ++i )
+                masses.at(i) = assign.mass( times.at(i) );
+            it = ite;
+        }
+    }
+
+    ms.setCentroid( CentroidNone );
+    ms.setMassArray( std::move( masses ) );
+    ms.setTimeArray( std::move( times ) );
+    ms.setIntensityArray( std::move( counts ) );
 }
 
 void
