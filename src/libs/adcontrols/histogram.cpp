@@ -88,13 +88,26 @@ histogram::make_profile( const MassSpectrum& ms )
 void
 histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spectrometer )
 {
-#if 0
-    adportable::scanlaw_solver solver( {ms.mass(0), ms.mass(ms.size() - 1)}, {ms.time(0), ms.time(ms.size() - 1)} );
-    mass_assigner assigner( solver );
-#else
-    mass_assigner<MassSpectrometer> assigner( spectrometer );
-#endif
-    histogram_to_profile( ms, assigner );
+    const auto& prop = ms.getMSProperty();
+    const auto& info = prop.samplingInfo();
+    std::vector< double > counts( info.nSamples() ), times( info.nSamples() ), masses( info.nSamples() );
+
+    counts.assign( info.nSamples(), 0 );
+    for ( size_t i = 0; i < info.nSamples(); ++i ) {
+        double t = info.delayTime() + info.fSampInterval() * i;
+        times.at(i) = t;
+        masses.at(i) = spectrometer.assignMass( t, int( info.mode() ) );
+    }
+
+    for ( size_t j = 0; j < ms.size(); ++j ) {
+        size_t i = (ms.time(j) - info.delayTime()) / info.fSampInterval() + 0.5;
+        counts.at(i) = ms.intensity(j);
+    }
+
+    ms.setCentroid( CentroidNone );
+    ms.setMassArray( std::move( masses ) );
+    ms.setTimeArray( std::move( times ) );
+    ms.setIntensityArray( std::move( counts ) );
 }
 
 void

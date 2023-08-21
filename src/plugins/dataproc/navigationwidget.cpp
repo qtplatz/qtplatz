@@ -1275,11 +1275,11 @@ namespace {
         }
     };
 
-    struct BackgroundSubtraction {
+    struct Subtraction {
         portfolio::Folium background;
         portfolio::Folium foreground;
         Dataprocessor * processor;
-        BackgroundSubtraction( portfolio::Folium& back, portfolio::Folium& fore, Dataprocessor * p )
+        Subtraction( portfolio::Folium& back, portfolio::Folium& fore, Dataprocessor * p )
             : background( back ), foreground( fore ), processor( p ) {}
         void operator()() {
             processor->subtract( foreground, background );
@@ -1482,9 +1482,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     menu.addAction(
                         QString( tr("Subtract '%1' from '%2'") )
                         .arg( std::get< 3 >( operand[ subtrahend ] ), std::get< 3 >( operand[ minuend ] ) )
-                        , BackgroundSubtraction( std::get< 2 >( operand[ subtrahend ] )
-                                                 , std::get< 2 >( operand[ minuend ] )
-                                                 , active_processor ) );
+                        , Subtraction( std::get< 2 >( operand[ subtrahend ] )
+                                       , std::get< 2 >( operand[ minuend ] ), active_processor ) );
                 }
             }
         }
@@ -1492,7 +1491,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     menu.addSeparator();
 
-    menu.addAction( tr( "Delete removed items"), [=]{  delete_removed{ index, impl_->pModel_ }(); } );
+    //menu.addAction( tr( "Delete removed items"), [=]{  delete_removed{ index, impl_->pModel_ }(); } );
+    menu.addAction( tr( "Delete removed items"), delete_removed{ index, impl_->pModel_ } );
     menu.addAction( tr( "Collapse all"), [&]{ impl_->treeView()->collapseAll(); } );
 
     menu.exec( globalPos );

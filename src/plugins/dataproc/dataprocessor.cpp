@@ -602,10 +602,12 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 
         auto att = findProfiledHistogram( folium );
 
-        if ( !att && ptr->isCentroid() ) {
+        if ( !att && ptr->isHistogram() ) {
             if ( auto spectrometer = massSpectrometer() ) { // implemented in base class 'adprocessor::dataprocessor'
                 att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );
                 auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
+                mslock( *ms, 0 );
+
                 att.assign( ms, ms->dataClass() );
                 emit SessionManager::instance()->foliumChanged( this, folium );
                 return att;
@@ -1397,7 +1399,7 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
             for ( size_t i = 0; i < xms->size(); ++i )
                 xms->setIntensity( i, xms->intensity( i ) - background->intensity( i ) );
 
-			xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
+			xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"SUB(%1% - %2%)" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod(), true );
             setModified( true );
         }

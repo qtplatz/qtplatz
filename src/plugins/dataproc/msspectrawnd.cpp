@@ -408,12 +408,7 @@ MSSpectraWnd::redraw()
 
         QColor color = impl_->plots_[ 1 ]->index_color( traceid );
         if ( auto profile = data.get_profile() ) {
-#if __cplusplus >= 201703L
             auto [ ms, isCounts ] = *profile;
-#else
-            std::shared_ptr< const adcontrols::MassSpectrum > ms; bool isCounts;
-            std::tie( ms, isCounts ) = *profile;
-#endif
             if ( impl_->data_.size() == 1 ) {
                 impl_->plots_[ 1 ]->setData( ms, traceid, QwtPlot::yLeft );
                 impl_->plots_[ 1 ]->setColor( traceid, color );
