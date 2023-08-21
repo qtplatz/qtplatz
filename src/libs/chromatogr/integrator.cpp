@@ -1073,13 +1073,13 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
     pk.setStartTime( c.time_at( s.pos() ) );
     pk.setPeakTime( c.time_at( t.pos() ) );
     pk.setEndTime( c.time_at( e.pos() ) );
-
+#if 0
     ADDEBUG() << "\t" << __FUNCTION__ << "\t"
               << std::make_tuple(
                   std::make_tuple( s.pos(), c.intensity( s.pos() ) )
                   , std::make_tuple( t.pos(), c.intensity( t.pos() ) )
                   , std::make_tuple( e.pos(), c.intensity( t.pos() ) ) );
-
+#endif
     return pk;
 }
 
