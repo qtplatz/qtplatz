@@ -83,8 +83,10 @@ namespace {
         size_t ndiff_;
         size_t posc_;
         SGFilter sgfilter_;
-        enum { TIME, RAW_INTENSITY, AVERAGED_INTENSITY, DERIVERTIVE1 };
+        enum VALUT_TYPE { TIME, RAW_INTENSITY, AVERAGED_INTENSITY, DERIVERTIVE1 };
+
         std::vector< std::tuple< double, double, double, double > > d_;
+
     public:
         signal_processor( bool isCounting
                           , size_t navg
@@ -127,8 +129,17 @@ namespace {
         const std::tuple< double, double, double, double >& at( size_t i ) const { return d_.at( i ); }
         const std::vector< std::tuple< double, double, double, double > >& d() const { return d_; }
 
-        double getIntensity( size_t pos ) const { return pos < d_.size() ? std::get< RAW_INTENSITY >( d_[ pos ] ) : 0; }
-        double getTime( size_t pos ) const { return pos < d_.size() ? std::get< TIME >( d_[ pos ] ) : 0; }
+        double intensity( size_t pos ) const { return pos < d_.size() ? std::get< RAW_INTENSITY >( d_[ pos ] ) : 0; }
+        double time_at( size_t pos )   const { return pos < d_.size() ? std::get< TIME >( d_[ pos ] ) : 0; }
+
+        size_t max_element( std::pair< size_t, size_t >&& range ) const {
+            auto it = std::max_element( d_.begin() + std::get<0>(range), d_.begin() + std::get<1>(range)
+                                        , [](const auto& a, const auto& b){
+                                            return std::get<RAW_INTENSITY>(a) < std::get<RAW_INTENSITY>(b);
+                                        });
+            return std::distance( d_.begin(), it );
+        }
+
         double sampInterval() const {
             return d_.size() >= 2 ? ( std::get< TIME >( d_.back() ) - std::get< TIME >( d_.front() ) ) / (d_.size() - 1) : 0;
         }
@@ -335,7 +346,7 @@ Integrator::drift(double drift)
 std::pair< double, double >
 Integrator::currentTime() const
 {
-    return { impl_->signal_processor_->getTime( impl_->signal_processor_->pos_g() )
+    return { impl_->signal_processor_->time_at( impl_->signal_processor_->pos_g() )
              , ( impl_->signal_processor_->pos_g() + 1 ) * impl_->signal_processor_->sampInterval() };
 	// return impl_->rdata_.minTime_ + impl_->posg_ * impl_->rdata_.sampInterval_;
 }
@@ -469,13 +480,19 @@ Integrator::impl::pkfind( long pos, double df1, double )
     if ( pos <= 2 )
         return;
 
-    int32_t mwup = std::max( int( ( minw_ / signal_processor_->sampInterval() ) / 2 ), 2 );
+    // minw_ = 0.1 s; sampInterval = 0.24
+    int32_t mwup = std::max( int( ( minw_ / signal_processor_->sampInterval() ) / 2 ), 1 );
     auto mwdn = mwup;
-
-    if ( stf_ > 0 ) {
-        mwdn = 3;
-    } else if ( stf_ < 0 ) {
-        mwup = 3;
+    //ADDEBUG() << "pkfind(" << std::make_tuple( pos, signal_processor_->time_at(pos), df1 )
+    //          << "\t" << std::make_tuple( minw_, mwup ) << ", stf=" << stf_;
+    if ( minw_ < signal_processor_->sampInterval() ) {
+        mwdn = 1;
+    } else {
+        if ( stf_ > 0 ) {
+            mwdn = 3;
+        } else if ( stf_ < 0 ) {
+            mwup = 3;
+        }
     }
 
     auto prev_stf = stf_;
@@ -484,7 +501,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
 
         if ( dc_++ == 0 ) {
             ld_ = pos; // - mw_ / 2;
-            ldd_ = signal_processor_->getIntensity( ld_ );
+            ldd_ = signal_processor_->intensity( ld_ );
         }
         uc_ = 0;
 
@@ -492,7 +509,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
 
         if ( uc_++ == 0 ) {
             lu_ = pos;
-            lud_ = signal_processor_->getIntensity( ld_ );
+            lud_ = signal_processor_->intensity( ld_ );
         }
         dc_ = 0;
 
@@ -571,13 +588,13 @@ Integrator::impl::pksta()
     uint32_t backtrack = 3;
 
     if ( stf_ == PEAK_STATE_NEGATIVE ) {
-        while ( --backtrack && ld_ && signal_processor_->getIntensity( ld_ - 1 ) > signal_processor_->getIntensity( ld_ ) )
+        while ( --backtrack && ld_ && signal_processor_->intensity( ld_ - 1 ) > signal_processor_->intensity( ld_ ) )
             --ld_;
-        stack_.push( PEAKSTACK( PKSTA, ld_, signal_processor_->getIntensity( ld_ ) ) );
+        stack_.push( PEAKSTACK( PKSTA, ld_, signal_processor_->intensity( ld_ ) ) );
     }  else {
-        while ( --backtrack && lu_ && signal_processor_->getIntensity( lu_ - 1 ) < signal_processor_->getIntensity( lu_ ) )
+        while ( --backtrack && lu_ && signal_processor_->intensity( lu_ - 1 ) < signal_processor_->intensity( lu_ ) )
             --lu_;
-        stack_.push( PEAKSTACK( PKSTA, lu_, signal_processor_->getIntensity( lu_ ) ) );
+        stack_.push( PEAKSTACK( PKSTA, lu_, signal_processor_->intensity( lu_ ) ) );
     }
 }
 
@@ -856,7 +873,7 @@ Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::P
     if ( bs.startHeight() < bs.stopHeight() ) { // positive slope -- check front
         std::pair< int, double > t{0, 0.0};
         for ( int pos = pk.startPos(); pos <= pk.topPos(); ++pos ) {
-            double d = signal_processor_->getIntensity( pos ) - bs.height( pos );
+            double d = signal_processor_->intensity( pos ) - bs.height( pos );
             if ( d < 0 && d < std::get< 1 >( t ) ) {
                 t = { pos, d };
             }
@@ -866,7 +883,7 @@ Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::P
     } else { // negative slope -- check tail
         std::pair< int, double > t{0, 0.0};
         for ( int pos = pk.topPos(); pos <= pk.endPos(); ++pos ) {
-            double d = signal_processor_->getIntensity( pos ) - bs.height( pos );
+            double d = signal_processor_->intensity( pos ) - bs.height( pos );
             if ( d < 0 && d < std::get< 1 >( t ) ) {
                 t = { pos, d };
             }
@@ -877,13 +894,13 @@ Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::P
 
     if ( offlimits.first != bs.startPos() ) {
         bs.setStartPos( offlimits.first );
-        bs.setStartTime( signal_processor_->getTime( offlimits.first ) );
-        bs.setStartHeight( signal_processor_->getIntensity( offlimits.first ) );
+        bs.setStartTime( signal_processor_->time_at( offlimits.first ) );
+        bs.setStartHeight( signal_processor_->intensity( offlimits.first ) );
     }
     if ( offlimits.second != bs.stopPos() ) {
         bs.setStopPos( offlimits.second );
-        bs.setStopTime( signal_processor_->getTime( offlimits.second ) );
-        bs.setStopHeight( signal_processor_->getIntensity( offlimits.second ) );
+        bs.setStopTime( signal_processor_->time_at( offlimits.second ) );
+        bs.setStopHeight( signal_processor_->intensity( offlimits.second ) );
     }
 }
 
@@ -915,15 +932,18 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.5 );
     double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.5 );
 
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << std::make_pair( l_threshold, r_threshold )
+              << ", H=" << pk.topHeight();
+
     // left boundary
     long left_bound = pk.topPos() - 1;
-    while ( ( c.getIntensity( left_bound - 1 ) > l_threshold ) && ( ( left_bound - 1 ) > pk.startPos() ) ) {
+    while ( ( c.intensity( left_bound - 1 ) > l_threshold ) && ( ( left_bound - 1 ) > pk.startPos() ) ) {
         left_bound--;
     }
 
     // right boundary
     long right_bound = pk.topPos() + 1;
-    while ( ( c.getIntensity( right_bound + 1 ) > r_threshold ) && ( ( right_bound + 1 ) < pk.endPos() ) ) {
+    while ( ( c.intensity( right_bound + 1 ) > r_threshold ) && ( ( right_bound + 1 ) < pk.endPos() ) ) {
         right_bound++;
     }
 
@@ -934,8 +954,8 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 
     std::vector<double> X, Y;
     for ( long i = left_bound; i <= right_bound; ++i ) {
-        X.emplace_back( c.getTime( i ) );
-        Y.emplace_back( c.getIntensity( i ) );
+        X.emplace_back( c.time_at( i ) );
+        Y.emplace_back( c.intensity( i ) );
     }
 
     std::vector<double> r;
@@ -945,10 +965,11 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
         double c = r[2];
         double tR = (-b) / 2 / c;
 
-        // ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
+        ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
 
         if ( tR < X.front() || X.back() < tR ) {
             // apex is outside range -- no maximum found
+            ADDEBUG() << "\t" << __FUNCTION__ << "\tparabora fitting failed.";
             return false;
         }
 
@@ -964,18 +985,19 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 
         return true;
     }
+    ADDEBUG() << "\t" << __FUNCTION__ << "\tparabora fitting failed.";
 	return false;
 }
 
 bool
 helper::tRetention_moment(  const signal_processor& c, adcontrols::Peak& pk )
 {
-    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
+    adportable::Moment moment( [&](int pos){ return c.time_at( pos ); } );
 
     double h = pk.topHeight() - std::min( pk.startHeight(), pk.endHeight() );
     double threshold = pk.topHeight() - h * 0.5;
 
-    double cx = moment.centreX( [&](int pos){ return c.getIntensity( pos); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double cx = moment.centreX( [&](int pos){ return c.intensity( pos); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.setPeakTime( cx );
 
     adcontrols::RetentionTime tr;
@@ -1009,10 +1031,10 @@ void
 helper::updateAreaHeight( const signal_processor& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk )
 {
     double area = 0;
-    double height = c.getIntensity( pk.topPos() ) - bs.height( pk.topPos() );
+    double height = c.intensity( pk.topPos() ) - bs.height( pk.topPos() );
     for ( int pos = pk.startPos(); pos <= pk.endPos(); ++pos ) {
-        double h = c.getIntensity(pos) - bs.height(pos);
-        double w = c.getTime( pos + 1 ) - c.getTime( pos );
+        double h = c.intensity(pos) - bs.height(pos);
+        double w = c.time_at( pos + 1 ) - c.time_at( pos );
         if ( h >= 0.0 ) {
             if ( c.isCounting() )
                 area += h;
@@ -1020,6 +1042,7 @@ helper::updateAreaHeight( const signal_processor& c, const adcontrols::Baseline&
                 area += h * w;
         }
     }
+    ADDEBUG() << "\t" << __FUNCTION__ << "\tarea,height=" << std::make_tuple( area, height );
     pk.setPeakArea( area );
     pk.setPeakHeight( height );
 }
@@ -1029,9 +1052,15 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
 {
     adcontrols::Peak pk;
 
-    pk.setStartPos( s.pos(), c.getIntensity( s.pos() ) );
-    pk.setTopPos( t.pos(),   c.getIntensity( t.pos() ) );
-    pk.setEndPos( e.pos(),   c.getIntensity( e.pos() ) );
+    pk.setStartPos( s.pos(), c.intensity( s.pos() ) );
+    pk.setTopPos( t.pos(),   c.intensity( t.pos() ) );
+    pk.setEndPos( e.pos(),   c.intensity( e.pos() ) );
+
+    // workaround for a data: peakwidth < sampInterval
+    auto maxpos = c.max_element( { s.pos(), e.pos() } );
+    if ( maxpos != t.pos() ) {
+        pk.setTopPos( maxpos,   c.intensity( maxpos ) );
+    }
 
     const uint32_t flags{ uint32_t((s.stat() & 0x0f) << 8) | uint32_t((t.stat() & 0x0f) << 4) | uint32_t(e.stat() & 0x0f) };
     std::string sflags;
@@ -1041,9 +1070,15 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
     pk.setPeakFlags( flags );
     // ADDEBUG() << "peak flag: " << sflags;
 
-    pk.setStartTime( c.getTime( s.pos() ) );
-    pk.setPeakTime( c.getTime( t.pos() ) );
-    pk.setEndTime( c.getTime( e.pos() ) );
+    pk.setStartTime( c.time_at( s.pos() ) );
+    pk.setPeakTime( c.time_at( t.pos() ) );
+    pk.setEndTime( c.time_at( e.pos() ) );
+
+    ADDEBUG() << "\t" << __FUNCTION__ << "\t"
+              << std::make_tuple(
+                  std::make_tuple( s.pos(), c.intensity( s.pos() ) )
+                  , std::make_tuple( t.pos(), c.intensity( t.pos() ) )
+                  , std::make_tuple( e.pos(), c.intensity( t.pos() ) ) );
 
     return pk;
 }
@@ -1053,14 +1088,14 @@ helper::peak( const signal_processor& c, int spos, int tpos, int epos, unsigned 
 {
     adcontrols::Peak pk;
 
-    pk.setStartPos( spos, c.getIntensity( spos ) );
-    pk.setTopPos( tpos, c.getIntensity( tpos ) );
-    pk.setEndPos( epos, c.getIntensity( epos ) );
+    pk.setStartPos( spos, c.intensity( spos ) );
+    pk.setTopPos( tpos, c.intensity( tpos ) );
+    pk.setEndPos( epos, c.intensity( epos ) );
     pk.setPeakFlags( flags );
 
-    pk.setStartTime( c.getTime( spos ) );
-    pk.setPeakTime( c.getTime( tpos ) );
-    pk.setEndTime( c.getTime( epos ) );
+    pk.setStartTime( c.time_at( spos ) );
+    pk.setPeakTime( c.time_at( tpos ) );
+    pk.setEndTime( c.time_at( epos ) );
 
     return pk;
 }
@@ -1068,10 +1103,10 @@ helper::peak( const signal_processor& c, int spos, int tpos, int epos, unsigned 
 bool
 helper::peak_width( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk )
 {
-    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
+    adportable::Moment moment( [&](int pos){ return c.time_at( pos ); } );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
-    double width = moment.width( [&](int pos){ return c.getIntensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double width = moment.width( [&](int pos){ return c.intensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.setPeakWidth( width );
 
     return true;
@@ -1080,10 +1115,10 @@ helper::peak_width( const adcontrols::PeakMethod&, const signal_processor& c, ad
 bool
 helper::asymmetry( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk )
 {
-    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
+    adportable::Moment moment( [&](int pos){ return c.time_at( pos ); } );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.95;
-    double width = moment.width( [&](int pos){ return c.getIntensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double width = moment.width( [&](int pos){ return c.intensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     double a = pk.peakTime() - moment.xLeft();
 
     adcontrols::PeakAsymmetry tf;
@@ -1099,10 +1134,10 @@ helper::asymmetry( const adcontrols::PeakMethod&, const signal_processor& c, adc
 bool
 helper::theoreticalplate( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk )
 {
-    adportable::Moment moment( [&](int pos){ return c.getTime( pos ); } );
+    adportable::Moment moment( [&](int pos){ return c.time_at( pos ); } );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
-    double width = moment.width( [&](int pos){ return c.getIntensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
+    double width = moment.width( [&](int pos){ return c.intensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     double N = 5.54 * ( ( pk.peakTime() / width ) * ( pk.peakTime() / width ) );
 
     adcontrols::TheoreticalPlate ntp;
@@ -1122,10 +1157,10 @@ helper::baseline( const signal_processor& c, int spos, int epos )
 
     bs.setStartPos( spos );
     bs.setStopPos( epos );
-    bs.setStartTime( c.getTime( spos ) );
-    bs.setStopTime( c.getTime( epos ) );
-    bs.setStartHeight( c.getIntensity( spos ) );
-    bs.setStopHeight( c.getIntensity( epos ) ) ;
+    bs.setStartTime( c.time_at( spos ) );
+    bs.setStopTime( c.time_at( epos ) );
+    bs.setStartHeight( c.intensity( spos ) );
+    bs.setStopHeight( c.intensity( epos ) ) ;
 
     return bs;
 }
@@ -1145,6 +1180,7 @@ Integrator::impl::update_params()
         mw_ = mw;
         signal_processor_->set_ndiff( mw_ );
     }
+    ADDEBUG() << "## update_params: mw="  << std::make_tuple( minw_, mw_, mw, sampInterval_ ? *sampInterval_ : signal_processor_->sampInterval());
 }
 
 void
@@ -1153,7 +1189,6 @@ Integrator::impl::update_mw()
     if ( signal_processor_->d().size() >= 2 ) {
         int mw = std::max( 3, int( minw_ / signal_processor_->sampInterval() ) | 1 );
         if ( mw != mw_ ) {
-            // ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
             mw_ = mw; // should grator or equal to 3
             signal_processor_->set_ndiff( mw_ );
         } else {
