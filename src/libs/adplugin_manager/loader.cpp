@@ -38,37 +38,32 @@
 
 using namespace adplugin;
 
+namespace {
 #if defined _DEBUG || defined DEBUG || !defined NDEBUG
 # if defined WIN32
-#  define DEBUG_LIB_TRAIL "d" // xyzd.dll
-constexpr static const char * const debug_trail = "d";
-static const std::regex __self_regex(".*\\.dll" // windows build system separate binary directory
-                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
+    constexpr static const char * const debug_trail = "d";
+    static const boost::filesystem::path __prefix();
 # elif defined __MACH__ || __APPLE__
-#  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
-constexpr static const char * const debug_trail = "_debug";
-static const std::regex __self_regex("lib.*_debug((\\.dylib)|(\\.so))"
-                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
+    constexpr static const char * const debug_trail = "_debug";
+    static const boost::filesystem::path __prefix( "lib" );
 # else
-#  define DEBUG_LIB_TRAIL ""        // xyz.so
-constexpr static const char * const debug_trail = "";
-static const std::regex __self_regex(".*\\.so"
-                                     , std::regex_constants::ECMAScript);
+    constexpr static const char * const debug_trail = "";
+    static const boost::filesystem::path __prefix( "lib" );
 # endif
+
 #else // NDEBUG
-# define DEBUG_LIB_TRAIL ""
-constexpr static const char * const debug_trail = "";
+
+    constexpr static const char * const debug_trail = "";
 # if defined WIN32
-static const std::regex __self_regex(".*\\.dll"
-                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
+    static const boost::filesystem::path __prefix();
 # elif defined __MACH__ || __APPLE__
-static const std::regex __self_regex("lib.*((\\.dylib)|(\\.so))"
-                                     , std::regex_constants::ECMAScript | std::regex_constants::icase );
+    static const boost::filesystem::path __prefix( "lib" );
 # else
-static const std::regex __self_regex("lib.*\\.so"
-                                     , std::regex_constants::ECMAScript );
+    static const boost::filesystem::path __prefix( "lib" );
 # endif
 #endif
+} // namespace
+
 
 std::string
 loader::debug_suffix()
@@ -90,9 +85,8 @@ loader::plugin_directory()
 }
 
 void
-loader::populate( const wchar_t * topdir )
+loader::populate( const boost::filesystem::path& appdir )
 {
-    boost::filesystem::path appdir( topdir );
     ADDEBUG() << "populating : " << appdir;
 
 #if defined __APPLE__
@@ -111,12 +105,15 @@ loader::populate( const wchar_t * topdir )
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
                     auto filename = it->path().filename().string();
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
-                        auto stem   = it->path().stem();
-                        auto branch = it->path().branch_path();
-                        auto fname  = branch / (stem.string() + debug_trail);
-                        // ADDEBUG() << "\t-->" << boost::filesystem::relative( fname, appdir );
+                        auto stem   = boost::filesystem::path( it->path().stem().string() + debug_trail );
+                        auto libname  = it->path().branch_path() / (stem.string() + debug_trail);
+                        //
+                        auto fullpath = it->path().branch_path() /
+                            boost::filesystem::path( __prefix.string() + stem.string() ).replace_extension(
+                                boost::dll::shared_library::suffix() );
+
                         boost::system::error_code ec;
-                        boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
+                        boost::dll::shared_library dll( libname, ec, boost::dll::load_mode::append_decorations );
                         if ( !ec ) {
                             if ( dll.has( "adplugin_plugin_instance" ) ) {
                                 auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" );
@@ -132,7 +129,9 @@ loader::populate( const wchar_t * topdir )
                                           << " has no interface. Load failed.";
                             }
                         } else {
-                            ADDEBUG() << "failed to load " << boost::filesystem::relative( fname, appdir ) << "\t: " << ec.message();
+                            ADDEBUG() << "## failed to load " << boost::filesystem::relative( libname, appdir ) << "\t: " << ec.message();
+                            ADDEBUG() << "\t--> " << boost::filesystem::relative( fullpath, appdir ) << "\texists: "
+                                      << boost::filesystem::exists( fullpath );
                         }
                     }
                 }
@@ -152,9 +151,7 @@ std::string
 loader::library_filename( const char * library )
 {
     std::string dname( library );
-#if defined DEBUG || defined _DEBUG
-    dname += DEBUG_LIB_TRAIL;
-#endif
+    dname += debug_trail;
     return dname;
 }
 

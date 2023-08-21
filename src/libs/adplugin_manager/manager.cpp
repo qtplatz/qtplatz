@@ -333,7 +333,7 @@ manager::standalone_initialize()
     auto tpath = boost::dll::program_location().parent_path().parent_path();  // <-- install dir (/opt/qtplatz/bin/qtplatz/../..)
 #endif
 
-    adplugin::loader::populate( tpath.wstring().c_str() );
+    adplugin::loader::populate( tpath );
 
     // spectrometers
 	std::vector< adplugin::plugin_ptr > spectrometers;

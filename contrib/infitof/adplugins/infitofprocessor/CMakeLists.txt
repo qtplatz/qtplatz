@@ -32,7 +32,7 @@ if (WIN32)
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
-add_library( infitofprocessor MODULE
+add_library( ${PROJECT_NAME} MODULE
   addcontextmenu.cpp
   addcontextmenu.hpp
   calibscanlaw.cpp
@@ -50,7 +50,7 @@ add_library( infitofprocessor MODULE
   processreactor.hpp
 )
 
-target_link_libraries( infitofprocessor LINK_PUBLIC
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   acewrapper
   adcontrols
   adfs
@@ -70,7 +70,6 @@ set_target_properties( ${PROJECT_NAME}
   )
 
 install( TARGETS ${PROJECT_NAME}
-  EXPORT ${QTPLATZ_TARGETS}
   RUNTIME DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
   LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries

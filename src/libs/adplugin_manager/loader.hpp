@@ -48,7 +48,7 @@ namespace adplugin {
     class loader {
 
     public:
-        static void populate( const wchar_t * pluginpath );
+        static void populate( const boost::filesystem::path& );
 
         static std::string library_filename( const char * library );
 
