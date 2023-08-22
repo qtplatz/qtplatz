@@ -324,10 +324,6 @@ MSProcessingWnd::init()
 void
 MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectrumPtr& hist )
 {
-    if ( ! hist->isCentroid() ) {
-        draw_profile( folium.id(), hist );
-        return;
-    }
     pImpl_->hasHistogram_ = true;
 
     std::shared_ptr< adcontrols::MassSpectrum > profile;
@@ -336,10 +332,7 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
 
         pProfileSpectrum_ = std::make_pair( folium.id(), hist ); // sticked
 
-        auto att = dp->findProfiledHistogram( folium );
-        if ( !att )
-            att = dp->addProfiledHistogram( folium );
-        if ( att ) {
+        if ( auto att = dp->findProfiledHistogram( folium, true ) ) {
             profile = portfolio::get< adcontrols::MassSpectrumPtr >( att );
             pProfileHistogram_ = std::make_pair( att.id(), profile ); // profiled
         } else {

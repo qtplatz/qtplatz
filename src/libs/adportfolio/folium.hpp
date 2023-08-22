@@ -107,6 +107,8 @@ namespace portfolio {
         Folder parentFolder() const;
 		std::string fullpath( bool fullyqualified = true ) const;
 
+        bool is_attachment() const;
+
         typedef std::vector< Folium > vector_type;
 
         template<class T> static vector_type::iterator find( vector_type::iterator it, vector_type::iterator ite ) {

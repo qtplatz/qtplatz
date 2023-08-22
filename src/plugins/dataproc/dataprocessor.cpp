@@ -583,38 +583,47 @@ namespace dataproc {
 }
 
 portfolio::Folium
-Dataprocessor::findProfiledHistogram( const portfolio::Folium& folium )
+Dataprocessor::findProfiledHistogram( portfolio::Folium folium, bool bCreate )
 {
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        return portfolio::find_first_of( folium.attachments()
-                                         , []( const portfolio::Folium& a ){
-                                             return a.name() == Constants::F_PROFILED_HISTOGRAM;
-                                         } );
+        if ( auto att = portfolio::find_first_of(
+                 folium.attachments()
+                 , []( const auto& a ){ return a.name() == Constants::F_PROFILED_HISTOGRAM; } ) ) {
+
+            if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( att ) ) {
+                if ( adcontrols::histogram::is_full_profile( *profile ) )
+                    return att;
+                folium.erase_attachment( att.name(), [](std::tuple<std::wstring, std::wstring> m){ ADDEBUG() << "erase: " << m; } );
+            }
+        }
+        if ( bCreate )
+            return addProfiledHistogram( folium );
     }
-    return portfolio::Folium();
+    return {};
 }
 
+// private
 portfolio::Folium
 Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 {
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        auto att = findProfiledHistogram( folium );
+        if ( ptr->isHistogram() ) {
 
-        if ( !att && ptr->isHistogram() ) {
             if ( auto spectrometer = massSpectrometer() ) { // implemented in base class 'adprocessor::dataprocessor'
-                att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );
+
                 auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
                 mslock( *ms, 0 );
 
-                att.assign( ms, ms->dataClass() );
+                auto att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM ).assign( ms, ms->dataClass() );
+
                 emit SessionManager::instance()->foliumChanged( this, folium );
                 return att;
             }
         }
     }
-    return portfolio::Folium();
+    return {};
 }
 
 void

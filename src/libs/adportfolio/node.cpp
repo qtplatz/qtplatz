@@ -271,6 +271,12 @@ Node::appendAttributes( const std::vector< std::pair<std::string, std::string> >
     }
 }
 
+pugi::xpath_node
+Node::select_node( const std::string& query )
+{
+    return node_.select_node( query.c_str() );
+}
+
 pugi::xpath_node_set
 Node::selectNodes( const std::wstring& query )
 {

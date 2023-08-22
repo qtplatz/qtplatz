@@ -156,10 +156,11 @@ datafolder::operator bool() const
 boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> >
 datafolder::get_profile() const
 {
-    if ( auto hist = this->profiledHistogram_.lock() )
-        return {{ hist, true }};
-    else if ( auto prof = this->profile_.lock() )
-        return {{ prof, false }};
+    // if ( auto hist = this->profiledHistogram_.lock() )
+    //     return {{ hist, true }};
+    // else
+    if ( auto prof = this->profile_.lock() )
+        return {{ prof, prof->isHistogram() }};
     else
         return {};
 }

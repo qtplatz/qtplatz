@@ -80,6 +80,12 @@ histogram::make_profile( const MassSpectrum& ms )
     return profile;
 }
 
+bool
+histogram::is_full_profile( const MassSpectrum& ms )
+{
+    return ms.getMSProperty().samplingInfo().nSamples() == ms.size();
+}
+
 void
 histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spectrometer )
 {

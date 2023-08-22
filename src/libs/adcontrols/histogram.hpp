@@ -38,6 +38,7 @@ namespace adcontrols {
     public:
         static std::shared_ptr< MassSpectrum > make_profile( const MassSpectrum&, const MassSpectrometer& );
         static std::shared_ptr< MassSpectrum > make_profile( const MassSpectrum& );
+        static bool is_full_profile( const MassSpectrum& ); // the spectrum length match to digitizer sampling length?
     private:
         static void histogram_to_profile( MassSpectrum&, const MassSpectrometer& );
         static void histogram_to_profile( MassSpectrum& );

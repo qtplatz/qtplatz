@@ -127,8 +127,7 @@ namespace dataproc {
         portfolio::Folium currentSelection() const;
         void applyLockMass( std::shared_ptr< adcontrols::MassSpectra > ); // spectrogram data
         void exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra >, const std::wstring& foliumId ); // spectrogram data
-        portfolio::Folium addProfiledHistogram( portfolio::Folium& ); // replace if already exist
-        portfolio::Folium findProfiledHistogram( const portfolio::Folium& );
+        portfolio::Folium findProfiledHistogram( portfolio::Folium, bool bCreate = false );
 
         // apply calibration to entire dataset
         void applyCalibration( const adcontrols::MSCalibrateResult& );
@@ -198,6 +197,7 @@ namespace dataproc {
         std::unique_ptr< impl > impl_;
 
         void setDisplayName( const QString& );
+        portfolio::Folium addProfiledHistogram( portfolio::Folium& );
     };
 
 } // dataproc

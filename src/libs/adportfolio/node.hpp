@@ -77,6 +77,7 @@ namespace portfolio {
 
             const PortfolioImpl * impl() const { return impl_; };
             std::wstring portfolio_fullpath() const;
+            pugi::xpath_node select_node( const std::string& query );
 
         protected:
             pugi::xpath_node_set selectNodes( const std::wstring& query );

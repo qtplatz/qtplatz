@@ -302,29 +302,25 @@ MSSpectraWnd::handleRemoveSession( Dataprocessor * processor )
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
+    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
-    }
 
-    auto data = datafolder( processor->filename(), folium );
-
-    bool isChecked = folium.attribute( L"isChecked" ) == L"true";
-    if ( isChecked ) {
-        impl_->selProcessed_ = false;
-    }
-
-    if ( auto pf = folium.parentFolium() ) {
-         isChecked = pf.attribute( L"isChecked" ) == L"true";
-         data = datafolder( processor->filename(), pf );
-         impl_->selProcessed_ = folium.name() == Constants::F_CENTROID_SPECTRUM; // focus on centroid
-    }
+    auto pfolium = folium.is_attachment() ? folium.parentFolium() : folium;
+    auto data = datafolder( processor->filename(), pfolium );
+    bool isChecked = pfolium.attribute( L"isChecked" ) == L"true";
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-        impl_->selProcessed_ = ( ptr->isCentroid() && !ptr->isHistogram() );
-        // ADDEBUG() << "\thas mass spectrum isProcessed: " << impl_->selProcessed_;
         auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
+
+        // if ( ptr->isHistogram() ) {
+        //     auto profile = adcontrolhistogram::make_profile( *ptr, processor->massSpectrometer() );
+        // }
+
+        impl_->selProcessed_ = ( ptr->isCentroid() && !ptr->isHistogram() );
+
         plot->clear();
         plot->setTitle( data.display_name() );
+
         if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
             plot->setData( ms->first, 0, QwtPlot::yLeft );
             plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
@@ -414,6 +410,7 @@ MSSpectraWnd::redraw()
                 impl_->plots_[ 1 ]->setColor( traceid, color );
                 impl_->plots_[ 1 ]->setAxisTitle( QwtPlot::yLeft, isCounts ? "Counts" : "Intensity (a.u.)");
             } else {
+                // overlay
                 impl_->plots_[ 1 ]->setData( data.overlaySpectrum_, traceid, QwtPlot::yLeft );
                 impl_->plots_[ 1 ]->setColor( traceid, color );
                 impl_->plots_[ 1 ]->setAxisTitle( QwtPlot::yLeft, "Intensity (R.A.)" );

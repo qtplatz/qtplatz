@@ -222,3 +222,9 @@ Folium::fullpath( bool fullyqualified ) const
 	});
 	return path;
 }
+
+bool
+Folium::is_attachment() const
+{
+    return std::strcmp( node_.select_node( "." ).node().name(), "attachment" ) == 0;
+}
