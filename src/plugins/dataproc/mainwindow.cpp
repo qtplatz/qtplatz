@@ -686,7 +686,7 @@ MainWindow::createContents( Core::IMode * mode )
     removeSessionConnector    < MSProcessingWnd, MSSpectraWnd, ElementalCompWnd, ChromatogramWnd >( stack_ );
     sessionRemovedConnector   < ChromatogramWnd >( stack_ );
     selectionChangedConnector < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
-    selectionsConnector       < MSProcessingWnd, ChromatogramWnd >( stack_ );
+    selectionsConnector       < MSProcessingWnd, MSSpectraWnd, ChromatogramWnd >( stack_ );
     processedConnector        < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     applyMethodConnector      < MSProcessingWnd, ElementalCompWnd, MSCalibrationWnd, ChromatogramWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd >( stack_ );
     checkStateChangedConnector< MSProcessingWnd, MSPeaksWnd, ContourWnd, MSSpectraWnd, ChromatogramWnd >( stack_ );
@@ -1539,7 +1539,7 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
         if ( adfile.open( path ) ) {
             for ( auto& tuple : tuples ) {
                 const auto& src = std::get<1>( tuple );
-                auto it = SessionManager::instance()->find( src.portfolio_fullpath() );
+                auto it = SessionManager::instance()->find( src.filename<wchar_t>() );
                 if ( it != SessionManager::instance()->end() ) {
                     adfile.append( src, *it->processor()->file() );
                 }

@@ -63,6 +63,7 @@ namespace dataproc {
         void handleRemoveSession( Dataprocessor* );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void handleSelections( const std::vector< portfolio::Folium >& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( adcontrols::hor_axis );

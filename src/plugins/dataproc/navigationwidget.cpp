@@ -218,13 +218,13 @@ namespace dataproc {
                         // ---------> added for multiple selection of chromatograms
                         std::vector< portfolio::Folium > folio;
                         for ( const auto& row: selectionModel()->selectedRows() ) {
-                            if ( row.parent().data( Qt::EditRole ) == "Chromatograms" &&
+                            if ( row != index &&
                                  row.data( Qt::UserRole ).canConvert< portfolio::Folium >() ) {
-                                if ( row != index )
+                                if ( (row.parent().data( Qt::EditRole ) == "Chromatograms" ) || (row.parent().data( Qt::EditRole ) == "Spectra") )
                                     folio.emplace_back( row.data( Qt::UserRole ).value< portfolio::Folium >() );
                             }
                         }
-                        processor->setSelections( std::move( folio ) );
+                        emit SessionManager::instance()->signalSelections( folio );
                     }
                 }
             }

@@ -472,12 +472,12 @@ Dataprocessor::currentSelection() const
 	return portfolio().findFolium( impl_->idActiveFolium_ );
 }
 
-void
-Dataprocessor::setSelections( std::vector< portfolio::Folium >&& folio )
-{
-    // additional (multiple) selections besides current selection
-    SessionManager::instance()->selectionsChanged( this, folio );
-}
+// void
+// Dataprocessor::setSelections( std::vector< portfolio::Folium >&& folio )
+// {
+//     // additional (multiple) selections besides current selection
+//     // SessionManager::instance()->selectionsChanged( this, folio );
+// }
 
 namespace dataproc {
 

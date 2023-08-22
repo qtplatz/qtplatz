@@ -52,17 +52,17 @@ namespace {
                                              , std::string&& insertor
                                              , const QString& lastDir, const char * extension ) { // must contains '.'
         std::ostringstream o;
-        auto leaf = boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf();
-        o << boost::filesystem::path( folium.portfolio_fullpath() ).parent_path().leaf().string(); // leaf
+        auto leaf = boost::filesystem::path( folium.filename<char>() ).parent_path().leaf();
+        o << boost::filesystem::path( folium.filename<char>() ).parent_path().leaf().string(); // leaf
         o << (insertor.empty() ? "_" : insertor);
-        o << boost::filesystem::path( folium.portfolio_fullpath() ).stem().string();               // stem "pareint_dir__filename"
+        o << boost::filesystem::path( folium.filename<char>() ).stem().string();               // stem "pareint_dir__filename"
         o << (insertor.empty() ? "_" : insertor);
         o << (insertor.empty() ? "_" : insertor);
         o << make_filename_string( folium ).string(); // replace '/' -> '_'
         o << extension;
         auto dir  = make_directory_string( lastDir );
         if ( dir.empty() ) {
-            dir = make_directory_string( QString::fromStdWString( folium.portfolio_fullpath() ) );
+            dir = make_directory_string( QString::fromStdWString( folium.filename<wchar_t>() ) );
         }
         auto destname = dir / o.str();
         if ( boost::filesystem::exists( destname ) ) {

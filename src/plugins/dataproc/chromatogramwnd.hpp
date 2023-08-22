@@ -66,7 +66,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         // handle selections besides current selection
-        void handleSelections( Dataprocessor*, const std::vector< portfolio::Folium >& );
+        void handleSelections( const std::vector< portfolio::Folium >& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& );
 

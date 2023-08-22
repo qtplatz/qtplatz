@@ -154,10 +154,16 @@ dataprocessor::open( const std::filesystem::path& filename, std::string& error_m
     return false;
 }
 
-std::wstring
+template<> std::wstring
 dataprocessor::filename() const
 {
     return impl_->file_->filename().wstring();
+}
+
+template<> std::string
+dataprocessor::filename<char>() const
+{
+    return impl_->file_->filename().string();
 }
 
 void

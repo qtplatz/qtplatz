@@ -433,11 +433,17 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
 }
 
 void
-ChromatogramWnd::handleSelections( Dataprocessor* processor, const std::vector< portfolio::Folium >& folio )
+ChromatogramWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
 {
     std::deque< datafolder > data;
-    for ( const auto& folium: folio )
-        data.emplace_front( datafolder{ processor, folium } );
+    for ( const auto& folium: folio ) {
+        if ( folium.attribute("dataType") == "Chromatogram" ) {
+            if ( auto dp = SessionManager::instance()->find_processor( folium.filename<char>() ) ) {
+                auto self( dp->shared_from_this() );
+                data.emplace_front( datafolder{ dp, folium } );
+            }
+        }
+    }
     if ( !data.empty() )
         data.emplace_front( impl_->datum_ );
 

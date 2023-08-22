@@ -83,11 +83,12 @@ namespace dataproc {
         vector_type::iterator begin();
         vector_type::iterator end();
         vector_type::iterator find( const std::wstring& );
+        Dataprocessor * find_processor( const std::string& );
 
     signals:
 		void signalAddSession( Dataprocessor * );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
-        void signalSelections( Dataprocessor *, const std::vector< portfolio::Folium >& );
+        void signalSelections( const std::vector< portfolio::Folium >& );
         void signalCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
 		void onSessionUpdated( Dataprocessor *, const QString& foliumId );
 		void onFolderChanged( Dataprocessor *, const QString& folder );
@@ -100,7 +101,7 @@ namespace dataproc {
 
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );
-        void selectionsChanged( Dataprocessor *, const std::vector< portfolio::Folium >& );
+        // void selectionsChanged( const std::vector< portfolio::Folium >& );
 
     private:
         // iSessionManager

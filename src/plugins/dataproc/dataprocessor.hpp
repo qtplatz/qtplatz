@@ -118,7 +118,7 @@ namespace dataproc {
 		// bool fetch( portfolio::Folium& ); moved to adprocessor::dataprocessor (base class of this)
         void setCurrentSelection( portfolio::Folium& );
         void setCurrentSelection( portfolio::Folder& );
-        void setSelections( std::vector< portfolio::Folium >&& );
+        // void setSelections( std::vector< portfolio::Folium >&& );
         void applyProcess( const adcontrols::ProcessMethod&, enum ProcessType );
         void applyProcess( portfolio::Folium&, const adcontrols::ProcessMethod&, enum ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );

@@ -64,8 +64,10 @@
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_marker.h>
 #include <qwt_symbol.h>
+#include <deque>
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -110,7 +112,7 @@ namespace dataproc {
         bool isTimeAxis_;
         bool dirty_;
         bool selProcessed_;
-
+        std::deque< datafolder > overlays_;
     };
 
 }
@@ -335,6 +337,21 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     } else {
         impl_->currData_ = datum;
     }
+}
+
+void
+MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
+{
+    std::deque< datafolder > data;
+    for ( auto folium: folio ) {
+        if ( folium.attribute( "dataType" ) == "MassSpectrum" ) {
+            if ( auto dp = SessionManager::instance()->find_processor( folium.filename<char>() ) ) {
+                auto self( dp->shared_from_this() );
+                data.emplace_front( datafolder( dp, folium ) );
+            }
+        }
+    }
+    impl_->overlays_ = std::move( data );
 }
 
 void

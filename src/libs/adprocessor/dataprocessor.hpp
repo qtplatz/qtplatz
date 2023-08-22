@@ -81,7 +81,7 @@ namespace adprocessor {
 
         virtual bool open( const std::filesystem::path&, std::string& errmsg );
 
-		virtual std::wstring filename() const;
+        template<typename char_type = wchar_t > std::basic_string<char_type> filename() const;
 
         virtual void setFile( std::unique_ptr< adcontrols::datafile >&& );
         virtual adcontrols::datafile * file();
@@ -155,5 +155,8 @@ namespace adprocessor {
         class impl;
         std::unique_ptr< impl > impl_;
     };
+
+    template<> std::string  dataprocessor::filename<char>() const;
+    template<> std::wstring dataprocessor::filename<wchar_t>() const;
 
 } // mpxcontrols

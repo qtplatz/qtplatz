@@ -80,7 +80,7 @@ namespace dataproc {
         void handleRemoveSession( Dataprocessor* );
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
-        void handleSelections( Dataprocessor*, const std::vector< portfolio::Folium >& );
+        void handleSelections( const std::vector< portfolio::Folium >& );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );

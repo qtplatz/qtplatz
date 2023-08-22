@@ -162,6 +162,31 @@ SessionManager::find( const std::wstring& token )
     return impl_->sessions_.end();
 }
 
+Dataprocessor *
+SessionManager::find_processor( const std::string& filename )
+{
+    auto it = std::find_if( begin(), end(), [&]( const Session& s ){ return s.processor()->filename<char>() == filename; } );
+    if ( it != end() ) {
+        return it->processor();
+    }
+    return {};
+}
+
+// iSessionManager implementation
+std::shared_ptr< adprocessor::dataprocessor >
+SessionManager::getDataprocessor( const QString& name )
+{
+#if QTC_VERSION >= 0x08'00'00
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath().toString() == name; } );
+#else
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filepath() == name; } );
+#endif
+    if ( it != end() )
+        return it->processor()->shared_from_this();
+
+    return nullptr;
+}
+
 void
 SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
@@ -197,42 +222,10 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
 #endif
 }
 
-void
-SessionManager::selectionsChanged( Dataprocessor* dataprocessor, const std::vector< portfolio::Folium >& folio )
-{
-	// if ( impl_->activeDataprocessor_ != dataprocessor ) {
-    //     impl_->activeDataprocessor_ = dataprocessor;
-    //     emit onDataprocessorChanged( impl_->activeDataprocessor_ );
-	// 	auto it = std::find_if( impl_->sessions_.begin(), impl_->sessions_.end(), [dataprocessor]( dataproc::Session& s ){
-    //             return dataprocessor == s.processor();
-    //         });
-	// 	if ( it != impl_->sessions_.end() )
-	// 		Core::EditorManager::instance()->activateEditor( it->editor() );
-	// }
-    // emit signalSelectionChanged( dataprocessor, folium );
-    emit signalSelections( dataprocessor, folio );
-}
-
-
 Dataprocessor *
 SessionManager::getActiveDataprocessor()
 {
     return impl_->activeDataprocessor_;
-}
-
-// iSessionManager implementation
-std::shared_ptr< adprocessor::dataprocessor >
-SessionManager::getDataprocessor( const QString& name )
-{
-#if QTC_VERSION >= 0x08'00'00
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath().toString() == name; } );
-#else
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filepath() == name; } );
-#endif
-    if ( it != end() )
-        return it->processor()->shared_from_this();
-
-    return nullptr;
 }
 
 //////////// Session //////////////////

@@ -704,17 +704,22 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 }
 
 void
-MSProcessingWnd::handleSelections( Dataprocessor* processor, const std::vector< portfolio::Folium >& folio )
+MSProcessingWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
 {
     int idx(0);
     for ( auto it = folio.rbegin(); it != folio.rend(); ++it ) {
-        auto folium( *it );
-        processor->fetch( folium );
-        if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-            ++idx;
-            pImpl_->setCheckedChromatogram( cptr, idx );
-            pImpl_->ticPlot_->setData( cptr, idx, QwtPlot::yLeft );
-            pImpl_->ticPlot_->setAlpha( idx, 0x40 );
+        if ( it->attribute("dataType") == "Chromatogram" ) {
+            if ( auto dp = SessionManager::instance()->find_processor( it->filename<char>() ) ) {
+                auto self( dp->shared_from_this() );
+                auto folium( *it );
+                dp->fetch( folium );
+                if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    ++idx;
+                    pImpl_->setCheckedChromatogram( cptr, idx );
+                    pImpl_->ticPlot_->setData( cptr, idx, QwtPlot::yLeft );
+                    pImpl_->ticPlot_->setAlpha( idx, 0x40 );
+                }
+            }
         }
     }
 }

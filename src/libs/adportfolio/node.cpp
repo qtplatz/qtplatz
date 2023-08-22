@@ -374,11 +374,19 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
     return child;
 }
 
-std::wstring
-Node::portfolio_fullpath() const
+template<> std::string
+Node::filename() const
 {
     if ( impl_ )
-        return impl_->fullpath();
+        return impl_->attribute( "fullpath" );
+    return {};
+}
+
+template<> std::wstring
+Node::filename() const
+{
+    if ( impl_ )
+        return impl_->attribute( L"fullpath" );
     return {};
 }
 
