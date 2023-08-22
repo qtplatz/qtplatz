@@ -279,14 +279,20 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 {
     if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        auto datum = datafolder( processor->filename(), folium );
+        auto pfolium = folium.is_attachment() ? folium.parentFolium() : folium;  // parent folium if child selected
+        auto datum = datafolder( processor, pfolium );
         do {
             auto& plot = impl_->plots_[ impl::idProfile ];
-            if ( auto profile = datum.get_profile() ) {
+            if ( auto prime = datum.get_primary_spectrum() ) {
                 plot->clear();
                 plot->setTitle( datum.display_name() );
-                plot->setData( profile->first, 0, QwtPlot::yLeft );
-                plot->setAxisTitle( QwtPlot::yLeft, profile->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+                int idx(0);
+                if ( prime->isHistogram() ) {
+                    if ( auto ppkd = datum.get_profiled_histogram() )
+                        plot->setData( ppkd, idx++, QwtPlot::yLeft );
+                }
+                plot->setData( prime, idx, QwtPlot::yLeft );
+                plot->setAxisTitle( QwtPlot::yLeft, datum.isCounting() ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
             }
         } while ( 0 );
         do {

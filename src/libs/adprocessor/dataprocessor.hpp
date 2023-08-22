@@ -97,7 +97,7 @@ namespace adprocessor {
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
         virtual std::shared_ptr< adcontrols::MassSpectrum > readCoAddedSpectrum( bool histogram = false, int proto = (-1) );
 
-        virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
+        virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const;
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
                                 , adcontrols::MassSpectrum& centroid

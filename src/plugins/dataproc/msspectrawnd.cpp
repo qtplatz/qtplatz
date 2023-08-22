@@ -305,34 +305,35 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
 
-    auto pfolium = folium.is_attachment() ? folium.parentFolium() : folium;
-    auto data = datafolder( processor->filename(), pfolium );
+    auto pfolium = folium.is_attachment() ? folium.parentFolium() : folium;  // parent folium if child selected
+    auto datum = datafolder( processor, pfolium );
     bool isChecked = pfolium.attribute( L"isChecked" ) == L"true";
 
-    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-        auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
+    auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
 
-        // if ( ptr->isHistogram() ) {
-        //     auto profile = adcontrolhistogram::make_profile( *ptr, processor->massSpectrometer() );
-        // }
-
-        impl_->selProcessed_ = ( ptr->isCentroid() && !ptr->isHistogram() );
+    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) { // selected, whether folium or attached
+        impl_->selProcessed_ = folium.is_attachment(); // selected node is an attachment
 
         plot->clear();
-        plot->setTitle( data.display_name() );
+        plot->setTitle( datum.display_name() );
 
-        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
-            plot->setData( ms->first, 0, QwtPlot::yLeft );
-            plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+        int idx( 0 );
+        if ( ptr->isHistogram() ) {
+            if ( auto ppkd = datum.get_profiled_histogram() )
+                plot->setData( ppkd, idx++, QwtPlot::yLeft ); // bar spectrum always draw blue by default
         }
+        plot->setData( ptr, idx, QwtPlot::yLeft );
+        plot->setAxisTitle( QwtPlot::yLeft, datum.isCounting() ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
+
     }
+
     if ( isChecked ) {
         impl_->data_.clear();
-        impl_->data_.emplace_back( data );
+        impl_->data_.emplace_back( datum );
         impl_->plots_[ 0 ]->clear();
         impl_->plots_[ 0 ]->replot();
     } else {
-        impl_->currData_ = data;
+        impl_->currData_ = datum;
     }
 }
 
@@ -343,7 +344,7 @@ MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::F
         auto& data = impl_->currData_;
         auto& plot = impl_->plots_[ 0 ];
         plot->clear();
-        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
+        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_primary() ) ) {
             plot->setData( ms->first, 0, QwtPlot::yLeft );
             plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
         }
@@ -351,7 +352,7 @@ MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::F
     if ( !impl_->data_.empty() && impl_->data_.back().id() == folium.uuid() ) {
         auto& data = impl_->data_.back();
         auto& plot = impl_->plots_[ 1 ];
-        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_profile() ) ) {
+        if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_primary() ) ) {
             plot->setData( ms->first, 0, QwtPlot::yLeft );
             plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
         }
@@ -403,7 +404,7 @@ MSSpectraWnd::redraw()
         title += data.display_name();
 
         QColor color = impl_->plots_[ 1 ]->index_color( traceid );
-        if ( auto profile = data.get_profile() ) {
+        if ( auto profile = data.get_primary() ) {
             auto [ ms, isCounts ] = *profile;
             if ( impl_->data_.size() == 1 ) {
                 impl_->plots_[ 1 ]->setData( ms, traceid, QwtPlot::yLeft );

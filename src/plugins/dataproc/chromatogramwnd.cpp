@@ -315,7 +315,7 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
         for ( auto& folium: folder.folio() ) {
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                datafolder datum( processor->filename(), folium );
+                datafolder datum( processor, folium );
                 impl_->addOverlay( std::move( datum ) );
             } else {
                 impl_->eraseOverlay( folium );
@@ -402,7 +402,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
             ADDEBUG() << a;
     }
 
-    auto datum = datafolder( processor->filename(), folium );
+    auto datum = datafolder( processor, folium );
 
     if ( auto chr = datum.get_chromatogram() ) {
 
@@ -437,7 +437,7 @@ ChromatogramWnd::handleSelections( Dataprocessor* processor, const std::vector< 
 {
     std::deque< datafolder > data;
     for ( const auto& folium: folio )
-        data.emplace_front( datafolder{ processor->filename(), folium } );
+        data.emplace_front( datafolder{ processor, folium } );
     if ( !data.empty() )
         data.emplace_front( impl_->datum_ );
 

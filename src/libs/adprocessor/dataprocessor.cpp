@@ -246,7 +246,7 @@ dataprocessor::notify( adcontrols::dataSubscriber::idError, const std::string& j
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >
-dataprocessor::massSpectrometer()
+dataprocessor::massSpectrometer() const
 {
     if ( ! impl_->spectrometer_ && this->db() ) {
 

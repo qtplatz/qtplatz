@@ -26,6 +26,7 @@
 #include "constants.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/histogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
@@ -78,21 +79,24 @@ namespace {
         };
         void operator () ( std::shared_ptr< adcontrols::Chromatogram > ptr ) const {
             this_->chromatogram_ = ptr;
+            this_->isCounting_ = ( ptr && ptr->isCounting() );
         }
         void operator () ( std::shared_ptr< adcontrols::MassSpectrum > ptr ) const {
-            this_->profile_ = ptr;
+            this_->primary_ = ptr;
+            this_->isCounting_ = ( ptr && ptr->isHistogram() );
         }
     };
 }
 
 datafolder::datafolder() : idx_(0)
+                         , isCounting_( false )
 {
 }
 
-datafolder::datafolder( const std::wstring& fullpath
+datafolder::datafolder( const Dataprocessor * dp
                         , const portfolio::Folium& folium ) : idx_( 0 )
-                                                            , filename_( fullpath )
-                                                            , display_name_( make_display_name( fullpath, folium ) )
+                                                            , filename_( dp->filename() )
+                                                            , display_name_( make_display_name( dp->filename(), folium ) )
                                                             , folium_( folium )
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
@@ -111,6 +115,14 @@ datafolder::datafolder( const std::wstring& fullpath
             }
         }
     }
+
+    if ( auto profile = primary_.lock() ) {
+        if ( profile->isHistogram() && !profiledHistogram_.lock() ) {
+            self_profiled_histogram_ = adcontrols::histogram::make_profile( *profile, *dp->massSpectrometer() );
+            profiledHistogram_ = self_profiled_histogram_;
+        }
+    }
+
 }
 
 datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
@@ -119,7 +131,7 @@ datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
                                               , idFolium_( t.idFolium_ ) // wstring
                                               , idfolium_( t.idfolium_ ) // uuid
                                               , idCentroid_( t.idCentroid_ )
-                                              , profile_( t.profile_ )
+                                              , primary_( t.primary_ )
                                               , profiledHistogram_( t.profiledHistogram_ )
                                               , centroid_( t.centroid_ )
                                               , chromatogram_( t.chromatogram_ )
@@ -150,16 +162,28 @@ datafolder::make_display_name( const std::wstring& fullpath, const portfolio::Fo
 
 datafolder::operator bool() const
 {
-    return ( profile_.lock() || chromatogram_.lock() );
+    return ( primary_.lock() || chromatogram_.lock() );
 }
 
-boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> >
-datafolder::get_profile() const
+std::shared_ptr< const adcontrols::MassSpectrum >
+datafolder::get_profiled_histogram() const
 {
-    // if ( auto hist = this->profiledHistogram_.lock() )
-    //     return {{ hist, true }};
-    // else
-    if ( auto prof = this->profile_.lock() )
+    if ( auto ppkd = profiledHistogram_.lock() )
+        return ppkd;
+    return {};
+}
+
+std::shared_ptr< const adcontrols::MassSpectrum >
+datafolder::get_primary_spectrum() const
+{
+    return primary_.lock();
+}
+
+
+boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> >
+datafolder::get_primary() const
+{
+    if ( auto prof = this->primary_.lock() )
         return {{ prof, prof->isHistogram() }};
     else
         return {};
@@ -169,12 +193,9 @@ boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, b
 datafolder::get_processed() const
 {
     if ( auto ms = this->centroid_.lock() ) {
-        if ( auto hist = this->profiledHistogram_.lock() )
-            return {{ ms, true }};
-        else
-            return {{ ms, false }};
+        return {{ ms, ms->isHistogram() }};
     } else {
-        if ( auto profile = this->profile_.lock() ) {
+        if ( auto profile = this->primary_.lock() ) {
             if ( profile->isCentroid() && !profile->isHistogram() )
                 return {{ profile, false }};
         }

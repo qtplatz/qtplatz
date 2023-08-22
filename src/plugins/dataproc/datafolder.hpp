@@ -46,7 +46,7 @@ namespace dataproc {
         boost::uuids::uuid idfolium_;
         std::wstring idCentroid_;
 
-        std::weak_ptr< adcontrols::MassSpectrum > profile_;   // usually profile, TBD for histogram data
+        std::weak_ptr< adcontrols::MassSpectrum > primary_;   // usually profile, TBD for histogram data
         std::weak_ptr< adcontrols::MassSpectrum > profiledHistogram_;
         std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // centroid
         std::weak_ptr< adcontrols::Chromatogram > chromatogram_;
@@ -54,17 +54,24 @@ namespace dataproc {
         std::shared_ptr< adcontrols::PeakResult > peakResult_;
         std::shared_ptr< adcontrols::MassSpectrum > overlaySpectrum_; // y-scale normalized
         std::shared_ptr< adcontrols::Chromatogram > overlayChromatogram_;
+        std::shared_ptr< adcontrols::MassSpectrum > self_profiled_histogram_; // locally created
+        bool isCounting_;
 
         datafolder();
-        datafolder( const std::wstring& filename, const portfolio::Folium& folium );
+        // datafolder( const std::wstring& filename, const portfolio::Folium& folium );
+        datafolder( const Dataprocessor *, const portfolio::Folium& folium );
         datafolder( const datafolder& t );
 
         QString display_name() const { return display_name_; }
         boost::uuids::uuid id() const { return idfolium_; }
         std::wstring idFolium() const { return idFolium_; }
         operator bool () const;
-        boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_profile() const;
+
+        bool isCounting() const { return isCounting_; } // a.k.a. PKD data source
+        boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_primary() const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_processed() const;
+        std::shared_ptr< const adcontrols::MassSpectrum > get_primary_spectrum() const;
+        std::shared_ptr< const adcontrols::MassSpectrum > get_profiled_histogram() const;
 
         std::shared_ptr< adcontrols::Chromatogram > get_chromatogram() const;
         std::shared_ptr< adcontrols::Chromatogram > get_overlayChromatogram() const;

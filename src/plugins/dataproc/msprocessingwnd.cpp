@@ -602,7 +602,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
                     pImpl_->idActiveFolium_ = folium.id();
                     pImpl_->idSpectrumFolium_ = folium.id();
-                    pImpl_->datum_[ 1 ] = datafolder( processor->filename(), folium );
+                    pImpl_->datum_[ 1 ] = datafolder( processor, folium );
 
                     pImpl_->processedSpectrum_->clear();
                     pImpl_->processedSpectrum_->replot();
@@ -673,7 +673,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         idChromatogramFolium( folium.id() );
                     }
 
-                    pImpl_->datum_[ 0 ] = datafolder( processor->filename(), folium );
+                    pImpl_->datum_[ 0 ] = datafolder( processor, folium );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                         return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
