@@ -112,19 +112,18 @@ namespace dataproc {
         void handleZoomedOnSpectrum( const QRectF& );
 
     private:
-        int drawIdx1_;
         class impl;
         impl * pImpl_;
-        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
-        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
-        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileHistogram_;
-        std::pair< std::wstring, std::weak_ptr< adcontrols::MSPeakInfo > > pkinfo_;
-        std::pair< std::wstring, std::weak_ptr< adcontrols::Targeting > > targeting_;
+        // std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
+        // std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
+        // std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileHistogram_;
+        // std::pair< std::wstring, std::weak_ptr< adcontrols::MSPeakInfo > > pkinfo_;
+        // std::pair< std::wstring, std::weak_ptr< adcontrols::Targeting > > targeting_;
 
-        std::wstring idActiveFolium_;
-        std::wstring idChromatogramFolium_;
-        std::wstring idSpectrumFolium_;
-        adcontrols::hor_axis axis_;
+        // std::wstring idActiveFolium_;
+        // std::wstring idChromatogramFolium_;
+        // std::wstring idSpectrumFolium_;
+        // adcontrols::hor_axis axis_;
         bool assign_masses_to_profile( const std::pair< boost::uuids::uuid, std::string >& );
         bool assign_masses_to_profile( );
         double correct_baseline();
