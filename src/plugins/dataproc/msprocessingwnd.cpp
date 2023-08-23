@@ -443,13 +443,13 @@ void
 MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
 {
     ADDEBUG() << "handleRemoveSession(" << processor->filename() << ")"
-              << "\n\t" << pImpl_->datum_[ 0 ].filename_
-              << "\n\t" << pImpl_->datum_[ 1 ].filename_;
-    if ( pImpl_->datum_[ 0 ].filename_ == processor->filename() ) {
+              << "\n\t" << pImpl_->datum_[ 0 ].filename()
+              << "\n\t" << pImpl_->datum_[ 1 ].filename();
+    if ( pImpl_->datum_[ 0 ].filename() == processor->filename<char>() ) {
         pImpl_->ticPlot_->clear();
         pImpl_->ticPlot_->replot();
     }
-    if ( pImpl_->datum_[ 1 ].filename_ == processor->filename() ) {
+    if ( pImpl_->datum_[ 1 ].filename() == processor->filename<char>() ) {
         for ( auto plot: { pImpl_->profileSpectrum_, pImpl_->processedSpectrum_ } ) {
             plot->setTitle( QString{} );
             plot->clear();

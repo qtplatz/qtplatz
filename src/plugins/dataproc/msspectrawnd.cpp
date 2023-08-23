@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2021 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -284,16 +284,16 @@ void
 MSSpectraWnd::handleRemoveSession( Dataprocessor * processor )
 {
     for ( auto& datum: impl_->data_ ) {
-        if ( processor->filename() == datum.filename_ ) {
+        if ( processor->filename<char>() == datum.filename() ) {
             datum = {};
             impl_->plots_[ 1 ]->setTitle( QString{} );
             impl_->plots_[ 1 ]->clear();
             impl_->plots_[ 1 ]->replot();
         }
     }
-    impl_->data_.erase( std::remove_if( impl_->data_.begin(), impl_->data_.end(), [](const auto& d){ return d.filename_.empty(); } )
+    impl_->data_.erase( std::remove_if( impl_->data_.begin(), impl_->data_.end(), [](const auto& d){ return d.filename().empty(); } )
                         , impl_->data_.end() );
-    if ( processor->filename() == impl_->currData_.filename_ ) {
+    if ( processor->filename<char>() == impl_->currData_.filename() ) {
         impl_->currData_ = {};
         impl_->plots_[ 0 ]->setTitle( QString{} );
         impl_->plots_[ 0 ]->clear();
@@ -352,12 +352,21 @@ MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
         }
     }
     impl_->overlays_ = std::move( data );
+
+    for ( const auto& datum: impl_->overlays_ ) {
+        if ( auto d = datum.get_spectrum_for_overlay() ) {
+            auto& plot = impl_->plots_[ datum.isChecked() ? 1 : 0 ];
+            plot->setData( std::get<0>(*d), plot->size(), QwtPlot::yLeft );
+        }
+    }
+    for ( auto& plot: impl_->plots_ )
+        plot->replot();
 }
 
 void
 MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
-    if ( impl_->currData_ && impl_->currData_.id() == folium.uuid() ) {
+    if ( impl_->currData_ && impl_->currData_.uuid() == folium.uuid() ) {
         auto& data = impl_->currData_;
         auto& plot = impl_->plots_[ 0 ];
         plot->clear();
@@ -366,7 +375,7 @@ MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::F
             plot->setAxisTitle( QwtPlot::yLeft, ms->second ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
         }
     }
-    if ( !impl_->data_.empty() && impl_->data_.back().id() == folium.uuid() ) {
+    if ( !impl_->data_.empty() && impl_->data_.back().uuid() == folium.uuid() ) {
         auto& data = impl_->data_.back();
         auto& plot = impl_->plots_[ 1 ];
         if ( auto ms = ( impl_->selProcessed_ ? data.get_processed() : data.get_primary() ) ) {
@@ -379,15 +388,12 @@ MSSpectraWnd::handleFoliumChanged( Dataprocessor * processor, const portfolio::F
 void
 MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot, int id )
 {
-    // auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
-    // if ( d <= 2 ) {
     QMenu menu;
 
     menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( plot ); } );
 
     menu.addAction( tr( "Save as SVG File" ), [&] () {
-        ADDEBUG() << "########### Save as SVG : " << id << ", " << impl_->currData_.idFolium_;
-        utility::save_image_as< SVG >()( plot ); //, impl_->profile_.first );
+        utility::save_image_as< SVG >()( plot );
     });
 
     auto action
@@ -395,7 +401,7 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot, i
             if ( impl_->currData_ && !impl_->data_.empty() ) {
                 if ( auto const ms1 = impl_->data_.at( 0 ).get_processed() ) { // reference
                     if ( auto const ms2 = impl_->currData_.get_processed() ) {
-                        globalSetIntersection()( impl_->currData_.idfolium_, massExtractor()( *ms1->first ) );
+                        globalSetIntersection()( impl_->currData_.uuid(), massExtractor()( *ms1->first ) );
                     }
                 }
             }
@@ -408,6 +414,7 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot, i
 void
 MSSpectraWnd::redraw()
 {
+#if 0
     QString title;
 
     size_t idx(0);
@@ -415,7 +422,7 @@ MSSpectraWnd::redraw()
         auto traceid = idx++;
 
         if ( !title.isEmpty() ) {
-            title += ";;";
+            title += ";";
         }
 
         title += data.display_name();
@@ -437,6 +444,7 @@ MSSpectraWnd::redraw()
     }
     impl_->plots_[ 1 ]->setTitle( title );
     impl_->dirty_ = false;
+#endif
 }
 
 void

@@ -163,10 +163,10 @@ namespace dataproc {
                 auto peaks = pkres->peaks();
                 if ( peaks.size() > pid ) {
                     auto it = peaks.begin() + pid;
-                    ADDEBUG() << "peak name: " << it->name() << " --> " << name << "\t" << datum_.folium_.id() << ", " << datum_.folium_.uuid();
+                    // ADDEBUG() << "peak name: " << it->name() << " --> " << name << "\t" << datum_.folium_.id() << ", " << datum_.folium_.uuid();
                     it->setName( name );
                     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                        dp->setPeakName( datum_.folium_, pid, name );
+                        dp->setPeakName( datum_.folium(), pid, name );
                     }
                 }
             }
@@ -176,7 +176,7 @@ namespace dataproc {
             std::vector< int > pids;
             std::for_each( ids.begin(), ids.end(), [&](const auto& a){ if ( a.first == 0 ) pids.emplace_back( a.second ); } );
             if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                dp->removePeaks( datum_.folium_, std::move( pids ) );
+                dp->removePeaks( datum_.folium(), std::move( pids ) );
             }
         }
 
@@ -208,7 +208,7 @@ namespace dataproc {
 
         void addFIPeak( double t1, double t2 ) {
             if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                auto folium = dp->getPortfolio().findFolium( datum_.id() );
+                auto folium = dp->getPortfolio().findFolium( datum_.uuid() );
                 dp->findSinglePeak( folium, { t1, t2 } );
             }
         }
@@ -217,7 +217,7 @@ namespace dataproc {
             while ( overlays_.size() >= 12 )
                 overlays_.pop_back();
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
-                                      , [&](const auto& a){ return a.idFolium_ == datum.idFolium_ || a.idfolium_ == datum.idfolium_; });
+                                      , [&](const auto& a){ return a.uuid() == datum.uuid(); });
             if ( it != overlays_.end() )
                 overlays_.erase( it, overlays_.end() );
             overlays_.emplace_front( std::move( datum ) );
@@ -226,7 +226,7 @@ namespace dataproc {
 
         void eraseOverlay( const portfolio::Folium& folium ) {
             auto it = std::remove_if( overlays_.begin(), overlays_.end()
-                                      , [&](const auto& a){ return a.idFolium_ == folium.id() || a.idfolium_ == folium.uuid(); });
+                                      , [&](const auto& a){ return a.uuid() == folium.uuid(); });
             if ( it != overlays_.end() ) {
                 overlays_.erase( it, overlays_.end() );
                 dirty_ = true;
@@ -331,11 +331,11 @@ ChromatogramWnd::handleRemoveSession( Dataprocessor * processor )
 {
     auto it = std::remove_if( impl_->overlays_.begin()
                               , impl_->overlays_.end()
-                              , [&](const auto& a){ return a.filename_ == processor->filename(); });
+                              , [&](const auto& a){ return a.filename() == processor->filename<char>(); });
     if ( it != impl_->overlays_.end() )
         impl_->overlays_.erase( it, impl_->overlays_.end() );
 
-    if ( impl_->datum_.filename_ == processor->filename() ) {
+    if ( impl_->datum_.filename() == processor->filename<char>() ) {
         impl_->data_.reset();
         impl_->peakResult_.reset();
         impl_->setChromatogram( impl_->data_ );
@@ -474,7 +474,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 	portfolio::Folium folium;
     printer.setDocName( "QtPlatz Chromatogram Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        folium = dp->getPortfolio().findFolium( impl_->datum_.id() ); // std::get< 1 >( impl_->selected_folder_ ) );
+        folium = dp->getPortfolio().findFolium( impl_->datum_.uuid() ); // std::get< 1 >( impl_->selected_folder_ ) );
         // folium = dp->getPortfolio().findFolium( std::get< 1 >( impl_->selected_folder_ ) );
     }
 
@@ -573,7 +573,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
     menu.addAction( tr( "Save SVG File" ), [index,this](){
         std::wstring idFolium;
         if ( index == 1 && !overlays_.empty() ) {
-            idFolium = overlays_.at( 0 ).idFolium_;
+            idFolium = overlays_.at( 0 ).idFolium();
         }
         if ( index == 0 && datum_ ) {
             idFolium = datum_.idFolium();
@@ -629,9 +629,9 @@ ChromatogramWnd::impl::redraw()
         for ( auto& datum: overlays_ ) {
             if ( auto chr = datum.get_chromatogram() ) {
 
-                if ( ! datum.overlayChromatogram_ ) {
+                if ( ! datum.overlayChromatogram() ) {
                     // copy for rescale
-                    datum.overlayChromatogram_ = std::make_shared< adcontrols::Chromatogram >( *chr );
+                    datum.setOverlayChromatogram( std::make_shared< adcontrols::Chromatogram >( *chr ) );
                 }
                 plot->setChromatogram( {idx, chr, datum.get_peakResult()}, QwtPlot::yLeft );
 
@@ -640,10 +640,10 @@ ChromatogramWnd::impl::redraw()
                         plot->setAxisTitle( QwtPlot::yLeft, QwtText( QString::fromStdString( *label ) ) );
                 }
 
-                if (( datum.id() != datum_.id() ) && ( datum.idFolium_ != datum_.idFolium() )) { // this is not currently focused chromatogram
+                if ( datum.uuid() != datum_.uuid() ) { // this is not currently focused chromatogram
                     if ( auto pks = datum.get_peakResult() ) {
                         peakTable_->addData( adcontrols::PeakResult{ pks->baselines(), pks->peaks(), chr->isCounting() }, idx + 1, false );
-                        datum.idx_ = idx + 1;
+                        datum.setIdx( idx + 1 );
                     }
                 }
                 ++idx;

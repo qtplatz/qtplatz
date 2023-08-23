@@ -37,14 +37,14 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    struct datafolder {
+    class datafolder {
         int idx_;
-        std::wstring filename_;
+        std::string filename_;
         QString display_name_; // fileneme::folium.name
         portfolio::Folium folium_;
-        std::wstring idFolium_;
-        boost::uuids::uuid idfolium_;
-        std::wstring idCentroid_;
+        // std::wstring idFolium_;
+        // boost::uuids::uuid idfolium_;
+        // std::wstring idCentroid_;
 
         std::weak_ptr< adcontrols::MassSpectrum > primary_;   // usually profile, TBD for histogram data
         std::weak_ptr< adcontrols::MassSpectrum > profiledHistogram_;
@@ -56,18 +56,32 @@ namespace dataproc {
         std::shared_ptr< adcontrols::Chromatogram > overlayChromatogram_;
         std::shared_ptr< adcontrols::MassSpectrum > self_profiled_histogram_; // locally created
         bool isCounting_;
-
+        bool isChecked_;
+    public:
         datafolder();
         // datafolder( const std::wstring& filename, const portfolio::Folium& folium );
         datafolder( const Dataprocessor *, const portfolio::Folium& folium );
         datafolder( const datafolder& t );
 
-        QString display_name() const { return display_name_; }
-        boost::uuids::uuid id() const { return idfolium_; }
-        std::wstring idFolium() const { return idFolium_; }
         operator bool () const;
 
+        int idx() const;
+        void setIdx( int );
+
+        const std::string& filename() const;
+        QString display_name() const;
+        portfolio::Folium& folium();
+        const portfolio::Folium& folium() const;
+        boost::uuids::uuid uuid() const;
+        [[deprecated]] std::wstring idFolium() const { return folium_.id<wchar_t>(); }
+
         bool isCounting() const { return isCounting_; } // a.k.a. PKD data source
+        bool isChecked() const { return isChecked_; }
+
+        std::shared_ptr< const adcontrols::Chromatogram > overlayChromatogram() const { return overlayChromatogram_; }
+        void setOverlayChromatogram( std::shared_ptr< adcontrols::Chromatogram >&& ptr ) { overlayChromatogram_ = std::move( ptr ); }
+
+        boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool > > get_spectrum_for_overlay() const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_primary() const;
         boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool /* isHistogram */> > get_processed() const;
         std::shared_ptr< const adcontrols::MassSpectrum > get_primary_spectrum() const;
@@ -83,6 +97,9 @@ namespace dataproc {
         template< typename container > static
         typename container::const_iterator find( const container& v, const boost::uuids::uuid& uuid ) {
             return std::find_if( v.begin(), v.end(), [&]( const auto& a ){ return a.id() == uuid; } );
-        };
+        }
+    private:
+        class folium_visitor;
+        class attachment_visitor;
     };
 }

@@ -36,12 +36,11 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/variant/static_visitor.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
-using namespace dataproc;
+namespace dataproc {
 
-namespace {
-
-    struct attachment_visitor : public boost::static_visitor< void > {
+    struct datafolder::attachment_visitor : public boost::static_visitor< void > {
         datafolder* this_;
         const portfolio::Folium& folium_;
         attachment_visitor( datafolder* t, const portfolio::Folium& f ) : this_( t ), folium_( f ) {}
@@ -69,7 +68,7 @@ namespace {
         }
     };
 
-    struct folium_visitor : public boost::static_visitor< void > {
+    struct datafolder::folium_visitor : public boost::static_visitor< void > {
         datafolder* this_;
         const portfolio::Folium& folium_;
         folium_visitor( datafolder* t, const portfolio::Folium& f ) : this_( t ), folium_( f ) {};
@@ -88,18 +87,24 @@ namespace {
     };
 }
 
+using namespace dataproc;
+
+
 datafolder::datafolder() : idx_(0)
                          , isCounting_( false )
+                         , isChecked_( false )
 {
 }
 
 datafolder::datafolder( const Dataprocessor * dp
                         , const portfolio::Folium& folium ) : idx_( 0 )
-                                                            , filename_( dp->filename() )
+                                                            , filename_( dp->filename<char>() )
                                                             , display_name_( make_display_name( dp->filename(), folium ) )
                                                             , folium_( folium )
                                                             , idFolium_( folium.id() )
                                                             , idfolium_( folium.uuid() )
+                                                            , isCounting_( false )
+                                                            , isChecked_( folium.attribute( "isChecked" ) == "true" )
 {
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
                                   , std::shared_ptr< adcontrols::Chromatogram >
@@ -165,6 +170,48 @@ datafolder::operator bool() const
     return ( primary_.lock() || chromatogram_.lock() );
 }
 
+int
+datafolder::idx() const
+{
+    return idx_;
+}
+
+void
+datafolder::setIdx( int idx )
+{
+    idx_ = idx;
+}
+
+const std::string&
+datafolder::filename() const
+{
+    return filename_;
+}
+
+QString datafolder::display_name() const
+{
+    return display_name_;
+}
+
+portfolio::Folium&
+datafolder::folium()
+{
+    return folium_;
+}
+
+const portfolio::Folium&
+datafolder::folium() const
+{
+    return folium_;
+}
+
+boost::uuids::uuid
+datafolder::uuid() const
+{
+    return folium_.uuid();
+}
+
+
 std::shared_ptr< const adcontrols::MassSpectrum >
 datafolder::get_profiled_histogram() const
 {
@@ -201,6 +248,19 @@ datafolder::get_processed() const
         }
         return {};
     }
+}
+
+boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool > >
+datafolder::get_spectrum_for_overlay() const
+{
+    if ( auto ppkd = profiledHistogram_.lock() )
+        return {{ ppkd, true }};
+
+    if ( auto prime = primary_.lock() ) {
+        if ( ! prime->isCentroid() )
+            return {{ prime, false }};
+    }
+    return {};
 }
 
 std::shared_ptr< adcontrols::Chromatogram >

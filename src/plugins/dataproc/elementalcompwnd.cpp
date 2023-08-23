@@ -248,7 +248,7 @@ void
 ElementalCompWnd::handleRemoveSession( Dataprocessor * processor )
 {
     for ( auto& datum: impl_->data_ ) {
-        if ( processor->filename() == datum.filename_ ) {
+        if ( processor->filename<char>() == datum.filename() ) {
             for ( auto i : { impl::idProfile, impl::idProcessed } ) {
                 impl_->plots_[ i ]->setTitle( QString() );
                 impl_->plots_[ i ]->clear();
@@ -259,7 +259,7 @@ ElementalCompWnd::handleRemoveSession( Dataprocessor * processor )
     }
     impl_->data_.erase(
         std::remove_if( impl_->data_.begin(), impl_->data_.end()
-                        , [](const auto& d){ return d.filename_.empty(); } )
+                        , [](const auto& d){ return d.filename().empty(); } )
         , impl_->data_.end() );
 }
 

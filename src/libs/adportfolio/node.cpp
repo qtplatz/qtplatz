@@ -85,6 +85,15 @@ Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : node_( e )
 {
     std::string id = node_.attribute( "dataId" ).value();
     uuid_ = uuidFromString( id );
+    // validation
+    if ( ! id.empty() ) {
+        std::ostringstream o;
+        o << uuid_;
+        if ( id != o.str() ) {
+            ADDEBUG() << "===== Warning: uuid and dataId did not match: " << std::make_pair( id, uuid_ ) << " -- attribute fixed to uuid";
+            setAttribute( "dataId", o.str() ); // make sure uuid and string id match, since old data generated on Windows has CreateGUID format value
+        }
+    }
 }
 
 Node::Node( const Node& t ) : node_( t.node_ )
@@ -130,11 +139,18 @@ Node::uuid() const
     return uuid_;
 }
 
-std::wstring
+template<> std::wstring
 Node::id() const
 {
-    return attribute( L"dataId" );
+    return attribute( L"dataId" ); // identical to uuid, but wstring
 }
+
+template<> std::string
+Node::id() const
+{
+    return attribute( "dataId" );  // identical to uuid, but string
+}
+
 
 void
 Node::id( const std::wstring& value )
@@ -156,17 +172,27 @@ Node::isFolder( bool f )
         setAttribute( L"folderType", L"directory" );
 }
 
-std::wstring
-Node::dataClass() const
-{
-    return attribute( L"dataType" );
-}
+template<> std::string Node::dataClass() const       { return attribute( "dataType" ); }
+template<> std::wstring Node::dataClass() const      { return attribute( L"dataType" ); }
+
+// std::wstring
+// Node::dataClass() const
+// {
+//     return attribute( L"dataType" );
+// }
 
 void
 Node::dataClass( const std::wstring& value )
 {
-    setAttribute( L"dataType", value );
+     setAttribute( L"dataType", value );
 }
+
+void
+Node::dataClass( const std::string& value )
+{
+     setAttribute( "dataType", value );
+}
+
 
 std::wstring
 Node::attribute( const std::wstring& key ) const

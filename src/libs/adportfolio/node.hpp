@@ -48,18 +48,22 @@ namespace portfolio {
             operator bool () const;
 
             // std::wstring name() const;
-            template< typename T = wchar_t > std::basic_string< T > name() const;
+            template< typename char_type = wchar_t > std::basic_string< char_type > name() const;
             void name( const std::string& name );
             void name( const std::wstring& name );
 
             const boost::uuids::uuid& uuid() const;
-            std::wstring id() const;
+
+            // id() returns identical string with uuid
+            template< typename char_type = wchar_t > std::basic_string< char_type > id() const;
             void id( const std::wstring& );
+            void id( const std::string& );
 
             bool isFolder() const;
             void isFolder( bool );
 
-            std::wstring dataClass() const;
+            template< typename char_type = wchar_t > std::basic_string< char_type > dataClass() const;
+            void dataClass( const std::string& );
             void dataClass( const std::wstring& );
 
             std::wstring attribute( const std::wstring& ) const;
@@ -100,12 +104,17 @@ namespace portfolio {
             boost::uuids::uuid uuid_;
         };
 
+        template<> std::string  Node::id() const;
+        template<> std::wstring Node::id() const;
         template<> std::string Node::filename() const;
         template<> std::wstring Node::filename() const;
         template<> std::string Node::name() const;
         template<> std::wstring Node::name() const;
         template<> std::vector< std::pair< std::wstring, std::wstring > > Node::attributes< std::wstring >() const;
-        template<> std::vector< std::pair< std::string, std::string > > Node::attributes< std::string >() const;
+        template<> std::vector< std::pair< std::string, std::string > >   Node::attributes< std::string >() const;
+
+        template<> std::string Node::dataClass() const;
+        template<> std::wstring Node::dataClass() const;
 
         template<> void Node::appendAttributes( const std::vector< std::pair<std::wstring, std::wstring> >&, bool );
         template<> void Node::appendAttributes( const std::vector< std::pair<std::string, std::string> >&, bool );
