@@ -310,9 +310,9 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     auto pfolium = folium.is_attachment() ? folium.parentFolium() : folium;  // parent folium if child selected
     auto datum = datafolder( processor, pfolium );
 
-    ADDEBUG() << datum.folium().name();
-
     auto& plot = impl_->plots_[ datum.isChecked() ? 1 : 0 ];
+
+    plot->setNormalizedY( QwtPlot::yLeft, false );
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) { // selected, whether folium or attached
         impl_->selProcessed_ = folium.is_attachment(); // selected node is an attachment
@@ -342,7 +342,8 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 void
 MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
 {
-    ADDEBUG() << "--------------------->";
+    if ( folio.empty() )
+        return;
     std::vector< datafolder > data;
     data.emplace_back( impl_->currData_ );
     for ( auto folium: folio ) {
@@ -357,11 +358,16 @@ MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
     auto& plot = impl_->plots_[ 0 ];
     int idx(0);
 
+    if ( data.size() > 1 ) {
+        plot->setNormalizedY( QwtPlot::yLeft, true );
+        plot->setNormalizedY( QwtPlot::yRight, true );
+    }
+
     impl_->overlays_ = std::move( data );
     for ( const auto& datum: impl_->overlays_ ) {
         if ( auto d = datum.get_spectrum_for_overlay() ) {
             auto [ms,isCounting] = *d;
-            ADDEBUG() << "\t--------> " << datum.folium().name() << " isChecked: " << datum.isChecked();
+            // ADDEBUG() << "\t--- overlay [" << idx << "] --> " << datum.folium().name() << " isChecked: " << datum.isChecked();
             plot->setData( ms, idx++, isCounting ? QwtPlot::yLeft : QwtPlot::yRight );
         }
     }

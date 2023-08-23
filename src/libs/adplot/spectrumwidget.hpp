@@ -74,7 +74,11 @@ namespace adplot {
         boost::optional< std::pair< double, double > > yScale( QwtPlot::Axis ) const;
         void replotYScale();
 
+        void setNormalizedY( QwtPlot::Axis, bool );
+
     private:
+        class xSeriesData;
+        class TraceData;
         class impl;
         impl * impl_;
         uint32_t viewid_;
