@@ -98,11 +98,8 @@ datafolder::datafolder() : idx_(0)
 
 datafolder::datafolder( const Dataprocessor * dp
                         , const portfolio::Folium& folium ) : idx_( 0 )
-                                                            , filename_( dp->filename<char>() )
                                                             , display_name_( make_display_name( dp->filename(), folium ) )
                                                             , folium_( folium )
-                                                            , idFolium_( folium.id() )
-                                                            , idfolium_( folium.uuid() )
                                                             , isCounting_( false )
                                                             , isChecked_( folium.attribute( "isChecked" ) == "true" )
 {
@@ -131,11 +128,8 @@ datafolder::datafolder( const Dataprocessor * dp
 }
 
 datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
-                                              , filename_( t.filename_ )
                                               , display_name_( t.display_name_ )
-                                              , idFolium_( t.idFolium_ ) // wstring
-                                              , idfolium_( t.idfolium_ ) // uuid
-                                              , idCentroid_( t.idCentroid_ )
+                                              , folium_( t.folium_ )
                                               , primary_( t.primary_ )
                                               , profiledHistogram_( t.profiledHistogram_ )
                                               , centroid_( t.centroid_ )
@@ -143,6 +137,8 @@ datafolder::datafolder( const datafolder& t ) : idx_( t.idx_ )
                                               , peakResult_( t.peakResult_ )
                                               , overlaySpectrum_( t.overlaySpectrum_ )
                                               , overlayChromatogram_( t.overlayChromatogram_ )
+                                              , isCounting_( t.isCounting_ )
+                                              , isChecked_( t.isChecked_ )
 {
 }
 
@@ -182,10 +178,18 @@ datafolder::setIdx( int idx )
     idx_ = idx;
 }
 
-const std::string&
+template<>
+std::string
 datafolder::filename() const
 {
-    return filename_;
+    return folium_.filename<char>();
+}
+
+template<>
+std::wstring
+datafolder::filename() const
+{
+    return folium_.filename<wchar_t>();
 }
 
 QString datafolder::display_name() const

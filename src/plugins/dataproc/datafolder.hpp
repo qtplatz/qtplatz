@@ -39,12 +39,8 @@ namespace dataproc {
 
     class datafolder {
         int idx_;
-        std::string filename_;
         QString display_name_; // fileneme::folium.name
         portfolio::Folium folium_;
-        // std::wstring idFolium_;
-        // boost::uuids::uuid idfolium_;
-        // std::wstring idCentroid_;
 
         std::weak_ptr< adcontrols::MassSpectrum > primary_;   // usually profile, TBD for histogram data
         std::weak_ptr< adcontrols::MassSpectrum > profiledHistogram_;
@@ -68,7 +64,7 @@ namespace dataproc {
         int idx() const;
         void setIdx( int );
 
-        const std::string& filename() const;
+        template< typename char_type = char > std::basic_string< char_type > filename() const;
         QString display_name() const;
         portfolio::Folium& folium();
         const portfolio::Folium& folium() const;
@@ -102,4 +98,7 @@ namespace dataproc {
         class folium_visitor;
         class attachment_visitor;
     };
+
+    template<> std::basic_string< char > datafolder::filename() const;
+    template<> std::basic_string< wchar_t > datafolder::filename() const;
 }

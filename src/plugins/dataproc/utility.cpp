@@ -40,33 +40,51 @@ namespace dataproc {
 
     namespace utility {
 
-        template<> std::pair<bool, QString>
+        template<>
+        template<>
+        std::optional< QString >
+        save_image_as< SVG >::operator ()( adplot::plot* plot, const portfolio::Folium& folium, std::string&& insertor ) const
+        {
+            QFileDialog dlg( nullptr, QObject::tr( "Save SVG file" ) );
+            dlg.setDirectory( make_filename<SVG>()( folium, std::move(insertor), document::instance()->recentFile( Constants::GRP_SVG_FILES ) ) );
+            dlg.setAcceptMode( QFileDialog::AcceptSave );
+            dlg.setFileMode( QFileDialog::AnyFile );
+            dlg.setNameFilters( QStringList{ "SVG(*.svg)"} );
+            if ( dlg.exec() ) {
+                auto files = dlg.selectedFiles();
+                if ( !files.isEmpty() ) {
+                    auto name = files.at( 0 );
+                    adplot::plot::copyImageToFile( plot, name, "svg" );
+                    document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
+                    return name;
+                }
+            }
+            return {};
+        }
+
+        template<>
+        template<>
+        std::optional< QString >
         save_image_as< SVG >::operator ()( adplot::plot* plot, const std::wstring& foliumId, std::string&& insertor ) const
         {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                auto folium = dp->getPortfolio().findFolium( foliumId );
-                if ( folium ) {
-                    QFileDialog dlg( nullptr, QObject::tr( "Save SVG file" ) );
-                    dlg.setDirectory( make_filename<SVG>()( folium, std::move(insertor), document::instance()->recentFile( Constants::GRP_SVG_FILES ) ) );
-                    dlg.setAcceptMode( QFileDialog::AcceptSave );
-                    dlg.setFileMode( QFileDialog::AnyFile );
-                    dlg.setNameFilters( QStringList{ "SVG(*.svg)"} );
-                    if ( dlg.exec() ) {
-                        auto files = dlg.selectedFiles();
-                        if ( !files.isEmpty() ) {
-                            auto name = files.at( 0 );
-                            adplot::plot::copyImageToFile( plot, name, "svg" );
-                            document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
-                            return { true, name };
-                        }
-                    }
-                }
+                return (*this)(plot, dp->getPortfolio().findFolium( foliumId ), std::move( insertor ) );
             }
-            return { false, {} };
+            return {};
         }
 
+        template<>
+        template<>
+        std::optional< QString >
+        save_image_as< SVG >::operator ()( adplot::plot* plot, const boost::uuids::uuid& foliumId, std::string&& insertor ) const
+        {
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                return (*this)(plot, dp->getPortfolio().findFolium( foliumId ), std::move( insertor ) );
+            }
+            return {};
+        }
 
-        template<> std::pair<bool, QString>
+        template<> std::optional< QString >
         save_image_as< SVG >::operator ()( adplot::plot* plot ) const
         {
             ADDEBUG() << "=========================== save svg ================= " << document::instance()->recentFile( Constants::GRP_SVG_FILES ).toStdString();
@@ -83,11 +101,11 @@ namespace dataproc {
                         auto name = files.at( 0 );
                         adplot::plot::copyImageToFile( plot, name, "svg" );
                         document::instance()->addToRecentFiles( name, Constants::GRP_SVG_FILES );
-                        return { true, name };
+                        return name;
                     }
                 }
             }
-            return { false, {} };
+            return {};
         }
 
         //<----------

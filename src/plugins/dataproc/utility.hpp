@@ -28,7 +28,7 @@
 #include "make_filename.hpp"
 #include <adportable/optional.hpp>
 #include <boost/filesystem.hpp>
-
+#include <boost/uuid/uuid.hpp>
 
 namespace portfolio {
     class Folium;
@@ -43,14 +43,25 @@ namespace dataproc {
 
         template< PrintFormatType >
         struct save_image_as {
-            std::pair<bool, QString> operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& insertor = {} ) const;
-            std::pair<bool, QString> operator ()( adplot::plot* ) const;
+            // std::pair<bool, QString> operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& insertor = {} ) const;
+            template<typename id_type = std::wstring> std::optional<QString> operator ()( adplot::plot*, const id_type& foliumId, std::string&& insertor = {} ) const;
+
+            std::optional<QString> operator ()( adplot::plot* ) const;
         };
 
-        template<> std::pair<bool, QString>
-        save_image_as< SVG >::operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& ) const;
+        template<>
+        template<> std::optional<QString>
+        save_image_as< SVG >::operator ()( adplot::plot*, const portfolio::Folium&, std::string&& ) const;
 
-        template<> std::pair<bool, QString>
+        template<>
+        template<> std::optional<QString>
+        save_image_as< SVG >::operator ()( adplot::plot*, const std::wstring&, std::string&& ) const;
+
+        template<>
+        template<> std::optional<QString>
+        save_image_as< SVG >::operator ()( adplot::plot*, const boost::uuids::uuid&, std::string&& ) const;
+
+        template<> std::optional<QString>
         save_image_as< SVG >::operator ()( adplot::plot* ) const;
     }
 

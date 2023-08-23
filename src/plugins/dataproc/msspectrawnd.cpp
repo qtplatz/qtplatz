@@ -112,7 +112,7 @@ namespace dataproc {
         bool isTimeAxis_;
         bool dirty_;
         bool selProcessed_;
-        std::deque< datafolder > overlays_;
+        std::vector< datafolder > overlays_; // last = priority
     };
 
 }
@@ -309,9 +309,10 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
     auto pfolium = folium.is_attachment() ? folium.parentFolium() : folium;  // parent folium if child selected
     auto datum = datafolder( processor, pfolium );
-    bool isChecked = pfolium.attribute( L"isChecked" ) == L"true";
 
-    auto& plot = impl_->plots_[ isChecked ? 1 : 0 ];
+    ADDEBUG() << datum.folium().name();
+
+    auto& plot = impl_->plots_[ datum.isChecked() ? 1 : 0 ];
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) { // selected, whether folium or attached
         impl_->selProcessed_ = folium.is_attachment(); // selected node is an attachment
@@ -329,38 +330,42 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
     }
 
-    if ( isChecked ) {
+    if ( datum.isChecked() ) {
         impl_->data_.clear();
         impl_->data_.emplace_back( datum );
         impl_->plots_[ 0 ]->clear();
         impl_->plots_[ 0 ]->replot();
-    } else {
-        impl_->currData_ = datum;
     }
+    impl_->currData_ = datum;
 }
 
 void
 MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
 {
-    std::deque< datafolder > data;
+    ADDEBUG() << "--------------------->";
+    std::vector< datafolder > data;
+    data.emplace_back( impl_->currData_ );
     for ( auto folium: folio ) {
         if ( folium.attribute( "dataType" ) == "MassSpectrum" ) {
             if ( auto dp = SessionManager::instance()->find_processor( folium.filename<char>() ) ) {
                 auto self( dp->shared_from_this() );
-                data.emplace_front( datafolder( dp, folium ) );
+                data.emplace_back( datafolder( dp, folium ) );
             }
         }
     }
-    impl_->overlays_ = std::move( data );
 
+    auto& plot = impl_->plots_[ 0 ];
+    int idx(0);
+
+    impl_->overlays_ = std::move( data );
     for ( const auto& datum: impl_->overlays_ ) {
         if ( auto d = datum.get_spectrum_for_overlay() ) {
-            auto& plot = impl_->plots_[ datum.isChecked() ? 1 : 0 ];
-            plot->setData( std::get<0>(*d), plot->size(), QwtPlot::yLeft );
+            auto [ms,isCounting] = *d;
+            ADDEBUG() << "\t--------> " << datum.folium().name() << " isChecked: " << datum.isChecked();
+            plot->setData( ms, idx++, isCounting ? QwtPlot::yLeft : QwtPlot::yRight );
         }
     }
-    for ( auto& plot: impl_->plots_ )
-        plot->replot();
+    plot->replot();
 }
 
 void

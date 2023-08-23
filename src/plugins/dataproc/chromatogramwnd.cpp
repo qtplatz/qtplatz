@@ -571,12 +571,12 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
                     } );
 
     menu.addAction( tr( "Save SVG File" ), [index,this](){
-        std::wstring idFolium;
+        boost::uuids::uuid idFolium;
         if ( index == 1 && !overlays_.empty() ) {
-            idFolium = overlays_.at( 0 ).idFolium();
+            idFolium = overlays_.at( 0 ).uuid(); //idFolium();
         }
         if ( index == 0 && datum_ ) {
-            idFolium = datum_.idFolium();
+            idFolium = datum_.uuid();
         }
         utility::save_image_as< SVG >()( plots_[ index ].get(), idFolium );
     });
