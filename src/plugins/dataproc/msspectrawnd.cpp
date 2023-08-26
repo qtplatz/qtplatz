@@ -64,10 +64,12 @@
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_marker.h>
 #include <qwt_symbol.h>
-#include <deque>
 #include <algorithm>
+#include <bitset>
 #include <cmath>
+#include <deque>
 #include <filesystem>
+#include <numeric>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -327,8 +329,9 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         }
         plot->setData( ptr, idx, QwtPlot::yLeft );
         plot->setAxisTitle( QwtPlot::yLeft, datum.isCounting() ? QwtText("Counts") : QwtText( "Intensity (a.u.)" ) );
-
     }
+    for ( auto& p: impl_->plots_ )
+        p->enableAxis( QwtPlot::yRight, false );
 
     if ( datum.isChecked() ) {
         impl_->data_.clear();
@@ -345,7 +348,6 @@ MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
     if ( folio.empty() )
         return;
     std::vector< datafolder > data;
-    data.emplace_back( impl_->currData_ );
     for ( auto folium: folio ) {
         if ( folium.attribute( "dataType" ) == "MassSpectrum" ) {
             if ( auto dp = SessionManager::instance()->find_processor( folium.filename<char>() ) ) {
@@ -356,21 +358,39 @@ MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
     }
 
     auto& plot = impl_->plots_[ 0 ];
-    int idx(0);
 
-    if ( data.size() > 1 ) {
-        plot->setNormalizedY( QwtPlot::yLeft, true );
-        plot->setNormalizedY( QwtPlot::yRight, true );
-    }
+    // if ( data.size() > 1 ) {
+    //     plot->setNormalizedY( QwtPlot::yLeft, true );
+    // }
+    std::bitset< 2 > yAxes{ 0 };
+    size_t nPKD = std::accumulate( data.begin(), data.end(), 0, [](size_t a, const auto& d){ return a + (d.isCounting() ? 1 : 0); } );
+    yAxes[0] = nPKD;
+    yAxes[1] = data.size() - nPKD;
 
     impl_->overlays_ = std::move( data );
-    for ( const auto& datum: impl_->overlays_ ) {
-        if ( auto d = datum.get_spectrum_for_overlay() ) {
+    int idx(0);
+    for ( auto it = impl_->overlays_.rbegin(); it != impl_->overlays_.rend(); ++it ) {
+        if ( auto d = it->get_spectrum_for_overlay() ) {
             auto [ms,isCounting] = *d;
-            // ADDEBUG() << "\t--- overlay [" << idx << "] --> " << datum.folium().name() << " isChecked: " << datum.isChecked();
-            plot->setData( ms, idx++, isCounting ? QwtPlot::yLeft : QwtPlot::yRight );
+            if ( yAxes == 0b011 ) { // use yRight
+                plot->setData( ms, idx++, it->isCounting() ? QwtPlot::yRight : QwtPlot::yLeft );
+                plot->setData( ms, idx++, it->isCounting() ? QwtPlot::yRight : QwtPlot::yLeft );
+            } else {
+                plot->setData( ms, idx++, QwtPlot::yLeft );
+            }
         }
     }
+    if ( yAxes.count() == 2 ) {
+        plot->enableAxis( QwtPlot::yRight, true );
+        plot->setAxisTitle( QwtPlot::yLeft, QwtText("Counts") );
+        plot->setAxisTitle( QwtPlot::yRight, QwtText( "Intensity (a.u.)" ) );
+        // impl_->plots_[1]->enableAxis( QwtPlot::yRight, true );
+    } else {
+        plot->enableAxis( QwtPlot::yRight, false );
+        plot->setAxisTitle( QwtPlot::yLeft, yAxes[0] ? QwtText( "Counts" ) : QwtText( "Intensity (a.u.)" ) );
+        // impl_->plots_[1]->enableAxis( QwtPlot::yRight, false );
+    }
+
     plot->replot();
 }
 

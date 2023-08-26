@@ -27,10 +27,11 @@
 
 #include "plot.hpp"
 #include "adplot_global.hpp"
-#include <boost/optional.hpp>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <tuple>
+
 class QwtPlotZoomer;
 
 namespace adcontrols { class MassSpectrum; class MassSpectrometer; }
@@ -71,10 +72,11 @@ namespace adplot {
         void setViewId( uint32_t id );
         uint32_t viewId() const;
         void setYScale( double top, double bottom, QwtPlot::Axis );
-        boost::optional< std::pair< double, double > > yScale( QwtPlot::Axis ) const;
+        std::optional< std::pair< double, double > > yScale( QwtPlot::Axis ) const;
         void replotYScale();
 
         void setNormalizedY( QwtPlot::Axis, bool );
+        bool normalizedY( QwtPlot::Axis ) const;
 
     private:
         class xSeriesData;

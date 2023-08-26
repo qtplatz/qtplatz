@@ -172,11 +172,13 @@ namespace dataproc {
     public:
         QStandardItemModel * pModel_;
         NavigationDelegate * pDelegate_;
+        QModelIndex currIndex_;
 
         QTreeView * treeView() { return this; }
         impl( NavigationWidget * p ) : QTreeView( p )
                                      , pModel_( new QStandardItemModel )
-                                     , pDelegate_( new NavigationDelegate ) {
+                                     , pDelegate_( new NavigationDelegate )
+                                     , currIndex_( {} ) {
 
             this->setModel( pModel_ );
             this->setItemDelegate( pDelegate_ );
@@ -184,9 +186,17 @@ namespace dataproc {
             this->setTextElideMode( Qt::ElideMiddle );
 
             QObject::connect( selectionModel()
-                              , &QItemSelectionModel::currentChanged
+                              , &QItemSelectionModel::currentRowChanged
                               , this, [&](const auto& current, const auto& previous ){
-                                  handle_activated( current );
+                                  scrollTo( current, EnsureVisible );
+                                  currIndex_ = current;
+                                  handleCurrentRowChanged( current );
+                              });
+
+            QObject::connect( selectionModel()
+                              , &QItemSelectionModel::selectionChanged
+                              , this, [&](const auto& selected, const auto& deselected ){
+                                  handleSelectionChanged( selected, deselected );
                               });
         }
 
@@ -195,12 +205,8 @@ namespace dataproc {
             delete pDelegate_;
         }
 
-        void currentChanged( const QModelIndex& current, const QModelIndex& previous ) override {
-            scrollTo( current, EnsureVisible );
-        }
-
         void
-        handle_activated( const QModelIndex& index ) {
+        handleCurrentRowChanged( const QModelIndex& index ) {
             if ( index.isValid() ) {
                 QVariant data = index.data( Qt::UserRole );
                 if ( data.canConvert< portfolio::Folder >() ) {
@@ -209,25 +215,26 @@ namespace dataproc {
                     qtwrapper::waitCursor wait;
                     Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
                     processor->setCurrentSelection( folder );
-                } else if ( data.canConvert< portfolio::Folium >() ) {
+                }  else if ( data.canConvert< portfolio::Folium >() ) {
+                    std::vector< portfolio::Folium > folio;
                     portfolio::Folium folium = data.value< portfolio::Folium >();
                     if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
                         qtwrapper::waitCursor wait;
                         processor->setCurrentSelection( folium );
-
-                        // ---------> added for multiple selection of chromatograms
-                        std::vector< portfolio::Folium > folio;
-                        for ( const auto& row: selectionModel()->selectedRows() ) {
-                            if ( row != index &&
-                                 row.data( Qt::UserRole ).canConvert< portfolio::Folium >() ) {
-                                if ( (row.parent().data( Qt::EditRole ) == "Chromatograms" ) || (row.parent().data( Qt::EditRole ) == "Spectra") )
-                                    folio.emplace_back( row.data( Qt::UserRole ).value< portfolio::Folium >() );
-                            }
-                        }
-                        emit SessionManager::instance()->signalSelections( folio );
                     }
                 }
             }
+        }
+
+        void
+        handleSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected ) {
+            std::vector< portfolio::Folium > folio;
+            for ( const auto& row: selectionModel()->selectedRows() ) {
+                if ( row.data( Qt::UserRole ).canConvert< portfolio::Folium >() )
+                    folio.emplace_back( row.data( Qt::UserRole ).value< portfolio::Folium >() );
+            }
+            if ( folio.size() > 1 )
+                emit SessionManager::instance()->signalSelections( folio );
         }
     };
 
@@ -281,7 +288,7 @@ namespace {
                         o << "," << std::setw(10) << std::setfill('0') << int( match.captured( 3 ).toDouble() * 1000 ); // mDa
                     }
                 } else {
-                    qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
+                    // qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
                     o << item->data( Qt::EditRole ).toString().toStdString();
                 }
             }
@@ -608,13 +615,15 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 void
 NavigationWidget::handle_activated( const QModelIndex& index )
 {
-    impl_->handle_activated( index );
+    ADDEBUG() << "handle_activated: " << index.row() << "\tselections: " << impl_->selectionModel()->selectedRows().size();
+    // impl_->handle_activated( index );
 }
 
 void
 NavigationWidget::handle_clicked( const QModelIndex& index )
 {
-    handle_activated( index );
+    // ADDEBUG() << "handle_clicked: " << index.row() << "\tselections: " << impl_->selectionModel()->selectedRows().size();
+    //handle_activated( index );
 }
 
 void

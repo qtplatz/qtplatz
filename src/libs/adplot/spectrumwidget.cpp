@@ -94,7 +94,7 @@ namespace adplot {
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
                , scaleFcn_( -1 )
-               , yScale1_( boost::none )       // yLeft user specified
+               , yScale1_( {} )       // yLeft user specified
                , normalizedY_{ false }
             {}
         bool autoAnnotation_;
@@ -111,14 +111,16 @@ namespace adplot {
         std::atomic<int> focusedFcn_;
         int scaleFcn_;
         std::mutex mutex_;
-        boost::optional< std::pair< double, double > > yScale1_;
+        std::optional< std::pair< double, double > > yScale1_;
         std::array< bool, QwtPlot::axisCnt > normalizedY_;
+
+        bool normalizedY( QwtPlot::Axis axis ) const { return normalizedY_.at( axis ); }
 
         void clear();
         void update_annotations( plot&, const QRectF&, QwtPlot::Axis );
 		void clear_annotations();
 
-        void handleZoomRect( QRectF& );
+        // void handleZoomRect( QRectF& );
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
 
@@ -141,8 +143,9 @@ namespace adplot {
         xSeriesData( SpectrumWidget * pThis
                      , const adcontrols::MassSpectrum& ms
                      , const QRectF& rc
-                     , bool axisTime ) : impl_( pThis->impl_ )
+                     , bool axisTime ) : pThis_( pThis )
                                        , rect_( rc )
+                                       , xrange_( rc.left(), rc.right() )
                                        , ms_( ms )
                                        , axisTime_( axisTime ) {
         }
@@ -157,10 +160,19 @@ namespace adplot {
             if ( ! indices_.empty() && idx < indices_.size() ) // if colored
                 idx = indices_[ idx ];
             using namespace adcontrols::metric;
-            if ( axisTime_ )
-                return QPointF( scale_to<double, micro>( ms_.time( idx  )), ms_.intensity( idx ) );
-            else
-                return QPointF( ms_.mass( idx ), ms_.intensity( idx ) );
+
+            if ( pThis_->normalizedY( QwtPlot::yLeft ) ) {
+                double i = 1000 * ms_.intensity( idx ) / minmax_.second;
+                if ( axisTime_ )
+                    return QPointF( scale_to<double, micro>( ms_.time( idx )), i );
+                else
+                    return QPointF( ms_.mass( idx ), i );
+            } else {
+                if ( axisTime_ )
+                    return QPointF( scale_to<double, micro>( ms_.time( idx  )), ms_.intensity( idx ) );
+                else
+                    return QPointF( ms_.mass( idx ), ms_.intensity( idx ) );
+            }
         }
 
         QRectF boundingRect() const override {
@@ -171,13 +183,25 @@ namespace adplot {
             const unsigned char * colors = ms_.getColorArray();
             for ( size_t i = 0; i < ms_.size(); ++i ) {
                 if ( color == colors[i] )
-                    indices_.push_back( i );
+                    indices_.emplace_back( i );
             }
             return indices_.size();
         }
+
+        void handleZoomed( const QRectF& rc ) {
+            xrange_ = std::make_pair( rc.left(), rc.right() );
+            auto mm = ms_.minmax_element( xrange_, axisTime_ );
+            minmax_ = std::make_pair( ms_.intensity( mm.first ), ms_.intensity( mm.second ) );
+            if ( pThis_->impl_->normalizedY_[ QwtPlot::yLeft ] ) {
+                ADDEBUG() << "--- xSeriesData: " << xrange_ << ", mm=" << minmax_;
+            }
+        }
+
     private:
-        SpectrumWidget::impl * impl_;
+        SpectrumWidget * pThis_;
         QRectF rect_;
+        std::pair< double, double > xrange_;
+        std::pair< double, double > minmax_;
         const adcontrols::MassSpectrum& ms_;
         std::vector< size_t > indices_; // if centroid with color,
         bool axisTime_;
@@ -195,7 +219,6 @@ namespace adplot {
                                , yAxis_( QwtPlot::yLeft ) {
 
             color_ = color_table[ idx % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) ) ];
-
         }
 
         TraceData( const TraceData& t ) : pThis_( t.pThis_ )
@@ -203,6 +226,7 @@ namespace adplot {
                                         , focusedFcn_( t.focusedFcn_ )
                                         , alpha_( t.alpha_ )
                                         , rect_( t.rect_ )
+                                        , currZoomRect_( t.currZoomRect_ )
                                         , color_( t.color_ )
                                         , yAxis_( t.yAxis_ )
                                         , curves_( t.curves_ )
@@ -226,6 +250,16 @@ namespace adplot {
         void setColor( const QColor& );
         const QRectF& rect() const { return rect_; }
 
+        void handleZoomed( const QRectF& rc ) {
+            currZoomRect_ = rc;
+            for ( auto& curve: curves_ ) {
+                if ( auto data = dynamic_cast< xSeriesData * >(curve->data()) ) {
+                    data->handleZoomed( rc );
+                    // ADDEBUG() << "tracedata zoomed: " << std::make_pair( rc.left(), rc.right() ) << " <-- " << std::make_pair( rect_.left(), rect_.right() );
+                }
+            }
+        }
+
     private:
         void setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, QwtPlot::Axis );
         void setCentroidData( plot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, QwtPlot::Axis );
@@ -236,6 +270,7 @@ namespace adplot {
         int focusedFcn_;
         uint8_t alpha_;
         QRectF rect_;
+        QRectF currZoomRect_;
         QColor color_;
         QwtPlot::Axis yAxis_;
     public:
@@ -324,6 +359,7 @@ QRectF
 SpectrumWidget::yScaleHock( const QRectF& rc )
 {
     QRectF rect(rc);
+
     if ( auto range = impl_->scaleY( rc, QwtPlot::yLeft ) ) {
         rect.setCoords( rc.left(), range->first, rc.right(), range->second );
     }
@@ -391,6 +427,10 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, QwtPlot::Axis yAxis ) const
 {
     boost::optional< std::pair< double, double > > range{ boost::none };
 
+    if ( normalizedY_[ yAxis ] ) {
+        return {{-10,1100}};
+    }
+
     for ( const auto& trace: traces_ ) {
         if ( trace && (trace->yAxis() == yAxis ) ) {
             auto y = trace->y_range( rc.left(), rc.right(), scaleFcn_ );
@@ -406,6 +446,13 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
     bool hasYLeft( false ), hasYRight( false );
 
     left = right = std::make_pair( std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest() );
+
+    // ADDEBUG() << "normalizedY: " << normalizedY_[ QwtPlot::yLeft ];
+
+    if ( normalizedY_[ QwtPlot::yLeft ] ) {
+        left = {-10,1100};
+        return {true,false};
+    }
 
     for ( const auto& trace: traces_ ) {
         if ( trace ) {
@@ -471,6 +518,9 @@ SpectrumWidget::zoomed( const QRectF& rect )
     if ( auto range = impl_->scaleY( rect, QwtPlot::yRight ) ) {
         setAxisScale( QwtPlot::yRight, range->first, range->second ); // set yRight
     }
+
+    for ( auto& trace: impl_->traces_ )
+        trace->handleZoomed( rect );
 
     impl_->update_annotations( *this, rect, impl_->yAxisForAnnotation_ );
     replot();
@@ -563,6 +613,12 @@ SpectrumWidget::setNormalizedY( QwtPlot::Axis axis, bool normalized )
 {
     if ( QwtPlot::isAxisValid( axis ) )
         impl_->normalizedY_[ axis ] = normalized;
+}
+
+bool
+SpectrumWidget::normalizedY( QwtPlot::Axis axis ) const
+{
+    return impl_->normalizedY_[ axis ];
 }
 
 void
@@ -716,11 +772,11 @@ SpectrumWidget::rescaleY( int fcn )
     yZoom( z.x(), z.x() + z.width() );
 }
 
-boost::optional< std::pair< double, double > >
+std::optional< std::pair< double, double > >
 SpectrumWidget::yScale( QwtPlot::Axis yAxis ) const
 {
     if ( yAxis == QwtPlot::yRight ) {
-        return boost::none;
+        return {};
     } else {
         return impl_->yScale1_;
     }
@@ -733,7 +789,7 @@ SpectrumWidget::setYScale( double top, double bottom, QwtPlot::Axis yAxis )
         bool yAuto(false);
         if ( adportable::compare< double >::essentiallyEqual( top, bottom ) ) {
             yAuto = true;
-            impl_->yScale1_ = boost::none;
+            impl_->yScale1_ = {};
         } else {
             yAuto = false;
             impl_->yScale1_ = std::make_pair(top, bottom);
@@ -796,7 +852,7 @@ SpectrumWidget::TraceData::setProfileData( plot& plot, const adcontrols::MassSpe
 
         auto ptr = std::make_shared< adPlotCurve >();
         ptr->attach( &plot );
-        curves_.push_back( ptr );
+        curves_.emplace_back( ptr );
 
         int cid = ( idx_ + fcn ) % ( sizeof(color_table)/sizeof(color_table[0]) );
         QColor color( color_table[ cid ] );
@@ -872,6 +928,9 @@ void
 SpectrumWidget::TraceData::redraw( plot& plot, SpectrumWidget::HorizontalAxis axis, QRectF& rcLeft, QRectF& rcRight )
 {
     QRectF rect;
+
+    ADDEBUG() << "TraceData::redraw x = " << std::make_pair( rcLeft.left(), rcLeft.right() );
+
     if ( auto p = pSpectrum_ ) {
         __set( plot, p, rect, axis, yAxis_ );
 
