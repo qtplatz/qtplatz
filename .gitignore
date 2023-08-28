@@ -4,6 +4,7 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+.cache
 *~
 *.a
 *.core
