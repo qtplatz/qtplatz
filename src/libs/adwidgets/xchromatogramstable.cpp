@@ -243,7 +243,9 @@ namespace {
             }
         }
 
-        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
+        QWidget * createEditor( QWidget * parent
+                                , const QStyleOptionViewItem &option
+                                , const QModelIndex& index ) const override {
             if ( index.column() == c_algo ) {
                 auto cbx = new QComboBox( parent );
                 cbx->addItems( { "Area", "Height", "Counts" } );
@@ -340,14 +342,17 @@ XChromatogramsTable::onInitialUpdate()
                  auto m = getValue();
                  verticalHeader()->moveSection( newVisualIndex, oldVisualIndex );
                  setValue( m );
+                 emit valueChanged();
              });
 
     connect( model, &QAbstractItemModel::rowsInserted, this, [&](const QModelIndex&, int first, int last ){
         color_legend::update_color_legends( impl_->model_, first );
+        emit valueChanged();
     });
 
     connect( model, &QAbstractItemModel::rowsRemoved, this, [&](const QModelIndex&, int first, int last ){
         color_legend::update_color_legends( impl_->model_, first );
+        emit valueChanged();
     });
 }
 
