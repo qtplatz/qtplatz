@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2021 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,7 +25,6 @@
 #include "waveformwnd.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "moleculeswidget.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/tdcdoc.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
@@ -74,6 +73,7 @@
 #include <chrono>
 #include <ratio>
 #include <sstream>
+#include <thread>
 
 namespace accutof { namespace acquire {
 
@@ -92,7 +92,58 @@ namespace accutof { namespace acquire {
             }
         };
 
-    }
+        /////////////////////////////////////////
+
+        class WaveformWnd::impl {
+            std::mutex mutex_;
+        public:
+            std::atomic< bool > blockTraces_;
+
+            impl() : blockTraces_( false ) {
+            }
+        };
+
+        /////////////////////////////////////////
+
+    } // acquire
+} // accutof
+
+namespace {
+
+    class delayed_execution : public std::enable_shared_from_this< delayed_execution > {
+        std::chrono::milliseconds delay_;
+        std::function< void() > callback_;
+        std::thread thread_;
+        std::mutex mutex_;
+        std::condition_variable cv_;
+        std::atomic< bool > stop_waiting_;
+    public:
+        delayed_execution( std::chrono::milliseconds t
+                           , std::function< void() >&& f ) : delay_(t)
+                                                           , callback_( std::move( f ) ) { }
+
+        ~delayed_execution() {
+            thread_.detach();
+        }
+
+        void cancel() {
+            stop_waiting_.store( true );
+            cv_.notify_one();
+        }
+
+        void run() {
+            auto self( shared_from_this() );
+            stop_waiting_.store( false );
+
+            thread_ = std::thread{ [this,self](){
+                std::unique_lock< std::mutex> lock( mutex_ );
+                cv_.wait_for( lock, delay_, [this](){ return stop_waiting_.load(); } );
+                if ( ! stop_waiting_ )
+                    callback_();
+            }};
+        }
+    };
+
 }
 
 using namespace accutof::acquire;
@@ -106,6 +157,7 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , pkdSpectrumEnabled_( true )
                                              , elapsedTime_( 0 )
                                              , numberOfTriggersSinceInject_( 0 )
+                                             , impl_( new impl() )
 {
     hpw_->setViewId( 10 );
 
@@ -118,6 +170,14 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
     connect( document::instance(), &document::traceChanged, this, &WaveformWnd::handleTraceChanged );
     connect( document::instance(), &document::drawSettingChanged, this, &WaveformWnd::handleDrawSettingChanged );
     connect( document::instance(), &document::traceSettingChanged, this, &WaveformWnd::handleTraceSettingChanged );
+
+    auto zoomer = tpw_->zoomer();
+    connect( zoomer, &adplot::Zoomer::zoomed, this, [&](const QRectF& rc){
+        impl_->blockTraces_ = true;
+        using namespace std::chrono_literals;
+        std::make_shared< delayed_execution >( 3000ms
+                                               , [&](){ impl_->blockTraces_ = false; } )->run();
+    });
 }
 
 WaveformWnd::~WaveformWnd()
@@ -127,6 +187,7 @@ WaveformWnd::~WaveformWnd()
     delete tpw_;
     delete hpw_;
     delete spw_;
+    delete impl_;
 }
 
 void
@@ -189,14 +250,14 @@ WaveformWnd::init()
 
     spw_->link( hpw_ );
 
-    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "Counts" ) );
+    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "a.u." ) );
     //tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
     //tpw_->enableAxis( QwtPlot::yRight, true );
 
     if ( auto legend = new QwtLegend() ) {
         tpw_->insertLegend( legend, QwtPlot::LegendPosition( QwtPlot::RightLegend ) );
         QFont font = legend->font();
-        font.setPointSize( 9 );
+        font.setPointSize( 8 );
         legend->setFont( font );
     }
 
@@ -326,6 +387,8 @@ WaveformWnd::handleTraceSettingChanged( int idx, bool enable )
 void
 WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_obsserver */ )
 {
+    if ( impl_->blockTraces_ )
+        return;
     std::vector< std::shared_ptr< adcontrols::Trace > > traces;
 
     document::instance()->getTraces( traces );

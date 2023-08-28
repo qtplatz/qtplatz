@@ -120,6 +120,8 @@ namespace accutof { namespace acquire {
         uint32_t numberOfTriggersSinceInject_;
         std::mutex mutex_;
         std::vector< std::unique_ptr< QwtPlotMarker > > tof_markers_;
+        class impl;
+        impl * impl_;
     };
 
 }
