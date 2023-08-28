@@ -120,10 +120,11 @@ namespace {
     public:
         delayed_execution( std::chrono::milliseconds t
                            , std::function< void() >&& f ) : delay_(t)
-                                                           , callback_( std::move( f ) ) { }
+                                                           , callback_( std::move( f ) ) {}
 
         ~delayed_execution() {
             thread_.detach();
+            ADDEBUG() << "\tdone delayed_execution.";
         }
 
         void cancel() {
@@ -134,7 +135,6 @@ namespace {
         void run() {
             auto self( shared_from_this() );
             stop_waiting_.store( false );
-
             thread_ = std::thread{ [this,self](){
                 std::unique_lock< std::mutex> lock( mutex_ );
                 cv_.wait_for( lock, delay_, [this](){ return stop_waiting_.load(); } );
