@@ -12,15 +12,15 @@
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
- '(custom-enabled-themes '(wombat))
+ '(custom-enabled-themes '(tsdh-dark))
  '(package-selected-packages
-   '(company-rtags smartparens markdown-mode markup-faces dash rtags mozc org-journal gnuplot use-package cmake-font-lock cmake-ide cmake-mode company vhdl-tools gnuplot-mode dts-mode cuda-mode mozc-im ac-mozc)))
+   '(dash mozc org-journal gnuplot use-package cmake-font-lock cmake-ide cmake-mode company vhdl-tools company-irony-c-headers company-irony egg git gnuplot-mode dts-mode cuda-mode mozc-im langtool flycheck-rtags company-rtags ac-mozc)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#242424" :foreground "#f6f3e8" :inverse-video nil :box nil :strike-through nil :extend nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "nil" :family "Consolas")))))
+ '(default ((t (:family "DejaVu Sans Mono" :foundry "unknown" :slant normal :weight normal :height 90 :width normal)))))
 ;;;;;;;;;;;;;;;;;;;
 
 (add-hook 'c-mode-common-hook
@@ -37,8 +37,7 @@
              (setq tab-width 4)
 	     (setq indent-tabs-mode nil)))
 
-;;(add-hook 'c++-mode-hook 'rtags-start-process-unless-running)
-
+;(add-hook 'c++-mode-hook 'rtags-start-process-unless-running)
 (add-hook 'sh-mode-hook
           '(lambda ()
              (setq tab-width 4)
@@ -60,20 +59,31 @@
 ;                    'append)
 ;  (add-to-list 'default-frame-alist '(font . "fontset-myfontset")))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package rtags
-  :ensure t
-  :config
-  (setq rtags-autostart-diagnostics t)
-  (rtags-diagnostics)
-  (setq rtags-completions-enabled t)
-  (rtags-enable-standard-keybindings)
-  )
+;(use-package rtags
+;  :ensure t
+;  :config
+;  (setq rtags-autostart-diagnostics t)
+;  (rtags-diagnostics)
+;  (setq rtags-completions-enabled t)
+;  (rtags-enable-standard-keybindings))
+
+(require 'eglot)
+(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+(add-hook 'c-mode-hook 'eglot-ensure)
+(add-hook 'c++-mode-hook 'eglot-ensure)
+;;
 
 (use-package company :ensure t)
-(use-package company-rtags :ensure t :after company)
-(push 'company-rtags company-backends)
-(global-company-mode)
-(define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
+;(use-package company-rtags :ensure t :after company)
+;(push 'company-rtags company-backends)
+;(global-company-mode)
+;(define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
+
+(require 'ansi-color)
+(defun my/ansi-colorize-buffer ()
+  (let ((buffer-read-only nil))
+    (ansi-color-apply-on-region (point-min) (point-max))))
+(add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(use-package irony :ensure t)
@@ -101,11 +111,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; LanguageTool ;;;;;;
-;(use-package langtool
-;  :ensure t
-;  :config
-;  (setq langtool-language-tool-jar "/opt/LanguageTool-4.8/languagetool-commandline.jar")
-;  (setq langtool-default-language "en-US"))
+(use-package langtool
+  :ensure t
+  :config
+  (setq langtool-language-tool-jar "/opt/LanguageTool-4.8/languagetool-commandline.jar")
+  (setq langtool-default-language "en-US"))
 
 ;;;;;;;;;;;;;;;;;;;;;
 (use-package gnuplot :ensure t)

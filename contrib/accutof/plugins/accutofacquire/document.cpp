@@ -1626,12 +1626,7 @@ document::setMethod( std::shared_ptr< const adcontrols::XChromatogramsMethod > m
     for ( size_t idx = 0; idx < impl_->traces_.size(); ++idx ) {
         auto& trace = impl_->traces_[ idx ];
         if ( idx == 0 ) {
-#if __cplusplus >= 201703L
             auto [enable, algo] = m->tic();
-#else
-            bool enable; xic::eIntensityAlgorithm algo;
-            std::tie( enable, algo ) = m->tic();
-#endif
             bool dirty = trace->enable() != enable;
             trace->setEnable( enable );
             trace->setIsCountingTrace( algo == xic::eCounting );

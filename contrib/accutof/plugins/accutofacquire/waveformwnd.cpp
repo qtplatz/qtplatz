@@ -98,8 +98,10 @@ namespace accutof { namespace acquire {
             std::mutex mutex_;
         public:
             std::atomic< bool > blockTraces_;
+            std::pair< bool, bool > yAxes_;
 
-            impl() : blockTraces_( false ) {
+            impl() : blockTraces_( false )
+                   , yAxes_{ true, false } {
             }
         };
 
@@ -124,7 +126,6 @@ namespace {
 
         ~delayed_execution() {
             thread_.detach();
-            ADDEBUG() << "\tdone delayed_execution.";
         }
 
         void cancel() {
@@ -237,7 +238,7 @@ WaveformWnd::init()
     spw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 72 );
     hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 72 );
 
-    spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+    spw_->setAxisTitle( QwtPlot::yLeft, tr( "mV" ) );
 
     spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
     spw_->setKeepZoomed( false );
@@ -250,9 +251,16 @@ WaveformWnd::init()
 
     spw_->link( hpw_ );
 
-    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "a.u." ) );
-    //tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
-    //tpw_->enableAxis( QwtPlot::yRight, true );
+    auto font = tpw_->axisFont( QwtPlot::yLeft );
+    font.setPointSize( 8 );
+    tpw_->setAxisFont( QwtPlot::yLeft, font );
+    tpw_->setAxisFont( QwtPlot::yRight, font );
+    QwtText axisLabel;
+    axisLabel.setFont( font );
+    for ( auto label: { std::make_pair( QwtPlot::yLeft, "a.u." ), std::make_pair( QwtPlot::yRight, "Counts" ) } ) {
+        axisLabel.setText( std::get<1>(label ) );
+        tpw_->setAxisTitle( std::get<0>( label ), axisLabel );
+    }
 
     if ( auto legend = new QwtLegend() ) {
         tpw_->insertLegend( legend, QwtPlot::LegendPosition( QwtPlot::RightLegend ) );
@@ -397,6 +405,7 @@ WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_
     QString runname;
 
     size_t idx( 0 );
+    bool yRight( false );
     for ( const auto& trace: traces ) {
         if ( idx == 0 ) {
             double t_inject = trace->x( trace->size() - 1 ) - trace->injectTime(); // time since injection trigger
@@ -412,13 +421,17 @@ WaveformWnd::handleTraceChanged( const boost::uuids::uuid& /* uuid = pkkd_trace_
         }
 
         if ( trace->enable() ) {
-            tpw_->setTrace( trace, idx, QwtPlot::yLeft );
+            yRight |= trace->isCountingTrace();
+            tpw_->setTrace( trace, idx, trace->isCountingTrace() ? QwtPlot::yRight : QwtPlot::yLeft );
             if ( auto plotItem = tpw_->getPlotItem( idx ) ) {
                 plotItem->setTitle( QwtText( QString::fromStdString( trace->legend() ) ) );
             }
-        } else {
         }
         ++idx;
+    }
+    if ( impl_->yAxes_.second != yRight ) {
+        impl_->yAxes_.second = yRight;
+        tpw_->enableAxis( QwtPlot::yRight, yRight );
     }
 }
 
@@ -448,7 +461,7 @@ WaveformWnd::thresholdTraceChanged()
         }
 
         if ( trace->enable() ) {
-            tpw_->setTrace( trace, idx, QwtPlot::yLeft );
+            tpw_->setTrace( trace, idx, trace->isCountingTrace() ? QwtPlot::yRight : QwtPlot::yLeft );
             if ( auto plotItem = tpw_->getPlotItem( idx ) ) {
                 plotItem->setTitle( QwtText( QString::fromStdString( trace->legend() ) ) );
             }

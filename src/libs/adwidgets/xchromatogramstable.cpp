@@ -327,7 +327,7 @@ XChromatogramsTable::onInitialUpdate()
     for ( int i = 0; i < 7; ++i ) {
         setValue( i, adcontrols::xic::xic_method{}, impl_->current_polarity_ );
         // 0 (blue) := TIC
-        //using adplot::constants::chromatogram::color_table;
+        // using adplot::constants::chromatogram::color_table;
         // model->setHeaderData( i, Qt::Vertical, QBrush( color_table[ i + 1 ] ), Qt::BackgroundRole );
         // model->setHeaderData( i, Qt::Vertical, i + 1 );
     }
