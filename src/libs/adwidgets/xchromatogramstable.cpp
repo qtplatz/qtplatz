@@ -248,15 +248,23 @@ namespace {
                 cbx->addItems( { "Area", "Height", "Counts" } );
                 cbx->setCurrentIndex( index.data().toInt() );
                 return cbx;
-            } else if (( index.column() == c_mass ) || ( index.column() == c_masswindow )) {
+            } else if ( index.column() == c_mass ) {
+                qDebug() << "-------- createEditor ------- " << index;
                 auto spin = new QDoubleSpinBox( parent );
-                spin_init( spin, std::make_tuple( Decimals{3}, SingleStep{ 0.001 }, Minimum{0.001}, Maximum{4000} ) );
+                spin_init( spin, std::make_tuple( Decimals{3}, SingleStep{ 0.010 }, Minimum{1.00}, Maximum{4000.0} ) );
+                connect( spin, qOverload< double >(&QDoubleSpinBox::valueChanged)
+                         , [index,this](double value){ emit table_->editorValueChanged( index, value ); });
+                return spin;
+            } else if ( index.column() == c_masswindow ) {
+                qDebug() << "-------- createEditor ------- " << index;
+                auto spin = new QDoubleSpinBox( parent );
+                spin_init( spin, std::make_tuple( Decimals{3}, SingleStep{ 0.001 }, Minimum{0.001}, Maximum{10.0} ) );
                 connect( spin, qOverload< double >(&QDoubleSpinBox::valueChanged)
                          , [index,this](double value){ emit table_->editorValueChanged( index, value ); });
                 return spin;
             } else if ( index.column() == c_time ) {
                 auto spin = new TimeSpinBox<std::micro>( parent );
-                spin_init( spin, std::make_tuple( Decimals{3}, Maximum{1e6} ) );
+                spin_init( spin, std::make_tuple( Decimals{7}, Maximum{1e6} ) );
                 return spin;
             } else if ( index.column() == c_timewindow ) {
                 auto spin = new TimeSpinBox<std::nano>( parent );
@@ -351,7 +359,6 @@ XChromatogramsTable::setValue( int row, const adcontrols::xic::xic_method& m, ad
     QSignalBlocker block( model );
 
     if ( row >= model->rowCount() ) {
-        ADDEBUG() << "\tsetValue(" << row << ") rowCount=" << model->rowCount();
         model->setRowCount( row + 1 );
     }
 
