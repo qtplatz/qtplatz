@@ -56,7 +56,6 @@ namespace adwidgets {
 
     signals:
         void rowsDeleted();
-        void lineInserted( QModelIndex );
         void rowsAboutToBeRemoved( const std::set< int >& rows );
 
     public slots:

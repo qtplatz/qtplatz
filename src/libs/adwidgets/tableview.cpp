@@ -150,7 +150,7 @@ TableView::handleInsertLine()
     if ( index.isValid() ) {
         if ( auto model = this->model() ) {
             model->insertRow( index.row() + 1, index.parent() );
-            emit lineInserted( model->index( index.row() + 1, index.column(), index.parent() ) );
+            // emit lineInserted( model->index( index.row() + 1, index.column(), index.parent() ) );
         }
     }
 }
