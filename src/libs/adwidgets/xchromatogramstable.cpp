@@ -44,6 +44,7 @@
 #include <adcontrols/controlmethod/xchromatogramsmethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/molecule.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
@@ -614,6 +615,51 @@ XChromatogramsTable::handlePaste()
     }
 
     color_legend::update_color_legends( impl_->model_, row );
+}
+
+
+void
+XChromatogramsTable::handleCopyToClipboard()
+{
+    auto model = impl_->model_;
+    std::set< int > rows;
+	for ( const auto& index: selectionModel()->selectedIndexes() )
+        rows.emplace( index.row() );
+
+    adcontrols::moltable mol;
+    for ( const auto& i: rows ) {
+        int row = verticalHeader()->logicalIndex( i );
+        adcontrols::moltable::value_type value;
+        auto synonym = model->index( row, c_synonym ).data().toString().toStdString();
+        auto formula = model->index( row, c_formula ).data().toString().toStdString();
+        bool enable = model->index( row, c_formula ).data( Qt::CheckStateRole ).toBool();
+        auto adducts = model->index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
+        auto smiles = model->index( row, c_smiles ).data().toString().toStdString();
+        auto mass = model->index( row, c_mass ).data().toDouble();
+        auto mass_window = model->index( row, c_masswindow ).data().toDouble();
+        auto time = model->index( row, c_time ).data().toDouble();
+        auto time_window = model->index( row, c_timewindow ).data().toDouble();
+        auto algo = model->index( row, c_algo ).data().toInt();
+        value.enable() = enable;
+        value.synonym() = synonym;
+        value.formula() = formula;
+        value.adducts() = adducts.adducts;
+        value.mass()    = mass;
+        value.smiles()  = smiles;
+        mol << value;
+    }
+
+    auto json = QString::fromStdString( boost::json::serialize( boost::json::value_from( mol ) ) );
+
+    if ( auto md = new QMimeData() ) {
+        md->setData( QLatin1String( "application/json" ), json.toUtf8() );
+        // workaround for x11
+        if ( QApplication::keyboardModifiers() & Qt::ShiftModifier )
+            md->setText( json );
+        // else
+        //     md->setText( selected_text );
+        QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
+    }
 }
 
 ///////

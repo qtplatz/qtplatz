@@ -65,6 +65,7 @@ namespace adwidgets {
         void handleContextMenu( const QPoint& pt );
         void handleSetAdducts();
         void handlePaste() override;
+        void handleCopyToClipboard() override;
 
     private:
         class impl;
