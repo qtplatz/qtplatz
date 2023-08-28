@@ -61,9 +61,6 @@
 #include <adwidgets/moltableview.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <adwidgets/samplerunwidget.hpp>
-// #if TOFCHROMATOGRAMSMETHOD
-// # include <adwidgets/tofchromatogramswidget.hpp>
-// #endif
 #include <adwidgets/xchromatogramswidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/settings.hpp>
@@ -212,36 +209,18 @@ MainWindow::createDockWidgets()
             connect( widget, &MoleculesWidget::valueChanged, wnd, &WaveformWnd::handleMolecules );
         }
     }
-// #if TOFCHROMATOGRAMSMETHOD
-//     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "Chromatograms" ) ) {
-//         createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
-//         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
-//             connect( widget, &adwidgets::TofChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
-//                 if ( index.column() == 4 || index.column() == 5 )  // time | time-window
-//                     wnd->setSpanMarker( index.row(), index.column() - 4, value );
-//             });
 
-//             connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [wnd,widget] () {
-//                 auto m = widget->method();
-//                 wnd->setMethod( m ); // draw markers
-//                 document::instance()->setMethod( m );
-//             });
-//         }
-//     }
-// #endif
-//----------
     if ( auto widget = qtwrapper::make_widget< adwidgets::XChromatogramsWidget >( "XICs" ) ) {
         createDockWidget( widget, tr( "XICs" ), "XICs" );
         if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
             connect( widget, &adwidgets::XChromatogramsWidget::editorValueChanged, [wnd] ( const QModelIndex& index, double value ) {
-                ADDEBUG() << "############## handle editorValueChanged ###################### " << index.column() << ", " << value;
                 if ( index.column() == 3 || index.column() == 4 )  // mass, mass_window
                     wnd->setSpanMarker( index.row(), index.column() - 3, value );
             });
             connect( widget, &adwidgets::XChromatogramsWidget::valueChanged, this, &MainWindow::handleXChromatogramsMethod );
         }
     }
-//<---------
+
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
         createDockWidget( widget, "Threshold", "ThresholdMethod" );
         connect( widget, &acqrswidgets::ThresholdWidget::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {

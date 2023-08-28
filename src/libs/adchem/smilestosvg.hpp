@@ -24,11 +24,12 @@
 #pragma once
 
 #include "adchem_global.hpp"
+#include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <iterator>
-#include <adportable/optional.hpp>
+#include <optional.hpp>
 
 namespace RDKit { class ROMol; }
 
@@ -39,8 +40,7 @@ namespace adchem {
     class SmilesToSVG {
     public:
         typedef std::tuple< std::string, std::string > value_type; // formula,smiles,svg
-        adportable::optional< value_type > operator()( const std::string& smiles ) const;
+        std::optional< value_type > operator()( const std::string& smiles, RDKit::DrawColour&& = { 1, 1, 1, 1 } ) const;
     };
 
 }
-

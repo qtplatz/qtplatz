@@ -31,6 +31,7 @@
 #include <adportable/algorithm.hpp>
 #include <adportable/debug.hpp>
 #include <QAbstractItemModel>
+#include <QColor>
 #include <QMetaType>
 #include <QString>
 #include <vector>
@@ -51,8 +52,11 @@ namespace adwidgets {
     class MolTableHelper {
     public:
         struct SmilesToSVG {
-            adportable::optional< std::tuple< QString, QByteArray > > // formula, svg
-            operator()( const QString& smiles ) const;
+            std::optional< std::tuple< QString, QByteArray > > // formula, svg
+            operator()( const QString& smiles, const QColor& background = {255,255,255,255} ) const;
+
+            std::optional< std::tuple< QString, QByteArray > > // formula, svg
+            operator()( const std::string& smiles, const QColor& background = {255,255,255,255} ) const;
         };
 
         struct SDMolSupplier {
@@ -63,8 +67,8 @@ namespace adwidgets {
         };
         static double monoIsotopicMass( const QString& formula, const QString& adducts = {} );
 
-        static adportable::optional< std::pair<double, double> > logP( const QString& smiles );
-        static adportable::optional< adcontrols::moltable > paste();
+        static std::optional< std::pair<double, double> > logP( const QString& smiles );
+        static std::optional< adcontrols::moltable > paste();
     };
 
     namespace moltable {

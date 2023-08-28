@@ -41,13 +41,13 @@ using namespace adchem;
 
 
 adportable::optional< adchem::SmilesToSVG::value_type >
-SmilesToSVG::operator()( const std::string& smiles ) const
+SmilesToSVG::operator()( const std::string& smiles, RDKit::DrawColour&& background ) const
 {
 #if HAVE_RDKit
     try {
         if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles, 0, false ) ) ) {
             mol->updatePropertyCache( false );
-            auto svg = adchem::drawing::toSVG( *mol );
+            auto svg = adchem::drawing::toSVG( *mol, std::move( background ) );
             return std::make_tuple( RDKit::Descriptors::calcMolFormula( *mol, true, false ), svg );
         }
     } catch( std::exception& ex ) {

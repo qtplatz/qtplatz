@@ -25,17 +25,18 @@
 #ifndef DRAWING_HPP
 #define DRAWING_HPP
 
+#include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
 #include <string>
 #include "adchem_global.hpp"
 
-namespace RDKit { class ROMol; }
+namespace RDKit { class ROMol; class DrawColour; }
 
 namespace adchem {
 
     class ADCHEMSHARED_EXPORT drawing {
     public:
         drawing();
-        static std::string toSVG( const RDKit::ROMol& );
+        static std::string toSVG( const RDKit::ROMol&, RDKit::DrawColour&& = {1.0,1.0,1.0,1.0} );
     };
 
 }

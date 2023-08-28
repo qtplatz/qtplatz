@@ -221,6 +221,7 @@ set( ${PROJECT_NAME}_HEADERS
   xchromatogramstable.hpp
   xchromatogramswidget.hpp
   utilities.hpp
+  moltablecolumns.hpp
   )
 
 if ( WIN32 )

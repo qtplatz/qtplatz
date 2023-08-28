@@ -46,11 +46,12 @@ namespace adwidgets {
 
         void onInitialUpdate();
         void setValue( const adcontrols::XChromatogramsMethod& );
-        void getContents( adcontrols::XChromatogramsMethod& );
+        void getContents( adcontrols::XChromatogramsMethod& ) const;
 
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp );
     private:
         void setValue( int row, const adcontrols::xic::xic_method&, adcontrols::ion_polarity );
+        adcontrols::XChromatogramsMethod getValue() const;
 
     signals:
         void valueChanged();
@@ -63,6 +64,7 @@ namespace adwidgets {
     private slots:
         void handleContextMenu( const QPoint& pt );
         void handleSetAdducts();
+        void handlePaste() override;
 
     private:
         class impl;

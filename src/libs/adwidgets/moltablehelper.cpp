@@ -29,7 +29,6 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/moltable.hpp>
-#include <adportable/optional.hpp>
 #include <adportable/debug.hpp>
 #include <QApplication>
 #include <QByteArray>
@@ -40,6 +39,7 @@
 #include <boost/json.hpp>
 #include <boost/optional/optional_io.hpp>
 #include <tuple>
+#include <optional>
 
 namespace adwidgets {
     namespace moltable {
@@ -59,13 +59,18 @@ namespace adwidgets {
 
 using namespace adwidgets;
 
-adportable::optional< std::tuple< QString, QByteArray > > // formula, svg
-MolTableHelper::SmilesToSVG::operator()( const QString& smiles ) const
+std::optional< std::tuple< QString, QByteArray > > // formula, svg
+MolTableHelper::SmilesToSVG::operator()( const QString& smiles, const QColor& background ) const
 {
-    if ( auto d = adchem::SmilesToSVG()( smiles.toStdString() ) ) {
-        auto formula = std::get<0>(*d);
-        auto svg = std::get<1>(*d);
-        return std::make_tuple( QString::fromStdString( formula ), QByteArray( svg.data(), svg.size() ) );
+    return (*this)( smiles.toStdString(), background );
+}
+
+std::optional< std::tuple< QString, QByteArray > > // formula, svg
+MolTableHelper::SmilesToSVG::operator()( const std::string& smiles, const QColor& background ) const
+{
+    if ( auto d = adchem::SmilesToSVG()( smiles, { background.redF(), background.greenF(), background.blueF() } ) ) {
+        auto [formula,svg] = *d;
+        return {{ QString::fromStdString( formula ), QByteArray( svg.data(), svg.size() ) }};
     }
     return {};
 }
@@ -123,7 +128,7 @@ MolTableHelper::monoIsotopicMass( const QString& formula, const QString& adducts
 }
 
 //static
-adportable::optional< std::pair< double, double > >
+std::optional< std::pair< double, double > >
 MolTableHelper::logP( const QString& smiles )
 {
 #if HAVE_RDKit
@@ -134,7 +139,7 @@ MolTableHelper::logP( const QString& smiles )
 #endif
 }
 
-adportable::optional< adcontrols::moltable >
+std::optional< adcontrols::moltable >
 MolTableHelper::paste()
 {
     if ( auto md = QApplication::clipboard()->mimeData() ) {

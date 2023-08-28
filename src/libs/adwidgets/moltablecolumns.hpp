@@ -43,5 +43,10 @@ namespace adwidgets {
         struct col_logp          { typedef double  value_type; const QString header = "logP";          };
         struct col_apparent_mass { typedef double  value_type; const QString header = "apparent <i>m/z</i>"; };
         struct col_tof           { typedef double  value_type; const QString header = "tof(&mu;s)"; };
+
+        // following lines are use in XChromatogramsTable
+        struct col_xicMethod     { typedef double  value_type; const QString header = "Method";     };
+        struct col_tofWindow  { typedef double  value_type; const QString header = "Window(ns)"; };
+        struct col_massWindow { typedef double  value_type; const QString header = "Window(Da)"; };
     }
 }

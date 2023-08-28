@@ -26,12 +26,12 @@
 #include "chromatogramwidget.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
+#include "color_table.hpp"
 #include "zoomer.hpp"
 #include "picker.hpp"
 #include "peak.hpp"
 #include "baseline.hpp"
 #include "plotcurve.hpp"
-#include "seriesdata.hpp"
 #include <qwt_plot.h>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
@@ -80,26 +80,26 @@ namespace {
 
     //---------------------------------------
 
-    static QColor color_table [] = {
-        QColor( 0x00, 0x00, 0xff )    // 0  blue
-        , QColor( 0xff, 0x00, 0x00 )  // 1  red
-        , QColor( 0x00, 0x80, 0x00 )  // 2  green
-        , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
-        , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
-        , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
-        , QColor( 0x80, 0x00, 0x80 )  // 6  purple
-        , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
-        , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
-        , QColor( 0x80, 0x80, 0x80 )  // 9  gray
-        , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
-        , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
-        , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
-        , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
-        , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
-        , QColor( 0xff, 0xff, 0xff )  //15  white
-        , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
-        , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
-    };
+    // static QColor color_table [] = {
+    //     QColor( 0x00, 0x00, 0xff )    // 0  blue
+    //     , QColor( 0xff, 0x00, 0x00 )  // 1  red
+    //     , QColor( 0x00, 0x80, 0x00 )  // 2  green
+    //     , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
+    //     , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
+    //     , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
+    //     , QColor( 0x80, 0x00, 0x80 )  // 6  purple
+    //     , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
+    //     , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
+    //     , QColor( 0x80, 0x80, 0x80 )  // 9  gray
+    //     , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
+    //     , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
+    //     , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
+    //     , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
+    //     , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
+    //     , QColor( 0xff, 0xff, 0xff )  //15  white
+    //     , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
+    //     , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
+    // };
 
     class zoomer : public QwtPlotZoomer {
         zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
@@ -459,6 +459,8 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
 QColor
 ChromatogramWidget::color( int idx ) const
 {
+    using constants::chromatogram::color_table;
+
     if ( idx >= 0 && idx < sizeof( color_table )/sizeof( color_table[0] ) )
         return QColor( color_table[ idx ] );
     return QColor( Qt::black );
@@ -505,6 +507,8 @@ ChromatogramWidget::setNormalizedY( QwtPlot::Axis axis, bool normalized )
 void
 ChromatogramWidget::setTrace( std::shared_ptr< const adcontrols::Trace> c, int idx, QwtPlot::Axis yAxis )
 {
+    using constants::chromatogram::color_table;
+
     if ( !c || c->size() < 2 )
         return;
 
@@ -569,6 +573,8 @@ ChromatogramWidget::getData( int idx ) const
 void
 ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > cp, int idx, QwtPlot::Axis yAxis )
 {
+    using constants::chromatogram::color_table;
+
     if ( cp->size() < 2 )
         return;
 
@@ -714,6 +720,8 @@ ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 void
 ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
 {
+    using constants::chromatogram::color_table;
+
     impl_->clear_annotations();
 
     adplot::Annotations w( *this, impl_->annotation_markers_ );

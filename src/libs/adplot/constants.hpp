@@ -34,6 +34,5 @@ namespace adplot {
         };
 
         constexpr chromatogram_time_spec default_chromatogram_time = chromatogram_time_seconds;
-        
     }
 }

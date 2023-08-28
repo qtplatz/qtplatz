@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2022-2022 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2023 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,14 @@
 #include "xchromatogramstable.hpp"
 #include "delegatehelper.hpp"
 #include "htmlheaderview.hpp"
+#include "moltablecolumns.hpp"
+#include "moltablehelper.hpp"
+#include "spin_t.hpp"
+#include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
+#include <QtCore/qnamespace.h>
+#include <QtCore/qobject.h>
+#include <QtGui/qstandarditemmodel.h>
+#include <adplot/color_table.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
@@ -39,6 +47,7 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/index_of.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QByteArray>
@@ -48,9 +57,6 @@
 #include <QDragEnterEvent>
 #include <QFileInfo>
 #include <QHeaderView>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
@@ -59,6 +65,7 @@
 #include <QStyledItemDelegate>
 #include <QSvgRenderer>
 #include <QUrl>
+#include <QDebug>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
@@ -73,16 +80,20 @@
 using namespace adwidgets;
 
 namespace {
+
     using adcontrols::ion_polarity;
+
     struct adducts_type {
         adducts_type() {}
         adducts_type( const std::tuple< std::string, std::string >& t )
             : adducts( t ) {}
+
         QString get( ion_polarity polarity ) const {
             return polarity == adcontrols::polarity_positive ?
                 QString::fromStdString( std::get< adcontrols::polarity_positive >( adducts ) )
                 : QString::fromStdString( std::get< adcontrols::polarity_negative >( adducts ) );
         }
+
         void set( const QString& adduct, ion_polarity polarity ) {
             ( polarity == adcontrols::polarity_positive
                 ? std::get< adcontrols::polarity_positive >( adducts )
@@ -90,7 +101,24 @@ namespace {
         }
         std::tuple< std::string, std::string > adducts;
     };
+
+    ///////////////////////////////////////
+    struct paste_handler {
+        adcontrols::ion_polarity current_polarity_;
+        paste_handler( adcontrols::ion_polarity pol ) : current_polarity_( pol ) {}
+        adcontrols::xic::xic_method operator()( const adcontrols::moltable::value_type& value ) const {
+            adcontrols::xic::xic_method line;
+            line.mol_         = std::make_tuple( value.enable(), value.synonym(), value.formula(), value.smiles() );
+            line.adduct_      = value.adducts();
+            line.mass_window_ = std::make_pair( value.mass(), 0.1 );
+            line.algo_        = adcontrols::xic::ePeakAreaOnProfile;
+            line.protocol( value.protocol() ? *value.protocol() : 0 );
+            return line;
+        }
+    };
+
 }
+
 Q_DECLARE_METATYPE( adducts_type );
 
 namespace adwidgets {
@@ -116,7 +144,49 @@ namespace adwidgets {
 
 namespace {
 
-    enum columns { c_synonym, c_formula, c_adducts, c_mass, c_masswindow, c_time, c_timewindow, c_algo, c_protocol, c_smiles, ncolumns };
+    typedef std::tuple<
+        col_synonym
+        , col_formula
+        , col_adducts
+        , col_mass
+        , col_massWindow
+        , col_tof
+        , col_tofWindow
+        , col_xicMethod
+        , col_svg
+        , col_protocol
+        , col_smiles
+        > column_list;
+
+    enum columns { c_synonym       = adportable::index_of< col_synonym,   column_list >::value
+                   , c_formula     = adportable::index_of< col_formula,   column_list >::value
+                   , c_adducts     = adportable::index_of< col_adducts,   column_list >::value
+                   , c_mass        = adportable::index_of< col_mass,      column_list >::value
+                   , c_masswindow  = adportable::index_of< col_massWindow,column_list >::value
+                   , c_time        = adportable::index_of< col_tof,       column_list >::value
+                   , c_timewindow  = adportable::index_of< col_tofWindow, column_list >::value
+                   , c_algo        = adportable::index_of< col_xicMethod, column_list >::value
+                   , c_svg         = adportable::index_of< col_svg,       column_list >::value
+                   , c_protocol    = adportable::index_of< col_protocol,  column_list >::value
+                   , c_smiles      = adportable::index_of< col_smiles,    column_list >::value
+                   , ncolumns      = std::tuple_size< column_list >()
+    };
+
+    struct color_legend {
+        static void update_color_legends( QAbstractItemModel * model, int first ) {
+            for ( int row = first; row < model->rowCount(); ++row ) {
+                if ( row < 7 ) {
+                    const auto& color = adplot::constants::chromatogram::color_table[ row + 1 ];
+                    model->setData( model->index( row, c_svg ), QBrush(color), Qt::BackgroundRole );
+                } else {
+                    model->setData( model->index( row, c_svg ), QVariant{}, Qt::BackgroundRole );
+                }
+            }
+        }
+    };
+
+
+    using namespace adwidgets::spin_initializer;
 
     template< typename ratio >
     class TimeSpinBox : public QDoubleSpinBox {
@@ -137,6 +207,7 @@ namespace {
         delegate( XChromatogramsTable * table ) : table_( table ) {}
 
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            using adportable::index_of;
             QStyleOptionViewItem opt(option);
             initStyleOption( &opt, index );
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
@@ -150,7 +221,7 @@ namespace {
                 painter->drawText( option.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble() * std::micro::den, 'f', 3 ) );
             } else if ( index.column() == c_timewindow ) {
                 painter->drawText( option.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble() * std::nano::den, 'f', 1 ) );
-            } else if ( index.column() == c_algo ) {
+            } else if ( index.column() == index_of< col_xicMethod, column_list >::value ) {
                 QString text;
                 switch( index.data().toInt() ) {
                 case adcontrols::xic::ePeakAreaOnProfile:   text = "Area"; break;
@@ -158,6 +229,14 @@ namespace {
                 case adcontrols::xic::eCounting:            text = "Counts"; break;
                 }
                 painter->drawText( opt.rect, Qt::AlignCenter, text );
+            } else if ( index.column() == index_of< col_svg, column_list >::value ) {
+                painter->save();
+                QSvgRenderer renderer( index.data().toByteArray() );
+                painter->translate( option.rect.x(), option.rect.y() );
+                painter->scale( 1.0, 1.0 );
+                QRect target( 2, 1, option.rect.width() - 4, option.rect.height() - 2 );
+                renderer.render( painter, target );
+                painter->restore();
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
             }
@@ -171,21 +250,17 @@ namespace {
                 return cbx;
             } else if (( index.column() == c_mass ) || ( index.column() == c_masswindow )) {
                 auto spin = new QDoubleSpinBox( parent );
-                spin->setDecimals( 3 ); // mDa
-                spin->setSingleStep( 0.001 );
-                spin->setRange( 0.001, 4000 ); // 1000s
+                spin_init( spin, std::make_tuple( Decimals{3}, SingleStep{ 0.001 }, Minimum{0.001}, Maximum{4000} ) );
                 connect( spin, qOverload< double >(&QDoubleSpinBox::valueChanged)
                          , [index,this](double value){ emit table_->editorValueChanged( index, value ); });
                 return spin;
             } else if ( index.column() == c_time ) {
                 auto spin = new TimeSpinBox<std::micro>( parent );
-                spin->setDecimals( 9 );  // ns resolution; QAbstractSpinBox rounds up value by specified decimals here.
-                spin->setMaximum( 1e9 ); // 1000s
+                spin_init( spin, std::make_tuple( Decimals{3}, Maximum{1e6} ) );
                 return spin;
             } else if ( index.column() == c_timewindow ) {
                 auto spin = new TimeSpinBox<std::nano>( parent );
-                spin->setDecimals( 10 ); // 0.1ns resolution
-                spin->setMaximum( 1e9 ); // 1000s
+                spin_init( spin, std::make_tuple( Decimals{1}, Maximum{100} ) );
                 return spin;
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );
@@ -209,19 +284,20 @@ namespace {
 XChromatogramsTable::XChromatogramsTable(QWidget *parent) : TableView(parent)
                                                           , impl_( std::make_unique< impl >() )
 {
-    impl_->model_->setColumnCount( ncolumns );
-    impl_->model_->setRowCount( 8 );
-
-    setModel( impl_->model_ );
     setItemDelegate( new delegate( this ) );
 
     setHorizontalHeader( new HtmlHeaderView );
     setSortingEnabled( false );
-    // setAcceptDrops( true );
+
+    verticalHeader()->setSectionsMovable( true );
+    verticalHeader()->setDragEnabled( true );
+    verticalHeader()->setDragDropMode( QAbstractItemView::InternalMove );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
 
-    // //setColumnHidden( c_smiles, true );
+    impl_->model_->setColumnCount( ncolumns );
+    impl_->model_->setRowCount( 8 );
+    setModel( impl_->model_ );
 }
 
 XChromatogramsTable::~XChromatogramsTable()
@@ -232,31 +308,54 @@ void
 XChromatogramsTable::onInitialUpdate()
 {
     auto model = impl_->model_;
-    model->setHeaderData( c_synonym,    Qt::Horizontal, QObject::tr( "Synonym" ) );
-    model->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
-    model->setHeaderData( c_adducts,    Qt::Horizontal, QObject::tr( "Adducts" ) );
-    model->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
-    model->setHeaderData( c_masswindow, Qt::Horizontal, QObject::tr( "Window(Da)" ) );
-    model->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
-    model->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Window(ns)" ) );
-    model->setHeaderData( c_algo,       Qt::Horizontal, QObject::tr( "Method(algo)" ) );
-    model->setHeaderData( c_protocol,   Qt::Horizontal, QObject::tr( "Prot.#" ) );
-    model->setHeaderData( c_smiles,     Qt::Horizontal, QObject::tr( "SMILES" ) );
 
-    for ( int i = 0; i < 8; ++i )
+    moltable::setHeaderData( model, column_list{} );
+    setColumnHidden( adportable::index_of< col_protocol, column_list>::value, true );
+    setColumnHidden( adportable::index_of< col_tof, column_list>::value, true );
+
+    for ( int i = 0; i < 7; ++i ) {
         setValue( i, adcontrols::xic::xic_method{}, impl_->current_polarity_ );
+        // 0 (blue) := TIC
+        //using adplot::constants::chromatogram::color_table;
+        // model->setHeaderData( i, Qt::Vertical, QBrush( color_table[ i + 1 ] ), Qt::BackgroundRole );
+        // model->setHeaderData( i, Qt::Vertical, i + 1 );
+    }
 
     connect( this, &QTableView::customContextMenuRequested, this, &XChromatogramsTable::handleContextMenu );
     connect( model, &QStandardItemModel::dataChanged, this, &XChromatogramsTable::handleDataChanged );
-}
 
+    connect( verticalHeader(),  &QHeaderView::sectionMoved
+             , this
+             , [&](int logicalIndex, int oldVisualIndex, int newVisualIndex){
+                 QSignalBlocker block( verticalHeader() );
+                 auto m = getValue();
+                 verticalHeader()->moveSection( newVisualIndex, oldVisualIndex );
+                 setValue( m );
+             });
+
+    connect( model, &QAbstractItemModel::rowsInserted, this, [&](const QModelIndex&, int first, int last ){
+        color_legend::update_color_legends( impl_->model_, first );
+    });
+
+    connect( model, &QAbstractItemModel::rowsRemoved, this, [&](const QModelIndex&, int first, int last ){
+        color_legend::update_color_legends( impl_->model_, first );
+    });
+}
 
 void
 XChromatogramsTable::setValue( int row, const adcontrols::xic::xic_method& m, adcontrols::ion_polarity polarity )
 {
+    using adportable::index_of;
     auto model = impl_->model_;
 
     QSignalBlocker block( model );
+
+    if ( row >= model->rowCount() ) {
+        ADDEBUG() << "\tsetValue(" << row << ") rowCount=" << model->rowCount();
+        model->setRowCount( row + 1 );
+    }
+
+    using adplot::constants::chromatogram::color_table;
 
     impl_->current_polarity_ = polarity;
     model->setData( model->index( row, c_synonym ), QString::fromStdString( m.synonym() ) );
@@ -276,26 +375,55 @@ XChromatogramsTable::setValue( int row, const adcontrols::xic::xic_method& m, ad
     model->setData( model->index( row, c_algo ), m.algo() );
     model->setData( model->index( row, c_protocol ), m.protocol() );
     model->setData( model->index( row, c_smiles ), QString::fromStdString( m.smiles() ) );
+
+    if ( !m.smiles().empty() ) {
+        if ( auto d = MolTableHelper::SmilesToSVG()( m.smiles() ) ) {
+            auto [formula,svg] = *d;
+            model->setData( model->index( row, adportable::index_of< col_svg, column_list >::value ), svg );
+         }
+    }
+
+    if ( row < 7 ) {
+        const auto& color = color_table[ row + 1 ];
+        model->setData( model->index( row, adportable::index_of< col_svg, column_list >::value ), QBrush(color), Qt::BackgroundRole );
+    } else {
+        model->setData( model->index( row, c_svg ), QVariant{}, Qt::BackgroundRole );
+    }
     resizeColumnToContents( c_formula );
 }
 
 void
 XChromatogramsTable::setValue( const adcontrols::XChromatogramsMethod& xm )
 {
-    size_t row(0);
-    for ( const auto& m: xm.xics() ) {
-        setValue( row++, m, xm.polarity() );
+    QSignalBlocker block( impl_->model_ );
+
+    if ( verticalHeader()->sectionsMoved() ) {
+        ADDEBUG() << "========== setValue sectionsMoved: " << verticalHeader()->sectionsMoved();
     }
+
+    size_t row(0);
+    for ( const auto& m: xm.xics() )
+        setValue( row++, m, xm.polarity() );
+}
+
+adcontrols::XChromatogramsMethod
+XChromatogramsTable::getValue() const
+{
+    adcontrols::XChromatogramsMethod m;
+    getContents( m );
+    return m;
 }
 
 void
-XChromatogramsTable::getContents( adcontrols::XChromatogramsMethod& xm )
+XChromatogramsTable::getContents( adcontrols::XChromatogramsMethod& xm ) const
 {
     auto model = impl_->model_;
-    size_t nRows = std::min( 8, model->rowCount() );
-    xm.xics().resize( nRows );
-    for ( size_t row = 0; row < nRows; ++row ) {
-        auto& x = xm.xics().at( row );
+    // xm.xics().resize( model->rowCount() );
+    xm.xics().clear();
+
+    for ( size_t i = 0; i < model->rowCount(); ++i ) {
+
+        int row = verticalHeader()->logicalIndex( i );
 
         auto synonym = model->index( row, c_synonym ).data().toString().toStdString();
         auto formula = model->index( row, c_formula ).data().toString().toStdString();
@@ -308,12 +436,16 @@ XChromatogramsTable::getContents( adcontrols::XChromatogramsMethod& xm )
         auto time_window = model->index( row, c_timewindow ).data().toDouble();
         auto algo = model->index( row, c_algo ).data().toInt();
 
+        adcontrols::xic::xic_method x;
+
         x.mol_ = std::make_tuple( enable, synonym, formula, smiles );
         x.adduct_ = adducts.adducts; // std::tuple
 
         x.mass_window_ = std::make_pair( mass, mass_window );
         x.time_window_ = std::make_pair( time, time_window );
         x.algo( adcontrols::xic::eIntensityAlgorithm( algo ) );
+
+        xm.xics().emplace_back( x );
     }
 }
 
@@ -453,3 +585,28 @@ XChromatogramsTable::handleSetAdducts()
         }
     }
 }
+
+void
+XChromatogramsTable::handlePaste()
+{
+    auto model = impl_->model_;
+
+    int row = model->rowCount() - 1;
+
+    if ( selectionModel()->hasSelection() && selectionModel()->currentIndex().isValid() )
+        row = selectionModel()->currentIndex().row();
+
+    if ( auto mols = MolTableHelper::paste() ) {
+        model->insertRows( row, mols->data().size() );
+
+        paste_handler paste( impl_->current_polarity_ );
+
+        QSignalBlocker block( model );
+        for ( const auto& value: mols->data() )
+            setValue( row++, paste( value ), impl_->current_polarity_ );
+    }
+
+    color_legend::update_color_legends( impl_->model_, row );
+}
+
+///////

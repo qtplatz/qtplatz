@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
 #if _MSC_VER
 # pragma warning(disable:4267)
 #endif
@@ -51,7 +52,7 @@ drawing::drawing()
 
 // static
 std::string
-drawing::toSVG( const RDKit::ROMol& mol )
+drawing::toSVG( const RDKit::ROMol& mol, RDKit::DrawColour&& background )
 {
 #if (RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 2))
     std::vector< int > drawing = RDKit::Drawing::MolToDrawing( mol );
@@ -67,6 +68,8 @@ drawing::toSVG( const RDKit::ROMol& mol )
 
     std::ostringstream o;
     RDKit::MolDraw2DSVG svg_drawer( 300, 300, o );
+    svg_drawer.drawOptions().backgroundColour = background;
+
     svg_drawer.drawMolecule( mol1 );
     svg_drawer.finishDrawing();
     return o.str();
