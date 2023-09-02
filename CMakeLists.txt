@@ -62,6 +62,8 @@ set( CMAKE_WARN_DEPRECATED TRUE )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
+find_package( netCDF )
+
 ################################################################
 #
 if ( WITH_QT5 )
@@ -618,6 +620,9 @@ endif()
 message( STATUS     "# Eigen3                : " ${EIGEN3_INCLUDE_DIR} )
 if ( WITH_PYTHON3 )
   message( STATUS "# Python3               : " ${Python3_VERSION} )
+endif()
+if ( netCDF_FOUND )
+  message( STATUS "# netCDF                : "  ${NetCDFVersion} )
 endif()
 message( STATUS "# TARGET_ARCHITECTURE   : "  ${__arch} )
 if ( CROSS_COMPILING )

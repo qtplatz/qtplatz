@@ -158,6 +158,13 @@ namespace adplugin {
             return false;
         }
 
+        bool install( boost::dll::shared_library&& dll, std::function<adplugin::plugin *()> instance ) {
+            if ( auto plugin = instance() ) {
+                return true;
+            }
+            return false;
+        }
+
         void populated();
 
         plugin_ptr select_iid( const char * regex );
@@ -223,6 +230,12 @@ manager::install( boost::dll::shared_library&& dll, const std::string& adplugins
     std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
 
     return d_->install( std::move( dll ), adpluginspec, s.str() );
+}
+
+bool
+manager::install( boost::dll::shared_library&& dll, std::function<adplugin::plugin *()> instance )
+{
+    return d_->install( std::move( dll ), std::move( instance ) );
 }
 
 

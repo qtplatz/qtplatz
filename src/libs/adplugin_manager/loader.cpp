@@ -103,6 +103,19 @@ loader::populate( const boost::filesystem::path& appdir )
         if ( !ec ) {
             while ( it != boost::filesystem::recursive_directory_iterator() ) {
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
+                    // attempt to find a newly defined interface as of 2023-SEP-02
+                    if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
+                        ADDEBUG() << "loading\t" << boost::filesystem::relative( it->path(), appdir );
+                        try {
+                            auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
+                            if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
+                                ADDEBUG() << "load\t" << boost::filesystem::relative( it->path(), appdir ) << "\tSuccess";
+                            }
+                        } catch ( boost::system::system_error& ex ) {
+                        }
+                    }
+
+
                     auto filename = it->path().filename().string();
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
                         auto stem   = boost::filesystem::path( it->path().stem().string() + debug_trail );

@@ -63,6 +63,7 @@ namespace adplugin {
 
         //bool install( QLibrary&, const std::string& adpluginspec );
         bool install( boost::dll::shared_library&&, const std::string& adpluginspec );
+        bool install( boost::dll::shared_library&&, std::function<adplugin::plugin *()> );
 
         bool isLoaded( const std::string& adpluginspec ) const;
 
