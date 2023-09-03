@@ -1,0 +1,72 @@
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+*
+** Contact: info@ms-cheminfo.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+#pragma once
+
+#include "constants.hpp"
+#include <netcdf.h>
+#include <boost/filesystem/path.hpp>
+#include <filesystem>
+
+namespace adnetcdf {
+
+    namespace netcdf {
+
+        class ncfile;
+        class dimension;
+        class variable;
+        class attribute;
+
+        ncfile open( const std::filesystem::path&, open_mode = nc_nowrite );
+        ncfile open( const boost::filesystem::path&, open_mode = nc_nowrite );
+
+        /////////////////////
+
+        class ncfile {
+        public:
+            ~ncfile();
+            ncfile();
+            ncfile( const std::filesystem::path&, open_mode = nc_nowrite );
+            inline operator bool() const { return rcode_ == NC_NOERR; }
+            int32_t rcode() const;
+            int32_t ncid() const;
+            const std::filesystem::path& path() const;
+            std::pair<int, std::string > kind() const;
+            std::tuple< int, uint16_t, std::string > kind_extended() const;
+            const std::vector< dimension >& dims() const;
+            const std::vector< variable >& vars() const;
+            const std::vector< attribute >& atts() const;
+        private:
+            int32_t rcode_;
+            int32_t ncid_;
+            std::filesystem::path path_;
+            mutable std::vector< dimension > dims_;
+            mutable std::vector< variable > vars_;
+            mutable std::vector< attribute > atts_;
+            friend class nc;
+        };
+
+    } // namespace netcdf
+}

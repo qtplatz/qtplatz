@@ -32,6 +32,7 @@
 #endif
 
 #include "datafile.hpp"
+#include <netcdf.h>
 #include <adcontrols/countinghistogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datainterpreter.hpp>
@@ -50,8 +51,6 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adlog/logger.hpp>
-#include <QApplication>
-#include <QMessageBox>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
@@ -126,6 +125,8 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
+    processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
+    processedDataset_->xml( portfolio.xml() );
 
     return true;
 }

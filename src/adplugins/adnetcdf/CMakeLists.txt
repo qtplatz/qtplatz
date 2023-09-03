@@ -5,12 +5,16 @@ project( adnetcdf )
 
 set( PROVIDER MS-Cheminformatics )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
+#set(CMAKE_AUTOMOC ON)
+#set(CMAKE_AUTOUIC ON)
+#set(CMAKE_AUTORCC ON)
 
-file(GLOB UIs *.ui)
-file(GLOB Resources *.qrc)
+#file(GLOB UIs *.ui)
+#file(GLOB Resources *.qrc)
+
+if ( NOT netCDF_FOUND )
+  return()
+endif()
 
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets )
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
@@ -22,6 +26,7 @@ set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 include_directories(
   ${QtWidgets_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src    # app_version.h
+  ${netCDF_INCLUDE_DIR}
   )
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
@@ -35,6 +40,8 @@ add_library( ${PROJECT_NAME} MODULE
   datafile.hpp
   datafile_factory.cpp
   datafile_factory.hpp
+#  ncfile.cpp ncfile.hpp
+#  dimension.cpp dimension.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
@@ -46,9 +53,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   portfolio
   adplugin
   adfs
-  Qt::Core
-  Qt::Widgets
-  )
+  ${netCDF_LIBRARIES}
+)
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
@@ -60,3 +66,18 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
 )
+
+########3
+add_executable( adncdump
+  main.cpp
+  ncfile.cpp ncfile.hpp
+  dimension.cpp dimension.hpp
+  variable.cpp variable.hpp
+  attribute.cpp attribute.hpp
+)
+
+target_link_libraries( adncdump LINK_PUBLIC
+  adportable
+  ${Boost_LIBRARIES}
+  ${netCDF_LIBRARIES}
+  )
