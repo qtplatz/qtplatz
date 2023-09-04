@@ -24,8 +24,6 @@
 **************************************************************************/
 
 #include "variable.hpp"
-#include <iomanip>
-#include <adportable/debug.hpp>
 #include "nc_type.hpp"
 
 namespace adnetcdf {
@@ -67,6 +65,12 @@ namespace adnetcdf {
         variable::value() const
         {
             return { varid_, name_, type_, ndims_, natts_ };
+        }
+
+        const std::vector< int >
+        variable::dimids() const
+        {
+            return dimids_;
         }
 
         void

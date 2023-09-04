@@ -37,7 +37,7 @@ namespace adnetcdf {
         class variable {
         public:
             typedef std::tuple< int, std::string, nc_type, int, int > value_type;
-            enum { varid, name, type, ndims, natts } value_id;
+            enum { _varid, _name, _type, _ndims, _natts } value_id;
 
             variable();
             variable( const variable& );

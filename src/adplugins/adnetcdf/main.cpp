@@ -31,33 +31,51 @@
 #include <iostream>
 #include <netcdf.h>
 #include <boost/json.hpp>
+#include <iomanip>
 
 void
 do_ncdump( const adnetcdf::netcdf::ncfile& file )
 {
-    using namespace adnetcdf::netcdf;
+    namespace nc = adnetcdf::netcdf;
 
-    ADDEBUG() << "dimensions:";
-    for ( const auto& dim: file.dims() )
-        ADDEBUG() << "\t" << boost::json::value_from( dim );
+    std::cout << "dimensions:" << std::endl;
+    for ( const auto& dim: file.dims() ) {
+        auto [dimid,name,len] = dim.value();
+        std::cout << "\t" << std::setw(24) << name << "\t=\t" << len << std::endl; // boost::json::value_from( dim );
+    }
 
-    ADDEBUG() << "variables:";
+    std::cout << "variables:" << std::endl;
     for ( const auto& var: file.vars() ) {
-        ADDEBUG() << "\t" << boost::json::value_from( var );
+        auto [varid,name,type,ndims,natts] = var.value();
+        auto type_name = nc::nc_type_name( type, nc::nc_types_t{} );
+        auto dimentions = file.dims( var );
 
-        auto dim = file.dim( var );
-        auto nc_var = adnetcdf::netcdf::to_variant< nc_types_t >{}( std::get< variable::type >( dim.value() ) );
+        std::ostringstream o;
+        if ( not dimentions.empty() ) {
+            o << "\t[";
+            size_t count = 0;
+            for ( const auto& d: dimentions ) {
+                o << (count++ ? "," : "" ) << d.len();
+            }
+            o << "]";
+        }
+        std::cout << "\t" << std::setw(28) << name
+                  << o.str()
+                  << std::endl;
 
         using namespace adnetcdf::netcdf;
-
         for ( const auto& att: file.atts( var ) ) {
-            ADDEBUG() << "\t\t" << boost::json::value_from( att );
+            auto [varid,attid,name,type,len] = att.value();
+            std::cout << "\t\t:" << name << "\t" << file.get_att_text( att )
+                      << std::endl;
         }
     }
-    ADDEBUG() << "attributes:";
+
+    std::cout << "attributes:" << std::endl;
     for ( const auto& att: file.atts() ) {
-        ADDEBUG() << "\t" << boost::json::value_from( att );
-        ADDEBUG() << "\t\t" << file.get_att_text( att );
+        auto [varid,attid,name,type,len] = att.value();
+        std::cout << "\t\t:" << std::setw(32) << std::left << name << "\t\"" << file.get_att_text( att ) << "\";"
+                  << std::endl;
     }
 }
 

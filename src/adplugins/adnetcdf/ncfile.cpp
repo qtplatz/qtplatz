@@ -206,10 +206,11 @@ ncfile::atts() const
 std::vector< attribute >
 ncfile::atts( const variable& var ) const
 {
-    if ( const int natts = std::get< variable::natts >( var.value() ) ) {
+    auto [varid,name,type,ndims,natts] = var.value();
+    if ( natts ) {
         std::vector< attribute > atts;
         for ( int attid = 0; attid < natts; ++attid ) {
-            if ( auto att = inq_att( std::get< variable::varid >( var.value() ), attid ) )
+            if ( auto att = inq_att( varid, attid ) )
                 atts.emplace_back( *att );
         }
         return atts;
@@ -217,14 +218,15 @@ ncfile::atts( const variable& var ) const
     return {};
 }
 
-dimension
-ncfile::dim( const variable& var ) const
+std::vector< dimension >
+ncfile::dims( const variable& var ) const
 {
-    // auto dimid = std::get< variable::dimids >( var.value() );
-    // if ( ( dims().size() > dimid ) &&
-    //      ( std::get< dimension::dimid >( dims().at( dimid ).value() ) == dimid ) )
-    //     return dims().at( dimid );
-    return {};
+    std::vector< dimension > dims;
+    for ( const auto& id: var.dimids() ) {
+        if ( dims_.size() > id )
+            dims.emplace_back( dims_.at( id ) );
+    }
+    return dims;
 }
 
 
@@ -262,10 +264,6 @@ ncfile::inq_var( int varid ) const
     if ( nc_inq_varndims( ncid_, varid, &ndims ) == NC_NOERR ) {
         std::vector< int > dims( ndims );
         if ( nc_inq_var( ncid_, varid, name.data(), &xtype, 0, dims.data(), &natts )  == NC_NOERR ) {
-            // ADDEBUG() << ">>>>>>> " << std::make_tuple( varid, name.data(), "xtype: ", xtype, "ndims: ", ndims, "natts", natts );
-            // for ( size_t i = 0; i < ndims; ++i ) {
-            //     ADDEBUG() << "\t\tdims[" << i << "]=" << dims[i];
-            // }
             return {{ varid, name.data(), xtype, ndims, std::move( dims ), natts }};
         }
     }
@@ -279,7 +277,7 @@ ncfile::get_att( const attribute& t ) const
     auto [varid, attid, name, xtype, len ] = t.value();
     auto typ = to_variant< nc_types_t >{}( xtype );
 
-    auto is_ok = std::visit( [&]( auto&& x )->datum_variant_t{
+    auto datum = std::visit( [&]( auto&& x )->datum_variant_t{
         using T = std::decay_t<decltype(x._)>;
         if constexpr ( std::is_same_v<T, char >)
             return get_att_text( t );
@@ -288,8 +286,17 @@ ncfile::get_att( const attribute& t ) const
         return {};
     }, typ );
 
+    return datum;
+}
 
-    return {};
+datum_variant_t
+ncfile::get_var( const variable& t ) const
+{
+    auto [ varid, name, type, ndims, natts ] = t.value();
+    auto dimensions = dims( t );
+
+
+    return{};
 }
 
 std::string

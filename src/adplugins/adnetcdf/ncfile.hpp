@@ -73,7 +73,7 @@ namespace adnetcdf {
             const std::vector< variable >& vars() const;
             const std::vector< attribute >& atts() const;
             std::vector< attribute > atts( const variable& ) const;
-            dimension dim( const variable& ) const;
+            std::vector< dimension > dims( const variable& ) const;
 
             std::optional< int > inq_format() const;
             std::optional< std::pair<int, int> > inq_format_extended() const;
@@ -82,6 +82,7 @@ namespace adnetcdf {
             std::optional< variable > inq_var( int varid ) const;
 
             datum_variant_t get_att( const attribute& t ) const;
+            datum_variant_t get_var( const variable& t ) const;
 
             std::string get_att_text( const attribute& t ) const;
 

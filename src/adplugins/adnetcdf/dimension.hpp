@@ -34,13 +34,16 @@ namespace adnetcdf {
 
         class dimension {
         public:
-            enum { dimid, name, len };
+            enum { _dimid, _name, _len };
             typedef std::tuple< int, std::string, size_t > value_type;
             dimension();
             dimension( const dimension& );
             dimension( int, const std::string&, size_t& );
             dimension( const value_type& );
             value_type value() const;
+            inline int dimid() const { return dimid_; }
+            inline const std::string& name() const { return name_; }
+            inline size_t len() const { return len_; }
         private:
             int dimid_;
             std::string name_;
