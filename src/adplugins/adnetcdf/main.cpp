@@ -30,86 +30,35 @@
 #include <adportable/debug.hpp>
 #include <iostream>
 #include <netcdf.h>
-
-void
-do_ncdump(int ncid, const char *path)
-{
-    ADDEBUG() << "## " << __FUNCTION__ << " ## " << path;
-
-    std::array< int, 6 * 12 > data_in;
-    int varid(0);
-    int ndims(0), nvars(0), ngatts(0), unlimdimid(0);
-
-    if ( nc_inq( ncid, &ndims, &nvars, &ngatts, &unlimdimid ) == NC_NOERR ) {
-
-        ADDEBUG() << std::make_tuple( "ndims", ndims, "nvars", nvars, "ngatts", ngatts, "unlimid", unlimdimid );
-        ADDEBUG() << "--------- dimensions:";
-        std::array< char, NC_MAX_NAME > name;
-        for ( int dimid = 0; dimid < ndims; ++dimid ) {
-            size_t len(0);
-            if ( nc_inq_dim( ncid, dimid, name.data(), &len ) == NC_NOERR )
-                ADDEBUG() << "\t" << std::make_tuple( dimid, name.data(), len );
-        }
-        ADDEBUG() << "<-------- end dimensions.";
-
-        ADDEBUG() << "--------- variables:";
-        for ( int varid = 0; varid < nvars; ++varid ) {
-            nc_type xtype;
-            int ndims, dimids, natts;
-            if ( nc_inq_var( ncid, varid, name.data(), &xtype, &ndims, &dimids, &natts ) == NC_NOERR ) {
-                ADDEBUG() << "\t" <<
-                    std::make_tuple( varid, name.data(), "xtype", xtype, "ndims", ndims, "dimids", dimids, "natts", natts );
-                if ( natts ) {
-                    std::array< char, NC_MAX_NAME > attname;
-                    for ( int attid = 0; attid < natts; ++attid ) {
-                        if ( nc_inq_attname( ncid, varid, attid, attname.data() ) == NC_NOERR ) {
-                            ADDEBUG() << "\t\t" << std::make_tuple( varid, attid, attname.data() );
-                        }
-                    }
-
-                }
-            }
-        }
-        ADDEBUG() << "<--------- end variables.";
-
-        ADDEBUG() << "--------- attributes:";
-        int natts(0);
-        if ( nc_inq_natts( ncid, &natts ) == NC_NOERR ) {
-
-            for ( int attid = 0; attid < natts; ++attid ) {
-                if ( nc_inq_attname( ncid, NC_GLOBAL, attid, name.data() ) == NC_NOERR ) {
-                    nc_type xtype;
-                    size_t len;
-                    if ( nc_inq_att( ncid, NC_GLOBAL, name.data(), &xtype, &len ) == NC_NOERR ) {
-                        ADDEBUG() << std::make_tuple( attid, name.data(), "xtype", xtype, "len", len);
-                    }
-                }
-            }
-        }
-        ADDEBUG() << "<--------- end attributes.";
-
-        if ( nc_inq_varid(ncid, "data", &varid ) == NC_NOERR ) {
-            ADDEBUG() << "data: " << varid;
-        }
-
-    }
-}
+#include <boost/json.hpp>
 
 void
 do_ncdump( const adnetcdf::netcdf::ncfile& file )
 {
+    using namespace adnetcdf::netcdf;
+
     ADDEBUG() << "dimensions:";
     for ( const auto& dim: file.dims() )
-        ADDEBUG() << "\t" << dim.value();
+        ADDEBUG() << "\t" << boost::json::value_from( dim );
 
     ADDEBUG() << "variables:";
-    for ( const auto& var: file.vars() )
-        ADDEBUG() << "\t" << var.value();
+    for ( const auto& var: file.vars() ) {
+        ADDEBUG() << "\t" << boost::json::value_from( var );
 
+        auto dim = file.dim( var );
+        auto nc_var = adnetcdf::netcdf::to_variant< nc_types_t >{}( std::get< variable::type >( dim.value() ) );
+
+        using namespace adnetcdf::netcdf;
+
+        for ( const auto& att: file.atts( var ) ) {
+            ADDEBUG() << "\t\t" << boost::json::value_from( att );
+        }
+    }
     ADDEBUG() << "attributes:";
-    for ( const auto& att: file.atts() )
-        ADDEBUG() << "\t" << att.value();
-
+    for ( const auto& att: file.atts() ) {
+        ADDEBUG() << "\t" << boost::json::value_from( att );
+        ADDEBUG() << "\t\t" << file.get_att_text( att );
+    }
 }
 
 

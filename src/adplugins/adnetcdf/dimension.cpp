@@ -51,11 +51,27 @@ namespace adnetcdf {
             std::tie( dimid_, name_, len_ ) = t;
         }
 
-        std::tuple< int, std::string, size_t >
+        dimension::value_type
         dimension::value() const
         {
             return std::make_tuple( dimid_, name_, len_ );
         }
+
+        //////////////////////////////////////////////////////
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const dimension& t )
+        {
+            // using namespace adnetcdf::netcdf;
+            jv = boost::json::value{{ "dim"
+                    , {
+                        { "dimid", t.dimid_ }
+                        , { "name", t.name_ }
+                        , { "len", t.len_ }
+                    }
+                }};
+        }
+
 
     }
 }

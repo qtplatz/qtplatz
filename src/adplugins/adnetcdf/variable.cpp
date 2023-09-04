@@ -24,6 +24,9 @@
 **************************************************************************/
 
 #include "variable.hpp"
+#include <iomanip>
+#include <adportable/debug.hpp>
+#include "nc_type.hpp"
 
 namespace adnetcdf {
     namespace netcdf {
@@ -32,7 +35,7 @@ namespace adnetcdf {
                              , name_{}
                              , type_(0)
                              , ndims_(0)
-                             , dimids_(0)
+                             , dimids_{}
                              , natts_(0)
         {
         }
@@ -50,11 +53,12 @@ namespace adnetcdf {
                             , const std::string& name
                             , nc_type type
                             , int ndims
-                            , int dimids
+                            , std::vector< int >&& dimids
                             , int natts )  : varid_( varid )
                                            , name_( name )
+                                           , type_( type )
                                            , ndims_( ndims )
-                                           , dimids_( dimids )
+                                           , dimids_( std::move( dimids ) )
                                            , natts_( natts )
         {
         }
@@ -62,7 +66,24 @@ namespace adnetcdf {
         variable::value_type
         variable::value() const
         {
-            return { varid_, name_, type_, ndims_, dimids_, natts_ };
+            return { varid_, name_, type_, ndims_, natts_ };
+        }
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const variable& t )
+        {
+            using namespace adnetcdf::netcdf;
+            jv = boost::json::value{{ "var"
+                    , {
+                        { "varid", t.varid_ }
+                        , { "name", t.name_ }
+                        , { "typid", t.type_ }
+                        , { "type", nc_type_name( t.type_, nc_types_t{} ) }
+                        , { "ndims", t.ndims_ }
+                        , { "dimids", t.dimids_ }
+                        , { "natts", t.natts_ }
+                    }
+                }};
         }
 
     } // namespace netcdf

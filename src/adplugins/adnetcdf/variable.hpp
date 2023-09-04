@@ -27,27 +27,38 @@
 
 #include <string>
 #include <netcdf.h>
+#include <ostream>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace adnetcdf {
     namespace netcdf {
 
         class variable {
         public:
-            typedef std::tuple< int, std::string, nc_type, int, int, int > value_type;
+            typedef std::tuple< int, std::string, nc_type, int, int > value_type;
+            enum { varid, name, type, ndims, natts } value_id;
 
             variable();
             variable( const variable& );
-            variable( int, const std::string&, nc_type, int ndims, int dimids, int natts );
+
+            variable( int varid, const std::string& name, nc_type type, int ndims, std::vector<int>&& dimids, int natts );
             variable( const value_type & );
             value_type value() const;
+            const std::vector< int > dimids() const;
         private:
             int varid_;
             std::string name_;
             nc_type type_;
             int ndims_;
-            int dimids_;
+            std::vector< int > dimids_;
             int natts_;
+            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const variable& );
+            // friend variable tag_invoke( boost::json::value_to_tag< variable >&, const boost::json::value& jv );
         };
+
+        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const variable& );
+        // variable tag_invoke( boost::json::value_to_tag< variable >&, const boost::json::value& jv );
 
     } // namespace netcdf
 }

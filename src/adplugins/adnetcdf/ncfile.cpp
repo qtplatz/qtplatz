@@ -32,6 +32,7 @@
 #include <filesystem>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/json.hpp>
 
 namespace adnetcdf {
     namespace netcdf {
@@ -47,7 +48,6 @@ namespace adnetcdf {
             return ncfile{ std::filesystem::path( path.string() ), mode };
         }
         //////////////////////
-
     }
 }
 
@@ -62,26 +62,52 @@ ncfile::~ncfile()
 
 ncfile::ncfile() : rcode_(-1)
                  , ncid_(0)
+                 , ndims_( 0 )
+                 , nvars_( 0 )
+                 , ngatts_( 0 )
+                 , unlimdimid_( -1 )
 {
 }
 
-ncfile::ncfile( const std::filesystem::path& path, open_mode mode ) : rcode_( -1 )
-                                                                    , ncid_( 0 )
-                                                                    , path_( path )
+ncfile::ncfile( const std::filesystem::path& path
+                , open_mode mode ) : path_( path )
+                                   , rcode_( -1 )
+                                   , ncid_( 0 )
+                                   , ndims_( 0 )
+                                   , nvars_( 0 )
+                                   , ngatts_( 0 )
+                                   , unlimdimid_( -1 )
 {
     rcode_ = nc_open( path.string().c_str(), int( mode), &ncid_ );
-
-    int formatn, nc_extended, nc_mode;
-    nc_inq_format( ncid_, &formatn);
-    nc_inq_format_extended( ncid_, &nc_extended, &nc_mode );
-
-    ADDEBUG() << "formatn, extended, nc_mode: " << std::make_tuple( formatn, nc_extended, nc_mode );
-
+    rcode_ = nc_inq( ncid_, &ndims_, &nvars_, &ngatts_, &unlimdimid_ );
 }
 
-int32_t ncfile::rcode() const { return rcode_; }
-int32_t ncfile::ncid() const  { return ncid_; }
+int32_t ncfile::rcode() const      { return rcode_; }
+int32_t ncfile::ncid() const       { return ncid_; }
+int32_t ncfile::ndims() const      { return ndims_; }
+int32_t ncfile::nvars() const      { return nvars_; }
+int32_t ncfile::ngatts() const     { return ngatts_; }
+int32_t ncfile::unlimdimid() const { return unlimdimid_; }
+
 const std::filesystem::path& ncfile::path() const { return path_; }
+
+std::optional< int >
+ncfile::inq_format() const
+{
+    int formatn;
+    if ( nc_inq_format( ncid_, &formatn ) == NC_NOERR )
+        return formatn;
+    return {};
+}
+
+std::optional< std::pair<int, int> >
+ncfile::inq_format_extended() const
+{
+    int nc_extended, nc_mode;
+    if ( nc_inq_format_extended( ncid_, &nc_extended, &nc_mode ) == NC_NOERR )
+        return {{ nc_extended, nc_mode }};
+    return {};
+}
 
 std::pair< int, std::string >
 ncfile::kind() const
@@ -94,12 +120,11 @@ ncfile::kind() const
         , { /* 4 */ NC_FORMAT_NETCDF4,         "netCDF-4"}  // 4
         , { /* 5 */ NC_FORMAT_NETCDF4_CLASSIC, "netCDF-4 classic model" } }; // 5
 
-    int nc_kind;
-    if ( nc_inq_format( ncid_, &nc_kind ) == NC_NOERR ) {
-        auto it = std::find_if( list, list + sizeof(list)/sizeof(list[0]), [&](const auto& a){ return std::get<0>(a) == nc_kind; } );
+    if ( auto nc_kind = inq_format() ) {
+        auto it = std::find_if( list, list + sizeof(list)/sizeof(list[0]), [&](const auto& a){ return std::get<0>(a) == *nc_kind; } );
         if ( it != list + sizeof(list)/sizeof(list[0]) )
             return *it;
-        return { nc_kind, "unrecognized file format" };
+        return { *nc_kind, "unrecognized file format" };
     }
     return {};
 }
@@ -107,33 +132,33 @@ ncfile::kind() const
 std::tuple< int, uint16_t, std::string >
 ncfile::kind_extended() const
 {
-    int nc_extended, nc_mode;
-    int nc_kind;
-    if ( nc_inq_format( ncid_, &nc_kind ) == NC_NOERR
-         && nc_inq_format_extended( ncid_, &nc_extended, &nc_mode ) == NC_NOERR ) {
+    static const std::pair<int, std::string > list [] = {
+        { NC_FORMATX_UNDEFINED,   "unknown" } // (0)
+        , { NC_FORMATX_NC3,       "classic" } // (1)
+        , { NC_FORMATX_NC_HDF5,   "HDF5" }    // (2)
+        , { NC_FORMATX_NC_HDF4,   "HDF4" }    // (3)
+        , { NC_FORMATX_PNETCDF,   "PNETCDF" } // (4)
+        , { NC_FORMATX_DAP2,      "DAP2" }    // (5)
+        , { NC_FORMATX_DAP4,      "DAP4" }    // (6)
+        , { NC_FORMATX_UDF0,      "UDF0" }    // (8)
+        , { NC_FORMATX_UDF1,      "UDF1" }    // (9)
+        , { NC_FORMATX_NCZARR,    "NCZRR" }   // (10)
+    };
+    if ( auto nc_kind = inq_format() ) {
+        if ( auto pair = inq_format_extended() ) {
+            auto [nc_extended, nc_mode] = *pair;
+            if ( *nc_kind == NC_FORMAT_NC3 ) {
+                if ( nc_mode & NC_CDF5 )
+                    return {*nc_kind, nc_mode, "64-bit data"};
+                else if ( nc_mode & NC_64BIT_OFFSET )
+                    return {*nc_kind, nc_mode, "64-bit offset"};
+            }
+            auto it = std::find_if( list, list + sizeof(list)/sizeof(list[0])
+                                    , [&](const auto& a){ return std::get<0>(a) == *nc_kind; } );
 
-        switch ( nc_kind ) {
-        case NC_FORMATX_NC3:
-            if( nc_mode & NC_CDF5)
-                return {nc_kind, nc_mode, "64-bit data"};
-            else if( nc_mode & NC_64BIT_OFFSET)
-                return {nc_kind, nc_mode, "64-bit offset"};
-            else
-                return {nc_kind, nc_mode, "classic"};
-        case NC_FORMATX_NC_HDF5:
-            return { nc_kind, nc_mode, "HDF5" };
-        case NC_FORMATX_NC_HDF4:
-            return {nc_kind, nc_mode, "HDF4" };
-        case NC_FORMATX_PNETCDF:
-            return {nc_kind, nc_mode, "PNETCDF" };
-        case NC_FORMATX_DAP2:
-            return {nc_kind, nc_mode, "DAP2" };
-        case NC_FORMATX_DAP4:
-            return {nc_kind, nc_mode, "DAP4" };
-        case NC_FORMATX_UNDEFINED:
-            return {nc_kind, nc_mode, "unknown" };
-        default:
-            return {nc_kind, nc_mode, "unrecognized"};
+            if ( it != list + sizeof(list)/sizeof(list[0]) )
+                return { *nc_kind, nc_mode, std::get<1>(*it) };
+            return { *nc_kind, nc_mode, "unrecognized" };
         }
     }
     return {};
@@ -143,16 +168,9 @@ const std::vector< dimension >&
 ncfile::dims() const
 {
     if ( dims_.empty() ) {
-        int ndims, nvars, ngatts, unlimdimid;
-        if ( nc_inq( ncid_, &ndims, &nvars, &ngatts, &unlimdimid ) == NC_NOERR ) {
-            for ( int dimid = 0; dimid < ndims; ++dimid ) {
-                std::array< char, NC_MAX_NAME > name;
-                size_t len(0);
-                if ( nc_inq_dim( ncid_, dimid, name.data(), &len ) == NC_NOERR ) {
-                    dimension dim( dimid, name.data(), len );
-                    dims_.emplace_back( dim );
-                }
-            }
+        for ( int dimid = 0; dimid < ndims_; ++dimid ) {
+            if ( auto dim = inq_dim( dimid ) )
+                dims_.emplace_back( *dim );
         }
     }
     return dims_;
@@ -162,15 +180,9 @@ const std::vector< variable >&
 ncfile::vars() const
 {
     if ( vars_.empty() ) {
-        int ndims(0), nvars(0), ngatts(0), unlimdimid(0);
-        if ( nc_inq( ncid_, &ndims, &nvars, &ngatts, &unlimdimid ) == NC_NOERR ) {
-            for ( int varid = 0; varid < nvars; ++varid ) {
-                nc_type xtype;
-                int ndims, dimids, natts;
-                std::array< char, NC_MAX_NAME > name;
-                if ( nc_inq_var( ncid_, varid, name.data(), &xtype, &ndims, &dimids, &natts ) == NC_NOERR ) {
-                    vars_.emplace_back( variable{ varid, name.data(), xtype, ndims, dimids, natts } );
-                }
+        for ( int varid = 0; varid < nvars_; ++varid ) {
+            if ( auto var = inq_var( varid ) ) {
+                vars_.emplace_back( *var );
             }
         }
     }
@@ -182,23 +194,127 @@ const std::vector< attribute >&
 ncfile::atts() const
 {
     if ( atts_.empty() ) {
-        int natts(0);
-        if ( nc_inq_natts( ncid_, &natts ) == NC_NOERR ) {
-
-            for ( int attid = 0; attid < natts; ++attid ) {
-                std::array< char, NC_MAX_NAME > name;
-                if ( nc_inq_attname( ncid_, NC_GLOBAL, attid, name.data() ) == NC_NOERR ) {
-                    nc_type xtype;
-                    size_t len;
-                    if ( nc_inq_att( ncid_, NC_GLOBAL, name.data(), &xtype, &len ) == NC_NOERR ) {
-                        ADDEBUG() << std::make_tuple( attid, name.data(), "xtype", xtype, "len", len);
-
-                        //atts_.emplace_back( attribute( NC_GLOBAL, attid, name.data(), xtype, len ) );
-                    }
-                }
+        for ( int attid = 0; attid < ngatts_; ++attid ) {
+            if ( auto att = inq_att( NC_GLOBAL, attid ) ) {
+                atts_.emplace_back( *att );
             }
         }
     }
-
     return atts_;
+}
+
+std::vector< attribute >
+ncfile::atts( const variable& var ) const
+{
+    if ( const int natts = std::get< variable::natts >( var.value() ) ) {
+        std::vector< attribute > atts;
+        for ( int attid = 0; attid < natts; ++attid ) {
+            if ( auto att = inq_att( std::get< variable::varid >( var.value() ), attid ) )
+                atts.emplace_back( *att );
+        }
+        return atts;
+    }
+    return {};
+}
+
+dimension
+ncfile::dim( const variable& var ) const
+{
+    // auto dimid = std::get< variable::dimids >( var.value() );
+    // if ( ( dims().size() > dimid ) &&
+    //      ( std::get< dimension::dimid >( dims().at( dimid ).value() ) == dimid ) )
+    //     return dims().at( dimid );
+    return {};
+}
+
+
+std::optional< dimension >
+ncfile::inq_dim( int dimid ) const
+{
+    std::array< char, NC_MAX_NAME > name;
+    size_t len(0);
+    if ( nc_inq_dim( ncid_, dimid, name.data(), &len ) == NC_NOERR ) {
+        return {{ dimid, name.data(), len }};
+    }
+    return {};
+}
+
+std::optional< attribute >
+ncfile::inq_att( int varid, int attid ) const
+{
+    std::array< char, NC_MAX_NAME > name;
+    if ( nc_inq_attname( ncid_, varid, attid, name.data() ) == NC_NOERR ) {
+        nc_type xtype(0);
+        size_t len(0);
+        if ( nc_inq_att( ncid_, varid, name.data(), &xtype, &len ) == NC_NOERR ) {
+            return {{ varid, attid, name.data(), xtype, len }};
+        }
+    }
+    return {};
+}
+
+std::optional< variable >
+ncfile::inq_var( int varid ) const
+{
+    nc_type xtype(0);
+    int ndims(0), dimids(0), natts(0);
+    std::array< char, NC_MAX_NAME > name;
+    if ( nc_inq_varndims( ncid_, varid, &ndims ) == NC_NOERR ) {
+        std::vector< int > dims( ndims );
+        if ( nc_inq_var( ncid_, varid, name.data(), &xtype, 0, dims.data(), &natts )  == NC_NOERR ) {
+            // ADDEBUG() << ">>>>>>> " << std::make_tuple( varid, name.data(), "xtype: ", xtype, "ndims: ", ndims, "natts", natts );
+            // for ( size_t i = 0; i < ndims; ++i ) {
+            //     ADDEBUG() << "\t\tdims[" << i << "]=" << dims[i];
+            // }
+            return {{ varid, name.data(), xtype, ndims, std::move( dims ), natts }};
+        }
+    }
+    return {};
+}
+
+////////////////
+datum_variant_t
+ncfile::get_att( const attribute& t ) const
+{
+    auto [varid, attid, name, xtype, len ] = t.value();
+    auto typ = to_variant< nc_types_t >{}( xtype );
+
+    auto is_ok = std::visit( [&]( auto&& x )->datum_variant_t{
+        using T = std::decay_t<decltype(x._)>;
+        if constexpr ( std::is_same_v<T, char >)
+            return get_att_text( t );
+        else if constexpr ( std::is_same_v<T, int >)
+            return get_att( int{}, t );
+        return {};
+    }, typ );
+
+
+    return {};
+}
+
+std::string
+ncfile::get_att_text( const attribute& t ) const
+{
+    auto [varid, attid, name, xtype, len ] = t.value();
+    auto typ = to_variant< nc_types_t >{}( xtype );
+    auto is_ok = std::visit( []( auto&& t )->bool{
+        using T = std::decay_t<decltype(t._)>;
+        return std::is_same_v<T, char >;
+    }, typ );
+
+    if ( is_ok ) {
+        size_t size = std::get< attribute::len >( t.value() );
+        std::string datum( size + 1, '\0' );
+        if ( nc_get_att_text( ncid_, varid, name.c_str(), datum.data() ) == NC_NOERR )
+            return datum;
+    }
+
+    return {};
+}
+
+template<>
+std::vector< int >
+ncfile::get_att( int, const attribute& t ) const
+{
+    return {};
 }

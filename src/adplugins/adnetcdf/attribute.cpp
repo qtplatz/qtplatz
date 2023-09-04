@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "attribute.hpp"
+#include "nc_type.hpp"
 
 namespace adnetcdf {
     namespace netcdf {
@@ -60,6 +61,23 @@ namespace adnetcdf {
         attribute::value() const
         {
             return { varid_, attid_, name_, type_, len_ };
+        }
+
+        void
+        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const attribute& t )
+        {
+            // using namespace adnetcdf::netcdf;
+            jv = boost::json::value{{ "att"
+                    , {
+                        { "varid",    t.varid_ }
+                        , { "attid",   t.attid_ }
+                        , { "name",    t.name_ }
+                        , { "typeid",  t.type_ }
+                        , { "type",    nc_type_name( t.type_, nc_types_t{} ) }
+                        , { "type",    t.type_ }
+                        , { "len",     t.len_ }
+                    }
+                }};
         }
 
     } // namespace netcdf

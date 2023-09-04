@@ -26,21 +26,26 @@
 #pragma once
 
 #include <string>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace adnetcdf {
     namespace netcdf {
 
         class dimension {
         public:
+            enum { dimid, name, len };
+            typedef std::tuple< int, std::string, size_t > value_type;
             dimension();
             dimension( const dimension& );
             dimension( int, const std::string&, size_t& );
-            dimension( const std::tuple< int, std::string, size_t >& );
-            std::tuple< int, std::string, size_t > value() const;
+            dimension( const value_type& );
+            value_type value() const;
         private:
             int dimid_;
             std::string name_;
             size_t len_;
+            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const dimension& );
         };
 
     } // namespace netcdf

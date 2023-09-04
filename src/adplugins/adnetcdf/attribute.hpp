@@ -27,6 +27,8 @@
 
 #include <string>
 #include <netcdf.h>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace adnetcdf {
     namespace netcdf {
@@ -34,6 +36,7 @@ namespace adnetcdf {
         class attribute {
         public:
             typedef std::tuple< int, int, std::string, nc_type, size_t > value_type;
+            enum { varid, attid, name, type, len };
 
             attribute();
             attribute( const attribute& );
@@ -46,6 +49,7 @@ namespace adnetcdf {
             std::string name_;
             nc_type type_;
             size_t len_;
+            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const attribute& );
         };
 
     } // namespace netcdf

@@ -74,6 +74,7 @@ add_executable( adncdump
   dimension.cpp dimension.hpp
   variable.cpp variable.hpp
   attribute.cpp attribute.hpp
+  nc_type.hpp
 )
 
 target_link_libraries( adncdump LINK_PUBLIC
