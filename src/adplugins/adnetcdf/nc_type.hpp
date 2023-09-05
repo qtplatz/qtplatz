@@ -94,6 +94,15 @@ namespace adnetcdf {
             type operator()( int typid ) const {  return type_list_t< Args ..., null_t >{}.do_cast( type{}, typid );  }
         };
 
+        ///////////////////////////////////////////////////////////
+        template< typename Tuple > struct to_variant_;
+
+        template <typename... Ts>
+        struct to_variant_< std::tuple<Ts...> >
+        {
+            using type = std::variant<std::monostate, typename Ts::value_type ...>;
+        };
+
         //////////////////////////////////////////
         template< class Tuple, std::size_t... Is >
         std::string nc_type_name_impl( const Tuple& t, int typid, std::index_sequence<Is...> ) {

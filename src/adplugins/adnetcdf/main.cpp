@@ -33,6 +33,15 @@
 #include <boost/json.hpp>
 #include <iomanip>
 
+namespace {
+    // helper type for the visitor #4
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+    // explicit deduction guide (not needed as of C++20)
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+}
+
 void
 do_ncdump( const adnetcdf::netcdf::ncfile& file )
 {
@@ -77,6 +86,22 @@ do_ncdump( const adnetcdf::netcdf::ncfile& file )
         std::cout << "\t\t:" << std::setw(32) << std::left << name << "\t\"" << file.get_att_text( att ) << "\";"
                   << std::endl;
     }
+
+    auto ovld = overloaded{
+        [&]( auto&& data, const nc::variable& var ) {
+            ADDEBUG() << var.value() << ", data.size: " << data.size();
+            for ( size_t i = 0; i < data.size() && i < 10; i++ )
+                ADDEBUG() << "\t" << var.name() << "\t" << std::make_pair( i, data[i] );
+        }
+    };
+
+    ///////////////////
+    for ( const auto& var: file.vars() ) {
+        std::variant< nc::variable > vvar = var;;
+        auto datum = file.readData( var );
+        std::visit( ovld, datum, vvar );
+    }
+
 }
 
 
@@ -93,7 +118,6 @@ void open_netcdf( const char * filename )
     }
 }
 
-
 int
 main( int argc, const char * argv[] )
 {
@@ -106,5 +130,6 @@ main( int argc, const char * argv[] )
     ADDEBUG() << "No argument specified.";
     open_netcdf( "/Users/toshi/data/SFC/2023-0901/COR40_1.CDF" );
     //open_netcdf( "/Users/toshi/src/build-Darwin-arm64/netcdf-c-4.9.2/examples/C/simple_xy.nc" );
+
     return 0;
 }

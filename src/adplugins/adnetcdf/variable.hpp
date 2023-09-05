@@ -46,6 +46,8 @@ namespace adnetcdf {
             variable( const value_type & );
             value_type value() const;
             const std::vector< int > dimids() const;
+            inline int varid() const { return varid_; };
+            inline const std::string& name() const { return name_; };
         private:
             int varid_;
             std::string name_;

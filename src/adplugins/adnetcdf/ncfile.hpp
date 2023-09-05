@@ -50,7 +50,7 @@ namespace adnetcdf {
         typedef std::variant< std::string
                               , std::vector< float >
                               , std::vector< int >
-                              > datum_variant_t;
+                              > datum_t;
 
         class ncfile {
             ncfile( const ncfile& ) = delete;
@@ -81,13 +81,16 @@ namespace adnetcdf {
             std::optional< attribute > inq_att( int varid, int attid ) const;
             std::optional< variable > inq_var( int varid ) const;
 
-            datum_variant_t get_att( const attribute& t ) const;
-            datum_variant_t get_var( const variable& t ) const;
+            datum_t readData( const attribute& t ) const;
+            datum_t readData( const variable& t ) const;
 
             std::string get_att_text( const attribute& t ) const;
 
             template< typename T >
-            std::vector< T > get_att( T tag, const attribute& t ) const;
+            std::vector< T > get_att_( T tag, const attribute& t ) const;
+
+            template< typename T >
+            std::vector< T > get_var_( T tag, const variable& t ) const;
 
         private:
             std::filesystem::path path_;
@@ -104,7 +107,21 @@ namespace adnetcdf {
             friend class nc;
         };
 
-        template<> std::vector< int > ncfile::get_att( int, const attribute& t ) const;
+        template<> std::vector< int > ncfile::get_att_( int, const attribute& t ) const;
+
+        template<> std::vector< nat_t >    ncfile::get_var_( nat_t, const variable& t ) const;
+        template<> std::vector< int8_t >   ncfile::get_var_( int8_t, const variable& t ) const;
+        template<> std::vector< char >     ncfile::get_var_( char, const variable& t ) const;
+        template<> std::vector< int16_t >  ncfile::get_var_( int16_t, const variable& t ) const;
+        template<> std::vector< int32_t >  ncfile::get_var_( int32_t, const variable& t ) const;
+        template<> std::vector< float >    ncfile::get_var_( float, const variable& t ) const;
+        template<> std::vector< double >   ncfile::get_var_( double, const variable& t ) const;
+        template<> std::vector< uint8_t >  ncfile::get_var_( uint8_t, const variable& t ) const;
+        template<> std::vector< uint16_t > ncfile::get_var_( uint16_t, const variable& t ) const;
+        template<> std::vector< uint32_t > ncfile::get_var_( uint32_t, const variable& t ) const;
+        template<> std::vector< int64_t >  ncfile::get_var_( int64_t, const variable& t ) const;
+        template<> std::vector< uint64_t > ncfile::get_var_( uint64_t, const variable& t ) const;
+        template<> std::vector< char * >   ncfile::get_var_( char *,  const variable& t ) const;
 
     } // namespace netcdf
 }

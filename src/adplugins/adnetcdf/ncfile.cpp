@@ -29,10 +29,10 @@
 #include "attribute.hpp"
 #include <adportable/debug.hpp>
 #include <netcdf.h>
-#include <filesystem>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
+#include <numeric>
 
 namespace adnetcdf {
     namespace netcdf {
@@ -50,6 +50,57 @@ namespace adnetcdf {
         //////////////////////
     }
 }
+
+namespace {
+    // helper type for the visitor #4
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+    // explicit deduction guide (not needed as of C++20)
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+}
+
+namespace adnetcdf { namespace netcdf {
+
+        struct nc_helper {
+            std::vector< size_t > operator()( const ncfile& file, const variable& var ) const {
+                std::vector< size_t > dsize;
+                auto dimentions = file.dims( var );
+                auto [varid,name,type,ndims,natts] = var.value();
+                std::transform( dimentions.begin(), dimentions.end(), std::back_inserter( dsize ), [](const auto& a){ return a.len(); });
+                return dsize;
+            }
+        };
+
+        template< typename T > int nc_get_var_( T tag, int ncid, int varid, T * p );
+
+        template<> int nc_get_var_<float>( float, int ncid, int varid, float * p ) {
+            return nc_get_var_float( ncid, varid, p );
+        }
+
+        struct nc_reader {
+            const ncfile& ncfile_;
+            nc_reader( const ncfile& file ) : ncfile_( file ) {}
+
+            // read into vector
+            template< typename T > std::vector< T > operator()( T tag, const variable& var ) const {
+                auto dsize = nc_helper()( ncfile_, var );
+                size_t len = dsize.size() == 0 ? 1 : std::accumulate( dsize.begin(), dsize.end(), 0 );
+                std::vector< T > data(len);
+                if ( nc_get_var_( tag, ncfile_.ncid(), var.varid(), data.data() ) == NC_NOERR )
+                    return data;
+                return {};
+            }
+
+            // string reader
+            std::string operator()( std::string tag, const variable& var ) const {
+                nc_helper()( ncfile_, var );
+                return std::string{};
+            }
+        };
+    }
+}
+
 
 /////////////////////// ncfile /////////////////////
 using namespace adnetcdf;
@@ -271,33 +322,6 @@ ncfile::inq_var( int varid ) const
 }
 
 ////////////////
-datum_variant_t
-ncfile::get_att( const attribute& t ) const
-{
-    auto [varid, attid, name, xtype, len ] = t.value();
-    auto typ = to_variant< nc_types_t >{}( xtype );
-
-    auto datum = std::visit( [&]( auto&& x )->datum_variant_t{
-        using T = std::decay_t<decltype(x._)>;
-        if constexpr ( std::is_same_v<T, char >)
-            return get_att_text( t );
-        else if constexpr ( std::is_same_v<T, int >)
-            return get_att( int{}, t );
-        return {};
-    }, typ );
-
-    return datum;
-}
-
-datum_variant_t
-ncfile::get_var( const variable& t ) const
-{
-    auto [ varid, name, type, ndims, natts ] = t.value();
-    auto dimensions = dims( t );
-
-
-    return{};
-}
 
 std::string
 ncfile::get_att_text( const attribute& t ) const
@@ -321,7 +345,57 @@ ncfile::get_att_text( const attribute& t ) const
 
 template<>
 std::vector< int >
-ncfile::get_att( int, const attribute& t ) const
+ncfile::get_att_( int, const attribute& t ) const
 {
     return {};
+}
+
+////////////////////////////////////////////////
+
+datum_t
+ncfile::readData( const attribute& t ) const
+{
+    auto [varid, attid, name, xtype, len ] = t.value();
+    auto typ = to_variant< nc_types_t >{}( xtype );
+
+
+    auto datum = std::visit( [&]( auto&& x )->datum_t{
+        using T = std::decay_t<decltype(x._)>;
+        if constexpr ( std::is_same_v<T, char >)
+            return get_att_text( t );
+        else if constexpr ( std::is_same_v<T, int >)
+            return get_att_( int{}, t );
+        return {};
+    }, typ );
+
+    return datum;
+}
+
+////////////////////////////////////////////////
+
+datum_t
+ncfile::readData( const variable& t ) const
+{
+    auto [ varid, name, xtype, ndims, natts ] = t.value();
+    auto dimensions = dims( t );
+    auto typ = to_variant< nc_types_t >()( xtype );
+
+    nc_reader reader(*this);
+    auto ovld = overloaded{
+        [&]( const nc_type_t< NC_NAT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_BYTE>& x )->datum_t  { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_CHAR>& x )->datum_t  { return reader( std::string{}, t); },
+        [&]( const nc_type_t< NC_SHORT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_INT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
+        //[&]( const nc_type_t< NC_FLOAT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_DOUBLE>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_UBYTE>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_USHORT>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_UINT>& x )->datum_t  { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_INT64>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_UINT64>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
+        [&]( const nc_type_t< NC_STRING>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
+        [&]( const auto& x )->datum_t{ return reader( x._, t); },
+    };
+    return std::visit( ovld, typ );
 }
