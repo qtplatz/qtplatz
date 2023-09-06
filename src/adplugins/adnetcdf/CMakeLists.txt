@@ -40,8 +40,11 @@ add_library( ${PROJECT_NAME} MODULE
   datafile.hpp
   datafile_factory.cpp
   datafile_factory.hpp
-#  ncfile.cpp ncfile.hpp
-#  dimension.cpp dimension.hpp
+  ncfile.cpp ncfile.hpp
+  dimension.cpp dimension.hpp
+  variable.cpp variable.hpp
+  attribute.cpp attribute.hpp
+  nc_type.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
