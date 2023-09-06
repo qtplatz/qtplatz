@@ -103,9 +103,9 @@ namespace adnetcdf { namespace netcdf {
         }
 
         //------------------------
-        struct nc_reader {
+        struct nc_var_reader {
             const ncfile& ncfile_;
-            nc_reader( const ncfile& file ) : ncfile_( file ) {}
+            nc_var_reader( const ncfile& file ) : ncfile_( file ) {}
 
             // read into vector
             template< typename T > std::vector< T > operator()( T tag, const variable& var ) const {
@@ -413,17 +413,16 @@ ncfile::readData( const attribute& t ) const
 ////////////////////////////////////////////////
 
 datum_t
-ncfile::readData( const variable& t ) const
+ncfile::readData( const variable& var ) const
 {
-    auto [ varid, name, xtype, ndims, natts ] = t.value();
-    auto dimensions = dims( t );
-    auto typ = to_variant< nc_types_t >()( xtype );
+    auto dimensions = dims( var );
+    auto typ = to_variant< nc_types_t >()( std::get< variable::_type >( var.value() ) );
 
-    nc_reader reader(*this);
+    nc_var_reader reader(*this);
     auto ovld = overloaded{
         [&]( const nc_type_t< NC_NAT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_BYTE>& x )->datum_t  { ADDEBUG() << "unhandled"; return {}; },
-        [&]( const nc_type_t< NC_CHAR>& x )->datum_t  { return reader( std::vector< std::string >{}, t); },
+        [&]( const nc_type_t< NC_CHAR>& x )->datum_t  { return reader( std::vector< std::string >{}, var); },
         [&]( const nc_type_t< NC_SHORT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_INT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
         //[&]( const nc_type_t< NC_FLOAT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; }, // handle by auto type
@@ -434,7 +433,7 @@ ncfile::readData( const variable& t ) const
         [&]( const nc_type_t< NC_INT64>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_UINT64>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_STRING>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
-        [&]( const auto& x )->datum_t{ return reader( x._, t); },
+        [&]( const auto& x )->datum_t{ return reader( x._, var); },
     };
     return std::visit( ovld, typ );
 }
