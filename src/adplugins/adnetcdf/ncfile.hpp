@@ -26,11 +26,9 @@
 #pragma once
 
 #include "constants.hpp"
-#include "nc_type.hpp"
 #include <netcdf.h>
 #include <boost/filesystem/path.hpp>
 #include <filesystem>
-#include <map>
 #include <string>
 #include <vector>
 

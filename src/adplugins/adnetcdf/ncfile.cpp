@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "ncfile.hpp"
+#include "nc_type.hpp"
 #include "dimension.hpp"
 #include "variable.hpp"
 #include "attribute.hpp"
