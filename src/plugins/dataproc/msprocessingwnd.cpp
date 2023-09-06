@@ -661,11 +661,16 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
             }
         }
         else if ( folder.name() == L"Chromatograms" ) {
+
+            ADDEBUG() << "##### handleSelectionChanged(" << std::make_pair( folder.name(), folium.name() ) << ")";
+            ADDEBUG() << folium.data().type().name();
+
             int idx = 0;
             pImpl_->ticPlot_->clear();
             pImpl_->ticPlot_->replot();
             if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
                 if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
+                    ADDEBUG() << "\tfind chromatogram ptr";
                     idx = std::max( idx, ptr->protocol() );
                     draw( ptr, ptr->protocol() );
                     pImpl_->idActiveFolium_ = folium.id();

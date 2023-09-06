@@ -436,6 +436,12 @@ Chromatogram::toIndexRange( double s, double e ) const
     }
 }
 
+std::vector< double >&
+Chromatogram::intensVector()
+{
+    return pImpl_->dataArray_;
+}
+
 const double *
 Chromatogram::getIntensityArray() const
 {

@@ -214,11 +214,19 @@ namespace adcontrols {
         std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds> time_of_injection() const;
         std::string time_of_injection_iso8601() const;
 
+        template< typename T >
+        void setIntensityArray( const std::vector< T >& data ) {
+            resize( data.size() );
+            std::transform( data.begin(), data.end(), intensVector().begin(), [](const auto& a){ return double(a); });
+        }
+
+
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
 
         internal::ChromatogramImpl * pImpl_;
+        std::vector< double >& intensVector();
     };
 
     template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );

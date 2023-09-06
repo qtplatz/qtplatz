@@ -128,17 +128,6 @@ Folder::addFolium( const std::wstring& name )
     return Folium( Node::addFolium( name ), impl_ );
 }
 
-#if 0
-bool
-Folder::removeFolium( const Folium& folium )
-{
-    if ( Node::removeFolium( folium.id() ) ) {
-        impl_->collect_garbage();
-        return true;
-    }
-    return false;
-}
-#endif
 
 bool
 Folder::erase( Folium folium

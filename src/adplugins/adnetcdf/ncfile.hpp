@@ -96,10 +96,9 @@ namespace adnetcdf {
             int ngatts_;
             int unlimdimid_;
 
-            mutable std::vector< dimension > dims_;
+            std::vector< dimension > dims_;
+            std::vector< attribute > atts_; // global attribute
             mutable std::vector< variable > vars_;
-            mutable std::vector< attribute > atts_; // global attribute
-            friend class nc;
         };
 
     } // namespace netcdf

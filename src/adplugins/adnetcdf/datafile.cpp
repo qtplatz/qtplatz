@@ -34,9 +34,9 @@
 
 #include "datafile.hpp"
 #include "ncfile.hpp"
-#include "attribute.hpp"
-#include "dimension.hpp"
-#include "variable.hpp"
+// #include "attribute.hpp"
+// #include "dimension.hpp"
+// #include "variable.hpp"
 #include <netcdf.h>
 #include <adcontrols/countinghistogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -62,6 +62,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <filesystem>
 
 using namespace adnetcdf;
 
@@ -78,6 +79,7 @@ datafile::datafile() : accelVoltage_( 0 )
 void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     // subscribe acquired dataset <LCMSDataset>
     // No LC/GC data supported
     // sub.subscribe( *this );
@@ -127,27 +129,36 @@ bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     ADDEBUG() << "----------------- datafile::open(" << filename << ")";
+
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
+
+    processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
+    processedDataset_->xml( portfolio.xml() );
+
 
     if ( auto file = adnetcdf::netcdf::open( boost::filesystem::path( filename ) ) ) {
         ADDEBUG() << file.path() << " open success.";
         ADDEBUG() << "file.kind: " << file.kind() << file.kind_extended();
 
-        if ( auto chro = AndiChromatogram().import( file ) ) {
+        AndiChromatogram andi;
+        if ( auto chro = andi.import( file ) ) {
+            std::wstring name = std::filesystem::path( filename ).stem().wstring();
+            auto folder = portfolio.addFolder( L"Chromatograms" );
+            auto folium = folder.addFolium( name ).assign( chro, chro->dataClass() );
+
+
+            return true;
         }
     }
-
-    processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
-    processedDataset_->xml( portfolio.xml() );
-
-    return true;
+    return false;
 }
 
 
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
+    ADDEBUG() << "================ fetch ==================";
     // return fetch( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( dataType ) );
     return {};
 }
@@ -155,41 +166,36 @@ datafile::fetch( const std::string& path, const std::string& dataType ) const
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    // do { // find from a spectrum tree
-    //     auto it = data_.find( path );
-    //     if ( it != data_.end() )
-    //         return it->second;
-    // } while ( 0 );
-    // do { // find from a chromatogram tree
-    //     auto it = chro_.find( path );
-    //     if ( it != chro_.end() )
-    //         return it->second;
-    // } while ( 0 );
+    ADDEBUG() << "================ fetch ==================";
 	return {};
 }
 
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return 1;
 }
 
 bool
 datafile::getSpectrum( int /* fcn */, size_t /* idx */, adcontrols::MassSpectrum&, uint32_t ) const
 {
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return true;
 }
 
 bool
 datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 {
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return false;
 }
 
 size_t
 datafile::getChromatogramCount() const
 {
-    return 0;
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    return 1;
 }
 
 size_t

@@ -201,6 +201,17 @@ ncfile::ncfile( const std::filesystem::path& path
 {
     rcode_ = nc_open( path.string().c_str(), int( mode), &ncid_ );
     rcode_ = nc_inq( ncid_, &ndims_, &nvars_, &ngatts_, &unlimdimid_ );
+
+    for ( int dimid = 0; dimid < ndims_; ++dimid ) {
+        if ( auto dim = inq_dim( dimid ) )
+            dims_.emplace_back( *dim );
+    }
+
+    for ( int attid = 0; attid < ngatts_; ++attid ) {
+        if ( auto att = inq_att( NC_GLOBAL, attid ) ) {
+            atts_.emplace_back( *att );
+        }
+    }
 }
 
 int32_t ncfile::rcode() const      { return rcode_; }
@@ -288,12 +299,6 @@ ncfile::kind_extended() const
 const std::vector< dimension >&
 ncfile::dims() const
 {
-    if ( dims_.empty() ) {
-        for ( int dimid = 0; dimid < ndims_; ++dimid ) {
-            if ( auto dim = inq_dim( dimid ) )
-                dims_.emplace_back( *dim );
-        }
-    }
     return dims_;
 }
 
@@ -314,13 +319,6 @@ ncfile::vars() const
 const std::vector< attribute >&
 ncfile::atts() const
 {
-    if ( atts_.empty() ) {
-        for ( int attid = 0; attid < ngatts_; ++attid ) {
-            if ( auto att = inq_att( NC_GLOBAL, attid ) ) {
-                atts_.emplace_back( *att );
-            }
-        }
-    }
     return atts_;
 }
 
