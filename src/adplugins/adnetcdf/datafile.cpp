@@ -27,11 +27,16 @@
 // #  define BOOST_NO_CXX11_RVALUE_REFERENCES
 // #endif
 
+#include "andichromatogram.hpp"
 #if defined __GNUC__
 # pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include "datafile.hpp"
+#include "ncfile.hpp"
+#include "attribute.hpp"
+#include "dimension.hpp"
+#include "variable.hpp"
 #include <netcdf.h>
 #include <adcontrols/countinghistogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -125,6 +130,14 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
+    if ( auto file = adnetcdf::netcdf::open( boost::filesystem::path( filename ) ) ) {
+        ADDEBUG() << file.path() << " open success.";
+        ADDEBUG() << "file.kind: " << file.kind() << file.kind_extended();
+
+        if ( auto chro = AndiChromatogram().import( file ) ) {
+        }
+    }
+
     processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
     processedDataset_->xml( portfolio.xml() );
 
@@ -135,23 +148,23 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
-    return fetch( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( dataType ) );
+    // return fetch( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( dataType ) );
+    return {};
 }
 
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    do { // find from a spectrum tree
-        auto it = data_.find( path );
-        if ( it != data_.end() )
-            return it->second;
-    } while ( 0 );
-    do { // find from a chromatogram tree
-        auto it = chro_.find( path );
-        if ( it != chro_.end() )
-            return it->second;
-    } while ( 0 );
-
+    // do { // find from a spectrum tree
+    //     auto it = data_.find( path );
+    //     if ( it != data_.end() )
+    //         return it->second;
+    // } while ( 0 );
+    // do { // find from a chromatogram tree
+    //     auto it = chro_.find( path );
+    //     if ( it != chro_.end() )
+    //         return it->second;
+    // } while ( 0 );
 	return {};
 }
 

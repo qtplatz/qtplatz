@@ -44,6 +44,7 @@ add_library( ${PROJECT_NAME} MODULE
   dimension.cpp dimension.hpp
   variable.cpp variable.hpp
   attribute.cpp attribute.hpp
+  andichromatogram.cpp andichromatogram.hpp
   nc_type.hpp
   )
 
