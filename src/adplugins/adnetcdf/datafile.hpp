@@ -73,13 +73,8 @@ namespace adnetcdf {
                                , int /* endPos */ ) const override { return false; }
 
     private:
-		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        std::map< std::wstring, adcontrols::MassSpectrumPtr > data_;
-        std::map< std::wstring, adcontrols::ChromatogramPtr > chro_;
-        double accelVoltage_;
-        double length_;
-        double tDelay_;
-        std::string model_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 
         // bool prepare_portfolio( const TXTSpectrum&, const std::wstring&, portfolio::Portfolio& );
         // bool prepare_portfolio( const TXTChromatogram&, const std::wstring&, portfolio::Portfolio& );

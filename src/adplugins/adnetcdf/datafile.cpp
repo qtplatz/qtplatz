@@ -64,36 +64,55 @@
 #include <boost/uuid/uuid.hpp>
 #include <filesystem>
 
+namespace adnetcdf {
+
+    class datafile::impl {
+    public:
+		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
+        double accelVoltage_;
+        double length_;
+        double tDelay_;
+        std::string model_;
+        std::shared_ptr< adcontrols::MassSpectrum > data_;
+        std::shared_ptr< adcontrols::Chromatogram > chro_;
+
+        impl() : processedDataset_( std::make_unique< adcontrols::ProcessedDataset >() )
+               , accelVoltage_( 0 )
+               , length_( 0 )
+               , tDelay_( 0 ) {
+        }
+    };
+
+}
+
 using namespace adnetcdf;
 
 datafile::~datafile()
 {
 }
 
-datafile::datafile() : accelVoltage_( 0 )
-                     , length_( 0 )
-                     , tDelay_( 0 )
+datafile::datafile() : impl_( std::make_unique< impl >() )
 {
 }
 
 void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     // subscribe acquired dataset <LCMSDataset>
     // No LC/GC data supported
     // sub.subscribe( *this );
 
     // subscribe processed dataset
-    if ( processedDataset_ )
-        sub.subscribe( *processedDataset_ );
+    if ( impl_->processedDataset_ )
+        sub.subscribe( *impl_->processedDataset_ );
 
     if ( auto db = sub.db() ) {
-        if ( ! model_.empty() ) { // has scan law
+
+        if ( ! impl_->model_.empty() ) { // has scan law
             auto models = adcontrols::MassSpectrometer::installed_models();
             auto it = std::find_if( models.begin(), models.end(), [&]( const std::pair< boost::uuids::uuid, std::string >& t ){
-                    return t.second == model_;
-                });
+                return t.second == impl_->model_;
+            });
             if ( it == models.end() )
                 return; // can't find clsid
 
@@ -105,8 +124,8 @@ datafile::accept( adcontrols::dataSubscriber& sub )
                          " VALUES ( ?,?,?,?,?,? )" );
             sql.bind( 1 ) = boost::uuids::uuid{ 0 };           // master observer
             sql.bind( 2 ) = std::string( "master.observer" );  // signal observer text name
-            sql.bind( 3 ) = this->accelVoltage_;
-            sql.bind( 4 ) = this->tDelay_;
+            sql.bind( 3 ) = impl_->accelVoltage_;
+            sql.bind( 4 ) = impl_->tDelay_;
             sql.bind( 5 ) = misc_spectrometer; // ScanLaw.spectrometer = Spectrometer.id
             sql.bind( 6 ) = it->first;  // uuid_massspectrometer;
 
@@ -117,7 +136,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
             sql.bind( 1 ) = misc_spectrometer;  // ScanLaw.spectrometer = Spectrometer.id
             sql.bind( 2 ) = 0;
             sql.bind( 3 ) = std::string( "CSV Imported" );
-            sql.bind( 4 ) = this->length_;
+            sql.bind( 4 ) = impl_->length_;
 
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << "sqlite error";
@@ -128,25 +147,19 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
-    ADDEBUG() << "----------------- datafile::open(" << filename << ")";
-
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
-    processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
-    processedDataset_->xml( portfolio.xml() );
-
-
     if ( auto file = adnetcdf::netcdf::open( boost::filesystem::path( filename ) ) ) {
-        ADDEBUG() << file.path() << " open success.";
-        ADDEBUG() << "file.kind: " << file.kind() << file.kind_extended();
 
         AndiChromatogram andi;
         if ( auto chro = andi.import( file ) ) {
+            impl_->chro_ = std::move( chro );
             std::wstring name = std::filesystem::path( filename ).stem().wstring();
             auto folder = portfolio.addFolder( L"Chromatograms" );
             auto folium = folder.addFolium( name ).assign( chro, chro->dataClass() );
 
+            impl_->processedDataset_->xml( portfolio.xml() );
 
             return true;
         }
@@ -158,16 +171,16 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
-    ADDEBUG() << "================ fetch ==================";
+    ADDEBUG() << "================ fetch ================== " << std::make_tuple( path, dataType );
     // return fetch( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( dataType ) );
-    return {};
+    return impl_->chro_;
 }
 
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    ADDEBUG() << "================ fetch ==================";
-	return {};
+    ADDEBUG() << "================ fetch ==================  " << std::make_tuple( path, dataType );
+    return impl_->chro_;
 }
 
 size_t

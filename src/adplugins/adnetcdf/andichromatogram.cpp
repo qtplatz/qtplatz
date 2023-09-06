@@ -64,6 +64,7 @@ namespace adnetcdf {
             if ( size != peaks_.size() )
                 static_cast< adcontrols::Peaks::vector_type& >(peaks_).resize( size );
         }
+
         void adjust_baseline_size( size_t size ) {
             if ( size != baselines_.size() )
                 static_cast< adcontrols::Baselines::vector_type& >(baselines_).resize( size );
@@ -143,9 +144,18 @@ namespace adnetcdf {
             return false;
         }
 
+        void set_local_attribute( const std::string& var, const std::string& attr, const std::string& value ) {
+            if ( var == "ordinate_values" ) {
+                if ( attr == "uniform_sampling_flag" )
+                    chro_->setIsConstantSampledData( value == "Y" );
+                if ( attr == "autosampler_position" )
+                    ;
+            }
+        }
+
         void import( const std::string& key, const std::vector< float >& data ) {
             if ( key == "ordinate_values" ) {
-                chro_->setIntensityArray( data );
+                chro_->setIntensityArray( data, 1000 );
             } else if ( key == "detector_maximum_value" ) {
             } else if ( key == "detector_minimum_value" ) {
             } else if ( key == "actual_run_time_length" ) {
@@ -159,12 +169,11 @@ namespace adnetcdf {
             }
         }
 
-        void set_local_attribute( const std::string& var, const std::string& attr, const std::string& value ) {
-            if ( var == "ordinate_values" ) {
-                if ( attr == "uniform_sampling_flag" )
-                    chro_->setIsCounting( value == "Y" );
-                if ( attr == "autosampler_position" )
-                    ;
+        void import( const std::string& key, const std::vector< std::string >& data ) {
+            if ( key == "peak_name" ) {
+            } else if ( key == "peak_start_detection_code" ) {
+            } else if ( key == "peak_stop_detection_code" ) {
+            } else if ( key == "manually_reintegrated_peaks" ) {
             }
         }
 
@@ -224,7 +233,7 @@ AndiChromatogram::import( const nc::ncfile& file ) const
             impl_->import( var.name(), data );
         },
         [&]( const std::vector< std::string >& data, const nc::variable& var ) {
-            ADDEBUG() << "\t\t" << var.name();
+            impl_->import( var.name(), data );
         }
     };
 

@@ -215,9 +215,9 @@ namespace adcontrols {
         std::string time_of_injection_iso8601() const;
 
         template< typename T >
-        void setIntensityArray( const std::vector< T >& data ) {
+        void setIntensityArray( const std::vector< T >& data, double factor = 1.0 ) {
             resize( data.size() );
-            std::transform( data.begin(), data.end(), intensVector().begin(), [](const auto& a){ return double(a); });
+            std::transform( data.begin(), data.end(), intensVector().begin(), [&](const auto& a){ return double(a * factor); });
         }
 
 

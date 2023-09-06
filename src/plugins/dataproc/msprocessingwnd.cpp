@@ -669,8 +669,14 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
             pImpl_->ticPlot_->clear();
             pImpl_->ticPlot_->replot();
             if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
+                ADDEBUG() << "\t############# find chromatogram data type";
+                boost::any data = folium.data();
+                auto p = boost::any_cast< adcontrols::ChromatogramPtr >( data );
+                ADDEBUG() << p.get();
+
                 if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
-                    ADDEBUG() << "\tfind chromatogram ptr";
+                    ADDEBUG() << "\t############# find chromatogram ptr";
+
                     idx = std::max( idx, ptr->protocol() );
                     draw( ptr, ptr->protocol() );
                     pImpl_->idActiveFolium_ = folium.id();
@@ -684,6 +690,8 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
                         pImpl_->ticPlot_->setPeakResult( *pkresults, QwtPlot::yLeft );
                     }
+                } else {
+                    ADDEBUG() << "\t############# failed to get chromatogram ptr";
                 }
                 pImpl_->ticPlot_->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( pImpl_->yScaleChromatogram_ ) );  // auto scale y?
 
