@@ -37,6 +37,7 @@ namespace {
     // helper type for the visitor #4
     template<class... Ts>
     struct overloaded : Ts... { using Ts::operator()...; };
+
     // explicit deduction guide (not needed as of C++20)
     template<class... Ts>
     overloaded(Ts...) -> overloaded<Ts...>;
@@ -53,7 +54,12 @@ do_ncdump( const adnetcdf::netcdf::ncfile& file )
         std::cout << "\t" << std::setw(24) << name << "\t=\t" << len << std::endl; // boost::json::value_from( dim );
     }
 
-    std::cout << "variables:" << std::endl;
+    auto att_ovld = overloaded{
+        [&]( const std::string& data, const nc::attribute& att )->std::pair<std::string, std::string>{ return {data, att.name()}; },
+        [&]( const auto& data, const nc::attribute& att )->std::pair<std::string, std::string>{ return { {}, att.name()}; },
+    };
+
+    std::cout << "\n// variables:" << std::endl;
     for ( const auto& var: file.vars() ) {
         auto [varid,name,type,ndims,natts] = var.value();
         auto type_name = nc::nc_type_name( type, nc::nc_types_t{} );
@@ -72,34 +78,47 @@ do_ncdump( const adnetcdf::netcdf::ncfile& file )
                   << o.str()
                   << std::endl;
 
-        using namespace adnetcdf::netcdf;
         for ( const auto& att: file.atts( var ) ) {
-            auto [varid,attid,name,type,len] = att.value();
-            std::cout << "\t\t:" << name << "\t" << file.get_att_text( att )
-                      << std::endl;
+            auto data = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
+            std::cout << "\t\t:" << data.second << "\t" << data.first << std::endl;
         }
     }
 
-    std::cout << "attributes:" << std::endl;
+    std::cout << "\n// attributes:" << std::endl;
     for ( const auto& att: file.atts() ) {
-        auto [varid,attid,name,type,len] = att.value();
-        std::cout << "\t\t:" << std::setw(32) << std::left << name << "\t\"" << file.get_att_text( att ) << "\";"
-                  << std::endl;
+        auto data = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
+        std::cout << "\t\t:" << data.second << "\t" << data.first << std::endl;
     }
 
+    ///////// overloads ////////////
     auto ovld = overloaded{
-        [&]( auto&& data, const nc::variable& var ) {
-            ADDEBUG() << var.value() << ", data.size: " << data.size();
-            for ( size_t i = 0; i < data.size() && i < 10; i++ )
-                ADDEBUG() << "\t" << var.name() << "\t" << std::make_pair( i, data[i] );
+        [&]( nc::null_datum_t, const nc::variable& var ) {},
+        [&]( const auto& data, const nc::variable& var ) {
+            if ( data.size() == 1 ) {
+                std::cout << "\t\t" << var.name() << "\t=\t" << data[0] << std::endl;
+            } else {
+                std::cout << "\t\t" << var.name() << "\t= [";
+                size_t i;
+                for ( i = 0; i < data.size() && i < 20; i++ )
+                    std::cout << data[i] << ", ";
+                if ( i != data.size() )
+                    std::cout << ", ...";
+                std::cout << "]" << std::endl;
+            }
+        },
+        [&]( const std::vector< std::string >& data, const nc::variable& var ) {
+            std::cout << "\t\t" << var.name() << "\t= [";
+            for ( const auto& d: data )
+                std::cout << std::quoted( d ) << ", ";
+            std::cout << "]" << std::endl;
         }
     };
 
     ///////////////////
+    std::cout << "\n// data\n";
     for ( const auto& var: file.vars() ) {
-        std::variant< nc::variable > vvar = var;;
         auto datum = file.readData( var );
-        std::visit( ovld, datum, vvar );
+        std::visit( ovld, datum, std::variant< nc::variable >(var) );
     }
 
 }

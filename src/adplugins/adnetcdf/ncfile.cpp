@@ -33,6 +33,8 @@
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <numeric>
+#include <iostream>
+#include <iomanip> // quoted
 
 namespace adnetcdf {
     namespace netcdf {
@@ -72,12 +74,35 @@ namespace adnetcdf { namespace netcdf {
             }
         };
 
+        //------------------------ get_var ---------------------
         template< typename T > int nc_get_var_( T tag, int ncid, int varid, T * p );
 
-        template<> int nc_get_var_<float>( float, int ncid, int varid, float * p ) {
-            return nc_get_var_float( ncid, varid, p );
+        template<> int nc_get_var_<int8_t>( int8_t, int ncid, int varid, int8_t * p ) { return nc_get_var_schar( ncid, varid, p ); }
+        template<> int nc_get_var_<int16_t>( int16_t, int ncid, int varid, int16_t * p ) { return nc_get_var_short( ncid, varid, p ); }
+        template<> int nc_get_var_<int32_t>( int32_t, int ncid, int varid, int32_t * p ) { return nc_get_var_int( ncid, varid, p ); }
+        template<> int nc_get_var_<int64_t>( int64_t, int ncid, int varid, int64_t * p ) { return nc_get_var_longlong( ncid, varid, p ); }
+
+        template<> int nc_get_var_<float>( float, int ncid, int varid, float * p ) { return nc_get_var_float( ncid, varid, p ); }
+        template<> int nc_get_var_<double>( double, int ncid, int varid, double * p ) { return nc_get_var_double( ncid, varid, p ); }
+
+        template<> int nc_get_var_<uint8_t>( uint8_t, int ncid, int varid, uint8_t * p ) { return nc_get_var_ubyte( ncid, varid, p ); }
+        template<> int nc_get_var_<uint16_t>( uint16_t, int ncid, int varid, uint16_t * p ) { return nc_get_var_ushort( ncid, varid, p ); }
+        template<> int nc_get_var_<uint32_t>( uint32_t, int ncid, int varid, uint32_t * p ) { return nc_get_var_uint( ncid, varid, p ); }
+        template<> int nc_get_var_<uint64_t>( uint64_t, int ncid, int varid, uint64_t * p ) { return nc_get_var_ulonglong( ncid, varid, p ); }
+
+        //------------------------ get_att -----------------------
+        template< typename T > int nc_get_att_( T tag, int ncid, int varid, const char * name, T * p );
+
+        template<> int nc_get_att_< char >( char, int ncid, int varid, const char * name, char * p )
+        {
+            return nc_get_att_text( ncid, varid, name, p );
+        }
+        template<> int nc_get_att_< int32_t >( int32_t, int ncid, int varid, const char * name, int32_t * p )
+        {
+            return nc_get_att_int( ncid, varid, name, p );
         }
 
+        //------------------------
         struct nc_reader {
             const ncfile& ncfile_;
             nc_reader( const ncfile& file ) : ncfile_( file ) {}
@@ -85,7 +110,7 @@ namespace adnetcdf { namespace netcdf {
             // read into vector
             template< typename T > std::vector< T > operator()( T tag, const variable& var ) const {
                 auto dsize = nc_helper()( ncfile_, var );
-                size_t len = dsize.size() == 0 ? 1 : std::accumulate( dsize.begin(), dsize.end(), 0 );
+                size_t len = std::accumulate( dsize.begin(), dsize.end(), 1, std::multiplies<size_t>() );
                 std::vector< T > data(len);
                 if ( nc_get_var_( tag, ncfile_.ncid(), var.varid(), data.data() ) == NC_NOERR )
                     return data;
@@ -96,6 +121,50 @@ namespace adnetcdf { namespace netcdf {
             std::string operator()( std::string tag, const variable& var ) const {
                 nc_helper()( ncfile_, var );
                 return std::string{};
+            }
+
+            std::vector< std::string > operator()( std::vector< std::string > tag, const variable& var ) const {
+                auto dsize = nc_helper()( ncfile_, var );
+                size_t len = std::accumulate( dsize.begin(), dsize.end(), 1, std::multiplies<size_t>() );
+                std::vector< char > data( len );
+                std::vector< size_t > col(dsize.size() + 1), edg(dsize.size() + 1);
+                col[0] = 0;
+                col[1] = 0;
+                edg[0] = 1;
+                edg[1] = dsize[1];
+                col[dsize.size()] = edg[dsize.size()] = 0;
+
+                std::vector< std::string > datum;
+                for ( size_t i = 0; i < dsize[0]; ++i ) {
+                    col[0] = i;
+                    if ( nc_get_vara( ncfile_.ncid(), var.varid(), col.data(), edg.data(), data.data() ) == NC_NOERR ) {
+                        datum.emplace_back( data.data() );
+                    } else {
+                        datum.emplace_back( std::string{} );
+                    }
+                }
+                return datum;
+            }
+        };
+
+        //--------------------------
+        //------------------------
+        struct nc_att_reader {
+            const ncfile& ncfile_;
+            nc_att_reader( const ncfile& file ) : ncfile_( file ) {}
+
+            std::string operator()( std::string tag, const attribute& att ) const {
+                std::string data( att.len(), '\0' );
+                if ( nc_get_att_text( ncfile_.ncid(), att.varid(), att.name(), data.data() ) == NC_NOERR )
+                    return data;
+                return {};
+            }
+            template< typename T > std::vector< T >
+            operator()( T tag, const attribute& att ) const {
+                std::vector< T > data( att.len() );
+                if ( nc_get_att_<T>( T{}, ncfile_.ncid(), att.varid(), att.name(), data.data() ) == NC_NOERR )
+                    return data;
+                return {};
             }
         };
     }
@@ -321,35 +390,6 @@ ncfile::inq_var( int varid ) const
     return {};
 }
 
-////////////////
-
-std::string
-ncfile::get_att_text( const attribute& t ) const
-{
-    auto [varid, attid, name, xtype, len ] = t.value();
-    auto typ = to_variant< nc_types_t >{}( xtype );
-    auto is_ok = std::visit( []( auto&& t )->bool{
-        using T = std::decay_t<decltype(t._)>;
-        return std::is_same_v<T, char >;
-    }, typ );
-
-    if ( is_ok ) {
-        size_t size = std::get< attribute::len >( t.value() );
-        std::string datum( size + 1, '\0' );
-        if ( nc_get_att_text( ncid_, varid, name.c_str(), datum.data() ) == NC_NOERR )
-            return datum;
-    }
-
-    return {};
-}
-
-template<>
-std::vector< int >
-ncfile::get_att_( int, const attribute& t ) const
-{
-    return {};
-}
-
 ////////////////////////////////////////////////
 
 datum_t
@@ -358,13 +398,12 @@ ncfile::readData( const attribute& t ) const
     auto [varid, attid, name, xtype, len ] = t.value();
     auto typ = to_variant< nc_types_t >{}( xtype );
 
-
     auto datum = std::visit( [&]( auto&& x )->datum_t{
         using T = std::decay_t<decltype(x._)>;
         if constexpr ( std::is_same_v<T, char >)
-            return get_att_text( t );
+            return nc_att_reader(*this)( std::string(), t );
         else if constexpr ( std::is_same_v<T, int >)
-            return get_att_( int{}, t );
+            return nc_att_reader(*this)( int(), t );
         return {};
     }, typ );
 
@@ -384,10 +423,10 @@ ncfile::readData( const variable& t ) const
     auto ovld = overloaded{
         [&]( const nc_type_t< NC_NAT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_BYTE>& x )->datum_t  { ADDEBUG() << "unhandled"; return {}; },
-        [&]( const nc_type_t< NC_CHAR>& x )->datum_t  { return reader( std::string{}, t); },
+        [&]( const nc_type_t< NC_CHAR>& x )->datum_t  { return reader( std::vector< std::string >{}, t); },
         [&]( const nc_type_t< NC_SHORT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_INT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
-        //[&]( const nc_type_t< NC_FLOAT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
+        //[&]( const nc_type_t< NC_FLOAT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; }, // handle by auto type
         [&]( const nc_type_t< NC_DOUBLE>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_UBYTE>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_USHORT>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },

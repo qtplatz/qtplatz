@@ -36,13 +36,18 @@ namespace adnetcdf {
         class attribute {
         public:
             typedef std::tuple< int, int, std::string, nc_type, size_t > value_type;
-            enum { varid, attid, name, type, len };
+            enum { _varid, _attid, _name, _type, _len };
 
             attribute();
             attribute( const attribute& );
             attribute( int, int, const std::string&, nc_type, size_t len );
             attribute( const value_type & );
             value_type value() const;
+            inline const char * name() const { return name_.c_str(); }
+            inline size_t len() const { return len_; }
+            inline nc_type type() const { return type_; }
+            inline int varid() const { return varid_; }
+            inline int attid() const { return attid_; }
         private:
             int varid_;
             int attid_;

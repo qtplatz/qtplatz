@@ -47,8 +47,13 @@ namespace adnetcdf {
         ncfile open( const boost::filesystem::path&, open_mode = nc_nowrite );
 
         /////////////////////
-        typedef std::variant< std::string
+        struct null_datum_t {};
+
+        typedef std::variant< null_datum_t
+                              , std::string
+                              , std::vector< std::string >
                               , std::vector< float >
+                              , std::vector< double >
                               , std::vector< int >
                               > datum_t;
 
@@ -84,14 +89,6 @@ namespace adnetcdf {
             datum_t readData( const attribute& t ) const;
             datum_t readData( const variable& t ) const;
 
-            std::string get_att_text( const attribute& t ) const;
-
-            template< typename T >
-            std::vector< T > get_att_( T tag, const attribute& t ) const;
-
-            template< typename T >
-            std::vector< T > get_var_( T tag, const variable& t ) const;
-
         private:
             std::filesystem::path path_;
             int32_t rcode_;
@@ -106,22 +103,6 @@ namespace adnetcdf {
             mutable std::vector< attribute > atts_; // global attribute
             friend class nc;
         };
-
-        template<> std::vector< int > ncfile::get_att_( int, const attribute& t ) const;
-
-        template<> std::vector< nat_t >    ncfile::get_var_( nat_t, const variable& t ) const;
-        template<> std::vector< int8_t >   ncfile::get_var_( int8_t, const variable& t ) const;
-        template<> std::vector< char >     ncfile::get_var_( char, const variable& t ) const;
-        template<> std::vector< int16_t >  ncfile::get_var_( int16_t, const variable& t ) const;
-        template<> std::vector< int32_t >  ncfile::get_var_( int32_t, const variable& t ) const;
-        template<> std::vector< float >    ncfile::get_var_( float, const variable& t ) const;
-        template<> std::vector< double >   ncfile::get_var_( double, const variable& t ) const;
-        template<> std::vector< uint8_t >  ncfile::get_var_( uint8_t, const variable& t ) const;
-        template<> std::vector< uint16_t > ncfile::get_var_( uint16_t, const variable& t ) const;
-        template<> std::vector< uint32_t > ncfile::get_var_( uint32_t, const variable& t ) const;
-        template<> std::vector< int64_t >  ncfile::get_var_( int64_t, const variable& t ) const;
-        template<> std::vector< uint64_t > ncfile::get_var_( uint64_t, const variable& t ) const;
-        template<> std::vector< char * >   ncfile::get_var_( char *,  const variable& t ) const;
 
     } // namespace netcdf
 }
