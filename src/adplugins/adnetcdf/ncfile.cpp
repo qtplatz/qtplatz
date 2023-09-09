@@ -37,6 +37,34 @@
 #include <iostream>
 #include <iomanip> // quoted
 
+#if 0
+extern "C" {
+    int nc_close( int ) { return 0; }
+    int nc_open( const char *, int, int * ) { return 0; }
+    int nc_inq( int, int *, int *, int *, int * ) { return 0; }
+    int nc_inq_att( int, int, const char *, nc_type *, size_t * ) { return 0; }
+    int nc_inq_dim( int, int, char *, size_t *) { return 0; }
+    int nc_inq_format( int, int * )  { return 0; }
+    int nc_inq_format_extended( int, int *, int * ) { return 0; }
+    int nc_inq_attname( int, int, int, char * ) { return 0; }
+    int nc_inq_var( int, int, char *, nc_type *, int *, int *, int * ) { return 0; }
+    int nc_inq_varndims( int, int, int * ) { return 0; }
+    int nc_get_att_int(int, int, const char *, int *) { return 0; }
+    int nc_get_att_text(int, int, const char *, char *) { return 0; }
+    int nc_get_var_schar( int, int, int8_t *) { return 0; }
+    int nc_get_var_ubyte( int, int, uint8_t *) { return 0; }
+    int nc_get_var_short( int, int, int16_t *) { return 0; }
+    int nc_get_var_ushort( int, int, uint16_t *) { return 0; }
+    int nc_get_var_int( int, int, int *) { return 0; }
+    int nc_get_var_uint( int, int, uint32_t *) { return 0; }
+    int nc_get_var_longlong( int, int, long long *) { return 0; }
+    int nc_get_var_ulonglong( int, int, uint64_t *) { return 0; }
+    int nc_get_var_float( int, int, float *) { return 0; }
+    int nc_get_var_double( int, int, double *) { return 0; }
+    int nc_get_vara( int, int, const size_t *, const size_t *, void *) { return 0; }
+}
+#endif
+
 namespace adnetcdf {
     namespace netcdf {
         ncfile

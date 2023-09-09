@@ -49,9 +49,9 @@ dmg: qtplatz.app translations
 
 otool:
 	otool -L qtplatz.app/Contents/MacOS/qtplatz
-	otool -L qtplatz.app/Contents/Plugins/QtProject/*.dylib
 	otool -L qtplatz.app/Contents/Frameworks/*.dylib
 	otool -L qtplatz.app/Contents/Plugins/MS-Cheminformatics/*.dylib
+	otool -L qtplatz.app/Contents/*.dylib
 
 test:
 	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/qtplatz
@@ -64,10 +64,12 @@ list_rpath:
 		echo $$i; \
 		otool -l $$i | grep RPATH -A2; \
 	done
-	echo "installed rpath for qtplatz ----->"
-	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
-	echo "installed rpath for rdkit ---->"
-	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
+#	echo "installed rpath for qtplatz ----->"
+#	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
+#	echo "installed rpath for rdkit ---->"
+#	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
+	echo "installed rpath for adnetcdf ---->"
+	find . -name "libadnetcdf.*" -exec otool -l {} \; | grep RPATH -A2
 
 rpath.sh:
 	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" |\

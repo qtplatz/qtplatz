@@ -107,11 +107,13 @@ loader::populate( const boost::filesystem::path& appdir )
                     // attempt to find a newly defined interface as of 2023-SEP-02
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
                         try {
+                            ADDEBUG() << "--- loading " << it->path();
                             auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
                             if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
-                                ADDEBUG() << "load\t" << boost::filesystem::relative( it->path(), appdir ) << "\tSuccess";
+                                ADDEBUG() << "---- load\t" << boost::filesystem::relative( it->path(), appdir ) << "\tSuccess";
                             }
-                        } catch ( boost::system::system_error& ex ) {
+                        } catch ( std::exception& ex ) {
+                            ADDEBUG() << "Exception:" << ex.what();
                         }
                     }
 

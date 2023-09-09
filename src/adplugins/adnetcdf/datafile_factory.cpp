@@ -42,6 +42,7 @@ datafile_factory::~datafile_factory(void)
 
 datafile_factory::datafile_factory()
 {
+    ADDEBUG() << "######### datafile_factory::ctor #################";
 }
 
 //datafile_factory *
