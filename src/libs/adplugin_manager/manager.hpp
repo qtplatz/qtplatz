@@ -27,11 +27,13 @@
 
 #include "adplugin_global.h"
 
-#include <string>
 #include <adplugin/plugin_ptr.hpp>
+#include <compiler/pragma_warning.hpp>
+#include <functional>
+#include <string>
 #include <vector>
 #include <memory>
-#include <compiler/pragma_warning.hpp>
+
 
 // class QString;
 // class QObject;
