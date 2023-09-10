@@ -28,16 +28,18 @@ world:
 	make dmg
 
 # all: qtplatz.app
-app:
+qtplatz.app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c qtplatz.app | tar xvf -
 	find @Boost_LIBRARY_DIRS@ -name "libboost_python*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
 	tar -C /usr/local/lib/python@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages -c rdkit | tar xvf - -C ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages
 
-deployqt:
+app: qtplatz.app
+
+deployqt: qtplatz.app
 	${DEPLOYQT} ./qtplatz.app -verbose=2
 
 clean:
-	rm -rf qtplatz.app ${TARGET}
+	rm -rf qtplatz.app ${TARGET} rpath.sh
 
 translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
@@ -48,10 +50,16 @@ dmg: qtplatz.app translations
 # ---- debug helpers ----------
 
 otool:
-	otool -L qtplatz.app/Contents/MacOS/qtplatz
-	otool -L qtplatz.app/Contents/Frameworks/*.dylib
-	otool -L qtplatz.app/Contents/Plugins/MS-Cheminformatics/*.dylib
-	otool -L qtplatz.app/Contents/*.dylib
+#	otool -L qtplatz.app/Contents/MacOS/qtplatz
+#	otool -L qtplatz.app/Contents/Frameworks/*.dylib
+#	otool -L qtplatz.app/Contents/Plugins/MS-Cheminformatics/*.dylib
+#	otool -L qtplatz.app/Contents/*.dylib
+	-find . -name "libadportable.dylib" -exec otool -L {} \;
+	-find . -name "libadnetcdf.dylib" -exec otool -L {} \;
+	-find . -name "libnetcdf*.dylib" -exec otool -L {} \;
+	-find . -name "libhdf5*.dylib" -exec otool -L {} \;
+	-find . -name "libblosc.1.dylib" -exec otool -L {} \;
+	-find . -name "libzstd.1.dylib" -exec otool -L {} \;
 
 test:
 	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/qtplatz
@@ -60,29 +68,53 @@ list_plugin:
 	for i in ${PLUGIN}; do echo $$i; done
 
 list_rpath:
-	for i in qtplatz.app/Contents/MacOS/*; do \
-		echo $$i; \
-		otool -l $$i | grep RPATH -A2; \
-	done
+	otool -l "./qtplatz.app/Contents/MacOS/qtplatz" | grep RPATH -A2
+	otool -l ./qtplatz.app/Contents/PlugIns/MS-Cheminformatics/libadnetcdf.dylib | grep RPATH -A2
+	otool -l ./qtplatz.app/Contents/Frameworks/libnetcdf.19.dylib | grep RPATH -A2
+	otool -l ./qtplatz.app/Contents/Frameworks/libhdf5_hl.310.dylib | grep RPATH -A2
+	otool -l ./qtplatz.app/Contents/Frameworks/libhdf5.310.dylib | grep RPATH -A2
+	otool -l ./qtplatz.app/Contents/Frameworks/libblosc.1.dylib | grep RPATH -A2
+	otool -l ./qtplatz.app/Contents/Frameworks/libzstd.1.dylib | grep RPATH -A2
 #	echo "installed rpath for qtplatz ----->"
 #	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
 #	echo "installed rpath for rdkit ---->"
 #	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
-	echo "installed rpath for adnetcdf ---->"
-	find . -name "libadnetcdf.*" -exec otool -l {} \; | grep RPATH -A2
 
 rpath.sh:
 	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" |\
 		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh
 
-rpath: rpath.sh
+rpath: rpath.sh fix_libhdf5
 	for i in qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz/*.so; do \
 		echo $$i; \
 		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ $$i; \
 		install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ $$i; \
 		install_name_tool -add_rpath @loader_path/../../../../../Contents/Frameworks $$i; \
 	done
-	for i in ${PLUGIN}; do \
-		install_name_tool -add_rpath @loader_path/../../Frameworks qtplatz.app/Contents/PlugIns/MS-Cheminformatics/lib$$i.dylib; \
-	done
 	@sh ./rpath.sh
+#	for i in ${PLUGIN}; do \
+#		install_name_tool -add_rpath @loader_path/../../Frameworks qtplatz.app/Contents/PlugIns/MS-Cheminformatics/lib$$i.dylib; \
+#	done
+
+FRAMEWORKS = ./qtplatz.app/Contents/Frameworks
+fix_libhdf5:
+	install_name_tool -change  "@loader_path/../../../../opt/libaec/lib/libsz.2.dylib" "@loader_path/libsz.2.dylib" "${FRAMEWORKS}/libhdf5_hl.310.dylib"
+	install_name_tool -change  "@loader_path/../../../../opt/libaec/lib/libsz.2.dylib" "@loader_path/libsz.2.dylib" "${FRAMEWORKS}/libhdf5.310.dylib"
+
+######################
+libadnetcdf = "./qtplatz.app/Contents/PlugIns/MS-Cheminformatics/libadnetcdf.dylib"
+adnetcdf:
+	install_name_tool -change "@executable_path/../Frameworks/libhdf5_hl.310.dylib" "@loader_path/../../Frameworks/libhdf5_hl.310.dylib" ${libadnetcdf}
+	install_name_tool -change "@executable_path/../Frameworks/libhdf5.310.dylib"    "@loader_path/../../Frameworks/libhdf5.310.dylib"    ${libadnetcdf}
+	install_name_tool -change "@executable_path/../Frameworks/libsz.2.dylib"	"@loader_path/../../Frameworks/libsz.2.dylib"        ${libadnetcdf}
+	install_name_tool -change "@executable_path/../Frameworks/libblosc.1.dylib"	"@loader_path/../../Frameworks/libblosc.1.dylib"     ${libadnetcdf}
+	install_name_tool -change "@executable_path/../Frameworks/libzstd.1.dylib"	"@loader_path/../../Frameworks/libzstd.1.dylib"      ${libadnetcdf}
+
+netCDF = ./qtplatz.app/Contents/Frameworks/libnetcdf.19.dylib
+
+netcdf:
+	install_name_tool -change "@executable_path/../Frameworks/libhdf5_hl.310.dylib" "@loader_path/libhdf5_hl.310.dylib" ${netCDF}
+	install_name_tool -change "@executable_path/../Frameworks/libhdf5.310.dylib"    "@loader_path/libhdf5.310.dylib"    ${netCDF}
+	install_name_tool -change "@executable_path/../Frameworks/libsz.2.dylib"	"@loader_path/libsz.2.dylib"        ${netCDF}
+	install_name_tool -change "@executable_path/../Frameworks/libblosc.1.dylib"	"@loader_path/libblosc.1.dylib"     ${netCDF}
+	install_name_tool -change "@executable_path/../Frameworks/libzstd.1.dylib"  	"@loader_path/libzstd.1.dylib"      ${netCDF}

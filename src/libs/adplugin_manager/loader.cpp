@@ -106,14 +106,16 @@ loader::populate( const boost::filesystem::path& appdir )
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
                     // attempt to find a newly defined interface as of 2023-SEP-02
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
-                        try {
-                            ADDEBUG() << "--- loading " << it->path();
-                            auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
-                            if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
-                                ADDEBUG() << "---- load\t" << boost::filesystem::relative( it->path(), appdir ) << "\tSuccess";
+                        if ( it->path().string().find( "libadnetcdf" ) != std::string::npos ) {
+                            try {
+                                ADDEBUG() << "\n\n-------- loading " << it->path();
+                                auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
+                                if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
+                                    ADDEBUG() << "---- load\t" << boost::filesystem::relative( it->path(), appdir ) << "\tSuccess";
+                                }
+                            } catch ( std::exception& ex ) {
+                                ADDEBUG() << "Exception:" << ex.what() << "\n\n";
                             }
-                        } catch ( std::exception& ex ) {
-                            ADDEBUG() << "Exception:" << ex.what();
                         }
                     }
 

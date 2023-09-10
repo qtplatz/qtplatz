@@ -83,15 +83,13 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    ADDEBUG() << "-------------- access: " << filename;
     boost::filesystem::wpath path(filename);
-	return ( path.extension() == L".cdf" || path.extension() == L".CDF" ) && ( mode = adcontrols::read_access );
+	return ( path.extension() == L".cdf" || path.extension() == L".CDF" ) && ( mode == adcontrols::read_access );
 }
 
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
-    ADDEBUG() << "-------------- open: " << filename;
     datafile * p = new datafile;
     if ( p->open( filename, readonly ) )
         return p;
