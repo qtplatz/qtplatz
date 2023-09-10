@@ -1,6 +1,15 @@
 Visit
 	http://www.qtplatz.com
 
+Run macOS binary
+================
+
+The executable binary file is on the github.com release.  On the recent version of macOS, it may raise an error to open qtplatz.app ion as “qtplatz.app” is damaged and can’t be opened. You should eject the disk image or “qtplatz”は壊れているため開けません。 ディスクイメージを取り出す必要があります on the Japanese environment. This error could be resolved by issuing the following command from the Terminal.
+
+```bash
+xattr -d com.apple.quarantine ~/Desktop/qtplatz.app
+```
+
 BUILD PROCEDURE
 
 Prerequisite
@@ -8,13 +17,14 @@ Prerequisite
 
 1. git
 2. cmake 3.18.2
-3. c++17 complient c/c++ compiler (Xcode 12|gcc-6.3|msvc-16)
-1. Qt 5.15.1 (also work with 5.12 and later versions) ([download](https://www.qt.io/download))
-2. QWT 6.1
+3. c++17 compliant c/c++ compiler (Xcode 12|gcc-6.3|msvc-16)
+1. Qt 5.15.2 ([download](https://www.qt.io/download))
+2. QWT 6.2
 3. Boost-1.73 (also work with 1.69 and later versions)
-4. RDKit 2020.09 (optional, but recommended) -- RDKit should be built with a version of boost, which match to qtplatz build.
+4. RDKit 2023.03 (optional, but recommended) -- RDKit should be built with a version of boost, which matches the qtplatz build.
 5. OpenCV 4.5 (optional)
 6. Python3 (optional)
+7. netcdf-c (optional; ENABLE_FILTER_BLOSC and ENABLE_FILTER_ZSTD should be disabled or get killed:9 on mac-bundle)
 
      QtPlatz uses `boost_serialization` for binary data storing on file.  A file serialized by an older version of `boost` can be opened in a newer version of `boost,` but no reverse compatibility.  To check the version of `boost_serialization`, see the `BOOST_ARCHIVE_VERSION` macro value located in the file `boost-source-dir/libs/serialization/src/basic_archive.cpp`.
 
@@ -22,7 +32,7 @@ Prerequisite
 * Visual Studio 2019 needs to be installed for Windows.
 * Qt 5.12 or later version needs to be installed for the target OS.
 	* Qt 5.12.2 does not work on Debian based linux -- use Qt 5.12.1 instead.
-	* Qt 6 is not supported yet.
+	* Qt 6 is not supported yet (may it work, though).
 
 Mac macOS 10, 11 and 12 (x86_64)
 ====================
@@ -35,8 +45,8 @@ Prerequisite
 Install dependencies for macOS (x86_64)
 ----------------------------
 
-Go to `<qtplatz-source-dir>/scripts` directory; there are script files for install dependency software modules.
-Assume qtplatz source is stored under `~/src`
+Go to the `<qtplatz-source-dir>/scripts` directory; there are script files for installing dependency software modules.
+Assume the qtplatz source is stored under `~/src`
 
 ```
 cd ~/src/qtplarz/scripts
@@ -46,7 +56,7 @@ make qwt
 make rdkit
 ```
 
-* Boost 1.75 (1.78 preferred) is required for the needs of the boost::json library.
+* Boost 1.75 (1.79 preferred) is required for the needs of the boost::json library.
 * Qwt 6.2.0 is required since QtPlatz Version 5.2.11 and onward.
 
 Build qtplatz
@@ -59,14 +69,14 @@ cd ~/src/build-Darwin-i386/qtplatz.release # <- build-Linux-x86_64 for Linux
 make
 ```
 
-QtPlatz binary to be built under `~src/build-Darwin-i386/bin` (`~/src/build-Linux-x86_64/bin`) directory.
-Install for Linux is essentially the same step with macOS.
+QtPlatz binary to be built under the `~src/build-Darwin-i386/bin` (`~/src/build-Linux-x86_64/bin`) directory.
+Installation for Linux is essentially the same step with macOS.
 
 Mac macOS 10, 11 and 12 (arm64) a.k.a. M1 Mac
 ====================
 
-First of all, if you got a new M1 Mac computer migrated from your old Intel Mac, it may contain x86_64 binaries under `/usr/local` etc.
-Especially, installed libraries for QtPlatz build such as boost, rdkit, and dependencies will be detected by the cmake configuration phase but may fail at the link phase because arm64 and x86_64 binary cannot link.  Fortunately, homebrew on M1 Mac installs all files under `/opt/homebrew/` instead of `/usr/local/,` which is less problematic.  However, we also need to use MacPort to install maeparser (rdkit depends on it) and llvm.
+First of all, if you got a new M1 Mac computer migrated from your old Intel Mac, it may contain x86_64 binaries under `/usr/local`, etc.
+Especially installed libraries for QtPlatz build, such as boost, rdkit, and dependencies, will be detected by the cmake configuration phase but may fail at the link phase because arm64 and x86_64 binary cannot link.  Fortunately, homebrew on M1 Mac installs all files under `/opt/homebrew/` instead of `/usr/local/,` which is less problematic.  However, we also need to use MacPort to install maeparser (rdkit depends on it) and llvm.
 
 
 Prerequisite
