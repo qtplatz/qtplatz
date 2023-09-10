@@ -1,0 +1,71 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e8d4b30c..f49868f8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -136,7 +136,7 @@ ENDIF(${BIGENDIAN})
+ # Define a function to convert various true or false values
+ # to either TRUE|FALSE (uppercase).
+ # If value is not a recognized boolean, then return NOTFOUND
+-#1, ON, YES, TRUE, Y, 
++#1, ON, YES, TRUE, Y,
+ #0, OFF, NO, FALSE, N, IGNORE, NOTFOUND -NOTFOUND ""
+ 
+ SET(TRUELIST "on;yes;y;true")
+@@ -236,7 +236,7 @@ INCLUDE(GenerateExportHeader)
+ # BUILD_SHARED_LIBS is provided by/used by
+ # CMake directly.
+ ##
+-OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
++OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." OFF)
+ IF(BUILD_SHARED_LIBS)
+   SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ ENDIF()
+@@ -482,9 +482,9 @@ ENDIF()
+ # 1. if ENABLE_HDF5 is off then disable hdf5
+ # 2. if ENABLE_NETCDF4 is off then disable hdf5
+ # 3. else enable hdf5
+-OPTION(ENABLE_NETCDF_4 "Use HDF5." ON)
+-OPTION(ENABLE_NETCDF4 "Use HDF5." ON)
+-OPTION(ENABLE_HDF5 "Use HDF5." ON)
++OPTION(ENABLE_NETCDF_4 "Use HDF5." OFF)
++OPTION(ENABLE_NETCDF4 "Use HDF5." OFF)
++OPTION(ENABLE_HDF5 "Use HDF5." OFF)
+ IF(NOT ENABLE_HDF5 OR NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
+   SET(ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
+ ENDIF()
+@@ -1133,8 +1133,8 @@ endmacro(set_std_filter)
+ # Locate some compressors
+ OPTION(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if ENABLE_NCZARR is true." ON)
+ OPTION(ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
+-OPTION(ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
+-OPTION(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
++OPTION(ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." OFF)
++OPTION(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." OFF)
+ IF (ENABLE_FILTER_SZIP)
+   FIND_PACKAGE(Szip)
+ ELSEIF(ENABLE_NCZARR)
+@@ -1348,11 +1348,11 @@ ENDIF()
+ IF(ENABLE_S3)
+   IF(NOT ENABLE_S3_AWS AND NOT ENABLE_S3_INTERNAL)
+     message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_S3=NO")
+-    SET(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
++    SET(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)
+   ENDIF()
+   IF(ENABLE_S3_AWS AND ENABLE_S3_INTERNAL)
+     message(WARNING "Both aws-sdk-cpp and s3-internal enabled => use s3-internal")
+-    SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
++    SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+   ENDIF()
+ ENDIF()
+ 
+@@ -1558,8 +1558,8 @@ IF(ENABLE_PNETCDF)
+       MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PnetCDF is disabled")
+     ENDIF()
+ 
+-  ### 
+-  # Generate pnetcdf test.  
++  ###
++  # Generate pnetcdf test.
+   ###
+   CONFIGURE_FILE("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
+     "${netCDF_BINARY_DIR}/nc_test/run_pnetcdf_tests.sh")

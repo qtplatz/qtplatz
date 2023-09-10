@@ -84,7 +84,7 @@ rpath.sh:
 	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" |\
 		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh
 
-rpath: rpath.sh fix_libhdf5
+rpath: rpath.sh # fix_libhdf5
 	for i in qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz/*.so; do \
 		echo $$i; \
 		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ $$i; \
@@ -95,6 +95,11 @@ rpath: rpath.sh fix_libhdf5
 #	for i in ${PLUGIN}; do \
 #		install_name_tool -add_rpath @loader_path/../../Frameworks qtplatz.app/Contents/PlugIns/MS-Cheminformatics/lib$$i.dylib; \
 #	done
+
+#
+#-- A strange issue: the netCDF library (classical format file) need to be supported, so the latest netCDF library has been implement and debugged.
+#-- It works fine on the build environment, however deployed mac bandle got killed:9.  The built bundle works on lldb debugger though.
+#-- A workaround: remove HDF5 support from netCDF installation.
 
 FRAMEWORKS = ./qtplatz.app/Contents/Frameworks
 fix_libhdf5:
