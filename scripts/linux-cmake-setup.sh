@@ -29,16 +29,15 @@ if [ ! -d $SRC/cmake ]; then
     fi
     # git clone https://gitlub.com/cmake/cmake $SRC/cmake
     # git clone https://github.com/Kitware/CMake.git
-    if [ ! -f ~/Downloads/cmake-$CMAKE_VERSION.tar.gz ]; then
-      ( cd ~/Downloads;
-        #wget https://cmake.org/files/$VDIR/cmake-$CMAKE_VERSION.tar.gz
-	wget https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz )
-
+    if [ ! -f ${DOWNLOADS}/cmake-$CMAKE_VERSION.tar.gz ]; then
+		( cd ~/Downloads;
+		  curl -L -o ${DOWNLOADS}/cmake-$CMAKE_VERSION.tar.gz \
+			   https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz )
     fi
-    tar xvf ~/Downloads/cmake-$CMAKE_VERSION.tar.gz -C $SRC
+    tar xvf ${DOWNLOADS}/cmake-$CMAKE_VERSION.tar.gz -C ${SRC}
 fi
 
-cd $SRC/cmake-$CMAKE_VERSION
+cd ${SRC}/cmake-${CMAKE_VERSION}
 ./bootstrap --system-curl
 
 if make -j $nproc; then
