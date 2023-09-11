@@ -35,6 +35,12 @@ configure_file(
   @ONLY
 )
 
+configure_file(
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/qtplatz_api.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/qtplatz_api.cmake
+  @ONLY
+)
+
 export( EXPORT QtPlatzTargets
   FILE ${CMAKE_BINARY_DIR}/cmake/QtPlatzTargets.cmake )
 
