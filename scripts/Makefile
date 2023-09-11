@@ -67,6 +67,7 @@ default:
 	@echo "====================================="
 	@echo "make dependency"
 	@echo "make cmake -- require 3.13"
+	@echo "make netcdf-c"
 	@echo "make fonts"
 	@echo "make mozc"
 	@echo "make bower"
@@ -80,7 +81,7 @@ default:
 	@echo "make boost-armhf"
 	@echo "make qt5-armhf"
 	@echo "make gnuplot"
-	@echo "make rtags -- in emacs, M-x 'rtags-install' after install clang-11 and libclang-11-dev"
+	@echo "make rtags -- use clangd instead (sudo apt-get install clangd-11) "
 	@echo "make code"
 	@echo "make Emacs"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
@@ -133,6 +134,9 @@ rdkit:
 
 qwt:
 	./linux-qwt-setup.sh
+
+netcdf-c:
+	./linux-netcdf-c.sh
 
 gnuplot:
 	./linux-gnuplot-setup.sh

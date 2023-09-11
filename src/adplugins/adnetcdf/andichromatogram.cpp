@@ -28,7 +28,7 @@
 #include "ncfile.hpp"
 #include "attribute.hpp"
 #include "variable.hpp"
-#include <__concepts/copyable.h>
+// #include <__concepts/copyable.h>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/baseline.hpp>

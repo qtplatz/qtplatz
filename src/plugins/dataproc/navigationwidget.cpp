@@ -1333,7 +1333,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         // enable either Spectra, Chromatograms, or both
         bool enable = selFolders.folderCounts() > 0;
 
-        menu.addAction( tr( "Sort" ), [=](){ sort_by_value()( selRows, impl_->pModel_ ); } )->setEnabled( enable );
+        menu.addAction( tr( "Sort" ), [=,this](){ sort_by_value()( selRows, impl_->pModel_ ); } )->setEnabled( enable );
 
         if ( enable ) {
             check_all_in_folder check_all( selRows );

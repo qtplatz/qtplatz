@@ -109,7 +109,12 @@ namespace adnetcdf { namespace netcdf {
         template<> int nc_get_var_<int8_t>( int8_t, int ncid, int varid, int8_t * p ) { return nc_get_var_schar( ncid, varid, p ); }
         template<> int nc_get_var_<int16_t>( int16_t, int ncid, int varid, int16_t * p ) { return nc_get_var_short( ncid, varid, p ); }
         template<> int nc_get_var_<int32_t>( int32_t, int ncid, int varid, int32_t * p ) { return nc_get_var_int( ncid, varid, p ); }
-        template<> int nc_get_var_<int64_t>( int64_t, int ncid, int varid, int64_t * p ) { return nc_get_var_longlong( ncid, varid, p ); }
+        template<> int nc_get_var_<int64_t>( int64_t, int ncid, int varid, int64_t * p ) {
+            long long t;
+            int rcode = nc_get_var_longlong( ncid, varid, &t );
+            *p = t;
+            return rcode;
+        }
 
         template<> int nc_get_var_<float>( float, int ncid, int varid, float * p ) { return nc_get_var_float( ncid, varid, p ); }
         template<> int nc_get_var_<double>( double, int ncid, int varid, double * p ) { return nc_get_var_double( ncid, varid, p ); }
@@ -117,7 +122,12 @@ namespace adnetcdf { namespace netcdf {
         template<> int nc_get_var_<uint8_t>( uint8_t, int ncid, int varid, uint8_t * p ) { return nc_get_var_ubyte( ncid, varid, p ); }
         template<> int nc_get_var_<uint16_t>( uint16_t, int ncid, int varid, uint16_t * p ) { return nc_get_var_ushort( ncid, varid, p ); }
         template<> int nc_get_var_<uint32_t>( uint32_t, int ncid, int varid, uint32_t * p ) { return nc_get_var_uint( ncid, varid, p ); }
-        template<> int nc_get_var_<uint64_t>( uint64_t, int ncid, int varid, uint64_t * p ) { return nc_get_var_ulonglong( ncid, varid, p ); }
+        template<> int nc_get_var_<uint64_t>( uint64_t, int ncid, int varid, uint64_t * p ) {
+            unsigned long long t;
+            int rcode = nc_get_var_ulonglong( ncid, varid, &t );
+            *p = t;
+            return rcode;
+        }
 
         //------------------------ get_att -----------------------
         template< typename T > int nc_get_att_( T tag, int ncid, int varid, const char * name, T * p );

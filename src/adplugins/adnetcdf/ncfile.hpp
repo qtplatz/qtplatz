@@ -31,6 +31,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <variant>
 
 namespace adnetcdf {
 
