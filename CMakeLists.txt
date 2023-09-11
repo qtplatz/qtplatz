@@ -228,7 +228,7 @@ if ( WITH_PYTHON3 )
       # workaround: boost_pythonXXYY is the canonical name on windows
       set ( python_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
     elseif( NOT APPLE )
-      set ( python_libs python )
+      # set ( python_libs python ) <-- this causing libadportable to python dependency
     endif()
   endif()
 endif()
