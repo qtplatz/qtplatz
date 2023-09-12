@@ -137,7 +137,7 @@ qwt:
 	./linux-qwt-setup.sh
 
 netcdf-c:
-	./linux-netcdf-c.sh
+	./linux-netcdf-setup.sh
 
 gnuplot:
 	./linux-gnuplot-setup.sh

@@ -46,12 +46,19 @@ if [ ! -z $cross_target ]; then
 else
 	cmake_args+=( "-DCMAKE_BUILD_TYPE=Release" )
 fi
+cmake_args+=( "-DBUILD_SHARED_LIBS=OFF" )
+cmake_args+=( "-DENABLE_NETCDF_4=OFF" )
+cmake_args+=( "-DENABLE_NETCDF4=OFF" )
+cmake_args+=( "-DENABLE_HDF4=OFF" )
+cmake_args+=( "-DNABLE_PNETCDF=OFF" )
+cmake_args+=( "-DENABLE_FILTER_BLOSC=OFF" )
+cmake_args+=( "-DENABLE_FILTER_ZSTD=OFF" )
 
 if [ ! -d $SRCDIR ]; then
     if [ ! -d $(dirname $SRCDIR) ]; then
 		mkdir -p $(dirname $SRCDIR)
     fi
-    git clone https://github.com/schrodinger/netcdf-c $SRCDIR
+	git clone https://github.com/Unidata/netcdf-c.git ${SRCDIR}
 fi
 
 mkdir -p $BUILD_DIR;
