@@ -19,6 +19,10 @@ if [ -z $CMAKE_VERSION ]; then
 	CMAKE_VERSION=3.27.4
 fi
 
+if [ -z ${GNUPLOT_VERSION} ]; then
+	GNUPLOT_VERSION=5.4.9
+fi
+
 if [ -z $SRC ]; then
     SRC=~/src
 fi

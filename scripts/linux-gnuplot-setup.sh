@@ -1,39 +1,65 @@
 #!/bin/bash
 cwd="$(cd "$(dirname "$0")" && pwd)"
 source ${cwd}/config.sh
-source ./prompt.sh
-
-cwd=$(pwd)
+source ${cwd}/prompt.sh
+source ${cwd}/nproc.sh
 arch=`uname`-`arch`
-target=gnuplot
-source_dir=$SRC/gnuplot
+__nproc NPROC
 
-echo "Install dependency"
-sudo apt-get update
-sudo apt-get install -y cvs autotools-dev automake
+build_clean=false
+while [ $# -gt 0 ]; do
+	case "$1" in
+		clean)
+			shift
+			build_clean=true
+			;;
+	esac
+done
+
+TARGET=gnuplot
+
+function gnuplot_download {
+	### https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.9/gnuplot-5.4.9.tar.gz/download
+	### https://sourceforge.net/projects/gnuplot/files/latest/download
+	VERSION=$1
+    if [ ! -f ${DOWNLOADS}/${TARGET}-${VERSION}.tar.gz ]; then
+		echo curl -L -o ${DOWNLOADS}/${TARGET}-${VERSION}.tar.gz \
+			 https://sourceforge.net/projects/gnuplot/files/gnuplot/${VERSION}/gnuplot-${VERSION}.tar.gz/download
+		echo "=============================="
+		prompt
+		curl -L -o ${DOWNLOADS}/${TARGET}-${VERSION}.tar.gz \
+			 https://sourceforge.net/projects/gnuplot/files/gnuplot/${VERSION}/gnuplot-${VERSION}.tar.gz/download
+	fi
+	if [ ! -d ${GNUPLOT_BUILD_DIR} ]; then
+		echo tar xvf ${DOWNLOADS}/gnuplot-${VERSION}.tar.gz -C $(dirname ${GNUPLOT_BUILD_DIR})
+		prompt
+		tar xvf ${DOWNLOADS}/gnuplot-${VERSION}.tar.gz -C $(dirname ${GNUPLOT_BUILD_DIR})
+	fi
+}
+
+BUILD_ROOT=${SRC}/build-${arch}
+CROSS_ROOT=
+GNUPLOT_BUILD_DIR=$BUILD_ROOT/${TARGET}-${GNUPLOT_VERSION}
+
+echo \${GNUPLOT_BUILD_DIR} " = " ${GNUPLOT_BUILD_DIR}
+
+if [ ! -d ${BUILD_ROOT} ]; then  mkdir -p ${BUILD_ROOT}; fi
+
+if [ $build_clean = true ]; then
+	set -x
+	rm -rf $BOOST_BUILD_DIR
+	exit
+fi
+
+gnuplot_download ${GNUPLOT_VERSION}
 
 echo "$target install"
 
-if [ ! -d $source_dir ]; then
-    src=$(dirname $source_dir)
-    if [ ! -d $(dirname $src) ]; then
-	mkdir -p $(dirname $src)
-    fi
-    echo "Hit Enter when asked for a password."
-    (cd $src;
-     cvs -d:pserver:anonymous@gnuplot.cvs.sourceforge.net:/cvsroot/gnuplot login
-     cvs -z3 -d:pserver:anonymous@gnuplot.cvs.sourceforge.net:/cvsroot/gnuplot co -P gnuplot
-    )
-fi
-
-cd $source_dir
-
-if [ -z $cross_target ]; then
-    echo "BUILD_DIR : " `pwd`
-    ./prepare
-    ./configure
-    make -j4
-    echo sudo make install
-    prompt
-    sudo make install
-fi
+(cd ${GNUPLOT_BUILD_DIR}
+ ./prepare
+ ./configure --without-qt
+ make -j4
+ echo sudo make install
+ prompt
+ sudo make install
+ )
