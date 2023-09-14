@@ -519,8 +519,10 @@ SpectrumWidget::zoomed( const QRectF& rect )
         setAxisScale( QwtPlot::yRight, range->first, range->second ); // set yRight
     }
 
-    for ( auto& trace: impl_->traces_ )
-        trace->handleZoomed( rect );
+    for ( auto& trace: impl_->traces_ ) {
+        if ( trace )
+            trace->handleZoomed( rect );
+    }
 
     impl_->update_annotations( *this, rect, impl_->yAxisForAnnotation_ );
     replot();
