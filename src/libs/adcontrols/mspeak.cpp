@@ -160,6 +160,7 @@ MSPeak::MSPeak( const std::string& formula
                 , double exact_mass ) : impl_( std::make_unique< impl >() )
 {
     impl_->mass_ = mass;
+    impl_->time_ = time;
     impl_->mode_ = mode;
     impl_->formula_ = formula;
     impl_->spectrumIndex_ = spectrumIndex;
