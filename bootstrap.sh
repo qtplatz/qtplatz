@@ -8,7 +8,7 @@ host_system=`uname`
 build_clean=false
 build_package=false
 build_root=..
-cmake_args=('-DCMAKE_BUILD_TYPE=Release')
+cmake_args=()
 
 source ${cwd}/scripts/find_qmake.sh
 source ${cwd}/scripts/prompt.sh
@@ -137,7 +137,9 @@ for build_dir in ${build_dirs[@]}; do
     echo "#" pwd `pwd`
 
     if [ -z $cross_target ]; then
+		echo ""
 		echo cmake "${cmake_args[@]}" $source_dir
+		echo ""
 		prompt
 		cmake "${cmake_args[@]}" $source_dir
     else
@@ -168,11 +170,3 @@ for build_dir in ${build_dirs[@]}; do
     cd $cwd
     index=$((index+1))
 done
-
-cat > ${build_dirs[0]}/../qtplatz-build.sh <<EOF
-#!/bin/bash
-for i in ${build_dirs[*]}; do (cd \$i; cmake . ; make -j8 package); done
-for i in ${build_dirs[*]}; do (cd \$i; mv *.deb ..); done
-EOF
-
-chmod +x ${build_dirs[0]}/../qtplatz-build.sh

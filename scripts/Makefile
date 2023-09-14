@@ -33,6 +33,7 @@ default_darwin:
 	@echo "make qwt"
 	@echo "make rdkit"
 	@echo "make opencv"
+	@echo "make cmake"
 	@echo "You can install"
 	@echo "	brew cask install emacs; brew install gnuplot"
 
@@ -136,7 +137,7 @@ qwt:
 	./linux-qwt-setup.sh
 
 netcdf-c:
-	./linux-netcdf-c.sh
+	./linux-netcdf-setup.sh
 
 gnuplot:
 	./linux-gnuplot-setup.sh
