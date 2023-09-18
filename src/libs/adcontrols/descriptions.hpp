@@ -30,6 +30,7 @@
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
 #include <vector>
+#include <optional>
 
 namespace boost {
     namespace serialization {

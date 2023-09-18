@@ -29,7 +29,7 @@
 #include <string>
 #include <tuple>
 #include <iterator>
-#include <optional.hpp>
+#include <optional>
 
 namespace RDKit { class ROMol; }
 

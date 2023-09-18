@@ -234,8 +234,8 @@ if ( WITH_PYTHON3 )
 endif()
 
 if ( WIN32 )
-  set(CMAKE_DEBUG_POSTFIX "d")
-  set( boost_libs "bzip2" )
+  set( CMAKE_DEBUG_POSTFIX "d")
+  set( boost_w32_libs "bzip2" "zlib" )
 endif()
 
 if ( APPLE )
@@ -252,8 +252,8 @@ if ( WITH_RDKIT )
   find_package( rdkit QUIET )
   if ( rdkit_FOUND )
     add_definitions( -DHAVE_RDKit=1 )
-    get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
     find_package( Eigen3 REQUIRED )
+    message( STATUS "RDKit_LIBRARIES: ${RDKit_LIBRARIES}" )
   else()
     add_definitions( -DHAVE_RDKit=0 )
     message( STATUS "No RDKit found" )
@@ -268,7 +268,7 @@ set( Boost_NO_WARN_NEW_VERSIONS ON )
 
 find_package( Boost 1.75 REQUIRED COMPONENTS
   atomic
-  ${boost_libs} # windows
+  ${boost_w32_libs} # windows
   chrono
   container
   date_time

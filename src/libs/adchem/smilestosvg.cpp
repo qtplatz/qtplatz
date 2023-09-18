@@ -36,11 +36,12 @@
 #include <RDGeneral/RDLog.h>
 #endif
 #include <adportable/debug.hpp>
+#include <optional>
 
 using namespace adchem;
 
 
-adportable::optional< adchem::SmilesToSVG::value_type >
+std::optional< adchem::SmilesToSVG::value_type >
 SmilesToSVG::operator()( const std::string& smiles, RDKit::DrawColour&& background ) const
 {
 #if HAVE_RDKit
