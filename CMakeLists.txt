@@ -9,7 +9,13 @@ cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
 
+if ( UNIX AND NOT APPLE )
+  set( CMAKE_C_COMPILER clang )
+  set( CMAKE_CXX_COMPILER clang++ )
+endif()
+
 project (qtplatz)
+
 set ( QTPLATZ_TARGETS "QtPlatzTargets" )
 
 if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
@@ -18,7 +24,7 @@ endif()
 
 set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set ( VERBOSE OFF )
-set ( CMAKE_ECLIPSE_VERSION 4.5 )
+
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
@@ -215,8 +221,10 @@ elseif ( APPLE )
   #  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )  # don't change.  This path is referencing from libqxcb in plugins directory
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
+  endif()
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" ) # don't change. This path is referencing from libqxcb in plugins directory
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formerly lib/qtplatz
 endif()
 
