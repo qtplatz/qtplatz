@@ -52,10 +52,10 @@ set ( OPENCV_INSTALL_PREFIX "C:/opt/OpenCV" )
 
 #--------------------------------------------
 
-set ( BOOST_SOURCE_DIR ${BUILD_ROOT}/boost_${BOOST_VERSION} )
-set ( BZIP2_SOURCE_DIR ${SRCDIR}/bzip2-1.0.6 )
+set ( BOOST_SOURCE_DIR "${BUILD_ROOT}/boost_${BOOST_VERSION}" )
+set ( BZIP2_SOURCE_DIR "${SRCDIR}/bzip2-1.0.6" )
 
-set ( ZLIB_SOURCE_DIR "${SRCDIR}/zlib-1.2.13" )
+set ( ZLIB_SOURCE_DIR "${SRCDIR}/zlib-1.3" )
 set ( ZLIB_BINARY_DIR "${BUILD_ROOT}/zlib.build" )
 set ( ZLIB_INSTALL_PREFIX "C:/opt/zlib" )
 
@@ -96,6 +96,7 @@ endif()
 if ( BOOST_VERSION )
   string ( REGEX REPLACE "([0-9]+)_([0-9]+)_[0-9]+.*$" "boost-\\1_\\2" __boost_root ${BOOST_VERSION} )
   set ( BOOST_ROOT "c:/Boost/include/${__boost_root}" )
+  set ( BOOST_LIBRARYDIR "C:/Boost/lib" )
 endif()
 
 ###########################################################
@@ -164,7 +165,7 @@ add_custom_target( qwt
   DEPENDS qwt.download qwtconfig
   )
 
-file ( TO_NATIVE_PATH ${QWT_SOURCE_DIR} QWT_SOURCE_NATIVE_DIR ) # use in boost-build.bat.in
+file ( TO_NATIVE_PATH ${QWT_SOURCE_DIR} QWT_SOURCE_NATIVE_DIR )
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/qwt-build.bat.in
@@ -183,15 +184,21 @@ add_custom_target( boost
   -DBOOST_SOURCE_DIR="${BOOST_SOURCE_DIR}"
   -DBZIP2_SOURCE_DIR="${BZIP2_SOURCE_DIR}"
   -DZLIB_SOURCE_DIR="${ZLIB_SOURCE_DIR}"
+  -DZLIB_BINARY_DIR="${ZLIB_BINARY_DIR}"
+  -DZLIB_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}"
   -DDOWNLOADS="${DOWNLOADS}"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
+  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && bootstrap.bat"
   COMMAND cmd /c "echo ####################################################################################"
   COMMAND cmd /c "echo boost.cmake done."
   COMMAND cmd /c "echo ####################################################################################"
-  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && bootstrap.bat"
-  COMMAND cmd /c "echo boost bootstrap.bat completed"
+  COMMAND cmd /c "echo ======================= check zconf.h is configured ================================"
+  COMMAND cmd /c "echo ==== zlib source need to be pre-configured for zconf.h"
+  COMMAND cmd /c "echo ==== go to zlib source dir: @ZLIB_SOURCE_PATH@"
+  COMMAND cmd /c "echo ==== mkdir build; cmake .."
+  COMMAND cmd /c "echo ==== copy zconf."
   COMMAND cmd /c "echo ####################################################################################"
-  COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && boost-build.bat static dynamic"
+  COMMAND cmd /c "echo boost-build.bat static dynamic"
   )
 
 configure_file(
@@ -242,8 +249,10 @@ configure_file(
 
 ######################### zlib #######################
 add_custom_target( zlib
-  COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}" -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
-  WORKING_DIRECTORY ${ZLIB_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND}
+  -DCMAKE_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}"
+  -G "${GENERATOR}" "${ZLIB_SOURCE_DIR}"
+  WORKING_DIRECTORY "${ZLIB_BINARY_DIR}"
 )
 
 if ( NOT EXISTS ${ZLIB_BINARY_DIR} )
@@ -258,12 +267,14 @@ find_path( maeparser_dirs
   NAMES "maeparser/Reader.hpp" HINTS ${MAEPARSER_INSTALL_PREFIX} PATH_SUFFIXES "include" )
 if ( maeparser_dirs )
   set( RDK_BUILD_MAEPARSER_SUPPORT "ON" )
+  list( APPEND CMAKE_MODULE_PATH "${MAEPARSER_INSTALL_PREFIX}/lib" )
+  find_package( maeparser )
 endif()
+
 
 add_custom_target( rdkit.download  COMMAND ${CMAKE_COMMAND}
   -DGIT_CLONE_DIR="${RDBASE}"
   -DGIT_CLONE_URL="https://github.com/rdkit/rdkit"
-  -DGIT_CHECKOUT_BRANCH="Release_2020_09_3"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
   )
 
@@ -325,6 +336,8 @@ message( STATUS "RDKIT_BINARY_DIR    = " ${RDKIT_BINARY_DIR} )
 message( STATUS "BOOST_VERSION       = " ${BOOST_VERSION} )
 message( STATUS "BOOST_ROOT          = " ${BOOST_ROOT} )
 message( STATUS "BOOST_SOURCE_DIR    = " ${BOOST_SOURCE_DIR} )
+message( STATUS "MAEPARSER_SUPPORT   = " ${RDK_BUILD_MAEPARSER_SUPPORT} )
+message( STATUS "MAEPARSER_DIRS      = " ${maeparser_dirs} )
 message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )

@@ -7,16 +7,30 @@ for %%i in (%*) do (
     if %%i==dynamic set build_dynamic=yes
 )
 
-if not defined build_statis (
+if not defined build_statics (
    if not defined build_dynamic set build_dynamic=yes
 )
 
+echo "========================================================="
+echo "==== zlib source need to be pre-configured for zconf.h"
+echo "==== go to zlib source dir: @ZLIB_SOURCE_PATH@"
+echo "==== mkdir build; cmake .."
+echo "==== copy zconf.h .."
+echo "========================================================="
+
 if defined build_static (
    echo "=============> building static boost libraries"
-   b2 -j%NUMBER_OF_PROCESSORS% address-model=64 --with-iostreams -sBZIP2_SOURCE=@BZIP2_SOURCE_PATH@ -sZLIB_INCLUDE="/opt/include" -sZLIB_SOURCE=@ZLIB_SOURCE_PATH@ link=static --stagedir=stage\x64-static stage install
+   b2 -j%NUMBER_OF_PROCESSORS% address-model=64 ^
+                        -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
+                        -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
+                        link=static --stagedir=stage\x64-static stage install
 )
 
 if defined build_dynamic (
    echo "============> building dynamic boost libraries"
-   b2 -j%NUMBER_OF_PROCESSORS% address-model=64 --with-iostreams -sBZIP2_SOURCE=@BZIP2_SOURCE_PATH@ -sZLIB_INCLUDE="/opt/include" -sZLIB_SOURCE=@ZLIB_SOURCE_PATH@ link=shared --stagedir=stage\x64-shared stage install
+   b2 -j%NUMBER_OF_PROCESSORS% address-model=64 ^
+                        -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
+                        -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
+                        -sZLIB_INCLUDE="@ZLIB_INSTALL_PREFIX@/include" ^
+                        link=shared --stagedir=stage\x64-shared stage install
 )

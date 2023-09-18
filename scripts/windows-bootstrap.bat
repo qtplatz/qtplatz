@@ -20,7 +20,7 @@ for %%i in (%*) do (
 
 call %CWD%\constants.bat BOOST_VERSION QMAKE SOURCE_ROOT BUILD_ROOT GENERATOR
 
-set BUILD_DIR=%SOURCE_ROOT%\build-x86_64\windows
+set BUILD_DIR="%SOURCE_ROOT%\build-x86_64\windows"
 echo "##############################################"
 echo "-------- windows-bootstrap.bat ---------------"
 echo "SOURCE_ROOT=%SOURCE_ROOT%"

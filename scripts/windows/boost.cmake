@@ -21,6 +21,10 @@ if ( NOT ZLIB_SOURCE_DIR )
   message( FATAL_ERROR "Empty ZLIB_SORUCE_DIR" )
 endif()
 
+if ( NOT ZLIB_INSTALL_PREFIX )
+  message( FATAL_ERROR "Empty ZLIB_INSTALL_PREFIX" )
+endif()
+
 string ( REGEX REPLACE "([0-9]+)_([0-9]+)_([0-9]+)" "\\1" BOOST_Major ${BOOST_VERSION} )
 string ( REGEX REPLACE "([0-9]+)_([0-9]+)_([0-9]+)" "\\2" BOOST_Minor ${BOOST_VERSION} )
 string ( REGEX REPLACE "([0-9]+)_([0-9]+)_([0-9]+)" "\\3" BOOST_Micro ${BOOST_VERSION} )
@@ -33,16 +37,16 @@ message( STATUS "BZIP2_SOURCE_DIR       : " ${BZIP2_SOURCE_DIR} )
 
 file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH ) # use in boost-build.bat.in
 file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build.bat.in
+file ( TO_NATIVE_PATH ${ZLIB_BINARY_DIR} ZLIB_BUILD_PATH ) # use in boost-build.bat.in
 
 set ( BOOST_TARBALL "boost_${BOOST_VERSION}.tar.bz2" )
 set ( BOOST_DOWNLOAD_URL "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_DOT_VERSION}/source/${BOOST_TARBALL}" )
-#                        "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
 
-set ( BZIP2_TARBALL bzip2-1.0.6.tar.gz )
+set ( BZIP2_TARBALL "bzip2-1.0.6.tar.gz" )
 set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" )
 
-set ( ZLIB_TARBALL zlib-1.2.11.tar.xz )
-set ( ZLIB_DOWNLOAD_URL "https://www.zlib.net/${ZLIB_TARBALL}" )
+set ( ZLIB_TARBALL "zlib-1.3.tar.gz" )
+set ( ZLIB_DOWNLOAD_URL "https://zlib.net/${ZLIB_TARBALL}" )
 
 get_filename_component( __boost_parent ${BOOST_SOURCE_DIR} DIRECTORY )
 get_filename_component( __bzip2_parent ${BZIP2_SOURCE_DIR} DIRECTORY )
@@ -64,7 +68,6 @@ if ( NOT EXISTS ${DOWNLOADS}/${ZLIB_TARBALL} )
   file( DOWNLOAD ${ZLIB_DOWNLOAD_URL} ${DOWNLOADS}/${ZLIB_TARBALL} SHOW_PROGRESS )
 endif()
 
-#find_program (TAR "tar" HINTS "C:/msys64/usr/bin/")
 if ( NOT TAR )
   message( STATUS "================= No tar command specified --> " ${TAR})
   set ( TAR tar )
