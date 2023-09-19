@@ -10,7 +10,6 @@ cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
-
 set ( QTPLATZ_TARGETS "QtPlatzTargets" )
 
 if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
@@ -19,7 +18,7 @@ endif()
 
 set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set ( VERBOSE OFF )
-
+set ( CMAKE_ECLIPSE_VERSION 4.5 )
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
@@ -36,7 +35,7 @@ endif()
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
-option( WITH_QT5           "Include QT5"                OFF )
+option( WITH_QT5           "Include QT5"                ON )
 option( WITH_QWT           "Include QWT"                ON )
 option( WITH_AqDrv4        "Keysight AP240/DC122"       OFF )
 option( WITH_AgMD2         "Keysight U5303A"            ON )
@@ -63,14 +62,13 @@ set( CMAKE_WARN_DEPRECATED TRUE )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
-find_package( netCDF QUIET )
+find_package( netCDF )
 
 ################################################################
 #
 if ( WITH_QT5 )
 
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
-  message( STATUS "find_package( QT ) --- ${QT_ROUND}, ${Qt5_FOUND}" )
 
   if ( QT_FOUND AND "${QT_VERSION_MAJOR}" GREATER_EQUAL 5 )
     include_directories( "${CMAKE_SOURCE_DIR}/src/libs" ) # -- for qt-creator include qtwrapper/debug.hpp
@@ -217,10 +215,8 @@ elseif ( APPLE )
   #  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
-  endif()
-  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" ) # don't change. This path is referencing from libqxcb in plugins directory
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )  # don't change.  This path is referencing from libqxcb in plugins directory
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formerly lib/qtplatz
 endif()
 
@@ -238,8 +234,8 @@ if ( WITH_PYTHON3 )
 endif()
 
 if ( WIN32 )
-  set( CMAKE_DEBUG_POSTFIX "d")
-  set( boost_w32_libs "bzip2" "zlib" )
+  set(CMAKE_DEBUG_POSTFIX "d")
+  set( boost_libs "bzip2" )
 endif()
 
 if ( APPLE )
@@ -256,8 +252,8 @@ if ( WITH_RDKIT )
   find_package( rdkit QUIET )
   if ( rdkit_FOUND )
     add_definitions( -DHAVE_RDKit=1 )
+    get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
     find_package( Eigen3 REQUIRED )
-    message( STATUS "RDKit_LIBRARIES: ${RDKit_LIBRARIES}" )
   else()
     add_definitions( -DHAVE_RDKit=0 )
     message( STATUS "No RDKit found" )
@@ -272,7 +268,7 @@ set( Boost_NO_WARN_NEW_VERSIONS ON )
 
 find_package( Boost 1.75 REQUIRED COMPONENTS
   atomic
-  ${boost_w32_libs} # windows
+  ${boost_libs} # windows
   chrono
   container
   date_time
@@ -304,14 +300,14 @@ endif()
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
-  )
+)
 
 if ( WITH_QWT AND QT_FOUND )
   find_package( qwt )
   if ( NOT QWT_LIBRARIES )
     message( FATAL_ERROR "No QWT library found" )
   endif()
-  if ( ${QWT_VERSION} VERSION_LESS "6.2.0" )
+  if ( "${QWT_VERSION}" VERSION_LESS "6.2.0" )
     message( FATAL_ERROR "QWT VERSION MULST BE 6.2.0 OR HIGHER" )
   endif()
 endif()
@@ -432,9 +428,7 @@ if ( WIN32 )
   include( msvc-cpack )
   include( rdkit-cpack )
   include( boost-cpack )
-  if ( Qt5_found )
-    include( qt5-cpack )
-  endif()
+  include( qt5-cpack )
   if ( OpenCV_FOUND )
     include( opencv-cpack )
   endif()
