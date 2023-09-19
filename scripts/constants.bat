@@ -2,7 +2,8 @@
 @echo off
 
 ::set BOOST_VERSION=1_69_0
-set BOOST_VERSION=1_79_0
+::set BOOST_VERSION=1_79_0
+set BOOST_VERSION=1_80_0
 call find_qmake
 
 pushd %~dp0..\..

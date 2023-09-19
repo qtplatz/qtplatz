@@ -9,6 +9,7 @@ popd
 if not defined QTDIR (
    set QMAKE=
    call "%source_dir%scripts\find_qmake.bat" QMAKE
+   echo "======== QMAKE: " %QMAKE%
    if not defined QMAKE ( echo "## No QMAKE found." & goto end )
    for /f "tokens=*" %%a in ( '%QMAKE% -query QT_INSTALL_PREFIX' ) do ( set "QTDIR=%%a" )
 )

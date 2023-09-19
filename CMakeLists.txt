@@ -235,7 +235,7 @@ endif()
 
 if ( WIN32 )
   set(CMAKE_DEBUG_POSTFIX "d")
-  set( boost_libs "bzip2" )
+  set( boost_libs "bzip2" "zlib" )
 endif()
 
 if ( APPLE )

@@ -1,3 +1,12 @@
+using clang
+          :
+          :
+          :
+cxxstd=17
+<ranlib>"C:/Program Files/LLVM/bin/llvm-ranlib.exe"
+<archiver>"C:/Program Files/LLVM/bin/llvm-ar.exe"
+<cxxflags>-D_CRT_SECURE_NO_WARNINGS
+          ;
 using python
 	  : ${PYTHON_VERSION}
 	  : ${PYTHON3_EXECUTABLE}
