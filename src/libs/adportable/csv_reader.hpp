@@ -25,6 +25,8 @@ SOFTWARE.
 
 #pragma once
 
+#if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
+
 #include "adportable_global.h"
 #include <boost/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -92,3 +94,4 @@ namespace adportable {
         }
     }
 }
+#endif

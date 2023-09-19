@@ -23,6 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **************************************************************************/
 
+#if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
+
 #include "csv_reader.hpp"
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
@@ -163,3 +165,5 @@ csv_reader::skip( std::istream& istrm, size_t nlines )
     }
     return true;
 }
+
+#endif
