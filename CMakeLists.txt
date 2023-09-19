@@ -62,7 +62,7 @@ set( CMAKE_WARN_DEPRECATED TRUE )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
-find_package( netCDF )
+find_package( netCDF QUIET )
 
 ################################################################
 #
@@ -221,7 +221,7 @@ else() # Linux
 endif()
 
 if ( WITH_PYTHON3 )
-  find_package( Python3 COMPONENTS Interpreter Development )
+  find_package( Python3 QUIET COMPONENTS Interpreter Development )
 
   if ( Python3_FOUND )
     if ( WIN32 )
