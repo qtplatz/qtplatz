@@ -31,6 +31,5 @@ if defined build_dynamic (
    b2 -j%NUMBER_OF_PROCESSORS% address-model=64 ^
                         -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
                         -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
-                        -sZLIB_INCLUDE="@ZLIB_INSTALL_PREFIX@/include" ^
                         link=shared --stagedir=stage\x64-shared stage install
 )
