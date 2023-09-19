@@ -9,11 +9,6 @@ cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
 
-if ( UNIX AND NOT APPLE )
-  set( CMAKE_C_COMPILER clang )
-  set( CMAKE_CXX_COMPILER clang++ )
-endif()
-
 project (qtplatz)
 
 set ( QTPLATZ_TARGETS "QtPlatzTargets" )
@@ -41,7 +36,7 @@ endif()
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
-option( WITH_QT5           "Include QT5"                ON )
+option( WITH_QT5           "Include QT5"                OFF )
 option( WITH_QWT           "Include QWT"                ON )
 option( WITH_AqDrv4        "Keysight AP240/DC122"       OFF )
 option( WITH_AgMD2         "Keysight U5303A"            ON )
@@ -68,15 +63,16 @@ set( CMAKE_WARN_DEPRECATED TRUE )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
-find_package( netCDF )
+find_package( netCDF QUIET )
 
 ################################################################
 #
 if ( WITH_QT5 )
 
   find_package( QT NAMES Qt6 Qt5 OPTIONAL COMPONENTS Core )
+  message( STATUS "find_package( QT ) --- ${QT_ROUND}, ${Qt5_FOUND}" )
 
-  if ( QT_FOUND AND ${QT_VERSION_MAJOR} GREATER_EQUAL 5 )
+  if ( QT_FOUND AND "${QT_VERSION_MAJOR}" GREATER_EQUAL 5 )
     include_directories( "${CMAKE_SOURCE_DIR}/src/libs" ) # -- for qt-creator include qtwrapper/debug.hpp
     add_definitions( "-DQT_MESSAGELOGCONTEXT" ) # <-- enable file, line in qDebug output
     if ( APPLE )
@@ -310,7 +306,7 @@ include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
   )
 
-if ( WITH_QWT )
+if ( WITH_QWT AND QT_FOUND )
   find_package( qwt )
   if ( NOT QWT_LIBRARIES )
     message( FATAL_ERROR "No QWT library found" )
@@ -436,7 +432,9 @@ if ( WIN32 )
   include( msvc-cpack )
   include( rdkit-cpack )
   include( boost-cpack )
-  include( qt5-cpack )
+  if ( Qt5_found )
+    include( qt5-cpack )
+  endif()
   if ( OpenCV_FOUND )
     include( opencv-cpack )
   endif()

@@ -5,7 +5,7 @@ function __nproc() {
     local __arch=`uname`
 
     case "${__arch}" in
-	Linux*)
+	Linux*|MINGW*|MSYS*)
 	    eval $__resultvar=$(nproc --all)
 	    ;;
 	Darwin*)

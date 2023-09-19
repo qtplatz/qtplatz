@@ -5,8 +5,6 @@ source ${cwd}/config.sh
 source ${cwd}/prompt.sh
 source ${cwd}/nproc.sh
 
-arch=`uname`-`arch`
-
 build_clean=false
 
 while [ $# -gt 0 ]; do
@@ -26,8 +24,10 @@ function boost_download {
     if [ ! -f ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 ]; then
 		echo "=============================="
 		VERSION=$(echo $BOOST_VERSION | tr _ .)
-		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://boostorg.jfrog.io/artifactory/main/release/${VERSION}/source/boost_${BOOST_VERSION}.tar.bz2
-		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://boostorg.jfrog.io/artifactory/main/release/${VERSION}/source/boost_${BOOST_VERSION}.tar.bz2
+		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 \
+			 https://boostorg.jfrog.io/artifactory/main/release/${VERSION}/source/boost_${BOOST_VERSION}.tar.bz2
+		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 \
+			 https://boostorg.jfrog.io/artifactory/main/release/${VERSION}/source/boost_${BOOST_VERSION}.tar.bz2
 	fi
 
 	if [ ! -d ${BOOST_BUILD_DIR} ]; then
@@ -85,6 +85,27 @@ END
 	fi
 }
 
+function make_user_config_mingw {
+	PYTHON=$(which python3)
+	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+
+	if [ -f ~/user-config.jam ]; then
+		mv ~/user-config.jam ~/user-config.jam.orig
+	fi
+
+	if [ ! -f ~/user-config.jam ]; then
+	cat << END > ~/user-config.jam
+using python
+	  : $PYTHON_VERSION
+	  : $PYTHON
+	  : $PYTHON_INCLUDE
+	  ;
+END
+	fi
+}
+
 function make_user_config_cross_armhf {
 	if [ -f ~/user-config.jam ]; then
 		mv ~/user-config.jam ~/user-config.jam.orig
@@ -98,18 +119,51 @@ END
 	fi
 }
 
+function boost_build_mingw {
+	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+	CXX_FLAGS="-fPIC -std=c++17"
+	C_FLAGS="-fPIC"
+	SUDO=
+	echo ./bootstrap.sh --prefix=${BOOST_INSTALL_PREFIX} --with-python=${PYTHON}
+	echo ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
+		 threading=multi \
+		 link=shared \
+		 include="${PYTHON_INCLUDE}" \
+		 hardcode-dll-paths=true \
+		 dll-path="'\$ORIGIN/../lib'" \
+		 --without-mpi \
+		 --without-graph_parallel \
+		 install
+	prompt
+	./bootstrap.sh --prefix=${BOOST_INSTALL_PREFIX} --with-python=${PYTHON} &&
+		./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
+			 threading=multi \
+			 link=shared \
+			 include="${PYTHON_INCLUDE}" \
+			 hardcode-dll-paths=true \
+			 dll-path="'\$ORIGIN/../lib'" \
+			 --without-mpi \
+			 --without-graph_parallel \
+			 install
+}
+
 
 function boost_build {
     echo "=============================="
-    echo "   BOOST install for $arch    "
+    echo "   BOOST install for $(build_uname) "
     echo "=============================="
 
     BOOST_BUILD_DIR=$1
 
-    ( cd $BOOST_BUILD_DIR;
-      echo $(pwd)
+    ( cd ${BOOST_BUILD_DIR};
+      echo "---------> boost build in $(pwd)"
 
-      case "${arch}" in
+      case "$(build_uname)" in
+		  mingw*)
+			  boost_build_mingw
+			  ;;
 		  Linux*)
 			  release=$(lsb_release -sr)
 			  if [ "${release%.*}" -lt "10" ]; then
@@ -122,7 +176,7 @@ function boost_build {
 			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
 			  CXX_FLAGS="-fPIC -std=c++17"
 			  C_FLAGS="-fPIC"
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON}
+			  echo ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-python=${PYTHON}
 			  echo ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
 					   threading=multi \
 					   link=shared \
@@ -133,7 +187,7 @@ function boost_build {
 					   --without-graph_parallel \
 					   install
 			  prompt
-			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
+			  ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-python=${PYTHON} &&
 			  	  sudo ./b2 -j $nproc address-model=64 toolset=gcc cflags="${C_FLAGS}" cxxflags="${CXX_FLAGS}" \
 					   threading=multi \
 					   link=shared \
@@ -157,10 +211,10 @@ function boost_build {
 			  #OSX_VERSION_MIN=-mmacosx-version-min=10.12
 			  CXX_FLAGS="-std=c++17"
 			  LINKFLAGS="-stdlib=libc++"
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
+			  echo ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
 			  prompt
-			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
+			  ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
 			  echo ./b2 -j $nproc address-model=64 cxxflags="-std=c++14 -mmacosx-version-min=10.15" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  prompt
@@ -168,7 +222,7 @@ function boost_build {
 			  sudo ./b2 install
 			  ;;
 		  *)
-			  echo "Unknown arch: " $arch
+			  echo "Unknown build: " $(build_uname)
       esac
     )
 }
@@ -178,46 +232,35 @@ function boost_cross_build {
     echo "   BOOST cross install for $cross_target "
     echo "=============================="
     BOOST_BUILD_DIR=$1
-    if [ ! -d $(dirname $BOOST_PREFIX) ]; then
-		if ! mkdir -p $(dirname $BOOST_PREFIX) ; then
-			echo "mkdir -p $(dirname BOOST_PREFIX) -- command faild. Check for your access permission"
+    if [ ! -d $(dirname $BOOST_INSTALL_PREFIX) ]; then
+		if ! mkdir -p $(dirname $BOOST_INSTALL_PREFIX) ; then
+			echo "mkdir -p $(dirname BOOST_INSTALL_PREFIX) -- command faild. Check for your access permission"
 			exit
 		fi
     fi
 
-    if [ ! -w $(dirname $BOOST_PREFIX) ]; then
-		echo "Make $(dirname $BOOST_PREFIX) writable."
+    if [ ! -w $(dirname $BOOST_INSTALL_PREFIX) ]; then
+		echo "Make $(dirname $BOOST_INSTALL_PREFIX) writable."
     fi
 
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
-      echo ./bootstrap.sh --prefix=$BOOST_PREFIX
+      echo ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX
       echo ./b2 toolset=gcc-arm -j$nproc install
       prompt
 
-      ./bootstrap.sh --prefix=$BOOST_PREFIX &&
+      ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX &&
 	  ./b2 toolset=gcc-arm -j$nproc install
     )
 }
-
-if [ -z $BOOST_VERSION ]; then
-    BOOST_VERSION=1_67_0
-fi
 
 if [ -z $PREFIX ]; then
     PREFIX=/usr/local
 fi
 
-if [ -z $cross_target ]; then
-    BUILD_ROOT=$SRC/build-$arch
-    CROSS_ROOT=
-else
-    BUILD_ROOT=$SRC/build-$cross_target;
-    CROSS_ROOT=/usr/local/arm-linux-gnueabihf
-fi
+python_dirs
 
-BOOST_BUILD_DIR=$BUILD_ROOT/boost_${BOOST_VERSION}
-BOOST_PREFIX=${CROSS_ROOT}$PREFIX/boost-${BOOST_VERSION/%_0//}
+BOOST_BUILD_DIR=${BUILD_ROOT}/boost_${BOOST_VERSION}
 
 if [ $build_clean = true ]; then
 	set -x
@@ -226,48 +269,48 @@ if [ $build_clean = true ]; then
 fi
 
 echo "INSTALLING 'boost' $cross_target to:"
-echo "	BOOST DOWNLOAD    : ${DOWNLOADS}"
-echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
-echo "	BOOST_PREFIX      : ${BOOST_PREFIX}"
-echo "	CROSS_ROOT        : ${CROSS_ROOT}"
-
-python_dirs
-
+echo "	\${DOWNLOAD}             : ${DOWNLOADS}"
+echo "	\${BOOST_VERSION}        : ${BOOST_VERSION}"
+echo "	\${BOOST_ROOT}           : ${BOOST_ROOT}"
+echo "	\${BOOST_INSTALL_PREFIX} : ${BOOST_INSTALL_PREFIX}"
+echo "	\${BUILD_ROOT}           : ${BUILD_ROOT}"
+if [ ! -z ${cross_target} ]; then echo "	\${CROSS_ROOT}           : ${CROSS_ROOT}"; fi
+echo "	BOOST_BUILD_DIR         : ${BOOST_BUILD_DIR}"
+echo "	PYTHON                  : ${PYTHON}"
+echo "	PYTHON_VERSION          : ${PYTHON_VERSION}"
+echo "	PYTHON_INCLUDE          : ${PYTHON_INCLUDE}"
+echo "	PYTHON_ROOT             : ${PYTHON_ROOT}"
 
 if [ -z $cross_target ]; then
-	case "${arch}" in
+	case "`build_uname`" in
 		Darwin*)
 			make_user_config_darwin
 			;;
 		Linux*)
 			make_user_config_linux
 			;;
+		mingw*)
+			make_user_config_mingw
+			;;
+		*)
+			echo "-------- unknown target ---------- `build_uname`"
+			;;
 	esac
 else
 	make_user_config_cross_armhf
 fi
 
-
-echo "	PYTHON            : ${PYTHON}"
-echo "	PYTHON_VERSION    : ${PYTHON_VERSION}"
-echo "	PYTHON_INCLUDE    : ${PYTHON_INCLUDE}"
-echo "	PYTHON_ROOT       : ${PYTHON_ROOT}"
-
-if [ ! -d $BOOST_BUILD_DIR ]; then
+if [ ! -d ${BOOST_BUILD_DIR} ]; then
     echo "	BOOST_BUILD_DIR   : download to ${BOOST_BUILD_DIR}"
 else
     echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
 fi
 
-if [ -d ${BOOST_PREFIX} ]; then
-    echo "boost-$BOOST_VERSION already installed in ${BOOST_PREFIX}"
+if [ -d ${BOOST_INSTALL_PREFIX} ]; then
+    echo "boost-${BOOST_VERSION} already installed in ${BOOST_INSTALL_PREFIX}"
 fi
 
 __nproc nproc
-echo "NPROC=" $nproc
-echo "CWD=" $cwd
-
-prompt
 
 if [ ! -d ${BUILD_ROOT} ]; then
     mkdir -p ${BUILD_ROOT}
@@ -280,7 +323,9 @@ if [ -z $cross_target ]; then
 	#	if [ -f ~/user-config.jam ]; then
 	#		mv ~/user-config.jam ~/user-config.jam.orig
 	#	fi
-    boost_build $BOOST_BUILD_DIR
+	echo "boost_build ${BOOST_BUILD_DIR}"
+	prompt
+    boost_build ${BOOST_BUILD_DIR}
 
 else
     if [ ! -w $CROSS_ROOT ]; then

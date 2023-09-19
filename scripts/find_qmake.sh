@@ -1,10 +1,10 @@
 #!/bin/bash
 
 function find_qmake() {
-    local __arch=`uname`
+    local __uname=`uname`
     local __result=$1
 
-    case "${__arch}" in
+    case "${__uname}" in
 		Linux*)
 			local hints=( "/Qt/5.15.2" "/Qt/5.15.1" )
 			;;
@@ -13,7 +13,7 @@ function find_qmake() {
 			;;
 	esac
 
-    case "${__arch}" in
+    case "${__uname}" in
 	Linux*)
 	    local __dirs=()
 	    for hint in "${hints[@]}"; do
@@ -30,8 +30,13 @@ function find_qmake() {
 			__dirs+=("/opt$hint")
 	    done
 	    ;;
+	MINGW64_NT*)
+		for hint in "${hints[@]}"; do
+			__dirs+=("/c/$hint/mingw81_64")
+		done
+		;;
 	*)
-	    echo "######## unknown arch: " $__arch
+	    echo "######## unknown arch: " $__uname
 	    ;;
     esac
 

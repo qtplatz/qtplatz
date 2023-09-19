@@ -4,16 +4,23 @@ arch=$(shell uname)-$(shell arch)
 ifeq ($(shell uname),Darwin)
 	OS=Darwin
 	VER=$(shell uname -r)
+else ifeq ($(findstring MINGW, $(shell uname)), MINGW)
+	OS = MINGW
+	VER=$(shell uname -r)
+else ifeq ($(findstring MSYS, $(shell uname)), MSYS)
+	OS = MINGW
+	VER=$(shell uname -r)
 else
 	OS=$(shell lsb_release -si)
 	VER=$(shell lsb_release -sr)
 endif
-DETECTED_OS = ${OS}_${VER}
 
 ifeq (${OS},Darwin)
 all: default_darwin
 else ifeq (${OS}, Debian)
 all: default_debian
+else ifeq (${OS}, MINGW)
+all: default_mingw
 else
 all: default
 endif
@@ -44,6 +51,28 @@ default_debian:
 	@echo "Check access permission for /usr/local -- You shoud have write permission"
 	@echo "====================================="
 	@echo "make dependency"
+	@echo "make boost, check python version in your user-config.jam"
+	@echo "make maeparser (depend on boost)"
+	@echo "make rdkit     (depend on maeparser,boost)"
+	@echo "make qwt"
+	@echo "make opencv" || "make opencv.debug"
+	@echo "make fonts"
+	@echo "make mozc"
+	@echo "make qemu"
+	@echo "make cross-tools"
+	@echo "make boost-armhf"
+	@echo "make qt5-armhf"
+	@echo "make gnuplot"
+	@echo "make rtags -- in emacs, M-x 'rtags-install' after install clang-11 and libclang-11-dev"
+	@echo "make code"
+	@echo "make emacs"
+
+default_mingw:
+	@echo "====================================="
+	@echo "We detect mingw64 ${VER}"
+	@echo "Check user-config.jam for python version"
+	@echo "Check access permission for /usr/local -- You shoud have write permission"
+	@echo "====================================="
 	@echo "make boost, check python version in your user-config.jam"
 	@echo "make maeparser (depend on boost)"
 	@echo "make rdkit     (depend on maeparser,boost)"
