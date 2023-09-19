@@ -73,8 +73,8 @@ echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_T
 
 set /p Yes=Proceed (y/n)?
 if /i "%Yes%" neq "y" goto end
-::cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
-cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+::cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
 
 echo "============ endlocal ==============" %build_dir%
