@@ -93,6 +93,7 @@ This step is straightforward but expects one error during the compiling phase.
 $ cd ~/src
 $ git clone git://code.qt.io/qt/qt5.git
 $ cd qt5
+$ perl init-repository
 $ git checkout 5.15.2
 $ mkdir ~/src/build-Darwin-arm64/qt5-build
 $ cd ~/src/build-Darwin-arm64/qt5-build
