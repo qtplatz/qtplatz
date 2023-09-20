@@ -215,7 +215,9 @@ elseif ( APPLE )
   #  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.14" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
+  if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" ) # (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") <- no fext-numeric-literals
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
+  endif()
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )  # don't change.  This path is referencing from libqxcb in plugins directory
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formerly lib/qtplatz
 endif()

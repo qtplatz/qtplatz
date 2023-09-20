@@ -209,6 +209,10 @@ namespace chemistry {
         , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C4-C2-OH" }}
         , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C6-C2-OH", "Perfluorohexyl ethanol" }}
         , { R"(FC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)CCO)", { "C8-C2-OH" }}
+        , { R"(O=C(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "PFOA(C8)" }}
+        , { R"(O=S(=O)(O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "PFOS(C8)" }}
+        , { R"(C(C(F)(F)F)O)", { "CF3EtOH", "2,2,2-Trifluoroethanol" }}
+        , { R"(FC(C(F)(F)C(F)(F)C(F)(F)CCI)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F)", { "PFC10I", "1H,1H,2H,2H-Heptadecafluorodecyl Iodide" }}
         , { R"(FC=1C(F)=C(F)C(O)=C(F)C1F)", { "F5-Ph-OH" }}
         , { R"(O=C(OCC(COC(=O)CCC=1C=C(C(O)=C(C1)C(C)(C)C)C(C)(C)C)(COC(=O)CCC=2C=C(C(O)=C(C2)C(C)(C)C)C(C)(C)C)COC(=O)CCC=3C=C(C(O)=C(C3)C(C)(C)C)C(C)(C)C)CCC=4C=C(C(O)=C(C4)C(C)(C)C)C(C)(C)C)", { "Irganox1010" }}
         , { R"(OC=1C(=CC(=CC1C(C)(C)C)C)C(C)(C)C)", { "BHT" }}
