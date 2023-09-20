@@ -126,6 +126,34 @@ port install llvm
 make rdkit
 ```
 
+Issues on Xcode 15 (version 2379, SDK macOS 14) 
+-------------------------------------
+Recently released Xcode 15 contains Clang-15 toolchains that break build for at least boost-1_79 through boost-1.82 due to c++-17 removing std::unary_function and std::binary_function, which were marked as deprecated since c++11.  See https://github.com/boostorg/container_hash/issues/22
+A quick fix for this is to modify two header files, `boost/container_hash/include/boost/container_hash/hash.hpp` and `boost/functional.hpp`.
+
+// booost/functional.hpp line 27
+```c++
+        namespace detail {
+#if defined(_HAS_AUTO_PTR_ETC) && !_HAS_AUTO_PTR_ETC || (BOOST_CXX_VERSION >= 201703)
+            // std::unary_function and std::binary_function were both removed
+            // in C++17.
+```
+
+// boost/container_hash/include/boost/container_hash/hash.hpp
+```c++
+#if defined(BOOST_NO_CXX98_FUNCTION_BASE) || (BOOST_CXX_VERSION >= 201703)
+        template <typename T>
+        struct hash_base
+        {
+            typedef T argument_type;
+            typedef std::size_t result_type;
+        };
+#else
+        template <typename T>
+        struct hash_base : std::unary_function<T, std::size_t> {};
+#endif
+```
+
 Windows 10 (x64)
 ===============
 
