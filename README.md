@@ -102,7 +102,7 @@ $ make -j10
 ```
 
 The above command set may hit a compile error described [here](https://github.com/microsoft/vcpkg/issues/21055)
-In such a case, quick fix is apply qtplatz/scripts/qt5-5.15.2.patch (or simply add `#include #include <CoreGraphics/CGColorSpace.h>` int `src/plugins/platforms/cocoa/qiosurfacegraphicsbuffer.h` file.  You should be able to build qt5 development files after make and make install.
+In such a case, a quick fix is to apply qtplatz/scripts/qt5-5.15.2.patch (or simply add `#include #include <CoreGraphics/CGColorSpace.h>` int `src/plugins/platforms/cocoa/qiosurfacegraphicsbuffer.h` file.  You should be able to build qt5 development files after running 'make' and 'make install' commands.
 
 Install dependencies for macOS (arm64) a.k.a. M1 Mac
 ----------------------------------------------------
@@ -125,6 +125,47 @@ port install maeparser
 port install llvm
 make rdkit
 ```
+
+Issues on Xcode 15 (version 2379, SDK macOS 14) 
+-------------------------------------
+Recently released Xcode 15 contains Clang-15 toolchains that break build for at least boost-1_79 through boost-1.82 due to c++-17 removing std::unary_function and std::binary_function, which were marked as deprecated since c++11.  See https://github.com/boostorg/container_hash/issues/22
+A quick fix for this is to modify two header files, as listed below.
+
+// boost/functional.hpp line 27
+```c++
+        namespace detail {
+#if defined(_HAS_AUTO_PTR_ETC) && !_HAS_AUTO_PTR_ETC || (BOOST_CXX_VERSION >= 201703)
+            // std::unary_function and std::binary_function were both removed
+            // in C++17.
+```
+
+// boost/container_hash/include/boost/container_hash/hash.hpp
+```c++
+#if defined(BOOST_NO_CXX98_FUNCTION_BASE) || (BOOST_CXX_VERSION >= 201703)
+        template <typename T>
+        struct hash_base
+        {
+            typedef T argument_type;
+            typedef std::size_t result_type;
+        };
+#else
+        template <typename T>
+        struct hash_base : std::unary_function<T, std::size_t> {};
+#endif
+```
+
+Note for boost-1_83
+-----
+As of 20th Sep. 2023, I have tested with boost-1_83, which seems to have no above issues and is able to be built for boost libraries, maeparser, and RDKit.  However, the compile error was raised in 'boost/json/value.hpp', which uses many of the classes in qtplatz.
+
+Note for qmake with macOS SDK 14
+--------
+Although already reported on the web pages, execution of qmake command raises the following error so that no generator makefile is generated properly.  The error message isn't clear about the meaning of search paths, whether command search path or library search path, though it seems that it is a dynamic library search path according to old web articles.
+
+````bash
+Project ERROR: failed to parse default search paths from compiler output
+````
+This problem isn't an issue for the qtplatz build; however, it is an issue for building qwt library.
 
 Windows 10 (x64)
 ===============
