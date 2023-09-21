@@ -30,7 +30,6 @@ if [ -z ${SRC} ]; then
     SRC=~/src
 fi
 
-
 ############### boost ################
 if [ -z $BOOST_VERSION ]; then
 	BOOST_VERSION=1_79_0
@@ -60,7 +59,7 @@ fi
 . ${cwd}/find_qmake.sh
 
 if [ -z $CMAKE_VERSION ]; then
-	CMAKE_VERSION=3.27.4
+	CMAKE_VERSION=3.27.5
 fi
 
 if [ -z ${GNUPLOT_VERSION} ]; then
