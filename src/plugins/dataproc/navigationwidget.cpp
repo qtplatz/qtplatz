@@ -269,7 +269,7 @@ namespace {
                         o << std::setw(10) << std::setfill('0') << int( 0 );
                     }
                 } else {
-                    qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
+                    // qDebug() << match << "\t" << item->data( Qt::EditRole ).toString();
                     o << item->data( Qt::EditRole ).toString().toStdString();
                 }
             } else if ( parent_.data( Qt::EditRole ) == "Spectra" ) {
@@ -1291,7 +1291,7 @@ namespace {
         Subtraction( portfolio::Folium& back, portfolio::Folium& fore, Dataprocessor * p )
             : background( back ), foreground( fore ), processor( p ) {}
         void operator()() {
-            processor->subtract( foreground, background );
+            processor->subtract( background, foreground );
         }
     };
 }
@@ -1490,7 +1490,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     subtrahend = minuend == 0 ? 1 : 0 ;
                     menu.addAction(
                         QString( tr("Subtract '%1' from '%2'") )
-                        .arg( std::get< 3 >( operand[ subtrahend ] ), std::get< 3 >( operand[ minuend ] ) )
+                        .arg( std::get< 3 >( operand[ subtrahend ] )
+                              , std::get< 3 >( operand[ minuend ] ) )
                         , Subtraction( std::get< 2 >( operand[ subtrahend ] )
                                        , std::get< 2 >( operand[ minuend ] ), active_processor ) );
                 }

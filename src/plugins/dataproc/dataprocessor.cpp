@@ -1129,7 +1129,7 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr
     // name from descriptions :
     // exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
-    std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)" );
+    std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)|(^processed$)" );
 
     portfolio::Folium folium = folder.addFolium( name );
     folium.assign( ptr, ptr->dataClass() );
@@ -1396,19 +1396,30 @@ Dataprocessor::findPeptide( const adprot::digestedPeptides& digested )
 void
 Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
 {
+    ADDEBUG() << "-------> subtract: \"" << target.name() << "\" - \"" << base.name() << "\"";
     if ( auto background = portfolio::get< adutils::MassSpectrumPtr >( base ) ) {
-
         if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( target ) ) {
 
-            if ( profile->isCentroid() || background->isCentroid() )
+            if ( ( profile->isCentroid() && not profile->isHistogram() )
+                 || ( background->isCentroid() && not background->isHistogram() ) ) {
+                ADDEBUG() << "-- subtract centroid spectrum does not supported.";
                 return;
+            }
 
             auto xms = std::make_shared< adcontrols::MassSpectrum >( *profile );
-            // adcontrols::MassSpectrum xms( *profile );
-            for ( size_t i = 0; i < xms->size(); ++i )
-                xms->setIntensity( i, xms->intensity( i ) - background->intensity( i ) );
+            if ( profile->isHistogram() ) {
+                auto n1 = profile->getMSProperty().samplingInfo().numberOfTriggers();
+                auto n2 = background->getMSProperty().samplingInfo().numberOfTriggers();
+                double f = double(n1) / n2;
+                ADDEBUG() << "-- subtract n1,n2, and factor = " << std::make_tuple( n1, n2, f );
+                for ( size_t i = 0; i < xms->size(); ++i )
+                    xms->setIntensity( i, xms->intensity( i ) - (background->intensity( i ) * f) );
+            } else {
+                for ( size_t i = 0; i < xms->size(); ++i )
+                    xms->setIntensity( i, xms->intensity( i ) - background->intensity( i ) );
+            }
 
-			xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"SUB(%1% - %2%)" ) % target.name() % base.name() ).str() ) );
+            xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"SUB(%1% - %2%)" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod(), true );
             setModified( true );
         }

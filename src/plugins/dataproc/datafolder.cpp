@@ -28,6 +28,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/histogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -56,6 +57,13 @@ namespace dataproc {
         void operator () ( std::shared_ptr< adcontrols::MassSpectrum > ptr ) const {
             if ( folium_.name() == Constants::F_PROFILED_HISTOGRAM ) {
                 this_->profiledHistogram_ = ptr;
+                if ( ptr ) {
+                    this_->overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *ptr );
+                    auto n = ptr->getMSProperty().samplingInfo().numberOfTriggers();
+                    for ( size_t i = 0; i < ptr->size(); ++i ) {
+                        this_->overlaySpectrum_->setIntensity( i, ptr->intensity( i ) * 1000.0 / n );
+                    }
+                }
             } else if ( folium_.name() == Constants::F_CENTROID_SPECTRUM ) {
                 this_->centroid_ = ptr;
             } else {
@@ -257,8 +265,11 @@ datafolder::get_processed() const
 boost::optional< std::pair< std::shared_ptr< const adcontrols::MassSpectrum >, bool > >
 datafolder::get_spectrum_for_overlay() const
 {
-    if ( auto ppkd = profiledHistogram_.lock() )
+    if ( auto ppkd = profiledHistogram_.lock() ) {
+        if ( overlaySpectrum_ )
+            return {{ overlaySpectrum_, true }};
         return {{ ppkd, true }};
+    }
 
     if ( auto prime = primary_.lock() ) {
         if ( ! prime->isCentroid() )

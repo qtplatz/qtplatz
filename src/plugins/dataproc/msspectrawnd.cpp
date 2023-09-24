@@ -359,9 +359,6 @@ MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
 
     auto& plot = impl_->plots_[ 0 ];
 
-    // if ( data.size() > 1 ) {
-    //     plot->setNormalizedY( QwtPlot::yLeft, true );
-    // }
     std::bitset< 2 > yAxes{ 0 };
     size_t nPKD = std::accumulate( data.begin(), data.end(), 0, [](size_t a, const auto& d){ return a + (d.isCounting() ? 1 : 0); } );
     yAxes[0] = nPKD;
@@ -369,6 +366,7 @@ MSSpectraWnd::handleSelections( const std::vector< portfolio::Folium >& folio )
 
     impl_->overlays_ = std::move( data );
     int idx(0);
+
     for ( auto it = impl_->overlays_.rbegin(); it != impl_->overlays_.rend(); ++it ) {
         if ( auto d = it->get_spectrum_for_overlay() ) {
             auto [ms,isCounting] = *d;

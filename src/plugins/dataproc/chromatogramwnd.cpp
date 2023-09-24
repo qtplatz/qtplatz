@@ -401,6 +401,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         for( const auto& a: folium.attributes() )
             ADDEBUG() << a;
     }
+    impl_->overlays_.clear();
 
     auto datum = datafolder( processor, folium );
 
