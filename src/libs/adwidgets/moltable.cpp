@@ -354,19 +354,34 @@ MolTable::handleContextMenu( const QPoint& pt )
 
     typedef std::pair< QAction *, std::function< void() > > action_type;
 
-    std::vector< action_type > actions;
-
-    actions.emplace_back( menu.addAction( "Enable all" ), [&](){ enable_all( true ); } );
-    actions.emplace_back( menu.addAction( "Disable all" ), [&](){ enable_all( false ); } );
+    menu.addAction( tr("Set adducts if empty" ), this, SLOT( handleSetAdducts() ) );
+    menu.addAction( tr( "Enable all" ), [=](){ enable_all( true ); } );
+    menu.addAction( tr( "Disable all" ), [=](){ enable_all( false ); } );
 
     TableView::addActionsToContextMenu( menu, pt );
+    menu.exec( mapToGlobal( pt ) );
+}
 
-    if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
-        auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){
-                return t.first == selected;
-            });
-        if ( it != actions.end() )
-            (it->second)();
+void
+MolTable::handleSetAdducts()
+{
+    auto model = impl_->model_;
+    QSignalBlocker block( model );
+    for ( int row = 0; row < model->rowCount(); ++row ) {
+        auto adducts = model->index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
+        bool dirty( false );
+        if ( adducts.get( adcontrols::polarity_positive ).isEmpty() ) {
+            dirty = true;
+            adducts.set( "+[H]+", adcontrols::polarity_positive );
+        } else if ( adducts.get( adcontrols::polarity_negative ).isEmpty() ) {
+            dirty = true;
+            adducts.set( "-[H]+", adcontrols::polarity_negative );
+        }
+        if ( dirty ) {
+            model->setData( model->index( row, c_adducts ), QVariant::fromValue( adducts ), Qt::UserRole + 1 );
+            model->setData( model->index( row, c_adducts ), adducts.get( impl_->current_polarity_ ) );
+            impl_->formulaChanged( row );
+        }
     }
 }
 
@@ -378,7 +393,8 @@ MolTable::enable_all( bool enable )
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
         if ( ! model.index( row, index_of< col_formula, column_list >::value ).data().toString().isEmpty() )
-            model.setData( model.index( row, index_of< col_formula, column_list >::value ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, index_of< col_formula, column_list >::value )
+                           , enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 
 }

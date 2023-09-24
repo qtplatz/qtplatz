@@ -400,8 +400,31 @@ MSChromatogramTable::getContents( adcontrols::moltable& m )
 }
 
 void
+MSChromatogramTable::handleSetAdducts()
+{
+    auto model = impl_->model_.get();
+    QSignalBlocker block( model );
+    for ( int row = 0; row < model->rowCount(); ++row ) {
+        auto adducts = model->index( row, c_adducts ).data( Qt::UserRole + 1 ).value< adducts_type >();
+        bool dirty( false );
+        if ( adducts.get( adcontrols::polarity_positive ).isEmpty() ) {
+            dirty = true;
+            adducts.set( "+[H]+", adcontrols::polarity_positive );
+        } else if ( adducts.get( adcontrols::polarity_negative ).isEmpty() ) {
+            dirty = true;
+            adducts.set( "-[H]+", adcontrols::polarity_negative );
+        }
+        if ( dirty ) {
+            model->setData( model->index( row, c_adducts ), QVariant::fromValue( adducts ), Qt::UserRole + 1 );
+            model->setData( model->index( row, c_adducts ), adducts.get( impl_->current_polarity_ ) );
+            impl_->formulaChanged( row );
+        }
+    }
+}
+
+void
 MSChromatogramTable::addActionsToContextMenu( QMenu& menu, const QPoint& pt ) const
 {
+    menu.addAction( tr( "Set adducts if empty." ), this, SLOT( handleSetAdducts() ) );
     TableView::addActionsToContextMenu( menu, pt );
-    // menu.addAction( tr( "Add a line" ), this, [&]{ impl_->model_->setRowCount( impl_->model_->rowCount() + 1 ); } );
 }

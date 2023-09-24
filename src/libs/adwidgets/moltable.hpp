@@ -121,6 +121,7 @@ namespace adwidgets {
     private slots:
         void handleCopyToClipboard() override;
         void handlePaste() override;
+        void handleSetAdducts();
     };
 
 }

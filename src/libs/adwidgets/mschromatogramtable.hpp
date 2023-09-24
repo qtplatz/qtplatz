@@ -86,7 +86,7 @@ namespace adwidgets {
 
     private slots:
         // void handleContextMenu( const QPoint& pt );
-        // void handleSetAdducts();
+        void handleSetAdducts();
 
     private:
         class impl;
