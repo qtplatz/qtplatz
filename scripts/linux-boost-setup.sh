@@ -4,6 +4,7 @@ cwd="$(cd "$(dirname "$0")" && pwd)"
 source ${cwd}/config.sh
 source ${cwd}/prompt.sh
 source ${cwd}/nproc.sh
+bjam_args=()
 
 build_clean=false
 
@@ -102,19 +103,6 @@ using python
 	  : $PYTHON
 	  : $PYTHON_INCLUDE
 	  ;
-END
-	fi
-}
-
-function make_user_config_cross_armhf {
-	if [ -f ~/user-config.jam ]; then
-		mv ~/user-config.jam ~/user-config.jam.orig
-	fi
-
-	if [ ! -f ~/user-config.jam ]; then
-		cat << END > ~/user-config.jam
-using gcc :	arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++17 -fPIC" ;
-using python : 2.7 ;
 END
 	fi
 }
@@ -232,7 +220,7 @@ function boost_cross_build {
     echo "   BOOST cross install for $cross_target "
     echo "=============================="
     BOOST_BUILD_DIR=$1
-    if [ ! -d $(dirname $BOOST_INSTALL_PREFIX) ]; then
+    if [ ! -d $(dirname ${BOOST_INSTALL_PREFIX}) ]; then
 		if ! mkdir -p $(dirname $BOOST_INSTALL_PREFIX) ; then
 			echo "mkdir -p $(dirname BOOST_INSTALL_PREFIX) -- command faild. Check for your access permission"
 			exit
@@ -243,14 +231,36 @@ function boost_cross_build {
 		echo "Make $(dirname $BOOST_INSTALL_PREFIX) writable."
     fi
 
+	case ${cross_target} in
+		arm-linux-gnueabihf|armhf|armv7l|de0-nano-soc|helio)
+			toolset=gcc-arm
+			cat << END > ${BOOST_BUILD_DIR}/user-config.jam
+using gcc :	arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++17 -fPIC" ;
+using python : 2.7 ;
+END
+			;;
+		x86_64-w64-mingw32)
+			#bjam_args+=('target-os=windows')
+			bjam_args=( 'address-model=64' 'architecture=x86' )
+			bjam_args=( 'threading=multi' 'link=shared' 'hardcode-dll-paths=true' )
+			bjam_args=( dll-path="'\$ORIGIN/../lib'" '--without-mpi' '--without-graph_parallel' )
+			echo "############# bjam_args: " ${bjam_args[@]}
+			cat << END > ${BOOST_BUILD_DIR}/user-config.jam
+using gcc :	: x86_64-w64-mingw32-g++ : <cxxflags>"-std=c++17 -fPIC" ;
+END
+			;;
+		*)
+			echo "-------- unknown target ---------- ${cross_target}"
+			;;
+	esac
+
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
-      echo ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX
-      echo ./b2 toolset=gcc-arm -j$nproc install
+      echo ./bootstrap.sh --prefix=${BOOST_INSTALL_PREFIX}
+      echo ./b2 --user-config=./user-config.jam "${bjam_args[@]}" -j${nproc} install
       prompt
-
-      ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX &&
-	  ./b2 toolset=gcc-arm -j$nproc install
+      ./bootstrap.sh --prefix=${BOOST_INSTALL_PREFIX}
+      ./b2 --user-config=./user-config.jam "${bjam_args[@]}" -j${nproc} install
     )
 }
 
@@ -261,6 +271,10 @@ fi
 python_dirs
 
 BOOST_BUILD_DIR=${BUILD_ROOT}/boost_${BOOST_VERSION}
+
+if [ ! -z ${cross_target} ]; then
+	BOOST_INSTALL_PREFIX="${CROSS_ROOT}${BOOST_INSTALL_PREFIX}"
+fi
 
 if [ $build_clean = true ]; then
 	set -x
@@ -296,8 +310,6 @@ if [ -z $cross_target ]; then
 			echo "-------- unknown target ---------- `build_uname`"
 			;;
 	esac
-else
-	make_user_config_cross_armhf
 fi
 
 if [ ! -d ${BOOST_BUILD_DIR} ]; then
@@ -328,6 +340,7 @@ if [ -z $cross_target ]; then
     boost_build ${BOOST_BUILD_DIR}
 
 else
+
     if [ ! -w $CROSS_ROOT ]; then
 		echo "You have no write access to $CROSS_ROOT"
 		echo "Do you want to continue with sudo?"
@@ -347,6 +360,9 @@ else
 			exit 1
 		fi
     fi
+	if [ ! -d ${BOOST_INSTALL_PREFIX} ]; then
+		mkdir -p ${BOOST_INSTALL_PREFIX}
+	fi
 
 	boost_cross_build ${BOOST_BUILD_DIR}
 fi

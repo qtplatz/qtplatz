@@ -48,7 +48,20 @@ if [ -z ${BUILD_ROOT} ]; then
 		BUILD_ROOT=${SRC}/build-`build_uname`
 	else
 		BUILD_ROOT=${SRC}/build-${cross_target};
-		CROSS_ROOT=/usr/local/arm-linux-gnueabihf
+		case ${cross_target} in
+			arm-linux-gnueabihf|armhf|armv7l|de0-nano-soc|helio)
+				CROSS_ROOT=/usr/local/arm-linux-gnueabihf
+				;;
+			x86_64-w64-mingw32)
+				CROSS_ROOT=/usr/local/x86_64-w64-mingw32
+				;;
+			*)
+				echo "************************************"
+				echo "* Unknown cross target: ${cross_target}"
+				echo "************************************"
+				CROSS_ROOT=/usr/local/${cross_target}
+				;;
+		esac
 	fi
 fi
 

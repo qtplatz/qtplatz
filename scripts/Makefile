@@ -82,10 +82,7 @@ default_mingw:
 	@echo "make mozc"
 	@echo "make qemu"
 	@echo "make cross-tools"
-	@echo "make boost-armhf"
-	@echo "make qt5-armhf"
-	@echo "make gnuplot"
-	@echo "make rtags -- in emacs, M-x 'rtags-install' after install clang-11 and libclang-11-dev"
+	@echo "make boost-msys2"
 	@echo "make code"
 	@echo "make emacs"
 
@@ -111,7 +108,6 @@ default:
 	@echo "make boost-armhf"
 	@echo "make qt5-armhf"
 	@echo "make gnuplot"
-	@echo "make rtags -- use clangd instead (sudo apt-get install clangd-11) "
 	@echo "make code"
 	@echo "make Emacs"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
@@ -147,6 +143,9 @@ boost:
 
 boost-armhf:
 	cross_target=armhf ./linux-boost-setup.sh
+
+boost-msys2:
+	cross_target=x86_64-w64-mingw32 ./linux-boost-setup.sh
 
 qt5-armhf-dependency:
 	./armhf/qt5-dependency.sh

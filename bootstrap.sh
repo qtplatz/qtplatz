@@ -162,6 +162,11 @@ for build_dir in ${build_dirs[@]}; do
 				cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file -DCMAKE_PREFIX_PATH=/opt/qt5pi $source_dir
 				cp $toolchain_file toolchain.cmake
 				;;
+			x86_64-w64-mingw32|msys2|mingw32)
+				toolchain_file=$cwd/toolchain-x86_64-w64-mingw32.cmake
+				cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file $source_dir
+				cp $toolchain_file toolchain.cmake
+				;;
 			*)
 				echo "Unknown cross_target: $cross_target"
 				;;
