@@ -24,17 +24,16 @@
 **************************************************************************/
 
 #include "extract.hpp"
+#include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-
-namespace boost { namespace uuids { class uuid; } };
+#include <boost/uuid/uuid.hpp>
 
 namespace adportable {
     namespace json {
-
+#if not defined __MSC_VER
         template<>
-        ADPORTABLESHARED_EXPORT
         void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key )  {
             try {
                 t = boost::lexical_cast< boost::uuids::uuid >( boost::json::value_to<std::string>( obj.at( key ) ) );
@@ -42,6 +41,6 @@ namespace adportable {
                 BOOST_THROW_EXCEPTION(std::runtime_error("adportab;e/json/extract<> exception"));
             }
         }
-
+#endif
     } // namespace json
 } // namespace adportable

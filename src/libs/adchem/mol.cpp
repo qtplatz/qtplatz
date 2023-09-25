@@ -109,7 +109,7 @@ mol::InChIToInChIKey( const std::string& inchi )
     return RDKit::InchiToInchiKey( inchi );
 }
 
-adportable::optional< std::pair< double, double > >
+std::optional< std::pair< double, double > >
 mol::logP() const
 {
     if ( mol_ ) {

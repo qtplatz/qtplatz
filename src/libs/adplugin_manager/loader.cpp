@@ -43,7 +43,7 @@ namespace {
 #if defined _DEBUG || defined DEBUG || !defined NDEBUG
 # if defined WIN32
     constexpr static const char * const debug_trail = "d";
-    static const boost::filesystem::path __prefix();
+    static const boost::filesystem::path __prefix( "" );
 # elif defined __MACH__ || __APPLE__
     constexpr static const char * const debug_trail = "_debug";
     static const boost::filesystem::path __prefix( "lib" );
@@ -56,7 +56,7 @@ namespace {
 
     constexpr static const char * const debug_trail = "";
 # if defined WIN32
-    static const boost::filesystem::path __prefix();
+    static const boost::filesystem::path __prefix( "" );
 # elif defined __MACH__ || __APPLE__
     static const boost::filesystem::path __prefix( "lib" );
 # else

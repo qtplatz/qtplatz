@@ -69,7 +69,8 @@ if defined build_clean (
 if not exist %build_dir% ( mkdir %build_dir% )
 cd %build_dir%
 
-echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+::echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
 set /p Yes=Proceed (y/n)?
 if /i "%Yes%" neq "y" goto end

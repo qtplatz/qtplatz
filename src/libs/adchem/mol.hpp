@@ -29,12 +29,15 @@
 #include <adportable/optional.hpp>
 #include <memory>
 #include <string>
+#include <optional>
 
 namespace RDKit { class ROMol; }
 
 namespace adchem {
 
-    class ADCHEMSHARED_EXPORT mol {
+    class ADCHEMSHARED_EXPORT mol;
+
+    class mol {
     public:
         enum inputType { SMILES, INCHI };
         ~mol();
@@ -45,7 +48,7 @@ namespace adchem {
         inline operator RDKit::ROMol * () { return mol_.get(); }
         static std::string smiles( const RDKit::ROMol& );
         static std::string formula( const RDKit::ROMol&, bool separateIsotopes = true, bool abbreviateHIsotopes = false );
-        adportable::optional< std::pair< double, double > > logP() const;
+        std::optional< std::pair< double, double > > logP() const;
 
         std::string formula() const;
         std::string smiles() const;

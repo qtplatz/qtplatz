@@ -93,6 +93,7 @@ namespace adcontrols {
     } // chromatography
 
     namespace chromatography {
+
         class ADCONTROLSSHARED_EXPORT TimedEvent;
         ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
         ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
@@ -128,8 +129,8 @@ namespace adcontrols {
             friend class TimedEvent_archive < const TimedEvent > ;
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version);
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
-            friend TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
+            friend void ADCONTROLSSHARED_EXPORT tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
+            friend ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
         };
     } // namespace chromatography
 
@@ -215,8 +216,8 @@ namespace adcontrols {
         friend class PeakMethod_archive < const PeakMethod > ;
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
-        friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const PeakMethod& );
-        friend PeakMethod tag_invoke( boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const PeakMethod& );
+        friend ADCONTROLSSHARED_EXPORT PeakMethod tag_invoke( boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv );
 	};
 
 }

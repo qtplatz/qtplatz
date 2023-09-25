@@ -32,6 +32,13 @@ if ( APPLE )
   #
   #set( CMAKE_OSX_DEPLOYMENT_TARGET "12.1" CACHE STRING "Minimum OS X deployment version" FORCE )
 endif()
+if ( MSVC )
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  add_definitions( -wd4251 -wd4244 )
+  set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE )
+  set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4197")
+  set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4197")
+endif()
 
 option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )

@@ -3,12 +3,9 @@ project( adportable )
 
 add_definitions(-DADPORTABLE_LIBRARY)
 
-if ( MSVC )
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-  add_definitions( -wd4251 -wd4244 )
-endif()
-
 add_library( ${PROJECT_NAME} SHARED
+  "${CMAKE_CURRENT_SOURCE_DIR}/../compiler/decl_export.h"
+  adportable_global.h
   array_wrapper.hpp
   base64.cpp
   bzip2.cpp

@@ -26,7 +26,7 @@
 //-----------------
 
 #if defined(_MSC_VER)
-#  define DECL_EXPORT __declspec(dllexport)
+#  define DECL_EXPORT __declspec(dllexport) /* all symbols are exported by cmake 2023-09-25 */
 #  define DECL_IMPORT __declspec(dllimport)
 #elif defined __GNUC__
 #  define DECL_EXPORT __attribute__((visibility("default")))

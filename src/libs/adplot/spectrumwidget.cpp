@@ -54,6 +54,7 @@
 #include <QPen>
 #include <QSignalBlocker>
 #include <boost/format.hpp>
+#include <array>
 #include <atomic>
 #include <mutex>
 #include <set>

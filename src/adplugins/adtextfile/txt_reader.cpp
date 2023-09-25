@@ -26,7 +26,7 @@
 #include "txt_reader.hpp"
 #include <adportable/csv_reader.hpp>
 #include <adportable/debug.hpp>
-
+#include <cassert>
 
 using namespace adtextfile;
 

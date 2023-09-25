@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **************************************************************************/
 
-#if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
+// #if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
 
 #include "csv_reader.hpp"
 #include <boost/spirit/home/x3.hpp>
@@ -125,11 +125,11 @@ bool
 csv_reader::read( std::istream& istrm, list_type& list )
 {
     list = {};
+#if not defined _MSC_VER
     std::string line;
     if ( std::getline( istrm, line ) ) {
         namespace x3 = boost::spirit::x3;
         auto first( std::begin( line ) ), last( std::end( line ) );
-
         if ( x3::parse( first, last, csv::csv_parser(), list ) ) {
             if ( first == last ) {
                 for ( auto& value: list ) {
@@ -145,6 +145,7 @@ csv_reader::read( std::istream& istrm, list_type& list )
             }
         }
     }
+#endif
     return false;
 }
 
@@ -166,4 +167,4 @@ csv_reader::skip( std::istream& istrm, size_t nlines )
     return true;
 }
 
-#endif
+// #endif

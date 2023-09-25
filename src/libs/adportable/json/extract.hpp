@@ -25,10 +25,14 @@
 
 #pragma once
 
-#include "../adportable_global.h"
 #include <boost/json/value_to.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+
+# include <boost/lexical_cast.hpp>
+# include <boost/uuid/uuid_io.hpp>
+# include <boost/lexical_cast.hpp>
+
 #include <type_traits>
 #include <iostream>
 
@@ -71,7 +75,19 @@ namespace adportable {
                 }
             }
         }
-        template<> ADPORTABLESHARED_EXPORT void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
+#if defined __MSVC
+        template<>
+        void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key ) {
+            try {
+                t = boost::lexical_cast< boost::uuids::uuid >( boost::json::value_to<std::string>( obj.at( key ) ) );
+            } catch ( std::exception& ex ) {
+                BOOST_THROW_EXCEPTION(std::runtime_error("adportab;e/json/extract<> exception"));
+            }
+        }
+#else
+        template<>
+        void extract( const boost::json::object& obj, boost::uuids::uuid& t, boost::json::string_view key );
+#endif
     }
 
 }
