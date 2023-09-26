@@ -4,7 +4,8 @@ set ( CMAKE_SYSTEM_VERSION 1 )
 
 set ( CMAKE_C_COMPILER   x86_64-w64-mingw32-gcc )
 set ( CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++ )
-
+set ( CMAKE_C_BYTE_ORDER   LITTLE_ENDIAN )
+set ( CMAKE_CXX_BYTE_ORDER LITTLE_ENDIAN )
 set ( CMAKE_STAGING_PREFIX /usr/local/x86_64-w64-mingw32/usr/local )
 
 # where is the target environment
