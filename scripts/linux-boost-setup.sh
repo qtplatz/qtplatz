@@ -38,6 +38,25 @@ function boost_download {
 	fi
 }
 
+function zlib_download {
+	if [ ! -f ${DOWNLOADS}/zlib-1.3.tar.gz ]; then
+		curl -L -o ${DOWNLOADS}/zlib-1.3.tar.gz https://zlib.net/zlib-1.3.tar.gz
+	fi
+	if [ ! -d ${BUILD_ROOT}/zlib-1.3 ]; then
+		tar xvf ${DOWNLOADS}/zlib-1.3.tar.gz -C ${BUILD_ROOT}
+	fi
+}
+
+function bzip2_download {
+	if [ ! -f ${DOWNLOADS}/bzip2-latest.tar.gz ]; then
+		curl -L -o ${DOWNLOADS}/bzip2-latest.tar.gz https://sourceware.org/pub/bzip2/bzip2-latest.tar.gz
+	fi
+	if [ ! -d ${BUILD_ROOT}/bzip2-1.0.8.tar.gz ]; then
+		tar xvf ${DOWNLOADS}/bzip2-1.0.8.tar.gz -C ${BUILD_ROOT}
+	fi
+}
+
+
 function python_dirs {
 	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
@@ -240,13 +259,23 @@ using python : 2.7 ;
 END
 			;;
 		x86_64-w64-mingw32)
-			#bjam_args+=('target-os=windows')
-			bjam_args=( 'address-model=64' 'architecture=x86' )
-			bjam_args=( 'threading=multi' 'link=shared' 'hardcode-dll-paths=true' )
-			bjam_args=( dll-path="'\$ORIGIN/../lib'" '--without-mpi' '--without-graph_parallel' )
-			echo "############# bjam_args: " ${bjam_args[@]}
+			zlib_download
+			bzip2_download
+			bjam_args+=( 'address-model=64' 'architecture=x86' )
+			bjam_args+=( 'threading=multi' 'link=shared' 'hardcode-dll-paths=true' )
+			bjam_args+=( dll-path="'\$ORIGIN/../lib'" '--without-mpi' '--without-graph_parallel' )
+			#bjam_args+=( -sBZIP2_SOURCE="${BUILD_ROOT}/bzip2-1.0.8" )
+			#bjam_args+=( -sZLIB_SOURCE="${BUILD_ROOT}/zlib-1.3" )
+
 			cat << END > ${BOOST_BUILD_DIR}/user-config.jam
-using gcc :	: x86_64-w64-mingw32-g++ : <cxxflags>"-std=c++17 -fPIC" ;
+using gcc  :	: x86_64-w64-mingw32-g++ : <cxxflags>"-std=c++17 -fPIC" ;
+using zlib :	:
+	  <include>/usr/x86_64-w64-mingw32/include
+	  <search>/usr/x86_64-w64-mingw32/lib
+	  ;
+using bzip2 :	:
+	    <source>"${BUILD_ROOT}/bzip2-1.0.8"
+	  ;
 END
 			;;
 		*)

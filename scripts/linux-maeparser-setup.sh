@@ -24,10 +24,8 @@ if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/maeparser.release
     SRCDIR=$SRC/maeparser
 else
-    BUILD_DIR=$SRC/build-$cross_target/maeparser.release
-    CROSS_ROOT=/usr/local/arm-linux-gnueabihf
-    SRCDIR=$CROSS_ROOT/usr/local/maeparser
-    TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
+    BUILD_DIR=${SRC}/build-${cross_target}/maeparser.release
+    SRCDIR=$SRC/maeparser
 fi
 
 if [ $build_clean = true ]; then
@@ -40,7 +38,7 @@ if [ `uname` == "Darwin" ]; then
     cmake_args=( "-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" )
 fi
 
-if [ ! -z $cross_target ]; then
+if [ ! -z ${cross_target} ]; then
     cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" )
 else
 	cmake_args+=( "-DBOOST_ROOT=$BOOST_ROOT" )

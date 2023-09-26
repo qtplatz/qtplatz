@@ -2,6 +2,8 @@
 
 cwd="$( cd "$( dirname "$0" )" && pwd )"
 
+. ${cwd}/find_qmake.sh
+
 function build_uname() {
 	local __uname=`uname`
     case "${__uname}" in
@@ -23,6 +25,33 @@ if [ -z ${INSTALL_PREFIX} ]; then
 			INSTALL_PREFIX=/usr/local
 			;;
 	esac
+fi
+
+##########
+if [ ! -z ${cross_target} ]; then
+	case ${cross_target} in
+		arm-linux-gnueabihf|armhf|armv7l|de0-nano-soc|helio)
+			cross_target="arm-linux-gnueabihf"
+			CROSS_ROOT="/usr/local/arm-linux-gnueabihf"
+			TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
+			;;
+		x86_64-w64-mingw32)
+			CROSS_ROOT="/usr/local/x86_64-w64-mingw32"
+			TOOLCHAIN=$(dirname $cwd)/toolchain-x86_64-w64-mingw32.cmake
+			;;
+		*)
+			echo "************************************"
+			echo "* config.sh: Unknown cross target: ${cross_target}"
+			echo "************************************"
+			CROSS_ROOT=/usr/local/${cross_target}
+			exit 1
+			;;
+	esac
+fi
+
+## default downloads directory
+if [ -z ${DOWNLOADS} ]; then
+    DOWNLOADS=~/Downloads
 fi
 
 ## top directory for all relevant source archives
@@ -48,28 +77,8 @@ if [ -z ${BUILD_ROOT} ]; then
 		BUILD_ROOT=${SRC}/build-`build_uname`
 	else
 		BUILD_ROOT=${SRC}/build-${cross_target};
-		case ${cross_target} in
-			arm-linux-gnueabihf|armhf|armv7l|de0-nano-soc|helio)
-				CROSS_ROOT=/usr/local/arm-linux-gnueabihf
-				;;
-			x86_64-w64-mingw32)
-				CROSS_ROOT=/usr/local/x86_64-w64-mingw32
-				;;
-			*)
-				echo "************************************"
-				echo "* Unknown cross target: ${cross_target}"
-				echo "************************************"
-				CROSS_ROOT=/usr/local/${cross_target}
-				;;
-		esac
 	fi
 fi
-
-if [ -z ${DOWNLOADS} ]; then
-    DOWNLOADS=~/Downloads
-fi
-
-. ${cwd}/find_qmake.sh
 
 if [ -z $CMAKE_VERSION ]; then
 	CMAKE_VERSION=3.27.5

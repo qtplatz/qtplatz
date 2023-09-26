@@ -29,6 +29,7 @@ debug:
 	@echo "\tarch: " ${arch}
 	@echo "\tOS: " ${OS}
 	@echo "\tVER: " ${VER}
+	@echo "\tcross_target: " ${cross_target}
 
 default_darwin:
 	@echo "====================================="
