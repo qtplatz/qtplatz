@@ -294,7 +294,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   timer
   wserialization
   OPTIONAL_COMPONENTS ${python_libs}
-  )
+)
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
