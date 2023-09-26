@@ -18,6 +18,7 @@ set build_arch=x86_64
 set build_target=qtplatz.release
 set build_package=
 set build_clean=
+set toolset=
 set tools=%VisualStudioVersion%
 set debug_symbol="ON"
 
@@ -39,8 +40,12 @@ for %%i in (%*) do (
        set build_package=yes
        set build_clean=yes
        set debug_symbol="OFF"
-    ) else if %%i==clean (
+    ) else if "%%i"=="clean" (
        set build_clean=yes
+    ) else if "%%i"=="ClangCL" (
+       set toolset=ClangCL
+    ) else if "%%i"=="Ninja" (
+       set GENERATOR="Ninja"
     )
 )
 
@@ -52,6 +57,7 @@ echo -- PACKAGE  : %build_package%
 echo -- CLEAN    : %build_clean%
 echo -- QMAKE    : %QMAKE%
 echo -- QTDIR    : %QTDIR%
+echo -- toolset  : %toolset%
 
 ::set /p Yes=Proceed (y/n)?
 ::if /i "%Yes%" neq "y" goto end
@@ -69,13 +75,22 @@ if defined build_clean (
 if not exist %build_dir% ( mkdir %build_dir% )
 cd %build_dir%
 
-::echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
-echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+if not defined toolset goto MSVC
 
-set /p Yes=Proceed (y/n)?
-if /i "%Yes%" neq "y" goto end
-::cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T ClangCL -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
-cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+:ClangCL
+   echo "================================================ ClangCL ==============================================="
+   echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T %toolset% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+   cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -T %toolset% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+   goto endconfig:
+
+:MSVC
+  echo "================================================ MSVC ==============================================="
+  echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+  set /p Yes=Proceed (y/n)?
+  if /i "%Yes%" neq "y" goto end
+  cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+
+:endconfig
 
 echo "============ endlocal ==============" %build_dir%
 

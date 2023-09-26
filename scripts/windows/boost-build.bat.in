@@ -20,16 +20,26 @@ echo "========================================================="
 
 if defined build_static (
    echo "=============> building static boost libraries"
-   b2 -j%NUMBER_OF_PROCESSORS% address-model=64 ^
-                        -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
-                        -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
-                        link=static --stagedir=stage\x64-static stage install
+   b2  --user-config=@BOOST_SOURCE_DIR@/user-config.jam ^
+        -j%NUMBER_OF_PROCESSORS% ^
+        address-model=64 ^
+        architecture=x86 ^
+        link=static ^
+        -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
+        -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
+        --without-mpi ^
+	--without-graph_parallel ^
+        --stagedir=stage\x64-static stage install
 )
 
 if defined build_dynamic (
    echo "============> building dynamic boost libraries"
-   b2 -j%NUMBER_OF_PROCESSORS% address-model=64 ^
-                        -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
-                        -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
-                        link=shared --stagedir=stage\x64-shared stage install
+   b2  --user-config=@BOOST_SOURCE_DIR@/user-config.jam ^
+        -j%NUMBER_OF_PROCESSORS% ^
+        address-model=64 ^
+        architecture=x86 ^
+        link=shared ^
+        -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
+        -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
+        --stagedir=stage\x64-shared stage install
 )

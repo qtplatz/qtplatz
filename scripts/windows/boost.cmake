@@ -92,7 +92,17 @@ if ( NOT EXISTS ${ZLIB_SOURCE_DIR} )
   execute_process( COMMAND ${CMAKE_COMMAND} -E ${TAR} xvf ${DOWNLOADS}/${ZLIB_TARBALL} WORKING_DIRECTORY ${__zlib_parent} )
 endif()
 
+file( WRITE "${BOOST_SOURCE_DIR}/user-config.jam"
+  "#using zlib :  : \n"
+  "#     <include>C:/opt/include\n"
+  "#     <search>C:/opt/lib\n"
+  "#     ;\n"
+  "#using bzip2 :  : \n"
+  "#     <source>${BZIP2_SOURCE_DIR}\n"
+  "#     ;\n"
+)
+
 configure_file(
   ${CURRENT_SOURCE_DIR}/boost-build.bat.in
   ${BOOST_SOURCE_DIR}/boost-build.bat
-  )
+)

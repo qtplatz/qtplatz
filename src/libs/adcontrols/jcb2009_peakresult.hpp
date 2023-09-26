@@ -40,6 +40,7 @@ namespace adcontrols {
     class Peak;
     class MSPeakInfoItem;
 
+    class ADCONTROLSSHARED_EXPORT jcb2009_peakresult;
 
     class jcb2009_peakresult {
     public:

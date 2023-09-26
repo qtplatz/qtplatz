@@ -3,6 +3,10 @@ project( adportable )
 
 add_definitions(-DADPORTABLE_LIBRARY)
 
+if ( MSVC )
+  set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE ) # <-- quick workaround for undefined symbols to extract( .., boosst::uuids::uuid, ...)
+endif()
+
 add_library( ${PROJECT_NAME} SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/../compiler/decl_export.h"
   adportable_global.h

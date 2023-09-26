@@ -188,16 +188,11 @@ add_custom_target( boost
   COMMAND cmd /c "echo ####################################################################################"
   COMMAND cmd /c "echo ======================= check zconf.h is configured ================================"
   COMMAND cmd /c "echo ==== zlib source need to be pre-configured for zconf.h"
-  COMMAND cmd /c "echo ==== go to zlib source dir: @ZLIB_SOURCE_PATH@"
+  COMMAND cmd /c "echo ==== go to zlib source dir: ${ZLIB_SOURCE_DIR}"
   COMMAND cmd /c "echo ==== mkdir build; cmake .."
   COMMAND cmd /c "echo ==== copy zconf."
   COMMAND cmd /c "echo ####################################################################################"
   COMMAND cmd /c "echo boost-build.bat static dynamic"
-  )
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/user-config.jam.in
-  ${HOME}/user-config.jam
   )
 
 ###################### eigen #########################

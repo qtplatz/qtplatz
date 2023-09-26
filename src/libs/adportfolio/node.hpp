@@ -104,19 +104,19 @@ namespace portfolio {
             boost::uuids::uuid uuid_;
         };
 
-        template<> std::string  Node::id() const;
-        template<> std::wstring Node::id() const;
-        template<> std::string Node::filename() const;
-        template<> std::wstring Node::filename() const;
-        template<> std::string Node::name() const;
-        template<> std::wstring Node::name() const;
-        template<> std::vector< std::pair< std::wstring, std::wstring > > Node::attributes< std::wstring >() const;
-        template<> std::vector< std::pair< std::string, std::string > >   Node::attributes< std::string >() const;
+        template<> PORTFOLIOSHARED_EXPORT std::string  Node::id() const;
+        template<> PORTFOLIOSHARED_EXPORT std::wstring Node::id() const;
+        template<> PORTFOLIOSHARED_EXPORT std::string Node::filename() const;
+        template<> PORTFOLIOSHARED_EXPORT std::wstring Node::filename() const;
+        template<> PORTFOLIOSHARED_EXPORT std::string Node::name() const;
+        template<> PORTFOLIOSHARED_EXPORT std::wstring Node::name() const;
+        template<> PORTFOLIOSHARED_EXPORT std::vector< std::pair< std::wstring, std::wstring > > Node::attributes< std::wstring >() const;
+        template<> PORTFOLIOSHARED_EXPORT std::vector< std::pair< std::string, std::string > >   Node::attributes< std::string >() const;
 
-        template<> std::string Node::dataClass() const;
-        template<> std::wstring Node::dataClass() const;
+        template<> PORTFOLIOSHARED_EXPORT std::string Node::dataClass() const;
+        template<> PORTFOLIOSHARED_EXPORT std::wstring Node::dataClass() const;
 
-        template<> void Node::appendAttributes( const std::vector< std::pair<std::wstring, std::wstring> >&, bool );
-        template<> void Node::appendAttributes( const std::vector< std::pair<std::string, std::string> >&, bool );
+        template<> PORTFOLIOSHARED_EXPORT void Node::appendAttributes( const std::vector< std::pair<std::wstring, std::wstring> >&, bool );
+        template<> PORTFOLIOSHARED_EXPORT void Node::appendAttributes( const std::vector< std::pair<std::string, std::string> >&, bool );
     }
 }
