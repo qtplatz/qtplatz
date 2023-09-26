@@ -45,10 +45,10 @@
 #include <QSplitter>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <ratio>
 #include <cmath>
+#include <filesystem>
 
 namespace adwidgets {
 
@@ -196,7 +196,7 @@ XChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::Ma
 
     // ADDEBUG() << sp->calibrationFilename();
 
-    boost::filesystem::path path( sp->calibrationFilename() );
+    std::filesystem::path path( sp->calibrationFilename() );
     if ( auto form = findChild< XChromatogramsForm * >() ) {
         form->setCalibrationFilename( QString::fromStdString( path.stem().string() )
                                       , QString::fromStdString( sp->calibrationFilename() ) );

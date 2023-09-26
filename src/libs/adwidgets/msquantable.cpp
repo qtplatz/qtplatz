@@ -44,8 +44,8 @@
 #include <QKeyEvent>
 
 #include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
 #include <functional>
+#include <filesystem>
 
 namespace adwidgets {
     namespace detail {
@@ -106,7 +106,7 @@ namespace adwidgets {
                         std::wstring fqn = index.data( Qt::EditRole ).toString().toStdWString();
                         std::size_t pos = fqn.find( L"::" );
                         if ( pos != std::wstring::npos ) {
-                            boost::filesystem::path path( fqn.substr( 0, pos ) );
+                            std::filesystem::path path( fqn.substr( 0, pos ) );
                             painter->drawText( option.rect, align, QString::fromStdWString( path.stem().wstring() + L"/" + fqn.substr( pos + 2 ) ) );
                         } else
                             painter->drawText( option.rect, align, QString::fromStdWString( fqn ) );

@@ -27,7 +27,6 @@
 #include <adcontrols/samplerun.hpp>
 #ifndef Q_MOC_RUN
 #include <adportable/is_type.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #endif
 #include <adportable/date_string.hpp>
@@ -50,6 +49,7 @@
 #include <QStyledItemDelegate>
 #include <QTextEdit>
 #include <QDebug>
+#include <filesystem>
 
 namespace adwidgets {
 
@@ -218,7 +218,7 @@ namespace adwidgets {
         }
 
         void setDefault() {
-            boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
+            std::filesystem::path path( adportable::profile::user_data_dir< char >() );
             path /= "data";
             path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
             model_->setData( model_->index( r_directory, c_item_value ), QString::fromStdWString( path.wstring() ) );
