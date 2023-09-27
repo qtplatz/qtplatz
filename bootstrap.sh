@@ -24,19 +24,14 @@ while [ $# -gt 0 ]; do
 	    ide=eclipse
 	    shift
 	    ;;
-	codelite)
-	    config=debug
-	    ide=codelite
-	    shift
-	    ;;
 	xcode)
 	    ide=xcode
 	    shift
 	    ;;
-	vscode)
-	    ide=vscode
-	    shift
-	    ;;
+	ninja)
+		ide=ninja
+		shift
+		;;
 	clean)
 	    build_clean=true
 	    shift
@@ -80,33 +75,27 @@ if [ -z "$cross_target" ]; then
 	fi
 fi
 
+if [ "$ide" = "xcode" ]; then
+	cmake_args+=('-G' 'Xcode')
+elif [ "$ide" = "eclipse" ]; then
+	cmake_args+=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5')
+elif [ "$ide" = "ninja" ]; then
+	cmake_args+=('-G' 'Ninja')
+fi
 
 if [ -z $cross_target ]; then
     case $arch in
-	Darwin-*)
-	    source_dirs=("$cwd")
-	    build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
-	    if [ "$config" = "debug" ]; then
-			if [ "$ide" = "xcode" ]; then
-				cmake_args+=('-G' 'Xcode')
-			fi
-	    fi
-	    ;;
-	*)
-	    source_dirs=( "$cwd" )
-	    build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
-	    if [ "$config" = "debug" ]; then
-			if [ "$ide" = "eclipse" ]; then
-				cmake_args+=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5')
-			fi
-			if [ "$ide" = "codelite" ]; then
-				cmake_args+=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
-			fi
-	    fi
-	    ;;
+		Darwin-*)
+			source_dirs=("$cwd")
+			build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
+			;;
+		*)
+			source_dirs=( "$cwd" )
+			build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
+			;;
     esac
 else
-    echo "cross_target="$cross_target
+    echo "cross_target=${cross_target}"
     source_dirs=( "$cwd" )
     build_dirs=( "$build_root/build-$cross_target/qtplatz.$config" )
 fi

@@ -24,7 +24,7 @@
 
 #include "./profile.hpp"
 #include "./string.hpp"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #if defined WIN32
 # define SECURITY_WIN32 1
@@ -228,8 +228,8 @@ namespace adportable { namespace detail {
         if ( auto dir = getenv( "XDG_CONFIG_HOME" ) )
             return dir;
 		struct passwd * pw = getpwuid( geteuid() );
-        boost::filesystem::path path( pw->pw_dir );
-        if ( boost::filesystem::exists( path / ".config" ) )
+        std::filesystem::path path( pw->pw_dir );
+        if ( std::filesystem::exists( path / ".config" ) )
             return ( path / ".config" ).string();
         return path.string();
 	}

@@ -44,8 +44,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/filesystem.hpp>
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -88,13 +88,12 @@ namespace adcontrols {
         }
 
         size_t findLastRunNumber() {
-            boost::filesystem::path dir( dataDirectory_ );
-            // boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
+            std::filesystem::path dir( dataDirectory_ );
             size_t lastRunNumber(0);
-            if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
-                using boost::filesystem::directory_iterator;
+            if ( std::filesystem::exists( dir ) && std::filesystem::is_directory( dir ) ) {
+                using std::filesystem::directory_iterator;
                 for ( directory_iterator it( dir ); it != directory_iterator(); ++it ) {
-                    boost::filesystem::path fname = (*it);
+                    std::filesystem::path fname = (*it);
                     if ( fname.extension().string() == ".adfs" || fname.extension().string() == ".adfs~" ) {
                         lastRunNumber = std::max( int(lastRunNumber), adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
                     }
@@ -104,7 +103,7 @@ namespace adcontrols {
         }
 
         std::wstring make_name( size_t n ) {
-            boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
+            std::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
             std::wostringstream o;
             o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( n );
             return o.str();
@@ -271,8 +270,8 @@ SampleRun::runname() const
 std::wstring
 SampleRun::filename( const wchar_t * extension ) const
 {
-    boost::filesystem::path dir( impl_->dataDirectory_ );
-    boost::filesystem::path path( dir / impl_->filePrefix_ );
+    std::filesystem::path dir( impl_->dataDirectory_ );
+    std::filesystem::path path( dir / impl_->filePrefix_ );
     path.replace_extension( extension );
     return path.wstring();
 }
@@ -308,12 +307,12 @@ SampleRun::operator ++ ()
 #if !defined NDEBUG && 0
     ADDEBUG() << "##### increment sample run number : " << prev << " --> " << impl_->runNumber_ << " ####################";
 #endif
-    boost::filesystem::path dir( impl_->dataDirectory_ );
+    std::filesystem::path dir( impl_->dataDirectory_ );
 
     bool exists( false );
     do {
-        boost::filesystem::path path = dir / ( impl_->make_name( impl_->runNumber_ ) + L".adfs" );
-        if ( ( exists = boost::filesystem::exists( path ) ) ) {
+        std::filesystem::path path = dir / ( impl_->make_name( impl_->runNumber_ ) + L".adfs" );
+        if ( ( exists = std::filesystem::exists( path ) ) ) {
             ADDEBUG() << "##### run# " << impl_->runNumber_ << " exists ####################";
             impl_->runNumber_++;
         }

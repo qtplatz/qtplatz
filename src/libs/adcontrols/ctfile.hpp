@@ -27,6 +27,7 @@
 
 #include <boost/filesystem/path.hpp>
 #include "adcontrols_global.h"
+#include <filesystem>
 
 namespace adcontrols {
 
@@ -36,7 +37,7 @@ namespace adcontrols {
 	public:
 		~CTFile();
 		CTFile();
-		static bool load_molfile( const boost::filesystem::path&, CTable& );
+		static bool load_molfile( const std::filesystem::path&, CTable& );
 	};
 
 }

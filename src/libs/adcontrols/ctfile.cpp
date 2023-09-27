@@ -25,8 +25,9 @@
 #include "ctfile.hpp"
 #include "ctable.hpp"
 #include <adportable/string.hpp>
-#include <boost/filesystem/fstream.hpp>
+// #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
+#include <fstream>
 
 using namespace adcontrols;
 
@@ -39,10 +40,11 @@ CTFile::CTFile()
 }
 
 bool
-CTFile::load_molfile( const boost::filesystem::path& path, CTable& ctable )
+CTFile::load_molfile( const std::filesystem::path& path, CTable& ctable )
 {
 	ctable.clear();
-	boost::filesystem::ifstream inf( path );
+    std::ifstream inf( path );
+	// std::filesystem::ifstream inf( path );
 
 	std::vector< std::string > header;
 	std::string line;
@@ -54,7 +56,7 @@ CTFile::load_molfile( const boost::filesystem::path& path, CTable& ctable )
 	typedef boost::char_separator< char > separator;
 	typedef boost::tokenizer< separator > tokenizer;
 	separator sep( ", \t", "", boost::drop_empty_tokens );
- 
+
 	// count block
 	int natoms = 0, nbounds = 0;
     int chiral = 0;
