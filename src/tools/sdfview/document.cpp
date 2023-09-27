@@ -45,7 +45,7 @@
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/inchi.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace {
     struct impl {
@@ -89,15 +89,15 @@ document::instance()
 void
 document::initialSetup()
 {
-    auto path = boost::filesystem::path( impl::instance().settings_.fileName().toStdString() );
+    auto path = std::filesystem::path( impl::instance().settings_.fileName().toStdString() );
     auto dir = path.remove_filename() / "chemistry";
 
-    boost::filesystem::path fpath = qtwrapper::settings( impl::instance().settings_ ).recentFile( "ChemistryDB", "Files" ).toStdWString();
+    std::filesystem::path fpath = qtwrapper::settings( impl::instance().settings_ ).recentFile( "ChemistryDB", "Files" ).toStdWString();
     if ( fpath.empty() ) {
         fpath = dir / "Chemistry.db";
     }
 
-    if ( !boost::filesystem::exists( fpath ) ) {
+    if ( !std::filesystem::exists( fpath ) ) {
         ADERROR() << "dbfile: " << fpath << "\tnot found";
         return;
     }

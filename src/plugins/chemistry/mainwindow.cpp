@@ -350,7 +350,7 @@ MainWindow::handleDropped( const QList< QUrl >& urls )
 {
     if ( auto wnd = findChild< MolTableWnd * >() ) {
         for ( auto& url: urls ) {
-            boost::filesystem::path path( url.toLocalFile().toStdWString() );
+            std::filesystem::path path( url.toLocalFile().toStdWString() );
             // todo
         }
     }
@@ -397,7 +397,7 @@ void
 MainWindow::actSDFileOpen()
 {
 #if 0
-    boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
+    std::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
     datapath /= "data";
 
     QString name

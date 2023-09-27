@@ -40,7 +40,6 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 #include <QCoreApplication>
@@ -49,12 +48,13 @@
 #include <QLibrary>
 #include <cstdint>
 #include <iostream>
+#include <filesystem>
 
 namespace eventtool {
 
     struct user_preference {
-        static boost::filesystem::path path( QSettings * settings ) {
-            boost::filesystem::path dir( settings->fileName().toStdWString() );
+        static std::filesystem::path path( QSettings * settings ) {
+            std::filesystem::path dir( settings->fileName().toStdWString() );
             return dir.remove_filename() / "eventtool";
         }
     };
@@ -134,9 +134,9 @@ document::instance()
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "eventtool::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
