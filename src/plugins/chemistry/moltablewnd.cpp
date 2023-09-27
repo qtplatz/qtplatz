@@ -60,9 +60,7 @@
 #include <QTextDocument>
 #include <QUrl>
 #include <QVBoxLayout>
-
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <filesystem>
 #include <boost/exception/all.hpp>
 
 using namespace chemistry;
