@@ -42,11 +42,15 @@ logging_file::instance()
 
 logging_file::logging_file()
 {
+#if _MSC_VER
+    logfile_ = adportable::profile::user_data_dir<char>() + "/qtplatz.log";
+#else
     boost::system::error_code ec;
     auto program = std::filesystem::path( boost::dll::program_location( ec ).string() );
     logfile_ =
         ( std::filesystem::path( adportable::profile::user_data_dir<char>() )
           / program.stem() ).replace_extension(".log").string();
+#endif
 }
 
 logging_file::~logging_file()

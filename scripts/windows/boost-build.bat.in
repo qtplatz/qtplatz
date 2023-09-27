@@ -7,8 +7,8 @@ for %%i in (%*) do (
     if %%i==dynamic set build_dynamic=yes
 )
 
-if not defined build_statics (
-   if not defined build_dynamic set build_dynamic=yes
+if not defined build_static (
+   if not defined build_dynamic set build_static=yes
 )
 
 echo "========================================================="
@@ -39,6 +39,8 @@ if defined build_dynamic (
         address-model=64 ^
         architecture=x86 ^
         link=shared ^
+        --without-mpi ^
+	--without-graph_parallel ^
         -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
         -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
         --stagedir=stage\x64-shared stage install

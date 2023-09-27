@@ -61,7 +61,11 @@ add_library( ${PROJECT_NAME} SHARED
   fft4g.cpp fft4g.hpp
   fft/fft4g.c
   # fft4g_h.c
-  )
+)
+
+if ( MSVC )
+  target_compile_definitions( ${PROJECT_NAME} INTERFACE -DBOOST_JSON_DYN_LINK )
+endif()
 
 add_library( QtPlatz::${PROJECT_NAME} ALIAS ${PROJECT_NAME} )
 

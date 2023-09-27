@@ -124,7 +124,7 @@ if ( WITH_QT5 )
     endif()
 
     if ( NOT QTDIR )
-      find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin")
+      find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin" )
       execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
         OUTPUT_VARIABLE QTDIR ERROR_VARIABLE QTERR OUTPUT_STRIP_TRAILING_WHITESPACE )
     endif()
@@ -140,8 +140,8 @@ endif()
 include (qtplatz.cmake)
 include (version)
 include (boost.cmake)
-message( STATUS "######## Boost_USE_STATIC_LIBS ${Boost_USE_STATIC_LIBS} #############" )
 include (qtplatz_api)
+message ( STATUS "##### Boost_USE_STATIC_LIBS ${Boost_USE_STATIC_LIBS} #####" )
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )

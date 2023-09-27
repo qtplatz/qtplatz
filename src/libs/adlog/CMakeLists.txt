@@ -17,10 +17,9 @@ add_library( adlog SHARED
   logging_syslog.hpp
 )
 
-#if ( WIN32 )
-#  link_directories(${BOOST_LIBRARYDIR})
-#  list( APPEND Boost_LIBRARIES "${BOOST_LIBRARYDIR}/boost_log-vc143-mt-x64-1_79.lib")
-#endif()
+if ( MSVC )
+  target_compile_definitions( ${PROJECT_NAME} INTERFACE -DBOOST_FILESYSTEM_DYN_LINK )
+endif()
 
 target_include_directories( adlog PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
