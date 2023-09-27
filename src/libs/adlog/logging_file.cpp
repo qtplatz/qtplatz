@@ -27,9 +27,8 @@
 #include <adportable/profile.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
-#include <boost/filesystem/path.hpp>
-// #include <boost/log/attributes/current_process_name.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
+#include <filesystem>
 #include <fstream>
 
 using namespace adlog;
@@ -46,7 +45,7 @@ logging_file::logging_file()
     boost::system::error_code ec;
     auto program = boost::dll::program_location( ec );
     logfile_ =
-        ( boost::filesystem::path( adportable::profile::user_data_dir<char>() )
+        ( std::filesystem::path( adportable::profile::user_data_dir<char>() )
           / program.stem() ).replace_extension(".log").string();
 }
 

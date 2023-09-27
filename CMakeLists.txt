@@ -140,6 +140,7 @@ endif()
 include (qtplatz.cmake)
 include (version)
 include (boost.cmake)
+message( STATUS "######## Boost_USE_STATIC_LIBS ${Boost_USE_STATIC_LIBS} #############" )
 include (qtplatz_api)
 
 if ( WIN32 )
