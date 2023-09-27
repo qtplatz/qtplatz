@@ -27,8 +27,8 @@ if ( WIN32 )
   list( APPEND CMAKE_PREFIX_PATH "C:/Boost/lib/cmake" )
 
   set( Boost_NO_SYSTEM_PATHS ON )
-  set( Boost_USE_STATIC_LIBS ON )
-  add_definitions( "-DBOOST_ALL_NO_LIB" ) # <-- disable boost auto linking
+  set( Boost_USE_STATIC_LIBS OFF )
+  # add_definitions( "-DBOOST_ALL_NO_LIB" ) # <-- disable boost auto linking
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   # if ( Boost_USE_STATIC_LIBS )
   add_definitions(
