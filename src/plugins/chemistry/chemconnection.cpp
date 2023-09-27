@@ -50,7 +50,7 @@ ChemConnection::ChemConnection()
 }
 
 bool
-ChemConnection::connect( const boost::filesystem::path& database )
+ChemConnection::connect( const std::filesystem::path& database )
 {
     if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { //
         if ( fs_->mount( database.wstring().c_str() ) ) {

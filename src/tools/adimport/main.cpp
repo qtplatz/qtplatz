@@ -103,8 +103,8 @@ main(int argc, char *argv[])
 
     adfs::filesystem fs;
 
-    boost::filesystem::path counting_outfile( vm[ "counting_output" ].as< std::string >() );
-    if ( boost::filesystem::exists( counting_outfile ) ) {
+    std::filesystem::path counting_outfile( vm[ "counting_output" ].as< std::string >() );
+    if ( std::filesystem::exists( counting_outfile ) ) {
         if ( ! fs.mount( counting_outfile ) )
             return 1;
     } else {

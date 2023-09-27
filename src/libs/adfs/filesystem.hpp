@@ -52,7 +52,7 @@ namespace adfs {
         filesystem();
 		filesystem( const filesystem& );
 
-        bool create( const boost::filesystem::path&, size_t alloc = 0, size_t page_size = 8192 );
+        bool create( const std::filesystem::path&, size_t alloc = 0, size_t page_size = 8192 );
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool create( const char * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool mount( const boost::filesystem::path& filename );

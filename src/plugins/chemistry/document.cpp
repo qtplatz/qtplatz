@@ -58,13 +58,13 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QSqlDatabase>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace chemistry {
 
     struct user_preference {
-        static boost::filesystem::path path( QSettings * settings ) {
-            boost::filesystem::path dir( settings->fileName().toStdWString() );
+        static std::filesystem::path path( QSettings * settings ) {
+            std::filesystem::path dir( settings->fileName().toStdWString() );
             return dir.remove_filename() / "chemistry";
         }
     };
@@ -271,21 +271,21 @@ document::instance()
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( impl::settings() );
+    std::filesystem::path dir = user_preference::path( impl::settings() );
 
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "chemistry::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
     }
 
-    boost::filesystem::path path = qtwrapper::settings( *impl::settings() ).recentFile( "ChemistryDB", "Files" ).toStdWString();
+    std::filesystem::path path = qtwrapper::settings( *impl::settings() ).recentFile( "ChemistryDB", "Files" ).toStdWString();
     if ( path.empty() || path.filename() == "molecules.adfs" || path.filename() == "ChemistryDB.adfs" ) {
         path = dir / "Chemistry.db";
     }
 
-    if ( !boost::filesystem::exists( path ) ) {
+    if ( !std::filesystem::exists( path ) ) {
 
         if ( !adfs::filesystem().create( path ) ) // create qtplatz ini-db
             return;
@@ -343,9 +343,9 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    boost::filesystem::path dir = user_preference::path( impl::settings() );
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    std::filesystem::path dir = user_preference::path( impl::settings() );
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "chemistry::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;

@@ -57,21 +57,21 @@ filesystem::close()
 bool
 filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
 {
-    return create( boost::filesystem::path( filename ), alloc, page_size );
+    return create( std::filesystem::path( filename ), alloc, page_size );
 }
 
 bool
 filesystem::create( const char * filename, size_t alloc, size_t page_size )
 {
-    return create( boost::filesystem::path( filename ), alloc, page_size );
+    return create( std::filesystem::path( filename ), alloc, page_size );
 }
 
 bool
-filesystem::create( const boost::filesystem::path& filepath, size_t alloc, size_t page_size )
+filesystem::create( const std::filesystem::path& filepath, size_t alloc, size_t page_size )
 {
-    if ( boost::filesystem::exists( filepath ) ) {
-        boost::system::error_code ec;
-        if ( ! boost::filesystem::remove( filepath, ec ) ) {
+    if ( std::filesystem::exists( filepath ) ) {
+        std::error_code ec;
+        if ( ! std::filesystem::remove( filepath, ec ) ) {
             return false;
         }
         filename_ = filepath.string();

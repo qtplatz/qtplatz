@@ -27,11 +27,11 @@
 
 #include <adfs/sqlite.hpp>
 #include <adfs/file.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/variant.hpp>
 #include <memory>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 namespace adfs { class filesystem; class stmt; class sqlite; }
 
@@ -45,14 +45,14 @@ namespace chemistry {
         ChemConnection();
         ~ChemConnection();
 
-        bool connect( const boost::filesystem::path& database );
+        bool connect( const std::filesystem::path& database );
 
         adfs::sqlite& db();
 
-        const boost::filesystem::path& filepath() const { return filename_; }
+        const std::filesystem::path& filepath() const { return filename_; }
 
     private:
-        boost::filesystem::path filename_;
+        std::filesystem::path filename_;
         std::shared_ptr< adfs::filesystem > fs_;
     };
 
