@@ -143,8 +143,8 @@ DataprocessWorker::createChromatogramByAxisRange3( Dataprocessor * processor
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
                 threads_.emplace_back( adportable::asio::thread( [=,this] {
-                            handleChromatogramByAxisRange3( processor, pm, axis, range, reader->shared_from_this(), -1, p );
-                        } ) );
+                    handleChromatogramByAxisRange3( processor, pm, axis, range, reader->shared_from_this(), -1, p );
+                } ) );
             } else {
                 QMessageBox::information( 0, "QtPlatz", "Create Chromatograms -- file format(v2) is not supported." );
                 return;
@@ -544,8 +544,10 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                 tmp *= tgtm; // add/replace target method.
                 double pkw = cm.peakWidthForChromatogram();
 
-                if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 ), reader->findPos( tR + pkw/2.0 ) ) ) {
-                    auto desc = ( boost::format( "%s %.2f(%.3fs)%s" ) % mol.formula() % mol.mass() % tR % reader->display_name() ).str();
+                if ( auto ms = reader->coaddSpectrum( reader->findPos( tR - pkw/2.0 )
+                                                      , reader->findPos( tR + pkw/2.0 ) ) ) {
+                    auto desc = ( boost::format( "%s %.2f(%.3fs)%s" )
+                                  % mol.formula() % mol.mass() % tR % reader->display_name() ).str();
                     ms->addDescription( adcontrols::description( { "create", desc } ) );
                     processor->mslock( *ms, tR );
                     portfolio::Folium folium = processor->addSpectrum( ms, adcontrols::ProcessMethod() );
@@ -589,7 +591,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
         if ( auto dset = processor->rawdata() ) {
             adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
             extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){
-                return (*progress)( curr, total ); } );
+                return (*progress)( curr, total ); });
         }
     }
 

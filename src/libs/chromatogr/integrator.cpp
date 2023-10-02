@@ -1193,7 +1193,8 @@ Integrator::impl::update_mw()
             signal_processor_->set_ndiff( mw_ );
         } else {
             if ( signal_processor_->d().size() == 2 )
-                ADDEBUG() << "\t------------ " << __FUNCTION__ << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
+                ADDEBUG() << "\t------------ "  << __FUNCTION__
+                          << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
         }
     }
 }

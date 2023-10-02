@@ -125,7 +125,10 @@ extract_by_generator_property::operator()( const adcontrols::ProcessMethod& pm
                            chro->setAxisUnit( isCounting ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
                        });
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > retv;
-        std::transform( vec_.begin(), vec_.end(), std::back_inserter( retv ), []( auto& t ){ return std::move( std::get< 2 >( t ) ); } );
+        std::transform( vec_.begin(), vec_.end(), std::back_inserter( retv )
+                        , []( auto& t ){
+                            return std::move( std::get< 2 >( t ) );
+                        });
 
         return retv;
     }

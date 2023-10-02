@@ -1316,11 +1316,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     QMenu menu;
 
-    ADDEBUG() << "### " << __FUNCTION__ << " ###";
     auto selRows = impl_->treeView()->selectionModel()->selectedRows();
     selected_folders selFolders( selRows );
-
-    ADDEBUG() << "### " << __FUNCTION__ << " ### SELROWS: " << selRows.size();
 
     if ( selRows.size() >= 1 ) {
 
@@ -1342,7 +1339,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
     do {
         // [Spectra,Chromatograms] selection
         auto name = std::accumulate( selFolders.folders().begin(), selFolders.folders().end(), QString()
-                         , [&](const auto& a, const auto& b){ return a.isEmpty() ? b.toLower() : a + "," + b.toLower(); });
+                                     , [&](const auto& a, const auto& b){
+                                         return a.isEmpty() ? b.toLower() : a + "," + b.toLower();
+                                     });
 
         // enable either Spectra, Chromatograms, or both
         bool enable = selFolders.folderCounts() > 0;

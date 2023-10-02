@@ -360,14 +360,17 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     double width = cm->width_at_mass( mol.mass() );
                     double lMass = mol.mass() - width / 2;
                     double uMass = mol.mass() + width / 2;
+                    auto display_name = ( boost::format( "%s (%.3f)" )
+                                          % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
+                                          % mol.mass() ).str();
+                    auto desc = ( boost::format( "%s %s %.4f (W:%.4gmDa) %s %d" )
+                                  % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
+                                  % adcontrols::ChemicalFormula::formatAdduct( mol.adducts( polarity ) )
+                                  % mol.mass()
+                                  % ( width * 1000 )
+                                  % reader->display_name()
+                                  % proto.get() ).str();
 
-                    std::string desc = ( boost::format( "%s %s %.4f (W:%.4gmDa) %s %d" )
-                                         % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
-                                         % adcontrols::ChemicalFormula::formatAdduct( mol.adducts( polarity ) )
-                                         % mol.mass()
-                                         % ( width * 1000 )
-                                         % reader->display_name()
-                                         % proto.get() ).str();
                     adcontrols::quan::extract_by_mols extract_by_mols;
 
                     if ( ! targets.empty() ) {
@@ -419,10 +422,9 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         }
                     };
 
-                    // ADDEBUG() << "----- temp add: " << mol.mass() << ", " << mol.synonym() << ", " << temp.size();
                     temp.emplace_back( mol.mass(), width, lMass, uMass, (proto ? proto.get() : -1), desc );
                     temp.back().pChr->setGeneratorProperty( boost::json::serialize( top ) );
-                    temp.back().pChr->set_display_name( mol.synonym() );
+                    temp.back().pChr->set_display_name( display_name );
                     //
                     temp.back().pChr->set_time_of_injection( std::move( time_of_injection ) );
                     if ( sp->isHistogram() ) {

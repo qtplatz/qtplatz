@@ -1183,7 +1183,8 @@ Dataprocessor::addChromatogram( std::shared_ptr< adcontrols::Chromatogram > cptr
             folium.addAttachment( constants::F_DFT_CHROMATOGRAM ).assign( pptr, pptr->dataClass() );
             DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *pptr );
         } else {
-            folium.erase_attachment( constants::F_DFT_CHROMATOGRAM,[](auto t) { ADDEBUG() << ">>>>>> erase_attachment: " << t; });
+            folium.erase_attachment( constants::F_DFT_CHROMATOGRAM
+                                     ,[](auto t) { ADDEBUG() << ">>>>>> erase_attachment: " << t; });
             DataprocessorImpl::applyPeakMethod( this, folium, *peakm, *cptr );
         }
     }
