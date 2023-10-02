@@ -175,33 +175,3 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
     }
     return false;
 }
-
-// bool
-// ChemQuery::insert_mol( const std::string& smiles
-//                        , const std::string& svg
-//                        , const std::string& formula
-//                        , double mass
-//                        , const std::string& synonym
-//                        , const std::string& inchi, const std::string& inchikey )
-// {
-//     if ( sql_.prepare( "INSERT OR REPLACE INTO mols (smiles,svg,formula,mass,inchi,inchikey) VALUES(?,?,?,?,?,?)" ) ) {
-
-//         // auto uuid = generator( smiles );
-//         int row(1);
-//         sql_.bind( row++ ) = smiles;
-//         sql_.bind( row++ ) = adfs::blob( svg.size(), svg.data() );
-//         sql_.bind( row++ ) = formula;
-//         sql_.bind( row++ ) = mass;
-//         sql_.bind( row++ ) = inchi;
-//         sql_.bind( row++ ) = inchikey;
-
-//         if ( sql_.step() == adfs::sqlite_done ) {
-//             sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchi = ?" );
-//             sql_.bind( 1 ) = synonym;
-//             sql_.bind( 2 ) = inchi;
-//             return sql_.step();
-//         }
-
-//     }
-//     return false;
-// }

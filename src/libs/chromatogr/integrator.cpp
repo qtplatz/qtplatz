@@ -1042,7 +1042,7 @@ helper::updateAreaHeight( const signal_processor& c, const adcontrols::Baseline&
                 area += h * w;
         }
     }
-    ADDEBUG() << "\t" << __FUNCTION__ << "\tarea,height=" << std::make_tuple( area, height );
+    // ADDEBUG() << "\t" << __FUNCTION__ << "\tarea,height=" << std::make_tuple( area, height );
     pk.setPeakArea( area );
     pk.setPeakHeight( height );
 }
@@ -1180,7 +1180,7 @@ Integrator::impl::update_params()
         mw_ = mw;
         signal_processor_->set_ndiff( mw_ );
     }
-    ADDEBUG() << "## update_params: mw="  << std::make_tuple( minw_, mw_, mw, sampInterval_ ? *sampInterval_ : signal_processor_->sampInterval());
+    // ADDEBUG() << "## update_params: mw="  << std::make_tuple( minw_, mw_, mw, sampInterval_ ? *sampInterval_ : signal_processor_->sampInterval());
 }
 
 void

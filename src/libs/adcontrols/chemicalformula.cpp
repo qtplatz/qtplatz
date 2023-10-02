@@ -1127,3 +1127,24 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
     std::vector< std::string > list;
     return standardFormulae( formula, adducts, list );
 }
+
+std::string
+ChemicalFormula::formatAdduct( const std::string& adduct, const char * blacket )
+{
+    int charge = toMolecule( "C", adduct ).charge();
+    std::ostringstream _;
+    if ( blacket && *blacket != '\0' )
+        _ << *blacket++;
+    _ << 'M';
+    _ << ChemicalFormula::neutralize( adduct ).first;
+
+    if ( std::abs( charge ) != 1 )
+        _ << std::abs( charge );
+
+    if ( blacket && *blacket != '\0' )
+        _ << *blacket++;
+
+    _ << ( charge > 0 ? "+" : charge < 0 ? "-" : "" );
+
+    return _.str();
+}

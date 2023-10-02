@@ -260,7 +260,8 @@ MSChromatogramTable::impl::formulaChanged( int row )
 
     if ( auto item = model_->item( row, index_of< col_formula, column_list >::value ) ) {
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-        model_->setData( model_->index( row, index_of< col_formula, column_list >::value ), enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        model_->setData( model_->index( row, index_of< col_formula, column_list >::value )
+                         , enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
     }
 
     auto vec = adcontrols::ChemicalFormula::standardFormulae( formula, adduct );
@@ -269,7 +270,8 @@ MSChromatogramTable::impl::formulaChanged( int row )
         model_->setData( model_->index( row, index_of< col_mass, column_list >::value ), mass );
         auto mol = adcontrols::ChemicalFormula::toMolecule( formula, adduct );
 
-        auto charge_string = (mol.charge() == 1 || mol.charge() == -1) ? QString() : QString("%1").arg(QString::number(std::abs(mol.charge())));
+        auto charge_string = (mol.charge() == 1 || mol.charge() == -1) ?
+            QString() : QString("%1").arg(QString::number(std::abs(mol.charge())));
         charge_string += mol.charge() > 0 ? "+" : mol.charge() < 0 ? "-" : "";
 
         auto adduct_string = QString::fromStdString( adcontrols::ChemicalFormula::neutralize( adduct ).first );

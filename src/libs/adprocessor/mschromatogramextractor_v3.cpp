@@ -171,15 +171,15 @@ namespace adprocessor {
                    , double _l
                    , double _u
                    , int32_t _p
-                   , const std::wstring& desc = L"" ) : mass( _m )
-                                                      , width( _w )
-                                                      , lMass( _l )
-                                                      , uMass( _u )
-                                                      , proto( _p )
-                                                      , yoffs( 0 )
-                                                      , pChr( std::make_shared< adcontrols::Chromatogram >() ) {
+                   , const std::string& desc = "" ) : mass( _m )
+                                                    , width( _w )
+                                                    , lMass( _l )
+                                                    , uMass( _u )
+                                                    , proto( _p )
+                                                    , yoffs( 0 )
+                                                    , pChr( std::make_shared< adcontrols::Chromatogram >() ) {
             if ( ! desc.empty() )
-                pChr->addDescription( { L"create", desc } );
+                pChr->addDescription( adcontrols::description( { "create", desc } ) );
             pChr->setProtocol( _p );
         }
 
@@ -333,7 +333,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
             if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
                 areaIntensity = cm->centroidAreaIntensity();
                 peak_detector = std::make_unique< adcontrols::CentroidProcess >( *cm );
-                msfinder = std::make_unique< adcontrols::MSFinder >( qrm->width(), qrm->findAlgorithm(), adcontrols::idToleranceDaltons );
+                msfinder = std::make_unique< adcontrols::MSFinder >( qrm->width()
+                                                                     , qrm->findAlgorithm(), adcontrols::idToleranceDaltons );
             }
         }
     }
@@ -343,7 +344,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
     ADDEBUG() << "######## extract_by_mols ######### " << (global_mslock ? "Has global_mslock" : "no lock");
 
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
-
+        const auto polarity = cm->molecules().polarity();
         std::vector< cXtractor > temp;
         auto it = reader->begin( -1 );
 
@@ -360,26 +361,27 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     double lMass = mol.mass() - width / 2;
                     double uMass = mol.mass() + width / 2;
 
-                    std::wstring desc = ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
-                                          % adportable::utf::to_wstring( mol.synonym().empty() ? mol.formula() : mol.synonym() )
-                                          % mol.mass()
-                                          % ( width * 1000 )
-                                          % adportable::utf::to_wstring( reader->display_name() )
-                                          % proto.get() ).str();
-
+                    std::string desc = ( boost::format( "%s %s %.4f (W:%.4gmDa) %s %d" )
+                                         % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
+                                         % adcontrols::ChemicalFormula::formatAdduct( mol.adducts( polarity ) )
+                                         % mol.mass()
+                                         % ( width * 1000 )
+                                         % reader->display_name()
+                                         % proto.get() ).str();
                     adcontrols::quan::extract_by_mols extract_by_mols;
 
                     if ( ! targets.empty() ) {
-                        auto it = std::find_if( targets.begin(), targets.end(), [&]( const auto& t ){ return t.mol() == mol; });
+                        auto it = std::find_if( targets.begin(), targets.end()
+                                                , [&]( const auto& t ){ return t.mol() == mol; });
                         if ( it != targets.end() ) {
                             if ( auto candidate = (*it)[ 0 ] ) {
                                 lMass = candidate->mass - width / 2;
                                 uMass = candidate->mass + width / 2;
-                                desc = ( boost::wformat( L"%s %.4f AT (W:%.4gmDa) %s %d" )
-                                         % adportable::utf::to_wstring( mol.synonym().empty() ? mol.formula() : mol.synonym() )
+                                desc = ( boost::format( "%s %.4f AT (W:%.4gmDa) %s %d" )
+                                         % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
                                          % candidate->mass
                                          % ( width * 1000 )
-                                         % adportable::utf::to_wstring( reader->display_name() )
+                                         % reader->display_name()
                                          % proto.get() ).str();
                                 extract_by_mols.auto_target_candidate =
                                     adcontrols::quan::targeting_candidate( candidate->mass

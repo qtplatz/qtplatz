@@ -61,14 +61,6 @@ ChemConnection::connect( const std::filesystem::path& database )
     return false;
 }
 
-// std::shared_ptr<ChemQuery>
-// ChemConnection::query()
-// {
-//     if ( fs_ )
-//         return std::make_shared<ChemQuery>( fs_->db() );
-//     return 0;
-// }
-
 adfs::sqlite&
 ChemConnection::db()
 {

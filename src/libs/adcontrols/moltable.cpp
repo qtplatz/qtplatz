@@ -25,6 +25,7 @@
 #include "moltable.hpp"
 #include "serializer.hpp"
 #include "constants.hpp"
+#include "chemicalformula.hpp"
 #include <adportable/float.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>

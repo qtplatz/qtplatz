@@ -99,10 +99,10 @@ namespace adcontrols {
 
         static std::string formatFormulae( const std::string& formula, bool richText = true );
         static std::wstring formatFormulae( const std::wstring& formula, bool richText = true );
-
         static std::string formatFormulae( const std::string& formula, int charge, bool richText );
-
         static std::string formatFormulae( const std::string& formula, cf::format_option_type&& );
+
+        static std::string formatAdduct( const std::string& adduct_formula, const char * blacket = "[]");
 
         /**
          * makeFormulae synthesize standard formulae from formula and commna (or semicolon) separated list of adducts/lose

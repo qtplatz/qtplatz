@@ -49,6 +49,7 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adprocessor/generator_property.hpp>
+#include <exception>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/icore.h>
@@ -830,11 +831,15 @@ namespace { // anonymous
                     gv.back().set_dataSource( { folium.name<char>(), folium.uuid() } );
                 }
             }
-            auto json = boost::json::serialize( boost::json::value_from( gv ) );
-            if ( auto md = new QMimeData() ) {
-                md->setData( "application/json", QByteArray( json.data(), json.size() ) );
-                md->setData( "text/plain", QByteArray( json.data(), json.size() ) );
-                QApplication::clipboard()->setMimeData( md );
+            try {
+                auto json = boost::json::serialize( boost::json::value_from( gv ) );
+                if ( auto md = new QMimeData() ) {
+                    md->setData( "application/json", QByteArray( json.data(), json.size() ) );
+                    md->setData( "text/plain", QByteArray( json.data(), json.size() ) );
+                    QApplication::clipboard()->setMimeData( md );
+                }
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << "## Exception: " << ex.what();
             }
         };
 
@@ -843,8 +848,13 @@ namespace { // anonymous
                 auto data = md->data( "application/json" );
                 if ( !data.isEmpty() ) {
                     auto jv = adportable::json_helper::parse( data.toStdString() );
-                    if ( jv != boost::json::value{} )
-                        return boost::json::value_to< std::vector< adprocessor::generator_property > >( jv );
+                    if ( jv != boost::json::value{} ) {
+                        try {
+                            return boost::json::value_to< std::vector< adprocessor::generator_property > >( jv );
+                        } catch ( std::exception& ex ) {
+                            ADDEBUG() << "## Exception: " << ex.what();
+                        }
+                    }
                 }
             }
             return {};
@@ -1305,8 +1315,12 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 	QModelIndex index = impl_->treeView()->currentIndex();
 
     QMenu menu;
+
+    ADDEBUG() << "### " << __FUNCTION__ << " ###";
     auto selRows = impl_->treeView()->selectionModel()->selectedRows();
     selected_folders selFolders( selRows );
+
+    ADDEBUG() << "### " << __FUNCTION__ << " ### SELROWS: " << selRows.size();
 
     if ( selRows.size() >= 1 ) {
 

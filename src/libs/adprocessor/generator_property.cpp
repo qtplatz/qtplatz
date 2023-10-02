@@ -47,6 +47,14 @@ namespace adprocessor {
         std::string reader_name_;
         std::pair< std::string, boost::uuids::uuid > dataSource_;
 
+        ~impl() {
+            try {
+                jv_ = {};
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << "## Exception: " << ex.what();
+            }
+        }
+
         impl() : mass_( 0 )
                , mass_width_( 0 )
                , dataSource_( { "", boost::uuids::uuid{} } ) {

@@ -247,6 +247,26 @@ namespace chemistry {
         , { R"(CCCCCCCCCCCCCCCCC(=O)O)",     { "C17:0", "Heptadecanoic acid" }}
         , { R"(CCCCCCCCCCCC=CCCCCCC(=O)OC)", { "C19:1", "cis-10-Nonadecenoic acid" }}
         , { R"(CCCCCCCCCCCCCCCCCCC(=O)O)",   { "C19:0", "Nonadecanoic acid" }}
+        // Steroids
+        , { R"(CC12CCC(CC1CCC3C2C(=O)CC4(C3CCC4C(=O)CO)C)O)",    { "APD", "alphadolone" }}
+        , { R"(CC12CCC3C(C1CCC2=O)CC=C4C3(CCC(C4)O)C)",          { "DHEA", "Dehydroepiandrosterone", "PRASTERONE" }}
+        , { R"(CC12CCC3C(C1CCC2=O)CCC4=C3C=CC(=C4)O)",           { "E1", "estrone", "" }}
+        , { R"(CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O)",            { "E2", "estradiol", "" }}
+        , { R"(CC12CCC3C(C1CC(C2O)O)CCC4=C3C=CC(=C4)O)",         { "E3", "Estriol", "" }}
+        , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4=O)C)O)O)",          { "11-OH-An", "11-alpha-hydroxyandrosterone" }}
+        , { R"(CC12CCC3C(C1CCC2=O)C(C=C4C3(CCC(C4)O)C)O)",       { "7-OH-DHEA", "7alpha-hydroxydehydroepiandrosterone" }}
+        , { R"(CC12CCC3C(C1CC(C2=O)O)CCC4=C3C=CC(=C4)O)",        { "16-OH-E1", "16-hydroxyestrone" }}
+        , { R"(CC(=O)C1CCC2C1(CCC3C2C(C=C4C3(CCC(C4)O)C)O)C)",   { "7-OHP5", "7alpha-hydroxypregnenolone" }}
+        , { R"(CC(=O)C1(CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)O)",   { "17-OH-P5", "17alpha-hydroxypregnenolone" }}
+        , { R"(CC(=O)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)",      { "P5", "pregnenolone" }}
+        , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4C(=O)CO)C)O)O)",     { "THB", "tetrahydrocorticosterone" }}
+        , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4(C(=O)CO)O)C)O)O)",  { "TH-COL", "tetrahydrocortisol" }}
+        , { R"(CC12CCC(CC1CCC3C2C(=O)CC4(C3CCC4(C(=O)CO)O)C)O)", { "TH-COR", "tetrahydrocortisone" }}
+        , { R"(CC12CCC(CC1CCC3C2CCC4(C3CCC4C(=O)CO)C)O)",        { "TH-DOC", "3beta,5alpha-tetrahydrodeoxycorticosterone" }}
+        , { R"(CC12CCC(CC1CCC3C2CCC4(C3CCC4(C(=O)CO)O)C)O)",     { "THS", "tetrahydrodeoxycortisol" }}
+        , { R"(CC12CCC(=O)C=C1CCC3C2C(CC4(C3CCC4C(=O)CO)C)O)",   { "COB", "corticosterone" }}
+        , { R"(CC12CCC(=O)C=C1CCC3C2C(=O)CC4(C3CCC4(C(=O)CO)O)C)", { "COR", "Cortisone" }}
+        , { R"(CC12CCC(=O)C=C1CCC3C2CCC4(C3CCC4(C(=O)CO)O)C)",   { "COS", "11-deoxycortisol", "Cortexolone" }}
     };
 
 
@@ -373,16 +393,16 @@ document::dbInit( ChemConnection * connection )
     auto query = std::make_shared< ChemQuery >( connection->db() );
 
 #if !defined _DEBUG
-    for ( const auto& rec : inidb ) {
-        if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( rec.smiles ) ) ) {
-            query->insert( *mol, rec.smiles, rec.synonym );
-        }
-    }
-
     for ( auto it = adprot::AminoAcid::begin(); it != adprot::AminoAcid::end(); ++it ) {
         if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( it->smiles() ) ) ) {
             std::vector< std::string > v { it->symbol() };
             query->insert( *mol, it->smiles(), v );
+        }
+    }
+
+    for ( const auto& rec : inidb ) {
+        if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( rec.smiles ) ) ) {
+            query->insert( *mol, rec.smiles, rec.synonym );
         }
     }
 #endif

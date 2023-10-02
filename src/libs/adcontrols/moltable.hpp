@@ -24,6 +24,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "constants.hpp"
 #include "constants_fwd.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
