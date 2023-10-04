@@ -423,15 +423,7 @@ void
 DataprocessWorker::doIt( std::shared_ptr< adprocessor::JCB2009_Processor > proc
                          , std::shared_ptr< const adcontrols::DataReader > reader )
 {
-    // auto progress = std::make_shared< adwidgets::ProgressInterface >();
-    // Core::ProgressManager::addTask( progress->progress.future(), "JCB-2009 Processing...", "dataproc.task.jcb" );
     auto progress( adwidgets::ProgressWnd::instance()->addbar() );
-    // threads_.emplace_back( adportable::asio::thread( [=,this] {
-
-    //     (*proc)( reader, [progress](size_t curr, size_t total){ return (*progress)(curr, total); } );
-    //     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
-
-    // }));
 
     auto future = std::async( std::launch::async, [&](){
         (*proc)( reader, [progress](size_t curr, size_t total){ return (*progress)(curr, total); } );

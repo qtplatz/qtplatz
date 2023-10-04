@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "jcb2009_processor.hpp"
+#include "constants.hpp"
 #include "jcb2009_helper.hpp"
 #include "jcb2009_summarizer.hpp"
 #include "centroid_processor.hpp"
@@ -79,7 +80,6 @@ void
 JCB2009_Processor::operator << ( portfolio::Folium&& folium )
 {
     impl_->folio_.emplace_back( std::move( folium ) );
-
 }
 
 void
@@ -96,13 +96,12 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     size_t nCurr = 0;
 
     jcb2009_helper::summarizer summary;
-    // jcb2009_helper::ms_accumulator accumulator;
     std::shared_ptr< adcontrols::MassSpectrum > temp;
-
 
     progress( 0, impl_->folio_.size() );
 
     for ( const auto& cfolium: impl_->folio_ ) {
+
 
         jcb2009_helper::find_mass find_mass( cfolium, *impl_->procm_ );
 
@@ -123,11 +122,13 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
                 auto folname = (boost::format( "%s;tR=%.1f(%.1f)" )
                                 % cfolium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
-                ms->addDescription( adcontrols::description( { "create", folname } ) );
 
+                ms->addDescription( adcontrols::description( { "create", folname } ) );
                 // apply MSLock
                 impl_->processor_->mslock( *ms, std::get<0>(tR) );
-
+                ADDEBUG() << "---------- JCB2009_Processor --------------";
+                auto top = impl_->processor_->addSpectrum( ms, *impl_->procm_, false );
+                ADDEBUG() << "---------- JCB2009_Processor --------------";
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid && pInfo ) {
                     temp = pCentroid;
@@ -137,21 +138,24 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                         using adcontrols::segments_helper;
                         double mass = segments_helper::get_mass( *pCentroid, *idx );
                         double intensity = segments_helper::get_intensity( *pCentroid, *idx );
-                        auto anno = adcontrols::annotation( (boost::format("AA%.3f@%.1fs") % mass % std::get<0>(tR)).str(), mass, intensity, idx->first );
+                        auto anno =
+                            adcontrols::annotation(
+                                (boost::format("%s %.3f@%.1fs")
+                                 % pkResult.peak_name()
+                                 % mass
+                                 % std::get<0>(tR)).str()
+                                , mass, intensity, idx->first );
                         segments_helper::get_annotations( *pCentroid, *idx ) << anno;
                         segments_helper::set_color( *pCentroid, idx->second, idx->first, 15 );
                     }
-
                     if ( auto it = find_mass( *pInfo, target_protocol ) ) {
                         pkResult.set_found_mass( **it );
-                        summary( **it, std::move( pkResult ) );
-                        // accumulator( *ms ); cannot add pkd spectra
+                        // summary( **it, std::move( pkResult ) );
                     }
-
+                    top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
+                    top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
                     // top.setAttribute( "tag", "red" );
-                    // top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
-                    // top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
-                    // impl_->added_.emplace_back( top );
+                    impl_->added_.emplace_back( top );
                 }
             }
         }
@@ -161,17 +165,14 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     // if ( accumulator.ms_ ) {
     //     accumulator.ms_->addDescription( adcontrols::description( { "create", "SUMMARY" } ) );
     // }
-
+#if 0
     auto pSummary = summary.get( *temp );
     pSummary->addDescription( adcontrols::description( { "create", "SUMMARY" } ) );
-
     portfolio::Folium sfolium = impl_->processor_->addSpectrum( pSummary, *impl_->procm_, true );
-
     auto pInfo = summary.get();
-
     sfolium.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pSummary, pSummary->dataClass() );
     sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
-
+#endif
     progress(++nCurr, nCount );
     ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
     // todo ---

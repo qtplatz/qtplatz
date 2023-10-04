@@ -248,17 +248,17 @@ namespace chemistry {
         , { R"(CCCCCCCCCCCC=CCCCCCC(=O)OC)", { "C19:1", "cis-10-Nonadecenoic acid" }}
         , { R"(CCCCCCCCCCCCCCCCCCC(=O)O)",   { "C19:0", "Nonadecanoic acid" }}
         // Steroids
-        , { R"(CC12CCC(CC1CCC3C2C(=O)CC4(C3CCC4C(=O)CO)C)O)",    { "APD", "alphadolone" }}
-        , { R"(CC12CCC3C(C1CCC2=O)CC=C4C3(CCC(C4)O)C)",          { "DHEA", "Dehydroepiandrosterone", "PRASTERONE" }}
-        , { R"(CC12CCC3C(C1CCC2=O)CCC4=C3C=CC(=C4)O)",           { "E1", "estrone", "" }}
-        , { R"(CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O)",            { "E2", "estradiol", "" }}
+        , { R"(CC12CCC(CC1CCC3C2C(=O)CC4(C3CCC4C(=O)CO)C)O)",    { "APD", "alfadolone", "14107-37-0" }}
+        , { R"(CC12CCC3C(C1CCC2=O)CC=C4C3(CCC(C4)O)C)",          { "DHEA", "Dehydroepiandrosterone", "PRASTERONE" }} // PA 840
+        , { R"(CC12CCC3C(C1CCC2=O)CCC4=C3C=CC(=C4)O)",           { "E1", "Estrone", "53-16-7" }}
+        , { R"(CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O)",            { "E2", "Estradiol", "" }}
         , { R"(CC12CCC3C(C1CC(C2O)O)CCC4=C3C=CC(=C4)O)",         { "E3", "Estriol", "" }}
         , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4=O)C)O)O)",          { "11-OH-An", "11-alpha-hydroxyandrosterone" }}
         , { R"(CC12CCC3C(C1CCC2=O)C(C=C4C3(CCC(C4)O)C)O)",       { "7-OH-DHEA", "7alpha-hydroxydehydroepiandrosterone" }}
         , { R"(CC12CCC3C(C1CC(C2=O)O)CCC4=C3C=CC(=C4)O)",        { "16-OH-E1", "16-hydroxyestrone" }}
-        , { R"(CC(=O)C1CCC2C1(CCC3C2C(C=C4C3(CCC(C4)O)C)O)C)",   { "7-OHP5", "7alpha-hydroxypregnenolone" }}
+        , { R"(CC(=O)C1CCC2C1(CCC3C2C(C=C4C3(CCC(C4)O)C)O)C)",   { "7-OH-P5", "7alpha-hydroxypregnenolone" }}
         , { R"(CC(=O)C1(CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)O)",   { "17-OH-P5", "17alpha-hydroxypregnenolone" }}
-        , { R"(CC(=O)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)",      { "P5", "pregnenolone" }}
+        , { R"(CC(=O)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)",      { "P5", "pregnenolone" }} // PA = 860
         , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4C(=O)CO)C)O)O)",     { "THB", "tetrahydrocorticosterone" }}
         , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4(C(=O)CO)O)C)O)O)",  { "TH-COL", "tetrahydrocortisol" }}
         , { R"(CC12CCC(CC1CCC3C2C(=O)CC4(C3CCC4(C(=O)CO)O)C)O)", { "TH-COR", "tetrahydrocortisone" }}

@@ -1131,8 +1131,7 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
     std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)|(^processed$)" );
 
-    portfolio::Folium folium = folder.addFolium( name );
-    folium.assign( ptr, ptr->dataClass() );
+    portfolio::Folium folium = folder.addFolium( name ).assign( ptr, ptr->dataClass() );
 
     if ( auto json = ptr->getDescriptions().hasKey( "(MSLock)" ) ) {
         auto jv = adportable::json_helper::parse( *json );
@@ -1141,10 +1140,9 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr
         if ( auto pv = adportable::json_helper::if_contains( jv, "mslock.method" ) ) {
             if ( pv->as_string() == "external" ) {
                 folium.setAttribute( "mslock_external", "true" );
-                // ADDEBUG() << "========== set as mslock_external true ==========";
             }
         } else {
-            // ADDEBUG() << "----------- no mslock.method found";
+            ADDEBUG() << "----------- no mslock.method found";
         }
     }
 
@@ -1976,6 +1974,8 @@ Dataprocessor::createChromatograms( std::vector< adprocessor::generator_property
 void
 Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Folium >&& folio )
 {
+    ADDEBUG() << "########### " << __FUNCTION__ << " ##############";
+
     if ( auto jcb2009 = std::make_shared< adprocessor::JCB2009_Processor >( this ) ) {
         std::pair< size_t, size_t > pkcount{ 0, 0 };
         for ( auto folium: folio ) {
@@ -2011,6 +2011,7 @@ Dataprocessor::handleSpectraFromChromatographicPeaks( std::vector< portfolio::Fo
 
             adwidgets::DataReaderChoiceDialog dlg( file->dataReaders() );
             dlg.setProtocolHidden( true );
+            dlg.setFormHidden( true );
             if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
                 dlg.setMassWidth( tm->width( tm->widthMethod() ) );
                 dlg.setTimeWidth( 4e-9 ); // 4ns

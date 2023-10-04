@@ -753,9 +753,9 @@ namespace { // anonymous
     };
 
     //////////////////////////////// spectra_from_chromatographic_peaks JCB2009 /////////////////////////////////
-    struct spectra_from_chromatographic_peaks {
+    struct spectra_from_checked_chromatographic_peaks {
         const QModelIndex& index_;
-        spectra_from_chromatographic_peaks( const QModelIndex& index ) : index_( index )  {
+        spectra_from_checked_chromatographic_peaks( const QModelIndex& index ) : index_( index )  {
         }
         void operator()() const {
             std::vector< portfolio::Folium > list;
@@ -769,7 +769,26 @@ namespace { // anonymous
                 if ( !list.empty() )
                     processor->handleSpectraFromChromatographicPeaks( std::move( list ) );
             }
-            ADDEBUG() << "<---- jcb2009 process done.";
+        }
+    };
+
+    struct spectra_from_selected_chromatographic_peaks {
+        QModelIndexList rows_;
+        spectra_from_selected_chromatographic_peaks( const QModelIndexList& rows ) : rows_( rows )  {
+        }
+        void operator()() const {
+            std::map< Dataprocessor *, std::vector< portfolio::Folium > > map;
+            for ( auto index: rows_ ) {
+                auto [ processor, folium ] = find_processor_t< portfolio::Folium >()( index );
+                if ( processor && folium )
+                    map[ processor ].emplace_back( folium );
+            }
+            for ( auto& list: map ) {
+                if ( not list.second.empty() ) {
+                    ADDEBUG() << "list.first (processor): " << list.first;
+                    list.first->handleSpectraFromChromatographicPeaks( std::move( list.second ) );
+                }
+            }
         }
     };
 
@@ -1431,9 +1450,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         remove_duplicated_chromatogram remover( selRows );
         menu.addAction( tr( "Remove duplicate" ), [=](){ remover(); } );
 
-        spectra_from_chromatographic_peaks gen_spectra( index );
-        menu.addAction( tr( "Create mass spectra from checked chromatograms (JCB 2009)" )
-                        , [=](){ gen_spectra(); } );
+        spectra_from_selected_chromatographic_peaks gen_spectra_selected( selRows );
+        menu.addAction( tr( "Create mass spectra from chromatographic peaks" )
+                        , [=](){ gen_spectra_selected(); } );
+
+        // spectra_from_checked_chromatographic_peaks gen_spectra_checked( index );
+        // menu.addAction( tr( "Create mass spectra from checked chromatograms (JCB 2009)" )
+        //                 , [=](){ gen_spectra_checked(); } );
 
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             auto props = copy_chromatogram_generator::fromClipboard();

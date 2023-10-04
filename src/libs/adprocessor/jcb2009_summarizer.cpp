@@ -53,7 +53,8 @@ namespace adprocessor {
             operator << ( adcontrols::MSPeakInfoItem&& t ) {
                 if ( ! pInfo_ )
                     pInfo_ = std::make_shared< adcontrols::MSPeakInfo >();
-                auto it = std::upper_bound( pInfo_->begin(), pInfo_->end(), t, [](const auto& a, const auto& b){ return a.mass() < b.mass(); } );
+                auto it = std::upper_bound( pInfo_->begin(), pInfo_->end(), t
+                                            , [](const auto& a, const auto& b){ return a.mass() < b.mass(); } );
                 return pInfo_->emplace( it, std::move( t ) );
             }
 

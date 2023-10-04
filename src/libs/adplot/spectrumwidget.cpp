@@ -932,8 +932,6 @@ SpectrumWidget::TraceData::redraw( plot& plot, SpectrumWidget::HorizontalAxis ax
 {
     QRectF rect;
 
-    ADDEBUG() << "TraceData::redraw x = " << std::make_pair( rcLeft.left(), rcLeft.right() );
-
     if ( auto p = pSpectrum_ ) {
         __set( plot, p, rect, axis, yAxis_ );
 

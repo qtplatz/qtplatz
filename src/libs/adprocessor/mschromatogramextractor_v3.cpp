@@ -360,12 +360,14 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     double width = cm->width_at_mass( mol.mass() );
                     double lMass = mol.mass() - width / 2;
                     double uMass = mol.mass() + width / 2;
-                    auto display_name = ( boost::format( "%s (%.3f)" )
+                    auto ion_form = adcontrols::ChemicalFormula::formatAdduct( mol.adducts( polarity ) );
+                    auto display_name = ( boost::format( "%s %s (%.3f)" )
                                           % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
+                                          % ion_form
                                           % mol.mass() ).str();
                     auto desc = ( boost::format( "%s %s %.4f (W:%.4gmDa) %s %d" )
                                   % ( mol.synonym().empty() ? mol.formula() : mol.synonym() )
-                                  % adcontrols::ChemicalFormula::formatAdduct( mol.adducts( polarity ) )
+                                  % ion_form
                                   % mol.mass()
                                   % ( width * 1000 )
                                   % reader->display_name()
