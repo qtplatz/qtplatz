@@ -87,6 +87,25 @@ namespace adprocessor {
             std::optional< adcontrols::MSPeakInfo::const_iterator >
             operator()( const adcontrols::MSPeakInfo& pInfo, int proto );
 
+            std::optional< adcontrols::MSPeakInfo::iterator >
+            operator()( adcontrols::MSPeakInfo& pInfo, int proto );
+
+            adprocessor::dataprocessor * dataprocessor();
+        private:
+            class impl;
+            impl * impl_;
+        };
+
+        /////////////////////////////////////
+        class annotator {
+        public:
+            ~annotator();
+            annotator( const portfolio::Folium&, const adcontrols::ProcessMethod& );
+
+            std::optional< adcontrols::annotation >
+            operator()( const adcontrols::MassSpectrum& centroid
+                        , const std::tuple<double,double,double>& tR );
+            void operator()( std::shared_ptr< adcontrols::MSPeakInfo > pInfo );
             adprocessor::dataprocessor * dataprocessor();
         private:
             class impl;

@@ -509,6 +509,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
 	QStandardItemModel& model = *impl_->model_;
 
+    ADDEBUG() << "##### setPeakInfo( MSPeakInfo& ) ###########";
+
     setUpdatesEnabled( false );
 
     model.setRowCount( 0 );
@@ -522,13 +524,15 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     if ( !this->isColumnHidden( c_mspeaktable_relative_intensity ) ) {
         for ( auto& pkinfo: segs ) {
             auto it = std::max_element( pkinfo.begin(), pkinfo.end()
-                                        , [&](const auto& a, const auto& b){ return is_area ? (a.area() < b.area()) : (a.height() < b.height()); });
+                                        , [&](const auto& a, const auto& b){
+                                            return is_area ? (a.area() < b.area()) : (a.height() < b.height());
+                                        });
             if ( it != pkinfo.end() ) {
                 iMax = std::max( iMax, is_area ? it->area() : it->height() );
             }
         }
     }
-
+    bool hasFormula( false );
     int row = 0;
     int fcn = 0;
     for ( auto& pkinfo: segs ) {
@@ -560,6 +564,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
                 model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( pk.formula() ) );
                 model.setData( model.index( row, c_mspeaktable_exact_mass ), mass );
                 model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - mass );
+                hasFormula = true;
             }
 			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( pk.annotation() ) );
             model.setData( model.index( row, c_mspeaktable_mass_width ), pk.widthHH( false ) * std::milli::den );
@@ -571,6 +576,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
         }
         ++fcn;
     }
+
+    if ( hasFormula )
+        hideRows();
 
     setColumnHidden( c_mspeaktable_mass_width, false );
     setColumnHidden( c_mspeaktable_time_width, false );

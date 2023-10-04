@@ -47,6 +47,7 @@
 #include <boost/json.hpp>
 #include <boost/format.hpp>
 #include <memory>
+#include <optional>
 
 namespace adprocessor {
 
@@ -101,13 +102,13 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     progress( 0, impl_->folio_.size() );
 
     for ( const auto& cfolium: impl_->folio_ ) {
-
-
         jcb2009_helper::find_mass find_mass( cfolium, *impl_->procm_ );
 
         auto [gen,peaks] = jcb2009_helper::folium_accessor( cfolium )();
 
         for ( const auto& peak: peaks ) {
+
+            ADDEBUG() << "peak " << nCurr << "\t" << (gen.formula() ? *gen.formula() : "" ) << ", " << gen.mass();
 
             adcontrols::jcb2009_peakresult pkResult( { gen.mass(), gen.mass_width(), gen.protocol() }
                                                      , peak
@@ -124,14 +125,13 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                                 % cfolium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
 
                 ms->addDescription( adcontrols::description( { "create", folname } ) );
+
                 // apply MSLock
                 impl_->processor_->mslock( *ms, std::get<0>(tR) );
-                ADDEBUG() << "---------- JCB2009_Processor --------------";
                 auto top = impl_->processor_->addSpectrum( ms, *impl_->procm_, false );
-                ADDEBUG() << "---------- JCB2009_Processor --------------";
+
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid && pInfo ) {
-                    temp = pCentroid;
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
                     // adcontrols::annotation anno;
                     if ( auto idx = find_mass( *pCentroid, target_protocol ) ) {
@@ -145,15 +145,22 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                                  % mass
                                  % std::get<0>(tR)).str()
                                 , mass, intensity, idx->first );
+
                         segments_helper::get_annotations( *pCentroid, *idx ) << anno;
                         segments_helper::set_color( *pCentroid, idx->second, idx->first, 15 );
                     }
+                    //
                     if ( auto it = find_mass( *pInfo, target_protocol ) ) {
                         pkResult.set_found_mass( **it );
+                        if ( auto formula = gen.formula() ) {
+                            (*it)->formula( *formula );
+                            // (*it)->annotation( cfolium.name() );
+                            ADDEBUG() << "assign formula: " << std::make_tuple( *formula, (*it)->mass() );
+                        }
                         // summary( **it, std::move( pkResult ) );
                     }
-                    top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
-                    top.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
+                    auto a1 = top.addAttachment( adcontrols::constants::F_CENTROID_SPECTRUM ).assign( pCentroid, pCentroid->dataClass() );
+                    a1.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
                     // top.setAttribute( "tag", "red" );
                     impl_->added_.emplace_back( top );
                 }

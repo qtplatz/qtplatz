@@ -386,7 +386,11 @@ MSPeakTree::setContents( std::tuple< std::shared_ptr< adcontrols::MSPeakInfo >
     auto ms = std::move( std::get< 1 >( tuple ) );
     impl_->data_source_ = ms;
     auto target = std::move( std::get< 2 >( tuple ) );
-    setPeakInfo( *target, ms );
+    if ( target ) {
+        setPeakInfo( *target, ms );
+    } else {
+        setPeakInfo( {}, nullptr ); // clear table
+    }
 }
 
 void
