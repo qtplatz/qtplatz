@@ -44,6 +44,7 @@ namespace adprocessor {
         double mass_width_;
         int proto_;
         std::optional< std::string > formula_;
+        std::string adduct_;
         std::string reader_name_;
         std::pair< std::string, boost::uuids::uuid > dataSource_;
 
@@ -66,6 +67,7 @@ namespace adprocessor {
                               , mass_width_( t.mass_width_ )
                               , proto_( t.proto_ )
                               , formula_( t.formula_ )
+                              , adduct_( t.adduct_ )
                               , reader_name_( t.reader_name_ )
                               , dataSource_( t.dataSource_ ) {
         }
@@ -120,6 +122,7 @@ namespace adprocessor {
             }
         }
         void setup( const boost::json::value& jv ) {
+            ADDEBUG() << "--------------------->\n" << jv;
             if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
                 generator_ = "extract_by_peak_info"; // gen from mass peak
                 if ( auto value = adportable::json_helper::if_contains( *gen, "pkinfo.mass" ) )
@@ -130,6 +133,8 @@ namespace adprocessor {
                     mass_ = value->as_double();
                 if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.formula" ) )
                     formula_ = value->as_string();
+                if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.adduct" ) )
+                    adduct_ = value->as_string();
             }
         }
     };
@@ -167,6 +172,12 @@ namespace adprocessor {
     std::optional< std::string > generator_property::formula() const
     {
         return impl_->formula_;
+    }
+
+    std::string
+    generator_property::adduct() const
+    {
+        return impl_->adduct_;
     }
 
     double

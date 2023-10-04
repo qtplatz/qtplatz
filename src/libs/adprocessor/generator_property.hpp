@@ -54,6 +54,7 @@ namespace adprocessor {
         generator_property( const adcontrols::Chromatogram& );
         std::string generator() const;
         std::optional< std::string > formula() const;
+        std::string adduct() const;
         double mass() const;
         double mass_width() const;
         const std::string& data_reader() const;

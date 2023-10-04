@@ -406,7 +406,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                     auto molid = mol.molid(); // property< boost::uuids::uuid >( "molid" );
                     auto time_of_injection = this->time_of_injection();
 
-                    extract_by_mols.moltable_  = { *proto, mol.mass(), width, mol.formula(), tof };
+                    extract_by_mols.moltable_  = { *proto, mol.mass(), width, mol.formula(), tof, mol.adducts( polarity ) };
                     extract_by_mols.molid      = molid ? *molid : boost::uuids::uuid{};
                     extract_by_mols.wform_type = (sp->isCentroid() ? "centroid" : "profile");
                     extract_by_mols.msref      = ( cm->lockmass() ? boost::optional<bool>( mol.isMSRef() ) : boost::none );
@@ -417,7 +417,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         , { "mass_width", width }
                         , { "protocol",  proto ? *proto : 0 }
                         , { "reader", reader->display_name() }
-                        , { "generator"
+                            , { "generator"
                             , {{ "time_of_injection", adportable::date_time::to_iso< std::chrono::nanoseconds >( time_of_injection ) }
                                , { "extract_by_mols", boost::json::value_from( extract_by_mols ) }
                             }

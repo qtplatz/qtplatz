@@ -108,8 +108,6 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
         for ( const auto& peak: peaks ) {
 
-            ADDEBUG() << "peak " << nCurr << "\t" << (gen.formula() ? *gen.formula() : "" ) << ", " << gen.mass();
-
             adcontrols::jcb2009_peakresult pkResult( { gen.mass(), gen.mass_width(), gen.protocol() }
                                                      , peak
                                                      , { cfolium.name<char>(), cfolium.uuid() }  );
@@ -153,9 +151,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                     if ( auto it = find_mass( *pInfo, target_protocol ) ) {
                         pkResult.set_found_mass( **it );
                         if ( auto formula = gen.formula() ) {
-                            (*it)->formula( *formula );
-                            // (*it)->annotation( cfolium.name() );
-                            ADDEBUG() << "assign formula: " << std::make_tuple( *formula, (*it)->mass() );
+                            (*it)->formula( *formula + gen.adduct() );
                         }
                         // summary( **it, std::move( pkResult ) );
                     }

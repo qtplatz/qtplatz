@@ -50,23 +50,26 @@ namespace adcontrols {
             double mass;
             double width;
             std::string formula;
+            std::string adduct;
             double tof;
             moltable() : protocol(0), mass(0), width(0), tof(0) {
             }
 
-            moltable( int tprotocol, double tmass, double twidth, const std::string& tformula, double ttof )
+            moltable( int tprotocol, double tmass, double twidth, const std::string& tformula, double ttof, const std::string& tadduct )
                 : protocol( tprotocol )
                 , mass( tmass )
                 , width( twidth )
                 , formula( tformula )
-                , tof( ttof ) {
+                , tof( ttof )
+                , adduct( tadduct ) {
             }
 
-            moltable( const moltable& t ) : protocol(t.protocol)
-                                          , mass(t.mass)
-                                          , width(t.width)
-                                          , formula(t.formula)
-                                          , tof(t.tof) {
+            moltable( const moltable& t ) : protocol( t.protocol )
+                                          , mass( t.mass )
+                                          , width( t.width )
+                                          , formula( t.formula )
+                                          , tof( t.tof )
+                                          , adduct( t.adduct ) {
             }
         };
 

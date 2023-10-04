@@ -85,6 +85,7 @@ namespace adcontrols {
                 , { "mass", t.mass }
                 , { "width", t.width }
                 , { "formula", t.formula }
+                , { "adduct", t.adduct }
                 , { "tof", t.tof }};
         }
 
@@ -101,6 +102,8 @@ namespace adcontrols {
                 extract( obj, t.width,    "width" );
                 extract( obj, t.formula,  "formula" );
                 extract( obj, t.tof,      "tof" );
+                if ( obj.contains( "adduct" ) )
+                    extract( obj, t.adduct,      "adduct" );
             }
             return t;
         }
