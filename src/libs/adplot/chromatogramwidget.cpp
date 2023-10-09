@@ -124,6 +124,13 @@ namespace {
         > trace_variant;
 
     //-------------
+    struct transformY : public boost::static_visitor< double > {
+        double y_;
+        transformY(double y) : y_( y ) {};
+        template<typename T> double operator()( const T& t ) const {
+            return t->transformY( y_ );
+        }
+    };
 
     struct boundingRect_visitor : public boost::static_visitor< QRectF > {
         template<typename T> QRectF operator()( const T& t ) const {  return t ? t->boundingRect() : QRectF{};  }
@@ -252,7 +259,7 @@ namespace adplot {
             void drawMarkers( QwtPlot *, const std::pair< double, double >& ) {}
             void setAlpha( int ) {};
             void setColor( const QColor& ) {};
-
+            double transformY( double y ) const { return y; }
         private:
             PlotCurve curve_;
 			QRectF rect_;
@@ -308,6 +315,13 @@ namespace adplot {
 
                 curve_.p()->setYAxis( yAxis_ );
                 curve_.p()->setData( new xSeriesData( cp, rect_, yNormalize_ ) );
+            }
+
+            double transformY( double y ) const {
+                if ( yNormalize_ ) {
+                    return 100. * ( y - grab_->getMinIntensity() ) / ( grab_->getMaxIntensity() - grab_->getMinIntensity() );
+                }
+                return y;
             }
 
 			const QRectF& boundingRect() const { return rect_; };
@@ -629,7 +643,7 @@ ChromatogramWidget::setChromatogram( std::tuple< int
     if ( pkres ) {
         for ( const auto& pk: pkres->peaks() ) {
             if ( !pk.name().empty() ) {
-                vec.emplace_back( pk.name(), pk.peakTime(), pk.topHeight(), idx, int( pk.topHeight() ) + 0x3fffffff );
+                vec.emplace_back( pk.name(), pk.peakTime(), pk.topHeight(), idx, int( pk.topHeight() * 100 ) );
             }
         }
     }
@@ -699,9 +713,7 @@ ChromatogramWidget::impl::setPeak( adplot::plot& plot, const adcontrols::Peak& p
     if ( label.empty() )
         label = ( boost::format( "%.2lf" ) % tR ).str();
 
-    pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
-
-    vec.emplace_back( label, tR, peak.topHeight(), (-1), pri );
+    vec.emplace_back( label, tR, peak.topHeight(), (-1), peak.topHeight() * 100 );
 
     plot_peaks_.emplace_back( plot, peak );
 }
@@ -722,7 +734,10 @@ ChromatogramWidget::impl::plotAnnotations( adplot::plot& plot, const std::vector
         text.setColor( a.index() < 0 ? Qt::darkGreen : color_table[ a.index() ] );
         text.setFont( Annotation::font() );
         if ( normalizedY_[ QwtPlot::yLeft ] ) {
-            w.insert( a.x(), 100 * a.y() / maxIt->y(), QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
+            if ( a.index() >= 0 && a.index() < traces_.size() ) {
+                double y = boost::apply_visitor( transformY{ a.y() }, traces_[ a.index() ] );
+                w.insert( a.x(), y, QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
+            }
         } else {
             w.insert( a.x(), a.y(), QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
         }
