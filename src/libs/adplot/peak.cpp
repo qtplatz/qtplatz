@@ -44,8 +44,6 @@ Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
     curve_->setItemAttribute( QwtPlotItem::Legend, false );
     curve_->attach( plot_ );
 
-    // QRectF rc = plot.zoomRect();
-
     double x[2], y[2];
     x [ 0 ] = peak.startTime();
     x [ 1 ] = peak.endTime();

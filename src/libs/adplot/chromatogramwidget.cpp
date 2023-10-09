@@ -423,7 +423,7 @@ namespace adplot {
             }
             return rect;
         }
-        void setPeak( adplot::plot&, const adcontrols::Peak& peak, std::vector< adcontrols::annotation >& vec );
+        void setPeak( adplot::plot&, const adcontrols::Peak& peak );
         void setAnnotation( adplot::plot&, const std::vector< adcontrols::annotation >& vec );
         void setAnnotation( adplot::plot&, std::vector< adcontrols::annotation >&& );
     };
@@ -689,7 +689,6 @@ ChromatogramWidget::setZoomed( const QRectF& rect, bool keepY )
 void
 ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, QwtPlot::Axis axis )
 {
-    // ADDEBUG() << "### " << __FUNCTION__ << "this=" << this << ", idx=" << idx;
     impl_->plot_peaks_.clear();
     impl_->plot_baselines_.clear();
     impl_->peak_params_curves_.clear();
@@ -699,8 +698,17 @@ ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, Qwt
 
     impl_->peak_annotations_.clear();
 
-    for ( const auto& pk:  r.peaks() )
-		impl_->setPeak( *this, pk, impl_->peak_annotations_ );
+    for ( const auto& pk:  r.peaks() ) {
+        // peak marker
+		impl_->setPeak( *this, pk );
+
+        // annotation
+		impl_->peak_annotations_.emplace_back( pk.name().empty() ? (boost::format( "%.2f" ) % pk.peakTime()).str() : pk.name()
+                                               , pk.peakTime()
+                                               , pk.topHeight()
+                                               , idx
+                                               , pk.topHeight() * 100 );
+    }
 
     auto dup( impl_->peak_annotations_ );
     std::sort( dup.begin(), dup.end(), [](const auto& a, const auto& b){ return a.priority() > b.priority(); } );
@@ -708,17 +716,9 @@ ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, Qwt
 }
 
 void
-ChromatogramWidget::impl::setPeak( adplot::plot& plot, const adcontrols::Peak& peak, std::vector< adcontrols::annotation >& vec )
+ChromatogramWidget::impl::setPeak( adplot::plot& plot, const adcontrols::Peak& peak )
 {
     double tR = peak.peakTime();
-
-    int pri = 0;
-    std::string label = peak.name();
-    if ( label.empty() )
-        label = ( boost::format( "%.2lf" ) % tR ).str();
-
-    vec.emplace_back( label, tR, peak.topHeight(), (-1), peak.topHeight() * 100 );
-
     plot_peaks_.emplace_back( plot, peak );
 }
 

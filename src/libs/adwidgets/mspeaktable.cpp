@@ -509,8 +509,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
 	QStandardItemModel& model = *impl_->model_;
 
-    ADDEBUG() << "##### setPeakInfo( MSPeakInfo& ) ###########";
-
     setUpdatesEnabled( false );
 
     model.setRowCount( 0 );
