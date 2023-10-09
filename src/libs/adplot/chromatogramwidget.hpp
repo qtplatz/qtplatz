@@ -38,7 +38,6 @@ namespace adcontrols {
 	class PeakResult;
     class Baseline;
     class Peak;
-    class annotations;
 }
 
 namespace adplot {

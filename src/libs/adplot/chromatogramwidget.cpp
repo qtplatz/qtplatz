@@ -52,7 +52,7 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
-#include <adcontrols/annotations.hpp>
+#include <adcontrols/annotation.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <qtwrapper/font.hpp>
@@ -80,27 +80,6 @@ namespace {
 
     //---------------------------------------
 
-    // static QColor color_table [] = {
-    //     QColor( 0x00, 0x00, 0xff )    // 0  blue
-    //     , QColor( 0xff, 0x00, 0x00 )  // 1  red
-    //     , QColor( 0x00, 0x80, 0x00 )  // 2  green
-    //     , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
-    //     , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
-    //     , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
-    //     , QColor( 0x80, 0x00, 0x80 )  // 6  purple
-    //     , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
-    //     , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
-    //     , QColor( 0x80, 0x80, 0x80 )  // 9  gray
-    //     , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
-    //     , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
-    //     , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
-    //     , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
-    //     , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
-    //     , QColor( 0xff, 0xff, 0xff )  //15  white
-    //     , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
-    //     , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
-    // };
-
     class zoomer : public QwtPlotZoomer {
         zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
             QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
@@ -121,6 +100,19 @@ namespace {
             return text;
         }
 
+    };
+
+    struct clipping {
+        std::vector< adcontrols::annotation >
+        operator()( const QRectF& rect, const std::vector< adcontrols::annotation >& list ) const {
+            std::vector< adcontrols::annotation > clipped;
+            std::for_each( list.begin(), list.end(), [&]( const auto& a ){
+                if ( rect.contains( QPointF(a.x(), a.y()) ) )
+                    clipped.emplace_back( a );
+            });
+            std::sort( clipped.begin(), clipped.end(), [](const auto& a, const auto& b){ return a.priority() > b.priority(); } );
+            return clipped;
+        }
     };
 }
 
@@ -378,7 +370,7 @@ namespace adplot {
                , xScale_{ true, 0, 0 }
             {}
 
-        adcontrols::annotations peak_annotations_;
+        std::vector< adcontrols::annotation > peak_annotations_;
         std::vector< Annotation > annotation_markers_;
 
         std::vector< /* anonymous */ trace_variant > traces_;
@@ -396,7 +388,6 @@ namespace adplot {
 
         void clear();
         void removeData( int );
-        void update_annotations( const std::pair<double, double>&, adcontrols::annotations& ) const;
 		void clear_annotations();
         void update_markers( const std::pair<double, double>& ) const;
 
@@ -417,11 +408,8 @@ namespace adplot {
             }
             return rect;
         }
-        void setBaseline( adplot::plot& plot, const adcontrols::Baseline& bs ) {
-            plot_baselines_.emplace_back( plot, bs );
-        }
-        void setPeak( adplot::plot&, const adcontrols::Peak& peak, adcontrols::annotations& vec );
-        void plotAnnotations( adplot::plot&, const adcontrols::annotations& vec );
+        void setPeak( adplot::plot&, const adcontrols::Peak& peak, std::vector< adcontrols::annotation >& vec );
+        void plotAnnotations( adplot::plot&, const std::vector< adcontrols::annotation >& vec );
     };
 }
 
@@ -631,20 +619,21 @@ ChromatogramWidget::setChromatogram( std::tuple< int
                                      , std::shared_ptr< const adcontrols::PeakResult > > data
                                      , QwtPlot::Axis yAxis )
 {
-    int idx = std::get<0>( data );
-    auto chr = std::get<1>( data );
+    auto [idx, chr, pkres] = data;
+
     setData( chr, idx, yAxis );
 
     auto& vec = impl_->peak_annotations_;
-    vec.erase_if( [idx](const auto& a){ return a.index() < 0 || a.index() == idx; } );
+    vec.erase( std::remove_if( vec.begin(), vec.end(), [idx](const auto& a){ return a.index() < 0 || a.index() == idx; } ), vec.end() );
 
-    if ( auto pks = std::get<2>( data ) ) {
-        for ( const auto& pk: pks->peaks() ) {
+    if ( pkres ) {
+        for ( const auto& pk: pkres->peaks() ) {
             if ( !pk.name().empty() ) {
-                vec << adcontrols::annotation( pk.name(), pk.peakTime(), pk.topHeight(), idx, int( pk.topHeight() ) + 0x3fffffff );
+                vec.emplace_back( pk.name(), pk.peakTime(), pk.topHeight(), idx, int( pk.topHeight() ) + 0x3fffffff );
             }
         }
     }
+    // ADDEBUG() << "------------> setChromatogram plotAnnotations -------------- " << this;
     impl_->plotAnnotations( *this, impl_->peak_annotations_ );
 }
 
@@ -684,12 +673,13 @@ ChromatogramWidget::setZoomed( const QRectF& rect, bool keepY )
 void
 ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, QwtPlot::Axis axis )
 {
+    // ADDEBUG() << "### " << __FUNCTION__ << "this=" << this << ", idx=" << idx;
     impl_->plot_peaks_.clear();
     impl_->plot_baselines_.clear();
     impl_->peak_params_curves_.clear();
 
     for ( const auto& bs: r.baselines() )
-		impl_->setBaseline( *this, bs );
+		impl_->plot_baselines_.emplace_back( *this, bs );
 
     impl_->peak_annotations_.clear();
 
@@ -700,37 +690,39 @@ ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, Qwt
 }
 
 void
-ChromatogramWidget::impl::setPeak( adplot::plot& plot, const adcontrols::Peak& peak, adcontrols::annotations& vec )
+ChromatogramWidget::impl::setPeak( adplot::plot& plot, const adcontrols::Peak& peak, std::vector< adcontrols::annotation >& vec )
 {
     double tR = peak.peakTime();
 
     int pri = 0;
     std::string label = peak.name();
     if ( label.empty() )
-        label = ( boost::format( "%.4lf" ) % tR ).str();
+        label = ( boost::format( "%.2lf" ) % tR ).str();
 
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
 
-    vec << adcontrols::annotation( label, tR, peak.topHeight(), (-1), pri );
+    vec.emplace_back( label, tR, peak.topHeight(), (-1), pri );
 
     plot_peaks_.emplace_back( plot, peak );
 }
 
 void
-ChromatogramWidget::impl::plotAnnotations( adplot::plot& plot, const adcontrols::annotations& vec )
+ChromatogramWidget::impl::plotAnnotations( adplot::plot& plot, const std::vector< adcontrols::annotation >& vec )
 {
     using constants::chromatogram::color_table;
 
     clear_annotations();
 
     adplot::Annotations w( plot, annotation_markers_ );
+    auto maxIt = std::max_element( vec.begin(), vec.end()
+                                   , [](const auto& a, const auto& b){ return a.y() < b.y(); });
 
     for ( auto& a: vec ) {
 		QwtText text( QString::fromStdString( a.text() ), QwtText::RichText );
         text.setColor( a.index() < 0 ? Qt::darkGreen : color_table[ a.index() ] );
         text.setFont( Annotation::font() );
         if ( normalizedY_[ QwtPlot::yLeft ] ) {
-            w.insert( a.x(), 100, QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
+            w.insert( a.x(), 100 * a.y() / maxIt->y(), QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
         } else {
             w.insert( a.x(), a.y(), QwtPlot::yLeft, std::move( text ), Qt::AlignTop | Qt::AlignHCenter );
         }
@@ -773,9 +765,7 @@ ChromatogramWidget::zoomed( const QRectF& rect )
     for ( auto& trace : impl_->traces_ )
         boost::apply_visitor( drawMarker, trace );
 
-    adcontrols::annotations vec;
-    impl_->update_annotations( range, vec );
-    vec.sort();
+    auto vec = clipping()( rect, impl_->peak_annotations_ );
     impl_->plotAnnotations( *this, vec );
 }
 
@@ -837,24 +827,19 @@ ChromatogramWidget::impl::update_markers( const std::pair<double, double>& ) con
 {
 }
 
-void
-ChromatogramWidget::impl::update_annotations( const std::pair<double, double>& range
-                                            , adcontrols::annotations& vec ) const
-{
-	auto& peaks = peak_annotations_;
-    auto beg = std::lower_bound( peaks.begin(), peaks.end(), range.first, [=]( const adcontrols::annotation& a, double rhs ){
-            return a.x() < rhs;
-        });
-    auto end = std::lower_bound( peaks.begin(), peaks.end(), range.second, [=]( const adcontrols::annotation& a, double rhs ){
-            return a.x() < rhs;
-        });
+// std::vector< adcontrols::annotation >
+// ChromatogramWidget::impl::clipping( const QRectF& rect
+//                                     , const std::vector< adcontrols::annotation >& annots ) const
+// {
+//     std::vector< adcontrols::annotation > vec;
 
-    std::for_each( beg, end, [&]( const adcontrols::annotation& a ){
-            vec << a;
-        });
-
-    vec.sort();
-}
+//     std::for_each( annots.begin(), annots.end(), [&]( const auto& a ){
+//         if ( rect.contains( QPointF(a.x(), a.y()) ) )
+//             vec.emplace_back( a );
+//     });
+//     std::sort( vec.begin(), vec.end(), [](const auto& a, const auto& b){ return a.priority() > b.priority(); } );
+//     return vec;
+// }
 
 QwtText
 ChromatogramWidget::impl::tracker1( const QPointF& pos )

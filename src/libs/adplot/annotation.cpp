@@ -52,24 +52,6 @@ Annotation::~Annotation()
     delete impl_;
 }
 
-// Annotation::Annotation( plot& plot
-//                         , const std::wstring& label
-//                         , QwtPlot::Axis yAxis
-//                         , double x
-//                         , double y
-//                         , Qt::GlobalColor color ) : impl_( new impl( &plot ) )
-// {
-//     impl_->marker_->setValue( x, y );
-//     impl_->marker_->setAxes( impl_->marker_->xAxis(), yAxis );
-//     impl_->marker_->setLineStyle( QwtPlotMarker::NoLine );
-//     impl_->marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
-//     QwtText text( QString::fromStdWString( label ) );
-//     text.setFont( font() );
-//     text.setColor( color );
-//     impl_->marker_->setLabel( text );
-//     impl_->marker_->attach( &plot );
-// }
-
 Annotation::Annotation( plot& plot
                         , const QwtText& label
                         , const QPointF& xy
