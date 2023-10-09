@@ -626,8 +626,6 @@ ChromatogramWnd::impl::redraw()
         plot->clear();
         plot->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( yScale_ ) && (overlays_.size() > 1) );
 
-        ADDEBUG() << "impl::redraw overlays: " << overlays_.size();
-
         int idx(0);
         for ( auto& datum: overlays_ ) {
             if ( auto chr = datum.get_chromatogram() ) {
@@ -637,10 +635,6 @@ ChromatogramWnd::impl::redraw()
                     datum.setOverlayChromatogram( std::make_shared< adcontrols::Chromatogram >( *chr ) );
                 }
                 plot->setChromatogram( {idx, chr, datum.get_peakResult()}, QwtPlot::yLeft );
-
-                if ( auto pks = datum.get_peakResult() ) {
-                    ADDEBUG() << "\tidx: " << idx << ", " << ( pks->peaks().size() > 0 ? pks->peaks().begin()->name() : "" );
-                }
 
                 if ( idx == 0 ) {
                     if ( auto label = chr->axisLabel( adcontrols::plot::yAxis ) )

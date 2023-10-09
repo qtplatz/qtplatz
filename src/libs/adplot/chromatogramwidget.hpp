@@ -85,10 +85,6 @@ namespace adplot {
         void setLegendEnabled( bool );
         bool legendEnabled() const;
 
-	private:
-        void setBaseline( const adcontrols::Baseline& );
-        void setPeak( const adcontrols::Peak&, adcontrols::annotations& );
-
     signals:
 		void onMoved( const QPointF& );
 		void onSelected( const QPointF& );
@@ -103,7 +99,9 @@ namespace adplot {
 		void zoomed( const QRectF& );
 
     private:
-        void plotAnnotations( const adcontrols::annotations& );
+        // void setBaseline( const adcontrols::Baseline& );
+        // void setPeak( const adcontrols::Peak&, adcontrols::annotations& );
+        // void plotAnnotations( const adcontrols::annotations& );
         class impl;
         impl * impl_;
     };
