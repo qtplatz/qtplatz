@@ -151,7 +151,7 @@ namespace dataproc {
 
         void setPeakResult( adcontrols::PeakResultPtr ptr ) {
             if (( peakResult_ = ptr )) {
-                plots_[ 0 ]->setPeakResult( *ptr, QwtPlot::yLeft );
+                plots_[ 0 ]->setPeakResult( *ptr, 0, QwtPlot::yLeft );
                 peakTable_->setData( *ptr );
             } else { // clear
                 peakTable_->setData( adcontrols::PeakResult{} );

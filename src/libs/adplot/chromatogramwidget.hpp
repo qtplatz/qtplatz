@@ -66,7 +66,7 @@ namespace adplot {
         void setXScale( std::tuple< bool, double, double >&&, bool replot );
         void replotScale();
 
-		void setPeakResult( const adcontrols::PeakResult&, QwtPlot::Axis );
+		void setPeakResult( const adcontrols::PeakResult&, int idx, QwtPlot::Axis );
         void setAlpha( int idx, int alpha );
         void setColor( int idx, const QColor& color );
         void setNormalizedY( QwtPlot::Axis, bool );

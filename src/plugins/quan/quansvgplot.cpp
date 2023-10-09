@@ -217,7 +217,7 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
     if ( data.chromatogram )
         plot.setData( data.chromatogram.get(), 0, QwtPlot::yLeft );
     if ( data.pkResult )
-        plot.setPeakResult( *data.pkResult.get(), QwtPlot::yLeft );
+        plot.setPeakResult( *data.pkResult.get(), 0, QwtPlot::yLeft );
 
     adplot::PeakMarker marker;
     if ( data.pkResult ) {

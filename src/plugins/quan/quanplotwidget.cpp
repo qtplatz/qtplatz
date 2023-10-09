@@ -203,7 +203,7 @@ QuanPlotWidget::setChromatogram( const QuanPlotData * d, size_t idx, int fcn, co
             pw->setData( d->chromatogram.get(), 0, QwtPlot::yLeft );
 
             if ( d->pkResult ) {
-                pw->setPeakResult( *d->pkResult.get(), QwtPlot::yLeft );
+                pw->setPeakResult( *d->pkResult.get(), 0, QwtPlot::yLeft );
 
                 if ( idx < d->pkResult.get()->peaks().size() ) {
                     auto item = d->pkResult.get()->peaks().begin() + idx;

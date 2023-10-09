@@ -677,7 +677,7 @@ ChromatogramWidget::setZoomed( const QRectF& rect, bool keepY )
 }
 
 void
-ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, QwtPlot::Axis axis )
+ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, QwtPlot::Axis axis )
 {
     impl_->plot_peaks_.clear();
     impl_->plot_baselines_.clear();

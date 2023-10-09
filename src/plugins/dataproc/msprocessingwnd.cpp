@@ -683,7 +683,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
                         return portfolio::is_type< adcontrols::PeakResultPtr >( a ); }) ) {
                         auto pkresults = portfolio::get< adcontrols::PeakResultPtr >( f );
-                        pImpl_->ticPlot_->setPeakResult( *pkresults, QwtPlot::yLeft );
+                        pImpl_->ticPlot_->setPeakResult( *pkresults, 0, QwtPlot::yLeft );
                     }
                 } else {
                     ADDEBUG() << "\t############# failed to get chromatogram ptr";

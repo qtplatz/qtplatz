@@ -117,5 +117,5 @@ Annotation::getPlotMarker() const
 QFont
 Annotation::font()
 {
-    return QFont( "Calibri", 9, QFont::Normal );
+    return QFont( QFont().defaultFamily(), 9, QFont::Normal );
 }
