@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2023 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,47 +25,21 @@
 
 #pragma once
 
+#include <vector>
 #include <string>
-// #include <compiler/diagnostic_push.h>
-// #include <compiler/disable_unused_parameter.h>
-// #include <compiler/diagnostic_pop.h>
-// #include <memory>
-#include <QtCore>
 #include <qwt_plot.h>
+#include <Qt>
 
-class QwtPlotMarker;
 class QwtText;
 class QPointF;
+class QRectF;
+class QSizeF;
+class QwtPlot;
 
 namespace adplot {
 
-    class plot;
-
-    class Annotation {
-    public:
-        explicit Annotation( plot&
-                             , const QwtText&
-                             , const QPointF&
-                             , QwtPlot::Axis
-                             , Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
-
-        explicit Annotation( plot&
-                             , QwtText&&
-                             , QPointF&&
-                             , QwtPlot::Axis
-                             , Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
-
-        ~Annotation();
-        Annotation( const Annotation& );
-
-        void setLabelAlighment( Qt::Alignment );
-        QwtPlotMarker * getPlotMarker() const;
-
-        static QFont font();
-
-    private:
-        class impl;
-        impl * impl_;
+    struct boundingRect {
+        QRectF operator()( QwtPlot& plot, double x, double y, const QwtText& label, Qt::Alignment align ) const;
+        QRectF operator()( QwtPlot& plot, QPointF xy, const QwtText& label, Qt::Alignment align ) const;
     };
-
 }

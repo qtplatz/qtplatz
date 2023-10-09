@@ -31,6 +31,7 @@ set( adplot_SOURCES
   axisextent.hpp
   baseline.cpp
   baseline.hpp
+  boundingrect.cpp boundingrect.hpp
   chartview.cpp
   chartview.hpp
   chromatogramwidget.cpp
