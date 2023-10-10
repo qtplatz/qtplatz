@@ -640,7 +640,7 @@ ChromatogramWidget::setChromatogram( std::tuple< int
     setData( chr, idx, yAxis );
 
     auto& vec = impl_->peak_annotations_;
-    vec.erase( std::remove_if( vec.begin(), vec.end(), [idx](const auto& a){ return a.index() < 0 || a.index() == idx; } ), vec.end() );
+    vec.erase( std::remove_if( vec.begin(), vec.end(), [idx=idx](const auto& a){ return a.index() < 0 || a.index() == idx; } ), vec.end() );
 
     if ( pkres ) {
         for ( const auto& pk: pkres->peaks() ) {
