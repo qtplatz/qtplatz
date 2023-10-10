@@ -69,6 +69,7 @@
 #include <boost/exception/all.hpp>
 #include <future>
 #include <thread>
+#include <filesystem>
 
 using namespace sdfview;
 
