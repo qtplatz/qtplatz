@@ -8,7 +8,7 @@ if ( MSVC )
 endif()
 
 if ( CMAKE_COMPILER_IS_GNUCXX )
-  if (GCC_VERSION VERSION_EQUAL 8)
+  if ( GCC_VERSION VERSION_LESS 9 )
     set ( STDCXXFS "stdc++fs" )
   endif()
 endif()
