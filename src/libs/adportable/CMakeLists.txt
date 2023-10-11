@@ -7,6 +7,12 @@ if ( MSVC )
   set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE ) # <-- quick workaround for undefined symbols to extract( .., boosst::uuids::uuid, ...)
 endif()
 
+if ( CMAKE_COMPILER_IS_GNUCXX )
+  if (GCC_VERSION VERSION_EQUAL 8)
+    set ( STDCXXFS "stdc++fs" )
+  endif()
+endif()
+
 add_library( ${PROJECT_NAME} SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/../compiler/decl_export.h"
   adportable_global.h
@@ -77,6 +83,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   xmlparser
   ${Boost_LIBRARIES}
   Threads::Threads
+  ${STDCXXFS}
   )
 
 # message( STATUS "Boost_LIBRARIES = " ${Boost_LIBRARIES} )

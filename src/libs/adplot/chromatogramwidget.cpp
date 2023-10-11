@@ -62,8 +62,9 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional.hpp>
 #include <array>
-#include <queue>
 #include <memory>
+#include <queue>
+#include <set>
 
 namespace adplot {
     namespace ns_c     {  class ChromatogramData;                 }
