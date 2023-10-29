@@ -470,8 +470,8 @@ ChromatogramWidget::color( int idx ) const
 {
     using constants::chromatogram::color_table;
 
-    if ( idx >= 0 && idx < sizeof( color_table )/sizeof( color_table[0] ) )
-        return QColor( color_table[ idx ] );
+    if ( idx >= 0 ) // && idx < sizeof( color_table )/sizeof( color_table[0] ) )
+        return QColor( color_table[ idx % sizeof(color_table)/sizeof(color_table[0]) ] );
     return QColor( Qt::black );
 }
 

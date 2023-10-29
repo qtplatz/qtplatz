@@ -37,19 +37,19 @@ namespace adplot {
                 , QColor( 0x00, 0x80, 0x00 )  // 2  green
                 , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
                 , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
-                , QColor( 0x33, 0x33, 0xff )  // 5 , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
+                , QColor( 0x33, 0x33, 0xff )  // 5  QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
                 , QColor( 0x80, 0x00, 0x80 )  // 6  purple
-                , QColor( 0xff, 0x80, 0x00 )  // 7 orange , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson -------
+                , QColor( 0xff, 0x80, 0x00 )  // 7  orange , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson -------
                 , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
-                , QColor( 0x80, 0x80, 0x80 )  // 9  gray
-                , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
-                , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
+                , QColor( 0x55, 0x6b, 0x2f )  // 9  dark olive green
+                , QColor( 0x00, 0x80,  0x80 )  //10  dark gray
+                , QColor( 0x2e, 0x8b, 0x57 )  //11  see green
                 , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
                 , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
                 , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
-                , QColor( 0xff, 0xff, 0xff )  //15  white
+                , QColor( 0x8a, 0x2b, 0xff )  //15  blue violet
                 , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
-                , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
+                , QColor( 0x80, 0x00, 0x80 )  //17 purple
             };
 
         }

@@ -226,7 +226,7 @@ namespace chemistry {
         , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCCCC(=O)O)",    { "C22:5", "Docosapentaenoic acid", "90165" }}
         , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",      { "C20:5", "Eicosapentaenoic acid", "90110" }}
         , { R"(CC/C=C\C/C=C\C/C=C\CCCCCCCC(=O)O)",              { "C18:3", "a-Linoleic acid",       "90210" }}
-        , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "C18:3", "g-Linoleic acid",       "90220" }}
+        , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "GLA", "g-Linoleic acid",       "90220" }}
         , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid",      "90320" }}
         // 17942 Saturated/Monounsaturated fatty acid MaxSpec LC-MS Mixture
         , { R"(O=C(O)CCCCCCCCCCCCCCCCCCC)",           { "C20:0", "Arachidic acid",   "9000339",   "17942-1" }}
