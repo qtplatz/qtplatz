@@ -142,14 +142,14 @@ namespace adportable {
     //---------------------
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const boost::uuids::uuid& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const boost::uuids::uuid& t )
     {
         jv = boost::uuids::to_string( t );
     }
 
 
     boost::uuids::uuid
-    tag_invoke( boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< boost::uuids::uuid>&, const boost::json::value& jv )
     {
         return boost::lexical_cast< boost::uuids::uuid >( jv.as_string().data() );
     }
