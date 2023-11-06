@@ -28,6 +28,9 @@
 #include <boost/variant.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/format.hpp>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
+#include <boost/json/value_from.hpp>
 #include <functional>
 #include <map>
 #include <string>
@@ -39,6 +42,7 @@ namespace adcontrols {
         // xxx_type classes are serialized by adcontrols::ControlMethod::TimedEvent class in timedevent.cpp.
         // If more xxx_types are added, also add serializer in timedevent.cpp
 
+        // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT voltage_type {
             double value;
             std::pair< double, double > limits;
@@ -47,7 +51,10 @@ namespace adcontrols {
         };
         bool operator==(const voltage_type& lhs, const voltage_type& rhs);
         bool operator<(const voltage_type& lhs, const voltage_type& rhs);
+        voltage_type  tag_invoke( const boost::json::value_to_tag< voltage_type >&, const boost::json::value& jv );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const voltage_type& );
 
+        // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT duration_type {
             double value;
             std::pair< double, double > limits;
@@ -56,7 +63,10 @@ namespace adcontrols {
         };
         bool operator==(const duration_type& lhs, const duration_type& rhs);
         bool operator<(const duration_type& lhs, const duration_type& rhs);
+        duration_type tag_invoke( const boost::json::value_to_tag< duration_type >&, const boost::json::value& jv );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const duration_type& );
 
+        // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT switch_type {
             bool value;
             std::pair< std::string, std::string > choice;
@@ -65,7 +75,10 @@ namespace adcontrols {
         };
         bool operator==(const switch_type& lhs, const switch_type& rhs);
         bool operator<(const switch_type& lhs, const switch_type& rhs);
+        switch_type tag_invoke( const boost::json::value_to_tag< switch_type >&, const boost::json::value& jv );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const switch_type& );
 
+        // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT choice_type {
             uint32_t value;
             std::vector< std::string > choice;
@@ -74,7 +87,10 @@ namespace adcontrols {
         };
         bool operator==(const choice_type& lhs, const choice_type& rhs);
         bool operator<(const choice_type& lhs, const choice_type& rhs);
+        choice_type tag_invoke( const boost::json::value_to_tag< choice_type >&, const boost::json::value& jv );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const choice_type& );
 
+        // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT delay_width_type {
             std::pair<double, double> value;
             delay_width_type( std::pair<double, double>&& _1 = { 0, 1.0e-8 } ) : value( _1 ) {}
@@ -82,7 +98,10 @@ namespace adcontrols {
         };
         bool operator==(const delay_width_type& lhs, const delay_width_type& rhs);
         bool operator<(const delay_width_type& lhs, const delay_width_type& rhs);
+        delay_width_type tag_invoke( const boost::json::value_to_tag< delay_width_type >&, const boost::json::value& jv );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const delay_width_type& );
 
+        // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT any_type {
             std::string value;   // serialized archive either xml or binary
             boost::uuids::uuid editor_;
@@ -92,7 +111,10 @@ namespace adcontrols {
         };
         bool operator==(const any_type& lhs, const any_type& rhs);
         bool operator<(const any_type& lhs, const any_type& rhs);
+        any_type tag_invoke( const boost::json::value_to_tag< any_type >&, const boost::json::value& jv );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const any_type& );
 
+        // -------------------------------------------
         class ADCONTROLSSHARED_EXPORT EventCap {
         public:
             typedef boost::variant< duration_type, voltage_type, switch_type, choice_type, delay_width_type, any_type > value_type;
