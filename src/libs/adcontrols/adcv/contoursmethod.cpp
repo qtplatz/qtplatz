@@ -138,7 +138,7 @@ ContoursMethod::to_json( const ContoursMethod& t )
         { "ContoursMethod", {
                 { "sizeFactor", t.sizeFactor() }
                 , { "blurSize",   t.blurSize() }
-                , { "cannyThreshold", t.cannyThreshold() }
+                , { "cannyThreshold",   boost::json::value_from(t.cannyThreshold()) }
                 , { "minSizeThreshold", t.minSizeThreshold() }
                 , { "maxSizeThreshold", t.maxSizeThreshold() }
                 , { "blurAlgo", int( t.blur() ) }
