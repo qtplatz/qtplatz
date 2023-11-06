@@ -23,9 +23,9 @@
 **************************************************************************/
 
 #include "timedevent.hpp"
-#include "serializer.hpp"
-#include "modulecap.hpp"
 #include "eventcap.hpp"
+#include "modulecap.hpp"
+#include "serializer.hpp"
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
 #include <compiler/boost/workaround.hpp>
@@ -55,9 +55,12 @@ namespace adcontrols {
 
         struct null_type {};
         template< typename... Types> struct value_type_list {};
-        using value_types = value_type_list< duration_type, voltage_type
-                                             , switch_type, choice_type
-                                             , delay_width_type, any_type
+        using value_types = value_type_list< duration_type
+                                             , voltage_type
+                                             , switch_type
+                                             , choice_type
+                                             , delay_width_type
+                                             , any_type
                                              , null_type >;
 
         template< typename last_t > struct value_type_list< last_t > {
@@ -417,7 +420,7 @@ TimedEvent::toString( const value_type& v )
 namespace adcontrols {
     namespace ControlMethod {
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TimedEvent& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const TimedEvent& t )
         {
             jv = {
                 { "modelClsid", t.modelClsid_ }
@@ -430,7 +433,8 @@ namespace adcontrols {
         }
 
 
-        TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv )
+        TimedEvent
+        tag_invoke( const boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv )
         {
             TimedEvent t;
             if ( jv.is_object() ) {
@@ -446,7 +450,8 @@ namespace adcontrols {
                 if ( data.is_object() ) {
                     auto type_name = boost::json::value_to< std::string >( data.as_object().at( "type" ) );
                     if ( type_name == value_name()( duration_type() ) ) {
-                        t.value_ = boost::json::value_to< duration_type >( data );
+                        auto  d = tag_invoke( boost::json::value_to_tag< duration_type >{}, data );
+                        t.value_ = d; // boost::json::value_to< duration_type >( data );
                     } else if ( type_name == value_name()( voltage_type() ) ) {
                         t.value_ = boost::json::value_to< voltage_type >( data );
                     } else if ( type_name == value_name()( switch_type() ) ) {
