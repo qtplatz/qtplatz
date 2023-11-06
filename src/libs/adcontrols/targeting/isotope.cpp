@@ -48,7 +48,7 @@ namespace adcontrols {
 
 
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const isotope& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const isotope& t )
         {
             jv = boost::json::object{ { "isotope"
                     , {
@@ -62,7 +62,7 @@ namespace adcontrols {
         }
 
         isotope
-        tag_invoke( boost::json::value_to_tag< isotope >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< isotope >&, const boost::json::value& jv )
         {
             isotope t;
             using namespace adportable::json;

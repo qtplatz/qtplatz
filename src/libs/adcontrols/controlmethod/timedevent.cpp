@@ -125,7 +125,7 @@ namespace adcontrols {
                 return boost::json::object{
                     { "type", value_name()( arg ) }
                     , { "value", arg.value }
-                    , { "editor", arg.editor_ } // uuid
+                    , { "editor", boost::json::value_from( arg.editor_ ) } // uuid
                 };
             }
         };
@@ -426,7 +426,7 @@ namespace adcontrols {
         tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const TimedEvent& t )
         {
             jv = {
-                { "modelClsid", t.modelClsid_ }
+                { "modelClsid", boost::json::value_from( t.modelClsid_ ) }
                 , { "modelDisplayName", t.modelDisplayName_ }
                 , { "name", t.name_ }
                 , { "displayName", t.displayName_ }

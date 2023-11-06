@@ -31,6 +31,7 @@ if ( APPLE )
   # set( CMAKE_OSX_ARCHITECTURES "arm64;x86_64" )
   #
   #set( CMAKE_OSX_DEPLOYMENT_TARGET "12.1" CACHE STRING "Minimum OS X deployment version" FORCE )
+  add_definitions( -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION )
 endif()
 if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )

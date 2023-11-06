@@ -177,8 +177,8 @@ namespace adcontrols {
         uint64_t userData_;
 
     private:
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const Peak& );
-        friend ADCONTROLSSHARED_EXPORT Peak tag_invoke( boost::json::value_to_tag< Peak >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const Peak& );
+        friend ADCONTROLSSHARED_EXPORT Peak tag_invoke( const boost::json::value_to_tag< Peak >&, const boost::json::value& jv );
 
         friend class boost::serialization::access;
         template<class Archive>

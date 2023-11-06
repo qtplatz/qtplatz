@@ -137,9 +137,9 @@ Peaks::noiseLevel( double v )
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const Peaks& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const Peaks& t )
     {
-        jv = {{ "peaks", t.peaks_ }
+        jv = {{ "peaks",  boost::json::value_from( t.peaks_ ) }
               ,{ "areaTotal", t.areaTotal_ }
               ,{ "heightTotal", t.heightTotal_ }
               ,{ "noiseLevel",  t.noiseLevel_ }
@@ -147,7 +147,7 @@ namespace adcontrols {
     }
 
     Peaks
-    tag_invoke( boost::json::value_to_tag< Peaks >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< Peaks >&, const boost::json::value& jv )
     {
         Peaks t;
         using namespace adportable::json;

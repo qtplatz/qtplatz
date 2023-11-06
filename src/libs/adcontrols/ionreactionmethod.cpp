@@ -221,26 +221,26 @@ IonReactionMethod::set_polarity( ion_polarity t ) const
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const IonReactionMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const IonReactionMethod& t )
     {
         jv = boost::json::object{
             { "polarity", static_cast< uint32_t >( t.impl_->polarity_ ) }
             , { "i8n",           t.impl_->i8n_ } // ESI, APCI, MALDI, MVCI,
             , { "description",   t.impl_->description_ }
             , { "polarity_positive"
-                , {{ "chargeRange", std::get< 0 >( t.impl_->chargeRanges_ ) }
-                   ,{ "pos_addlose", t.impl_->pos_addlose_ }}
+                , {{ "chargeRange", boost::json::value_from( std::get< 0 >( t.impl_->chargeRanges_ ) ) }
+                   ,{ "pos_addlose", boost::json::value_from( t.impl_->pos_addlose_ ) }}
             }
             , { "polarity_negative"
-                , {{ "chargeRange", std::get< 1 >( t.impl_->chargeRanges_ ) }
-                   ,{ "neg_addlose", t.impl_->neg_addlose_ }}
+                , {{ "chargeRange", boost::json::value_from( std::get< 1 >( t.impl_->chargeRanges_ ) ) }
+                   ,{ "neg_addlose", boost::json::value_from( t.impl_->neg_addlose_ ) }}
             }
         };
     }
 
 
     IonReactionMethod
-    tag_invoke( boost::json::value_to_tag< IonReactionMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< IonReactionMethod >&, const boost::json::value& jv )
     {
         IonReactionMethod t;
         using namespace adportable::json;

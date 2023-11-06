@@ -563,7 +563,7 @@ namespace adcontrols {
     namespace chromatography {
 
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TimedEvent& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const TimedEvent& t )
         {
             jv = boost::json::object{
                 { "time", t.time_ }
@@ -577,7 +577,7 @@ namespace adcontrols {
         }
 
         TimedEvent
-        tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv )
         {
             TimedEvent t;
             if ( jv.is_object() ) {
@@ -597,7 +597,7 @@ namespace adcontrols {
     }
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const PeakMethod& m )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const PeakMethod& m )
     {
         jv = boost::json::object{
             { "minimumHeight",                m.minimumHeight_ }
@@ -613,12 +613,12 @@ namespace adcontrols {
             , { "timeInMinutes",              m.timeInMinutes_ }
             , { "noiseFilterMethod",          int(m.noiseFilterMethod_) }
             , { "cutoffFreqHz",               m.cutoffFreqHz_ }
-            , { "timedEvents",                m.timedEvents_ }
+            , { "timedEvents",                boost::json::value_from( m.timedEvents_ ) }
         };
     }
 
     PeakMethod
-    tag_invoke( boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv )
     {
         PeakMethod m;
         if ( jv.is_object() ) {

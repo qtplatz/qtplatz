@@ -95,8 +95,8 @@ namespace adcontrols {
     namespace chromatography {
 
         class ADCONTROLSSHARED_EXPORT TimedEvent;
-        ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
-        ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
+        ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( const boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
         template<typename T> class TimedEvent_archive;
 
         class TimedEvent {
@@ -129,15 +129,15 @@ namespace adcontrols {
             friend class TimedEvent_archive < const TimedEvent > ;
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version);
-            friend void ADCONTROLSSHARED_EXPORT tag_invoke( boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
-            friend ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
+            friend void ADCONTROLSSHARED_EXPORT tag_invoke( const boost::json::value_from_tag, boost::json::value&, const TimedEvent& );
+            friend ADCONTROLSSHARED_EXPORT TimedEvent tag_invoke( const boost::json::value_to_tag< TimedEvent >&, const boost::json::value& jv );
         };
     } // namespace chromatography
 
     template<typename T> class PeakMethod_archive;
     class ADCONTROLSSHARED_EXPORT PeakMethod;
-    ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const PeakMethod& );
-    ADCONTROLSSHARED_EXPORT PeakMethod tag_invoke( boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv );
+    ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const PeakMethod& );
+    ADCONTROLSSHARED_EXPORT PeakMethod tag_invoke( const boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv );
 
     class PeakMethod {
     public:
@@ -216,8 +216,8 @@ namespace adcontrols {
         friend class PeakMethod_archive < const PeakMethod > ;
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const PeakMethod& );
-        friend ADCONTROLSSHARED_EXPORT PeakMethod tag_invoke( boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const PeakMethod& );
+        friend ADCONTROLSSHARED_EXPORT PeakMethod tag_invoke( const boost::json::value_to_tag< PeakMethod >&, const boost::json::value& jv );
 	};
 
 }

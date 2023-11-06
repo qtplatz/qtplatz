@@ -298,7 +298,7 @@ namespace adcontrols {
     void
     tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const descriptions& t )
     {
-        jv = { { "descriptions", t.impl_->vec_ } };
+        jv = { { "descriptions", boost::json::value_from( t.impl_->vec_ ) } };
     }
 
     descriptions

@@ -27,6 +27,7 @@
 #include "msfinder.hpp"
 #include <adcontrols/constants.hpp>
 #include <adportable/json/extract.hpp>
+#include <boost/json.hpp>
 
 namespace boost { namespace serialization {  class access;  } }
 
@@ -198,12 +199,12 @@ MetIdMethod::setTolerance( idToleranceMethod id, double value )
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MetIdMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const MetIdMethod& t )
     {
         jv = boost::json::object{
             { "polarity",             static_cast<uint32_t>(t.impl_->polarity_) }
-            , { "adducts",            t.impl_->adducts_      }
-            , { "chargeState",        t.impl_->chargeState_  }
+            , { "adducts",            boost::json::value_from( t.impl_->adducts_ )  }
+            , { "chargeState",        boost::json::value_from( t.impl_->chargeState_ )  }
             , { "idToleranceMethod",  int(t.impl_->toleranceMethod_) }
             , { "findAlgorithm",      int(t.impl_->findAlgorithm_) }
             , { "tolerancePpm",       t.impl_->tolerancePpm_ }
@@ -212,7 +213,7 @@ namespace adcontrols {
     }
 
     MetIdMethod
-    tag_invoke( boost::json::value_to_tag< MetIdMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< MetIdMethod >&, const boost::json::value& jv )
     {
         MetIdMethod t;
         using namespace adportable::json;

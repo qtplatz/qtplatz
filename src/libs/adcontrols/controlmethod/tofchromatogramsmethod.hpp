@@ -83,15 +83,15 @@ namespace adcontrols {
     private:
         class impl;
         impl * impl_;
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofChromatogramsMethod& );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const TofChromatogramsMethod& );
         friend ADCONTROLSSHARED_EXPORT TofChromatogramsMethod
-        tag_invoke( boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv );
+        tag_invoke( const boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv );
     };
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofChromatogramsMethod& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const TofChromatogramsMethod& );
 
     ADCONTROLSSHARED_EXPORT
-    TofChromatogramsMethod tag_invoke( boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv );
+    TofChromatogramsMethod tag_invoke( const boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv );
 
 }

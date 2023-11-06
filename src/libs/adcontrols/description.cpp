@@ -212,20 +212,20 @@ namespace adcontrols {
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const description& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const description& t )
     {
         std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp( std::chrono::nanoseconds( t.posix_time_ ) );
         auto dt = adportable::date_time::to_iso< std::chrono::microseconds >( tp );
 
         jv = {
             { "posix_time", dt }
-            , { "keyValue", t.keyValue_ }
+            , { "keyValue", boost::json::value_from( t.keyValue_ ) }
             , { "encode",   unsigned( t.encode_ ) }
         };
     }
 
     description
-    tag_invoke( boost::json::value_to_tag< description >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< description >&, const boost::json::value& jv )
     {
         using namespace adportable::json;
 

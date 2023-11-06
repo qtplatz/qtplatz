@@ -78,7 +78,7 @@ namespace adcontrols {
         }
 
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const Candidate& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const Candidate& t )
         {
             jv = boost::json::object{ { "Candidate"
                     , {
@@ -89,7 +89,7 @@ namespace adcontrols {
                         , { "formula",      t.formula     }
                         , { "exact_mass",   t.exact_mass  }
                         , { "score",        t.score       }
-                        , { "isotopes",     t.isotopes    }
+                        , { "isotopes",     boost::json::value_from( t.isotopes )  }
                         , { "synonym",      t.synonym     }
                         , { "display_name", t.display_name}
                         , { "selected",     t.selected    }
@@ -98,7 +98,7 @@ namespace adcontrols {
         }
 
         Candidate
-        tag_invoke( boost::json::value_to_tag< Candidate >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< Candidate >&, const boost::json::value& jv )
         {
             Candidate t;
             using namespace adportable::json;

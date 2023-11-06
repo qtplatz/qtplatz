@@ -92,20 +92,20 @@ namespace adcontrols {
 
         // extract_by_mols
         ADCONTROLSSHARED_EXPORT
-        void tag_invoke( boost::json::value_from_tag
+        void tag_invoke( const boost::json::value_from_tag
                          , boost::json::value&, const extract_by_mols& );
 
         ADCONTROLSSHARED_EXPORT
-        extract_by_mols tag_invoke( boost::json::value_to_tag< extract_by_mols >&
+        extract_by_mols tag_invoke( const boost::json::value_to_tag< extract_by_mols >&
                                     , const boost::json::value& jv );
 
         // moltable
         ADCONTROLSSHARED_EXPORT
-        void tag_invoke( boost::json::value_from_tag
+        void tag_invoke( const boost::json::value_from_tag
                          , boost::json::value&, const moltable& );
 
         ADCONTROLSSHARED_EXPORT
-        moltable tag_invoke( boost::json::value_to_tag< moltable >&
+        moltable tag_invoke( const boost::json::value_to_tag< moltable >&
                              , const boost::json::value& jv );
 
     }

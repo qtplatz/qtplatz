@@ -54,8 +54,8 @@ namespace adcontrols {
         double peakAsymmetryEndTime_;
 
     private:
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const PeakAsymmetry& );
-        friend ADCONTROLSSHARED_EXPORT PeakAsymmetry tag_invoke( boost::json::value_to_tag< PeakAsymmetry >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const PeakAsymmetry& );
+        friend ADCONTROLSSHARED_EXPORT PeakAsymmetry tag_invoke( const boost::json::value_to_tag< PeakAsymmetry >&, const boost::json::value& jv );
 
         friend class boost::serialization::access;
         template<class Archive>

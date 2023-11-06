@@ -65,8 +65,8 @@ namespace adcontrols {
         std::pair< double, double > boundary_;
         std::vector< double > eq_;
 
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const RetentionTime& );
-        friend ADCONTROLSSHARED_EXPORT RetentionTime tag_invoke( boost::json::value_to_tag< RetentionTime >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const RetentionTime& );
+        friend ADCONTROLSSHARED_EXPORT RetentionTime tag_invoke( const boost::json::value_to_tag< RetentionTime >&, const boost::json::value& jv );
 
         friend class boost::serialization::access;
         template<class Archive>

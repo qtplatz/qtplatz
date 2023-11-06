@@ -68,10 +68,10 @@ namespace adcontrols {
         };
 
         ADCONTROLSSHARED_EXPORT
-        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const isotope& );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const isotope& );
 
         ADCONTROLSSHARED_EXPORT
-        isotope tag_invoke( boost::json::value_to_tag< isotope >&, const boost::json::value& jv );
+        isotope tag_invoke( const boost::json::value_to_tag< isotope >&, const boost::json::value& jv );
     }
 }
 

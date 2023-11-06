@@ -25,6 +25,7 @@
 
 #include "variable.hpp"
 #include "nc_type.hpp"
+#include <boost/json.hpp>
 
 namespace adnetcdf {
     namespace netcdf {
@@ -74,7 +75,7 @@ namespace adnetcdf {
         }
 
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const variable& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const variable& t )
         {
             using namespace adnetcdf::netcdf;
             jv = boost::json::value{{ "var"
@@ -84,7 +85,7 @@ namespace adnetcdf {
                         , { "typid", t.type_ }
                         , { "type", nc_type_name( t.type_, nc_types_t{} ) }
                         , { "ndims", t.ndims_ }
-                        , { "dimids", t.dimids_ }
+                        , { "dimids", boost::json::value_from( t.dimids_ ) }
                         , { "natts", t.natts_ }
                     }
                 }};

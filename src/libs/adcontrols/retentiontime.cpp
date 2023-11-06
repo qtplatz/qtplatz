@@ -103,17 +103,17 @@ RetentionTime::eq( double& a, double& b, double& c ) const
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const RetentionTime& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const RetentionTime& t )
     {
         jv = {{ "algo", unsigned( t.algo_ ) }
-              , { "threshold", t.threshold_ }
-              , { "boundary", t.boundary_ }
-              , { "eq", t.eq_ }
+              , { "threshold", boost::json::value_from( t.threshold_ ) }
+              , { "boundary", boost::json::value_from( t.boundary_ ) }
+              , { "eq", boost::json::value_from( t.eq_ ) }
         };
     }
 
     RetentionTime
-    tag_invoke( boost::json::value_to_tag< RetentionTime >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< RetentionTime >&, const boost::json::value& jv )
     {
         RetentionTime _;
         if ( jv.is_object() ) {

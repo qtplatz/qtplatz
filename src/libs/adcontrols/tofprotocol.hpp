@@ -99,16 +99,16 @@ namespace adcontrols {
 
         friend class TofProtocol_archive < TofProtocol > ;
         friend class TofProtocol_archive < const TofProtocol > ;
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
-        friend ADCONTROLSSHARED_EXPORT TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
+        friend ADCONTROLSSHARED_EXPORT TofProtocol tag_invoke( const boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
     };
 
     // TofProtocol
-    ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
+    // ADCONTROLSSHARED_EXPORT
+    // void tag_invoke( boost::json::value_from_tag, boost::json::value&, const TofProtocol& );
 
-    ADCONTROLSSHARED_EXPORT
-    TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
+    // ADCONTROLSSHARED_EXPORT
+    // TofProtocol tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv );
 };
 
 BOOST_CLASS_VERSION( adcontrols::TofProtocol, 2 )

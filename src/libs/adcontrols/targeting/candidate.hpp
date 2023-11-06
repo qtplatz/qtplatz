@@ -90,10 +90,10 @@ namespace adcontrols {
         };
 
         ADCONTROLSSHARED_EXPORT
-        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const Candidate& );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const Candidate& );
 
         ADCONTROLSSHARED_EXPORT
-        Candidate tag_invoke( boost::json::value_to_tag< Candidate >&, const boost::json::value& jv );
+        Candidate tag_invoke( const boost::json::value_to_tag< Candidate >&, const boost::json::value& jv );
     }
 }
 

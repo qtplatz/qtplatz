@@ -501,13 +501,13 @@ MSPeakInfoItem::tag_invoke( boost::json::value& jv, adcontrols::MSPeakInfoItem c
 
 //////// JSON ////////
 namespace adcontrols {
-    void tag_invoke( boost::json::value_from_tag
+    void tag_invoke( const boost::json::value_from_tag
                      , boost::json::value& jv, const adcontrols::MSPeakInfoItem& t )
     {
         MSPeakInfoItem::tag_invoke( jv, t );
     }
 
-    adcontrols::MSPeakInfoItem tag_invoke( boost::json::value_to_tag< adcontrols::MSPeakInfoItem>&, const boost::json::value& jv )
+    adcontrols::MSPeakInfoItem tag_invoke( const boost::json::value_to_tag< adcontrols::MSPeakInfoItem>&, const boost::json::value& jv )
     {
         return MSPeakInfoItem::tag_invoke( jv );
     }

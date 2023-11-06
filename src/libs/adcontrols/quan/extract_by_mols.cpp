@@ -33,7 +33,7 @@ namespace adcontrols {
     namespace quan {
 
         // extract_by_mols
-        void tag_invoke( boost::json::value_from_tag
+        void tag_invoke( const boost::json::value_from_tag
                          , boost::json::value& jv, const extract_by_mols& t )
         {
             jv = {{ "molid", boost::uuids::to_string( t.molid ) }
@@ -46,7 +46,7 @@ namespace adcontrols {
             };
         }
 
-        extract_by_mols tag_invoke( boost::json::value_to_tag< extract_by_mols >&
+        extract_by_mols tag_invoke( const boost::json::value_to_tag< extract_by_mols >&
                                     , const boost::json::value& jv )
         {
             extract_by_mols t;
@@ -78,7 +78,7 @@ namespace adcontrols {
 
         ////////////////////////////////////////////
         // ///////////// moltable //////////////////
-        void tag_invoke( boost::json::value_from_tag
+        void tag_invoke( const boost::json::value_from_tag
                          , boost::json::value& jv, const moltable& t )
         {
             jv = {{ "protocol", t.protocol}
@@ -90,7 +90,7 @@ namespace adcontrols {
         }
 
 
-        moltable tag_invoke( boost::json::value_to_tag< moltable >&
+        moltable tag_invoke( const boost::json::value_to_tag< moltable >&
                              , const boost::json::value& jv )
         {
             moltable t;

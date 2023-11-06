@@ -223,7 +223,7 @@ TofChromatogramsMethod::clsid()
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramsMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramsMethod& t )
     {
         jv = boost::json::object{{ "TofChromatogramsMethod"
                 , {
@@ -231,13 +231,13 @@ namespace adcontrols {
                     , { "refreshHistogram",    t.impl_->refreshHistogram_ }
                     , { "enableTIC",           t.impl_->enableTIC_ }
                     , { "algoTIC",             int( t.impl_->algo_ ) }
-                    , { "vec",                 t.impl_->vec_ }
+                    , { "vec",                 boost::json::value_from( t.impl_->vec_ ) }
                 }
             }};
     }
 
     TofChromatogramsMethod
-    tag_invoke( boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< TofChromatogramsMethod >&, const boost::json::value& jv )
     {
         TofChromatogramsMethod t;
         using namespace adportable::json;

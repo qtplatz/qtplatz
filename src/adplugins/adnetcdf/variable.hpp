@@ -55,11 +55,11 @@ namespace adnetcdf {
             int ndims_;
             std::vector< int > dimids_;
             int natts_;
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const variable& );
+            friend void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const variable& );
             // friend variable tag_invoke( boost::json::value_to_tag< variable >&, const boost::json::value& jv );
         };
 
-        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const variable& );
+        // void tag_invoke( boost::json::value_from_tag, boost::json::value&, const variable& );
         // variable tag_invoke( boost::json::value_to_tag< variable >&, const boost::json::value& jv );
 
     } // namespace netcdf

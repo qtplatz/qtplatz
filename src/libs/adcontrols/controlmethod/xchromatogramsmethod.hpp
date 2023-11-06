@@ -118,23 +118,23 @@ namespace adcontrols {
         std::unique_ptr< impl > impl_;
 
         typedef XChromatogramsMethod X;
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const X& );
-        friend ADCONTROLSSHARED_EXPORT X tag_invoke( boost::json::value_to_tag< X >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const X& );
+        friend ADCONTROLSSHARED_EXPORT X tag_invoke( const boost::json::value_to_tag< X >&, const boost::json::value& jv );
     };
 
     namespace xic {
         // xic_method
         ADCONTROLSSHARED_EXPORT
-        void tag_invoke( boost::json::value_from_tag, boost::json::value&, const xic::xic_method& );
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const xic::xic_method& );
 
         ADCONTROLSSHARED_EXPORT
-        xic::xic_method tag_invoke( boost::json::value_to_tag< xic::xic_method >&, const boost::json::value& jv );
+        xic::xic_method tag_invoke( const boost::json::value_to_tag< xic::xic_method >&, const boost::json::value& jv );
     }
 
     // XChromatogramsmethod
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const XChromatogramsMethod& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const XChromatogramsMethod& );
 
     ADCONTROLSSHARED_EXPORT
-    XChromatogramsMethod tag_invoke( boost::json::value_to_tag< XChromatogramsMethod >&, const boost::json::value& jv );
+    XChromatogramsMethod tag_invoke( const boost::json::value_to_tag< XChromatogramsMethod >&, const boost::json::value& jv );
 }

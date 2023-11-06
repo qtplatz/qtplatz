@@ -406,19 +406,19 @@ QuanCompound::protocol() const
 QuanCompound::operator boost::json::object () const
 {
     return boost::json::object{
-        { "uuid", boost::uuids::to_string( impl_->uuid_ ) }
+        { "uuid",           boost::uuids::to_string( impl_->uuid_ ) }
         , { "row",          impl_->row_ }
-        , { "display_name",	adportable::utf::to_utf8( impl_->display_name_ ) }
+        , { "display_name", adportable::utf::to_utf8( impl_->display_name_ ) }
         , { "formula",      impl_->formula_ }
-        , { "amounts",      impl_->amounts_ }
-        , { "description",	adportable::utf::to_utf8( impl_->description_ ) }
+        , { "amounts",      boost::json::value_from( impl_->amounts_ ) }
+        , { "description",  adportable::utf::to_utf8( impl_->description_ ) }
         , { "tR",           impl_->tR_ }
         , { "mass",         impl_->mass_ }
         , { "isISTD",       impl_->isISTD_ }
-        , { "isLKMSRef",	impl_->isLKMSRef_ }
-        , { "isTimeRef",	impl_->isTimeRef_ }
+        , { "isLKMSRef",	   impl_->isLKMSRef_ }
+        , { "isTimeRef",    impl_->isTimeRef_ }
         , { "idISTD",       impl_->idISTD_ }
-        , { "criteria",     { impl_->criteria_.first, impl_->criteria_.second } }
+        , { "criteria",     {{ impl_->criteria_.first, impl_->criteria_.second }} }
         , { "isCounting",	impl_->isCounting_ }
         , { "protocol",     impl_->protocol_ }
     };

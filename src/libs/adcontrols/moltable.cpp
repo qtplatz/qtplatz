@@ -375,7 +375,7 @@ moltable::xml_restore( std::wistream& is, moltable& t )
 
 namespace adcontrols {
 
-    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const moltable::value_type& t )
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const moltable::value_type& t )
     {
         jv = boost::json::object{
             { "enable",        t.enable_     }
@@ -383,7 +383,7 @@ namespace adcontrols {
             , { "mass",        t.mass_       }
             , { "abundance",   t.abundance_  }
             , { "formula",     t.formula_    }
-            , { "adducts",     t.adducts_    }
+            , { "adducts",     boost::json::value_from( t.adducts_ )   }
             , { "synonym",     t.synonym_    }
             , { "smiles",      t.smiles_     }
             , { "description", t.description_}
@@ -394,7 +394,7 @@ namespace adcontrols {
         if ( t.molid_ )    { obj[ "molid"    ]   = boost::lexical_cast< std::string >( *t.molid_ ); }
     }
 
-    moltable::value_type tag_invoke( boost::json::value_to_tag< moltable::value_type >&, const boost::json::value& jv )
+    moltable::value_type tag_invoke( const boost::json::value_to_tag< moltable::value_type >&, const boost::json::value& jv )
     {
         moltable::value_type t;
         if ( jv.is_object() ) {
@@ -440,18 +440,18 @@ namespace adcontrols {
 
     ////////
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const moltable& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const moltable& t )
     {
         jv = boost::json::object{{ "moltable"
                 , {
-                    {   "data",      t.data() }
+                    {   "data",      boost::json::value_from( t.data() ) }
                     , { "polarity",   static_cast< uint32_t >( t.polarity() ) }
                 }
             }};
     }
 
     moltable
-    tag_invoke( boost::json::value_to_tag< moltable >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< moltable >&, const boost::json::value& jv )
     {
         moltable t;
 

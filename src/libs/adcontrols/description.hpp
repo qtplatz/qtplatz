@@ -71,8 +71,8 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
 
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const description& );
-        friend ADCONTROLSSHARED_EXPORT description tag_invoke( boost::json::value_to_tag< description >&, const boost::json::value& );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const description& );
+        friend ADCONTROLSSHARED_EXPORT description tag_invoke( const boost::json::value_to_tag< description >&, const boost::json::value& );
     };
 
 }

@@ -243,14 +243,14 @@ namespace adcontrols {
 
     namespace xic {
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const xic_method& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const xic_method& t )
         {
             jv = boost::json::object{{ "xic_method"
                     , {
-                        { "mol",           t.mol_ }
-                        , { "adduct",      t.adduct_ }
-                        , { "mass_window", t.mass_window_ }
-                        , { "time_window", t.time_window_ }
+                        { "mol",           boost::json::value_from( t.mol_ ) }
+                        , { "adduct",      boost::json::value_from( t.adduct_ ) }
+                        , { "mass_window", boost::json::value_from( t.mass_window_ ) }
+                        , { "time_window", boost::json::value_from( t.time_window_ ) }
                         , { "algo",        static_cast< unsigned int>( t.algo_ ) }
                         , { "protocol",    t.protocol_ }
                     }
@@ -258,7 +258,7 @@ namespace adcontrols {
         }
 
         xic_method
-        tag_invoke( boost::json::value_to_tag< xic_method >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< xic_method >&, const boost::json::value& jv )
         {
             using namespace adportable::json;
             xic_method t;
@@ -278,7 +278,7 @@ namespace adcontrols {
     }
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const XChromatogramsMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const XChromatogramsMethod& t )
     {
         jv = boost::json::object{{ "XICMethod"
                 , {
@@ -287,13 +287,13 @@ namespace adcontrols {
                     , { "enableTIC",           t.impl_->enableTIC_        }
                     , { "algoTIC",             static_cast<unsigned int>( t.impl_->algo_ )      }
                     , { "polarity",            static_cast<unsigned int>( t.impl_->polarity_ )  }
-                    , { "xics",                t.impl_->xics_             }
+                    , { "xics",                boost::json::value_from( t.impl_->xics_ )        }
                 }
             }};
     }
 
     XChromatogramsMethod
-    tag_invoke( boost::json::value_to_tag< XChromatogramsMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< XChromatogramsMethod >&, const boost::json::value& jv )
     {
         XChromatogramsMethod t;
         using namespace adportable::json;

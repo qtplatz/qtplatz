@@ -156,9 +156,9 @@ namespace adcontrols {
     };
 
 
-    ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag
+    ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag
                                              , boost::json::value&, const adcontrols::MSPeakInfoItem& );
-    ADCONTROLSSHARED_EXPORT adcontrols::MSPeakInfoItem tag_invoke( boost::json::value_to_tag< adcontrols::MSPeakInfoItem>&
+    ADCONTROLSSHARED_EXPORT adcontrols::MSPeakInfoItem tag_invoke( const boost::json::value_to_tag< adcontrols::MSPeakInfoItem>&
                                                                    , const boost::json::value& jv );
 }
 

@@ -477,7 +477,7 @@ Peak::yMove( double y0 )
 
 namespace adcontrols {
 
-    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const Peak& _ )
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const Peak& _ )
     {
         jv = {
             { "Peak"
@@ -491,7 +491,7 @@ namespace adcontrols {
                  , { "startTime",         double( _.startTime_ ) }
                  , { "peakTime",          double( _.peakTime_) }
                  , { "endTime",           double( _.endTime_) }
-                 , { "peakFlags",         _.peak_flags_  }
+                 , { "peakFlags",         boost::json::value_from( _.peak_flags_ )  }
                  , { "startHeight",       _.startHeight_ }
                  , { "topHeight",         _.topHeight_ }
                  , { "endHeight",         _.endHeight_ }
@@ -500,14 +500,14 @@ namespace adcontrols {
                  , { "peakWidth",         _.peakWidth_ }
                  , { "peakAmount",        _.peakAmount_ }
                  , { "mannuallyModified", _.manuallyModified_ }
-                 , { "peakAsymmetry",     _.asymmetry_ }
+                 , { "peakAsymmetry",     boost::json::value_from( _.asymmetry_ ) }
                  //, { "parentId", parentId_ }
                  //, { "appliedFunctions", appliedFunctions_ }
                 }
             }};
     }
 
-    Peak tag_invoke( boost::json::value_to_tag< Peak >&, const boost::json::value& jv )
+    Peak tag_invoke( const boost::json::value_to_tag< Peak >&, const boost::json::value& jv )
     {
         Peak _;
 

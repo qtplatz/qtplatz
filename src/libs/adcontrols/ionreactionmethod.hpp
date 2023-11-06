@@ -65,17 +65,17 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const IonReactionMethod& );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const IonReactionMethod& );
         friend ADCONTROLSSHARED_EXPORT IonReactionMethod
-        tag_invoke( boost::json::value_to_tag< IonReactionMethod >&, const boost::json::value& jv );
+        tag_invoke( const boost::json::value_to_tag< IonReactionMethod >&, const boost::json::value& jv );
 
     };
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const IonReactionMethod& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const IonReactionMethod& );
 
     ADCONTROLSSHARED_EXPORT
-    IonReactionMethod tag_invoke( boost::json::value_to_tag< IonReactionMethod >&, const boost::json::value& jv );
+    IonReactionMethod tag_invoke( const boost::json::value_to_tag< IonReactionMethod >&, const boost::json::value& jv );
 
 }
 

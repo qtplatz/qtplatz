@@ -90,8 +90,8 @@ namespace adcontrols {
         double heightTotal_;
         double noiseLevel_;
 
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const Peaks& );
-        friend ADCONTROLSSHARED_EXPORT Peaks tag_invoke( boost::json::value_to_tag< Peaks >&, const boost::json::value& jv );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const Peaks& );
+        friend ADCONTROLSSHARED_EXPORT Peaks tag_invoke( const boost::json::value_to_tag< Peaks >&, const boost::json::value& jv );
 
         friend class boost::serialization::access;
         template<class Archive>

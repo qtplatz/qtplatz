@@ -79,16 +79,16 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version );
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const MetIdMethod& );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const MetIdMethod& );
         friend ADCONTROLSSHARED_EXPORT MetIdMethod
-        tag_invoke( boost::json::value_to_tag< MetIdMethod >&, const boost::json::value& jv );
+        tag_invoke( const boost::json::value_to_tag< MetIdMethod >&, const boost::json::value& jv );
     };
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const MetIdMethod& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const MetIdMethod& );
 
     ADCONTROLSSHARED_EXPORT
-    MetIdMethod tag_invoke( boost::json::value_to_tag< MetIdMethod >&, const boost::json::value& jv );
+    MetIdMethod tag_invoke( const boost::json::value_to_tag< MetIdMethod >&, const boost::json::value& jv );
 }
 
 // Archive version 5 and later is using 'impl' idiom

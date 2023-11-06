@@ -47,14 +47,14 @@ namespace adcontrols {
         class ADCONTROLSSHARED_EXPORT fitter;
         class ADCONTROLSSHARED_EXPORT mslock;
 
-        ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const reference& );
-        ADCONTROLSSHARED_EXPORT reference tag_invoke( boost::json::value_to_tag< reference >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const reference& );
+        ADCONTROLSSHARED_EXPORT reference tag_invoke( const boost::json::value_to_tag< reference >&, const boost::json::value& jv );
 
-        ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const fitter& );
-        ADCONTROLSSHARED_EXPORT fitter tag_invoke( boost::json::value_to_tag< fitter >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const fitter& );
+        ADCONTROLSSHARED_EXPORT fitter tag_invoke( const boost::json::value_to_tag< fitter >&, const boost::json::value& jv );
 
-        ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const mslock& );
-        ADCONTROLSSHARED_EXPORT mslock tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const mslock& );
+        ADCONTROLSSHARED_EXPORT mslock tag_invoke( const boost::json::value_to_tag< mslock >&, const boost::json::value& jv );
 
 
         class ADCONTROLSSHARED_EXPORT reference {
@@ -72,8 +72,8 @@ namespace adcontrols {
             double exactMass_;
             double matchedMass_;
             double time_;
-            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const reference& );
-            friend ADCONTROLSSHARED_EXPORT reference tag_invoke( boost::json::value_to_tag< reference >&, const boost::json::value& );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const reference& );
+            friend ADCONTROLSSHARED_EXPORT reference tag_invoke( const boost::json::value_to_tag< reference >&, const boost::json::value& );
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -105,8 +105,8 @@ namespace adcontrols {
         private:
             std::vector< double > coeffs_;
 
-            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const fitter& );
-            friend ADCONTROLSSHARED_EXPORT fitter tag_invoke( boost::json::value_to_tag< fitter >&, const boost::json::value& );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const fitter& );
+            friend ADCONTROLSSHARED_EXPORT fitter tag_invoke( const boost::json::value_to_tag< fitter >&, const boost::json::value& );
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -156,8 +156,8 @@ namespace adcontrols {
             int64_t posix_time_;
             std::string property_;
 
-            friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const mslock& );
-            friend ADCONTROLSSHARED_EXPORT mslock tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& );
+            friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const mslock& );
+            friend ADCONTROLSSHARED_EXPORT mslock tag_invoke( const boost::json::value_to_tag< mslock >&, const boost::json::value& );
 
             friend class boost::serialization::access;
             template<class Archive>

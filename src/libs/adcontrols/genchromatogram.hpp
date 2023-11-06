@@ -62,8 +62,8 @@ namespace adcontrols {
     };
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const GenChromatogram& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const GenChromatogram& );
 
     ADCONTROLSSHARED_EXPORT
-    GenChromatogram tag_invoke( boost::json::value_to_tag< GenChromatogram >&, const boost::json::value& jv );
+    GenChromatogram tag_invoke( const boost::json::value_to_tag< GenChromatogram >&, const boost::json::value& jv );
 }

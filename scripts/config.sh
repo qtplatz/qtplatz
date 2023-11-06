@@ -61,7 +61,7 @@ fi
 
 ############### boost ################
 if [ -z $BOOST_VERSION ]; then
-	BOOST_VERSION=1_79_0
+	BOOST_VERSION=1_83_0
 fi
 
 ## /usr/local/boost-1_79

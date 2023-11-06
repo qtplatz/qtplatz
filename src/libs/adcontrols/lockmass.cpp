@@ -441,7 +441,7 @@ namespace adcontrols {
         }
 
         reference
-        tag_invoke( boost::json::value_to_tag< reference >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< reference >&, const boost::json::value& jv )
         {
             using namespace adportable::json;
 
@@ -460,13 +460,13 @@ namespace adcontrols {
         ////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const fitter& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const fitter& t )
         {
-            jv = {{ "coeffs", t.coeffs_ }};
+            jv = {{ "coeffs", boost::json::value_from( t.coeffs_ ) }};
         }
 
         fitter
-        tag_invoke( boost::json::value_to_tag< fitter >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< fitter >&, const boost::json::value& jv )
         {
             using namespace adportable::json;
 
@@ -482,7 +482,7 @@ namespace adcontrols {
         ////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const mslock& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const mslock& t )
         {
             std::chrono::time_point< std::chrono::system_clock
                                      , std::chrono::nanoseconds > tp( std::chrono::nanoseconds( t.posix_time_ ) );
@@ -491,14 +491,14 @@ namespace adcontrols {
             jv = {
                 { "posix_time",  dt }
                 , { "property",    t.property_ }
-                , { "fitter",       t.fitter_ }
-                , { "references",  t.references_ }
+                , { "fitter",       boost::json::value_from( t.fitter_ ) }
+                , { "references", boost::json::value_from( t.references_ ) }
             };
         }
 
 
         mslock
-        tag_invoke( boost::json::value_to_tag< mslock >&, const boost::json::value& jv )
+        tag_invoke( const boost::json::value_to_tag< mslock >&, const boost::json::value& jv )
         {
             if ( jv.kind() == boost::json::kind::object ) {
                 mslock t;

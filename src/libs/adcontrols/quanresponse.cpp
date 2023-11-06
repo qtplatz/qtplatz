@@ -307,9 +307,9 @@ QuanResponse::operator boost::json::object () const
 {
     return boost::json::object{
         { "idx",            idx_ }
-        , { "idTable_",     idTable_ }
-        , { "idCompound",   idCompound_ }
-        , { "dataGuid",     dataGuid_ }
+        , { "idTable_",     boost::json::value_from( idTable_ ) }    // uuid
+        , { "idCompound",   boost::json::value_from( idCompound_ ) } // uuid
+        , { "dataGuid",     boost::json::value_from( dataGuid_ ) }   // uuid
         , { "fcn",          fcn_ }
         , { "intensity",	intensity_ }
         , { "amounts",      amounts_ }

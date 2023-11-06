@@ -247,7 +247,7 @@ TofChromatogramMethod::setEnable( bool enable )
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const TofChromatogramMethod& t )
     {
         jv = boost::json::object{ { "TofChromatogramMethod"
                 , {
@@ -263,7 +263,7 @@ namespace adcontrols {
     }
 
     TofChromatogramMethod
-    tag_invoke( boost::json::value_to_tag< TofChromatogramMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< TofChromatogramMethod >&, const boost::json::value& jv )
     {
         TofChromatogramMethod t;
         using namespace adportable::json;

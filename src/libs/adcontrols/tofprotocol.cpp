@@ -307,7 +307,7 @@ TofProtocol::index() const
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const TofProtocol& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const TofProtocol& t )
     {
         boost::json::array delay_pulses;
         int id(0);
@@ -325,12 +325,12 @@ namespace adcontrols {
             , { "avgr_duration",      t.digitizer_delay_width_.second }
             , { "pulses",             delay_pulses }
             , { "reference",          t.reference_ }
-            , { "formulae",           t.formulae_ } //boost::json::value_from( t.formulae_ ) }
+            , { "formulae",           boost::json::value_from( t.formulae_ ) }
         };
     }
 
     TofProtocol
-    tag_invoke( boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< TofProtocol >&, const boost::json::value& jv )
     {
         using namespace adportable::json;
         TofProtocol t;

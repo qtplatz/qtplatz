@@ -138,16 +138,16 @@ namespace adcontrols {
     };
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const moltable::value_type& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const moltable::value_type& );
 
     ADCONTROLSSHARED_EXPORT
-    moltable::value_type tag_invoke( boost::json::value_to_tag< moltable::value_type >&, const boost::json::value& jv );
+    moltable::value_type tag_invoke( const boost::json::value_to_tag< moltable::value_type >&, const boost::json::value& jv );
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const moltable& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const moltable& );
 
     ADCONTROLSSHARED_EXPORT
-    moltable tag_invoke( boost::json::value_to_tag< moltable >&, const boost::json::value& jv );
+    moltable tag_invoke( const boost::json::value_to_tag< moltable >&, const boost::json::value& jv );
 
 #if defined _MSC_VER
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::moltable::value_type > ;

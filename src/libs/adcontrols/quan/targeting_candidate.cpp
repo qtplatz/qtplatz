@@ -34,7 +34,7 @@ namespace adcontrols {
 
         // targeting_candidate
         ADCONTROLSSHARED_EXPORT
-        void tag_invoke( boost::json::value_from_tag
+        void tag_invoke( const boost::json::value_from_tag
                          , boost::json::value& jv, const targeting_candidate& t )
         {
             jv = {
@@ -48,8 +48,8 @@ namespace adcontrols {
         }
 
         ADCONTROLSSHARED_EXPORT
-        targeting_candidate tag_invoke( boost::json::value_to_tag< targeting_candidate >&
-                             , const boost::json::value& jv )
+        targeting_candidate tag_invoke( const boost::json::value_to_tag< targeting_candidate >&
+                                        , const boost::json::value& jv )
         {
             targeting_candidate t;
             using namespace adportable::json;

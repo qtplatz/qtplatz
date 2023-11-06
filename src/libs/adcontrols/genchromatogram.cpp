@@ -75,7 +75,7 @@ namespace adcontrols {
 
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const GenChromatogram& t ) {
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const GenChromatogram& t ) {
             jv = boost::json::object{
                 {   "formula",         t.formula }
                 , { "display_name",    t.display_name }
@@ -86,12 +86,12 @@ namespace adcontrols {
                 , { "index",           t.index }
                 , { "proto",           t.proto }
                 , { "selected",        t.selected }
-                , { "children",        t.isotopes } // historical reason
+                , { "children",        boost::json::value_from( t.isotopes ) } // historical reason
             };
     }
 
     GenChromatogram
-    tag_invoke( boost::json::value_to_tag< GenChromatogram >&, const boost::json::value& jv ) {
+    tag_invoke( const boost::json::value_to_tag< GenChromatogram >&, const boost::json::value& jv ) {
         GenChromatogram t;
         using namespace adportable::json;
         if ( jv.is_object() ) {

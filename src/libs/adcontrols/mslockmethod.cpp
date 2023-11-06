@@ -231,7 +231,7 @@ MSLockMethod::setMolecules( const moltable& mols )
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const MSLockMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const MSLockMethod& t )
     {
         boost::json::array mols;
         for ( const auto& mol: t.molecules_->data() ) {
@@ -241,7 +241,7 @@ namespace adcontrols {
                     , { "mass", mol.mass() }
                     , { "abundance", mol.abundance() }
                     , { "formula", mol.formula() }
-                    , { "adducts", mol.adducts() }
+                    , { "adducts", boost::json::value_from( mol.adducts() ) }
                     , { "synonym", mol.synonym() }
                     , { "smiles",  mol.smiles() }
                     , { "description",  mol.description() }
