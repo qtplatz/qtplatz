@@ -132,7 +132,7 @@ namespace adcontrols {
         //--------------------
         using namespace adportable::json;
         using namespace adportable;
-        duration_type tag_invoke( boost::json::value_to_tag< duration_type >&, const boost::json::value& jv ) {
+        duration_type tag_invoke( const boost::json::value_to_tag< duration_type >&, const boost::json::value& jv ) {
             duration_type t;
             if ( value_name()( t ) != boost::json::value_to< std::string >( json_helper::find( jv, "type" ) ) )
                 BOOST_THROW_EXCEPTION( std::runtime_error( "type mismatch" ) );
@@ -145,7 +145,7 @@ namespace adcontrols {
             }
             return t;
         }
-        voltage_type  tag_invoke( boost::json::value_to_tag< voltage_type >&, const boost::json::value& jv ) {
+        voltage_type  tag_invoke( const boost::json::value_to_tag< voltage_type >&, const boost::json::value& jv ) {
             voltage_type t;
             if ( value_name()( t ) != boost::json::value_to< std::string >( json_helper::find( jv, "type" ) ) )
                 BOOST_THROW_EXCEPTION( std::runtime_error( "type mismatch" ) );
@@ -158,7 +158,7 @@ namespace adcontrols {
             }
             return t;
         }
-        switch_type tag_invoke( boost::json::value_to_tag< switch_type >&, const boost::json::value& jv ) {
+        switch_type tag_invoke( const boost::json::value_to_tag< switch_type >&, const boost::json::value& jv ) {
             switch_type t;
             if ( value_name()( t ) != boost::json::value_to< std::string >( json_helper::find( jv, "type" ) ) )
                 BOOST_THROW_EXCEPTION( std::runtime_error( "type mismatch" ) );
@@ -166,7 +166,8 @@ namespace adcontrols {
             extract( jv.as_object(), t.value, "value" );
             return t;
         }
-        choice_type tag_invoke( boost::json::value_to_tag< choice_type >&, const boost::json::value& jv ) {
+
+        choice_type tag_invoke( const boost::json::value_to_tag< choice_type >&, const boost::json::value& jv ) {
             choice_type t;
             if ( value_name()( t ) != boost::json::value_to< std::string >( json_helper::find( jv, "type" ) ) )
                 BOOST_THROW_EXCEPTION( std::runtime_error( "type mismatch" ) );
@@ -174,7 +175,8 @@ namespace adcontrols {
             extract( jv.as_object(), t.value, "value" );
             return t;
         }
-        delay_width_type tag_invoke( boost::json::value_to_tag< delay_width_type >&, const boost::json::value& jv ) {
+
+        delay_width_type tag_invoke( const boost::json::value_to_tag< delay_width_type >&, const boost::json::value& jv ) {
             delay_width_type t;
             if ( value_name()( t ) != boost::json::value_to< std::string >( json_helper::find( jv, "type" ) ) )
                 BOOST_THROW_EXCEPTION( std::runtime_error( "type mismatch" ) );
@@ -183,7 +185,8 @@ namespace adcontrols {
             extract( value.as_object(), t.value.second, "second" );
             return t;
         }
-        any_type tag_invoke( boost::json::value_to_tag< any_type >&, const boost::json::value& jv ) {
+
+        any_type tag_invoke( const boost::json::value_to_tag< any_type >&, const boost::json::value& jv ) {
             any_type t;
             if ( value_name()( t ) != boost::json::value_to< std::string >( json_helper::find( jv, "type" ) ) )
                 BOOST_THROW_EXCEPTION( std::runtime_error( "type mismatch" ) );

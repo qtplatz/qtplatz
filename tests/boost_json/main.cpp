@@ -12,8 +12,8 @@ main()
     std::vector< int > v{ 4, 5 };
 
     boost::json::value jv = {{ "boost_i", i }
-                             , { "boost_d", d }
-                             , { "boost_pair", v }
+                             , { "boost_v", boost::json::value_from(v) }
+                             , { "boost_pair", pair }
     };
     std::cout << jv << std::endl;
 
