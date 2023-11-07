@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace boost { namespace serialization {  class access;  } }
 

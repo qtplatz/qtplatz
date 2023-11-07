@@ -31,6 +31,7 @@
 #include <boost/json/value_to.hpp>
 #include <vector>
 #include <optional>
+#include <memory>
 
 namespace boost {
     namespace serialization {
