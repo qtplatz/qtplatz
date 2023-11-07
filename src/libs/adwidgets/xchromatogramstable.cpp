@@ -28,7 +28,9 @@
 #include "moltablecolumns.hpp"
 #include "moltablehelper.hpp"
 #include "spin_t.hpp"
-#include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
+# if HAVE_RDKit
+# include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
+# endif
 #include <QtCore/qnamespace.h>
 #include <QtCore/qobject.h>
 #include <QtGui/qstandarditemmodel.h>

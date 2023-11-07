@@ -16,25 +16,18 @@ include_directories( ${RDKit_INCLUDE_DIRS} )
 
 if ( rdkit_FOUND )
   set( rdkit_SOURCES
-    sdfile.cpp
-    sdfile.hpp
-    sdmol.cpp
-    sdmol.hpp
-    mol.cpp
-    mol.hpp
-    drawing.cpp
-    drawing.hpp
+    sdfile.cpp      sdfile.hpp
+    sdmol.cpp       sdmol.hpp
+    mol.cpp         mol.hpp
+    drawing.cpp     drawing.hpp
     )
 endif()
 
 add_library( adchem SHARED
   sdfile_parser.hpp
-  sdmolsupplier.cpp
-  sdmolsupplier.hpp
-  smilestosvg.cpp
-  smilestosvg.hpp
-  adchem.cpp
-  adchem.hpp
+  sdmolsupplier.cpp sdmolsupplier.hpp
+  adchem.cpp        adchem.hpp
+  smilestosvg.cpp   smilestosvg.hpp
   ${rdkit_SOURCES}
   )
 

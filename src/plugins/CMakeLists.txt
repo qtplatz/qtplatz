@@ -80,7 +80,7 @@ if ( QTPLATZ_CONFIG_Video  AND NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( video )
 endif()
 
-if ( QTPLATZ_CONFIG_Lipidid )
+if ( QTPLATZ_CONFIG_Lipidid AND rdkit_FOUND )
   print_message( "----- LipidId -----" )
   add_subdirectory( lipidid )
 endif()

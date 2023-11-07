@@ -11,7 +11,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
   add_subdirectory (adexport)
   #  add_subdirectory (adhist)
 
-  if ( QT_FOUND )
+  if ( QT_FOUND AND rdkit_FOUND )
 
     add_subdirectory (eventtool)
     add_subdirectory (sdfview)

@@ -24,7 +24,9 @@
 #pragma once
 
 #include "adchem_global.hpp"
-#include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
+#if HAVE_RDKit
+# include <GraphMol/MolDraw2D/MolDraw2DHelpers.h>
+#endif
 #include <memory>
 #include <string>
 #include <tuple>
@@ -32,6 +34,15 @@
 #include <optional>
 
 namespace RDKit { class ROMol; }
+
+namespace RDKit {
+# if not HAVE_RDKit
+    class DrawColour {
+    public:
+        DrawColour( int, int, int, int ) {}
+    };
+#endif
+}
 
 namespace adchem {
 

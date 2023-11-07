@@ -24,6 +24,7 @@
 
 #pragma once
 
+#if HAVE_RDkit
 #include "adchem_global.hpp"
 #include <functional>
 #include <iterator>
@@ -68,3 +69,5 @@ namespace adchem {
     };
 
 }
+
+#endif // HAVE_RDKit

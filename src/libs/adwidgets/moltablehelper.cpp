@@ -68,10 +68,12 @@ MolTableHelper::SmilesToSVG::operator()( const QString& smiles, const QColor& ba
 std::optional< std::tuple< QString, QByteArray > > // formula, svg
 MolTableHelper::SmilesToSVG::operator()( const std::string& smiles, const QColor& background ) const
 {
+#if HAVE_RDKit
     if ( auto d = adchem::SmilesToSVG()( smiles, { background.redF(), background.greenF(), background.blueF() } ) ) {
         auto [formula,svg] = *d;
         return {{ QString::fromStdString( formula ), QByteArray( svg.data(), svg.size() ) }};
     }
+#endif
     return {};
 }
 
