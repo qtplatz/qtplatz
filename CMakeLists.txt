@@ -42,7 +42,7 @@ if ( MSVC )
   # list( APPEND CMAKE_PREFIX_PATH "C:/Program Files/LLVM/lib/cmake" )
 endif()
 
-option( WITH_RDKIT         "Include chemistry support"  OFF )
+option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
 option( WITH_QT5           "Include QT5"                ON )
 option( WITH_QWT           "Include QWT"                ON )
