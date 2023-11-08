@@ -57,7 +57,7 @@ namespace u5303a {
 
         // adplugin impl
 
-        const char * iid() const { return "com.ms-cheminfo.qtplatz.adplugins.u5303a"; }
+        const char * iid() const override { return "com.ms-cheminfo.qtplatz.adplugins.u5303a"; }
 
         // Linux may fail with dynamic_cast<> when shared library was dlopen'nd
         void * query_interface_workaround( const char * typenam ) override {
@@ -65,8 +65,8 @@ namespace u5303a {
                 return static_cast< adacquire::manager *>(this);
             return 0;
         }
-        
-        void accept( adplugin::visitor& v, const char * adplugin ) {
+
+        void accept( adplugin::visitor& v, const char * adplugin ) override {
             v.visit( this, adplugin );
         }
     };

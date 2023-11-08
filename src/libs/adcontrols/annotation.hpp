@@ -134,10 +134,10 @@ namespace adcontrols {
     };
 
     ADCONTROLSSHARED_EXPORT
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const annotation::peak& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const annotation::peak& );
 
     ADCONTROLSSHARED_EXPORT
-    annotation::peak tag_invoke( boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv );
+    annotation::peak tag_invoke( const boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv );
 }
 
 BOOST_CLASS_VERSION( adcontrols::annotation, 3 )

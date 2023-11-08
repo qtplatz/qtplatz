@@ -233,8 +233,9 @@ annotation::setFlags( uint32_t f )
 }
 
 namespace adcontrols {
+
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const annotation::peak& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const annotation::peak& t )
     {
         jv = {{ "peak"
                 , {{ "mode", t.mode }
@@ -242,7 +243,7 @@ namespace adcontrols {
             }};
     }
 
-    annotation::peak tag_invoke( boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv )
+    annotation::peak tag_invoke( const boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv )
     {
         annotation::peak t;
         if ( jv.is_object() ) {

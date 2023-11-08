@@ -30,6 +30,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
+#include <boost/json/value_from.hpp>
 #include <array>
 #include <cstdint>
 #include <string>

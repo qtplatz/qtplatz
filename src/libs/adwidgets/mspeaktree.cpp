@@ -1026,7 +1026,7 @@ MSPeakTree::handleGenChromatogram() const
     }
 
     QJsonObject top{ { "formulae", a } };
-    auto jv = boost::json::value_from( boost::json::object{ {"formulae", genChromatograms }} );
+    auto jv = boost::json::value_from( boost::json::object{ {"formulae", boost::json::value_from( genChromatograms ) }} );
     auto json = boost::json::serialize( jv );
 //#if !defined NDEBUG && 0
     // ADDEBUG() << QJsonDocument( top ).toJson( QJsonDocument::Indented ).toStdString();

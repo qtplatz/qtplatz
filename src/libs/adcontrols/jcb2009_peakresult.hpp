@@ -82,10 +82,10 @@ namespace adcontrols {
         std::pair< std::string, boost::uuids::uuid > dataSource_;
 
         friend ADCONTROLSSHARED_EXPORT void
-        tag_invoke( boost::json::value_from_tag, boost::json::value&, const jcb2009_peakresult& );
+        tag_invoke( const boost::json::value_from_tag, boost::json::value&, const jcb2009_peakresult& );
 
         friend ADCONTROLSSHARED_EXPORT jcb2009_peakresult
-        tag_invoke( boost::json::value_to_tag< jcb2009_peakresult >&, const boost::json::value& );
+        tag_invoke( const boost::json::value_to_tag< jcb2009_peakresult >&, const boost::json::value& );
     };
 
 }

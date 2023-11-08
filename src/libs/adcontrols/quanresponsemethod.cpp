@@ -148,7 +148,7 @@ QuanResponseMethod::setPeakWidthForChromatogram( double value )
 namespace adcontrols {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const QuanResponseMethod& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const QuanResponseMethod& t )
     {
         jv = {
             { "clsid",                     "adcontrols::QuanResponseMethod" }
@@ -164,7 +164,7 @@ namespace adcontrols {
     }
 
     QuanResponseMethod
-    tag_invoke( boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< QuanResponseMethod >&, const boost::json::value& jv )
     {
         using namespace adportable::json;
         QuanResponseMethod t;

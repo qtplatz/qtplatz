@@ -66,10 +66,10 @@ namespace adprocessor {
         const boost::json::value& value() const;
 
         friend ADPROCESSORSHARED_EXPORT void
-        tag_invoke( boost::json::value_from_tag, boost::json::value&, const generator_property& );
+        tag_invoke( const boost::json::value_from_tag, boost::json::value&, const generator_property& );
 
         friend ADPROCESSORSHARED_EXPORT generator_property
-        tag_invoke( boost::json::value_to_tag< generator_property >&, const boost::json::value& );
+        tag_invoke( const boost::json::value_to_tag< generator_property >&, const boost::json::value& );
 
     private:
         class impl;

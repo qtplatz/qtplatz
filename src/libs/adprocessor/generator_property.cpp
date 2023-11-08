@@ -234,7 +234,7 @@ namespace adprocessor {
     ////////////////////////////////////////////////
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const generator_property& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const generator_property& t )
     {
         using namespace adportable;
         auto gen = t.impl_->jv_.as_object().if_contains( "generator" );
@@ -250,7 +250,7 @@ namespace adprocessor {
     }
 
     generator_property
-    tag_invoke( boost::json::value_to_tag< generator_property >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< generator_property >&, const boost::json::value& jv )
     {
         using namespace adportable::json;
 

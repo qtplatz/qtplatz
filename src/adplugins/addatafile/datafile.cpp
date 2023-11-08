@@ -277,7 +277,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
                 boost::json::array ja;
                 std::for_each( undefined_dataReaders.begin(), undefined_dataReaders.end()
                                , [&](auto& a){
-                                   ja.emplace_back( boost::json::object{{ "objtext", a.first }, {"objid", a.second }} );
+                                   ja.emplace_back( boost::json::object{{ "objtext", a.first }, {"objid", boost::json::value_from( a.second ) }} ); // uuid
                                });
                 ptop[ "dataReader" ] = ja;
             }

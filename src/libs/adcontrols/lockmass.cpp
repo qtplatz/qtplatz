@@ -430,7 +430,7 @@ namespace adcontrols {
     namespace lockmass {
 
         void
-        tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const reference& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const reference& t )
         {
             jv = {
                 { "formula", t.formula_ }

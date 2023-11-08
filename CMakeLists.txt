@@ -305,6 +305,13 @@ if ( Boost_FOUND )
   endif()
   add_definitions( -DBOOST_BIND_GLOBAL_PLACEHOLDERS=1 )
   add_definitions( -DBOOST_ALLOW_DEPRECATED_HEADERS=1 )
+  if ( Boost_VERSION VERSION_GREATER_EQUAL "1.81.0" )
+    # suppress linker error
+    # /usr/bin/ld: CMakeFiles/adcontrols.dir/chromatogram.cpp.o:(.bss+0x3): multiple definition of
+    # `boost::phoenix::placeholders::uarg1'; CMakeFiles/adcontrols.dir/chemicalformula.cpp.o:(.bss+0x3f): first defined here
+    # ---> following definition is a workaround to skip inclusion of boost/phoenix/stl/tuple.hpp
+    add_definitions( -DBOOST_PHOENIX_STL_TUPLE_H_ ) # https://github.com/boostorg/phoenix/issues/111
+  endif()
 else()
   message( FATAL_ERROR "#### boost not found #### " )
 endif()

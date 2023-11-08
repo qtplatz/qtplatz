@@ -120,7 +120,7 @@ namespace adcontrols {
     bool jcb2009_peakresult::operator < ( const jcb2009_peakresult& t ) const { return matched_mass_ < t.matched_mass_; }
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const jcb2009_peakresult& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const jcb2009_peakresult& t )
     {
         jv = { { "jcb2009_peakresult"
                      , {{   "tR",                   t.chro_tR_ }
@@ -141,7 +141,7 @@ namespace adcontrols {
     }
 
     jcb2009_peakresult
-    tag_invoke( boost::json::value_to_tag< jcb2009_peakresult >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< jcb2009_peakresult >&, const boost::json::value& jv )
     {
         jcb2009_peakresult t;
         using namespace adportable::json;

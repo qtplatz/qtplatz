@@ -568,7 +568,7 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
             }
         }
 
-        auto jv = boost::json::value_from( boost::json::object{{ "formulae", genChromatograms }} );
+        auto jv = boost::json::value_from( boost::json::object{{ "formulae", boost::json::value_from( genChromatograms ) }} );
         ADDEBUG() << jv;
         auto json = boost::json::serialize( jv );
 

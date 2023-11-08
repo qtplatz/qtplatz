@@ -36,6 +36,7 @@
 #include <adportable/debug.hpp>
 #include <boost/json.hpp>
 #include <boost/format.hpp>
+#include <map>
 
 namespace adprocessor {
     namespace jcb2009_helper {

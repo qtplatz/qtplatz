@@ -7,7 +7,7 @@ set( Boost_NO_SYSTEM_PATHS ON )
 
 # See 'libs/serialization/src/basic_archive.cpp library_version_type for archive version
 set ( __boost_versions
-  #"boost-1_83"        # V19 <-- json/value.hpp cannot be compiled w/ clang-15
+  "boost-1_83"        # V19 <-- json/value.hpp cannot be compiled w/ clang-15
   "boost-1_79"        # V19
   "boost-1_78"        # V19
   "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18)

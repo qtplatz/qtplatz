@@ -576,7 +576,7 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
             , { "protocol", fcn }
             , { "reader", reader->abbreviated_display_name() }
             , { "generator"
-                , {{ "extract_by_axis_range", {{ "axis", unsigned(axis) }, { "range", range }} }
+                , {{ "extract_by_axis_range", {{ "axis", unsigned(axis) }, { "range", boost::json::value_from( range ) }} }
                    , { "reader", { "name", reader->objtext() }, { "protocol", fcn } }
                 }
             }
