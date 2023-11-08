@@ -24,7 +24,7 @@
 
 #pragma once
 
-#if HAVE_RDkit
+#if HAVE_RDKit
 #include "adchem_global.hpp"
 #include <functional>
 #include <iterator>
