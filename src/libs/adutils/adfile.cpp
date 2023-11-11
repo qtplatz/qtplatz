@@ -26,7 +26,6 @@
 #include "fsio2.hpp"
 #include <adfs/filesystem.hpp>
 #include <adportfolio/folium.hpp>
-#include <boost/filesystem.hpp>
 
 using namespace adutils;
 
@@ -38,13 +37,13 @@ adfile::adfile()
 {
 }
 
-adfile::adfile( const boost::filesystem::path& filename )
+adfile::adfile( const std::filesystem::path& filename )
 {
     open( filename );
 }
 
 bool
-adfile::open( const boost::filesystem::path& filename )
+adfile::open( const std::filesystem::path& filename )
 {
     if ( std::shared_ptr< adfs::filesystem > fs = std::make_shared< adfs::filesystem >() ) {
         if ( fsio2::open( *fs, filename.wstring() ) ) {
@@ -67,11 +66,3 @@ adfile::append( const portfolio::Folium& folium, const adcontrols::datafile& dat
         return fsio2::append( *fs_, folium, datasource );
     return false;
 }
-
-// portfolio::Folium
-// adfile::append( const portfolio::Folium& folium )
-// {
-//     if ( fs_ )
-//         return fsio2::append( *fs_, folium );
-//     return {};
-// }

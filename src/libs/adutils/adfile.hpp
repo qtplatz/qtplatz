@@ -26,10 +26,10 @@
 
 #include <memory>
 #include "adutils_global.h"
+#include <filesystem>
 
 namespace adfs { class filesystem; class folder; class file; }
 namespace portfolio { class Portfolio; class Folium; }
-namespace boost { namespace filesystem { class path; } }
 namespace adcontrols { class datafile; }
 
 namespace adutils {
@@ -40,11 +40,11 @@ namespace adutils {
     public:
         ~adfile();
         adfile();
-        adfile( const boost::filesystem::path& filename );
+        adfile( const std::filesystem::path& filename );
         operator bool () const;
-        bool open( const boost::filesystem::path& );
+        bool open( const std::filesystem::path& );
         bool append( const portfolio::Folium&, const adcontrols::datafile& );
-        // portfolio::Folium append( const portfolio::Folium& );
+
     private:
         std::shared_ptr< adfs::filesystem > fs_;
     };

@@ -47,20 +47,20 @@ namespace adutils { namespace detail {
     static adcontrols::datafile * nullfile(0);
 
         struct folder {
-            static bool save( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
+            static bool save( adfs::filesystem& db, const std::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
             static bool load( portfolio::Folder parent, const adfs::folder& adf );
         };
 
         struct folium {
-            static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool save( adfs::folder&, const std::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
             static bool load( portfolio::Folium dst, const adfs::file& src );
 
             // added 2023-08-09
-            static bool save( adfs::folder&, const boost::filesystem::path&, const portfolio::Folium& );
+            static bool save( adfs::folder&, const std::filesystem::path&, const portfolio::Folium& );
         };
 
         struct attachment {
-            static bool save( adfs::file& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool save( adfs::file& parent, const std::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
             static bool load( portfolio::Folium dst, const adfs::file& adf );
         };
 
@@ -86,7 +86,7 @@ fsio2::saveContents( adfs::filesystem& dbf, const std::wstring& path, const port
 
     dbf.addFolder( path );
 
-    boost::filesystem::path name( path ); // this should be "/Processed"
+    std::filesystem::path name( path ); // this should be "/Processed"
 
     for ( const portfolio::Folder& folder: portfolio.folders() )
         detail::folder::save( dbf, name, source, folder );
@@ -98,11 +98,12 @@ fsio2::saveContents( adfs::filesystem& dbf, const std::wstring& path, const port
 
 
 ///////////////////////////////
+
 bool
-detail::attachment::save( adfs::file& parent, const boost::filesystem::path& path
+detail::attachment::save( adfs::file& parent, const std::filesystem::path& path
                           , const adcontrols::datafile& source, const portfolio::Folium& folium )
 {
-    boost::filesystem::path filename = ( path / folium.id() ).generic_wstring();
+    std::filesystem::path filename = ( path / folium.id() ).generic_wstring();
 
     adfs::file dbThis = parent.addAttachment( folium.id() );
     import::attributes( dbThis, folium.attributes() );
@@ -133,10 +134,10 @@ detail::attachment::save( adfs::file& parent, const boost::filesystem::path& pat
 }
 
 bool
-detail::folium::save( adfs::folder& folder, const boost::filesystem::path& path
+detail::folium::save( adfs::folder& folder, const std::filesystem::path& path
                       , const adcontrols::datafile& source, const portfolio::Folium& folium )
 {
-    boost::filesystem::path filename = ( path / folium.id() ).generic_wstring();
+    std::filesystem::path filename = ( path / folium.id() ).generic_wstring();
 
     boost::any any = static_cast<const boost::any&>( folium );
     if ( any.empty() && (&source != nullfile ) )
@@ -160,10 +161,10 @@ detail::folium::save( adfs::folder& folder, const boost::filesystem::path& path
 }
 
 bool
-detail::folder::save( adfs::filesystem& dbf, const boost::filesystem::path& path
+detail::folder::save( adfs::filesystem& dbf, const std::filesystem::path& path
                       , const adcontrols::datafile& source, const portfolio::Folder& folder )
 {
-    boost::filesystem::path pathname = ( path / folder.name() ).generic_string();
+    std::filesystem::path pathname = ( path / folder.name() ).generic_string();
 
     adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
     import::attributes( dbThis, folder.attributes() );
@@ -251,7 +252,7 @@ fsio2::appendOnFile( const std::wstring& filename, const portfolio::Folium& foli
 {
     adfs::filesystem fs;
 
-    if ( !boost::filesystem::exists( filename ) ) {
+    if ( !std::filesystem::exists( filename ) ) {
         if ( !fs.create( filename.c_str() ) )
             return false;
     } else {
@@ -262,12 +263,12 @@ fsio2::appendOnFile( const std::wstring& filename, const portfolio::Folium& foli
 	portfolio::Folder folder = folium.parentFolder();
 
     // "/Processed/Spectra" | "/Processed/MSCalibration"
-    boost::filesystem::path pathname = ( boost::filesystem::path( "/Processed" ) / folder.name() ).generic_string();
+    std::filesystem::path pathname = ( std::filesystem::path( "/Processed" ) / folder.name() ).generic_string();
 
     adfs::folder dbf = fs.addFolder( pathname.wstring() );
     detail::import::attributes( dbf, folder.attributes() );
 
-    std::wstring name = boost::filesystem::path( source.filename() ).leaf().wstring() + L":" + folium.name();
+    std::wstring name = std::filesystem::path( source.filename() ).filename().wstring() + L":" + folium.name();
     portfolio::Folium xfolium( folium );
     xfolium.name( name );
 
@@ -278,7 +279,7 @@ fsio2::appendOnFile( const std::wstring& filename, const portfolio::Folium& foli
 bool
 fsio2::open( adfs::filesystem& fs, const std::wstring& filename )
 {
-    if ( !boost::filesystem::exists( filename ) ) {
+    if ( !std::filesystem::exists( filename ) ) {
         if ( !fs.create( filename.c_str() ) )
             return false;
     } else {
@@ -294,13 +295,13 @@ fsio2::append( adfs::filesystem& fs
                , const adcontrols::datafile& source )
 {
 	portfolio::Folder folder = folium.parentFolder();
-    boost::filesystem::path pathname = ( boost::filesystem::path( "/Processed" ) / folder.name() ).generic_string();
+    std::filesystem::path pathname = ( std::filesystem::path( "/Processed" ) / folder.name() ).generic_string();
 
     adfs::folder dbf = fs.addFolder( pathname.wstring() );
     detail::import::attributes( dbf, folder.attributes() );
 
-    auto uppath = boost::filesystem::path( source.filename() ).parent_path().filename();
-    auto stem = boost::filesystem::path( source.filename() ).stem().string();
+    auto uppath = std::filesystem::path( source.filename() ).parent_path().filename();
+    auto stem = std::filesystem::path( source.filename() ).stem().string();
     std::smatch match;
     if ( std::regex_match( stem, match, std::regex( R"_(.*[^0-9]([0-9]+)$)_" ) ) ) {
         if ( match.size() == 2 )
@@ -313,33 +314,3 @@ fsio2::append( adfs::filesystem& fs
 
     return detail::folium::save( dbf, pathname, source, xfolium );
 }
-
-#if 0
-portfolio::Folium
-fsio2::append( adfs::filesystem& fs
-               , const portfolio::Folium& folium )
-{
-	portfolio::Folder folder = folium.parentFolder();
-    boost::filesystem::path pathname = ( boost::filesystem::path( "/Processed" ) / folder.name() ).generic_string();
-
-    adfs::folder dbf = fs.addFolder( pathname.wstring() );
-    detail::import::attributes( dbf, folder.attributes() );
-
-    auto fullpath = boost::filesystem::path( folium.portfolio_fullpath() );
-
-    auto stem = fullpath.stem().string();
-    std::smatch match;
-    if ( std::regex_match( stem, match, std::regex( R"_(.*[^0-9]([0-9]+)$)_" ) ) ) {
-        if ( match.size() == 2 )
-            stem = match[1].str();
-    }
-    auto fname = ( boost::format("%1%_%2%__%3%") % fullpath.parent_path().filename() % stem %  folium.name<char>() ).str();
-
-    portfolio::Folium xfolium( folium );
-    xfolium.name( fname );
-
-    if ( detail::folium::save( dbf, pathname, xfolium ) )
-        return xfolium;
-    return {};
-}
-#endif

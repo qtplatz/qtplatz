@@ -1482,7 +1482,7 @@ MainWindow::handleImportChecked()
                                                      , tr( "QtPlatz files(*.adfs)" ) );
     if ( filename.isEmpty() )
         return;
-    boost::filesystem::path path( filename.toStdString() );
+    std::filesystem::path path( filename.toStdString() );
     path.replace_extension( "adfs" );
 
     bool handled(false);
@@ -1533,7 +1533,7 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
                                                      , tr( "QtPlatz files(*.adfs)" ) );
     if ( !filename.isEmpty() ) {
 
-        boost::filesystem::path path( filename.toStdString() );
+        std::filesystem::path path( filename.toStdString() );
         path.replace_extension( "adfs" );
         adutils::adfile adfile;
         if ( adfile.open( path ) ) {
