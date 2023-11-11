@@ -87,8 +87,8 @@ namespace addatafile { namespace detail {
         };
 
         struct attachment {
-            static bool save( adfs::file& parent, const boost::filesystem::path& path, const portfolio::Folium& folium ) {
-                boost::filesystem::path filename = path / folium.id();
+            static bool save( adfs::file& parent, const std::filesystem::path& path, const portfolio::Folium& folium ) {
+                std::filesystem::path filename = path / folium.id();
                 boost::any any = static_cast<const boost::any&>( folium );
                 if ( ! any.empty() ) {
                     adfs::file dbThis = parent.addAttachment( folium.id() );
@@ -109,7 +109,7 @@ namespace addatafile { namespace detail {
                 return false;
             }
 
-            static bool save_as( adfs::file&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool save_as( adfs::file&, const std::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
             static bool load( portfolio::Folium dst, const adfs::file& src ) {
                 import::attributes( dst, src );
                 for ( const adfs::file& att: src.attachments() )
@@ -119,8 +119,8 @@ namespace addatafile { namespace detail {
         };
 
         struct folium {
-            static bool save( adfs::folder& folder, const boost::filesystem::path& path, const portfolio::Folium& folium ) {
-                boost::filesystem::path filename = path / folium.id();
+            static bool save( adfs::folder& folder, const std::filesystem::path& path, const portfolio::Folium& folium ) {
+                std::filesystem::path filename = path / folium.id();
 
                 boost::any any = static_cast<const boost::any&>( folium );
                 if ( any.empty() )
@@ -150,7 +150,7 @@ namespace addatafile { namespace detail {
                 }
             }
 
-            static bool save_as( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool save_as( adfs::folder&, const std::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
             static bool load( portfolio::Folium dst, const adfs::file& src ) {
                 import::attributes( dst, src );
                 for ( const adfs::file& att: src.attachments() )
@@ -160,8 +160,8 @@ namespace addatafile { namespace detail {
         };
 
         struct folder {
-            static bool save( adfs::filesystem& dbf, const boost::filesystem::path& path, const portfolio::Folder& folder )  {
-                boost::filesystem::path pathname = path / folder.name();
+            static bool save( adfs::filesystem& dbf, const std::filesystem::path& path, const portfolio::Folder& folder )  {
+                std::filesystem::path pathname = path / folder.name();
 
                 adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
                 import::attributes( dbThis, folder.attributes< std::wstring >() );
@@ -178,7 +178,7 @@ namespace addatafile { namespace detail {
                 return true;
             }
 
-            static bool save_as( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
+            static bool save_as( adfs::filesystem& db, const std::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
             static bool load( portfolio::Folder parent, const adfs::folder& adfolder ) {
                 for ( const adfs::file& file: adfolder.files() )
                     folium::load( parent.addFolium( file.name() ), file );
@@ -472,7 +472,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     dbf_.addFolder( path );
 
-    boost::filesystem::path name( path );
+    std::filesystem::path name( path );
 
     for ( const portfolio::Folder& folder : portfolio.folders() ) {
         detail::folder::save_as( dbf_, name, source, folder );
@@ -501,7 +501,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     dbf_.addFolder( path );
 
-    boost::filesystem::path name( path );
+    std::filesystem::path name( path );
 
     for ( const portfolio::Folder& folder: portfolio.folders() )
         detail::folder::save( dbf_, name, folder );
@@ -596,10 +596,10 @@ namespace addatafile {
     namespace detail {
 
         bool
-        attachment::save_as( adfs::file& parent, const boost::filesystem::path& path
+        attachment::save_as( adfs::file& parent, const std::filesystem::path& path
                              , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
-            boost::filesystem::path filename = path / folium.id();
+            std::filesystem::path filename = path / folium.id();
 
             adfs::file dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes< std::wstring >() );
@@ -625,10 +625,10 @@ namespace addatafile {
 
         //------------
         bool
-        folium::save_as( adfs::folder& folder, const boost::filesystem::path& path
+        folium::save_as( adfs::folder& folder, const std::filesystem::path& path
                          , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
-            boost::filesystem::path filename = path / folium.id();
+            std::filesystem::path filename = path / folium.id();
 
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() )
@@ -661,10 +661,10 @@ namespace addatafile {
 
         //------------------------------------
         bool
-        folder::save_as( adfs::filesystem& dbf, const boost::filesystem::path& path
+        folder::save_as( adfs::filesystem& dbf, const std::filesystem::path& path
                          , const adcontrols::datafile& source, const portfolio::Folder& folder )
         {
-            boost::filesystem::path pathname = path / folder.name();
+            std::filesystem::path pathname = path / folder.name();
 
             adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
             import::attributes( dbThis, folder.attributes< std::wstring >() );
