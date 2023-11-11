@@ -27,8 +27,8 @@
 #include "datafile.hpp"
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
+#include <filesystem>
+// #include <boost/filesystem/operations.hpp>
 #include <boost/config.hpp>
 #include <boost/dll/alias.hpp>
 #include <mutex>
@@ -69,12 +69,13 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    boost::filesystem::wpath path(filename);
-    if ( path.extension() == L".qtms" ) // obsolete
+    std::filesystem::path path(filename);
+
+    if ( path.extension() == ".qtms" ) // obsolete
         return mode == adcontrols::read_access;
-    if ( path.extension() == L".adfs" )
+    if ( path.extension() == ".adfs" )
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
-    if ( path.extension() == L".adfs~" )
+    if ( path.extension() == ".adfs~" )
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
     return false;
 }
@@ -82,7 +83,7 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
-    boost::filesystem::wpath path(filename);
+    std::filesystem::path path(filename);
     datafile * p = new datafile;
     if ( p->open( filename, readonly ) )
         return p;
