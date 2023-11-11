@@ -30,7 +30,6 @@
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/tokenizer.hpp>
@@ -183,9 +182,9 @@ fs::prealloc( adfs::sqlite& db, uint64_t size )
 adfs::folder
 fs::add_folder( adfs::sqlite& db, const std::wstring& name, bool recursive )
 {
-    boost::filesystem::path path( name );
-    std::wstring branch = path.branch_path().wstring(); //.c_str();
-    std::wstring leaf = path.leaf().wstring(); //c_str();
+    std::filesystem::path path( name );
+    std::wstring branch = path.parent_path().wstring(); //.c_str();
+    std::wstring leaf = path.filename().wstring(); //c_str();
 
     if ( branch.at(0) == L'/' ) { // has to be fullpath
 
@@ -224,9 +223,9 @@ fs::add_folder( adfs::sqlite& db, const std::wstring& name, bool recursive )
 adfs::folder
 fs::find_folder( adfs::sqlite& db, const std::wstring& name )
 {
-    boost::filesystem::path path( name );
-    std::wstring branch = path.branch_path().wstring(); // .c_str();
-    std::wstring leaf = path.leaf().wstring(); // c_str();
+    std::filesystem::path path( name );
+    std::wstring branch = path.parent_path().wstring(); // .c_str();
+    std::wstring leaf = path.filename().wstring(); // c_str();
 
     if ( branch.at(0) == L'/' ) { // has to be fullpath
 

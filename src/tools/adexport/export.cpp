@@ -54,7 +54,7 @@ Export::open( const boost::filesystem::path& path )
     auto fs = std::make_unique< adfs::filesystem >();
 
     if ( boost::filesystem::exists( path ) ) {
-        if ( fs->mount( path ) ) {
+        if ( fs->mount( std::filesystem::path( path.string() ) ) ) {
             fs_ = std::move( fs );
             return true;
         }
@@ -98,8 +98,8 @@ Export::out( const adfs::folder& folder, std::ostream& o ) const
         for ( auto afile: file.attachments() ) {
             out( file, o, "#\tATTACH\t" );
         }
-        
-    }    
+
+    }
     return true;
 }
 
@@ -132,7 +132,7 @@ Export::out( const adfs::file& file, std::ostream& o, const std::string& header 
                         o << header << "numberOfTriggers\t" << info.numberOfTriggers() << std::endl;
                         o << header << "mode\t" << info.mode() << std::endl;
                         o << header << "massSpectrometerClsid\t" << prop.massSpectrometerClsid() << std::endl;
-                        
+
                         for ( size_t i = 0; i < ptr->size(); ++i ) {
                             o << i << "\t"
                               << std::fixed << std::setprecision( 14 )

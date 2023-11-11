@@ -129,10 +129,10 @@ dataprocessor::open( const std::filesystem::path& filename, std::string& error_m
 {
     if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename.wstring(), false ) ) ) {
 
-        boost::filesystem::path path( filename );
+        // std::filesystem::path path( filename );
 
         auto fs = std::make_unique< adfs::filesystem >();
-        if ( fs->mount( path ) ) {
+        if ( fs->mount( filename ) ) {
             impl_->fs_ = std::move( fs );
         } else if ( fs->create( ":memory:" ) ) {
             impl_->fs_ = std::move( fs );

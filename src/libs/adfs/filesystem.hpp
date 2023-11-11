@@ -32,7 +32,7 @@
 #include <mutex>
 #include <filesystem>
 
-namespace boost { namespace filesystem { class path; } }
+// namespace boost { namespace filesystem { class path; } }
 
 namespace adfs {
 
@@ -55,7 +55,7 @@ namespace adfs {
         bool create( const std::filesystem::path&, size_t alloc = 0, size_t page_size = 8192 );
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool create( const char * filename, size_t alloc = 0, size_t page_size = 8192 );
-        bool mount( const boost::filesystem::path& filename );
+
         bool mount( const std::filesystem::path& filename );
         bool mount( const wchar_t * filename );
         bool mount( const char * filename );

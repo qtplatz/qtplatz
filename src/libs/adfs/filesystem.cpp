@@ -109,24 +109,18 @@ filesystem::create( const std::filesystem::path& filepath, size_t alloc, size_t 
 bool
 filesystem::mount( const wchar_t * filename )
 {
-    return mount( boost::filesystem::path( filename ) );
+    return mount( std::filesystem::path( filename ) );
 }
 
 bool
 filesystem::mount( const char * filename )
 {
 
-    return mount( boost::filesystem::path( filename ) );
+    return mount( std::filesystem::path( filename ) );
 }
 
 bool
 filesystem::mount( const std::filesystem::path& filepath )
-{
-    return mount( boost::filesystem::path( filepath.string() ) );
-}
-
-bool
-filesystem::mount( const boost::filesystem::path& filepath )
 {
     db_.reset( new sqlite() );
 

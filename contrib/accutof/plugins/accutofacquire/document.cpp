@@ -1893,7 +1893,7 @@ document::impl::loadMSCalibFile( const boost::filesystem::path& path ) const
 {
     if ( boost::filesystem::exists( path ) ) {
         adfs::filesystem fs;
-        if ( fs.mount( path ) ) {
+        if ( fs.mount( std::filesystem::path( path.string() ) ) ) {
             auto calibResult = std::make_shared< adcontrols::MSCalibrateResult >();
             if ( adutils::fsio::load_mscalibfile( fs, *calibResult ) ) {
                 if ( calibResult->calibration().massSpectrometerClsid() == accutof::spectrometer::iids::uuid_massspectrometer ) {
