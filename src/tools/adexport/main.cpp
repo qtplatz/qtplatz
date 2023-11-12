@@ -32,11 +32,11 @@
 #include <adplugin_manager/manager.hpp>
 #include <adportable/debug.hpp>
 #include <adprocessor/dataprocessor.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -79,9 +79,9 @@ main(int argc, char *argv[])
 
     for ( auto& fname: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-        boost::filesystem::path path( fname );
-        boost::system::error_code ec;
-        if ( ( path.extension() == ".adfs" ) && boost::filesystem::exists( path, ec ) ) {
+        std::filesystem::path path( fname );
+        std::error_code ec;
+        if ( ( path.extension() == ".adfs" ) && std::filesystem::exists( path, ec ) ) {
 
             if ( auto dp = std::make_shared< adprocessor::dataprocessor >() ) {
                 std::string msg;

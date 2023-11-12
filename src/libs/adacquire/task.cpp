@@ -530,6 +530,6 @@ task::handle_so_event( SignalObserver::wkEvent events )
 void
 task::handleDataWriterStatus( size_t id, const std::string& filename, size_t remains, size_t progress, double dur )
 {
-    auto stem = boost::filesystem::path( filename ).stem().string();
+    auto stem = std::filesystem::path( filename ).stem().string();
     impl_->signal_deffered_progress_( stem, remains, progress );
 }

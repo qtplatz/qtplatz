@@ -29,7 +29,6 @@
 #include <libxslt/xslt.h>
 #include <libxslt/xsltutils.h>
 #include <libxslt/xsltInternals.h>
-#include <boost/filesystem/path.hpp>
 #include <QCoreApplication>
 #include <QMessageBox>
 #include <QString>
@@ -49,8 +48,8 @@ transformer::transformer()
 
 //static
 bool
-transformer::apply_template( const boost::filesystem::path& xslfile
-                             , const boost::filesystem::path& xmlfile, const boost::filesystem::path& outfile )
+transformer::apply_template( const std::filesystem::path& xslfile
+                             , const std::filesystem::path& xmlfile, const std::filesystem::path& outfile )
 {
     const char *params[16 + 1];
     memset( params, 0, sizeof( params ) );
@@ -80,8 +79,8 @@ transformer::apply_template( const boost::filesystem::path& xslfile
 }
 
 bool
-transformer::apply_template( const boost::filesystem::path& xmlfile
-                             , const boost::filesystem::path& xslfile, QString& output )
+transformer::apply_template( const std::filesystem::path& xmlfile
+                             , const std::filesystem::path& xslfile, QString& output )
 {
     const char *params[16 + 1];
     memset( params, 0, sizeof( params ) );
@@ -118,7 +117,7 @@ transformer::apply_template( const boost::filesystem::path& xmlfile
 // in-memory transform
 //static
 bool
-transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document& dom, QString& output )
+transformer::apply_template( const std::filesystem::path& xsltfile, const pugi::xml_document& dom, QString& output )
 {
     const char *params[16 + 1];
     memset( params, 0, sizeof( params ) );
@@ -159,14 +158,14 @@ transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi
 
 //static
 void
-transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
+transformer::xsltpath( std::filesystem::path& path, const char * xsltfile )
 {
-    static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ).remove_filename();
+    static const auto dir = std::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ).remove_filename();
 #if defined Q_OS_MAC
     static constexpr auto xsltdir = "Resources/xslt";
 #else
     static constexpr auto xsltdir = "share/qtplatz/xslt";
 #endif
 
-    path = dir / xsltdir / boost::filesystem::path( xsltfile );
+    path = dir / xsltdir / std::filesystem::path( xsltfile );
 }

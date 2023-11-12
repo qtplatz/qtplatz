@@ -35,7 +35,6 @@ namespace adportable {
 
 namespace boost {
     class exception;
-    namespace system { class error_code; }
 }
 
 namespace adportable {
@@ -73,7 +72,7 @@ namespace adportable {
     };
 
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::wstring& t );
-    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::system::error_code& );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::error_code& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::exception& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::exception& );
 

@@ -81,8 +81,6 @@
 #include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-//#include <boost/bind.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/mpl/vector.hpp>
@@ -103,6 +101,7 @@
 #include <algorithm>
 #include <bitset>
 #include <chrono>
+#include <filesystem>
 #include <future>
 #include <limits>
 #include <string>
@@ -116,17 +115,17 @@ using namespace acquire;
 namespace acquire {
 
     struct user_preference {
-        static boost::filesystem::path path( QSettings * settings ) {
-            boost::filesystem::path dir( settings->fileName().toStdWString() );
+        static std::filesystem::path path( QSettings * settings ) {
+            std::filesystem::path dir( settings->fileName().toStdWString() );
             return dir.remove_filename() / "acquire";
         }
     };
 
     template< typename T > struct xmlWriter {
-        void operator()( const adcontrols::ControlMethod::MethodItem& mi, const boost::filesystem::path& dir ) const {
+        void operator()( const adcontrols::ControlMethod::MethodItem& mi, const std::filesystem::path& dir ) const {
             T x;
             if ( mi.get<>( mi, x ) ) {
-                boost::filesystem::path fname( dir / mi.modelname() );
+                std::filesystem::path fname( dir / mi.modelname() );
                 fname.replace_extension( ".cmth.xml" );
                 std::wofstream outf( fname.string() );
                 T::xml_archive( outf, x );
@@ -691,14 +690,14 @@ document::device_status() const
 
 // static
 bool
-document::appendOnFile( const boost::filesystem::path& path
+document::appendOnFile( const std::filesystem::path& path
                         , const QString& title
                         , const adcontrols::MassSpectrum& ms
                         , QString& id )
 {
     adfs::filesystem fs;
 
-	if ( ! boost::filesystem::exists( path ) ) {
+	if ( ! std::filesystem::exists( path ) ) {
 		if ( ! fs.create( path.c_str() ) )
 			return false;
 	} else {
@@ -730,10 +729,10 @@ document::initialSetup()
     //adportable::core::debug_core::instance()->open( std::string() ); // disable log file
     //adlog::logging_handler::instance()->setlogfile( std::string() );
 
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "acquire::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
@@ -742,15 +741,15 @@ document::initialSetup()
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
         path = QString::fromStdWString(
-            ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+            ( std::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
         path = QFileInfo( path ).path();
     }
 
     if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
 
-        boost::filesystem::path fname( dir / "samplerun.xml" );
-        if ( boost::filesystem::exists( fname ) ) {
+        std::filesystem::path fname( dir / "samplerun.xml" );
+        if ( std::filesystem::exists( fname ) ) {
             std::wifstream inf( fname.string() );
             try {
                 adcontrols::SampleRun::xml_restore( inf, *run );
@@ -770,7 +769,7 @@ document::initialSetup()
 
     // load last control method from ini-file
     if ( impl_->cm_ ) {
-        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        std::filesystem::path fname( dir / Constants::LAST_METHOD );
         if ( load( QString::fromStdString( fname.string() ), *impl_->cm_ ) )
             MainWindow::instance()->setControlMethod( impl_->cm_ ); // <-- update MainWindos
     };
@@ -815,9 +814,9 @@ document::finalClose()
 
     task::instance()->finalize();
 
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "acquire::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
@@ -825,13 +824,13 @@ document::finalClose()
     }
 
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
-        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        std::filesystem::path fname( dir / Constants::LAST_METHOD );
         save( QString::fromStdString( fname.string() ), *cm );
     }
 
 
     if ( auto run = sampleRun() ) {
-        boost::filesystem::path fname( dir / "samplerun.xml" );
+        std::filesystem::path fname( dir / "samplerun.xml" );
         std::wofstream outf( fname.string() );
         adcontrols::SampleRun::xml_archive( outf, *run );
     }
@@ -1164,11 +1163,11 @@ document::acquire_apply( const QByteArray& json )
 void
 document::takeSnapshot()
 {
-    boost::filesystem::path dir( impl_->nextSampleRun_->dataDirectory() );
+    std::filesystem::path dir( impl_->nextSampleRun_->dataDirectory() );
 
-    if ( ! boost::filesystem::exists( dir ) ) {
-        boost::system::error_code ec;
-        boost::filesystem::create_directories( dir, ec );
+    if ( ! std::filesystem::exists( dir ) ) {
+        std::error_code ec;
+        std::filesystem::create_directories( dir, ec );
     }
     auto path = dir / ( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
 

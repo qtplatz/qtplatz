@@ -28,10 +28,10 @@
 #include <adplugin_manager/manager.hpp>
 #include <QApplication>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <iostream>
+#include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <ratio>
 
 #if OPENCV
@@ -72,17 +72,17 @@ main(int argc, char *argv[])
 
     bool f_directory( false );
 
-    auto cwd = boost::filesystem::current_path();
+    auto cwd = std::filesystem::current_path();
 
     if ( vm.count( "directory" ) ) {
-        boost::filesystem::path cdir( vm[ "directory" ].as< std::string >() );
-        if ( !boost::filesystem::exists( cdir ) )
-            boost::filesystem::create_directories( cdir );
-        if ( boost::filesystem::exists( cdir ) && !boost::filesystem::is_directory( cdir ) ) {
+        std::filesystem::path cdir( vm[ "directory" ].as< std::string >() );
+        if ( !std::filesystem::exists( cdir ) )
+            std::filesystem::create_directories( cdir );
+        if ( std::filesystem::exists( cdir ) && !std::filesystem::is_directory( cdir ) ) {
             std::cerr << "Directory " << cdir << " is not a directory." << std::endl;
             return -1;
         }
-        boost::filesystem::current_path( cdir );
+        std::filesystem::current_path( cdir );
         f_directory = true;
     }
 
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-            boost::filesystem::path file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
+            std::filesystem::path file = f_directory ? std::filesystem::canonical( _file, cwd ).string() : _file;
 
             std::string msg;
             auto processor = std::make_shared< adprocessor::dataprocessor >();

@@ -35,10 +35,6 @@
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/lexical_cast.hpp>
 #include <app/app_version.h>
@@ -47,12 +43,13 @@
 #include <QSettings>
 #include <QFuture>
 #include <algorithm>
+#include <filesystem>
 
 namespace query {
     namespace detail {
         struct user_preference {
-            static boost::filesystem::path path( QSettings * settings ) {
-                boost::filesystem::path dir( settings->fileName().toStdWString() );
+            static std::filesystem::path path( QSettings * settings ) {
+                std::filesystem::path dir( settings->fileName().toStdWString() );
                 return dir.remove_filename() / "Query";
             }
         };

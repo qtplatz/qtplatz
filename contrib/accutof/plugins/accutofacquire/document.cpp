@@ -130,17 +130,17 @@ using namespace accutof::acquire;
 namespace accutof { namespace acquire {
 
         struct user_preference {
-            static boost::filesystem::path path( QSettings * settings ) {
-                boost::filesystem::path dir( settings->fileName().toStdWString() );
+            static std::filesystem::path path( QSettings * settings ) {
+                std::filesystem::path dir( settings->fileName().toStdWString() );
                 return dir.remove_filename() / "accutof";
             }
         };
 
         template< typename T > struct xmlWriter {
-            void operator()( const adcontrols::ControlMethod::MethodItem& mi, const boost::filesystem::path& dir ) const {
+            void operator()( const adcontrols::ControlMethod::MethodItem& mi, const std::filesystem::path& dir ) const {
                 T x;
                 if ( mi.get<>( mi, x ) ) {
-                    boost::filesystem::path fname( dir / mi.modelname() );
+                    std::filesystem::path fname( dir / mi.modelname() );
                     fname.replace_extension( ".cmth.xml" );
                     std::wofstream outf( fname.string() );
                     T::xml_archive( outf, x );
@@ -330,7 +330,7 @@ namespace accutof { namespace acquire {
             void loadControllerState();
             void takeSnapshot();
             std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double resolution ) const;
-            std::shared_ptr< adcontrols::MSCalibrateResult > loadMSCalibFile( const boost::filesystem::path& ) const;
+            std::shared_ptr< adcontrols::MSCalibrateResult > loadMSCalibFile( const std::filesystem::path& ) const;
             bool prepareStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const;
@@ -642,14 +642,14 @@ document::method() const
 
 // static
 bool
-document::appendOnFile( const boost::filesystem::path& path
+document::appendOnFile( const std::filesystem::path& path
                         , const QString& title
                         , const adcontrols::MassSpectrum& ms
                         , QString& id )
 {
     adfs::filesystem fs;
 
-    if ( ! boost::filesystem::exists( path ) ) {
+    if ( ! std::filesystem::exists( path ) ) {
         if ( ! fs.create( path.c_str() ) )
             return false;
     } else {
@@ -674,10 +674,10 @@ document::appendOnFile( const boost::filesystem::path& path
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "pkdavg::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
@@ -686,14 +686,14 @@ document::initialSetup()
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
         path = QString::fromStdWString(
-            ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+            ( std::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
         path = QFileInfo( path ).path();
     }
 
     if ( auto ptr = std::make_shared< adcontrols::ControlMethod::Method >() ) {
         // always load 'latest', which may not be same with methodName if user did not save with the name
-        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        std::filesystem::path fname( dir / Constants::LAST_METHOD );
         if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) ) {
             setControlMethod( ptr );
             impl_->tdcdoc_->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
@@ -703,8 +703,8 @@ document::initialSetup()
 
     if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
 
-        boost::filesystem::path fname( dir / "samplerun.xml" );
-        if ( boost::filesystem::exists( fname ) ) {
+        std::filesystem::path fname( dir / "samplerun.xml" );
+        if ( std::filesystem::exists( fname ) ) {
             std::wifstream inf( fname.string() );
             try {
                 adcontrols::SampleRun::xml_restore( inf, *run );
@@ -798,9 +798,9 @@ document::finalClose()
 void
 document::save_defaults()
 {
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "accutof::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
@@ -808,12 +808,12 @@ document::save_defaults()
     }
 
     if ( auto cm = MainWindow::instance()->getControlMethod() ) {
-        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        std::filesystem::path fname( dir / Constants::LAST_METHOD );
         save( QString::fromStdWString( fname.wstring() ), *cm );
     }
 
     if ( auto run = sampleRun() ) {
-        boost::filesystem::path fname( dir / "samplerun.xml" );
+        std::filesystem::path fname( dir / "samplerun.xml" );
         std::wofstream outf( fname.string() );
         adcontrols::SampleRun::xml_archive( outf, *run );
     }
@@ -1261,20 +1261,20 @@ document::impl::getHistogram( double resolution ) const
 void
 document::impl::takeSnapshot()
 {
-    boost::filesystem::path dir( nextSampleRun_->dataDirectory() );
-    boost::filesystem::path file( std::wstring( nextSampleRun_->filePrefix() ) + L".adfs~" );
+    std::filesystem::path dir( nextSampleRun_->dataDirectory() );
+    std::filesystem::path file( std::wstring( nextSampleRun_->filePrefix() ) + L".adfs~" );
 
     // debug -->
     // resultWriter_->dump_waveform();
     // <-- debug
 
-    if ( ! boost::filesystem::exists( dir ) ) {
+    if ( ! std::filesystem::exists( dir ) ) {
         boost::system::error_code ec;
-        boost::filesystem::create_directories( dir, ec );
+        std::filesystem::create_directories( dir, ec );
     }
 
-    boost::filesystem::path path( dir / file );
-    if ( ! boost::filesystem::exists( path ) )
+    std::filesystem::path path( dir / file );
+    if ( ! std::filesystem::exists( path ) )
         path = dir / ( std::wstring( nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
 
     unsigned idx = 0;
@@ -1532,7 +1532,7 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
         }
         if ( !loaded ) {
             msCalibFile_ = QString();
-            boost::filesystem::path path =
+            std::filesystem::path path =
                 QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
             path /= accutof::acquire::Constants::DEFAULT_CALIB_FILE; // default.msclb
             if ( auto calibResult = loadMSCalibFile( path ) ) {
@@ -1585,7 +1585,7 @@ document::impl::closingStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
 {
     // ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
     if ( uuid == boost::uuids::uuid{{ 0 }} ) {
-        ADDEBUG() << "## " << __FUNCTION__ << " " << boost::filesystem::path( sp.filesystem().filename() ).stem().string();
+        ADDEBUG() << "## " << __FUNCTION__ << " " << std::filesystem::path( sp.filesystem().filename() ).stem().string();
     }
     return true;
 }
@@ -1889,9 +1889,9 @@ document::msCalibFile() const
 }
 
 std::shared_ptr< adcontrols::MSCalibrateResult >
-document::impl::loadMSCalibFile( const boost::filesystem::path& path ) const
+document::impl::loadMSCalibFile( const std::filesystem::path& path ) const
 {
-    if ( boost::filesystem::exists( path ) ) {
+    if ( std::filesystem::exists( path ) ) {
         adfs::filesystem fs;
         if ( fs.mount( std::filesystem::path( path.string() ) ) ) {
             auto calibResult = std::make_shared< adcontrols::MSCalibrateResult >();

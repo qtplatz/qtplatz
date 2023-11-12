@@ -77,8 +77,8 @@
 namespace dataproc {
 
     struct user_preference {
-        static boost::filesystem::path path( QSettings * settings ) {
-            boost::filesystem::path dir( settings->fileName().toStdWString() );
+        static std::filesystem::path path( QSettings * settings ) {
+            std::filesystem::path dir( settings->fileName().toStdWString() );
             return dir.remove_filename() / "dataproc";
         }
     };
@@ -148,10 +148,10 @@ document::addToRecentFiles( const QString& filename, const char * const GRP )
 void
 document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( settings_.get() );
+    std::filesystem::path dir = user_preference::path( settings_.get() );
 
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "dataproc::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
@@ -159,7 +159,7 @@ document::initialSetup()
 
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
-        path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+        path = QString::fromStdWString( ( std::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
         path = QFileInfo( path ).path();
     }
@@ -171,7 +171,7 @@ document::initialSetup()
 #endif
     Core::DocumentManager::setUseProjectsDirectory( true );
 
-    boost::filesystem::path mfile( dir / "default.pmth" );
+    std::filesystem::path mfile( dir / "default.pmth" );
     adcontrols::ProcessMethod pm;
     if ( load( QString::fromStdWString( mfile.wstring() ), pm ) )
         setProcessMethod( pm, QString() ); // don't save default name
@@ -180,9 +180,9 @@ document::initialSetup()
 void
 document::finalClose()
 {
-    boost::filesystem::path dir = user_preference::path( settings_.get() );
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    std::filesystem::path dir = user_preference::path( settings_.get() );
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "dataproc::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
@@ -193,7 +193,7 @@ document::finalClose()
     adcontrols::ProcessMethod pm;
     MainWindow::instance()->getProcessMethod( pm );
 
-    boost::filesystem::path fname( dir / "default.pmth" );
+    std::filesystem::path fname( dir / "default.pmth" );
     save( QString::fromStdWString( fname.wstring() ), pm );
 }
 
@@ -326,7 +326,7 @@ document::load( const QString& filename, adcontrols::ProcessMethod& pm )
 bool
 document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
 {
-    boost::filesystem::path name( filename.toStdWString() );
+    std::filesystem::path name( filename.toStdWString() );
     name.replace_extension( ".pmth" );
 
     adfs::filesystem fs;
@@ -348,8 +348,8 @@ document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
     adfile.commit();
 
     name.replace_extension( ".pmth.xml" );
-    if ( boost::filesystem::exists( name ) )
-        boost::filesystem::remove( name );
+    if ( std::filesystem::exists( name ) )
+        std::filesystem::remove( name );
 
     try {
         std::wofstream of( name.string() );

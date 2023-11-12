@@ -145,7 +145,7 @@ ServantPlugin::aboutToShutdown()
 	adlog::logging_handler::instance()->close();
 
     ADDEBUG() << "\t------------- servantplugin ---------- Shutdown: "
-              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
                                                       , boost::dll::program_location().parent_path() );
 
 	return SynchronousShutdown;

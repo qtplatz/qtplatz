@@ -67,11 +67,11 @@
 #include <QStandardItemModel>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/json.hpp>
 #include <boost/json/value_from.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <array>
 
@@ -1111,7 +1111,7 @@ namespace {
                 if ( path->extension() == ".adfs" ) {
                     adutils::fsio2::appendOnFile( path->wstring(), folium, *processor->file() );
                 } else {
-                    boost::filesystem::ofstream of( *path );
+                    std::ofstream of( *path );
                     auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                     export_spectrum::write( of, *ms );
                 }
@@ -1137,7 +1137,7 @@ namespace {
         void operator()() {
             if ( auto mslock = mslock_data::find( folium ) ) {
                 if ( auto path = utility::export_mslock_as()( folium ) ) {
-                    boost::filesystem::ofstream of( *path );
+                    std::ofstream of( *path );
                     of << boost::json::value_from( *mslock ) << std::endl;
                 }
             } else {
@@ -1158,7 +1158,7 @@ namespace {
                 if ( path->extension() == ".adfs" ) {
                     adutils::fsio2::appendOnFile( path->wstring(), folium, *processor->file() );
                 } else {
-                    boost::filesystem::ofstream of( *path );
+                    std::ofstream of( *path );
                     if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )
                         export_chromatogram::write( of, *c );
                 }

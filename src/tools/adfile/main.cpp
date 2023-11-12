@@ -35,10 +35,10 @@
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 
         for ( auto& fname: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-            boost::filesystem::path path( fname );
+            std::filesystem::path path( fname );
             if ( path.extension() == ".adfs" ) {
 
                 std::cout << path.string() << std::endl;

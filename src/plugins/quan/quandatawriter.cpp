@@ -55,10 +55,10 @@
 #include <adportable/profile.hpp>
 #include <adportable/uuid.hpp>
 #include <adportable/utf.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <filesystem>
 #include <numeric>
 
 using namespace quan;
@@ -75,7 +75,7 @@ QuanDataWriter::QuanDataWriter( const std::wstring& path ) : path_( path )
 bool
 QuanDataWriter::open()
 {
-    if ( !boost::filesystem::exists( path_ ) ) {
+    if ( !std::filesystem::exists( path_ ) ) {
         if ( !fs_.create( path_.c_str() ) )
             return false;
     } else {
@@ -167,7 +167,7 @@ QuanDataWriter::write( const adcontrols::Chromatogram& c, const wchar_t * dataSo
 {
     if ( auto top = fs_.addFolder( L"/Processed/Chromatograms" ) ) {
 
-        boost::filesystem::path path = boost::filesystem::path( L"/Processed/Chromatograms" ) / boost::filesystem::path( dataSource ).stem();
+        std::filesystem::path path = std::filesystem::path( L"/Processed/Chromatograms" ) / std::filesystem::path( dataSource ).stem();
 
         if ( adfs::folder folder = fs_.addFolder( path.wstring() ) ) {
             if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
@@ -852,7 +852,7 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
                              "INSERT INTO QuanCountingResponse (idSample,dataSource,fcn,idCmpd,dataGuid,formula,response,tof,stddev,N,centroid)"
                              " VALUES ((SELECT id FROM QuanSample WHERE uuid = ?),?,?,?,?,?,?,?,?,?,?)" ) ) {
                         sql.bind( 1 ) = sample.uuid();
-                        sql.bind( 2 ) = boost::filesystem::path( sample.dataSource() ).stem().string();
+                        sql.bind( 2 ) = std::filesystem::path( sample.dataSource() ).stem().string();
                         sql.bind( 3 ) = proto.get();
                         sql.bind( 4 ) = cmpdGuid.get();
                         sql.bind( 5 ) = dataGuid;
@@ -886,7 +886,7 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
                         sql.bind( 6 ) = chro.intensity( i );
                         sql.bind( 7 ) = chro.tofArray().empty() ? tof.get() : chro.tof( i );
                         sql.bind( 8 ) = chro.mass( i );
-                        // sql.bind( 9 ) = boost::filesystem::path( sample.dataSource() ).stem().string();
+                        // sql.bind( 9 ) = std::filesystem::path( sample.dataSource() ).stem().string();
                         if ( sql.step() != adfs::sqlite_done )
                             ADTRACE() << "sql error " << sql.errmsg();
                         sql.reset();

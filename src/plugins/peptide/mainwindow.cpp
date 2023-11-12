@@ -56,7 +56,7 @@
 #include <QStandardItemModel>
 #include <QMenu>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace peptide {
     MainWindow * MainWindow::instance_ = 0;
@@ -413,7 +413,7 @@ MainWindow::setDemoData()
 void
 MainWindow::actFileOpen()
 {
-    boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
+    std::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
     datapath /= "data";
 
     QString name

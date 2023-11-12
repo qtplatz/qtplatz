@@ -37,9 +37,9 @@
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/filesystem.hpp>
 #include <QApplication>
 #include <QFileInfo>
+#include <filesystem>
 
 //#include <QXmlQuery>
 
@@ -156,14 +156,14 @@ document::apply_template( const char * xmlfile, const char * xsltfile, QString& 
     using namespace libxslt;
 #endif
 
-    if ( !boost::filesystem::exists( xmlfile ) )
+    if ( !std::filesystem::exists( xmlfile ) )
         return false;
 
-    boost::filesystem::path xslt( xsltfile );
+    std::filesystem::path xslt( xsltfile );
     if ( !xslt.is_absolute() )
         transformer::xsltpath( xslt, xsltfile );
 
-    if ( !boost::filesystem::exists( xslt ) )
+    if ( !std::filesystem::exists( xslt ) )
         return false;
 
     pugi::xml_document doc;

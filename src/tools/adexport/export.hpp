@@ -25,7 +25,7 @@
 #pragma once
 
 #include <adfs/folder.hpp>
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -39,16 +39,15 @@ namespace adexport {
     public:
         ~Export();
         Export();
-        bool open( const boost::filesystem::path& path );
+        bool open( const std::filesystem::path& path );
         bool loadFolders();
         inline const std::vector< adfs::folder >& folders() const { return folders_; }
         bool out( const adfs::folder&, std::ostream& ) const;
-        
+
     private:
-        bool list( const boost::filesystem::path& path, const adfs::folder&, std::vector< adfs::folder >& ) const;
+        bool list( const std::filesystem::path& path, const adfs::folder&, std::vector< adfs::folder >& ) const;
         bool out( const adfs::file& file, std::ostream& o, const std::string& header ) const;
         std::vector< adfs::folder > folders_;
     };
 
 }
-

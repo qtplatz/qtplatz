@@ -25,9 +25,11 @@
 #pragma once
 
 #include <adportable/semaphore.hpp>
+#include <QObject>
 #include <boost/signals2/signal.hpp>
 #include <array>
 #include <atomic>
+#include <filesystem>
 #include <functional>
 #include <future>
 #include <map>
@@ -35,7 +37,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
-#include <QObject>
+
 
 
 namespace adcontrols {
@@ -124,14 +126,14 @@ namespace quan {
         QString lastDataDir() const;
         void addRecentDataDir( const QString& );
 
-        bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
-        bool save( const boost::filesystem::path&, const adcontrols::QuanSequence&, bool updateSettings );
+        bool load( const std::filesystem::path&, adcontrols::QuanSequence& );
+        bool save( const std::filesystem::path&, const adcontrols::QuanSequence&, bool updateSettings );
 
-        bool load( const boost::filesystem::path&, adcontrols::ProcessMethod&, bool );
-        bool save( const boost::filesystem::path&, const adcontrols::ProcessMethod&, bool );
+        bool load( const std::filesystem::path&, adcontrols::ProcessMethod&, bool );
+        bool save( const std::filesystem::path&, const adcontrols::ProcessMethod&, bool );
 
-        static bool load( const boost::filesystem::path&, adpublisher::document& );
-        static bool save( const boost::filesystem::path&, const adpublisher::document& );
+        static bool load( const std::filesystem::path&, adpublisher::document& );
+        static bool save( const std::filesystem::path&, const adpublisher::document& );
 
     private:
         typedef std::vector< std::shared_ptr< PanelData > > page_type;

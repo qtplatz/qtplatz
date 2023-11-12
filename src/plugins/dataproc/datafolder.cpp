@@ -35,9 +35,9 @@
 #include <adutils/processeddata_t.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/variant/static_visitor.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <filesystem>
 
 namespace dataproc {
 
@@ -163,8 +163,8 @@ datafolder::make_display_name( const std::wstring& fullpath, const portfolio::Fo
 {
     const char inserter = ';';
 
-    boost::filesystem::path path( fullpath );
-    auto rpath = boost::filesystem::relative( path, path / "../.." );
+    std::filesystem::path path( fullpath );
+    auto rpath = std::filesystem::relative( path, path / "../.." );
     std::wstring name = rpath.wstring() + wchar_t( inserter ) + boost::algorithm::trim_copy( folium.name() );
     return QString::fromStdWString( name );
 }

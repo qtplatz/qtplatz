@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <boost/filesystem/path.hpp>
 #include <boost/optional.hpp>
 #include <utility>
 #include <tuple>
+#include <filesystem>
 
 namespace adcontrols { class MassSpectrum; class Chromatogram; }
 
@@ -64,13 +64,13 @@ namespace dataproc {
     template< typename T > struct rms_export {};
 
     template<> struct rms_export< adcontrols::MassSpectrum > {
-        static void text_export( const boost::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
-        static void sqlite_export(  const boost::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
+        static void text_export( const std::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
+        static void sqlite_export(  const std::filesystem::path&, const std::pair<double,double>&, bool axisIsTime );
     };
 
     template<> struct rms_export< adcontrols::Chromatogram > {
-        static void text_export( const boost::filesystem::path&, const std::pair<double,double>& );
-        static void sqlite_export(  const boost::filesystem::path&, const std::pair<double,double>& );
+        static void text_export( const std::filesystem::path&, const std::pair<double,double>& );
+        static void sqlite_export(  const std::filesystem::path&, const std::pair<double,double>& );
     };
 
 }

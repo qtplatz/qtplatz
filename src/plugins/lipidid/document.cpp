@@ -61,7 +61,6 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
-#include <boost/filesystem.hpp>
 #include <boost/json.hpp>
 #include <filesystem>
 #include <fstream>
@@ -74,8 +73,8 @@ Q_DECLARE_METATYPE( portfolio::Folium )
 namespace lipidid {
 
     struct user_preference {
-        static boost::filesystem::path path( QSettings * settings ) {
-            boost::filesystem::path dir( settings->fileName().toStdWString() );
+        static std::filesystem::path path( QSettings * settings ) {
+            std::filesystem::path dir( settings->fileName().toStdWString() );
             return dir.remove_filename() / "lipidid";
         }
     };
@@ -153,9 +152,9 @@ document::initialSetup()
     }
 
     do {
-        boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-        if ( !boost::filesystem::exists( dir ) ) {
-            if ( !boost::filesystem::create_directories( dir ) ) {
+        std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+        if ( !std::filesystem::exists( dir ) ) {
+            if ( !std::filesystem::create_directories( dir ) ) {
                 QMessageBox::information( 0, "lipidid::document"
                                           , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             }
@@ -163,13 +162,13 @@ document::initialSetup()
     } while ( 0 );
 
     do {
-        auto path = boost::filesystem::path( impl_->settings_->fileName().toStdString() );
+        auto path = std::filesystem::path( impl_->settings_->fileName().toStdString() );
         auto dir = path.remove_filename() / "lipidid";
-        boost::filesystem::path fpath = qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdWString();
+        std::filesystem::path fpath = qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdWString();
         if ( fpath.empty() ) {
             fpath = dir / "lipid_maps.db";
         }
-        if ( boost::filesystem::exists( fpath ) ) {
+        if ( std::filesystem::exists( fpath ) ) {
             if ( fpath.extension() == "adfs" || fpath.extension() == "db" ) {
                 auto db = std::make_shared< adfs::sqlite >();
                 db->open( fpath.string().c_str(), adfs::readonly );

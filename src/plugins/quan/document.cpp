@@ -81,8 +81,8 @@
 namespace quan {
     namespace detail {
         struct user_preference {
-            static boost::filesystem::path path( QSettings * settings ) {
-                boost::filesystem::path dir( settings->fileName().toStdWString() );
+            static std::filesystem::path path( QSettings * settings ) {
+                std::filesystem::path dir( settings->fileName().toStdWString() );
                 return dir.remove_filename() / "Quan";
             }
         };
@@ -175,10 +175,10 @@ document::findPanel( int idx, int subIdx, int pos )
 bool
 document::save_default_methods()
 {
-    boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
+    std::filesystem::path dir = detail::user_preference::path( settings_.get() );
 
-    if ( !boost::filesystem::exists( dir ) ) {
-        if ( !boost::filesystem::create_directories( dir ) ) {
+    if ( !std::filesystem::exists( dir ) ) {
+        if ( !std::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0
                                       , "document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
@@ -195,7 +195,7 @@ document::save_default_methods()
     // check if method file in user file space
     QString name = recentFile( Constants::GRP_METHOD_FILES, Constants::KEY_FILES );
     if ( ! name.isEmpty() ) {
-        boost::filesystem::path filepath( name.toStdWString() );
+        std::filesystem::path filepath( name.toStdWString() );
         save( filepath, *procm_, false );
     }
     return true;
@@ -211,9 +211,9 @@ document::load_default_methods()
             ADDEBUG() << "=========== default method load from: " << name.toStdString();
 
         if ( ! name.isEmpty() ) {
-            boost::filesystem::path filepath( name.toStdWString() );
+            std::filesystem::path filepath( name.toStdWString() );
 
-            if ( boost::filesystem::exists( filepath ) && load( filepath, *procm_, true ) ) {
+            if ( std::filesystem::exists( filepath ) && load( filepath, *procm_, true ) ) {
                 auto qm = procm_->find< adcontrols::QuanMethod >();
                 if ( !qm ) {
                     *procm_ << adcontrols::QuanMethod();
@@ -226,10 +226,10 @@ document::load_default_methods()
 
         // recovery from backup
         if ( dirty_flags_[ idMethodComplex ] ) {
-            boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-            boost::filesystem::path backup = dir / L"QuanMethod.xml";
+            std::filesystem::path dir = detail::user_preference::path( settings_.get() );
+            std::filesystem::path backup = dir / L"QuanMethod.xml";
             // ADDEBUG() << "=========== default method load from: " << backup.string();
-            if ( boost::filesystem::exists( backup ) && load( backup, *procm_, false ) )
+            if ( std::filesystem::exists( backup ) && load( backup, *procm_, false ) )
                 dirty_flags_[ idMethodComplex ] = false; // don't update filename
             // ADDEBUG() << "=========== default method load status: " << ( ( dirty_flags_[ idMethodComplex ] == false ) ? "success" : "fail" );
         }
@@ -240,9 +240,9 @@ document::load_default_methods()
         // .sequ file
         QString name = recentFile( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES );
         if ( ! name.isEmpty() ) {
-            boost::filesystem::path filepath( name.toStdWString() );
+            std::filesystem::path filepath( name.toStdWString() );
 
-            if ( boost::filesystem::exists( filepath ) && load( filepath, *quanSequence_ ) ) {
+            if ( std::filesystem::exists( filepath ) && load( filepath, *quanSequence_ ) ) {
                 dirty_flags_[ idQuanSequence ] = true;
                 quanSequence_->filename( filepath.generic_wstring().c_str() ); // just make sure it has correct filename
             }
@@ -250,9 +250,9 @@ document::load_default_methods()
 
         // recovery from backup
         if ( dirty_flags_[ idQuanSequence ] ) {
-            boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-            boost::filesystem::path backup = dir / L"QuanSequence.xml";
-            if ( boost::filesystem::exists( backup ) && load( backup, *quanSequence_ ) ) {
+            std::filesystem::path dir = detail::user_preference::path( settings_.get() );
+            std::filesystem::path backup = dir / L"QuanSequence.xml";
+            if ( std::filesystem::exists( backup ) && load( backup, *quanSequence_ ) ) {
                 dirty_flags_[ idQuanSequence ] = false;
                 // stay with original filename
             }
@@ -530,8 +530,8 @@ document::handle_processed( QuanProcessor * processor )
 
         auto future = std::async( std::launch::async, [&](){
                 if ( auto sequence = processor->sequence() ) {
-                    boost::filesystem::path database( sequence->outfile() );
-                    if ( boost::filesystem::exists( database ) ) {
+                    std::filesystem::path database( sequence->outfile() );
+                    if ( std::filesystem::exists( database ) ) {
                         adfs::filesystem fs;
                         if ( fs.mount( database.wstring().c_str() ) ) {
                             processor->doCalibration( fs.db(), [&](size_t _1, size_t _2){
@@ -668,7 +668,7 @@ document::addRecentFiles( const QString& group, const QString& key, const QStrin
     std::vector< QString > list;
     getRecentFiles( group, key, list );
 
-    boost::filesystem::path path = boost::filesystem::path( value.toStdWString() ).generic_wstring();
+    std::filesystem::path path = std::filesystem::path( value.toStdWString() ).generic_wstring();
     auto it = std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a.toStdWString(); } );
     if ( it != list.end() )
         list.erase( it, list.end() );
@@ -722,11 +722,11 @@ document::recentFile( const QString& group, const QString& key ) const
 }
 
 bool
-document::load( const boost::filesystem::path& path, adcontrols::QuanSequence& t )
+document::load( const std::filesystem::path& path, adcontrols::QuanSequence& t )
 {
     if ( path.extension() == ".xml" ) {
 
-        boost::filesystem::wifstream fi( path );
+        std::wifstream fi( path );
         try {
             if ( adcontrols::QuanSequence::xml_restore( fi, t ) ) {
                 addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_REFERENCE, QString::fromStdWString( path.generic_wstring() ) );
@@ -762,11 +762,11 @@ document::load( const boost::filesystem::path& path, adcontrols::QuanSequence& t
 }
 
 bool
-document::save( const boost::filesystem::path& path, const adcontrols::QuanSequence& t, bool updateSettings )
+document::save( const std::filesystem::path& path, const adcontrols::QuanSequence& t, bool updateSettings )
 {
     if ( path.extension() == ".xml" ) {
 
-        boost::filesystem::wofstream fo( path );
+        std::wofstream fo( path );
         if ( adcontrols::QuanSequence::xml_archive( fo, t ) ) {
             if ( updateSettings )
                 addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
@@ -787,7 +787,7 @@ document::save( const boost::filesystem::path& path, const adcontrols::QuanSeque
                 if ( updateSettings )
                     addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
             }
-            //boost::filesystem::path xmlfile( path );
+            //std::filesystem::path xmlfile( path );
             //xmlfile.replace_extension( path.extension().string() + ".xml" );
             //return save( xmlfile, t, false );
         }
@@ -797,14 +797,14 @@ document::save( const boost::filesystem::path& path, const adcontrols::QuanSeque
 
 //static
 bool
-document::load( const boost::filesystem::path& path, adcontrols::ProcessMethod& pm, bool updateSettings )
+document::load( const std::filesystem::path& path, adcontrols::ProcessMethod& pm, bool updateSettings )
 {
     if ( path.extension() == ".xml" ) {
 
     	boost::system::error_code ec;
-    	if ( boost::filesystem::exists( path, ec ) ) {
+    	if ( std::filesystem::exists( path, ec ) ) {
     		try {
-    			boost::filesystem::wifstream is( path );
+    			std::wifstream is( path );
     			if ( adcontrols::ProcessMethod::xml_restore( is, pm ) ) {
                     if ( updateSettings )
                         addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
@@ -841,18 +841,18 @@ document::load( const boost::filesystem::path& path, adcontrols::ProcessMethod& 
 
 //static
 bool
-document::save( const boost::filesystem::path& path, const adcontrols::ProcessMethod& pm, bool updateSettings )
+document::save( const std::filesystem::path& path, const adcontrols::ProcessMethod& pm, bool updateSettings )
 {
     if ( path.extension() == ".xml" ) {
 
     	boost::system::error_code ec;
-    	if ( boost::filesystem::exists( path, ec ) ) {
-    		boost::filesystem::path backup(path);
+    	if ( std::filesystem::exists( path, ec ) ) {
+    		std::filesystem::path backup(path);
     		backup.replace_extension( ".old.xml" );
-    		boost::filesystem::rename( path, backup, ec );
+    		std::filesystem::rename( path, backup, ec );
     	}
         try {
-            boost::filesystem::wofstream fo( path );
+            std::wofstream fo( path );
             if ( adcontrols::ProcessMethod::xml_archive( fo, pm ) ) {
                 if ( updateSettings )
                     addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
@@ -878,7 +878,7 @@ document::save( const boost::filesystem::path& path, const adcontrols::ProcessMe
                         addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
                 }
             }
-            //boost::filesystem::path xmlfile( path );
+            //std::filesystem::path xmlfile( path );
             //xmlfile.replace_extension( path.extension().string() + ".xml" );
             //return save( xmlfile, pm, false );
         }
@@ -888,13 +888,13 @@ document::save( const boost::filesystem::path& path, const adcontrols::ProcessMe
 }
 
 bool
-document::load( const boost::filesystem::path& path, adpublisher::document& doc )
+document::load( const std::filesystem::path& path, adpublisher::document& doc )
 {
     return doc.load_file( path.string().c_str() );
 }
 
 bool
-document::save( const boost::filesystem::path& path, const adpublisher::document& doc )
+document::save( const std::filesystem::path& path, const adpublisher::document& doc )
 {
     return doc.save_file( path.string().c_str() );
 }

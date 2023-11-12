@@ -120,8 +120,6 @@
 #include <qtwrapper/waitcursor.hpp>
 
 #include <boost/exception/all.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
 #include <QApplication>
@@ -129,6 +127,7 @@
 #include <QMessageBox>
 #include <QJsonDocument>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <regex>
 #include <stack>
@@ -396,7 +395,7 @@ Dataprocessor::isSaveAsAllowed() const
 bool
 Dataprocessor::create(const QString& filename )
 {
-    boost::filesystem::path path( filename.toStdString() );
+    std::filesystem::path path( filename.toStdString() );
     path.replace_extension( L".adfs" );
 
     portfolio().create_with_fullpath( path.wstring() );
@@ -1442,7 +1441,7 @@ Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
 {
     // reload action for snapshot on acquire
 
-	boost::filesystem::path pathname( path );
+	std::filesystem::path pathname( path );
 	if ( std::distance( pathname.begin(), pathname.end() ) < 3 )
 		return false;
 	if ( path.find( L"/Processed" ) == path.npos )
@@ -1747,7 +1746,7 @@ Dataprocessor::MSCalibrationSave( portfolio::Folium& folium, const QString& file
     if ( file.isEmpty() )
         return false;
 
-    boost::filesystem::path fname( file.toStdString() );
+    std::filesystem::path fname( file.toStdString() );
     fname.replace_extension( ".msclb" );
 
     adfs::filesystem dbf;
@@ -1780,8 +1779,8 @@ bool
 Dataprocessor::MSCalibrationLoad( const QString& filename
                                   , adcontrols::MSCalibrateResult& r, adcontrols::MassSpectrum& ms )
 {
-    boost::filesystem::path path( filename.toStdString() );
-    if ( ! boost::filesystem::exists( path ) )
+    std::filesystem::path path( filename.toStdString() );
+    if ( ! std::filesystem::exists( path ) )
         return false;
 
     adfs::filesystem fs;
@@ -1799,7 +1798,7 @@ Dataprocessor::MSCalibrationLoad( const QString& filename
 void
 Dataprocessor::exportXML() const
 {
-    boost::filesystem::path path( this->file()->filename() );
+    std::filesystem::path path( this->file()->filename() );
     path += ".xml";
     portfolio().save( path.wstring() );
 }

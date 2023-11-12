@@ -23,14 +23,15 @@
 **************************************************************************/
 
 #pragma once
-#include <boost/filesystem/path.hpp>
+
+#include <filesystem>
 
 namespace dataproc {
 
     class peaklist_export {
     public:
-        static void text_export( const boost::filesystem::path& );
-        static void sqlite_export(  const boost::filesystem::path& );
+        static void text_export( const std::filesystem::path& );
+        static void sqlite_export(  const std::filesystem::path& );
     };
 
 }

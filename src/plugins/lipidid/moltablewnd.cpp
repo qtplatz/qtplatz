@@ -63,9 +63,8 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/exception/all.hpp>
+#include <filesystem>
 #include <future>
 #include <thread>
 
@@ -157,7 +156,7 @@ MolTableWnd::dragEnterEvent( QDragEnterEvent * event )
 	if ( mimeData->hasUrls() ) {
 		QList<QUrl> urlList = mimeData->urls();
         for ( auto& url: urlList ) {
-            boost::filesystem::path path( url.toLocalFile().toStdWString() );
+            std::filesystem::path path( url.toLocalFile().toStdWString() );
             if ( path.extension() == L".sdf" || path.extension() == L".mol" ) {
                 event->accept();
                 return;

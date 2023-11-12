@@ -62,7 +62,7 @@
 #include <QTextCursor>
 #include <QTextDocumentWriter>
 #include <QTextList>
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 #ifdef Q_OS_WIN
 const QString qrcpath = ":/adpublisher/images/win";
@@ -457,7 +457,7 @@ docEditor::fileSave()
     if (fileName.startsWith(QStringLiteral(":/")))
         return fileSaveAs();
 
-    boost::filesystem::path path( fileName.toStdWString() );
+    std::filesystem::path path( fileName.toStdWString() );
     if ( path.extension() == ".xml" ) {
         return doc_->save_file( path.string().c_str() );
     }
@@ -766,7 +766,7 @@ docEditor::addRecentFiles( const QString& group, const QString& key, const QStri
         std::vector< QString > list;
         getRecentFiles( group, key, list );
 
-        boost::filesystem::path path = boost::filesystem::path( value.toStdWString() ).generic_wstring();
+        std::filesystem::path path = std::filesystem::path( value.toStdWString() ).generic_wstring();
         auto it = std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a.toStdWString(); } );
         if ( it != list.end() )
             list.erase( it, list.end() );

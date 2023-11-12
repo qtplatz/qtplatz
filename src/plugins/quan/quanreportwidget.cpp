@@ -207,7 +207,7 @@ QuanReportWidget::publishTask( const QString& xslfile, adwidgets::ProgressInterf
             return std::make_pair( "", "" );
         }
 
-        boost::filesystem::path path = publisher->filepath();
+        std::filesystem::path path = publisher->filepath();
 
         publisher->save_file( path.string().c_str() ); // save publisher document xml
 
@@ -222,7 +222,7 @@ QuanReportWidget::publishTask( const QString& xslfile, adwidgets::ProgressInterf
 
             path.replace_extension( extension );
 
-            boost::filesystem::ofstream o( path );
+            std::ofstream o( path );
             o << output.toStdString();
 
             return std::make_pair( output, QString::fromStdString( path.string() ) );

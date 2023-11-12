@@ -57,7 +57,6 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/iostreams/stream.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -239,7 +238,7 @@ DataSequenceWidget::dataSelectionBar()
                 if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
                     dstfile = edit->text();
                     if ( dstfile.isEmpty() ) {
-                        boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
+                        std::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
                         dstfile = QString::fromStdWString( (dir / L"data").wstring() );
                     }
                     try {
@@ -267,10 +266,10 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
     if ( id == idQuanSequence ) { // && fnChanged ) {
         if ( fnChanged ) { // result outfile changed
             if ( auto edit = findChild< QLineEdit * >( Constants::editOutfile ) ) {
-                boost::filesystem::path path( document::instance()->quanSequence()->outfile() );
+                std::filesystem::path path( document::instance()->quanSequence()->outfile() );
                 path = path.generic_wstring(); // posix format
                 int number = 0;
-                if ( boost::filesystem::exists( path ) ) {
+                if ( std::filesystem::exists( path ) ) {
                     std::wstring stem = path.stem().wstring();
                     if ( std::isdigit( stem.at( stem.size() - 1 ) ) ) {
                         auto pos = stem.find_last_not_of( L"0123456789" );
@@ -279,11 +278,11 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
                             stem = stem.substr( 0, pos + 1 );
                         }
                     }
-                    boost::filesystem::path next;
+                    std::filesystem::path next;
                     path.remove_filename();
                     do {
-                        next = path / boost::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
-                    } while ( boost::filesystem::exists( next ) );
+                        next = path / std::filesystem::path( stem + (boost::wformat( L"%d.adfs" ) % ++number).str() );
+                    } while ( std::filesystem::exists( next ) );
                     path = next.generic_wstring();
                 }
                 edit->setText( QString::fromStdWString( path.wstring() ) ); // native format

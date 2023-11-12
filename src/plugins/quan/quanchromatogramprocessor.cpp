@@ -98,13 +98,13 @@
 //#include <adwidgets/progresswnd.hpp>
 #include <chromatogr/chromatography.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
+#include <filesystem>
 #include <regex>
 #include <map>
 
@@ -186,7 +186,7 @@ namespace quan {
     struct save_chromatogram {
 
         static std::wstring make_title( const wchar_t * dataSource, const adcontrols::Chromatogram& c ) {
-            boost::filesystem::path path( dataSource );
+            std::filesystem::path path( dataSource );
 
             auto extract_by_mols = boost::json::value_to< adcontrols::quan::extract_by_mols >(
                 adportable::json_helper::find( c.generatorProperty(), "generator.extract_by_mols" ) );
@@ -231,7 +231,7 @@ namespace quan {
     struct save_spectrum {
 
         static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double tR, const wchar_t * trailer = L"" ) {
-            boost::filesystem::path path( dataSource );
+            std::filesystem::path path( dataSource );
             return ( boost::wformat( L"%s tR(%.3fs) {%s} %s" ) % adportable::utf::to_wstring( formula ) % tR %  path.stem().wstring() % trailer ).str();
         }
 
@@ -353,7 +353,7 @@ using namespace quan;
 std::wstring
 QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const QuanCandidate& candidate, const wchar_t * trailer )
 {
-    boost::filesystem::path path( dataSource );
+    std::filesystem::path path( dataSource );
     std::wstring title = ( boost::wformat( L"%s, %s" ) % path.stem().wstring() % adportable::utf::to_wstring( candidate.formula() ) ).str();
     title += trailer;  //L" (1st phase)";
 

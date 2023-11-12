@@ -36,7 +36,7 @@
 #include <QPrinter>
 #include <QPainter>
 #include <QTextDocument>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <fstream>
 
 using namespace adpublisher;
@@ -61,12 +61,12 @@ printer::print( QPrinter& printer
                 , const pugi::xml_document& dom
                 , const char * xsltfile )
 {
-    boost::filesystem::path xsltpath( xsltfile );
+    std::filesystem::path xsltpath( xsltfile );
 
     if ( !xsltpath.is_absolute() )
         transformer::xsltpath( xsltpath, xsltfile );
 
-    if ( !boost::filesystem::exists( xsltpath ) ) {
+    if ( !std::filesystem::exists( xsltpath ) ) {
         ADDEBUG() << "xslfile: '" << xsltpath.string() << "' not exist";
         return false;
     }

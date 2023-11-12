@@ -47,13 +47,13 @@ Export::Export()
 }
 
 bool
-Export::open( const boost::filesystem::path& path )
+Export::open( const std::filesystem::path& path )
 {
     ADDEBUG() << path;
 
     auto fs = std::make_unique< adfs::filesystem >();
 
-    if ( boost::filesystem::exists( path ) ) {
+    if ( std::filesystem::exists( path ) ) {
         if ( fs->mount( std::filesystem::path( path.string() ) ) ) {
             fs_ = std::move( fs );
             return true;
@@ -66,14 +66,14 @@ bool
 Export::loadFolders()
 {
     for ( auto folder: fs_->root().folders() ) {
-        boost::filesystem::path path( L"/" + folder.name() );
+        std::filesystem::path path( L"/" + folder.name() );
         list( path, folder, folders_ );
     }
     return true;
 }
 
 bool
-Export::list( const boost::filesystem::path& path, const adfs::folder& folder, std::vector< adfs::folder >& flist ) const
+Export::list( const std::filesystem::path& path, const adfs::folder& folder, std::vector< adfs::folder >& flist ) const
 {
     auto folders = folder.folders();
 

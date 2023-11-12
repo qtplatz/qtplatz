@@ -28,8 +28,6 @@
 #include "datafile.hpp"
 #include <adportable/debug.hpp>
 #include <adplugin/visitor.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <mutex>
 
 using namespace adnetcdf;
@@ -83,7 +81,7 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    boost::filesystem::wpath path(filename);
+    std::filesystem::path path(filename);
 	return ( path.extension() == L".cdf" || path.extension() == L".CDF" ) && ( mode == adcontrols::read_access );
 }
 

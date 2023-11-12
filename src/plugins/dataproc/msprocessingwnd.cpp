@@ -115,7 +115,6 @@
 #include <QTextDocument>
 #include <QTextTableFormat>
 #include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -128,6 +127,7 @@
 #include <algorithm>
 #include <array>
 #include <complex>
+#include <filesystem>
 #include <functional>
 #include <numeric>
 #include <sstream>
@@ -1534,7 +1534,7 @@ MSProcessingWnd::correct_baseline()
         QString name;
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
             auto folium = dp->getPortfolio().findFolium( pImpl_->idActiveFolium_ );
-            name = QString::fromStdString( boost::filesystem::path( folium.fullpath() ).filename().string() );
+            name = QString::fromStdString( std::filesystem::path( folium.fullpath() ).filename().string() );
         }
 
         std::wostringstream o;
@@ -1601,7 +1601,7 @@ MSProcessingWnd::compute_rms( double s, double e )
         QString name;
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
             auto folium = dp->getPortfolio().findFolium( pImpl_->idActiveFolium_ );
-            name = QString::fromStdString( boost::filesystem::path( folium.fullpath() ).filename().string() );
+            name = QString::fromStdString( std::filesystem::path( folium.fullpath() ).filename().string() );
         }
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
@@ -2030,7 +2030,7 @@ MSProcessingWnd::save_image_file()
 
         if ( dlg.exec() == QDialog::Accepted ) {
             auto result = dlg.selectedFiles();
-            boost::filesystem::path path( result.at( 0 ).toStdWString() );
+            std::filesystem::path path( result.at( 0 ).toStdWString() );
             const char * format = "svg";
             if ( path.extension() == ".pdf" )
                 format = "pdf";

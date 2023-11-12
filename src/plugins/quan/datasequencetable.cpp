@@ -56,9 +56,9 @@
 #include <QDebug>
 
 #include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
+#include <filesystem>
 #include <functional>
 #include <array>
 #include <thread>
@@ -199,10 +199,10 @@ namespace quan {
                     model.setData( model.index( row, c_error_state ), false );
 
                 for ( int row = 0; row < model.rowCount(); ++row ) {
-                    boost::filesystem::path a( model.index( row, c_datafile ).data( Qt::EditRole ).toString().toStdWString() );
+                    std::filesystem::path a( model.index( row, c_datafile ).data( Qt::EditRole ).toString().toStdWString() );
 
                     for ( int i = row + 1; i < model.rowCount(); ++i ) {
-                        boost::filesystem::path b( model.index( i, c_datafile ).data( Qt::EditRole ).toString().toStdWString() );
+                        std::filesystem::path b( model.index( i, c_datafile ).data( Qt::EditRole ).toString().toStdWString() );
                         if ( a == b )
                             model.setData( model.index( i, c_error_state ), true );
                     }
@@ -278,7 +278,7 @@ void
 DataSequenceTable::setData( const QStringList& list )
 {
     for ( int i = 0; i < list.size(); ++i ) {
-        boost::filesystem::path path( list.at( i ).toStdWString() );
+        std::filesystem::path path( list.at( i ).toStdWString() );
         auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
         if ( it != extensions.end() ) {
             dropIt( path.wstring() );
@@ -341,7 +341,7 @@ DataSequenceTable::dragEnterEvent( QDragEnterEvent * event )
 
             QList<QUrl> urlList = mimeData->urls();
             for ( int i = 0; i < urlList.size(); ++i ) {
-                boost::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
+                std::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
                 auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
                 if ( it != extensions.end() ) {
                     event->acceptProposedAction();
@@ -372,7 +372,7 @@ DataSequenceTable::dropEvent( QDropEvent * event )
             QList<QUrl> urlList = mimeData->urls();
             for ( int i = 0; i < urlList.size(); ++i ) {
                 QString file( urlList.at(i).toLocalFile() );
-                boost::filesystem::path path( file.toStdWString() );
+                std::filesystem::path path( file.toStdWString() );
                 auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
                 if ( it != extensions.end() )
                     dropIt( path.wstring() );

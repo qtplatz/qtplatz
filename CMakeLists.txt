@@ -284,7 +284,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   chrono
   container
   date_time
-  filesystem
+#  filesystem
   iostreams
   json
   program_options
@@ -300,6 +300,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
+  add_definitions( -DBOOST_DLL_USE_STD_FS=1 )
   if ( WIN32 )
     add_definitions( -DBOOST_UUID_FORCE_AUTO_LINK=1 )
   endif()

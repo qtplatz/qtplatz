@@ -26,14 +26,12 @@
 #include "time_data_reader.hpp"
 #include <adfs/sqlite.hpp>
 #include <adcontrols/countingdata.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 using namespace adtextfile;
 
@@ -45,10 +43,10 @@ bool
 time_data_reader::load( const std::string& name
                         , std::function<bool( size_t, size_t )> progress )
 {
-    return 
+    return
         time_data_reader::load( name,
                                 [&]( size_t numerator, size_t denominator, const adcontrols::CountingData& data ){
-                                    data_.emplace_back( data );                            
+                                    data_.emplace_back( data );
                                     return progress( numerator, denominator );
                                 });
 }
@@ -57,33 +55,33 @@ bool
 time_data_reader::load( const std::string& name
                         , std::function<bool( size_t, size_t, const adcontrols::CountingData& )> handler )
 {
-	boost::filesystem::path path( name );
+	std::filesystem::path path( name );
 
-	boost::filesystem::ifstream in( path );
-    if ( in.fail() ) 
+	std::ifstream in( path );
+    if ( in.fail() )
         return false;
 
-    size_t fsize = boost::filesystem::file_size( path );
+    size_t fsize = std::filesystem::file_size( path );
 
     typedef boost::char_separator<char> separator;
     typedef boost::tokenizer< separator > tokenizer;
 
     size_t line_count(0);
-    
+
     separator sep( ", \t", "", boost::drop_empty_tokens );
     do {
         std::string line;
         if ( std::getline( in, line ) ) {
 
             ++line_count;
-            
+
             if ( line.at( 0 ) == '#' )
                 continue;
 
             tokenizer tokens( line, sep );
             adcontrols::CountingData data;
             adcontrols::CountingPeak peak;
-            
+
             char * end;
 
             int col = 0;
@@ -138,7 +136,7 @@ time_data_reader::load( const std::string& name
                         break;
                     case 5:
                         peak.back().second = std::strtod( it->c_str(), &end );
-                        break;                                                                        
+                        break;
                     }
                     if ( pcol == 5 )
                         data.peaks().emplace_back( peak );
@@ -162,8 +160,8 @@ time_data_reader::is_time_data( const std::string& path, std::string& adfsname )
 {
     std::string::size_type pos;
     if ( ( pos = path.find( "_time_data.txt" ) ) != std::string::npos ) {
-        boost::filesystem::path adfile( path.substr( 0, pos ) + ".adfs" );
-        if ( boost::filesystem::exists( adfile ) )
+        std::filesystem::path adfile( path.substr( 0, pos ) + ".adfs" );
+        if ( std::filesystem::exists( adfile ) )
             adfsname = adfile.string();
         return true;
     }
@@ -180,7 +178,7 @@ time_data_reader::readScanLaw( const std::string& adfsname
 
     if ( db.open( adfsname.c_str(), adfs::readonly ) ) {
         adfs::stmt sql( db );
-        
+
         sql.prepare( "SELECT objtext,acclVoltage,tDelay,fLength,spectrometer FROM ScanLaw,Spectrometer WHERE clsidSpectrometer = id" );
         int rows( 0 );
         while( sql.step() == adfs::sqlite_row ) {

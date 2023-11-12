@@ -28,7 +28,6 @@
 #include <adplugin/constants.hpp>
 #include <adplugin/plugin.hpp>
 #include <boost/dll/shared_library.hpp>
-#include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
@@ -43,24 +42,24 @@ namespace {
 #if defined _DEBUG || defined DEBUG || !defined NDEBUG
 # if defined WIN32
     constexpr static const char * const debug_trail = "d";
-    static const boost::filesystem::path __prefix( "" );
+    static const std::filesystem::path __prefix( "" );
 # elif defined __MACH__ || __APPLE__
     constexpr static const char * const debug_trail = "_debug";
-    static const boost::filesystem::path __prefix( "lib" );
+    static const std::filesystem::path __prefix( "lib" );
 # else
     constexpr static const char * const debug_trail = "";
-    static const boost::filesystem::path __prefix( "lib" );
+    static const std::filesystem::path __prefix( "lib" );
 # endif
 
 #else // NDEBUG
 
     constexpr static const char * const debug_trail = "";
 # if defined WIN32
-    static const boost::filesystem::path __prefix( "" );
+    static const std::filesystem::path __prefix( "" );
 # elif defined __MACH__ || __APPLE__
-    static const boost::filesystem::path __prefix( "lib" );
+    static const std::filesystem::path __prefix( "lib" );
 # else
-    static const boost::filesystem::path __prefix( "lib" );
+    static const std::filesystem::path __prefix( "lib" );
 # endif
 #endif
 } // namespace
@@ -72,38 +71,38 @@ loader::debug_suffix()
     return debug_trail;
 }
 
-boost::filesystem::path
+std::filesystem::path
 loader::shared_directory()
 {
     // program_location: /opt/qtplatz/bin/qtplatz
     return boost::dll::program_location().parent_path().parent_path() / std::string( sharedDirectory ); // /opt/qtplatz/ lib/qtplatz
 }
 
-boost::filesystem::path
+std::filesystem::path
 loader::plugin_directory()
 {
     return boost::dll::program_location().parent_path().parent_path() / std::string( pluginDirectory );
 }
 
 void
-loader::populate( const boost::filesystem::path& appdir )
+loader::populate( const std::filesystem::path& appdir )
 {
     ADDEBUG() << "populating : " << appdir;
 
 #if defined __APPLE__
-    boost::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
-    boost::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
+    std::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
+    std::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
 #else
     // search all files under ./lib/ directory
-    boost::filesystem::path modules(    appdir / "lib" ); // /qtplatz/plugins" );
+    std::filesystem::path modules(    appdir / "lib" ); // /qtplatz/plugins" );
 #endif
 
-    if ( boost::filesystem::is_directory( modules ) ) {
-        boost::system::error_code ec;
-        boost::filesystem::recursive_directory_iterator it( modules, ec );
+    if ( std::filesystem::is_directory( modules ) ) {
+        std::error_code ec;
+        std::filesystem::recursive_directory_iterator it( modules, ec );
         if ( !ec ) {
-            while ( it != boost::filesystem::recursive_directory_iterator() ) {
-                if ( boost::filesystem::is_regular_file( it->status() ) ) {
+            while ( it != std::filesystem::recursive_directory_iterator() ) {
+                if ( std::filesystem::is_regular_file( it->status() ) ) {
                     // attempt to find a newly defined interface as of 2023-SEP-02
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
                         if ( it->path().string().find( "libadnetcdf" ) != std::string::npos ) {
@@ -111,7 +110,7 @@ loader::populate( const boost::filesystem::path& appdir )
                                 ADDEBUG() << "\n\n-------- loading " << it->path();
                                 auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
                                 if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
-                                    ADDEBUG() << "---- load\t" << boost::filesystem::relative( it->path(), appdir ) << "\tSuccess";
+                                    ADDEBUG() << "---- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess";
                                 }
                             } catch ( std::exception& ex ) {
                                 ADDEBUG() << "Exception:" << ex.what() << "\n\n";
@@ -121,14 +120,14 @@ loader::populate( const boost::filesystem::path& appdir )
 
                     auto filename = it->path().filename().string();
                     if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
-                        auto stem   = boost::filesystem::path( it->path().stem().string() + debug_trail );
-                        auto libname  = it->path().branch_path() / (stem.string() + debug_trail);
+                        auto stem   = std::filesystem::path( it->path().stem().string() + debug_trail );
+                        auto libname  = it->path().parent_path() / (stem.string() + debug_trail);
                         //
-                        auto fullpath = it->path().branch_path() /
-                            boost::filesystem::path( __prefix.string() + stem.string() ).replace_extension(
+                        auto fullpath = it->path().parent_path() /
+                            std::filesystem::path( __prefix.string() + stem.string() ).replace_extension(
                                 boost::dll::shared_library::suffix() );
 
-                        boost::system::error_code ec;
+                        std::error_code ec;
                         boost::dll::shared_library dll( libname, ec, boost::dll::load_mode::append_decorations );
                         if ( !ec ) {
                             if ( dll.has( "adplugin_plugin_instance" ) ) {
@@ -136,18 +135,18 @@ loader::populate( const boost::filesystem::path& appdir )
                                 if ( auto plugin = factory() ) {
                                     if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
 #ifndef NDEBUG
-                                        ADDEBUG() << "load\t" << boost::filesystem::relative( dll.location(), appdir ) << "\tSuccess";
+                                        ADDEBUG() << "load\t" << std::filesystem::relative( dll.location(), appdir ) << "\tSuccess";
 #endif
                                     }
                                 }
                             } else {
-                                ADDEBUG() << "library\t" << boost::filesystem::relative( dll.location(), appdir )
+                                ADDEBUG() << "library\t" << std::filesystem::relative( dll.location(), appdir )
                                           << " has no interface. Load failed.";
                             }
                         } else {
-                            ADDEBUG() << "## failed to load " << boost::filesystem::relative( libname, appdir ) << "\t: " << ec.message();
-                            ADDEBUG() << "\t--> " << boost::filesystem::relative( fullpath, appdir ) << "\texists: "
-                                      << boost::filesystem::exists( fullpath );
+                            ADDEBUG() << "## failed to load " << std::filesystem::relative( libname, appdir ) << "\t: " << ec.message();
+                            ADDEBUG() << "\t--> " << std::filesystem::relative( fullpath, appdir ) << "\texists: "
+                                      << std::filesystem::exists( fullpath );
                         }
                     }
                 }
@@ -175,15 +174,15 @@ loader::library_filename( const char * library )
 std::wstring
 loader::config_fullpath( const std::wstring& apppath, const std::wstring& library_filename )
 {
-	boost::filesystem::path path = boost::filesystem::path( apppath ) / pluginDirectory;
-	boost::filesystem::path fullpath = path / library_filename;
+	std::filesystem::path path = std::filesystem::path( apppath ) / pluginDirectory;
+	std::filesystem::path fullpath = path / library_filename;
 	return fullpath.generic_wstring();
 }
 
 adplugin::plugin *
 loader::loadLibrary( const std::string& stem )
 {
-    boost::system::error_code ec;
+    std::error_code ec;
     if ( auto dll = loadLibrary( stem, ec ) ) {
         if ( auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" ) ) {
             manager::instance()->keep( dll );
@@ -196,9 +195,9 @@ loader::loadLibrary( const std::string& stem )
 }
 
 boost::dll::shared_library
-loader::loadLibrary( const std::string& stem, boost::system::error_code& ec )
+loader::loadLibrary( const std::string& stem, std::error_code& ec )
 {
-    auto cdir = boost::filesystem::canonical( boost::dll::this_line_location() ).branch_path();
+    auto cdir = std::filesystem::canonical( boost::dll::this_line_location() ).parent_path();
     auto slib = cdir.parent_path() / sharedDirectory;
 
     // loading library from shared directory, which is as same as native qtplatz lib (./libs/qtplatz/)

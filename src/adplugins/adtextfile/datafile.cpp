@@ -58,10 +58,10 @@
 #include <QMessageBox>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <filesystem>
 
 using namespace adtextfile;
 
@@ -137,7 +137,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     dlg.setDataInterpreterClsids( models );
 
-    boost::filesystem::path path( filename );
+    std::filesystem::path path( filename );
     std::string adfsname;
 
     if ( time_data_reader::is_time_data( path.string(), adfsname ) ) {
@@ -151,7 +151,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         dlg.setDataType( Dialog::data_spectrum );
     }
 
-    boost::filesystem::ifstream in( path );
+    std::ifstream in( path );
     if ( in.fail() ) {
         QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
         return false;
@@ -288,7 +288,7 @@ bool
 datafile::prepare_portfolio( const TXTSpectrum& txt, const std::wstring& filename, portfolio::Portfolio& portfolio )
 {
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-    boost::filesystem::path path( filename );
+    std::filesystem::path path( filename );
 
     int idx = 0;
     for ( auto it: txt.spectra_ ) {
@@ -321,7 +321,7 @@ bool
 datafile::prepare_portfolio( const TXTChromatogram& txt, const std::wstring& filename, portfolio::Portfolio& portfolio )
 {
     portfolio::Folder chromatograms = portfolio.addFolder( L"Chromatograms" );
-    boost::filesystem::path path( filename );
+    std::filesystem::path path( filename );
 
     int idx = 0;
     for ( auto it: txt.chromatograms_ ) {
@@ -338,7 +338,7 @@ bool
 datafile::prepare_portfolio( const time_data_reader& reader, const std::wstring& filename, portfolio::Portfolio& portfolio )
 {
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-    boost::filesystem::path path( filename );
+    std::filesystem::path path( filename );
 
     adcontrols::CountingHistogram hgrm;
     for ( auto& trig: reader.data() )

@@ -57,9 +57,9 @@
 #include <QDebug>
 
 #include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
+#include <filesystem>
 #include <functional>
 #include <array>
 #include <thread>
@@ -340,7 +340,7 @@ void
 DataSequenceTree::setData( const QStringList& list )
 {
     for ( int i = 0; i < list.size(); ++i ) {
-        boost::filesystem::path path( list.at( i ).toStdWString() );
+        std::filesystem::path path( list.at( i ).toStdWString() );
         auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
         if ( it != extensions.end() ) {
             dropIt( path.wstring() );
@@ -452,7 +452,7 @@ DataSequenceTree::dragEnterEvent( QDragEnterEvent * event )
 
             QList<QUrl> urlList = mimeData->urls();
             for ( int i = 0; i < urlList.size(); ++i ) {
-                boost::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
+                std::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
                 auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
                 if ( it != extensions.end() ) {
                     event->acceptProposedAction();
@@ -483,7 +483,7 @@ DataSequenceTree::dropEvent( QDropEvent * event )
             QList<QUrl> urlList = mimeData->urls();
             for ( int i = 0; i < urlList.size(); ++i ) {
                 QString file( urlList.at(i).toLocalFile() );
-                boost::filesystem::path path( file.toStdWString() );
+                std::filesystem::path path( file.toStdWString() );
                 auto it = std::find_if( extensions.begin(), extensions.end(), [path](const wchar_t * ext){ return path.extension() == ext; });
                 if ( it != extensions.end() )
                     dropIt( path.wstring() );

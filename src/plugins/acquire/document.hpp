@@ -27,6 +27,7 @@
 
 #include <QObject>
 #include <deque>
+#include <filesystem>
 #include <mutex>
 #include <memory>
 #include <vector>
@@ -62,10 +63,8 @@ namespace adcontrols {
     class XChromatogramsMethod;
 }
 
+namespace boost { namespace uuids { struct uuid; } }
 namespace admethods { namespace controlmethod { class ADTraceMethod; } }
-
-namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
-
 namespace socfpga { namespace dgmod { struct advalue; } }
 
 namespace acquire {
@@ -103,7 +102,7 @@ namespace acquire {
 
         int32_t device_status() const;
 
-        static bool appendOnFile( const boost::filesystem::path& path
+        static bool appendOnFile( const std::filesystem::path& path
                                   , const QString& title, const adcontrols::MassSpectrum&, QString& id );
 
         void addToRecentFiles( const QString& );

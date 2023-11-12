@@ -33,7 +33,6 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <compiler/boost/workaround.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
@@ -47,14 +46,14 @@ document::instance()
 }
 
 bool
-document::appendOnFile( const boost::filesystem::path& path
+document::appendOnFile( const std::filesystem::path& path
                         , const QString& title
                         , const adcontrols::MassSpectrum& ms
                         , QString& id )
 {
     adfs::filesystem fs;
 
-	if ( ! boost::filesystem::exists( path ) ) {
+	if ( ! std::filesystem::exists( path ) ) {
 		if ( ! fs.create( path.c_str() ) )
 			return false;
 	} else {

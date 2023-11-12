@@ -128,7 +128,7 @@ do_ncdump( const adnetcdf::netcdf::ncfile& file )
 void open_netcdf( const char * filename )
 {
     ADDEBUG() << "netcdf library version: " << nc_inq_libvers();
-    if ( auto file = adnetcdf::netcdf::open( boost::filesystem::path( filename ) ) ) {
+    if ( auto file = adnetcdf::netcdf::open( std::filesystem::path( filename ) ) ) {
         ADDEBUG() << file.path() << " open success.";
         ADDEBUG() << "file.kind: " << file.kind() << file.kind_extended();
         //do_ncdump( file.ncid(), filename );

@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <boost/filesystem/path.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <QString>
 #include <memory>
+#include <filesystem>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -42,7 +42,7 @@ namespace tools {
 
     class document {
     public:
-        static bool appendOnFile( const boost::filesystem::path& path
+        static bool appendOnFile( const std::filesystem::path& path
                                   , const QString& title
                                   , const adcontrols::MassSpectrum& ms
                                   , QString& id );

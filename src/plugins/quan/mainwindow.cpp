@@ -79,8 +79,8 @@
 #include <QTableView>
 #include <QMessageBox>
 #include <QMenu>
-#include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
+#include <filesystem>
 #include <numeric>
 
 using namespace quan;
@@ -229,7 +229,7 @@ MainWindow::onInitialUpdate()
         rw->onInitialUpdate( document::instance() );
 
     if ( auto qm = document::instance()->getm< adcontrols::QuanMethod >() ) {
-        boost::filesystem::path path = qm->quanMethodFilename();
+        std::filesystem::path path = qm->quanMethodFilename();
         if ( !path.empty() ) {
             auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
             for ( auto& edit : list ) {
@@ -409,15 +409,15 @@ MainWindow::run()
             return;
         }
 
-        boost::filesystem::path path( sequence->outfile() );
+        std::filesystem::path path( sequence->outfile() );
         if ( path.empty() ) {
             QMessageBox::critical( this, "Quan Execution Error", "Empty data output filename." );
             return;
         }
 
-        if ( boost::filesystem::exists( path ) ) {
+        if ( std::filesystem::exists( path ) ) {
 
-            QString file( QString::fromStdWString( path.normalize().wstring() ) );
+            QString file( QString::fromStdWString( std::filesystem::canonical( path ).wstring() ) );
             QMessageBox mBox;
             mBox.setText( "Quan Sequence Exec" );
             mBox.setInformativeText( QString("File %1% already exists, remove?").arg( file ) );
@@ -431,8 +431,8 @@ MainWindow::run()
                 return;
 
             if ( reply == QMessageBox::Yes ) {
-                boost::system::error_code ec;
-                boost::filesystem::remove( path, ec );
+                std::error_code ec;
+                std::filesystem::remove( path, ec );
                 if ( ec ) {
                     QMessageBox mBox;
                     mBox.setText( "Quan Sequence Exec" );
@@ -456,7 +456,7 @@ MainWindow::run()
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( false );
 
-    boost::filesystem::path path = document::instance()->quanSequence()->outfile();
+    std::filesystem::path path = document::instance()->quanSequence()->outfile();
     Core::DocumentManager::setProjectsDirectory( Utils::FilePath::fromString( QString::fromStdWString( path.parent_path().wstring() ) ) );
 
     if ( inlet == adcontrols::Quan::ExportData )
@@ -524,7 +524,7 @@ MainWindow::handleOpenQuanMethod()
                                               , document::instance()->lastMethodDir()
                                               , tr( "Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)" ) );
     if ( ! name.isEmpty() ) {
-        boost::filesystem::path path( name.toStdWString() );
+        std::filesystem::path path( name.toStdWString() );
         adcontrols::ProcessMethod temp;
         if ( document::instance()->load( path, temp, true ) ) {
             auto qm = temp.find< adcontrols::QuanMethod >();
@@ -553,7 +553,7 @@ MainWindow::handleSaveQuanMethod()
 
         commit();
 
-        boost::filesystem::path path( name.toStdWString() );
+        std::filesystem::path path( name.toStdWString() );
         if ( path.extension() == "" )
             path.replace_extension( "qmth" );
 
@@ -586,7 +586,7 @@ MainWindow::handleOpenQuanSequence()
 
     if ( ! name.isEmpty() ) {
 
-        boost::filesystem::path path( name.toStdWString() );
+        std::filesystem::path path( name.toStdWString() );
         auto seq = std::make_shared< adcontrols::QuanSequence >();
 
         if ( document::instance()->load( path, *seq ) ) {
@@ -608,7 +608,7 @@ MainWindow::handleSaveQuanSequence()
 
         commit(); // commit all tabs
 
-        boost::filesystem::path path( name.toStdWString() );
+        std::filesystem::path path( name.toStdWString() );
         document::instance()->save( path, *document::instance()->quanSequence(), true );
     }
 }

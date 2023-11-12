@@ -27,6 +27,7 @@
 
 #include <QObject>
 #include <deque>
+#include <filesystem>
 #include <mutex>
 #include <memory>
 #include <vector>
@@ -89,7 +90,7 @@ namespace accutof {
             void stop();
             void save_defaults();
 
-            static bool appendOnFile( const boost::filesystem::path& path
+            static bool appendOnFile( const std::filesystem::path& path
                                       , const QString& title, const adcontrols::MassSpectrum&, QString& id );
             void addToRecentFiles( const QString& );
             QString recentFile( const char * group = 0, bool dir_on_fail = false );

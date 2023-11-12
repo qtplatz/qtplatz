@@ -332,14 +332,14 @@ ActionManager::actPrintCurrentView()
 
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
 
-		boost::filesystem::path path = dp->getPortfolio().fullpath();
+		std::filesystem::path path = dp->getPortfolio().fullpath();
         auto base_name = path.parent_path() / path.stem();
 
         // don't use .replace_extention prevent infinite loop for '.' contained filename
-        boost::filesystem::path pdfname( base_name.string() + ".pdf" );
+        std::filesystem::path pdfname( base_name.string() + ".pdf" );
 
 		int nnn = 1;
-		while ( boost::filesystem::exists( pdfname ) && nnn <= 999 )
+		while ( std::filesystem::exists( pdfname ) && nnn <= 999 )
 			pdfname = base_name.string() + ( boost::format("_%d.pdf") % nnn++ ).str();
 
 		auto caption = QString( tr( "Save %1 current view to file" ) ).arg( QString::fromStdString( title ) );

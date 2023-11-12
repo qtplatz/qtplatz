@@ -30,7 +30,6 @@
 #include "attribute.hpp"
 #include <adportable/debug.hpp>
 #include <netcdf.h>
-#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <numeric>
@@ -72,13 +71,6 @@ namespace adnetcdf {
         {
             return ncfile{ path, mode };
         }
-
-        ncfile
-        open( const boost::filesystem::path& path, open_mode mode )
-        {
-            return ncfile{ std::filesystem::path( path.string() ), mode };
-        }
-        //////////////////////
     }
 }
 

@@ -45,7 +45,6 @@
 #include <GraphMol/inchi.h>
 #include <QCoreApplication>
 #include <QFileDialog>
-#include <boost/filesystem.hpp>
 #include <boost/json.hpp>
 #include <chrono>
 #include <cstdlib>
@@ -151,9 +150,9 @@ SDFileImport::import()
         , QObject::tr("SDF Files (*.sdf);;All Files (*)"));
 
     if ( !fn.isEmpty() ) {
-        auto path = boost::filesystem::path( fn.toStdString() );
-        boost::system::error_code ec;
-        if ( boost::filesystem::exists( path, ec ) ) {
+        auto path = std::filesystem::path( fn.toStdString() );
+        std::error_code ec;
+        if ( std::filesystem::exists( path, ec ) ) {
             qtwrapper::settings( *document::settings() ).addRecentFiles( "SDF", "Files", fn );
             auto sdfile = adchem::SDFile::create( path.string() ); // std::shared_ptr< SDFile >
 
@@ -172,9 +171,9 @@ std::shared_ptr< adfs::sqlite >
 SDFileImport::create_tables( const std::string& stem )
 {
     using qtwrapper::settings;
-    boost::filesystem::path fpath( settings( *document::settings() ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
+    std::filesystem::path fpath( settings( *document::settings() ).recentFile( "LIPID_MAPS", "Files" ).toStdString() );
     if ( fpath.empty() ) {
-        auto path = boost::filesystem::path( document::settings()->fileName().toStdString() );
+        auto path = std::filesystem::path( document::settings()->fileName().toStdString() );
         auto dir = path.remove_filename() / "lipidid";
         fpath = (dir / stem).replace_extension( ".db" );
     } else {

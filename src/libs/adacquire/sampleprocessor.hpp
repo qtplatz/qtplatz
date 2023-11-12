@@ -26,10 +26,10 @@
 
 #include "adacquire_global.hpp"
 #include <adportable/semaphore.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/optional.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <filesystem>
 #include <string>
 #include <thread>
 #include <memory>
@@ -71,9 +71,9 @@ namespace adacquire {
 
         adfs::filesystem& filesystem() const;
 
-        static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
+        static std::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
 
-        const boost::filesystem::path& storage_name() const;
+        const std::filesystem::path& storage_name() const;
 
         bool prepare_snapshot_storage( adfs::sqlite& db ) const;
 
@@ -92,7 +92,7 @@ namespace adacquire {
         static void populate_descriptions( SignalObserver::Observer *, adfs::sqlite& );
         static void populate_calibration( SignalObserver::Observer *, adfs::sqlite& );
 
-        boost::filesystem::path storage_name_;
+        std::filesystem::path storage_name_;
         std::unique_ptr< adfs::filesystem > fs_;
         bool c_acquisition_active_;
         size_t myId_;

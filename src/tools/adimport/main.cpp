@@ -51,8 +51,6 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
@@ -136,10 +134,10 @@ main(int argc, char *argv[])
             models << QString::fromStdString( model.second );
         dlg.setDataInterpreterClsids( models );
 
-        boost::filesystem::path path( filelist[0] );
+        std::filesystem::path path( filelist[0] );
         dlg.setDataType( adtextfile::Dialog::data_spectrum );
 
-        boost::filesystem::ifstream in( path );
+        std::ifstream in( path );
         if ( in.fail() ) {
             ADDEBUG() << "Cannot open fil: " << path.string();
             return 1;
@@ -187,7 +185,7 @@ main(int argc, char *argv[])
     trigger_data.thresholdLevel = method.threshold_level;
     tools::resultwriter resultwriter( fs.db() );
 
-    boost::filesystem::path outfile( vm[ "output" ].as< std::string >() );
+    std::filesystem::path outfile( vm[ "output" ].as< std::string >() );
 
     if ( vm.count("args") ) {
 
@@ -196,7 +194,7 @@ main(int argc, char *argv[])
 
         for ( auto& fname: filelist ) {
 
-            boost::filesystem::path path( fname );
+            std::filesystem::path path( fname );
 
             adtextfile::TXTSpectrum txt;
             if ( txt.load( path.wstring(), dlg ) ) { // && prepare_portfolio( txt, filename, portfolio ) ) {

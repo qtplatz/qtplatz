@@ -77,9 +77,9 @@
 #include <QJsonObject>
 #include <QMessageBox>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/json.hpp>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <future>
@@ -805,8 +805,8 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
     adcontrols::MSFinder finder( lockm.tolerance( lockm.toleranceMethod() ), lockm.algorithm(), lockm.toleranceMethod() );
 
 
-    boost::filesystem::path base =
-        boost::filesystem::path( processor->filename() ).parent_path() / boost::filesystem::path( processor->filename() ).stem();
+    std::filesystem::path base =
+        std::filesystem::path( processor->filename() ).parent_path() / std::filesystem::path( processor->filename() ).stem();
 
     auto noise_filter = std::make_shared< adprocessor::noise_filter >();
     for ( auto& mol : lockm.molecules().data() ) {

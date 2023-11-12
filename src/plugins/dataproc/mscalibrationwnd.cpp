@@ -516,7 +516,7 @@ void
 MSCalibrationWnd::handle_apply_calibration_to_default()
 {
     handle_reassign_mass_requested();
-    boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
+    std::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
     path /= "default.msclb";
 	Dataprocessor::MSCalibrationSave( pImpl_->folium_, QString::fromStdString( path.string() ) );
 }
@@ -527,7 +527,7 @@ MSCalibrationWnd::handleExportCalibration()
     if ( auto processor = SessionManager::instance()->getActiveDataprocessor() ) {
         handle_reassign_mass_requested();
 
-        boost::filesystem::path path( processor->filename() );
+        std::filesystem::path path( processor->filename() );
         QString dir( QString::fromStdString( path.parent_path().string() ) );
 
         QString file =

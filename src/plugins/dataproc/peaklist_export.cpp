@@ -51,7 +51,7 @@
 using namespace dataproc;
 
 void
-peaklist_export::text_export( const boost::filesystem::path& path )
+peaklist_export::text_export( const std::filesystem::path& path )
 {
     std::ofstream outf( path.string() );
 
@@ -363,7 +363,7 @@ namespace {
 
 
 void
-peaklist_export::sqlite_export( const boost::filesystem::path& path )
+peaklist_export::sqlite_export( const std::filesystem::path& path )
 {
     auto db = std::make_shared< adfs::sqlite >();
     if ( db->open( path.string().c_str(), adfs::flags::opencreate ) ) {

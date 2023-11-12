@@ -49,13 +49,13 @@
 #include <adwidgets/progressinterface.hpp>
 #include <pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/version.hpp>
 #if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
 #endif
 #include <QCoreApplication>
+#include <filesystem>
 
 namespace quan {
     namespace detail {
@@ -201,7 +201,7 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
                             if ( appendQuanDataGuids( doc ) ) {
                                 progress( step++ );
 
-                                boost::filesystem::path path( conn->filepath() );
+                                std::filesystem::path path( conn->filepath() );
                                 path.replace_extension( ".published.xml" );
                                 filepath_ = path.string();
                                 bProcessed_ = true;
@@ -235,7 +235,7 @@ QuanPublisher::operator()( QuanConnection * conn )
              appendQuanResponseStd( doc ) &&
              appendQuanCalib( doc ) ) {
 
-            boost::filesystem::path path( conn->filepath() );
+            std::filesystem::path path( conn->filepath() );
             path.replace_extension( ".published.xml" );
             filepath_ = path.string();
 
@@ -459,7 +459,7 @@ QuanPublisher::save_file( const char * filepath ) const
     return false;
 }
 
-const boost::filesystem::path&
+const std::filesystem::path&
 QuanPublisher::filepath() const
 {
     return filepath_;

@@ -52,7 +52,7 @@ acqrsdata::acqrsdata() : polarity_( positive_polarity )
 }
 
 bool
-acqrsdata::open( const boost::filesystem::path& path )
+acqrsdata::open( const std::filesystem::path& path )
 {
     path_ = path;
     std::string msg;

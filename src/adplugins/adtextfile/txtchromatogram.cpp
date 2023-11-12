@@ -42,9 +42,9 @@ TXTChromatogram::TXTChromatogram()
 bool
 TXTChromatogram::load( const std::wstring& name )
 {
-	boost::filesystem::path path( name );
+	std::filesystem::path path( name );
 
-	boost::filesystem::ifstream in( path );
+	std::ifstream in( path );
     if ( in.fail() )
         return false;
 

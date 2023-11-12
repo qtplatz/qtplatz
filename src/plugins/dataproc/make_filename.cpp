@@ -26,12 +26,12 @@
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <filesystem>
 
 namespace {
 
-    boost::filesystem::path make_filename_string( const portfolio::Folium& folium ) {
+    std::filesystem::path make_filename_string( const portfolio::Folium& folium ) {
         auto name = folium.name();
         std::replace( name.begin(), name.end(), '/', '_' );
         std::replace( name.begin(), name.end(), ' ', '_' );
@@ -39,23 +39,23 @@ namespace {
         return name; // add temporary extension for avoiding wrong extension substitution on replace_extension call
     }
 
-    boost::filesystem::path make_directory_string( const QString& lastDir ) {
-        auto dir  = boost::filesystem::path( lastDir.toStdString() );
+    std::filesystem::path make_directory_string( const QString& lastDir ) {
+        auto dir  = std::filesystem::path( lastDir.toStdString() );
         while ( !dir.empty() &&
-                !( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) ) {
+                !( std::filesystem::exists( dir ) && std::filesystem::is_directory( dir ) ) ) {
             dir = dir.parent_path();
         }
         return dir;
     }
 
-    boost::filesystem::path __make_filename( const portfolio::Folium& folium
+    std::filesystem::path __make_filename( const portfolio::Folium& folium
                                              , std::string&& insertor
                                              , const QString& lastDir, const char * extension ) { // must contains '.'
         std::ostringstream o;
-        auto leaf = boost::filesystem::path( folium.filename<char>() ).parent_path().leaf();
-        o << boost::filesystem::path( folium.filename<char>() ).parent_path().leaf().string(); // leaf
+        auto leaf = std::filesystem::path( folium.filename<char>() ).parent_path().filename();
+        o << std::filesystem::path( folium.filename<char>() ).parent_path().filename().string(); // leaf
         o << (insertor.empty() ? "_" : insertor);
-        o << boost::filesystem::path( folium.filename<char>() ).stem().string();               // stem "pareint_dir__filename"
+        o << std::filesystem::path( folium.filename<char>() ).stem().string();               // stem "pareint_dir__filename"
         o << (insertor.empty() ? "_" : insertor);
         o << (insertor.empty() ? "_" : insertor);
         o << make_filename_string( folium ).string(); // replace '/' -> '_'
@@ -65,12 +65,12 @@ namespace {
             dir = make_directory_string( QString::fromStdWString( folium.filename<wchar_t>() ) );
         }
         auto destname = dir / o.str();
-        if ( boost::filesystem::exists( destname ) ) {
+        if ( std::filesystem::exists( destname ) ) {
             int n(1);
             auto name = destname.replace_extension(); // remove extension
             do {
                 destname = ( boost::format("%s(%d)%s") % name.string() % n++ % extension ).str();
-            } while ( boost::filesystem::exists( destname ) );
+            } while ( std::filesystem::exists( destname ) );
         }
         return destname;
     }

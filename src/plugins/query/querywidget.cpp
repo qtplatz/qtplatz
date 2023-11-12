@@ -62,12 +62,12 @@
 #include <QStandardItemModel>
 #include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <filesystem>
 #include <fstream>
 #include <algorithm>
 
@@ -224,7 +224,7 @@ QueryWidget::executeQuery()
 
         {
             adfs::sqlite sqlite;
-            sqlite.open( boost::filesystem::path( connection->filepath() ).string().c_str(), adfs::readonly );
+            sqlite.open( std::filesystem::path( connection->filepath() ).string().c_str(), adfs::readonly );
 
             QSqlQuery query( connection->sqlDatabase() );
             //query.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE spectrometer='InfiTOF' LIMIT 1" );

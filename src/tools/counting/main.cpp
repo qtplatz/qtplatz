@@ -28,13 +28,13 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <QCoreApplication>
-#include <iostream>
+#include <filesystem>
 #include <fstream>
-#include <ratio>
 #include <iomanip>
+#include <iostream>
+#include <ratio>
 #if OPENCV
 //# include <cv.h>
 # include <opencv2/cvconfig.h>
@@ -115,17 +115,17 @@ main(int argc, char *argv[])
 
     bool f_directory( false );
 
-    auto cwd = boost::filesystem::current_path();
+    auto cwd = std::filesystem::current_path();
 
     if ( vm.count( "directory" ) ) {
-        boost::filesystem::path cdir( vm[ "directory" ].as< std::string >() );
-        if ( !boost::filesystem::exists( cdir ) )
-            boost::filesystem::create_directories( cdir );
-        if ( boost::filesystem::exists( cdir ) && !boost::filesystem::is_directory( cdir ) ) {
+        std::filesystem::path cdir( vm[ "directory" ].as< std::string >() );
+        if ( !std::filesystem::exists( cdir ) )
+            std::filesystem::create_directories( cdir );
+        if ( std::filesystem::exists( cdir ) && !std::filesystem::is_directory( cdir ) ) {
             std::cerr << "Directory " << cdir << " is not a directory." << std::endl;
             return -1;
         }
-        boost::filesystem::current_path( cdir );
+        std::filesystem::current_path( cdir );
         f_directory = true;
     }
 
@@ -133,9 +133,9 @@ main(int argc, char *argv[])
 
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-            std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
+            std::string file = f_directory ? std::filesystem::canonical( _file ).string() : _file;
 
-            boost::filesystem::path path( file );
+            std::filesystem::path path( file );
             if ( path.extension() == ".adfs" ) {
 
                 acqrsdata d;
@@ -263,7 +263,7 @@ Summary::print_histogram( const std::string& file )
     for ( auto& pk: hgrm_ )
         of << boost::format( "%.9le\t%d" ) % pk.first % pk.second.size() << std::endl;
 
-    boost::filesystem::path plt( file );
+    std::filesystem::path plt( file );
     plt.replace_extension( ".plt" );
     std::ofstream pf( plt.string() );
     // pf << "set terminal x11" << std::endl;
@@ -296,7 +296,7 @@ Summary::print_statistics( const std::string& file )
 {
     std::string xfile( file );
     int id(1);
-    while( boost::filesystem::exists( xfile ) )
+    while( std::filesystem::exists( xfile ) )
         xfile = ( boost::format( "%s-%d" ) % file % id++ ).str();
 
     std::ofstream of( xfile );
@@ -328,7 +328,7 @@ Summary::print_statistics( const std::string& file )
 
     std::cout << "statistics reported on file: " << file << std::endl;
 
-    // boost::filesystem::path plt( file );
+    // std::filesystem::path plt( file );
     // plt.replace_extension( ".plt" );
     // std::ofstream pf( plt.string() );
     // pf << "set terminal x11" << std::endl;
@@ -352,7 +352,7 @@ std::string
 Summary::make_outfname( const std::string& infile, const std::string& suffix )
 {
     int id(1);
-    auto stem = boost::filesystem::path( infile ).stem();
+    auto stem = std::filesystem::path( infile ).stem();
     stem += suffix;
 
     if ( std::abs( threshold_ ) >= 1.0e-6 )
@@ -360,13 +360,13 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
 
     if ( outdir_.empty() ) {
         std::string path = stem.string() + ".csv";
-        while ( boost::filesystem::exists( path ) )
+        while ( std::filesystem::exists( path ) )
             path = ( boost::format( "%s~%d.csv" ) % stem.string() % id++ ).str();
         return path;
     } else {
-        auto name = boost::filesystem::path( outdir_ ) / stem;
+        auto name = std::filesystem::path( outdir_ ) / stem;
         std::string path = name.string() + ".csv";
-        while ( boost::filesystem::exists( path ) ) {
+        while ( std::filesystem::exists( path ) ) {
             path = ( boost::format( "%s~%d.csv" ) % name.string() % id++ ).str();
         }
         return path;
@@ -384,7 +384,7 @@ Summary::pivot( const std::string& file )
 {
     std::string xfile( file );
     int id(1);
-    while( boost::filesystem::exists( xfile ) )
+    while( std::filesystem::exists( xfile ) )
         xfile = ( boost::format( "%s-%d" ) % file % id++ ).str();
 
     std::ofstream of( xfile );
@@ -405,9 +405,9 @@ Summary::pivot( const std::string& file )
 void
 SQLImport::import( const std::string& file )
 {
-    auto stem = boost::filesystem::path( file ).stem();
+    auto stem = std::filesystem::path( file ).stem();
 
-    boost::filesystem::path dbf( stem );
+    std::filesystem::path dbf( stem );
     dbf.replace_extension( ".sqlite3" );
 
     // if ( boost::filesystem::exists( dbf ) )

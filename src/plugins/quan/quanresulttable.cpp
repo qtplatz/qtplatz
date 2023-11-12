@@ -37,13 +37,13 @@
 #include <QSqlRecord>
 #include <QVariant>
 #include <QPainter>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace quan {
     namespace {
 
         class ItemDelegate : public QStyledItemDelegate {
-            boost::filesystem::path ppath_;
+            std::filesystem::path ppath_;
         public:
             void clear() {
                 ppath_.clear();
@@ -71,11 +71,11 @@ namespace quan {
                         adwidgets::DelegateHelper::render_html( painter, op, QString::fromStdString( formula ) );
                         return;
                     }
-                    boost::filesystem::path path( index.data().toString().toStdWString() );
+                    std::filesystem::path path( index.data().toString().toStdWString() );
                     if ( path.is_absolute() ) {
                         if ( ppath_.empty() )
                             const_cast< ItemDelegate * >(this)->ppath_ = path.parent_path();
-                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( boost::filesystem::relative( path, ppath_ ).string() ) );
+                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( std::filesystem::relative( path, ppath_ ).string() ) );
                         return;
                     }
                 } else

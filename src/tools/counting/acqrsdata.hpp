@@ -28,7 +28,7 @@
 #include <adcontrols/countingdata.hpp>
 #include <adcontrols/threshold_method.hpp>
 #include <adfs/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 #include <functional>
 
 namespace acqrscontrols {
@@ -44,7 +44,7 @@ class acqrsdata {
 public:
     enum polarity { positive_polarity, negative_polarity };
     acqrsdata();
-    bool open( const boost::filesystem::path& );
+    bool open( const std::filesystem::path& );
     void setThreshold( double );
     void setPolairty( polarity );
     polarity polarity() const;
@@ -60,7 +60,7 @@ public:
 private:
     enum polarity polarity_;
     double threshold_;
-    boost::filesystem::path path_;
+    std::filesystem::path path_;
     std::shared_ptr< adprocessor::dataprocessor > processor_;
     adcontrols::CountingHistogram hgrm_;
 };

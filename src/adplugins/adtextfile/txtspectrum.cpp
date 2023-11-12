@@ -42,8 +42,6 @@
 #include <adportable/string.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/interval.hpp>
 #include <boost/tokenizer.hpp>
@@ -63,8 +61,8 @@ bool
 TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 {
 	//bool hasMass( false );
-	boost::filesystem::path path( name );
-	boost::filesystem::ifstream in( path );
+	std::filesystem::path path( name );
+	std::ifstream in( path );
     if ( in.fail() )
         return false;
 

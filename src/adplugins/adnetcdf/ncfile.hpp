@@ -27,7 +27,6 @@
 
 #include "constants.hpp"
 #include <netcdf.h>
-#include <boost/filesystem/path.hpp>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -43,7 +42,6 @@ namespace adnetcdf {
         class attribute;
 
         ncfile open( const std::filesystem::path&, open_mode = nc_nowrite );
-        ncfile open( const boost::filesystem::path&, open_mode = nc_nowrite );
 
         /////////////////////
         struct null_datum_t {};

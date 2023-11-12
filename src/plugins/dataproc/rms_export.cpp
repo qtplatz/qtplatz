@@ -45,7 +45,7 @@
 using namespace dataproc;
 
 void
-rms_export< adcontrols::MassSpectrum >::text_export( const boost::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
+rms_export< adcontrols::MassSpectrum >::text_export( const std::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
 {
 }
 
@@ -220,7 +220,7 @@ namespace {
 
 
 void
-rms_export< adcontrols::MassSpectrum >::sqlite_export( const boost::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
+rms_export< adcontrols::MassSpectrum >::sqlite_export( const std::filesystem::path& path, const std::pair<double,double>& range, bool axisIsTime )
 {
     auto db = std::make_shared< adfs::sqlite >();
     if ( db->open( path.string().c_str(), adfs::flags::opencreate ) ) {
@@ -255,7 +255,7 @@ rms_export< adcontrols::MassSpectrum >::sqlite_export( const boost::filesystem::
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void
-rms_export< adcontrols::Chromatogram >::sqlite_export( const boost::filesystem::path& path, const std::pair<double,double>& range )
+rms_export< adcontrols::Chromatogram >::sqlite_export( const std::filesystem::path& path, const std::pair<double,double>& range )
 {
     auto db = std::make_shared< adfs::sqlite >();
     if ( db->open( path.string().c_str(), adfs::flags::opencreate ) ) {

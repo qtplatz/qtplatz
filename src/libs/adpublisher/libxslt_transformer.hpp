@@ -27,9 +27,8 @@
 
 #pragma once
 
+#include <filesystem>
 class QString;
-
-namespace boost { namespace filesystem { class path; } }
 namespace pugi  { class xml_document; }
 
 namespace adpublisher {
@@ -41,12 +40,12 @@ namespace adpublisher {
         public:
             ~transformer();
 
-            static void xsltpath( boost::filesystem::path& path, const char * xsltfile );
-            static bool apply_template( const boost::filesystem::path& xsltfile, const boost::filesystem::path&, const boost::filesystem::path& outfile );
-            static bool apply_template( const boost::filesystem::path& xsltfile, const boost::filesystem::path&, QString& );
+            static void xsltpath( std::filesystem::path& path, const char * xsltfile );
+            static bool apply_template( const std::filesystem::path& xsltfile, const std::filesystem::path&, const std::filesystem::path& outfile );
+            static bool apply_template( const std::filesystem::path& xsltfile, const std::filesystem::path&, QString& );
 
             // in-memory transform
-            static bool apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document&, QString& );
+            static bool apply_template( const std::filesystem::path& xsltfile, const pugi::xml_document&, QString& );
         };
 
     }

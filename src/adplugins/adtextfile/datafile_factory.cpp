@@ -26,8 +26,6 @@
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
 #include <adplugin/visitor.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <mutex>
 
 using namespace adtextfile;
@@ -80,7 +78,7 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    boost::filesystem::wpath path(filename);
+    std::filesystem::path path(filename);
 	return ( path.extension() == L".txt" || path.extension() == L".csv" ) && ( mode = adcontrols::read_access );
 }
 

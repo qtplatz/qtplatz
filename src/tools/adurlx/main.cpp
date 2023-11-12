@@ -31,7 +31,6 @@
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -39,6 +38,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <istream>
@@ -107,8 +107,8 @@ main( int argc, char* argv[] )
     }
 
     if ( vm.count( "dg.commit" ) ) {
-        boost::filesystem::path path( vm[ "dg.commit" ].as< std::string >() );
-        if ( boost::filesystem::exists( path ) ) {
+        std::filesystem::path path( vm[ "dg.commit" ].as< std::string >() );
+        if ( std::filesystem::exists( path ) ) {
             std::ifstream is( path.string() );
             std::string json(std::istreambuf_iterator<char>(is), {});
             dg.commit( std::move( json ) );

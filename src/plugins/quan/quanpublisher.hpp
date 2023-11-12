@@ -25,11 +25,11 @@
 #ifndef QUANPUBLISHER_HPP
 #define QUANPUBLISHER_HPP
 
-#include <boost/filesystem/path.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
-#include <functional>
 #include <ostream>
 
 namespace pugi { class xml_document; class xml_node; }
@@ -54,7 +54,7 @@ namespace quan {
         bool operator()( QuanConnection * );
         bool operator()( QuanConnection *, std::function<void(int)> progress, pugi::xml_document * article = 0 );
 
-        const boost::filesystem::path& filepath() const;
+        const std::filesystem::path& filepath() const;
         bool save_file( const char * filepath ) const;
         bool save( std::ostream& ) const;
 
@@ -94,18 +94,18 @@ namespace quan {
         };
 
         const calib_curve * find_calib_curve( const boost::uuids::uuid& );
-        
+
         bool appendTraceData( adwidgets::ProgressInterface& progress );
 
     private:
         bool bProcessed_;
         std::shared_ptr< QuanConnection > conn_;
         std::shared_ptr< pugi::xml_document > xmloutput_;
-        boost::filesystem::path filepath_;
+        std::filesystem::path filepath_;
 
         std::map< boost::uuids::uuid, std::shared_ptr< calib_curve > > calib_curves_; // cmpdId, curve
         std::map< int64_t, std::shared_ptr< resp_data > > resp_data_;
-        
+
         bool appendSampleSequence( pugi::xml_node& );
         bool appendProcessMethod( pugi::xml_node& );
         bool appendQuanResponseUnk( pugi::xml_node& );

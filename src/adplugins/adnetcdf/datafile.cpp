@@ -150,7 +150,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
-    if ( auto file = adnetcdf::netcdf::open( boost::filesystem::path( filename ) ) ) {
+    if ( auto file = adnetcdf::netcdf::open( std::filesystem::path( filename ) ) ) {
 
         AndiChromatogram andi;
         if ( auto chro = andi.import( file ) ) {

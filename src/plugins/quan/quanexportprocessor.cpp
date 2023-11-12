@@ -85,11 +85,11 @@
 #include <adportfolio/folium.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <filesystem>
 #include <set>
 
 namespace quan {
@@ -97,7 +97,7 @@ namespace quan {
     struct save_chromatogram {
 
         static std::wstring make_title( const wchar_t * dataSource, const adcontrols::Chromatogram& c ) {
-            boost::filesystem::path path( dataSource );
+            std::filesystem::path path( dataSource );
 
             auto extract_by_mols = boost::json::value_to< adcontrols::quan::extract_by_mols >(
                 adportable::json_helper::find( c.generatorProperty(), "generator.extract_by_mols" ) );
@@ -214,7 +214,7 @@ QuanExportProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
     for ( auto& sample : samples_ ) {
 
-        const boost::filesystem::path stem = boost::filesystem::path( sample.dataSource() ).stem();
+        const std::filesystem::path stem = std::filesystem::path( sample.dataSource() ).stem();
         auto dp = std::make_shared< adprocessor::dataprocessor >();
         std::string emsg;
 

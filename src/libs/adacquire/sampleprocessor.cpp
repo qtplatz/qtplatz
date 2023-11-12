@@ -115,16 +115,16 @@ SampleProcessor::__close()
 
         fs_->close();
 
-        boost::filesystem::path progress_name = storage_name_;
+        std::filesystem::path progress_name = storage_name_;
         boost::system::error_code ec;
 
         if ( c_acquisition_active_ ) {
             storage_name_.replace_extension( ".adfs" ); // *.adfs~ -> *.adfs
-            boost::filesystem::rename( progress_name, storage_name_, ec );
+            std::filesystem::rename( progress_name, storage_name_, ec );
             if ( ec )
                 ADDEBUG() << boost::format( "Sample %1% close failed: %2%" ) % storage_name_.stem().string() % ec.message();
         } else {
-            boost::filesystem::remove( storage_name_, ec );
+            std::filesystem::remove( storage_name_, ec );
             if ( ec )
                 ADDEBUG() << boost::format( "Sample %1% remove failed: %2%" ) % storage_name_.stem().string() % ec.message();
         }
@@ -147,15 +147,15 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
 {
     masterObserver_ = masterObserver->shared_from_this();
 
-    boost::filesystem::path path( sampleRun_->dataDirectory() );
+    std::filesystem::path path( sampleRun_->dataDirectory() );
 
-	if ( ! boost::filesystem::exists( path ) )
-		boost::filesystem::create_directories( path );
+	if ( ! std::filesystem::exists( path ) )
+		std::filesystem::create_directories( path );
 
-	boost::filesystem::path filename = sampleRun_->filename();
+	std::filesystem::path filename = sampleRun_->filename();
 	filename.replace_extension( ".adfs~" );
 
-	storage_name_ = filename.normalize();
+	storage_name_ = std::filesystem::canonical( filename );
 
     sampleRun_->setFilePrefix( filename.stem().wstring() );
 
@@ -175,15 +175,15 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
     thread_ = std::thread( [this]{ this->writer_thread(); } );
 }
 
-boost::filesystem::path
+std::filesystem::path
 SampleProcessor::prepare_sample_run( adcontrols::SampleRun& run, bool createDirectory )
 {
-    boost::filesystem::path path( run.dataDirectory() );
+    std::filesystem::path path( run.dataDirectory() );
 
-    if ( !boost::filesystem::exists( path ) ) {
+    if ( !std::filesystem::exists( path ) ) {
         if ( !createDirectory )
-            return boost::filesystem::path();
-        boost::filesystem::create_directories( path );
+            return std::filesystem::path();
+        std::filesystem::create_directories( path );
     }
     return run.filename( L".adfs~" );
 }
@@ -204,7 +204,7 @@ SampleProcessor::pos_front( unsigned int pos, unsigned long objId )
     }
 }
 
-const boost::filesystem::path&
+const std::filesystem::path&
 SampleProcessor::storage_name() const
 {
     return storage_name_;

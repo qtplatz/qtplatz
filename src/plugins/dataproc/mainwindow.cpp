@@ -1301,7 +1301,7 @@ MainWindow::handleExportPeakList()
     if ( files.isEmpty() )
         return;
 
-    boost::filesystem::path path( files.at(0).toStdString() );
+    std::filesystem::path path( files.at(0).toStdString() );
 
     if ( path.extension().empty() ) {
         if ( dlg.selectedNameFilter().contains( "SQLite" ) )
@@ -1310,9 +1310,9 @@ MainWindow::handleExportPeakList()
             path.replace_extension( ".txt" );
     }
 
-    if ( boost::filesystem::exists( path ) ) {
-        boost::system::error_code ec;
-        if ( !boost::filesystem::remove( path,ec ) ) {
+    if ( std::filesystem::exists( path ) ) {
+        std::error_code ec;
+        if ( !std::filesystem::remove( path,ec ) ) {
             QMessageBox::critical( this, "QtPlatz::dataproc::mainwindow", QString("Cannot delete existing file: %1").arg( path.string().c_str() ) );
             return;
         }
@@ -1346,7 +1346,7 @@ MainWindow::handleExportRMSAllChecked()
     if ( files.isEmpty() )
         return;
 
-    boost::filesystem::path path( files.at(0).toStdString() );
+    std::filesystem::path path( files.at(0).toStdString() );
 
     if ( path.extension().empty() ) {
         if ( dlg.selectedNameFilter().contains( "SQLite" ) )
@@ -1396,7 +1396,7 @@ MainWindow::handleExportAllChecked()
 //     ADDEBUG() << "########################### TODO ###################################";
     QString dataPath;
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
-        dataPath = QString::fromStdString( boost::filesystem::path( dp->filename() ).parent_path().string() );
+        dataPath = QString::fromStdString( std::filesystem::path( dp->filename() ).parent_path().string() );
 
     QFileDialog dlg( this, tr("Select directory for export" ) );
     dlg.setDirectory( dataPath );
@@ -1408,18 +1408,18 @@ MainWindow::handleExportAllChecked()
         if ( files.empty() )
             return;
     }
-    boost::filesystem::path dir( dlg.selectedFiles().at(0).toStdString() );
+    std::filesystem::path dir( dlg.selectedFiles().at(0).toStdString() );
 
 
     ADDEBUG() << "## " << __FUNCTION__ << " dir: " << dir.string();
-    if ( !boost::filesystem::exists( dir ) )
-        boost::filesystem::create_directory( dir );
+    if ( !std::filesystem::exists( dir ) )
+        std::filesystem::create_directory( dir );
 
     for ( auto& session : *SessionManager::instance() ) {
         if ( auto processor = session.processor() ) {
             auto spectra = processor->getPortfolio().findFolder( L"Spectra" );
             uint32_t ident(1);
-            auto basename = dir / boost::filesystem::path( processor->filename() ).stem();
+            auto basename = dir / std::filesystem::path( processor->filename() ).stem();
             for ( auto& folium: spectra.folio() ) {
                 if ( folium.attribute( L"isChecked" ) == L"true" ) {
                     auto outname = basename.string() + ( boost::format( "_spectrum_%d.txt" ) % ident++ ).str();
@@ -1695,7 +1695,7 @@ void
 MainWindow::addPrintFileToSettings( const QString& name )
 {
     if ( auto settings = document::instance()->settings() ) {
-        auto dir = boost::filesystem::path( name.toStdString() ).parent_path();
+        auto dir = std::filesystem::path( name.toStdString() ).parent_path();
         settings->beginGroup( Constants::GRP_SPECTRUM_IMAGE );
         settings->setValue( Constants::KEY_IMAGE_SAVE_DIR, QString::fromStdString( dir.string() ) );
         settings->endGroup();
@@ -1714,7 +1714,7 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
             o += "&nbsp;";
 
         portfolio::Portfolio portfolio = dp->getPortfolio();
-        boost::filesystem::path path( portfolio.fullpath() );
+        std::filesystem::path path( portfolio.fullpath() );
 
         QDir dir( QString::fromStdWString( path.wstring() ) );
         dir.cdUp();

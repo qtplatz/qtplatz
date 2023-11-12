@@ -45,8 +45,8 @@
 #include <boost/cast.hpp>
 #include <boost/dll.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <filesystem>
 #include <fstream>
 #include <set>
 #include <mutex>
@@ -116,7 +116,7 @@ namespace adplugin {
 
         adplugin::plugin * p() { return plugin_.get(); }
 
-        boost::filesystem::path path() const {
+        std::filesystem::path path() const {
             return dll_.location();
         }
 
