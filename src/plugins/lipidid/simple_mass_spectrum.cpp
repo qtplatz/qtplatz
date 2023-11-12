@@ -294,7 +294,7 @@ simple_mass_spectrum::set_method( std::unique_ptr< adcontrols::MetIdMethod >&& t
 namespace lipidid {
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const simple_mass_spectrum& ms )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const simple_mass_spectrum& ms )
     {
         using lipidid::mass_value_t;
         boost::json::array ja;
@@ -306,7 +306,7 @@ namespace lipidid {
                 , { "intensity",  mass_value_t::intensity( value ) }
                 , { "color",      mass_value_t::color( value ) }
                 , { "checked",    mass_value_t::checked( value ) }
-                , { "candidates", ms.candidates( i ) }
+                , { "candidates", boost::json::value_from( ms.candidates( i ) ) }
             };
             ja.emplace_back( jobj );
         }
@@ -314,7 +314,7 @@ namespace lipidid {
     }
 
     simple_mass_spectrum
-    tag_invoke( boost::json::value_to_tag< simple_mass_spectrum >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< simple_mass_spectrum >&, const boost::json::value& jv )
     {
         simple_mass_spectrum t;
         if ( auto peaks = jv.as_object().if_contains( "peaks" ) ) {

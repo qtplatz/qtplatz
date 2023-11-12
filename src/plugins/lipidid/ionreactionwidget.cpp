@@ -293,7 +293,7 @@ IonReactionWidget::getContents() const
     }
     impl_->method_ = t;
     impl_->dirty_ = false;
-    auto json = boost::json::serialize( boost::json::object{{ "IonReactionMethod", impl_->method_ }} );
+    auto json = boost::json::serialize( boost::json::object{{ "IonReactionMethod", boost::json::value_from( impl_->method_ ) }} );
     document::instance()->settings()->setValue( QString(Constants::THIS_GROUP) + "/IonReactionMethod", QByteArray( json.data(), json.size() ) );
 
     return impl_->method_;

@@ -49,6 +49,6 @@ namespace lipidid {
         isoPeak& operator = ( std::tuple< bool, size_t, double, double >&& );
     };
 
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const isoPeak& );
-    isoPeak tag_invoke( boost::json::value_to_tag< isoPeak >&, const boost::json::value& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const isoPeak& );
+    isoPeak tag_invoke( const boost::json::value_to_tag< isoPeak >&, const boost::json::value& );
 }

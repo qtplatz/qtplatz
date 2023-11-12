@@ -49,16 +49,16 @@ namespace lipidid {
     }
 
     void
-    tag_invoke( boost::json::value_from_tag, boost::json::value& jv, const isoPeak& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const isoPeak& t )
     {
         jv = boost::json::object{
-            {"computed_isotope", t.computed_isotope_ }
-            , { "matched_isotope", t.matched_isotope_ }
+            {"computed_isotope", boost::json::value_from( t.computed_isotope_ ) }
+            , { "matched_isotope", boost::json::value_from( t.matched_isotope_ ) }
         };
     }
 
     isoPeak
-    tag_invoke( boost::json::value_to_tag< isoPeak >&, const boost::json::value& jv )
+    tag_invoke( const boost::json::value_to_tag< isoPeak >&, const boost::json::value& jv )
     {
         isoPeak t{{0,0}};
         if ( jv.is_object() ) {

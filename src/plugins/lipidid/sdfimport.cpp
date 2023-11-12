@@ -125,7 +125,7 @@ namespace lipidid {
                               return
                                   std::find_if( select.begin(), select.end(), [&](const auto& t){ return t == a.first; }) != select.end();
                           });
-            return boost::json::serialize( boost::json::value{{"dataItem", filterd}} );
+            return boost::json::serialize( boost::json::value{{"dataItem", boost::json::value_from( filterd )}} );
         }
     };
 

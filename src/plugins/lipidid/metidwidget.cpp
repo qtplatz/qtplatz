@@ -216,7 +216,7 @@ MetIdWidget::getContents() const
 
     impl_->method_ = t;
     impl_->dirty_ = false;
-    auto json = boost::json::serialize( boost::json::object{{ "metIdMethod", impl_->method_ }} );
+    auto json = boost::json::serialize( boost::json::object{{ "metIdMethod", boost::json::value_from( impl_->method_ ) }} );
     document::instance()->settings()->setValue( QString(Constants::THIS_GROUP) + "/MetIdMethod", QByteArray( json.data(), json.size() ) );
 
     return impl_->method_;

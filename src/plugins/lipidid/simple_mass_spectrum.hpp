@@ -90,7 +90,7 @@ namespace lipidid {
         std::optional< size_t > find_peak( double mass, double tolerance ) const;
     };
 
-    void tag_invoke( boost::json::value_from_tag, boost::json::value&, const simple_mass_spectrum& );
-    simple_mass_spectrum tag_invoke( boost::json::value_to_tag< simple_mass_spectrum >&, const boost::json::value& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const simple_mass_spectrum& );
+    simple_mass_spectrum tag_invoke( const boost::json::value_to_tag< simple_mass_spectrum >&, const boost::json::value& );
 
 }

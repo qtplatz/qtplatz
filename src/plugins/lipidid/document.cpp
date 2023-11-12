@@ -426,11 +426,12 @@ document::save_all() const
         const auto& method = impl_->simple_mass_spectrum_->method();
         if ( method ) {
             std::ofstream( file )
-                << boost::json::object{{ "metid_method", *method }
-                    , { "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }  };
+                << boost::json::object{
+                { "metid_method", boost::json::value_from( *method ) }
+                    , { "simple_mass_spectrum", boost::json::value_from( *impl_->simple_mass_spectrum_ ) }  };
         } else {
             std::ofstream( file )
-                << boost::json::object{{ "simple_mass_spectrum", *impl_->simple_mass_spectrum_ }};
+                << boost::json::object{{ "simple_mass_spectrum", boost::json::value_from( *impl_->simple_mass_spectrum_ ) }};
         }
     }
 }

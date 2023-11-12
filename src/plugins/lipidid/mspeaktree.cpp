@@ -522,7 +522,7 @@ MSPeakTree::handleIdCompleted()
 {
     auto [ ms, refms, simple_mass_spectrum ] = document::instance()->getResultSet();
 
-    auto obj = boost::json::object{{ "simple_mass_spectrum", *simple_mass_spectrum }};
+    auto obj = boost::json::object{{ "simple_mass_spectrum", boost::json::value_from( *simple_mass_spectrum ) }};
 
     auto model = impl_->model_.get();
 
