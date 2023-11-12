@@ -31,6 +31,7 @@
 #include <boost/numeric/interval.hpp>
 #include <boost/tokenizer.hpp>
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 
 using namespace adtextfile;
