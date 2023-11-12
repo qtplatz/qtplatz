@@ -31,8 +31,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
-
-namespace boost { namespace filesystem { class path; } }
+#include <filesystem>
 
 namespace acqrscontrols { namespace u5303a { class threshold_result; } };
 namespace adcontrols { class MassSpectrum; }
@@ -51,8 +50,8 @@ namespace u5303a {
 
         void dump_waveform();
 
-        void setRunName( const boost::filesystem::path& directory, const boost::filesystem::path& stem );
-        
+        void setRunName( const std::filesystem::path& directory, const std::filesystem::path& stem );
+
     private:
         std::mutex mutex_;
         std::string time_datafile_;
@@ -61,4 +60,3 @@ namespace u5303a {
     };
 
 }
-

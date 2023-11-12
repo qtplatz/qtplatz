@@ -66,7 +66,6 @@
 #include <coreplugin/icore.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 //#include <boost/bind.hpp>
@@ -88,6 +87,7 @@
 #include <QIcon>
 #include <qdebug.h>
 #include <csignal>
+#include <filesystem>
 
 using namespace u5303a;
 
@@ -839,16 +839,16 @@ MainWindow::saveCurrentImage()
         auto pixmap = this->grab(); // QPixmap::grabWidget( this );
 
         if ( auto sample = document::instance()->sampleRun() ) {
-            boost::filesystem::path path( sample->dataDirectory() );
-            if ( ! boost::filesystem::exists( path ) ) {
+            std::filesystem::path path( sample->dataDirectory() );
+            if ( ! std::filesystem::exists( path ) ) {
                 boost::system::error_code ec;
-                boost::filesystem::create_directories( path, ec );
+                std::filesystem::create_directories( path, ec );
             }
             int runno(0);
-            if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
-                using boost::filesystem::directory_iterator;
+            if ( std::filesystem::exists( path ) && std::filesystem::is_directory( path ) ) {
+                using std::filesystem::directory_iterator;
                 for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
-                    boost::filesystem::path fname = (*it);
+                    std::filesystem::path fname = (*it);
                     if ( fname.extension().string() == ".png" ) {
                         runno = std::max( runno, adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
                     }
@@ -936,7 +936,7 @@ MainWindow::handleRunName()
         if ( dstfile.isEmpty() )
             dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
 
-        boost::filesystem::path path( dstfile.toStdWString() );
+        std::filesystem::path path( dstfile.toStdWString() );
 
         if ( auto rname = findChild< QLineEdit * >( "runName" ) ) {
 
@@ -954,7 +954,7 @@ MainWindow::handleRunName()
 
             if ( !file.isEmpty() ) {
 
-                boost::filesystem::path fname( file.toStdString() );
+                std::filesystem::path fname( file.toStdString() );
 
                 auto dir = fname.parent_path();
                 auto stem = fname.stem();

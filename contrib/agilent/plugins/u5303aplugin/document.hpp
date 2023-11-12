@@ -30,6 +30,7 @@
 #include <mutex>
 #include <memory>
 #include <vector>
+#include <filesystem>
 
 class QSettings;
 
@@ -84,9 +85,9 @@ namespace u5303a {
 
         int32_t device_status() const;
 
-        static bool appendOnFile( const boost::filesystem::path& path
+        static bool appendOnFile( const std::filesystem::path& path
                                   , const QString& title, const adcontrols::MassSpectrum&, QString& id );
-        
+
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
         std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod() const;
@@ -131,7 +132,7 @@ namespace u5303a {
 
         void addCountingChromatogramsPoint( uint64_t timeSinceEpoch, uint32_t serialnumber, const std::vector<uint32_t>& );
         // std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
-        
+
         // tentative solution -- will be removed
         void result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_result > ch1 );
         // <---
@@ -149,7 +150,7 @@ namespace u5303a {
 
     private slots:
         void handleMessage( adextension::iController *, uint32_t code, uint32_t value );
-        
+
     private:
         class impl;
         impl * impl_;

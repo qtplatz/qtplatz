@@ -25,19 +25,19 @@
 #include "resultwriter.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adportable/profile.hpp>
-#include <boost/filesystem/path.hpp>
 // for debug
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 // end debug
 #include <fstream>
+#include <filesystem>
 
 using namespace u5303a;
 
 ResultWriter::ResultWriter()
-    : time_datafile_( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_time_data.txt" ).string() )
-    , hist_datafile_( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_histogram.txt" ).string() )
+    : time_datafile_( ( std::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_time_data.txt" ).string() )
+    , hist_datafile_( ( std::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_histogram.txt" ).string() )
 {
 }
 
@@ -55,7 +55,7 @@ ResultWriter::operator << ( std::shared_ptr< const acqrscontrols::u5303a::thresh
 }
 
 void
-ResultWriter::setRunName( const boost::filesystem::path& directory, const boost::filesystem::path& stem )
+ResultWriter::setRunName( const std::filesystem::path& directory, const std::filesystem::path& stem )
 {
     commitData();
 
@@ -64,7 +64,7 @@ ResultWriter::setRunName( const boost::filesystem::path& directory, const boost:
 }
 
 void
-ResultWriter::commitData() 
+ResultWriter::commitData()
 {
     std::vector< std::shared_ptr< const acqrscontrols::u5303a::threshold_result > > list;
 
@@ -97,11 +97,11 @@ ResultWriter::writeHistogram( size_t trigCount
                               , std::shared_ptr< adcontrols::MassSpectrum > histogram )
 {
     std::ofstream of( hist_datafile_, std::ios_base::out | std::ios_base::app );
-        
+
     const double * times = histogram->getTimeArray();
     const double * counts = histogram->getIntensityArray();
     const auto& prop = histogram->getMSProperty();
-    
+
     of << boost::format( "\n%d, %.8lf, %.14le" )
         % trigCount % ( double( timeSinceEpoch.first ) * 1.0e-9 ) % ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
 
@@ -110,7 +110,7 @@ ResultWriter::writeHistogram( size_t trigCount
 }
 
 void
-ResultWriter::dump_waveform() 
+ResultWriter::dump_waveform()
 {
     std::shared_ptr< const acqrscontrols::u5303a::threshold_result > rp;
     do {
@@ -121,11 +121,11 @@ ResultWriter::dump_waveform()
     } while(0);
 
     if ( rp ) {
-        auto path = ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_waveform.txt" ).string();
-        
+        auto path = ( std::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data/u5303a_waveform.txt" ).string();
+
         std::wofstream of( path, std::ios_base::out | std::ios_base::app );
         auto waveform = rp->data();
-        
+
         boost::archive::xml_woarchive ar( of );
         ar & boost::serialization::make_nvp( "meta", waveform->meta_ );
 
@@ -135,5 +135,5 @@ ResultWriter::dump_waveform()
         }
         of << std::endl;
     }
-    
+
 }

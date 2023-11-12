@@ -21,7 +21,7 @@
 **
 **************************************************************************/
 
-#include <AcqirisImport.h> 
+#include <AcqirisImport.h>
 #include <AcqirisD1Import.h>
 #include <cstring>
 #include <string>
@@ -47,10 +47,10 @@ public:
                 , serial_number_( 0 )
                 , nbrADCBits_( 8 ) {
     }
-    
+
     bool initialize();
     bool findDevice();
-    
+
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > );
     bool acquire();
     bool stop();
@@ -58,17 +58,17 @@ public:
     enum result_code { success, error_timeout, error_overload, error_io_read, error_stopped };
 
     result_code waitForEndOfAcquisition( size_t timeout );
-    
+
     bool getInstrumentData();
-    
+
     static std::string error_msg( int status, const char * ident );
     static bool checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg = 0 );
 
     template<typename T>
     bool readData( int channel, AqDataDescriptor& dataDesc, AqSegmentDescriptor& segDesc, std::vector<int32_t>& data ) {
-        
-        std::memset( &dataDesc, sizeof(dataDesc), 0 );
-        std::memset( &segDesc, sizeof(segDesc), 0 );        
+
+        std::memset( &dataDesc, 0, sizeof(dataDesc) );
+        std::memset( &segDesc, 0, sizeof(segDesc) );
 
         AqReadParameters readPar;
 
@@ -115,4 +115,3 @@ private:
     ViInt32 nbrADCBits_;
     ViInt32 temperature_;
 };
-

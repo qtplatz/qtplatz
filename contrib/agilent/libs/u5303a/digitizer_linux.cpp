@@ -46,7 +46,6 @@
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/logic/tribool.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -58,6 +57,7 @@
 #include <atomic>
 #include <chrono>
 #include <exception>
+#include <filesystem>
 #include <mutex>
 #include <thread>
 
@@ -1339,12 +1339,12 @@ findResource::operator()( std::shared_ptr< AgMD2 > md2 ) const
 void
 configFile::saveResource( const std::string& res )
 {
-    const boost::filesystem::path path = boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
-    const boost::filesystem::path file = path / "digitizer.ini";
+    const std::filesystem::path path = std::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
+    const std::filesystem::path file = path / "digitizer.ini";
 
-    if ( ! boost::filesystem::exists( path ) ) {
+    if ( ! std::filesystem::exists( path ) ) {
         boost::system::error_code ec;
-        boost::filesystem::create_directories( path, ec );
+        std::filesystem::create_directories( path, ec );
         if ( ec ) {
             ADDEBUG() << ec;
             return; // error
@@ -1359,10 +1359,10 @@ configFile::saveResource( const std::string& res )
 boost::optional< std::string >
 configFile::loadResource()
 {
-    const boost::filesystem::path path = boost::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
-    const boost::filesystem::path file = path / "digitizer.ini";
+    const std::filesystem::path path = std::filesystem::path( adportable::profile::user_config_dir<char>() ) / "QtPlatz";
+    const std::filesystem::path file = path / "digitizer.ini";
 
-    if ( boost::filesystem::exists( file ) ) {
+    if ( std::filesystem::exists( file ) ) {
 
         boost::property_tree::ptree pt;
         try {
