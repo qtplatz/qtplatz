@@ -35,7 +35,7 @@ elseif( WIN32 )
 endif()
 
 if (WIN32)
-  add_subdirectory( bruker )
+  #add_subdirectory( bruker )
   add_subdirectory( installer )
 elseif( APPLE )
   add_subdirectory( installer )
