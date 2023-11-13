@@ -156,7 +156,7 @@ namespace adprocessor {
         std::unique_ptr< impl > impl_;
     };
 
-    template<> std::string  dataprocessor::filename<char>() const;
-    template<> std::wstring dataprocessor::filename<wchar_t>() const;
+    template<> ADPROCESSORSHARED_EXPORT std::string  dataprocessor::filename<char>() const;
+    template<> ADPROCESSORSHARED_EXPORT std::wstring dataprocessor::filename<wchar_t>() const;
 
 } // mpxcontrols

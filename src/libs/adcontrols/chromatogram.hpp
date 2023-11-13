@@ -259,7 +259,7 @@ namespace adcontrols {
         inline double intensity() const { return chromatogram_->intensity( idx_ ); };
     };
 
-    template<> std::basic_string< char > Chromatogram::make_folder_name( const adcontrols::descriptions& );
-    template<> std::basic_string< wchar_t > Chromatogram::make_folder_name( const adcontrols::descriptions& );
+    template<> ADCONTROLSSHARED_EXPORT std::basic_string< char > Chromatogram::make_folder_name( const adcontrols::descriptions& );
+    template<> ADCONTROLSSHARED_EXPORT std::basic_string< wchar_t > Chromatogram::make_folder_name( const adcontrols::descriptions& );
 
 }

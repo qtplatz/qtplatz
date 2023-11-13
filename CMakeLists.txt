@@ -131,7 +131,7 @@ if ( WITH_QT5 )
     endif()
 
   endif()
-endif()
+endif()  # WITH_QT5
 ################################################################
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
@@ -151,15 +151,7 @@ elseif( APPLE )
 else()
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 endif()
-################################################################
 
-if ( WIN32 )
-  set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
-elseif( APPLE )
-  set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/package/bin" )
-else()
-  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
-endif()
 
 if ( APPLE )
 
@@ -284,7 +276,6 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
   chrono
   container
   date_time
-#  filesystem
   iostreams
   json
   program_options

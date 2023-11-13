@@ -16,7 +16,7 @@ include_directories(
   ${QtWidgets_INCLUDE_DIRS}
   )
 
-add_definitions(-DADPROCESSOR_LIBRARY)
+add_definitions( -DADPROCESSOR_LIBRARY )
 
 add_library( ${PROJECT_NAME} SHARED
   dataprocessor.hpp

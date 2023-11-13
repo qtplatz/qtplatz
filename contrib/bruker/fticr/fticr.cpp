@@ -56,7 +56,7 @@ adplugin_plugin_instance()
 #if defined _MSC_VER
     // Workaround for boost/VC bug #6320 according to following artcile
     // https://svn.boost.org/trac/boost/ticket/6320
-    boost::filesystem::path p("dummy");
+    // boost::filesystem::path p("dummy");
 #endif
 
     std::call_once( flag, [](){ instance_ = std::make_shared< fticr::datafile_factory >(); } );

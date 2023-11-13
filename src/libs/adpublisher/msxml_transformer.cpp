@@ -72,8 +72,8 @@ using namespace adpublisher;
 using namespace adpublisher::msxml;
 
 bool
-transformer::apply_template( const boost::filesystem::path& xslfile
-                             , const boost::filesystem::path& xmlfile, const boost::filesystem::path& outfile )
+transformer::apply_template( const std::filesystem::path& xslfile
+                             , const std::filesystem::path& xmlfile, const std::filesystem::path& outfile )
 {
     auto p = singleton::instance();
     (void)p;
@@ -106,7 +106,7 @@ transformer::apply_template( const boost::filesystem::path& xslfile
 }
 
 bool
-transformer::apply_template( const boost::filesystem::path& xmlfile, const boost::filesystem::path& xslfile, QString& output )
+transformer::apply_template( const std::filesystem::path& xmlfile, const std::filesystem::path& xslfile, QString& output )
 {
     auto p = singleton::instance();
     (void)p;
@@ -142,7 +142,7 @@ transformer::apply_template( const boost::filesystem::path& xmlfile, const boost
 // in-memory transform
 //static
 bool
-transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document& dom, QString& output )
+transformer::apply_template( const std::filesystem::path& xsltfile, const pugi::xml_document& dom, QString& output )
 {
     auto p = singleton::instance();
     (void)p;
@@ -180,11 +180,11 @@ transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi
 
 //static
 void
-transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
+transformer::xsltpath( std::filesystem::path& path, const char * xsltfile )
 {
-    static const boost::filesystem::path dir =
-        boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() )
-        /= boost::filesystem::path( "/../share/qtplatz/xslt" );
+    static const std::filesystem::path dir =
+        std::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() )
+        /= std::filesystem::path( "/../share/qtplatz/xslt" );
 
     path = (dir / xsltfile).generic_wstring();
 }

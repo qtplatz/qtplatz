@@ -32,19 +32,19 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
 #include <vector>
+#include <filesystem>
+#include <fstream>
 
 namespace fticr {
 	struct dirwalk {
-		boost::filesystem::path root_dir; // top directory name on windows
+		std::filesystem::path root_dir; // top directory name on windows
 		bool valid;
 		dirwalk( const std::wstring& file );
 		inline operator bool () const { return valid; }
-		inline boost::filesystem::path pdata() const { return root_dir / L"pdata"; }
+		inline std::filesystem::path pdata() const { return root_dir / L"pdata"; }
 	};
 }
 
@@ -92,13 +92,13 @@ datafile::fetch( const std::string& path, const std::string& dataType ) const
 
     (void)dataType;
 
-	boost::filesystem::path fpath( path );
-	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
+	std::filesystem::path fpath( path );
+	boost::uintmax_t n = std::filesystem::file_size( path ) / 4;
 
 	adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum() );
     pMS->resize( static_cast< size_t >( n ) );
 
-	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
+	std::ifstream rdfile( fpath, std::ios_base::binary );
 	size_t idx;
 	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
 		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
@@ -128,13 +128,13 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 
     (void)dataType;
 
-	boost::filesystem::path fpath( path );
-	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
+	std::filesystem::path fpath( path );
+	boost::uintmax_t n = std::filesystem::file_size( path ) / 4;
 
 	adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum() );
     pMS->resize( static_cast< size_t >( n ) );
 
-	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
+	std::ifstream rdfile( fpath, std::ios_base::binary );
 	size_t idx;
 	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
 		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
@@ -210,12 +210,12 @@ datafile::_open( const std::wstring& filename, bool )
 	portfolio.create_with_fullpath( filename_ );
 
     bool res = false;
-    if ( boost::filesystem::is_regular_file( dw.root_dir / L"acqu" ) ) {
+    if ( std::filesystem::is_regular_file( dw.root_dir / L"acqu" ) ) {
         res = _1open( filename_, portfolio );
     } else {
-        boost::filesystem::directory_iterator end;
-        for ( boost::filesystem::directory_iterator it( filename_ ); it != end; ++it ) {
-            if ( boost::filesystem::is_directory( *it / L"pdata" ) )
+        std::filesystem::directory_iterator end;
+        for ( std::filesystem::directory_iterator it( filename_ ); it != end; ++it ) {
+            if ( std::filesystem::is_directory( *it / std::filesystem::path("pdata") ) )
                 res = _1open( it->path().wstring(), portfolio );
         }
     }
@@ -229,11 +229,11 @@ datafile::_open( const std::wstring& filename, bool )
 bool
 datafile::_1open( const std::wstring& filename, portfolio::Portfolio& portfolio )
 {
-    boost::filesystem::path _1( filename );  // "a_file/1/acqu"
+    std::filesystem::path _1( filename );  // "a_file/1/acqu"
 
-    boost::filesystem::path acqu( _1 / L"acqu" );
+    std::filesystem::path acqu( _1 / L"acqu" );
 
-	if ( boost::filesystem::is_regular_file( acqu ) ) {
+	if ( std::filesystem::is_regular_file( acqu ) ) {
 		jcampdxparser::vector_type map;
 		if ( jcampdxparser::parse_file( map, acqu.wstring() ) ) {
             if ( map.find( "$ML1" ) != map.end() )
@@ -262,21 +262,21 @@ datafile::_1open( const std::wstring& filename, portfolio::Portfolio& portfolio 
 
 	portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
 
-	//boost::filesystem::directory_iterator pos( dw.pdata() );
-	boost::filesystem::directory_iterator last;
+	//std::filesystem::directory_iterator pos( dw.pdata() );
+	std::filesystem::directory_iterator last;
 
-    for ( boost::filesystem::directory_iterator pos( _1 / L"pdata" ); pos != last; ++pos ) {
-		boost::filesystem::path p( *pos );
-		if ( boost::filesystem::is_directory( p ) ) {
-			boost::filesystem::path rdfile( p / L"1r" );
-			if ( boost::filesystem::is_regular_file( rdfile ) ) {
+    for ( std::filesystem::directory_iterator pos( _1 / L"pdata" ); pos != last; ++pos ) {
+		std::filesystem::path p( *pos );
+		if ( std::filesystem::is_directory( p ) ) {
+			std::filesystem::path rdfile( p / L"1r" );
+			if ( std::filesystem::is_regular_file( rdfile ) ) {
 				std::wstring title;
-				if ( boost::filesystem::is_regular_file( p / L"title" ) ) {
-					boost::filesystem::wifstream inf( p / L"title" );
+				if ( std::filesystem::is_regular_file( p / L"title" ) ) {
+					std::wifstream inf( p / L"title" );
                     inf >> title;
 				}
 				if ( title.empty() )
-					title = L"Spectrum " + p.leaf().wstring();
+					title = L"Spectrum " + p.filename().wstring();
 				portfolio::Folium folium = spectra.addFolium( title );
 				folium.setAttribute( L"dataType", L"MassSpectrum" );
 				folium.id( rdfile.wstring() );
@@ -311,20 +311,20 @@ datafile::is_valid_datafile( const std::wstring& filename )
 dirwalk::dirwalk( const std::wstring& file ) : valid( false )
 {
     // "file/1/pdata"
-	boost::filesystem::path path( file );
+	std::filesystem::path path( file );
 
-    if ( boost::filesystem::is_directory( path ) ) {
+    if ( std::filesystem::is_directory( path ) ) {
 
-        if ( boost::filesystem::is_directory( path / L"pdata" ) ) {
+        if ( std::filesystem::is_directory( path / L"pdata" ) ) {
             // if "1" selected
             root_dir = path;
             valid = true;
 
         } else {
             // if "file" selected
-            boost::filesystem::directory_iterator end;
-            for ( boost::filesystem::directory_iterator it( path ); it != end; ++it ) {
-                if ( boost::filesystem::is_directory( *it / L"pdata" ) ) {
+            std::filesystem::directory_iterator end;
+            for ( std::filesystem::directory_iterator it( path ); it != end; ++it ) {
+                if ( std::filesystem::is_directory( *it / std::filesystem::path("pdata") ) ) {
                     root_dir = path;
                     valid = true;
                     break;
@@ -334,10 +334,10 @@ dirwalk::dirwalk( const std::wstring& file ) : valid( false )
 
     } else {
         // if "acqu" (any regular file under "1" directory has been selected
-        boost::filesystem::path dir( path.branch_path() );
+        std::filesystem::path dir( path.parent_path() );
 
-        if ( boost::filesystem::is_directory( dir ) ) {
-            if ( boost::filesystem::is_directory( dir / L"pdata" ) ) {
+        if ( std::filesystem::is_directory( dir ) ) {
+            if ( std::filesystem::is_directory( dir / L"pdata" ) ) {
                 root_dir = dir;
                 valid = true;
             }

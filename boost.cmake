@@ -7,7 +7,7 @@ set( Boost_NO_SYSTEM_PATHS ON )
 
 # See 'libs/serialization/src/basic_archive.cpp library_version_type for archive version
 set ( __boost_versions
-  "boost-1_83"        # V19 
+  "boost-1_83"        # V19
   "boost-1_79"        # V19
   "boost-1_78"        # V19
   "boost-1_75"        # V18 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(18)
@@ -27,14 +27,13 @@ if ( WIN32 )
   list( APPEND CMAKE_PREFIX_PATH "C:/Boost/lib/cmake" )
 
   set( Boost_NO_SYSTEM_PATHS ON )
-  set( Boost_USE_STATIC_LIBS ON )
+  set( Boost_USE_STATIC_LIBS OFF )
   add_definitions( "-DBOOST_ALL_NO_LIB" ) # <-- disable boost auto linking
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   # if ( Boost_USE_STATIC_LIBS )
   add_definitions(
     "-DBOOST_ATOMIC_DYN_LINK"
     "-DBOOST_CHRONO_DYN_LINK"
-#    "-DBOOST_FILESYSTEM_DYN_LINK"
     "-DBOOST_JSON_DYN_LINK"
     "-DBOOST_LOG_DYN_LINK"
   )
