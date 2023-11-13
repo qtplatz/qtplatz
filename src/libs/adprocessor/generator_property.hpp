@@ -27,6 +27,7 @@
 #include "adprocessor_global.hpp"
 #include <boost/json/fwd.hpp>
 #include <boost/json/value_to.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <memory>
 #include <optional>
 
