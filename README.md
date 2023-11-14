@@ -156,6 +156,8 @@ A quick fix for this is to modify two header files, as listed below.
 
 Note for boost-1_83
 -----
+boost-1_83 is a recommended boost version with QtPlatz 5.6.1.
+An issue previously reported below was resolved.  It happened due to the boost::json change on boost-1.81, where they re-design conversion classes -- it requires application code change, and it has been done as of QtPlatz 5.6.1.
 As of 20th Sep. 2023, I have tested with boost-1_83, which seems to have no above issues and is able to be built for boost libraries, maeparser, and RDKit.  However, the compile error was raised in 'boost/json/value.hpp', which uses many of the classes in qtplatz.
 
 Note for qmake with macOS SDK 14
