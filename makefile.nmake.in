@@ -17,19 +17,14 @@ all:
 
 debug:
         cmake --build . --config Debug -- /m
-#	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_DEBUG)
 
 release:
         cmake --build . --config Release -- /m
-#	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_RELEASE)
 
 package:
         cmake --build . --config Release --target package -- /m
-#	$(MSBUILD) /m /p:Configuration=$(CONFIG_RELEASE) PACKAGE.vcxproj
-#       cpack -C Release --config ./CPackConfig.cmake
 
 install:
         cmake --build . --config Release --target install -- /m
-#	$(MSBUILD) /m /p:Configuration=$(CONFIG_RELEASE) INSTALL.vcxproj
 
 .phony:
