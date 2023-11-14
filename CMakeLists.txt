@@ -502,7 +502,9 @@ include (config_qtplatz_config)
 
 config_qtplatz_config( "TRUE" )   # installed
 config_qtplatz_config( "FALSE" )  # in source tree
-install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
+
+install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake
+  DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/doxyfile.in

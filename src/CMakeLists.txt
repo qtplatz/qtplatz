@@ -50,3 +50,5 @@ file( COPY
   ${CMAKE_SOURCE_DIR}/boost.cmake
   DESTINATION ${CMAKE_BINARY_DIR}/cmake
 )
+
+install ( FILES ${CMAKE_BINARY_DIR}/cmake/qtplatz_api.cmake DESTINATION "." COMPONENT headers )
