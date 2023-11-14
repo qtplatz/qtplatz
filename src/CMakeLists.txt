@@ -51,4 +51,4 @@ file( COPY
   DESTINATION ${CMAKE_BINARY_DIR}/cmake
 )
 
-install ( FILES ${CMAKE_BINARY_DIR}/cmake/qtplatz_api.cmake DESTINATION "." COMPONENT headers )
+install ( DIRECTORY ${CMAKE_BINARY_DIR}/cmake DESTINATION "." COMPONENT headers )
