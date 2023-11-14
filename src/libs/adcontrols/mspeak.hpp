@@ -90,7 +90,7 @@ namespace adcontrols {
         std::unique_ptr< impl > impl_;
 
         friend class boost::serialization::access;
-        template<class Archive>
+        template<class Archive> ADCONTROLSSHARED_EXPORT
         void serialize(Archive& ar, const unsigned int version);
     };
 

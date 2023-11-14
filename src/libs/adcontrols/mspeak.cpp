@@ -76,7 +76,7 @@ namespace adcontrols {
         uint32_t flags_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
+        template<class Archive> ADCONTROLSSHARED_EXPORT void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( time_ );
@@ -337,14 +337,14 @@ MSPeak::isFlag( Flags f ) const
 namespace adcontrols {
 
     ////////// PORTABLE BINARY ARCHIVE //////////
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     MSPeak::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         // saving
         impl_->serialize( ar, version );
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     MSPeak::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         // loading
@@ -352,14 +352,14 @@ namespace adcontrols {
     }
 
     ///////// XML archive ////////
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     MSPeak::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         // saving
         impl_->serialize( ar, version );
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     MSPeak::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         impl_->serialize( ar, version );

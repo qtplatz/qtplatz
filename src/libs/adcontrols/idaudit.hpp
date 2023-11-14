@@ -42,7 +42,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT idAudit;
 
-    template< typename Archive > void serialize(Archive & ar, idAudit&, const unsigned int version);
+    template< typename Archive > ADCONTROLSSHARED_EXPORT void serialize(Archive & ar, idAudit&, const unsigned int version);
 
     class idAudit {
     public:
@@ -79,7 +79,7 @@ namespace adcontrols {
         template< typename T > class archiver;
         friend class archiver< idAudit >;
         friend class archiver< const idAudit >;
-        template< typename Archive > friend void serialize(Archive & ar, idAudit&, const unsigned int version);
+        template< typename Archive > friend ADCONTROLSSHARED_EXPORT void serialize(Archive & ar, idAudit&, const unsigned int version);
 
         friend ADCONTROLSSHARED_EXPORT void tag_invoke( boost::json::value_from_tag, boost::json::value&, const idAudit& );
         friend ADCONTROLSSHARED_EXPORT idAudit tag_invoke( boost::json::value_to_tag< idAudit >&, const boost::json::value& jv );

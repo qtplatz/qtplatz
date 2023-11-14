@@ -229,7 +229,7 @@ namespace adcontrols {
         }
     };
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     serialize( portable_binary_iarchive& ar, idAudit& t, const unsigned int version )
     {
 #if __GNUC__
@@ -239,7 +239,7 @@ namespace adcontrols {
 #endif
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     serialize( portable_binary_oarchive& ar, idAudit& t, const unsigned int version )
     {
 #if __GNUC__
@@ -250,7 +250,7 @@ namespace adcontrols {
     }
 
     ///////// XML archive ////////
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     serialize( boost::archive::xml_woarchive& ar, idAudit& t, const unsigned int version )
     {
         // saving
@@ -261,7 +261,7 @@ namespace adcontrols {
 #endif
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     serialize( boost::archive::xml_wiarchive& ar, idAudit& t, const unsigned int version )
     {
 #if __GNUC__
