@@ -144,6 +144,7 @@ include (boost.cmake)
 include (qtplatz_api)
 message ( STATUS "##### Boost_USE_STATIC_LIBS ${Boost_USE_STATIC_LIBS} #####" )
 
+############# INSTALL PREFIX ##############
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
 elseif( APPLE )
@@ -152,6 +153,13 @@ else()
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 endif()
 
+############## WIX ################
+if ( WIN32 )
+  find_path( CPACK_WIX_ROOT  "bin/candle.exe"
+    PATHS
+    "C:/Program Files (x86)/WiX Toolset v3.11"
+    "C:/Program Files (x86)/WiX Toolset v3.14" )
+endif()
 
 if ( APPLE )
 
@@ -201,6 +209,11 @@ else()
 endif()
 
 if( WIN32 )
+  if ( CPACK_WIX_ROOT )
+    message( STATUS "## Preparing Windows packager script: ${CPACK_WIX_ROOT}" )
+  else()
+    message( WARNING "## Preparing Windows packager script: ${CPACK_WIX_ROOT}" )
+  endif()
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
   set( CPACK_WIX_UPGRADE_GUID                 "F51A5CFA-AB54-4FAE-BBDC-32C42F4C039A" )
   set( CPACK_WIX_PROGRAM_MENU_FOLDER          "QtPlatz Mass Spectrometry" )

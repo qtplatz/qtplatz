@@ -34,10 +34,10 @@ elseif( WIN32 )
   add_subdirectory( windows )
 endif()
 
-if (WIN32)
+if ( WIN32 )
   #add_subdirectory( bruker )
   add_subdirectory( installer )
-elseif( APPLE )
+elseif ( APPLE )
   add_subdirectory( installer )
 endif()
 
