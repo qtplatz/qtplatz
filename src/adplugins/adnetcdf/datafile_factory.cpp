@@ -40,7 +40,6 @@ datafile_factory::~datafile_factory(void)
 
 datafile_factory::datafile_factory()
 {
-    ADDEBUG() << "######### datafile_factory::ctor #################";
 }
 
 //datafile_factory *
@@ -107,7 +106,6 @@ datafile_factory::iid() const
 void
 datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
-    // ADDEBUG() << "-------- adnetcdf::datafile_factory::accept ------------: visitor: " << typeid(v).name();
 	// v.visit( this, adplugin );
 }
 
