@@ -111,17 +111,16 @@ namespace chemistry {
         , { "C[C@H](CCC=C(C)C)[C@H]1CC[C@@]2([C@@]1(CC[C@]34[C@H]2CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "Oryzanol A" } }
         , { "C[C@H](CCC(=C)C(C)C)[C@H]1CCC2[C@@]1(CC[C@]34[C@]2(CC[C@@H]5[C@]3(C4)CC[C@@H](C5(C)C)OC(=O)/C=C/c6ccc(c(c6)OC)O)C)C", { "Oryzanol B" } }
         , { "CC(C)C(C)CCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)OC(=O)C=CC5=CC(=C(C=C5)O)OC)C)C", { "Campesteryl ferulate" } }
-        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "a-Tocopherol" } }
-        , { "CC1=C(C(=O)C(=C(C1=O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)C",        { "a-TQ",   "α-Tocopherol-quinone" } }
-        , { "CC1=C(C(=C(C(=C1O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)O)C",         { "a-THQ",  "a-Tocopherylhydroquinone" } }
-        , { "CC(C)CCCC(C)CCCC(C)CCCC1(CCC2=CC(=O)C=CC2(O1)OO)C",               { "a-TOOH", "a-Tocopherol Hydroperoxide" } }
-        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(C)C(C)=C2O1",  { "5-f-g-T", "5-formyl-g-tocopherol" } }
-        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(CO)C(C)=C2O1",  { "5-f-g-TOH" } }
+        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "α-Tocopherol" } }
+        , { "CC1=C(C(=O)C(=C(C1=O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)C",        { "α-TQ",   "α-Tocopherol-quinone" } }
+        , { "CC1=C(C(=C(C(=C1O)C)CCC(C)(CCCC(C)CCCC(C)CCCC(C)C)O)O)C",         { "α-THQ",  "α-Tocopherylhydroquinone" } }
+        , { "CC(C)CCCC(C)CCCC(C)CCCC1(CCC2=CC(=O)C=CC2(O1)OO)C",               { "α-TOOH", "α-Tocopherol Hydroperoxide" } }
+        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(C)C(C)=C2O1",  { "5-f-γ-T", "5-formyl-γ-tocopherol" } }
+        , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(CO)C(C)=C2O1",  { "5-f-γ-TOH" } }
         , { "CC(C)CCC[C@@H](C)CCC[C@@H](C)CCC[C@]1(C)CCC2=C(CO)C(O)=C(CO)C(CO)=C2O1",  { "5-f-g-T(OH)2" } }
-        , { "Cc1cc(c(c2c1O[C@](CC2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C)O", { "beta-Tocopherol" } }
+        , { "Cc1cc(c(c2c1O[C@](CC2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C)O", { "β-Tocopherol" } }
         , { "Oc1cc(O)c2C(=O)C(O)= C(Oc2c1)c3ccc(O)c(O)c3", { "quercetin" } }
         , { R"**(O=C(O)[C@]2(O)C[C@@H](O)[C@@H](O)[C@H](OC(=O)\C=C\c1ccc(O)c(O)c1)C2)**", { "Chlorogenic acid" } }
-        , { "CCCCCCCCCCCCCCCC(=O)O",                  { "Palmitic acid" } }
         , { "C[N+](C)(C)CC([O-])=O",                  { "Betaine" } }
         , { "C/C(=N\\c1ccc(cc1)O)/O",                 { "Paracetamol" } }
         , { "CC(=O)Nc1ccc(O)cc1",                     { "Acetaminophen", "paracetamol" } }        //
@@ -133,7 +132,6 @@ namespace chemistry {
         , { "CCCCCCCCCCCCCCCCCCCCCCCC(=O)O",          { "Tetracosanoic acid", "Lignoceric acid" } }
         , { "CCCCCCCCCCCCCCCCCC(=O)O",                { "Stearic acid" } }
         , { "CCCCCCCCCCCCCCCCCCCC(=O)O",              { "Arachidic acid" } }
-        , { "Cc1c(c2c(c(c1O)C)CC[C@@](O2)(C)CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C", { "Tocopherol" } }
         , { "COP1(=NP(=NP(=N1)(OC)OC)(OC)OC)OC", { "Hexamethoxyphosphazene", "CAS NO: 957-13-1" } }
         , { "C(C(F)F)OP1(=NP(=NP(=N1)(OCC(F)F)OCC(F)F)(OCC(F)F)OCC(F)F)OCC(F)F", { "Hexakis(2,2-Difluoroethoxy)Phosphazene", "CAS NO: 186817-57-2" } }
         , { "C(C(C(F)F)(F)F)OP1(=NP(=NP(=N1)(OCC(C(F)F)(F)F)OCC(C(F)F)(F)F)(OCC(C(F)F)(F)F)OCC(C(F)F)(F)F)OCC(C(F)F)(F)F"
@@ -217,25 +215,25 @@ namespace chemistry {
         , { R"(CCCCC/C=C\C/C=C\CCCCCCCC(=O)O)",       { "C18:2", "Linolic acid" } }
         , { R"(O=C(O)CCC\C=C/C\C=C/C\C=C/C\C=C/C\C=C/CC)",      { "C20:5", "EPA", "Eicosapentaenoic acid" } }
         // 17941
-        , { R"(OC(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCCC)=O)",       { "C22:4", "Adrenic acid", "Docosatetraenoic acid", "90300" }}
-        , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",         { "C20:4", "Arachidonic acid",      "90010" } }
-        , { R"(CCCCC\C=C/C\C=C/C\C=C/CCCCCCC(=O)O)",            { "C20:3", "Dihomo-g-linolenic acid", "90230" }}
-        , { R"(O=C(O)CC\C=C/C/C=C\C\C=C/C\C=C/C\C=C/C\C=C/CC)", { "C22:6", "Docosahexaenoic acid",  "90310" }}
-        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCCCC(=O)O)",    { "C22:5", "Docosapentaenoic acid", "90165" }}
-        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",      { "C20:5", "Eicosapentaenoic acid", "90110" }}
-        , { R"(CC/C=C\C/C=C\C/C=C\CCCCCCCC(=O)O)",              { "C18:3", "a-Linoleic acid",       "90210" }}
-        , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "GLA", "g-Linoleic acid",       "90220" }}
-        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid",      "90320" }}
+        , { R"(OC(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCCC)=O)",       { "C22:4", "Adrenic acid", "Docosatetraenoic acid"}}//, "90300" }}
+        , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",         { "C20:4", "Arachidonic acid"        }}//,      "90010" } }
+        , { R"(CCCCC\C=C/C\C=C/C\C=C/CCCCCCC(=O)O)",            { "C20:3", "Dihomo-g-linolenic acid" }}//, "90230" }}
+        , { R"(O=C(O)CC\C=C/C/C=C\C\C=C/C\C=C/C\C=C/C\C=C/CC)", { "C22:6", "Docosahexaenoic acid"    }}//,  "90310" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCCCC(=O)O)",    { "C22:5", "Docosapentaenoic acid"   }}//, "90165" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",      { "C20:5", "Eicosapentaenoic acid"   }}//, "90110" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\CCCCCCCC(=O)O)",              { "C18:3", "α-Linoleic acid"         }}//,       "90210" }}
+        , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "GLA",   "γ-Linoleic acid", "C18:3n-6"           }}//,       "90220" }}
+        , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid"        }}//,      "90320" }}
         // 17942 Saturated/Monounsaturated fatty acid MaxSpec LC-MS Mixture
-        , { R"(O=C(O)CCCCCCCCCCCCCCCCCCC)",           { "C20:0", "Arachidic acid",   "9000339",   "17942-1" }}
-        , { R"(O=C(O)CCCCCCCCCCC)",                   { "C12:0", "Lauric acid",      "10006626",  "17942-2" }}
-        , { R"(O=C(O)CCCCCCCCCCCCCCCCCCCCCCC)",       { "C24:0", "Lignoceric acid",  "13353",     "17942-3" }}
-        , { R"(CCCCCCCCCCCCCC(=O)O)",                 { "C14:0", "Myristic acid",    "13351",     "17942-4" }}
-        , { R"(O=C(O)CCCCCCCCCCCCC\C=C/CCCCCCCC)",    { "C24:1", "Nervonic acid",    "13940",     "17942-5" }}
-        , { R"(CCCCCCCC\\C=C/CCCCCCCC(O)=O)",         { "C18:1", "Oleic acid",       "90260",     "17942-6" }}
-        , { R"(CCCCCCCCCCCCCCCC(=O)O)",               { "C16:0", "Palmitic acid",    "10006627",  "17942-7" }}
-        , { R"(O=C(O)CCCCCCC\C=C/CCCCCC)",            { "C16:1", "Palmitoleic acid", "10009871",  "17942-8" }}
-        , { R"(CCCCCCCCCCCCCCCCCC(=O)O)",             { "C18:0", "Stearic acid",     "10011298",  "17942-9" }}
+        , { R"(O=C(O)CCCCCCCCCCCCCCCCCCC)",           { "C20:0", "Arachidic acid"   }}//,   "9000339",   "17942-1" }}
+        , { R"(O=C(O)CCCCCCCCCCC)",                   { "C12:0", "Lauric acid"      }}//,      "10006626",  "17942-2" }}
+        , { R"(O=C(O)CCCCCCCCCCCCCCCCCCCCCCC)",       { "C24:0", "Lignoceric acid"  }}//,  "13353",     "17942-3" }}
+        , { R"(CCCCCCCCCCCCCC(=O)O)",                 { "C14:0", "Myristic acid"    }}//,    "13351",     "17942-4" }}
+        , { R"(O=C(O)CCCCCCCCCCCCC\C=C/CCCCCCCC)",    { "C24:1", "Nervonic acid"    }}//,    "13940",     "17942-5" }}
+        , { R"(CCCCCCCC\\C=C/CCCCCCCC(O)=O)",         { "C18:1", "Oleic acid"       }}//,       "90260",     "17942-6" }}
+        , { R"(CCCCCCCCCCCCCCCC(=O)O)",               { "C16:0", "Palmitic acid"    }}//,    "10006627",  "17942-7" }}
+        , { R"(O=C(O)CCCCCCC\C=C/CCCCCC)",            { "C16:1", "Palmitoleic acid" }}//, "10009871",  "17942-8" }}
+        , { R"(CCCCCCCCCCCCCCCCCC(=O)O)",             { "C18:0", "Stearic acid"     }}//,     "10011298",  "17942-9" }}
         // 19227 Odd-chain fatty acid MaxSpec LC-MS Mixture
         , { R"(CCCCCCCCCCC(=O)O)",           { "C11:0", "Undecanoic acid" }}
         , { R"(CCCCCCCCCCCCC(=O)O)",         { "C13:0", "Tridecanoic acid" }}
@@ -249,13 +247,13 @@ namespace chemistry {
         , { R"(CC12CCC(CC1CCC3C2C(=O)CC4(C3CCC4C(=O)CO)C)O)",    { "APD", "alfadolone", "14107-37-0" }}
         , { R"(CC12CCC3C(C1CCC2=O)CC=C4C3(CCC(C4)O)C)",          { "DHEA", "Dehydroepiandrosterone", "PRASTERONE" }} // PA 840
         , { R"(CC12CCC3C(C1CCC2=O)CCC4=C3C=CC(=C4)O)",           { "E1", "Estrone", "53-16-7" }}
-        , { R"(CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O)",            { "E2", "Estradiol", "" }}
-        , { R"(CC12CCC3C(C1CC(C2O)O)CCC4=C3C=CC(=C4)O)",         { "E3", "Estriol", "" }}
-        , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4=O)C)O)O)",          { "11-OH-An", "11-alpha-hydroxyandrosterone" }}
-        , { R"(CC12CCC3C(C1CCC2=O)C(C=C4C3(CCC(C4)O)C)O)",       { "7-OH-DHEA", "7alpha-hydroxydehydroepiandrosterone" }}
+        , { R"(CC12CCC3C(C1CCC2O)CCC4=C3C=CC(=C4)O)",            { "E2", "Estradiol" }}
+        , { R"(CC12CCC3C(C1CC(C2O)O)CCC4=C3C=CC(=C4)O)",         { "E3", "Estriol" }}
+        , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4=O)C)O)O)",          { "11-OH-An", "11-α-hydroxyandrosterone" }}
+        , { R"(CC12CCC3C(C1CCC2=O)C(C=C4C3(CCC(C4)O)C)O)",       { "7-OH-DHEA", "7α-hydroxydehydroepiandrosterone" }}
         , { R"(CC12CCC3C(C1CC(C2=O)O)CCC4=C3C=CC(=C4)O)",        { "16-OH-E1", "16-hydroxyestrone" }}
-        , { R"(CC(=O)C1CCC2C1(CCC3C2C(C=C4C3(CCC(C4)O)C)O)C)",   { "7-OH-P5", "7alpha-hydroxypregnenolone" }}
-        , { R"(CC(=O)C1(CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)O)",   { "17-OH-P5", "17alpha-hydroxypregnenolone" }}
+        , { R"(CC(=O)C1CCC2C1(CCC3C2C(C=C4C3(CCC(C4)O)C)O)C)",   { "7-OH-P5", "7α-hydroxypregnenolone" }}
+        , { R"(CC(=O)C1(CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)O)",   { "17-OH-P5", "17α-hydroxypregnenolone" }}
         , { R"(CC(=O)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C)",      { "P5", "pregnenolone" }} // PA = 860
         , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4C(=O)CO)C)O)O)",     { "THB", "tetrahydrocorticosterone" }}
         , { R"(CC12CCC(CC1CCC3C2C(CC4(C3CCC4(C(=O)CO)O)C)O)O)",  { "TH-COL", "tetrahydrocortisol" }}
@@ -390,7 +388,6 @@ document::dbInit( ChemConnection * connection )
 
     auto query = std::make_shared< ChemQuery >( connection->db() );
 
-#if !defined _DEBUG
     for ( auto it = adprot::AminoAcid::begin(); it != adprot::AminoAcid::end(); ++it ) {
         if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( it->smiles() ) ) ) {
             std::vector< std::string > v { it->symbol() };
@@ -403,7 +400,6 @@ document::dbInit( ChemConnection * connection )
             query->insert( *mol, rec.smiles, rec.synonym );
         }
     }
-#endif
 }
 
 QSqlDatabase
@@ -439,9 +435,6 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
             std::string smiles, InChI, InChIKey;
 
             if ( cs.GetCompoundInfo( csid, smiles, InChI, InChIKey ) ) {
-
-                // std::vector< std::string > synonyms;
-                // cs.GetSynonyms( csid, synonyms );
 
                 edit->append( QString("%1").arg( QString::fromStdString( smiles ) ) );
                 edit->append( QString("%1").arg( QString::fromStdString( InChI ) ) );

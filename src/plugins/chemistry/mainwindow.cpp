@@ -29,9 +29,11 @@
 #include "document.hpp"
 #include "moltablewnd.hpp"
 #include "queryform.hpp"
+#include "sqleditform.hpp"
 #include <adportable/profile.hpp>
 #include <adchem/sdfile.hpp>
 #include <adwidgets/molview.hpp>
+#include <adwidgets/create_widget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 
@@ -296,12 +298,17 @@ MainWindow::createDockWidgets()
     }
 
     if ( auto w = new QueryForm( this ) ) {
-
         createDockWidget( w, "ChemSpider", "ChemSpiderSearch" );
-
         connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
                 document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
             });
+    }
+
+    if ( auto w = adwidgets::create_widget< SqlEditForm >( "SqlEditForm", this ) ) {
+        if ( auto table = findChild< MolTableWnd * >() ) {
+            QObject::connect( w, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
+        }
+        createDockWidget( w, "SQL" );
     }
 
 }

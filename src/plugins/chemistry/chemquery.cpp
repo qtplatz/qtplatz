@@ -163,9 +163,11 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
 
         if ( sql_.step() == adfs::sqlite_done ) {
             sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchi = ?" );
+            ADDEBUG() << "synonyms.size = " << synonyms.size() << ", " << ( synonyms.size() ? synonyms.at( 0 ) : "" );
             for ( auto synonym: synonyms ) {
                 sql_.bind( 1 ) = synonym;
                 sql_.bind( 2 ) = inchi;
+                ADDEBUG() << "\t" << synonym << ", " << inchi;
                 if ( sql_.step() == adfs::sqlite_error )
                     ADDEBUG() << sql_.errmsg();
                 sql_.reset();

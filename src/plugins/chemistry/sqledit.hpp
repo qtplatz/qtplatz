@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,35 +22,46 @@
 **
 **************************************************************************/
 
-#include "chemschema.hpp"
-#include <adfs/sqlite.hpp>
+#pragma once
 
-using namespace chemistry;
+#include <QPlainTextEdit>
+#include <memory>
 
-bool
-ChemSchema::createTables( adfs::stmt& sql )
-{
-    bool result( true );
+class QCompleter;
+class QContextMenuEvent;
 
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS mols (\
-id INTEGER PRIMARY KEY \
-,formula TEXT \
-,svg BLOB  \
-,SystematicName TEXT \
-,smiles TEXT  \
-,InChI TEXT UNIQUE \
-,InChIKey TEXT \
-,mass REAL \
-,csid NUMBER \
-,cite TEXT )" );
+namespace chemistry {
 
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS synonyms ("
-        " id INTEGER "
-        ", synonym TEXT"
-        ",FOREIGN KEY ( id ) REFERENCES mols ( id ) )"
-        );
+    namespace detail { class text_writer; }
 
-    return result;
+    class SqlEdit : public QPlainTextEdit {
+        Q_OBJECT
+        SqlEdit( const SqlEdit& ) = delete;
+        friend class detail::text_writer;
+    public:
+        ~SqlEdit();
+        explicit SqlEdit(QWidget *parent = 0);
+
+        void setCompleter( QCompleter * );
+        QCompleter * completer() const;
+
+    protected:
+        void keyPressEvent( QKeyEvent * );
+        void focusInEvent( QFocusEvent * );
+
+    private:
+        QCompleter * completer_;
+
+        QString textUnderCursor() const;
+        void contextMenuEvent( QContextMenuEvent * );
+
+    signals:
+
+    public slots:
+
+    private slots:
+        void insertCompletion(const QString &completion);
+        void addSummaryTable();
+    };
+
 }

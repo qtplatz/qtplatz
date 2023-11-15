@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,35 +22,39 @@
 **
 **************************************************************************/
 
-#include "chemschema.hpp"
-#include <adfs/sqlite.hpp>
+#pragma once
 
-using namespace chemistry;
+#include <QWidget>
 
-bool
-ChemSchema::createTables( adfs::stmt& sql )
-{
-    bool result( true );
+class QCompleter;
 
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS mols (\
-id INTEGER PRIMARY KEY \
-,formula TEXT \
-,svg BLOB  \
-,SystematicName TEXT \
-,smiles TEXT  \
-,InChI TEXT UNIQUE \
-,InChIKey TEXT \
-,mass REAL \
-,csid NUMBER \
-,cite TEXT )" );
+namespace chemistry {
 
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS synonyms ("
-        " id INTEGER "
-        ", synonym TEXT"
-        ",FOREIGN KEY ( id ) REFERENCES mols ( id ) )"
-        );
+    class SqlEditForm : public QWidget {
+        Q_OBJECT
 
-    return result;
+    public:
+        explicit SqlEditForm(QWidget *parent = 0);
+        ~SqlEditForm();
+
+        void setSQL( const QString& t);
+        QString sql() const;
+
+        void setCompleter( QCompleter * );
+        QCompleter * completer() const;
+
+    public slots:
+
+    private slots:
+
+    signals:
+        void triggerQuery( const QString& );
+        void on_pushButton_pressed();
+
+    private:
+        bool eventFilter( QObject *object, QEvent *event );
+        bool semiColonCaptured_;
+        class ComboBoxDelegate;
+        QString queryItem_;
+    };
 }

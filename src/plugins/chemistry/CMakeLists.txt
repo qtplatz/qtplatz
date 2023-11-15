@@ -82,28 +82,20 @@ include_directories(
 #endif()
 
 add_library( ${PROJECT_NAME} MODULE
-  chemconnection.cpp
-  chemconnection.hpp
-  chemistryconstants.hpp
   chemistry_global.hpp
-  chemistryplugin.cpp
-  chemistryplugin.hpp
-  chemquery.cpp
-  chemquery.hpp
-  chemschema.cpp
-  chemschema.hpp
-  chemspider.cpp
-  chemspider.hpp
-  document.cpp
-  document.hpp
-  mainwindow.cpp
-  mainwindow.hpp
-  mode.cpp
-  mode.hpp
-  moltablewnd.cpp
-  moltablewnd.hpp
-  queryform.cpp
-  queryform.hpp
+  chemistryconstants.hpp
+  chemconnection.cpp    chemconnection.hpp
+  chemistryplugin.cpp   chemistryplugin.hpp
+  chemquery.cpp         chemquery.hpp
+  chemschema.cpp        chemschema.hpp
+  chemspider.cpp        chemspider.hpp
+  document.cpp          document.hpp
+  mainwindow.cpp        mainwindow.hpp
+  mode.cpp              mode.hpp
+  moltablewnd.cpp       moltablewnd.hpp
+  queryform.cpp         queryform.hpp
+  sqledit.cpp           sqledit.hpp
+  sqleditform.cpp       sqleditform.hpp
   ${Resources}
   )
 

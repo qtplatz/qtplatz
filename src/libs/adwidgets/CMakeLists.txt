@@ -10,15 +10,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
 find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED Multimedia )
 if ( ${QT_VERSION_MAJOR} GREATER 5 )
   find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED SvgWidgets )
 endif()
-
-#if ( NOT QtMultimedia_INCLUDE_DIRS} )
-#  find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Multimedia )
-#endif()
 
 if ( FALSE )
   message( STATUS "### adwidgets ### QWT_INCLUDE_DIR: ${QWT_INCLUDE_DIR}" )
@@ -59,172 +54,93 @@ if ( qwt_FOUND )
   set ( _sources pressuregauge.cpp )
 endif()
 
-set( ${PROJECT_NAME}_SOURCES
-  adducts_type.cpp
-  adducts_type.hpp
-  adcv/contoursform.cpp
-  adcv/contoursform.hpp
-  adwidgets.cpp
-  centroidwidget.cpp
-  cherrypicker.cpp
-  cgenform.cpp
-  controlmethodtable.cpp
-  controlmethodwidget.cpp
-  consolewidget.cpp
-  datareaderchoicedialog.cpp
-  delegatehelper.cpp
-  doublespinbox.cpp
-  dualspinslider.cpp
-  dgwidget.cpp
-  dgwidget.hpp
-  dgprotocolform.cpp
-  dgprotocolform.hpp
-  filedialog.cpp
-  findslopeform.cpp
-  hostaddrdialog.cpp
-  hostaddrdialog.hpp
-  htmlheaderview.hpp
-  insttreeview.cpp
-  mslockdialog.cpp
-  moldraw.hpp
-  moldraw.cpp
-  moltable.cpp
-  molview.cpp
-  molview.hpp
-  mouserbuttonfilter.cpp
-  mspeaktable.cpp
-  mspeaktree.cpp
-  msquantable.cpp
-  mscalibrateform.cpp
-  mschromatogramtable.cpp
-  mschromatogramform.cpp
-  mschromatogramwidget.cpp
-  mspeaksummary.cpp
-  mspeakwidget.cpp
-  mssimulatorform.cpp
-  mssimulatorwidget.cpp
-  msreferencetable.cpp
-  mscalibratewidget.cpp
-  msreferencedialog.cpp
-  mscalibratesummarytable.cpp
-  mstoleranceform.cpp
-  mslockform.cpp
-  outputwidget.cpp
-  peakmethodform.cpp
-  peaktable.cpp
-  peptidewidget.cpp
-  peptidetable.cpp
-  playercontrols.cpp
-  progresswnd.cpp
-  moltablehelper.cpp
-  moltableview.cpp
-  samplerunwidget.cpp
-  scanlawdialog.cpp
-  scanlawdialog2.cpp
-  scanlawform.cpp
-  spinbox.cpp
-  spinslider.cpp
-  targetingform.cpp
-  ionreactionform.cpp ionreactionform.hpp
-  tableview.cpp
-  targetingwidget.cpp
-  targetingtable.cpp
-  targetingadducts.cpp
-  toftable.cpp
-  tofchromatogramsform.cpp
-  tofchromatogramswidget.cpp
-  adtracewidget.cpp
-  thresholdactionform.cpp
-  controlmethod/timedeventswidget.cpp
-  controlmethod/timedtableview.cpp
-  countingwidget.cpp
-  xchromatogramsform.cpp
-  xchromatogramstable.cpp
-  xchromatogramswidget.cpp
-  utilities.cpp
-  spin_t.cpp
-  spin_t.hpp
-  ${_sources}
-)
-
-set( ${PROJECT_NAME}_HEADERS
-  adwidgets.hpp
-  adwidgets_global.hpp
-  centroidwidget.hpp
-  cherrypicker.hpp
-  cgenform.hpp
-  consolewidget.hpp
-  controlmethodtable.hpp
-  controlmethodwidget.hpp
-  datareaderchoicedialog.hpp
-  delegatehelper.hpp
-  doublespinbox.hpp
-  dualspinslider.hpp
-  filedialog.hpp
-  findslopeform.hpp
-  insttreeview.hpp
-  peptidewidget.hpp
-  peptidetable.hpp
-  mslockdialog.hpp
-  moltable.hpp
-  mouserbuttonfilter.hpp
-  mspeaktable.hpp
-  mspeaktree.hpp
-  msquantable.hpp
-  mscalibrateform.hpp
-  msreferencetable.hpp
-  mscalibratewidget.hpp
-  msreferencedialog.hpp
-  mscalibratesummarytable.hpp
-  mstoleranceform.hpp
-  mslockform.hpp
-  mschromatogramform.hpp
-  mschromatogramtable.hpp
-  mschromatogramwidget.hpp
-  mspeaksummary.hpp
-  mspeakwidget.hpp
-  mssimulatorform.hpp
-  mssimulatorwidget.hpp
-  outputwidget.hpp
-  peaktable.hpp
-  peakmethodform.hpp
-  playercontrols.hpp
-  progresswnd.hpp
-  pressuregauge.hpp
-  moltablehelper.hpp
-  moltableview.hpp
-#  scanlawdialog.hpp
-  scanlawdialog2.hpp
-  scanlawform.hpp
-  spin_t.hpp
-  spinbox.hpp
-  spinslider.hpp
-  samplerunwidget.hpp
-  toftable.hpp
-  targetingform.hpp
-  tableview.hpp
-  targetingwidget.hpp
-  targetingtable.hpp
-  targetingadducts.hpp
-  tofchromatogramsform.hpp
-  tofchromatogramswidget.hpp
-  adtracewidget.hpp
-  thresholdactionform.hpp
-  controlmethod/timedeventswidget.hpp
-  controlmethod/timedtableview.hpp
-  countingwidget.hpp
-  xchromatogramsform.hpp
-  xchromatogramstable.hpp
-  xchromatogramswidget.hpp
-  utilities.hpp
-  moltablecolumns.hpp
-  )
-
 if ( WIN32 )
   set_source_files_properties( moldraw.cpp PROPERTIES COMPILE_FLAGS -wd4305 )
 endif()
 
-add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
+add_library( ${PROJECT_NAME} SHARED
+  adcv/contoursform.cpp                 adcv/contoursform.hpp
+  adducts_type.cpp                      adducts_type.hpp
+  adtracewidget.cpp                     adtracewidget.hpp
+  adwidgets.cpp                         adwidgets.hpp
+  adwidgets_global.hpp
+  centroidwidget.cpp                    centroidwidget.hpp
+  cgenform.cpp                          cgenform.hpp
+  cherrypicker.cpp                      cherrypicker.hpp
+  consolewidget.cpp                     consolewidget.hpp
+  controlmethod/timedeventswidget.cpp   controlmethod/timedeventswidget.hpp
+  controlmethod/timedtableview.cpp      controlmethod/timedtableview.hpp
+  controlmethodtable.cpp                controlmethodtable.hpp
+  controlmethodwidget.cpp               controlmethodwidget.hpp
+  countingwidget.cpp                    countingwidget.hpp
+  datareaderchoicedialog.cpp            datareaderchoicedialog.hpp
+  delegatehelper.cpp                    delegatehelper.hpp
+  dgprotocolform.cpp                    dgprotocolform.hpp
+  dgwidget.cpp                          dgwidget.hpp
+  doublespinbox.cpp                     doublespinbox.hpp
+  dualspinslider.cpp                    dualspinslider.hpp
+  filedialog.cpp                        filedialog.hpp
+  findslopeform.cpp                     findslopeform.hpp
+  hostaddrdialog.cpp                    hostaddrdialog.hpp
+  htmlheaderview.hpp
+  insttreeview.cpp                      insttreeview.hpp
+  ionreactionform.cpp                   ionreactionform.hpp
+  moldraw.cpp                           moldraw.hpp
+  moltable.cpp                          moltable.hpp
+  moltablecolumns.hpp
+  moltablehelper.cpp                    moltablehelper.hpp
+  moltableview.cpp                      moltableview.hpp
+  molview.cpp                           molview.hpp
+  mouserbuttonfilter.cpp                mouserbuttonfilter.hpp
+  mscalibrateform.cpp                   mscalibrateform.hpp
+  mscalibratesummarytable.cpp           mscalibratesummarytable.hpp
+  mscalibratewidget.cpp                 mscalibratewidget.hpp
+  mschromatogramform.cpp                mschromatogramform.hpp
+  mschromatogramtable.cpp               mschromatogramtable.hpp
+  mschromatogramwidget.cpp      	mschromatogramwidget.hpp
+  mslockdialog.cpp              	mslockdialog.hpp
+  mslockform.cpp                	mslockform.hpp
+  mspeaksummary.cpp             	mspeaksummary.hpp
+  mspeaktable.cpp               	mspeaktable.hpp
+  mspeaktree.cpp                	mspeaktree.hpp
+  mspeakwidget.cpp              	mspeakwidget.hpp
+  msquantable.cpp               	msquantable.hpp
+  msreferencedialog.cpp         	msreferencedialog.hpp
+  msreferencetable.cpp          	msreferencetable.hpp
+  mssimulatorform.cpp           	mssimulatorform.hpp
+  mssimulatorwidget.cpp         	mssimulatorwidget.hpp
+  mstoleranceform.cpp           	mstoleranceform.hpp
+  outputwidget.cpp              	outputwidget.hpp
+  peakmethodform.cpp            	peakmethodform.hpp
+  peaktable.cpp                 	peaktable.hpp
+  peptidetable.cpp              	peptidetable.hpp
+  peptidewidget.cpp             	peptidewidget.hpp
+  playercontrols.cpp            	playercontrols.hpp
+  pressuregauge.hpp
+  progresswnd.cpp               	progresswnd.hpp
+  samplerunwidget.cpp           	samplerunwidget.hpp
+  scanlawdialog.cpp
+  scanlawdialog2.cpp            	scanlawdialog2.hpp
+  scanlawform.cpp               	scanlawform.hpp
+  spin_t.cpp                    	spin_t.hpp
+  spinbox.cpp                   	spinbox.hpp
+  spinslider.cpp                	spinslider.hpp
+  tableview.cpp                 	tableview.hpp
+  targetingadducts.cpp          	targetingadducts.hpp
+  targetingform.cpp             	targetingform.hpp
+  targetingtable.cpp            	targetingtable.hpp
+  targetingwidget.cpp           	targetingwidget.hpp
+  thresholdactionform.cpp       	thresholdactionform.hpp
+  tofchromatogramsform.cpp      	tofchromatogramsform.hpp
+  tofchromatogramswidget.cpp    	tofchromatogramswidget.hpp
+  toftable.cpp                  	toftable.hpp
+  utilities.cpp                 	utilities.hpp
+  xchromatogramsform.cpp        	xchromatogramsform.hpp
+  xchromatogramstable.cpp       	xchromatogramstable.hpp
+  xchromatogramswidget.cpp      	xchromatogramswidget.hpp
+  ${_sources}
+  ${Resources}
+)
 
 target_link_libraries( adwidgets LINK_PUBLIC
   adchem

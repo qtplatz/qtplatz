@@ -33,7 +33,7 @@
 
 using namespace chemistry;
 
-QueryForm::QueryForm( QWidget *parent ) :  QWidget(parent)
+QueryForm::QueryForm( QWidget *parent ) : QWidget(parent)
                                         , semiColonCaptured_( false )
 {
     resize( 200, 100 );
@@ -63,7 +63,7 @@ QueryForm::QueryForm( QWidget *parent ) :  QWidget(parent)
         gridLayout->addWidget( edit, row, col++, /*row span= */ 1, /* column span = */ 2 );
         connect( edit, &QLineEdit::editingFinished, [=](){ document::instance()->setChemSpiderToken( edit->text() ); } );
     }
-    
+
     if ( auto button = new QPushButton( "invoke" ) ) {
         gridLayout->addWidget( button, row, gridLayout->columnCount() - 1 );
         connect( button, &QPushButton::pressed, this, [&](){
@@ -71,7 +71,7 @@ QueryForm::QueryForm( QWidget *parent ) :  QWidget(parent)
                     emit trigger( edit->toPlainText() );
             });
     }
-    
+
     //----------- row 2 ---------------------
     ++row;
     col = 1;
@@ -80,7 +80,7 @@ QueryForm::QueryForm( QWidget *parent ) :  QWidget(parent)
         gridLayout->addWidget( edit, row, col, /*row span */ 1, /* column span */ 3 );
     }
     gridLayout->setColumnStretch( 1, 2 );
-    
+
     vLayout->addLayout( gridLayout );
 }
 
@@ -97,26 +97,6 @@ QueryForm::setSQL( const QString& t )
     }
 }
 
-// void
-// QueryForm::setTableList( const QList< QString >& list )
-// {
-//     if ( auto combo = findChild< QComboBox * >( "tableList" ) ) {
-//         combo->clear();
-//         combo->addItems( list );
-//     }
-// }
-
-// void
-// QueryForm::setSubList( const QList< QString >& list )
-// {
-//     if ( auto combo = findChild< QComboBox * >( "subList" ) ) {
-//         combo->clear();
-//         combo->addItem( "" );
-//         combo->addItems( list );
-//     }
-// }
-
-
 QString
 QueryForm::sql() const
 {
@@ -125,45 +105,6 @@ QueryForm::sql() const
 
     return QString();
 }
-
-// void 
-// QueryForm::on_plainTextEdit_textChanged()
-// {
-// }
-
-// void 
-// QueryForm::on_pushButton_pressed()
-// {
-//     if ( auto textEdit = findChild< QPlainTextEdit * >() )
-//         emit triggerQuery( textEdit->toPlainText() );
-// }
-
-// void 
-// QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
-// {
-//     QString subItem;
-//     if ( auto combo = findChild< QComboBox * >( "subList" ) )
-//         subItem = combo->currentText();
-
-//     if ( itemText == "AcquiredData" ) {
-//         if ( subItem.isEmpty() )
-//             setSQL( QString( "SELECT * FROM %1 ORDER BY npos" ).arg( itemText ));
-//         else
-//             setSQL( QString( "SELECT * FROM %1 WHERE objuuid = '%2' ORDER BY npos" ).arg( itemText, subItem ));
-//     } else {
-//         setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));
-//     }
-// }
-
-// void 
-// QueryForm::on_subList_currentIndexChanged( const QString& itemText )
-// {
-//     if ( auto combo = findChild< QComboBox * >( "tableList" ) ) {
-//         if ( combo->currentText() == "AcquiredData" ) {
-//             on_comboBox_currentIndexChanged( combo->currentText() );
-//         }
-//     }
-// }
 
 bool
 QueryForm::eventFilter( QObject * object, QEvent * event )
