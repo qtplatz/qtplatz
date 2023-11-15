@@ -25,6 +25,7 @@
 #include "moltablewnd.hpp"
 #include "chemquery.hpp"
 #include "document.hpp"
+#include <QtCore/qabstractproxymodel.h>
 #include <adchem/sdfile.hpp>
 #include <adlog/logger.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -81,7 +82,6 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     }
 
     setAcceptDrops( true );
-
     if ( auto m = new QSortFilterProxyModel() ) {
         m->setDynamicSortFilter( true );
         m->setSourceModel( model_ );
@@ -101,8 +101,10 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     connect( this, &QWidget::customContextMenuRequested, this, &MolTableWnd::handleContextMenu );
 
     connect( table_, &QTableView::activated, [&]( const QModelIndex& current ){
-            emit activated( current );
-        });
+        auto proxy = static_cast< const QAbstractProxyModel *>(current.model());
+        auto index = proxy->mapToSource( current );
+        emit activated( index );
+    });
 
     // connect( document::instance(), &document::updateQuery, this, [&](){ model_->select(); } );
 }

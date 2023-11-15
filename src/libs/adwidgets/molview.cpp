@@ -33,6 +33,7 @@
 #include <QPaintEvent>
 #include <qmath.h>
 #include "molview.hpp"
+#include <adportable/debug.hpp>
 
 using namespace adwidgets;
 
@@ -131,6 +132,9 @@ MolView::renderer() const
 bool
 MolView::setData( const QVariant& d )
 {
+    svgItem_.reset();
+    renderer_.reset();
+
     QGraphicsScene *s = scene();
 
     const bool drawBackground = ( backgroundItem_ ? backgroundItem_->isVisible() : false );
@@ -152,34 +156,32 @@ MolView::setData( const QVariant& d )
     double factor = std::min( sz.width() / rc.width(), sz.height() / rc.height() );
     scale( factor, factor );
     // end resize
-
     svgItem_ = std::move( svgItem );
     renderer_ = std::move( renderer );
-
     svgItem_->setFlags( QGraphicsItem::ItemClipsToShape );
     svgItem_->setCacheMode( QGraphicsItem::NoCache );
     svgItem_->setZValue( 0 );
 
-    backgroundItem_ = new QGraphicsRectItem( svgItem_->boundingRect() );
-    backgroundItem_->setBrush( Qt::white );
-    backgroundItem_->setPen( Qt::NoPen );
-    backgroundItem_->setVisible( drawBackground );
-    backgroundItem_->setZValue( -1 );
+    // delete backgroundItem_;
+    // delete outlineItem_;
+    if (( backgroundItem_ = new QGraphicsRectItem( svgItem_->boundingRect() ) )) {
+        backgroundItem_->setBrush( Qt::white );
+        backgroundItem_->setPen( Qt::NoPen );
+        backgroundItem_->setVisible( drawBackground );
+        backgroundItem_->setZValue( -1 );
+    }
 
-    outlineItem_ = new QGraphicsRectItem( svgItem_->boundingRect() );
-
-    QPen outline(Qt::black, 2, Qt::DashLine);
-    outline.setCosmetic( true );
-    outlineItem_->setPen( outline );
-    outlineItem_->setBrush( Qt::NoBrush );
-    outlineItem_->setVisible( drawOutline );
-    outlineItem_->setZValue( 1 );
-
+    if (( outlineItem_ = new QGraphicsRectItem( svgItem_->boundingRect() ) )) {
+        QPen outline(Qt::black, 2, Qt::DashLine);
+        outline.setCosmetic( true );
+        outlineItem_->setPen( outline );
+        outlineItem_->setBrush( Qt::NoBrush );
+        outlineItem_->setVisible( drawOutline );
+        outlineItem_->setZValue( 1 );
+    }
     s->addItem( backgroundItem_ );
     s->addItem( svgItem_.get() );
     s->addItem( outlineItem_ );
-
     s->setSceneRect( outlineItem_->boundingRect().adjusted( -5, -5, 5, 5 ) );
-
     return true;
 }

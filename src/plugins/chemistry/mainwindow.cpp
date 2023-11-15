@@ -231,9 +231,9 @@ MainWindow::createContents(
     if ( auto view = findChild< adwidgets::MolView * >() ) {
         if ( auto wnd = findChild< MolTableWnd * >() ) {
             connect( wnd, &MolTableWnd::activated, [=]( const QModelIndex& index ){
-                    auto data = wnd->data( index.row(), "svg" );
-                    view->setData( data );
-                });
+                auto data = wnd->data( index.row(), "svg" );
+                view->setData( data );
+            });
         }
     }
 
