@@ -28,6 +28,7 @@
 #include "constants.hpp"
 #include <netcdf.h>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 #include <variant>

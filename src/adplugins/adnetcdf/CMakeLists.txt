@@ -58,6 +58,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin
   adfs
   ${netCDF_LIBRARIES}
+  Threads::Threads
 )
 
 set_target_properties( ${PROJECT_NAME}
@@ -71,18 +72,21 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
 )
 
-########3
-add_executable( adncdump
-  main.cpp
-  ncfile.cpp ncfile.hpp
-  dimension.cpp dimension.hpp
-  variable.cpp variable.hpp
-  attribute.cpp attribute.hpp
-  nc_type.hpp
-)
-
-target_link_libraries( adncdump LINK_PUBLIC
-  adportable
-  ${Boost_LIBRARIES}
-  ${netCDF_LIBRARIES}
+########
+if( NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
+  add_executable( adncdump
+    main.cpp
+    ncfile.cpp ncfile.hpp
+    dimension.cpp dimension.hpp
+    variable.cpp variable.hpp
+    attribute.cpp attribute.hpp
+    nc_type.hpp
   )
+
+  target_link_libraries( adncdump LINK_PUBLIC
+    adportable
+    ${Boost_LIBRARIES}
+    ${netCDF_LIBRARIES}
+    Threads::Threads
+  )
+endif()

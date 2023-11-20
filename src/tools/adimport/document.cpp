@@ -35,6 +35,7 @@
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <vector>
 
 using namespace tools;
 

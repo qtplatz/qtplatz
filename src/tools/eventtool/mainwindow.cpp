@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     eventtool::EventForm * eventform = new eventtool::EventForm( this );
     if ( ( stacked_ = new QStackedWidget ) ) {
-        
+
         stacked_->addWidget( eventform );
         stacked_->setCurrentIndex( 0 );
 
@@ -184,7 +184,7 @@ MainWindow::setupFileActions()
     a = new QAction(QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png")),
                     tr("&Export PDF..."), this);
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(Qt::CTRL + Qt::Key_D);
+    a->setShortcut( { Qt::CTRL , Qt::Key_D } );
     connect(a, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
     tb->addAction(a);
     menu->addAction(a);
@@ -193,7 +193,7 @@ MainWindow::setupFileActions()
 #endif
 
     a = new QAction(tr("&Quit"), this);
-    a->setShortcut(Qt::CTRL + Qt::Key_Q);
+    a->setShortcut( { Qt::CTRL , Qt::Key_Q } );
     connect(a, SIGNAL(triggered()), this, SLOT(close()));
     menu->addAction(a);
 }
@@ -290,15 +290,15 @@ MainWindow::about()
 void
 MainWindow::createDockWidgets()
 {
-    static const struct { 
+    static const struct {
         const QString title;
         const char * wiid;
         const char * pageName;
         std::function<QWidget *()> factory;
-    } widgets [] = { 
+    } widgets [] = {
         { tr( "Console" ), "eventtool::ConsoleWidget", "ConsoleWidget", [this] () { return new adwidgets::ConsoleWidget( std::cout, this ); } }
     };
-    
+
     for ( auto& widget: widgets ) {
         if ( auto pWidget = widget.factory() ) {
             createDockWidget( pWidget, widget.title, widget.pageName );

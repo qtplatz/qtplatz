@@ -38,7 +38,9 @@
 
 using namespace adlog;
 
-static std::once_flag __once_flag;
+namespace adlog {
+    static std::once_flag __once_flag;
+}
 
 logger::logger( const char * file
                 , int line

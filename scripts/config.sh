@@ -81,7 +81,7 @@ if [ -z ${BUILD_ROOT} ]; then
 fi
 
 if [ -z $CMAKE_VERSION ]; then
-	CMAKE_VERSION=3.27.5
+	CMAKE_VERSION=3.27.8
 fi
 
 if [ -z ${GNUPLOT_VERSION} ]; then

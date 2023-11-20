@@ -37,8 +37,7 @@ namespace adio {
 
         enum ioMode       { OUT, IN };
         enum ioState      { High, Low };
-        enum trigConfig   { Edge = 0, Level = 1 };
-        enum trigPolarity { Positive = 0x00, Negative = 0x10 };
+        enum trigConfig   { Edge = 0, Level = 1, Positive = 0x00, Negative = 0x10 };
 
         class ADIOSHARED_EXPORT ioConfig {
         public:

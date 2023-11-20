@@ -28,6 +28,7 @@
 #include <QString>
 #include <memory>
 #include <filesystem>
+#include <vector>
 
 namespace adcontrols {
     class MassSpectrum;
