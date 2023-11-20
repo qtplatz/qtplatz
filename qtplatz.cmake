@@ -24,13 +24,6 @@ if ( WITH_QT5 )
     message( STATUS "=============================================================" )
   endif()
 
-  if ( QT_FOUND )
-    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
-    if ( NOT XMLPATTERNS )
-      message( FATAL_ERROR "xmlpatterns command not found" )
-    endif()
-  endif()
-
 endif()
 
 #####################

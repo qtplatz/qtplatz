@@ -111,7 +111,8 @@ if ( WITH_QT5 )
         "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
         OUTPUT_FORMAT HEXADECIMAL)
       add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
-    else() # no QtCreator found, which is qtplatz 5.4 or earlier version
+    else()
+      # old qtplatz version that uses embedded qt-creator ide 3.2.81
       find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
       find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
       if ( NOT XMLPATTERNS )
