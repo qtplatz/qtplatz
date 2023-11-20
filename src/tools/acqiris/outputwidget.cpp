@@ -36,7 +36,7 @@
 #include <streambuf>
 #include <string>
 #include <mutex>
-    
+
 class OutputWidget::impl : public QTextEdit, public std::basic_streambuf < char > {
     Q_OBJECT
 public:
@@ -46,7 +46,7 @@ public:
         QTextCursor cursor = textCursor();
         cursor.movePosition( QTextCursor::Start );
         pframe_ = mainFrame_ = cursor.currentFrame();
-        
+
         plainFormat_ = cursor.charFormat();
         plainFormat_.setFontPointSize( 10 );
 
@@ -58,26 +58,26 @@ public:
         frameFormat_.setBorder( 1 );
         frameFormat_.setMargin( 2 );
         frameFormat_.setPadding( 2 );
-        
+
         connect( this, &impl::onText, this, &impl::handleText );
     }
 
     ~impl() {
         stream_.rdbuf( old_buf_ );
     }
-        
+
 protected:
     // this can be called from several threads
     virtual int_type overflow(int_type v) override {
         std::lock_guard< std::mutex > lock( mutex_ );
-        linebuf_.push_back( v );
+        linebuf_.push_back( QChar( v ) );
         if ( v == '\n' ) {
             emit onText( linebuf_ );
             linebuf_.clear();
         }
         return v;
     }
-        
+
     virtual std::streamsize xsputn( const char *p, std::streamsize n ) override {
         size_t nchars = n;
         while ( nchars-- )
@@ -126,7 +126,7 @@ OutputWidget::OutputWidget( std::ostream& os, QWidget * parent ) : QWidget( pare
                                                                  , impl_( new impl( os ) )
 {
     auto layout = new QVBoxLayout( this );
-    layout->setMargin( 0 );
+    layout->setContentsMargins( 0, 0, 0, 0 );
     layout->setSpacing( 0 );
     layout->addWidget( impl_ );
 }

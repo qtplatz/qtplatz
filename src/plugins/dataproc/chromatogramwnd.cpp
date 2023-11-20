@@ -289,7 +289,7 @@ ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setContentsMargins(0, 0, 0, 0);
     toolBarAddingLayout->setSpacing(0);
     toolBarAddingLayout->addWidget( splitter );
 

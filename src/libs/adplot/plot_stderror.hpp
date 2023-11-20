@@ -26,6 +26,7 @@
 #define PLOT_STDERROR_HPP
 
 #include "adplot_global.hpp"
+#include <QVector>
 #include <vector>
 #include <memory>
 #include <string>
@@ -34,7 +35,6 @@ class QwtPlotCurve;
 class QwtPlotMarker;
 class QwtPlot;
 class QPointF;
-template<class T> class QVector;
 
 namespace adplot {
 

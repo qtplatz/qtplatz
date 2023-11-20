@@ -9,7 +9,7 @@ function find_qmake() {
 			local hints=( "/Qt/5.15.2" "/Qt/5.15.1" )
 			;;
 		*)
-			local hints=( "/Qt5/5.15.2"	"/Qt/5.15.2" "/Qt/5.15.1" )
+			local hints=( "/Qt/6.5.3" "/Qt5/5.15.2"	"/Qt/5.15.2" "/Qt/5.15.1" )
 			;;
 	esac
 
@@ -28,6 +28,7 @@ function find_qmake() {
 			__dirs+=("$home$hint/clang_64")
 			__dirs+=("/opt$hint/clang_64")
 			__dirs+=("/opt$hint")
+			__dirs+=("/opt$hint/macos")
 	    done
 	    ;;
 	MINGW64_NT*)

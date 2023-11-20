@@ -40,14 +40,14 @@ settings::recentFile( const QString& group, const QString& key ) const
     QString value;
 
     settings_.beginGroup( group );
-    
+
     if ( int size = settings_.beginReadArray( key ) ) {
         (void)size;
         settings_.setArrayIndex( 0 );
         value = settings_.value( "File" ).toString();
     }
     settings_.endArray();
-    
+
     settings_.endGroup();
 
     return value;
@@ -64,7 +64,8 @@ settings::addRecentFiles( const QString& group, const QString& key, const QStrin
     std::vector< QString > list;
     getRecentFiles( group, key, list );
 
-    list.erase( std::remove_if( list.begin(), list.end(), [path] ( const QString& a ){ return path == a || a.isEmpty(); } ), list.end() );
+    list.erase( std::remove_if( list.begin(), list.end()
+                                , [path] ( const QString& a ){ return path == QFileInfo(a) || a.isEmpty(); } ), list.end() );
 
     settings_.beginGroup( group );
 
@@ -73,7 +74,7 @@ settings::addRecentFiles( const QString& group, const QString& key, const QStrin
     size_t idx(0);
     settings_.setArrayIndex( idx++ );
     settings_.setValue( "File", path.canonicalFilePath() );
-    
+
     for ( const auto& f: list ) {
         settings_.setArrayIndex( idx++ );
         settings_.setValue( "File", f );
@@ -100,6 +101,3 @@ settings::getRecentFiles( const QString& group, const QString& key, std::vector<
 
     settings_.endGroup();
 }
-
-
-

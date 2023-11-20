@@ -281,13 +281,16 @@ namespace adwidgets {
 
 namespace {
 
-    template< int column >
+    template< int column, typename T >
     struct row_walker {
-        std::set< QVariant > values_;
+        std::set< T > values_;
         bool operator()( QAbstractItemModel * model ) {
-            for ( int row = 0; row < model->rowCount(); ++row )
-                values_.emplace( model->index( row, column ).data() );
-            // ADDEBUG() << "------ raw walker< " << column << "> = " << values_.size();
+            for ( int row = 0; row < model->rowCount(); ++row ) {
+                auto v = model->index( row, column ).data();
+                if ( v.canConvert< T >() ) {
+                    values_.emplace( v.value<T>() );
+                }
+            }
             return values_.size() <= 1;
         }
     };
@@ -580,8 +583,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
     setColumnHidden( c_mspeaktable_mass_width, false );
     setColumnHidden( c_mspeaktable_time_width, false );
-    setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode >()( &model ) );
-    setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol >()( &model ) );
+    setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode, int >()( &model ) );
+    setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol, int >()( &model ) );
 
     //resizeColumnsToContents();
     //resizeRowsToContents();
@@ -683,8 +686,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     if ( hasFormula )
         hideRows();
 
-    setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode >()( &model ) );
-    setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol >()( &model ) );
+    setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode, int >()( &model ) );
+    setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol, int >()( &model ) );
 
     setColumnHidden( c_mspeaktable_mass_width, true );
     setColumnHidden( c_mspeaktable_time_width, true );

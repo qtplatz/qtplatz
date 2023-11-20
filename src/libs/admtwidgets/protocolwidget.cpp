@@ -147,13 +147,13 @@ protocolWidget::protocolWidget( QWidget * parent ) : QFrame( parent )
 {
     if ( auto topLayout = new QVBoxLayout( this ) ) {
 
-        topLayout->setMargin(0);
+        topLayout->setContentsMargins( 0, 0, 0, 0 );
         topLayout->setSpacing(0);
 
         if ( auto center = new QWidget ) {
             topLayout->addWidget( center );
             auto hLayout = new QHBoxLayout( center );
-            hLayout->setMargin( 0 );
+            hLayout->setContentsMargins( 0, 0, 0, 0 );
             hLayout->setSpacing( 0 );
             hLayout->addWidget( qtwrapper::make_widget< admtwidgets::protocolForm >( "p.0", 0) );
             hLayout->addWidget( qtwrapper::make_widget< admtwidgets::protocolForm >( "p.1", 1) );

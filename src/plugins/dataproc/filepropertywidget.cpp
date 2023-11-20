@@ -46,7 +46,7 @@ FilePropertyWidget::FilePropertyWidget(QWidget *parent) : QWidget(parent)
         splitter->addWidget( textEdit_.get() );
 
         auto layout = new QVBoxLayout( this );
-        layout->setMargin( 0 );
+        layout->setContentsMargins( 0, 0, 0, 0 );
         layout->setSpacing( 2 );
         layout->addWidget( splitter );
 
@@ -95,6 +95,3 @@ FilePropertyWidget::setContents( boost::any&& a )
     }
     return false;
 }
-
-
-

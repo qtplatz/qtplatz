@@ -105,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setCentralWidget( new QWidget );
     auto layout = new QVBoxLayout( centralWidget() );
     layout->addWidget( new sdfview::MolTableWnd() );
-    layout->setMargin( 0 );
+    // layout->setContentsMargins( { 0 } );
     layout->setSpacing( 0 );
 
     grabGesture( Qt::PanGesture );
