@@ -111,6 +111,9 @@ if ( WITH_QT5 )
         "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
         OUTPUT_FORMAT HEXADECIMAL)
       add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
+      if ( IDE_VERSION VERSION_LESS_EQUAL "8.0.2" )
+        add_definitions( "-Wno-deprecated-copy" )
+      endif()
     else()
       # old qtplatz version that uses embedded qt-creator ide 3.2.81
       find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )

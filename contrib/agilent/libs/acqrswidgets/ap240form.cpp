@@ -136,7 +136,11 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                                         }
                                     }
                                 });
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                             menu.exec( ev->globalPos() );
+#else
+                            menu.exec( ev->globalPosition().toPoint() );
+#endif
                         });
                 }
 

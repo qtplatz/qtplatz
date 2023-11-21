@@ -146,8 +146,11 @@ MolTableWnd::setQuery( const QString& sqlstmt )
                 else
                     table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
             }
-
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+            model->setQuery( std::move( query ) );
+#else
             model->setQuery( query );
+#endif
         }
     }
 

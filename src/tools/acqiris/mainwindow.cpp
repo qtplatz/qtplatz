@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     statusBar()->setProperty( "p_styled", true );
     statusBar()->addWidget( new QLabel );
-    
+
     if ( auto p = statusBar()->findChild<QLabel *>() ) {
         p->setText( "STATUS:" );
     }
@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 #else
     auto widget = new WaveformView( this );
 #endif
-    setCentralWidget( widget );    
+    setCentralWidget( widget );
 
     grabGesture( Qt::PanGesture );
     grabGesture( Qt::PinchGesture );
@@ -170,7 +170,7 @@ MainWindow::setupFileActions()
     a = new QAction(QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png")),
                     tr("&Export PDF..."), this);
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(Qt::CTRL + Qt::Key_D);
+    a->setShortcut( { Qt::CTRL , Qt::Key_D } );
     connect(a, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
     tb->addAction(a);
     menu->addAction(a);
@@ -179,7 +179,7 @@ MainWindow::setupFileActions()
 #endif
 
     a = new QAction(tr("&Quit"), this);
-    a->setShortcut(Qt::CTRL + Qt::Key_Q);
+    a->setShortcut( {Qt::CTRL , Qt::Key_Q });
     //connect(a, SIGNAL(triggered()), this, SLOT(close()));
     connect(a, &QAction::triggered, this, [&](){
             ADDEBUG() << "close...";
@@ -278,11 +278,11 @@ MainWindow::createDockWidgets()
         auto dock = createDockWidget( widget, "Digitizer Config", "AcqirisWidget" );
         addDockWidget( Qt::RightDockWidgetArea, dock );
     }
-    
+
     if ( auto widget = new OutputWidget( std::cout ) ) {
         auto dock = createDockWidget( widget, "Console", "ConsoleWidget" );
         addDockWidget( Qt::BottomDockWidgetArea, dock );
-    }    
+    }
 }
 
 QDockWidget *
@@ -309,7 +309,7 @@ void
 MainWindow::onInitialUpdate()
 {
     if ( auto widget = findChild< acqrswidgets::AcqirisWidget * >() ) {
-        
+
         connect( widget, &acqrswidgets::AcqirisWidget::dataChanged, this, []( const acqrswidgets::AcqirisWidget * w, int subType ){
                 auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
                 w->getContents( m );
@@ -321,7 +321,7 @@ MainWindow::onInitialUpdate()
                 auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
                 widget->getContents( m );
                 document::instance()->prepare_for_run( m, acqrscontrols::aqdrv4::SubMethodType( 0 ) );
-            });        
+            });
 
         connect( document::instance(), &document::on_acqiris_method_adapted, this, [this,widget](){
                 if ( auto adapted = document::instance()->adapted_acqiris_method() )
