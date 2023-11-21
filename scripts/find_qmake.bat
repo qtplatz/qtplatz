@@ -3,8 +3,8 @@
 set "drv=C:"
 
 set "msvc=msvc2019_64"
-set hints=\Qt\5.15.2 ^
-          \Qt\5.15.1 ^
+set hints=\Qt\6.6.0 ^
+        \Qt\5.15.2 ^
 
 setlocal enabledelayedexpansion
 

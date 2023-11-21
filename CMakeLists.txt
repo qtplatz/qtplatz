@@ -111,7 +111,7 @@ if ( WITH_QT5 )
         "${IDE_VERSION_MAJOR}*0x10000+${IDE_VERSION_MINOR}*0x100+${IDE_VERSION_MICRO}"
         OUTPUT_FORMAT HEXADECIMAL)
       add_definitions( "-DQTC_VERSION=${QTC_VERSION}" )
-      if ( IDE_VERSION VERSION_LESS_EQUAL "8.0.2" )
+      if ( IDE_VERSION VERSION_LESS_EQUAL "8.0.2" AND UNIX )
         add_definitions( "-Wno-deprecated-copy" )
       endif()
     else()
