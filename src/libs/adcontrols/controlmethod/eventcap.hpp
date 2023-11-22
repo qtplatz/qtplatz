@@ -49,10 +49,10 @@ namespace adcontrols {
             voltage_type( double _1 = 0, std::pair<double, double>&& _2 = { 0,0 } ) : value( _1 ), limits( _2 ) {}
             voltage_type( const voltage_type& t ) : value( t.value ), limits( t.limits ) {}
         };
-        bool operator==(const voltage_type& lhs, const voltage_type& rhs);
-        bool operator<(const voltage_type& lhs, const voltage_type& rhs);
-        voltage_type  tag_invoke( const boost::json::value_to_tag< voltage_type >&, const boost::json::value& jv );
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const voltage_type& );
+        ADCONTROLSSHARED_EXPORT bool operator==(const voltage_type& lhs, const voltage_type& rhs);
+        ADCONTROLSSHARED_EXPORT bool operator<(const voltage_type& lhs, const voltage_type& rhs);
+        ADCONTROLSSHARED_EXPORT voltage_type  tag_invoke( const boost::json::value_to_tag< voltage_type >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const voltage_type& );
 
         // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT duration_type {
@@ -61,10 +61,10 @@ namespace adcontrols {
             duration_type( double _1 = 0, std::pair<double, double>&& _2 = { 0,0 } ) : value( _1 ), limits( _2 ) {}
             duration_type( const duration_type& t ) : value( t.value ), limits( t.limits ) {}
         };
-        bool operator==(const duration_type& lhs, const duration_type& rhs);
-        bool operator<(const duration_type& lhs, const duration_type& rhs);
-        duration_type tag_invoke( const boost::json::value_to_tag< duration_type >&, const boost::json::value& jv );
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const duration_type& );
+        ADCONTROLSSHARED_EXPORT bool operator==(const duration_type& lhs, const duration_type& rhs);
+        ADCONTROLSSHARED_EXPORT bool operator<(const duration_type& lhs, const duration_type& rhs);
+        ADCONTROLSSHARED_EXPORT duration_type tag_invoke( const boost::json::value_to_tag< duration_type >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const duration_type& );
 
         // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT switch_type {
@@ -73,10 +73,10 @@ namespace adcontrols {
             switch_type( bool _1 = false, std::pair<std::string, std::string>&& _2 = { "ON", "OFF" } ) : value( _1 ), choice( _2 ) {}
             switch_type( const switch_type& t ) : value( t.value ), choice( t.choice ) {}
         };
-        bool operator==(const switch_type& lhs, const switch_type& rhs);
-        bool operator<(const switch_type& lhs, const switch_type& rhs);
-        switch_type tag_invoke( const boost::json::value_to_tag< switch_type >&, const boost::json::value& jv );
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const switch_type& );
+        ADCONTROLSSHARED_EXPORT bool operator==(const switch_type& lhs, const switch_type& rhs);
+        ADCONTROLSSHARED_EXPORT bool operator<(const switch_type& lhs, const switch_type& rhs);
+        ADCONTROLSSHARED_EXPORT switch_type tag_invoke( const boost::json::value_to_tag< switch_type >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const switch_type& );
 
         // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT choice_type {
@@ -85,10 +85,10 @@ namespace adcontrols {
             choice_type( uint32_t _1 = 0 ) : value( _1 ) {}
             choice_type( const choice_type& t ) : value( t.value ), choice( t.choice ) {}
         };
-        bool operator==(const choice_type& lhs, const choice_type& rhs);
-        bool operator<(const choice_type& lhs, const choice_type& rhs);
-        choice_type tag_invoke( const boost::json::value_to_tag< choice_type >&, const boost::json::value& jv );
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const choice_type& );
+        ADCONTROLSSHARED_EXPORT bool operator==(const choice_type& lhs, const choice_type& rhs);
+        ADCONTROLSSHARED_EXPORT bool operator<(const choice_type& lhs, const choice_type& rhs);
+        ADCONTROLSSHARED_EXPORT choice_type tag_invoke( const boost::json::value_to_tag< choice_type >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const choice_type& );
 
         // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT delay_width_type {
@@ -96,10 +96,10 @@ namespace adcontrols {
             delay_width_type( std::pair<double, double>&& _1 = { 0, 1.0e-8 } ) : value( _1 ) {}
             delay_width_type( const delay_width_type& t ) : value( t.value ) {}
         };
-        bool operator==(const delay_width_type& lhs, const delay_width_type& rhs);
-        bool operator<(const delay_width_type& lhs, const delay_width_type& rhs);
-        delay_width_type tag_invoke( const boost::json::value_to_tag< delay_width_type >&, const boost::json::value& jv );
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const delay_width_type& );
+        ADCONTROLSSHARED_EXPORT bool operator==(const delay_width_type& lhs, const delay_width_type& rhs);
+        ADCONTROLSSHARED_EXPORT bool operator<(const delay_width_type& lhs, const delay_width_type& rhs);
+        ADCONTROLSSHARED_EXPORT delay_width_type tag_invoke( const boost::json::value_to_tag< delay_width_type >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const delay_width_type& );
 
         // -------------------------------------------
         struct ADCONTROLSSHARED_EXPORT any_type {
@@ -109,10 +109,10 @@ namespace adcontrols {
             any_type( std::string&& _1, const boost::uuids::uuid& editor ) : value( _1 ), editor_( editor ) {}
             any_type( const any_type& t ) : value( t.value ), editor_( t.editor_ ) {}
         };
-        bool operator==(const any_type& lhs, const any_type& rhs);
-        bool operator<(const any_type& lhs, const any_type& rhs);
-        any_type tag_invoke( const boost::json::value_to_tag< any_type >&, const boost::json::value& jv );
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const any_type& );
+        ADCONTROLSSHARED_EXPORT bool operator==(const any_type& lhs, const any_type& rhs);
+        ADCONTROLSSHARED_EXPORT bool operator<(const any_type& lhs, const any_type& rhs);
+        ADCONTROLSSHARED_EXPORT any_type tag_invoke( const boost::json::value_to_tag< any_type >&, const boost::json::value& jv );
+        ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const any_type& );
 
         // -------------------------------------------
         class ADCONTROLSSHARED_EXPORT EventCap {

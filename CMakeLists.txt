@@ -128,6 +128,7 @@ if ( WITH_QT5 )
       add_definitions( "-DQTC_VERSION=0x030281" )
     endif()
 
+    message( STATUS "######################### QTDIR: ${QTDIR}, QMAKE=${QMAKE}" )
     if ( NOT QTDIR )
       find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin" )
       execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX

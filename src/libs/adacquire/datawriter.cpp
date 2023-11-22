@@ -203,3 +203,9 @@ DataAccess::xmeta( std::string& ) const
 {
     return 0;
 }
+
+std::optional< std::pair< uint64_t, uint64_t > >
+DataAccess::pos_range() const
+{
+    return {};
+}

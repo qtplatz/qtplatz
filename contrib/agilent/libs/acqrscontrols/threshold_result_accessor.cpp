@@ -116,7 +116,7 @@ threshold_result_accessor::xmeta( std::string& ar ) const
     return ( *it_ )->data()->serialize_xmeta( ar );
 }
 
-optional_type< std::pair< uint64_t, uint64_t > >
+std::optional< std::pair< uint64_t, uint64_t > >
 threshold_result_accessor::pos_range() const
 {
     return std::make_pair( uint64_t( list.front()->data()->serialnumber() ), uint64_t( list.back()->data()->serialnumber() ) );

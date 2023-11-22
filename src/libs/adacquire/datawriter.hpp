@@ -32,13 +32,7 @@
 #include <string>
 #include <vector>
 #include <compiler/pragma_warning.hpp>
-#if __cplusplus >= 201703L
-# include <optional>
-template< typename T > using optional_type = std::optional<T>;
-#else
-# include <boost/optional.hpp>
-template< typename T > using optional_type = boost::optional<T>;
-#endif
+#include <optional>
 
 namespace boost { namespace uuids { struct uuid; } }
 namespace adfs { class filesystem; }
@@ -70,7 +64,7 @@ namespace adacquire {
             virtual uint32_t events() const;    // well known events
             virtual size_t xdata( std::string& ) const;
             virtual size_t xmeta( std::string& ) const;
-            virtual optional_type< std::pair< uint64_t, uint64_t > > pos_range() const { return {}; }
+            virtual std::optional< std::pair< uint64_t, uint64_t > > pos_range() const;
         };
 
         class ADACQUIRESHARED_EXPORT DataWriter : public std::enable_shared_from_this< DataWriter > {
