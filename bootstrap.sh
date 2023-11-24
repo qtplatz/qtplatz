@@ -54,7 +54,11 @@ fi
 
 if [ -z "$cross_target" ]; then
 	if [ -z "$QTDIR" ]; then
-		find_qmake QMAKE
+		if ! find_qmake QMAKE; then
+			echo "##### find_qmake failed."
+			echo "##### set QTDIR environment variable, e.g. QTDIR=/opt/Qt/6.5.3/macos"
+			exit 1;
+		fi
 	elif [ -f "${QTDIR}/bin/qmake" ]; then
 		QMAKE="${QTDIR}/bin/qmake"
 	fi
@@ -71,6 +75,7 @@ if [ -z "$cross_target" ]; then
 			#echo "QMAKE found in ${QMAKE} -- QT_VERSION: ${QT_VERSION} -- Qt${QT_VERSION_MAJOR}"
 		else
 			echo "QMAKE NOT Found."
+			exit 1
 		fi
 	fi
 fi
