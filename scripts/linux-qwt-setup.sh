@@ -24,7 +24,7 @@ function qwt_download {
 }
 
 QWT_VERSION=6.2.0
-QWT_BUILD_DIR=${SRC}/qwt-6.2.0
+QWT_BUILD_DIR=${SRC}/build-${arch}/qwt-6.2.0
 
 if ! find_qmake QMAKE; then
     echo "qmake command not found."

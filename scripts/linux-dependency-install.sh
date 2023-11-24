@@ -17,8 +17,8 @@ list_dependency+=('mesa-common-dev'
 		  'freeglut3-dev'
 		  'libxml2-dev'
 		  'libxslt1-dev'
-		  'libgstreamer-plugins-base0.10'
 		  'libxcb-xinerama0-dev'
+		  'libxkbcommon-dev'
 		)
 
 # boost
@@ -26,14 +26,6 @@ list_dependency+=('libbz2-dev')
 
 # python3
 list_dependency+=("python${PYTHON_VERSION}-dev" 'python3-pip')
-
-# rtags
-list_dependency+=('clang-3.9'
-		  'lldb-3.9'
-		  'libclang-3.9-dev')
-
-# qt5 from source build
-#list_dependency+=('libclang-3.8-dev')
 
 # rdkit
 list_dependency+=('libeigen3-dev' ) # 'libschroedinger-maeparser-dev' <-- something wrong
@@ -53,7 +45,8 @@ list_dependency+=('lame'
 		  'libvorbis-dev'
 		  'libvpx-dev'
 		  'libopus-dev'
-		  'yasm' 'x264'
+		  'yasm'
+		  'x264'
 		  'libx264-dev'
 		  'x265'
 		  'libx265-dev'
@@ -61,12 +54,9 @@ list_dependency+=('lame'
 		  'libmp3lame-dev' )
 #opencv
 list_dependency+=('python-dev'
-		  'python-numpy'
-		  'libtbb2'
 		  'libtbb-dev'
 		  'libpng-dev'
 		  'libtiff-dev'
-		  'libpng12-dev'
 		  'libtiff5-dev'
 		  'libgtk2.0-dev'
 		  'pkg-config'
@@ -83,7 +73,7 @@ list_dependency+=('libfreeimage-dev'
 		  'libglfw3-dev'
 		  'libfontconfig1-dev' )
 
-list_dependency+=('nlohmann-json-dev')
+#list_dependency+=('nlohmann-json-dev')
 
 #emacs
 list_dependency+=('libxpm-dev' 'libgif-dev' 'gnutls-dev')

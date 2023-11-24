@@ -6,7 +6,7 @@ function find_qmake() {
 
     case "${__uname}" in
 		Linux*)
-			local hints=( "/Qt/5.15.2" "/Qt/5.15.1" )
+			local hints=( "6.5.3" "5.15.2" )
 			;;
 		*)
 			local hints=( "/Qt/6.5.3" "/Qt5/5.15.2"	"/Qt/5.15.2" "/Qt/5.15.1" )
@@ -17,7 +17,7 @@ function find_qmake() {
 	Linux*)
 	    local __dirs=()
 	    for hint in "${hints[@]}"; do
-			__dirs+=("/opt$hint/gcc_64")
+			__dirs+=("/opt/Qt/$hint/gcc_64")
 	    done
 	    __dirs+=("/usr")
 	    ;;

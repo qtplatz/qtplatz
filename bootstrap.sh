@@ -68,7 +68,7 @@ if [ -z "$cross_target" ]; then
 			fi
 			#export QTDIR
 			#export PATH=$QTDIR/bin:$PATH
-			echo "QMAKE found in ${QMAKE} -- QT_VERSION_MAJOR: ${QT_VERSION_MAJOR}"
+			#echo "QMAKE found in ${QMAKE} -- QT_VERSION: ${QT_VERSION} -- Qt${QT_VERSION_MAJOR}"
 		else
 			echo "QMAKE NOT Found."
 		fi
@@ -108,14 +108,15 @@ if [ $build_clean = true ]; then
     exit
 fi
 
+echo "------------------------"
 echo "build_dirs: ${build_dirs[*]}"
+echo "QMAKE found in ${QMAKE} -- QT_VERSION: ${QT_VERSION} -- Qt${QT_VERSION_MAJOR}"
 
 index=0
 for build_dir in ${build_dirs[@]}; do
 
     source_dir=${source_dirs[$index]}
 
-    echo "------------------------"
     echo "build for '$source_dir' --> '$build_dir'"
     echo "------------------------"
 
