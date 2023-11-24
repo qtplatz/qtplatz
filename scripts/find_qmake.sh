@@ -6,10 +6,10 @@ function find_qmake() {
 	local __dirs=()
 
     case "${__uname}" in
-		Linux*)
+		Linux*|MINGW64_NT*)
 			local hints=( "6.5.3" "5.15.2" )
 			;;
-		*)
+		Darwin*)
 			local hints=( "/Qt/6.5.3/macos" "/Qt5/5.15.2" "/Qt/5.15.2/clang_64" )
 			;;
 	esac
@@ -30,8 +30,11 @@ function find_qmake() {
 		done
 	    ;;
 	MINGW64_NT*)
-		for hint in "${hints[@]}"; do
-			__dirs+=("/c/$hint/mingw81_64")
+		local __pfxs=("/c/Qt")
+		for pfx in "${__pfxs[@]}"; do
+			for hint in "${hints[@]}"; do
+				__dirs+=("${pfx}/$hint/mingw_64")
+			done
 		done
 		;;
 	*)
@@ -39,10 +42,11 @@ function find_qmake() {
 	    ;;
     esac
 
+	echo __dirs
     for dir in "${__dirs[@]}"; do
-		#echo "-----------" $dir
+		echo "-----------" $dir
 		if [ -f $dir/bin/qmake ]; then
-			#echo "----------- found file: $dir/bin/qmake"
+			echo "----------- found file: $dir/bin/qmake"
 			if $dir/bin/qmake --version &> /dev/null ; then
 				eval $__result="'$dir/bin/qmake'"
 				return 0; #true
