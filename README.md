@@ -10,23 +10,32 @@ The executable binary file is on the github.com release.  On the recent version 
 xattr -d com.apple.quarantine ~/Desktop/qtplatz.app
 ```
 
+Additional build dependencies for Debian 12 (bookworm)
+==================
+It might be possible to raise an error 'XKB::XKB not found' when configuring the cmake project. In such a case, check 'libxkbcommon-dev' is installed.
+ 
+```
+sudo apt install libxkbcommon-dev
+```
+
 BUILD PROCEDURE
+===============
 
 Prerequisite
-===============
+------------
 
 1. git
 2. cmake 3.18.2
 3. c++17 compliant c/c++ compiler (Xcode 12|gcc-6.3|msvc-16)
-1. Qt 5.15.2 ([download](https://www.qt.io/download))
+1. Qt 5.15.2 | Qt 6.5.3 ([download](https://www.qt.io/download)) 
 2. QWT 6.2
-3. Boost-1.73 (also work with 1.69 and later versions)
+3. Boost-1.83 (also work with 1.73 and later versions)
 4. RDKit 2023.03 (optional, but recommended) -- RDKit should be built with a version of boost, which matches the qtplatz build.
 5. OpenCV 4.5 (optional)
 6. Python3 (optional)
 7. netcdf-c (optional; ENABLE_FILTER_BLOSC and ENABLE_FILTER_ZSTD should be disabled or get killed:9 on mac-bundle)
 
-     QtPlatz uses `boost_serialization` for binary data storing on file.  A file serialized by an older version of `boost` can be opened in a newer version of `boost,` but no reverse compatibility.  To check the version of `boost_serialization`, see the `BOOST_ARCHIVE_VERSION` macro value located in the file `boost-source-dir/libs/serialization/src/basic_archive.cpp`.
+     QtPlatz uses `boost_serialization` for binary data storing on file.  A file serialized by an older version of `boost` can be opened in a newer version of `boost,` but no reverse compatibility.  To check the version of `boost_serialization,` see the `BOOST_ARCHIVE_VERSION` macro value located in the file `boost-source-dir/libs/serialization/src/basic_archive.cpp`.
 
 * Xcode 12 (command-line tools) needs to be installed for macOS.
 * Visual Studio 2019 needs to be installed for Windows.
@@ -34,7 +43,7 @@ Prerequisite
 	* Qt 5.12.2 does not work on Debian based linux -- use Qt 5.12.1 instead.
 	* Qt 6 is not supported yet (may it work, though).
 
-Mac macOS 10, 11 and 12 (x86_64)
+Build on macOS 10, 11 and 12 (x86_64)
 ====================
 
 Prerequisite
