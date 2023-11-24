@@ -19,7 +19,7 @@ function build_uname() {
 if [ -z ${INSTALL_PREFIX} ]; then
 	case `uname` in
 		MINGW64*|MSYS*)
-			INSTALL_PREFIX=/usr/local
+			INSTALL_PREFIX=/c/usr/local
 			;;
 		*)
 			INSTALL_PREFIX=/usr/local

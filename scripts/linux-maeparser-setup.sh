@@ -20,13 +20,9 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-if [ -z $cross_target ]; then
-    BUILD_DIR=$SRC/build-$arch/maeparser.release
-    SRCDIR=$SRC/maeparser
-else
-    BUILD_DIR=${SRC}/build-${cross_target}/maeparser.release
-    SRCDIR=$SRC/maeparser
-fi
+# BUILD_ROOT defined in config.sh
+BUILD_DIR=${BUILD_ROOT}/maeparser.release
+SRCDIR=${SRC}/maeparser
 
 if [ $build_clean = true ]; then
 	set -x
