@@ -44,9 +44,9 @@ function find_qmake() {
 
 	echo __dirs
     for dir in "${__dirs[@]}"; do
-		echo "-----------" $dir
+		#echo "-----------" $dir
 		if [ -f $dir/bin/qmake ]; then
-			echo "----------- found file: $dir/bin/qmake"
+			#echo "----------- found file: $dir/bin/qmake"
 			if $dir/bin/qmake --version &> /dev/null ; then
 				eval $__result="'$dir/bin/qmake'"
 				return 0; #true
