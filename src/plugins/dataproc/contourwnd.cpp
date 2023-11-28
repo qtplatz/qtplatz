@@ -43,6 +43,7 @@
 #include <adplot/chromatogramwidget.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
 #include <adwidgets/mspeaktable.hpp>
@@ -230,6 +231,7 @@ ContourWnd::handleSelected( const QPointF& pos )
 void
 ContourWnd::handleSelected( const QRectF& rect )
 {
+    ScopedDebug(__t);
     QMenu menu;
     std::vector < std::pair< QAction *, std::function<void()> > > actions;
 

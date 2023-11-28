@@ -81,6 +81,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/digital_filter.hpp>
 #include <adportable/fft4g.hpp>
 #include <adportable/float.hpp>
@@ -330,6 +331,7 @@ Dataprocessor::open( QString *errorString
                     , const Utils::FilePath &filePath
                     , const Utils::FilePath &realFilePath)
 {
+    // ScopedDebug(__t);
 	qtwrapper::waitCursor wait;
 
     std::string emsg;
@@ -395,6 +397,8 @@ Dataprocessor::isSaveAsAllowed() const
 bool
 Dataprocessor::create(const QString& filename )
 {
+    ScopedDebug(__t);
+
     std::filesystem::path path( filename.toStdString() );
     path.replace_extension( L".adfs" );
 
@@ -413,6 +417,8 @@ Dataprocessor::create(const QString& filename )
 bool
 Dataprocessor::open(const std::filesystem::path& filename, std::string& emsg )
 {
+    ScopedDebug(__t);
+
     emsg = std::string{};
     if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
 #if QTC_VERSION >= 0x08'00'00
@@ -430,6 +436,7 @@ Dataprocessor::open(const std::filesystem::path& filename, std::string& emsg )
 bool
 Dataprocessor::open(const QString &filename, QString& emsg )
 {
+    ScopedDebug(__t);
     std::string msg;
     bool rcode = open( std::filesystem::path( filename.toStdString() ), msg );
     emsg = QString::fromStdString( msg );
@@ -439,6 +446,7 @@ Dataprocessor::open(const QString &filename, QString& emsg )
 bool
 Dataprocessor::load( const std::wstring& path, const std::wstring& id )
 {
+    ScopedDebug(__t);
     ADDEBUG() << "## " << __FUNCTION__ << " path: " << path << " id: " << id;
     // this is used for reload 'acquire' when shanpshot spectrum was added.
     return this->file()->loadContents( path, id, *this );
@@ -459,7 +467,8 @@ Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
-    // ScopedDebug() << "## " << __FUNCTION__ << " ## " << folium.name();
+    // ScopedDebug(__t);
+
 	fetch( folium );
     impl_->idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );

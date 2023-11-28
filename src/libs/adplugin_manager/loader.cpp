@@ -25,6 +25,7 @@
 #include "loader.hpp"
 #include "manager.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/plugin.hpp>
 #include <boost/dll/shared_library.hpp>
@@ -87,7 +88,8 @@ loader::plugin_directory()
 void
 loader::populate( const std::filesystem::path& appdir )
 {
-    ADDEBUG() << "populating : " << appdir;
+    ScopedDebug(__t);
+    __t << " : " << appdir;
 
 #if defined __APPLE__
     std::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
@@ -107,10 +109,12 @@ loader::populate( const std::filesystem::path& appdir )
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
                         if ( it->path().string().find( "libadnetcdf" ) != std::string::npos ) {
                             try {
-                                ADDEBUG() << "\n\n-------- loading " << it->path();
+                                // ADDEBUG() << "\n\n-------- loading " << it->path();
                                 auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
                                 if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
+#ifndef NDEBUG
                                     ADDEBUG() << "---- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess";
+#endif
                                 }
                             } catch ( std::exception& ex ) {
                                 ADDEBUG() << "Exception:" << ex.what() << "\n\n";

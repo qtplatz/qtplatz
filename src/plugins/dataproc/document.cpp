@@ -46,6 +46,7 @@
 #include <adfs/file.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/utf.hpp>
@@ -404,6 +405,7 @@ document::findScanLaw( const QString& model, double& flength, double& accv, doub
 void
 document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
+    ScopedDebug(__t);
 	qtwrapper::waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
@@ -555,7 +557,7 @@ document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrol
 void
 document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 {
-    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
+    ScopedDebug(__t);
 	qtwrapper::waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
@@ -587,6 +589,7 @@ document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 void
 document::handle_folium_added( const QString& fname, const QString& path, const QString& id )
 {
+    ScopedDebug(__t);
     ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursorBlocker block;
 

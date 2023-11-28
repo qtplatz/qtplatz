@@ -35,8 +35,13 @@ namespace adportable {
         std::chrono::steady_clock::time_point trig_point_;
     public:
         scoped_debug(const char * file = 0
-                     , const int line = 0) : T( file, line )
-                                           , trig_point_( std::chrono::steady_clock::now() ) {
+                     , const int line = 0
+                     , const char * function = 0 ) : T( file, line )
+                                                   , trig_point_( std::chrono::steady_clock::now() ) {
+            if ( function ) {
+                T(file, line) << "<-- " << function;
+                (*this) << "--> " << function << "\t";
+            }
         }
         ~scoped_debug(void) {
             using namespace std::literals::chrono_literals;
@@ -66,4 +71,4 @@ namespace adportable {
     };
 }
 
-#define ScopedDebug(t) adportable::scoped_debug<adportable::debug> t(__FILE__, __LINE__)
+#define ScopedDebug(t) adportable::scoped_debug<adportable::debug> t(__FILE__, __LINE__, __FUNCTION__)

@@ -442,9 +442,11 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 void
 MSProcessingWnd::handleRemoveSession( Dataprocessor * processor )
 {
+#ifndef NDEBUG
     ADDEBUG() << "handleRemoveSession(" << processor->filename() << ")"
               << "\n\t" << pImpl_->datum_[ 0 ].filename()
               << "\n\t" << pImpl_->datum_[ 1 ].filename();
+#endif
     if ( pImpl_->datum_[ 0 ].filename() == processor->filename<char>() ) {
         pImpl_->ticPlot_->clear();
         pImpl_->ticPlot_->replot();

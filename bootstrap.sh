@@ -69,10 +69,9 @@ if [ -z "$cross_target" ]; then
 			QT_VERSION=$($QMAKE -query QT_VERSION)
 			if [[ ${QT_VERSION} =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
 				QT_VERSION_MAJOR=${BASH_REMATCH[1]}
+				QT_VERSION_MINOR=${BASH_REMATCH[2]}
+				QT_VERSION_PATCH=${BASH_REMATCH[3]}
 			fi
-			#export QTDIR
-			#export PATH=$QTDIR/bin:$PATH
-			#echo "QMAKE found in ${QMAKE} -- QT_VERSION: ${QT_VERSION} -- Qt${QT_VERSION_MAJOR}"
 		else
 			echo "QMAKE NOT Found."
 			exit 1
@@ -89,20 +88,12 @@ elif [ "$ide" = "ninja" ]; then
 fi
 
 if [ -z $cross_target ]; then
-    case $arch in
-		Darwin-*)
-			source_dirs=("$cwd")
-			build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
-			;;
-		*)
-			source_dirs=( "$cwd" )
-			build_dirs=( "$build_root/build-$arch/qtplatz${QT_VERSION_MAJOR}.$config" )
-			;;
-    esac
+	source_dirs=("$cwd")
+	build_dirs=( "$build_root/build-$arch/qtplatz-qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${config}" )
 else
     echo "cross_target=${cross_target}"
     source_dirs=( "$cwd" )
-    build_dirs=( "$build_root/build-$cross_target/qtplatz.$config" )
+    build_dirs=( "$build_root/build-$cross_target/qtplatz.${config}" )
 fi
 
 ## Clean destinatiuon
@@ -114,8 +105,8 @@ if [ $build_clean = true ]; then
 fi
 
 echo "------------------------"
-echo "build_dirs: ${build_dirs[*]}"
-echo "QMAKE found in ${QMAKE} -- QT_VERSION: ${QT_VERSION} -- Qt${QT_VERSION_MAJOR}"
+echo "-- build_dirs: ${build_dirs[*]}"
+echo "-- QMAKE found in ${QMAKE} -- QT_VERSION: ${QT_VERSION} -- Qt${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${QT_VERSION_PATCH}"
 
 index=0
 for build_dir in ${build_dirs[@]}; do

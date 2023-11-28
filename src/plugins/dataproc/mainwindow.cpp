@@ -72,6 +72,7 @@
 #include <adplugin_manager/manager.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/folder.hpp>
@@ -353,15 +354,16 @@ MainWindow::createStyledBarTop()
 void
 MainWindow::handleDataprocessor( Dataprocessor * dp )
 {
-    ADDEBUG() << "## handleDataProcessor ##";
+    //ScopedDebug(__t);
+    //ADDEBUG() << "## handleDataProcessor ##";
     auto sp = ( dp ) ? dp->massSpectrometer() : nullptr;
     try {
-    if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
-        w->setMassSpectrometer( sp );
-    }
-    if ( auto w = findChild< dataproc::MSPeakTable * >( "MSPeakTable" ) ) {
-        w->setMassSpectrometer( sp );
-    }
+        if ( auto w = findChild< adwidgets::MSSimulatorWidget * >( "MSSimulatorMethod" ) ) {
+            w->setMassSpectrometer( sp );
+        }
+        if ( auto w = findChild< dataproc::MSPeakTable * >( "MSPeakTable" ) ) {
+            w->setMassSpectrometer( sp );
+        }
     } catch ( std::exception& ex ) {
         ADDEBUG() << "## exception: " << ex.what();
     }
@@ -519,6 +521,7 @@ MainWindow::currentPageChanged( int idx )
 Utils::StyledBar *
 MainWindow::createStyledBarMiddle()
 {
+    // ScopedDebug(__t);
     Utils::StyledBar * toolBar2 = new Utils::StyledBar;
 
     if ( toolBar2 ) {
@@ -618,6 +621,7 @@ MainWindow::createStyledBarMiddle()
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
+    // ScopedDebug(__t);
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
     setDockNestingEnabled( true );
@@ -1002,6 +1006,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 				(*it)->raise();
 
             for ( auto widget: dockWidgets() ) {
+                //ScopedDebug(__x); __x << widget->objectName().toStdString();
                 if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
                     if ( centroid && pkinfo ) {
                         pLifeCycle->setContents( boost::any( std::make_pair( centroid, pkinfo ) ) );
@@ -1019,12 +1024,13 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
             }
 
             if ( auto tree = findChild< adwidgets::MSPeakTree * >( "TargetingTree" ) ) {
+                //ScopedDebug(__y); __y << "TargetingTree";
                 if ( pkinfo )
                     tree->setContents( { pkinfo, centroid, targeting } );
                 else
                     tree->setContents( { centroid, targeting } );
             }
-        }
+        } // end if Spectra
     }
 }
 
@@ -1256,6 +1262,7 @@ MainWindow::OnFinalClose()
 void
 MainWindow::handleProcessChecked()
 {
+    ScopedDebug(__t);
     qtwrapper::waitCursor wait;
     adcontrols::ProcessMethod m;
     getProcessMethod( m );
@@ -1552,6 +1559,7 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
 void
 MainWindow::actionApply()
 {
+    ScopedDebug(__t);
     qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod pm;

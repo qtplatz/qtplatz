@@ -49,6 +49,7 @@
 #include <adcontrols/logging_hook.hpp>
 #include <adportfolio/logging_hook.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adportable/configloader.hpp>
@@ -117,6 +118,8 @@ ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
+    ScopedDebug(__t);
+
     Q_UNUSED(arguments);
 	(void)error_message;
 
@@ -139,15 +142,15 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 {
+    ScopedDebug(__t);
+
     impl_->fin();
     adportable::core::debug_core::instance()->unhook();
     adcontrols::logging_hook::unregister_hook();
 	adlog::logging_handler::instance()->close();
 
-    ADDEBUG() << "\t------------- servantplugin ---------- Shutdown: "
-              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
-                                                      , boost::dll::program_location().parent_path() );
-
+    // __t << " Shutdown: \t" << std::filesystem::relative( boost::dll::this_line_location()
+    //                                                      , boost::dll::program_location().parent_path() );
 	return SynchronousShutdown;
 }
 

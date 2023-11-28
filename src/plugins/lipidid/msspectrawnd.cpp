@@ -42,6 +42,7 @@
 #include <adportable/array_wrapper.hpp> // std::span
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/float.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>

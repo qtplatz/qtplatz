@@ -44,6 +44,7 @@
 #include <adutils/fsio2.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
@@ -208,6 +209,7 @@ namespace dataproc {
 
         void
         handleCurrentRowChanged( const QModelIndex& index ) {
+            //ScopedDebug(__t);
             if ( index.isValid() ) {
                 QVariant data = index.data( Qt::UserRole );
                 if ( data.canConvert< portfolio::Folder >() ) {
@@ -455,6 +457,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
+    ScopedDebug(__t);
     QStandardItemModel& model = *impl_->pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
@@ -477,6 +480,7 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
 void
 NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::Folium folium )
 {
+    ScopedDebug(__t);
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
@@ -495,6 +499,7 @@ NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::
 void
 NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
+    ScopedDebug(__t);
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
@@ -511,6 +516,7 @@ NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfoli
 void
 NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString& foldername )
 {
+    ScopedDebug(__t);
     ADDEBUG() << "---------- handleFolderChanged -------------";
     portfolio::Portfolio portfolio = processor->getPortfolio();
     portfolio::Folder folder = portfolio.findFolder( foldername.toStdWString() );
@@ -541,6 +547,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
+    ScopedDebug(__t);
 #if QTC_VERSION <= 0x03'02'81
     QString filename = processor->filePath();
 #else
@@ -589,6 +596,7 @@ NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
+    // ScopedDebug(__t);
     std::filesystem::path path( processor->filename() );
 
     if ( QStandardItem * item = StandardItemHelper::appendRow( *impl_->pModel_, processor ) ) {

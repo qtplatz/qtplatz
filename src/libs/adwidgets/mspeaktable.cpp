@@ -44,6 +44,7 @@
 #include <adcontrols/targeting.hpp>
 #include <adutils/constants.hpp> // clsid for massspectrometer
 #include <adportable/float.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/json_helper.hpp>
@@ -387,7 +388,6 @@ MSPeakTable::setContents( boost::any&& a )
     if ( adportable::a_type< spectrum_peakinfo_type >::is_a( a ) ) {
 
         auto pair = boost::any_cast< spectrum_peakinfo_type >( a );
-        // ADDEBUG() << "setContents -- pair: first=" << pair.first.get() << ", second=" << pair.second.get();
 
         impl_->data_source_ = pair.first;
         impl_->pkinfo_ = pair.second;
@@ -399,7 +399,6 @@ MSPeakTable::setContents( boost::any&& a )
     }
 
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
-        // ADDEBUG() << "setContents -- peakinfo";
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
         impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
@@ -408,7 +407,6 @@ MSPeakTable::setContents( boost::any&& a )
     }
 
     if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
-        // ADDEBUG() << "setContents -- spectrum";
         std::weak_ptr< adcontrols::MassSpectrum > wptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
         impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
@@ -417,7 +415,6 @@ MSPeakTable::setContents( boost::any&& a )
     }
 
     if ( adportable::a_type< adcontrols::TargetingPtr >::is_a( a ) ) {
-        // ADDEBUG() << "setContents -- targeting";
         if ( auto tgt = boost::any_cast<adcontrols::TargetingPtr>(a) ) {
             setPeakInfo( *tgt );
         }
@@ -510,6 +507,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
+    ScopedDebug(__t);
 	QStandardItemModel& model = *impl_->model_;
 
     setUpdatesEnabled( false );

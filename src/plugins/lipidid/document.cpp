@@ -48,6 +48,7 @@
 #include <adfs/get_column_values.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/json/extract.hpp>
 #include <adportfolio/folder.hpp>
@@ -227,7 +228,6 @@ document::handleSelectionChanged( adextension::iSessionManager *
                                   , const QString& file
                                   , const portfolio::Folium& folium )
 {
-    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
@@ -235,7 +235,10 @@ document::handleSelectionChanged( adextension::iSessionManager *
             if ( ptr->isCentroid() ) {
                 impl_->ms_ = ptr;
                 impl_->filename_ = std::filesystem::path( file.toStdString() );
-                emit dataChanged( folium );
+                {
+                    ScopedDebug(__x);  __x << "dataChanged";
+                    emit dataChanged( folium );
+                }
                 load_all();
             }
         }

@@ -72,6 +72,7 @@
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/debug_core.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adlog/logger.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adportable/float.hpp>
@@ -262,6 +263,7 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 void
 DataprocPlugin::extensionsInitialized()
 {
+    // ScopedDebug(__t);
     impl_->mainWindow_->OnInitialUpdate();
     document::instance()->initialSetup();
     Core::ModeManager::activateMode( impl_->mode_->id() );

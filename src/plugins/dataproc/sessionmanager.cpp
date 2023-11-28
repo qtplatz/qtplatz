@@ -36,6 +36,7 @@
 #include <mutex>
 #include <thread>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 
 namespace dataproc {
 
@@ -203,6 +204,8 @@ SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& foli
 void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
+    // ScopedDebug(__t1);
+
 	if ( impl_->activeDataprocessor_ != dataprocessor ) {
         impl_->activeDataprocessor_ = dataprocessor;
         emit onDataprocessorChanged( impl_->activeDataprocessor_ );
@@ -212,6 +215,7 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
 		if ( it != impl_->sessions_.end() )
 			Core::EditorManager::instance()->activateEditor( it->editor() );
 	}
+
     emit signalSelectionChanged( dataprocessor, folium );
 
     // iSessionManager

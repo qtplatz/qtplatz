@@ -400,7 +400,7 @@ MainWindow::impl::createMidStyledToolbar()
 void
 MainWindow::impl::createDockWidgets( MainWindow * pThis )
 {
-    \
+                                                                        \
     if ( auto widget = dock_create< PeakList >( pThis, "MS Peaks", "MS_Peaks" ) ) {
         QObject::connect( document::instance(), &document::dataChanged, widget, &PeakList::handleDataChanged );
     }

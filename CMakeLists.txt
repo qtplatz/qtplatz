@@ -114,19 +114,8 @@ if ( WITH_QT5 )
       if ( IDE_VERSION VERSION_LESS_EQUAL "8.0.2" AND UNIX )
         add_definitions( "-Wno-deprecated-copy" )
       endif()
-    else()
-      # old qtplatz version that uses embedded qt-creator ide 3.2.81
-      find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
-      find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" "/opt/Qt/5.15.2/bin" )
-      if ( NOT XMLPATTERNS )
-        message( FATAL_ERROR "xmlpatterns command not found -- required for QtCreator 3.2.81" )
-      endif()
-      set ( IDE_VERSION "3.2.81" ) # defined in src/app/app_version.h
-      set ( IDE_VERSION_MAJOR "3")
-      set ( IDE_PLUGIN_PATH "lib/qtplatz/plugins" ) # <-- for qtplatz 5
-      set ( QTC_BINARY_DIR  "" )  # <-- same as CMAKE_BINARY_DIR
-      add_definitions( "-DQTC_VERSION=0x030281" )
     endif()
+    #--> previous ide add_definitions( "-DQTC_VERSION=0x030281" )
 
     message( STATUS "######################### QTDIR: ${QTDIR}, QMAKE=${QMAKE}" )
     if ( NOT QTDIR )

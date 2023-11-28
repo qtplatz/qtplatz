@@ -47,6 +47,7 @@
 #include <adportable/configuration.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -178,6 +179,7 @@ namespace dataproc {
         }
 
         void operator()( const boost::uuids::uuid& idfolium, std::vector< double >&& reference ) const {
+            ScopedDebug(__t);
             if ( auto ptr = findCentroid()( find( idfolium ) ) ) {
                 qtwrapper::waitCursor wait;
                 adportable::array_wrapper<const double> a( ptr->getMassArray(), ptr->size() );

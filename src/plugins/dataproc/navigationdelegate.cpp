@@ -27,6 +27,7 @@
 #include "dataprocessor.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adwidgets/standarditemhelper.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <qdebug.h>
@@ -57,6 +58,7 @@ NavigationDelegate::setEditorData( QWidget * editor, const QModelIndex& index ) 
 void
 NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, const QModelIndex& index ) const
 {
+    ScopedDebug(__t);
     // ADDEBUG() << "---------- setModelData -----------" << index.data( Qt::EditRole ).toString().toStdString();
     QVariant data = index.data( Qt::UserRole );
     if ( data.canConvert< portfolio::Folium >() ) {

@@ -682,6 +682,7 @@ SpectrumWidget::setColor( int idx, const QColor& color )
 void
 SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, QwtPlot::Axis axis )
 {
+    // ScopedDebug(__t);
     impl_->scaleFcn_ = (-1);
 
     if ( !ptr || ptr->size() == 0 ) {

@@ -160,7 +160,7 @@ namespace adplugin {
 
         bool install( boost::dll::shared_library&& dll, std::function<adplugin::plugin *()> instance ) {
             if ( auto plugin = instance() ) {
-                ADDEBUG() << "2023-09-02 interface: " << plugin->iid() << ", is_loaded: " << dll.is_loaded();
+                //ADDEBUG() << "2023-09-02 interface: " << plugin->iid() << ", is_loaded: " << dll.is_loaded();
                 //pluginspecs_.insert( adpluginspec );
                 //plugin->setConfig( adpluginspec, context, lib.location().string() );
                 plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( dll ) ) ); // reverse order
