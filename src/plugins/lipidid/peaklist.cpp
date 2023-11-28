@@ -25,6 +25,7 @@
 #include "document.hpp"
 #include "peaklist.hpp"
 #include "scoped_debug.hpp"
+#include <QtCore/qobject.h>
 #include <adcontrols/massspectrum.hpp>
 #include <adwidgets/htmlheaderview.hpp>
 #include <adwidgets/delegatehelper.hpp>
@@ -55,6 +56,8 @@ void
 PeakList::handleDataChanged( const portfolio::Folium& folium )
 {
     ScopedDebug(__t);
+    QSignalBlocker block(model() );
+
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;

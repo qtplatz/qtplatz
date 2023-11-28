@@ -235,10 +235,7 @@ document::handleSelectionChanged( adextension::iSessionManager *
             if ( ptr->isCentroid() ) {
                 impl_->ms_ = ptr;
                 impl_->filename_ = std::filesystem::path( file.toStdString() );
-                {
-                    ScopedDebug(__x);  __x << "dataChanged";
-                    emit dataChanged( folium );
-                }
+                emit dataChanged( folium );
                 load_all();
             }
         }

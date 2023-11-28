@@ -26,6 +26,7 @@
 #include "htmlheaderview.hpp"
 #include "delegatehelper.hpp"
 #include "grid_render.hpp"
+#include <QtCore/qobject.h>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -60,6 +61,7 @@
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QStandardItemModel>
+#include <QSignalBlocker>
 #include <QMenu>
 #include <QPainter>
 #include <QPair>
@@ -508,6 +510,7 @@ void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
     ScopedDebug(__t);
+    QSignalBlocker block( impl_->model_.get() );
 	QStandardItemModel& model = *impl_->model_;
 
     setUpdatesEnabled( false );
