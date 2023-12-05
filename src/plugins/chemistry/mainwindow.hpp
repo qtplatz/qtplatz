@@ -52,11 +52,7 @@ namespace chemistry {
 	public:
         ~MainWindow();
 		explicit MainWindow( QWidget * parent = 0 );
-#if QTC_VERSION <= 0x03'02'81
-		QWidget * createContents( Core::IMode * );
-#else
         QWidget * createContents();
-#endif
 		void createActions();
 
 		void OnInitialUpdate();

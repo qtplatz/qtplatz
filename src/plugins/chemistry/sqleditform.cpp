@@ -68,6 +68,7 @@ SqlEditForm::SqlEditForm(QWidget *parent) : QWidget(parent)
                                           , semiColonCaptured_( false )
 {
     auto vLayout = new QVBoxLayout( this );
+    vLayout->setContentsMargins( 2, 2, 2, 2 );
 
     if ( auto editor = new SqlEdit() ) {
         editor->installEventFilter( this );

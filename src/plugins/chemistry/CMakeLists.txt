@@ -96,6 +96,7 @@ add_library( ${PROJECT_NAME} MODULE
   queryform.cpp         queryform.hpp
   sqledit.cpp           sqledit.hpp
   sqleditform.cpp       sqleditform.hpp
+  rxneditform.cpp       rxneditform.hpp
   ${Resources}
   )
 

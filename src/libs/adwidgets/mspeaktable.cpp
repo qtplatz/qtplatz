@@ -510,7 +510,6 @@ void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
     ScopedDebug(__t);
-    QSignalBlocker block( impl_->model_.get() );
 	QStandardItemModel& model = *impl_->model_;
 
     setUpdatesEnabled( false );
@@ -539,9 +538,11 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     int fcn = 0;
     for ( auto& pkinfo: segs ) {
 
+        QSignalBlocker block( impl_->model_.get() );
+
         int idx = 0;
         for ( auto& pk: pkinfo ) {
-            if ( pk.is_reference() ) { // index.model()->data( index.model()->index( index.row(), c_mspeaktable_is_reference ) ).toBool();
+            if ( pk.is_reference() ) {
                 model.setHeaderData( row,   Qt::Vertical, QString("*%1").arg( row + 1 ) );
             }
             model.setData( model.index( row, c_mspeaktable_is_reference ), pk.is_reference() ); // hidden
@@ -572,8 +573,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             model.setData( model.index( row, c_mspeaktable_mass_width ), pk.widthHH( false ) * std::milli::den );
             model.setData( model.index( row, c_mspeaktable_time_width ), pk.widthHH( true ) * std::nano::den );
 
-            setRowHidden( row, false );
-
+            // setRowHidden( row, false );
             ++row;
         }
         ++fcn;
@@ -587,10 +587,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     setColumnHidden( c_mspeaktable_mode, row_walker< c_mspeaktable_mode, int >()( &model ) );
     setColumnHidden( c_mspeaktable_protocol, row_walker< c_mspeaktable_protocol, int >()( &model ) );
 
-    //resizeColumnsToContents();
-    //resizeRowsToContents();
-    this->resizeColumnToContents( c_mspeaktable_formula );
+    resizeColumnToContents( c_mspeaktable_formula );
     setUpdatesEnabled( true );
+    update();
 }
 
 void

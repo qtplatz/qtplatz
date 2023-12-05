@@ -56,13 +56,13 @@ void
 PeakList::handleDataChanged( const portfolio::Folium& folium )
 {
     ScopedDebug(__t);
-    QSignalBlocker block(model() );
 
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
         if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
             if ( ptr->isCentroid() ) {
+                QSignalBlocker block(model() );
                 qobject_cast< QStandardItemModel * >( model() )->setRowCount( ptr->size() );
                 for ( size_t i = 0; i < ptr->size(); ++i ){
                     int col(0);
@@ -74,10 +74,11 @@ PeakList::handleDataChanged( const portfolio::Folium& folium )
                     model()->setData( model()->index( i, col++ ), abundance );
                     model()->setData( model()->index( i, col++ ), color );
                     // if ( color != 15 ) {
-                    //    this->hideRow( i );
+                    //     this->hideRow( i );
                     // }
                 }
             }
         }
     }
+    update();
 }

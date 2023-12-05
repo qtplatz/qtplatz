@@ -29,6 +29,7 @@
 #include "document.hpp"
 #include "moltablewnd.hpp"
 #include "queryform.hpp"
+#include "rxneditform.hpp"
 #include "sqleditform.hpp"
 #include <adportable/profile.hpp>
 #include <adchem/sdfile.hpp>
@@ -146,11 +147,7 @@ MainWindow::createActions()
 }
 
 QWidget *
-MainWindow::createContents(
-#if QTC_VERSION <= 0x03'02'81
-    Core::IMode * mode
-#endif
-    )
+MainWindow::createContents()
 {
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::East );
     setDocumentMode( true );
@@ -160,11 +157,6 @@ MainWindow::createContents(
 	editorHolderLayout->setContentsMargins( {} );
 	editorHolderLayout->setSpacing( 0 );
 
-    if ( auto wnd = findChild< MolTableWnd * >() ) {
-		wnd->setContextMenuPolicy( Qt::CustomContextMenu );
-        connect( wnd, SIGNAL( dropped( const QList<QUrl>& ) ), this, SLOT( handleDropped( const QList<QUrl>& ) ) );
-    }
-
     QWidget * editorAndFindWidget = new QWidget;
     if ( editorAndFindWidget ) {
 
@@ -173,15 +165,16 @@ MainWindow::createContents(
 
         editorHolderLayout->addWidget( new MolTableWnd() );
     }
+    if ( auto wnd = findChild< MolTableWnd * >() ) {
+		wnd->setContextMenuPolicy( Qt::CustomContextMenu );
+        connect( wnd, SIGNAL( dropped( const QList<QUrl>& ) ), this, SLOT( handleDropped( const QList<QUrl>& ) ) );
+    }
+
 
     Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
     if ( documentAndRightPane ) {
         documentAndRightPane->addWidget( editorAndFindWidget );
-#if QTC_VERSION >= 0x08'00'00
         documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( Utils::Id( Constants::MODE_CHEMISTRY ) ) );
-#else
-        documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( mode ) );
-#endif
         documentAndRightPane->setStretchFactor( 0, 1 );
         documentAndRightPane->setStretchFactor( 1, 0 );
     }
@@ -202,11 +195,7 @@ MainWindow::createContents(
 
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-#if QTC_VERSION >= 0x08'00'00
     QWidget * outputPane = new Core::OutputPanePlaceHolder( Utils::Id( Constants::MODE_CHEMISTRY ), mainWindowSplitter );
-#else
-    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-#endif
     outputPane->setObjectName( QLatin1String( "ChemistryOutputPanePlaceHolder" ) );
 	mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
@@ -216,11 +205,7 @@ MainWindow::createContents(
 
 	// Navigation and right-side window
 	Core::MiniSplitter * splitter = new Core::MiniSplitter;
-#if QTC_VERSION >= 0x08'00'00
     splitter->addWidget( new Core::NavigationWidgetPlaceHolder( Constants::MODE_CHEMISTRY, Core::Side::Left ) );
-#else
-	splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-#endif
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
@@ -309,6 +294,10 @@ MainWindow::createDockWidgets()
             QObject::connect( w, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
         }
         createDockWidget( w, "SQL" );
+    }
+
+    if ( auto w = adwidgets::create_widget< RxnEditForm >( "RxnEditForm", this ) ) {
+        createDockWidget( w, "RXN" );
     }
 
 }

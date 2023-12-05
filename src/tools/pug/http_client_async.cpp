@@ -22,6 +22,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -48,14 +49,14 @@ session::session(  net::any_io_executor ex,  ssl::context& ctx  )
 }
 
 // Start the asynchronous operation
-void
+std::future< boost::beast::http::response< boost::beast::http::string_body > >
 session::run(  char const* host, char const* port, char const* target, int version )
 {
     // Set SNI Hostname ( many hosts need this to handshake successfully )
     if ( ! SSL_set_tlsext_host_name( stream_.native_handle(), host )  )    {
         beast::error_code ec{static_cast<int>( ::ERR_get_error() ), net::error::get_ssl_category()};
         std::cerr << ec.message() << "\n";
-        return;
+        return {};
     }
 
     // Set up an HTTP GET request message
@@ -64,12 +65,13 @@ session::run(  char const* host, char const* port, char const* target, int versi
     req_.target(  target  );
     req_.set(  http::field::host, host );
     req_.set(  http::field::user_agent, BOOST_BEAST_VERSION_STRING );
-    req_.set(  http::field::accept, "chemical/x-mdl-sdfile" );
+    req_.set(  http::field::accept, "application/json" ); //"chemical/x-mdl-sdfile" );
 
     // Look up the domain name
     resolver_.async_resolve(   host, port
                               , beast::bind_front_handler(  &session::on_resolve
                                                            , shared_from_this() ) );
+    return promise_.get_future();
 }
 
 void
@@ -139,7 +141,7 @@ session::on_read(  beast::error_code ec, std::size_t bytes_transferred )
         return fail( ec, "read" );
 
     // Write the message to standard out
-    std::cout << res_ << std::endl;
+    promise_.set_value( res_ );
 
     // Set a timeout on the operation
     beast::get_lowest_layer( stream_ ).expires_after( std::chrono::seconds( 30 ) );
