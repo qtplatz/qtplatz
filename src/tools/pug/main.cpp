@@ -30,6 +30,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/json.hpp>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -71,7 +72,9 @@ main( int argc, char * argv [] )
     }
     if ( vm.count( "identifier" ) == 0 ) {
         std::cout << description << std::endl;
-        std::cout << argv[0] << " --identifier APAP PFOS" << std::endl;
+        std::cout << argv[0] << " specify identifer such as: " << std::endl;
+        std::cout << "\tpug --identifier APAP" << std::endl;
+        std::cout << "\tpug -a -i perfuluoroalkeylethanol" << std::endl;
         return 0;
     }
 
@@ -112,6 +115,13 @@ main( int argc, char * argv [] )
         auto res = future.get();
         std::cout << "\n## target:\t" << target << std::endl;
         std::cout << "## response: \n\t" << res.body().data();
+
+        boost::system::error_code ec;
+        auto jv = boost::json::parse( res.body(), ec );
+        if ( !ec ) {
+            std::cout << "\n" << jv << std::endl;
+        }
+
     }
 
     return 0;
