@@ -31,6 +31,8 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/json.hpp>
+#include <boost/certify/extensions.hpp>
+#include <boost/certify/https_verification.hpp>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -107,9 +109,19 @@ main( int argc, char * argv [] )
 
         boost::asio::io_context ioc;
         boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
-        load_root_certificates(ctx);
+#if 0
+         load_root_certificates(ctx);
+#else
+         // verify SSL context
+         {
+             ctx.set_verify_mode(boost::asio::ssl::verify_peer |
+                                 boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+             ctx.set_default_verify_paths();
+             boost::certify::enable_native_https_server_verification(ctx);
+         }
+#endif
 
-        auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run(host, port, target.c_str(), version);
+         auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run(host, port, target.c_str(), version);
         ioc.run();
 
         auto res = future.get();

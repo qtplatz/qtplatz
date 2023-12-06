@@ -60,8 +60,8 @@ namespace chemistry {
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& objname = QString() );
-		static QToolButton * toolButton( const char * );
-		static QToolButton * toolButton( QAction * );
+		// static QToolButton * toolButton( const char * );
+		// static QToolButton * toolButton( QAction * );
 		static MainWindow * instance();
 
     signals:
@@ -75,15 +75,17 @@ namespace chemistry {
         void handleConnectionChanged();
 
 	private:
-		static MainWindow * instance_;
-		QWidget * toolBar_;
-		QHBoxLayout * toolBarLayout_;
-		QAction * actionSearch_;
-        //QLineEdit * topLineEdit_;
-        QProgressBar * progressBar_;
+        class impl;
+        impl * impl_;
 
+		// static MainWindow * instance_;
+		// QWidget * toolBar_;
+		// QHBoxLayout * toolBarLayout_;
+		// QAction * actionSearch_;
+        // //QLineEdit * topLineEdit_;
+        // QProgressBar * progressBar_;
 		void createDockWidgets();
-		void createToolbar();
+		//void createToolbar();
         Utils::StyledBar * createTopStyledBar();
         Utils::StyledBar * createMidStyledBar();
 	};

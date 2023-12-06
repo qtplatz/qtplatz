@@ -138,6 +138,7 @@ add_library( ${PROJECT_NAME} SHARED
   xchromatogramsform.cpp        	xchromatogramsform.hpp
   xchromatogramstable.cpp       	xchromatogramstable.hpp
   xchromatogramswidget.cpp      	xchromatogramswidget.hpp
+  pugrestform.cpp                       pugrestform.hpp
   ${_sources}
   ${Resources}
 )

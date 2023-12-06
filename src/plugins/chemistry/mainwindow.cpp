@@ -31,10 +31,12 @@
 #include "queryform.hpp"
 #include "rxneditform.hpp"
 #include "sqleditform.hpp"
+#include <QtWidgets/qstackedwidget.h>
 #include <adportable/profile.hpp>
 #include <adchem/sdfile.hpp>
 #include <adwidgets/molview.hpp>
 #include <adwidgets/create_widget.hpp>
+#include <adwidgets/pugrestform.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 
@@ -72,22 +74,57 @@
 //#include <boost/bind.hpp>
 #include <algorithm>
 
-using namespace chemistry;
+namespace {
+    struct ToolButton {
+        QToolButton * operator()( QAction * action, const QString& objectName = {})  {
+            if ( QToolButton * button = new QToolButton() ) {
+                button->setDefaultAction( action );
+                if ( !objectName.isEmpty() ) {
+                    button->setObjectName( objectName );
+                    button->setCheckable( true );
+                }
+                return button;
+            }
+            return nullptr;
+        }
+    };
+}
 
-MainWindow * MainWindow::instance_ = 0;
+namespace chemistry {
+
+    class MainWindow::impl {
+    public:
+        static MainWindow * instance_;
+
+        impl( MainWindow * pThis ) : toolBar_( 0 )
+                                   , toolBarLayout_( 0 )
+                                   , actionSearch_( 0 )
+                                   , progressBar_( 0 )
+                                   , stackedWidget_( 0 ) {
+            instance_ = pThis;
+        }
+
+		QWidget * toolBar_;
+		QHBoxLayout * toolBarLayout_;
+		QAction * actionSearch_;
+        QProgressBar * progressBar_;
+        QStackedWidget * stackedWidget_;
+    };
+
+    MainWindow * MainWindow::impl::instance_ = 0;
+
+}
+
+using namespace chemistry;
 
 MainWindow::~MainWindow()
 {
+    delete impl_;
 }
 
 MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
-                                           , toolBar_( 0 )
-                                           , toolBarLayout_( 0 )
-                                           , actionSearch_( 0 )
-                                           , progressBar_( 0 )
+                                           , impl_( new impl( this ) )
 {
-
-	instance_ = this;
 }
 
 
@@ -142,8 +179,8 @@ MainWindow::activateLayout()
 void
 MainWindow::createActions()
 {
-	actionSearch_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr("Search"), this );
-    connect( actionSearch_, SIGNAL( triggered() ), this, SLOT( actionSearch() ) );
+	impl_->actionSearch_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr("Search"), this );
+    connect( impl_->actionSearch_, SIGNAL( triggered() ), this, SLOT( actionSearch() ) );
 }
 
 QWidget *
@@ -153,63 +190,31 @@ MainWindow::createContents()
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
-    QBoxLayout * editorHolderLayout = new QVBoxLayout;
-	editorHolderLayout->setContentsMargins( {} );
-	editorHolderLayout->setSpacing( 0 );
-
-    QWidget * editorAndFindWidget = new QWidget;
-    if ( editorAndFindWidget ) {
-
-        editorAndFindWidget->setLayout( editorHolderLayout );
-        editorAndFindWidget->setLayout( editorHolderLayout );
-
-        editorHolderLayout->addWidget( new MolTableWnd() );
-    }
-    if ( auto wnd = findChild< MolTableWnd * >() ) {
-		wnd->setContextMenuPolicy( Qt::CustomContextMenu );
-        connect( wnd, SIGNAL( dropped( const QList<QUrl>& ) ), this, SLOT( handleDropped( const QList<QUrl>& ) ) );
-    }
-
-
-    Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
-    if ( documentAndRightPane ) {
-        documentAndRightPane->addWidget( editorAndFindWidget );
-        documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( Utils::Id( Constants::MODE_CHEMISTRY ) ) );
-        documentAndRightPane->setStretchFactor( 0, 1 );
-        documentAndRightPane->setStretchFactor( 1, 0 );
-    }
-
     Utils::StyledBar * toolBar1 = createTopStyledBar();
     Utils::StyledBar * toolBar2 = createMidStyledBar();
 
-	//---------- centraol widget ------------
-	QWidget * centralWidget = new QWidget;
-	setCentralWidget( centralWidget );
+    //---------- centraol widget ------------
+    QWidget * centralWidget = new QWidget;
+    setCentralWidget( centralWidget );
 
-	QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-	centralLayout->setContentsMargins( {} );
-	centralLayout->setSpacing( 0 );
-    centralLayout->addWidget( toolBar1 );
-    centralLayout->addWidget( documentAndRightPane );
-	centralLayout->addWidget( toolBar2 );
+    impl_->stackedWidget_ = new QStackedWidget;
+    impl_->stackedWidget_->addWidget( new MolTableWnd );
+    impl_->stackedWidget_->addWidget( new QTextEdit );
 
-	// Right-side window with editor, output etc.
-	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    QWidget * outputPane = new Core::OutputPanePlaceHolder( Utils::Id( Constants::MODE_CHEMISTRY ), mainWindowSplitter );
-    outputPane->setObjectName( QLatin1String( "ChemistryOutputPanePlaceHolder" ) );
-	mainWindowSplitter->addWidget( this );
-    mainWindowSplitter->addWidget( outputPane );
-	mainWindowSplitter->setStretchFactor( 0, 10 );
-	mainWindowSplitter->setStretchFactor( 1, 0 );
-	mainWindowSplitter->setOrientation( Qt::Vertical );
+    if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {
+        splitter->addWidget( impl_->stackedWidget_ );
+        splitter->setStretchFactor( 0, 1 );
+        splitter->setStretchFactor( 1, 0 );
 
-	// Navigation and right-side window
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;
-    splitter->addWidget( new Core::NavigationWidgetPlaceHolder( Constants::MODE_CHEMISTRY, Core::Side::Left ) );
-    splitter->addWidget( mainWindowSplitter );
-    splitter->setStretchFactor( 0, 0 );
-    splitter->setStretchFactor( 1, 1 );
-    splitter->setObjectName( QLatin1String( "ChemistryModeWidget" ) );
+        if ( QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget ) ) {
+            centralLayout->setContentsMargins( {} );
+            centralLayout->setSpacing( 0 );
+
+            centralLayout->addWidget( toolBar1 );
+            centralLayout->addWidget( splitter ); // <-- mol table
+            centralLayout->addWidget( toolBar2 );
+        }
+    }
 
 	createDockWidgets();
 
@@ -221,8 +226,7 @@ MainWindow::createContents()
             });
         }
     }
-
-	return splitter;
+	return this; // mainWindowSplitter;
 }
 
 void
@@ -278,15 +282,11 @@ MainWindow::createDockWidgets()
         createDockWidget( w, "MOL", "MolView" );
     }
 
-    if ( auto w = new QTextEdit( this ) ) {
-        createDockWidget( w, "Edit", "Text" );
-    }
-
-    if ( auto w = new QueryForm( this ) ) {
-        createDockWidget( w, "ChemSpider", "ChemSpiderSearch" );
-        connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
-                document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
-            });
+    if ( auto w = new adwidgets::PUGRestForm( this ) ) {
+        createDockWidget( w, "PubChem", "PubChem" );
+        // connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
+        //     document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
+        //});
     }
 
     if ( auto w = adwidgets::create_widget< SqlEditForm >( "SqlEditForm", this ) ) {
@@ -302,33 +302,6 @@ MainWindow::createDockWidgets()
 
 }
 
-void
-MainWindow::createToolbar()
-{
-	QWidget * toolbarContainer = new QWidget;
-	QHBoxLayout * hbox = new QHBoxLayout( toolbarContainer );
-    hbox->setContentsMargins( {} );
-    hbox->setSpacing( 0 );
-    hbox->addWidget( toolButton( "STOP" ) ); // should create action in 'plugin' with icon
-}
-
-// static
-QToolButton *
-MainWindow::toolButton( QAction * action )
-{
-	QToolButton * button = new QToolButton;
-	if ( button )
-		button->setDefaultAction( action );
-	return button;
-}
-
-// static
-QToolButton *
-MainWindow::toolButton( const char * id )
-{
-	return toolButton( Core::ActionManager::instance()->command(id)->action() );
-}
-
 // slot
 void
 MainWindow::actionSearch()
@@ -338,7 +311,7 @@ MainWindow::actionSearch()
 MainWindow *
 MainWindow::instance()
 {
-	return instance_;
+	return impl::instance_;
 }
 
 void
@@ -363,15 +336,15 @@ MainWindow::createMidStyledBar()
         toolBarLayout->setSpacing( 0 );
 
         if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget(toolButton(am->command(Constants::SDFILE_OPEN)->action()));
+            toolBarLayout->addWidget(ToolButton()(am->command(Constants::SDFILE_OPEN)->action()));
         }
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-        progressBar_ = new QProgressBar;
-		progressBar_->setVisible( false );
-        toolBarLayout->addWidget( progressBar_ );
-        progressBar_->setStyleSheet( QString("QProgressBar { color: lightgreen }") );
+        impl_->progressBar_ = new QProgressBar;
+		impl_->progressBar_->setVisible( false );
+        toolBarLayout->addWidget( impl_->progressBar_ );
+        impl_->progressBar_->setStyleSheet( QString("QProgressBar { color: lightgreen }") );
     }
     return toolBar;
 }
@@ -379,14 +352,34 @@ MainWindow::createMidStyledBar()
 Utils::StyledBar *
 MainWindow::createTopStyledBar()
 {
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
+    if ( auto toolBar = new Utils::StyledBar ) {
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
+
+        if ( auto am = Core::ActionManager::instance() ) {
+            Core::Context context( ( Utils::Id( "Chemistry.MainWindow" ) ) );
+
+            if ( auto p = new QAction( tr("Mols"), this ) ) {
+                connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 0 ); } );
+                am->registerAction( p, "Chemistry.selMols", context );
+                toolBarLayout->addWidget( ToolButton()( p, QString( "wnd.%1" ).arg( 0 ) ) );
+            }
+
+            if ( auto p = new QAction( tr("PubChem"), this ) ) {
+                connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 1 ); } );
+                am->registerAction( p, "Chemistry.selPubChem", context );
+                toolBarLayout->addWidget( ToolButton()( p, QString( "wnd.%1" ).arg( 1 ) ) );
+            }
+
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+        }
+
+        return toolBar;
     }
-    return toolBar;
+    return nullptr;
 }
 
 void

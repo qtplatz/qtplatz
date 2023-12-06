@@ -3,13 +3,21 @@ cmake_policy( SET CMP0042 NEW )
 
 project( pug )
 
-#set (OPENSSL_ROOT_DIR "/usr/local/Cellar/libressl/3.4.2/include" )
-#set (OPENSSL_ROOT_DIR "/usr/local/Cellar/libressl/3.4.2" )
-
 find_package( OpenSSL )
 
 if ( NOT OPENSSL_FOUND )
   return()
+endif()
+
+add_library( core INTERFACE )
+add_library( certify::core ALIAS core )
+
+if ( APPLE )
+  target_link_libraries(core INTERFACE "-framework CoreFoundation" "-framework Security")
+  set_target_properties(core PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
+endif()
+if ( MSVC )
+  target_link_libraries(core INTERFACE Crypt32.lib)
 endif()
 
 message( STATUS "######################## OpenSSL :               ${OPENSSL_FOUND}" )
@@ -22,6 +30,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(
   "${Boost_INCLUDE_DIRS}"
   "${OPENSSL_INCLUDE_DIR}"
+  "${CMAKE_SOURCE_DIR}/contrib"
 )
 
 add_executable( ${PROJECT_NAME}
@@ -38,5 +47,9 @@ target_link_libraries( ${PROJECT_NAME}
   qtwrapper
   xmlparser
   ${Boost_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
+  core
+  OpenSSL::SSL
+  OpenSSL::Crypto
   )
+
+install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin COMPONENT applications )
