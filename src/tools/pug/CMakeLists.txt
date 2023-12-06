@@ -47,7 +47,7 @@ target_link_libraries( ${PROJECT_NAME}
   qtwrapper
   xmlparser
   ${Boost_LIBRARIES}
-  core
+  certify::core
   OpenSSL::SSL
   OpenSSL::Crypto
   )
