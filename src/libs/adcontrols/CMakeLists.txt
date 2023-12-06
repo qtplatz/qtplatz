@@ -232,6 +232,7 @@ add_library( adcontrols SHARED
   genchromatogram.cpp
   genchromatogram.hpp
   jcb2009_peakresult.cpp jcb2009_peakresult.hpp
+  pugrest.cpp pugrest.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

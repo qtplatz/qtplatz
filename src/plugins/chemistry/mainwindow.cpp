@@ -282,13 +282,6 @@ MainWindow::createDockWidgets()
         createDockWidget( w, "MOL", "MolView" );
     }
 
-    if ( auto w = new adwidgets::PUGRestForm( this ) ) {
-        createDockWidget( w, "PubChem", "PubChem" );
-        // connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
-        //     document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
-        //});
-    }
-
     if ( auto w = adwidgets::create_widget< SqlEditForm >( "SqlEditForm", this ) ) {
         if ( auto table = findChild< MolTableWnd * >() ) {
             QObject::connect( w, &SqlEditForm::triggerQuery, table, &MolTableWnd::setQuery );
@@ -300,6 +293,12 @@ MainWindow::createDockWidgets()
         createDockWidget( w, "RXN" );
     }
 
+    if ( auto w = new adwidgets::PUGRestForm( this ) ) {
+        createDockWidget( w, "PubChem", "PubChem" );
+        // connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
+        //     document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
+        //});
+    }
 }
 
 // slot

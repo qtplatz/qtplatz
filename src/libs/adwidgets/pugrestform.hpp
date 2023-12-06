@@ -26,6 +26,7 @@
 
 #include <QFrame>
 #include "adwidgets_global.hpp"
+#include "pugrest.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <adwidgets/lifecycle.hpp>
 #include <memory>
@@ -41,11 +42,17 @@ namespace adwidgets {
         explicit PUGRestForm(QWidget *parent = 0);
         ~PUGRestForm();
 
+        adcontrols::PUGREST data() const;
+        void setData( const adcontrols::PUGREST& );
+
     public slots:
 
     signals:
+        void dataChanged( const QString& );
+        void apply( const QByteArray& );
 
     private:
-
+        class impl;
+        impl * impl_;
     };
 }
