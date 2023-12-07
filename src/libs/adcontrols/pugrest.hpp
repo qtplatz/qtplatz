@@ -56,6 +56,7 @@ namespace adcontrols {
 
         const std::vector< std::string >&  pug_properties() const;
         void set_pug_properties( std::vector< std::string >&& );
+        void set_pug_property( const std::string&, bool add );
 
         std::string pug_domain() const;
         void set_pug_domain( const std::string& );

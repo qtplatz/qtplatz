@@ -42,6 +42,7 @@
 #include <QRadioButton>
 #include <QSpacerItem>
 #include <QSignalBlocker>
+#include <set>
 
 namespace adwidgets {
 
@@ -52,7 +53,36 @@ namespace adwidgets {
         impl() {}
         void autocomplete( bool checked ) {
             d_.set_pug_autocomplete( checked );
+            emit dataChanged();
         }
+        void set_identify( const QString& text ) {
+            d_.set_pug_identifier( text.toStdString() );
+            emit dataChanged();
+        }
+        void set_autocomplete( bool checked ) {
+            d_.set_pug_autocomplete( checked );
+            emit dataChanged();
+        }
+
+        void set_property( const QString& property, bool checked ) {
+            d_.set_pug_property( property.toStdString(), checked );
+            emit dataChanged();
+        }
+        void set_domain( const QString& domain, bool checked ) {
+            if ( checked )
+                d_.set_pug_domain( domain.toStdString() );
+            emit dataChanged();
+        }
+        void set_namespace( const QString& ns, bool checked ) {
+            if ( checked )
+                d_.set_pug_namespace( ns.toStdString() );
+            emit dataChanged();
+        }
+
+    signals:
+        void dataChanged();
+
+    public:
         adcontrols::PUGREST d_;
     };
 
@@ -74,37 +104,36 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
             std::tuple< size_t, size_t > xy{0,0};
             gridLayout->addWidget( create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++);
             add_widget( gridLayout, create_widget< QLineEdit >( "url", "pubchem.ncbi.nlm.nih.gov" ), std::get<0>(xy), std::get<1>(xy)++);
+
             ++xy;
             std::get<1>(xy)++;
-            add_widget( gridLayout, create_widget< QCheckBox >( "autocomplete", "autocomplete" ), std::get<0>(xy), std::get<1>(xy)++);
-        }
+            if ( auto cbx
+                 = add_widget( gridLayout, create_widget< QCheckBox >( "autocomplete", "autocomplete" ), std::get<0>(xy), std::get<1>(xy)++) )
+                connect( cbx, &QCheckBox::toggled, [&](bool checked){ impl_->set_autocomplete( checked ); });
 
-        if ( auto gbx = add_widget( vLayout, create_widget< QGroupBox >("identifier", "identifier" ) ) )  {
-            if ( auto gLayout = new QGridLayout{ gbx } ) {
-                add_widget( gLayout, create_widget< QLabel >( "query", "Query:" ), 0, 0 );
-                if ( auto w = add_widget( gLayout, create_widget< QLineEdit >( "identifier", "apap" ), 0, 1 ) )
-                    connect( w, &QLineEdit::textChanged, [&](const QString text ){ });
-            }
-            connect( gbx, &QGroupBox::toggled, [&](bool checked){ impl_->d_.set_pug_autocomplete( checked ); } );
+            ++xy;
+            add_widget( gridLayout, create_widget< QLabel >( "query", "Query:" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto w = add_widget( gridLayout, create_widget< QLineEdit >( "identifier", "apap" ), std::get<0>(xy), std::get<1>(xy)++ ) )
+                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_identify( text ); });
         }
 
         if ( auto hLayout = add_layout( vLayout, create_widget< QHBoxLayout >("2ndLayout") ) ) {
 
             if ( auto gbx = add_widget( hLayout, create_widget< QGroupBox >("property", "property" ) ) )  {
+
                 if ( auto gLayout = new QGridLayout{ gbx } ) {
                     gLayout->setContentsMargins( {} );
+
                     std::tuple< size_t, size_t > lxy{0,0};
-                    add_widget( gLayout, create_widget< QCheckBox >( "CanonicalSMILES", "CanonicalSMILES" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QCheckBox >( "MolecularFormula", "MolecularFormula" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QCheckBox >( "MolecularWeight", "MolecularWeight" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    ++lxy;
-                    add_widget( gLayout, create_widget< QCheckBox >( "InChI", "InChI" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QCheckBox >( "InChIKey", "InChIKey" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QCheckBox >( "IUPACName", "IUPACName" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    ++lxy;
-                    add_widget( gLayout, create_widget< QCheckBox >( "Title", "Title" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QCheckBox >( "XLogP", "XLogP" ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QCheckBox >( "ExactMass", "ExactMass" ), std::get<0>(lxy), std::get<1>(lxy)++ );
+                    for ( auto prop: { "CanonicalSMILES", "MolecularFormula", "MolecularWeight"
+                                       , "InChI", "InChIKey", "IUPACName"
+                                       , "Title", "XLogP", "ExactMass" } ) {
+                        if ( auto cbx = add_widget( gLayout, create_widget< QCheckBox >( prop, prop ), std::get<0>(lxy), std::get<1>(lxy)++ ) )
+                            connect( cbx, &QCheckBox::toggled, [cbx,this]( bool checked ){
+                                impl_->set_property( cbx->objectName(), checked ); });
+                        if ( std::get<1>(lxy) >= 3 )
+                            ++lxy;
+                    }
                 }
             }
 
@@ -112,25 +141,32 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
                 if ( auto gLayout = new QGridLayout{ gbx } ) {
                     gLayout->setContentsMargins( {} );
                     std::tuple< size_t, size_t > lxy{0,0};
-                    add_widget( gLayout, create_widget< QRadioButton >("compound", "compound", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QRadioButton >("substance", "substance", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    ++lxy;
-                    add_widget( gLayout, create_widget< QRadioButton >("protein", "protein", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QRadioButton >("taxonomy", "taxonomy", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
+                    for( auto domain: { "compound", "substance", "protein", "taxonomy" } ) {
+                        if ( auto rbtn = add_widget( gLayout, create_widget< QRadioButton >(domain, domain, this )
+                                                     , std::get<0>(lxy), std::get<1>(lxy)++ ) ) {
+                            connect( rbtn, &QRadioButton::toggled, this, [rbtn,this]( bool checked ){
+                                impl_->set_domain( rbtn->objectName(), checked );    });
+                        }
+                        if ( std::get<1>(lxy) >= 2 )
+                            ++lxy;
+                    }
                 }
             }
+
             // ++xy;
             if ( auto gbx = add_widget( hLayout, create_widget< QGroupBox >("namespace", "namespace" ) ) ) {
                 if ( auto gLayout = new QGridLayout{ gbx } ) {
                     gLayout->setContentsMargins( {} );
                     std::tuple< size_t, size_t > lxy{0,0};
-                    add_widget( gLayout, create_widget< QRadioButton >("name", "name", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QRadioButton >("cid", "cid", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QRadioButton >("smiles", "smiles", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    ++lxy;
-                    add_widget( gLayout, create_widget< QRadioButton >("inchi", "inchi", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QRadioButton >("inchikey", "inchikey", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
-                    add_widget( gLayout, create_widget< QRadioButton >("formula", "formula", this ), std::get<0>(lxy), std::get<1>(lxy)++ );
+                    for( auto ns: { "name", "cid", "smiles", "inchi", "inchikey", "formula" } ) {
+                        if ( auto rbtn = add_widget( gLayout, create_widget< QRadioButton >( ns, ns, this )
+                                                     , std::get<0>(lxy), std::get<1>(lxy)++ ) ) {
+                            connect( rbtn, &QRadioButton::toggled, this, [rbtn, this]( bool checked ){
+                                impl_->set_namespace( rbtn->objectName(), checked );   });
+                        }
+                        if ( std::get<1>(lxy) >= 3 )
+                            ++lxy;
+                    }
                 }
             }
         }
@@ -138,7 +174,13 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
             btn->setStandardButtons( QDialogButtonBox::Apply );
         }
     }
+
     setData( adcontrols::PUGREST{} );
+
+    connect( impl_, &impl::dataChanged, this, [&](){
+        if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) )
+            url->setText( QString::fromStdString( adcontrols::PUGREST::to_url( impl_->d_, true ) ) );
+    });
 }
 
 adcontrols::PUGREST

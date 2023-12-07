@@ -41,8 +41,16 @@ namespace adcontrols {
                        , identifier_( "apap" )
                        , namespace_( "name" )
                        , domain_( "compound" )
-                       , property_( { "CanonicalSMILES", "InChI", "Title", "MolecularFormula", "InChIKey"
-                               , "MolecularWeight", "IUPACName", "ExactMass", "XLogP"} )
+                       , property_( { "CanonicalSMILES"
+                               , "InChI"
+                               , "MolecularFormula"
+                               , "ExactMass"
+                               , "XLogP"
+                               //, "Title"
+                               //, "InChIKey"
+                               //, "MolecularWeight"
+                               //, "IUPACName"
+        } )
     {
     }
 
@@ -76,6 +84,19 @@ namespace adcontrols {
     PUGREST::set_pug_identifier( const std::string& t )
     {
         identifier_ = t;
+    }
+
+    void
+    PUGREST::set_pug_property( const std::string& t, bool add )
+    {
+        if ( add ) {
+            if ( std::find( property_.begin(), property_.end(), t ) == property_.end() )
+                property_.emplace_back( t );
+        } else {
+            auto it = std::find( property_.begin(), property_.end(), t );
+            if ( it != property_.end() )
+                property_.erase( it );
+        }
     }
 
     const std::vector< std::string >&
