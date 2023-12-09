@@ -24,6 +24,7 @@ add_subdirectory ( adutils )
 
 add_subdirectory ( chromatogr )
 add_subdirectory ( xmlparser )
+add_subdirectory ( pug )
 
 if ( OpenCV_FOUND OR ArrayFire_FOUND )
   add_subdirectory ( adcv )

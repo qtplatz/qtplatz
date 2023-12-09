@@ -48,15 +48,20 @@ if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
   configure_file(
     "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
     "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    )
+  )
   execute_process( COMMAND ${XMLPATTERNS} -no-format
     -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
     ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
     ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-    )
+  )
 endif()
 
 add_definitions( -DCHEMISTRY_LIBRARY )
+
+find_package( OpenSSL )
+if ( NOT OPENSSL_FOUND )
+  add_definitions( -DOPENSSL_FOUND=1 )
+endif()
 
 if ( MSVC )
   add_definitions(
@@ -71,7 +76,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtCore_INCLUDE_DIRS}
   ${QtSvg_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/src         # version.h
+  "${CMAKE_SOURCE_DIR}/src"         # version.h
+  "${OPENSSL_INCLUDE_DIR}"
+  "${CMAKE_SOURCE_DIR}/contrib"     # boost/certify
   )
 
 #if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
@@ -117,6 +124,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Qt::Core
   Qt::Svg
   ${Boost_LIBRARIES}
+  pug
+  certify::sshlib
 )
 
 if ( APPLE )

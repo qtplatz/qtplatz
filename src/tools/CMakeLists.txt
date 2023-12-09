@@ -30,6 +30,4 @@ if ( NOT CMAKE_CROSSCOMPILING )
 
   endif()
 
-  add_subdirectory (pug)
-
 endif()

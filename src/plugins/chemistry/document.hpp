@@ -26,6 +26,7 @@
 
 #include <QObject>
 #include <QSqlDatabase>
+#include <QtCore/qbytearray.h>
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -48,7 +49,7 @@ namespace chemistry {
         static std::mutex mutex_;
     public:
         static document * instance();
-        
+
         void initialSetup();
         void finalClose();
 
@@ -72,12 +73,12 @@ namespace chemistry {
     signals:
         void onConnectionChanged();
         void databaseModified();
-                                  
+
     public slots:
         void ChemSpiderSearch( const QString&, QTextEdit * ); // AsyncSimpleSearch
         void findCSIDFromInChI( const QString& );
+        void PubChem( const QByteArray& );
+
     };
 
 }
-
-

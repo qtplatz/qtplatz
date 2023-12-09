@@ -42,6 +42,7 @@
 #include <QRadioButton>
 #include <QSpacerItem>
 #include <QSignalBlocker>
+#include <boost/json.hpp>
 #include <set>
 
 namespace adwidgets {
@@ -172,6 +173,10 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
         }
         if ( auto btn = add_widget( vLayout, create_widget< QDialogButtonBox >( "btnBox" ) ) ) {
             btn->setStandardButtons( QDialogButtonBox::Apply );
+            connect( btn, &QDialogButtonBox::clicked, [this](){
+                auto json = boost::json::serialize( boost::json::value_from( impl_->d_ ) );
+                emit apply ( QByteArray( json.data(), json.size() ) );
+            });
         }
     }
 

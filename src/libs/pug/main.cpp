@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "http_client_async.hpp"
-#include <QApplication>
 #include <boost/program_options.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -45,8 +44,6 @@ namespace po = boost::program_options;
 int
 main( int argc, char * argv [] )
 {
-    QApplication a( argc, argv );
-
     // https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/PFOS/property/CanonicalSMILES,MolecularFormula,InChiKey/JSON
     // https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/perfuluoroalkylethanol/json?limit=10
 

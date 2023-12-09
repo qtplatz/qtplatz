@@ -29,15 +29,20 @@
 #include "chemspider.hpp"
 #include <adchem/drawing.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/pugrest.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 #include <adprot/aminoacid.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
+#include <pug/http_client_async.hpp>
 #include <app/app_version.h>
 #include <qtwrapper/settings.hpp>
 #include <QTextEdit>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <boost/json.hpp>
+#include <future>
 
 #if defined _MSC_VER
 # pragma warning(disable:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
@@ -59,6 +64,9 @@
 #include <QSettings>
 #include <QSqlDatabase>
 #include <filesystem>
+
+#include <boost/certify/extensions.hpp>
+#include <boost/certify/https_verification.hpp>
 
 namespace chemistry {
 
@@ -534,5 +542,37 @@ document::findCSIDFromInChI( const QString& InChI )
             }
         }
         emit onConnectionChanged(); // this will re-run setQuery
+    }
+}
+
+void
+document::PubChem( const QByteArray& ba )
+{
+    auto pug = boost::json::value_to< adcontrols::PUGREST >(  adportable::json_helper::parse( ba.toStdString() ) );
+
+    auto url = adcontrols::PUGREST::to_url( pug );
+
+    boost::asio::io_context ioc;
+    boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
+    // verify SSL context
+    {
+        ctx.set_verify_mode(boost::asio::ssl::verify_peer |
+                            boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+        ctx.set_default_verify_paths();
+        boost::certify::enable_native_https_server_verification(ctx);
+    }
+    const int version = 10; // 1.0
+    const char * host = "pubchem.ncbi.nlm.nih.gov";
+    const char * port = "https";
+    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run(host, port, url.c_str(), version);
+    ioc.run();
+
+    auto res = future.get();
+    ADDEBUG() << "## response: \n\t" << res.body().data();
+
+    boost::system::error_code ec;
+    auto jv = boost::json::parse( res.body(), ec );
+    if ( !ec ) {
+        ADDEBUG() << "\n" << jv;
     }
 }

@@ -31,8 +31,10 @@
 #include "queryform.hpp"
 #include "rxneditform.hpp"
 #include "sqleditform.hpp"
+#include <QtCore/qbytearray.h>
 #include <QtWidgets/qstackedwidget.h>
 #include <adportable/profile.hpp>
+#include <adportable/json_helper.hpp>
 #include <adchem/sdfile.hpp>
 #include <adwidgets/molview.hpp>
 #include <adwidgets/create_widget.hpp>
@@ -295,6 +297,7 @@ MainWindow::createDockWidgets()
 
     if ( auto w = new adwidgets::PUGRestForm( this ) ) {
         createDockWidget( w, "PubChem", "PubChem" );
+        connect( w, &adwidgets::PUGRestForm::apply, document::instance(), &document::PubChem );
         // connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
         //     document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
         //});
