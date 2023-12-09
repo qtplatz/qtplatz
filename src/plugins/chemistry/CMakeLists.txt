@@ -104,6 +104,7 @@ add_library( ${PROJECT_NAME} MODULE
   sqledit.cpp           sqledit.hpp
   sqleditform.cpp       sqleditform.hpp
   rxneditform.cpp       rxneditform.hpp
+  pubchemwnd.cpp        pubchemwnd.hpp
   ${Resources}
   )
 

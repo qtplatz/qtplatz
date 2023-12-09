@@ -568,11 +568,12 @@ document::PubChem( const QByteArray& ba )
     ioc.run();
 
     auto res = future.get();
-    ADDEBUG() << "## response: \n\t" << res.body().data();
+    ADDEBUG() << "## response: \n" << res.body().data();
+    emit pugReply( QByteArray( res.body().data() ) );
 
-    boost::system::error_code ec;
-    auto jv = boost::json::parse( res.body(), ec );
-    if ( !ec ) {
-        ADDEBUG() << "\n" << jv;
-    }
+    // boost::system::error_code ec;
+    // auto jv = boost::json::parse( res.body(), ec );
+    // if ( !ec ) {
+    //     ADDEBUG() << "\n" << jv;
+    // }
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,8 +31,8 @@
 #include "queryform.hpp"
 #include "rxneditform.hpp"
 #include "sqleditform.hpp"
-#include <QtCore/qbytearray.h>
-#include <QtWidgets/qstackedwidget.h>
+#include "pubchemwnd.hpp"
+
 #include <adportable/profile.hpp>
 #include <adportable/json_helper.hpp>
 #include <adchem/sdfile.hpp>
@@ -56,6 +56,7 @@
 #include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
+#include <QByteArray>
 #include <QDebug>
 #include <QDockWidget>
 #include <QFileDialog>
@@ -201,7 +202,9 @@ MainWindow::createContents()
 
     impl_->stackedWidget_ = new QStackedWidget;
     impl_->stackedWidget_->addWidget( new MolTableWnd );
-    impl_->stackedWidget_->addWidget( new QTextEdit );
+    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< PubChemWnd >( "PubChem" ) ) ) {
+        connect( document::instance(), &document::pugReply, wnd, &PubChemWnd::handleReply );
+    }
 
     if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {
         splitter->addWidget( impl_->stackedWidget_ );
@@ -298,9 +301,6 @@ MainWindow::createDockWidgets()
     if ( auto w = new adwidgets::PUGRestForm( this ) ) {
         createDockWidget( w, "PubChem", "PubChem" );
         connect( w, &adwidgets::PUGRestForm::apply, document::instance(), &document::PubChem );
-        // connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
-        //     document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
-        //});
     }
 }
 
