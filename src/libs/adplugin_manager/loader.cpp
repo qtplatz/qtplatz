@@ -88,8 +88,8 @@ loader::plugin_directory()
 void
 loader::populate( const std::filesystem::path& appdir )
 {
-    ScopedDebug(__t);
-    __t << " : " << appdir;
+    // ScopedDebug(__t);
+    // __t << " : " << appdir;
 
 #if defined __APPLE__
     std::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns

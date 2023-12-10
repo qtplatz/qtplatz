@@ -46,7 +46,7 @@ namespace adcontrols {
                                , "MolecularFormula"
                                , "ExactMass"
                                , "XLogP"
-                               //, "Title"
+                               , "Title"
                                //, "InChIKey"
                                //, "MolecularWeight"
                                //, "IUPACName"

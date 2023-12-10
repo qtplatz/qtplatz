@@ -30,14 +30,17 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <iomanip>
 #include <vector>
 
 namespace {
     struct tokenizer {
         std::vector< std::string > tokens_;
         tokenizer( std::string s ) {
+            if ( s.at(0) == '/' )
+                s.erase( 0, 1 ); // ignore leading '/'
             size_t pos(0);
-            while ( ( pos = s.find( "." ) ) != std::string::npos ) {
+            while ( ( pos = s.find_first_of( "./" ) ) != std::string::npos ) {
                 tokens_.emplace_back( s.substr( 0, pos ) );
                 s.erase( 0, pos + 1 );
             }
@@ -47,6 +50,13 @@ namespace {
         std::vector< std::string >::const_iterator begin() const { return tokens_.begin(); }
         std::vector< std::string >::const_iterator end() const { return tokens_.end(); }
     };
+
+    std::optional<uint32_t> find_number( const std::string& key ) {
+        if ( !key.empty() && key.find_first_not_of( "0123456789" ) != std::string::npos )
+            return {};
+        try {  return std::stol( key ); } catch ( std::exception& ) { /**/ }
+        return {};
+    }
 }
 
 
@@ -80,18 +90,10 @@ boost::json::value
 json_helper::find( const boost::json::value& jv, const std::string& keys ) // dot delimited key-list
 {
     tokenizer tok( keys );
-    boost::json::value value = jv;
-    for ( const auto& key: tok ) {
-        if ( value.kind() != boost::json::kind::object ) {
-            return {}; // none
-        }
-        if ( auto child = value.as_object().if_contains( key ) ) {
-            value = *child;
-        } else {
-            return {};
-        }
+    if ( auto p = if_contains( jv, keys ) ) {
+        return *p;
     }
-    return value;
+    return {};
 }
 
 // static
@@ -101,12 +103,19 @@ json_helper::if_contains( const boost::json::value& jv, const std::string& keys 
     tokenizer tok( keys );
     const boost::json::value * pv = &jv;
     for ( const auto& key: tok ) {
-        if ( ! pv )
+        if ( !pv ) {
             return nullptr;
-        if ( pv->kind() != boost::json::kind::object )
-            return nullptr;
-        if (( pv = pv->as_object().if_contains( key )) )
-            continue;
+        } else if ( pv->kind() == boost::json::kind::object ) {
+            pv = pv->as_object().if_contains( key );
+        } else if ( pv->kind() == boost::json::kind::array ) {
+            if ( auto index = find_number( key ) ) {
+                if ( pv->as_array().size() > *index ) {
+                    pv = &(pv->as_array().at( *index ));
+                } else {
+                    return nullptr;
+                }
+            }
+        }
     }
     return pv;
 }
