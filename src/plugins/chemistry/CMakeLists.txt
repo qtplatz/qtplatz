@@ -121,9 +121,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adprot
   qtwrapper
   Core
-  ${RDKit_LIBRARIES}
   Qt::Core
   Qt::Svg
+  ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   pug
   certify::sshlib

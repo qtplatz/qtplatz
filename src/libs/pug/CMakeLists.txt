@@ -3,11 +3,24 @@ cmake_policy( SET CMP0042 NEW )
 
 project( pug )
 
+add_definitions(-DPUG_LIBRARY)
+
+if ( WIN32 )
+  # OpenSSL default dir when build/install from source
+  set ( OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL" )
+  set ( OPENSSL_USE_STATIC_LIBS TRUE )
+endif()
+
 find_package( OpenSSL )
 
 if ( NOT OPENSSL_FOUND )
   return()
 endif()
+
+message( STATUS "### OPENSSL_FOUND ${OPENSSL_FOUND}" )
+message( STATUS "### OPENSSL_INCLUDE_DIR ${OPENSSL_INCLUDE_DIR}" )
+message( STATUS "### OPENSSL_LIBRARIES ${OPENSSL_LIBRARIES}" )
+message( STATUS "### OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARIES}" )
 
 add_library( sshlib INTERFACE )
 add_library( certify::sshlib ALIAS sshlib )
@@ -39,11 +52,6 @@ add_executable( pubchem
 
 target_link_libraries( ${PROJECT_NAME}
   adportable
-  adfs
-  adui
-  adlog
-  qtwrapper
-  xmlparser
   ${Boost_LIBRARIES}
   certify::sshlib
   OpenSSL::SSL
@@ -61,18 +69,16 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
   LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
   ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
-  )
+)
 
 target_link_libraries( pubchem
   adportable
-  adfs
-  adui
-  adlog
   ${PROJECT_NAME}
   ${Boost_LIBRARIES}
   certify::sshlib
   OpenSSL::SSL
   OpenSSL::Crypto
+  pug
 )
 
 install( TARGETS pubchem RUNTIME DESTINATION bin COMPONENT applications )

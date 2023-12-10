@@ -42,7 +42,7 @@ namespace {
 }
 
 
-session::session(  net::any_io_executor ex,  ssl::context& ctx  )
+session::session(  boost::asio::any_io_executor ex,  boost::asio::ssl::context& ctx  )
     : resolver_( ex )
     , stream_( ex, ctx )
 {
@@ -97,7 +97,7 @@ session::on_connect( beast::error_code ec, tcp::resolver::results_type::endpoint
         return fail( ec, "connect" );
 
     // Perform the SSL handshake
-    stream_.async_handshake(  ssl::stream_base::client
+    stream_.async_handshake(  boost::asio::ssl::stream_base::client
                              ,  beast::bind_front_handler(  &session::on_handshake
                                                            , shared_from_this()  )
          );

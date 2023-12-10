@@ -36,9 +36,6 @@ endif()
 if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
   add_definitions( -wd4251 -wd4244 -wd4819 )
-  # set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE ) <-- this hits to 65535 object limits LNK1189 error
-  # set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4197")
-  # set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4197")
   # list( APPEND CMAKE_PREFIX_PATH "C:/Program Files/LLVM/lib/cmake" )
 endif()
 

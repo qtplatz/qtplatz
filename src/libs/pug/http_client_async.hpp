@@ -12,8 +12,8 @@
 // Example: HTTP client, asynchronous
 //
 //------------------------------------------------------------------------------
-#include "root_certificates.hpp"
 
+#include "pug_global.hpp"
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -35,6 +35,9 @@
 //------------------------------------------------------------------------------
 
 // Performs an HTTP GET and prints the response
+
+class PUGSHARED_EXPORT session;
+
 class session : public std::enable_shared_from_this<session> {
 
     boost::asio::ip::tcp::resolver resolver_;
