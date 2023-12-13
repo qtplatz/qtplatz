@@ -73,12 +73,12 @@ namespace chemistry {
     signals:
         void onConnectionChanged();
         void databaseModified();
-        void pugReply( const QByteArray& );
+        void pugReply( const QByteArray&, const QString& );
 
     public slots:
         void ChemSpiderSearch( const QString&, QTextEdit * ); // AsyncSimpleSearch
         void findCSIDFromInChI( const QString& );
-        void PubChem( const QByteArray& );
+        void PubChemREST( const QByteArray& );
 
     };
 

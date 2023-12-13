@@ -50,10 +50,10 @@ session::session(  boost::asio::any_io_executor ex,  boost::asio::ssl::context& 
 
 // Start the asynchronous operation
 std::future< boost::beast::http::response< boost::beast::http::string_body > >
-session::run(  char const* host, char const* port, char const* target, int version )
+session::run(  const std::string& host, const std::string& port, const std::string& target, int version )
 {
     // Set SNI Hostname ( many hosts need this to handshake successfully )
-    if ( ! SSL_set_tlsext_host_name( stream_.native_handle(), host )  )    {
+    if ( ! SSL_set_tlsext_host_name( stream_.native_handle(), host.c_str() )  )    {
         beast::error_code ec{static_cast<int>( ::ERR_get_error() ), net::error::get_ssl_category()};
         std::cerr << ec.message() << "\n";
         return {};
@@ -68,8 +68,8 @@ session::run(  char const* host, char const* port, char const* target, int versi
     req_.set(  http::field::accept, "application/json" ); //"chemical/x-mdl-sdfile" );
 
     // Look up the domain name
-    resolver_.async_resolve(   host, port
-                              , beast::bind_front_handler(  &session::on_resolve
+    resolver_.async_resolve( host, port
+                             , beast::bind_front_handler(  &session::on_resolve
                                                            , shared_from_this() ) );
     return promise_.get_future();
 }

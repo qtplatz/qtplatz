@@ -80,6 +80,10 @@ namespace adwidgets {
             emit dataChanged();
         }
 
+        void set_url( const QString& url ) {
+            d_.set_pug_url( url.toStdString() );
+        }
+
     signals:
         void dataChanged();
 
@@ -103,22 +107,28 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
 
         if ( auto gridLayout = add_layout( vLayout, create_widget< QGridLayout >("layout_1") ) ) {
             std::tuple< size_t, size_t > xy{0,0};
-            gridLayout->addWidget( create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++);
-            add_widget( gridLayout, create_widget< QLineEdit >( "url", "pubchem.ncbi.nlm.nih.gov" ), std::get<0>(xy), std::get<1>(xy)++);
+            add_widget( gridLayout, create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto edt
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "url", "pubchem.ncbi.nlm.nih.gov" )
+                               , std::get<0>(xy), std::get<1>(xy)++) ) {
+                connect( edt, &QLineEdit::textEdited, impl_, &impl::set_url );
+            }
 
             ++xy;
             std::get<1>(xy)++;
             if ( auto cbx
-                 = add_widget( gridLayout, create_widget< QCheckBox >( "autocomplete", "autocomplete" ), std::get<0>(xy), std::get<1>(xy)++) )
+                 = add_widget( gridLayout, create_widget< QCheckBox >( "autocomplete", "autocomplete" ), std::get<0>(xy), std::get<1>(xy)++) ) {
                 connect( cbx, &QCheckBox::toggled, [&](bool checked){ impl_->set_autocomplete( checked ); });
+            }
 
             ++xy;
             add_widget( gridLayout, create_widget< QLabel >( "query", "Query:" ), std::get<0>(xy), std::get<1>(xy)++ );
-            if ( auto w = add_widget( gridLayout, create_widget< QLineEdit >( "identifier", "apap" ), std::get<0>(xy), std::get<1>(xy)++ ) )
+            if ( auto w
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "identifier", "apap" ), std::get<0>(xy), std::get<1>(xy)++ ) )
                 connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_identify( text ); });
         }
 
-        if ( auto hLayout = add_layout( vLayout, create_widget< QHBoxLayout >("2ndLayout") ) ) {
+        if ( auto hLayout = add_layout( vLayout, create_widget< QHBoxLayout >("layout_2") ) ) {
 
             if ( auto gbx = add_widget( hLayout, create_widget< QGroupBox >("property", "property" ) ) )  {
 
@@ -129,7 +139,8 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
                     for ( auto prop: { "CanonicalSMILES", "MolecularFormula", "MolecularWeight"
                                        , "InChI", "InChIKey", "IUPACName"
                                        , "Title", "XLogP", "ExactMass" } ) {
-                        if ( auto cbx = add_widget( gLayout, create_widget< QCheckBox >( prop, prop ), std::get<0>(lxy), std::get<1>(lxy)++ ) )
+                        if ( auto cbx
+                             = add_widget( gLayout, create_widget< QCheckBox >( prop, prop ), std::get<0>(lxy), std::get<1>(lxy)++ ) )
                             connect( cbx, &QCheckBox::toggled, [cbx,this]( bool checked ){
                                 impl_->set_property( cbx->objectName(), checked ); });
                         if ( std::get<1>(lxy) >= 3 )
@@ -171,6 +182,7 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
                 }
             }
         }
+
         if ( auto btn = add_widget( vLayout, create_widget< QDialogButtonBox >( "btnBox" ) ) ) {
             btn->setStandardButtons( QDialogButtonBox::Apply );
             connect( btn, &QDialogButtonBox::clicked, [this](){
@@ -183,8 +195,10 @@ PUGRestForm::PUGRestForm( QWidget * parent ) : QFrame( parent )
     setData( adcontrols::PUGREST{} );
 
     connect( impl_, &impl::dataChanged, this, [&](){
-        if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) )
+        if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) ) {
             url->setText( QString::fromStdString( adcontrols::PUGREST::to_url( impl_->d_, true ) ) );
+            impl_->set_url( url->text() );
+        }
     });
 }
 

@@ -39,12 +39,6 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT PUGREST;
 
-
-    ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const PUGREST& );
-    ADCONTROLSSHARED_EXPORT PUGREST tag_invoke( const boost::json::value_to_tag< PUGREST >&, const boost::json::value& jv );
-
-    class ADCONTROLSSHARED_EXPORT PUGREST;
-
     class PUGREST {
     public:
         ~PUGREST();
@@ -54,7 +48,7 @@ namespace adcontrols {
         bool pug_autocomplete() const;
         void set_pug_autocomplete( bool );
 
-        const std::vector< std::string >&  pug_properties() const;
+        const std::vector< std::string >& pug_properties() const;
         void set_pug_properties( std::vector< std::string >&& );
         void set_pug_property( const std::string&, bool add );
 
@@ -67,7 +61,14 @@ namespace adcontrols {
         std::string pug_identifier() const;
         void set_pug_identifier( const std::string& );
 
+        std::string pug_url() const;
+        void set_pug_url( const std::string& );
+
         static std::string to_url( const PUGREST&, bool host = false );
+        static std::tuple< std::string   // port 'https'
+                           , std::string // host
+                           , std::string // rest
+                           >  parse_url( const std::string& );
 
     private:
         bool autocomplete_;
@@ -75,6 +76,7 @@ namespace adcontrols {
         std::vector< std::string > property_;  // CanonicalSMILES, ...
         std::string namespace_; // name|cid|inchi, ...
         std::string domain_;
+        std::string url_;
 
         friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const PUGREST& );
         friend ADCONTROLSSHARED_EXPORT PUGREST tag_invoke( const boost::json::value_to_tag< PUGREST >&, const boost::json::value& );

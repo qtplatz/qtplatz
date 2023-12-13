@@ -22,11 +22,10 @@
 **************************************************************************/
 
 #include "pubchemwnd.hpp"
-#include <QtSvg/qsvgrenderer.h>
+#include <QtCore/qjsondocument.h>
+#include <QtGui/qtextdocument.h>
 #include <adchem/drawing.hpp>
 #include <adcontrols/chemicalformula.hpp>
-#include <QtCore/qjsondocument.h>
-#include <QtGui/qtextcursor.h>
 #include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
 #include <adportable/json_helper.hpp>
@@ -41,78 +40,101 @@
 # include <GraphMol/inchi.h>
 #endif
 
-#include <QWidget>
-#include <QTextEdit>
 #include <QBoxLayout>
+#include <QImage>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPainter>
-#include <QImage>
 #include <QSvgRenderer>
+#include <QTextBlock>
+#include <QTextCursor>
+#include <QTextDocument>
+#include <QTextEdit>
+#include <QTextTable>
+#include <QTextTableCell>
+#include <QWidget>
 
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/json/kind.hpp>
 #include <boost/system.hpp>
 #include <boost/json.hpp>
 #include <map>
+#include <memory>
+
+namespace chemistry {
+
+    class PubChemWnd::impl {
+    public:
+        std::unique_ptr< QTextDocument > textDocument_;
+    };
+}
 
 using namespace chemistry;
 
 PubChemWnd::~PubChemWnd()
 {
+    delete impl_;
 }
 
 PubChemWnd::PubChemWnd( QWidget * parent ) : QWidget( parent )
+                                           , impl_( new impl{} )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
         if ( auto edit = adwidgets::add_widget( layout, adwidgets::create_widget< QTextEdit >("pubchem") ) ) {
+            impl_->textDocument_ = std::make_unique< QTextDocument >( edit );
+            edit->setDocument( impl_->textDocument_.get() );
             edit->setAcceptRichText( true );
             edit->ensureCursorVisible();
+            connect( edit, &QTextEdit::selectionChanged, this, [=](){
+                auto cursor = edit->textCursor();
+                auto block = cursor.block();
+                ADDEBUG() << "block.number: " << block.blockNumber() << ", line#" << block.firstLineNumber();
+                ADDEBUG() << block.text().toStdString();
+            });
         }
     }
 }
 
 void
-PubChemWnd::handleReply( const QByteArray& ba )
+PubChemWnd::handleReply( const QByteArray& ba, const QString& url )
 {
     if ( auto edit = findChild< QTextEdit * >() ) {
-        edit->moveCursor( QTextCursor::Start );
 
         std::string smiles;
         boost::system::error_code ec;
+        using adportable::json_helper;
         auto jv = boost::json::parse( ba.toStdString(), ec );
         if ( !ec ) {
-            // rfc6901 (JSON pointer), require boost-1.81 or higher
-#if BOOST_VERSION >= 108100
-            if ( auto p = jv.find_pointer("/PropertyTable/Properties/0/CanonicalSMILES", ec) ) {
+            if ( auto p = json_helper::find_pointer( jv, "/PropertyTable/Properties/0/CanonicalSMILES", ec ) ) {
                 smiles = p->kind() == boost::json::kind::string ? p->as_string() : "";
             }
-#else
-            if ( auto p = adportable::json_helper::if_contains( jv, "/PropertyTable/Properties/0/CanonicalSMILES" ) ) {
-                smiles = p->kind() == boost::json::kind::string ? p->as_string() : "";
-            }
-#endif
         }
+        edit->moveCursor( QTextCursor::Start );
 
         auto cursor = edit->textCursor();
-        cursor.insertText( QString::fromStdString( ba.toStdString() ) );
-        cursor.insertText( "\n" );
-
-        if ( !smiles.empty() ) {
-#if HAVE_RDKit
-            if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles ) ) ) {
-                std::string svg = adchem::drawing::toSVG( *mol );
-                QSvgRenderer renderer( QByteArray( svg.data(), svg.size() ) );
-                QImage image( 200, 200, QImage::Format_ARGB32 );
-                QPainter painter( &image );
-                renderer.render(&painter);
-                // QString img = QString( R"(<img src=%1 width="100" height=100">)" ).arg( QString::fromStdString( svg.c_str() ) );
-                cursor.insertImage( image );
+        cursor.insertBlock( QTextBlockFormat{} );
+        cursor.insertText( QString("<url>%1</url>\n").arg( url ) );
+        if ( auto table = cursor.insertTable( 1, 2 ) ) {
+            {
+                auto cell = table->cellAt( 0, 0 );
+                auto cur = cell.firstCursorPosition();
+                cur.insertText( QString::fromStdString( ba.toStdString() ) );
             }
-#else
-            cursor.insertText( QString("CanonicalSMILES = %1").arg( QString::fromStdString( smiles ) ) );
+#if HAVE_RDKit
+            if ( !smiles.empty() ) {
+                auto cell = table->cellAt( 0, 1 );
+                auto cur = cell.firstCursorPosition();
+                if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles ) ) ) {
+                    std::string svg = adchem::drawing::toSVG( *mol );
+                    QSvgRenderer renderer( QByteArray( svg.data(), svg.size() ) );
+                    QImage image( 200, 200, QImage::Format_ARGB32 );
+                    QPainter painter( &image );
+                    renderer.render(&painter);
+                    cur.insertImage( image );
+                }
 #endif
-            cursor.insertText( "\n------ END OF PUG REST -----\n" );
+            }
         }
-
+        // cursor.insertText( "\n----- END PUG REST -----\n" );
     }
 }

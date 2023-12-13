@@ -45,6 +45,7 @@ namespace adportable {
         static boost::json::value find( const boost::json::value&, const std::string& keys ); // dot delimited key-list
         static boost::json::value find( const std::string& json, const std::string& keys ); // parse & find
         static boost::json::value find( const boost::optional< std::string >&, const std::string& keys ); // parse & find
+        static const boost::json::value * find_pointer( const boost::json::value&, const std::string& keys, boost::system::error_code& ); // JSON pointer (RFC 6901)
 
         template< typename T > static boost::optional< T > value_to( const boost::json::value& jv, const std::string& keys ) {
             auto t = find( jv, keys );

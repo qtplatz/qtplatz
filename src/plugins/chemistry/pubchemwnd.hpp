@@ -34,10 +34,11 @@ namespace chemistry {
         ~PubChemWnd();
 
     public slots:
-        void handleReply( const QByteArray& );
+        void handleReply( const QByteArray&, const QString& url );
 
     private:
-
+        class impl;
+        impl * impl_;
     };
 
 }

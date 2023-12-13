@@ -300,7 +300,7 @@ MainWindow::createDockWidgets()
 
     if ( auto w = new adwidgets::PUGRestForm( this ) ) {
         createDockWidget( w, "PubChem", "PubChem" );
-        connect( w, &adwidgets::PUGRestForm::apply, document::instance(), &document::PubChem );
+        connect( w, &adwidgets::PUGRestForm::apply, document::instance(), &document::PubChemREST );
         connect( w, &adwidgets::PUGRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
     }
 }

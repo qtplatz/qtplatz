@@ -546,28 +546,34 @@ document::findCSIDFromInChI( const QString& InChI )
 }
 
 void
-document::PubChem( const QByteArray& ba )
+document::PubChemREST( const QByteArray& ba )
 {
-    auto pug = boost::json::value_to< adcontrols::PUGREST >(  adportable::json_helper::parse( ba.toStdString() ) );
+    auto rest= boost::json::value_to< adcontrols::PUGREST >(  adportable::json_helper::parse( ba.toStdString() ) );
 
-    auto url = adcontrols::PUGREST::to_url( pug );
+    auto url = rest.pug_url().empty() ? adcontrols::PUGREST::to_url( rest, true ) : rest.pug_url();
+
+    auto urlx = adcontrols::PUGREST::parse_url( url );
+    ADDEBUG() << "url=" << urlx;
+    const int version = 10; // 1.0
+
+    const auto& [port, host, body] = urlx; // const auto& host = std::get<1>(urlx).c_str(); // "pubchem.ncbi.nlm.nih.gov";
+
+    // const char * host = "pubchem.ncbi.nlm.nih.gov";
+    // const char * port = "https";
+    // auto body_s = adcontrols::PUGREST::to_url( rest, true );
+    // const char * body = body_s.c_str();
 
     boost::asio::io_context ioc;
     boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
     // verify SSL context
     {
-        ctx.set_verify_mode(boost::asio::ssl::verify_peer |
-                            boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+        ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
         ctx.set_default_verify_paths();
         boost::certify::enable_native_https_server_verification(ctx);
     }
-    const int version = 10; // 1.0
-    const char * host = "pubchem.ncbi.nlm.nih.gov";
-    const char * port = "https";
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run(host, port, url.c_str(), version);
+    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
 
     auto res = future.get();
-    // ADDEBUG() << "## response: \n" << res.body().data();
-    emit pugReply( QByteArray( res.body().data() ) );
+    emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
 }

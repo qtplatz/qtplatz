@@ -120,6 +120,17 @@ json_helper::if_contains( const boost::json::value& jv, const std::string& keys 
     return pv;
 }
 
+const boost::json::value *
+json_helper::find_pointer( const boost::json::value& jv, const std::string& keys, boost::system::error_code& ec ) // JSON pointer (RFC 6901)
+{
+    ec = {};
+#if BOOST_VERSION >= 108100
+    return jv.find_pointer( keys, ec );
+#else
+    return if_contains( jv, keys );
+#endif
+}
+
 boost::json::value
 json_helper::find( const std::string& s, const std::string& keys ) // dot delimited key-list
 {

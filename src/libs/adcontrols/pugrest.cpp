@@ -24,9 +24,11 @@
 **************************************************************************/
 
 #include "pugrest.hpp"
+#include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
 #include <boost/json.hpp>
 #include <sstream>
+#include <string>
 
 namespace adcontrols {
 
@@ -50,7 +52,7 @@ namespace adcontrols {
                                //, "InChIKey"
                                //, "MolecularWeight"
                                //, "IUPACName"
-        } )
+        })
     {
     }
 
@@ -59,6 +61,7 @@ namespace adcontrols {
                                          , property_( t.property_ )
                                          , namespace_( t.namespace_ )
                                          , domain_( t.domain_ )
+                                         , url_( t.url_ )
     {
     }
 
@@ -136,6 +139,18 @@ namespace adcontrols {
     }
 
     std::string
+    PUGREST::pug_url() const
+    {
+        return url_;
+    }
+
+    void
+    PUGREST::set_pug_url( const std::string& url )
+    {
+        url_ = url;
+    }
+
+    std::string
     PUGREST::to_url( const PUGREST& t, bool host )
     {
         std::ostringstream o;
@@ -163,6 +178,22 @@ namespace adcontrols {
         return o.str();
     }
 
+    std::tuple< std::string, std::string, std::string > // port, host, rest
+    PUGREST::parse_url( const std::string& url )
+    {
+        std::tuple< std::string, std::string, std::string > t{ "https", "pubchem.ncbi.nlm.nih.gov", url };
+        std::string::size_type bpos{0}, pos{0};
+        if ( (pos = url.find( "://", bpos )) != std::string::npos ) {
+            std::get<0>(t) = url.substr( 0, pos );
+            bpos = pos + 3;
+        }
+        if ( (pos = url.find( "/", bpos + 1 )) != std::string::npos ) {
+            std::get<1>(t) = url.substr( bpos, (pos - bpos));
+            std::get<2>(t) = url.substr( pos );
+        }
+        return t;
+    }
+
     void
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const PUGREST& t )
     {
@@ -172,6 +203,7 @@ namespace adcontrols {
             ,{ "property", boost::json::value_from( t.property_ ) }
             ,{ "namespace", t.namespace_ }
             ,{ "domain", t.domain_ }
+            ,{ "url", t.url_ }
         };
     }
 
@@ -188,6 +220,7 @@ namespace adcontrols {
             extract( obj, t.property_, "property" );
             extract( obj, t.namespace_, "namespace" );
             extract( obj, t.domain_, "domain" );
+            extract( obj, t.url_, "url" );
             return t;
         }
         return {};
