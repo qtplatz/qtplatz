@@ -61,7 +61,6 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     if ( ! closed_flag_ ) {
-        ADDEBUG() << "############ SampleProcessor::DTOR without close ###############";
         __close();
     }
 }
@@ -145,6 +144,7 @@ SampleProcessor::__close()
 void
 SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterObserver )
 {
+    ADDEBUG() << "################### " << __FUNCTION__;
     masterObserver_ = masterObserver->shared_from_this();
 
     std::filesystem::path path( sampleRun_->dataDirectory() );
@@ -155,13 +155,19 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
 	std::filesystem::path filename = sampleRun_->filename();
 	filename.replace_extension( ".adfs~" );
 
-	storage_name_ = std::filesystem::canonical( filename );
+    std::error_code ec;
+    storage_name_ = std::filesystem::weakly_canonical( filename, ec );
+    if ( ec ) {
+        ADDEBUG() << "##### Error: " << __FUNCTION__ << "\t" << ec.message();
+    }
 
     sampleRun_->setFilePrefix( filename.stem().wstring() );
 
 	///////////// creating filesystem ///////////////////
-    if ( !fs_->create( storage_name_.wstring().c_str(), 8192*8, 8192 ) )
+    if ( !fs_->create( storage_name_.wstring().c_str(), 8192*8, 8192 ) ) {
+        ADDEBUG() << "############### adfs creation failed: " << storage_name_;
         return;
+    }
 
     adutils::v3::AcquiredConf::create_table_v3( fs_->db() );
     adutils::v3::AcquiredData::create_table_v3( fs_->db() );
