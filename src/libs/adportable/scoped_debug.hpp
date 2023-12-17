@@ -39,8 +39,8 @@ namespace adportable {
                      , const char * function = 0 ) : T( file, line )
                                                    , trig_point_( std::chrono::steady_clock::now() ) {
             if ( function ) {
-                T(file, line) << "<-- " << function;
-                (*this) << "--> " << function << "\t";
+                T(file, line) << "==> " << function;
+                (*this) << "<== " << function << "\t";
             }
         }
         ~scoped_debug(void) {
