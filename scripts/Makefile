@@ -38,12 +38,14 @@ default_darwin:
 	@echo "====================================="
 	@echo "make dependency"
 	@echo "make boost, -- ~/user-config.jam will be created if it does not exists."
+	@echo "make maeparser (depend on boost)"
+	@echo "make rdkit     (depend on maeparser,boost)"
 	@echo "make qwt"
-	@echo "make rdkit"
-	@echo "make opencv"
+	@echo "make netcdf-c"
+	@echo "make opencv" || "make opencv.debug"
 	@echo "make cmake"
 	@echo "You can install"
-	@echo "	brew cask install emacs; brew install gnuplot"
+	@echo "	brew install --cask emacs"
 
 default_debian:
 	@echo "====================================="
@@ -55,6 +57,7 @@ default_debian:
 	@echo "make boost, check python version in your user-config.jam"
 	@echo "make maeparser (depend on boost)"
 	@echo "make rdkit     (depend on maeparser,boost)"
+	@echo "make netcdf-c"
 	@echo "make qwt"
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make fonts"
@@ -166,6 +169,7 @@ qwt:
 	./linux-qwt-setup.sh
 
 netcdf-c:
+	./linux-netcdf-setup.sh clean
 	./linux-netcdf-setup.sh
 
 gnuplot:

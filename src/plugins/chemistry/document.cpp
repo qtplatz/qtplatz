@@ -65,8 +65,12 @@
 #include <QSqlDatabase>
 #include <filesystem>
 
-#include <boost/certify/extensions.hpp>
-#include <boost/certify/https_verification.hpp>
+#if OPENSSL_FOUND
+# include <boost/certify/extensions.hpp>
+# include <boost/certify/https_verification.hpp>
+#else
+# include <pug/root_certificates.hpp>
+#endif
 
 namespace chemistry {
 
@@ -556,21 +560,21 @@ document::PubChemREST( const QByteArray& ba )
     ADDEBUG() << "url=" << urlx;
     const int version = 10; // 1.0
 
-    const auto& [port, host, body] = urlx; // const auto& host = std::get<1>(urlx).c_str(); // "pubchem.ncbi.nlm.nih.gov";
-
-    // const char * host = "pubchem.ncbi.nlm.nih.gov";
-    // const char * port = "https";
-    // auto body_s = adcontrols::PUGREST::to_url( rest, true );
-    // const char * body = body_s.c_str();
+    // "pubchem.ncbi.nlm.nih.gov";
+    const auto& [port, host, body] = urlx;
 
     boost::asio::io_context ioc;
     boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
+#if OPENSSL_FOUND
     // verify SSL context
     {
         ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
         ctx.set_default_verify_paths();
         boost::certify::enable_native_https_server_verification(ctx);
     }
+#else
+    load_root_certificates(ctx);
+#endif
     auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
 

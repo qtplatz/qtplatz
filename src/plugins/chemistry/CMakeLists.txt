@@ -1,10 +1,6 @@
-#cmake_policy( SET CMP0020 NEW )
-#cmake_policy( SET CMP0028 NEW )
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  project( chemistry )
-else()
-  project( Chemistry )
-endif()
+#####
+# chemistry/CMakeLists.txt
+project( Chemistry )
 
 set( PROVIDER MS-Cheminformatics )
 
@@ -16,9 +12,6 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-if ( QT_VERSION_MAJOR LESS_EQUAL 5 )
-  set(COMPAT_VERSION 3.2.81)
-endif()
 set( DESCRIPTION "Chemistry plugin" )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
@@ -44,19 +37,8 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
 endif()
 ####################### END ##########################
 
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
-  execute_process( COMMAND ${XMLPATTERNS} -no-format
-    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
-    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-endif()
-
 add_definitions( -DCHEMISTRY_LIBRARY )
+add_definitions( -DBOOST_CERTIFY_HEADER_ONLY=1 )
 
 find_package( OpenSSL )
 if ( NOT OPENSSL_FOUND )
@@ -80,13 +62,6 @@ include_directories(
   "${OPENSSL_INCLUDE_DIR}"
   "${CMAKE_SOURCE_DIR}/contrib"     # boost/certify
   )
-
-#if ( QT_VERSION_MAJOR GREATER_EQUAL 6 )
-#  include_directories( BEFORE
-#    "${CMAKE_SOURCE_DIR}/qt-creator/src/libs"
-#    "${CMAKE_SOURCE_DIR}/qt-creator/src/plugins"
-#    )
-#endif()
 
 add_library( ${PROJECT_NAME} MODULE
   chemistry_global.hpp

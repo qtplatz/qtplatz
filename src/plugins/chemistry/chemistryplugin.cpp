@@ -27,9 +27,8 @@
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "constants.hpp"
-#include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
-#include <adlog/logging_handler.hpp>
+#include <adportable/scoped_debug.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -37,11 +36,8 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-//#include <coreplugin/mimedatabase.h>
+
 #include <coreplugin/modemanager.h>
-#if QTC_VERSION <= 0x03'02'81
-#include <coreplugin/id.h>
-#endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <extensionsystem/pluginmanager.h>
@@ -54,35 +50,50 @@
 #include <QtWidgets/QStackedWidget>
 #include <QTextEdit>
 #include <QWidget>
-#include <adlog/logger.hpp>
 #include <boost/dll.hpp>
 #include <memory>
 
+namespace chemistry {
+
+    class ChemistryPlugin::impl {
+    public:
+        impl() {}
+        ~impl() {}
+        std::unique_ptr< Mode > mode_;
+        std::unique_ptr< MainWindow > mainWindow_;
+    };
+}
+
 using namespace chemistry;
 
-ChemistryPlugin::ChemistryPlugin()
+ChemistryPlugin::ChemistryPlugin() : impl_( new impl() )
 {
+    ADDEBUG() << "===== ChemistryPlugin  ctor =====";
 }
 
 ChemistryPlugin::~ChemistryPlugin()
 {
-    if ( mode_ )
-        ExtensionSystem::PluginManager::removeObject( mode_.get() );
+    delete impl_;
+    // if ( mode_ )
+    //     ExtensionSystem::PluginManager::removeObject( mode_.get() );
 }
 
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
+    ADDEBUG() << "===== ChemistryPlugin::initialize =====";
+    ScopedDebug( x );
+
     initialize_actions();
 
-    if ((mainWindow_ = std::make_unique< MainWindow >() )) {
-        mainWindow_->activateWindow();
-        mainWindow_->createActions();
+    if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {
+        impl_->mainWindow_->activateWindow();
+        impl_->mainWindow_->createActions();
 
-        if ( QWidget * widget = mainWindow_->createContents( /* mode_.get() */ ) ) {
-            if (( mode_ = std::make_unique< Mode >() )) {
-                mode_->setWidget( widget );
-                ExtensionSystem::PluginManager::addObject( mode_.get() );
+        if ( QWidget * widget = impl_->mainWindow_->createContents( /* mode_.get() */ ) ) {
+            if (( impl_->mode_ = std::make_unique< Mode >() )) {
+                impl_->mode_->setWidget( widget );
+                // ExtensionSystem::PluginManager::addObject( mode_.get() );
             }
         }
         // ADDEBUG() << "ChemistryPlugin initialized";
@@ -104,7 +115,7 @@ ChemistryPlugin::initialize_actions()
                 iconOpen.addFile( ":/dataproc/image/fileopen.png" );
                 if ( auto p = new QAction( iconOpen, tr("SDFile open..."), this ) ) {
                     am->registerAction( p, Constants::SDFILE_OPEN, gc );
-                    connect( p, &QAction::triggered, mainWindow_.get(), &MainWindow::actSDFileOpen );
+                    connect( p, &QAction::triggered, impl_->mainWindow_.get(), &MainWindow::actSDFileOpen );
                 }
             } while ( 0 );
 
@@ -119,13 +130,13 @@ ChemistryPlugin::initialize_actions()
 void
 ChemistryPlugin::extensionsInitialized()
 {
-	mainWindow_->OnInitialUpdate();
+	impl_->mainWindow_->OnInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
 {
-	mainWindow_->OnClose();
+	impl_->mainWindow_->OnClose();
 	return SynchronousShutdown;
 }
 

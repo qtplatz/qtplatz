@@ -12,15 +12,9 @@ if ( WIN32 )
 endif()
 
 find_package( OpenSSL )
-
 if ( NOT OPENSSL_FOUND )
   return()
 endif()
-
-message( STATUS "### OPENSSL_FOUND ${OPENSSL_FOUND}" )
-message( STATUS "### OPENSSL_INCLUDE_DIR ${OPENSSL_INCLUDE_DIR}" )
-message( STATUS "### OPENSSL_LIBRARIES ${OPENSSL_LIBRARIES}" )
-message( STATUS "### OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARIES}" )
 
 add_library( sshlib INTERFACE )
 add_library( certify::sshlib ALIAS sshlib )

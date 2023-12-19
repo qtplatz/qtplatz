@@ -37,11 +37,7 @@ namespace chemistry {
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
-#if QTC_VERSION >= 0x08'00'00
       Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Chemistry.json")
-#else
-      Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "chemistry.json")
-#endif
   public:
 	  ChemistryPlugin();
 	  ~ChemistryPlugin();
@@ -51,8 +47,8 @@ namespace chemistry {
       ShutdownFlag aboutToShutdown();
 
   private:
-	  std::shared_ptr< Mode > mode_;
-	  std::shared_ptr< MainWindow > mainWindow_;
+      class impl;
+      impl * impl_;
 
       void initialize_actions();
 

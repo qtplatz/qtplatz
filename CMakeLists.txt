@@ -32,6 +32,7 @@ if ( APPLE )
   #
   #set( CMAKE_OSX_DEPLOYMENT_TARGET "12.1" CACHE STRING "Minimum OS X deployment version" FORCE )
   add_definitions( -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION )
+  set ( CMAKE_MACOSX_BUNDLE OFF )
 endif()
 if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
@@ -229,9 +230,14 @@ else() # Linux
 endif()
 
 if ( WITH_PYTHON3 )
+  message( STATUS "################## Python3 ############################" )
+
   find_package( Python3 QUIET COMPONENTS Interpreter Development )
 
   if ( Python3_FOUND )
+    message( STATUS "######## Python3 found: python ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}" )
+    message( STATUS "######## Python3_EXECUTABLE ${Python3_EXECUTABLE}" )
+    message( STATUS "######## Python3_LIBRARY_DIRS ${Python3_LIBRARY_DIRS}" )
     if ( WIN32 )
       # workaround: boost_pythonXXYY is the canonical name on windows
       set ( python_libs python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} )
@@ -647,6 +653,7 @@ if ( APPLE )
   message(STATUS "# CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
   message(STATUS "# CMAKE_HOST_SYSTEM_PROCESSOR: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
   message(STATUS "# CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
+  message(STATUS "# CMAKE_MACOSX_BUNDLE:     ${CMAKE_MACOSX_BUNDLE}")
 endif()
 message( STATUS "# CMAKE_BUILD_TYPE      : "  ${CMAKE_BUILD_TYPE} )
 message( STATUS "# CMAKE_GENERATOR       : "  ${CMAKE_GENERATOR} )

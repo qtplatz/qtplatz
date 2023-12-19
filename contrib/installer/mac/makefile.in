@@ -20,11 +20,20 @@ default:
 	@echo "make rpath"
 	@echo "make dmg"
 	@echo
+	@echo "TODO: (workaround to avoid Chemistry clash)"
+	@echo "	cp /opt/homebrew/lib/libssl.3.dylib    qtplatz.app/Contents/Frameworks/"
+	@echo "	cp /opt/homebrew/lib/libcrypto.3.dylib qtplatz.app/Contents/Frameworks/"
 
-world:
+deploy:
 	make app
 	make deployqt
 	make rpath
+	@echo "TODO: (workaround to avoid Chemistry clash)"
+	cp "/opt/homebrew/lib/libssl.3.dylib" "./qtplatz.app/Contents/Frameworks/"
+	cp "/opt/homebrew/lib/libcrypto.3.dylib" "./qtplatz.app/Contents/Frameworks/"
+
+world:
+	make deploy
 	make dmg
 
 # all: qtplatz.app
@@ -45,7 +54,7 @@ translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
 
 dmg: qtplatz.app translations
-	hdiutil create -size 250m ${TARGET} -srcfolder ./qtplatz.app
+	hdiutil create -size 260m ${TARGET} -srcfolder ./qtplatz.app
 
 # ---- debug helpers ----------
 
@@ -60,6 +69,9 @@ otool:
 	-find . -name "libhdf5*.dylib" -exec otool -L {} \;
 	-find . -name "libblosc.1.dylib" -exec otool -L {} \;
 	-find . -name "libzstd.1.dylib" -exec otool -L {} \;
+
+otool-ssl:
+	-find . -name "libChemistry.dylib" -exec otool -L {} \ | grep ssl;
 
 test:
 	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/qtplatz

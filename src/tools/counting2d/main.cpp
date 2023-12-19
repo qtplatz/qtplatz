@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-            std::filesystem::path file = f_directory ? std::filesystem::canonical( _file, cwd ).string() : _file;
+            std::filesystem::path file = f_directory ? std::filesystem::canonical( _file ).string() : _file;
 
             std::string msg;
             auto processor = std::make_shared< adprocessor::dataprocessor >();

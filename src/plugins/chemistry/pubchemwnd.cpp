@@ -138,9 +138,7 @@ PubChemWnd::handleReply( const QByteArray& ba, const QString& url )
                 }
 #endif
             }
-            // cursor = table->cellAt( 0, 0 ).lastCursorPosition();
         }
-
         cursor.movePosition( QTextCursor::Down );
         cursor.insertText( "\n----- END PUG REST -----\n" );
     }

@@ -28,9 +28,6 @@
 #include "outputwindow.hpp"
 #include "logger.hpp"
 #include <coreplugin/icore.h>
-#if QTC_VERSION <= 0x03'02'81
-#include <coreplugin/id.h>
-#endif
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
@@ -107,12 +104,12 @@ using namespace servant::internal;
 
 ServantPlugin::~ServantPlugin()
 {
-    ADDEBUG() << "------------- ServantPlugin dtor ----------------";
+    ADDEBUG() << "----- ServantPlugin dtor -----";
 }
 
 ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
-    ADDEBUG() << "------------- ServantPlugin ctor ----------------";
+    ADDEBUG() << "----- ServantPlugin ctor -----";
 }
 
 bool
@@ -142,18 +139,12 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 {
-    ScopedDebug(__t);
+    //ScopedDebug(__t);
 
     impl_->fin();
     adportable::core::debug_core::instance()->unhook();
     adcontrols::logging_hook::unregister_hook();
 	adlog::logging_handler::instance()->close();
 
-    // __t << " Shutdown: \t" << std::filesystem::relative( boost::dll::this_line_location()
-    //                                                      , boost::dll::program_location().parent_path() );
 	return SynchronousShutdown;
 }
-
-#if QTC_VERSION < 0x08'00'00
-Q_EXPORT_PLUGIN( ServantPlugin );
-#endif
