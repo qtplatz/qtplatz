@@ -13,8 +13,9 @@ if ( NOT CMAKE_CROSSCOMPILING )
 
   if ( QT_FOUND AND rdkit_FOUND )
 
-    add_subdirectory (eventtool)
-    add_subdirectory (sdfview)
+    add_subdirectory ( eventtool )
+    add_subdirectory ( sdfview )
+    add_subdirectory ( molcat )
 
     if ( HDF5_FOUND )
       add_subdirectory (counting)
