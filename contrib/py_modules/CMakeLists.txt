@@ -3,6 +3,10 @@ if ( NOT Python3_FOUND )
   message( FATAL_ERROR "##### Python3 requred #####")
 endif()
 
+if ( WIN32 )
+  include_directories( ${CMAKE_SOURCE_DIR}/src/libs ) # compiler/decl_export
+endif()
+
 if ( NOT Boost_PYTHON_FOUND )
   if ( WIN32 )
     message( STATUS  "##### boost_python was not found -- expecting auto link #####")

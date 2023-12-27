@@ -116,9 +116,6 @@ VideoPlugin::aboutToShutdown()
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
                                                       , boost::dll::program_location().parent_path() );
 #endif
-    
+
     return SynchronousShutdown;
 }
-
-Q_EXPORT_PLUGIN2(VIDEO, VideoPlugin)
-

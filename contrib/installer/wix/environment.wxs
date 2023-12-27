@@ -1,0 +1,11 @@
+<CPackWiXPatch>
+  <CPackWiXFragment Id="CM_CP_applications.bin.adcontrols.dll">
+    <Environment Id="MY_CUSTOM_PATH"
+                 Action="set"
+                 Name="PATH"
+                 Part="last"
+                 Permanent="yes"
+                 System="yes"
+                 Value="[INSTALL_ROOT]bin" />
+  </CPackWiXFragment>
+</CPackWiXPatch>

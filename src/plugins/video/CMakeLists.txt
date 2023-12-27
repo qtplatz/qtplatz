@@ -32,19 +32,23 @@ if ( ArrayFire_FOUND )
   include_directories ( ${ArrayFire_INCLUDE_DIRS} )
 endif()
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/../pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
+qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
+
+########## QtCreator 8 (Qt5/6) plugin.json #############
+if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
+  find_package( QtCreator REQUIRED COMPONENTS Core )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
   )
+else()
+  message( FATAL_ERROR "IDE_VERSION" )
+endif()
+####################### END ##########################
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-
-find_package( qwt )
-
+#find_package( qwt )
 add_definitions(  -DVIDEO_LIBRARY  )
 
 if ( WIN32 )

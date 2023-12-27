@@ -151,6 +151,8 @@ if ( WIN32 )
     PATHS
     "C:/Program Files (x86)/WiX Toolset v3.11"
     "C:/Program Files (x86)/WiX Toolset v3.14" )
+  set ( MY_CUSTOM_PATH "C:\\qtplatz\\bin")
+  set ( CPACK_WIX_PATCH_FILE "${CMAKE_SOURCE_DIR}/contrib/installer/wix/environment.wxs" )
 endif()
 
 if ( APPLE )
@@ -503,8 +505,10 @@ config_qtplatz_config( "FALSE" )  # in source tree
 install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake
   DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
-install( FILES "${CMAKE_SOURCE_DIR}/qt-creator/src/app/qtcreator.ico"
-  DESTINATION "${CPACK_INSTALL_PREFIX}/share/qtplatz" COMPONENT runtime_libraries )
+if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
+  install( FILES "${CMAKE_SOURCE_DIR}/qt-creator/src/app/qtcreator.ico"
+    DESTINATION "${CPACK_INSTALL_PREFIX}/share/qtplatz" COMPONENT runtime_libraries )
+endif()
 
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/doxyfile.in

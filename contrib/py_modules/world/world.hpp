@@ -27,8 +27,11 @@
 
 #include <string>
 #include <memory>
+#include <compiler/decl_export.h>
 
 namespace adcontrols { class ChemicalFormula; }
+
+class DECL_EXPORT world;
 
 class world {
 public:

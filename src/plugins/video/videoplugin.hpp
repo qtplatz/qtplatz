@@ -24,7 +24,6 @@
 
 #pragma once
 
-//#include "quan_global.hpp"
 #include <extensionsystem/iplugin.h>
 #include <memory>
 
@@ -35,9 +34,8 @@ namespace video {
 
     class VideoPlugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
-        Q_PLUGIN_METADATA( IID "com.ms-cheminfo.QtPlatzPlugin" FILE "video.json" )
-
-        public:
+		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "video.json")
+    public:
         VideoPlugin();
         ~VideoPlugin();
 
@@ -54,5 +52,3 @@ namespace video {
     };
 
 } // namespace video
-
-
