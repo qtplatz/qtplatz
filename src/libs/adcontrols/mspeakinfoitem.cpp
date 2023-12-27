@@ -604,7 +604,7 @@ namespace adcontrols {
     }
 
     ///////// XML archive ////////
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     serialize( boost::archive::xml_woarchive& ar, MSPeakInfoItem& t, const unsigned int version )
     {
 #if __GNUC__
@@ -614,7 +614,7 @@ namespace adcontrols {
 #endif
     }
 
-    template<> void
+    template<> ADCONTROLSSHARED_EXPORT void
     serialize( boost::archive::xml_wiarchive& ar, MSPeakInfoItem& t, const unsigned int version )
     {
 #if __GNUC__

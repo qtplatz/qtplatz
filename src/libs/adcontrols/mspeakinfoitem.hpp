@@ -48,7 +48,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSPeakInfoItem;
 
-    // template< typename Archive > ADCONTROLSSHARED_EXPORT void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
+    template< typename Archive > ADCONTROLSSHARED_EXPORT void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
 
     class MSPeakInfoItem {
     public:
