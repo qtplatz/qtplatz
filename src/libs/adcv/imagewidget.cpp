@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "imagewidget.hpp"
-//#include "graphicsview.hpp"
 #include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QEvent>
@@ -32,6 +31,7 @@
 #include <QPainter>
 #include <QRect>
 #include <QStyle>
+#include <QScrollBar>
 #include <QtOpenGL>
 #include <QWheelEvent>
 

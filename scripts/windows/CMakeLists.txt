@@ -7,7 +7,6 @@ if ( NOT WIN32 )
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../cmake/Modules" )
-#include ( ${CMAKE_CURRENT_LIST_DIR}/../../qtplatz.cmake )
 
 get_filename_component( SRCDIR "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
 set ( BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR} )
@@ -257,7 +256,7 @@ find_path( maeparser_dirs
 if ( maeparser_dirs )
   set( RDK_BUILD_MAEPARSER_SUPPORT "ON" )
   list( APPEND CMAKE_MODULE_PATH "${MAEPARSER_INSTALL_PREFIX}/lib" )
-  find_package( maeparser )
+#  find_package( maeparser )
 endif()
 
 
@@ -332,6 +331,7 @@ message( STATUS "QWT_SOURCE_DIR      = " ${QWT_SOURCE_DIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS "Python3_FOUND       = " ${Python3_FOUND} )
 if ( Python3_FOUND )
-  message( STATUS "\tEXECUTABLE     = " ${PYTHON3_EXECUTABLE} "(" ${Python3_EXECUTABLE} ")")
-  message( STATUS "\tNUMPY_INCLUDE  = " ${PYTHON_NUMPY_INCLUDE_DIR} "(" ${PYTHON_NUMPY_INCLUDE_PATH} ")")
+  message( STATUS "\tEXECUTABLE     = ${PYTHON3_EXECUTABLE}" )
+  message( STATUS "\tNUMPY_INCLUDE  = ${PYTHON_NUMPY_INCLUDE_DIR}" )
 endif()
+message( STATUS "BUILD_ROOT          = ${BUILD_ROOT}" )

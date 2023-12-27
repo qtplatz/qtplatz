@@ -48,7 +48,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSPeakInfoItem;
 
-    template< typename Archive > void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
+    // template< typename Archive > ADCONTROLSSHARED_EXPORT void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
 
     class MSPeakInfoItem {
     public:
@@ -152,7 +152,8 @@ namespace adcontrols {
         friend class archiver< const MSPeakInfoItem >;
 
         friend class internal::CentroidProcessImpl;
-        template< typename Archive > friend void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
+        template< typename Archive > ADCONTROLSSHARED_EXPORT
+        friend void serialize(Archive & ar, MSPeakInfoItem&, const unsigned int version);
     };
 
 
