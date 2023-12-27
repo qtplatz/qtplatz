@@ -67,3 +67,12 @@ install( FILES
 if ( UNIX AND CMAKE_CROSSCOMPILING )
   install ( FILES qtplatz.conf DESTINATION /etc/ld.so.conf.d COMPONENT runtime_libraries )
 endif()
+
+if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/qtplatz.conf.in"
+    "${CMAKE_BINARY_DIR}/etc/qtplatz.conf"
+    @ONLY
+  )
+  install ( FILES "${CMAKE_BINARY_DIR}/etc/qtplatz.conf" DESTINATION /etc/ld.so.conf.d COMPONENT runtime_libraries )
+endif()
