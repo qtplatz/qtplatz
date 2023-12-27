@@ -27,11 +27,6 @@
 
 #include <string>
 #include <memory>
-#include <compiler/decl_export.h>
-
-namespace adcontrols { class ChemicalFormula; }
-
-class DECL_EXPORT world;
 
 class world {
 public:
@@ -44,5 +39,4 @@ public:
     double mass() const;
 private:
     std::string msg_;
-    std::shared_ptr< adcontrols::ChemicalFormula > cf_;
 };

@@ -25,7 +25,6 @@
 
 #include <boost/python.hpp>
 #include "world.hpp"
-#include <adcontrols/chemicalformula.hpp>
 
 using namespace boost::python;
 
@@ -38,10 +37,5 @@ BOOST_PYTHON_MODULE( world )
         .def( "set", &world::set )
         .def( "dup", &world::dup )
         .def( "mass", &world::mass )
-        ;
-
-    double (adcontrols::ChemicalFormula::*d1)( const std::string&, bool ) const = &adcontrols::ChemicalFormula::getMonoIsotopicMass;
-    class_ < adcontrols::ChemicalFormula >( "ChemicalFormula" )
-        .def( "getMonoIsotopicMass", d1 )
         ;
 }

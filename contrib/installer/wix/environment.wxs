@@ -4,8 +4,13 @@
                  Action="set"
                  Name="PATH"
                  Part="last"
-                 Permanent="yes"
                  System="yes"
                  Value="[INSTALL_ROOT]bin" />
+    <Environment Id="MY_CUSTOM_PYTHONPATH"
+                 Action="set"
+                 Name="PYTHONPATH"
+                 Part="last"
+                 System="yes"
+                 Value="[INSTALL_ROOT]python3.11/site-packages" />
   </CPackWiXFragment>
 </CPackWiXPatch>

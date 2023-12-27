@@ -18,7 +18,6 @@ add_library( ${PROJECT_NAME} MODULE
   )
 
 target_link_libraries( ${PROJECT_NAME}
-  adcontrols
   ${Python3_LIBRARIES}
   ${Boost_LIBRARIES}
   )

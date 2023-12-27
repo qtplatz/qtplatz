@@ -25,9 +25,8 @@
 
 #include <iostream>
 #include "world.hpp"
-#include <adcontrols/chemicalformula.hpp>
 
-world::world() : cf_( std::make_shared< adcontrols::ChemicalFormula >() )
+world::world()
 {
     std::cout << "world ctor" << std::endl;
 }
@@ -51,9 +50,7 @@ world::set( std::string msg )
 double
 world::mass() const
 {
-    if ( cf_ )
-        return cf_->getMonoIsotopicMass( msg_ );
-    return 0;
+    return 9999.999;
 }
 
 std::string
