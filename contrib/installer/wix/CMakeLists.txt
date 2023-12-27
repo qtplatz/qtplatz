@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 3.7)
 project( wix_installer )
 
+configure_file(
+  "${PROJECT_SOURCE_DIR}/environment.wxs.in"
+  "${PROJECT_BINARY_DIR}/environment.wxs"  @ONLY  )
+
 #-------------------------
 # configure_file(  "${PROJECT_SOURCE_DIR}/installdir.xml.in"  "${CMAKE_BINARY_DIR}/installdir.xml"  @ONLY  )
 #-------------------------

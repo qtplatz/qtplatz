@@ -11,6 +11,6 @@
                  Name="PYTHONPATH"
                  Part="last"
                  System="yes"
-                 Value="[INSTALL_ROOT]python3.11/site-packages" />
+                 Value="[INSTALL_ROOT]python@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages" />
   </CPackWiXFragment>
 </CPackWiXPatch>

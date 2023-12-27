@@ -152,7 +152,7 @@ if ( WIN32 )
     "C:/Program Files (x86)/WiX Toolset v3.11"
     "C:/Program Files (x86)/WiX Toolset v3.14" )
   set ( MY_CUSTOM_PATH "C:\\qtplatz\\bin")
-  set ( CPACK_WIX_PATCH_FILE "${CMAKE_SOURCE_DIR}/contrib/installer/wix/environment.wxs" )
+  set ( CPACK_WIX_PATCH_FILE "${CMAKE_BINARY_DIR}/contrib/installer/wix/environment.wxs" )
 endif()
 
 if ( APPLE )
