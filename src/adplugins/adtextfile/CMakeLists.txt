@@ -54,7 +54,7 @@ add_library( ${PROJECT_NAME} MODULE
   txt_tokenizer.hpp
 )
 
-include_directories( ## ${PROJECT_NAME} PUBLIC
+include_directories(
   ${QtWidgets_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/src/app
 )

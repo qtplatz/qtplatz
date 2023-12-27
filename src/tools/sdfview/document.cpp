@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "document.hpp"
-#include <app_version.h>
 #include "mainwindow.hpp"
 #include "moltablewnd.hpp"
 #include <adchem/sdfile.hpp>
@@ -62,7 +61,7 @@ namespace {
 
         impl() : settings_(
             QSettings::IniFormat, QSettings::UserScope
-            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR ) // "QtPlatz"
+            , QLatin1String( "QtPlatz" ) // "QtPlatz"
             , QLatin1String( "sdfview" ) )   {
         }
     };

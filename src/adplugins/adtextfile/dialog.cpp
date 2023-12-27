@@ -28,7 +28,6 @@
 #include <adportable/debug.hpp>
 #include <ratio>
 #include <QDebug>
-#include </home/toshi/src/build-Linux-x86_64/qtplatz-qt6.5.release/qtplatz/src/app/app_version.h>
 //#include <app_version.h>
 
 using namespace adtextfile;
