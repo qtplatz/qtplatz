@@ -503,6 +503,9 @@ config_qtplatz_config( "FALSE" )  # in source tree
 install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake
   DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
+install( FILES "${CMAKE_SOURCE_DIR}/qt-creator/src/app/qtcreator.ico"
+  DESTINATION "${CPACK_INSTALL_PREFIX}/share/qtplatz" COMPONENT runtime_libraries )
+
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/doxyfile.in
   ${QTPLATZ_BINARY_DIR}/Doxyfile )

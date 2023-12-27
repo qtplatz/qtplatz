@@ -23,11 +23,10 @@ configure_file(
 
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
-#include_directories( ${QtCore_INCLUDE_DIRS}  )
-include_directories(
-  ${QtWidgets_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/src    # app_version.h
-  )
+##get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+##foreach(dir ${dirs})
+##  message(STATUS "dir='${dir}'")
+##endforeach()
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
 
@@ -53,9 +52,14 @@ add_library( ${PROJECT_NAME} MODULE
   txt_reader.hpp
   txt_tokenizer.cpp
   txt_tokenizer.hpp
-  )
+)
 
-target_link_libraries( adtextfile LINK_PUBLIC
+include_directories( ## ${PROJECT_NAME} PUBLIC
+  ${QtWidgets_INCLUDE_DIRS}
+  ${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/src/app
+)
+
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
   adcontrols
   adlog

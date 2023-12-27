@@ -409,7 +409,7 @@ WaveformWnd::handleSampleProgress( double elapsed_time, double method_time, cons
         using namespace std::chrono_literals;
         std::chrono::system_clock::time_point tp{ std::chrono::microseconds( posix_time / 1000 ) };
 #else
-        std::chrono::system_clock::time_point tp( std::chrono::nanoseconds( posix_time ) );
+        std::chrono::system_clock::time_point tp{ std::chrono::nanoseconds( posix_time ) };
 #endif
         using namespace date;
         std::ostringstream o;

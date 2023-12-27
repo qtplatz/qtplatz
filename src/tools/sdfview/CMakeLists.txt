@@ -37,8 +37,8 @@ include_directories(
   ${QtSql_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
-  ${CMAKE_SOURCE_DIR}/src/app           # app_version.h
-  )
+  ${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/src/app
+)
 
 add_executable( ${PROJECT_NAME}
   main.cpp

@@ -19,12 +19,6 @@ add_subdirectory( libs )
 if ( WITH_QT5 AND NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( adplugins )
   add_subdirectory( plugins )
-
-  ############# QtCreator3 base ###############
-  if ( IDE_VERSION VERSION_LESS "8.0.0" )
-    add_subdirectory( app )
-  endif()
-
 endif()
 
 if ( NOT WIN32 )

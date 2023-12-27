@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "document.hpp"
-#include "app_version.h"
+#include <app_version.h>
 #include "mainwindow.hpp"
 #include "moltablewnd.hpp"
 #include <adchem/sdfile.hpp>

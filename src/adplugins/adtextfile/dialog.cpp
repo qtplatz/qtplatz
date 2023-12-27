@@ -27,8 +27,9 @@
 #include <QStandardItemModel>
 #include <adportable/debug.hpp>
 #include <ratio>
-#include <app/app_version.h>
 #include <QDebug>
+#include </home/toshi/src/build-Linux-x86_64/qtplatz-qt6.5.release/qtplatz/src/app/app_version.h>
+//#include <app_version.h>
 
 using namespace adtextfile;
 
@@ -36,7 +37,7 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
                                 , ui(new Ui::Dialog)
                                 , settings_( QSettings::IniFormat
                                              , QSettings::UserScope
-                                             , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                             , QLatin1String( "QtProject" ) //, QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                              , QLatin1String( "adtextfile" ) )
                                 , nColumns_( 0 )
 {

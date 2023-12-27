@@ -70,9 +70,9 @@ endif()
 
 if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   configure_file(
-    "${PROJECT_SOURCE_DIR}/qtplatz.conf.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/qtplatz.conf.in"
     "${CMAKE_BINARY_DIR}/etc/qtplatz.conf"
     @ONLY
   )
-  install ( FILES "${CMAKE_BINARY_DIR}/etc/qtplatz.conf" DESTINATION /etc/ld.so.conf.d COMPONENT runtime_libraries )
+  install ( FILES "${CMAKE_BINARY_DIR}/etc/qtplatz.conf" DESTINATION "/etc/ld.so.conf.d" COMPONENT runtime_libraries )
 endif()
