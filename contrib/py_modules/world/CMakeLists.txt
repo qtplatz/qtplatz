@@ -15,20 +15,38 @@ add_library( ${PROJECT_NAME} MODULE
   world.cpp
   world.hpp
   py_world.cpp
-  )
+)
 
 target_link_libraries( ${PROJECT_NAME}
   ${Python3_LIBRARIES}
   ${Boost_LIBRARIES}
-  )
+)
+
+add_library( hello_ext MODULE
+  hello.cpp
+)
+
+target_link_libraries( hello_ext
+  ${Python3_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
 if ( WIN32 )
-  set ( suffix ".dll" )
+  set ( suffix ".pyd" )
 else()
   set ( suffix ".so" )
 endif()
 
 set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  PREFIX ""
+  SUFFIX ${suffix}
+  LIBRARY_OUTPUT_DIRECTORY ${PYTHON_MODULE_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PYTHON_MODULE_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PYTHON_MODULE_DIR}
+)
+
+set_target_properties( hello_ext
   PROPERTIES
   PREFIX ""
   SUFFIX ${suffix}

@@ -38,7 +38,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   )
 
 if ( WIN32 )
-  set ( suffix ".dll" )
+  set ( suffix ".pyd" )
 else()
   set ( suffix ".so" )
 endif()

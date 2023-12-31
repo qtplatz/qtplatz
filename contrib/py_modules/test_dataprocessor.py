@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+import os
+if os.name == 'nt':
+    os.add_dll_directory( 'c:/QtPlatz/bin' )
+
 from qtplatz import py_adcontrols, py_adprocessor;
 import pprint
 import numpy as np

@@ -39,7 +39,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 message( STATUS "PROJECT_BIANRY_DIR: " ${PROJECT_BINARY_DIR} )
 
 if ( WIN32 )
-  set ( suffix ".dll" )
+  set ( suffix ".pyd" )
 else()
   set ( suffix ".so" )
 endif()
