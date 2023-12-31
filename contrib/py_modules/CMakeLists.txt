@@ -8,29 +8,25 @@ if ( WIN32 )
 endif()
 
 if ( NOT Boost_PYTHON_FOUND )
-  if ( WIN32 )
-    message( STATUS  "##### boost_python was not found -- expecting auto link #####")
-    add_definitions( -DBOOST_PYTHON_STATIC_LIB )
-  else()
-    find_package( Boost 1.75 REQUIRED COMPONENTS python )
-  endif()
+  find_package( Boost 1.75 REQUIRED COMPONENTS python )
 endif()
 
 if ( NOT ${Boost_PYTHON_FOUND} )
-  message( FATAL_ERROR "################### Boost_PYTHON_FOUND ######################: ${Boost_PYTHON_FOUND}" )
+  message( FATAL_ERROR "## Boost_PYTHON_FOUND ##: ${Boost_PYTHON_FOUND}" )
 endif()
 
 if ( APPLE )
-  set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages/qtplatz )
+  set( PYTHON_MODULE_DIR
+    ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages/qtplatz )
 else()
   set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/qtplatz )
 endif()
 
 if ( WIN32 )
-  #  set( PYTHON_DIST_PACKAGES "C:/Python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
   set( PYTHON_DIST_PACKAGES "python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
 elseif( APPLE )
-  set( PYTHON_DIST_PACKAGES "${CMAKE_INSTALL_PREFIX}/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
+  set( PYTHON_DIST_PACKAGES
+    "${CMAKE_INSTALL_PREFIX}/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
 else()
   set( PYTHON_DIST_PACKAGES "/usr/local/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/dist-packages" )
 endif()
@@ -65,6 +61,7 @@ endif()
 
 add_subdirectory( py_adprocessor )
 
+install( FILES "__init__.py"    DESTINATION "${PYTHON_DIST_PACKAGES}" COMPONENT py_modules )
 install( FILES "__init__.py"    DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT py_modules )
 install( FILES "jupyter-run.sh" DESTINATION bin COMPONENT py_modules )
 install( DIRECTORY "../jupyter-notebook" DESTINATION share COMPONENT py_modules )
