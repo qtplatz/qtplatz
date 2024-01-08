@@ -33,6 +33,7 @@
 #include "sessionmanager.hpp"
 #include "actionmanager.hpp"
 #include "utility.hpp"
+#include <QtGui/qkeysequence.h>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -708,11 +709,17 @@ namespace { // anonymous
             if ( rows_.size() > 0 ) {
                 for ( auto index: rows_ ) {
                     auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
-                    if ( processor && folium )
-                        processor->setAttribute( folium, std::move( keyValue ) );
+                    if ( processor && folium ) {
+                        if ( std::get<1>(keyValue) == "!*" ) {
+                            auto value = folium.attribute( std::get<0>(keyValue) ) == "true" ? "false" : "true";
+                            processor->setAttribute( folium, { std::get<0>(keyValue), value } );
+                        } else {
+                            processor->setAttribute( folium, std::move( keyValue ) );
+                        }
+                    }
                 }
-                auto pair = std::minmax_element( rows_.begin(), rows_.end() );
-                emit const_cast< QAbstractItemModel * >( std::get<0>(pair)->model() )->dataChanged( *std::get<0>(pair), *std::get<1>(pair) );
+                auto [topL,botR] = std::minmax_element( rows_.begin(), rows_.end() );
+                emit const_cast< QAbstractItemModel * >( topL->model() )->dataChanged( *topL, *botR );
             }
         }
     };
@@ -1634,10 +1641,14 @@ NavigationWidget::eventFilter( QObject * obj, QEvent * ev )
                 copy_generator();
                 return true;
             }
-        } else if ( ke->key() == Qt::Key_Backspace ) {
-            set_attribute{ impl_->treeView()->selectionModel()->selectedRows() }( { "remove", "true" } );
-        } else if ( ke->matches( QKeySequence::Delete ) ) {
-            set_attribute{ impl_->treeView()->selectionModel()->selectedRows() }( { "remove", "true" } );
+        } else if ( ke->matches( QKeySequence::Backspace ) ) {
+            ADDEBUG() << "============ ke->matches Backspace ===========";
+            qDebug() << ke;
+        } else if (( ke->key() == Qt::Key_Backspace ) || ( ke->matches( QKeySequence::Delete ) )) {
+            ADDEBUG() << "============ ke->matches Key_Backspace|Delete ===========";
+            qDebug() << ke;
+            set_attribute{ impl_->treeView()->selectionModel()->selectedRows() }( { "remove", "!*" } );
+            return true;
         }
     }
     return QObject::eventFilter( obj, ev );

@@ -1,13 +1,9 @@
-# Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-# Copyright (C) 2013-2023 MS-Cheminformatics LLC
+# Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+# Copyright (C) 2013-2024 MS-Cheminformatics LLC
 # Contact: toshi.hondo@qtplatz.com
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  project( dataproc )
-else()
-  project( Dataproc )
-endif()
+project( Dataproc )
 
 set( PROVIDER "MS-Cheminformatics" )
 
@@ -34,26 +30,6 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   )
 endif()
 ####################### END ##########################
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/dataproc-mimetype.xml"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
-  )
-
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-endif()
-
-#find_package( qwt )
 
 add_definitions(
   -DDATAPROC_LIBRARY
@@ -125,11 +101,6 @@ add_library( ${PROJECT_NAME} MODULE
 )
 
 if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
-  set( EXTENSIONSYSTEM "ExtensionSystem" )
-  set( UTILS "Utils" )
-else()
-  set( EXTENSIONSYSTEM "extensionsystem" )
-  set( UTILS "utils" )
 endif()
 
 if ( WIN32 )
@@ -152,8 +123,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adutils
   adwidgets
   chromatogr
-  ${EXTENSIONSYSTEM}
-  ${UTILS}
+  ExtensionSystem
+  Utils
   portfolio
   qtwrapper
   xmlparser
@@ -181,10 +152,3 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   LIBRARY DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.18" )
-  install( FILES
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
-    DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
-endif()

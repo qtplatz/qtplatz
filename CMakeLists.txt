@@ -1,6 +1,6 @@
 #
 if ( WIN32 )
-  cmake_minimum_required ( VERSION 3.20.1 )
+  cmake_minimum_required ( VERSION 3.20.1 )  # cmake_path() required 3.20
 else()
   cmake_minimum_required ( VERSION 3.18.2 )  # for GREATER_EQUAL
 endif()
