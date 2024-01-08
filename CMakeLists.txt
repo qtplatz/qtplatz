@@ -71,6 +71,13 @@ set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
 find_package( netCDF QUIET )
 
+if ( WIN32 )
+  # OpenSSL default dir when build/install from source
+  set ( OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL" )
+  set ( OPENSSL_USE_STATIC_LIBS FALSE )
+endif()
+find_package( OpenSSL QUIET )
+
 ################################################################
 #
 if ( WITH_QT5 )
@@ -455,6 +462,9 @@ if ( WIN32 )
   if ( OpenCV_FOUND )
     include( opencv-cpack )
   endif()
+  if ( OPENSSL_FOUND )
+    include( openssl-cpack )
+  endif()
 
 elseif( APPLE )
 
@@ -650,7 +660,10 @@ if ( WITH_PYTHON3 )
   message( STATUS "# Python3               : " ${Python3_VERSION} )
 endif()
 if ( netCDF_FOUND )
-  message( STATUS "# netCDF                : "  "${NetCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
+  message( STATUS "# netCDF                : ${NetCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
+endif()
+if ( OPENSSL_FOUND )
+  message( STATUS "# OpenSSL               : ${OPENSSL_VERSION}  ${OPENSSL_LIBRARIES}" )
 endif()
 message( STATUS "# TARGET_ARCHITECTURE   : "  ${__arch} )
 if ( CROSS_COMPILING )
