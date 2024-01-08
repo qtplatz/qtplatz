@@ -33,7 +33,6 @@
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
-// #include "dataprocfactory.hpp"
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
 #include "mspeaktable.hpp"

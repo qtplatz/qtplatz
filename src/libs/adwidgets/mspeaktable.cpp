@@ -509,7 +509,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
-    ScopedDebug(__t);
+    //ScopedDebug(__t);
 	QStandardItemModel& model = *impl_->model_;
 
     setUpdatesEnabled( false );

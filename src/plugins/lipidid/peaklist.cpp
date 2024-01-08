@@ -55,7 +55,7 @@ PeakList::PeakList( QWidget *parent ) : adwidgets::TableView( parent )
 void
 PeakList::handleDataChanged( const portfolio::Folium& folium )
 {
-    ScopedDebug(__t);
+    //ScopedDebug(__t);
 
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {

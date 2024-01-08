@@ -115,7 +115,7 @@ ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
-    ScopedDebug(__t);
+    //ScopedDebug(__t);
 
     Q_UNUSED(arguments);
 	(void)error_message;

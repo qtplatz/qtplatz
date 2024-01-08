@@ -1165,6 +1165,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot:
             double max_y = ms.intensity( ms.max_element( std::make_pair( std::get<0>(range), std::get<1>(range) ) ) );
 
             for ( const auto& a: ms.get_annotations() ) {
+                // ADDEBUG() << "-- annotation: " << std::make_tuple( a.text(), a.dataFormat(), a.flags() );
                 if ( a.dataFormat() != adcontrols::annotation::dataJSON ) {
                     if (( a.index() >= 0 ) && adportable::bounds( range ).contains( a.x() ) ) {
                         auto tmp( a );
@@ -1178,7 +1179,8 @@ SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot:
                 // generate auto-annotation
                 for ( size_t i = 0; i < ms.size(); ++i ) {
                     if ( compare_range()( range, ms.value( i ), isTimeAxis_ ) ) {
-                        if ( std::find_if ( avec.begin(), avec.end(), [i]( const auto& a ){ return a.index() == int(i); } ) == avec.end() ) {
+                        if ( std::find_if ( avec.begin(), avec.end()
+                                            , [i]( const auto& a ){ return a.index() == int(i); } ) == avec.end() ) {
                             a_avec.emplace_back( ( boost::format( "%.3f" ) % ms.mass( i ) ).str()
                                                  , isTimeAxis_ ? (ms.time( i ) * std::micro::den) : ms.mass( i )
                                                  , ms.intensity( i )
@@ -1187,7 +1189,8 @@ SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot:
                         }
                     }
                 }
-                std::sort( a_avec.begin(), a_avec.end(), [](const auto& a, const auto& b){ return a.priority() > b.priority(); } );
+                std::sort( a_avec.begin(), a_avec.end()
+                           , [](const auto& a, const auto& b){ return a.priority() > b.priority(); } );
             }
         }
 

@@ -685,10 +685,12 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
             if ( auto ms = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() ) ) {
                 if ( ms->isHistogram() || !ms->isCentroid() ) {
                     auto atts = folium.attachments();
-                    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
+                    auto itCentroid =
+                        std::find_if( atts.begin(), atts.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
                     if ( itCentroid != atts.end() ) {
                         if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( itCentroid->data() ) ) {
-                            if ( auto processed = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( itCentroid->data() ) ) {
+                            if ( auto processed =
+                                 boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( itCentroid->data() ) ) {
                                 // if has targeting...
                                 size_t i(0);
                                 for ( auto& xms: adcontrols::segment_wrapper<>( *processed ) ) {
@@ -1507,7 +1509,9 @@ DataprocessorImpl::applyMethod( Dataprocessor *
 
                 if ( (*targeting)(*centroid) ) {
 
-                    fCentroid.erase_attachment( Constants::F_TARGETING, [](auto t){ ADDEBUG() << "erase attachment: " << t; } );
+                    fCentroid.erase_attachment( Constants::F_TARGETING
+                                                , [](auto t){ ADDEBUG() << "erase attachment: " << t; } );
+
                     portfolio::Folium att = fCentroid.addAttachment( Constants::F_TARGETING );
 
                     att.assign( targeting, adcontrols::Targeting::dataClass() );

@@ -182,18 +182,19 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
             auto synonym = std::get< impl::active_formula_synonym >( aformula );
             auto formula = std::get< impl::active_formula_formula >( aformula );
 
-
             std::string display_name;
             if ( !synonym.empty() && synonym.size() < 8 ) {
                 display_name = synonym;
             } else {
                 auto v = ChemicalFormula::split( formula );
-                display_name = ( boost::format("%.1f") % adcontrols::ChemicalFormula().getMonoIsotopicMass( v.at(0).first, false ) ).str();
+                display_name = ( boost::format("%.1f")
+                                 % adcontrols::ChemicalFormula().getMonoIsotopicMass( v.at(0).first, false ) ).str();
             }
 
             using namespace adcontrols::cf;
             display_name += " " + ChemicalFormula::formatFormulae( formula, {Charge{scharge}, RichText{true}, {"M"} } );
 
+            //ADDEBUG() << "------------- Targeting::find_candidate: " << std::make_tuple( scharge, synonym, formula, display_name );
             candidates_.emplace_back( uint32_t( pos )
                                       , fcn
                                       , scharge
@@ -211,6 +212,7 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
 bool
 Targeting::operator()( const MassSpectrum& ms )
 {
+    ADDEBUG() << "------------- Targeting --------------";
     candidates_.clear();
 
     if ( !ms.isCentroid() )
@@ -230,6 +232,7 @@ Targeting::operator()( const MassSpectrum& ms )
 bool
 Targeting::operator()( MassSpectrum& ms )
 {
+    ADDEBUG() << "------------- Targeting --------------";
     if ( (*this)( static_cast< const MassSpectrum& >( ms ) ) ) {
 
         // erase existing annotations & colors
@@ -241,15 +244,19 @@ Targeting::operator()( MassSpectrum& ms )
         adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
 
         for ( auto& candidate : candidates_ ) {
+
             do {
                 ////////////// isotope cluster match ///////////////
                 // generate cluster pattern
                 auto neutral = adcontrols::ChemicalFormula::neutralize( candidate.formula );
-#if !defined NDEBUG && 0
-                ADDEBUG() << "candidate.formula: " << candidate.formula << ", neutral: " << neutral;
-#endif
-                auto v_peak = isotopeCluster( 1.0e-6, 7000 )( ChemicalFormula::split( neutral.first ), neutral.second );
-                auto bp = std::max_element( v_peak.begin(), v_peak.end(), [](const auto& a, const auto& b){ return a.abundance < b.abundance; }); // base peak
+
+                ADDEBUG() << "\t" << boost::json::value_from( candidate ) << ", neutral: " << neutral;
+
+                auto v_peak =
+                    isotopeCluster( 1.0e-6, 7000 )( ChemicalFormula::split( neutral.first ), neutral.second );
+                auto bp =
+                    std::max_element( v_peak.begin(), v_peak.end()
+                                      , [](const auto& a, const auto& b){ return a.abundance < b.abundance; }); // base peak
 
                 auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
 
@@ -257,10 +264,12 @@ Targeting::operator()( MassSpectrum& ms )
                 size_t nCarbons = ChemicalFormula::number_of_atoms( neutral.first, "C" );
 
                 std::vector< targeting::isotope > isotopes( v_peak.size() );
-                std::transform( v_peak.begin(), v_peak.end(), isotopes.begin(), [](const auto& v){ return targeting::isotope(-1, 0, 0, 0, v.mass, v.abundance ); });
+                std::transform( v_peak.begin(), v_peak.end(), isotopes.begin()
+                                , [](const auto& v){ return targeting::isotope(-1, 0, 0, 0, v.mass, v.abundance ); });
 
                 // order of abundance desc
-                std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_abundance > b.exact_abundance; });
+                std::sort( isotopes.begin(), isotopes.end()
+                           , [](const auto& a, const auto& b){ return a.exact_abundance > b.exact_abundance; });
 
                 // remove most abundant peak that is equivalent to candidate
                 isotopes.erase( isotopes.begin() );
@@ -270,7 +279,8 @@ Targeting::operator()( MassSpectrum& ms )
                     auto pos = finder( tms, it->exact_mass + error );
 
                     if ( pos != MassSpectrum::npos ) {
-                        auto pIt = std::find_if( isotopes.begin(), it, [pos]( const auto& a ){ return a.idx == pos; });
+                        auto pIt = std::find_if( isotopes.begin(), it
+                                                 , [pos]( const auto& a ){ return a.idx == pos; });
                         if ( pIt == it ) { // if not already exists
                             i.idx = pos;
                             i.mass = tms.mass( pos ) - error; // base peak locked
@@ -288,7 +298,8 @@ Targeting::operator()( MassSpectrum& ms )
                 }
 
                 (void)nCarbons; // ignore isotope detection check
-                std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_mass < b.exact_mass; });
+                std::sort( isotopes.begin(), isotopes.end()
+                           , [](const auto& a, const auto& b){ return a.exact_mass < b.exact_mass; });
                 auto tail = std::find_if( isotopes.rbegin(), isotopes.rend(), [](const auto& a){ return a.idx >= 0; } );
                 isotopes.erase( tail.base(), isotopes.end() );
 
@@ -304,8 +315,12 @@ Targeting::operator()( MassSpectrum& ms )
                 int pri = 1000 * (std::log10( tms.intensity( candidate.idx ) / tms.maxIntensity() ) + 15); // 0..15000
 
                 tms.get_annotations()
-                    << annotation( candidate.formula, tms.mass( candidate.idx )
-                                   , tms.intensity( candidate.idx ), candidate.idx, pri, annotation::dataFormula, annotation::flag_targeting );
+                    << annotation( candidate.display_name // candidate.formula
+                                   , tms.mass( candidate.idx )
+                                   , tms.intensity( candidate.idx )
+                                   , candidate.idx, pri
+                                   , annotation::dataText // annotation::dataFormula
+                                   , annotation::flag_targeting );
                 // annotate isotopes
                 std::string text = "*"; // ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
                 for ( const auto& i: candidate.isotopes ) {
@@ -314,7 +329,10 @@ Targeting::operator()( MassSpectrum& ms )
                             tms.setColor( i.idx, 16 ); // dark orange
                             int xpri = pri * i.exact_abundance;
                             tms.get_annotations()
-                                << annotation( text, tms.mass( i.idx ), tms.intensity( i.idx ), i.idx, xpri, annotation::dataText, annotation::flag_targeting );
+                                << annotation( text
+                                               , tms.mass( i.idx )
+                                               , tms.intensity( i.idx )
+                                               , i.idx, xpri, annotation::dataText, annotation::flag_targeting );
                         }
                     }
                 }
@@ -322,7 +340,8 @@ Targeting::operator()( MassSpectrum& ms )
         }
 
         // erase lower score candidates
-        candidates_.erase( std::remove_if( candidates_.begin(), candidates_.end(), [](const auto& c ){ return c.score < 0; }), candidates_.end() );
+        candidates_.erase( std::remove_if( candidates_.begin(), candidates_.end()
+                                           , [](const auto& c ){ return c.score < 0; }), candidates_.end() );
 
         return true;
     }
@@ -397,7 +416,7 @@ Targeting::setup( const TargetingMethod& m )
                 std::tie( mass, scharge ) = cf.getMonoIsotopicMass( ChemicalFormula::split( x.formula() + x.adducts(pol) ), 0 );
                 impl_->active_formula_.emplace_back( formula, mass, scharge, x.formula(), x.synonym() );
 
-            } else if ( addlose_global.empty() ) { // historical infiTOF -- all global checke is off
+            } else if ( addlose_global.empty() ) { // historical infiTOF -- all global check is off
                 auto formula = x.formula();
                 for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
                     int scharge = m.molecules().polarity() == polarity_positive ? charge : -static_cast<int>(charge);
@@ -420,7 +439,7 @@ Targeting::setup( const TargetingMethod& m )
                             , scharge
                             , x.formula()
                             , x.synonym() );
-                        // ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back() << " addlose: " << addlose;
+                        ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back() << " addlose: " << addlose;
                     }
                 }
             }
