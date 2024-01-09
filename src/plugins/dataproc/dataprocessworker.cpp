@@ -366,11 +366,17 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
 		threads_.push_back( adportable::asio::thread( [=,this] { io_service_.run(); } ) );
 
     if ( spectra->mslocked() ) {
-        int result = QMessageBox::question( MainWindow::instance()
-                                            , QObject::tr("Already mass locked")
-                                            , QObject::tr( "delete assigned masses?" )
-                                            , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
-        if ( result == QMessageBox::No )
+        QMessageBox mb(QMessageBox::Question
+                       , "QtPlatz/DataprocessWorker"
+                       , QObject::tr("Already mass locked\n\nDelete assigned masses?" )
+                       , QMessageBox::No | QMessageBox::Escape
+                       , MainWindow::instance() );
+        mb.addButton( QMessageBox::Yes );
+        // int result = QMessageBox::question( MainWindow::instance()
+        //                                     , QObject::tr("Already mass locked")
+        //                                     , QObject::tr( "delete assigned masses?" )
+        //                                     , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+        if ( mb.exec() == QMessageBox::No )
             return;
     }
 

@@ -161,12 +161,13 @@ namespace adwidgets {
         case c_mspeaktable_mass_error:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() ) {
                 double error = index.data().toDouble();
-                drawDisplay( painter, op, option.rect, (boost::format( "%.7g" ) % (error * 1000)).str().c_str() );
+                drawDisplay( painter, op, option.rect, (boost::format( "%.4g" ) % (error * 1000)).str().c_str() );
             }
             break;
         case c_mspeaktable_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_intensity ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+                drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 5 ) );
+            // drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
             break;
         case c_mspeaktable_relative_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_relative_intensity ), Qt::EditRole ).toString().isEmpty() )
@@ -182,8 +183,14 @@ namespace adwidgets {
             // if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_jcb2009_tR ), Qt::EditRole ).isValid() )
             drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
             break;
-        case c_mspeaktable_mode:
         case c_mspeaktable_description:
+            DelegateHelper::render_html( painter, option, index.data().toString() );
+            break;
+        case c_mspeaktable_mass_width:
+        case c_mspeaktable_time_width:
+            drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 2 ) ) ;
+            break;
+        case c_mspeaktable_mode:
         case c_mspeaktable_num_columns:
         default:
             QItemDelegate::paint( painter, option, index );
@@ -494,7 +501,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
             model.setData( model.index( row, c_mspeaktable_exact_mass ), it->exact_mass );
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass - it->exact_mass );
-            model.setData( model.index( row, c_mspeaktable_description ), tr( "Target candidate" ) );
+            model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->display_name ) );
 
             setRowHidden( row, false );
             matchCount++;
@@ -623,7 +630,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
         QString protlabel;
 
         auto& descs = fms.getDescriptions();
-        auto it = std::find_if( descs.begin(), descs.end(), [] ( const adcontrols::description& d ){ return d.key<char>() == "acquire.protocol.label"; } );
+        auto it = std::find_if( descs.begin(), descs.end()
+                                , [] ( const adcontrols::description& d ){ return d.key<char>() == "acquire.protocol.label"; } );
         if ( it != descs.end() ) {
             protlabel = QString::fromStdWString( (boost::wformat( L"#%d %s" ) % fcn % it->text<wchar_t>() ).str() );
         } else {
