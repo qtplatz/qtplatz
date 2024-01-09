@@ -149,7 +149,7 @@ namespace adwidgets {
         case c_mspeaktable_time:
             op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
             drawDisplay( painter, op, option.rect
-                         , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
+                         , QString::number( scale_to_micro( index.data( Qt::EditRole ).toDouble() ), 'f', 5 ) );
             break;
         case c_mspeaktable_exact_mass:
             if ( ! index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() )
@@ -161,17 +161,17 @@ namespace adwidgets {
         case c_mspeaktable_mass_error:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() ) {
                 double error = index.data().toDouble();
-                drawDisplay( painter, op, option.rect, (boost::format( "%.4g" ) % (error * 1000)).str().c_str() );
+                drawDisplay( painter, op, option.rect, QString::number( error, 'g', 5 ) );
             }
             break;
         case c_mspeaktable_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_intensity ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 5 ) );
+                drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 7 ) );
             // drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
             break;
         case c_mspeaktable_relative_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_relative_intensity ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, op, option.rect, (boost::format( "%.4lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+                drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 4 ) );
             break;
         case c_mspeaktable_formula:
             do {
@@ -181,7 +181,7 @@ namespace adwidgets {
             break;
         case c_mspeaktable_jcb2009_tR:
             // if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_jcb2009_tR ), Qt::EditRole ).isValid() )
-            drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+            drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 2 ) );
             break;
         case c_mspeaktable_description:
             DelegateHelper::render_html( painter, option, index.data().toString() );

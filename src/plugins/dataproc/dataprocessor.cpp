@@ -646,7 +646,8 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
 
 void
 Dataprocessor::applyProcess( portfolio::Folium& folium
-                             , const adcontrols::ProcessMethod& m, ProcessType procType )
+                             , const adcontrols::ProcessMethod& m
+                             , ProcessType procType )
 {
     if ( folium ) {
         adcontrols::ProcessMethod method;
@@ -680,34 +681,37 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium, this ), data );
 
+        ADDEBUG() << "post processing...";
         // post processing -- update annotation etc.
         if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( folium.data() ) ) {
+            // profile (top-level spectrum)
             if ( auto ms = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() ) ) {
-                if ( ms->isHistogram() || !ms->isCentroid() ) {
-                    auto atts = folium.attachments();
-                    auto itCentroid =
-                        std::find_if( atts.begin(), atts.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
-                    if ( itCentroid != atts.end() ) {
-                        if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( itCentroid->data() ) ) {
-                            if ( auto processed =
-                                 boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( itCentroid->data() ) ) {
-                                // if has targeting...
-                                size_t i(0);
-                                for ( auto& xms: adcontrols::segment_wrapper<>( *processed ) ) {
-                                    auto& tms = adcontrols::segment_wrapper<>( *ms )[ i ];
-                                    for ( const auto& a: xms.get_annotations() ) {
-                                        if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
-                                            double mass = processed->mass( a.index() );
-                                            adcontrols::annotation anno( a );
-                                            // ADDEBUG() << a.text();
-                                            anno.index( ms->getIndexFromMass( mass, true ) );
-                                            anno.x( mass );
-                                            anno.y( tms.intensity( anno.index() ) );
-                                            tms.get_annotations() << anno;
-                                        }
+
+                auto atts = folium.attachments();
+                auto itCentroid =
+                    std::find_if( atts.begin(), atts.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
+                if ( itCentroid != atts.end() ) {
+                    if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( itCentroid->data() ) ) {
+                        if ( auto processed =
+                             boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( itCentroid->data() ) ) {
+                            // if has targeting...
+                            size_t i(0);
+                            for ( auto& xms: adcontrols::segment_wrapper<>( *processed ) ) {
+                                auto& tms = adcontrols::segment_wrapper<>( *ms )[ i ];
+                                tms.get_annotations().clear();
+                                for ( const auto& a: xms.get_annotations() ) {
+                                    ADDEBUG() << "\t---> annotation: " << std::make_tuple( a.text(), a.x() );
+                                    if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
+                                        double mass = processed->mass( a.index() );
+                                        adcontrols::annotation anno( a );
+                                        // ADDEBUG() << a.text();
+                                        anno.index( ms->getIndexFromMass( mass, true ) );
+                                        anno.x( mass );
+                                        anno.y( tms.intensity( anno.index() ) );
+                                        tms.get_annotations() << anno;
                                     }
-                                    ++i;
                                 }
+                                ++i;
                             }
                         }
                     }
@@ -1491,6 +1495,7 @@ DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
     return ptr; // can be null
 }
 
+////////////////////////////////////////
 /////////////// targetting /////////////
 bool
 DataprocessorImpl::applyMethod( Dataprocessor *
@@ -1505,19 +1510,15 @@ DataprocessorImpl::applyMethod( Dataprocessor *
 
             if ( auto targeting = std::make_shared< adcontrols::Targeting >(m) ) {
 
-                // ADDEBUG() << "doSpectraolProcess -- Targeting";
-
                 if ( (*targeting)(*centroid) ) {
 
                     fCentroid.erase_attachment( Constants::F_TARGETING
                                                 , [](auto t){ ADDEBUG() << "erase attachment: " << t; } );
 
-                    portfolio::Folium att = fCentroid.addAttachment( Constants::F_TARGETING );
+                    auto att = fCentroid.addAttachment( Constants::F_TARGETING ).assign( targeting, adcontrols::Targeting::dataClass() );
 
-                    att.assign( targeting, adcontrols::Targeting::dataClass() );
-
-                    auto mptr = std::make_shared< adcontrols::ProcessMethod >( m );
-                    att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
+                    att.addAttachment( L"Process Method" ).assign( std::make_shared< adcontrols::ProcessMethod >( m )
+                                                                   , adcontrols::ProcessMethod::dataClass() );
 
                     return true;
                 }
