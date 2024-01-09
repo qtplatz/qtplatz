@@ -681,7 +681,6 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium, this ), data );
 
-        ADDEBUG() << "post processing...";
         // post processing -- update annotation etc.
         if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( folium.data() ) ) {
             // profile (top-level spectrum)
@@ -700,11 +699,9 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
                                 auto& tms = adcontrols::segment_wrapper<>( *ms )[ i ];
                                 tms.get_annotations().clear();
                                 for ( const auto& a: xms.get_annotations() ) {
-                                    ADDEBUG() << "\t---> annotation: " << std::make_tuple( a.text(), a.x() );
                                     if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
                                         double mass = processed->mass( a.index() );
                                         adcontrols::annotation anno( a );
-                                        // ADDEBUG() << a.text();
                                         anno.index( ms->getIndexFromMass( mass, true ) );
                                         anno.x( mass );
                                         anno.y( tms.intensity( anno.index() ) );

@@ -250,7 +250,7 @@ Targeting::operator()( MassSpectrum& ms )
                 // generate cluster pattern
                 auto neutral = adcontrols::ChemicalFormula::neutralize( candidate.formula );
 
-                ADDEBUG() << "\t" << boost::json::value_from( candidate ) << ", neutral: " << neutral;
+                // ADDEBUG() << "\t" << boost::json::value_from( candidate ) << ", neutral: " << neutral;
 
                 auto v_peak =
                     isotopeCluster( 1.0e-6, 7000 )( ChemicalFormula::split( neutral.first ), neutral.second );
