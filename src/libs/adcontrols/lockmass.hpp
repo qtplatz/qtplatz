@@ -130,7 +130,7 @@ namespace adcontrols {
             size_t size() const;
             bool empty() const;
 
-            static bool findReferences( mslock&,  const adcontrols::MassSpectrum& );
+            // static bool findReferences( mslock&,  const adcontrols::MassSpectrum& );
             static bool findReferences( mslock&,  const adcontrols::MassSpectrum&, int idx, int fcn );
             bool fit();
             bool operator()( MassSpectrum&, bool applyToAll = true ) const; // correct mass array

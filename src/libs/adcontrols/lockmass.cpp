@@ -206,7 +206,7 @@ mslock::setProperty( std::pair< std::string, std::string >&& keyValue )
 }
 
 ///////////////////
-
+#if 0
 // static
 bool
 mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms )
@@ -228,6 +228,7 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms )
     }
     return true;
 }
+#endif
 
 // static
 bool
