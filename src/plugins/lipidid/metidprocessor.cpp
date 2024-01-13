@@ -213,14 +213,14 @@ MetIdProcessor::compute_reference_spectrum( const std::string& formula // contai
     auto cluster = isoCluster::compute( formula );
     std::vector< double > masses, intensities;
     std::vector< uint8_t > colors;
-    refMs->get_annotations()
-        << adcontrols::annotation( formula
-                                   , cluster.at(0).first // mass
-                                   , cluster.at(0).second * abundance
-                                   , masses.size() // index
-                                   , int( cluster.at(0).second * abundance )
-                                   , adcontrols::annotation::dataFormula
-                                   , adcontrols::annotation::flag_targeting );
+    refMs->addAnnotation({
+            formula
+            , cluster.at(0).first // mass
+            , cluster.at(0).second * abundance
+            , int( masses.size() ) // index
+            , int( cluster.at(0).second * abundance )
+            , adcontrols::annotation::dataFormula
+            , adcontrols::annotation::flag_targeting });
     for ( const auto& ipk: cluster ) {
         masses.emplace_back( ipk.first );
         intensities.emplace_back( ipk.second * abundance );

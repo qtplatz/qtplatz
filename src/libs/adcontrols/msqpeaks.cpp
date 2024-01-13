@@ -172,7 +172,7 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
 
             ident_[ dataGuid ] = std::make_pair( profGuid, dataSource );
 
-            const auto& annots = fms.get_annotations();
+            const auto& annots = fms.annotations();
             auto& prop = fms.getMSProperty();
 
             for ( uint32_t idx = 0; idx < fms.size(); ++idx ) {

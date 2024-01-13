@@ -322,7 +322,7 @@ QuanChromatograms::refine_chromatograms( const std::string& reader_objtext
                         mspk->formula( ( *itChro )->formula() );
 
                         adcontrols::annotation anno( mspk->formula(), mspk->mass(), mspk->height(), int( idx ), int( mspk->height() ), adcontrols::annotation::dataFormula );
-                        fms.get_annotations() << anno;
+                        fms.addAnnotation( std::move( anno ) );
 
                         auto qc = std::make_shared< QuanCandidate >( ( *itChro )->formula()
                                                                      , reader_objtext_

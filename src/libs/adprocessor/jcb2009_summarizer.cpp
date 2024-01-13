@@ -104,11 +104,11 @@ summarizer::operator()( std::shared_ptr< const adcontrols::MassSpectrum > pCentr
     auto dIt = adcontrols::segment_wrapper< T >( *impl_->pSummary_ ).begin();
 
     for ( auto& ms: adcontrols::segment_wrapper< const T >( *pCentroid ) ) {
-        for ( auto anno: ms.get_annotations() ) {
+        for ( auto anno: ms.annotations() ) {
             if ( anno.index() >= 0 ) {
                 size_t idx = (*dIt) << std::make_pair( ms.mass( anno.index() ), ms.intensity( anno.index() ) );
                 anno.index( int(idx) ); // replace index
-                (*dIt).get_annotations() << anno;
+                (*dIt).addAnnotation( std::move( anno ) );
             }
         }
         ++dIt;

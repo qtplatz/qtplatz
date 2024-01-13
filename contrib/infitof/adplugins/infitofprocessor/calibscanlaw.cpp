@@ -156,7 +156,7 @@ CalibScanLaw::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
 
     for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
         int mode = fms.getMSProperty().mode();
-        for ( const auto& a: fms.get_annotations() ) {
+        for ( const auto& a: fms.annotations() ) {
             if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
                 dlg.addPeak( a.index()
                              , QString::fromStdString( a.text() )

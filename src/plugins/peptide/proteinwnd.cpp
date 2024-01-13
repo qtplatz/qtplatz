@@ -144,8 +144,7 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
     }
 
     spectrum_->setCentroid( adcontrols::CentroidNative );
-    adcontrols::annotations& annots = spectrum_->get_annotations();
-    annots.clear();
+    spectrum_->annotations().clear();
 	double lMass = spectrum_->mass( 0 );
 	double hMass = spectrum_->mass( spectrum_->size() - 1 );
     spectrum_->setAcquisitionMassRange( double( int( lMass / 10 ) * 10 ), double( int( ( hMass + 10 ) / 10 ) * 10 ) );
@@ -267,8 +266,7 @@ ProteinWnd::setData( const adprot::peptides& peptides )
 
         spectrum_->resize( 0 );
 		spectrum_->setCentroid( adcontrols::CentroidNative );
-        adcontrols::annotations& annots = spectrum_->get_annotations();
-		annots.clear();
+        spectrum_->annotations().clear();
 
         auto it = std::max_element( peptides.begin(), peptides.end()
                                     , [](const adprot::peptide& lhs, const adprot::peptide& rhs){ return lhs.mass() < rhs.mass(); });
@@ -283,7 +281,7 @@ ProteinWnd::setData( const adprot::peptides& peptides )
             double mass = peptide.mass() + proton; // M+H+
             double h = 10 + ( idx % 16 ) * 10;
             (*spectrum_) << std::make_pair( mass, h );
-            annots << adcontrols::annotation( peptide.sequence(), mass, h, idx, 0 );
+            spectrum_->addAnnotation( { peptide.sequence(), mass, h, idx, 0 } );
             ++idx;
         }
         spectrumWidget_->setAutoAnnotation( false );

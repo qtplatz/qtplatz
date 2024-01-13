@@ -751,7 +751,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     }
 
     // take annotation on last drawn spectrum, which has annotations
-    if ( ! ptr->get_annotations().empty() ) {
+    if ( ! ptr->annotations().empty() ) {
         impl_->msForAnnotation_ = ptr;
         impl_->yAxisForAnnotation_ = axis;
         update_annotation( false );
@@ -1164,7 +1164,7 @@ SpectrumWidget::impl::update_annotations( plot& plot, const QRectF& rc, QwtPlot:
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
             double max_y = ms.intensity( ms.max_element( std::make_pair( std::get<0>(range), std::get<1>(range) ) ) );
 
-            for ( const auto& a: ms.get_annotations() ) {
+            for ( const auto& a: ms.annotations() ) {
                 // ADDEBUG() << "-- annotation: " << std::make_tuple( a.text(), a.dataFormat(), a.flags() );
                 if ( a.dataFormat() != adcontrols::annotation::dataJSON ) {
                     if (( a.index() >= 0 ) && adportable::bounds( range ).contains( a.x() ) ) {

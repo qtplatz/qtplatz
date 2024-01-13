@@ -219,14 +219,14 @@ namespace adwidgets {
                 if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
                     if ( !formula.empty() ) {
-                        ms.get_annotations() << adcontrols::annotation( formula
-                                                                        , ms.mass( idx )
-                                                                        , ms.intensity( idx )
-                                                                        , idx
-                                                                        , 0
-                                                                        , adcontrols::annotation::dataFormula );
+                        ms.addAnnotation({ formula
+                                , ms.mass( idx )
+                                , ms.intensity( idx )
+                                , idx
+                                , 0
+                                , adcontrols::annotation::dataFormula } );
                     } else {
-                        ms.get_annotations().erase_if( [&](const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
+                        ms.annotations().erase_if( [&](const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
                     }
                     return true;
                 }

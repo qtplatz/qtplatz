@@ -277,7 +277,7 @@ BOOST_PYTHON_MODULE( py_adcontrols )
         .def( "numProtocols",       &adcontrols::MassSpectrum::numSegments )
         .def( "protocol",           &adcontrols::MassSpectrum::getProtocol )
         .def< const adcontrols::annotations& (adcontrols::MassSpectrum::*)() const >(
-            "annotations",          &adcontrols::MassSpectrum::get_annotations, return_internal_reference<>() )
+            "annotations",          &adcontrols::MassSpectrum::annotations, return_internal_reference<>() )
         .def( "isCentroid",         &adcontrols::MassSpectrum::isCentroid )
         .def( "isHistogram",        &adcontrols::MassSpectrum::isHistogram )
         .def( "polarity",           &adcontrols::MassSpectrum::polarity )

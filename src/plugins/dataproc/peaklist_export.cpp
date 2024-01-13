@@ -81,7 +81,7 @@ peaklist_export::text_export( const std::filesystem::path& path )
                             adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *centroid );
                             int fcn = 0;
                             for ( auto& ms: segments ) {
-                                const adcontrols::annotations& annots = ms.get_annotations();
+                                const adcontrols::annotations& annots = ms.annotations();
                                 for ( size_t n = 0; n < ms.size(); ++n ) {
                                     outf << fcn << ",\t" << n << ",\t"
                                          << std::scientific << std::setprecision( 15 ) << ms.time( n ) << ",\t"
@@ -206,8 +206,8 @@ namespace {
                 int proto(0);
                 for ( const auto& msp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >(*ms) ) {
                     if ( auto info = t.findProtocol( proto ) ) {
-                        auto annots = msp.get_annotations();
-                        for ( auto anno: msp.get_annotations() ) {
+                        auto annots = msp.annotations();
+                        for ( auto anno: msp.annotations() ) {
                             // ADDEBUG() << "anno: " << proto << ", text: " << anno.text() << ", index: " << anno.index() << ", fmt: " << anno.dataFormat();
                             if ( anno.dataFormat() == adcontrols::annotation::dataFormula ) {
                                 if ( anno.index() < info->size() ) {
@@ -262,7 +262,7 @@ namespace {
 
             uint32_t proto(0);
             for ( const auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( t ) ){
-                auto a = ms.get_annotations();
+                auto a = ms.annotations();
                 for ( size_t i = 0; i < ms.size(); ++i ) {
                     auto it = std::find_if( a.begin(), a.end()
                                             , [&]( const auto& x ){

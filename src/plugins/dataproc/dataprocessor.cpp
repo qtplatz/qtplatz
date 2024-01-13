@@ -697,15 +697,15 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
                             size_t i(0);
                             for ( auto& xms: adcontrols::segment_wrapper<>( *processed ) ) {
                                 auto& tms = adcontrols::segment_wrapper<>( *ms )[ i ];
-                                tms.get_annotations().clear();
-                                for ( const auto& a: xms.get_annotations() ) {
+                                tms.annotations().clear();
+                                for ( const auto& a: xms.annotations() ) {
                                     if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
                                         double mass = processed->mass( a.index() );
                                         adcontrols::annotation anno( a );
                                         anno.index( ms->getIndexFromMass( mass, true ) );
                                         anno.x( mass );
                                         anno.y( tms.intensity( anno.index() ) );
-                                        tms.get_annotations() << anno;
+                                        tms.addAnnotation( std::move( anno ) );
                                     }
                                 }
                                 ++i;

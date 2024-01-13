@@ -116,7 +116,7 @@ namespace adcontrols {
         descriptions descriptions_;
         boost::optional< std::shared_ptr< MSCalibration > > calibration_;
         MSProperty property_;
-        annotations annotations_;
+        adcontrols::annotations annotations_;
 
         std::vector< double > tofArray_;
         std::vector< double > massArray_;
@@ -690,19 +690,25 @@ MassSpectrum::setMSProperty( const MSProperty& prop )
 }
 
 void
-MassSpectrum::set_annotations( const annotations& annots )
+MassSpectrum::set_annotations( const adcontrols::annotations& annots )
 {
     impl_->annotations_ = annots;
 }
 
-const annotations&
-MassSpectrum::get_annotations() const
+void
+MassSpectrum::set_annotations( adcontrols::annotations&& annots )
+{
+    impl_->annotations_ = std::move( annots );
+}
+
+const adcontrols::annotations&
+MassSpectrum::annotations() const
 {
     return impl_->annotations_;
 }
 
-annotations&
-MassSpectrum::get_annotations()
+adcontrols::annotations&
+MassSpectrum::annotations()
 {
     return impl_->annotations_;
 }
@@ -1290,17 +1296,26 @@ const annotations&
 segments_helper::get_annotations( const MassSpectrum& ms, const std::pair< int, int >& idx )
 {
     if ( idx.second == 0 )
-        return ms.get_annotations();
-    return ms.getSegment( idx.second - 1 ).get_annotations();
+        return ms.annotations();
+    return ms.getSegment( idx.second - 1 ).annotations();
 }
 
 annotations&
 segments_helper::get_annotations( MassSpectrum& ms, const std::pair< int, int >& idx )
 {
     if ( idx.second == 0 )
-        return ms.get_annotations();
-    return ms.getSegment( idx.second - 1 ).get_annotations();
+        return ms.annotations();
+    return ms.getSegment( idx.second - 1 ).annotations();
 }
+
+void
+segments_helper::addAnnotation( MassSpectrum& ms, adcontrols::annotation&& a, const std::pair< int, int >& idx )
+{
+    if ( idx.second == 0 )
+        ms.addAnnotation( std::move( a ) );
+    ms.getSegment( idx.second - 1 ).addAnnotation( std::move( a ) );
+}
+
 
 bool
 MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double>& range ) const
@@ -1339,7 +1354,7 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
 
     adcontrols::annotations annots;
 
-    for ( auto a: get_annotations() ) {
+    for ( auto a: annotations() ) {
         if ( ( size_t( a.index() ) >= idx && size_t( a.index() ) <= idx + size ) ||
              ( a.x() >= range.first && a.x() <= range.second ) ) {
             if ( a.index() >= 0 )
@@ -1347,7 +1362,7 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
             annots << a;
         }
     }
-    ms.set_annotations( annots );
+    ms.set_annotations( std::move( annots ) );
     return true;
 }
 

@@ -816,18 +816,18 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
             if ( auto ms = pImpl_->pProcessedSpectrum_.second.lock() ) {
                 if ( ms->isCentroid() && !ms->isHistogram() ) {
                     auto& fms = adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms )[ fcn ];
-                    auto it = std::find_if( fms.get_annotations().begin(), fms.get_annotations().end()
+                    auto it = std::find_if( fms.annotations().begin(), fms.annotations().end()
                                             , [&]( const auto& a ){
                                                 return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
                     // boost::property_tree::ptree pt;
                     boost::json::object jobj;
-                    if ( it != fms.get_annotations().end() ) {
+                    if ( it != fms.annotations().end() ) {
                         auto jv = adportable::json_helper::parse( it->json() );
                         if ( jv.is_object() )
                             jobj = jv.as_object();
                     }
                     jobj[ "peak" ] = boost::json::object{{ "peak", {{ "mode", mode }, {"mass", sp->assignMass( fms.time( idx ), mode ) }}}};
-                    fms.get_annotations() << adcontrols::annotation( std::move( jobj ) );
+                    fms.addAnnotation( { jobj } );
                     dp->setModified( true );
                 }
             } else {
@@ -873,7 +873,7 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
 
         for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
             int mode = fms.getMSProperty().mode();
-            for ( const auto& a: fms.get_annotations() ) {
+            for ( const auto& a: fms.annotations() ) {
                 if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
                     dlg.addPeak( a.index()
                                  , QString::fromStdString( a.text() )

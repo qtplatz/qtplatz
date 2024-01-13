@@ -238,7 +238,7 @@ Targeting::operator()( MassSpectrum& ms )
         // erase existing annotations & colors
         for ( auto& tms: segment_wrapper<>( ms ) ) {
             tms.setColorArray( std::vector< uint8_t >() ); // clear color array
-            tms.get_annotations().erase_if( [](const auto& a){ return a.flags() <= annotation::flag_targeting; } ); // clear existing annotations
+            tms.annotations().erase_if( [](const auto& a){ return a.flags() <= annotation::flag_targeting; } ); // clear existing annotations
         }
 
         adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
@@ -314,13 +314,14 @@ Targeting::operator()( MassSpectrum& ms )
                 tms.setColor( candidate.idx, 16 ); // dark orange
                 int pri = 1000 * (std::log10( tms.intensity( candidate.idx ) / tms.maxIntensity() ) + 15); // 0..15000
 
-                tms.get_annotations()
-                    << annotation( candidate.display_name // candidate.formula
-                                   , tms.mass( candidate.idx )
-                                   , tms.intensity( candidate.idx )
-                                   , candidate.idx, pri
-                                   , annotation::dataText // annotation::dataFormula
-                                   , annotation::flag_targeting );
+                tms.addAnnotation({
+                        candidate.display_name // candidate.formula
+                        , tms.mass( candidate.idx )
+                        , tms.intensity( candidate.idx )
+                        , int(candidate.idx)
+                        , pri
+                        , annotation::dataText // annotation::dataFormula
+                        , annotation::flag_targeting } );
                 // annotate isotopes
                 std::string text = "*"; // ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
                 for ( const auto& i: candidate.isotopes ) {
@@ -328,11 +329,11 @@ Targeting::operator()( MassSpectrum& ms )
                         if ( i.idx >= 0 ) {
                             tms.setColor( i.idx, 16 ); // dark orange
                             int xpri = pri * i.exact_abundance;
-                            tms.get_annotations()
-                                << annotation( text
-                                               , tms.mass( i.idx )
-                                               , tms.intensity( i.idx )
-                                               , i.idx, xpri, annotation::dataText, annotation::flag_targeting );
+                            tms.addAnnotation({
+                                    text
+                                    , tms.mass( i.idx )
+                                    , tms.intensity( i.idx )
+                                    , i.idx, xpri, annotation::dataText, annotation::flag_targeting } );
                         }
                     }
                 }

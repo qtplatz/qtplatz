@@ -169,7 +169,7 @@ isotopeCluster::operator()( adcontrols::MassSpectrum& ms
     ms.resize( peaks.size() );
 
     size_t idx(0);
-    auto& annots = ms.get_annotations();
+    // const auto& annots = ms.annotations();
     for ( auto& i: peaks ) {
         ms.setMass( idx, i.mass );
         ms.setIntensity( idx, i.abundance * 100 );
@@ -178,8 +178,9 @@ isotopeCluster::operator()( adcontrols::MassSpectrum& ms
         if ( formula_mass_charge.size() > i.index ) {
             std::string formula; double mass; int charge;
             std::tie( formula, mass, charge ) = formula_mass_charge[ i.index ];
-            annots <<
-                adcontrols::annotation( formula, mass, (i.abundance * 100 ), int( idx ), 0, adcontrols::annotation::dataFormula );
+            ms.addAnnotation({formula, mass, (i.abundance * 100 ), int( idx ), 0, adcontrols::annotation::dataFormula });
+            // annots <<
+            //     adcontrols::annotation( formula, mass, (i.abundance * 100 ), int( idx ), 0, adcontrols::annotation::dataFormula );
         }
         ++idx;
     }
@@ -374,8 +375,7 @@ isotopeCluster::__toMTSpectrum( const std::vector< adcontrols::mol::molecule >& 
         // double delta = itIso->mass - itMol->max_abundant_isotope()->mass;
         // int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
         // ADDEBUG() << o.str() << "\t" << itIso->mass << "(" << xmass << ", " << xlap << ")" << " delta: " << delta << ", " << idelta;
-        ms->get_annotations()
-            << annotation( o.str(), xmass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
+        ms->addAnnotation( {  o.str(), xmass, ms->intensity( idx ), int( idx ), 0, annotation::dataText } );
         ++idx;
     }
     return ms;
@@ -426,8 +426,8 @@ isotopeCluster::__toMassSpectrum( const std::vector< adcontrols::mol::molecule >
             int idelta = ( delta > 0 ) ? int( delta + 0.7 ) : int( delta - 0.7 );
             o << itMol->formula() << "(" << std::showpos << idelta << ")";
         }
-        ms->get_annotations()
-            << annotation( o.str(), itIso->mass, ms->intensity( idx ), int( idx ), 0, annotation::dataText );
+        ms->addAnnotation(
+            { o.str(), itIso->mass, ms->intensity( idx ), int( idx ), 0, annotation::dataText } );
         ++idx;
     }
     return ms;

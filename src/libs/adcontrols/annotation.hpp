@@ -63,6 +63,19 @@ namespace adcontrols {
             peak() : mode(0), mass(0) {}
         };
 
+        struct reference_molecule {
+            std::string display_name_;
+            std::string formula_;
+            std::string adduct_;
+            double exact_mass_;
+            double mass_;
+            boost::json::value origin_; // generator|targeting-candidate
+            reference_molecule( const std::string& display_name
+                                , const std::string& formula, const std::string& adduct, double exact_mass, double mass, const boost::json::value& jv = {} );
+            reference_molecule( const reference_molecule& );
+            reference_molecule();
+        };
+
         ~annotation();
         annotation();
         annotation( const annotation& );
@@ -75,6 +88,7 @@ namespace adcontrols {
         void text( const std::string& text, DataFormat f = dataText );
         // void setJson( std::string&& );
         boost::optional< std::string > json() const;
+        boost::json::value value() const;
 
         int index() const;
         void index( int );
@@ -138,6 +152,14 @@ namespace adcontrols {
 
     ADCONTROLSSHARED_EXPORT
     annotation::peak tag_invoke( const boost::json::value_to_tag< annotation::peak >&, const boost::json::value& jv );
+
+    ADCONTROLSSHARED_EXPORT
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const annotation::reference_molecule& );
+
+    ADCONTROLSSHARED_EXPORT
+    annotation::reference_molecule tag_invoke( const boost::json::value_to_tag< annotation::reference_molecule >&, const boost::json::value& jv );
+
+
 }
 
 BOOST_CLASS_VERSION( adcontrols::annotation, 3 )

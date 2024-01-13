@@ -245,25 +245,25 @@ simple_mass_spectrum::make_spectrum( const candidate& candidate, std::shared_ptr
                 intensities.emplace_back( mass_value_t::intensity( value ) );
                 if ( ioffs == 0 ) {
                     colors.emplace_back( 7 ); // crimson
-                    ms->get_annotations()
-                        << adcontrols::annotation( candidate.formula() + candidate.adduct()
-                                                   , masses.back()
-                                                   , intensities.back()
-                                                   , masses.size() - 1 // index
-                                                   , int( intensities.back() )
-                                                   , adcontrols::annotation::dataFormula
-                                                   , adcontrols::annotation::flag_targeting );
+                    ms->addAnnotation({
+                            candidate.formula() + candidate.adduct()
+                            , masses.back()
+                            , intensities.back()
+                            , int( masses.size() - 1 ) // index
+                            , int( intensities.back() )
+                            , adcontrols::annotation::dataFormula
+                            , adcontrols::annotation::flag_targeting } );
                 } else {
                     double offs = ipk.computed_isotope_.first - candidate.isotope()[ 0 ].computed_isotope_.first;
                     colors.emplace_back( 7 ); // crimson
-                    ms->get_annotations()
-                        << adcontrols::annotation( "+" + std::to_string( int( offs + 0.7 ) )
-                                                   , masses.back()
-                                                   , intensities.back()
-                                                   , masses.size() - 1 // index
-                                                   , int( intensities.back() )
-                                                   , adcontrols::annotation::dataText
-                                                   , adcontrols::annotation::flag_targeting );
+                    ms->addAnnotation(
+                        { "+" + std::to_string( int( offs + 0.7 ) )
+                          , masses.back()
+                          , intensities.back()
+                          , int( masses.size() - 1 ) // index
+                          , int( intensities.back() )
+                          , adcontrols::annotation::dataText
+                          , adcontrols::annotation::flag_targeting });
                 }
             }
             (void)mass_error;

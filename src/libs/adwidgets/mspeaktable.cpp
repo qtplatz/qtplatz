@@ -231,14 +231,14 @@ namespace adwidgets {
                 if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
                     if ( !formula.empty() ) {
-                        ms.get_annotations() << adcontrols::annotation( formula
-                                                                        , ms.mass( idx )
-                                                                        , ms.intensity( idx )
-                                                                        , idx
-                                                                        , 0
-                                                                        , adcontrols::annotation::dataFormula );
+                        ms.addAnnotation( { formula
+                                , ms.mass( idx )
+                                , ms.intensity( idx )
+                                , idx
+                                , 0
+                                , adcontrols::annotation::dataFormula } );
                     } else {
-                        ms.get_annotations().erase_if( [&](const auto& a ){
+                        ms.annotations().erase_if( [&](const auto& a ){
                             return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
                     }
                     return true;
@@ -626,7 +626,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     int fcn = 0;
     for ( auto& fms: segs ) {
 
-        const adcontrols::annotations& annots = fms.get_annotations();
+        const adcontrols::annotations& annots = fms.annotations();
         QString protlabel;
 
         auto& descs = fms.getDescriptions();
@@ -711,7 +711,7 @@ MSPeakTable::setAnnotations( std::shared_ptr< const adcontrols::MassSpectrum > m
 {
     int proto(0);
     for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-        const adcontrols::annotations& annots = fms.get_annotations();
+        const adcontrols::annotations& annots = fms.annotations();
         for ( auto anno: annots ) {
             if ( anno.index() >= 0 ) {
                 if ( anno.dataFormat() == adcontrols::annotation::dataFormula ) {
@@ -782,7 +782,7 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_formula ), QString() );
             model.setData( model.index( row, c_mspeaktable_exact_mass ), 0.0 );
 
-            const adcontrols::annotations& annots = fms.get_annotations();
+            const adcontrols::annotations& annots = fms.annotations();
             auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
@@ -1037,14 +1037,14 @@ MSPeakTable::descriptionChanged( const QModelIndex& index )
                 if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
                     if ( description.empty() )
-                        ms.get_annotations().erase_if( [&](const auto& a){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataText; });
+                        ms.annotations().erase_if( [&](const auto& a){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataText; });
                     else
-                        ms.get_annotations() << adcontrols::annotation( description
-                                                                        , ms.mass( idx )
-                                                                        , ms.intensity( idx )
-                                                                        , idx
-                                                                        , 0
-                                                                        , adcontrols::annotation::dataText );
+                        ms.addAnnotation({ description
+                                , ms.mass( idx )
+                                , ms.intensity( idx )
+                                , idx
+                                , 0
+                                , adcontrols::annotation::dataText } );
                     emit formulaChanged( idx, fcn );
                 }
             }

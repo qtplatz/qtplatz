@@ -168,13 +168,13 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                     }
 
                     using adcontrols::annotation;
-                    centroids[fcn].get_annotations()
-                        << annotation( compound.formula()
-                                       , pk->mass()
-                                       , pk->area()
-                                       , pk->peak_index()
-                                       , 1000
-                                       , annotation::dataFormula );
+                    centroids[fcn].addAnnotation({
+                            compound.formula()
+                            , pk->mass()
+                            , pk->area()
+                            , int( pk->peak_index() )
+                            , 1000
+                            , annotation::dataFormula });
                 } else {
                     // ADDEBUG() << "*********** compound " << compound.formula() << ", " << compound.protocol() << " NOT FOUND at " << fcn;
                 }

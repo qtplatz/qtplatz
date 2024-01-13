@@ -216,7 +216,7 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms )
     lk.clear();
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for ( auto& fms: segs ) {
-        for ( const auto& a: fms.get_annotations() ) {
+        for ( const auto& a: fms.annotations() ) {
             if ( a.dataFormat() == annotation::dataFormula && a.index() >= 0 ) {
                 const std::string& formula = a.text();
                 double exactMass = formulaParser.getMonoIsotopicMass( formula );
@@ -242,7 +242,7 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
     if ( size_t(fcn) >= segs.size() )
         return false;
 
-    auto& annots = segs[ fcn ].get_annotations();
+    const auto& annots = segs[ fcn ].annotations();
 
     auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
     if ( it != annots.end() ) {

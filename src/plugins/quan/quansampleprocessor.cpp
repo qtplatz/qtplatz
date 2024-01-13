@@ -550,8 +550,8 @@ QuanSampleProcessor::doMSFind( adcontrols::MSPeakInfo& pkInfo
                 resp.set_tR( 0 );
 
                 using adcontrols::annotation;
-                annotation anno( resp.formula(), resp.mass(), resp.intensity(), resp.peakIndex(), resp.intensity(), annotation::dataFormula );
-                fms.get_annotations() << anno;
+                // annotation anno( resp.formula(), resp.mass(), resp.intensity(), resp.peakIndex(), resp.intensity(), annotation::dataFormula );
+                fms.addAnnotation( {resp.formula(), resp.mass(), resp.intensity(), resp.peakIndex(), int(resp.intensity()), annotation::dataFormula });
 
                 (info.begin() + idx)->formula( resp.formula() );
 

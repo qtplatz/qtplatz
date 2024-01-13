@@ -62,14 +62,13 @@ make_reference_spectrum::operator()(const adcontrols::MassSpectrum& ms
         if ( ! candidates.empty() ) {
             const auto& candidate = candidates.at( 0 );
             auto cluster = isoCluster::compute( candidate.formula(), candidate.adduct() );
-            refMs->get_annotations()
-                << adcontrols::annotation( candidate.formula() + " " + candidate.adduct()
-                                           , cluster.at(0).first // mass
-                                           , cluster.at(0).second * intensity
-                                           , masses.size() // index
-                                           , cluster.at(0).second * intensity
-                                           , adcontrols::annotation::dataFormula
-                                           , adcontrols::annotation::flag_targeting );
+            refMs->addAnnotation( { candidate.formula() + " " + candidate.adduct()
+                    , cluster.at(0).first // mass
+                    , cluster.at(0).second * intensity
+                    , int(masses.size()) // index
+                    , int(cluster.at(0).second * intensity)
+                    , adcontrols::annotation::dataFormula
+                    , adcontrols::annotation::flag_targeting } );
             for ( const auto& ipk: cluster ) {
                 masses.emplace_back( ipk.first );
                 intensities.emplace_back( ipk.second * intensity );

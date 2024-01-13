@@ -189,7 +189,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name )
 {
     std::shared_ptr< adcontrols::MassSpectrum > ptr;
     return ;
-    auto annots = ptr->get_annotations();
+    auto annots = ptr->annotations();
     std::vector< std::pair< int, std::string >  > ids;
     std::for_each( annots.begin(), annots.end(), [&ids] ( const adcontrols::annotation& a ) {
             if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 )

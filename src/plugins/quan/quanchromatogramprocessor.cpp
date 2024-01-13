@@ -174,10 +174,10 @@ namespace quan {
         static void add( adcontrols::MassSpectrum& centroid, int idx, int proto, const std::string& formula ) {
             if ( auto tms = centroid.findProtocol( proto ) ) {
                 // todo: erase if peak already has the annotation
-                tms->get_annotations() << adcontrols::annotation( formula
-                                                                  , tms->mass( idx )
-                                                                  , tms->intensity( idx )
-                                                                  , idx, 0, adcontrols::annotation::dataFormula );
+                tms->addAnnotation({ formula
+                        , tms->mass( idx )
+                        , tms->intensity( idx )
+                        , idx, 0, adcontrols::annotation::dataFormula } );
             }
         }
     };
