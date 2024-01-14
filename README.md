@@ -1,5 +1,7 @@
+The QtPlatz (as qtplatz) is the software foundation for chromatography and mass spectrometry instrument control and data system. It is intended to implement molecular targeting applications based on accurate masses. The software is written in C++ and can run on Windows 10/11, Mac OS 12 and onward, and Debian Linux and its variants, including Raspberry Pi.
+
 Visit
-	http://www.qtplatz.com
+	http://www.ms-cheminfo.com
 
 Run macOS binary
 ================
