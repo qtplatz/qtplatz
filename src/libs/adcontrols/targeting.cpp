@@ -212,7 +212,6 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
 bool
 Targeting::operator()( const MassSpectrum& ms )
 {
-    ADDEBUG() << "------------- Targeting --------------";
     candidates_.clear();
 
     if ( !ms.isCentroid() )
@@ -232,7 +231,6 @@ Targeting::operator()( const MassSpectrum& ms )
 bool
 Targeting::operator()( MassSpectrum& ms )
 {
-    ADDEBUG() << "------------- Targeting --------------";
     if ( (*this)( static_cast< const MassSpectrum& >( ms ) ) ) {
 
         // erase existing annotations & colors
@@ -322,7 +320,23 @@ Targeting::operator()( MassSpectrum& ms )
                         , pri
                         , annotation::dataText // annotation::dataFormula
                         , annotation::flag_targeting } );
-                // annotate isotopes
+
+                auto list = adcontrols::ChemicalFormula::split( candidate.formula );
+                double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( list ).first;
+                std::ostringstream adducts;
+                for ( size_t i = 1; i < list.size(); ++i )
+                    adducts << list[i].second << list[i].first;
+
+                adcontrols::annotation::reference_molecule ref( candidate.display_name
+                                                                , std::get< 0 >( list[0] )
+                                                                , adducts.str()
+                                                                , exactMass
+                                                                , tms.mass( candidate.idx )
+                                                                , boost::json::value_from( candidate ));
+                tms.addAnnotation( { boost::json::value_from( ref )
+                        , tms.mass( candidate.idx ), tms.intensity( candidate.idx ), int( candidate.idx ), pri } );
+
+                // annotate isotopes}
                 std::string text = "*"; // ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
                 for ( const auto& i: candidate.isotopes ) {
                     if ( std::abs( i.abundance_ratio_error ) < 0.5 ) { // anotate if abunance error < 50%

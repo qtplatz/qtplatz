@@ -68,6 +68,7 @@
 #include <QtPrintSupport/QPrinter>
 #include <boost/format.hpp>
 #include <boost/signals2.hpp>
+#include <boost/system/detail/error_code.hpp>
 #include <boost/variant.hpp>
 #include <boost/json.hpp>
 #include <sstream>
@@ -160,8 +161,8 @@ namespace adwidgets {
             break;
         case c_mspeaktable_mass_error:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() ) {
-                double error = index.data().toDouble();
-                drawDisplay( painter, op, option.rect, QString::number( error, 'g', 5 ) );
+                double mDa = index.data().toDouble() * 1000;
+                drawDisplay( painter, op, option.rect, QString::number( mDa, 'g', 5 ) );
             }
             break;
         case c_mspeaktable_intensity:
@@ -516,7 +517,6 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 void
 MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
-    //ScopedDebug(__t);
 	QStandardItemModel& model = *impl_->model_;
 
     setUpdatesEnabled( false );
@@ -673,6 +673,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
                         auto t = boost::json::value_to< adcontrols::jcb2009_peakresult >( jv );
                         model.setData( model.index( row, c_mspeaktable_jcb2009_tR ), t.tR() );
                         setColumnHidden( c_mspeaktable_jcb2009_tR, false );
+                    } else if ( adportable::json_helper::find( jv, "refernce_molecule" ) != boost::json::value{} ) {
+                        auto t = boost::json::value_to< adcontrols::annotation::reference_molecule >( jv );
+                        model.setData( model.index( row, c_mspeaktable_formula), QString::fromStdString( t.formula_ + " " + t.adduct_ ) );
                     }
                 }
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
@@ -715,9 +718,9 @@ MSPeakTable::setAnnotations( std::shared_ptr< const adcontrols::MassSpectrum > m
         const adcontrols::annotations& annots = fms.annotations();
         for ( auto anno: annots ) {
             if ( anno.index() >= 0 ) {
-                if ( anno.dataFormat() == adcontrols::annotation::dataFormula ) {
-                    auto index = index_finder()( *impl_->model_, c_mspeaktable_formula, anno.index(), proto );
-                    if ( index.isValid() ) {
+                auto index = index_finder()( *impl_->model_, c_mspeaktable_formula, anno.index(), proto );
+                if ( index.isValid() ) {
+                    if ( anno.dataFormat() == adcontrols::annotation::dataFormula ) {
                         impl_->model_->setData( index, QString::fromStdString( anno.text() ) );
                         double mass = exactMass( anno.text() );
                         impl_->model_->setData( impl_->model_->index( index.row(), c_mspeaktable_exact_mass ), mass );
@@ -726,6 +729,18 @@ MSPeakTable::setAnnotations( std::shared_ptr< const adcontrols::MassSpectrum > m
                             std::tie( lap, tof ) = sp->findLaps( mass, proto );
                             if ( lap > 0 ) {
                                 impl_->model_->setData( impl_->model_->index( index.row(), c_mspeaktable_mode ), lap );
+                            }
+                        }
+                    }
+                } else if ( anno.dataFormat() == adcontrols::annotation::dataJSON ) {
+                    auto jv = adportable::json_helper::parse( anno.json() );
+                    if ( jv != boost::json::value{} ) {
+                        boost::system::error_code ec;
+                        if ( auto ptr = adportable::json_helper::find_pointer( jv, "/reference_molecule", ec ) ) {
+                            auto refmol = boost::json::value_to< adcontrols::annotation::reference_molecule >( jv );
+                            if ( not refmol.formula_.empty() ) {
+                                impl_->model_->setData( index, QString::fromStdString( refmol.formula_ + " " + refmol.adduct_ ) );
+                                impl_->model_->setData( impl_->model_->index( index.row(), c_mspeaktable_exact_mass ), refmol.exact_mass_ );
                             }
                         }
                     }
@@ -750,8 +765,7 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 void
 MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
 {
-    // call from lockmass via onUpdate
-
+    // ============  Call from lockmass via onUpdate ===========
 	QStandardItemModel& model = *impl_->model_;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
@@ -770,6 +784,7 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
 
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
+
         if ( fcn < signed(segs.size()) ) {
             auto& fms = segs[ fcn ];
 
@@ -779,12 +794,14 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_intensity ), fms.intensity( idx ) );
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
-            model.setData( model.index( row, c_mspeaktable_description ), QString() );
-            model.setData( model.index( row, c_mspeaktable_formula ), QString() );
-            model.setData( model.index( row, c_mspeaktable_exact_mass ), 0.0 );
+            model.setData( model.index( row, c_mspeaktable_description ), QString{} );
+            model.setData( model.index( row, c_mspeaktable_formula ), QString{} );
+            model.setData( model.index( row, c_mspeaktable_exact_mass ), QVariant{} );
 
             const adcontrols::annotations& annots = fms.annotations();
-            auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
+            auto it = std::find_if( annots.begin()
+                                    , annots.end(), [&]( const auto& a ){ return a.index() == idx; } );
+
             while ( it != annots.end() ) {
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
                     model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );
@@ -792,8 +809,18 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
                     model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
                     model.setData( model.index( row, c_mspeaktable_exact_mass ), exactMass( it->text() ) );
                     model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
+                } else if ( it->dataFormat() == adcontrols::annotation::dataJSON ) {
+                    auto jv = adportable::json_helper::parse( it->json() );
+                    if ( auto ptr = adportable::json_helper::if_contains( jv, "refernce_molecule" ) ) {
+                        auto ref = boost::json::value_to< adcontrols::annotation::reference_molecule >( jv );
+                        model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( ref.formula_ + " " + ref.adduct_ ) );
+                        model.setData( model.index( row, c_mspeaktable_exact_mass ), ref.exact_mass_ );
+                        model.setData( model.index( row, c_mspeaktable_mass_error ), mass - ref.exact_mass_ );
+                    } else {
+                        ADDEBUG() << "\t\treference_molecule cannot be found!";
+                    }
                 }
-				it = std::find_if( ++it, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
+				it = std::find_if( ++it, annots.end(), [&]( const auto& a ){ return a.index() == idx; });
             }
         }
     }
@@ -970,7 +997,6 @@ MSPeakTable::handleValueChanged( const QModelIndex& index )
     } else if ( index.column() == c_mspeaktable_description ) {
         descriptionChanged( index );
     } else if ( index.column() == c_mspeaktable_mode ) {
-        // ADDEBUG() << "------- mode changed to " << index.data( Qt::EditRole ).toInt();
         modeChanged( index );
     }
 }
