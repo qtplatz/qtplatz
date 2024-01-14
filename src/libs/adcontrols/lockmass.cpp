@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,6 +27,7 @@
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include "chemicalformula.hpp"
+#include "molecule.hpp"
 #include "massspectrum.hpp"
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
@@ -41,6 +42,7 @@
 #include <adportable/iso8601.hpp>
 #include <boost/json.hpp> // #if BOOST_VERSION >= 107500
 #include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <cstring>
 #include <chrono>
 
@@ -243,17 +245,41 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
     if ( size_t(fcn) >= segs.size() )
         return false;
 
+    const double matchedMass = segs[ fcn ].mass( idx );
+    const double matchedTime = segs[ fcn ].time( idx );
+
     const auto& annots = segs[ fcn ].annotations();
 
-    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
-    if ( it != annots.end() ) {
-        const std::string& formula = it->text();
-        auto list = adcontrols::ChemicalFormula::split( formula );
-        double exactMass = formulaParser.getMonoIsotopicMass( list ).first;
-        double matchedMass = segs[ fcn ].mass( it->index() );
-        double time        = segs[ fcn ].time( it->index() );
-        lk << reference( formula, exactMass, matchedMass, time );
+    auto pred1 = [&]( const auto& a){ return a.index() == idx; };
 
+    auto it = std::find_if( annots.begin(), annots.end(), pred1 );
+    std::optional< std::string > formula;
+    std::optional< adcontrols::annotation::reference_molecule > refMol;
+
+    while ( it != annots.end() ) {
+        if ( it->dataFormat() == annotation::dataFormula ) {
+            formula = it->text();
+        } else if ( it->dataFormat() == annotation::dataJSON ) {
+            auto value = adportable::json_helper::parse( it->text() );
+            if ( value != boost::json::value{} ) {
+                boost::system::error_code ec;
+                if ( auto ptr = adportable::json_helper::find_pointer( value, "/refernce_molecule", ec ) ) {
+                    refMol = boost::json::value_to< adcontrols::annotation::reference_molecule >( value );
+                }
+            }
+        }
+        it = std::find_if( ++it, annots.end(), pred1 );
+    };
+
+    if ( refMol ) {
+        auto mol = adcontrols::ChemicalFormula::toMolecule( refMol->formula_, refMol->adduct_ );
+        lk << reference( mol.formula(), mol.mass(), matchedMass, matchedTime );
+        return true;
+    }
+    if ( formula ) {
+        auto list = adcontrols::ChemicalFormula::split( *formula );
+        double exactMass = formulaParser.getMonoIsotopicMass( list ).first;
+        lk << reference( *formula, exactMass, matchedMass, matchedTime );
         return true;
     }
     return false;

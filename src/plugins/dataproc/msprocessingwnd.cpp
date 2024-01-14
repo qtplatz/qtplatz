@@ -819,7 +819,6 @@ MSProcessingWnd::handleModeChanged( int idx, int fcn, int mode )
                     auto it = std::find_if( fms.annotations().begin(), fms.annotations().end()
                                             , [&]( const auto& a ){
                                                 return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataJSON; } );
-                    // boost::property_tree::ptree pt;
                     boost::json::object jobj;
                     if ( it != fms.annotations().end() ) {
                         auto jv = adportable::json_helper::parse( it->json() );

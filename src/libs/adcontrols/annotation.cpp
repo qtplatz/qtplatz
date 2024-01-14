@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,6 +26,7 @@
 #include <adportable/utf.hpp>
 #include <adportable/json/extract.hpp>
 #include <adportable/json_helper.hpp>
+#include <adportable/debug.hpp>
 // #include <boost/property_tree/json_parser.hpp>
 #include <boost/json.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -243,13 +244,13 @@ namespace adcontrols {
     annotation::reference_molecule::reference_molecule() : exact_mass_(0), mass_(0) {
     }
 
-    annotation::reference_molecule::reference_molecule( const std::string& display_name
+    annotation::reference_molecule::reference_molecule( const std::string& display_text
                                                         , const std::string& formula
                                                         , const std::string& adduct
                                                         , double exact_mass
                                                         , double mass
                                                         , const boost::json::value& jv )
-        : display_name_( display_name )
+        : display_text_( display_text )
         , formula_( formula )
         , adduct_( adduct )
         , exact_mass_( exact_mass )
@@ -258,7 +259,7 @@ namespace adcontrols {
     }
 
     annotation::reference_molecule::reference_molecule( const reference_molecule& t )
-        : display_name_( t.display_name_ )
+        : display_text_( t.display_text_ )
         , formula_( t.formula_ )
         , adduct_( t.adduct_ )
         , exact_mass_( t.exact_mass_ )
@@ -292,7 +293,7 @@ namespace adcontrols {
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const annotation::reference_molecule& t )
     {
         jv = {{ "refernce_molecule"
-                    , {{ "display_name", t.display_name_ }
+                    , {{ "display_text", t.display_text_ }
                        , { "formula",       t.formula_ }
                        , { "adduct",        t.adduct_ }
                        , { "exact_mass",    t.exact_mass_ }
@@ -306,16 +307,17 @@ namespace adcontrols {
     tag_invoke( const boost::json::value_to_tag< annotation::reference_molecule >&, const boost::json::value& jv )
     {
         annotation::reference_molecule t;
-        if ( jv.is_object() ) {
-            auto obj = jv.as_object();
-            auto sobj = obj.at( "reference_molecule" ).as_object();
-            adportable::json::extract( sobj, t.display_name_, "display_name" );
-            adportable::json::extract( sobj, t.formula_,      "formula" );
-            adportable::json::extract( sobj, t.adduct_,       "adduct" );
-            adportable::json::extract( sobj, t.exact_mass_,   "exact_mass" );
-            adportable::json::extract( sobj, t.mass_,         "mass" );
-            adportable::json::extract( sobj, t.origin_,       "origin" );
-
+        boost::system::error_code ec;
+        if ( auto ptr = adportable::json_helper::find_pointer( jv, "/refernce_molecule", ec ) ) {
+            if ( ptr->is_object() ) {
+                auto obj = ptr->as_object();
+                adportable::json::extract( obj, t.display_text_, "display_text" );
+                adportable::json::extract( obj, t.formula_,      "formula" );
+                adportable::json::extract( obj, t.adduct_,       "adduct" );
+                adportable::json::extract( obj, t.exact_mass_,   "exact_mass" );
+                adportable::json::extract( obj, t.mass_,         "mass" );
+                adportable::json::extract( obj, t.origin_,       "origin" );
+            }
         }
         return t;
     }

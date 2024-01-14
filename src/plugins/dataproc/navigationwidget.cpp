@@ -458,7 +458,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-    ScopedDebug(__t);
+    //ScopedDebug(__t);
     QStandardItemModel& model = *impl_->pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
@@ -481,7 +481,7 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
 void
 NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::Folium folium )
 {
-    ScopedDebug(__t);
+    // ScopedDebug(__t);
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
@@ -500,7 +500,7 @@ NavigationWidget::handleInvalidateFolium( Dataprocessor * processor, portfolio::
 void
 NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
-    ScopedDebug(__t);
+    // ScopedDebug(__t);
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *impl_->pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
@@ -517,8 +517,8 @@ NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfoli
 void
 NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString& foldername )
 {
-    ScopedDebug(__t);
-    ADDEBUG() << "---------- handleFolderChanged -------------";
+    // ScopedDebug(__t);
+    // ADDEBUG() << "---------- handleFolderChanged -------------";
     portfolio::Portfolio portfolio = processor->getPortfolio();
     portfolio::Folder folder = portfolio.findFolder( foldername.toStdWString() );
     portfolio::Folio folio = folder.folio();
@@ -548,12 +548,8 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    ScopedDebug(__t);
-#if QTC_VERSION <= 0x03'02'81
-    QString filename = processor->filePath();
-#else
+    // ScopedDebug(__t);
     QString filename = processor->filePath().toString();
-#endif
 
     QStandardItemModel& model = *impl_->pModel_;
 

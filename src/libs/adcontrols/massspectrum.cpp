@@ -35,6 +35,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
+#include <boost/proto/operators.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -1312,8 +1313,9 @@ void
 segments_helper::addAnnotation( MassSpectrum& ms, adcontrols::annotation&& a, const std::pair< int, int >& idx )
 {
     if ( idx.second == 0 )
-        ms.addAnnotation( std::move( a ) );
-    ms.getSegment( idx.second - 1 ).addAnnotation( std::move( a ) );
+        ms.addAnnotation( std::move(a) );
+    else
+        ms.getSegment( idx.second - 1 ).addAnnotation( std::move( a ) );
 }
 
 

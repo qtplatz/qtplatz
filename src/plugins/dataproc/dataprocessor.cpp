@@ -701,11 +701,18 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
                                 for ( const auto& a: xms.annotations() ) {
                                     if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
                                         double mass = processed->mass( a.index() );
-                                        adcontrols::annotation anno( a );
-                                        anno.index( ms->getIndexFromMass( mass, true ) );
-                                        anno.x( mass );
-                                        anno.y( tms.intensity( anno.index() ) );
-                                        tms.addAnnotation( std::move( anno ) );
+                                        auto idx = ms->getIndexFromMass( mass, true );
+                                        //adcontrols::annotation anno( a );
+                                        //anno.index( ms->getIndexFromMass( mass, true ) );
+                                        //anno.x( mass );
+                                        //anno.y( tms.intensity( anno.index() ) );
+                                        //tms.addAnnotation( std::move( anno ) );
+                                        tms.addAnnotation( { a.text()
+                                                , mass
+                                                , tms.intensity( idx )
+                                                , int( idx )
+                                                , a.priority(), a.dataFormat()
+                                                , adcontrols::annotation::DataFlag(a.flags()) } );
                                     }
                                 }
                                 ++i;

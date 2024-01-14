@@ -136,15 +136,22 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                         using adcontrols::segments_helper;
                         double mass = segments_helper::get_mass( *pCentroid, *idx );
                         double intensity = segments_helper::get_intensity( *pCentroid, *idx );
-                        auto anno =
-                            adcontrols::annotation(
-                                (boost::format("%s %.3f@%.1fs")
-                                 % pkResult.peak_name()
-                                 % mass
-                                 % std::get<0>(tR)).str()
-                                , mass, intensity, idx->first );
+                        auto display_text
+                            = (boost::format("%s %.3f@%.1fs")
+                               % pkResult.peak_name()
+                               % mass
+                               % std::get<0>(tR)).str();
 
-                        segments_helper::get_annotations( *pCentroid, *idx ) << anno;
+                        if ( auto formula = gen.formula() ) {
+                            adcontrols::annotation::reference_molecule mol( display_text
+                                                                            , *formula, gen.adduct()
+                                                                            , gen.mass() // exact mass
+                                                                            , mass
+                                                                            , boost::json::value_from( gen ) );
+                            segments_helper::addAnnotation( *pCentroid, { boost::json::value_from( mol ), mass, intensity, int( idx->first ) }, *idx );
+                        }
+                        segments_helper::addAnnotation( *pCentroid, { display_text, mass, intensity, int(idx->first) }, *idx );
+
                         segments_helper::set_color( *pCentroid, idx->second, idx->first, 15 );
                     }
                     //

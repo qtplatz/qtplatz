@@ -64,14 +64,15 @@ namespace adcontrols {
         };
 
         struct reference_molecule {
-            std::string display_name_;
+            std::string display_text_;
             std::string formula_;
             std::string adduct_;
             double exact_mass_;
             double mass_;
             boost::json::value origin_; // generator|targeting-candidate
-            reference_molecule( const std::string& display_name
-                                , const std::string& formula, const std::string& adduct, double exact_mass, double mass, const boost::json::value& jv = {} );
+            reference_molecule( const std::string& display_text
+                                , const std::string& formula, const std::string& adduct
+                                , double exact_mass, double mass, const boost::json::value& jv = {} );
             reference_molecule( const reference_molecule& );
             reference_molecule();
         };

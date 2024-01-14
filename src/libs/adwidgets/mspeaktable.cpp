@@ -661,7 +661,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_time_width ), QVariant() ); // clear width
             model.setData( model.index( row, c_mspeaktable_jcb2009_tR ), QVariant() );
 
-            auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
+            auto it = std::find_if( annots.begin(), annots.end()
+                                    , [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
                 if ( auto json = it->json() ) {
                     auto jv = adportable::json_helper::parse( json );
