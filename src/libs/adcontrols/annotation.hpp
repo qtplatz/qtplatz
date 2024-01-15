@@ -63,6 +63,8 @@ namespace adcontrols {
             peak() : mode(0), mass(0) {}
         };
 
+        struct ADCONTROLSSHARED_EXPORT reference_molecule;
+
         struct reference_molecule {
             std::string display_text_;
             std::string formula_;
