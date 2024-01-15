@@ -187,7 +187,7 @@ namespace adnetcdf { namespace netcdf {
             std::string operator()( std::string tag, const attribute& att ) const {
                 std::string data( att.len(), '\0' );
                 if ( nc_get_att_text( ncfile_.ncid(), att.varid(), att.name(), data.data() ) == NC_NOERR )
-                    return data;
+                    return std::string{ data.c_str() }; // remove trailing zero
                 return {};
             }
             template< typename T > std::vector< T >
@@ -382,7 +382,7 @@ ncfile::dims( const variable& var ) const
 std::optional< dimension >
 ncfile::inq_dim( int dimid ) const
 {
-    std::array< char, NC_MAX_NAME > name;
+    std::array< char, NC_MAX_NAME > name = {};
     size_t len(0);
     if ( nc_inq_dim( ncid_, dimid, name.data(), &len ) == NC_NOERR ) {
         return {{ dimid, name.data(), len }};
@@ -393,7 +393,7 @@ ncfile::inq_dim( int dimid ) const
 std::optional< attribute >
 ncfile::inq_att( int varid, int attid ) const
 {
-    std::array< char, NC_MAX_NAME > name;
+    std::array< char, NC_MAX_NAME > name = {};
     if ( nc_inq_attname( ncid_, varid, attid, name.data() ) == NC_NOERR ) {
         nc_type xtype(0);
         size_t len(0);
@@ -409,7 +409,7 @@ ncfile::inq_var( int varid ) const
 {
     nc_type xtype(0);
     int ndims(0), dimids(0), natts(0);
-    std::array< char, NC_MAX_NAME > name;
+    std::array< char, NC_MAX_NAME > name = {};
     if ( nc_inq_varndims( ncid_, varid, &ndims ) == NC_NOERR ) {
         std::vector< int > dims( ndims );
         if ( nc_inq_var( ncid_, varid, name.data(), &xtype, 0, dims.data(), &natts )  == NC_NOERR ) {
@@ -452,10 +452,10 @@ ncfile::readData( const variable& var ) const
         [&]( const nc_type_t< NC_NAT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_BYTE>& x )->datum_t  { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_CHAR>& x )->datum_t  { return reader( std::vector< std::string >{}, var); },
-        [&]( const nc_type_t< NC_SHORT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
-        [&]( const nc_type_t< NC_INT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; },
+        //[&]( const nc_type_t< NC_SHORT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; }, // handle by auto type bellow
+        //[&]( const nc_type_t< NC_INT>& x )->datum_t   { ADDEBUG() << "unhandled"; return {}; }, // handle by auto type bellow
         //[&]( const nc_type_t< NC_FLOAT>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; }, // handle by auto type
-        [&]( const nc_type_t< NC_DOUBLE>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
+        //[&]( const nc_type_t< NC_DOUBLE>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; }, // handle by auto type
         [&]( const nc_type_t< NC_UBYTE>& x )->datum_t { ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_USHORT>& x )->datum_t{ ADDEBUG() << "unhandled"; return {}; },
         [&]( const nc_type_t< NC_UINT>& x )->datum_t  { ADDEBUG() << "unhandled"; return {}; },

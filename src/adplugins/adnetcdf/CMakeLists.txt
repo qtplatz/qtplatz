@@ -5,24 +5,16 @@ project( adnetcdf )
 
 set( PROVIDER MS-Cheminformatics )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#set(CMAKE_AUTOMOC ON)
-#set(CMAKE_AUTOUIC ON)
-#set(CMAKE_AUTORCC ON)
-
-#file(GLOB UIs *.ui)
-#file(GLOB Resources *.qrc)
 
 if ( NOT netCDF_FOUND )
   return()
 endif()
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets )
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
-#include_directories( ${QtCore_INCLUDE_DIRS}  )
 include_directories(
   ${QtWidgets_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src    # app_version.h

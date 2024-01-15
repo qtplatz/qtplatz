@@ -53,6 +53,7 @@ namespace adnetcdf {
                               , std::vector< float >
                               , std::vector< double >
                               , std::vector< int >
+                              , std::vector< int16_t >
                               > datum_t;
 
         class ncfile {

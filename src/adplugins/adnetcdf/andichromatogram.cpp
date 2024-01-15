@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -59,6 +59,47 @@ namespace adnetcdf {
         adcontrols::Peaks peaks_;
         adcontrols::Baselines baselines_;
         std::shared_ptr< adcontrols::Chromatogram > chro_;
+        enum data_name_t {
+            a_d_sampling_rate
+            , scan_acquisition_time // time
+            , scan_duration
+            , inter_scan_time
+            , resolution
+            , total_intensity //
+            , mass_range_min
+            , mass_range_max
+            , time_range_min
+            , time_range_max
+            , mass_values
+            , a_d_coaddition_factor // int16_t
+            , scan_index            // int32_t
+            , point_count           // int32_t
+            , flag_count            // int32_t
+            , intensity_values      // int32_t // intensity
+            , actual_scan_number    // int32_t
+            , data_tuple_size
+        };
+        typedef std::tuple< double   // a_d_sampling_rate
+                            , double // scan_acquisition_time
+                            , double // scan_duration
+                            , double // inter_scan_time
+                            , double // resolution
+                            , double // total_intensity
+                            , double // mass_range_min
+                            , double // mass_range_max
+                            , double // time_range_min
+                            , double // time_range_max
+                            , double // mass_values
+                            , int16_t // a_d_coaddition_factor // int16_t
+                            , int32_t // scan_index            // int32_t
+                            , int32_t // point_count           // int32_t
+                            , int32_t // flag_count            // int32_t
+                            , int32_t // intensity_values      // int32_t
+                            , int32_t // actual_scan_number    // int32_t
+                            > data_tuple;
+
+        std::vector< data_tuple > data_;
+        std::bitset< data_tuple_size > data_state_;
 
         void adjust_peak_size( size_t size ) {
             if ( size != peaks_.size() )
@@ -153,6 +194,77 @@ namespace adnetcdf {
             }
         }
 
+        template< data_name_t N, typename T > void import_t( const std::vector<T>& data ) {
+            if ( data_.size() < data.size() ) {
+                data_.resize( data.size() );
+                std::fill( data_.begin(), data_.end(), data_tuple{});
+                data_state_ = {0};
+            }
+            auto it = data_.begin();
+            for ( const auto& v: data )
+                std::get< N >(*it++) = v;
+            data_state_[ N ] = true;
+            if ( data_state_.all() ) {
+                chro_->resize( data_.size() );
+                for ( size_t i = 0; i < data_.size(); ++i ) {
+                    chro_->setTime( i, std::get< scan_acquisition_time > ( data_[i] ) );
+                    chro_->setIntensity( i, std::get< intensity_values > ( data_[i] ) );
+                }
+                chro_->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
+                chro_->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
+            }
+        }
+
+        void import( const std::string& key, const std::vector< double >& data ) {
+            if ( key == "a_d_sampling_rate" ) {
+                import_t< a_d_sampling_rate >( data );
+            } else if ( key == "scan_acquisition_time" ) {
+                import_t< scan_acquisition_time >( data );
+            } else if ( key == "scan_duration" ) {
+                import_t< scan_duration >( data );
+            } else if ( key == "inter_scan_time" ) {
+                import_t< inter_scan_time >( data );
+            } else if ( key == "resolution" ) {
+                import_t< resolution >( data );
+            } else if ( key == "total_intensity" ) {
+                import_t< total_intensity >( data );
+            } else if ( key == "mass_range_min" ) {
+                import_t< mass_range_min >( data );
+            } else if ( key == "mass_range_max" ) {
+                import_t< mass_range_max >( data );
+            } else if ( key == "time_range_min" ) {
+                import_t< time_range_min >( data );
+            } else if ( key == "time_range_max" ) {
+                import_t< time_range_max >( data );
+            } else if ( key == "mass_values" ) {
+                import_t< mass_values >( data );
+            } else {
+                ADDEBUG() << "import std::vector<double> key,size=" << std::make_pair(key, data.size()) << "\tunhandled";
+            }
+        }
+        void import( const std::string& key, const std::vector< int16_t >& data ) {
+            if ( key == "a_d_coaddition_factor" ) {
+                import_t< a_d_coaddition_factor >( data );
+            } else {
+                ADDEBUG() << "import std::vector<int16_t> key,size=" << std::make_pair(key, data.size()) << "\tunhandled";
+            }
+        }
+        void import( const std::string& key, const std::vector< int32_t >& data ) {
+            if ( key == "scan_index" ) {
+                import_t< scan_index >( data );
+            } else if ( key == "point_count" ) {
+                import_t< point_count >( data );
+            } else if ( key == "flag_count" ) {
+                import_t< flag_count >( data );
+            } else if ( key == "intensity_values" ) {
+                import_t< intensity_values >( data );
+            } else if ( key == "actual_scan_number" ) {
+                import_t< actual_scan_number >( data );
+            } else {
+                ADDEBUG() << "import std::vector<int32_t> key,size=" << std::make_pair(key, data.size()) << "\tunhandled";
+            }
+        }
+
         void import( const std::string& key, const std::vector< float >& data ) {
             if ( key == "ordinate_values" ) {
                 chro_->setIntensityArray( data, 1000 );
@@ -204,7 +316,7 @@ namespace adnetcdf {
 
 using namespace adnetcdf;
 
-AndiChromatogram::AndiChromatogram() : impl_( new impl() )
+AndiChromatogram::AndiChromatogram() : impl_( std::make_unique<  impl >() )
 {
 }
 
@@ -227,7 +339,16 @@ AndiChromatogram::import( const nc::ncfile& file ) const
     auto var_ovld = overloaded{
         [&]( nc::null_datum_t, const nc::variable& var ) {},
         [&]( const auto& data, const nc::variable& var ) {
-            ADDEBUG() << "\t\t" << var.name() << "\t= [" << data.size() << "] unhandled data";
+            ADDEBUG() << "\t\t" << var.name() << ", " << typeid(data).name() << "\t= [" << data.size() << "] unhandled data";
+        },
+        [&]( const std::vector< int32_t >& data, const nc::variable& var ) {
+            impl_->import( var.name(), data );
+        },
+        [&]( const std::vector< int16_t >& data, const nc::variable& var ) {
+            impl_->import( var.name(), data );
+        },
+        [&]( const std::vector< double >& data, const nc::variable& var ) {
+            impl_->import( var.name(), data );
         },
         [&]( const std::vector< float >& data, const nc::variable& var ) {
             impl_->import( var.name(), data );
