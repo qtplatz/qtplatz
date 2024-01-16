@@ -76,6 +76,7 @@ if ( WIN32 )
   set ( OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL" )
   set ( OPENSSL_USE_STATIC_LIBS FALSE )
 endif()
+
 find_package( OpenSSL QUIET )
 
 ################################################################
@@ -465,6 +466,9 @@ if ( WIN32 )
   if ( OPENSSL_FOUND )
     include( openssl-cpack )
   endif()
+  if ( netCDF_FOUND )
+    include( netcdf-cpack )
+  endif()
 
 elseif( APPLE )
 
@@ -660,7 +664,7 @@ if ( WITH_PYTHON3 )
   message( STATUS "# Python3               : " ${Python3_VERSION} )
 endif()
 if ( netCDF_FOUND )
-  message( STATUS "# netCDF                : ${NetCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
+  message( STATUS "# netCDF                : ${netCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
 endif()
 if ( OPENSSL_FOUND )
   message( STATUS "# OpenSSL               : ${OPENSSL_VERSION}  ${OPENSSL_LIBRARIES}" )

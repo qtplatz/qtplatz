@@ -10,6 +10,14 @@ if ( NOT netCDF_FOUND )
   return()
 endif()
 
+if ( WIN32 AND 0 )
+  set ( ZLIB_ROOT "c:/opt/zlib-1.3" )
+  find_package( ZLIB )
+  if ( ZLIB_FOUND )
+    message ( STATUS "ZLIB_LIBRARIES ${ZLIB_LIBRARIES}" )
+  endif()
+endif()
+
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 
@@ -49,7 +57,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   portfolio
   adplugin
   adfs
-  ${netCDF_LIBRARIES}
+  netCDF::netcdf
+#  ${ZLIB_LIBRARIES}
   Threads::Threads
 )
 
@@ -63,6 +72,12 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
 )
+
+# dependents
+# netcdf.dll
+#     hdf5_hl.dll <-- hdf5.dll
+#     libcurl.dll <-- zlib1.dll
+#     hdf5.dll -- jpg.dll, zlib1.dll
 
 ########
 if( NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
@@ -78,7 +93,14 @@ if( NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   target_link_libraries( adncdump LINK_PUBLIC
     adportable
     ${Boost_LIBRARIES}
-    ${netCDF_LIBRARIES}
+    netCDF::netcdf
     Threads::Threads
   )
+
+install( TARGETS adncdump
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION "${_adplugin_install_dir}" COMPONENT plugins
+  ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
+)
+
 endif()

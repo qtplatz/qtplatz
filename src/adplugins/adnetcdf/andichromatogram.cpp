@@ -37,6 +37,7 @@
 #include <adcontrols/peaks.hpp>
 #include <adportable/debug.hpp>
 #include <algorithm>
+#include <bitset>
 #include <variant>
 
 // ---------------------- overloads -------------------->
