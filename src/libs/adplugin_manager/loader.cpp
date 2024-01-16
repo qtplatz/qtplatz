@@ -105,16 +105,21 @@ loader::populate( const std::filesystem::path& appdir )
         if ( !ec ) {
             while ( it != std::filesystem::recursive_directory_iterator() ) {
                 if ( std::filesystem::is_regular_file( it->status() ) ) {
+
                     // attempt to find a newly defined interface as of 2023-SEP-02
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
+#if defined WIN32
+                        if ( it->path().string().find( "adnetcdf" ) != std::string::npos ) {
+#else
                         if ( it->path().string().find( "libadnetcdf" ) != std::string::npos ) {
+#endif
                             try {
                                 // ADDEBUG() << "\n\n-------- loading " << it->path();
                                 auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
                                 if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
-#ifndef NDEBUG
+//#ifndef NDEBUG
                                     ADDEBUG() << "---- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess";
-#endif
+//#endif
                                 }
                             } catch ( std::exception& ex ) {
                                 ADDEBUG() << "Exception:" << ex.what() << "\n\n";
@@ -138,9 +143,9 @@ loader::populate( const std::filesystem::path& appdir )
                                 auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" );
                                 if ( auto plugin = factory() ) {
                                     if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
-#ifndef NDEBUG
+//#ifndef NDEBUG
                                         ADDEBUG() << "load\t" << std::filesystem::relative( dll.location(), appdir ) << "\tSuccess";
-#endif
+//#endif
                                     }
                                 }
                             } else {

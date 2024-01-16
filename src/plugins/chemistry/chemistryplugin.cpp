@@ -68,22 +68,17 @@ using namespace chemistry;
 
 ChemistryPlugin::ChemistryPlugin() : impl_( new impl() )
 {
-    ADDEBUG() << "===== ChemistryPlugin  ctor =====";
 }
 
 ChemistryPlugin::~ChemistryPlugin()
 {
     delete impl_;
-    // if ( mode_ )
-    //     ExtensionSystem::PluginManager::removeObject( mode_.get() );
 }
 
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    ADDEBUG() << "===== ChemistryPlugin::initialize =====";
-    ScopedDebug( x );
-
+    // ScopedDebug( x );
     initialize_actions();
 
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {

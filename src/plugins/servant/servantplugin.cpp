@@ -104,12 +104,10 @@ using namespace servant::internal;
 
 ServantPlugin::~ServantPlugin()
 {
-    ADDEBUG() << "----- ServantPlugin dtor -----";
 }
 
 ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
-    ADDEBUG() << "----- ServantPlugin ctor -----";
 }
 
 bool
