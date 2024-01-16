@@ -1,4 +1,4 @@
-The QtPlatz (as qtplatz) is the software foundation for chromatography and mass spectrometry instrument control and data system. It is intended to implement molecular targeting applications based on accurate masses. The software is written in C++ and can run on Windows 10/11, Mac OS 12 and onward, and Debian Linux and its variants, including Raspberry Pi.
+The QtPlatz (as qtplatz) is the software foundation for chromatography and mass spectrometry instrument control and data systems. It is intended to implement molecular targeting applications based on accurate masses. The software is written in C++ and can run on Windows 10/11, Mac OS 12 and onward, and Debian Linux and its variants, including Raspberry Pi.
 
 Visit
 	http://www.ms-cheminfo.com
@@ -180,7 +180,7 @@ Project ERROR: failed to parse default search paths from compiler output
 ````
 This problem isn't an issue for the qtplatz build; however, it is an issue for building qwt library.
 
-Windows 10 (x64)
+Windows 11 (x64)
 ===============
 
 Prerequisite for Windows
@@ -212,3 +212,20 @@ cd %USERPROFILE%\src\qtplatz
 .\bootstrap.bat package
 nmake package
 ```
+A problem on build with netCDF 4.9.2
+-------------------------------------
+To support ANDI/Chromatograpy (.cdf) data read into QtPlatz, it requires netcdf.dll installed on Windows.  Building and installing netcDF on macOS and Linux is straightforward; in contrast, building the netCDF library on Windows is problematic.  Although there are prebuilt binary exist on https://downloads.unidata.ucar.edu/netcdf/, there is a bug in the CMakeTarget.cmake file, where the dependent libraries for libz.lib and libcurl.lib were under hard-coded full path names, such as below:
+
+```
+set_target_properties(netCDF::netcdf PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "hdf5-shared;hdf5_hl-shared;C:/share/VS15/x64/lib/zlib.lib;C:/share/VS15/x64/lib/libcurl_imp.lib"
+)
+```
+The INTERFACE_LINK_LIBRARIES shown above should be fixed as:
+```
+  INTERFACE_LINK_LIBRARIES "hdf5-shared;hdf5_hl-shared;${_IMPORT_PREFIX}/lib/zlib.lib;${_IMPORT_PREFIX}/lib/libcurl
+```
+The binary package comes with required import libs and DLLs, so it should remove the full path name from INTERFACE_LINK_LIBRARIES.
+
+I have tried to build netCDF from source, depending on the libraries libz, libcurl, and libhdf5.  All those dependent libraries can be installed on Windows straightforwardly. However, netCDF (CMake) cannot successfully be configured.  Even if it succeeded in configuring, the build step on VS2022 failed for the netcdf3 project step.  Finally, I gave it up.
