@@ -214,13 +214,17 @@ nmake package
 ```
 A problem on build with netCDF 4.9.2
 -------------------------------------
-To support ANDI/Chromatograpy (.cdf) data read into QtPlatz, it requires netcdf.dll installed on Windows.  Building and installing netcDF on macOS and Linux is straightforward; in contrast, building the netCDF library on Windows is problematic.  Although there are prebuilt binary exist on https://downloads.unidata.ucar.edu/netcdf/, there is a bug in the CMakeTarget.cmake file, where the dependent libraries for libz.lib and libcurl.lib were under hard-coded full path name, such as below:
+To support ANDI/Chromatograpy (.cdf) data read into QtPlatz, it requires netcdf.dll installed on Windows.  Building and installing netcDF on macOS and Linux is straightforward; in contrast, building the netCDF library on Windows is problematic.  Although there are prebuilt binary exist on https://downloads.unidata.ucar.edu/netcdf/, there is a bug in the CMakeTarget.cmake file, where the dependent libraries for libz.lib and libcurl.lib were under hard-coded full path names, such as below:
 
 ```
 set_target_properties(netCDF::netcdf PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "hdf5-shared;hdf5_hl-shared;C:/share/VS15/x64/lib/zlib.lib;C:/share/VS15/x64/lib/libcurl_imp.lib"
 )
+```
+The INTERFACE_LINK_LIBRARIES shown above should be fixed as:
+```
+  INTERFACE_LINK_LIBRARIES "hdf5-shared;hdf5_hl-shared;${_IMPORT_PREFIX}/lib/zlib.lib;${_IMPORT_PREFIX}/lib/libcurl
 ```
 The binary package comes with required import libs and DLLs, so it should remove the full path name from INTERFACE_LINK_LIBRARIES.
 
