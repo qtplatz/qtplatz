@@ -12,10 +12,10 @@ qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
-  "${OUTPUT_DIR}/${PROJECT_NAME}.adplugin"
-)
+#configure_file(
+#  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
+#  "${OUTPUT_DIR}/${PROJECT_NAME}.adplugin"
+#)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/libs
@@ -36,7 +36,7 @@ add_library( ${PROJECT_NAME} MODULE
   importdata.hpp
   massspectrometer.cpp
   massspectrometer.hpp
-  )
+)
 
 #foreach( lib ${Boost_LIBRARIES} )
 #  message( STATUS "adspectrometer boost lib: " ${lib} )

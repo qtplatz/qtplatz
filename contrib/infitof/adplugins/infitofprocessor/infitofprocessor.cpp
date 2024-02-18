@@ -25,6 +25,7 @@
 #include "processreactor.hpp"
 #include <adplugin/plugin.hpp>
 #include <mutex>
+#include <boost/dll/alias.hpp>
 
 namespace infitofprocessor {
 
@@ -38,30 +39,31 @@ namespace infitofprocessor {
     public:
         ~infitofprocessor_plugin() {
         }
-        
+
         static std::shared_ptr< infitofprocessor_plugin > instance_;
-        
+
         static infitofprocessor_plugin * instance() {
             static std::once_flag flag;
             std::call_once( flag, [] () {
                     struct make_shared_enabler : public infitofprocessor_plugin {};
                     instance_ = std::make_shared< make_shared_enabler >();
                 } );
-            
+
             return instance_.get();
         }
-        
+
         // plugin
         void * query_interface_workaround( const char * ) override { return 0; }
-        
+
         void accept( adplugin::visitor&, const char * adplugin ) override;
-        
+
         const char * iid() const override { return "com.ms-cheminfo.qtplatz.adprocessor.infitofprocessor"; }
     };
-    
+
     std::shared_ptr< infitofprocessor_plugin > infitofprocessor_plugin::instance_;
 }
 
+#if 0
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
@@ -71,6 +73,12 @@ adplugin_plugin_instance()
 {
     return infitofprocessor::infitofprocessor_plugin::instance();
 }
+#else
+
+namespace infitofprocessor {
+    BOOST_DLL_ALIAS( infitofprocessor_plugin::instance,  adplugin_instance )
+}
+#endif
 
 using namespace infitofprocessor;
 
@@ -79,4 +87,3 @@ infitofprocessor_plugin::accept( adplugin::visitor&, const char * adplugin )
 {
     ProcessReactor::instance()->initialSetup();
 }
-

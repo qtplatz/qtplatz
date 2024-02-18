@@ -24,7 +24,9 @@
 
 #include "socfpgainterpreter_global.hpp"
 #include "datareader_factory.hpp"
+#include <boost/dll/alias.hpp>
 
+#if 0
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
@@ -34,3 +36,8 @@ adplugin_plugin_instance()
 {
     return socfpgainterpreter::datareader_factory::instance();
 }
+#else
+namespace socfpgainterpreter {
+    BOOST_DLL_ALIAS( datareader_factory::instance,  adplugin_instance )
+}
+#endif

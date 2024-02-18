@@ -29,6 +29,7 @@
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datainterpreter_factory.hpp>
 #include <mutex>
+#include <boost/dll/alias.hpp>
 
 namespace infitofspectrometer {
 
@@ -65,6 +66,7 @@ namespace infitofspectrometer {
     std::shared_ptr< infitofspectrometer_plugin > infitofspectrometer_plugin::instance_;
 }
 
+#if 0
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
@@ -74,6 +76,11 @@ adplugin_plugin_instance()
 {
     return infitofspectrometer::infitofspectrometer_plugin::instance();
 }
+#else
+namespace infitofspectrometer {
+    BOOST_DLL_ALIAS( infitofspectrometer::infitofspectrometer_plugin::instance,  adplugin_instance )
+}
+#endif
 
 using namespace infitofspectrometer;
 

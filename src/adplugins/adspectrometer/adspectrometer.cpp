@@ -33,6 +33,7 @@
 #include <boost/exception/all.hpp>
 #include <memory>
 #include <mutex>
+#include <boost/dll/alias.hpp>
 
 namespace adcontrols { class datafile; }
 
@@ -68,6 +69,7 @@ namespace adspectrometer {
 
 }
 
+#if 0
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
@@ -77,6 +79,11 @@ adplugin_plugin_instance()
 {
     return adspectrometer::adspectrometer_plugin::instance();
 }
+#else
+namespace accutof {
+    BOOST_DLL_ALIAS( adspectrometer::adspectrometer_plugin::instance,  adplugin_instance )
+}
+#endif
 
 ///////////////////////////
 using namespace adspectrometer;

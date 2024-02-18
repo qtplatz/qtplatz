@@ -29,6 +29,7 @@
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datainterpreter_factory.hpp>
 #include <mutex>
+#include <boost/dll/alias.hpp>
 
 namespace accutof { namespace spectrometer {
 
@@ -66,6 +67,7 @@ namespace accutof { namespace spectrometer {
     }
 }
 
+#if 0
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
@@ -75,6 +77,11 @@ adplugin_plugin_instance()
 {
     return accutof::spectrometer::accutofspectrometer_plugin::instance();
 }
+#else
+namespace accutof {
+    BOOST_DLL_ALIAS( accutof::spectrometer::accutofspectrometer_plugin::instance,  adplugin_instance )
+}
+#endif
 
 using namespace accutof::spectrometer;
 
