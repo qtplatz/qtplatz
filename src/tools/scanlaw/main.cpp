@@ -32,6 +32,7 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <utility>
 
 namespace {
     class serializer {

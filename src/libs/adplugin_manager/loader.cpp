@@ -35,6 +35,7 @@
 #include <boost/version.hpp>
 #include <boost/dll.hpp>
 #include <boost/dll/import.hpp>
+#include <boost/system.hpp>
 #include <regex>
 
 using namespace adplugin;
@@ -98,6 +99,7 @@ loader::populate( const std::filesystem::path& appdir )
     // search all files under ./lib/ directory
     std::filesystem::path modules(    appdir / "lib" ); // /qtplatz/plugins" );
 #endif
+    ADDEBUG() << "populating: " << appdir;
 
     if ( std::filesystem::is_directory( modules ) ) {
         std::error_code ec;
@@ -108,21 +110,21 @@ loader::populate( const std::filesystem::path& appdir )
 
                     // attempt to find a newly defined interface as of 2023-SEP-02
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
-#if defined WIN32
-                        if ( it->path().string().find( "adnetcdf" ) != std::string::npos ) {
-#else
-                        if ( it->path().string().find( "libadnetcdf" ) != std::string::npos ) {
-#endif
+                        boost::dll::shared_library lib( it->path() );
+                        if ( lib.has( "adplugin_instance" ) ) {
+                            auto instance = boost::dll::import_alias< adplugin::plugin *() >( std::move( lib ), "adplugin_instance" );
                             try {
-                                // ADDEBUG() << "\n\n-------- loading " << it->path();
-                                auto instance = boost::dll::import_alias< adplugin::plugin *() >( it->path(), "adplugin_instance" );
                                 if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
-//#ifndef NDEBUG
-                                    ADDEBUG() << "---- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess";
-//#endif
+                                    ADDEBUG() << "\t-- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess (boost::dll)";
+                                } else {
+                                    ADDEBUG() << "\t-- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tFailed (boost::dll)";
                                 }
+                            } catch (const boost::system::system_error &err) {
+                                ADDEBUG() << "Cannot load Plugin from " << it->path() << "\nERR: " << err.what() << std::endl;
                             } catch ( std::exception& ex ) {
-                                ADDEBUG() << "Exception:" << ex.what() << "\n\n";
+                                ADDEBUG() << "Exception:" << ex.what() << std::endl;
+                            } catch ( ... ) {
+                                ADDEBUG() << "Exception" << std::endl;
                             }
                         }
                     }
@@ -144,7 +146,7 @@ loader::populate( const std::filesystem::path& appdir )
                                 if ( auto plugin = factory() ) {
                                     if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
 //#ifndef NDEBUG
-                                        ADDEBUG() << "load\t" << std::filesystem::relative( dll.location(), appdir ) << "\tSuccess";
+                                        ADDEBUG() << "load\t" << std::filesystem::relative( dll.location(), appdir ) << "\tSuccess (traditional)";
 //#endif
                                     }
                                 }

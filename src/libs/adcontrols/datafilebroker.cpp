@@ -65,7 +65,7 @@ namespace adcontrols {
     private:
         std::map < std::string, std::shared_ptr< datafile_factory > > factories_;
     };
-    
+
 }
 
 std::atomic<datafileBrokerImpl * > datafileBrokerImpl::instance_( 0 );
@@ -104,6 +104,7 @@ datafileBroker::open( const std::wstring& filename, bool readonly, error_code * 
 bool
 datafileBroker::access( const std::wstring& filename )
 {
+    ADDEBUG() << "## access: " << filename;
     for ( auto f: datafileBrokerImpl::instance()->factories() ) {
 		if ( f.second && f.second->access( filename.c_str() ) )
             return true;
@@ -129,8 +130,11 @@ datafileBroker::clear_factories()
 bool
 datafileBrokerImpl::register_factory( datafile_factory * factory, const std::string& uniqname )
 {
-    if ( factories_.find( uniqname ) != factories_.end() )
+    ADDEBUG() << "register name: " << uniqname;
+    if ( factories_.find( uniqname ) != factories_.end() ) {
+        ADDEBUG() << "\tregister failed.";
         return false;
+    }
 
     factories_[ uniqname ].reset( factory );
 
@@ -147,15 +151,21 @@ datafileBrokerImpl::visit( adcontrols::datafile& )
 datafile *
 datafileBrokerImpl::open( const std::wstring& name, bool readonly, error_code * ec )
 {
+    ADDEBUG() << "\n\n";
+    ADDEBUG() << "----> factories.size: " << factories_.size();
+    for ( const auto& f: factories_ )
+        ADDEBUG() << "\t" << f.second->name();
+    ADDEBUG() << "<---- factories.size: " << factories_.size();
     for ( auto it = factories_.begin(); it != factories_.end(); ++it ) {
+        ADDEBUG() << "\tdatafile_factory::name : " << it->second->name();
+        ADDEBUG() << "\tdatafileBrokerImpl::open -- factory: " << std::quoted( it->first ) << ", " << it->second.get();
         if ( it->second && it->second->access( name.c_str() ) ) {
             return it->second->open( name.c_str(), readonly );
         }
     }
 
-    if ( factories_.empty() && ec )
+    if ( ec )
         ec->assign( -1, "No data factory installed" );
-
     return 0;
 }
 

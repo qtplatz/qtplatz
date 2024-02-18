@@ -40,7 +40,7 @@ datafile_factory::datafile_factory()
 {
 }
 
-datafile_factory *
+adplugin::plugin *
 datafile_factory::instance()
 {
     static std::once_flag flag;

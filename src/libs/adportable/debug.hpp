@@ -55,6 +55,8 @@ namespace adportable {
         std::string where() const;
         std::string str() const;
 
+        debug& operator<<( std::ostream&(*f)(std::ostream&) ) { o_ << f; return *this; } // handle std::endl
+
         template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
 
         template<typename F, typename S> debug& operator << ( const std::pair<F,S>& t ){

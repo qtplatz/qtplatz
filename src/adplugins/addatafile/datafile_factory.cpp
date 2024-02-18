@@ -25,10 +25,10 @@
 
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
+#include <adportable/debug.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
 #include <filesystem>
-// #include <boost/filesystem/operations.hpp>
 #include <boost/config.hpp>
 #include <boost/dll/alias.hpp>
 #include <mutex>
@@ -46,7 +46,8 @@ datafile_factory::datafile_factory()
 	instance_ = 0;
 }
 
-datafile_factory *
+//datafile_factory *
+adplugin::plugin *
 datafile_factory::instance()
 {
     static std::once_flag flag;
@@ -71,6 +72,8 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 {
     std::filesystem::path path(filename);
 
+    ADDEBUG() << "============= access( " << filename << ") ============ " << path.extension();
+
     if ( path.extension() == ".qtms" ) // obsolete
         return mode == adcontrols::read_access;
     if ( path.extension() == ".adfs" )
@@ -83,6 +86,7 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
+    ADDEBUG() << "===> datafile_factory::open(" << filename << ")";
     std::filesystem::path path(filename);
     datafile * p = new datafile;
     if ( p->open( filename, readonly ) )
@@ -105,6 +109,7 @@ datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
     // no need to call visitor due to no additional plugin
 	// v.visit( this, adplugin );
+    ADDEBUG() << "## datafile_factory::accept : adplugin = " << adplugin;
 }
 
 void *
@@ -114,12 +119,3 @@ datafile_factory::query_interface_workaround( const char * typenam )
         return static_cast< adcontrols::datafile_factory *>(this);
     return 0;
 }
-
-#if 0
-namespace addatafile {
-    BOOST_DLL_ALIAS(
-        datafile_factory::instance, // <-- this function is exported with...
-        adplugin_plugin_instance                             // <-- ...this alias name
-        );
-}
-#endif

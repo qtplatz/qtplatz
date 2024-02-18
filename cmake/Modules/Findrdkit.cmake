@@ -67,6 +67,7 @@ if ( _path )
       RDKit::Inchi
       RDKit::RDInchiLib
       RDKit::SmilesParse
+      RDKit::RDStreams    # 2024-02-18 added
     )
   else()
     set ( RDKit_LIBRARIES
@@ -91,6 +92,7 @@ if ( _path )
       Inchi
       RDInchiLib
       SmilesParse
+      RDStreams    # 2024-02-18 added
     )
   endif()
 endif()

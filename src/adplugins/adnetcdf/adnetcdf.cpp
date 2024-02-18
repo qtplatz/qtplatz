@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #include <compiler/decl_export.h>
-#include <boost/filesystem.hpp>
 #include <adplugin/plugin.hpp>
 #include "datafile_factory.hpp"
 #include <boost/dll/alias.hpp>

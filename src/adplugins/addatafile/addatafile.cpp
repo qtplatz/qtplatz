@@ -26,8 +26,13 @@
 #include "addatafile.hpp"
 #include "datafile_factory.hpp"
 #include <adplugin/plugin.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/dll/alias.hpp>
 
+namespace adcontrols {
+    class datafile_factory;
+}
+
+#if 0
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
@@ -42,3 +47,11 @@ adplugin_plugin_instance()
 #endif
     return addatafile::datafile_factory::instance();
 }
+
+#else
+
+namespace adnetcdf {
+    BOOST_DLL_ALIAS( addatafile::datafile_factory::instance,  adplugin_instance )
+}
+
+#endif

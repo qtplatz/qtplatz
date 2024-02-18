@@ -7,6 +7,7 @@ set( Boost_NO_SYSTEM_PATHS ON )
 
 # See 'libs/serialization/src/basic_archive.cpp library_version_type for archive version
 set ( __boost_versions
+  "boost-1_84"        # V20 <--
   "boost-1_83"        # V19
   "boost-1_79"        # V19
   "boost-1_78"        # V19

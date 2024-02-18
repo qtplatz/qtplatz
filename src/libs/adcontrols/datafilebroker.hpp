@@ -43,10 +43,9 @@ namespace adcontrols {
         static bool register_factory( datafile_factory *, const std::string& uniqname );
 
         static datafile * create( const std::wstring& filename, error_code * );
-        static datafile * open( const std::wstring& filename, bool readonly = false, error_code * = nullptr );
+        static datafile * open( const std::wstring& filename, bool readonly = false, error_code* = nullptr );
         static bool access( const std::wstring& filename );
         static void clear_factories();
     };
-    
-}
 
+}

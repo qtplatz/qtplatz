@@ -35,7 +35,8 @@ namespace addatafile {
     public:
         ~datafile_factory();
         datafile_factory();
-        static datafile_factory * instance();
+        //static datafile_factory * instance();
+        static adplugin::plugin * instance();
 
 		const char * mimeTypes() const { return 0; }
         const wchar_t * name() const;

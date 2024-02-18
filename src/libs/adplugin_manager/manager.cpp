@@ -80,13 +80,9 @@ namespace adplugin {
     public:
         ~plugin_data() {
             plugin_ = nullptr; // release plugin before unload library
-#ifndef NDEBUG
-            auto loc = boost::filesystem::relative( dll_.location(), boost::dll::program_location().parent_path() );
-#endif
-            dll_.unload();
-#ifndef NDEBUG
-            ADDEBUG() << "<<< unloading " << loc << " " << (dll_.is_loaded() ? " fail" : " success");
-#endif
+            // auto loc = std::filesystem::relative( dll_.location(), boost::dll::program_location().parent_path() );
+            // dll_.unload();
+            // ADDEBUG() << "<<< unloading " << loc << " " << (dll_.is_loaded() ? " fail" : " success");
         }
 
         plugin_data() {
@@ -98,7 +94,7 @@ namespace adplugin {
         explicit plugin_data( adplugin::plugin_ptr ptr
                               , boost::dll::shared_library&& dll ) : plugin_( ptr )
                                                                    , dll_( dll ) {
-#if !defined NDEBUG && 0
+#if !defined NDEBUG && 1
             boost::system::error_code ec;
             ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec );
 #endif
@@ -141,6 +137,7 @@ namespace adplugin {
 
         typedef std::vector< adplugin::plugin_ptr > vector_type;
 
+        // traditional plugin interface
         bool install( boost::dll::shared_library&& lib, const std::string& adpluginspec, const std::string& context ) {
             if ( pluginspecs_.find( adpluginspec ) != pluginspecs_.end() )
                 return false;
@@ -158,13 +155,12 @@ namespace adplugin {
             return false;
         }
 
+        // boost::dll entry
         bool install( boost::dll::shared_library&& dll, std::function<adplugin::plugin *()> instance ) {
             if ( auto plugin = instance() ) {
-                //ADDEBUG() << "2023-09-02 interface: " << plugin->iid() << ", is_loaded: " << dll.is_loaded();
-                //pluginspecs_.insert( adpluginspec );
-                //plugin->setConfig( adpluginspec, context, lib.location().string() );
+                plugin->setConfig( "", "", dll.location().string() );
                 plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( dll ) ) ); // reverse order
-                plugin->accept( *this, "" );
+                plugin->accept( *this, dll.location().c_str() );
                 return true;
             }
             return false;
@@ -240,7 +236,9 @@ manager::install( boost::dll::shared_library&& dll, const std::string& adplugins
 bool
 manager::install( boost::dll::shared_library&& dll, std::function<adplugin::plugin *()> instance )
 {
-    return d_->install( std::move( dll ), std::move( instance ) );
+    if ( instance )
+        return d_->install( std::move( dll ), std::move( instance ) );
+    return false;
 }
 
 
@@ -351,6 +349,7 @@ manager::standalone_initialize()
     auto tpath = boost::dll::program_location().parent_path().parent_path();  // <-- install dir (/opt/qtplatz/bin/qtplatz/../..)
 #endif
 
+    ADDEBUG() << "------------ standalone initialize ----------------";
     adplugin::loader::populate( tpath );
 
     // spectrometers
@@ -370,15 +369,13 @@ manager::standalone_initialize()
 
     if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
 
-        std::for_each( dataproviders.begin()
-                       , dataproviders.end()
-                       , [&] ( const adplugin::plugin_ptr& d ) {
-                             if ( auto factory = d->query_interface< adcontrols::datafile_factory >() ) {
-                                 adcontrols::datafileBroker::register_factory( factory, d->clsid() );
-                                 if ( factory->mimeTypes() )
-                                     mime.emplace_back( factory->mimeTypes() );
-                             }
-                         });
+        for ( const auto& plugin: dataproviders ) {
+            if ( auto factory = plugin->query_interface< adcontrols::datafile_factory >() ) {
+                adcontrols::datafileBroker::register_factory( factory, plugin->path() );
+            } else {
+                ADDEBUG() << "\thas no datafile_factory()";
+            }
+        }
     }
 }
 

@@ -37,7 +37,7 @@ namespace adtextfile {
         ~datafile_factory(void);
         datafile_factory(void);
 
-        static datafile_factory * instance();
+        static adplugin::plugin * instance();
 
 		const char * mimeTypes() const;
         const wchar_t * name() const;

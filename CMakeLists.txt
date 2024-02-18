@@ -17,7 +17,7 @@ if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
 endif()
 
 set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-set ( VERBOSE OFF )
+set ( VERBOSE ON )
 set ( CMAKE_ECLIPSE_VERSION 4.5 )
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
@@ -167,23 +167,19 @@ if ( APPLE )
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         "${CMAKE_BINARY_DIR}/lib" ) # static libs, dll's import lib/exp
   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/Frameworks" )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_BINARY_DIR}/bin" )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_BINARY_DIR}/bin" ) #/qtplatz.app/Contents/MacOS )
-  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin" ) #/qtplatz.app/Contents/MacOS )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS" )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS" )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS" )
   set( CMAKE_SHARED_MODULE_SUFFIX             ".dylib" )
   set( CMAKE_MACOSX_RPATH                     1 )
   set( CMAKE_SKIP_BUILD_RPATH                 FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH         FALSE )
   set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns" )
+
   set( QTPLATZ_PLUGIN_DESTINATION             "bin/qtplatz.app/Contents/PlugIns" )
 
 else()
-  ## Linux/Windows -- install destination
-  if ( IDE_VERSION VERSION_LESS_EQUAL         "3.2.81" )
-    set( QTPLATZ_PLUGIN_DESTINATION           "lib/qtplatz/plugins" ) # Qt5/QTC3.x
-  else()
-    set( QTPLATZ_PLUGIN_DESTINATION           "lib/qtcreator/plugins" ) # Qt6/QTC9
-  endif()
+  set( QTPLATZ_PLUGIN_DESTINATION             "lib/qtcreator/plugins" ) # Qt6/QTC9
 
   # use following value in each CMakeFiles.txt for plugin project
   set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" )
@@ -368,7 +364,7 @@ if ( WITH_OPENCV )
     endif()
   endif()
 
-  find_package( HDF5 QUIET )
+  find_package( HDF5 QUIET HINTS "/usr/local/hdf5" )
   if ( HDF5_FOUND )
     add_definitions( -DHAVE_HDF5=1 )
   endif()
@@ -565,7 +561,7 @@ if ( Boost_FOUND AND VERBOSE )
     endif()
   endforeach()
 endif()
-set ( VERBOSE OFF )
+
 if ( WITH_QWT )
   get_target_property( qwt_release ${QWT_LIBRARIES} IMPORTED_LOCATION )
   get_target_property( qwt_debug   ${QWT_LIBRARIES} IMPORTED_LOCATION_DEBUG )
@@ -578,6 +574,7 @@ endif()
 if ( Eigen3_FOUND )
   message( STATUS "# Eigen3                : ${EIGEN3_INCLUDE_DIR}" )
 endif()
+
 if ( rdkit_FOUND )
   message( STATUS "# RDKit VERSION         : ${RDKit_PACKAGE_VERSION}" )
   if ( VERBOSE )
@@ -610,10 +607,14 @@ message( STATUS "# OpenCV VERSION        : "  ${OpenCV_VERSION} )
 if ( OpenCV_FOUND )
   message( STATUS "\t# INCLUDE          : ${OpenCV_INCLUDE_DIRS}" )
 endif()
+
 if ( HDF5_FOUND )
   message( STATUS "# HDF5                  :  ${HDF5_VERSION}  in (${HDF5_INCLUDE_DIRS})" )
 else()
   message( STATUS "# HDF5                  :  NOT FOUND" )
+endif()
+if ( netCDF_FOUND )
+  message( STATUS "# netCDF                : ${netCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
 endif()
 
 if ( AqMD3_FOUND )
@@ -663,9 +664,7 @@ endif()
 if ( WITH_PYTHON3 )
   message( STATUS "# Python3               : " ${Python3_VERSION} )
 endif()
-if ( netCDF_FOUND )
-  message( STATUS "# netCDF                : ${netCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
-endif()
+
 if ( OPENSSL_FOUND )
   message( STATUS "# OpenSSL               : ${OPENSSL_VERSION}  ${OPENSSL_LIBRARIES}" )
 endif()
