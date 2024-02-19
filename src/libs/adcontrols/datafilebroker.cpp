@@ -33,6 +33,7 @@
 #include <mutex>
 #include <memory>
 #include <map>
+#include <stdexcept>
 
 using namespace adcontrols;
 
@@ -130,11 +131,8 @@ datafileBroker::clear_factories()
 bool
 datafileBrokerImpl::register_factory( datafile_factory * factory, const std::string& uniqname )
 {
-    ADDEBUG() << "register name: " << uniqname;
-    if ( factories_.find( uniqname ) != factories_.end() ) {
-        ADDEBUG() << "\tregister failed.";
-        return false;
-    }
+    if ( uniqname.empty() )
+        throw std::invalid_argument( "uniqname" );
 
     factories_[ uniqname ].reset( factory );
 
