@@ -59,6 +59,7 @@ namespace portfolio {
             ///////////////  creation ///////////////
             bool create_with_fullpath( const std::wstring& );
             Folder addFolder( const std::wstring&, bool uniq );
+            Folder addFolder( const std::string&, bool uniq );
             pugi::xml_document& getDocument() { return doc_; }
             static std::wstring newGuid();
 

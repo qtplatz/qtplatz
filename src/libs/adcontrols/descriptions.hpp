@@ -59,6 +59,7 @@ namespace adcontrols {
 	   void operator = ( const descriptions& );
 
 	   void append( const description&, bool uniq = true );
+       void append( std::pair< std::string, std::string >&&, bool uniq = true );
 	   size_t size() const;
 	   const description& operator [] ( size_t idx ) const;
 

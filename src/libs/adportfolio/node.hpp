@@ -92,8 +92,11 @@ namespace portfolio {
             pugi::xpath_node selectSingleNode( const std::string& query );
 
             pugi::xml_node addFolder( const std::wstring& name, PortfolioImpl* );
+            pugi::xml_node addFolder( const std::string& name, PortfolioImpl* );
             pugi::xml_node addFolium( const std::wstring& name );
+            pugi::xml_node addFolium( const std::string& name );
             pugi::xml_node addAttachment( const std::wstring& name, bool bUniq = true );
+            pugi::xml_node addAttachment( const std::string& name, bool bUniq = true );
 
             std::vector< std::string >
             erase( const std::string& node, std::tuple< std::wstring, std::wstring > );

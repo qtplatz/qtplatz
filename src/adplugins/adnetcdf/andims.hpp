@@ -25,38 +25,37 @@
 
 #pragma once
 
+#include <map>
+#include <optional>
 #include <string>
-#include <netcdf.h>
-#include <boost/json/fwd.hpp>
-#include <boost/json/value_to.hpp>
+#include <vector>
+#include <memory>
+
+namespace adcontrols {
+    class Chromatogram;
+}
 
 namespace adnetcdf {
+
     namespace netcdf {
+        class ncfile;
+    }
 
-        class attribute {
-        public:
-            typedef std::tuple< int, int, std::string, nc_type, size_t > value_type;
-            enum { _varid, _attid, _name, _type, _len };
+    namespace nc = adnetcdf::netcdf;
 
-            attribute();
-            attribute( const attribute& );
-            attribute( int, int, const std::string&, nc_type, size_t len );
-            attribute( const value_type & );
-            value_type value() const;
-            inline const char * cname() const { return name_.c_str(); }
-            inline const std::string& name() const { return name_; }
-            inline size_t len() const { return len_; }
-            inline nc_type type() const { return type_; }
-            inline int varid() const { return varid_; }
-            inline int attid() const { return attid_; }
-        private:
-            int varid_;
-            int attid_;
-            std::string name_;
-            nc_type type_;
-            size_t len_;
-            friend void tag_invoke( boost::json::value_from_tag, boost::json::value&, const attribute& );
-        };
+    class AndiMS {
+        AndiMS( const AndiMS& ) = delete;
+        AndiMS& operator = ( const AndiMS& ) = delete;
+    public:
+        ~AndiMS();
+        AndiMS();
+        std::vector< std::shared_ptr< adcontrols::Chromatogram > > import( const nc::ncfile& file ) const;
 
-    } // namespace netcdf
+        std::optional< std::string > find_global_attribute( const std::string& ) const;
+
+    private:
+        class impl;
+        std::unique_ptr< impl > impl_;
+    };
+
 }

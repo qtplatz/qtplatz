@@ -171,6 +171,7 @@ namespace adcontrols {
 
         void addDescription( const description& );
         void addDescription( description&& );
+        void addDescription( std::pair< std::string, std::string >&& );
         const descriptions& getDescriptions() const;
         // const adcontrols::descriptions& descriptions() const; <-- not be able to compile on gcc
 

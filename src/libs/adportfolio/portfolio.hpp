@@ -62,7 +62,9 @@ namespace portfolio {
 
         // create new from scratch
         bool create_with_fullpath( const std::wstring& fullpath );
+
         Folder addFolder( const std::wstring& name, bool uniq = true );
+        Folder addFolder( const std::string& name, bool uniq = true );
 
         template< typename T > std::vector< std::pair< T, T > > attributes() const;
 

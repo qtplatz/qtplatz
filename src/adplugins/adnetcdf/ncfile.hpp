@@ -87,6 +87,7 @@ namespace adnetcdf {
 
             datum_t readData( const attribute& t ) const;
             datum_t readData( const variable& t ) const;
+            std::optional< std::string > get_att_text( const std::string& ) const;
 
         private:
             std::filesystem::path path_;

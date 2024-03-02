@@ -142,9 +142,15 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
 Folder
 PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
 {
+    return addFolder( pugi::as_utf8( name ), uniq );
+}
+
+Folder
+PortfolioImpl::addFolder( const std::string& name, bool uniq )
+{
     using adportable::utf;
     if ( uniq ) {
-        std::string query = std::string( "folder[@folderType='directory'][@name=\"" ) + utf::to_utf8(name) + "\"]";
+        std::string query = std::string( "folder[@folderType='directory'][@name=\"" ) + name + "\"]";
         try {
             pugi::xpath_node_set list = Node::selectNodes( query );
             if ( list.size() > 0 )

@@ -127,6 +127,13 @@ Portfolio::addFolder( const std::wstring& name, bool uniq )
     return impl_->addFolder( name, uniq );
 }
 
+Folder
+Portfolio::addFolder( const std::string& name, bool uniq )
+{
+    return impl_->addFolder( name, uniq );
+}
+
+
 std::string
 Portfolio::xml() const
 {

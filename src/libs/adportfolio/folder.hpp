@@ -61,6 +61,7 @@ namespace portfolio {
 
         // --- add/modify
         Folium addFolium( const std::wstring& name );
+        Folium addFolium( const std::string& name );
         // bool removeFolium( const Folium& );
         bool erase( Folium, std::function< void( std::tuple< std::wstring, std::wstring > ) > );
     };

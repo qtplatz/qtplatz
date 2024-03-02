@@ -346,23 +346,34 @@ Node::selectSingleNode( const std::string& query )
 }
 
 //////////////////////////
+pugi::xml_node
+Node::addFolder( const std::wstring& name, internal::PortfolioImpl* impl )
+{
+    return addFolder( pugi::as_utf8( name ), impl );
+}
 
 pugi::xml_node
-Node::addFolder( const std::wstring& name, internal::PortfolioImpl* )
+Node::addFolder( const std::string& name, internal::PortfolioImpl* )
 {
     pugi::xml_node child = node_.append_child( "folder" );
     set_attribute( child, "folderType", "directory" );
-    set_attribute( child, "name", pugi::as_utf8( name ) );
+    set_attribute( child, "name", name );
     return child;
 }
 
 pugi::xml_node
 Node::addFolium( const std::wstring& name )
 {
+    return addFolium( pugi::as_utf8( name ) );
+}
+
+pugi::xml_node
+Node::addFolium( const std::string& name )
+{
     pugi::xml_node child = node_.append_child( "folium" );
     set_attribute( child, "folderType", "file" );
     set_attribute( child, "dataId", pugi::as_utf8( internal::PortfolioImpl::newGuid() ) );
-    set_attribute( child, "name", pugi::as_utf8( name ) );
+    set_attribute( child, "name", name );
 
     boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
     std::string date = ( boost::format( "%1%" ) % pt ).str();
@@ -374,9 +385,15 @@ Node::addFolium( const std::wstring& name )
 pugi::xml_node
 Node::addAttachment( const std::wstring& name, bool bUniq )
 {
+    return addAttachment( pugi::as_utf8( name ), bUniq );
+}
+
+pugi::xml_node
+Node::addAttachment( const std::string& name, bool bUniq )
+{
     if ( bUniq ) {
         using adportable::utf;
-        std::string query = "./attachment[@name=\"" + utf::to_utf8( name ) + "\"]";
+        std::string query = "./attachment[@name=\"" + name + "\"]";
         try {
             pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
             for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it ) {
@@ -391,7 +408,7 @@ Node::addAttachment( const std::wstring& name, bool bUniq )
 
     pugi::xml_node child = node_.append_child( "attachment" );
     set_attribute( child, "dataId", pugi::as_utf8( internal::PortfolioImpl::newGuid() ) );
-    set_attribute( child, "name", pugi::as_utf8( name ) );
+    set_attribute( child, "name", name );
 
     boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
     std::string date = ( boost::format( "%1%" ) % pt ).str();

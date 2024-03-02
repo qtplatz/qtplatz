@@ -145,6 +145,12 @@ descriptions::append( const description& desc, bool uniq )
     impl_->append( desc, uniq );
 }
 
+void
+descriptions::append( std::pair< std::string, std::string >&& t, bool uniq )
+{
+    impl_->append( description{ std::move( t ) }, uniq );
+}
+
 size_t
 descriptions::size() const
 {

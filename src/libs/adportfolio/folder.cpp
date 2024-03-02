@@ -128,6 +128,11 @@ Folder::addFolium( const std::wstring& name )
     return Folium( Node::addFolium( name ), impl_ );
 }
 
+Folium
+Folder::addFolium( const std::string& name )
+{
+    return Folium( Node::addFolium( name ), impl_ );
+}
 
 bool
 Folder::erase( Folium folium

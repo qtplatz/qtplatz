@@ -186,14 +186,14 @@ namespace adnetcdf { namespace netcdf {
 
             std::string operator()( std::string tag, const attribute& att ) const {
                 std::string data( att.len(), '\0' );
-                if ( nc_get_att_text( ncfile_.ncid(), att.varid(), att.name(), data.data() ) == NC_NOERR )
+                if ( nc_get_att_text( ncfile_.ncid(), att.varid(), att.cname(), data.data() ) == NC_NOERR )
                     return std::string{ data.c_str() }; // remove trailing zero
                 return {};
             }
             template< typename T > std::vector< T >
             operator()( T tag, const attribute& att ) const {
                 std::vector< T > data( att.len() );
-                if ( nc_get_att_<T>( T{}, ncfile_.ncid(), att.varid(), att.name(), data.data() ) == NC_NOERR )
+                if ( nc_get_att_<T>( T{}, ncfile_.ncid(), att.varid(), att.cname(), data.data() ) == NC_NOERR )
                     return data;
                 return {};
             }
@@ -415,6 +415,17 @@ ncfile::inq_var( int varid ) const
         if ( nc_inq_var( ncid_, varid, name.data(), &xtype, 0, dims.data(), &natts )  == NC_NOERR ) {
             return {{ varid, name.data(), xtype, ndims, std::move( dims ), natts }};
         }
+    }
+    return {};
+}
+
+std::optional< std::string >
+ncfile::get_att_text( const std::string& aname ) const
+{
+    auto it = std::find_if( atts_.begin(), atts_.end()
+                            , [&](const auto& a){ return a.name() == aname; });
+    if ( it != atts_.end() ) {
+        return nc_att_reader(*this )( std::string{}, *it );
     }
     return {};
 }

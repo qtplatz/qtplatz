@@ -27,7 +27,8 @@
 // #  define BOOST_NO_CXX11_RVALUE_REFERENCES
 // #endif
 
-#include "andichromatogram.hpp"
+#include "andichromatography.hpp"
+#include "andims.hpp"
 #if defined __GNUC__
 # pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -44,6 +45,8 @@
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -74,7 +77,7 @@ namespace adnetcdf {
         double tDelay_;
         std::string model_;
         std::shared_ptr< adcontrols::MassSpectrum > data_;
-        std::shared_ptr< adcontrols::Chromatogram > chro_;
+        std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
 
         impl() : processedDataset_( std::make_unique< adcontrols::ProcessedDataset >() )
                , accelVoltage_( 0 )
@@ -152,17 +155,24 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     if ( auto file = adnetcdf::netcdf::open( std::filesystem::path( filename ) ) ) {
 
-        AndiChromatogram andi;
-        if ( auto chro = andi.import( file ) ) {
-            impl_->chro_ = std::move( chro );
-            std::wstring name = std::filesystem::path( filename ).stem().wstring();
-            auto folder = portfolio.addFolder( L"Chromatograms" );
-            auto folium = folder.addFolium( name ).assign( chro, chro->dataClass() );
+        auto folder = portfolio.addFolder( L"Chromatograms" );
+        if ( auto temp = file.get_att_text( "aia_template_revision" ) ) {
+            AndiChromatography andi;
 
-            impl_->processedDataset_->xml( portfolio.xml() );
+            for ( auto chro: andi.import( file ) ) {
+                auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
+                impl_->vChro_.emplace( folium.id<char>(), chro );
+            }
+        } else if ( auto temp = file.get_att_text( "ms_template_revision" ) ) {
+            AndiMS andi;
 
-            return true;
+            for ( auto& chro: andi.import( file ) ) {
+                auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
+                impl_->vChro_.emplace( folium.id<char>(), chro );
+            }
         }
+        impl_->processedDataset_->xml( portfolio.xml() );
+        return true;
     }
     return false;
 }
@@ -171,16 +181,17 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
-    ADDEBUG() << "================ fetch ================== " << std::make_tuple( path, dataType );
-    // return fetch( adportable::utf::to_wstring( path ), adportable::utf::to_wstring( dataType ) );
-    return impl_->chro_;
+    ADDEBUG() << "======== " << __FUNCTION__ << std::make_pair( path, dataType ); // guid, Chromatogram
+    auto it = impl_->vChro_.find( path );
+    if ( it != impl_->vChro_.end() )
+        return it->second;
+    return {};
 }
 
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    ADDEBUG() << "================ fetch ==================  " << std::make_tuple( path, dataType );
-    return impl_->chro_;
+    return fetch( adportable::utf::as_utf8( path ), adportable::utf::as_utf8( dataType ) );
 }
 
 size_t

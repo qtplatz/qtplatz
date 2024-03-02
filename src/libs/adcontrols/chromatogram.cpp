@@ -31,6 +31,8 @@
 #include "peak.hpp"
 #include "peakresult.hpp"
 #include "peaks.hpp"
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/date_time.hpp>
 #include <adportable/iso8601.hpp>
@@ -644,6 +646,12 @@ void
 Chromatogram::addDescription( adcontrols::description&& desc )
 {
     pImpl_->descriptions_.append( desc );
+}
+
+void
+Chromatogram::addDescription( std::pair< std::string, std::string >&& t )
+{
+    pImpl_->descriptions_.append( std::move( t ) );
 }
 
 const descriptions&

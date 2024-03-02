@@ -688,7 +688,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                         pImpl_->ticPlot_->setPeakResult( *pkresults, 0, QwtPlot::yLeft );
                     }
                 } else {
-                    ADDEBUG() << "\t############# failed to get chromatogram ptr";
+                    ADDEBUG() << "\t############# failed to get chromatogram ptr (null_ptr)";
                 }
                 pImpl_->ticPlot_->setNormalizedY( QwtPlot::yLeft, std::get< 0 >( pImpl_->yScaleChromatogram_ ) );  // auto scale y?
 
