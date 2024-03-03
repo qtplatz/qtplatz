@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <boost/json/fwd.hpp>
 
 namespace adcontrols {
     class Chromatogram;
@@ -52,6 +53,7 @@ namespace adnetcdf {
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > import( const nc::ncfile& file ) const;
 
         std::optional< std::string > find_global_attribute( const std::string& ) const;
+        const boost::json::object& json() const;
 
     private:
         class impl;

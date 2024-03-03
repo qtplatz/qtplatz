@@ -24,11 +24,9 @@
 **************************************************************************/
 
 #include "andichromatography.hpp"
-#include "description.hpp"
 #include "ncfile.hpp"
 #include "attribute.hpp"
 #include "variable.hpp"
-// #include <__concepts/copyable.h>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/baseline.hpp>
@@ -36,6 +34,9 @@
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
+#include <boost/format.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 #include <bitset>
 #include <variant>
@@ -56,13 +57,12 @@ namespace adnetcdf {
 
     class AndiChromatography::impl {
     public:
-        std::map< std::string, std::string > global_attribures_;
+        impl() : chro_( std::make_shared< adcontrols::Chromatogram >() )
+               , jobj_{} {}
+        boost::json::object jobj_;
         adcontrols::Peaks peaks_;
         adcontrols::Baselines baselines_;
         std::shared_ptr< adcontrols::Chromatogram > chro_;
-
-        //std::vector< data_tuple > data_;
-        //std::bitset< data_tuple_size > data_state_;
 
         // ANDI/Chromatography
         void adjust_peak_size( size_t size ) {
@@ -170,26 +170,15 @@ namespace adnetcdf {
                 ADDEBUG() << "import std::vector<int16_t> key,size=" << std::make_pair(key, data.size()) << "\tunhandled";
             }
         }
+
         void import( const std::string& key, const std::vector< int32_t >& data ) {
-            if ( key == "scan_index" ) {
-                // import_t< scan_index >( data );
-            } else if ( key == "point_count" ) {
-                // import_t< point_count >( data );
-            } else if ( key == "flag_count" ) {
-                // import_t< flag_count >( data );
-            } else if ( key == "intensity_values" ) {
-                // import_t< intensity_values >( data );
-            } else if ( key == "actual_scan_number" ) {
-                // import_t< actual_scan_number >( data );
-            } else {
-                ADDEBUG() << "import std::vector<int32_t> key,size=" << std::make_pair(key, data.size()) << "\tunhandled";
-            }
+            ADDEBUG() << "import std::vector<int32_t> key,size=" << std::make_pair(key, data.size()) << "\tunhandled";
         }
 
         // ANDI/Chromatography
         void import( const std::string& key, const std::vector< float >& data ) {
             if ( key == "ordinate_values" ) {
-                chro_->setIntensityArray( data, 1000 );
+                chro_->setIntensityArray( data );
             } else if ( key == "detector_maximum_value" ) {
             } else if ( key == "detector_minimum_value" ) {
             } else if ( key == "actual_run_time_length" ) {
@@ -230,6 +219,9 @@ namespace adnetcdf {
                 for ( size_t i = 0; i < chro_->size(); ++i )
                     chro_->setTime( i, minTime + sampIntval * i );
             }
+            boost::system::error_code ec;
+            if ( auto attr = adportable::json_helper::find_pointer( jobj_, "/global_attributes/sample_name", ec ) )
+                chro_->addDescription( { "samplae_name", std::string( attr->as_string() ) } );
         }
 
     };
@@ -238,7 +230,7 @@ namespace adnetcdf {
 
 using namespace adnetcdf;
 
-AndiChromatography::AndiChromatography() : impl_( std::make_unique<  impl >() )
+AndiChromatography::AndiChromatography() : impl_( std::make_unique< impl >() )
 {
 }
 
@@ -250,11 +242,6 @@ std::vector< std::shared_ptr< adcontrols::Chromatogram > >
 AndiChromatography::import( const nc::ncfile& file ) const
 {
     namespace nc = adnetcdf::netcdf;
-
-    ///////////////////////////////////////////////
-    ADDEBUG() << "AndiChromatography::import: " << file.path();
-
-    impl_->chro_ = std::make_shared< adcontrols::Chromatogram >();
 
     auto att_ovld = overloaded{
         [&]( const std::string& data, const nc::attribute& att )->std::pair<std::string, std::string>{ return {data, att.name()}; },
@@ -280,303 +267,237 @@ AndiChromatography::import( const nc::ncfile& file ) const
         }
     };
 
-    for ( const auto& att: file.atts() ) {
-        auto data = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
-        impl_->chro_->addDescription( adcontrols::description( { data.second, data.first } ) );
-        impl_->global_attribures_[ data.second ] = data.first;
-    }
+    { // json --------->
+        boost::json::object ja;
+        for ( const auto& att: file.atts() ) {
+            auto [value,key] = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
+            ja[ key ] = value;
+        }
+        impl_->jobj_["global_attributes"] = std::move(ja);
+    } // <-------------
 
+    boost::json::object jdata;
     for ( const auto& var: file.vars() ) {
+        boost::json::object jv;
         if ( std::get< nc::variable::_natts >( var.value() ) > 0 ) {
+            boost::json::array ja;
             for ( const auto& att: file.atts( var ) ) {
-                auto data = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
-                impl_->set_local_attribute( var.name(), data.second, data.first );
+                auto [value,key] = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
+                impl_->set_local_attribute( var.name(), key, value );
+                ja.emplace_back( boost::json::object{{key,value}} );
             }
+            jv["atts"] = std::move( ja );
         }
         auto datum = file.readData( var );
         std::visit( var_ovld, datum, std::variant< nc::variable >(var) );
+
+        { // add data to json ------------>
+            std::visit( overloaded{
+                    []( const nc::null_datum_t& ) {}
+                        , [&]( const auto& arg ) { jv["size"] = arg.size(); }
+                        , [&]( const std::vector< std::string >& arg ) {
+                            jv["values"] = boost::json::value_from(arg); }
+                        }, datum );
+            jdata[ var.name() ] = jv;
+        } // <------------
     }
+    impl_->jobj_["data"] = std::move( jdata );
+
+    ADDEBUG() << impl_->jobj_ << std::endl;
+
     impl_->close();
     return std::vector< std::shared_ptr< adcontrols::Chromatogram > >{ impl_->chro_ };
+}
+
+std::optional< std::string >
+AndiChromatography::find_global_attribute( const std::string& attribute ) const
+{
+    if ( impl_->jobj_.if_contains( "global_attributes" ) ) {
+        const auto& a= impl_->jobj_.at( "global_attributes" );
+        boost::system::error_code ec;
+        if ( auto value = a.find_pointer( attribute, ec ) ) {
+            return std::string( value->as_string() );
+        }
+    }
+    return {};
+}
+
+const boost::json::object&
+AndiChromatography::json() const
+{
+    return impl_->jobj_;
 }
 
 
 std::optional< std::string >
 AndiChromatography::dataset_completeness() const
 {
-    auto it =  impl_->global_attribures_.find( "dataset_completeness" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "dataset_completeness" );
 }
 
 std::optional< std::string > AndiChromatography::aia_template_revision() const
 {
-    auto it =  impl_->global_attribures_.find( "aia_template_revision" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
-
+    return find_global_attribute( "aia_template_revision" );
 }
 
 std::optional< std::string > AndiChromatography::netcdf_revision() const
 {
-    auto it =  impl_->global_attribures_.find( "netcdf_revision" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
-
+    return find_global_attribute( "netcdf_revision" );
 }
 
 std::optional< std::string > AndiChromatography::languages() const // = "English"
 {
-    auto it =  impl_->global_attribures_.find( "languages" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
-
+    return find_global_attribute( "languages" );
 }
 
 std::optional< std::string > AndiChromatography::administrative_comments() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "administrative_comments" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
-
+    return find_global_attribute( "administrative_comments" );
 }
 
 std::optional< std::string > AndiChromatography::dataset_origin() const // = "Shimadzu Corporation"
 {
 
-    auto it =  impl_->global_attribures_.find( "dataset_origin" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "dataset_origin" );
 }
 
 std::optional< std::string > AndiChromatography::dataset_owner() const //  = ""
 {
-    auto it =  impl_->global_attribures_.find( "dataset_owner" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
-
+    return find_global_attribute( "dataset_owner" );
 }
 
 std::optional< std::string > AndiChromatography::dataset_date_time_stamp() const // = "20230831150758+0900"
 {
-    auto it =  impl_->global_attribures_.find( "dataset_date_time_stamp" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "dataset_date_time_stamp" );
 
 }
 
 std::optional< std::string > AndiChromatography::injection_date_time_stamp() const //   = "20230831150758+0900"
 {
-    auto it =  impl_->global_attribures_.find( "injection_date_time_stamp" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "injection_date_time_stamp" );
 }
 
 std::optional< std::string > AndiChromatography::experiment_title() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "experiment_title" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "experiment_title" );
 }
 
 std::optional< std::string > AndiChromatography::operator_name() const // = "System Administrator"
 {
-    auto it =  impl_->global_attribures_.find( "operator_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "operator_name" );
 }
 
 std::optional< std::string > AndiChromatography::separation_experiment_type() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "separation_experiment_type" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "separation_experiment_type" );
 }
 
 std::optional< std::string > AndiChromatography::company_method_name() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "company_method_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "company_method_name" );
 }
 
 std::optional< std::string > AndiChromatography::company_method_id() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "company_method_id" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "company_method_id" );
 }
 
 std::optional< std::string > AndiChromatography::pre_experiment_program_name() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "pre_experiment_program_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "pre_experiment_program_name" );
 }
 
 std::optional< std::string > AndiChromatography::post_experiment_program_name() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "post_experiment_program_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "post_experiment_program_name" );
 }
 
 std::optional< std::string > AndiChromatography::source_file_reference() const // = "D:\\????\\COR40_1.lcd"
 {
-    auto it =  impl_->global_attribures_.find( "source_file_reference" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "source_file_reference" );
 }
 
 std::optional< std::string > AndiChromatography::sample_id_comments() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "sample_id_comments" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "sample_id_comments" );
 }
 
 std::optional< std::string > AndiChromatography::sample_id() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "sample_id" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "sample_id" );
 }
 
 std::optional< std::string > AndiChromatography::sample_name() const // = "CORx40"
 {
-    auto it =  impl_->global_attribures_.find( "sample_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "sample_name" );
 }
 
 std::optional< std::string > AndiChromatography::sample_type() const // = "Unknown"
 {
-    auto it =  impl_->global_attribures_.find( "sample_type" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "sample_type" );
 }
 
 std::optional< std::string > AndiChromatography::sample_injection_volume() const // = 1.f
 {
-    auto it =  impl_->global_attribures_.find( "sample_injection_volume" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "sample_injection_volume" );
 }
 
 std::optional< std::string > AndiChromatography::sample_amount() const // = 1.f
 {
-    auto it =  impl_->global_attribures_.find( "sample_amount" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "sample_amount" );
 }
 
 std::optional< std::string > AndiChromatography::detection_method_table_name() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "detection_method_table_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "detection_method_table_name" );
 }
 
 std::optional< std::string > AndiChromatography::detection_method_comments() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "detection_method_comments" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "detection_method_comments" );
 }
 
 std::optional< std::string > AndiChromatography::detection_method_name() const // = "D:\\????\\COR.lcm"
 {
-    auto it =  impl_->global_attribures_.find( "detection_method_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "detection_method_name" );
 }
 
 std::optional< std::string > AndiChromatography::detector_name() const // = "???o??A"
 {
-    auto it =  impl_->global_attribures_.find( "detector_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "detector_name" );
 }
 
 std::optional< std::string > AndiChromatography::detector_unit() const // = "Volts"
 {
-    auto it =  impl_->global_attribures_.find( "detector_unit" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "detector_unit" );
 }
 
 std::optional< std::string > AndiChromatography::raw_data_table_name() const // = "D:\\????\\COR40_1.lcd"
 {
-    auto it =  impl_->global_attribures_.find( "raw_data_table_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "raw_data_table_name" );
 }
 
 std::optional< std::string > AndiChromatography::retention_unit() const // = "Seconds"
 {
-    auto it =  impl_->global_attribures_.find( "retention_unit" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "retention_unit" );
 }
 
 std::optional< std::string > AndiChromatography::peak_processing_results_table_name() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "peak_processing_results_table_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "peak_processing_results_table_name" );
 }
 
 std::optional< std::string > AndiChromatography::peak_processing_results_comments() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "peak_processing_results_comments" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "peak_processing_results_comments" );
 }
 
 std::optional< std::string > AndiChromatography::peak_processing_method_name() const // = "D:\\????\\COR.lcm"
 {
-    auto it =  impl_->global_attribures_.find( "peak_processing_method_name" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "peak_processing_method_name" );
 }
 
 std::optional< std::string > AndiChromatography::peak_processing_date_time_stamp() const // = ""
 {
-    auto it =  impl_->global_attribures_.find( "peak_processing_date_time_stamp" );
-    if ( it != impl_->global_attribures_.end() )
-        return it->second;
-    return {};
+    return find_global_attribute( "peak_processing_date_time_stamp" );
 }

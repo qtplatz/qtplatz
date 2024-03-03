@@ -66,6 +66,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <filesystem>
+#include <optional>
 
 namespace adnetcdf {
 
@@ -170,6 +171,24 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
                 auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
                 impl_->vChro_.emplace( folium.id<char>(), chro );
             }
+            // testing
+            static const std::vector< std::string > attrs =
+                { "dataset_completeness", "ms_template_revision", "netcdf_revision", "languages"
+                  , "administrative_comments", "netcdf_file_date_time_stamp", "experiment_title"
+                  , "experiment_date_time_stamp", "operator_name", "source_file_reference"
+                  , "source_file_format", "source_file_date_time_stamp"
+                  , "experiment_type", "sample_state", "test_separation_type", "test_ms_inlet"
+                  , "test_ionization_mode", "test_ionization_polarity", "test_electron_energy"
+                  , "test_detector_type", "test_resolution_type", "test_scan_function", "test_scan_direction"
+                  , "test_scan_law", "test_scan_time", "raw_data_mass_format", "raw_data_time_format"
+                  , "raw_data_intensity_format", "units", "scale_factor", "long_name", "starting_scan_number"
+                  , "actual_run_time_length", "actual_delay_time", "raw_data_uniform_sampling_flag"
+                };
+            for ( const auto& attr: attrs ) {
+                if ( auto value = andi.find_global_attribute( attr ) )
+                    ADDEBUG() << std::make_pair( attr, *value );
+            }
+
         }
         impl_->processedDataset_->xml( portfolio.xml() );
         return true;
@@ -181,10 +200,10 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
-    ADDEBUG() << "======== " << __FUNCTION__ << std::make_pair( path, dataType ); // guid, Chromatogram
     auto it = impl_->vChro_.find( path );
     if ( it != impl_->vChro_.end() )
         return it->second;
+    ADDEBUG() << "Error: ======== " << __FUNCTION__ << std::make_pair( path, dataType ) << " not in the object"; // guid, Chromatogram
     return {};
 }
 

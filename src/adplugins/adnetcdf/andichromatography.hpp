@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <boost/json/fwd.hpp>
 
 namespace adcontrols {
     class Chromatogram;
@@ -50,6 +51,9 @@ namespace adnetcdf {
         ~AndiChromatography();
         AndiChromatography();
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > import( const nc::ncfile& file ) const;
+
+        std::optional< std::string > find_global_attribute( const std::string& attribute ) const;
+        const boost::json::object& json() const;
 
         std::optional< std::string > dataset_completeness() const;  // = "C1+C2" ;
 		std::optional< std::string > aia_template_revision() const; //  = "1.0.1" ;

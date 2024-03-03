@@ -72,7 +72,7 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 {
     std::filesystem::path path(filename);
 
-    ADDEBUG() << "============= access( " << filename << ") ============ " << path.extension();
+    // ADDEBUG() << "============= access( " << filename << ") ============ " << path.extension();
 
     if ( path.extension() == ".qtms" ) // obsolete
         return mode == adcontrols::read_access;

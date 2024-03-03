@@ -149,21 +149,16 @@ datafileBrokerImpl::visit( adcontrols::datafile& )
 datafile *
 datafileBrokerImpl::open( const std::wstring& name, bool readonly, error_code * ec )
 {
-    ADDEBUG() << "\n\n";
-    ADDEBUG() << "----> factories.size: " << factories_.size();
-    for ( const auto& f: factories_ )
-        ADDEBUG() << "\t" << f.second->name();
-    ADDEBUG() << "<---- factories.size: " << factories_.size();
+    if ( ec )
+        *ec = {};
     for ( auto it = factories_.begin(); it != factories_.end(); ++it ) {
-        ADDEBUG() << "\tdatafile_factory::name : " << it->second->name();
-        ADDEBUG() << "\tdatafileBrokerImpl::open -- factory: " << std::quoted( it->first ) << ", " << it->second.get();
         if ( it->second && it->second->access( name.c_str() ) ) {
             return it->second->open( name.c_str(), readonly );
         }
     }
-
-    if ( ec )
+    if ( ec ) {
         ec->assign( -1, "No data factory installed" );
+    }
     return 0;
 }
 
