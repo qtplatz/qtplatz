@@ -27,6 +27,8 @@
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datareader.hpp>
@@ -49,12 +51,15 @@
 #include <adportable/is_type.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/utf.hpp>
+#include <adutils/processeddata_t.hpp>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <sstream>
 #include <iomanip>
+#include <variant>
+#include <QJsonDocument>
 
 namespace dataproc {
     struct safe_string {
@@ -157,20 +162,16 @@ MSPropertyForm::render( std::ostream& o, const portfolio::Folium& folium )
     o << "</tr>";
     o << "</table>";
 
-    if ( folium.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
-        try {
-            if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() ) )
-                render( o, *ptr );
-            return;
-        } catch ( boost::bad_any_cast& ex ) {
-            ADDEBUG() << boost::diagnostic_information( ex );
-        }
-        try {
-            if ( auto ptr = boost::any_cast< std::shared_ptr< const adcontrols::MassSpectrum > >( folium.data() ) )
-                render( o, *ptr );
-            return;
-        } catch ( boost::bad_any_cast& ex ) {
-            ADDEBUG() << boost::diagnostic_information( ex );
+    if ( folium.dataClass() == adcontrols::MassSpectrum::dataClass() ||
+         folium.dataClass() == adcontrols::Chromatogram::dataClass() ) {
+        using dataTuple = std::tuple< std::shared_ptr< adcontrols::MassSpectrum >
+                                      , std::shared_ptr< const adcontrols::MassSpectrum >
+                                      , std::shared_ptr< adcontrols::Chromatogram >
+                                      , std::shared_ptr< const adcontrols::Chromatogram >
+                                      >;
+
+        if ( auto var = adutils::to_std_variant< dataTuple >()( static_cast< const boost::any& >( folium ) ) ) {
+            std::visit( [&]( auto&& arg ){ render( o, *arg ); }, *var );
         }
     }
 }
@@ -388,6 +389,26 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MSCalibrateResult& re
           << "</tr>";
     }
     o << "</table>";
+}
+
+void
+MSPropertyForm::render( std::ostream& o, const adcontrols::Chromatogram& chro )
+{
+    o << "<br>";
+    o << "<pre>Chromatogram (time of injection: " << chro.time_of_injection_iso8601() << ")</pre";
+    o << "<br>";
+
+    for ( const auto& desc:  chro.getDescriptions() ) {
+        if ( desc.encode() == adcontrols::Encode_JSON ) {
+            const auto& [key,value] = desc.keyValue();
+            auto jobj = QJsonDocument::fromJson( value.data() );
+            o << "<pre>"
+              << key << "\n"
+              << jobj.toJson( QJsonDocument::Indented ).toStdString()
+              << "</pre>";
+        }
+    }
+
 }
 
 

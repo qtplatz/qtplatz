@@ -27,8 +27,9 @@
 
 #include <tuple>
 #include <adportable/is_type.hpp>
-#include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include <optional>
+#include <variant>
 
 /////////
 // std::tuple to boost::variant
@@ -44,31 +45,46 @@ namespace adutils {
 
     template< typename Last >  struct type_list_t< Last > {
         template< typename variant_type >
-        boost::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
+        std::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
             return {};
         }
     };
 
     template< typename First, typename... Args >  struct type_list_t< First, Args... > {
         template< typename variant_type >
-        boost::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
+        std::optional<variant_type> do_cast( variant_type&&, boost::any& a ) const {
             if ( adportable::a_type< First >::is_a( a ) )
                 return variant_type( boost::any_cast< First >( a ) );
             return type_list_t< Args... >{}.do_cast( variant_type{}, a );
         }
     };
 
+    ////////////
     template< typename Tuple > struct to_variant;
 
     template< typename... Args >
     struct to_variant< std::tuple<Args ... > > {
         using type = boost::variant< Args ... >;
-        boost::optional<type> operator()( boost::any& a ) const {
+        std::optional<type> operator()( boost::any& a ) const {
             return type_list_t< Args ..., null_t >{}.do_cast( type{}, a );
         }
-        boost::optional<type> operator()( const boost::any& a ) const {
+        std::optional<type> operator()( const boost::any& a ) const {
             return type_list_t< Args ..., null_t >{}.do_cast( type{}, const_cast< boost::any& >(a) );
         }
     };
     ////////////
+
+    template< typename Tuple > struct to_std_variant;
+
+    template< typename... Args >
+    struct to_std_variant< std::tuple<Args ... > > {
+        using type = std::variant< Args ... >;
+        std::optional<type> operator()( boost::any& a ) const {
+            return type_list_t< Args ..., null_t >{}.do_cast( type{}, a );
+        }
+        std::optional<type> operator()( const boost::any& a ) const {
+            return type_list_t< Args ..., null_t >{}.do_cast( type{}, const_cast< boost::any& >(a) );
+        }
+    };
+
 }

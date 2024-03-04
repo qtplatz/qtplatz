@@ -211,7 +211,9 @@ namespace adcontrols {
         bool isCounting() const;
 
         void set_time_of_injection( std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >&& );
+        void set_time_of_injection( const std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >& );
         std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds> time_of_injection() const;
+        void set_time_of_injection_iso8601( const std::string& );
         std::string time_of_injection_iso8601() const;
 
         template< typename T >

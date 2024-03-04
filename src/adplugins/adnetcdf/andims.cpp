@@ -24,8 +24,9 @@
 **************************************************************************/
 
 #include "andims.hpp"
-#include "ncfile.hpp"
 #include "attribute.hpp"
+#include "ncfile.hpp"
+#include "timestamp.hpp"
 #include "variable.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
@@ -34,9 +35,11 @@
 #include <adcontrols/peak.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/iso8601.hpp>
 #include <adportable/json_helper.hpp>
 #include <boost/json.hpp>
 #include <boost/format.hpp>
+#include <boost/json/serializer.hpp>
 #include <algorithm>
 #include <bitset>
 #include <variant>
@@ -105,9 +108,9 @@ namespace adnetcdf {
         std::vector< int32_t > intensities_;
         std::vector< double > masses_;
 
-
         // ANDI/MS
-        template< data_name_t N, typename T > void import_t( const std::vector<T>& data ) {
+        template< data_name_t N, typename T >
+        void import_t( const std::vector<T>& data ) {
             if ( data_.empty() ) {
                 data_.resize( data.size() );
                 std::fill( data_.begin(), data_.end(), data_tuple{});
@@ -162,8 +165,6 @@ namespace adnetcdf {
         }
 
         void import( const std::string& key, const std::vector< std::string >& data ) {
-            for ( const auto& s: data )
-                ADDEBUG() << std::make_pair( key, s );
         }
 
         std::vector< std::shared_ptr< adcontrols::Chromatogram > >
@@ -175,6 +176,7 @@ namespace adnetcdf {
                     ordinate_values[ key ].emplace_back( intensities_[ i ] );
                 }
             }
+            auto tp = iso8601{}( time_stamp_parser{}( jobj_, "/global_attributes/experiment_date_time_stamp" ) );
 
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > results;
 
@@ -187,7 +189,9 @@ namespace adnetcdf {
                 tic->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
                 tic->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
                 tic->addDescription( { "Create", "TIC" } );
+                tic->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
                 tic->setIsCounting( isCounting_[ 0 ] );
+                tic->set_time_of_injection_iso8601( tp );
                 if ( isCounting_[0] )
                     tic->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
                 results.emplace_back( std::move( tic ) );
@@ -203,6 +207,8 @@ namespace adnetcdf {
                 chro->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
                 chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
                 chro->addDescription( { "Create", (boost::format("m/z %.2f") % (m/1000.0)).str()} );
+                chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
+                chro->set_time_of_injection_iso8601( tp );
                 chro->setIsCounting( isCounting_[ 1 ] );
                 if ( isCounting_[1] )
                     chro->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
@@ -218,7 +224,6 @@ namespace adnetcdf {
                 else if ( var == "intensity_values" )
                     isCounting_[1] = true;
             }
-            // ADDEBUG() << "local_attribute: " << std::make_tuple( var, attr, value );
         }
 
     };

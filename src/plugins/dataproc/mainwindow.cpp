@@ -961,18 +961,25 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         std::string dataSource;
 
         const auto docks = dockWidgets();
+        for ( auto widget: dockWidgets() ) {
+            if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
+                pLifeCycle->setContents( boost::any( folium ) );
+            }
+        }
 
         if ( folder.name() == L"Spectra" ) {
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium.data() ) ) {
-                if ( auto f = portfolio::find_first_of( folium.attachments(), []( auto& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                if ( auto f = portfolio::find_first_of( folium.attachments()
+                                                        , []( auto& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
 					try {
 						centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
 					} catch ( boost::bad_any_cast& ex ) {
 						ADERROR() << boost::diagnostic_information( ex );
 					}
 
-                    if ( auto t = portfolio::find_first_of( f.attachments(), []( auto& a){ return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); }) ) {
+                    if ( auto t = portfolio::find_first_of( f.attachments()
+                                                            , []( auto& a){ return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); }) ) {
                         try {
                             pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( t );
                         } catch ( boost::bad_any_cast& ex ) {
@@ -980,7 +987,8 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                         }
                     }
 
-                    if ( auto t = portfolio::find_first_of( f.attachments(), []( auto& a) { return a.name() == Constants::F_TARGETING;}) ) {
+                    if ( auto t = portfolio::find_first_of( f.attachments()
+                                                            , []( auto& a) { return a.name() == Constants::F_TARGETING;}) ) {
                         try {
                             targeting = portfolio::get< adcontrols::TargetingPtr >( t );
                         } catch ( boost::bad_any_cast& ex ) {
@@ -1000,7 +1008,8 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 }
             }
 
-			auto it = std::find_if( docks.begin(), docks.end(), []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
+			auto it = std::find_if( docks.begin(), docks.end()
+                                    , []( QDockWidget * d ){	return d->objectName() == "MSPeakTable"; });
 			if ( it != docks.end() )
 				(*it)->raise();
 
@@ -1018,7 +1027,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                     if ( targeting ) {
                         pLifeCycle->setContents( boost::any( targeting ) );
                     }
-                    pLifeCycle->setContents( boost::any( folium ) );
+                    // pLifeCycle->setContents( boost::any( folium ) );
                 }
             }
 

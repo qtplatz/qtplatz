@@ -727,12 +727,24 @@ Chromatogram::set_time_of_injection( std::chrono::time_point< std::chrono::syste
     pImpl_->time_of_injection_ = adportable::date_time::to_iso< std::chrono::nanoseconds >( t );
 }
 
+void
+Chromatogram::set_time_of_injection( const std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds>& t )
+{
+    pImpl_->time_of_injection_ = adportable::date_time::to_iso< std::chrono::nanoseconds >( t );
+}
+
 std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >
 Chromatogram::time_of_injection() const
 {
     if ( auto tp = adportable::iso8601::parse( pImpl_->time_of_injection_.begin(), pImpl_->time_of_injection_.end() ) )
         return *tp;
     return {};
+}
+
+void
+Chromatogram::set_time_of_injection_iso8601( const std::string& t )
+{
+    pImpl_->time_of_injection_ = t;
 }
 
 std::string
@@ -942,14 +954,13 @@ Chromatogram::make_title() const
 template<> std::string
 Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
 {
-    return descs.make_folder_name( "(MSLock)", true );
+    return descs.make_folder_name( "(MSLock)||(_.*)", true );
 }
 
 template<> std::wstring
 Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
 {
-    // ADDEBUG() << "make_folder_name: " << boost::json::value_from( descs );
-    return descs.make_folder_name( L"(MSLock)", true );
+    return descs.make_folder_name( L"(MSLock)||(_.*)", true );
 }
 
 // for v3 format datafile support

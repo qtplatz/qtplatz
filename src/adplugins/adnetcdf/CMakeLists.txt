@@ -47,6 +47,7 @@ add_library( ${PROJECT_NAME} MODULE
   andichromatography.cpp andichromatography.hpp
   andims.cpp andims.hpp
   nc_type.hpp
+  timestamp.cpp timestamp.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
