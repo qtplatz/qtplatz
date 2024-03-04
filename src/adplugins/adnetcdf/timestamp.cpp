@@ -46,8 +46,10 @@ namespace adnetcdf {
                 is >> std::get_time(&t, "%Y%m%d%H%M%S") >> tz; // 20240112113323+0000 2024-01-12-11:33:23+0000
                 std::time_t time = std::mktime( &t );
                 ADDEBUG() << std::make_tuple( t.tm_isdst, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec );
+                ADDEBUG() << std::string( value->as_string() );
                 auto tp = std::chrono::system_clock::time_point{} + std::chrono::seconds( time );
                 return tp;
+                // 2024-03-01 12:48:02+0000
             }
         }
         return {};
