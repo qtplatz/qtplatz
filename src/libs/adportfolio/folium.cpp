@@ -46,10 +46,6 @@ Folium::Folium( const pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node
 {
 }
 
-// Folium::Folium( pugi::xml_node n, internal::PortfolioImpl * impl ) : Node( n, impl )
-// {
-// }
-
 bool
 Folium::empty() const
 {

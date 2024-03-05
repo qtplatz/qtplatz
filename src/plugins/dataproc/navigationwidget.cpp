@@ -33,6 +33,7 @@
 #include "sessionmanager.hpp"
 #include "actionmanager.hpp"
 #include "utility.hpp"
+#include <QtCore/qnamespace.h>
 #include <QtGui/qkeysequence.h>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -234,11 +235,13 @@ namespace dataproc {
         handleSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected ) {
             std::vector< portfolio::Folium > folio;
             for ( const auto& row: selectionModel()->selectedRows() ) {
-                if ( row.data( Qt::UserRole ).canConvert< portfolio::Folium >() )
+                if ( row.data( Qt::UserRole ).canConvert< portfolio::Folium >() ) {
                     folio.emplace_back( row.data( Qt::UserRole ).value< portfolio::Folium >() );
+                }
             }
-            if ( folio.size() > 1 )
+            if ( folio.size() > 1 ) {
                 emit SessionManager::instance()->signalSelections( folio );
+            }
         }
     };
 

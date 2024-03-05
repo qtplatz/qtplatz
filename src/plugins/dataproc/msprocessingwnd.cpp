@@ -586,6 +586,8 @@ MSProcessingWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& f
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
+    ScopedDebug(x);  x << " ========== ";
+
     pImpl_->drawIdx1_ = 0;
 
     if ( portfolio::Folder folder = folium.parentFolder() ) {
@@ -673,7 +675,6 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                 auto p = boost::any_cast< adcontrols::ChromatogramPtr >( data );
 
                 if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
-
                     idx = std::max( idx, ptr->protocol() );
                     draw( ptr, ptr->protocol() );
                     pImpl_->idActiveFolium_ = folium.id();

@@ -61,6 +61,7 @@ namespace adnetcdf {
         impl() : chro_( std::make_shared< adcontrols::Chromatogram >() )
                , jobj_{} {}
         boost::json::object jobj_;
+        std::map< std::string, std::string > global_attributes_;
         adcontrols::Peaks peaks_;
         adcontrols::Baselines baselines_;
         std::shared_ptr< adcontrols::Chromatogram > chro_;
@@ -214,24 +215,22 @@ namespace adnetcdf {
             close_peaks();
             chro_->setPeaks( peaks_ );
             chro_->setBaselines( baselines_ );
+
             if ( not chro_->getTimeArray() ) {
                 double sampIntval = chro_->sampInterval();
                 double minTime = chro_->minimumTime();
                 for ( size_t i = 0; i < chro_->size(); ++i )
                     chro_->setTime( i, minTime + sampIntval * i );
             }
-            boost::system::error_code ec;
-            if ( auto attr = adportable::json_helper::find_pointer( jobj_, "/global_attributes/sample_name", ec ) )
-                chro_->addDescription( { "samplae_name", std::string( attr->as_string() ) } );
 
-            if ( auto jtp = jobj_[ "global_attribures" ].find_pointer( "injection_date_time_stamp", ec ) ) {
-                if ( jtp->is_string() ) {
-                    auto tp = iso8601{}( time_stamp_parser{}( std::string( jtp->as_string() ), true ) );
-                    chro_->set_time_of_injection_iso8601( tp );
-                }
+            if ( global_attributes_.find( "sample_name" ) != global_attributes_.end() ) {
+                chro_->addDescription( { "samplae_name", global_attributes_[ "sample_name" ] } );
             }
 
-
+            if ( global_attributes_.find( "injection_date_time_stamp" ) != global_attributes_.end() ) {
+                auto tp = iso8601{}( time_stamp_parser{}( global_attributes_[ "injection_date_time_stamp" ], false ) );
+                chro_->set_time_of_injection_iso8601( tp );
+            }
         }
 
     };
@@ -282,6 +281,8 @@ AndiChromatography::import( const nc::ncfile& file ) const
         for ( const auto& att: file.atts() ) {
             auto [value,key] = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
             ja[ key ] = value;
+            impl_->global_attributes_[ key ] = value;
+            ADDEBUG() << std::quoted( key ) << ",\t" << std::quoted( value );
         }
         impl_->jobj_["global_attributes"] = std::move(ja);
     } // <-------------
