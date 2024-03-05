@@ -32,7 +32,8 @@ namespace adnetcdf {
     typedef std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > time_point_type;
 
     struct time_stamp_parser {
-        time_point_type operator()(const boost::json::value&, const std::string& path ) const;
+        time_point_type operator()(const boost::json::value&, const std::string& path, bool ignore_tz ) const;
+        time_point_type operator()( const std::string&, bool ignore_tz ) const;
     };
 
     struct iso8601 {

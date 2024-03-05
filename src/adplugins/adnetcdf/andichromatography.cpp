@@ -27,6 +27,7 @@
 #include "ncfile.hpp"
 #include "attribute.hpp"
 #include "variable.hpp"
+#include "timestamp.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/baseline.hpp>
@@ -222,6 +223,15 @@ namespace adnetcdf {
             boost::system::error_code ec;
             if ( auto attr = adportable::json_helper::find_pointer( jobj_, "/global_attributes/sample_name", ec ) )
                 chro_->addDescription( { "samplae_name", std::string( attr->as_string() ) } );
+
+            if ( auto jtp = jobj_[ "global_attribures" ].find_pointer( "injection_date_time_stamp", ec ) ) {
+                if ( jtp->is_string() ) {
+                    auto tp = iso8601{}( time_stamp_parser{}( std::string( jtp->as_string() ), true ) );
+                    chro_->set_time_of_injection_iso8601( tp );
+                }
+            }
+
+
         }
 
     };
@@ -303,7 +313,7 @@ AndiChromatography::import( const nc::ncfile& file ) const
     }
     impl_->jobj_["data"] = std::move( jdata );
 
-    ADDEBUG() << impl_->jobj_ << std::endl;
+    // ADDEBUG() << impl_->jobj_ << std::endl;
 
     impl_->close();
     return std::vector< std::shared_ptr< adcontrols::Chromatogram > >{ impl_->chro_ };

@@ -176,7 +176,12 @@ namespace adnetcdf {
                     ordinate_values[ key ].emplace_back( intensities_[ i ] );
                 }
             }
-            auto tp = iso8601{}( time_stamp_parser{}( jobj_, "/global_attributes/experiment_date_time_stamp" ) );
+            std::string tp_inject;
+            boost::system::error_code ec;
+            if ( auto jtp = jobj_[ "global_attribures" ].find_pointer( "experiment_date_time_stamp", ec ) ) {
+                if ( jtp->is_string() )
+                    tp_inject = iso8601{}( time_stamp_parser{}( std::string( jtp->as_string() ), true ) );
+            }
 
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > results;
 
@@ -191,7 +196,7 @@ namespace adnetcdf {
                 tic->addDescription( { "Create", "TIC" } );
                 tic->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
                 tic->setIsCounting( isCounting_[ 0 ] );
-                tic->set_time_of_injection_iso8601( tp );
+                tic->set_time_of_injection_iso8601( tp_inject );
                 if ( isCounting_[0] )
                     tic->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
                 results.emplace_back( std::move( tic ) );
@@ -208,7 +213,7 @@ namespace adnetcdf {
                 chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
                 chro->addDescription( { "Create", (boost::format("m/z %.2f") % (m/1000.0)).str()} );
                 chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
-                chro->set_time_of_injection_iso8601( tp );
+                chro->set_time_of_injection_iso8601( tp_inject );
                 chro->setIsCounting( isCounting_[ 1 ] );
                 if ( isCounting_[1] )
                     chro->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );

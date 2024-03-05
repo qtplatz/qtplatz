@@ -47,6 +47,7 @@
 #include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportable/is_type.hpp>
 #include <adlog/logger.hpp>
@@ -114,6 +115,9 @@ MSPropertyForm::getContents( boost::any& ) const
 bool
 MSPropertyForm::setContents( boost::any&& a )
 {
+    ScopedDebug (x);
+    x << "setContents";
+
     if ( adportable::a_type< portfolio::Folium >::is_a( a ) ) {
         portfolio::Folium& folium = boost::any_cast< portfolio::Folium& >( a );
         ui->textEdit->clear();
@@ -399,6 +403,9 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::Chromatogram& chro )
     o << "<br>";
 
     for ( const auto& desc:  chro.getDescriptions() ) {
+        ADDEBUG() << desc.encode();
+        ADDEBUG() << desc.keyValue();
+
         if ( desc.encode() == adcontrols::Encode_JSON ) {
             const auto& [key,value] = desc.keyValue();
             auto jobj = QJsonDocument::fromJson( value.data() );
