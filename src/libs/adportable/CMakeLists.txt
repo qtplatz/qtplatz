@@ -67,6 +67,7 @@ add_library( ${PROJECT_NAME} SHARED
   fft4g.cpp fft4g.hpp
   fft/fft4g.c
   # fft4g_h.c
+  sjis2utf8.cpp shiftjis.h
 )
 
 if ( MSVC )

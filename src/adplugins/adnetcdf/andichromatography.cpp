@@ -37,6 +37,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/sjis2utf8.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <algorithm>
@@ -284,12 +285,17 @@ AndiChromatography::import( const nc::ncfile& file ) const
         for ( const auto& att: file.atts() ) {
             auto [value,key] = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
             if ( not adportable::utf::validate( value ) ) {
-                std::ostringstream o;
-                std::for_each( value.begin(), value.end(), [&](const char a){
-                    if ( uint8_t(a) <= 0x7f ) o << a;
-                    else o << "\\" << std::oct << int(uint8_t(a));
-                });
-                ja[ key ] = o.str();
+                auto u8 = adportable::sjis2utf8()( value );
+                if ( not u8.empty() )
+                    ja[ key ] = u8;
+                else {
+                    std::ostringstream o;
+                    std::for_each( value.begin(), value.end(), [&](const char a){
+                        if ( uint8_t(a) <= 0x7f ) o << a;
+                        else o << "\\" << std::oct << int(uint8_t(a));
+                    });
+                    ja[ key ] = o.str();
+                }
             } else {
                 ja[ key ] = value;
             }
