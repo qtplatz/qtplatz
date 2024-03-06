@@ -403,9 +403,6 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::Chromatogram& chro )
     o << "<br>";
 
     for ( const auto& desc:  chro.getDescriptions() ) {
-        ADDEBUG() << desc.encode();
-        ADDEBUG() << desc.keyValue();
-
         if ( desc.encode() == adcontrols::Encode_JSON ) {
             const auto& [key,value] = desc.keyValue();
             auto jobj = QJsonDocument::fromJson( value.data() );

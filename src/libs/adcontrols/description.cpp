@@ -111,14 +111,13 @@ namespace {
     struct encode_infer {
         template< typename T >
         adcontrols::TextEncode operator()( const std::basic_string< T >& t ) const {
-            ADDEBUG() << "encode_infer: " << t;
             if ( !t.empty() && t.at( 0 ) == '{' ) { // infer json
                 boost::system::error_code ec;
                 auto jv = boost::json::parse( t, ec );
                 if ( !ec )
                     return adcontrols::Encode_JSON;
-                ADDEBUG() << jv;
-                ADDEBUG() << "----- parse ec=" << ec.message();
+                ADDEBUG() << "----- parse ec=" << ec.message() << std::endl;
+                ADDEBUG() << "\twhile parsing: " << t;
             }
             return adcontrols::Encode_TEXT;
         }

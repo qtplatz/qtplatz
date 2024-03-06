@@ -8,6 +8,8 @@
 #include <exception>
 #include "debug.hpp"
 #include <cassert>
+#include <iomanip>
+#include <boost/format.hpp>
 
 using namespace adportable;
 
@@ -20,6 +22,19 @@ namespace adportable {
 	virtual ~exception() throw() {}
 	const char * what() const throw() { return text_.c_str(); }
     };
+
+    constexpr static const std::array<char, 256> trailingBytesForUTF8 = {
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+    };
+
 
 }
 
@@ -130,4 +145,32 @@ template<> std::wstring
 utf::as_wide( const std::basic_string< wchar_t >& t )
 {
     return t;
+}
+
+bool
+utf::validate( const std::string& source )
+{
+    auto it
+        = std::find_if( source.begin(), source.end()
+                        , [](const auto& c){ return int( uint8_t(c) ) > 0x7f; } );
+
+    // debug print
+    if ( it != source.end() ) {
+        std::ostringstream o;
+        for_each( source.begin(), source.end(), [&](const auto& a){
+            o << boost::format("0x%02x,") % int( uint8_t(a) );
+        });
+        ADDEBUG() << __FUNCTION__ << "\t" << o.str();
+    }
+
+    while ( it != source.end() ) {
+        size_t length = trailingBytesForUTF8.at( uint8_t(*it) ) + 1;
+        ADDEBUG() << __FUNCTION__ << "\t" << std::make_tuple(int(uint8_t(*it)), length, std::distance( it, source.end() ));
+        if ( length >= std::distance( it, source.end() ) )
+            return false;
+        if ( !isLegalUTF8Sequence( reinterpret_cast< const UTF8 * >(&(*it)), reinterpret_cast< const UTF8 * >(&(*(it + length))) ) )
+            return false;
+        std::advance( it, length );
+    }
+    return true;
 }

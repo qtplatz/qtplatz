@@ -36,10 +36,12 @@
 #include <adcontrols/peaks.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
+#include <adportable/utf.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
 #include <algorithm>
 #include <bitset>
+#include <iterator>
 #include <variant>
 
 // ---------------------- overloads -------------------->
@@ -180,7 +182,7 @@ namespace adnetcdf {
         // ANDI/Chromatography
         void import( const std::string& key, const std::vector< float >& data ) {
             if ( key == "ordinate_values" ) {
-                chro_->setIntensityArray( data );
+                chro_->setIntensityArray( data, 1000 );
             } else if ( key == "detector_maximum_value" ) {
             } else if ( key == "detector_minimum_value" ) {
             } else if ( key == "actual_run_time_length" ) {
@@ -231,6 +233,7 @@ namespace adnetcdf {
                 auto tp = iso8601{}( time_stamp_parser{}( global_attributes_[ "injection_date_time_stamp" ], false ) );
                 chro_->set_time_of_injection_iso8601( tp );
             }
+            chro_->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
         }
 
     };
@@ -280,12 +283,24 @@ AndiChromatography::import( const nc::ncfile& file ) const
         boost::json::object ja;
         for ( const auto& att: file.atts() ) {
             auto [value,key] = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
-            ja[ key ] = value;
+            if ( not adportable::utf::validate( value ) ) {
+                std::ostringstream o;
+                std::for_each( value.begin(), value.end(), [&](const char a){
+                    if ( uint8_t(a) <= 0x7f ) o << a;
+                    else o << "\\" << std::oct << int(uint8_t(a));
+                });
+                ja[ key ] = o.str();
+            } else {
+                ja[ key ] = value;
+            }
             impl_->global_attributes_[ key ] = value;
-            ADDEBUG() << std::quoted( key ) << ",\t" << std::quoted( value );
+            // ADDEBUG() << std::quoted( key ) << ",\t" << std::quoted( value );
         }
         impl_->jobj_["global_attributes"] = std::move(ja);
     } // <-------------
+    {
+        std::string json = boost::json::serialize( impl_->jobj_[ "global_attributes"] );
+    }
 
     boost::json::object jdata;
     for ( const auto& var: file.vars() ) {
