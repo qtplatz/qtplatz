@@ -27,21 +27,38 @@
 
 #include "sjis2utf8.hpp"
 #include "shiftjis.h"
+#include <__utility/integer_sequence.h>
 #include <string>
 #include <sstream>
+#include <utility>
+#include <adportable/debug.hpp>
 
 namespace {
 
     const static std::tuple<
         std::pair< char, size_t >
         , std::pair< char, size_t >
-        , std::pair< char, size_t > > __offs = { {0x8, 0x100}, {0x9, 0x1100}, {0xe, 0x2100} };
+        , std::pair< char, size_t >
+        > __offs = {
+        {0x8, 0x100 }
+        , {0x9, 0x1100 }
+        , {0xe, 0x2100}
+    };
+
+    template<class Tuple, std::size_t... Is>
+    size_t __toffs_impl(const Tuple& t, char v, std::index_sequence<Is...>){
+        size_t x{0};
+        ((x = std::get<Is>(t).first == v ? std::get<Is>(t).second : x ), ...);
+        return x;
+    }
+
+    template< typename... Args > size_t __toffs( const std::tuple< Args... >& t, char v ) {
+        return __toffs_impl( t, v, std::index_sequence_for< Args...>{} );
+    }
 
 }
 
 namespace adportable {
-
-    // const static std::array< std::pair<char, size_t>, 3 > __offset = { {0x8, 0x100}, {0x9, 0x1100}, {0xe, 0x2100} };
 
     std::string
     sjis2utf8::operator()( const std::string& input ) const
@@ -51,16 +68,10 @@ namespace adportable {
 
         while ( indexInput < input.size() ){
             char arraySection = static_cast< uint8_t >( input[indexInput] ) >> 4;
+            size_t arrayOffset = __toffs( __offs, arraySection );
 
-            size_t arrayOffset =
-                arraySection == std::get<0>(__offs).first ? std::get<0>(__offs).second
-                : arraySection == std::get<1>(__offs).first ? std::get<1>(__offs).second
-                : arraySection == std::get<2>(__offs).first ? std::get<2>(__offs).second
-                : 0;
-
-            //determining real array offset
             if ( arrayOffset )  {
-                arrayOffset += (static_cast< uint8_t >(input[indexInput]) & 0xf) << 8;
+                arrayOffset += (static_cast< uint8_t >( input[indexInput] ) & 0xf) << 8;
                 indexInput++;
                 if ( indexInput >= input.size() )
                     break;
