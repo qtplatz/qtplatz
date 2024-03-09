@@ -93,8 +93,6 @@ main(int argc, char *argv[])
         return 0;
     }
 
-    // adplugin::manager::standalone_initialize();
-
     auto filelist = vm[ "args" ].as< std::vector< std::string > >();
     if ( filelist.empty() )
         return 0;

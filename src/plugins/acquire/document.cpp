@@ -28,7 +28,7 @@
 #include "resultwriter.hpp"
 #include <accutofcontrols/constants.hpp>
 #include <adplugins/adspectrometer/massspectrometer.hpp>
-#include <date/date.h>
+// #include <date/date.h>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
 #include <adacquire/simpleobserver.hpp>
@@ -1426,7 +1426,7 @@ document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
 #else
         std::chrono::system_clock::time_point tp( std::chrono::nanoseconds( item.posix_time ) );
 #endif
-        using namespace date;
+        // using namespace date;
         impl_->console_ << "tp: " << tp << " " << item.elapsed_time << "\tnacc: " << item.nacc << "\t" << o.str() << std::endl;
     }
 }

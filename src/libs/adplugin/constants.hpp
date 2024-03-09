@@ -27,10 +27,10 @@
 #pragma once
 
 #if defined __APPLE__
-#  define pluginDirectory          "Contents/PlugIns"
+#  define pluginDirectory          "Contents/PlugIns/MS-Cheminformatics"
 #  define sharedDirectory          "Contents/Frameworks"
 #else
-#  define pluginDirectory          "lib/qtplatz/plugins"
+#  define pluginDirectory          "lib/qtplatz/plugins/MS-Cheminformatics"
 # if defined WIN32
 #  define sharedDirectory          "bin"
 # else

@@ -5,9 +5,8 @@ FRAMEWORKS = ./qtplatz.app/Contents/Frameworks
 PLUGINS    = ./qtplatz.app/Contents/PlugIns
 TARGET     = qtplatz-@QTPLATZ_VERSION@-@OSX_TARGET_ARCH@.dmg
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
-
-ADPLUGIN:=$(wildcard qtplatz.app/Contents/PlugIns/MS-Cheminformatics/*.adplugin)
-PLUGIN:=$(notdir $(basename $(ADPLUGIN) ))
+TOOLS      = adfile adimport
+MacOS      = ./qtplatz.app/Contents/MacOS
 
 default:
 	@echo "################################################"
@@ -76,16 +75,13 @@ otool-ssl:
 test:
 	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/qtplatz
 
-list_plugin:
-	for i in ${PLUGIN}; do echo $$i; done
-
 list_rpath:
 	otool -l "./qtplatz.app/Contents/MacOS/qtplatz" | grep RPATH -A2
+	otool -l "./qtplatz.app/Contents/MacOS/adfile" | grep RPATH -A2
 	otool -l ./qtplatz.app/Contents/PlugIns/MS-Cheminformatics/libadnetcdf.dylib | grep RPATH -A2
 	otool -l ./qtplatz.app/Contents/Frameworks/libnetcdf.19.dylib | grep RPATH -A2
 	otool -l ./qtplatz.app/Contents/Frameworks/libhdf5_hl.310.dylib | grep RPATH -A2
 	otool -l ./qtplatz.app/Contents/Frameworks/libhdf5.310.dylib | grep RPATH -A2
-	otool -l ./qtplatz.app/Contents/Frameworks/libblosc.1.dylib | grep RPATH -A2
 	otool -l ./qtplatz.app/Contents/Frameworks/libzstd.1.dylib | grep RPATH -A2
 #	echo "installed rpath for qtplatz ----->"
 #	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
@@ -93,8 +89,12 @@ list_rpath:
 #	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" -exec otool -l {} \; | grep RPATH -A2
 
 rpath.sh:
-	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/rdkit -name "*.so" |\
+	(cd ./qtplatz.app/Library; find Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" |\
 		sed -e 'h;s/[^/]*/../g;G;s/\(.*\)\n\(.*\)/install_name_tool -add_rpath \@loader_path\/\1\/Contents\/Frameworks .\/qtplatz.app\/Library\/\2/') > rpath.sh
+
+rpath2.sh:
+	echo install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ ${MacOS}/adfile > rpath2.sh
+	echo install_name_tool -add_rpath @executable_path/../Frameworks ${MacOS}/adfile >> rpath2.sh
 
 rpath: rpath.sh # fix_libhdf5
 	for i in qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz/*.so; do \

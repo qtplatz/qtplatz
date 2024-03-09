@@ -45,7 +45,7 @@
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
-#include <date/date.h>
+// #include <date/date.h>
 #include <socfpga/constants.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qtwrapper/settings.hpp>
@@ -411,7 +411,7 @@ WaveformWnd::handleSampleProgress( double elapsed_time, double method_time, cons
 #else
         std::chrono::system_clock::time_point tp{ std::chrono::nanoseconds( posix_time ) };
 #endif
-        using namespace date;
+        // using namespace date;
         std::ostringstream o;
         o << tp;
         title += QString("     Inject @ %1").arg( QString::fromStdString( o.str() ) );
