@@ -169,13 +169,6 @@ namespace adnetcdf {
 
         std::vector< std::shared_ptr< adcontrols::Chromatogram > >
         close() {
-            std::map< int, std::vector< int32_t > > ordinate_values;
-            if ( data_state_.all() && ( masses_.size() == intensities_.size() ) ){
-                for ( size_t i = 0; i < masses_.size(); ++i ) {
-                    const int key = masses_[i] * 1000;
-                    ordinate_values[ key ].emplace_back( intensities_[ i ] );
-                }
-            }
             std::string tp_inject;
             boost::system::error_code ec;
             if ( auto jtp = jobj_[ "global_attribures" ].find_pointer( "experiment_date_time_stamp", ec ) ) {
@@ -202,16 +195,40 @@ namespace adnetcdf {
                 results.emplace_back( std::move( tic ) );
             }
 
-            for ( const auto& [m,values]: ordinate_values ) {
+
+            std::map< int, std::vector< int32_t > > ordinate_values;
+            if ( data_state_.all() && ( masses_.size() == intensities_.size() ) ){
+                size_t nChannels = intensities_.size() / data_.size();
+                std::set< int > masses;
+                for ( const auto& mass: masses_ )
+                    masses.insert( mass * 1000 );
+
+                if ( masses.size() != nChannels ) {
+                    ADDEBUG() << "## Number of mass,intensity pair does not match, nChannels = " << nChannels << ", # of masses" << masses.size();
+                }
+
+                // for ( size_t i = 0; i < masses_.size(); ++i ) {
+                //     const int key = masses_[i] * 1000;
+                //     ordinate_values[ key ].emplace_back( intensities_[ i ] );
+                // }
+
+                for ( size_t i = 0; i < data_.size(); ++i ) {
+                    for ( size_t j = 0; j < nChannels; ++j ) {
+                        ordinate_values[ j ].emplace_back( intensities_[ i * nChannels + j ] );
+                    }
+                }
+            }
+
+            for ( const auto& [ch,values]: ordinate_values ) {
                 auto chro = std::make_shared< adcontrols::Chromatogram >();
-                chro->resize( values.size() );
+                chro->resize( data_.size() );
                 for ( size_t i = 0; i < chro->size(); ++i ) {
                     chro->setTime( i, std::get< scan_acquisition_time >( data_[i] ) );
                     chro->setIntensity( i, values[ i ] );
                 }
                 chro->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
                 chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
-                chro->addDescription( { "Create", (boost::format("m/z %.2f") % (m/1000.0)).str()} );
+                chro->addDescription( { "Create", (boost::format("m/z %.2f") % masses_[ch]).str()} );
                 chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
                 chro->set_time_of_injection_iso8601( tp_inject );
                 chro->setIsCounting( isCounting_[ 1 ] );
