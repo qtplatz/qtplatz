@@ -25,6 +25,7 @@
 
 #include "andims.hpp"
 #include "attribute.hpp"
+#include "constants.hpp"
 #include "ncfile.hpp"
 #include "timestamp.hpp"
 #include "variable.hpp"
@@ -96,6 +97,47 @@ namespace adnetcdf {
                         , int32_t // 14 actual_scan_number    // int32_t
                         > data_tuple;
 
+    enum test_scan_function { Mass_Scan, Selected_Ion_Detection  };
+    enum test_ionization_polarity {  Positive_Polarity = adcontrols::polarity_positive
+                                     , Negative_Polarity = adcontrols::polarity_negative };
+    enum experiment_type { Centroid_Mass_Spectrum, Profile_Mass_Spectrum };
+
+    template< typename T >  struct attribute_values {};
+    template<> struct attribute_values< test_scan_function > {
+        static constexpr const std::pair< const char * const, test_scan_function > values [] = {
+            { "Mass Scan", Mass_Scan }
+            , {"Selected Ion Detection", Selected_Ion_Detection} // either SIM or SRM
+        };
+    };
+    template<> struct attribute_values< test_ionization_polarity > {
+        static constexpr const std::pair< const char * const, test_ionization_polarity > values [] = {
+            { "Positive Polarity", Positive_Polarity }
+            , {"Negative Polarity", Negative_Polarity }
+        };
+    };
+    template<> struct attribute_values< experiment_type > {
+        static constexpr const std::pair< const char * const, experiment_type > values [] = {
+            { "Centroid Mass Spectrum", Centroid_Mass_Spectrum }
+            , {"Profile Mass Spectrum", Profile_Mass_Spectrum }
+        };
+    };
+
+    // ----------------- //
+    template< typename T > struct find_attribute {
+        std::optional< T > operator()( const std::string_view& view ) const {
+            for ( auto& a: attribute_values< T >::values ) {
+                if ( view.compare( a.first ) == 0 )
+                    return a.second;
+            }
+            return {};
+        }
+    };
+
+    struct lcmsdata {
+        std::map< int, std::pair< double, std::vector< int32_t > > > transformed_;
+    };
+
+
     class AndiMS::impl {
     public:
         impl() : isCounting_{ false, false }, jobj_{} {
@@ -107,6 +149,10 @@ namespace adnetcdf {
 
         std::vector< int32_t > intensities_;
         std::vector< double > masses_;
+        std::optional< test_ionization_polarity > ion_polarity_;
+        std::optional< test_scan_function > scan_function_;
+        std::optional< experiment_type > is_centroid_;
+        std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds> tp_inject_;
 
         // ANDI/MS
         template< data_name_t N, typename T >
@@ -169,72 +215,58 @@ namespace adnetcdf {
 
         std::vector< std::shared_ptr< adcontrols::Chromatogram > >
         close() {
-            std::string tp_inject;
+            const auto& global_attributes = jobj_[ "global_attributes" ];
+
             boost::system::error_code ec;
-            if ( auto jtp = jobj_[ "global_attribures" ].find_pointer( "experiment_date_time_stamp", ec ) ) {
+            if ( auto jtp = global_attributes.find_pointer( "/experiment_date_time_stamp", ec ) ) {
                 if ( jtp->is_string() )
-                    tp_inject = iso8601{}( time_stamp_parser{}( std::string( jtp->as_string() ), true ) );
+                    tp_inject_ = time_stamp_parser{}( std::string( jtp->as_string() ), true );
+            }
+
+            if ( auto value = global_attributes.find_pointer( "/test_ionization_polarity", ec ) ) {
+                ion_polarity_ = find_attribute< test_ionization_polarity >{}( value->as_string() );
+            }
+            if ( auto value = global_attributes.find_pointer( "/test_scan_function", ec ) ) {
+                scan_function_ = find_attribute< test_scan_function >{}( value->as_string() );
+            }
+            if ( auto value = global_attributes.find_pointer( "/experiment_type", ec ) ) {
+                is_centroid_ = find_attribute< experiment_type >{}( value->as_string() );
             }
 
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > results;
 
             if ( auto tic = std::make_shared< adcontrols::Chromatogram >() ) {
-                tic->resize( data_.size() );
-                for ( size_t i = 0; i < data_.size(); ++i ) {
-                    tic->setTime( i, std::get< scan_acquisition_time > ( data_[i] ) );
-                    tic->setIntensity( i, std::get< total_intensity > ( data_[i] ) );
-                }
-                tic->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
-                tic->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
-                tic->addDescription( { "Create", "TIC" } );
-                tic->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
-                tic->setIsCounting( isCounting_[ 0 ] );
-                tic->set_time_of_injection_iso8601( tp_inject );
-                if ( isCounting_[0] )
-                    tic->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
+                getTIC( *tic );
                 results.emplace_back( std::move( tic ) );
             }
 
+            if ( scan_function_ && *scan_function_ == Selected_Ion_Detection ) {
 
-            std::map< int, std::vector< int32_t > > ordinate_values;
-            if ( data_state_.all() && ( masses_.size() == intensities_.size() ) ){
-                size_t nChannels = intensities_.size() / data_.size();
-                std::set< int > masses;
-                for ( const auto& mass: masses_ )
-                    masses.insert( mass * 1000 );
+                std::string polarity;
+                auto transformed = transform();
 
-                if ( masses.size() != nChannels ) {
-                    ADDEBUG() << "## Number of mass,intensity pair does not match, nChannels = " << nChannels << ", # of masses" << masses.size();
-                }
-
-                // for ( size_t i = 0; i < masses_.size(); ++i ) {
-                //     const int key = masses_[i] * 1000;
-                //     ordinate_values[ key ].emplace_back( intensities_[ i ] );
-                // }
-
-                for ( size_t i = 0; i < data_.size(); ++i ) {
-                    for ( size_t j = 0; j < nChannels; ++j ) {
-                        ordinate_values[ j ].emplace_back( intensities_[ i * nChannels + j ] );
+                for ( const auto& [ch,data]: transformed ) {
+                    const auto& [mass,values] = data;
+                    auto chro = std::make_shared< adcontrols::Chromatogram >();
+                    chro->resize( data_.size() );
+                    for ( size_t i = 0; i < chro->size(); ++i ) {
+                        chro->setTime( i, std::get< scan_acquisition_time >( data_[i] ) );
+                        chro->setIntensity( i, values[ i ] );
                     }
+                    chro->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
+                    chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
+                    auto pol = ( ion_polarity_ ?
+                                 *ion_polarity_ == Negative_Polarity ? "neg" :
+                                 *ion_polarity_ == Positive_Polarity ? "pos" : "" : "");
+                    chro->addDescription( { "Create"
+                            , (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str()} );
+                    chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
+                    chro->set_time_of_injection_iso8601( iso8601{}( tp_inject_ ) );
+                    chro->setIsCounting( isCounting_[ 1 ] );
+                    if ( isCounting_[1] )
+                        chro->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
+                    results.emplace_back( std::move( chro ) );
                 }
-            }
-
-            for ( const auto& [ch,values]: ordinate_values ) {
-                auto chro = std::make_shared< adcontrols::Chromatogram >();
-                chro->resize( data_.size() );
-                for ( size_t i = 0; i < chro->size(); ++i ) {
-                    chro->setTime( i, std::get< scan_acquisition_time >( data_[i] ) );
-                    chro->setIntensity( i, values[ i ] );
-                }
-                chro->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
-                chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
-                chro->addDescription( { "Create", (boost::format("m/z %.2f") % masses_[ch]).str()} );
-                chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
-                chro->set_time_of_injection_iso8601( tp_inject );
-                chro->setIsCounting( isCounting_[ 1 ] );
-                if ( isCounting_[1] )
-                    chro->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
-                results.emplace_back( std::move( chro ) );
             }
             return results;
         }
@@ -246,6 +278,37 @@ namespace adnetcdf {
                 else if ( var == "intensity_values" )
                     isCounting_[1] = true;
             }
+        }
+
+        void getTIC( adcontrols::Chromatogram& tic ) {
+            tic.resize( data_.size() );
+            for ( size_t i = 0; i < data_.size(); ++i ) {
+                tic.setTime( i, std::get< scan_acquisition_time > ( data_[i] ) );
+                tic.setIntensity( i, std::get< total_intensity > ( data_[i] ) );
+            }
+            tic.minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
+            tic.maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
+            tic.addDescription( { "Create", "TIC" } );
+            tic.addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
+            tic.setIsCounting( isCounting_[ 0 ] );
+            tic.set_time_of_injection_iso8601( iso8601{}( tp_inject_ ) );
+            if ( isCounting_[0] )
+                tic.setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
+        }
+
+        std::map< int, std::pair< double, std::vector< int32_t > > >
+        transform() {
+            std::map< int, std::pair< double, std::vector< int32_t > > > map;
+            size_t nChannels = intensities_.size() / data_.size();
+
+            for ( size_t j = 0; j < nChannels; ++j )
+                map[j].first = masses_[ j ];
+
+            for ( size_t i = 0; i < data_.size(); ++i ) {
+                for ( size_t j = 0; j < nChannels; ++j )
+                    map[ j ].second.emplace_back( intensities_[ i * nChannels + j ] );
+            }
+            return map;
         }
 
     };
@@ -297,7 +360,7 @@ AndiMS::import( const nc::ncfile& file ) const
             auto [value,key] = std::visit( att_ovld, file.readData( att ), std::variant< nc::attribute >( att ) );
             ja[ key ] = value;
         }
-        impl_->jobj_[ "global_attributes"] = std::move(ja);
+        impl_->jobj_[ "global_attributes" ] = std::move(ja);
     } while ( 0 );
 
     boost::json::object jdata;
@@ -351,4 +414,75 @@ const boost::json::object&
 AndiMS::json() const
 {
     return impl_->jobj_;
+}
+
+bool
+AndiMS::has_spectra() const
+{
+    return impl_->scan_function_ && *impl_->scan_function_ == Mass_Scan;
+}
+
+
+
+////////////////////////////
+
+size_t
+AndiMS::getFunctionCount() const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    return 1;
+}
+
+size_t
+AndiMS::getSpectrumCount( int fcn ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ================== fcn: " << fcn;
+    return impl_->data_.size();
+}
+
+size_t
+AndiMS::getChromatogramCount() const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    return 0;
+}
+
+bool
+AndiMS::getTIC( int fcn, adcontrols::Chromatogram& tic ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    impl_->getTIC( tic );
+    return true;
+}
+
+bool
+AndiMS::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ================== objid: " << objid;
+    return false;
+}
+
+size_t
+AndiMS::posFromTime( double arg ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << arg;
+    return 0;
+}
+
+double
+AndiMS::timeFromPos( size_t arg ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ================== " << arg;
+    return 0;
+}
+
+bool
+AndiMS::getChromatograms( const std::vector< std::tuple<int, double, double> >&
+                       , std::vector< adcontrols::Chromatogram >&
+                       , std::function< bool (long curr, long total ) > progress
+                       , int /* begPos */
+                       , int /* endPos */ ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    return false;
 }

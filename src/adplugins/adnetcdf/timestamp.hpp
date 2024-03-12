@@ -37,7 +37,7 @@ namespace adnetcdf {
     };
 
     struct iso8601 {
-        std::string operator()( time_point_type&& tp ) const;
+        std::string operator()( const time_point_type& tp ) const;
     };
 
 }

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,10 +27,8 @@
 #define DATAFILE_H
 
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
-//#include <adportfolio/portfolio.hpp>
 #include <map>
 
 namespace adcontrols {
@@ -43,8 +41,8 @@ namespace portfolio { class Portfolio; }
 
 namespace adnetcdf {
 
-    class datafile : public adcontrols::datafile
-                   , public adcontrols::LCMSDataset {
+    class datafile : public adcontrols::datafile {
+        // , public adcontrols::LCMSDataset {
     public:
         ~datafile();
         datafile();
@@ -57,7 +55,7 @@ namespace adnetcdf {
         boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 
         adcontrols::datafile::factory_type factory() override { return 0; }
-
+#if 0
         // LCMSDataset
         size_t getFunctionCount() const override;
         size_t getSpectrumCount( int fcn = 0 ) const override;
@@ -71,7 +69,7 @@ namespace adnetcdf {
                                , std::function< bool (long curr, long total ) > progress
                                , int /* begPos */
                                , int /* endPos */ ) const override { return false; }
-
+#endif
     private:
         class impl;
         std::unique_ptr< impl > impl_;

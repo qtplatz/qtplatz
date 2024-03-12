@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <adcontrols/lcmsdataset.hpp>
 #include <map>
 #include <optional>
 #include <string>
@@ -44,7 +45,7 @@ namespace adnetcdf {
 
     namespace nc = adnetcdf::netcdf;
 
-    class AndiMS {
+    class AndiMS : public adcontrols::LCMSDataset {
         AndiMS( const AndiMS& ) = delete;
         AndiMS& operator = ( const AndiMS& ) = delete;
     public:
@@ -54,6 +55,21 @@ namespace adnetcdf {
 
         std::optional< std::string > find_global_attribute( const std::string& ) const;
         const boost::json::object& json() const;
+        bool has_spectra() const;
+
+        // LCMSdataset
+        size_t getFunctionCount() const override;
+        size_t getSpectrumCount( int fcn = 0 ) const override;
+        size_t getChromatogramCount() const override;
+        bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+        bool getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum&, uint32_t objid ) const override;
+		size_t posFromTime( double ) const override;
+		double timeFromPos( size_t ) const override;
+		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
+                               , std::vector< adcontrols::Chromatogram >&
+                               , std::function< bool (long curr, long total ) > progress
+                               , int /* begPos */
+                               , int /* endPos */ ) const override;
 
     private:
         class impl;

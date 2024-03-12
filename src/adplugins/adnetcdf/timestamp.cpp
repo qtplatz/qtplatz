@@ -66,9 +66,8 @@ namespace adnetcdf {
         return std::chrono::system_clock::time_point{} + std::chrono::seconds( utc );
     }
 
-
     std::string
-    iso8601::operator()( time_point_type&& tp ) const
+    iso8601::operator()( const time_point_type& tp ) const
     {
         return adportable::date_time::to_iso<std::chrono::milliseconds>( tp );
     }

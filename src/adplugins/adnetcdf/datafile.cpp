@@ -64,6 +64,18 @@
 #include <optional>
 #include <boost/json.hpp>
 
+// ---------------------- overloads -------------------->
+namespace {
+    // helper type for the visitor #4
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+
+    // explicit deduction guide (not needed as of C++20)
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+}
+//<---------------------- overloads --------------------
+
 namespace adnetcdf {
 
     class datafile::impl {
@@ -104,6 +116,13 @@ datafile::accept( adcontrols::dataSubscriber& sub )
     // No LC/GC data supported
     // sub.subscribe( *this );
     // subscribe processed dataset
+    std::visit( overloaded{
+            [&]( const auto& arg ) {}
+                , [&]( const std::unique_ptr< AndiMS >& p ){
+                    sub.subscribe( *p );
+                }
+                }, impl_->cdf_ );
+
     if ( impl_->processedDataset_ )
         sub.subscribe( *impl_->processedDataset_ );
 
@@ -111,7 +130,8 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 
         if ( ! impl_->model_.empty() ) { // has scan law
             auto models = adcontrols::MassSpectrometer::installed_models();
-            auto it = std::find_if( models.begin(), models.end(), [&]( const std::pair< boost::uuids::uuid, std::string >& t ){
+            auto it = std::find_if( models.begin(), models.end()
+                                    , [&]( const std::pair< boost::uuids::uuid, std::string >& t ){
                 return t.second == impl_->model_;
             });
             if ( it == models.end() )
@@ -171,6 +191,15 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
             }
             impl_->cdf_ = std::move( andi );
         }
+
+        // has spectra ?
+        if ( std::visit( overloaded{
+                    [&]( const auto& arg )->bool { return false; }
+                        , [&]( const std::unique_ptr< AndiMS >& p )->bool{ return p->has_spectra(); }
+                        }, impl_->cdf_ ) ) {
+            portfolio.addFolder( L"Spectra" );
+        }
+
         impl_->processedDataset_->xml( portfolio.xml() );
         return true;
     }
@@ -194,6 +223,7 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
     return fetch( adportable::utf::as_utf8( path ), adportable::utf::as_utf8( dataType ) );
 }
 
+#if 0
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
@@ -239,3 +269,4 @@ datafile::timeFromPos( size_t ) const
 {
 	return 0;
 }
+#endif
