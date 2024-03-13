@@ -259,6 +259,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 
     for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
 
+        ADDEBUG() << "------- readSpectrum ----------";
         auto ms = reader->readSpectrum( it );
 
         if ( cm->lockmass() ) {
@@ -509,6 +510,8 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
 
     const size_t nCounts = reader->size( -1 ) * 2;
     size_t nProg(0);
+
+    ADDEBUG() << "######## " << __FUNCTION__ << " ###########";
 
     if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 

@@ -34,14 +34,14 @@
 
 namespace adnetcdf {
 
+    constexpr const static boost::uuids::uuid __datareder = {0x07,0x5E,0x16,0x20,0x3D,0x70,0x42,0x75,0x93,0xDE,0x8D,0xC2,0x00,0x4A,0xDF,0x57};
+
     class DataReader::impl {
     public:
         impl( std::shared_ptr< const AndiMS > cdf ) : cdf_( cdf )
-                                                    , uuid_( {0} )
-                                                    , objtext_( "adnetcdf_reader" ) {
+                                                    , objtext_( "adnetcdf" ) {
         }
         std::shared_ptr< const AndiMS > cdf_;
-        boost::uuids::uuid uuid_;
         std::string objtext_;
     };
 }
@@ -75,7 +75,7 @@ const boost::uuids::uuid&
 DataReader::objuuid() const
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-    return impl_->uuid_;
+    return __datareder;
 }
 
 const std::string&
@@ -231,8 +231,42 @@ DataReader::getSpectrum( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::readSpectrum( const const_iterator& it ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-    return nullptr;
+    size_t idx = it->rowid();
+    const auto& data = impl_->cdf_->data();
+    const auto& transformed = impl_->cdf_->transformed();
+
+    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+    ms->resize( transformed.size() );
+
+    if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_type" ) ) {
+        if ( *value == "Centroided Mass Spectrum" ) // I'm not sure this is typo by Shimadzu or wrong specification by ASTM
+            ms->setCentroid( adcontrols::CentroidNative );
+    }
+    std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
+    std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( idx ) ) * 1e9 ) );
+    if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
+        tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
+    }
+    if ( auto value = impl_->cdf_->find_global_attribute( "/test_ionization_polarity" ) ) {
+        if ( *value == "Positive Polarity" )
+            ms->setPolarity( adcontrols::PolarityPositive );
+        if ( *value == "Negative Polarity" )
+            ms->setPolarity( adcontrols::PolarityNegative );
+    }
+
+    auto& prop = ms->getMSProperty();
+    prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( idx ) ) );
+    prop.setTrigNumber( std::get< actual_scan_number >( data.at( idx ) ) );
+    prop.setInstMassRange( { std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) } );
+    prop.setTimePoint( tp );
+
+    for ( const auto& map: transformed ) {
+        const auto& [ch,values] = map;
+        ms->setMass( ch, values.first );
+        ms->setIntensity( ch, *(values.second.begin() + idx) );
+    }
+
+    return ms;
 }
 
 std::shared_ptr< adcontrols::Chromatogram >
@@ -253,9 +287,14 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
             ms->setCentroid( adcontrols::CentroidNative );
         }
     }
+    const auto& data = impl_->cdf_->data();
+    size_t fst = first->rowid();
+    size_t lst = last->rowid();
+
     std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
+    std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( fst ) ) * 1e9 ) );
     if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
-        tp = time_stamp_parser{}( *value, true ); // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
+        tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
     }
     if ( auto value = impl_->cdf_->find_global_attribute( "/test_ionization_polarity" ) ) {
         if ( *value == "Positive Polarity" )
@@ -263,10 +302,6 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
         if ( *value == "Negative Polarity" )
             ms->setPolarity( adcontrols::PolarityNegative );
     }
-
-    size_t fst = first->rowid();
-    size_t lst = last->rowid();
-    const auto& data = impl_->cdf_->data();
 
     ms->resize( transformed.size() );
 

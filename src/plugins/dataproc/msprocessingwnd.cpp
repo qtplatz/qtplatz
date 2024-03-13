@@ -1252,8 +1252,9 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                         , [&]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rect.left(), rect.right() ); } );
     } else {
         QRectF rc = pImpl_->profileSpectrum_->zoomRect();
-        menu.addAction( tr( "Make mass chromatograms (%1--%2)" ).arg( QString::number(rc.left(),'g',5) ).arg( QString::number(rc.right(),'g',5) )
-                        , [&]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rc.left(), rc.right() ); } );
+        menu.addAction( tr( "Make mass chromatograms (%1--%2)" )
+                        .arg( QString::number(rc.left(),'g',5) ).arg( QString::number(rc.right(),'g',5) )
+                        , [=]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rc.left(), rc.right() ); } );
     }
 
     // [2]
@@ -1951,9 +1952,6 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
 
                     auto bp = std::max_element( beg, end, []( const auto a, const auto b ){ return a.area() < b.area();} );
 
-                    // for ( auto it = beg; it != end; ++it )
-                    //     ADDEBUG() << it->mass() << ", " << it->height() << " base: " << bp->mass() << ", " << bp->height();
-
                     xInfo.setMode( pkseg.mode() );
                     xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
 
@@ -1972,7 +1970,9 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
         }
 
         if ( xpkinfo ) {
+
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+
                 if ( auto file = processor->rawdata() ) {
                     if ( file->dataformat_version() >= 3 ) {
                         //--------->

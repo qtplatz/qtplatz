@@ -123,9 +123,10 @@ DataprocessWorker::createChromatogramsByPeakInfo3( Dataprocessor* processor
                                                    , const adcontrols::DataReader * reader )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
+    auto ptr = reader->shared_from_this();
 
-    threads_.emplace_back( adportable::asio::thread( [=,this] {
-        handleChromatogramsByPeakInfo3( processor, pm, pkinfo, reader->shared_from_this(), p );
+    threads_.emplace_back( adportable::asio::thread( [=] {
+        handleChromatogramsByPeakInfo3( processor, pm, pkinfo, ptr, p );
     }));
 }
 
@@ -640,18 +641,20 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
                                                    , std::shared_ptr< const adcontrols::DataReader > reader
                                                    , std::shared_ptr<adwidgets::Progress> progress )
 {
+    ADDEBUG() << "######## " << __FUNCTION__ << " ###########";
+
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
         adprocessor::v3::MSChromatogramExtractor extract( dset, processor );
-
-        ADDEBUG() << "## " << __FUNCTION__ << " ## reader: " << std::make_pair( reader->display_name(), reader->objtext() );
 
         extract.extract_by_peak_info( vec
                                       , *pm
                                       , pkinfo
                                       , reader
                                       , [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+
+        ADDEBUG() << "## " << __FUNCTION__ << " ## vec.size: " << vec.size();
     }
 
     portfolio::Folium folium;
