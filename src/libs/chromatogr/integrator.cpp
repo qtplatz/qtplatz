@@ -1192,9 +1192,9 @@ Integrator::impl::update_mw()
             mw_ = mw; // should grator or equal to 3
             signal_processor_->set_ndiff( mw_ );
         } else {
-            if ( signal_processor_->d().size() == 2 )
-                ADDEBUG() << "\t------------ "  << __FUNCTION__
-                          << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
+            // if ( signal_processor_->d().size() == 2 )
+            //     ADDEBUG() << "\t------------ "  << __FUNCTION__
+            //               << " -----> " << std::make_tuple( mw_, " --> ", mw, minw_, signal_processor_->sampInterval() );
         }
     }
 }

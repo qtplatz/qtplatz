@@ -34,16 +34,22 @@
 
 namespace adnetcdf {
 
-    constexpr const static boost::uuids::uuid __datareder = {0x07,0x5E,0x16,0x20,0x3D,0x70,0x42,0x75,0x93,0xDE,0x8D,0xC2,0x00,0x4A,0xDF,0x57};
-
     class DataReader::impl {
     public:
-        impl( std::shared_ptr< const AndiMS > cdf ) : cdf_( cdf )
-                                                    , objtext_( "adnetcdf" ) {
+        impl( std::shared_ptr< const AndiMS > cdf ) : cdf_( cdf ) {
         }
         std::shared_ptr< const AndiMS > cdf_;
-        std::string objtext_;
+
+        constexpr const static boost::uuids::uuid uuid_ = { 0x07,0x5E,0x16,0x20
+                                                            ,0x3D,0x70,0x42,0x75
+                                                            ,0x93,0xDE,0x8D,0xC2
+                                                            ,0x00,0x4A,0xDF,0x57 };
+        static const std::string objtext_;
+        static const std::string display_name_;
     };
+
+    const std::string DataReader::impl::objtext_ = "1.adnetcdf.ms-cheminfo.com";
+    const std::string DataReader::impl::display_name_ = "AndiMS";
 }
 
 using namespace adnetcdf;
@@ -75,7 +81,7 @@ const boost::uuids::uuid&
 DataReader::objuuid() const
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-    return __datareder;
+    return impl_->uuid_;
 }
 
 const std::string&
@@ -95,9 +101,7 @@ DataReader::objrowid() const
 const std::string&
 DataReader::display_name() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-    static std::string display_name_;
-    return display_name_;
+    return impl_->display_name_;
 }
 
 size_t
@@ -173,7 +177,8 @@ DataReader::next( int64_t rowid ) const
 int64_t
 DataReader::next( int64_t rowid, int fcn ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== rowid = " << rowid << ", " << fcn;
+    if ( ( rowid + 1 ) < impl_->cdf_->data().size() )
+        return ++rowid;
     return (-1);
 }
 
@@ -232,6 +237,7 @@ std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::readSpectrum( const const_iterator& it ) const
 {
     size_t idx = it->rowid();
+
     const auto& data = impl_->cdf_->data();
     const auto& transformed = impl_->cdf_->transformed();
 
@@ -253,11 +259,12 @@ DataReader::readSpectrum( const const_iterator& it ) const
         if ( *value == "Negative Polarity" )
             ms->setPolarity( adcontrols::PolarityNegative );
     }
-
+    ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) );
     auto& prop = ms->getMSProperty();
     prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( idx ) ) );
     prop.setTrigNumber( std::get< actual_scan_number >( data.at( idx ) ) );
     prop.setInstMassRange( { std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) } );
+
     prop.setTimePoint( tp );
 
     for ( const auto& map: transformed ) {
@@ -304,7 +311,7 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
     }
 
     ms->resize( transformed.size() );
-
+    ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) );
     auto& prop = ms->getMSProperty();
     prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( fst ) ) );
     prop.setTrigNumber( std::get< actual_scan_number >( data.at( fst ) ) );

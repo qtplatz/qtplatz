@@ -737,7 +737,8 @@ DataReader::next( int64_t rowid ) const
 {
     if ( ! indices_.empty() ) {
 
-        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid
+                                    , [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
         if ( it != indices_.end() && ++it != indices_.end() ) {
             assert( rowid < it->rowid );
             return it->rowid;

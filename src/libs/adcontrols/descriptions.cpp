@@ -228,7 +228,7 @@ descriptions::hasKey( const std::string& pattern ) const
             return d.text< char >();
         }
     }
-    ADDEBUG() << "\t################ hasKey'" << pattern << "' NOT FOUND";
+    // ADDEBUG() << "\t################ hasKey'" << pattern << "' NOT FOUND";
     return {};
 }
 
