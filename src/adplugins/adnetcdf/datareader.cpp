@@ -280,26 +280,23 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
     std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
     if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
         tp = time_stamp_parser{}( *value, true ); // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
-        ADDEBUG() << iso8601{}( tp );
-        ADDEBUG() << tp;
     }
-    size_t i0 = first->rowid();
-    size_t i1 = last->rowid();
+    size_t fst = first->rowid();
+    size_t lst = last->rowid();
     const auto& data = impl_->cdf_->data();
 
     ms->resize( transformed.size() );
-    // todo
-    // set timeSinceInjection, setTimeSinceEpoch, triggerNumber...
+
     auto& prop = ms->getMSProperty();
-    prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( i0 ) ) );
-    prop.setTrigNumber( std::get< actual_scan_number >( data.at( i0 ) ) );
-    prop.setInstMassRange( { std::get< mass_range_min >(data.at(i0)), std::get< mass_range_max >(data.at(i0)) } );
+    prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( fst ) ) );
+    prop.setTrigNumber( std::get< actual_scan_number >( data.at( fst ) ) );
+    prop.setInstMassRange( { std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) } );
     prop.setTimePoint( tp );
 
     for ( const auto& map: transformed ) {
         const auto& [ch,values] = map;
         ms->setMass( ch, values.first );
-        ms->setIntensity( ch, std::accumulate( values.second.begin() + first->rowid(), values.second.begin() + last->rowid(), 0.0 ) );
+        ms->setIntensity( ch, std::accumulate( values.second.begin() + fst, values.second.begin() + lst, 0.0 ) );
     }
 
     return ms;
