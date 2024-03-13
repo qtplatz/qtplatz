@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include "metric/prefix.hpp"
+#include <chrono>
 #include <string>
 #include <boost/uuid/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -65,8 +66,10 @@ namespace adcontrols {
         void setTimeSinceInjection( int64_t, metric::prefix pfx = metric::micro ); // for previous compatibility
         void setTimeSinceInjection( double );
 
-        uint64_t timeSinceEpoch() const;
+        uint64_t timeSinceEpoch() const; // nanoseconds
         void setTimeSinceEpoch( uint64_t );
+        void setTimePoint( std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds> );
+        std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds> timePoint() const;
 
         uint32_t trigNumberOrigin() const;
         uint32_t trigNumber( bool sinceOrigin = true ) const;

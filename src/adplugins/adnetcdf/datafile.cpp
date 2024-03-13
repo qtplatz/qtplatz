@@ -29,10 +29,6 @@
 
 #include "andichromatography.hpp"
 #include "andims.hpp"
-#if defined __GNUC__
-# pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 #include "datafile.hpp"
 #include "ncfile.hpp"
 #include <netcdf.h>
@@ -86,8 +82,8 @@ namespace adnetcdf {
         double tDelay_;
         std::string model_;
         std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
-        std::variant< std::unique_ptr< AndiChromatography >
-                      , std::unique_ptr< AndiMS > > cdf_;
+        std::variant< std::shared_ptr< AndiChromatography >
+                      , std::shared_ptr< AndiMS > > cdf_;
         boost::json::object json_;
 
         impl() : processedDataset_( std::make_unique< adcontrols::ProcessedDataset >() )
@@ -118,7 +114,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
     // subscribe processed dataset
     std::visit( overloaded{
             [&]( const auto& arg ) {}
-                , [&]( const std::unique_ptr< AndiMS >& p ){
+                , [&]( const std::shared_ptr< AndiMS >& p ){
                     sub.subscribe( *p );
                 }
                 }, impl_->cdf_ );
@@ -176,14 +172,14 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         auto folder = portfolio.addFolder( L"Chromatograms" );
 
         if ( auto temp = file.get_att_text( "aia_template_revision" ) ) {
-            auto andi = std::make_unique< AndiChromatography >();
+            auto andi = std::make_shared< AndiChromatography >();
             for ( auto chro: andi->import( file ) ) {
                 auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
                 impl_->vChro_.emplace( folium.id<char>(), chro );
             }
             impl_->cdf_ = std::move( andi );
         } else if ( auto temp = file.get_att_text( "ms_template_revision" ) ) {
-            auto andi = std::make_unique< AndiMS >();
+            auto andi = std::make_shared< AndiMS >();
 
             for ( auto& chro: andi->import( file ) ) {
                 auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
@@ -222,51 +218,3 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
     return fetch( adportable::utf::as_utf8( path ), adportable::utf::as_utf8( dataType ) );
 }
-
-#if 0
-size_t
-datafile::getSpectrumCount( int /* fcn */ ) const
-{
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
-    return 1;
-}
-
-bool
-datafile::getSpectrum( int /* fcn */, size_t /* idx */, adcontrols::MassSpectrum&, uint32_t ) const
-{
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
-    return true;
-}
-
-bool
-datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
-{
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
-    return false;
-}
-
-size_t
-datafile::getChromatogramCount() const
-{
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
-    return 1;
-}
-
-size_t
-datafile::getFunctionCount() const
-{
-    return 1;
-}
-
-size_t
-datafile::posFromTime( double ) const
-{
-	return 0;
-}
-
-double
-datafile::timeFromPos( size_t ) const
-{
-	return 0;
-}
-#endif

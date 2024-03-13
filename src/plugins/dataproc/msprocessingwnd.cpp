@@ -586,7 +586,7 @@ MSProcessingWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& f
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
-    ScopedDebug(x);  x << " ========== ";
+    // ScopedDebug(x);  x << " ========== ";
 
     pImpl_->drawIdx1_ = 0;
 

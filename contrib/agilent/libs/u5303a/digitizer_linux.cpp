@@ -876,7 +876,8 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
 
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
-        pkd.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
+        //  pkd.timeSinceEpoch_ =  std::chrono::system_clock::now().time_since_epoch().count(); // <-- should be recorded in nanoseconds, 2024/03/13
+        pkd.timeSinceEpoch_ = std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >::now().time_since_epock().count();
         avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
         pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
         avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
@@ -1224,7 +1225,6 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                    , &xIncrement
                                                    , &scaleFactor
                                                    , &scaleOffset ), __FILE__, __LINE__ ) ) {
-
 
             data.method_ = m;
             data.meta_.actualAverages = actualAverages;

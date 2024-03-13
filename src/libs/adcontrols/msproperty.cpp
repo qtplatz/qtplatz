@@ -33,6 +33,7 @@
 #include <adportable_serializer/portable_binary_oarchive.hpp>
 #include <adportable_serializer/portable_binary_iarchive.hpp>
 #include <adportable/unique_ptr.hpp>
+#include <chrono>
 #include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -318,6 +319,19 @@ void
 MSProperty::setTimeSinceEpoch( uint64_t value )
 {
     time_since_epoch_ = value;
+}
+
+void
+MSProperty::setTimePoint( std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds> tp )
+{
+    time_since_epoch_ = tp.time_since_epoch().count();
+}
+
+std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds>
+MSProperty::timePoint() const
+{
+    return std::chrono::time_point< std::chrono::system_clock
+                                    , std::chrono::nanoseconds >( std::chrono::nanoseconds( time_since_epoch_ ) );
 }
 
 uint32_t

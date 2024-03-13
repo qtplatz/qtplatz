@@ -48,6 +48,7 @@ add_library( ${PROJECT_NAME} MODULE
   andims.cpp andims.hpp
   nc_type.hpp
   timestamp.cpp timestamp.hpp
+  datareader.cpp datareader.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

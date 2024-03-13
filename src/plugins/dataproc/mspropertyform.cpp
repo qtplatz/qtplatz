@@ -115,8 +115,8 @@ MSPropertyForm::getContents( boost::any& ) const
 bool
 MSPropertyForm::setContents( boost::any&& a )
 {
-    ScopedDebug (x);
-    x << "setContents";
+    // ScopedDebug (x);
+    // x << "setContents";
 
     if ( adportable::a_type< portfolio::Folium >::is_a( a ) ) {
         portfolio::Folium& folium = boost::any_cast< portfolio::Folium& >( a );

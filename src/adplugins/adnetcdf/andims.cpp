@@ -26,6 +26,7 @@
 #include "andims.hpp"
 #include "attribute.hpp"
 #include "constants.hpp"
+#include "datareader.hpp"
 #include "ncfile.hpp"
 #include "timestamp.hpp"
 #include "variable.hpp"
@@ -41,6 +42,7 @@
 #include <boost/json.hpp>
 #include <boost/format.hpp>
 #include <boost/json/serializer.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <bitset>
 #include <variant>
@@ -58,44 +60,6 @@ namespace {
 //<---------------------- overloads --------------------
 
 namespace adnetcdf {
-
-    // ANDI/MS attributes
-    enum data_name_t {
-        a_d_sampling_rate          // 0
-        , scan_acquisition_time    // 1 time
-        , scan_duration            // 2
-        , inter_scan_time          // 3
-        , resolution               // 4
-        , total_intensity          // 5
-        , mass_range_min           // 6
-        , mass_range_max           // 7
-        , time_range_min           // 8
-        , time_range_max           // 9
-        , a_d_coaddition_factor    // 10 int16_t
-        , scan_index               // 11 int32_t
-        , point_count              // 12 int32_t
-        , flag_count               // 13 int32_t
-        , actual_scan_number       // 14 int32_t
-        , data_tuple_size
-    };
-
-    // ANDI/MS aqttribute types
-    typedef std::tuple< double   // 0 a_d_sampling_rate
-                        , double // 1 scan_acquisition_time
-                        , double // 2 scan_duration
-                        , double // 3 inter_scan_time
-                        , double // 4 resolution
-                        , double // 5 total_intensity
-                        , double // 6 mass_range_min
-                        , double // 7 mass_range_max
-                        , double // 8 time_range_min
-                        , double // 9 time_range_max
-                        , int16_t // 10 a_d_coaddition_factor // int16_t
-                        , int32_t // 11 scan_index            // int32_t
-                        , int32_t // 12 point_count           // int32_t
-                        , int32_t // 13 flag_count            // int32_t
-                        , int32_t // 14 actual_scan_number    // int32_t
-                        > data_tuple;
 
     enum test_scan_function { Mass_Scan, Selected_Ion_Detection  };
     enum test_ionization_polarity {  Positive_Polarity = adcontrols::polarity_positive
@@ -133,11 +97,6 @@ namespace adnetcdf {
         }
     };
 
-    struct lcmsdata {
-        std::map< int, std::pair< double, std::vector< int32_t > > > transformed_;
-    };
-
-
     class AndiMS::impl {
     public:
         impl() : isCounting_{ false, false }, jobj_{} {
@@ -149,6 +108,8 @@ namespace adnetcdf {
 
         std::vector< int32_t > intensities_;
         std::vector< double > masses_;
+        std::map< int, std::pair< double, std::vector< int32_t > > > transformed_;
+
         std::optional< test_ionization_polarity > ion_polarity_;
         std::optional< test_scan_function > scan_function_;
         std::optional< experiment_type > is_centroid_;
@@ -240,12 +201,11 @@ namespace adnetcdf {
                 results.emplace_back( std::move( tic ) );
             }
 
+            transformed_ = transform(intensities_, masses_, data_ );
+
             if ( scan_function_ && *scan_function_ == Selected_Ion_Detection ) {
-
                 std::string polarity;
-                auto transformed = transform();
-
-                for ( const auto& [ch,data]: transformed ) {
+                for ( const auto& [ch,data]: transformed_ ) {
                     const auto& [mass,values] = data;
                     auto chro = std::make_shared< adcontrols::Chromatogram >();
                     chro->resize( data_.size() );
@@ -288,7 +248,7 @@ namespace adnetcdf {
             }
             tic.minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
             tic.maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
-            tic.addDescription( { "Create", "TIC" } );
+            tic.addDescription( { "Create", (boost::format("TIC/TIC.%d") % 1 ).str()  } );
             tic.addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
             tic.setIsCounting( isCounting_[ 0 ] );
             tic.set_time_of_injection_iso8601( iso8601{}( tp_inject_ ) );
@@ -296,17 +256,20 @@ namespace adnetcdf {
                 tic.setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
         }
 
-        std::map< int, std::pair< double, std::vector< int32_t > > >
-        transform() {
+        static std::map< int, std::pair< double, std::vector< int32_t > > >
+        transform( const std::vector< int32_t >& intensities
+                   , const std::vector< double >& masses
+                   , const std::vector< data_tuple >& data ) {
+
             std::map< int, std::pair< double, std::vector< int32_t > > > map;
-            size_t nChannels = intensities_.size() / data_.size();
+            size_t nChannels = intensities.size() / data.size();
 
             for ( size_t j = 0; j < nChannels; ++j )
-                map[j].first = masses_[ j ];
+                map[j].first = masses[ j ];
 
-            for ( size_t i = 0; i < data_.size(); ++i ) {
+            for ( size_t i = 0; i < data.size(); ++i ) {
                 for ( size_t j = 0; j < nChannels; ++j )
-                    map[ j ].second.emplace_back( intensities_[ i * nChannels + j ] );
+                    map[ j ].second.emplace_back( intensities[ i * nChannels + j ] );
             }
             return map;
         }
@@ -422,7 +385,17 @@ AndiMS::has_spectra() const
     return impl_->scan_function_ && *impl_->scan_function_ == Mass_Scan;
 }
 
+const std::vector< data_tuple >&
+AndiMS::data() const
+{
+    return impl_->data_;
+}
 
+const std::map< int, std::pair< double, std::vector< int32_t > > >&
+AndiMS::transformed() const
+{
+    return impl_->transformed_;
+}
 
 ////////////////////////////
 
@@ -485,4 +458,37 @@ AndiMS::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 {
     ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return false;
+}
+
+size_t
+AndiMS::dataReaderCount() const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    return 1;
+}
+
+const adcontrols::DataReader *
+AndiMS::dataReader( size_t idx ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << idx;
+    return nullptr;
+}
+
+const adcontrols::DataReader *
+AndiMS::dataReader( const boost::uuids::uuid& uuid ) const
+{
+    ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << uuid;
+    return nullptr;
+}
+
+std::vector < std::shared_ptr< adcontrols::DataReader > >
+AndiMS::dataReaders( bool allPossible ) const
+{
+    try {
+        auto reader = std::make_shared< DataReader >( "AndiMS", this->shared_from_this() );
+        return std::vector < std::shared_ptr< adcontrols::DataReader > >{ reader };
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << "## Exception: " << ex.what();
+    }
+    return {};
 }
