@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace adcontrols {
 
     class MassSpectrum;

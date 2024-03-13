@@ -423,6 +423,18 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     adcontrols::CentroidProcess peak_detector;
     bool result = false;
 
+    if ( profile.isCentroid() ) {
+        centroid = profile;
+        for ( size_t i = 0; i < centroid.size(); ++i ) {
+            adcontrols::MSPeakInfoItem item{};
+            item.set_mass( centroid.mass( i ), centroid.mass(i), centroid.mass(i) );
+            item.set_area( centroid.intensity( i ) );
+            item.set_peak_index( i );
+            pkInfo << item;
+        }
+        return true;
+    }
+
     int fcn(0);
     for ( auto& seg: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( profile ) ) {
 

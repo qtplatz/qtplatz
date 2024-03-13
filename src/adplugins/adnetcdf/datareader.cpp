@@ -257,6 +257,13 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
     if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
         tp = time_stamp_parser{}( *value, true ); // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
     }
+    if ( auto value = impl_->cdf_->find_global_attribute( "/test_ionization_polarity" ) ) {
+        if ( *value == "Positive Polarity" )
+            ms->setPolarity( adcontrols::PolarityPositive );
+        if ( *value == "Negative Polarity" )
+            ms->setPolarity( adcontrols::PolarityNegative );
+    }
+
     size_t fst = first->rowid();
     size_t lst = last->rowid();
     const auto& data = impl_->cdf_->data();

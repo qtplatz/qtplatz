@@ -1079,15 +1079,15 @@ MassSpectrum::impl::~impl()
 {
 }
 
-MassSpectrum::impl::impl() : algo_(CentroidNone)
-                           , polarity_(PolarityPositive)
-                           , timeSinceInjTrigger_(0)
-                           , timeSinceFirmwareUp_(0)
-                           , numSpectrumSinceInjTrigger_(0)
-                           , protocolId_(0)
-                           , nProtocols_(0)
+MassSpectrum::impl::impl() : algo_( CentroidNone )
+                           , polarity_( PolarityIndeterminate )
+                           , timeSinceInjTrigger_( 0 )
+                           , timeSinceFirmwareUp_( 0 )
+                           , numSpectrumSinceInjTrigger_( 0 )
+                           , protocolId_( 0 )
+                           , nProtocols_( 0 )
                            , dataReaderUuid_( { {0} } )
-                           , rowid_(0)
+                           , rowid_( 0 )
                            , minmax_element_( boost::none )
 {
 }
