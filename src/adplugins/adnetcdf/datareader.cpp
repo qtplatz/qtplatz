@@ -25,36 +25,12 @@
 #include "datareader.hpp"
 #include "andims.hpp"
 #include "timestamp.hpp"
-// #include "datainterpreter.hpp"
-// #include <adcontrols/chromatogram.hpp>
-// #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
-// #include <adcontrols/massspectrometer.hpp>
-// #include <adcontrols/massspectrometerbroker.hpp>
-// #include <adcontrols/msproperty.hpp>
-// #include <adcontrols/scanlaw.hpp>
-// #include <adcontrols/waveform.hpp>
-// #include <adfs/filesystem.hpp>
-// #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <algorithm>
 #include <chrono>
 #include <numeric>
-// #include <adportable/utf.hpp>
-// #include <adutils/acquiredconf_v3.hpp>
-// #include <compiler/boost/workaround.hpp>
-// #include <boost/format.hpp>
-// #include <boost/mpl/vector.hpp>
-// #include <boost/mpl/for_each.hpp>
-// #include <boost/uuid/uuid_generators.hpp>
-// #include <boost/uuid/uuid_io.hpp>
-// #include <atomic>
-// #include <cassert>
-// #include <limits>
-// #include <map>
-// #include <memory>
-// #include <mutex>
 
 namespace adnetcdf {
 
