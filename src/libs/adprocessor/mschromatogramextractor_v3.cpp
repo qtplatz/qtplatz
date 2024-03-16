@@ -478,9 +478,9 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                 xc.pChr->setIsCounting( isCounting );
                 xc.pChr->minimumTime( time_range.first );
                 xc.pChr->maximumTime( time_range.second );
-                ADDEBUG() << "\tcreating chromatogram: " << (global_mslock ? "has lock" : "no lock");
+                // ADDEBUG() << "\tcreating chromatogram: " << (global_mslock ? "has lock" : "no lock");
                 if ( auto desc = impl_->desc_mslock() ) {
-                    ADDEBUG() << "\tdescreptor: " << desc->keyValue();
+                    // ADDEBUG() << "\tdescreptor: " << desc->keyValue();
                     xc.pChr->addDescription( *desc );
                 }
                 vec.emplace_back( std::move( xc.pChr ) );
