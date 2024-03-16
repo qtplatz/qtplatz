@@ -25,6 +25,7 @@
 #pragma once
 
 #include <numeric>
+#include <adportable/debug.hpp>
 
 namespace adprocessor {
 
@@ -33,7 +34,7 @@ namespace adprocessor {
         template< typename It > struct accumulate {
             size_t size_;
             const It xbeg_;
-            const It xend_;        
+            const It xend_;
             const It y_;
 
             accumulate( It x, It y, size_t size ) : size_( size )
@@ -41,7 +42,7 @@ namespace adprocessor {
                                                   , xend_( x + size )
                                                   , y_( y ) {
             }
-        
+
             double operator()( double lMass, double uMass ) const {
                 if ( size_ ) {
                     auto lit = std::lower_bound( xbeg_, xend_, lMass );
@@ -53,9 +54,8 @@ namespace adprocessor {
                         while ( uMass < *uit )
                             --uit;
                         auto epos = std::distance( xbeg_, uit );
-                        if ( bpos > epos )
-                            epos = bpos;
-
+                        if ( epos == bpos )
+                            epos = bpos + 1;
                         return std::accumulate( y_ + bpos, y_ + epos, 0.0 );
                     }
                 }
@@ -64,4 +64,3 @@ namespace adprocessor {
         };
     }
 }
-

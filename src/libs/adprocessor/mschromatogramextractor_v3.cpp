@@ -450,7 +450,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
             // histogram.timecount.1.u5303a.ms-cheminfo.com
             // tdcdoc.waveform.1.u5303a.ms-cheminfo.com
-            const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
+            const bool isCounting = std::regex_search( reader->objtext()
+                                                       , std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com" ) );
 
             for ( auto& ms : impl_->spectra_ ) {
                 for (auto& xc: temp ) {
@@ -511,12 +512,11 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     const size_t nCounts = reader->size( -1 ) * 2;
     size_t nProg(0);
 
-    ADDEBUG() << "######## " << __FUNCTION__ << " ###########";
-
     if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 
-        const bool isCounting = std::regex_search( reader->objtext(), std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com|1\\.adnetcdf\\.ms-cheminfo\\.com" ) );
-        ADDEBUG() << "======== loadSpectra ======= loaded " << impl_->spectra_.size() << ", " << reader->objtext() << ", isCounting=" << isCounting;
+        const bool isCounting = std::regex_search(
+            reader->objtext()
+            , std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com|1\\.adnetcdf\\.ms-cheminfo\\.com" ) );
 
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
@@ -734,7 +734,6 @@ MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, a
         auto acqMrange = ms.getAcquisitionMassRange();
         const double lMass = range.first;
         const double uMass = range.second;
-        ADDEBUG() << "---------- " << __FUNCTION__ << " mass range\t" << std::make_pair( lMass, uMass ) << ", " << acqMrange;
 
         if ( acqMrange.first < lMass && uMass < acqMrange.second ) {
 
@@ -742,7 +741,6 @@ MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, a
                 if ( ms.isCentroid() ) {
                     using mschromatogramextractor::accumulate;
                     y = accumulate<const double *>( ms.getMassArray(), ms.getIntensityArray(), ms.size() )( lMass, uMass );
-                    ADDEBUG() << "---------- accumurate: " << y;
                 } else {
                     double base, rms;
                     double tic = adportable::spectrum_processor::tic( ms.size(), ms.getIntensityArray(), base, rms );
@@ -851,7 +849,6 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
 
     const int protocol = ms.protocolId();
     const double time = ms.getMSProperty().timeSinceInjection();
-    ADDEBUG() << "== " << __FUNCTION__ << "\t" << time;
 
     uint32_t cid = 0;
 
@@ -860,10 +857,8 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
         double lMass = (width < 0.001) ? pk.mass() - pk.widthHH() / 2 : pk.mass() - width / 2.0;
         double uMass = (width < 0.001) ? pk.mass() + pk.widthHH() / 2 : pk.mass() + width / 2.0;
 
-        ADDEBUG() << "== " << __FUNCTION__ << "\t" << std::make_pair( lMass, uMass );
-
         if ( auto y = computeIntensity( ms, adcontrols::hor_axis_mass, std::make_pair( lMass, uMass ) ) ) {
-            ADDEBUG() << "\ty=" << *y;
+            // ADDEBUG() << "\ty=" << *y;
             auto it = std::find_if( results_.begin(), results_.end()
                                     , [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
 
