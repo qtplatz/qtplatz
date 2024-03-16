@@ -68,6 +68,8 @@ namespace adnetcdf {
         // =============================> Iterator reference methods
         int64_t next( int64_t rowid ) const override;
         int64_t next( int64_t rowid, int fcn ) const override;
+        int64_t prev( int64_t rowid ) const override;
+        int64_t prev( int64_t rowid, int fcn ) const override;
         int64_t pos( int64_t rowid ) const override;
         int64_t elapsed_time( int64_t rowid ) const override;
         double time_since_inject( int64_t rowid ) const override;

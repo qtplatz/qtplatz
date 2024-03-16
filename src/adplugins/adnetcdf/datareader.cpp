@@ -170,8 +170,7 @@ DataReader::TIC( int fcn ) const
 int64_t
 DataReader::next( int64_t rowid ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== rowid = " << rowid;
-    return -1;
+    return next( rowid, 0 );
 }
 
 int64_t
@@ -180,6 +179,20 @@ DataReader::next( int64_t rowid, int fcn ) const
     if ( ( rowid + 1 ) < impl_->cdf_->data().size() )
         return ++rowid;
     return (-1);
+}
+
+int64_t
+DataReader::prev( int64_t rowid ) const
+{
+    return prev( rowid, 0 );
+}
+
+int64_t
+DataReader::prev( int64_t rowid, int fcn ) const
+{
+    if ( rowid >= 1 )
+        return --rowid;
+    return impl_->cdf_->data().size() - 1;
 }
 
 int64_t
@@ -296,7 +309,7 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
     }
     const auto& data = impl_->cdf_->data();
     size_t fst = first->rowid();
-    size_t lst = last->rowid();
+    size_t lst = last != end() ? last->rowid() : transformed.size();
 
     std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
     std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( fst ) ) * 1e9 ) );
@@ -310,6 +323,8 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
             ms->setPolarity( adcontrols::PolarityNegative );
     }
 
+    // ADDEBUG() << __FUNCTION__ << "######### fst/lst=" << std::make_pair(fst, lst);
+
     ms->resize( transformed.size() );
     ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) );
     auto& prop = ms->getMSProperty();
@@ -322,6 +337,7 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
         const auto& [ch,values] = map;
         ms->setMass( ch, values.first );
         ms->setIntensity( ch, std::accumulate( values.second.begin() + fst, values.second.begin() + lst, 0.0 ) );
+        // ADDEBUG() << "\t" << std::make_tuple( ch, values.first, ms->intensity( ch ) );
     }
 
     return ms;

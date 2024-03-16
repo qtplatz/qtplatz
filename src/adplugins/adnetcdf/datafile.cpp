@@ -29,6 +29,7 @@
 
 #include "andichromatography.hpp"
 #include "andims.hpp"
+#include "chromatogram.hpp"
 #include "datafile.hpp"
 #include "ncfile.hpp"
 #include <netcdf.h>
@@ -37,6 +38,7 @@
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datapublisher.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -82,6 +84,7 @@ namespace adnetcdf {
         double tDelay_;
         std::string model_;
         std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
+        std::map< std::string, std::shared_ptr< adcontrols::MassSpectrum > > vSpectrum_;
         std::variant< std::shared_ptr< AndiChromatography >
                       , std::shared_ptr< AndiMS > > cdf_;
         boost::json::object json_;
@@ -189,12 +192,23 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         }
 
         // has spectra ?
-        if ( std::visit( overloaded{
-                    [&]( const auto& arg )->bool { return false; }
-                        , [&]( const std::unique_ptr< AndiMS >& p )->bool{ return p->has_spectra(); }
-                        }, impl_->cdf_ ) ) {
-            portfolio.addFolder( L"Spectra" );
-        }
+        std::visit( overloaded{
+                [&]( const auto& arg ) { /* do nothing */ }
+                    , [&]( const std::shared_ptr< AndiMS >& p ) {
+                        if ( p->has_spectra() ) {
+                            auto folder = portfolio.addFolder( L"Spectra" );
+                            auto v = p->dataReaders();
+                            if ( ! v.empty() ) {
+                                if ( auto reader = v.at(0) ) {
+                                    if ( auto ms = reader->coaddSpectrum( reader->begin(), reader->end() ) ) {
+                                        auto folium = folder.addFolium( "Coadded spectrum" ).assign( ms, ms->dataClass() );
+                                        impl_->vSpectrum_.emplace( folium.id<char>(), ms );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    }, impl_->cdf_ );
 
         impl_->processedDataset_->xml( portfolio.xml() );
         return true;
@@ -206,9 +220,16 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
-    auto it = impl_->vChro_.find( path );
-    if ( it != impl_->vChro_.end() )
-        return it->second;
+    if ( dataType == adportable::utf::to_utf8( adcontrols::MassSpectrum::dataClass() ) ) {
+        auto it = impl_->vSpectrum_.find( path );
+        if ( it != impl_->vSpectrum_.end() )
+            return it->second;
+    }
+    if ( dataType == adportable::utf::to_utf8( adcontrols::Chromatogram::dataClass() ) ) {
+        auto it = impl_->vChro_.find( path );
+        if ( it != impl_->vChro_.end() )
+            return it->second;
+    }
     ADDEBUG() << "Error: ======== " << __FUNCTION__ << std::make_pair( path, dataType ) << " not in the object"; // guid, Chromatogram
     return {};
 }
