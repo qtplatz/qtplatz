@@ -203,7 +203,8 @@ namespace adnetcdf {
 
             transformed_ = transform(intensities_, masses_, data_ );
 
-            if ( scan_function_ && *scan_function_ == Selected_Ion_Detection ) {
+            // if ( scan_function_ && *scan_function_ == Selected_Ion_Detection ) {
+            do {
                 std::string polarity;
                 for ( const auto& [ch,data]: transformed_ ) {
                     const auto& [mass,values] = data;
@@ -227,7 +228,7 @@ namespace adnetcdf {
                         chro->setAxisLabel( adcontrols::plot::yAxis, "Intensity (counts)" );
                     results.emplace_back( std::move( chro ) );
                 }
-            }
+            } while ( 0 );
             return results;
         }
 

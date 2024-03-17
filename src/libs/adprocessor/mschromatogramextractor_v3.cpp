@@ -732,16 +732,15 @@ MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, a
     double y(0);
     if ( axis == adcontrols::hor_axis_mass ) {
         auto acqMrange = ms.getAcquisitionMassRange();
-        const double lMass = range.first;
-        const double uMass = range.second;
+        auto [lMass, uMass] = range;
 
         if ( acqMrange.first < lMass && uMass < acqMrange.second ) {
-
-            if ( ms.mass( 0 ) <= lMass && uMass < ms.mass( ms.size() - 1 ) ) {
-                if ( ms.isCentroid() ) {
-                    using mschromatogramextractor::accumulate;
-                    y = accumulate<const double *>( ms.getMassArray(), ms.getIntensityArray(), ms.size() )( lMass, uMass );
-                } else {
+            if ( ms.isCentroid() ) {
+                using mschromatogramextractor::accumulate;
+                y = accumulate<const double *>( ms.getMassArray(), ms.getIntensityArray(), ms.size() )( lMass, uMass );
+                return y;
+            } else {
+                if ( ms.mass( 0 ) <= lMass && uMass < ms.mass( ms.size() - 1 ) ) {
                     double base, rms;
                     double tic = adportable::spectrum_processor::tic( ms.size(), ms.getIntensityArray(), base, rms );
                     (void)tic;
@@ -749,8 +748,8 @@ MSChromatogramExtractor::computeIntensity( const adcontrols::MassSpectrum& ms, a
                     adportable::spectrum_processor::getFraction( fraction, ms.getMassArray(), ms.size(), lMass, uMass );
                     y = adportable::spectrum_processor::area( fraction, base, ms.getIntensityArray(), ms.size() );
                 }
+                return y;
             }
-            return y;
         }
     } else {
         const double lTime = range.first;
