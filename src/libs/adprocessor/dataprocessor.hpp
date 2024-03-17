@@ -80,6 +80,7 @@ namespace adprocessor {
         virtual void setModified( bool );
 
         virtual bool open( const std::filesystem::path&, std::string& errmsg );
+        virtual bool backup( const std::filesystem::path& ) const;
 
         template<typename char_type = wchar_t > std::basic_string<char_type> filename() const;
 

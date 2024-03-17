@@ -69,7 +69,9 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <adfs/sqlite3.h>
 
+#include <filesystem>
 #include <locale>
 #include <numeric>
 #include <string>
@@ -152,6 +154,25 @@ dataprocessor::open( const std::filesystem::path& filename, std::string& error_m
         return true;
     }
     return false;
+}
+
+bool
+dataprocessor::backup( const std::filesystem::path& dstname ) const
+{
+    auto path( dstname );
+    auto dfs = std::make_unique< adfs::filesystem >();
+
+    if ( dfs->create( path ) ) {
+        if ( auto backup = ::sqlite3_backup_init( dfs->db(), "main", dfs->db(), "main" ) ) {
+            if ( ::sqlite3_backup_step( backup, -1 ) == SQLITE_DONE ) {
+                ::sqlite3_backup_finish( backup );
+            } else {
+                ADDEBUG() << "backup failed";
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 template<> std::wstring

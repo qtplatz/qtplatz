@@ -372,6 +372,7 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
                 *errorString = "Save contents failed.";
             }
         } else {
+            return save_as( *this, errorString )( std::filesystem::path( path.replace_extension( ".adfs" ) ) );
             *errorString = "Cannot save processed result into a file rather than .adfs file.";
         }
         return false;
@@ -397,8 +398,6 @@ Dataprocessor::isSaveAsAllowed() const
 bool
 Dataprocessor::create(const QString& filename )
 {
-    ScopedDebug(__t);
-
     std::filesystem::path path( filename.toStdString() );
     path.replace_extension( L".adfs" );
 
@@ -417,17 +416,10 @@ Dataprocessor::create(const QString& filename )
 bool
 Dataprocessor::open(const std::filesystem::path& filename, std::string& emsg )
 {
-    ScopedDebug(__t);
-
     emsg = std::string{};
     if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
-#if QTC_VERSION >= 0x08'00'00
         auto filePath = Utils::FilePath::fromString( QString::fromStdString( filename.string() ) );
         Core::IDocument::setFilePath( filePath );
-#else
-        Core::IDocument::setFilePath( QString::fromStdWString( filename ) );
-        Core::DocumentManager::setCurrentFile( QString::fromStdWString( filename ) );
-#endif
         return true;
     }
     return false;
@@ -436,7 +428,6 @@ Dataprocessor::open(const std::filesystem::path& filename, std::string& emsg )
 bool
 Dataprocessor::open(const QString &filename, QString& emsg )
 {
-    ScopedDebug(__t);
     std::string msg;
     bool rcode = open( std::filesystem::path( filename.toStdString() ), msg );
     emsg = QString::fromStdString( msg );
