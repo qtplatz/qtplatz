@@ -24,6 +24,7 @@
 
 #include "datareader.hpp"
 #include "andims.hpp"
+#include "chromatogram.hpp"
 #include "timestamp.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -107,7 +108,7 @@ DataReader::display_name() const
 size_t
 DataReader::fcnCount() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+    // ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     return 1;
 }
 
@@ -163,7 +164,10 @@ DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
 std::shared_ptr< const adcontrols::Chromatogram >
 DataReader::TIC( int fcn ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+    if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
+        impl_->cdf_->getTIC( fcn, *chro );
+        return chro;
+    }
     return nullptr;
 }
 

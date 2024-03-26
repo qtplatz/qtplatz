@@ -275,6 +275,10 @@ namespace chemistry {
         , { R"(CC12CCC(=O)C=C1CCC3C2C(CC4(C3CCC4C(=O)CO)C)O)",   { "COB", "corticosterone" }}
         , { R"(CC12CCC(=O)C=C1CCC3C2C(=O)CC4(C3CCC4(C(=O)CO)O)C)", { "COR", "Cortisone" }}
         , { R"(CC12CCC(=O)C=C1CCC3C2CCC4(C3CCC4(C(=O)CO)O)C)",   { "COS", "11-deoxycortisol", "Cortexolone" }}
+        , { R"(CCC1=C(C2=NC1=CC3=C(C4=C([N-]3)C(=C5[C@H]([C@@H](C(=N5)C=C6C(=C(C(=C2)[N-]6)C=C)C)C)CCC(=O)OC/C=C(\C)/CCCC(C)CCCC(C)CCCC(C)C)[C@H](C4=O)C(=O)OC)C)C.[Mg+2])"
+            , { "Chlorophyll a" }}
+        , { R"(CCC1=C(C2=NC1=CC3=C(C4=C([C@@H](C(=C4[N-]3)C5=NC(=CC6=NC(=C2)C(=C6C)C=C)[C@H]([C@@H]5CCC(=O)OC/C=C(\C)/CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C)C(=O)OC)[O-])C)C=O.[Mg+2])"
+            , { "Chlorophyll b"}}
     };
 
 

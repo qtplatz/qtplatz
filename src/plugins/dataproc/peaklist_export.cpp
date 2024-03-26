@@ -142,11 +142,11 @@ namespace {
 
             sql.exec( "CREATE TABLE chromatogram ("
                       "id INTEGER PRIMARY KEY"
-                      ",fileid INTEGER"
-                      ",name TEXT"
-                      ",type TEXT"
+                      ",fileid  INTEGER"
+                      ",name    TEXT"
+                      ",injTime REAL"
                       ",proto   INTEGER"
-                      ",mode    INTEGER"
+                      ",time_of_inject  TEXT"
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 
@@ -285,21 +285,10 @@ namespace {
             }
         }
 
-        void write( const adcontrols::PeakResult& t, const portfolio::Folium& f ) {
-            int64_t chroid(0);
+        void __write( const adcontrols::Peaks& peaks, int64_t chroid ) {
             adfs::stmt sql( *db_ );
-            sql.begin();
-            sql.prepare( "INSERT INTO chromatogram ( fileid, name ) SELECT id,? FROM dataSource WHERE filename = ?" );
-            sql.bind(1) = f.name();
-            sql.bind(2) = filename_;
-            if ( sql.step() == adfs::sqlite_done )
-                chroid = db_->last_insert_rowid();
-            else
-                ADDEBUG() << sql.errmsg();
-            sql.commit();
-
             sql.prepare( "INSERT INTO cpeak(chroid,name,tR,area,height,width,ntp,Rs,k,Tf ) VALUES (?,?,?,?,?,?,?,?,?,?)" );
-            for ( auto pk: t.peaks() ){
+            for ( auto pk: peaks ){
                 sql.reset();
                 int id(1);
                 sql.bind(id++) = chroid;
@@ -321,33 +310,29 @@ namespace {
             int64_t chroid(0);
             adfs::stmt sql( *db_ );
             sql.begin();
-            sql.prepare( "INSERT INTO chromatogram ( fileid, name ) SELECT id,? FROM dataSource WHERE filename = ?" );
+            sql.prepare( "INSERT INTO chromatogram (fileid,name,injTime,proto,time_of_inject) SELECT id,?,?,?,? FROM dataSource WHERE filename = ?" );
             sql.bind(1) = f.name();
-            sql.bind(2) = filename_;
+            sql.bind(2) = double(std::chrono::duration_cast< std::chrono::milliseconds >( t.time_of_injection().time_since_epoch() ).count()) / 1000.0;
+            sql.bind(3) = t.protocol();
+            sql.bind(4) = t.time_of_injection_iso8601();
+            sql.bind(5) = filename_;
             if ( sql.step() == adfs::sqlite_done )
                 chroid = db_->last_insert_rowid();
             else
                 ADDEBUG() << sql.errmsg();
             sql.commit();
 
-            sql.prepare( "INSERT INTO cpeak(chroid,name,tR,area,height,width,ntp,Rs,k,Tf ) VALUES (?,?,?,?,?,?,?,?,?,?)" );
-            ADDEBUG() << "-- Chromatogram -- fileid:" << fileid_ << ", " << f.name() << ", size=" << t.peaks().size();
-            for ( auto pk: t.peaks() ){
-                sql.reset();
-                int id(1);
-                sql.bind(id++) = chroid;
-                sql.bind(id++) = std::string( pk.formula() );
-                sql.bind(id++) = static_cast< double >( pk.peakTime() );
-                sql.bind(id++) = pk.peakArea();
-                sql.bind(id++) = pk.peakHeight();
-                sql.bind(id++) = pk.peakWidth();
-                sql.bind(id++) = pk.theoreticalPlate().ntp();
-                sql.bind(id++) = pk.resolution().resolution();
-                sql.bind(id++) = pk.capacityFactor();
-                sql.bind(id++) = pk.asymmetry().asymmetry();
-                if ( sql.step() != adfs::sqlite_done )
-                    ADDEBUG() << sql.errmsg();
+            using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >;
+            for ( auto& a: f.attachments() ) {
+                if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a ) ) ) {
+                    if ( auto pkresult = boost::get< std::shared_ptr< adcontrols::PeakResult > >( *var ) )  {
+                        __write( pkresult->peaks(), chroid );
+                        return;
+                    }
+                }
             }
+            // if not handled in within above loop
+            __write( t.peaks(), chroid );
         }
 
         template< typename T >
@@ -398,6 +383,7 @@ peaklist_export::sqlite_export( const std::filesystem::path& path )
                     }
                 }
 
+
                 using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >; //, std::shared_ptr< adcontrols::Chromatogram > >;
 
                 bool success( false );
@@ -407,24 +393,7 @@ peaklist_export::sqlite_export( const std::filesystem::path& path )
                         if ( folium.empty() ) {
                             processor->fetch( folium );
                         }
-                        for ( auto& a: folium.attachments() ) {
-                            // ADDEBUG() << "\t" << a.name();
-                            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a ) ) ) {
-                                if ( var->which() == 0 ) {
-                                    if ( auto pkresult = boost::get< std::shared_ptr< adcontrols::PeakResult > >( *var ) )  {
-                                        // ADDEBUG() << "pkresult.size: " << pkresult->peaks().size();
-                                        writer.write( *pkresult, folium );
-                                        success = true;
-                                    }
-                                }
-                            }
-                        }
-                        // portfolio::Folio atts = folium.attachments();
-                        // auto it = std::find_if( atts.begin(), atts.end()
-                        //                         , []( portfolio::Folium& f ) { return f.name() == Constants::F_PEAKRESULT; });
-                        // auto success = ( it != atts.end() ) && writer.write< adcontrols::PeakResult >( *it, folium );
-                        if ( !success )
-                            writer.write< adcontrols::Chromatogram >( folium, folium );
+                        writer.write< adcontrols::Chromatogram >( folium, folium );
                     }
                 }
             }

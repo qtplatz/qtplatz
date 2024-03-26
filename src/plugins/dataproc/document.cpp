@@ -523,15 +523,16 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 
 
 void
-document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrols::DataReader_iterator iterator )
+document::onSelectSpectrum_v3( Dataprocessor * dp, double /*time*/, adcontrols::DataReader_iterator iterator )
 {
     using adcontrols::DataReader;
 
-    ADDEBUG() << "======================= " << __FUNCTION__ << " ===========================";
+    ADDEBUG() << "======================= " << __FUNCTION__ << " ================== iterator = " << iterator->pos() << ", " << iterator.dataReader().get();
 
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
 
+        ADDEBUG() << "======================= " << __FUNCTION__ << " found reader =================";
         if ( auto ms = reader->readSpectrum( iterator ) ) {
             std::ostringstream text;
             if ( iterator._fcn() < 0 ) {
@@ -540,17 +541,18 @@ document::onSelectSpectrum_v3( Dataprocessor * dp, double /*minutes*/, adcontrol
                 text << DataReader::abbreviated_name( reader->display_name() )
                      << boost::format ( " %.3fs p%d.%d " ) % iterator->time_since_inject() % ms->protocolId() % ms->nProtocols() ;
             }
-            // if ( dp->apply_mslock( ms ) )
-            //     text << ",locked;";
-
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( {"folium.create", text.str() } ) );
 	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 dp->mslock( *ms, 0 );
                 portfolio::Folium folium = dp->addSpectrum( ms, m );
             }
+        } else {
+            ADDEBUG() << "### " << __FUNCTION__ << " readSpectrum return nullptr ###";
         }
 
+    } else {
+        ADDEBUG() << "### " << __FUNCTION__ << " null dataReader returned from iterator ###";
     }
 }
 

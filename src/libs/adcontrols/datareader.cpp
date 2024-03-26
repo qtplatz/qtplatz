@@ -126,6 +126,7 @@ DataReader_iterator::operator = ( const DataReader_iterator& t )
     reader_ = t.reader_;
     value_ = t.value_;
     fcn_ = t.fcn_;
+    ADDEBUG() << "operator = iterator: " << value_.reader_.lock().get();
     return *this;
 }
 

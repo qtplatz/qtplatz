@@ -45,6 +45,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <bitset>
+#include <memory>
 #include <variant>
 
 // ---------------------- overloads -------------------->
@@ -114,6 +115,8 @@ namespace adnetcdf {
         std::optional< test_scan_function > scan_function_;
         std::optional< experiment_type > is_centroid_;
         std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds> tp_inject_;
+        std::shared_ptr< DataReader > dataReader_;
+        std::mutex mutex_;
 
         // ANDI/MS
         template< data_name_t N, typename T >
@@ -242,6 +245,7 @@ namespace adnetcdf {
         }
 
         void getTIC( adcontrols::Chromatogram& tic ) {
+            ADDEBUG() << "##### \tgetTIC";
             tic.resize( data_.size() );
             for ( size_t i = 0; i < data_.size(); ++i ) {
                 tic.setTime( i, std::get< scan_acquisition_time > ( data_[i] ) );
@@ -273,6 +277,15 @@ namespace adnetcdf {
                     map[ j ].second.emplace_back( intensities[ i * nChannels + j ] );
             }
             return map;
+        }
+
+        std::shared_ptr< adcontrols::DataReader > dataReader( const AndiMS * p ) {
+            if ( not dataReader_ ) {
+                std::unique_lock lock( mutex_ );
+                if ( not dataReader_ )
+                    dataReader_ = std::make_shared< DataReader >( "AndiMS", p->shared_from_this() );
+            }
+            return dataReader_;
         }
 
     };
@@ -472,6 +485,8 @@ const adcontrols::DataReader *
 AndiMS::dataReader( size_t idx ) const
 {
     ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << idx;
+    if ( idx == 0 )
+        return impl_->dataReader( this ).get();
     return nullptr;
 }
 
@@ -479,15 +494,14 @@ const adcontrols::DataReader *
 AndiMS::dataReader( const boost::uuids::uuid& uuid ) const
 {
     ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << uuid;
-    return nullptr;
+    return impl_->dataReader( this ).get();
 }
 
 std::vector < std::shared_ptr< adcontrols::DataReader > >
 AndiMS::dataReaders( bool allPossible ) const
 {
     try {
-        auto reader = std::make_shared< DataReader >( "AndiMS", this->shared_from_this() );
-        return std::vector < std::shared_ptr< adcontrols::DataReader > >{ reader };
+        return std::vector < std::shared_ptr< adcontrols::DataReader > >{ impl_->dataReader( this ) };
     } catch ( std::exception& ex ) {
         ADDEBUG() << "## Exception: " << ex.what();
     }

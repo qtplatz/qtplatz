@@ -32,6 +32,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adplot/constants.hpp>
 #include <adportable/debug.hpp>
+#include <boost/format.hpp>
 
 namespace chromatogr {
 
@@ -182,9 +183,11 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
 
     for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
         if ( auto display_name = c.display_name() ){
-            it->setName( *display_name + " (" + std::to_string( 1 + std::distance( peaks_.begin(), it ) ) + ")");
+            it->setName( *display_name + (boost::format(", %.1f s") % it->peakTime() ).str() );
+            //it->setName( *display_name + " (" + std::to_string( 1 + std::distance( peaks_.begin(), it ) ) + ")");
         } else {
-            it->setName( std::to_string( 1 + std::distance( peaks_.begin(), it ) ) );
+            it->setName( *display_name + (boost::format("%.1f s") % it->peakTime() ).str() );
+            // it->setName( std::to_string( 1 + std::distance( peaks_.begin(), it ) ) );
         }
     }
 

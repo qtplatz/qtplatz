@@ -444,7 +444,7 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     adcontrols::CentroidProcess peak_detector;
     bool result = false;
 
-    if ( profile.isCentroid() ) {
+    if ( profile.isCentroid() && not profile.isHistogram() ) {
         centroid = profile;
         for ( size_t i = 0; i < centroid.size(); ++i ) {
             adcontrols::MSPeakInfoItem item{};

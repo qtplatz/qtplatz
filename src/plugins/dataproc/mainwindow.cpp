@@ -1298,7 +1298,7 @@ MainWindow::handleProcessChecked()
 void
 MainWindow::handleExportPeakList()
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+    // ADDEBUG() << "## " << __FUNCTION__ << " ##";
     QFileDialog dlg( this, tr( "Save peak list for all checked spectra/chromatograms") );
     //dlg.setDirectory( currentDir() );
     dlg.setDirectory( document::instance()->recentFile( Constants::GRP_EXPORT_FILES ) );
@@ -1328,7 +1328,8 @@ MainWindow::handleExportPeakList()
     if ( std::filesystem::exists( path ) ) {
         std::error_code ec;
         if ( !std::filesystem::remove( path,ec ) ) {
-            QMessageBox::critical( this, "QtPlatz::dataproc::mainwindow", QString("Cannot delete existing file: %1").arg( path.string().c_str() ) );
+            QMessageBox::critical( this, "QtPlatz::dataproc::mainwindow"
+                                   , QString("Cannot delete existing file: %1").arg( path.string().c_str() ) );
             return;
         }
     }
