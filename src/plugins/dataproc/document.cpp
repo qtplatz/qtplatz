@@ -527,12 +527,9 @@ document::onSelectSpectrum_v3( Dataprocessor * dp, double /*time*/, adcontrols::
 {
     using adcontrols::DataReader;
 
-    ADDEBUG() << "======================= " << __FUNCTION__ << " ================== iterator = " << iterator->pos() << ", " << iterator.dataReader().get();
-
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
 
-        ADDEBUG() << "======================= " << __FUNCTION__ << " found reader =================";
         if ( auto ms = reader->readSpectrum( iterator ) ) {
             std::ostringstream text;
             if ( iterator._fcn() < 0 ) {

@@ -226,7 +226,11 @@ DataReader::epoch_time( int64_t rowid ) const
 double
 DataReader::time_since_inject( int64_t rowid ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== rowid = " << rowid;
+    // ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== rowid = " << rowid;
+    if ( 0 <= rowid && rowid < impl_->cdf_->data().size() ) {
+        const auto& datum = impl_->cdf_->data()[ rowid ];
+        return std::get< scan_acquisition_time >( datum );
+    }
     return -1;
 }
 
