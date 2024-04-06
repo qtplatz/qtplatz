@@ -109,6 +109,7 @@ namespace {
                 std::get< DERIVERTIVE1 >( d_[ posc_ ] ) =
                     sgfilter_( [&]( size_t i ){ return std::get< RAW_INTENSITY >( d_[ i ] );}, posc_ );
             }
+            // ADDEBUG() << d_.back();
             return *this;
         }
         bool isCounting() const { return isCounting_; }
@@ -355,7 +356,8 @@ void
 Integrator::operator << ( std::pair<double, double>&& data )
 {
     (*impl_->signal_processor_) << std::move( data );
-    double df1 = impl_->signal_processor_->pos_c() ? signal_processor::d1( impl_->signal_processor_->at( impl_->signal_processor_->pos_c() ) ) : 0;
+    double df1 = impl_->signal_processor_->pos_c() ?
+        signal_processor::d1( impl_->signal_processor_->at( impl_->signal_processor_->pos_c() ) ) : 0;
     impl_->update_mw();
     impl_->pkfind( impl_->pos_c(), df1, 0 );
 }

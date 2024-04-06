@@ -74,9 +74,9 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         hasTime = true;
         hasMass = true;
     }
+    ADDEBUG() << __FUNCTION__ << "\t" << name << ", " << std::make_pair(hasTime, hasMass);
 
     // auto tp0 = std::chrono::steady_clock::now();
-#if 1
     // x3 parser load duration 20.5ms for 11478 lines on core i7 linux
     txt_reader::data_type tdata;
     auto flags = txt_reader().load( in
@@ -88,7 +88,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                     , isCentroid );
     auto data = txt_reader().make_legacy( tdata, flags );
     const size_t nSamples = tdata.size();
-#else
+#if 0
     // tokenizer load duration 75.2ms for 11478 lines on core i7 linux
     txt_tokenizer::data_type data;
     auto flags = txt_tokenizer().load( in

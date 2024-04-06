@@ -131,7 +131,7 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
     if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
         integrator.minimum_width( method_.minimumWidth() ); // sec
     } else {
-        integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
+        integrator.minimum_width( method_.minimumWidth() / 60.0 ); // sec -> min (method is in seconds)
     }
 
     integrator.slope_sensitivity( method_.slope() );  // uV/sec -> uV/sec
@@ -152,12 +152,10 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
         }
 
     } else {
-
-        const double * y = c.getIntensityArray();
-        const double * x = c.getTimeArray();
         for ( size_t i = 0; i < c.size(); ++i ) {
-            progress( *x, integrator );
-            integrator << std::make_pair( *x++, *y++ );
+            auto d = c.datum( i );
+            progress( d.first, integrator );
+            integrator << std::move( d );
         }
     }
 

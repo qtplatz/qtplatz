@@ -48,7 +48,7 @@ txt_reader::load( std::ifstream& istrm
                   , bool isCentroid ) const
 {
     adportable::csv::csv_reader reader( std::move( istrm ) );
-    // reader.skip( skipLines );
+    reader.skip( skipLines );
 
     bool hasColor( false );
     size_t ncols = 1;
@@ -62,6 +62,12 @@ txt_reader::load( std::ifstream& istrm
     adportable::csv::list_type list;
     size_t row( 0 );
     while ( reader.read( list ) ) {
+
+        if ( list[0].which() == 1 && boost::get< std::string >(list[0]).find("##") != std::string::npos )
+            break;
+
+        ADDEBUG() << list[0] << "\t" << adportable::csv::to_tuple<double,double>( list );
+
         for ( const auto& idx: ignColumns ) {
             list.erase( list.begin() + idx );
         }
@@ -72,24 +78,27 @@ txt_reader::load( std::ifstream& istrm
             }
         }
         switch( ncols ) {
-        case 2: {
-            auto datum = adportable::csv::to_tuple< double, double >( list );
-            if ( hasTime ) {
-                data.emplace_back( std::get<0>(datum),    0, std::get<1>(datum), 0 ); // time, intensity
-            } else {
-                data.emplace_back( 0,    std::get<0>(datum), std::get<1>(datum), 0 ); // mass, intensity
-            }
-        }
+        case 2:
+            do {
+                auto datum = adportable::csv::to_tuple< double, double >( list );
+                if ( hasTime ) {
+                    data.emplace_back( std::get<0>(datum),    0, std::get<1>(datum), 0 ); // time, intensity
+                } else {
+                    data.emplace_back( 0,    std::get<0>(datum), std::get<1>(datum), 0 ); // mass, intensity
+                }
+            } while ( 0 );
             break;
-        case 3:  {
-            auto datum = adportable::csv::to_tuple< double, double, double >( list ); // time, mass, intensity
-            data.emplace_back( std::get<0>(datum), std::get<1>(datum), std::get<2>( datum ), 0 );
-        }
+        case 3:
+            do {
+                auto datum = adportable::csv::to_tuple< double, double, double >( list ); // time, mass, intensity
+                data.emplace_back( std::get<0>(datum), std::get<1>(datum), std::get<2>( datum ), 0 );
+            } while ( 0 );
             break;
-        case 4:  {
-            auto datum = adportable::csv::to_tuple< double, double, double, int >( list );
-            data.emplace_back( datum );
-        }
+        case 4:
+            do {
+                auto datum = adportable::csv::to_tuple< double, double, double, int >( list );
+                data.emplace_back( datum );
+            } while ( 0 );
             break;
         } // switch
     }

@@ -28,6 +28,7 @@ SOFTWARE.
 //#if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
 
 #include "adportable_global.h"
+#include "debug.hpp"
 #include <boost/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <memory>
@@ -65,18 +66,21 @@ namespace adportable {
         // convert list_type to fully typed tuple
         // type T must be POD type (std::string is not a POD type though, it is supported)
 
-        template< typename A >
-        struct to_zero { to_zero( const A& ){}; template< typename T > operator T (){ return {}; } };
+        template< typename T >
+        struct to_value {
+            template< typename V > T operator()( const V& v ) const { return v; }
+        };
+        // std::string
+        template<> template<typename V> std::string to_value<std::string>::operator()(const V& v) const { return std::to_string( v ); }
+        // int|double
+        template<> template<> int to_value<int>::operator()(const std::string& v) const { try { return stoi(v); } catch ( ... ){}; return {}; }
+        template<> template<> double to_value<double>::operator()(const std::string& v) const { try { return stod(v); } catch ( ... ){}; return {}; }
 
+        // visitor
         template< typename T >
         struct value_to : boost::static_visitor < T > {
             T operator()( const boost::spirit::x3::unused_type& v ) const { return {}; }
-            template<typename V> T operator()( V& v ) const {
-                return std::conditional_t< std::is_same< T, std::string >::value, to_zero<V>, T >( v );
-            }
-            T operator()( const std::string& v ) const { // if requested type is string, and value is string too
-                return std::conditional_t< std::is_same< T, std::string >::value, std::string, to_zero<std::string> >( v );
-            }
+            template<typename V> T operator()( V& v ) const {  return to_value< T >()( v ); }
         };
 
         template< typename Tuple, std::size_t... Is>

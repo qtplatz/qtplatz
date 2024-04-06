@@ -530,10 +530,23 @@ Chromatogram::intensity( size_t idx ) const
     return pImpl_->dataArray_[ idx ];
 }
 
+std::pair< double, double >
+Chromatogram::datum( size_t idx ) const
+{
+    return { pImpl_->timeArray_[ idx ], pImpl_->dataArray_[ idx ] };
+}
+
 void
 Chromatogram::setIntensity( size_t idx, double d )
 {
     pImpl_->setData( idx, d );
+}
+
+void
+Chromatogram::setDatum( size_t idx, std::pair< double, double >&& d )
+{
+    pImpl_->setTime( idx, std::get<0>(d) );
+    pImpl_->setData( idx, std::get<1>(d) );
 }
 
 void

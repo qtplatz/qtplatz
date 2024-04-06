@@ -139,8 +139,10 @@ namespace adcontrols {
 
         double time( size_t idx ) const;
         double intensity( size_t idx ) const;
+        std::pair< double, double > datum( size_t idx ) const;
         void setIntensity( size_t idx, double );
         void setTime( size_t idx, double );
+        void setDatum( size_t idx, std::pair< double, double >&& );
         void setIntensityArray( const double *, size_t sz );
         void setTimeArray( const double *, size_t sz );
         void addEvent( const Event& );

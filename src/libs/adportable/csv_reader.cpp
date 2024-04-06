@@ -2,7 +2,7 @@
 /**************************************************************************
 **
 ** MIT License
-** Copyright (c) 2021-2022 Toshinobu Hondo, Ph.D
+** Copyright (c) 2021-2024 Toshinobu Hondo, Ph.D
 
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ SOFTWARE.
 // #if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
 
 #include "csv_reader.hpp"
+#include "debug.hpp"
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/variant.hpp>
@@ -53,7 +54,7 @@ namespace adportable {
         auto const quoted_string = x3::lexeme['"' >> +(x3::char_ - '"') >> '"'];
         auto const unquoted_string = *~x3::char_(",\n\t");
         static inline auto csv_parser() {
-            auto delim = ( x3::char_(",\t ") >> *(x3::char_("\t ")) );
+            auto delim = ( x3::char_(",\t ") >> *(x3::char_(" ")) );
             return
                 ( quoted_string
                   | unquoted_string

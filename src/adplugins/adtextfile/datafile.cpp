@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -54,6 +54,7 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adlog/logger.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <QApplication>
 #include <QMessageBox>
 #include <boost/any.hpp>
@@ -129,6 +130,8 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
+    ADDEBUG() << "============== datafile::open(" << filename << ") ===============";
+
     Dialog dlg;
 
     QStringList models;
@@ -151,9 +154,11 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         dlg.setDataType( Dialog::data_spectrum );
     }
 
+    ADDEBUG() << "============== datafile::open(" << filename << ") ifstream";
     std::ifstream in( path );
     if ( in.fail() ) {
-        QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
+        QMessageBox::information(0, "Text file provider"
+                                 , QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
         return false;
     }
 
@@ -162,7 +167,8 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     separator sep( ", \t", "", boost::drop_empty_tokens );
     std::string line;
     size_t nlines = 50;
-    while ( nlines-- && adportable::textfile::getline( in, line ) ) {
+    while ( nlines--  && adportable::textfile::getline( in, line ) && in.good() ) {
+        ADDEBUG() << line << "\teof=" << in.eof() << ", " << in.fail();
         tokenizer tokens( line, sep );
         QStringList list;
         for ( tokenizer::iterator it = tokens.begin(); it != tokens.end(); ++it )
@@ -175,6 +181,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     if ( dlg.exec() ) {
 
+        //qtwrapper::waitCursor wait;
         QApplication::changeOverrideCursor( Qt::WaitCursor );
 
         if ( dlg.hasScanLaw() ) {

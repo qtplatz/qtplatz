@@ -750,7 +750,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         }
     }
 
-    ADDEBUG() << __FUNCTION__ << ", autoAnnotation: " << impl_->autoAnnotation_ << ", axis: " << axis << ", annotation.size:" << ptr->annotations().size();
+    // ADDEBUG() << __FUNCTION__ << ", autoAnnotation: " << impl_->autoAnnotation_ << ", axis: " << axis << ", annotation.size:" << ptr->annotations().size();
 
     // take annotation on last drawn spectrum, which has annotations
     //if ( ! ptr->annotations().empty() ) {

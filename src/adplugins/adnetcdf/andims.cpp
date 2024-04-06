@@ -214,11 +214,13 @@ namespace adnetcdf {
                     auto chro = std::make_shared< adcontrols::Chromatogram >();
                     chro->resize( data_.size() );
                     for ( size_t i = 0; i < chro->size(); ++i ) {
-                        chro->setTime( i, std::get< scan_acquisition_time >( data_[i] ) );
-                        chro->setIntensity( i, values[ i ] );
+                        chro->setDatum( i, { std::get< scan_acquisition_time >( data_[i] ), values[i] } );
+                        // ADDEBUG() << chro->datum( i );
                     }
                     chro->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
                     chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
+                    chro->setIsConstantSampledData( false );
+
                     auto pol = ( ion_polarity_ ?
                                  *ion_polarity_ == Negative_Polarity ? "neg" :
                                  *ion_polarity_ == Positive_Polarity ? "pos" : "" : "");

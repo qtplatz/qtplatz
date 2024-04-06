@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -59,13 +59,14 @@ const char *
 datafile_factory::mimeTypes() const
 {
 	return
-"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>\n\
-  <mime-type type=\"application/csv\">\n\
-    <sub-class-of type=\"application/octet-stream\"/>\n\
-	<comment>Comma separated time, mass, intensity file</comment>\n\
-    <glob pattern=\"*.csv\"/>\n\
-  </mime-type>\n\
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>\n \
+  <mime-type type=\"application/csv\">\n                                \
+    <sub-class-of type=\"application/octet-stream\"/>\n                 \
+	<comment>Comma separated time, mass, intensity file</comment>\n     \
+    <glob pattern=\"*.csv\"/>\n                                         \
+    <glob pattern=\"*.jdx\"/>\n                                         \
+  </mime-type>\n                                                        \
   </mime-info>\n";
 }
 
@@ -79,7 +80,9 @@ bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
     std::filesystem::path path(filename);
-	return ( path.extension() == L".txt" || path.extension() == L".csv" ) && ( mode = adcontrols::read_access );
+	return ( path.extension() == L".txt" ||
+             path.extension() == L".csv" ||
+             path.extension() == L".jdx" ) && ( mode = adcontrols::read_access );
 }
 
 adcontrols::datafile *
