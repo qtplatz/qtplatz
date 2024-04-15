@@ -33,10 +33,15 @@
 #include <string>
 #include <vector>
 
-namespace RDKit {
-    class SDMolSupplier;
-    class ROMol;
-}
+#if HAVE_RDKit
+#include <GraphMol/RDKitBase.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
+#endif
+
+// namespace RDKit {
+//     class SDMolSupplier;
+//     class ROMol;
+// }
 
 namespace adchem {
 

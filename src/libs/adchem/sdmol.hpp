@@ -34,10 +34,6 @@
 #include <vector>
 #include <GraphMol/ROMol.h>
 
-namespace RDKit {
-    class SDMolSupplier;
-}
-
 namespace adchem {
 
     class SDFile;

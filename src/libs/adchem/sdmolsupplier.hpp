@@ -30,7 +30,9 @@
 #include <iterator>
 
 #if HAVE_RDKit
-namespace RDKit { class SDMolSupplier; class ROMol; }
+#include <GraphMol/RDKitBase.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
+// namespace RDKit { class SDMolSupplier; class ROMol; }
 #endif
 
 namespace adchem {
