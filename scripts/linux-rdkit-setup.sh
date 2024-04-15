@@ -9,6 +9,7 @@ cmake_args=()
 PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 PYTHON=$(python3 -c "import sys; print(sys.executable)")
+NUMPY_INCLUDE=$(python3 -c "import numpy; print(numpy.get_include())")
 
 arch=`uname`-`arch`
 __nproc nproc
@@ -51,6 +52,7 @@ if [ -z $cross_target ]; then
 					  "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
 					  "-DPYTHON_EXECUTABLE=${PYTHON}"
 					  "-DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE}"
+					  "-DPYTHON_NUMPY_INCLUDE_PATH=${NUMPY_INCLUDE}"
 					  "-DRDK_INSTALL_INTREE=OFF"
 					  "-DRDK_INSTALL_STATIC_LIBS=OFF"
 					  "-DBoost_NO_BOOST_CMAKE=ON"
