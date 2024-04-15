@@ -19,11 +19,11 @@ if ( NOT CMAKE_CROSSCOMPILING )
     add_subdirectory ( eventtool )
     add_subdirectory ( sdfview )
 
-    if ( HDF5_FOUND )
+    if ( HDF5_FOUND AND 0 )
       add_subdirectory ( counting )
     endif()
 
-    if ( OpenCV_FOUND AND HDF5_FOUND )
+    if ( OpenCV_FOUND AND HDF5_FOUND AND 0 )
       add_subdirectory ( counting2d )
     endif()
 

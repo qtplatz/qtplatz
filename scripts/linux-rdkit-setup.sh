@@ -57,6 +57,7 @@ if [ -z $cross_target ]; then
 					  "-DRDK_INSTALL_STATIC_LIBS=OFF"
 					  "-DBoost_NO_BOOST_CMAKE=ON"
 					  "-DRDK_BUILD_FREETYPE_SUPPORT=OFF"
+					  "-DRDK_BUILD_RPATH_SUPPORT=ON"
 					  "-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0"
 					)
 		if (( $nproc < 8 )); then
